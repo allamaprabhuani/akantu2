@@ -1,0 +1,93 @@
+/**
+ * @file   memory.hh
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @date   Tue Jun 15 09:30:23 2010
+ *
+ * @brief  wrapper for the static_memory, all object which wants
+ * to access the ststic_memory as to inherit from the class memory
+ *
+ * @section LICENSE
+ *
+ * <insert lisence here>
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+#ifndef __MYFEM_MEMORY_HH__
+#define __MYFEM_MEMORY_HH__
+
+/* -------------------------------------------------------------------------- */
+#include "common.hh"
+#include "static_memory.hh"
+#include "vector.hh"
+
+/* -------------------------------------------------------------------------- */
+
+__BEGIN_MYFEM__
+
+
+class Memory {
+  /* ------------------------------------------------------------------------ */
+  /* Constructors/Destructors                                                 */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  Memory(MemoryID memory_id = 0);
+
+  virtual ~Memory() {};
+
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /// malloc
+  template<class T>
+  inline Vector<T> & malloc(const VectorID & name,
+			    unsigned int size,
+			    unsigned int nb_component);
+
+  /* ------------------------------------------------------------------------ */
+  /// free an array
+  inline void free(const VectorID & name);
+
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
+private:
+
+  /// the static memory instance
+  StaticMemory * static_memory;
+
+  /// the id registred in the static memory
+  MemoryID memory_id;
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+/* Inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+
+template<class T> inline Vector<T> & Memory::malloc(const VectorID & name,
+						    unsigned int size,
+						    unsigned int nb_component) {
+  return static_memory->smalloc<T>(memory_id, name,
+				   size, nb_component);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Memory::free(const VectorID & name) {
+  static_memory->sfree(memory_id, name);
+}
+
+/* -------------------------------------------------------------------------- */
+
+__END_MYFEM__
+
+#endif /* __MYFEM_MEMORY_HH__ */
