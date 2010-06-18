@@ -1,5 +1,5 @@
 /**
- * @file   error.hpp
+ * @file   error.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jun 14 11:43:22 2010
  *
@@ -11,15 +11,16 @@
  *
  */
 
-#ifndef __MYFEM_ERROR__
-#define __MYFEM_ERROR__
+/* -------------------------------------------------------------------------- */
+#ifndef __MYFEM_ERROR_HH__
+#define __MYFEM_ERROR_HH__
 
 /* -------------------------------------------------------------------------- */
 #include <ostream>
 #include <sstream>
 
 /* -------------------------------------------------------------------------- */
-#include "common.hpp"
+#include "common.hh"
 
 /* -------------------------------------------------------------------------- */
 __BEGIN_MYFEM__
@@ -115,7 +116,7 @@ enum DebugLevel {
   } while(0)
 #endif
 /* -------------------------------------------------------------------------- */
-#ifndef MYFEM_DEBUG
+#ifdef MYFEM_NDEBUG
 #define MYFEM_DEBUG_TEST(level)   (0)
 #define MYFEM_DEBUG(level,info)
 #define MYFEM_DEBUG_IN()
@@ -128,7 +129,7 @@ enum DebugLevel {
 #else
 #define MYFEM_DEBUG(level,info)						\
   ((myfem::_debug_level >= level) &&					\
-   (_myfem_debug_cout << info << MYFEM_LOCATION << std::endl))
+   (_myfem_debug_cout << info << " " << MYFEM_LOCATION << std::endl))
 
 #define MYFEM_DEBUG_TEST(level)			\
   (myfem::_debug_level >= (level))
@@ -148,7 +149,7 @@ enum DebugLevel {
 #define MYFEM_DEBUG_TRACE(info)				\
   MYFEM_DEBUG(myfem::dblTrace  , ">>> " << info)
 
-#define MYFEM_DEBUG_ASSERT(test,info)						\
+#define MYFEM_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
       _myfem_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ") "	\
@@ -174,4 +175,4 @@ enum DebugLevel {
 
 __END_MYFEM__
 
-#endif // __MYFEM_ERROR__
+#endif /* __MYFEM_ERROR_HH__ */

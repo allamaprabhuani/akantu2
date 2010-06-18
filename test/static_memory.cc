@@ -1,5 +1,5 @@
 /**
- * @file   test_static_memory.cpp
+ * @file   test/static_memory.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Jun 11 11:55:54 2010
  *
@@ -11,14 +11,22 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "static_memory.hpp"
+#include "static_memory.hh"
+#include "vector.hh"
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
   myfem::StaticMemory * st_mem = myfem::StaticMemory::getStaticMemory();
 
-  int * test_int = st_mem->smalloc_int(0, "test_int", 1000, 3);
+  myfem::Vector<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
 
+  test_int.resize(1050);
 
+  test_int.resize(2000);
 
+  std::cout << *st_mem << std::endl;
+
+  st_mem->sfree(0, "test_int");
+
+  exit(EXIT_SUCCESS);
 }

@@ -1,5 +1,5 @@
 /**
- * @file   array_info.hpp
+ * @file   array_info.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jun 14 17:58:46 2010
  *
@@ -11,12 +11,13 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
-#ifndef __MYFEM_ARRAY_INFO__
-#define __MYFEM_ARRAY_INFO__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hpp"
+#ifndef __MYFEM_ARRAY_INFO_HH__
+#define __MYFEM_ARRAY_INFO_HH__
+
+/* -------------------------------------------------------------------------- */
+#include "common.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -49,7 +50,7 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Accesors                                                                 */
+  /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   MYFEM_SET_MACRO(NbReservedTuples, nb_reserved_tuples, unsigned int);
@@ -67,6 +68,7 @@ public:
 
   MYFEM_GET_MACRO(Type, type, TypeCode);
 
+  /// get the size of memory allocated
   unsigned int getMemorySize() {
     return nb_reserved_tuples * nb_component * MYFEM_SIZEOF(type);
   }
@@ -97,4 +99,4 @@ private:
 
 __END_MYFEM__
 
-#endif // __MYFEM_ARRAY_INFO__
+#endif /* __MYFEM_ARRAY_INFO_HH__ */

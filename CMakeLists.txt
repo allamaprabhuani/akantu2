@@ -55,9 +55,12 @@ endif(NOT MYFEM_NO_LIBRARY_VERSION)
 # Library
 #===========================================================================
 
+#add_definitions(-DMYFEM_NDEBUG)
+
 set(MYFEM_COMMON_SRC
-  common/extern.cpp
-  common/static_memory.cpp
+  common/extern.cc
+  common/static_memory.cc
+  common/memory.cc
   )
 
 include_directories(
@@ -75,6 +78,6 @@ set_target_properties(myfem PROPERTIES ${MYFEM_LIBRARY_PROPERTIES})
 
 option(BUILD_UNIT_TEST "Build the unit test")
 if(BUILD_UNIT_TEST)
-  add_executable(test_static_memory test/test_static_memory.cpp)
+  add_executable(test_static_memory test/static_memory.cc)
   target_link_libraries(test_static_memory myfem)
 endif(BUILD_UNIT_TEST)

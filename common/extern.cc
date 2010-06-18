@@ -16,7 +16,7 @@
 #include <ostream>
 
 /* -------------------------------------------------------------------------- */
-#include "common.hpp"
+#include "common.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -36,21 +36,7 @@ std::ostream & _myfem_debug_cout = std::cerr;
 std::ostream & _myfem_cout = std::cout;
 
 /// debug level
-int _debug_level = 6;
-
-/* -------------------------------------------------------------------------- */
-/* common.hpp variables                                                       */
-/* -------------------------------------------------------------------------- */
-int SizeOfType[] = { sizeof(int),
-		     sizeof(unsigned int),
-		     sizeof(float),
-		     sizeof(double)};
-
-const char * TypeCodeName[] = { "int",
-				"unsigned short",
-				"unsigned int",
-				"float",
-				"double"};
+int _debug_level = 10;
 
 /* -------------------------------------------------------------------------- */
 

@@ -1,5 +1,5 @@
 /**
- * @file   common.cpp
+ * @file   common.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Jun 11 16:56:43 2010
  *
@@ -12,14 +12,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-int SizeOfType[] = { sizeof(int),
-		     sizeof(unsigned int),
-		     sizeof(float),
-		     sizeof(double)};
+#include "common.hh"
 
-const char * TypeCodeName[] = { "int",
-				"unsigned short",
-				"unsigned int",
-				"float",
-				"double"};
 /* -------------------------------------------------------------------------- */
