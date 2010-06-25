@@ -42,10 +42,10 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// read a mesh from the file
-  static virtual void read(const std::string & filename, const Mesh & mesh) = 0;
+  virtual void read(const std::string & filename, const Mesh & mesh) = 0;
 
   /// write a mesh to a file
-  static virtual void write(const std::string & filename, const Mesh & mesh) = 0;
+  virtual void write(const std::string & filename, const Mesh & mesh) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accesors                                                                 */

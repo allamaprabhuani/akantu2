@@ -17,6 +17,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "common.hh"
+#include "memory.hh"
+#include "vector.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -27,7 +29,8 @@ enum ElementType {
   _triangle_1   = 1,
   _triangle_2   = 2,
   _tetrahedra_1 = 3,
-  _tetrahedra_2 = 4
+  _tetrahedra_2 = 4,
+  _max_element_type
 };
 
 /* -------------------------------------------------------------------------- */
@@ -95,10 +98,10 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
   switch(type)
     {
-    case _triangle_first_order    : stream << "triangle_first_order"    << break;
-    case _triangle_second_order	  : stream << "triangle_second_order"   << break;
-    case _tetrahedra_first_order  : stream << "tetrahedra_first_order"  << break;
-    case _tetrahedra_second_order : stream << "tetrahedra_second_order" << break;
+    case _triangle_1   : stream << "triangle 1st order"  ; break;
+    case _triangle_2   : stream << "triangle 2nd order"  ; break;
+    case _tetrahedra_1 : stream << "tetrahedra 1st order"; break;
+    case _tetrahedra_2 : stream << "tetrahedra 2nd order"; break;
     default : stream << "unknown ElementType (" << type << ")"; break;
     }
   return stream;

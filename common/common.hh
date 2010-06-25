@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <exception>
+#include <map>
 
 /* -------------------------------------------------------------------------- */
 #include <cstdlib>
@@ -54,6 +55,8 @@ __END_MYFEM__
 #define MYFEM_MIN_ALLOCATION 2000
 
 #define MYFEM_INDENT " "
+
+#define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
 /* -------------------------------------------------------------------------- */
 #define MYFEM_SET_MACRO(name, variable, type)	\

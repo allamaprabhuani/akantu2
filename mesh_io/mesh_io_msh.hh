@@ -23,6 +23,7 @@
 
 __BEGIN_MYFEM__
 
+
 class MeshIOMSH {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -41,10 +42,10 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// read a mesh from the file
-  static virtual void read(const std::string & filename, const Mesh & mesh);
+  virtual void read(const std::string & filename, const Mesh & mesh);
 
   /// write a mesh to a file
-  static virtual void write(const std::string & filename, const Mesh & mesh);
+  virtual void write(const std::string & filename, const Mesh & mesh);
 
   /* ------------------------------------------------------------------------ */
   /* Accesors                                                                 */
@@ -56,6 +57,39 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
+  /// MSH element types
+  enum MSHElementType {
+    _msh_not_defined   = 0,
+    _msh_line_1        = 1,   // 2-node line.
+    _msh_triangle_1    = 2,   // 3-node triangle.
+    _msh_quadrangle_1  = 3,   // 4-node quadrangle.
+    _msh_tetrahedron_1 = 4,   // 4-node tetrahedron.
+    _msh_hexaedron_1   = 5,   // 8-node hexahedron.
+    _msh_prism_1       = 6,   // 6-node prism.
+    _msh_pyramid_1     = 7,   // 5-node pyramid.
+    _msh_line_2        = 8,   // 3-node second order line
+    _msh_triangle_2    = 9,   // 6-node second order triangle
+    _msh_quadrangle_2  = 10,  // 9-node second order quadrangle
+    _msh_tetrahedron_2 = 11,  // 10-node second order tetrahedron
+    _msh_hexaedron_2   = 12,  // 27-node second order hexahedron
+    _msh_prism_2       = 13,  // 18-node second order prism
+    _msh_pyramid_2     = 14,  // 14-node second order pyramid
+    _msh_point         = 15   // 1-node point.
+  };
+
+
+  /// order in witch element as to be read
+  static unsigned int _read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT];
+
+  /// number of nodes per msh element
+  static unsigned int _msh_nodes_per_elem[16]; // 16 = number of recognized
+                                               // msh element types +1 (for 0)
+
+  /// correspondance between msh element types and myfem element types
+  static ElementType _msh_to_myfem_element_types[16];
+
+  /// correspondance between myfem element types and msh element types
+  static MSHElementType _myfem_to_msh_element_types[_max_element_type];
 };
 
 

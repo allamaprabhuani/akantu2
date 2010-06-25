@@ -16,9 +16,13 @@
 
 /* -------------------------------------------------------------------------- */
 
-Mesh::Mesh(MemoryID memory_id, unsigned int spatial_dimension) :
+__BEGIN_MYFEM__
+
+Mesh::Mesh(unsigned int spatial_dimension, MemoryID memory_id) :
   Memory(memory_id) {
 
+  this->spatial_dimension = spatial_dimension;
   nodes = NULL;
-
 }
+
+__END_MYFEM__

@@ -61,10 +61,14 @@ set(MYFEM_COMMON_SRC
   common/extern.cc
   common/static_memory.cc
   common/memory.cc
+  fem/mesh.cc
+  mesh_io/mesh_io_msh.cc
   )
 
 include_directories(
   common
+  fem/
+  mesh_io/
   )
 
 add_library(myfem ${MYFEM_COMMON_SRC})
