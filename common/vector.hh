@@ -13,8 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __MYFEM_VECTOR_HH__
-#define __MYFEM_VECTOR_HH__
+#ifndef __AKANTU_VECTOR_HH__
+#define __AKANTU_VECTOR_HH__
 
 /* -------------------------------------------------------------------------- */
 #include <typeinfo>
@@ -24,7 +24,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 /// class that afford to store vectors in static memory
 class VectorBase {
@@ -50,11 +50,11 @@ public:
   /* Accesors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MYFEM_GET_MACRO(AllocatedSize, allocated_size, unsigned int);
+  AKANTU_GET_MACRO(AllocatedSize, allocated_size, unsigned int);
 
-  MYFEM_GET_MACRO(Size, size, unsigned int);
+  AKANTU_GET_MACRO(Size, size, unsigned int);
 
-  MYFEM_GET_MACRO(NbComponent, nb_component, unsigned int);
+  AKANTU_GET_MACRO(NbComponent, nb_component, unsigned int);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -130,13 +130,13 @@ template <class T> Vector<T>::Vector (unsigned int size,
 				      const VectorID & id) {
   this->id = id;
   values = static_cast<T*>(malloc(nb_component * size * sizeof(T)));
-  MYFEM_DEBUG_ASSERT(values != NULL,
+  AKANTU_DEBUG_ASSERT(values != NULL,
 		     "Cannot allocate " << nb_component * size * sizeof(T) << " bytes");
 
   if (values == NULL) {
     this->size = this->allocated_size = 0;
   } else {
-    MYFEM_DEBUG_INFO("Allocated " << size * nb_component * sizeof(T) << " bytes");
+    AKANTU_DEBUG_INFO("Allocated " << size * nb_component * sizeof(T) << " bytes");
     this->size = this->allocated_size = size;
   }
 
@@ -153,10 +153,10 @@ template <class T> Vector<T>::~Vector () {
 /* -------------------------------------------------------------------------- */
 
 template <class T> void Vector<T>::resize (unsigned int new_size) {
-  MYFEM_DEBUG_IN();
+  AKANTU_DEBUG_IN();
   if(new_size <= allocated_size) {
-    if(allocated_size - new_size > MYFEM_MIN_ALLOCATION) {
-      MYFEM_DEBUG_INFO("Freeing " << (allocated_size - size)*nb_component*sizeof(T) << " bytes");
+    if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
+      AKANTU_DEBUG_INFO("Freeing " << (allocated_size - size)*nb_component*sizeof(T) << " bytes");
 
       /// Normally there are no allocation problem when reducing an array
       values = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));
@@ -164,19 +164,19 @@ template <class T> void Vector<T>::resize (unsigned int new_size) {
     }
 
     size = new_size;
-    MYFEM_DEBUG_OUT();
+    AKANTU_DEBUG_OUT();
     return;
   }
 
-  unsigned int size_to_alloc = (new_size - allocated_size < MYFEM_MIN_ALLOCATION) ?
-    allocated_size + MYFEM_MIN_ALLOCATION : new_size;
+  unsigned int size_to_alloc = (new_size - allocated_size < AKANTU_MIN_ALLOCATION) ?
+    allocated_size + AKANTU_MIN_ALLOCATION : new_size;
 
   T *tmp_ptr = static_cast<T*>(realloc(values, size_to_alloc * nb_component * sizeof(T)));
-  MYFEM_DEBUG_ASSERT(tmp_ptr != NULL,
+  AKANTU_DEBUG_ASSERT(tmp_ptr != NULL,
 		     "Cannot allocate " << size_to_alloc * nb_component * sizeof(T) << " bytes");
   if (!tmp_ptr) return;
 
-  MYFEM_DEBUG_INFO("Allocating " << (size_to_alloc - allocated_size)*nb_component*sizeof(T) << " bytes");
+  AKANTU_DEBUG_INFO("Allocating " << (size_to_alloc - allocated_size)*nb_component*sizeof(T) << " bytes");
 
   allocated_size = size_to_alloc;
   size = new_size;
@@ -185,7 +185,7 @@ template <class T> void Vector<T>::resize (unsigned int new_size) {
 /* -------------------------------------------------------------------------- */
 template <class T> void Vector<T>::printself(std::ostream & stream, int indent) const {
   std::string space;
-  for(int i = 0; i < indent; i++, space += MYFEM_INDENT);
+  for(int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   int size = allocated_size * nb_component * size_of_type;
 
@@ -224,7 +224,7 @@ inline std::ostream & operator<<(std::ostream & stream, const VectorBase & _this
 
 
 
-__END_MYFEM__
+__END_AKANTU__
 
 
-#endif /* __MYFEM_VECTOR_HH__ */
+#endif /* __AKANTU_VECTOR_HH__ */

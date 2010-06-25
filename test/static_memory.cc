@@ -16,9 +16,9 @@
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
-  myfem::StaticMemory * st_mem = myfem::StaticMemory::getStaticMemory();
+  akantu::StaticMemory * st_mem = akantu::StaticMemory::getStaticMemory();
 
-  myfem::Vector<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
+  akantu::Vector<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
 
   test_int.resize(1050);
 

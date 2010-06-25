@@ -130,7 +130,7 @@
 /* -------------------------------------------------------------------------- */
 
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 unsigned int MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] = {
@@ -147,7 +147,7 @@ unsigned int MeshIOMSH::_msh_nodes_per_elem[16] =
     3, 6, 9, 10, 27, 18, 14, // 2st order
     1 };
 
-ElementType MeshIOMSH::_msh_to_myfem_element_types[16] =
+ElementType MeshIOMSH::_msh_to_akantu_element_types[16] =
   { _not_defined, // element types began at 1
     _not_defined, _triangle_1,  _not_defined, _tetrahedra_1,
     _not_defined, _not_defined, _not_defined,            // 1st order
@@ -155,7 +155,7 @@ ElementType MeshIOMSH::_msh_to_myfem_element_types[16] =
     _not_defined, _not_defined, _not_defined,            // 2nd order
     _not_defined };
 
-MeshIOMSH::MSHElementType MeshIOMSH::_myfem_to_msh_element_types[_max_element_type
+MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type
 ] =
   { _msh_not_defined,   // _not_defined
     _msh_triangle_1,    // _triangle_1
@@ -176,7 +176,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 
 
   if(!infile.good()) {
-    MYFEM_DEBUG_ERROR("Canot open file " << filename);
+    AKANTU_DEBUG_ERROR("Canot open file " << filename);
   }
 
   while(infile.good()) {
@@ -237,7 +237,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 
       int index;
       unsigned int msh_type;
-      ElementType myfem_type, myfem_type_old = _not_defined;
+      ElementType akantu_type, akantu_type_old = _not_defined;
       Vector<int> *connectivity = NULL;
       unsigned int nb_elements_read = 0;
 
@@ -250,17 +250,17 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 	sstr >> msh_type;
 
 	/// get the connectivity vector depending on the element type
-	myfem_type = _msh_to_myfem_element_types[msh_type];
+	akantu_type = _msh_to_akantu_element_types[msh_type];
 
-	if(myfem_type == _not_defined) continue;
+	if(akantu_type == _not_defined) continue;
 
-	if(myfem_type != myfem_type_old) {
+	if(akantu_type != akantu_type_old) {
 	  if(connectivity)
 	    connectivity->resize(nb_elements_read);
 
-	  connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(myfem_type, nb_elements));
+	  connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(akantu_type, nb_elements));
 	  connectivity->resize(nb_elements);
-	  myfem_type_old = myfem_type;
+	  akantu_type_old = akantu_type;
 	  nb_elements_read = 0;
 	}
 
@@ -285,11 +285,11 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 	  unsigned int index;
 	  sstr >> index;
 
-	  MYFEM_DEBUG_ASSERT(index <= last_node_number,
+	  AKANTU_DEBUG_ASSERT(index <= last_node_number,
 			     "Node number not in range : line " << current_line);
 
 	  index = index - first_node_number + 1;
-	  connectivity->values[offset + _read_order[myfem_type][j]] = index;
+	  connectivity->values[offset + _read_order[akantu_type][j]] = index;
 	}
 	nb_elements_read++;
       }
@@ -298,7 +298,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
     }
 
     if(line[0] == '$') {
-      MYFEM_DEBUG_WARNING("Unsuported block_kind " << line
+      AKANTU_DEBUG_WARNING("Unsuported block_kind " << line
 			  << " at line " << current_line);
     }
   }
@@ -345,7 +345,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   Mesh::ConnectivityMap::const_iterator it;
   int nb_elements = 0;
   for(it = connectivity_map.begin(); it != connectivity_map.end(); ++it) {
-    MSHElementType type = _myfem_to_msh_element_types[it->first];
+    MSHElementType type = _akantu_to_msh_element_types[it->first];
     Vector<int> & connectivity = *(it->second);
     nb_elements += connectivity.getSize();
   }
@@ -375,5 +375,5 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
 /* -------------------------------------------------------------------------- */
 
-__END_MYFEM__
+__END_AKANTU__
 

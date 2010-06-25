@@ -12,8 +12,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __MYFEM_ERROR_HH__
-#define __MYFEM_ERROR_HH__
+#ifndef __AKANTU_ERROR_HH__
+#define __AKANTU_ERROR_HH__
 
 /* -------------------------------------------------------------------------- */
 #include <ostream>
@@ -23,17 +23,17 @@
 #include "common.hh"
 
 /* -------------------------------------------------------------------------- */
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-extern std::ostream & _myfem_cout;
+extern std::ostream & _akantu_cout;
 
-extern std::ostream & _myfem_debug_cout;
+extern std::ostream & _akantu_debug_cout;
 
 extern int _debug_level;
 
 /* -------------------------------------------------------------------------- */
-/// exception class that can be thrown by myfem
+/// exception class that can be thrown by akantu
 class Exception : public std::exception {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -54,7 +54,7 @@ public:
 
   virtual const char* what() const throw() {
     std::stringstream stream;
-    stream << "myfem::Exception"
+    stream << "akantu::Exception"
 	   << " : " << _info
 	   << " ["  << _file << ":" << _line << "]";
     return stream.str().c_str();
@@ -105,66 +105,66 @@ enum DebugLevel {
 };
 
 
-#define MYFEM_LOCATION "(" <<__FILE__ << ":" << __LINE__ << ") "
-#ifndef MYFEM_MPI
-#define MYFEM_EXIT(status) exit(status)
+#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __LINE__ << ") "
+#ifndef AKANTU_MPI
+#define AKANTU_EXIT(status) exit(status)
 #else
-#define MYFEM_EXIT(status)			\
+#define AKANTU_EXIT(status)			\
   do {						\
     MPI_Finalize();				\
     exit(status);				\
   } while(0)
 #endif
 /* -------------------------------------------------------------------------- */
-#ifdef MYFEM_NDEBUG
-#define MYFEM_DEBUG_TEST(level)   (0)
-#define MYFEM_DEBUG(level,info)
-#define MYFEM_DEBUG_IN()
-#define MYFEM_DEBUG_OUT()
-#define MYFEM_DEBUG_INFO(info)
-#define MYFEM_DEBUG_WARNING(info)
-#define MYFEM_DEBUG_TRACE(info)
-#define MYFEM_DEBUG_ASSERT(test,info)
+#ifdef AKANTU_NDEBUG
+#define AKANTU_DEBUG_TEST(level)   (0)
+#define AKANTU_DEBUG(level,info)
+#define AKANTU_DEBUG_IN()
+#define AKANTU_DEBUG_OUT()
+#define AKANTU_DEBUG_INFO(info)
+#define AKANTU_DEBUG_WARNING(info)
+#define AKANTU_DEBUG_TRACE(info)
+#define AKANTU_DEBUG_ASSERT(test,info)
 /* -------------------------------------------------------------------------- */
 #else
-#define MYFEM_DEBUG(level,info)						\
-  ((myfem::_debug_level >= level) &&					\
-   (_myfem_debug_cout << info << " " << MYFEM_LOCATION << std::endl))
+#define AKANTU_DEBUG(level,info)						\
+  ((akantu::_debug_level >= level) &&					\
+   (_akantu_debug_cout << info << " " << AKANTU_LOCATION << std::endl))
 
-#define MYFEM_DEBUG_TEST(level)			\
-  (myfem::_debug_level >= (level))
+#define AKANTU_DEBUG_TEST(level)			\
+  (akantu::_debug_level >= (level))
 
-#define MYFEM_DEBUG_IN()					\
-  MYFEM_DEBUG(myfem::dblIn     , "==> " << __func__ << "()")
+#define AKANTU_DEBUG_IN()					\
+  AKANTU_DEBUG(akantu::dblIn     , "==> " << __func__ << "()")
 
-#define MYFEM_DEBUG_OUT()					\
-  MYFEM_DEBUG(myfem::dblOut    , "<== " << __func__ << "()")
+#define AKANTU_DEBUG_OUT()					\
+  AKANTU_DEBUG(akantu::dblOut    , "<== " << __func__ << "()")
 
-#define MYFEM_DEBUG_INFO(info)				\
-  MYFEM_DEBUG(myfem::dblInfo   , "--- " << info)
+#define AKANTU_DEBUG_INFO(info)				\
+  AKANTU_DEBUG(akantu::dblInfo   , "--- " << info)
 
-#define MYFEM_DEBUG_WARNING(info)			\
-  MYFEM_DEBUG(myfem::dblWarning, "??? " << info)
+#define AKANTU_DEBUG_WARNING(info)			\
+  AKANTU_DEBUG(akantu::dblWarning, "??? " << info)
 
-#define MYFEM_DEBUG_TRACE(info)				\
-  MYFEM_DEBUG(myfem::dblTrace  , ">>> " << info)
+#define AKANTU_DEBUG_TRACE(info)				\
+  AKANTU_DEBUG(akantu::dblTrace  , ">>> " << info)
 
-#define MYFEM_DEBUG_ASSERT(test,info)					\
+#define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
-      _myfem_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ") "	\
+      _akantu_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ") "	\
 			<< "assert [" << #test << "] "			\
 			<< "!!! " << info				\
 			<< std::endl;					\
-      MYFEM_EXIT(EXIT_FAILURE);						\
+      AKANTU_EXIT(EXIT_FAILURE);						\
     }									\
   } while(0)
 #endif
 
 /* -------------------------------------------------------------------------- */
-#define MYFEM_DEBUG_ERROR(info)						\
+#define AKANTU_DEBUG_ERROR(info)						\
   do {									\
-    MYFEM_DEBUG(myfem::dblError, "!!! " << info);			\
+    AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
     std::stringstream s_info;						\
     s_info << info ;							\
     Exception ex(s_info.str(), __FILE__, __LINE__ );			\
@@ -173,6 +173,6 @@ enum DebugLevel {
 
 /* -------------------------------------------------------------------------- */
 
-__END_MYFEM__
+__END_AKANTU__
 
-#endif /* __MYFEM_ERROR_HH__ */
+#endif /* __AKANTU_ERROR_HH__ */

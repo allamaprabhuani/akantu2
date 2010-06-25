@@ -15,8 +15,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __MYFEM_COMMON_HH__
-#define __MYFEM_COMMON_HH__
+#ifndef __AKANTU_COMMON_HH__
+#define __AKANTU_COMMON_HH__
 
 /* -------------------------------------------------------------------------- */
 #include <iostream>
@@ -28,15 +28,15 @@
 #include <cstdlib>
 
 /* -------------------------------------------------------------------------- */
-#define __BEGIN_MYFEM__ namespace myfem {
-#define __END_MYFEM__ };
+#define __BEGIN_AKANTU__ namespace akantu {
+#define __END_AKANTU__ };
 
 /* -------------------------------------------------------------------------- */
 #include "error.hh"
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 /* Memory types                                                               */
@@ -46,28 +46,28 @@ typedef unsigned int MemoryID;
 
 typedef std::string VectorID;
 
-__END_MYFEM__
+__END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 /* Global defines                                                             */
 /* -------------------------------------------------------------------------- */
 
-#define MYFEM_MIN_ALLOCATION 2000
+#define AKANTU_MIN_ALLOCATION 2000
 
-#define MYFEM_INDENT " "
+#define AKANTU_INDENT " "
 
 #define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
 /* -------------------------------------------------------------------------- */
-#define MYFEM_SET_MACRO(name, variable, type)	\
+#define AKANTU_SET_MACRO(name, variable, type)	\
   inline void set##name (type variable) {	\
     this->variable = variable;			\
   }
 
-#define MYFEM_GET_MACRO(name, variable, type)	\
+#define AKANTU_GET_MACRO(name, variable, type)	\
   inline const type get##name () const {	\
     return this->variable;			\
   }
 
 
-#endif /* __MYFEM_COMMON_HH__ */
+#endif /* __AKANTU_COMMON_HH__ */

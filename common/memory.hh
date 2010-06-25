@@ -13,8 +13,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __MYFEM_MEMORY_HH__
-#define __MYFEM_MEMORY_HH__
+#ifndef __AKANTU_MEMORY_HH__
+#define __AKANTU_MEMORY_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "common.hh"
@@ -23,7 +23,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 
 class Memory {
@@ -88,6 +88,6 @@ inline void Memory::free(const VectorID & name) {
 
 /* -------------------------------------------------------------------------- */
 
-__END_MYFEM__
+__END_AKANTU__
 
-#endif /* __MYFEM_MEMORY_HH__ */
+#endif /* __AKANTU_MEMORY_HH__ */

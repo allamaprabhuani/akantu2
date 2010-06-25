@@ -20,7 +20,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 /** \todo write function to get this
  *   values from the environment or a config file
@@ -30,14 +30,14 @@ __BEGIN_MYFEM__
 /* error.hpp variables                                                        */
 /* -------------------------------------------------------------------------- */
 /// standard output for debug messages
-std::ostream & _myfem_debug_cout = std::cerr;
+std::ostream & _akantu_debug_cout = std::cerr;
 
 /// standard output for normal messages
-std::ostream & _myfem_cout = std::cout;
+std::ostream & _akantu_cout = std::cout;
 
 /// debug level
 int _debug_level = 10;
 
 /* -------------------------------------------------------------------------- */
 
-__END_MYFEM__
+__END_AKANTU__

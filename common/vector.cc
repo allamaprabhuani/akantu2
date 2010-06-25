@@ -19,7 +19,7 @@
 
 void VectorBase::printself(std::ostream & stream, int indent) const {
   std::string space;
-  for(int i = 0; i < indent; i++, space += MYFEM_INDENT);
+  for(int i = 0; i < indent; i++, space += AKANTU_INDENT);
   stream << indent << "VectorBase [" << std::endl;
   stream << indent << " + nb tuples           : " << nb_tuples << std::endl;
   stream << indent << " + nb_component        : " << nb_component << std::endl;

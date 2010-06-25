@@ -13,15 +13,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __MYFEM_MESH_IO_MSH_HH__
-#define __MYFEM_MESH_IO_MSH_HH__
+#ifndef __AKANTU_MESH_IO_MSH_HH__
+#define __AKANTU_MESH_IO_MSH_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_io.hh"
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 
 class MeshIOMSH {
@@ -85,11 +85,11 @@ private:
   static unsigned int _msh_nodes_per_elem[16]; // 16 = number of recognized
                                                // msh element types +1 (for 0)
 
-  /// correspondance between msh element types and myfem element types
-  static ElementType _msh_to_myfem_element_types[16];
+  /// correspondance between msh element types and akantu element types
+  static ElementType _msh_to_akantu_element_types[16];
 
-  /// correspondance between myfem element types and msh element types
-  static MSHElementType _myfem_to_msh_element_types[_max_element_type];
+  /// correspondance between akantu element types and msh element types
+  static MSHElementType _akantu_to_msh_element_types[_max_element_type];
 };
 
 
@@ -104,6 +104,6 @@ inline std::ostream & operator <<(std::ostream & stream, const MeshIOMSH & _this
 }
 
 
-__END_MYFEM__
+__END_AKANTU__
 
-#endif /* __MYFEM_MESH_IO_MSH_HH__ */
+#endif /* __AKANTU_MESH_IO_MSH_HH__ */

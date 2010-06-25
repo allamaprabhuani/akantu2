@@ -17,8 +17,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __MYFEM_STATIC_MEMORY_HH__
-#define __MYFEM_STATIC_MEMORY_HH__
+#ifndef __AKANTU_STATIC_MEMORY_HH__
+#define __AKANTU_STATIC_MEMORY_HH__
 
 /* -------------------------------------------------------------------------- */
 #include <map>
@@ -28,7 +28,7 @@
 #include "vector.hh"
 
 /* -------------------------------------------------------------------------- */
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 typedef std::map<VectorID, VectorBase *> VectorMap;
 typedef std::map<MemoryID, VectorMap> MemoryMap;
@@ -118,32 +118,32 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 inline const VectorMap & StaticMemory::getMemory(const MemoryID & memory_id) const {
-  MYFEM_DEBUG_IN();
+  AKANTU_DEBUG_IN();
   MemoryMap::const_iterator memory_it;
   memory_it = memories.find(memory_id);
 
   if(memory_it == memories.end()) {
-    MYFEM_DEBUG_ERROR("StaticMemory as no memory with ID " << memory_id);
+    AKANTU_DEBUG_ERROR("StaticMemory as no memory with ID " << memory_id);
   }
-  MYFEM_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
   return memory_it->second;
 }
 
 /* -------------------------------------------------------------------------- */
 inline const VectorBase & StaticMemory::getVector(const MemoryID & memory_id,
 						  const VectorID & name) const {
-  MYFEM_DEBUG_IN();
+  AKANTU_DEBUG_IN();
 
   const VectorMap & vectors = getMemory(memory_id);
 
   VectorMap::const_iterator vectors_it;
   vectors_it = vectors.find(name);
   if(vectors_it == vectors.end()) {
-    MYFEM_DEBUG_ERROR("StaticMemory as no array named " << name
+    AKANTU_DEBUG_ERROR("StaticMemory as no array named " << name
 		      << " for the Memory " << memory_id);
   }
 
-  MYFEM_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
   return *(vectors_it->second);
 }
 
@@ -152,7 +152,7 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
 						       const VectorID & name,
 						       unsigned int size,
 						       unsigned int nb_component) {
-  MYFEM_DEBUG_IN();
+  AKANTU_DEBUG_IN();
 
   MemoryMap::iterator memory_it;
   memory_it = memories.find(memory_id);
@@ -163,12 +163,12 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
   }
 
   if((memory_it->second).find(name) != (memory_it->second).end()) {
-    MYFEM_DEBUG_ERROR("The vector " << name << " is already registred in the memory " << memory_id);
+    AKANTU_DEBUG_ERROR("The vector " << name << " is already registred in the memory " << memory_id);
   }
 
   (memory_it->second)[name] = new Vector<T>(size, nb_component, name);
 
-  MYFEM_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
   return static_cast<Vector<T> &>(*(memory_it->second)[name]);
 }
 
@@ -182,6 +182,6 @@ inline std::ostream & operator<<(std::ostream & stream, const StaticMemory & _th
 }
 
 
-__END_MYFEM__
+__END_AKANTU__
 
-#endif /* __MYFEM_STATIC_MEMORY_HH__ */
+#endif /* __AKANTU_STATIC_MEMORY_HH__ */

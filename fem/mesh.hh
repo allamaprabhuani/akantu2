@@ -12,8 +12,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __MYFEM_MESH_HH__
-#define __MYFEM_MESH_HH__
+#ifndef __AKANTU_MESH_HH__
+#define __AKANTU_MESH_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "common.hh"
@@ -22,7 +22,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 enum ElementType {
   _not_defined  = 0,
@@ -108,7 +108,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 }
 
 
-__END_MYFEM__
+__END_AKANTU__
 
 
-#endif /* __MYFEM_MESH_HH__ */
+#endif /* __AKANTU_MESH_HH__ */

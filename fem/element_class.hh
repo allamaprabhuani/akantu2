@@ -13,15 +13,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __MYFEM_ELEMENT_CLASS_HH__
-#define __MYFEM_ELEMENT_CLASS_HH__
+#ifndef __AKANTU_ELEMENT_CLASS_HH__
+#define __AKANTU_ELEMENT_CLASS_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "common.hh"
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 template<ElementType type> class ElementClass {
   /* ------------------------------------------------------------------------ */
@@ -68,7 +68,7 @@ inline std::ostream & operator <<(std::ostream & stream, const ElementClass & _t
 }
 
 
-__END_MYFEM__
+__END_AKANTU__
 
 
-#endif /* __MYFEM_ELEMENT_CLASS_HH__ */
+#endif /* __AKANTU_ELEMENT_CLASS_HH__ */

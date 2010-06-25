@@ -12,8 +12,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __MYFEM_MESH_IO_HH__
-#define __MYFEM_MESH_IO_HH__
+#ifndef __AKANTU_MESH_IO_HH__
+#define __AKANTU_MESH_IO_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "common.hh"
@@ -21,7 +21,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 class MeshIO {
   /* ------------------------------------------------------------------------ */
@@ -77,6 +77,6 @@ inline std::ostream & operator <<(std::ostream & stream, const MeshIO & _this)
 }
 
 
-__END_MYFEM__
+__END_AKANTU__
 
-#endif /* __MYFEM_MESH_IO_HH__ */
+#endif /* __AKANTU_MESH_IO_HH__ */

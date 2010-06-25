@@ -16,7 +16,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_MYFEM__
+__BEGIN_AKANTU__
 
 Mesh::Mesh(unsigned int spatial_dimension, MemoryID memory_id) :
   Memory(memory_id) {
@@ -25,4 +25,4 @@ Mesh::Mesh(unsigned int spatial_dimension, MemoryID memory_id) :
   nodes = NULL;
 }
 
-__END_MYFEM__
+__END_AKANTU__
