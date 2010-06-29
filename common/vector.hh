@@ -85,7 +85,13 @@ template<class T> class Vector : public VectorBase {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Vector(unsigned int size, unsigned int nb_component, const VectorID & id = "");
+  /// Allocation of a new vector
+  Vector(unsigned int size, unsigned int nb_component,
+	 const VectorID & id = "");
+
+  /// Allocation of a new vector with a default value
+  Vector(unsigned int size, unsigned int nb_component,
+	 const T def_value[], const VectorID & id = "");
 
   virtual ~Vector();
 
@@ -100,10 +106,24 @@ public:
   /// get jth componemt of the ith tuple
   inline T & at(unsigned int i, unsigned int j = 0);
 
+  /// add an element at the and of the vector
+  inline void push_back(const T new_elem[]);
+
+  /**
+   * remove an element and move the last one in the hole
+   * /!\ change the order in the vector
+   */
+  inline void erase(unsigned int i);
+
+  /// change the size of the vector and allocate more memory if needed
   void resize(unsigned int size);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+protected:
+  /// perform the allocation for the constructors
+  inline void allocate(unsigned int size, unsigned int nb_component);
 
   /* ------------------------------------------------------------------------ */
   /* Accesors                                                                 */
@@ -128,7 +148,36 @@ public:
 template <class T> Vector<T>::Vector (unsigned int size,
 				      unsigned int nb_component,
 				      const VectorID & id) {
+  AKANTU_DEBUG_IN();
   this->id = id;
+  this->values = NULL;
+  allocate(size, nb_component);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T> Vector<T>::Vector (unsigned int size,
+				      unsigned int nb_component,
+				      const T def_value[],
+				      const VectorID & id) {
+  AKANTU_DEBUG_IN();
+  this->id = id;
+  this->values = NULL;
+  allocate(size, nb_component);
+
+  for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int j = 0; j < nb_component; ++j) {
+      values[i*nb_component + j] = def_value[j];
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T> inline void Vector<T>::allocate(unsigned int size,
+						   unsigned int nb_component) {
+  AKANTU_DEBUG_IN();
+
   values = static_cast<T*>(malloc(nb_component * size * sizeof(T)));
   AKANTU_DEBUG_ASSERT(values != NULL,
 		     "Cannot allocate " << nb_component * size * sizeof(T) << " bytes");
@@ -142,12 +191,52 @@ template <class T> Vector<T>::Vector (unsigned int size,
 
   this->size_of_type = sizeof(T);
   this->nb_component = nb_component;
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::~Vector () {
   free(values);
   size = allocated_size = 0;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T> inline T & Vector<T>::at(unsigned int i, unsigned int j) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
+		      "The value at position [" << i << "," << j
+		      << "] is out of range");
+
+  AKANTU_DEBUG_OUT();
+  return values[i*nb_component + j];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T> inline void Vector<T>::push_back(const T new_elem[]) {
+  AKANTU_DEBUG_IN();
+  unsigned int pos = size;
+
+  resize(size+1);
+
+  for (unsigned int i = 0; i < nb_component; ++i) {
+    values[pos*nb_component + i] = new_elem[i];
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+template <class T> inline void Vector<T>::erase(unsigned int i){
+  AKANTU_DEBUG_IN();
+  if(i != (size - 1)) {
+    for (unsigned int j = 0; j < nb_component; ++j) {
+      values[i*nb_component + j] = values[(size-1)*nb_component + j];
+    }
+  }
+
+  resize(size - 1);
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -180,6 +269,7 @@ template <class T> void Vector<T>::resize (unsigned int new_size) {
 
   allocated_size = size_to_alloc;
   size = new_size;
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -187,15 +277,28 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   std::string space;
   for(int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  int size = allocated_size * nb_component * size_of_type;
+  int real_size = allocated_size * nb_component * size_of_type;
 
   stream << space << "Vector<" << typeid(T).name() << "> [" << std::endl;
   stream << space << " + id             : " << id << std::endl;
   stream << space << " + size           : " << size << std::endl;
   stream << space << " + nb_component   : " << nb_component << std::endl;
   stream << space << " + allocated size : " << allocated_size << std::endl;
-  stream << space << " + memory size    : " << size << "B" << std::endl;
+  stream << space << " + memory size    : " << real_size << "B" << std::endl;
   stream << space << " + adresse        : " << std::hex << values << std::dec << std::endl;
+  if(AKANTU_DEBUG_TEST(dblDump)) {
+    stream << space << " + values         : {";
+    for (unsigned int i = 0; i < size; ++i) {
+      stream << "{";
+      for (unsigned int j = 0; j < nb_component; ++j) {
+	stream << values[i*nb_component + j];
+	if(j != nb_component - 1) stream << ", ";
+      }
+      stream << "}";
+      if(i != size - 1) stream << ", ";
+    }
+    stream << "}" << std::endl;
+  }
   stream << space << "]" << std::endl;
 }
 
