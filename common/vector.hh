@@ -93,10 +93,12 @@ public:
   Vector(unsigned int size, unsigned int nb_component,
 	 const T def_value[], const VectorID & id = "");
 
+  /// Copy constructor (deep copy if deep=true) \todo to implement 
+  Vector(const Vector<T>& vect, bool deep);
+
   virtual ~Vector();
 
-private:
-  Vector(const Vector<T>& vect) {};
+
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -172,7 +174,32 @@ template <class T> Vector<T>::Vector (unsigned int size,
   }
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
 
+template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep) {
+  AKANTU_DEBUG_IN();
+  this->id = vect.id;
+  if (deep) {
+    allocate(vect.size, vect.nb_component);
+    for (unsigned int i = 0; i < size; ++i) {
+      for (unsigned int j = 0; j < nb_component; ++j) {
+        values[i*nb_component + j] = vect.values[i*nb_component + j];
+      }
+    }
+  } else {
+    this->values = vect.values;
+    this->size = vect.size;
+    this->nb_component = vect.nb_component;
+    this->allocated_size = vect.allocated_size;
+    this->size_of_type = vect.size_of_type;
+  }
+    
+  AKANTU_DEBUG_OUT();
+
+}
+
+  
+  
 /* -------------------------------------------------------------------------- */
 template <class T> inline void Vector<T>::allocate(unsigned int size,
 						   unsigned int nb_component) {
