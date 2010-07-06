@@ -69,5 +69,10 @@ __END_AKANTU__
     return this->variable;			\
   }
 
+#define AKANTU_GET_MACRO_SCALAR(name, variable, type)	\
+  inline type get##name () const {	\
+    return this->variable;			\
+  }
+
 
 #endif /* __AKANTU_COMMON_HH__ */

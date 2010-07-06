@@ -50,11 +50,11 @@ public:
   /* Accesors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(AllocatedSize, allocated_size, unsigned int);
+  AKANTU_GET_MACRO_SCALAR(AllocatedSize, allocated_size, unsigned int);
 
-  AKANTU_GET_MACRO(Size, size, unsigned int);
+  AKANTU_GET_MACRO_SCALAR(Size, size, unsigned int);
 
-  AKANTU_GET_MACRO(NbComponent, nb_component, unsigned int);
+  AKANTU_GET_MACRO_SCALAR(NbComponent, nb_component, unsigned int);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
