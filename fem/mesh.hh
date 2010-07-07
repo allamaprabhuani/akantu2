@@ -33,6 +33,8 @@ enum ElementType {
   _max_element_type
 };
 
+typedef std::string MeshID;
+
 /* -------------------------------------------------------------------------- */
 
 class Mesh : protected Memory {
@@ -66,20 +68,23 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Vector<double> & getNodes() const;
+  inline Vector<double> & getNodes() const {};
 
-  inline Vector<int> & createConnectivity(ElementType type, unsigned int nb_element);
+  Vector<int> & createConnectivity(ElementType type, unsigned int nb_element);
 
-  inline Vector<int> & getConnectivity(ElementType type) const;
+  inline Vector<int> & getConnectivity(ElementType type) const {};
 
-  inline ConnectivityMap & getConnectivityMap() const;
+  inline ConnectivityMap & getConnectivityMap() const {};
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// id of the nodes coordinates array
+  /// id of the mesh
+  MeshID id;
+
+  /// array of the nodes coordinates
   Vector<double> * nodes;
 
   /// all class of elements present in this mesh (for heterogenous meshes)

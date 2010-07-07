@@ -107,7 +107,10 @@ enum DebugLevel {
 
 #define AKANTU_LOCATION "(" <<__FILE__ << ":" << __LINE__ << ") "
 #ifndef AKANTU_MPI
-#define AKANTU_EXIT(status) exit(status)
+#define AKANTU_EXIT(status)			\
+  do {						\
+    exit(status);				\
+  } while(0)
 #else
 #define AKANTU_EXIT(status)			\
   do {						\
@@ -127,11 +130,11 @@ enum DebugLevel {
 #define AKANTU_DEBUG_ASSERT(test,info)
 /* -------------------------------------------------------------------------- */
 #else
-#define AKANTU_DEBUG(level,info)						\
+#define AKANTU_DEBUG(level,info)					\
   ((akantu::_debug_level >= level) &&					\
    (_akantu_debug_cout << info << " " << AKANTU_LOCATION << std::endl))
 
-#define AKANTU_DEBUG_TEST(level)			\
+#define AKANTU_DEBUG_TEST(level)		\
   (akantu::_debug_level >= (level))
 
 #define AKANTU_DEBUG_IN()					\
@@ -146,23 +149,23 @@ enum DebugLevel {
 #define AKANTU_DEBUG_WARNING(info)			\
   AKANTU_DEBUG(akantu::dblWarning, "??? " << info)
 
-#define AKANTU_DEBUG_TRACE(info)				\
+#define AKANTU_DEBUG_TRACE(info)			\
   AKANTU_DEBUG(akantu::dblTrace  , ">>> " << info)
 
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
       _akantu_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ") "	\
-			<< "assert [" << #test << "] "			\
-			<< "!!! " << info				\
-			<< std::endl;					\
-      AKANTU_EXIT(EXIT_FAILURE);						\
+			 << "assert [" << #test << "] "			\
+			 << "!!! " << info				\
+			 << std::endl;					\
+      AKANTU_EXIT(EXIT_FAILURE);					\
     }									\
   } while(0)
 #endif
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_DEBUG_ERROR(info)						\
+#define AKANTU_DEBUG_ERROR(info)					\
   do {									\
     AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
     std::stringstream s_info;						\

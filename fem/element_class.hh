@@ -30,7 +30,6 @@ template<ElementType type> class ElementClass {
 public:
 
   ElementClass();
-  virtual ~ElementClass();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -38,12 +37,14 @@ public:
 public:
 
   /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /* ------------------------------------------------------------------------ */
   /* Accesors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  AKANTU_GET_MACRO(NbNodesPerElement, nb_nodes_per_element, unsigned int);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -61,12 +62,13 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const ElementClass & _this)
-{
-  _this.printself(stream);
+template<ElementType type> ElementClass<type>::ElementClass() {
+  nb_nodes_per_element = 0;
+  nb_quadrature_points = 0;
 }
 
+
+/* -------------------------------------------------------------------------- */
 
 __END_AKANTU__
 
