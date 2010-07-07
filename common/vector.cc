@@ -16,7 +16,6 @@
 #include "vector.hh"
 
 /* -------------------------------------------------------------------------- */
-
 void VectorBase::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(int i = 0; i < indent; i++, space += AKANTU_INDENT);

@@ -32,6 +32,7 @@ class VectorBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  //  VectorBase();
 
   virtual ~VectorBase() {};
 
@@ -55,6 +56,7 @@ public:
   AKANTU_GET_MACRO_SCALAR(Size, size, unsigned int);
 
   AKANTU_GET_MACRO_SCALAR(NbComponent, nb_component, unsigned int);
+  
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -94,7 +96,7 @@ public:
 	 const T def_value[], const VectorID & id = "");
 
   /// Copy constructor (deep copy if deep=true) \todo to implement 
-  Vector(const Vector<T>& vect, bool deep);
+  Vector(const Vector<T>& vect, bool deep = true);
 
   virtual ~Vector();
 
@@ -123,6 +125,9 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+
+  Vector<T>& operator = (const Vector<T>& vect);
+  
 protected:
   /// perform the allocation for the constructors
   inline void allocate(unsigned int size, unsigned int nb_component);
@@ -147,6 +152,7 @@ public:
 /* Inline Functions Vector<T>                                                 */
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::Vector (unsigned int size,
 				      unsigned int nb_component,
 				      const VectorID & id) {
@@ -174,8 +180,8 @@ template <class T> Vector<T>::Vector (unsigned int size,
   }
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep) {
   AKANTU_DEBUG_IN();
   this->id = vect.id;
@@ -195,19 +201,34 @@ template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep) {
   }
     
   AKANTU_DEBUG_OUT();
-
 }
 
+/* -------------------------------------------------------------------------- */
+template <class T> Vector<T>& Vector<T>::operator= (const Vector<T>& vect) {
+  AKANTU_DEBUG_IN();
+  //  this->id = std::string(vect.id);
+  allocate(vect.size, vect.nb_component);
+  for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int j = 0; j < nb_component; ++j) {
+      values[i*nb_component + j] = vect.values[i*nb_component + j];
+    }
+  }
   
+  AKANTU_DEBUG_OUT();
+  return *this;
+}
   
 /* -------------------------------------------------------------------------- */
 template <class T> inline void Vector<T>::allocate(unsigned int size,
 						   unsigned int nb_component) {
   AKANTU_DEBUG_IN();
-
-  values = static_cast<T*>(malloc(nb_component * size * sizeof(T)));
-  AKANTU_DEBUG_ASSERT(values != NULL,
-		     "Cannot allocate " << nb_component * size * sizeof(T) << " bytes");
+  if (size == 0){
+    values = NULL;
+  } else {
+    values = static_cast<T*>(malloc(nb_component * size * sizeof(T)));
+    AKANTU_DEBUG_ASSERT(values != NULL,
+                        "Cannot allocate " << nb_component * size * sizeof(T) << " bytes");
+  }
 
   if (values == NULL) {
     this->size = this->allocated_size = 0;
@@ -245,7 +266,6 @@ template <class T> inline void Vector<T>::push_back(const T new_elem[]) {
   unsigned int pos = size;
 
   resize(size+1);
-
   for (unsigned int i = 0; i < nb_component; ++i) {
     values[pos*nb_component + i] = new_elem[i];
   }
@@ -296,6 +316,7 @@ template <class T> void Vector<T>::resize (unsigned int new_size) {
 
   allocated_size = size_to_alloc;
   size = new_size;
+  values = tmp_ptr;
   AKANTU_DEBUG_OUT();
 }
 

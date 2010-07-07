@@ -74,6 +74,7 @@ set(AKANTU_COMMON_SRC
   common/extern.cc
   common/static_memory.cc
   common/memory.cc
+#  common/vector.cc
   fem/mesh.cc
   mesh_io/mesh_io_msh.cc
   )

@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   def_value[1] = 20;
   def_value[2] = 30;
 
-  akantu::Vector<int> int_vect(10, 3, def_value, "test");
+  akantu::Vector<int> int_vect(10, 3, def_value, "test1");
 
   for (unsigned int i = 5; i < int_vect.getSize(); ++i) {
     for (unsigned int j = 0; j < int_vect.getNbComponent(); ++j) {
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  std::cout << int_vect;
+  std::cerr << int_vect;
 
   int new_elem[3];
   new_elem[0] = 1;
@@ -43,7 +43,11 @@ int main(int argc, char *argv[]) {
 
   int_vect.erase(0);
 
-  std::cout << int_vect;
+  std::cerr << int_vect;
+  akantu::Vector<int> int_vect0(0, 3, def_value, "test2");
+  std::cerr << int_vect0;
+  int_vect0.push_back(new_elem);
+  std::cerr << int_vect0;
 
   return EXIT_SUCCESS;
 }
