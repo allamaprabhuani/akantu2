@@ -32,7 +32,13 @@ class VectorBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  //  VectorBase();
+  VectorBase(){
+  allocated_size = 0;
+  size = 0;
+  nb_component = 1;
+  size_of_type=0;
+  id = "";
+  };
 
   virtual ~VectorBase() {};
 
@@ -136,6 +142,7 @@ protected:
   /* Accesors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  unsigned int getSize()const{return this->size;};
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
