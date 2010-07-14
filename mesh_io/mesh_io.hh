@@ -39,7 +39,7 @@ public:
 public:
 
   /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /// read a mesh from the file
   virtual void read(const std::string & filename, const Mesh & mesh) = 0;
@@ -48,21 +48,21 @@ public:
   virtual void write(const std::string & filename, const Mesh & mesh) = 0;
 
   /* ------------------------------------------------------------------------ */
-  /* Accesors                                                                 */
+  /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   bool canReadSurface;
 
   bool canReadExtendedData;
 
-  std::string filename;
+  //  std::string filename;
 
-  Mesh & mesh;
+  //  Mesh & mesh;
 };
 
 
@@ -74,6 +74,8 @@ private:
 inline std::ostream & operator <<(std::ostream & stream, const MeshIO & _this)
 {
   _this.printself(stream);
+
+  return stream;
 }
 
 

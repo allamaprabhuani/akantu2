@@ -74,19 +74,7 @@ private:
 /* Inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-template<class T> inline Vector<T> & Memory::malloc(const VectorID & name,
-						    unsigned int size,
-						    unsigned int nb_component) {
-  return static_memory->smalloc<T>(memory_id, name,
-				   size, nb_component);
-}
-
-/* -------------------------------------------------------------------------- */
-inline void Memory::free(const VectorID & name) {
-  static_memory->sfree(memory_id, name);
-}
-
-/* -------------------------------------------------------------------------- */
+#include "memory_inline_impl.cc"
 
 __END_AKANTU__
 

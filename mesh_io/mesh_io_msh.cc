@@ -133,6 +133,8 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+/*   Constant arrays initialisation                                           */
+/* -------------------------------------------------------------------------- */
 unsigned int MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] = {
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // _not_defined
   { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // _triangle_1
@@ -145,7 +147,8 @@ unsigned int MeshIOMSH::_msh_nodes_per_elem[16] =
   { 0, // element types began at 1
     2, 3, 4, 4,  8,  6,  5,  // 1st order
     3, 6, 9, 10, 27, 18, 14, // 2st order
-    1 };
+    1
+  };
 
 ElementType MeshIOMSH::_msh_to_akantu_element_types[16] =
   { _not_defined, // element types began at 1
@@ -153,7 +156,8 @@ ElementType MeshIOMSH::_msh_to_akantu_element_types[16] =
     _not_defined, _not_defined, _not_defined,            // 1st order
     _not_defined, _triangle_2,  _not_defined, _tetrahedra_2,
     _not_defined, _not_defined, _not_defined,            // 2nd order
-    _not_defined };
+    _not_defined 
+  };
 
 MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type
 ] =
@@ -163,6 +167,21 @@ MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_t
     _msh_tetrahedron_1, // _tetrahedra_1
     _msh_tetrahedron_2  // _tetrahedra_2
   };
+
+
+/* -------------------------------------------------------------------------- */
+/*   Methods Implentations                                                    */
+/* -------------------------------------------------------------------------- */
+
+MeshIOMSH::MeshIOMSH() {
+  canReadSurface      = false;
+  canReadExtendedData = false;
+}
+
+/* -------------------------------------------------------------------------- */
+MeshIOMSH::~MeshIOMSH() {
+
+}
 
 /* -------------------------------------------------------------------------- */
 void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
@@ -193,7 +212,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 
     /// read all nodes
     if(line == "$Nodes" || line == "$NOD") {
-      int nb_nodes;
+      unsigned int nb_nodes;
 
       std::getline(infile, line);
       std::stringstream sstr(line);
@@ -203,12 +222,12 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
       Vector<double> & nodes = mesh.getNodes();
       nodes.resize(nb_nodes);
 
-      int index;
+      unsigned int index;
       double coord[3];
       unsigned int spatial_dimension = nodes.getNbComponent();
       /// for each node, read the coordinates
       for(unsigned int i = 0; i < nb_nodes; ++i) {
-	int offset = i * spatial_dimension;
+	unsigned int offset = i * spatial_dimension;
 
 	std::getline(infile, line);
 	std::stringstream sstr(line);
@@ -228,7 +247,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 
     /// read all elements
     if(line == "$Elements" || line == "$ELM") {
-      int nb_elements;
+      unsigned int nb_elements;
 
       std::getline(infile, line);
       std::stringstream sstr(line);
@@ -255,18 +274,19 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 	if(akantu_type == _not_defined) continue;
 
 	if(akantu_type != akantu_type_old) {
+	  connectivity = mesh.getConnectivityPointer(akantu_type);
 	  if(connectivity)
 	    connectivity->resize(nb_elements_read);
+	  else
+	    connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(akantu_type, nb_elements));
 
-	  connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(akantu_type, nb_elements));
-	  connectivity->resize(nb_elements);
 	  akantu_type_old = akantu_type;
 	  nb_elements_read = 0;
 	}
 
 	/// read tags informations
 	if(file_format == 2) {
-	  int nb_tags;
+	  unsigned int nb_tags;
 	  sstr >> nb_tags;
 	  for(unsigned int j = 0; j < nb_tags; ++j) {
 	    int tag;
@@ -297,14 +317,11 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
       std::getline(infile, line); /// the end of block line
     }
 
-    if(line[0] == '$') {
+    if((line[0] == '$') && (line.find("End") == std::string::npos)) {
       AKANTU_DEBUG_WARNING("Unsuported block_kind " << line
 			  << " at line " << current_line);
     }
   }
-
-  // if there is less element than predicted...
-  
 
   infile.close();
 }
@@ -324,10 +341,10 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   outfile << nodes.getSize() << std::endl;;
 
   outfile << std::uppercase;
-  for(int i = 0; i < nodes.getSize(); ++i) {
+  for(unsigned int i = 0; i < nodes.getSize(); ++i) {
     int offset = i * nodes.getNbComponent();
     outfile << i+1;
-    for(int j = 0; j < nodes.getNbComponent(); ++j) {
+    for(unsigned int j = 0; j < nodes.getNbComponent(); ++j) {
       outfile << " " << nodes.values[offset + j];
     }
 
@@ -341,11 +358,10 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   outfile << "$Elements" << std::endl;;
 
-  Mesh::ConnectivityMap & connectivity_map = mesh.getConnectivityMap();
+  const Mesh::ConnectivityMap & connectivity_map = mesh.getConnectivityMap();
   Mesh::ConnectivityMap::const_iterator it;
   int nb_elements = 0;
   for(it = connectivity_map.begin(); it != connectivity_map.end(); ++it) {
-    MSHElementType type = _akantu_to_msh_element_types[it->first];
     Vector<int> & connectivity = *(it->second);
     nb_elements += connectivity.getSize();
   }
@@ -356,11 +372,11 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     ElementType type = it->first;
     Vector<int> & connectivity = *(it->second);
 
-    for(int i = 0; i < connectivity.getSize(); ++i) {
-      int offset = i * connectivity.getNbComponent();
+    for(unsigned int i = 0; i < connectivity.getSize(); ++i) {
+      unsigned int offset = i * connectivity.getNbComponent();
       outfile << element_idx << " " << type << " 3 0 0 0";
 
-      for(int j = 0; j < connectivity.getNbComponent(); ++j) {
+      for(unsigned int j = 0; j < connectivity.getNbComponent(); ++j) {
 	outfile << " " << connectivity.values[offset + j];
       }
       outfile << std::endl;

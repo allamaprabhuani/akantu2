@@ -155,7 +155,7 @@ enum DebugLevel {
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
-      _akantu_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ") "	\
+      _akantu_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ")"	\
 			 << "assert [" << #test << "] "			\
 			 << "!!! " << info				\
 			 << std::endl;					\

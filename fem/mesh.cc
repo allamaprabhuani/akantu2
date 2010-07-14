@@ -22,17 +22,26 @@
 
 __BEGIN_AKANTU__
 
-Mesh::Mesh(unsigned int spatial_dimension, MemoryID memory_id) :
-  Memory(memory_id) {
-
+Mesh::Mesh(unsigned int spatial_dimension,
+	   const MeshID & id,
+	   const MemoryID & memory_id) : Memory(memory_id) {
+  AKANTU_DEBUG_IN();
   this->spatial_dimension = spatial_dimension;
-  nodes = NULL;
+  this->id = id;
+
+  std::stringstream sstr;
+  sstr << id << ":coordinates";
+  Vector<double> & coordinates = malloc<double>(sstr.str(),
+						0,
+						this->spatial_dimension);
+  nodes = &coordinates;
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 
 Vector<int> & Mesh::createConnectivity(ElementType type, unsigned int nb_element) {
-
+  AKANTU_DEBUG_IN();
   unsigned int nb_nodes_per_element;
 
   switch(type) {
@@ -68,6 +77,7 @@ Vector<int> & Mesh::createConnectivity(ElementType type, unsigned int nb_element
 					   nb_nodes_per_element);
 
   connectivities[type] = &connectivity;
+  AKANTU_DEBUG_OUT();
   return connectivity;
 }
 

@@ -24,19 +24,7 @@
 
 __BEGIN_AKANTU__
 
-enum ElementType {
-  _not_defined  = 0,
-  _triangle_1   = 1,
-  _triangle_2   = 2,
-  _tetrahedra_1 = 3,
-  _tetrahedra_2 = 4,
-  _max_element_type
-};
-
-typedef std::string MeshID;
-
 /* -------------------------------------------------------------------------- */
-
 class Mesh : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -44,18 +32,24 @@ class Mesh : protected Memory {
 public:
 
   /// constructor that create nodes coordinates array
-  Mesh(unsigned int spatial_dimension, MemoryID memory_id = 0);
+  Mesh(unsigned int spatial_dimension,
+       const MeshID & id = "mesh",
+       const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
   Mesh(unsigned int spatial_dimension,
-       const VectorID & nodes_id, MemoryID memory_id = 0);
+       const VectorID & nodes_id,
+       const MeshID & id = "mesh",
+       const MemoryID & memory_id = 0);
 
   /**
    * constructor that use an existing nodes coordinates
    * array, by getting the vector of coordinates
    */
   Mesh(unsigned int spatial_dimension,
-       const Vector<double> & nodes, MemoryID memory_id = 0);
+       const Vector<double> & nodes,
+       const MeshID & id = "mesh",
+       const MemoryID & memory_id = 0);
 
 
   virtual ~Mesh() {};
@@ -68,13 +62,19 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Vector<double> & getNodes() const {};
+  inline Vector<double> & getNodes() const;
 
   Vector<int> & createConnectivity(ElementType type, unsigned int nb_element);
 
-  inline Vector<int> & getConnectivity(ElementType type) const {};
+  inline Vector<int> & getConnectivity(ElementType type) const;
 
-  inline ConnectivityMap & getConnectivityMap() const {};
+  inline const ConnectivityMap & getConnectivityMap() const;
+
+private:
+  friend class MeshIOMSH;
+
+  inline Vector<int> * getConnectivityPointer(ElementType type) const;
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -94,24 +94,12 @@ private:
   unsigned int spatial_dimension;
 };
 
+
 /* -------------------------------------------------------------------------- */
 /* Inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//! standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, ElementType type)
-{
-  switch(type)
-    {
-    case _triangle_1   : stream << "triangle 1st order"  ; break;
-    case _triangle_2   : stream << "triangle 2nd order"  ; break;
-    case _tetrahedra_1 : stream << "tetrahedra 1st order"; break;
-    case _tetrahedra_2 : stream << "tetrahedra 2nd order"; break;
-    default : stream << "unknown ElementType (" << type << ")"; break;
-    }
-  return stream;
-}
-
+#include "mesh_inline_impl.cc"
 
 __END_AKANTU__
 

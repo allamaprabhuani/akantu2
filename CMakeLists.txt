@@ -74,8 +74,9 @@ set(AKANTU_COMMON_SRC
   common/extern.cc
   common/static_memory.cc
   common/memory.cc
-#  common/vector.cc
+  common/vector.cc
   fem/mesh.cc
+  mesh_io/mesh_io.cc
   mesh_io/mesh_io_msh.cc
   )
 
@@ -102,6 +103,7 @@ option(BUILD_UNIT_TEST "Build the unit test")
 if(BUILD_UNIT_TEST)
   set(AKANTU_UNIT_TESTS
     test/static_memory.cc
+    test/mesh_io_msh.cc
     test/vector.cc
     )
 

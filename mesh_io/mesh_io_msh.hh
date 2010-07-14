@@ -24,13 +24,14 @@
 __BEGIN_AKANTU__
 
 
-class MeshIOMSH {
+class MeshIOMSH : public MeshIO {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
   MeshIOMSH();
+
   virtual ~MeshIOMSH();
 
   /* ------------------------------------------------------------------------ */
@@ -39,7 +40,7 @@ public:
 public:
 
   /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /// read a mesh from the file
   virtual void read(const std::string & filename, const Mesh & mesh);
@@ -101,6 +102,7 @@ private:
 inline std::ostream & operator <<(std::ostream & stream, const MeshIOMSH & _this)
 {
   _this.printself(stream);
+  return stream;
 }
 
 
