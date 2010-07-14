@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert lisence here>
+ * <insert license here>
  *
  */
 
@@ -40,7 +40,7 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /* ------------------------------------------------------------------------ */
-  /* Accesors                                                                 */
+  /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 

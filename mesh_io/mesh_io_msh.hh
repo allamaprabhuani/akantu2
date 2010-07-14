@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert lisence here>
+ * <insert license here>
  *
  */
 
@@ -49,7 +49,7 @@ public:
   virtual void write(const std::string & filename, const Mesh & mesh);
 
   /* ------------------------------------------------------------------------ */
-  /* Accesors                                                                 */
+  /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 

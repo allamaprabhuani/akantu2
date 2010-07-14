@@ -8,7 +8,7 @@
  *
  * @section LICENSE
  *
- * <insert lisence here>
+ * <insert license here>
  *
  */
 

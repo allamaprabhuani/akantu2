@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert lisence here>
+ * <insert license here>
  *
  */
 
@@ -48,7 +48,7 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
-  /* Accesors                                                                 */
+  /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO_SCALAR(AllocatedSize, allocated_size, unsigned int);
@@ -138,7 +138,7 @@ protected:
   void allocate(unsigned int size, unsigned int nb_component);
 
   /* ------------------------------------------------------------------------ */
-  /* Accesors                                                                 */
+  /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   unsigned int getSize() const{ return this->size; };
