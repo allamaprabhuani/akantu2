@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
 
   mesh_io.read("./cube.msh", mesh);
 
+  std::cout << mesh << std::endl;
 
   return EXIT_SUCCESS;
 }

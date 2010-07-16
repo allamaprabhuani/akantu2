@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Jun 18 10:27:42 2010
  *
- * @brief  Interface of a mesh io class, reader and writer
+ * @brief  interface of a mesh io class, reader and writer
  *
  * @section LICENSE
  *

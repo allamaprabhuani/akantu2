@@ -13,8 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 template<class T> inline Vector<T> & Memory::malloc(const VectorID & name,
-						    unsigned int size,
-						    unsigned int nb_component) {
+						    UInt size,
+						    UInt nb_component) {
   return static_memory->smalloc<T>(memory_id, name,
 				   size, nb_component);
 }

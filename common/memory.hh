@@ -44,8 +44,8 @@ public:
   /// malloc
   template<class T>
   inline Vector<T> & malloc(const VectorID & name,
-			    unsigned int size,
-			    unsigned int nb_component);
+			    UInt size,
+			    UInt nb_component);
 
   /* ------------------------------------------------------------------------ */
   /// free an array

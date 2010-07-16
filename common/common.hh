@@ -19,13 +19,14 @@
 #define __AKANTU_COMMON_HH__
 
 /* -------------------------------------------------------------------------- */
+#include <cmath>
+#include <cstdlib>
+
+/* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <string>
 #include <exception>
 #include <map>
-
-/* -------------------------------------------------------------------------- */
-#include <cstdlib>
 
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
@@ -39,10 +40,19 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+/* Common types                                                               */
+/* -------------------------------------------------------------------------- */
+
+typedef double Real;
+typedef unsigned int UInt;
+typedef int Int;
+
+
+/* -------------------------------------------------------------------------- */
 /* Memory types                                                               */
 /* -------------------------------------------------------------------------- */
 
-typedef unsigned int MemoryID;
+typedef UInt MemoryID;
 
 typedef std::string VectorID;
 
@@ -54,10 +64,12 @@ typedef std::string MeshID;
 
 enum ElementType {
   _not_defined  = 0,
-  _triangle_1   = 1,
-  _triangle_2   = 2,
-  _tetrahedra_1 = 3,
-  _tetrahedra_2 = 4,
+  _line_1       = 1,
+  _line_2       = 2,
+  _triangle_1   = 3,
+  _triangle_2   = 4,
+  _tetrahedra_1 = 5,
+  _tetrahedra_2 = 6,
   _max_element_type
 };
 
@@ -67,11 +79,14 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
   switch(type)
     {
-    case _triangle_1   : stream << "triangle 1st order"  ; break;
-    case _triangle_2   : stream << "triangle 2nd order"  ; break;
-    case _tetrahedra_1 : stream << "tetrahedra 1st order"; break;
-    case _tetrahedra_2 : stream << "tetrahedra 2nd order"; break;
-    default : stream << "unknown ElementType (" << type << ")"; break;
+    case _line_1       : stream << "line_1"  ; break;
+    case _line_2       : stream << "line_2"  ; break;
+    case _triangle_1   : stream << "triangle_1"  ; break;
+    case _triangle_2   : stream << "triangle_2"  ; break;
+    case _tetrahedra_1 : stream << "tetrahedra_1"; break;
+    case _tetrahedra_2 : stream << "tetrahedra_2"; break;
+    case _not_defined  :
+    case _max_element_type :  stream << "unknown ElementType (" << type << ")"; break;
     }
   return stream;
 }

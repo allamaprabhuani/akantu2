@@ -41,6 +41,8 @@ int main(int argc, char *argv[]) {
   new_elem[2] = 3;
   int_vect.push_back(new_elem);
 
+  int_vect.push_back(200);
+
   int_vect.erase(0);
 
   std::cerr << int_vect;

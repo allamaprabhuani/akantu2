@@ -32,12 +32,12 @@ class Mesh : protected Memory {
 public:
 
   /// constructor that create nodes coordinates array
-  Mesh(unsigned int spatial_dimension,
+  Mesh(UInt spatial_dimension,
        const MeshID & id = "mesh",
        const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
-  Mesh(unsigned int spatial_dimension,
+  Mesh(UInt spatial_dimension,
        const VectorID & nodes_id,
        const MeshID & id = "mesh",
        const MemoryID & memory_id = 0);
@@ -46,34 +46,42 @@ public:
    * constructor that use an existing nodes coordinates
    * array, by getting the vector of coordinates
    */
-  Mesh(unsigned int spatial_dimension,
-       const Vector<double> & nodes,
+  Mesh(UInt spatial_dimension,
+       const Vector<Real> & nodes,
        const MeshID & id = "mesh",
        const MemoryID & memory_id = 0);
 
 
   virtual ~Mesh() {};
 
-  typedef std::map<ElementType, Vector<int> *> ConnectivityMap;
+  typedef std::map<ElementType, Vector<Int> *> ConnectivityMap;
 
-  typedef std::map<ElementType, Vector<int> *>::iterator ConnectivityIterator;
+  typedef std::map<ElementType, Vector<Int> *>::iterator ConnectivityIterator;
+
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline Vector<double> & getNodes() const;
+  inline Vector<Real> & getNodes() const;
 
-  Vector<int> & createConnectivity(ElementType type, unsigned int nb_element);
+  Vector<Int> & createConnectivity(ElementType type, UInt nb_element);
 
-  inline Vector<int> & getConnectivity(ElementType type) const;
+  inline Vector<Int> & getConnectivity(ElementType type) const;
 
   inline const ConnectivityMap & getConnectivityMap() const;
 
 private:
   friend class MeshIOMSH;
 
-  inline Vector<int> * getConnectivityPointer(ElementType type) const;
+  inline Vector<Int> * getConnectivityPointer(ElementType type) const;
 
 
   /* ------------------------------------------------------------------------ */
@@ -85,13 +93,13 @@ private:
   MeshID id;
 
   /// array of the nodes coordinates
-  Vector<double> * nodes;
+  Vector<Real> * nodes;
 
   /// all class of elements present in this mesh (for heterogenous meshes)
   ConnectivityMap connectivities;
 
   /// the spatial dimension of this mesh
-  unsigned int spatial_dimension;
+  UInt spatial_dimension;
 };
 
 
@@ -100,6 +108,14 @@ private:
 /* -------------------------------------------------------------------------- */
 
 #include "mesh_inline_impl.cc"
+
+/// standard output stream operator
+inline std::ostream & operator <<(std::ostream & stream, const Mesh & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
+
 
 __END_AKANTU__
 

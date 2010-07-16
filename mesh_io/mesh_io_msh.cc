@@ -135,15 +135,17 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /*   Constant arrays initialisation                                           */
 /* -------------------------------------------------------------------------- */
-unsigned int MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] = {
+UInt MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] = {
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // _not_defined
+  { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 }, // _line1
+  { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // _line2
   { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // _triangle_1
   { 0, 1, 2, 3, 4, 5, 6, 0, 0, 0 }, // _triangle_2
   { 0, 1, 2, 3, 4, 0, 0, 0, 0, 0 }, // _tetrahedra_1
   { 0, 1, 2, 3, 4, 5, 6, 7, 9, 8 }, // _tetrahedra_2
 };
 
-unsigned int MeshIOMSH::_msh_nodes_per_elem[16] =
+UInt MeshIOMSH::_msh_nodes_per_elem[16] =
   { 0, // element types began at 1
     2, 3, 4, 4,  8,  6,  5,  // 1st order
     3, 6, 9, 10, 27, 18, 14, // 2st order
@@ -152,16 +154,18 @@ unsigned int MeshIOMSH::_msh_nodes_per_elem[16] =
 
 ElementType MeshIOMSH::_msh_to_akantu_element_types[16] =
   { _not_defined, // element types began at 1
-    _not_defined, _triangle_1,  _not_defined, _tetrahedra_1,
-    _not_defined, _not_defined, _not_defined,            // 1st order
-    _not_defined, _triangle_2,  _not_defined, _tetrahedra_2,
-    _not_defined, _not_defined, _not_defined,            // 2nd order
-    _not_defined 
+    _line_1,      _triangle_1,  _not_defined, _tetrahedra_1, // 1st order
+    _not_defined, _not_defined, _not_defined,
+    _line_2,      _triangle_2,  _not_defined, _tetrahedra_2, // 2nd order
+    _not_defined, _not_defined, _not_defined,
+    _not_defined
   };
 
 MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type
 ] =
   { _msh_not_defined,   // _not_defined
+    _msh_line_1,        // _line_1
+    _msh_line_2,        // _line_2
     _msh_triangle_1,    // _triangle_1
     _msh_triangle_2,    // _triangle_2
     _msh_tetrahedron_1, // _tetrahedra_1
@@ -190,7 +194,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
   infile.open(filename.c_str());
 
   std::string line;
-  unsigned int first_node_number = 0, last_node_number = 0,
+  UInt first_node_number = 0, last_node_number = 0,
     file_format = 1, current_line = 0;
 
 
@@ -212,22 +216,22 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 
     /// read all nodes
     if(line == "$Nodes" || line == "$NOD") {
-      unsigned int nb_nodes;
+      UInt nb_nodes;
 
       std::getline(infile, line);
       std::stringstream sstr(line);
       sstr >> nb_nodes;
       current_line++;
 
-      Vector<double> & nodes = mesh.getNodes();
+      Vector<Real> & nodes = mesh.getNodes();
       nodes.resize(nb_nodes);
 
-      unsigned int index;
-      double coord[3];
-      unsigned int spatial_dimension = nodes.getNbComponent();
+      UInt index;
+      Real coord[3];
+      UInt spatial_dimension = nodes.getNbComponent();
       /// for each node, read the coordinates
-      for(unsigned int i = 0; i < nb_nodes; ++i) {
-	unsigned int offset = i * spatial_dimension;
+      for(UInt i = 0; i < nb_nodes; ++i) {
+	UInt offset = i * spatial_dimension;
 
 	std::getline(infile, line);
 	std::stringstream sstr(line);
@@ -238,7 +242,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 	last_node_number  = last_node_number  > index ? last_node_number  : index;
 
 	/// read the coordinates
-	for(unsigned int j = 0; j < spatial_dimension; ++j)
+	for(UInt j = 0; j < spatial_dimension; ++j)
 	  nodes.values[offset + j] = coord[j];
       }
       std::getline(infile, line); /// the end of block line
@@ -247,20 +251,21 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 
     /// read all elements
     if(line == "$Elements" || line == "$ELM") {
-      unsigned int nb_elements;
+      UInt nb_elements;
 
       std::getline(infile, line);
       std::stringstream sstr(line);
       sstr >> nb_elements;
       current_line++;
 
-      int index;
-      unsigned int msh_type;
+      Int index;
+      UInt msh_type;
       ElementType akantu_type, akantu_type_old = _not_defined;
-      Vector<int> *connectivity = NULL;
-      unsigned int nb_elements_read = 0;
+      Vector<Int> *connectivity = NULL;
+      UInt nb_elements_read = 0;
+      UInt node_per_element = 0;
 
-      for(unsigned int i = 0; i < nb_elements; ++i) {
+      for(UInt i = 0; i < nb_elements; ++i) {
 	std::getline(infile, line);
 	std::stringstream sstr(line);
 	current_line++;
@@ -274,42 +279,47 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 	if(akantu_type == _not_defined) continue;
 
 	if(akantu_type != akantu_type_old) {
-	  connectivity = mesh.getConnectivityPointer(akantu_type);
 	  if(connectivity)
 	    connectivity->resize(nb_elements_read);
-	  else
-	    connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(akantu_type, nb_elements));
 
+	  connectivity = mesh.getConnectivityPointer(akantu_type);
+	  if(connectivity)
+	    connectivity->resize(nb_elements);
+	  else
+	    connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(akantu_type,
+									 nb_elements));
+
+	  node_per_element = connectivity->getNbComponent();
 	  akantu_type_old = akantu_type;
 	  nb_elements_read = 0;
 	}
 
 	/// read tags informations
 	if(file_format == 2) {
-	  unsigned int nb_tags;
+	  UInt nb_tags;
 	  sstr >> nb_tags;
-	  for(unsigned int j = 0; j < nb_tags; ++j) {
-	    int tag;
+	  for(UInt j = 0; j < nb_tags; ++j) {
+	    Int tag;
 	    sstr >> tag; ///@todo read to get extended information on elements
 	  }
 	} else if (file_format == 1) {
-	  int tag;
+	  Int tag;
 	  sstr >> tag; //reg-phys
 	  sstr >> tag; //reg-elem
 	  sstr >> tag; //number-of-nodes
 	}
 
 	/// read the connectivities informations
-	unsigned int offset = nb_elements_read * connectivity->getNbComponent();
-	for(unsigned int j; j < connectivity->getNbComponent(); ++j) {
-	  unsigned int index;
-	  sstr >> index;
+	UInt offset = nb_elements_read * node_per_element;
+	for(UInt j = 0; j < node_per_element; ++j) {
+	  UInt node_index;
+	  sstr >> node_index;
 
-	  AKANTU_DEBUG_ASSERT(index <= last_node_number,
+	  AKANTU_DEBUG_ASSERT(node_index <= last_node_number,
 			     "Node number not in range : line " << current_line);
 
-	  index = index - first_node_number + 1;
-	  connectivity->values[offset + _read_order[akantu_type][j]] = index;
+	  node_index -= first_node_number + 1;
+	  connectivity->values[offset + _read_order[akantu_type][j]] = node_index;
 	}
 	nb_elements_read++;
       }
@@ -329,7 +339,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   std::ofstream outfile;
-  Vector<double> & nodes = mesh.getNodes();
+  Vector<Real> & nodes = mesh.getNodes();
 
   outfile.open(filename.c_str());
 
@@ -341,10 +351,10 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   outfile << nodes.getSize() << std::endl;;
 
   outfile << std::uppercase;
-  for(unsigned int i = 0; i < nodes.getSize(); ++i) {
-    int offset = i * nodes.getNbComponent();
+  for(UInt i = 0; i < nodes.getSize(); ++i) {
+    Int offset = i * nodes.getNbComponent();
     outfile << i+1;
-    for(unsigned int j = 0; j < nodes.getNbComponent(); ++j) {
+    for(UInt j = 0; j < nodes.getNbComponent(); ++j) {
       outfile << " " << nodes.values[offset + j];
     }
 
@@ -360,23 +370,23 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   const Mesh::ConnectivityMap & connectivity_map = mesh.getConnectivityMap();
   Mesh::ConnectivityMap::const_iterator it;
-  int nb_elements = 0;
+  Int nb_elements = 0;
   for(it = connectivity_map.begin(); it != connectivity_map.end(); ++it) {
-    Vector<int> & connectivity = *(it->second);
+    Vector<Int> & connectivity = *(it->second);
     nb_elements += connectivity.getSize();
   }
   outfile << nb_elements << std::endl;
 
-  unsigned int element_idx = 1;
+  UInt element_idx = 1;
   for(it = connectivity_map.begin(); it != connectivity_map.end(); ++it) {
     ElementType type = it->first;
-    Vector<int> & connectivity = *(it->second);
+    Vector<Int> & connectivity = *(it->second);
 
-    for(unsigned int i = 0; i < connectivity.getSize(); ++i) {
-      unsigned int offset = i * connectivity.getNbComponent();
+    for(UInt i = 0; i < connectivity.getSize(); ++i) {
+      UInt offset = i * connectivity.getNbComponent();
       outfile << element_idx << " " << type << " 3 0 0 0";
 
-      for(unsigned int j = 0; j < connectivity.getNbComponent(); ++j) {
+      for(UInt j = 0; j < connectivity.getNbComponent(); ++j) {
 	outfile << " " << connectivity.values[offset + j];
       }
       outfile << std::endl;

@@ -80,14 +80,14 @@ public:
    * @param memory_id the id of the memory accessing to the static memory
    * @param name name of the array (for example connectivity)
    * @param size number of size (for example number of nodes)
-   * @param nb_component number of component (for example spatial dimention)
+   * @param nb_component number of component (for example spatial dimension)
    * @param type the type code of the array to be allocated
    *
    * @return pointer to an array of size nb_tupes * nb_component * sizeof(T)
    */
   template<typename T>
   Vector<T> & smalloc(const MemoryID & memory_id, const VectorID & name,
-		      unsigned int size, unsigned int nb_component);
+		      UInt size, UInt nb_component);
 
   /**
    * free the memory associated to the array name

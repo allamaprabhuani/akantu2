@@ -45,8 +45,8 @@ inline const VectorBase & StaticMemory::getVector(const MemoryID & memory_id,
 /* -------------------------------------------------------------------------- */
 template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_id,
 						       const VectorID & name,
-						       unsigned int size,
-						       unsigned int nb_component) {
+						       UInt size,
+						       UInt nb_component) {
   AKANTU_DEBUG_IN();
 
   MemoryMap::iterator memory_it;

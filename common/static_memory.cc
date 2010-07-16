@@ -31,14 +31,14 @@ StaticMemory::~StaticMemory() {
 /* -------------------------------------------------------------------------- */
 void StaticMemory::printself(std::ostream & stream, int indent) const{
   std::string space = "";
-  for(int i = 0; i < indent; i++, space += AKANTU_INDENT);
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
   stream << space << "StaticMemory [" << std::endl;
   stream << space << " + nb memories : " << memories.size() << std::endl;
 
-  int tot_size = 0;
+  Int tot_size = 0;
   MemoryMap::const_iterator memory_it;
   for(memory_it = memories.begin(); memory_it != memories.end(); ++memory_it) {
-    int mem_size = 0;
+    Int mem_size = 0;
 
     stream << space << AKANTU_INDENT << "Memory [" << std::endl;
     stream << space << AKANTU_INDENT << " + memory id   : " << memory_it->first << std::endl;

@@ -36,6 +36,23 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /** 
+   * compute  the  shape  functions,  the shape  functions derivatives  and  the
+   * jacobians
+   * @param[in] coord coordinates of the nodes
+   * @param[out] shape shape functions [nb_quad * node_per_elem]
+   * @param[out] dshape shape functions derivatives []
+   * @param[out] jacobian  jacobians * integration weights [nb_quad]
+   */
+  void shapeFunctions(const Real * coord,
+		      Real * shape,
+		      Real * dshape,
+		      Real * jacobian);
+
+
+  /// compute the volume of an element
+  Real volume(const double * coord);
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
@@ -44,16 +61,22 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(NbNodesPerElement, nb_nodes_per_element, unsigned int);
+  AKANTU_GET_MACRO(NbNodesPerElement, nb_nodes_per_element, UInt);
+
+  AKANTU_GET_MACRO(NbQuadraturePoInts, nb_quadrature_points, UInt);
+
+  AKANTU_GET_MACRO(SpatialDimention, spatial_dimension, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-  unsigned int nb_nodes_per_element;
+  UInt nb_nodes_per_element;
 
-  unsigned int nb_quadrature_points;
+  UInt nb_quadrature_points;
+
+  UInt spatial_dimension;
 
 };
 
@@ -62,11 +85,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-template<ElementType type> ElementClass<type>::ElementClass() {
-  nb_nodes_per_element = 0;
-  nb_quadrature_points = 0;
-}
-
+#include "element_class_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 

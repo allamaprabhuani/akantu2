@@ -14,7 +14,7 @@
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Vector<T>                                                 */
 /* -------------------------------------------------------------------------- */
-template <class T> inline T & Vector<T>::at(unsigned int i, unsigned int j) {
+template <class T> inline T & Vector<T>::at(UInt i, UInt j) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector is empty");
@@ -27,20 +27,31 @@ template <class T> inline T & Vector<T>::at(unsigned int i, unsigned int j) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> inline void Vector<T>::push_back(const T new_elem[]) {
+template <class T> inline void Vector<T>::push_back(const T & value) {
   AKANTU_DEBUG_IN();
-  unsigned int pos = size;
+  UInt pos = size;
 
   resize(size+1);
-  for (unsigned int i = 0; i < nb_component; ++i) {
+  for (UInt i = 0; i < nb_component; ++i) {
+    values[pos*nb_component + i] = value;
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T> inline void Vector<T>::push_back(const T new_elem[]) {
+  AKANTU_DEBUG_IN();
+  UInt pos = size;
+
+  resize(size+1);
+  for (UInt i = 0; i < nb_component; ++i) {
     values[pos*nb_component + i] = new_elem[i];
   }
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
-template <class T> inline void Vector<T>::erase(unsigned int i){
+template <class T> inline void Vector<T>::erase(UInt i){
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT((size > 0),
 		      "The vector is empty");
@@ -49,7 +60,7 @@ template <class T> inline void Vector<T>::erase(unsigned int i){
 
 
   if(i != (size - 1)) {
-    for (unsigned int j = 0; j < nb_component; ++j) {
+    for (UInt j = 0; j < nb_component; ++j) {
       values[i*nb_component + j] = values[(size-1)*nb_component + j];
     }
   }
@@ -59,73 +70,9 @@ template <class T> inline void Vector<T>::erase(unsigned int i){
 }
 
 /* -------------------------------------------------------------------------- */
-
-template <class T> void Vector<T>::resize (unsigned int new_size) {
-  AKANTU_DEBUG_IN();
-  if(new_size <= allocated_size) {
-    if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
-      AKANTU_DEBUG_INFO("Freeing " << (allocated_size - size)*nb_component*sizeof(T) << " bytes");
-
-      /// Normally there are no allocation problem when reducing an array
-      values = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));
-      allocated_size = size;
-    }
-
-    size = new_size;
-    AKANTU_DEBUG_OUT();
-    return;
-  }
-
-  unsigned int size_to_alloc = (new_size - allocated_size < AKANTU_MIN_ALLOCATION) ?
-    allocated_size + AKANTU_MIN_ALLOCATION : new_size;
-
-  T *tmp_ptr = static_cast<T*>(realloc(values, size_to_alloc * nb_component * sizeof(T)));
-  AKANTU_DEBUG_ASSERT(tmp_ptr != NULL,
-		     "Cannot allocate " << size_to_alloc * nb_component * sizeof(T) << " bytes");
-  if (!tmp_ptr) return;
-
-  AKANTU_DEBUG_INFO("Allocating " << (size_to_alloc - allocated_size)*nb_component*sizeof(T) << " bytes");
-
-  allocated_size = size_to_alloc;
-  size = new_size;
-  values = tmp_ptr;
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <class T> void Vector<T>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  int real_size = allocated_size * nb_component * size_of_type;
-
-  stream << space << "Vector<" << typeid(T).name() << "> [" << std::endl;
-  stream << space << " + id             : " << this->id << std::endl;
-  stream << space << " + size           : " << this->size << std::endl;
-  stream << space << " + nb_component   : " << this->nb_component << std::endl;
-  stream << space << " + allocated size : " << this->allocated_size << std::endl;
-  stream << space << " + memory size    : " << real_size << "B" << std::endl;
-  stream << space << " + adresse        : " << std::hex << this->values << std::dec << std::endl;
-  if(AKANTU_DEBUG_TEST(dblDump)) {
-    stream << space << " + values         : {";
-    for (unsigned int i = 0; i < this->size; ++i) {
-      stream << "{";
-      for (unsigned int j = 0; j < this->nb_component; ++j) {
-	stream << this->values[i*nb_component + j];
-	if(j != this->nb_component - 1) stream << ", ";
-      }
-      stream << "}";
-      if(i != this->size - 1) stream << ", ";
-    }
-    stream << "}" << std::endl;
-  }
-  stream << space << "]" << std::endl;
-}
-
-/* -------------------------------------------------------------------------- */
 /* Inline Functions VectorBase                                                */
 /* -------------------------------------------------------------------------- */
 
-inline unsigned int VectorBase::getMemorySize() const {
+inline UInt VectorBase::getMemorySize() const {
  return allocated_size * nb_component * size_of_type;
 }

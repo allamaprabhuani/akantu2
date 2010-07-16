@@ -12,12 +12,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Vector<double> & Mesh::getNodes() const {
+inline Vector<Real> & Mesh::getNodes() const {
   return *nodes;
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<int> & Mesh::getConnectivity(ElementType type) const {
+inline Vector<Int> & Mesh::getConnectivity(ElementType type) const {
   AKANTU_DEBUG_IN();
   ConnectivityMap::const_iterator it = connectivities.find(type);
 
@@ -29,9 +29,9 @@ inline Vector<int> & Mesh::getConnectivity(ElementType type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<int> * Mesh::getConnectivityPointer(ElementType type) const {
+inline Vector<Int> * Mesh::getConnectivityPointer(ElementType type) const {
   AKANTU_DEBUG_IN();
-  Vector<int> * conn = NULL;
+  Vector<Int> * conn = NULL;
 
   ConnectivityMap::const_iterator it = connectivities.find(type);
   if(it != connectivities.end()) {

@@ -26,11 +26,40 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+enum DebugLevel {
+  dbl0           = 0,
+  dblError       = 0,
+  dblAssert      = 0,
+  dbl1           = 1,
+  dblException   = 1,
+  dblCritical    = 1,
+  dbl2           = 2,
+  dblMajor       = 2,
+  dbl3           = 3,
+  dblCall        = 3,
+  dblSecondary   = 3,
+  dblHead        = 3,
+  dbl4           = 4,
+  dblWarning     = 4,
+  dbl5           = 5,
+  dblInfo        = 5,
+  dbl6           = 6,
+  dblIn          = 6,
+  dblOut         = 6,
+  dbl7           = 7,
+  dbl8           = 8,
+  dblTrace       = 8,
+  dbl9           = 9,
+  dbl10          = 10,
+  dblDump        = 100
+};
+/* -------------------------------------------------------------------------- */
+
 extern std::ostream & _akantu_cout;
 
 extern std::ostream & _akantu_debug_cout;
 
-extern int _debug_level;
+extern DebugLevel _debug_level;
 
 /* -------------------------------------------------------------------------- */
 /// exception class that can be thrown by akantu
@@ -75,37 +104,9 @@ private:
   unsigned int  _line;
 };
 
-
 /* -------------------------------------------------------------------------- */
-enum DebugLevel {
-  dbl0           = 0,
-  dblError       = 0,
-  dbl1           = 1,
-  dblException   = 1,
-  dblCritical    = 1,
-  dbl2           = 2,
-  dblMajor       = 2,
-  dbl3           = 3,
-  dblCall        = 3,
-  dblSecondary   = 3,
-  dblHead        = 3,
-  dbl4           = 4,
-  dblWarning     = 4,
-  dbl5           = 5,
-  dblInfo        = 5,
-  dbl6           = 6,
-  dblIn          = 6,
-  dblOut         = 6,
-  dbl7           = 7,
-  dbl8           = 8,
-  dblTrace       = 8,
-  dbl9           = 9,
-  dbl10          = 10,
-  dblDump        = 100
-};
 
-
-#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __LINE__ << ") "
+#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ") "
 #ifndef AKANTU_MPI
 #define AKANTU_EXIT(status)			\
   do {						\
@@ -128,6 +129,15 @@ enum DebugLevel {
 #define AKANTU_DEBUG_WARNING(info)
 #define AKANTU_DEBUG_TRACE(info)
 #define AKANTU_DEBUG_ASSERT(test,info)
+#define AKANTU_DEBUG_ERROR(info)					\
+  do {									\
+    AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
+    std::stringstream s_info;						\
+    s_info << info ;							\
+    Exception ex(s_info.str(), __FILE__, __LINE__ );			\
+    throw ex;								\
+  } while(0)
+
 /* -------------------------------------------------------------------------- */
 #else
 #define AKANTU_DEBUG(level,info)					\
@@ -155,24 +165,19 @@ enum DebugLevel {
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
-      _akantu_debug_cout << "(" <<__FILE__ << ":" << __LINE__ << ")"	\
-			 << "assert [" << #test << "] "			\
-			 << "!!! " << info				\
-			 << std::endl;					\
+      AKANTU_DEBUG(dblAssert, "assert [" << #test << "] "		\
+		   << "!!! " << info);					\
       AKANTU_EXIT(EXIT_FAILURE);					\
     }									\
   } while(0)
-#endif
 
-/* -------------------------------------------------------------------------- */
 #define AKANTU_DEBUG_ERROR(info)					\
   do {									\
     AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
-    std::stringstream s_info;						\
-    s_info << info ;							\
-    Exception ex(s_info.str(), __FILE__, __LINE__ );			\
-    throw ex;								\
+    AKANTU_EXIT(EXIT_FAILURE);						\
   } while(0)
+
+#endif
 
 /* -------------------------------------------------------------------------- */
 

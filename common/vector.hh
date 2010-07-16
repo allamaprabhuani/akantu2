@@ -42,7 +42,7 @@ public:
 public:
 
   /// get the amount of space allocated in bytes
-  inline unsigned int getMemorySize() const;
+  inline UInt getMemorySize() const;
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -51,11 +51,11 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_SCALAR(AllocatedSize, allocated_size, unsigned int);
+  AKANTU_GET_MACRO_SCALAR(AllocatedSize, allocated_size, UInt);
 
-  AKANTU_GET_MACRO_SCALAR(Size, size, unsigned int);
+  AKANTU_GET_MACRO_SCALAR(Size, size, UInt);
 
-  AKANTU_GET_MACRO_SCALAR(NbComponent, nb_component, unsigned int);
+  AKANTU_GET_MACRO_SCALAR(NbComponent, nb_component, UInt);
 
 
   /* ------------------------------------------------------------------------ */
@@ -63,16 +63,16 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// the size allocated
-  unsigned int allocated_size;
+  UInt allocated_size;
 
   /// the size used
-  unsigned int size;
+  UInt size;
 
   /// number of components
-  unsigned int nb_component;
+  UInt nb_component;
 
   /// size of the stored type
-  unsigned int size_of_type;
+  UInt size_of_type;
 
   /// id of the vector
   VectorID id;
@@ -88,15 +88,15 @@ template<class T> class Vector : public VectorBase {
 public:
 
   /// Allocation of a new vector
-  Vector(unsigned int size, unsigned int nb_component,
+  Vector(UInt size, UInt nb_component = 1,
 	 const VectorID & id = "");
 
   /// Allocation of a new vector with a default value
-  Vector(unsigned int size, unsigned int nb_component,
+  Vector(UInt size, UInt nb_component,
 	 const T def_values[], const VectorID & id = "");
 
   /// Allocation of a new vector with a default value
-  Vector(unsigned int size, unsigned int nb_component,
+  Vector(UInt size, UInt nb_component,
 	 const T & value, const VectorID & id = "");
 
   /// Copy constructor (deep copy if deep=true) \todo to implement
@@ -110,7 +110,7 @@ public:
 public:
 
   /// get jth componemt of the ith tuple
-  inline T & at(unsigned int i, unsigned int j = 0);
+  inline T & at(UInt i, UInt j = 0);
 
   /// add an  element at  the and  of the vector  with the  value value  for all
   /// component
@@ -123,10 +123,10 @@ public:
    * remove an element and move the last one in the hole
    * /!\ change the order in the vector
    */
-  inline void erase(unsigned int i);
+  inline void erase(UInt i);
 
   /// change the size of the vector and allocate more memory if needed
-  void resize(unsigned int size);
+  void resize(UInt size);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -135,13 +135,13 @@ public:
 
 protected:
   /// perform the allocation for the constructors
-  void allocate(unsigned int size, unsigned int nb_component);
+  void allocate(UInt size, UInt nb_component = 1);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  unsigned int getSize() const{ return this->size; };
+  UInt getSize() const{ return this->size; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

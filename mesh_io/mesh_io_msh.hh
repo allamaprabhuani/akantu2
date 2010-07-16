@@ -80,10 +80,10 @@ private:
 
 
   /// order in witch element as to be read
-  static unsigned int _read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT];
+  static UInt _read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT];
 
   /// number of nodes per msh element
-  static unsigned int _msh_nodes_per_elem[16]; // 16 = number of recognized
+  static UInt _msh_nodes_per_elem[16]; // 16 = number of recognized
                                                // msh element types +1 (for 0)
 
   /// correspondance between msh element types and akantu element types
