@@ -188,7 +188,7 @@ MeshIOMSH::~MeshIOMSH() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
+void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 
   std::ifstream infile;
   infile.open(filename.c_str());
@@ -261,7 +261,7 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
       Int index;
       UInt msh_type;
       ElementType akantu_type, akantu_type_old = _not_defined;
-      Vector<Int> *connectivity = NULL;
+      Vector<UInt> *connectivity = NULL;
       UInt nb_elements_read = 0;
       UInt node_per_element = 0;
 
@@ -286,8 +286,8 @@ void MeshIOMSH::read(const std::string & filename, const Mesh & mesh) {
 	  if(connectivity)
 	    connectivity->resize(nb_elements);
 	  else
-	    connectivity = &(const_cast<Mesh &>(mesh).createConnectivity(akantu_type,
-									 nb_elements));
+	    connectivity = &mesh.createConnectivity(akantu_type,
+						    nb_elements);
 
 	  node_per_element = connectivity->getNbComponent();
 	  akantu_type_old = akantu_type;
@@ -368,19 +368,20 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   outfile << "$Elements" << std::endl;;
 
-  const Mesh::ConnectivityMap & connectivity_map = mesh.getConnectivityMap();
-  Mesh::ConnectivityMap::const_iterator it;
+  const Mesh::TypeList & type_list = mesh.getTypeList();
+  Mesh::TypeList::const_iterator it;
+
   Int nb_elements = 0;
-  for(it = connectivity_map.begin(); it != connectivity_map.end(); ++it) {
-    Vector<Int> & connectivity = *(it->second);
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    Vector<UInt> & connectivity = mesh.getConnectivity(*it);
     nb_elements += connectivity.getSize();
   }
   outfile << nb_elements << std::endl;
 
   UInt element_idx = 1;
-  for(it = connectivity_map.begin(); it != connectivity_map.end(); ++it) {
-    ElementType type = it->first;
-    Vector<Int> & connectivity = *(it->second);
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    Vector<UInt> & connectivity = mesh.getConnectivity(type);
 
     for(UInt i = 0; i < connectivity.getSize(); ++i) {
       UInt offset = i * connectivity.getNbComponent();

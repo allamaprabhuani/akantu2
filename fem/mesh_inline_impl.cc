@@ -17,32 +17,26 @@ inline Vector<Real> & Mesh::getNodes() const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Int> & Mesh::getConnectivity(ElementType type) const {
-  AKANTU_DEBUG_IN();
-  ConnectivityMap::const_iterator it = connectivities.find(type);
+inline UInt Mesh::getNbNodes() const {
+  return nodes->getSize();
+}
 
-  AKANTU_DEBUG_ASSERT((it != connectivities.end()),
+/* -------------------------------------------------------------------------- */
+inline Vector<UInt> & Mesh::getConnectivity(ElementType type) const {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(connectivities[type] != NULL,
 		      "The mesh " << id << " as no element of kind : "<< type);
 
   AKANTU_DEBUG_OUT();
-  return *(it->second);
+  return *connectivities[type];
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Int> * Mesh::getConnectivityPointer(ElementType type) const {
+inline Vector<UInt> * Mesh::getConnectivityPointer(ElementType type) const {
   AKANTU_DEBUG_IN();
-  Vector<Int> * conn = NULL;
-
-  ConnectivityMap::const_iterator it = connectivities.find(type);
-  if(it != connectivities.end()) {
-    conn = it->second;
-  }
 
   AKANTU_DEBUG_OUT();
-  return conn;
+  return connectivities[type];
 }
 
-/* -------------------------------------------------------------------------- */
-inline const Mesh::ConnectivityMap & Mesh::getConnectivityMap() const {
-  return connectivities;
-}

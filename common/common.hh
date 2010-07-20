@@ -21,12 +21,15 @@
 /* -------------------------------------------------------------------------- */
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 
 /* -------------------------------------------------------------------------- */
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <exception>
 #include <map>
+#include <set>
 
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
@@ -47,6 +50,7 @@ typedef double Real;
 typedef unsigned int UInt;
 typedef int Int;
 
+typedef std::string ID;
 
 /* -------------------------------------------------------------------------- */
 /* Memory types                                                               */
@@ -54,13 +58,15 @@ typedef int Int;
 
 typedef UInt MemoryID;
 
-typedef std::string VectorID;
+typedef ID VectorID;
 
 /* -------------------------------------------------------------------------- */
 /* Mesh types                                                                 */
 /* -------------------------------------------------------------------------- */
 
-typedef std::string MeshID;
+typedef ID MeshID;
+
+typedef ID FEMID;
 
 enum ElementType {
   _not_defined  = 0,
@@ -91,6 +97,12 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
   return stream;
 }
 
+/* -------------------------------------------------------------------------- */
+void initiakize();
+
+/* -------------------------------------------------------------------------- */
+void finalize ();
+
 __END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -110,14 +122,13 @@ __END_AKANTU__
   }
 
 #define AKANTU_GET_MACRO(name, variable, type)	\
-  inline const type get##name () const {	\
-    return this->variable;			\
+  inline type get##name () const {		\
+    return variable;				\
   }
 
-#define AKANTU_GET_MACRO_SCALAR(name, variable, type)	\
-  inline type get##name () const {	\
-    return this->variable;			\
+#define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)	\
+  inline type get##name () {					\
+    return variable;						\
   }
-
 
 #endif /* __AKANTU_COMMON_HH__ */

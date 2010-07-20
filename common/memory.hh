@@ -43,13 +43,13 @@ public:
 
   /// malloc
   template<class T>
-  inline Vector<T> & malloc(const VectorID & name,
+  inline Vector<T> & alloc(const VectorID & name,
 			    UInt size,
 			    UInt nb_component);
 
   /* ------------------------------------------------------------------------ */
   /// free an array
-  inline void free(const VectorID & name);
+  inline void dealloc(const VectorID & name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

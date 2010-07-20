@@ -52,12 +52,11 @@ public:
        const MemoryID & memory_id = 0);
 
 
-  virtual ~Mesh() {};
+  virtual ~Mesh();
 
-  typedef std::map<ElementType, Vector<Int> *> ConnectivityMap;
+  typedef std::set<ElementType> TypeList;
 
-  typedef std::map<ElementType, Vector<Int> *>::iterator ConnectivityIterator;
-
+  typedef Vector<UInt> * ConnectivityMap[_max_element_type];
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -70,18 +69,22 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+
+  AKANTU_GET_MACRO(TypeList, type_set, const TypeList &);
+
   inline Vector<Real> & getNodes() const;
 
-  Vector<Int> & createConnectivity(ElementType type, UInt nb_element);
+  inline UInt getNbNodes() const;
 
-  inline Vector<Int> & getConnectivity(ElementType type) const;
+  Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
 
-  inline const ConnectivityMap & getConnectivityMap() const;
+  inline Vector<UInt> & getConnectivity(ElementType type) const;
 
 private:
   friend class MeshIOMSH;
 
-  inline Vector<Int> * getConnectivityPointer(ElementType type) const;
+  inline Vector<UInt> * getConnectivityPointer(ElementType type) const;
 
 
   /* ------------------------------------------------------------------------ */
@@ -95,8 +98,14 @@ private:
   /// array of the nodes coordinates
   Vector<Real> * nodes;
 
+  /// boolean to know if the nodes have to be deleted with the mesh or not
+  bool created_nodes;
+
   /// all class of elements present in this mesh (for heterogenous meshes)
   ConnectivityMap connectivities;
+
+  /// list of all existing types in the mesh
+  TypeList type_set;
 
   /// the spatial dimension of this mesh
   UInt spatial_dimension;

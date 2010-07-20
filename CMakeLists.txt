@@ -71,11 +71,14 @@ endif(NOT AKANTU_NO_LIBRARY_VERSION)
 #add_definitions(-DAKANTU_NDEBUG)
 
 set(AKANTU_COMMON_SRC
+  common/common.cc
   common/extern.cc
   common/static_memory.cc
   common/memory.cc
   common/vector.cc
   fem/mesh.cc
+  fem/fem.cc
+  fem/element_class.cc
   mesh_io/mesh_io.cc
   mesh_io/mesh_io_msh.cc
   )
@@ -105,6 +108,7 @@ if(BUILD_UNIT_TEST)
     test/static_memory.cc
     test/mesh_io_msh.cc
     test/vector.cc
+    test/fem.cc
     )
 
   foreach(_test ${AKANTU_UNIT_TESTS})

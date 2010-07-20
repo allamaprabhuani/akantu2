@@ -50,8 +50,7 @@ private:
 
 public:
 
-  ~StaticMemory();
-
+  //  virtual ~StaticMemory();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -12,11 +12,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> ElementClass<_triangle_1>::ElementClass() {
-  nb_nodes_per_element = 3;
-  nb_quadrature_points = 1;
-  spatial_dimension    = 2;
-}
+
 
 /* -------------------------------------------------------------------------- */
 

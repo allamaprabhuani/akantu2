@@ -50,6 +50,7 @@ enum DebugLevel {
   dbl8           = 8,
   dblTrace       = 8,
   dbl9           = 9,
+  dblAccessory   = 9,
   dbl10          = 10,
   dblDump        = 100
 };
@@ -184,3 +185,5 @@ private:
 __END_AKANTU__
 
 #endif /* __AKANTU_ERROR_HH__ */
+
+//  LocalWords:  acessory

@@ -10,11 +10,23 @@
  * <insert license here>
  *
  */
+/* -------------------------------------------------------------------------- */
+#include "common.hh"
+
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> ElementClass<type>::ElementClass() {
-  nb_nodes_per_element = 0;
-  nb_quadrature_points = 0;
+template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
+  return nb_quadrature_points * nb_nodes_per_element;
+}
+
+/* -------------------------------------------------------------------------- */
+template<ElementType type> inline UInt ElementClass<type>::getShapeDerivatiesSize() {
+  return nb_quadrature_points * nb_nodes_per_element * spatial_dimension;
+}
+
+/* -------------------------------------------------------------------------- */
+template<ElementType type> inline UInt ElementClass<type>::getJacobiansSize() {
+  return nb_quadrature_points;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -33,9 +45,9 @@ template<ElementType type> Real ElementClass<type>::volume(const double * coord)
 /* -------------------------------------------------------------------------- */
 
 #include "element_classes/element_class_line_1.cc"
-#include "element_classes/element_class_line_2.cc"
-#include "element_classes/element_class_triangle_1.cc"
-#include "element_classes/element_class_triangle_2.cc"
-#include "element_classes/element_class_tetrahedra_1.cc"
-#include "element_classes/element_class_tetrahedra_2.cc"
+// #include "element_classes/element_class_line_2.cc"
+// #include "element_classes/element_class_triangle_1.cc"
+// #include "element_classes/element_class_triangle_2.cc"
+// #include "element_classes/element_class_tetrahedra_1.cc"
+// #include "element_classes/element_class_tetrahedra_2.cc"
 

@@ -58,7 +58,7 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
   }
 
   if((memory_it->second).find(name) != (memory_it->second).end()) {
-    AKANTU_DEBUG_ERROR("The vector " << name << " is already registred in the memory " << memory_id);
+    AKANTU_DEBUG_ERROR("The vector \"" << name << "\" is already registred in the memory " << memory_id);
   }
 
   (memory_it->second)[name] = new Vector<T>(size, nb_component, name);

@@ -51,17 +51,20 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_SCALAR(AllocatedSize, allocated_size, UInt);
+  AKANTU_GET_MACRO(AllocatedSize, allocated_size, UInt);
 
-  AKANTU_GET_MACRO_SCALAR(Size, size, UInt);
+  AKANTU_GET_MACRO(Size, size, UInt);
 
-  AKANTU_GET_MACRO_SCALAR(NbComponent, nb_component, UInt);
+  AKANTU_GET_MACRO(NbComponent, nb_component, UInt);
 
-
+  AKANTU_GET_MACRO(ID, id, const VectorID &);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// id of the vector
+  VectorID id;
+
   /// the size allocated
   UInt allocated_size;
 
@@ -73,9 +76,6 @@ protected:
 
   /// size of the stored type
   UInt size_of_type;
-
-  /// id of the vector
-  VectorID id;
 };
 
 

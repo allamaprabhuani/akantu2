@@ -12,11 +12,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> ElementClass<_tetrahedra_2>::ElementClass() {
-  nb_nodes_per_element = 10;
-  nb_quadrature_points = 4;
-  spatial_dimension    = 3;
-}
+
 
 /* -------------------------------------------------------------------------- */
 

@@ -12,17 +12,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> ElementClass<_line_1>::ElementClass() {
-  nb_nodes_per_element = 2;
-  nb_quadrature_points = 1;
-  spatial_dimension    = 1;
-}
-
-/* -------------------------------------------------------------------------- */
-template<> void ElementClass<_line_1>::shapeFunctions(const Real * x,
-						      Real * shape,
-						      Real * dshape,
-						      Real * jacobian) {
+template<> inline void ElementClass<_line_1>::shapeFunctions(const Real * x,
+							     Real * shape,
+							     Real * shape_deriv,
+							     Real * jacobian) {
   /**
    *           q
    *  x--------|--------x
@@ -32,10 +25,11 @@ template<> void ElementClass<_line_1>::shapeFunctions(const Real * x,
    * N2(e) = 1/2 (1 + e)
    */
 
-  /// shape functions
-  shape[0] = .5;
-  shape[1] = .5;
+  Real weight = 2;
 
+  /// shape functions
+  shape[0] = .5; //N1(0)
+  shape[1] = .5; //N2(0)
 
   Real dnds[nb_nodes_per_element*spatial_dimension];
   ///dN1/de
@@ -45,17 +39,14 @@ template<> void ElementClass<_line_1>::shapeFunctions(const Real * x,
 
   Real dxds = dnds[0]*x[0] + dnds[1]*x[1];
 
-  jacobian[0] = 1 / dxds;
+  jacobian[0] = dxds * weight;
 
-  dshape[0] = dnds[0] / dxds;
-  dshape[1] = dnds[1] / dxds;
-
+  shape_deriv[0] = dnds[0] / dxds;
+  shape_deriv[1] = dnds[1] / dxds;
 }
 
 
-/* -------------------------------------------------------------------------- */
-template<> Real ElementClass<_line_1>::volume(const double * coord) {
-  return sqrt((coord[0] - coord[1])*(coord[0] - coord[1])); // * 1 * 1 for volume;
+/* ------------------------------------------------------------------------ */
+template<> inline Real ElementClass<_line_1>::volume(const double * coord) {
+  return sqrt((coord[0] - coord[1])*(coord[0] - coord[1])); //*1*1 for volume
 }
-
-/* -------------------------------------------------------------------------- */

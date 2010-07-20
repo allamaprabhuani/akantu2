@@ -12,7 +12,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<class T> inline Vector<T> & Memory::malloc(const VectorID & name,
+template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
 						    UInt size,
 						    UInt nb_component) {
   return static_memory->smalloc<T>(memory_id, name,
@@ -20,7 +20,7 @@ template<class T> inline Vector<T> & Memory::malloc(const VectorID & name,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Memory::free(const VectorID & name) {
+inline void Memory::dealloc(const VectorID & name) {
   static_memory->sfree(memory_id, name);
 }
 

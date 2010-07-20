@@ -43,7 +43,7 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /// read a mesh from the file
-  virtual void read(const std::string & filename, const Mesh & mesh);
+  virtual void read(const std::string & filename, Mesh & mesh);
 
   /// write a mesh to a file
   virtual void write(const std::string & filename, const Mesh & mesh);

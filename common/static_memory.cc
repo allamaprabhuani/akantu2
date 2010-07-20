@@ -24,38 +24,46 @@ __BEGIN_AKANTU__
 StaticMemory* StaticMemory::single_static_memory = NULL;
 
 /* -------------------------------------------------------------------------- */
-StaticMemory::~StaticMemory() {
-  delete single_static_memory;
-}
+// StaticMemory::~StaticMemory() {
+
+//}
 
 /* -------------------------------------------------------------------------- */
 void StaticMemory::printself(std::ostream & stream, int indent) const{
   std::string space = "";
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  std::streamsize prec       = stream.precision();
+  stream.precision(2);
+
   stream << space << "StaticMemory [" << std::endl;
   stream << space << " + nb memories : " << memories.size() << std::endl;
 
-  Int tot_size = 0;
+  Real tot_size = 0;
   MemoryMap::const_iterator memory_it;
   for(memory_it = memories.begin(); memory_it != memories.end(); ++memory_it) {
-    Int mem_size = 0;
+    Real mem_size = 0;
 
     stream << space << AKANTU_INDENT << "Memory [" << std::endl;
     stream << space << AKANTU_INDENT << " + memory id   : " << memory_it->first << std::endl;
     stream << space << AKANTU_INDENT << " + nb vectors  : " << (memory_it->second).size() << std::endl;
+    stream.precision(prec);
     VectorMap::const_iterator vector_it;
     for(vector_it = (memory_it->second).begin();
 	vector_it != (memory_it->second).end();
 	++vector_it) {
       (vector_it->second)->printself(stream, indent + 2);
-      mem_size += (vector_it->second)->getMemorySize();
+      mem_size += (vector_it->second)->getMemorySize() / 1024.;
     }
-    stream << space << AKANTU_INDENT << " + total size  : " << mem_size<< std::endl;
+    stream.precision(2);
+    stream << space << AKANTU_INDENT << " + total size  : " << mem_size << "kB" << std::endl;
     stream << space << AKANTU_INDENT << "]" << std::endl;
     tot_size += mem_size;
   }
-  stream << space << " + total size  : " << tot_size << std::endl;
+  stream << space << " + total size  : " << tot_size << "kB" << std::endl;
   stream << space << "]" << std::endl;
+
+  stream.precision(prec);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -63,7 +71,6 @@ StaticMemory * StaticMemory::getStaticMemory() {
   if(!single_static_memory) {
     single_static_memory = new StaticMemory();
   }
-
   return single_static_memory;
 }
 
@@ -82,6 +89,7 @@ void StaticMemory::sfree(const MemoryID & memory_id,
 		      << " for the Memory " << memory_id);
   }
 
+  delete vector_it->second;
   vectors.erase(vector_it);
 
   AKANTU_DEBUG_OUT();
