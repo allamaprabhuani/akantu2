@@ -107,7 +107,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ") "
+#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
 #ifndef AKANTU_MPI
 #define AKANTU_EXIT(status)			\
   do {						\

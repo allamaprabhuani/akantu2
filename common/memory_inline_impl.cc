@@ -20,6 +20,15 @@ template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
 }
 
 /* -------------------------------------------------------------------------- */
+template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
+						   UInt size,
+						   UInt nb_component,
+						   const T & init_value) {
+  return static_memory->smalloc<T>(memory_id, name,
+				   size, nb_component, init_value);
+}
+
+/* -------------------------------------------------------------------------- */
 inline void Memory::dealloc(const VectorID & name) {
   static_memory->sfree(memory_id, name);
 }

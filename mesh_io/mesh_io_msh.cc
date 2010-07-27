@@ -368,8 +368,8 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   outfile << "$Elements" << std::endl;;
 
-  const Mesh::TypeList & type_list = mesh.getTypeList();
-  Mesh::TypeList::const_iterator it;
+  const Mesh::ConnectivityTypeList & type_list = mesh.getTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
 
   Int nb_elements = 0;
   for(it = type_list.begin(); it != type_list.end(); ++it) {

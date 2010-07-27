@@ -12,11 +12,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Mesh & FEM::getMesh() const {
-  return *mesh;
-}
-
-/* -------------------------------------------------------------------------- */
 inline Real FEM::volume(ElementType type, Int element) {
   AKANTU_DEBUG_IN();
 
@@ -59,7 +54,67 @@ inline Real FEM::volume(ElementType type, Int element) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt FEM::getNbQuadraturePoints(ElementType type) const {
+inline void FEM::integrate(const Vector<Real> & f,
+			   Real * intf,
+			   UInt nb_degre_of_freedom,
+			   const ElementType & type,
+			   const UInt elem) {
+
+  UInt nb_quadrature_points = getNbQuadraturePoints(type);
+  UInt size_of_jacobians    = jacobians[type]->getNbComponent();
+
+  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
+		      "The vector f do not have the good number of component.");
+
+  Real * f_val    = f.values + elem * f.getNbComponent();
+  Real * jac_val  = jacobians[type]->values + elem * size_of_jacobians;
+
+  integrate(f_val, jac_val, intf, nb_degre_of_freedom, nb_quadrature_points);
+}
+
+
+/* -------------------------------------------------------------------------- */
+inline void FEM::integrate(Real *f, Real *jac, Real * inte,
+			   UInt nb_degre_of_freedom,
+			   UInt nb_quadrature_points){
+  //  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+
+  memset(inte, 0, nb_degre_of_freedom * sizeof(Real));
+
+  Real *cjac = jac;
+  for (UInt q = 0; q < nb_quadrature_points; ++q) {
+    for (UInt dof = 0; dof < nb_degre_of_freedom; ++dof) {
+      inte[dof] += *f * *cjac;
+      ++f;
+    }
+    ++cjac;
+  }
+    //    inte += nb_degre_of_freedom;
+    //  }
+}
+
+/* -------------------------------------------------------------------------- */
+inline Mesh & FEM::getMesh() const {
+  return *mesh;
+}
+
+/* -------------------------------------------------------------------------- */
+inline const Mesh::ConnectivityTypeList & FEM::getConnectivityTypeList() const {
+  return mesh->getTypeList();
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt FEM::getNbNodes() const {
+  return mesh->getNbNodes();
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt FEM::getNbElement(const ElementType & type) const {
+  return mesh->getConnectivity(type).getSize();
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt FEM::getNbQuadraturePoints(const ElementType & type) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points;
@@ -84,3 +139,67 @@ inline UInt FEM::getNbQuadraturePoints(ElementType type) const {
   AKANTU_DEBUG_OUT();
   return nb_quadrature_points;
 }
+
+/* -------------------------------------------------------------------------- */
+inline UInt FEM::getNbNodesPerElement(const ElementType & type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes_per_element;
+#define GET_NB_NODES_PER_ELEMENT(type)					\
+  nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
+
+  switch(type) {
+  case _line_1       : { GET_NB_NODES_PER_ELEMENT(_line_1      ); break; }
+  case _line_2       : { GET_NB_NODES_PER_ELEMENT(_line_2      ); break; }
+  case _triangle_1   : { GET_NB_NODES_PER_ELEMENT(_triangle_1  ); break; }
+  case _triangle_2   : { GET_NB_NODES_PER_ELEMENT(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_NB_NODES_PER_ELEMENT(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_NB_NODES_PER_ELEMENT(_tetrahedra_2); break; }
+  case _not_defined:
+  case _max_element_type:  {
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);
+    break; }
+  }
+
+#undef GET_NB_NODES_PER_ELEMENT
+
+  AKANTU_DEBUG_OUT();
+  return nb_nodes_per_element;
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt FEM::getSpatialDimension(const ElementType & type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension;
+#define GET_SPATIAL_DIMENSION(type)					\
+  spatial_dimension = ElementClass<type>::getSpatialDimension()
+
+  switch(type) {
+  case _line_1       : { GET_SPATIAL_DIMENSION(_line_1      ); break; }
+  case _line_2       : { GET_SPATIAL_DIMENSION(_line_2      ); break; }
+  case _triangle_1   : { GET_SPATIAL_DIMENSION(_triangle_1  ); break; }
+  case _triangle_2   : { GET_SPATIAL_DIMENSION(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_SPATIAL_DIMENSION(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_SPATIAL_DIMENSION(_tetrahedra_2); break; }
+  case _not_defined:
+  case _max_element_type:  {
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);
+    break; }
+  }
+
+#undef GET_SPATIAL_DIMENSION
+
+  AKANTU_DEBUG_OUT();
+  return spatial_dimension;
+}
+
+/* -------------------------------------------------------------------------- */
+inline const Vector<Real> & FEM::getShapes(const ElementType & type) const {
+  AKANTU_DEBUG_ASSERT(shapes[type] != NULL,
+		      "No shapes of the type : " << type << " in " << id);
+  return *shapes[type];
+}
+
+/* -------------------------------------------------------------------------- */
+

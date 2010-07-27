@@ -44,8 +44,15 @@ public:
   /// malloc
   template<class T>
   inline Vector<T> & alloc(const VectorID & name,
-			    UInt size,
-			    UInt nb_component);
+			   UInt size,
+			   UInt nb_component);
+
+  /// malloc
+  template<class T>
+  inline Vector<T> & alloc(const VectorID & name,
+			   UInt size,
+			   UInt nb_component,
+			   const T & init_value);
 
   /* ------------------------------------------------------------------------ */
   /// free an array
@@ -55,6 +62,8 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

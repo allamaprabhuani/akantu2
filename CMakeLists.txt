@@ -79,6 +79,8 @@ set(AKANTU_COMMON_SRC
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
+  model/solid_mechanics_model.cc
+  model/material.cc
   mesh_io/mesh_io.cc
   mesh_io/mesh_io_msh.cc
   )
@@ -87,6 +89,7 @@ set(AKANTU_INCLUDE_DIRS
   common
   fem/
   mesh_io/
+  model/
   )
 
 include_directories(
@@ -105,15 +108,16 @@ set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 option(BUILD_UNIT_TEST "Build the unit test")
 if(BUILD_UNIT_TEST)
   set(AKANTU_UNIT_TESTS
-    test/static_memory.cc
-    test/mesh_io_msh.cc
-    test/vector.cc
-    test/fem.cc
+    test/test_static_memory.cc
+    test/test_mesh_io_msh.cc
+    test/test_vector.cc
+    test/test_fem.cc
+    test/test_solid_mechanics_model.cc
     )
 
   foreach(_test ${AKANTU_UNIT_TESTS})
     get_filename_component(_target "${_test}" NAME_WE)
-    add_executable(test_${_target} ${_test})
-    target_link_libraries(test_${_target} akantu)
+    add_executable(${_target} ${_test})
+    target_link_libraries(${_target} akantu)
   endforeach(_test)
 endif(BUILD_UNIT_TEST)

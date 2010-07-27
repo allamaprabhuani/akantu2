@@ -88,6 +88,12 @@ public:
   Vector<T> & smalloc(const MemoryID & memory_id, const VectorID & name,
 		      UInt size, UInt nb_component);
 
+  template<typename T>
+  Vector<T> & smalloc(const MemoryID & memory_id,
+		      const VectorID & name,
+		      UInt size,
+		      UInt nb_component,
+		      const T & init_value);
   /**
    * free the memory associated to the array name
    *

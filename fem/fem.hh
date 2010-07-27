@@ -13,8 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __MYFEM_FEM_HH__
-#define __MYFEM_FEM_HH__
+#ifndef __AKANTU_FEM_HH__
+#define __AKANTU_FEM_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "common.hh"
@@ -26,7 +26,10 @@
 
 __BEGIN_AKANTU__
 
-typedef Vector<Real> * ConnectivityTypeDataReal[_max_element_type];
+typedef Vector<Real> * ByConnectivityTypeReal[_max_element_type];
+
+typedef Vector<Int>  * ByConnectivityTypeInt[_max_element_type];
+
 
 class FEM : public Memory {
   /* ------------------------------------------------------------------------ */
@@ -41,7 +44,7 @@ public:
 
   virtual ~FEM();
 
-  typedef std::map<ElementType, Vector<Real> *> ByTypeRealMap;
+  //  typedef std::map<ElementType, Vector<Real> *> ByTypeRealMap;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -53,15 +56,51 @@ public:
   /// compute the  volume of an element
   Real volume(ElementType type, Int element);
 
-  /// interpolate nodal values on quadrature points
-  void interpolateOnQuadraturePoints(const Vector<Real> &inval,
-				     Vector<Real> &valonquad,
-				     ElementType type,
+  /// interpolate nodal values on the quadrature points
+  void interpolateOnQuadraturePoints(const Vector<Real> &u,
+				     Vector<Real> &uq,
+				     UInt nb_degre_of_freedom,
+				     const ElementType & type,
 				     const Vector<UInt> * element = NULL);
+
+
+  /// compute the gradient of u on the quadrature points
+  void gradientOnQuadraturePoints(const Vector<Real> &u,
+				  Vector<Real> &nablauq,
+				  UInt nb_degre_of_freedom,
+				  const ElementType & type,
+				  const Vector<UInt> * element = NULL);
+
+  /// integrate f on all elements of type "type"
+  void integrate(const Vector<Real> & f,
+		 Vector<Real> &intf,
+		 UInt nb_degre_of_freedom,
+		 const ElementType & type,
+		 const Vector<UInt> * filter_elements = NULL);
+
+  /// integrate f on the element "elem" of type "type"
+  inline void integrate(const Vector<Real> & f,
+			Real *intf,
+			UInt nb_degre_of_freedom,
+			const ElementType & type,
+			const UInt elem);
+
+  /// assemble vectors
+  void assembleVector(const Vector<Real> & elementary_vect,
+		      Vector<Real> & nodal_values,
+		      UInt nb_degre_of_freedom,
+		      const ElementType & type,
+		      const Vector<UInt> * filter_elements = NULL);
+
+  void assembleMatrix() {};
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+private:
+  inline void integrate(Real *f, Real *jac, Real * inte,
+			UInt nb_degre_of_freedom,
+			UInt nb_quadrature_points);
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -69,10 +108,29 @@ public:
 
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
+  /// get the mesh contained in the fem object
   inline Mesh & getMesh() const;
 
+  /// get the types list containted in the mesh
+  inline const Mesh::ConnectivityTypeList & getConnectivityTypeList() const;
+
+  /// get the number of nodes in the mesh
+  inline UInt getNbNodes() const;
+
+  /// get the number of element of a type in the mesh
+  inline UInt getNbElement(const ElementType & type) const;
+
   /// get the number of quadrature points of an element
-  inline UInt getNbQuadraturePoints(ElementType type) const;
+  inline UInt getNbQuadraturePoints(const ElementType & type) const;
+
+  /// get spatial dimension of a type of element
+  inline UInt getSpatialDimension(const ElementType & type) const;
+
+  /// get the number of nodes per element for a given element type
+  inline UInt getNbNodesPerElement(const ElementType & type) const;
+
+  /// get a the shape vector
+  inline const Vector<Real> & getShapes(const ElementType & type) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -92,13 +150,13 @@ private:
   bool created_mesh;
 
   /// shape functions for all elements
-  ConnectivityTypeDataReal shapes;
+  ByConnectivityTypeReal shapes;
 
   /// shape derivatives for all elements
-  ConnectivityTypeDataReal shapes_derivatives;
+  ByConnectivityTypeReal shapes_derivatives;
 
   /// jacobians for all elements
-  ConnectivityTypeDataReal jacobians;
+  ByConnectivityTypeReal jacobians;
 
 };
 
@@ -119,4 +177,4 @@ inline std::ostream & operator <<(std::ostream & stream, const FEM & _this)
 __END_AKANTU__
 
 
-#endif /* __MYFEM_FEM_HH__ */
+#endif /* __AKANTU_FEM_HH__ */

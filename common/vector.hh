@@ -93,7 +93,7 @@ public:
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,
-	 const T def_values[], const VectorID & id = "");
+  	 const T def_values[], const VectorID & id = "");
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,

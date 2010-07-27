@@ -227,9 +227,11 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
 }
 
 /* -------------------------------------------------------------------------- */
+class MaterialBase;
 
 template class Vector<Int>;
 template class Vector<UInt>;
 template class Vector<Real>;
+template class Vector<MaterialBase *>;
 
 __END_AKANTU__

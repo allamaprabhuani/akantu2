@@ -28,9 +28,9 @@ FEM::FEM(UInt spatial_dimension, FEMID id, MemoryID memory_id) :
   sstr << id << ":mesh";
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    shapes[t] = NULL;
-    shapes_derivatives[t] = NULL;
-    jacobians[t] = NULL;
+    this->shapes[t]             = NULL;
+    this->shapes_derivatives[t] = NULL;
+    this->jacobians[t]          = NULL;
   }
 
   this->mesh = new Mesh(spatial_dimension, sstr.str(), memory_id);
@@ -58,8 +58,8 @@ FEM::FEM(Mesh & mesh, UInt spatial_dimension, FEMID id, MemoryID memory_id) :
 FEM::~FEM() {
   AKANTU_DEBUG_IN();
 
-  const Mesh::TypeList & type_list = mesh->getTypeList();
-  Mesh::TypeList::const_iterator it;
+  const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
 
   for(it = type_list.begin();
       it != type_list.end();
@@ -93,8 +93,8 @@ void FEM::initShapeFunctions() {
   AKANTU_DEBUG_IN();
   Real * coord = mesh->getNodes().values;
 
-  const Mesh::TypeList & type_list = mesh->getTypeList();
-  Mesh::TypeList::const_iterator it;
+  const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
 
   for(it = type_list.begin();
       it != type_list.end();
@@ -198,103 +198,292 @@ void FEM::initShapeFunctions() {
 };
 
 /* -------------------------------------------------------------------------- */
-void FEM::interpolateOnQuadraturePoints(const Vector<Real> &inval,
-					Vector<Real> &valonquad,
-					ElementType type,
-					const Vector<UInt> * elements){
+void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
+					Vector<Real> &out_uq,
+					UInt nb_degre_of_freedom,
+					const ElementType & type,
+					const Vector<UInt> * filter_elements){
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(shapes[type] != NULL,
 		      "No shapes for the type " << type);
 
-
-  UInt nb_nodes_per_element;
-  UInt size_of_shapes;
-  UInt nb_quadrature_points;
-
-#define INIT_VARIABLES(type)						\
-  do {									\
-    nb_nodes_per_element =						\
-      ElementClass<type>::getNbNodesPerElement();			\
-    size_of_shapes =							\
-      ElementClass<type>::getShapeSize();				\
-    nb_quadrature_points =						\
-      ElementClass<type>::getNbQuadraturePoints();			\
-  } while(0)
-
-  switch(type) {
-  case _line_1       : { INIT_VARIABLES(_line_1      ); break; }
-  case _line_2       : { INIT_VARIABLES(_line_2      ); break; }
-  case _triangle_1   : { INIT_VARIABLES(_triangle_1  ); break; }
-  case _triangle_2   : { INIT_VARIABLES(_triangle_2  ); break; }
-  case _tetrahedra_1 : { INIT_VARIABLES(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { INIT_VARIABLES(_tetrahedra_2); break; }
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
-  UInt * conn_val = mesh->getConnectivity(type).values;
+  UInt nb_nodes_per_element = mesh->getConnectivity(type).getNbComponent();
+  UInt size_of_shapes = shapes[type]->getNbComponent();
+  UInt nb_quadrature_points = getNbQuadraturePoints(type);
   UInt nb_element = mesh->getConnectivity(type).getSize();
 
-  UInt * elem_val = NULL;
-  if(elements != NULL) {
-    nb_element = elements->getSize();
-    elem_val = elements->values;
+  AKANTU_DEBUG_ASSERT(in_u.getSize() == getNbNodes(),
+		      "The vector in_f do not have the good size.");
+  AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
+		      "The vector in_u do not have the good number of component.");
+
+  AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
+		      "The vector out_uq do not have the good number of component.");
+
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    nb_element = filter_elements->getSize();
+    filter_elem_val = filter_elements->values;
   }
-  UInt degre_of_freedom = inval.getNbComponent();
-  valonquad.resize(nb_element * nb_quadrature_points);
+
+  out_uq.resize(nb_element);
+
+  UInt * conn_val = mesh->getConnectivity(type).values;
 
   Real * shape_val = shapes[type]->values;
-  Real * u_val  = inval.values;
-  Real * uq_val = valonquad.values;
+  Real * u_val     = in_u.values;
+  Real * uq_val    = out_uq.values;
 
-  UInt offset_shape = size_of_shapes;
-  UInt offset_uq    = degre_of_freedom * nb_quadrature_points;
+  UInt offset_uq   = out_uq.getNbComponent();
 
   Real * shape = shape_val;
-  Real * uq    = uq_val;
-  Real * u = static_cast<Real *>(calloc(nb_nodes_per_element * degre_of_freedom,
+  Real * u = static_cast<Real *>(calloc(nb_nodes_per_element * nb_degre_of_freedom,
 					sizeof(Real)));
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
-    if(elements != NULL) {
-      shape     = shape_val + elem_val[el] * offset_shape;
-      uq        = uq_val    + elem_val[el] * offset_uq;
-      el_offset = elem_val[el] * nb_nodes_per_element;
+    if(filter_elements != NULL) {
+      shape     = shape_val + filter_elem_val[el] * size_of_shapes;
+      el_offset = filter_elem_val[el] * nb_nodes_per_element;
     }
 
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      memcpy(u + n * degre_of_freedom,
-	     u_val + conn_val[el_offset + n] * degre_of_freedom,
-	     degre_of_freedom * sizeof(Real));
+      memcpy(u + n * nb_degre_of_freedom,
+	     u_val + conn_val[el_offset + n] * nb_degre_of_freedom,
+	     nb_degre_of_freedom * sizeof(Real));
     }
 
     /// Uq = Shape * U : matrix product
-#ifdef AKANTU_USE_BLAS
+#ifdef AKANTU_USE_CBLAS
+    ///  c := alpha*op(a)*op(b) + beta*c
+    /// dgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+		nb_quadrature_points, nb_degre_of_freedom, nb_nodes_per_element,
+		1,
+		shape, nb_nodes_per_element,
+		u, nb_degre_of_freedom,
+		0,
+		uq_val, nb_degre_of_freedom);
 #else
     for (UInt i = 0; i < nb_quadrature_points; ++i) {
-      UInt uq_i = i * degre_of_freedom;
+      UInt uq_i = i * nb_degre_of_freedom;
       UInt sh_i = i * nb_nodes_per_element;
-      for (UInt j = 0; j < degre_of_freedom; ++j) {
-	uq[uq_i + j] = 0.;
+      for (UInt j = 0; j < nb_degre_of_freedom; ++j) {
+	uq_val[uq_i + j] = 0.;
 	for (UInt k = 0; k < nb_nodes_per_element; ++k) {
-	  uq[uq_i + j] += shape[sh_i + k] * u[k * degre_of_freedom + j];
+	  uq_val[uq_i + j] += shape[sh_i + k] * u[k * nb_degre_of_freedom + j];
 	}
       }
     }
 #endif
-    if(elements == NULL) {
-      shape += offset_shape;
-      uq    += offset_uq;
+    uq_val += offset_uq;
+    if(filter_elements == NULL) {
+      shape += size_of_shapes;
     }
   }
 
   free(u);
 
 #undef INIT_VARIABLES
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
+				     Vector<Real> &out_nablauq,
+				     UInt nb_degre_of_freedom,
+				     const ElementType & type,
+				     const Vector<UInt> * filter_elements) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(shapes[type] != NULL,
+		      "No shapes for the type " << type);
+
+  UInt nb_nodes_per_element       = mesh->getConnectivity(type).getNbComponent();
+  UInt size_of_shapes_derivatives = shapes_derivatives[type]->getNbComponent();
+  UInt nb_quadrature_points       = getNbQuadraturePoints(type);
+  UInt nb_element = mesh->getConnectivity(type).getSize();
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    nb_element = filter_elements->getSize();
+    filter_elem_val = filter_elements->values;
+  }
+
+  AKANTU_DEBUG_ASSERT(in_u.getSize() == getNbNodes(),
+		      "The vector f do not have the good size.");
+  AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
+		      "The vector in_u do not have the good number of component.");
+
+  AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points * spatial_dimension,
+		      "The vector out_nablauq do not have the good number of component.");
+
+  out_nablauq.resize(nb_element);
+
+  UInt * conn_val = mesh->getConnectivity(type).values;
+
+  Real * shaped_val  = shapes_derivatives[type]->values;
+  Real * u_val       = in_u.values;
+  Real * nablauq_val = out_nablauq.values;
+
+  UInt offset_nablauq = out_nablauq.getNbComponent();
+
+  Real * shaped  = shaped_val;
+  Real * u       = static_cast<Real *>(calloc(nb_nodes_per_element * nb_degre_of_freedom,
+					      sizeof(Real)));
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    UInt el_offset = el * nb_nodes_per_element;
+    if(filter_elements != NULL) {
+      shaped    = shaped_val  + filter_elem_val[el] * size_of_shapes_derivatives;
+      el_offset = filter_elem_val[el] * nb_nodes_per_element;
+    }
+
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      memcpy(u + n * nb_degre_of_freedom,
+	     u_val + conn_val[el_offset + n] * nb_degre_of_freedom,
+	     nb_degre_of_freedom * sizeof(Real));
+    }
+
+#ifdef AKANTU_USE_CBLAS
+    ///  c := alpha*op(a)*op(b) + beta*c
+    /// dgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
+		nb_quadrature_points, nb_degre_of_freedom, nb_nodes_per_element,
+		1,
+		shaped, nb_nodes_per_element,
+		u, nb_degre_of_freedom,
+		0,
+		uq_val, nb_degre_of_freedom);
+#else
+    for (UInt i = 0; i < spatial_dimension * nb_quadrature_points; ++i) {
+      UInt uq_i = i * nb_degre_of_freedom;
+      UInt sh_i = i * nb_nodes_per_element;
+      for (UInt j = 0; j < nb_degre_of_freedom; ++j) {
+	nablauq_val[uq_i + j] = 0.;
+	for (UInt k = 0; k < nb_nodes_per_element; ++k) {
+	  nablauq_val[uq_i + j] += shaped[sh_i + k] * u[k * nb_degre_of_freedom + j];
+	}
+      }
+    }
+#endif
+    nablauq_val += offset_nablauq;
+    if(filter_elements == NULL) {
+      shaped  += size_of_shapes_derivatives;
+    }
+  }
+
+  free(u);
+
+#undef INIT_VARIABLES
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FEM::integrate(const Vector<Real> & in_f,
+		    Vector<Real> &intf,
+		    UInt nb_degre_of_freedom,
+		    const ElementType & type,
+		    const Vector<UInt> * filter_elements) {
+  AKANTU_DEBUG_IN();
+
+
+  UInt nb_element           = filter_elements == NULL ? getNbElement(type) : filter_elements->getSize();
+  //  UInt nb_nodes_per_element = mesh->getConnectivity(type).getNbComponent();
+  UInt nb_quadrature_points = getNbQuadraturePoints(type);
+  UInt size_of_jacobians    = jacobians[type]->getNbComponent();
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    filter_elem_val = filter_elements->values;
+  }
+
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == getNbElement(type),
+		      "The vector in_f do not have the good size.");
+  AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
+		      "The vector in_f do not have the good number of component.");
+  AKANTU_DEBUG_ASSERT(intf.getNbComponent() == nb_degre_of_freedom,
+		      "The vector intf do not have the good number of component.");
+
+  intf.resize(nb_element);
+
+  Real * in_f_val = in_f.values;
+  Real * intf_val = intf.values;
+  Real * jac_val  = jacobians[type]->values;
+
+  UInt offset_in_f = in_f.getNbComponent();
+  UInt offset_intf = intf.getNbComponent();
+
+  Real * jac      = jac_val;
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    if(filter_elements != NULL) {
+      jac      = jac_val  + filter_elem_val[el] * size_of_jacobians;
+    }
+
+    integrate(in_f_val, jac, intf_val, nb_degre_of_freedom, nb_quadrature_points);
+
+    in_f_val += offset_in_f;
+    intf_val += offset_intf;
+    if(filter_elements == NULL) {
+      jac      += size_of_jacobians;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FEM::assembleVector(const Vector<Real> & elementary_vect,
+			 Vector<Real> & nodal_values,
+			 UInt nb_degre_of_freedom,
+			 const ElementType & type,
+			 const Vector<UInt> * filter_elements) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes_per_element = getNbNodesPerElement(type);
+  UInt nb_element           = filter_elements == NULL ? getNbElement(type) : filter_elements->getSize();
+  UInt nb_nodes = getNbNodes();
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    filter_elem_val = filter_elements->values;
+  }
+
+  AKANTU_DEBUG_ASSERT(elementary_vect.getSize() == nb_element,
+		      "The vector elementary_vect do not have the good size.");
+
+  AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent() == nb_degre_of_freedom * nb_nodes_per_element,
+		      "The vector elementary_vect do not the good number of component.");
+
+  AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degre_of_freedom,
+		      "The vector nodal_values do not the good number of component.");
+
+  nodal_values.resize(nb_nodes);
+
+  UInt * conn_val = mesh->getConnectivity(type).values;
+  Real * elementary_vect_val = elementary_vect.values;
+  Real * nodal_values_val = nodal_values.values;
+
+  memset(nodal_values_val, 0, nb_nodes*nb_degre_of_freedom*sizeof(Real));
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    UInt el_offset = el * nb_nodes_per_element;
+    if(filter_elements != NULL) {
+      el_offset = filter_elem_val[el] * nb_nodes_per_element;
+    }
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt node = conn_val[el_offset + n];
+      UInt offset_node = node * nb_degre_of_freedom;
+      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	nodal_values_val[offset_node + d] += elementary_vect_val[d];
+      }
+      elementary_vect_val += nb_degre_of_freedom;
+    }
+  }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -306,9 +495,23 @@ void FEM::printself(std::ostream & stream, int indent) const {
   stream << space << "FEM [" << std::endl;
   stream << space << " + id                : " << id << std::endl;
   stream << space << " + spatial dimension : " << spatial_dimension << std::endl;
+
   stream << space << " + mesh [" << std::endl;
   mesh->printself(stream, indent + 2);
-  stream << space << " ]" << std::endl;
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+
+  stream << space << " + connectivity type information [" << std::endl;
+  const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
+    shapes            [*it]->printself(stream, indent + 3);
+    shapes_derivatives[*it]->printself(stream, indent + 3);
+    jacobians         [*it]->printself(stream, indent + 3);
+    stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
+  }
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+
   stream << space << "]" << std::endl;
 };
 

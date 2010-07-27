@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <string>
 #include <exception>
+#include <vector>
 #include <map>
 #include <set>
 
@@ -37,7 +38,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "error.hh"
-
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -61,12 +61,13 @@ typedef UInt MemoryID;
 typedef ID VectorID;
 
 /* -------------------------------------------------------------------------- */
-/* Mesh types                                                                 */
+/* Mesh/FEM/Model types                                                       */
 /* -------------------------------------------------------------------------- */
 
 typedef ID MeshID;
-
 typedef ID FEMID;
+typedef ID ModelID;
+typedef ID MaterialID;
 
 enum ElementType {
   _not_defined  = 0,
@@ -79,31 +80,10 @@ enum ElementType {
   _max_element_type
 };
 
-/* -------------------------------------------------------------------------- */
-//! standard output stream operator for ElementType
-inline std::ostream & operator <<(std::ostream & stream, ElementType type)
-{
-  switch(type)
-    {
-    case _line_1       : stream << "line_1"  ; break;
-    case _line_2       : stream << "line_2"  ; break;
-    case _triangle_1   : stream << "triangle_1"  ; break;
-    case _triangle_2   : stream << "triangle_2"  ; break;
-    case _tetrahedra_1 : stream << "tetrahedra_1"; break;
-    case _tetrahedra_2 : stream << "tetrahedra_2"; break;
-    case _not_defined  :
-    case _max_element_type :  stream << "unknown ElementType (" << type << ")"; break;
-    }
-  return stream;
-}
-
-/* -------------------------------------------------------------------------- */
-void initiakize();
-
-/* -------------------------------------------------------------------------- */
-void finalize ();
-
-__END_AKANTU__
+enum MaterialType {
+  _elastic = 0,
+  _max_material_type
+};
 
 /* -------------------------------------------------------------------------- */
 /* Global defines                                                             */
@@ -130,5 +110,32 @@ __END_AKANTU__
   inline type get##name () {					\
     return variable;						\
   }
+
+
+/* -------------------------------------------------------------------------- */
+//! standard output stream operator for ElementType
+inline std::ostream & operator <<(std::ostream & stream, ElementType type)
+{
+  switch(type)
+    {
+    case _line_1       : stream << "line_1"  ; break;
+    case _line_2       : stream << "line_2"  ; break;
+    case _triangle_1   : stream << "triangle_1"  ; break;
+    case _triangle_2   : stream << "triangle_2"  ; break;
+    case _tetrahedra_1 : stream << "tetrahedra_1"; break;
+    case _tetrahedra_2 : stream << "tetrahedra_2"; break;
+    case _not_defined  :
+    case _max_element_type :  stream << "unknown ElementType (" << type << ")"; break;
+    }
+  return stream;
+}
+
+/* -------------------------------------------------------------------------- */
+void initiakize();
+
+/* -------------------------------------------------------------------------- */
+void finalize ();
+
+__END_AKANTU__
 
 #endif /* __AKANTU_COMMON_HH__ */

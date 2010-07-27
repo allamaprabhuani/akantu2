@@ -54,7 +54,7 @@ public:
 
   virtual ~Mesh();
 
-  typedef std::set<ElementType> TypeList;
+  typedef std::set<ElementType> ConnectivityTypeList;
 
   typedef Vector<UInt> * ConnectivityMap[_max_element_type];
   /* ------------------------------------------------------------------------ */
@@ -71,7 +71,7 @@ public:
 public:
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
-  AKANTU_GET_MACRO(TypeList, type_set, const TypeList &);
+  AKANTU_GET_MACRO(TypeList, type_set, const ConnectivityTypeList &);
 
   inline Vector<Real> & getNodes() const;
 
@@ -105,7 +105,7 @@ private:
   ConnectivityMap connectivities;
 
   /// list of all existing types in the mesh
-  TypeList type_set;
+  ConnectivityTypeList type_set;
 
   /// the spatial dimension of this mesh
   UInt spatial_dimension;

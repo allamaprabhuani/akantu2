@@ -68,3 +68,29 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
 }
 
 /* -------------------------------------------------------------------------- */
+template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_id,
+						       const VectorID & name,
+						       UInt size,
+						       UInt nb_component,
+						       const T & init_value) {
+  AKANTU_DEBUG_IN();
+
+  MemoryMap::iterator memory_it;
+  memory_it = memories.find(memory_id);
+
+  if(memory_it == memories.end()){
+    memories[memory_id] = VectorMap();
+    memory_it = memories.find(memory_id);
+  }
+
+  if((memory_it->second).find(name) != (memory_it->second).end()) {
+    AKANTU_DEBUG_ERROR("The vector \"" << name << "\" is already registred in the memory " << memory_id);
+  }
+
+  (memory_it->second)[name] = new Vector<T>(size, nb_component, init_value, name);
+
+  AKANTU_DEBUG_OUT();
+  return static_cast<Vector<T> &>(*(memory_it->second)[name]);
+}
+
+/* -------------------------------------------------------------------------- */

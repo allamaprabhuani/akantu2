@@ -49,7 +49,7 @@ Mesh::~Mesh() {
   }
   nodes = NULL;
 
-  TypeList::const_iterator it;
+  ConnectivityTypeList::const_iterator it;
   for(it = type_set.begin();
       it != type_set.end();
       ++it) {
@@ -109,10 +109,9 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   stream << space << " + nodes [" << std::endl;
   nodes->printself(stream, indent+2);
   stream << space << " ]" << std::endl;
-  TypeList::const_iterator it;
-  for(it = type_set.begin();
-      it != type_set.end();
-      ++it) {
+
+  ConnectivityTypeList::const_iterator it;
+  for(it = type_set.begin(); it != type_set.end(); ++it) {
     stream << space << " + connectivities ("<< *it <<") [" << std::endl;
     (connectivities[*it])->printself(stream, indent+2);
     stream << space << " ]" << std::endl;
