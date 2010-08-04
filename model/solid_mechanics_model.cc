@@ -244,7 +244,7 @@ void SolidMechanicsModel::assembleMass() {
 
     /// compute rho * \phi_i for each nodes of each element
     for (UInt el = 0; el < nb_element; ++el) {
-      UInt rho = mat_val[elem_mat_val[el]]->getRho();
+      Real rho = mat_val[elem_mat_val[el]]->getRho();
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	*rho_phi_i_val++ = rho * *shapes_val++;
       }
@@ -385,6 +385,31 @@ void SolidMechanicsModel::explicitCorr() {
 				    *boundary);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getStableTimeStep() {
+  AKANTU_DEBUG_IN();
+
+  Material ** mat_val = &(materials.at(0));
+  Real min_dt = HUGE_VAL;
+
+  const Mesh::ConnectivityTypeList & type_list = fem->getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(fem->getSpatialDimension(*it) != spatial_dimension) continue;
+
+    UInt nb_element = fem->getNbElement(*it);
+    UInt * elem_mat_val = element_material[*it]->values;
+    for (UInt el = 0; el < nb_element; ++el) {
+      Real el_size    = fem->getElementInradius(el, *it);
+      Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size);
+      min_dt = min_dt > el_dt ? el_dt : min_dt;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return min_dt;
 }
 
 /* -------------------------------------------------------------------------- */

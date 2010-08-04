@@ -39,3 +39,7 @@ inline Real MaterialElastic::celerity() {
   return sqrt(E/rho);
 }
 
+/* -------------------------------------------------------------------------- */
+inline Real MaterialElastic::getStableTimeStep(Real h) {
+  return (h/celerity());
+}

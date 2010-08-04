@@ -127,14 +127,17 @@ public:
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type) const;
 
-  /// get the number of quadrature points of an element
-  inline UInt getNbQuadraturePoints(const ElementType & type) const;
-
   /// get spatial dimension of a type of element
   inline UInt getSpatialDimension(const ElementType & type) const;
 
+  /// get the number of quadrature points of an element
+  inline UInt getNbQuadraturePoints(const ElementType & type) const;
+
   /// get the number of nodes per element for a given element type
   inline UInt getNbNodesPerElement(const ElementType & type) const;
+
+  /// get the in-radius of an element
+  inline Real getElementInradius(UInt element, const ElementType & type) const;
 
   /// get a the shape vector
   inline const Vector<Real> & getShapes(const ElementType & type) const;

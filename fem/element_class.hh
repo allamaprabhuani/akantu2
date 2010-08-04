@@ -47,10 +47,6 @@ public:
 			     Real * shape_deriv,
 			     Real * jacobian);
 
-
-  /// compute the volume of an element
-  inline static Real volume(const double * coord);
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
@@ -66,6 +62,12 @@ public:
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivatiesSize();
   static inline UInt getJacobiansSize();
+
+  /// compute the in-radius
+  static inline Real getInradius(const double * coord);
+
+  /// compute the volume of an element
+  static inline Real getVolume(const double * coord);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

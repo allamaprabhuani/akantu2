@@ -1,5 +1,5 @@
 /**
- * @file   element_class_inline_impl.cc
+ * @file   element_class_line_1.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 15 10:28:28 2010
  *
@@ -47,6 +47,11 @@ template<> inline void ElementClass<_line_1>::shapeFunctions(const Real * x,
 
 
 /* ------------------------------------------------------------------------ */
-template<> inline Real ElementClass<_line_1>::volume(const double * coord) {
+template<> inline Real ElementClass<_line_1>::getVolume(const double * coord) {
   return sqrt((coord[0] - coord[1])*(coord[0] - coord[1])); //*1*1 for volume
+}
+
+/* -------------------------------------------------------------------------- */
+template<> inline Real ElementClass<_line_1>::getInradius(const double * coord) {
+  return sqrt((coord[0] - coord[1])*(coord[0] - coord[1]));
 }

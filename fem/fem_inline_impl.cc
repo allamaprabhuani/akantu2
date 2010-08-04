@@ -32,7 +32,7 @@ inline Real FEM::volume(ElementType type, Int element) {
 	     coord + elem_val[offset + id] * spatial_dimension,		\
 	     spatial_dimension*sizeof(Real));				\
     }									\
-    volume = ElementClass<type>::volume(local_coord);			\
+    volume = ElementClass<type>::getVolume(local_coord);		\
   } while(0)
 
   switch(type) {
@@ -114,6 +114,33 @@ inline UInt FEM::getNbElement(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
+inline UInt FEM::getSpatialDimension(const ElementType & type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension;
+#define GET_SPATIAL_DIMENSION(type)					\
+  spatial_dimension = ElementClass<type>::getSpatialDimension()
+
+  switch(type) {
+  case _line_1       : { GET_SPATIAL_DIMENSION(_line_1      ); break; }
+  case _line_2       : { GET_SPATIAL_DIMENSION(_line_2      ); break; }
+  case _triangle_1   : { GET_SPATIAL_DIMENSION(_triangle_1  ); break; }
+  case _triangle_2   : { GET_SPATIAL_DIMENSION(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_SPATIAL_DIMENSION(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_SPATIAL_DIMENSION(_tetrahedra_2); break; }
+  case _not_defined:
+  case _max_element_type:  {
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);
+    break; }
+  }
+
+#undef GET_SPATIAL_DIMENSION
+
+  AKANTU_DEBUG_OUT();
+  return spatial_dimension;
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt FEM::getNbQuadraturePoints(const ElementType & type) const {
   AKANTU_DEBUG_IN();
 
@@ -168,31 +195,46 @@ inline UInt FEM::getNbNodesPerElement(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt FEM::getSpatialDimension(const ElementType & type) const {
+inline Real FEM::getElementInradius(UInt element, const ElementType & type) const {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension;
-#define GET_SPATIAL_DIMENSION(type)					\
-  spatial_dimension = ElementClass<type>::getSpatialDimension()
+  Real inradius;
+  UInt * conn  = mesh->getConnectivity(type).values;
+  Real * coord = mesh->getNodes().values;
+
+#define GET_INRADIUS(type)						\
+  do {									\
+    UInt nb_nodes_per_element =						\
+      ElementClass<type>::getNbNodesPerElement();			\
+    UInt el_offset = element * nb_nodes_per_element;			\
+    Real u[nb_nodes_per_element];					\
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {			\
+      memcpy(u + n * spatial_dimension,					\
+	     coord + conn[el_offset + n] * spatial_dimension,		\
+	     spatial_dimension * sizeof(Real));				\
+    }									\
+    inradius = ElementClass<type>::getInradius(u);			\
+  } while(0)
 
   switch(type) {
-  case _line_1       : { GET_SPATIAL_DIMENSION(_line_1      ); break; }
-  case _line_2       : { GET_SPATIAL_DIMENSION(_line_2      ); break; }
-  case _triangle_1   : { GET_SPATIAL_DIMENSION(_triangle_1  ); break; }
-  case _triangle_2   : { GET_SPATIAL_DIMENSION(_triangle_2  ); break; }
-  case _tetrahedra_1 : { GET_SPATIAL_DIMENSION(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { GET_SPATIAL_DIMENSION(_tetrahedra_2); break; }
+  case _line_1       : { GET_INRADIUS(_line_1      ); break; }
+  case _line_2       : { GET_INRADIUS(_line_2      ); break; }
+  case _triangle_1   : { GET_INRADIUS(_triangle_1  ); break; }
+  case _triangle_2   : { GET_INRADIUS(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_INRADIUS(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_INRADIUS(_tetrahedra_2); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
     break; }
   }
 
-#undef GET_SPATIAL_DIMENSION
+#undef GET_INRADIUS
 
   AKANTU_DEBUG_OUT();
-  return spatial_dimension;
+  return inradius;
 }
+
 
 /* -------------------------------------------------------------------------- */
 inline const Vector<Real> & FEM::getShapes(const ElementType & type) const {

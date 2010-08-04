@@ -105,6 +105,9 @@ public:
 
   inline Material & getMaterial(UInt mat_index);
 
+  /// compute the stable time step
+  Real getStableTimeStep();
+
   void setPotentialEnergyFlagOn();
   void setPotentialEnergyFlagOff();
 

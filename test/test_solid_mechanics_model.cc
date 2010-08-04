@@ -42,6 +42,9 @@ int main(int argc, char *argv[])
   model->initMaterials();
   model->initModel();
 
+  akantu::Real time_step = model->getStableTimeStep();
+  model->setTimeStep(time_step);
+
   model->assembleMass();
 
   akantu::UInt nb_nodes = model->getFEM().getNbNodes();
@@ -74,8 +77,6 @@ int main(int argc, char *argv[])
   dumper.SetPrefix("paraview/");
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER
-
-  model->setTimeStep(0.005);
 
   model->setPotentialEnergyFlagOn();
   for(akantu::UInt s = 0; s < max_steps; ++s) {

@@ -53,6 +53,9 @@ public:
   /// constitutive law
   virtual void constitutiveLaw(ElementType el_type) = 0;
 
+  /// compute the stable time step for an element of size h
+  virtual Real getStableTimeStep(Real h) = 0;
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
