@@ -17,8 +17,8 @@
 #define __AKANTU_MODEL_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "memory.hh"
+#include "aka_common.hh"
+#include "aka_memory.hh"
 #include "mesh.hh"
 #include "fem.hh"
 
@@ -73,6 +73,10 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+
+  AKANTU_GET_MACRO(FEM, *fem, const FEM &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

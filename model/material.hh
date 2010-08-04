@@ -17,29 +17,27 @@
 #define __AKANTU_MATERIAL_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "memory.hh"
-//#include "solid_mechanics_model.hh"
+#include "aka_common.hh"
+#include "aka_memory.hh"
+#include "fem.hh"
+#include "solid_mechanics_model.hh"
+
 
 /* -------------------------------------------------------------------------- */
-namespace akantu {
-  class SolidMechanicsModel;
-};
+// namespace akantu {
+//   class SolidMechanicsModel;
+// };
 
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
-/*  MaterialBase                                                              */
-/* -------------------------------------------------------------------------- */
-
-class MaterialBase : public Memory {
+class Material : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialBase(SolidMechanicsModel & model, const MaterialID & id = "");
-  virtual ~MaterialBase() { };
+  Material(SolidMechanicsModel & model, const MaterialID & id = "");
+  virtual ~Material();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -47,22 +45,35 @@ public:
 public:
 
   /// read properties
-  void SetParam(const std::string & key, const std::string & value) { };
+  virtual void setParam(const std::string & key, const std::string & value) = 0;
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const { };
+  /// initialize the material computed parameter
+  virtual void initMaterial();
+
+  /// constitutive law
+  virtual void constitutiveLaw(ElementType el_type) = 0;
+
+  /// function to print the contain of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(ID, id, const MaterialID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
+
+  inline void setPotentialEnergyFlagOn();
+  inline void setPotentialEnergyFlagOff();
+
+  inline const Vector<Real> & getPotentialEnergy(ElementType type) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  friend class SolidMechanicsModel;
 
   /// id of the material
   MaterialID id;
@@ -72,42 +83,21 @@ protected:
 
   /// density : rho
   Real rho;
-};
 
-/* -------------------------------------------------------------------------- */
+  /// list of element handled by the material
+  ByConnectivityTypeUInt element_filter;
 
-/* -------------------------------------------------------------------------- */
-/*  Material                                                                  */
-/* -------------------------------------------------------------------------- */
+  /// has to compute potential energy or not
+  bool potential_energy_flag;
 
-template<MaterialType type>
-class Material : public MaterialBase {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
+  /// is the vector for potential energy initialized
+  bool potential_energy_vector;
 
-  Material(SolidMechanicsModel & model, const MaterialID & id = "");
-  virtual ~Material() {};
+  /// potential energy by element
+  ByConnectivityTypeReal potential_energy;
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
-
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-private:
-
+  /// boolean to know if the material has been initialized
+  bool is_init;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -117,21 +107,15 @@ private:
 #include "material_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialBase & _this)
+inline std::ostream & operator <<(std::ostream & stream, const Material & _this)
 {
   _this.printself(stream);
   return stream;
 }
-
-/// standard output stream operator
-template<MaterialType type>
-inline std::ostream & operator <<(std::ostream & stream, const Material<type> & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-
 
 __END_AKANTU__
 
+#include "materials/material_elastic.hh"
+
 #endif /* __AKANTU_MATERIAL_HH__ */
+

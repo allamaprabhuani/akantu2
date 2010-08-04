@@ -15,6 +15,7 @@
 #include "fem.hh"
 #include "mesh.hh"
 #include "element_class.hh"
+#include "aka_math.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -214,13 +215,15 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
   UInt nb_element = mesh->getConnectivity(type).getSize();
 
   AKANTU_DEBUG_ASSERT(in_u.getSize() == getNbNodes(),
-		      "The vector in_f do not have the good size.");
+		      "The vector in_u(" << in_u.getID()
+		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
-		      "The vector in_u do not have the good number of component.");
+		      "The vector in_u(" << in_u.getID()
+		      << ") has not the good number of component.");
 
   AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
-		      "The vector out_uq do not have the good number of component.");
-
+		      "The vector out_uq(" << out_uq.getID()
+		      << ") has not the good number of component.");
 
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
@@ -256,28 +259,9 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
     }
 
     /// Uq = Shape * U : matrix product
-#ifdef AKANTU_USE_CBLAS
-    ///  c := alpha*op(a)*op(b) + beta*c
-    /// dgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-		nb_quadrature_points, nb_degre_of_freedom, nb_nodes_per_element,
-		1,
-		shape, nb_nodes_per_element,
-		u, nb_degre_of_freedom,
-		0,
-		uq_val, nb_degre_of_freedom);
-#else
-    for (UInt i = 0; i < nb_quadrature_points; ++i) {
-      UInt uq_i = i * nb_degre_of_freedom;
-      UInt sh_i = i * nb_nodes_per_element;
-      for (UInt j = 0; j < nb_degre_of_freedom; ++j) {
-	uq_val[uq_i + j] = 0.;
-	for (UInt k = 0; k < nb_nodes_per_element; ++k) {
-	  uq_val[uq_i + j] += shape[sh_i + k] * u[k * nb_degre_of_freedom + j];
-	}
-      }
-    }
-#endif
+    Math::matrix_matrix(nb_quadrature_points, nb_degre_of_freedom, nb_nodes_per_element,
+			shape, u, uq_val);
+
     uq_val += offset_uq;
     if(filter_elements == NULL) {
       shape += size_of_shapes;
@@ -313,12 +297,15 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
   }
 
   AKANTU_DEBUG_ASSERT(in_u.getSize() == getNbNodes(),
-		      "The vector f do not have the good size.");
+		      "The vector in_u(" << in_u.getID()
+		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
-		      "The vector in_u do not have the good number of component.");
+		      "The vector in_u(" << in_u.getID()
+		      << ") has not the good number of component.");
 
   AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points * spatial_dimension,
-		      "The vector out_nablauq do not have the good number of component.");
+		      "The vector out_nablauq(" << out_nablauq.getID()
+		      << ") has not the good number of component.");
 
   out_nablauq.resize(nb_element);
 
@@ -328,7 +315,8 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
   Real * u_val       = in_u.values;
   Real * nablauq_val = out_nablauq.values;
 
-  UInt offset_nablauq = out_nablauq.getNbComponent();
+  UInt offset_nablauq = nb_degre_of_freedom * spatial_dimension;
+  UInt offset_shaped  = nb_nodes_per_element * spatial_dimension;
 
   Real * shaped  = shaped_val;
   Real * u       = static_cast<Real *>(calloc(nb_nodes_per_element * nb_degre_of_freedom,
@@ -347,31 +335,15 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
 	     nb_degre_of_freedom * sizeof(Real));
     }
 
-#ifdef AKANTU_USE_CBLAS
-    ///  c := alpha*op(a)*op(b) + beta*c
-    /// dgemm(transa, transb, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc)
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-		nb_quadrature_points, nb_degre_of_freedom, nb_nodes_per_element,
-		1,
-		shaped, nb_nodes_per_element,
-		u, nb_degre_of_freedom,
-		0,
-		uq_val, nb_degre_of_freedom);
-#else
-    for (UInt i = 0; i < spatial_dimension * nb_quadrature_points; ++i) {
-      UInt uq_i = i * nb_degre_of_freedom;
-      UInt sh_i = i * nb_nodes_per_element;
-      for (UInt j = 0; j < nb_degre_of_freedom; ++j) {
-	nablauq_val[uq_i + j] = 0.;
-	for (UInt k = 0; k < nb_nodes_per_element; ++k) {
-	  nablauq_val[uq_i + j] += shaped[sh_i + k] * u[k * nb_degre_of_freedom + j];
-	}
-      }
-    }
-#endif
-    nablauq_val += offset_nablauq;
-    if(filter_elements == NULL) {
-      shaped  += size_of_shapes_derivatives;
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {
+      /// \nabla(U) = U^t * dphi/dx
+      Math::matrixt_matrix(nb_degre_of_freedom, spatial_dimension, nb_nodes_per_element,
+			   u,
+			   shaped,
+			   nablauq_val);
+
+      nablauq_val += offset_nablauq;
+      shaped      += offset_shaped;
     }
   }
 
@@ -401,11 +373,14 @@ void FEM::integrate(const Vector<Real> & in_f,
   }
 
   AKANTU_DEBUG_ASSERT(in_f.getSize() == getNbElement(type),
-		      "The vector in_f do not have the good size.");
+		      "The vector in_f(" << in_f.getID()
+		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
-		      "The vector in_f do not have the good number of component.");
+		      "The vector in_f(" << in_f.getID()
+		      << ") has not the good number of component.");
   AKANTU_DEBUG_ASSERT(intf.getNbComponent() == nb_degre_of_freedom,
-		      "The vector intf do not have the good number of component.");
+		      "The vector intf(" << intf.getID()
+		      << ") has not the good number of component.");
 
   intf.resize(nb_element);
 
@@ -435,12 +410,64 @@ void FEM::integrate(const Vector<Real> & in_f,
   AKANTU_DEBUG_OUT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+Real FEM::integrate(const Vector<Real> & in_f,
+		    const ElementType & type,
+		    const Vector<UInt> * filter_elements) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_element           = filter_elements == NULL ? getNbElement(type) : filter_elements->getSize();
+  //  UInt nb_nodes_per_element = mesh->getConnectivity(type).getNbComponent();
+  UInt nb_quadrature_points = getNbQuadraturePoints(type);
+  UInt size_of_jacobians    = jacobians[type]->getNbComponent();
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    filter_elem_val = filter_elements->values;
+  }
+
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == getNbElement(type),
+		      "The vector in_f(" << in_f.getID()
+		      << ") has not the good size.");
+  AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_quadrature_points,
+		      "The vector in_f(" << in_f.getID()
+		      << ") has not the good number of component.");
+
+  Real intf = 0.;
+  Real * in_f_val = in_f.values;
+  Real * jac_val  = jacobians[type]->values;
+
+  UInt offset_in_f = in_f.getNbComponent();
+
+  Real * jac      = jac_val;
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    if(filter_elements != NULL) {
+      jac = jac_val  + filter_elem_val[el] * size_of_jacobians;
+    }
+    Real el_intf;
+    integrate(in_f_val, jac, &el_intf, 1, nb_quadrature_points);
+    intf += el_intf;
+
+    in_f_val += offset_in_f;
+    if(filter_elements == NULL) {
+      jac += size_of_jacobians;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return intf;
+}
+
 /* -------------------------------------------------------------------------- */
 void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 Vector<Real> & nodal_values,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
-			 const Vector<UInt> * filter_elements) {
+			 const Vector<UInt> * filter_elements,
+			 Real scale_factor,
+			 bool is_init_to_zero) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = getNbNodesPerElement(type);
@@ -453,13 +480,16 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
   }
 
   AKANTU_DEBUG_ASSERT(elementary_vect.getSize() == nb_element,
-		      "The vector elementary_vect do not have the good size.");
+		      "The vector elementary_vect(" << elementary_vect.getID()
+		      << ") has not the good size.");
 
   AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent() == nb_degre_of_freedom * nb_nodes_per_element,
-		      "The vector elementary_vect do not the good number of component.");
+		      "The vector elementary_vect(" << elementary_vect.getID()
+		      << ") has not the good number of component.");
 
   AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degre_of_freedom,
-		      "The vector nodal_values do not the good number of component.");
+		      "The vector nodal_values(" << nodal_values.getID()
+		      << ") has not the good number of component.");
 
   nodal_values.resize(nb_nodes);
 
@@ -467,7 +497,8 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
   Real * elementary_vect_val = elementary_vect.values;
   Real * nodal_values_val = nodal_values.values;
 
-  memset(nodal_values_val, 0, nb_nodes*nb_degre_of_freedom*sizeof(Real));
+  if(!is_init_to_zero)
+    memset(nodal_values_val, 0, nb_nodes*nb_degre_of_freedom*sizeof(Real));
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
@@ -478,7 +509,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
       UInt node = conn_val[el_offset + n];
       UInt offset_node = node * nb_degre_of_freedom;
       for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-	nodal_values_val[offset_node + d] += elementary_vect_val[d];
+	nodal_values_val[offset_node + d] += scale_factor * elementary_vect_val[d];
       }
       elementary_vect_val += nb_degre_of_freedom;
     }

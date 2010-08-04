@@ -14,7 +14,7 @@
 /* -------------------------------------------------------------------------- */
 #include <cstdlib>
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
+#include "aka_common.hh"
 #include "fem.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"

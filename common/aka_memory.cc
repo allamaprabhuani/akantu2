@@ -1,9 +1,9 @@
 /**
- * @file   common.cc
+ * @file   aka_memory.cpp
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 11 16:56:43 2010
+ * @date   Tue Jun 15 11:15:53 2010
  *
- * @brief Initialization of global variables
+ * @brief  static memory wrapper
  *
  * @section LICENSE
  *
@@ -12,25 +12,20 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "static_memory.hh"
+#include "aka_memory.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-void initialize() {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
+Memory::Memory(MemoryID memory_id) {
+  static_memory = StaticMemory::getStaticMemory();
+  this->memory_id = memory_id;
 }
 
 /* -------------------------------------------------------------------------- */
-void finalize() {
-  AKANTU_DEBUG_IN();
-  delete StaticMemory::getStaticMemory();
-  AKANTU_DEBUG_OUT();
-}
 
 __END_AKANTU__
+
+

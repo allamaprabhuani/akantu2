@@ -1,9 +1,10 @@
 /**
- * @file   mesh_io.hh
+ * @file   central_difference.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 18 10:27:42 2010
+ * @date   Mon Aug  2 14:22:56 2010
  *
- * @brief  interface of a mesh io class, reader and writer
+ * @brief explicit hyperbolic 2nd order central difference
+ *        Newmark-beta with gama = 1/2 and beta = 0
  *
  * @section LICENSE
  *
@@ -12,40 +13,37 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MESH_IO_HH__
-#define __AKANTU_MESH_IO_HH__
+#include "integration_scheme_2nd_order.hh"
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
 
-/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_CENTRAL_DIFFERENCE_HH__
+#define __AKANTU_CENTRAL_DIFFERENCE_HH__
 
 __BEGIN_AKANTU__
 
-class MeshIO {
+class CentralDifference : public IntegrationScheme2ndOrder {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  MeshIO();
-
-  virtual ~MeshIO();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  void integrationSchemePred(Real delta_t,
+			     Vector<Real> & u,
+			     Vector<Real> & u_dot,
+			     Vector<Real> & u_dot_dot,
+			     Vector<bool> & boundary);
 
-  /// read a mesh from the file
-  virtual void read(const std::string & filename, Mesh & mesh) = 0;
-
-  /// write a mesh to a file
-  virtual void write(const std::string & filename, const Mesh & mesh) = 0;
+  void integrationSchemeCorr(Real delta_t,
+			     Vector<Real> & u,
+			     Vector<Real> & u_dot,
+			     Vector<Real> & u_dot_dot,
+			     Vector<bool> & boundary);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -55,29 +53,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-  bool canReadSurface;
+private:
 
-  bool canReadExtendedData;
-
-  //  std::string filename;
-
-  //  Mesh & mesh;
 };
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MeshIO & _this)
-{
-  _this.printself(stream);
-
-  return stream;
-}
-
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_IO_HH__ */
+#endif /* __AKANTU_CENTRAL_DIFFERENCE_HH__ */

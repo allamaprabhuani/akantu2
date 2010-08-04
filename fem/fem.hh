@@ -17,8 +17,8 @@
 #define __AKANTU_FEM_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "memory.hh"
+#include "aka_common.hh"
+#include "aka_memory.hh"
 #include "mesh.hh"
 #include "element_class.hh"
 
@@ -27,9 +27,8 @@
 __BEGIN_AKANTU__
 
 typedef Vector<Real> * ByConnectivityTypeReal[_max_element_type];
-
 typedef Vector<Int>  * ByConnectivityTypeInt[_max_element_type];
-
+typedef Vector<UInt> * ByConnectivityTypeUInt[_max_element_type];
 
 class FEM : public Memory {
   /* ------------------------------------------------------------------------ */
@@ -71,7 +70,7 @@ public:
 				  const ElementType & type,
 				  const Vector<UInt> * element = NULL);
 
-  /// integrate f on all elements of type "type"
+  /// integrate f for all elements of type "type"
   void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
 		 UInt nb_degre_of_freedom,
@@ -85,12 +84,20 @@ public:
 			const ElementType & type,
 			const UInt elem);
 
+  /// integrate a scalar value on all elements of type "type"
+  Real integrate(const Vector<Real> & f,
+		 const ElementType & type,
+		 const Vector<UInt> * filter_elements = NULL);
+
+
   /// assemble vectors
   void assembleVector(const Vector<Real> & elementary_vect,
 		      Vector<Real> & nodal_values,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
-		      const Vector<UInt> * filter_elements = NULL);
+		      const Vector<UInt> * filter_elements = NULL,
+		      Real scale_factor = 1,
+		      bool is_init_to_zero = true);
 
   void assembleMatrix() {};
 
@@ -131,6 +138,9 @@ public:
 
   /// get a the shape vector
   inline const Vector<Real> & getShapes(const ElementType & type) const;
+
+  /// get a the shape derivatives vector
+  inline const Vector<Real> & getShapesDerivatives(const ElementType & type) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

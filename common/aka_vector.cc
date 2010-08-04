@@ -1,5 +1,5 @@
 /**
- * @file   vector.cc
+ * @file   aka_vector.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jun 17 15:14:24 2010
  *
@@ -12,8 +12,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "vector.hh"
+#include "aka_common.hh"
+#include "aka_vector.hh"
 
 __BEGIN_AKANTU__
 
@@ -232,6 +232,6 @@ class MaterialBase;
 template class Vector<Int>;
 template class Vector<UInt>;
 template class Vector<Real>;
-template class Vector<MaterialBase *>;
+template class Vector<bool>;
 
 __END_AKANTU__

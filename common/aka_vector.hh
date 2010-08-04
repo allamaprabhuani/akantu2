@@ -1,5 +1,5 @@
 /**
- * @file   vector.hh
+ * @file   aka_vector.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jun 17 10:04:55 2010
  *
@@ -20,7 +20,7 @@
 #include <typeinfo>
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
+#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -152,7 +152,7 @@ public:
 
 };
 
-#include "vector_inline_impl.cc"
+#include "aka_vector_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Vector<T>                                                 */

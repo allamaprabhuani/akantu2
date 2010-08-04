@@ -1,5 +1,5 @@
 /**
- * @file   error.hh
+ * @file   aka_error.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jun 14 11:43:22 2010
  *
@@ -20,7 +20,7 @@
 #include <sstream>
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
+#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__

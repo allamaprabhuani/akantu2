@@ -1,5 +1,5 @@
 /**
- * @file   extern.cpp
+ * @file   aka_extern.cpp
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jun 14 14:34:14 2010
  *
@@ -16,7 +16,7 @@
 #include <ostream>
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
+#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
 

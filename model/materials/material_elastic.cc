@@ -12,58 +12,102 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "material_elastic.hh"
+#include "solid_mechanics_model.hh"
 
-template<> class Material<_elastic> : public MaterialBase {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
+__BEGIN_AKANTU__
 
-  Material(SolidMechanicsModel & model, const MaterialID & id = "")  :
-    MaterialBase(model, id) {
-    AKANTU_DEBUG_IN();
+/* -------------------------------------------------------------------------- */
+MaterialElastic::MaterialElastic(SolidMechanicsModel & model, const MaterialID & id)  :
+  Material(model, id) {
+  AKANTU_DEBUG_IN();
 
-    rho = 1;
-    young_modulus = 1;
-    nu = 1;
+  rho = 1;
+  E   = 1;
+  nu  = 1./3.;
 
-    AKANTU_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialElastic::initMaterial() {
+  AKANTU_DEBUG_IN();
+  Material::initMaterial();
+
+  lambda = nu * E / ((1 + nu) * (1 - 2*nu));
+  mu     = E / (2 * (1 + nu));
+  kpa    = E / (1 - 2*nu);
+
+  is_init = true;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialElastic::constitutiveLaw(ElementType el_type) {
+  AKANTU_DEBUG_IN();
+  UInt nb_element           = element_filter[el_type]->getSize();
+  UInt spatial_dimension    = model->getSpatialDimension();
+  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type);
+  UInt size_strain        = spatial_dimension * spatial_dimension;
+
+  UInt * element_filter_val = element_filter[el_type]->values;
+
+  Real * strain  = model->getStrain(el_type).values;
+  Real * stress  = model->getStress(el_type).values;
+  Real * strain_val;
+  Real * stress_val;
+
+  Real * epot = NULL;
+  if (potential_energy_flag) epot = potential_energy[el_type]->values;
+
+  Real F[3*3];
+  Real sigma[3*3];
+
+  /// for each element
+  for (UInt el = 0; el < nb_element; ++el) {
+    strain_val = strain + element_filter_val[el] * size_strain * nb_quadrature_points;
+    stress_val = stress + element_filter_val[el] * size_strain * nb_quadrature_points;
+
+    /// for each quadrature points
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {
+      memset(F, 0, 3 * 3 * sizeof(Real));
+      for (UInt i = 0; i < spatial_dimension; ++i)
+	for (UInt j = 0; j < spatial_dimension; ++j)
+	  F[3*i + j] = strain_val[spatial_dimension * i + j];
+
+      for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
+
+      constitutiveLaw(F, sigma, epot);
+
+      for (UInt i = 0; i < spatial_dimension; ++i)
+	for (UInt j = 0; j < spatial_dimension; ++j)
+	  stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
+
+      strain_val += size_strain;
+      stress_val += size_strain;
+      if (potential_energy_flag) epot += nb_quadrature_points;
+    }
   }
+  AKANTU_DEBUG_OUT();
+}
 
-  virtual ~Material() {};
+/* -------------------------------------------------------------------------- */
+void MaterialElastic::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {
-    std::string space;
-    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-    stream << space << "Material<_elastic> [" << std::endl;
-    stream << space << " + id              : " << id << std::endl;
-    stream << space << " + density         : " << rho << std::endl;
-    stream << space << " + Young modulus   : " << young_modulus << std::endl;
-    stream << space << " + Poisson's ratio : " << nu << std::endl;
-    stream << space << "]" << std::endl;
+  stream << space << "Material<_elastic> [" << std::endl;
+  stream << space << " + id                      : " << id << std::endl;
+  stream << space << " + density                 : " << rho << std::endl;
+  stream << space << " + Young modulus           : " << E << std::endl;
+  stream << space << " + Poisson's ratio         : " << nu << std::endl;
+  if(is_init) {
+    stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
+    stream << space << " + Second Lamé coefficient : " << mu << std::endl;
+    stream << space << " + Bulk coefficient        : " << kpa << std::endl;
   }
+  stream << space << "]" << std::endl;
+}
+/* -------------------------------------------------------------------------- */
 
-
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-private:
-
-  /// the young modulus
-  UInt young_modulus;
-
-  /// Poisson coefficient
-  UInt nu;
-};
+__END_AKANTU__

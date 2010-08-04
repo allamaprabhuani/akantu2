@@ -14,12 +14,12 @@
 #===============================================================================
 #            _    ,-,    _
 #     ,--, /: :\/': :`\/: :\
-#    |`;  ' `,'   `.;    `: |                  _               _         
-#    |    |     |  '  |     |.	              | |             | |        
-#    | :  | F E | A S | T++ ||	          __ _| | ____ _ _ __ | |_ _   _ 
-#    | :. |  :  |  :  |  :  | \	         / _` | |/ / _` | '_ \| __| | | |
+#    |`;  ' `,'   `.;    `: |                  _               _
+#    |    |     |  '  |     |.		      | |             | |
+#    | :  | F E | A S | T++ ||		  __ _| | ____ _ _ __ | |_ _   _
+#    | :. |  :  |  :  |  :  | \		 / _` | |/ / _` | '_ \| __| | | |
 #     \__/: :.. : :.. | :.. |  )        | (_| |   < (_| | | | | |_| |_| |
-#          `---',\___/,\___/ /'	         \__,_|_|\_\__,_|_| |_|\__|\__,_|
+#          `---',\___/,\___/ /'		 \__,_|_|\_\__,_|_| |_|\__|\__,_|
 #               `==._ .. . /'
 #                    `-::-'
 #===============================================================================
@@ -62,25 +62,49 @@ if(NOT AKANTU_NO_LIBRARY_VERSION)
     )
 endif(NOT AKANTU_NO_LIBRARY_VERSION)
 
+#===============================================================================
+# Options
+#===============================================================================
 
+# Debug
+option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
+if(NOT AKANTU_DEBUG)
+  add_definitions(-DAKANTU_NDEBUG)
+endif(NOT AKANTU_DEBUG)
+
+# IOHelper
+option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" OFF)
+if(AKANTU_USE_IOHELPER)
+  include(${AKANTU_CMAKE_DIR}/FindIOHelper.cmake)
+  if(IOHELPER_FOUND)
+    add_definitions(-DAKANTU_USE_IOHELPER)
+    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
+      ${IOHELPER_INCLUDE_PATH}
+      )
+    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+      ${IOHELPER_LIBRARIES}
+      )
+    endif(IOHELPER_FOUND)
+endif(AKANTU_USE_IOHELPER)
 
 #===============================================================================
 # Library
 #===============================================================================
 
-#add_definitions(-DAKANTU_NDEBUG)
-
 set(AKANTU_COMMON_SRC
-  common/common.cc
-  common/extern.cc
-  common/static_memory.cc
-  common/memory.cc
-  common/vector.cc
+  common/aka_common.cc
+  common/aka_extern.cc
+  common/aka_static_memory.cc
+  common/aka_memory.cc
+  common/aka_vector.cc
+  common/aka_math.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
   model/solid_mechanics_model.cc
   model/material.cc
+  model/materials/material_elastic.cc
+  model/integration_scheme/central_difference.cc
   mesh_io/mesh_io.cc
   mesh_io/mesh_io_msh.cc
   )
@@ -94,6 +118,7 @@ set(AKANTU_INCLUDE_DIRS
 
 include_directories(
   ${AKANTU_INCLUDE_DIRS}
+  ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
   )
 
 add_library(akantu ${AKANTU_COMMON_SRC})
@@ -118,6 +143,6 @@ if(BUILD_UNIT_TEST)
   foreach(_test ${AKANTU_UNIT_TESTS})
     get_filename_component(_target "${_test}" NAME_WE)
     add_executable(${_target} ${_test})
-    target_link_libraries(${_target} akantu)
+    target_link_libraries(${_target} akantu ${AKANTU_EXTERNAL_LIBRARIES})
   endforeach(_test)
 endif(BUILD_UNIT_TEST)

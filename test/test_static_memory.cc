@@ -11,8 +11,8 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "static_memory.hh"
-#include "vector.hh"
+#include "aka_static_memory.hh"
+#include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {

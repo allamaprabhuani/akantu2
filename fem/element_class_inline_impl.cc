@@ -11,10 +11,6 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-
-
-/* -------------------------------------------------------------------------- */
 template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
   return nb_quadrature_points * nb_nodes_per_element;
 }

@@ -1,5 +1,5 @@
 /**
- * @file static_memory.hh
+ * @file aka_static_memory.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jun 10 14:19:25 2010
  *
@@ -21,11 +21,8 @@
 #define __AKANTU_STATIC_MEMORY_HH__
 
 /* -------------------------------------------------------------------------- */
-#include <map>
-
-/* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "vector.hh"
+#include "aka_common.hh"
+#include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
@@ -119,7 +116,7 @@ private:
   MemoryMap memories;
 };
 
-#include "static_memory_inline_impl.cc"
+#include "aka_static_memory_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

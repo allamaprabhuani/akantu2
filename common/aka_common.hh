@@ -1,5 +1,5 @@
 /**
- * @file   common.hh
+ * @file   aka_common.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Jun 11 09:48:06 2010
  *
@@ -37,7 +37,7 @@
 #define __END_AKANTU__ };
 
 /* -------------------------------------------------------------------------- */
-#include "error.hh"
+#include "aka_error.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__

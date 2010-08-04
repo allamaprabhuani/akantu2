@@ -1,9 +1,9 @@
 /**
- * @file   mesh_io.hh
+ * @file   material_elastic.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 18 10:27:42 2010
+ * @date   Thu Jul 29 15:00:59 2010
  *
- * @brief  interface of a mesh io class, reader and writer
+ * @brief  Material isotropic elastic
  *
  * @section LICENSE
  *
@@ -12,40 +12,45 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MESH_IO_HH__
-#define __AKANTU_MESH_IO_HH__
-
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "mesh.hh"
-
+#include "material.hh"
 /* -------------------------------------------------------------------------- */
+
+#ifndef __AKANTU_MATERIAL_ELASTIC_HH__
+#define __AKANTU_MATERIAL_ELASTIC_HH__
 
 __BEGIN_AKANTU__
 
-class MeshIO {
+class MaterialElastic : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MeshIO();
+  MaterialElastic(SolidMechanicsModel & model, const MaterialID & id = "");
 
-  virtual ~MeshIO();
+  virtual ~MaterialElastic() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
+  void initMaterial();
+
+  void setParam(const std::string & key, const std::string & value) {  };
+
+  /// constitutive law for all element of a type
+  void constitutiveLaw(ElementType el_type);
+
+  /// constitutive law for a given quadrature point
+  inline void constitutiveLaw(Real * F, Real * sigma, Real * epot);
+
+  /// compute the celerity of wave in the material
+  inline Real celerity();
+
   /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
-
-  /// read a mesh from the file
-  virtual void read(const std::string & filename, Mesh & mesh) = 0;
-
-  /// write a mesh to a file
-  virtual void write(const std::string & filename, const Mesh & mesh) = 0;
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -55,29 +60,39 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-  bool canReadSurface;
+private:
 
-  bool canReadExtendedData;
+  /// the young modulus
+  Real E;
 
-  //  std::string filename;
+  /// Poisson coefficient
+  Real nu;
 
-  //  Mesh & mesh;
+  /// First Lamé coefficient
+  Real lambda;
+
+  /// Second Lamé coefficient (shear modulus)
+  Real mu;
+
+  /// Bulk modulus
+  Real kpa;
+
 };
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
+#include "material_elastic_inline_impl.cc"
+
+/* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MeshIO & _this)
+inline std::ostream & operator <<(std::ostream & stream, const MaterialElastic & _this)
 {
   _this.printself(stream);
-
   return stream;
 }
 
-
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_IO_HH__ */
+#endif /* __AKANTU_MATERIAL_ELASTIC_HH__ */

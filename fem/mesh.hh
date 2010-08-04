@@ -16,9 +16,9 @@
 #define __AKANTU_MESH_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "memory.hh"
-#include "vector.hh"
+#include "aka_common.hh"
+#include "aka_memory.hh"
+#include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
 

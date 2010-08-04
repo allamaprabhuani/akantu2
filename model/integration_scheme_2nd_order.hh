@@ -1,10 +1,9 @@
 /**
- * @file   memory.hh
+ * @file   integration_scheme_2nd_order.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jun 15 09:30:23 2010
+ * @date   Mon Aug  2 12:22:05 2010
  *
- * @brief  wrapper for the static_memory, all object which wants
- * to access the ststic_memory as to inherit from the class memory
+ * @brief  Interface of the integrator of second order
  *
  * @section LICENSE
  *
@@ -13,78 +12,54 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MEMORY_HH__
-#define __AKANTU_MEMORY_HH__
+
+#ifndef __AKANTU_INTEGRATION_SCHEME_2ND_ORDER_HH__
+#define __AKANTU_INTEGRATION_SCHEME_2ND_ORDER_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
-#include "static_memory.hh"
-#include "vector.hh"
+#include "aka_common.hh"
+#include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-
-class Memory {
+class IntegrationScheme2ndOrder {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  Memory(MemoryID memory_id = 0);
-
-  virtual ~Memory() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// malloc
-  template<class T>
-  inline Vector<T> & alloc(const VectorID & name,
-			   UInt size,
-			   UInt nb_component);
+  virtual void integrationSchemePred(Real delta_t,
+				     Vector<Real> & u,
+				     Vector<Real> & u_dot,
+				     Vector<Real> & u_dot_dot,
+				     Vector<bool> & boundary) = 0;
 
-  /// malloc
-  template<class T>
-  inline Vector<T> & alloc(const VectorID & name,
-			   UInt size,
-			   UInt nb_component,
-			   const T & init_value);
-
-  /* ------------------------------------------------------------------------ */
-  /// free an array
-  inline void dealloc(const VectorID & name);
+  virtual void integrationSchemeCorr(Real delta_t,
+				     Vector<Real> & u,
+				     Vector<Real> & u_dot,
+				     Vector<Real> & u_dot_dot,
+				     Vector<bool> & boundary) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// the static memory instance
-  StaticMemory * static_memory;
-
-  /// the id registred in the static memory
-  MemoryID memory_id;
-
 };
 
 
-/* -------------------------------------------------------------------------- */
-/* Inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#include "memory_inline_impl.cc"
-
 __END_AKANTU__
 
-#endif /* __AKANTU_MEMORY_HH__ */
+#endif /* __AKANTU_INTEGRATION_SCHEME_2ND_ORDER_HH__ */

@@ -202,4 +202,11 @@ inline const Vector<Real> & FEM::getShapes(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
+inline const Vector<Real> & FEM::getShapesDerivatives(const ElementType & type) const {
+  AKANTU_DEBUG_ASSERT(shapes_derivatives[type] != NULL,
+		      "No shapes derivatives of the type : " << type << " in " << id);
+  return *shapes_derivatives[type];
+}
+
+/* -------------------------------------------------------------------------- */
 

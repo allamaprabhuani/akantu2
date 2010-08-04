@@ -17,11 +17,14 @@
 #define __AKANTU_SOLID_MECHANICS_MODEL_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "common.hh"
+#include "aka_common.hh"
 #include "model.hh"
-#include "material.hh"
 
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+  class Material;
+  class IntegrationScheme2ndOrder;
+};
 
 __BEGIN_AKANTU__
 
@@ -47,14 +50,32 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// initialize all internal arrays, mesh must be set before
+  /// allocate all vectors
+  void initVectors();
+
+  /// read the material files to instantiate all the materials
+  void readMaterials(const std::string & filename);
+
+  /// initialize all internal arrays for materials
+  void initMaterials();
+
+  /// initialize the model
   void initModel();
 
   /// assemble the lumped mass matrix
   void assembleMass();
 
-  /// read the material files to instantiate all the materials
-  void readMaterials(const std::string & filename);
+  /// assemble the residual for the explicit scheme
+  void updateResidual();
+
+  /// compute the acceleration from the residual
+  void updateAcceleration();
+
+  /// explicit integration predictor
+  void explicitPred();
+
+  /// explicit integration corrector
+  void explicitCorr();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -64,27 +85,63 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(TimeStep, time_step, Real);
+  AKANTU_SET_MACRO(TimeStep, time_step, Real);
+
+  AKANTU_GET_MACRO(F_M2A, f_m2a, Real);
+  AKANTU_SET_MACRO(F_M2A, f_m2a, Real);
+
+  AKANTU_GET_MACRO(Displacement, *displacement, Vector<Real> &);
+  AKANTU_GET_MACRO(Mass, *mass, Vector<Real> &);
+  AKANTU_GET_MACRO(Velocity, *velocity, Vector<Real> &);
+  AKANTU_GET_MACRO(Acceleration, *acceleration, Vector<Real> &);
+  AKANTU_GET_MACRO(Force, *force, Vector<Real> &);
+  AKANTU_GET_MACRO(Residual, *residual, Vector<Real> &);
+  AKANTU_GET_MACRO(Boundary, *boundary, Vector<bool> &);
+
+  inline Vector<Real> & getStress(ElementType type);
+  inline Vector<Real> & getStrain(ElementType type);
+  inline Vector<UInt> & getElementMaterial(ElementType type);
+
+  inline Material & getMaterial(UInt mat_index);
+
+  void setPotentialEnergyFlagOn();
+  void setPotentialEnergyFlagOff();
+
+  Real getPotentialEnergy();
+  Real getKineticEnergy();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// displacements arrays ordered by element types
-  ByConnectivityTypeReal displacement;
 
-  /// lumped mass arrays ordered by element types
-  ByConnectivityTypeReal mass;
+  /// time step
+  Real time_step;
 
-  /// velocities arrays ordered by element types
-  ByConnectivityTypeReal velocity;
+  /// conversion coefficient form force/mass to acceleration
+  Real f_m2a;
 
-  /// accelerations arrays ordered by element types
-  ByConnectivityTypeReal acceleration;
+  /// displacements array
+  Vector<Real> * displacement;
 
-  /// forces arrays ordered by element types
-  ByConnectivityTypeReal force;
+  /// lumped mass array
+  Vector<Real> * mass;
 
-  /// residuals arrays ordered by element types
-  ByConnectivityTypeReal residual;
+  /// velocities array
+  Vector<Real> * velocity;
+
+  /// accelerations array
+  Vector<Real> * acceleration;
+
+  /// forces array
+  Vector<Real> * force;
+
+  /// residuals array
+  Vector<Real> * residual;
+
+  /// boundaries array
+  Vector<bool> * boundary;
 
   /// stresses arrays ordered by element types
   ByConnectivityTypeReal stress;
@@ -92,14 +149,14 @@ private:
   /// strains arrays ordered by element types
   ByConnectivityTypeReal strain;
 
-  /// boundaries arrays ordered by element types
-  ByConnectivityTypeInt boundary;
-
   /// materials of all element
-  ByConnectivityTypeInt element_material;
+  ByConnectivityTypeUInt element_material;
 
   /// list of used materials
-  std::vector<MaterialBase> materials;
+  std::vector<Material *> materials;
+
+  /// integration scheme of second order used
+  IntegrationScheme2ndOrder * integrator;
 
 };
 
@@ -108,7 +165,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "solid_mechanics_model_inline_impl.cc"
+#include "solid_mechanics_model_inline_impl.cc"
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsModel & _this)
