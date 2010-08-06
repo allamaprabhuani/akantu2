@@ -42,12 +42,13 @@ public:
     AKANTU_DEBUG_OUT();
   };
 
-  Model(UInt spatial_dimension,
-	Mesh & mesh,
+  Model(Mesh & mesh,
+	UInt spatial_dimension = 0,
 	const ModelID & id = "model",
 	const MemoryID & memory_id = 0) :
-    Memory(memory_id), id(id), spatial_dimension(spatial_dimension) {
+    Memory(memory_id), id(id) {
     AKANTU_DEBUG_IN();
+    this->spatial_dimension = (spatial_dimension == 0) ? mesh.getSpatialDimension() : spatial_dimension;
     std::stringstream sstr; sstr << id << ":fem";
     this->fem = new FEM(mesh, spatial_dimension, sstr.str(), memory_id);
     AKANTU_DEBUG_OUT();

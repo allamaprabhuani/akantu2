@@ -104,8 +104,8 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Mesh [" << std::endl;
-  stream << space << " + id             : " << this->id << std::endl;
-  stream << space << " + spatial dim    : " << this->spatial_dimension << std::endl;
+  stream << space << " + id                : " << this->id << std::endl;
+  stream << space << " + spatial dimension : " << this->spatial_dimension << std::endl;
   stream << space << " + nodes [" << std::endl;
   nodes->printself(stream, indent+2);
   stream << space << " ]" << std::endl;

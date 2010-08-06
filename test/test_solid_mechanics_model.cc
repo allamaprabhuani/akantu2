@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
   akantu::Real epot, ekin, epot_first;
   bool first = true;
 
-  akantu::Mesh mesh(1);
+  akantu::Mesh mesh(2);
   akantu::MeshIOMSH mesh_io;
-  mesh_io.read("line.msh", mesh);
+  mesh_io.read("triangle.msh", mesh);
 
-  akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(1, mesh);
+  akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   /// model initialization
   model->initVectors();
@@ -43,37 +43,52 @@ int main(int argc, char *argv[])
   model->initModel();
 
   akantu::Real time_step = model->getStableTimeStep();
-  model->setTimeStep(time_step);
+  model->setTimeStep(time_step/10.);
 
   model->assembleMass();
 
   akantu::UInt nb_nodes = model->getFEM().getNbNodes();
 
+  std::cout << *model << std::endl;
+
   /// boundary conditions
-  memset(model->getForce().values,        0, nb_nodes*sizeof(akantu::Real));
-  memset(model->getVelocity().values,     0, nb_nodes*sizeof(akantu::Real));
-  memset(model->getAcceleration().values, 0, nb_nodes*sizeof(akantu::Real));
-  memset(model->getDisplacement().values, 0, nb_nodes*sizeof(akantu::Real));
+  memset(model->getForce().values,        0, 2*nb_nodes*sizeof(akantu::Real));
+  memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(akantu::Real));
+  memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(akantu::Real));
+  memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(akantu::Real));
+
+  akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    model->getDisplacement().values[i] = model->getFEM().getMesh().getNodes().values[i] / 100.;
+    model->getDisplacement().values[2*i] = model->getFEM().getMesh().getNodes().values[2*i] / 100.;
+
+    if(model->getFEM().getMesh().getNodes().values[2*i] <= eps) {
+      model->getBoundary().values[2*i    ] = true;
+      if(model->getFEM().getMesh().getNodes().values[2*i + 1] <= eps)
+	model->getBoundary().values[2*i + 1] = true;
+    }
+    if(model->getFEM().getMesh().getNodes().values[2*i + 1] <= eps) {
+      model->getBoundary().values[2*i + 1] = true;
+    }
+
   }
   //  model->getDisplacement().values[1] = 0.1;
-  model->getBoundary().values[0] = true;
+
+
 
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
 
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 1, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_line_1).values,
-			 LINE1, model->getFEM().getNbElement(akantu::_line_1), C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values, 1, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values, 1, "velocity");
-  dumper.AddNodeDataField(model->getResidual().values, 1, "force");
-  dumper.AddElemDataField(model->getStrain(akantu::_line_1).values, 1, "strain");
-  dumper.AddElemDataField(model->getStress(akantu::_line_1).values, 1, "stress");
-  //  dumper.SetEmbeddedValue("displacements", 1);
+  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_triangle_1).values,
+			 TRIANGLE1, model->getFEM().getNbElement(akantu::_triangle_1), C_MODE);
+  dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
+  dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
+  dumper.AddNodeDataField(model->getResidual().values, 2, "force");
+  dumper.AddElemDataField(model->getStrain(akantu::_triangle_1).values, 4, "strain");
+  dumper.AddElemDataField(model->getStress(akantu::_triangle_1).values, 4, "stress");
+  dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER
@@ -95,9 +110,6 @@ int main(int argc, char *argv[])
     }
 
     std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
-	      << " " << model->getDisplacement().values[1]
-	      << " " << model->getVelocity().values[1]
-	      << " " << model->getResidual().values[1]
 	      << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER

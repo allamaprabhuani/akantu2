@@ -35,13 +35,13 @@ class SolidMechanicsModel : public Model {
 public:
 
   SolidMechanicsModel(UInt spatial_dimension,
-	const ModelID & id = "solid_mechanics_model",
-	const MemoryID & memory_id = 0);
+		      const ModelID & id = "solid_mechanics_model",
+		      const MemoryID & memory_id = 0);
 
-  SolidMechanicsModel(UInt spatial_dimension,
-	Mesh & mesh,
-	const ModelID & id = "solid_mechanics_model",
-	const MemoryID & memory_id = 0);
+  SolidMechanicsModel(Mesh & mesh,
+		      UInt spatial_dimension = 0,
+		      const ModelID & id = "solid_mechanics_model",
+		      const MemoryID & memory_id = 0);
 
   virtual ~SolidMechanicsModel();
 

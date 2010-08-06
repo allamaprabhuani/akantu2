@@ -49,11 +49,11 @@ SolidMechanicsModel::SolidMechanicsModel(UInt spatial_dimension,
 }
 
 /* -------------------------------------------------------------------------- */
-SolidMechanicsModel::SolidMechanicsModel(UInt spatial_dimension,
-					 Mesh & mesh,
+SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
+					 UInt spatial_dimension,
 					 const ModelID & id,
 					 const MemoryID & memory_id) :
-  Model(spatial_dimension, mesh, id, memory_id),
+  Model(mesh, spatial_dimension, id, memory_id),
   time_step(NAN), f_m2a(1.0),
   integrator(new CentralDifference()) {
   AKANTU_DEBUG_IN();

@@ -34,12 +34,12 @@ template<ElementType type> void ElementClass<type>::shapeFunctions(const Real * 
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline Real ElementClass<type>::getVolume(const double * coord) {
+template<ElementType type> inline Real ElementClass<type>::getVolume(const Real * coord) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline Real ElementClass<type>::getInradius(const double * coord) {
+template<ElementType type> inline Real ElementClass<type>::getInradius(const Real * coord) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
@@ -47,7 +47,7 @@ template<ElementType type> inline Real ElementClass<type>::getInradius(const dou
 
 #include "element_classes/element_class_line_1.cc"
 // #include "element_classes/element_class_line_2.cc"
-// #include "element_classes/element_class_triangle_1.cc"
+#include "element_classes/element_class_triangle_1.cc"
 // #include "element_classes/element_class_triangle_2.cc"
 // #include "element_classes/element_class_tetrahedra_1.cc"
 // #include "element_classes/element_class_tetrahedra_2.cc"

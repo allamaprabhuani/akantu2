@@ -34,6 +34,8 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /* Matrix Algebra */
   /// y = A*x
   static void matrix_vector(UInt m, UInt n,
 			   const Vector<Real> & A,
@@ -41,8 +43,8 @@ public:
 			   Vector<Real> & y);
 
   static inline void matrix_vector(UInt m, UInt n,
-				   Real * A,
-				   Real * x,
+				   const Real * A,
+				   const Real * x,
 				   Real * y);
 
   /// C = A*B
@@ -52,27 +54,34 @@ public:
 			   Vector<Real> & C);
 
   static inline void matrix_matrix(UInt m, UInt n, UInt k,
-				   Real * A,
-				   Real * B,
+				   const Real * A,
+				   const Real * B,
 				   Real * C);
 
   /// C = A^t*B
   static inline void matrixt_matrix(UInt m, UInt n, UInt k,
-				    Real * A,
-				    Real * B,
+				    const Real * A,
+				    const Real * B,
 				    Real * C);
 
   /// C = A*B^t
   static inline void matrix_matrixt(UInt m, UInt n, UInt k,
-				    Real * A,
-				    Real * B,
+				    const Real * A,
+				    const Real * B,
 				    Real * C);
 
   /// C = A^t*B^t
   static inline void matrixt_matrixt(UInt m, UInt n, UInt k,
-				     Real * A,
-				     Real * B,
+				     const Real * A,
+				     const Real * B,
 				     Real * C);
+
+  /* Geometry */
+  /// distance in 2D between x and y
+  static inline Real distance_2d(const Real * x, const Real * y);
+
+  /// radius of the in-circle of a triangle
+  static inline Real triangle_inradius(const Real * coord);
 
 };
 

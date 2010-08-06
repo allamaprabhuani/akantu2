@@ -18,6 +18,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_math.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -34,7 +35,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /** 
+  /**
    * compute  the  shape  functions,  the shape  functions derivatives  and  the
    * jacobians
    * @param[in] coord coordinates of the nodes
@@ -64,10 +65,10 @@ public:
   static inline UInt getJacobiansSize();
 
   /// compute the in-radius
-  static inline Real getInradius(const double * coord);
+  static inline Real getInradius(const Real * coord);
 
   /// compute the volume of an element
-  static inline Real getVolume(const double * coord);
+  static inline Real getVolume(const Real * coord);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

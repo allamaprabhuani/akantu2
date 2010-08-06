@@ -71,7 +71,7 @@ typedef ID MaterialID;
 
 enum ElementType {
   _not_defined  = 0,
-  _line_1       = 1,
+  _line_1       = 1, // implemented
   _line_2       = 2,
   _triangle_1   = 3,
   _triangle_2   = 4,
@@ -92,8 +92,6 @@ enum MaterialType {
 #define AKANTU_MIN_ALLOCATION 2000
 
 #define AKANTU_INDENT " "
-
-#define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_SET_MACRO(name, variable, type)	\

@@ -78,6 +78,7 @@ private:
     _msh_point         = 15   // 1-node point.
   };
 
+#define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
   /// order in witch element as to be read
   static UInt _read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT];

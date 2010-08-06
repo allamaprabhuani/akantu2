@@ -103,10 +103,10 @@ void FEM::initShapeFunctions() {
 
     ElementType type = *it;
 
-    UInt nb_nodes_per_element;
-    UInt size_of_shapes;
-    UInt size_of_shapesd;
-    UInt size_of_jacobians;
+    UInt nb_nodes_per_element = 0;
+    UInt size_of_shapes = 0;
+    UInt size_of_shapesd = 0;
+    UInt size_of_jacobians = 0;
 
 #define INIT_VARIABLES(type)						\
     do {								\
