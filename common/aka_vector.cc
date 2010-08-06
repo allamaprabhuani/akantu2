@@ -17,13 +17,16 @@
 
 __BEGIN_AKANTU__
 
-
 /* -------------------------------------------------------------------------- */
 /* Functions VectorBase                                                       */
 /* -------------------------------------------------------------------------- */
-VectorBase::VectorBase() : id(""), allocated_size(0),
-			   size(0), nb_component(1), size_of_type(0) {
-};
+VectorBase::VectorBase(const VectorID & id) : 
+  id(id), allocated_size(0), size(0), nb_component(1), size_of_type(0) {
+}
+
+/* -------------------------------------------------------------------------- */
+VectorBase::~VectorBase() {
+}
 
 /* -------------------------------------------------------------------------- */
 void VectorBase::printself(std::ostream & stream, int indent) const {
@@ -44,9 +47,9 @@ void VectorBase::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
-				      const VectorID & id) : values(NULL) {
+				      const VectorID & id) :
+  VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
-  this->id = id;
   allocate(size, nb_component);
   AKANTU_DEBUG_OUT();
 }
@@ -55,9 +58,9 @@ template <class T> Vector<T>::Vector (UInt size,
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
 				      const T def_values[],
-				      const VectorID & id) : values(NULL) {
+				      const VectorID & id) : 
+  VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
-  this->id = id;
   allocate(size, nb_component);
 
   for (UInt i = 0; i < size; ++i) {
@@ -71,10 +74,10 @@ template <class T> Vector<T>::Vector (UInt size,
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
-				      const T& value,
-				      const VectorID & id) : values(NULL) {
+				      const T & value,
+				      const VectorID & id) : 
+  VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
-  this->id = id;
   allocate(size, nb_component);
 
   for (UInt i = 0; i < nb_component*size; ++i) {

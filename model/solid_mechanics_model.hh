@@ -24,7 +24,7 @@
 namespace akantu {
   class Material;
   class IntegrationScheme2ndOrder;
-};
+}
 
 __BEGIN_AKANTU__
 

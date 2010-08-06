@@ -37,7 +37,8 @@ void StaticMemory::printself(std::ostream & stream, int indent) const{
   stream.precision(2);
 
   stream << space << "StaticMemory [" << std::endl;
-  stream << space << " + nb memories : " << memories.size() << std::endl;
+  UInt nb_memories = memories.size();
+  stream << space << " + nb memories : " << nb_memories << std::endl;
 
   Real tot_size = 0;
   MemoryMap::const_iterator memory_it;
@@ -45,8 +46,12 @@ void StaticMemory::printself(std::ostream & stream, int indent) const{
     Real mem_size = 0;
 
     stream << space << AKANTU_INDENT << "Memory [" << std::endl;
-    stream << space << AKANTU_INDENT << " + memory id   : " << memory_it->first << std::endl;
-    stream << space << AKANTU_INDENT << " + nb vectors  : " << (memory_it->second).size() << std::endl;
+    UInt mem_id = memory_it->first;
+    stream << space << AKANTU_INDENT << " + memory id   : "
+	   << mem_id << std::endl;
+    UInt nb_vectors = (memory_it->second).size();
+    stream << space << AKANTU_INDENT << " + nb vectors  : "
+	   << nb_vectors << std::endl;
     stream.precision(prec);
     VectorMap::const_iterator vector_it;
     for(vector_it = (memory_it->second).begin();

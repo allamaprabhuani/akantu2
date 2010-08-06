@@ -12,6 +12,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_triangle_1>::nb_nodes_per_element;
+template<> UInt ElementClass<_triangle_1>::nb_quadrature_points;
+template<> UInt ElementClass<_triangle_1>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
 template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
@@ -79,7 +82,7 @@ template<> inline Real ElementClass<_triangle_1>::getVolume(const Real * coord) 
    *   y_1 & y_2 \\
    *  \end{array} \right)  \right|
    */
-  return .5 * abs(coord[0] * coord[3] - coord[1] * coord[2]);
+  return .5 * fabs(coord[0] * coord[3] - coord[1] * coord[2]);
 }
 
 /* -------------------------------------------------------------------------- */

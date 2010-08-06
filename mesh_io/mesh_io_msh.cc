@@ -234,8 +234,8 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	UInt offset = i * spatial_dimension;
 
 	std::getline(infile, line);
-	std::stringstream sstr(line);
-	sstr >> index >> coord[0] >> coord[1] >> coord[2];
+	std::stringstream sstr_node(line);
+	sstr_node >> index >> coord[0] >> coord[1] >> coord[2];
 	current_line++;
 
 	first_node_number = first_node_number < index ? first_node_number : index;
@@ -267,11 +267,11 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 
       for(UInt i = 0; i < nb_elements; ++i) {
 	std::getline(infile, line);
-	std::stringstream sstr(line);
+	std::stringstream sstr_elem(line);
 	current_line++;
 
-	sstr >> index;
-	sstr >> msh_type;
+	sstr_elem >> index;
+	sstr_elem >> msh_type;
 
 	/// get the connectivity vector depending on the element type
 	akantu_type = _msh_to_akantu_element_types[msh_type];
@@ -297,23 +297,23 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	/// read tags informations
 	if(file_format == 2) {
 	  UInt nb_tags;
-	  sstr >> nb_tags;
+	  sstr_elem >> nb_tags;
 	  for(UInt j = 0; j < nb_tags; ++j) {
 	    Int tag;
-	    sstr >> tag; ///@todo read to get extended information on elements
+	    sstr_elem >> tag; ///@todo read to get extended information on elements
 	  }
 	} else if (file_format == 1) {
 	  Int tag;
-	  sstr >> tag; //reg-phys
-	  sstr >> tag; //reg-elem
-	  sstr >> tag; //number-of-nodes
+	  sstr_elem >> tag; //reg-phys
+	  sstr_elem >> tag; //reg-elem
+	  sstr_elem >> tag; //number-of-nodes
 	}
 
 	/// read the connectivities informations
 	UInt offset = nb_elements_read * node_per_element;
 	for(UInt j = 0; j < node_per_element; ++j) {
 	  UInt node_index;
-	  sstr >> node_index;
+	  sstr_elem >> node_index;
 
 	  AKANTU_DEBUG_ASSERT(node_index <= last_node_number,
 			     "Node number not in range : line " << current_line);

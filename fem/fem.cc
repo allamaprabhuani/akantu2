@@ -36,7 +36,7 @@ FEM::FEM(UInt spatial_dimension, FEMID id, MemoryID memory_id) :
 
   this->mesh = new Mesh(spatial_dimension, sstr.str(), memory_id);
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
 FEM::FEM(Mesh & mesh, UInt spatial_dimension, FEMID id, MemoryID memory_id) :
@@ -53,7 +53,7 @@ FEM::FEM(Mesh & mesh, UInt spatial_dimension, FEMID id, MemoryID memory_id) :
 
   this->mesh = &mesh;
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
 FEM::~FEM() {
@@ -196,7 +196,7 @@ void FEM::initShapeFunctions() {
   AKANTU_DEBUG_OUT();
 #undef INIT_VARIABLES
 #undef COMPUTE_SHAPES
-};
+}
 
 /* -------------------------------------------------------------------------- */
 void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
@@ -544,7 +544,7 @@ void FEM::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << "]" << std::endl;
-};
+}
 
 
 __END_AKANTU__

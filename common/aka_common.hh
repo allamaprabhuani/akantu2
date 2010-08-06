@@ -34,7 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
-#define __END_AKANTU__ };
+#define __END_AKANTU__ }
 
 /* -------------------------------------------------------------------------- */
 #include "aka_error.hh"
@@ -129,10 +129,26 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 }
 
 /* -------------------------------------------------------------------------- */
-void initiakize();
+void initialize();
 
 /* -------------------------------------------------------------------------- */
 void finalize ();
+
+
+/* -------------------------------------------------------------------------- */
+/*
+ * For intel compiler annoying remark
+ */
+
+/// remark #981: operands are evaluated in unspecified order
+#pragma warning ( disable : 981 )
+
+/// remark #383: value copied to temporary, reference to temporary used
+#pragma warning ( disable : 383 )
+
+/// remark #869: parameter "..." was never referenced
+#pragma warning ( disable : 869 )
+/// @todo: remove the 869 after implementation of setParam and readMaterials
 
 __END_AKANTU__
 

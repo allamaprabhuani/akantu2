@@ -179,7 +179,7 @@ void SolidMechanicsModel::initVectors() {
   }
 
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {

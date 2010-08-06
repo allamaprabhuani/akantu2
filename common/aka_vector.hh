@@ -32,9 +32,9 @@ class VectorBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  VectorBase();
+  VectorBase(const VectorID & id = "");
 
-  virtual ~VectorBase() {};
+  virtual ~VectorBase();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

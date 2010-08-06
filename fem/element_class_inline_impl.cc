@@ -10,6 +10,7 @@
  * <insert license here>
  *
  */
+
 /* -------------------------------------------------------------------------- */
 template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
   return nb_quadrature_points * nb_nodes_per_element;
@@ -26,20 +27,23 @@ template<ElementType type> inline UInt ElementClass<type>::getJacobiansSize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> void ElementClass<type>::shapeFunctions(const Real * coord,
-								   Real * shape,
-								   Real * dshape,
-								   Real * jacobians) {
+template<ElementType type> 
+void ElementClass<type>::shapeFunctions(__attribute__ ((unused)) const Real * coord,
+					__attribute__ ((unused)) Real * shape,
+					__attribute__ ((unused)) Real * dshape,
+					__attribute__ ((unused)) Real * jacobians) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline Real ElementClass<type>::getVolume(const Real * coord) {
+template<ElementType type>
+inline Real ElementClass<type>::getVolume(__attribute__ ((unused)) const Real * coord) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline Real ElementClass<type>::getInradius(const Real * coord) {
+template<ElementType type>
+inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real * coord) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 

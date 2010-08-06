@@ -38,9 +38,6 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
-
   /// read a mesh from the file
   virtual void read(const std::string & filename, Mesh & mesh) = 0;
 
@@ -64,19 +61,6 @@ protected:
 
   //  Mesh & mesh;
 };
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MeshIO & _this)
-{
-  _this.printself(stream);
-
-  return stream;
-}
-
 
 __END_AKANTU__
 
