@@ -139,7 +139,7 @@ void finalize ();
 /*
  * For intel compiler annoying remark
  */
-
+#if defined(__INTEL_COMPILER)
 /// remark #981: operands are evaluated in unspecified order
 #pragma warning ( disable : 981 )
 
@@ -149,6 +149,7 @@ void finalize ();
 /// remark #869: parameter "..." was never referenced
 #pragma warning ( disable : 869 )
 /// @todo: remove the 869 after implementation of setParam and readMaterials
+#endif //defined(__INTEL_COMPILER)
 
 __END_AKANTU__
 

@@ -38,24 +38,13 @@ int main(int argc, char *argv[])
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
-  /// model initialization
-  model->initVectors();
-  model->readMaterials("");
-  model->initMaterials();
-  model->initModel();
-
-  std::cout << model->getMaterial(0) << std::endl;
-
-  akantu::Real time_step = model->getStableTimeStep() * time_factor;
-  std::cout << "Time Step = " << time_step << "s" << std::endl;
-  model->setTimeStep(time_step);
-  //  exit(1);
-  model->assembleMass();
-
   akantu::UInt nb_nodes = model->getFEM().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getNbElement(akantu::_triangle_1);
 
-  /// boundary conditions
+  /// model initialization
+  model->initVectors();
+
+  /// set vectors to 0
   memset(model->getForce().values,        0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
   memset(model->getVelocity().values,     0,
@@ -75,6 +64,15 @@ int main(int argc, char *argv[])
 	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
 #endif //AKANTU_USE_IOHELPER
 
+  model->readMaterials("");
+  model->initMaterials();
+  model->initModel();
+
+  std::cout << model->getMaterial(0) << std::endl;
+
+  model->assembleMass();
+
+  /// boundary conditions
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
@@ -88,6 +86,12 @@ int main(int argc, char *argv[])
       model->getBoundary().values[spatial_dimension*i + 1] = true;
     }
   }
+
+
+  akantu::Real time_step = model->getStableTimeStep() * time_factor;
+  std::cout << "Time Step = " << time_step << "s" << std::endl;
+  model->setTimeStep(time_step);
+
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
