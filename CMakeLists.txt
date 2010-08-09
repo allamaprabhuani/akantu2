@@ -138,6 +138,7 @@ if(BUILD_UNIT_TEST)
     test/test_vector.cc
     test/test_fem.cc
     test/test_solid_mechanics_model.cc
+    test/bar_traction.cc
     )
 
   foreach(_test ${AKANTU_UNIT_TESTS})

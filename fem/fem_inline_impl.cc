@@ -195,26 +195,13 @@ inline UInt FEM::getNbNodesPerElement(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real FEM::getElementInradius(UInt element, const ElementType & type) const {
+inline Real FEM::getElementInradius(Real * coord, const ElementType & type) const {
   AKANTU_DEBUG_IN();
 
   Real inradius;
-  UInt * conn  = mesh->getConnectivity(type).values;
-  Real * coord = mesh->getNodes().values;
 
 #define GET_INRADIUS(type)						\
-  do {									\
-    UInt nb_nodes_per_element =						\
-      ElementClass<type>::getNbNodesPerElement();			\
-    UInt el_offset = element * nb_nodes_per_element;			\
-    Real u[nb_nodes_per_element];					\
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {			\
-      memcpy(u + n * spatial_dimension,					\
-	     coord + conn[el_offset + n] * spatial_dimension,		\
-	     spatial_dimension * sizeof(Real));				\
-    }									\
-    inradius = ElementClass<type>::getInradius(u);			\
-  } while(0)
+  inradius = ElementClass<type>::getInradius(coord);			\
 
   switch(type) {
   case _line_1       : { GET_INRADIUS(_line_1      ); break; }

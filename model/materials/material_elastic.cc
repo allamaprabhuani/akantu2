@@ -22,9 +22,9 @@ MaterialElastic::MaterialElastic(SolidMechanicsModel & model, const MaterialID &
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
-  rho = 1;
-  E   = 1;
-  nu  = 1./3.;
+  rho = 7.8e-3;
+  E   = 2.1e11;
+  nu  = 0.3;
 
   AKANTU_DEBUG_OUT();
 }
@@ -36,7 +36,7 @@ void MaterialElastic::initMaterial() {
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));
-  kpa    = E / (1 - 2*nu);
+  kpa    = lambda + 2./3. * mu;
 
   is_init = true;
   AKANTU_DEBUG_OUT();

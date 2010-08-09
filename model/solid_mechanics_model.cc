@@ -394,15 +394,36 @@ Real SolidMechanicsModel::getStableTimeStep() {
   Material ** mat_val = &(materials.at(0));
   Real min_dt = HUGE_VAL;
 
+  Real * coord    = fem->getMesh().getNodes().values;
+  Real * disp_val = displacement->values;
+
   const Mesh::ConnectivityTypeList & type_list = fem->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(fem->getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_element = fem->getNbElement(*it);
+
+    UInt nb_nodes_per_element = fem->getNbNodesPerElement(*it);
+    UInt nb_element           = fem->getNbElement(*it);
+
+    UInt * conn         = fem->getMesh().getConnectivity(*it).values;
     UInt * elem_mat_val = element_material[*it]->values;
+    Real u[nb_nodes_per_element*spatial_dimension];
+
     for (UInt el = 0; el < nb_element; ++el) {
-      Real el_size    = fem->getElementInradius(el, *it);
+      UInt el_offset  = el * nb_nodes_per_element;
+
+      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	memcpy(u + n * spatial_dimension,
+	       coord + conn[el_offset + n] * spatial_dimension,
+	       spatial_dimension * sizeof(Real));
+
+	for (UInt i = 0; i < spatial_dimension; ++i) {
+	  u[n * spatial_dimension + i] += disp_val[conn[el_offset + n] * spatial_dimension + i];
+	}
+      }
+
+      Real el_size    = fem->getElementInradius(u, *it);
       Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size);
       min_dt = min_dt > el_dt ? el_dt : min_dt;
     }

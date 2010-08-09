@@ -27,8 +27,7 @@
 int main(int argc, char *argv[])
 {
   akantu::UInt max_steps = 10000;
-  akantu::Real epot, ekin, epot_first;
-  bool first = true;
+  akantu::Real epot, ekin;
 
   akantu::Mesh mesh(2);
   akantu::MeshIOMSH mesh_io;
@@ -74,8 +73,6 @@ int main(int argc, char *argv[])
   //  model->getDisplacement().values[1] = 0.1;
 
 
-
-
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
@@ -104,10 +101,6 @@ int main(int argc, char *argv[])
 
     epot = model->getPotentialEnergy();
     ekin = model->getKineticEnergy();
-    if(first) {
-      epot_first = epot;
-      first = false;
-    }
 
     std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
 	      << std::endl;

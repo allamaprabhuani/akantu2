@@ -137,7 +137,7 @@ public:
   inline UInt getNbNodesPerElement(const ElementType & type) const;
 
   /// get the in-radius of an element
-  inline Real getElementInradius(UInt element, const ElementType & type) const;
+  inline Real getElementInradius(Real * coord, const ElementType & type) const;
 
   /// get a the shape vector
   inline const Vector<Real> & getShapes(const ElementType & type) const;
