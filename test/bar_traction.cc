@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model->setTimeStep(time_step);
-
+  //  model->setTimeStep(3.54379e-07);
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;

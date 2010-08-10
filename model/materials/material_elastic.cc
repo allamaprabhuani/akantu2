@@ -22,7 +22,7 @@ MaterialElastic::MaterialElastic(SolidMechanicsModel & model, const MaterialID &
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
-  rho = 7.8e-3;
+  rho = 7.8e3;
   E   = 2.1e11;
   nu  = 0.3;
 

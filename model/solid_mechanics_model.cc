@@ -408,18 +408,19 @@ Real SolidMechanicsModel::getStableTimeStep() {
 
     UInt * conn         = fem->getMesh().getConnectivity(*it).values;
     UInt * elem_mat_val = element_material[*it]->values;
-    Real u[nb_nodes_per_element*spatial_dimension];
+    Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 
     for (UInt el = 0; el < nb_element; ++el) {
       UInt el_offset  = el * nb_nodes_per_element;
 
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	UInt offset_conn = conn[el_offset + n] * spatial_dimension;
 	memcpy(u + n * spatial_dimension,
-	       coord + conn[el_offset + n] * spatial_dimension,
+	       coord + offset_conn,
 	       spatial_dimension * sizeof(Real));
 
 	for (UInt i = 0; i < spatial_dimension; ++i) {
-	  u[n * spatial_dimension + i] += disp_val[conn[el_offset + n] * spatial_dimension + i];
+	  u[n * spatial_dimension + i] += disp_val[offset_conn + i];
 	}
       }
 
@@ -427,6 +428,8 @@ Real SolidMechanicsModel::getStableTimeStep() {
       Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size);
       min_dt = min_dt > el_dt ? el_dt : min_dt;
     }
+
+    delete [] u;
   }
 
   AKANTU_DEBUG_OUT();
