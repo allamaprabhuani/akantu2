@@ -19,7 +19,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
-  Memory(model.getMemoryID()), id(id), model(&model),
+  Memory(model.getMemoryID()), id(id), name(""), model(&model),
   potential_energy_flag(false), potential_energy_vector(false),
   is_init(false) {
   AKANTU_DEBUG_IN();
@@ -48,6 +48,13 @@ Material::~Material() {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void Material::setParam(const std::string & key, const std::string & value) {
+  if(key == "name") name = value;
+  else AKANTU_DEBUG_ERROR("Unknown material property : " << key);
+}
+
 
 /* -------------------------------------------------------------------------- */
 void Material::initMaterial() {

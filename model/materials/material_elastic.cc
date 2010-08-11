@@ -22,9 +22,9 @@ MaterialElastic::MaterialElastic(SolidMechanicsModel & model, const MaterialID &
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
-  rho = 7.8e3;
-  E   = 2.1e11;
-  nu  = 0.3;
+  rho = 0;
+  E   = 0;
+  nu  = 1./2.;
 
   AKANTU_DEBUG_OUT();
 }
@@ -92,14 +92,25 @@ void MaterialElastic::constitutiveLaw(ElementType el_type) {
 }
 
 /* -------------------------------------------------------------------------- */
+void MaterialElastic::setParam(const std::string & key, const std::string & value) {
+  std::stringstream sstr(value);
+  if(key == "rho") { sstr >> rho; }
+  else if(key == "E") { sstr >> E; }
+  else if(key == "nu") { sstr >> nu; }
+  else { Material::setParam(key, value); }
+}
+
+
+/* -------------------------------------------------------------------------- */
 void MaterialElastic::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_elastic> [" << std::endl;
   stream << space << " + id                      : " << id << std::endl;
+  stream << space << " + name                    : " << name << std::endl;
   stream << space << " + density                 : " << rho << std::endl;
-  stream << space << " + Young modulus           : " << E << std::endl;
+  stream << space << " + Young's modulus         : " << E << std::endl;
   stream << space << " + Poisson's ratio         : " << nu << std::endl;
   if(is_init) {
     stream << space << " + First Lamé coefficient  : " << lambda << std::endl;

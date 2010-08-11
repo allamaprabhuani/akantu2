@@ -12,6 +12,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <fstream>
+
+/* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "aka_math.hh"
@@ -45,6 +48,8 @@ SolidMechanicsModel::SolidMechanicsModel(UInt spatial_dimension,
     this->element_material[t] = NULL;
   }
 
+  materials.clear();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -72,6 +77,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
     this->strain          [t] = NULL;
     this->element_material[t] = NULL;
   }
+
+  materials.clear();
 
   AKANTU_DEBUG_OUT();
 }
@@ -147,7 +154,7 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_boun; sstr_boun << id << ":boundary";
 
 #ifdef AKANTU_DEBUG
-  Real init_val = NAN;
+  Real init_val = std::numeric_limits<Real>::quiet_NaN();
 #else
   Real init_val = 0;
 #endif
@@ -183,8 +190,75 @@ void SolidMechanicsModel::initVectors() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
-  std::stringstream sstr; sstr << id << ":0:elastic";
-  materials.push_back(new MaterialElastic(*this, sstr.str()));
+  std::ifstream infile;
+  infile.open(filename.c_str());
+
+  std::string line;
+  UInt current_line = 0, mat_count = materials.size();
+
+  if(!infile.good()) {
+    AKANTU_DEBUG_ERROR("Canot open file " << filename);
+  }
+
+  while(infile.good()) {
+    std::getline(infile, line);
+    current_line++;
+
+    /// remove comments
+    size_t pos = line.find("#");
+    line = line.substr(0, pos);
+    if(line.empty()) continue;
+
+    std::stringstream sstr(line);
+    std::string keyword;
+    std::string value;
+
+    sstr >> keyword;
+    to_lower(keyword);
+    if(keyword == "material") {
+      std::string type; sstr >> type;
+      std::string obracket; sstr >> obracket;
+      if(obracket != "[")
+	AKANTU_DEBUG_ERROR("Malformed material file : missing [ at line " << current_line);
+
+      std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count++ << ":" << type;
+      Material * material;
+      if(type == "elastic") material = new MaterialElastic(*this, sstr.str());
+      else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
+			      << type << " at line " << current_line);
+
+      /// read the material properties
+      std::getline(infile, line);
+      size_t pos = line.find("#");
+      line = line.substr(0, pos);
+      trim(line);
+      current_line++;
+      while(line[0] != ']') {
+	pos = line.find("=");
+	if(pos == std::string::npos)
+	  AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
+			     << current_line);
+	
+	keyword = line.substr(0, pos);  trim(keyword);
+	value   = line.substr(pos + 1); trim(value);
+
+	try {
+	  material->setParam(keyword, value);
+	} catch (Exception ex) {
+	  AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
+			     << ex.info() << "\" at line " << current_line);
+	}
+
+	std::getline(infile, line);
+	size_t pos = line.find("#");
+	line = line.substr(0, pos);
+	trim(line);
+      }
+      materials.push_back(material);
+    }
+  }
+
+  infile.close();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -392,7 +466,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
   AKANTU_DEBUG_IN();
 
   Material ** mat_val = &(materials.at(0));
-  Real min_dt = HUGE_VAL;
+  Real min_dt = std::numeric_limits<Real>::max();
 
   Real * coord    = fem->getMesh().getNodes().values;
   Real * disp_val = displacement->values;

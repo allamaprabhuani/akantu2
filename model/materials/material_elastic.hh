@@ -38,7 +38,7 @@ public:
 
   void initMaterial();
 
-  void setParam(const std::string & key, const std::string & value) {  };
+  void setParam(const std::string & key, const std::string & value);
 
   /// constitutive law for all element of a type
   void constitutiveLaw(ElementType el_type);

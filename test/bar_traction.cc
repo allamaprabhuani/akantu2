@@ -12,6 +12,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <limits>
+#include <fstream>
+
+/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
@@ -23,11 +27,13 @@
 #  include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
 
+#define CHECK_STRESS
+
 
 int main(int argc, char *argv[])
 {
   akantu::UInt spatial_dimension = 2;
-  akantu::UInt max_steps = 50000;
+  akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
 
   //  akantu::Real epot, ekin;
@@ -64,7 +70,7 @@ int main(int argc, char *argv[])
 	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
 #endif //AKANTU_USE_IOHELPER
 
-  model->readMaterials("");
+  model->readMaterials("material.dat");
   model->initMaterials();
   model->initModel();
 
@@ -113,9 +119,14 @@ int main(int argc, char *argv[])
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
+  dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  dumper.Dump();
+
+#ifdef CHECK_STRESS
+  std::ofstream outfile;
+  outfile.open("stress");
+#endif // CHECK_STRESS
 
   model->setPotentialEnergyFlagOn();
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
@@ -130,11 +141,60 @@ int main(int argc, char *argv[])
     // std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
     // 	      << std::endl;
 
+#ifdef CHECK_STRESS
+    akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
+    akantu::UInt max_el = 0;
+    akantu::Real * stress = model->getStress(akantu::_triangle_1).values;
+    for (akantu::UInt i = 0; i < nb_element; ++i) {
+      if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
+	max_stress = stress[i*spatial_dimension*spatial_dimension];
+	max_el = i;
+      }
+    }
+
+    akantu::Real * coord    = model->getFEM().getMesh().getNodes().values;
+    akantu::Real * disp_val = model->getDisplacement().values;
+    akantu::UInt * conn     = model->getFEM().getMesh().getConnectivity(akantu::_triangle_1).values;
+    akantu::UInt nb_nodes_per_element = model->getFEM().getNbNodesPerElement(akantu::_triangle_1);
+    akantu::Real * coords = new akantu::Real[spatial_dimension];
+    akantu::Real min_x = std::numeric_limits<akantu::Real>::max();
+    akantu::Real max_x = std::numeric_limits<akantu::Real>::min();
+
+    akantu::Real stress_range = 5e7;
+    for (akantu::UInt el = 0; el < nb_element; ++el) {
+      if(stress[el*spatial_dimension*spatial_dimension] > max_stress - stress_range) {
+	akantu::UInt el_offset  = el * nb_nodes_per_element;
+	memset(coords, 0, spatial_dimension*sizeof(akantu::Real));
+	for (akantu::UInt n = 0; n < nb_nodes_per_element; ++n) {
+	  for (akantu::UInt i = 0; i < spatial_dimension; ++i) {
+	    akantu::UInt node = conn[el_offset + n] * spatial_dimension;
+	    coords[i] += (coord[node + i] + disp_val[node + i])
+	      / ((akantu::Real) nb_nodes_per_element);
+	  }
+	}
+	min_x = min_x < coords[0] ? min_x : coords[0];
+	max_x = max_x > coords[0] ? max_x : coords[0];
+      }
+    }
+
+
+
+    outfile << s << " " << .5 * (min_x + max_x) << " " << min_x << " " << max_x << " " << max_x - min_x << " " << max_stress << std::endl;
+
+    delete [] coords;
+#endif // CHECK_STRESS
+
+
 #ifdef AKANTU_USE_IOHELPER
     if(s % 100 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
     if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
+
+#ifdef CHECK_STRESS
+  outfile.close();
+#endif // CHECK_STRESS
+
 
   return EXIT_SUCCESS;
 }

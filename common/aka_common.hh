@@ -31,6 +31,8 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <limits>
+#include <algorithm>
 
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
@@ -136,6 +138,26 @@ void finalize ();
 
 
 /* -------------------------------------------------------------------------- */
+/* string manipulation                                                        */
+/* -------------------------------------------------------------------------- */
+inline void to_lower(std::string & str) {
+  std::transform(str.begin(),
+		 str.end(),
+		 str.begin(),
+		 (int(*)(int))std::tolower);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void trim(std::string & to_trim) {
+  size_t first = to_trim.find_first_not_of(" \t");
+  if (first != std::string::npos) {
+    size_t last = to_trim.find_last_not_of(" \t");
+    to_trim = to_trim.substr(first, last - first + 1);
+  } else to_trim = "";
+}
+
+
+/* -------------------------------------------------------------------------- */
 /*
  * For intel compiler annoying remark
  */
@@ -146,9 +168,6 @@ void finalize ();
 /// remark #383: value copied to temporary, reference to temporary used
 #pragma warning ( disable : 383 )
 
-/// remark #869: parameter "..." was never referenced
-#pragma warning ( disable : 869 )
-/// @todo: remove the 869 after implementation of setParam and readMaterials
 #endif //defined(__INTEL_COMPILER)
 
 __END_AKANTU__

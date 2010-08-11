@@ -81,6 +81,9 @@ protected:
   /// id of the material
   MaterialID id;
 
+  /// material name
+  std::string name;
+
   /// The model to witch the material belong
   SolidMechanicsModel * model;
 
