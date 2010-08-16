@@ -105,8 +105,8 @@ set(AKANTU_COMMON_SRC
   model/material.cc
   model/materials/material_elastic.cc
   model/integration_scheme/central_difference.cc
-  mesh_io/mesh_io.cc
-  mesh_io/mesh_io_msh.cc
+  mesh_utils/mesh_io.cc
+  mesh_utils/mesh_io/mesh_io_msh.cc
   )
 
 set(AKANTU_INCLUDE_DIRS
