@@ -29,7 +29,7 @@ class MeshPartitionScotch : public MeshPartition {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MeshPartitionScotch();
+  MeshPartitionScotch(const Mesh & mesh);
 
   virtual ~MeshPartitionScotch();
 

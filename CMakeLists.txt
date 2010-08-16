@@ -112,7 +112,8 @@ set(AKANTU_COMMON_SRC
 set(AKANTU_INCLUDE_DIRS
   common
   fem/
-  mesh_io/
+  mesh_utils/
+  mesh_utils/mesh_io
   model/
   )
 
