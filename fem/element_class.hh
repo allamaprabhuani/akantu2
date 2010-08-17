@@ -13,6 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+
 #ifndef __AKANTU_ELEMENT_CLASS_HH__
 #define __AKANTU_ELEMENT_CLASS_HH__
 
@@ -57,8 +59,10 @@ public:
 public:
 
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement, nb_nodes_per_element, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElementP1, nb_nodes_per_element_p1, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, spatial_dimension, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(SurfaceElementType, surface_type, const ElementType &);
 
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivatiesSize();
@@ -75,11 +79,17 @@ private:
   /// Number of nodes per element
   static UInt nb_nodes_per_element;
 
+  /// Number of nodes per element
+  static UInt nb_nodes_per_element_p1;
+
   /// Number of quadrature points per element
   static UInt nb_quadrature_points;
 
   /// Dimension of the element
   static UInt spatial_dimension;
+
+  /// Type of the facet elements
+  static ElementType surface_type;
 };
 
 

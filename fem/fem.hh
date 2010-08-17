@@ -118,23 +118,8 @@ public:
   /// get the mesh contained in the fem object
   inline Mesh & getMesh() const;
 
-  /// get the types list containted in the mesh
-  inline const Mesh::ConnectivityTypeList & getConnectivityTypeList() const;
-
-  /// get the number of nodes in the mesh
-  inline UInt getNbNodes() const;
-
-  /// get the number of element of a type in the mesh
-  inline UInt getNbElement(const ElementType & type) const;
-
-  /// get spatial dimension of a type of element
-  inline UInt getSpatialDimension(const ElementType & type) const;
-
   /// get the number of quadrature points of an element
   inline UInt getNbQuadraturePoints(const ElementType & type) const;
-
-  /// get the number of nodes per element for a given element type
-  inline UInt getNbNodesPerElement(const ElementType & type) const;
 
   /// get the in-radius of an element
   inline Real getElementInradius(Real * coord, const ElementType & type) const;

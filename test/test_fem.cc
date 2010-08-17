@@ -33,11 +33,11 @@ int main(int argc, char *argv[]) {
   akantu::StaticMemory * st_mem = akantu::StaticMemory::getStaticMemory();
   std::cout << *st_mem << std::endl;
 
-  akantu::Vector<akantu::Real> const_val(fem->getNbNodes(), 2, "const_val");
+  akantu::Vector<akantu::Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
   akantu::Vector<akantu::Real> val_on_quad(0, 2, "val_on_quad");
   akantu::Vector<akantu::Real> grad_on_quad(0, 2, "grad_on_quad");
   akantu::Vector<akantu::Real> int_val_on_elem(0, 2, "int_val_on_elem");
-  akantu::Vector<akantu::Real> val_on_nodes_per_elem(fem->getNbElement(akantu::_line_1), 2 * 2,"val_on_nodes_per_elem");
+  akantu::Vector<akantu::Real> val_on_nodes_per_elem(fem->getMesh().getNbElement(akantu::_line_1), 2 * 2,"val_on_nodes_per_elem");
   akantu::Vector<akantu::Real> int_val_on_nodes_per_elem(0, 2 * 2,"int_val_on_nodes_per_elem");
   akantu::Vector<akantu::Real> assemble_val_on_nodes(0, 2,"assemble_val_on_nodes");
 

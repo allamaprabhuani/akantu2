@@ -59,7 +59,7 @@ FEM::FEM(Mesh & mesh, UInt spatial_dimension, FEMID id, MemoryID memory_id) :
 FEM::~FEM() {
   AKANTU_DEBUG_IN();
 
-  const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
   for(it = type_list.begin();
@@ -94,7 +94,7 @@ void FEM::initShapeFunctions() {
   AKANTU_DEBUG_IN();
   Real * coord = mesh->getNodes().values;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
   for(it = type_list.begin();
@@ -104,7 +104,7 @@ void FEM::initShapeFunctions() {
     ElementType type = *it;
 
     UInt nb_nodes_per_element = 0;
-    UInt element_type_spatial_dimension;
+    UInt element_type_spatial_dimension = 0;
     UInt size_of_shapes = 0;
     UInt size_of_shapesd = 0;
     UInt size_of_jacobians = 0;
@@ -217,7 +217,7 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
   UInt nb_quadrature_points = getNbQuadraturePoints(type);
   UInt nb_element = mesh->getConnectivity(type).getSize();
 
-  AKANTU_DEBUG_ASSERT(in_u.getSize() == getNbNodes(),
+  AKANTU_DEBUG_ASSERT(in_u.getSize() == mesh->getNbNodes(),
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
@@ -299,7 +299,7 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_u.getSize() == getNbNodes(),
+  AKANTU_DEBUG_ASSERT(in_u.getSize() == mesh->getNbNodes(),
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
@@ -365,7 +365,7 @@ void FEM::integrate(const Vector<Real> & in_f,
   AKANTU_DEBUG_IN();
 
 
-  UInt nb_element           = filter_elements == NULL ? getNbElement(type) : filter_elements->getSize();
+  UInt nb_element = filter_elements == NULL ? mesh->getNbElement(type) : filter_elements->getSize();
   //  UInt nb_nodes_per_element = mesh->getConnectivity(type).getNbComponent();
   UInt nb_quadrature_points = getNbQuadraturePoints(type);
   UInt size_of_jacobians    = jacobians[type]->getNbComponent();
@@ -375,7 +375,7 @@ void FEM::integrate(const Vector<Real> & in_f,
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_f.getSize() == getNbElement(type),
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == mesh->getNbElement(type),
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
@@ -420,7 +420,7 @@ Real FEM::integrate(const Vector<Real> & in_f,
 		    const Vector<UInt> * filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element           = filter_elements == NULL ? getNbElement(type) : filter_elements->getSize();
+  UInt nb_element = filter_elements == NULL ? mesh->getNbElement(type) : filter_elements->getSize();
   //  UInt nb_nodes_per_element = mesh->getConnectivity(type).getNbComponent();
   UInt nb_quadrature_points = getNbQuadraturePoints(type);
   UInt size_of_jacobians    = jacobians[type]->getNbComponent();
@@ -430,7 +430,7 @@ Real FEM::integrate(const Vector<Real> & in_f,
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_f.getSize() == getNbElement(type),
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == mesh->getNbElement(type),
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_quadrature_points,
@@ -473,9 +473,9 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 bool is_init_to_zero) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = getNbNodesPerElement(type);
-  UInt nb_element           = filter_elements == NULL ? getNbElement(type) : filter_elements->getSize();
-  UInt nb_nodes = getNbNodes();
+  UInt nb_nodes_per_element = mesh->getNbNodesPerElement(type);
+  UInt nb_element           = filter_elements == NULL ? mesh->getNbElement(type) : filter_elements->getSize();
+  UInt nb_nodes = mesh->getNbNodes();
 
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
@@ -535,10 +535,10 @@ void FEM::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + connectivity type information [" << std::endl;
-  const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (getSpatialDimension(*it) != spatial_dimension) continue;
+    if (mesh->getSpatialDimension(*it) != spatial_dimension) continue;
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
     shapes            [*it]->printself(stream, indent + 3);
     shapes_derivatives[*it]->printself(stream, indent + 3);

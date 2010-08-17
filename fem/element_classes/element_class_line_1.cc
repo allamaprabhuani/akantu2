@@ -21,7 +21,6 @@ template<> UInt ElementClass<_line_1>::nb_nodes_per_element;
 template<> UInt ElementClass<_line_1>::nb_quadrature_points;
 template<> UInt ElementClass<_line_1>::spatial_dimension;
 
-
 /* -------------------------------------------------------------------------- */
 template<> inline void ElementClass<_line_1>::shapeFunctions(const Real * x,
 							     Real * shape,

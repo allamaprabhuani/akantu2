@@ -57,48 +57,6 @@ inline Mesh & FEM::getMesh() const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Mesh::ConnectivityTypeList & FEM::getConnectivityTypeList() const {
-  return mesh->getTypeList();
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getNbNodes() const {
-  return mesh->getNbNodes();
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getNbElement(const ElementType & type) const {
-  return mesh->getConnectivity(type).getSize();
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getSpatialDimension(const ElementType & type) const {
-  AKANTU_DEBUG_IN();
-
-  UInt spatial_dimension;
-#define GET_SPATIAL_DIMENSION(type)					\
-  spatial_dimension = ElementClass<type>::getSpatialDimension()
-
-  switch(type) {
-  case _line_1       : { GET_SPATIAL_DIMENSION(_line_1      ); break; }
-  case _line_2       : { GET_SPATIAL_DIMENSION(_line_2      ); break; }
-  case _triangle_1   : { GET_SPATIAL_DIMENSION(_triangle_1  ); break; }
-  case _triangle_2   : { GET_SPATIAL_DIMENSION(_triangle_2  ); break; }
-  case _tetrahedra_1 : { GET_SPATIAL_DIMENSION(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { GET_SPATIAL_DIMENSION(_tetrahedra_2); break; }
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
-#undef GET_SPATIAL_DIMENSION
-
-  AKANTU_DEBUG_OUT();
-  return spatial_dimension;
-}
-
-/* -------------------------------------------------------------------------- */
 inline UInt FEM::getNbQuadraturePoints(const ElementType & type) const {
   AKANTU_DEBUG_IN();
 
@@ -123,33 +81,6 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) const {
 
   AKANTU_DEBUG_OUT();
   return nb_quadrature_points;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getNbNodesPerElement(const ElementType & type) const {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_nodes_per_element;
-#define GET_NB_NODES_PER_ELEMENT(type)					\
-  nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
-
-  switch(type) {
-  case _line_1       : { GET_NB_NODES_PER_ELEMENT(_line_1      ); break; }
-  case _line_2       : { GET_NB_NODES_PER_ELEMENT(_line_2      ); break; }
-  case _triangle_1   : { GET_NB_NODES_PER_ELEMENT(_triangle_1  ); break; }
-  case _triangle_2   : { GET_NB_NODES_PER_ELEMENT(_triangle_2  ); break; }
-  case _tetrahedra_1 : { GET_NB_NODES_PER_ELEMENT(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { GET_NB_NODES_PER_ELEMENT(_tetrahedra_2); break; }
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
-#undef GET_NB_NODES_PER_ELEMENT
-
-  AKANTU_DEBUG_OUT();
-  return nb_nodes_per_element;
 }
 
 /* -------------------------------------------------------------------------- */

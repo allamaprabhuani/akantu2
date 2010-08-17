@@ -107,6 +107,7 @@ set(AKANTU_COMMON_SRC
   model/integration_scheme/central_difference.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
+  mesh_utils/mesh_partition.cc
   )
 
 set(AKANTU_INCLUDE_DIRS
@@ -140,7 +141,7 @@ if(BUILD_UNIT_TEST)
     test/test_fem.cc
     test/test_solid_mechanics_model.cc
     test/test_solid_mechanics_model_cube3d.cc
-    test/bar_traction.cc
+    test/test_solid_mechanics_model_bar_traction2d.cc
     )
 
   foreach(_test ${AKANTU_UNIT_TESTS})

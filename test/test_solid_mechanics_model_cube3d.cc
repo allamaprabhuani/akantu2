@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
   /// model initialization
   model->initVectors();
   /// initialize the vectors
-  akantu::UInt nb_nodes = model->getFEM().getNbNodes();
+  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   memset(model->getForce().values,        0, 3*nb_nodes*sizeof(akantu::Real));
   memset(model->getVelocity().values,     0, 3*nb_nodes*sizeof(akantu::Real));
   memset(model->getAcceleration().values, 0, 3*nb_nodes*sizeof(akantu::Real));
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_tetrahedra_1).values,
-			 TETRA1, model->getFEM().getNbElement(akantu::_tetrahedra_1), C_MODE);
+			 TETRA1, model->getFEM().getMesh().getNbElement(akantu::_tetrahedra_1), C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 3, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 3, "velocity");
   dumper.AddNodeDataField(model->getMass().values, 1, "mass");

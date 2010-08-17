@@ -19,6 +19,7 @@
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "aka_vector.hh"
+#include "element_class.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -69,9 +70,11 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  AKANTU_GET_MACRO(ID, id, const MeshID &);
+
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
-  AKANTU_GET_MACRO(TypeList, type_set, const ConnectivityTypeList &);
+  AKANTU_GET_MACRO(ConnectivityTypeList, type_set, const ConnectivityTypeList &);
 
   inline Vector<Real> & getNodes() const;
 
@@ -80,6 +83,22 @@ public:
   Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
 
   inline Vector<UInt> & getConnectivity(ElementType type) const;
+
+  /// get the number of element of a type in the mesh
+  inline UInt getNbElement(const ElementType & type) const;
+
+  /// get the number of nodes per element for a given element type
+  inline UInt getNbNodesPerElement(const ElementType & type) const;
+
+  /// get the number of nodes per element for a given element type considered as
+  /// a first order element
+  inline UInt getNbNodesPerElementP1(const ElementType & type) const;
+
+  /// get spatial dimension of a type of element
+  inline UInt getSpatialDimension(const ElementType & type) const;
+
+  /// get the type of the surface element associated to a given element
+  inline const ElementType getSurfaceElementType(const ElementType & type) const;
 
 private:
   friend class MeshIOMSH;

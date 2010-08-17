@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
-  akantu::UInt nb_nodes = model->getFEM().getNbNodes();
-  akantu::UInt nb_element = model->getFEM().getNbElement(akantu::_triangle_1);
+  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(akantu::_triangle_1);
 
   /// model initialization
   model->initVectors();
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
     akantu::Real * coord    = model->getFEM().getMesh().getNodes().values;
     akantu::Real * disp_val = model->getDisplacement().values;
     akantu::UInt * conn     = model->getFEM().getMesh().getConnectivity(akantu::_triangle_1).values;
-    akantu::UInt nb_nodes_per_element = model->getFEM().getNbNodesPerElement(akantu::_triangle_1);
+    akantu::UInt nb_nodes_per_element = model->getFEM().getMesh().getNbNodesPerElement(akantu::_triangle_1);
     akantu::Real * coords = new akantu::Real[spatial_dimension];
     akantu::Real min_x = std::numeric_limits<akantu::Real>::max();
     akantu::Real max_x = std::numeric_limits<akantu::Real>::min();

@@ -33,10 +33,10 @@ Material::~Material() {
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(model->getFEM().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
     dealloc(element_filter[*it]->getID());
     element_filter[*it] = NULL;
 
@@ -63,10 +63,10 @@ void Material::initMaterial() {
   /// for each connectivity types allocate the element filer array of the material
   UInt spatial_dimension = model->getSpatialDimension();
 
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(model->getFEM().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
     std::stringstream sstr; sstr << id << ":element_filer:"<< *it;
     element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
   }
