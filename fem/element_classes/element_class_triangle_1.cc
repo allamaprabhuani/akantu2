@@ -41,9 +41,9 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
   Real weight = .5;
 
   /// shape functions
-  shape[0] = 1./3.; //N1(0)
-  shape[1] = 1./3.; //N2(0)
-  shape[2] = 1./3.; //N3(0)
+  shape[0] = 1./3.; //N1(q_0)
+  shape[1] = 1./3.; //N2(q_0)
+  shape[2] = 1./3.; //N3(q_0)
 
   /* 
    *        / dN1/ds  dN2/ds dN3/ds \
@@ -73,17 +73,6 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
 			dnds, inv_dxds, shape_deriv);
 }
 
-
-/* ------------------------------------------------------------------------ */
-template<> inline Real ElementClass<_triangle_1>::getVolume(const Real * coord) {
-  /* A = 1/2 \left| det \deft(
-   *  \begin{array}{cc}
-   *   x_1 & x_2 \\
-   *   y_1 & y_2 \\
-   *  \end{array} \right)  \right|
-   */
-  return .5 * fabs(coord[0] * coord[3] - coord[1] * coord[2]);
-}
 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_triangle_1>::getInradius(const Real * coord) {

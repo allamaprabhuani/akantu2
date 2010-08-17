@@ -67,9 +67,6 @@ public:
   /// compute the in-radius
   static inline Real getInradius(const Real * coord);
 
-  /// compute the volume of an element
-  static inline Real getVolume(const Real * coord);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

@@ -76,12 +76,27 @@ public:
 				     const Real * B,
 				     Real * C);
 
+  /// determinent of a 3x3 matrix
+  static inline Real det3(const Real * mat);
+
+  /// inverse a 3x3 matrix
+  static inline void inv3(const Real * mat, Real * inv);
+
   /* Geometry */
   /// distance in 2D between x and y
   static inline Real distance_2d(const Real * x, const Real * y);
 
+  /// distance in 3D between x and y
+  static inline Real distance_3d(const Real * x, const Real * y);
+
   /// radius of the in-circle of a triangle
   static inline Real triangle_inradius(const Real * coord);
+
+  /// radius of the in-circle of a tetrahedron
+  static inline Real tetrahedron_inradius(const Real * coord);
+
+  /// volume of a tetrahedron
+  static inline Real tetrahedron_volume(const Real * coord);
 
 };
 

@@ -104,14 +104,15 @@ void FEM::initShapeFunctions() {
     ElementType type = *it;
 
     UInt nb_nodes_per_element = 0;
+    UInt element_type_spatial_dimension;
     UInt size_of_shapes = 0;
     UInt size_of_shapesd = 0;
     UInt size_of_jacobians = 0;
 
 #define INIT_VARIABLES(type)						\
     do {								\
-      if(ElementClass<type>::getSpatialDimension() != spatial_dimension) \
-	continue;							\
+      element_type_spatial_dimension =					\
+	ElementClass<type>::getSpatialDimension();			\
       nb_nodes_per_element =						\
 	ElementClass<type>::getNbNodesPerElement();			\
       size_of_shapes =							\
@@ -134,6 +135,8 @@ void FEM::initShapeFunctions() {
       AKANTU_DEBUG_ERROR("Wrong type : " << type);
       break; }
     }
+
+    if(element_type_spatial_dimension != spatial_dimension) continue;
 
     UInt * elem_val  = mesh->getConnectivity(type).values;
     UInt nb_element = mesh->getConnectivity(type).getSize();
@@ -535,6 +538,7 @@ void FEM::printself(std::ostream & stream, int indent) const {
   const Mesh::ConnectivityTypeList & type_list = mesh->getTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if (getSpatialDimension(*it) != spatial_dimension) continue;
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
     shapes            [*it]->printself(stream, indent + 3);
     shapes_derivatives[*it]->printself(stream, indent + 3);

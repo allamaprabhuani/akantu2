@@ -37,7 +37,7 @@ Help tools for emacs
       (add-hook 'c++-mode-hook 'doxymacs-mode)
       (add-hook 'c-mode-hook 'doxymacs-mode)
 
-    * in the (custom-set-variables) add this lines to generate the files headers (C-d i)
+    * in the (custom-set-variables) add this lines to generate the files headers (C-c d i)
 
       '(doxymacs-doxygen-style "JavaDoc")
       '(doxymacs-file-comment-template (quote ("/**" > n " * " (doxymacs-doxygen-command-char) "file   " (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") > n " * " (doxymacs-doxygen-command-char) "author " (user-full-name) (doxymacs-user-mail-address) > n " * " (doxymacs-doxygen-command-char) "date   " (current-time-string) > n " *" > n " * " (doxymacs-doxygen-command-char) "brief  " (p "Brief description of this file: ") > n " *" > n " * " (doxymacs-doxygen-command-char) "section LICENSE" > n " *" > n " * <insert license here>" > n " *" > n " */" > n > n "/* -------------------------------------------------------------------------- */" > n)))
@@ -52,11 +52,34 @@ Help tools for emacs
     (add-hook 'c++-mode-hook 'yas/minor-mode-on)
     (add-hook 'c-mode-hook 'yas/minor-mode-on)
 
-  depending on your version of yasnippet the snippet directories are not arranged in the same way
-  c++-mode snippet
-   akantu
-   inout
-   class
-  cc-mode snippet (common to c and c++)
-   once
-   for
+   You need  to copy the snippets for Akantu dev into the appropriate directory.
+
+   depending on your version of yasnippet the snippet directories are not arranged in the same way
+
+   c++-mode snippet
+    akantu (opening and closing akantu namespace)
+    inout (debug in/out for functions)
+    class (class declaration)
+   cc-mode snippet (common to c and c++)
+    once (define protection for .hh files)
+    for (for loop)
+
+
+   To know your orgnisation type have a look into /usr/share/emacs/site-lisp/yasnippet/snippets/
+   Then copy the the file provided in the doc directory either by:
+
+
+      
+    cp -r /usr/share/emacs/site-lisp/yasnippet ~/.emacs.d/yasnippet
+    cp $AKANTU_DIR/doc/coding_convention/snippet/akantu ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/
+    cp $AKANTU_DIR/doc/coding_convention/snippet/inout ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/	
+    cp $AKANTU_DIR/doc/coding_convention/snippet/class ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/	
+    cp $AKANTU_DIR/doc/coding_convention/snippet/once ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/
+    cp $AKANTU_DIR/doc/coding_convention/snippet/for ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/
+
+   either by (TODO nico)
+
+
+
+
+

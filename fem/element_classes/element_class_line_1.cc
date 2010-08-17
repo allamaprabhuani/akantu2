@@ -11,6 +11,11 @@
  *
  */
 
+template<> UInt ElementClass<_line_1>::nb_nodes_per_element;
+template<> UInt ElementClass<_line_1>::nb_quadrature_points;
+template<> UInt ElementClass<_line_1>::spatial_dimension;
+
+
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_line_1>::nb_nodes_per_element;
 template<> UInt ElementClass<_line_1>::nb_quadrature_points;
@@ -51,11 +56,6 @@ template<> inline void ElementClass<_line_1>::shapeFunctions(const Real * x,
   shape_deriv[1] = dnds[1] / dxds;
 }
 
-
-/* ------------------------------------------------------------------------ */
-template<> inline Real ElementClass<_line_1>::getVolume(const Real * coord) {
-  return sqrt((coord[0] - coord[1])*(coord[0] - coord[1])); //*1*1 for volume
-}
 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_line_1>::getInradius(const Real * coord) {

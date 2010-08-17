@@ -139,6 +139,7 @@ if(BUILD_UNIT_TEST)
     test/test_vector.cc
     test/test_fem.cc
     test/test_solid_mechanics_model.cc
+    test/test_solid_mechanics_model_cube3d.cc
     test/bar_traction.cc
     )
 
