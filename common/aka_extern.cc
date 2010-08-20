@@ -36,7 +36,7 @@ std::ostream & _akantu_debug_cout = std::cerr;
 std::ostream & _akantu_cout = std::cout;
 
 /// debug level
-DebugLevel _debug_level = (DebugLevel) 4;
+DebugLevel _debug_level = (DebugLevel) 5;
 
 /* -------------------------------------------------------------------------- */
 

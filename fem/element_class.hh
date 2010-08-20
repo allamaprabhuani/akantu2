@@ -62,7 +62,9 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElementP1, nb_nodes_per_element_p1, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, spatial_dimension, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(SurfaceElementType, surface_type, const ElementType &);
+  static AKANTU_GET_MACRO_NOT_CONST(FacetElementType, facet_type, const ElementType &);
+  static AKANTU_GET_MACRO_NOT_CONST(NbFacetsPerElement, nb_facets, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(FacetLocalConnectivityPerElement, facet_connectivity, UInt**);
 
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivativesSize();
@@ -89,7 +91,16 @@ private:
   static UInt spatial_dimension;
 
   /// Type of the facet elements
-  static ElementType surface_type;
+  static ElementType facet_type;
+
+  /// number of facets for element
+  static UInt nb_facets;
+
+  /// local connectivity of facets
+  static UInt * facet_connectivity[];
+  
+  /// vectorial connectivity of facets;
+  static UInt vec_facet_connectivity[];
 };
 
 

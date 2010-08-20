@@ -108,6 +108,7 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
+  mesh_utils/mesh_utils.cc
   )
 
 set(AKANTU_INCLUDE_DIRS
@@ -142,6 +143,8 @@ if(BUILD_UNIT_TEST)
     test/test_solid_mechanics_model.cc
     test/test_solid_mechanics_model_cube3d.cc
     test/test_solid_mechanics_model_bar_traction2d.cc
+    test/test_facet_extraction_triangle1.cc
+    test/test_facet_extraction_tetra1.cc
     )
 
   foreach(_test ${AKANTU_UNIT_TESTS})

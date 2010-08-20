@@ -34,7 +34,7 @@ void Element::printself(std::ostream & stream, int indent) const {
 Mesh::Mesh(UInt spatial_dimension,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(true), spatial_dimension(spatial_dimension),
+  Memory(memory_id), id(id), created_nodes(true), spatial_dimension(spatial_dimension), internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1))
 #ifdef AKANTU_USE_MPI
   , ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1))
@@ -49,6 +49,7 @@ Mesh::Mesh(UInt spatial_dimension,
   this->nodes = &(alloc<Real>(sstr.str(), 0, this->spatial_dimension));
 
   AKANTU_DEBUG_OUT();
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +57,7 @@ Mesh::Mesh(UInt spatial_dimension,
 	   const VectorID & nodes_id,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension),
+  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension), internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1))
 #ifdef AKANTU_USE_MPI
   , ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1))
@@ -76,7 +77,7 @@ Mesh::Mesh(UInt spatial_dimension,
 	   Vector<Real> & nodes,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension),
+  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension), internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1))
 #ifdef AKANTU_USE_MPI
   , ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1))

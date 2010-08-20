@@ -100,13 +100,35 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(ElementType type) const {
   AKANTU_DEBUG_OUT();
   return connectivities[type];
 }
+/* -------------------------------------------------------------------------- */
+inline const Mesh & Mesh::getInternalFacetsMesh() const {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+  if (!internal_facets_mesh) AKANTU_DEBUG_ERROR("internal facets mesh was not created before access => use mesh utils to that purpose");
+  return *internal_facets_mesh;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Mesh * Mesh::getInternalFacetsMeshPointer() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+  if (!internal_facets_mesh){
+    std::stringstream name(this->id);
+    name << ":internalfacets";
+    internal_facets_mesh = new Mesh(this->spatial_dimension-1,*this->nodes,name.str());
+  }
+
+  return internal_facets_mesh;
+}
 
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(connectivities[type] != NULL,
-		      "The mesh " << id << " as no element of kind : "<< type);
+		      "The mesh " << id << " has no element of kind : "<< type);
 
   AKANTU_DEBUG_OUT();
   return connectivities[type]->getSize();
@@ -194,20 +216,20 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const ElementType Mesh::getSurfaceElementType(const ElementType & type) {
+inline const ElementType Mesh::getFacetElementType(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   ElementType surface_type;
-#define GET_SURFACE_TYPE(type)					\
-  surface_type = ElementClass<type>::getSurfaceElementType()
+#define GET_FACET_TYPE(type)					\
+  surface_type = ElementClass<type>::getFacetElementType()
 
   switch(type) {
-  case _line_1       : { GET_SURFACE_TYPE(_line_1      ); break; }
-  case _line_2       : { GET_SURFACE_TYPE(_line_2      ); break; }
-  case _triangle_1   : { GET_SURFACE_TYPE(_triangle_1  ); break; }
-  case _triangle_2   : { GET_SURFACE_TYPE(_triangle_2  ); break; }
-  case _tetrahedra_1 : { GET_SURFACE_TYPE(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { GET_SURFACE_TYPE(_tetrahedra_2); break; }
+  case _line_1       : { GET_FACET_TYPE(_line_1      ); break; }
+  case _line_2       : { GET_FACET_TYPE(_line_2      ); break; }
+  case _triangle_1   : { GET_FACET_TYPE(_triangle_1  ); break; }
+  case _triangle_2   : { GET_FACET_TYPE(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_FACET_TYPE(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_FACET_TYPE(_tetrahedra_2); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -219,3 +241,59 @@ inline const ElementType Mesh::getSurfaceElementType(const ElementType & type) {
   AKANTU_DEBUG_OUT();
   return surface_type;
 }
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNbFacetsPerElementType(const ElementType & type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt n_facet;
+#define GET_NB_FACET(type)					\
+  n_facet = ElementClass<type>::getNbFacetsPerElement()
+
+  switch(type) {
+  case _line_1       : { GET_NB_FACET(_line_1      ); break; }
+  case _line_2       : { GET_NB_FACET(_line_2      ); break; }
+  case _triangle_1   : { GET_NB_FACET(_triangle_1  ); break; }
+  case _triangle_2   : { GET_NB_FACET(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_NB_FACET(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_NB_FACET(_tetrahedra_2); break; }
+  case _not_defined:
+  case _max_element_type:  {
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);
+    break; }
+  }
+
+#undef GET_SURFACE_TYPE
+
+  AKANTU_DEBUG_OUT();
+  return n_facet;
+}
+
+
+/* -------------------------------------------------------------------------- */
+inline UInt ** Mesh::getFacetLocalConnectivityPerElementType(const ElementType & type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt ** facet_conn;
+#define GET_FACET_CON(type)                                      \
+  facet_conn = ElementClass<type>::getFacetLocalConnectivityPerElement()
+
+  switch(type) {
+  case _line_1       : { GET_FACET_CON(_line_1      ); break; }
+  case _line_2       : { GET_FACET_CON(_line_2      ); break; }
+  case _triangle_1   : { GET_FACET_CON(_triangle_1  ); break; }
+  case _triangle_2   : { GET_FACET_CON(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_FACET_CON(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_FACET_CON(_tetrahedra_2); break; }
+  case _not_defined:
+  case _max_element_type:  {
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);
+    break; }
+  }
+
+#undef GET_SURFACE_TYPE
+  
+  AKANTU_DEBUG_OUT();
+  return facet_conn;
+}
+

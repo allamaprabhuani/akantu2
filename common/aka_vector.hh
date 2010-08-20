@@ -88,7 +88,7 @@ template<class T> class Vector : public VectorBase {
 public:
 
   /// Allocation of a new vector
-  Vector(UInt size, UInt nb_component = 1,
+  Vector(UInt size = 0, UInt nb_component = 1,
 	 const VectorID & id = "");
 
   /// Allocation of a new vector with a default value

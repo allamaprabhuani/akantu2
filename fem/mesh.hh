@@ -121,6 +121,8 @@ public:
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, Vector<UInt> &);
 
+  inline const Mesh & getInternalFacetsMesh() const;
+
 #ifdef AKANTU_USE_MPI
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, ghost_connectivities, Vector<UInt> &);
 #endif //AKANTU_USE_MPI
@@ -143,13 +145,21 @@ public:
   /// get spatial dimension of a type of element
   static inline UInt getSpatialDimension(const ElementType & type);
 
+  /// get number of facets of a given element type
+  inline UInt getNbFacetsPerElementType(const ElementType & type) const;
+
+  /// get number of facets of a given element type
+  inline UInt ** getFacetLocalConnectivityPerElementType(const ElementType & type) const;
+
   /// get the type of the surface element associated to a given element
-  static inline const ElementType getSurfaceElementType(const ElementType & type);
+  static inline const ElementType getFacetElementType(const ElementType & type);
 
 private:
   friend class MeshIOMSH;
+  friend class MeshUtils;
 
   inline Vector<UInt> * getConnectivityPointer(ElementType type) const;
+  inline Mesh * getInternalFacetsMeshPointer();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -173,6 +183,9 @@ private:
 
   /// the spatial dimension of this mesh
   UInt spatial_dimension;
+
+  /// internal facets mesh
+  Mesh * internal_facets_mesh;
 
   /// types offsets
   Vector<UInt> types_offsets;
