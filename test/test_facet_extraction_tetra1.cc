@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
   
-  akantu::MeshUtils::buildFacets(mesh);
+  akantu::MeshUtils::buildFacets(mesh,1,1);
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER

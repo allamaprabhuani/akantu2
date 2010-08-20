@@ -37,7 +37,7 @@ public:
 public:
 
   void static buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
-  void static buildFacets(Mesh & mesh);
+  void static buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
   
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

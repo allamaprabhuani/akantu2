@@ -86,7 +86,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset
 }
 
 
-void MeshUtils::buildFacets(Mesh & mesh){
+void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag){
   AKANTU_DEBUG_IN();
 
   Vector<UInt> node_offset;
@@ -122,8 +122,8 @@ void MeshUtils::buildFacets(Mesh & mesh){
 
   ElementType facet_type;
 
-  Mesh * internal_facets_mesh = mesh.getInternalFacetsMeshPointer();
-  AKANTU_DEBUG_ASSERT(internal_facets_mesh,"internal facets mesh was not created");
+  Mesh * internal_facets_mesh = NULL;
+  if (internal_flag) internal_facets_mesh = mesh.getInternalFacetsMeshPointer();
   
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
@@ -139,20 +139,22 @@ void MeshUtils::buildFacets(Mesh & mesh){
     nb_nodes_per_facet[nb_good_types]    = mesh.getNbNodesPerElement(facet_type);
     nb_nodes_per_facet_p1[nb_good_types] = mesh.getNbNodesPerElementP1(facet_type);
 
-    // getting connectivity of boundary facets
-    connectivity_facets[nb_good_types] = mesh.getConnectivityPointer(facet_type);
-    if(connectivity_facets[nb_good_types])
-      connectivity_facets[nb_good_types]->resize(0);
-    else
-      connectivity_facets[nb_good_types] = &mesh.createConnectivity(facet_type,0);
-
-    // getting connectivity of internal facets
-    connectivity_internal_facets[nb_good_types] = internal_facets_mesh->getConnectivityPointer(facet_type);
-    if(connectivity_internal_facets[nb_good_types])
-      connectivity_internal_facets[nb_good_types]->resize(0);
-    else
-      connectivity_internal_facets[nb_good_types] = &internal_facets_mesh->createConnectivity(facet_type,0);
-
+    if (boundary_flag){
+      // getting connectivity of boundary facets
+      connectivity_facets[nb_good_types] = mesh.getConnectivityPointer(facet_type);
+      if(connectivity_facets[nb_good_types])
+	connectivity_facets[nb_good_types]->resize(0);
+      else
+	connectivity_facets[nb_good_types] = &mesh.createConnectivity(facet_type,0);
+    }
+    if (internal_flag){
+      // getting connectivity of internal facets
+      connectivity_internal_facets[nb_good_types] = internal_facets_mesh->getConnectivityPointer(facet_type);
+      if(connectivity_internal_facets[nb_good_types])
+	connectivity_internal_facets[nb_good_types]->resize(0);
+      else
+	connectivity_internal_facets[nb_good_types] = &internal_facets_mesh->createConnectivity(facet_type,0);
+    }
 
     conn_val[nb_good_types] = mesh.getConnectivity(type).values;
     nb_element[nb_good_types] = mesh.getConnectivity(type).getSize();
@@ -203,14 +205,16 @@ void MeshUtils::buildFacets(Mesh & mesh){
 	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index > linearized_el){
 	    connected_element = el_index;
 	    AKANTU_DEBUG_INFO("connecting elements " << linearized_el << " and " << el_index);   
-	    connectivity_internal_facets[t]->push_back(facet_nodes);
+	    if (internal_flag)
+	      connectivity_internal_facets[t]->push_back(facet_nodes);
 	  }
 	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index != linearized_el) 
 	    connected_facet = true;
 	}
 	if (!connected_facet) {
 	  AKANTU_DEBUG_INFO("facet " << f << " in element " << linearized_el << " is a boundary");
-	  connectivity_facets[t]->push_back(facet_nodes);
+	  if (boundary_flag)
+	    connectivity_facets[t]->push_back(facet_nodes);
 	}
       }
     }

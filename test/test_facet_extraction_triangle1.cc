@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
   
-  akantu::MeshUtils::buildFacets(mesh);
+  akantu::MeshUtils::buildFacets(mesh,1,1);
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
   dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(akantu::_line_1).values,
-			       LINE1, mesh.getInternalFacetsMesh().getNbElement(akantu::_line_1), C_MODE);
+  			       LINE1, mesh.getInternalFacetsMesh().getNbElement(akantu::_line_1), C_MODE);
   dumper_facet.Init();
   dumper_facet.Dump();
 
