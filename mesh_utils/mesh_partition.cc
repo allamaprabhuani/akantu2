@@ -70,11 +70,11 @@ void MeshPartition::buildDualGraph() {
 
   /// array for the node-element list
   UInt * node_offset = new UInt[nb_nodes + 1];
-  UInt * node_index;
+  UInt * node_to_element;
 
   /// count number of occurrence of each node
+  memset(node_offset, 0, (nb_nodes + 1)*sizeof(UInt));
   for (UInt t = 0; t < nb_good_types; ++t) {
-    memset(node_offset, 0, (nb_nodes + 1)*sizeof(UInt));
     for (UInt el = 0; el < nb_element[t]; ++el) {
       UInt el_offset = el*nb_nodes_per_element[t];
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
@@ -89,12 +89,12 @@ void MeshPartition::buildDualGraph() {
   node_offset[0] = 0;
 
   /// rearrange element to get the node-element list
-  node_index  = new UInt[node_offset[nb_nodes]];
-  for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t)
-    for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el) {
+  node_to_element  = new UInt[node_offset[nb_nodes]];
+  for (UInt t = 0, linearized_el = 0; t < nb_good_types; ++t)
+    for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el) {
       UInt el_offset = el*nb_nodes_per_element[t];
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n)
-	node_index[node_offset[conn_val[t][el_offset + n]]++] = linerized_el;
+	node_to_element[node_offset[conn_val[t][el_offset + n]]++] = linearized_el;
     }
 
   for (UInt i = nb_nodes; i > 0; --i) node_offset[i]  = node_offset[i-1];
@@ -109,18 +109,18 @@ void MeshPartition::buildDualGraph() {
   }
 
   std::stringstream sstr_dxadj; sstr_dxadj << mesh.getID() << ":dxadj";
-  dxadj = new Vector<UInt>(nb_total_element, 1, sstr_dxadj.str());
+  dxadj = new Vector<UInt>(nb_total_element + 1, 1, sstr_dxadj.str());
 
   std::stringstream sstr_dadjncy; sstr_dadjncy << mesh.getID() << ":dadjncy";
-  dadjncy = new Vector<UInt>(nb_total_node_element, 1, sstr_dxadj.str());
+  dadjncy = new Vector<UInt>(nb_total_node_element + 1, 1, sstr_dxadj.str());
 
   UInt * dxadj_val = dxadj->values;
   UInt * dadjncy_val = dadjncy->values;
 
   /// initialize the dxadj array
-  for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t)
-    for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el)
-      dxadj_val[linerized_el] = nb_nodes_per_element_p1[t];
+  for (UInt t = 0, linearized_el = 0; t < nb_good_types; ++t)
+    for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el)
+      dxadj_val[linearized_el] = nb_nodes_per_element_p1[t];
 
 
 
@@ -136,8 +136,8 @@ void MeshPartition::buildDualGraph() {
   for (UInt i = 0; i < mask + 1; ++i) mark[i] = -1;
 
 
-  for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t) {
-    for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el) {
+  for (UInt t = 0, linearized_el = 0; t < nb_good_types; ++t) {
+    for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el) {
       UInt el_offset = el*nb_nodes_per_element[t];
 
       /// fill the weight map
@@ -148,8 +148,8 @@ void MeshPartition::buildDualGraph() {
 	for (UInt k = node_offset[node + 1] - 1;
 	     k >= node_offset[node];
 	     --k) {
-	  UInt current_el = node_index[k];
-	  if(current_el <= linerized_el) break;
+	  UInt current_el = node_to_element[k];
+	  if(current_el <= linearized_el) break;
 
 	  UInt mark_offset  = current_el & mask;
 	  Int current_mark = mark[mark_offset];
@@ -179,8 +179,8 @@ void MeshPartition::buildDualGraph() {
       for (UInt n = 0; n < m; ++n) {
 	if(weight[n] == magic_number[t]) {
 	  UInt adjacent_el = index[n];
-	  dadjncy_val[dxadj_val[linerized_el]++] = adjacent_el;
-	  dadjncy_val[dxadj_val[adjacent_el ]++] = linerized_el;
+	  dadjncy_val[dxadj_val[linearized_el]++] = adjacent_el;
+	  dadjncy_val[dxadj_val[adjacent_el ]++] = linearized_el;
 	}
 	mark[index[n] & mask] = -1;
       }
@@ -188,18 +188,20 @@ void MeshPartition::buildDualGraph() {
   }
 
   UInt k_start = 0;
-  for (UInt t = 0, linerized_el = 0, j = 0; t < nb_good_types; ++t)
-    for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el) {
-      for (UInt k = k_start; k < dxadj_val[linerized_el]; ++k, ++j)
+  for (UInt t = 0, linearized_el = 0, j = 0; t < nb_good_types; ++t)
+    for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el) {
+      for (UInt k = k_start; k < dxadj_val[linearized_el]; ++k, ++j)
 	dadjncy_val[j] = dadjncy_val[k];
-      dxadj_val[linerized_el] = j;
+      dxadj_val[linearized_el] = j;
       k_start += nb_nodes_per_element_p1[t];
     }
 
   for (UInt i = nb_total_element; i > 0; ++i) dxadj_val[i] = dxadj_val[i-1];
   dxadj_val[0] = 0;
 
-  delete [] node_index;
+  dadjncy->resize(dxadj_val[nb_total_element]);
+
+  delete [] node_to_element;
   delete [] node_offset;
   delete [] mark;
 

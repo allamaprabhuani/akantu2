@@ -60,23 +60,27 @@ int main(int argc, char *argv[])
   memset(model->getDisplacement().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
-#ifdef AKANTU_USE_IOHELPER
-  /// set to 0 only for the first paraview dump
-  memset(model->getResidual().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getStrain(akantu::_triangle_1).values, 0,
-	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
-  memset(model->getStress(akantu::_triangle_1).values, 0,
-	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
-#endif //AKANTU_USE_IOHELPER
 
   model->readMaterials("material.dat");
   model->initMaterials();
+
   model->initModel();
 
   std::cout << model->getMaterial(0) << std::endl;
 
   model->assembleMass();
+
+
+#ifdef AKANTU_USE_IOHELPER
+  /// set to 0 only for the first paraview dump
+  memset(model->getResidual().values, 0,
+	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
+  memset(model->getMaterial(0).getStrain(akantu::_triangle_1).values, 0,
+	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
+  memset(model->getMaterial(0).getStress(akantu::_triangle_1).values, 0,
+	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
+#endif //AKANTU_USE_IOHELPER
+
 
   /// boundary conditions
   akantu::Real eps = 1e-16;
@@ -112,9 +116,9 @@ int main(int argc, char *argv[])
 			  spatial_dimension, "velocity");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
-  dumper.AddElemDataField(model->getStrain(akantu::_triangle_1).values,
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_triangle_1).values,
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getStress(akantu::_triangle_1).values,
+  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_triangle_1).values,
 			  spatial_dimension*spatial_dimension, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
@@ -144,7 +148,7 @@ int main(int argc, char *argv[])
 #ifdef CHECK_STRESS
     akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
     akantu::UInt max_el = 0;
-    akantu::Real * stress = model->getStress(akantu::_triangle_1).values;
+    akantu::Real * stress = model->getMaterial(0).getStress(akantu::_triangle_1).values;
     for (akantu::UInt i = 0; i < nb_element; ++i) {
       if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
 	max_stress = stress[i*spatial_dimension*spatial_dimension];

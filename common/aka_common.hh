@@ -59,7 +59,6 @@ typedef std::string ID;
 /* -------------------------------------------------------------------------- */
 
 typedef UInt MemoryID;
-
 typedef ID VectorID;
 
 /* -------------------------------------------------------------------------- */
@@ -110,6 +109,17 @@ enum MaterialType {
   inline type get##name () {					\
     return variable;						\
   }
+
+#define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)	\
+  inline type get##name (const ElementType & el_type) const {		\
+    AKANTU_DEBUG_IN();							\
+    AKANTU_DEBUG_ASSERT(variable[el_type] != NULL,			\
+			"No " << #variable << " of type "		\
+			<< el_type << " in " << id);			\
+    AKANTU_DEBUG_OUT();							\
+    return *variable[el_type];						\
+  }
+
 
 
 /* -------------------------------------------------------------------------- */

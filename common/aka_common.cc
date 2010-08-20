@@ -14,7 +14,9 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_static_memory.hh"
-
+#ifdef AKANTU_USE_MPI
+#  include "static_communicator.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -29,7 +31,13 @@ void initialize() {
 /* -------------------------------------------------------------------------- */
 void finalize() {
   AKANTU_DEBUG_IN();
-  delete StaticMemory::getStaticMemory();
+
+  if(StaticMemory::isInstantiated()) delete StaticMemory::getStaticMemory();
+
+#ifdef AKANTU_USE_MPI
+  if(StaticCommunicator::isInstantiated()) delete StaticCommunicator::getStaticMemory();
+#endif
+
   AKANTU_DEBUG_OUT();
 }
 

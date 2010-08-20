@@ -12,24 +12,85 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Real> & Mesh::getNodes() const {
-  return *nodes;
+inline UInt Mesh::elementToLinearized(const Element & elem) {
+  AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
+		      elem.element < types_offsets.values[elem.type+1],
+		      "The element " << elem
+		      << "does not exists in the mesh " << id);
+
+  return types_offsets.values[elem.type] + elem.element;
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbNodes() const {
-  return nodes->getSize();
+inline Element Mesh::linearizedToElement (UInt linearized_element) {
+  UInt t;
+  for (t = _not_defined + 1;
+       linearized_element > types_offsets.values[t] && t <= _max_element_type; ++t);
+
+  AKANTU_DEBUG_ASSERT(t < _max_element_type,
+		      "The linearized element " << linearized_element
+		      << "does not exists in the mesh " << id);
+
+  return Element((ElementType) t, linearized_element-types_offsets.values[t]);
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> & Mesh::getConnectivity(ElementType type) const {
-  AKANTU_DEBUG_IN();
+inline void Mesh::updateTypesOffsets() {
+  UInt count = 0;
+  for (UInt t = _not_defined;  t <= _max_element_type; ++t) {
+    types_offsets.values[t] = count;
+    count += (t == _max_element_type || connectivities[t] == NULL) ?
+      0 : connectivities[t]->getSize();
+  }
+}
 
-  AKANTU_DEBUG_ASSERT(connectivities[type] != NULL,
-		      "The mesh " << id << " as no element of kind : "<< type);
+#ifdef AKANTU_USE_MPI
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::ghostElementToLinearized(const Element & elem) {
+  AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
+		      elem.element < ghost_types_offsets.values[elem.type+1],
+		      "The ghost element " << elem
+		      << "does not exists in the mesh " << id);
 
-  AKANTU_DEBUG_OUT();
-  return *connectivities[type];
+  return ghost_types_offsets.values[elem.types] + elem.element;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Element Mesh::ghostLinearizedToElement (UInt linearized_element) {
+  UInt t;
+  for (t = _not_defined + 1;
+       linearized_element > ghost_types_offsets.values[t] && t <= _max_element_type; ++t);
+
+  AKANTU_DEBUG_ASSERT(t < _max_element_type,
+		      "The ghost linearized element " << linearized_element
+		      << "does not exists in the mesh " << id);
+
+  t--;
+  return Element((ElementType) t, linearized_element - ghost_types_offsets[t]);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Mesh::updateGhostTypesOffsets() {
+  UInt count = 0;
+  for (ElementType t = _not_defined;  t <= _max_element_type; ++t) {
+    ghost_types_offsets.values[t] = count;
+    count += (t == _max_element_type || ghost_connectivities[t] == NULL) ?
+      0 : ghost_connectivities[t]->getSize();
+  }
+}
+#endif //AKANTU_USE_MPI
+
+/* -------------------------------------------------------------------------- */
+inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(bool local) const {
+  #ifdef AKANTU_USE_MPI
+    if(local) {
+#endif //AKANTU_USE_MPI
+      return type_set;
+#ifdef AKANTU_USE_MPI
+    } else {
+      return ghost_type_set;
+    }
+#endif //AKANTU_USE_MPI
 }
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +113,7 @@ inline UInt Mesh::getNbElement(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbNodesPerElement(const ElementType & type) const {
+inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element;
@@ -79,7 +140,7 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbNodesPerElementP1(const ElementType & type) const {
+inline UInt Mesh::getNbNodesPerElementP1(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element_p1;
@@ -106,7 +167,7 @@ inline UInt Mesh::getNbNodesPerElementP1(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getSpatialDimension(const ElementType & type) const {
+inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension;
@@ -133,7 +194,7 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const ElementType Mesh::getSurfaceElementType(const ElementType & type) const {
+inline const ElementType Mesh::getSurfaceElementType(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   ElementType surface_type;

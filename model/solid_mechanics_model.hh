@@ -80,6 +80,10 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+private:
+  /// assemble the lumped mass matrix for local and ghost elements
+  void assembleMass(bool local);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
@@ -99,9 +103,7 @@ public:
   AKANTU_GET_MACRO(Residual, *residual, Vector<Real> &);
   AKANTU_GET_MACRO(Boundary, *boundary, Vector<bool> &);
 
-  inline Vector<Real> & getStress(ElementType type);
-  inline Vector<Real> & getStrain(ElementType type);
-  inline Vector<UInt> & getElementMaterial(ElementType type);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, Vector<UInt> &);
 
   inline Material & getMaterial(UInt mat_index);
 
@@ -146,14 +148,8 @@ private:
   /// boundaries array
   Vector<bool> * boundary;
 
-  /// stresses arrays ordered by element types
-  ByConnectivityTypeReal stress;
-
-  /// strains arrays ordered by element types
-  ByConnectivityTypeReal strain;
-
   /// materials of all element
-  ByConnectivityTypeUInt element_material;
+  ByElementTypeUInt element_material;
 
   /// list of used materials
   std::vector<Material *> materials;
@@ -161,6 +157,8 @@ private:
   /// integration scheme of second order used
   IntegrationScheme2ndOrder * integrator;
 
+  /// Are the vectors initialized ?
+  bool vector_initalized;
 };
 
 

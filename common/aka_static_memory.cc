@@ -21,12 +21,38 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-StaticMemory* StaticMemory::single_static_memory = NULL;
+bool StaticMemory::is_instantiated = false;
+StaticMemory * StaticMemory::single_static_memory = NULL;
 
 /* -------------------------------------------------------------------------- */
-// StaticMemory::~StaticMemory() {
+StaticMemory * StaticMemory::getStaticMemory() {
+  if(!single_static_memory) {
+    single_static_memory = new StaticMemory();
+    is_instantiated = true;
+  }
+  return single_static_memory;
+}
 
-//}
+
+/* -------------------------------------------------------------------------- */
+void StaticMemory::sfree(const MemoryID & memory_id,
+			 const VectorID & name) {
+  AKANTU_DEBUG_IN();
+
+  VectorMap & vectors = const_cast<VectorMap &>(getMemory(memory_id));
+
+  VectorMap::iterator vector_it;
+  vector_it = vectors.find(name);
+  if(vector_it == vectors.end()) {
+    AKANTU_DEBUG_ERROR("StaticMemory as no array named " << name
+		      << " for the Memory " << memory_id);
+  }
+
+  delete vector_it->second;
+  vectors.erase(vector_it);
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 void StaticMemory::printself(std::ostream & stream, int indent) const{
@@ -69,35 +95,6 @@ void StaticMemory::printself(std::ostream & stream, int indent) const{
   stream << space << "]" << std::endl;
 
   stream.precision(prec);
-}
-
-/* -------------------------------------------------------------------------- */
-StaticMemory * StaticMemory::getStaticMemory() {
-  if(!single_static_memory) {
-    single_static_memory = new StaticMemory();
-  }
-  return single_static_memory;
-}
-
-
-/* -------------------------------------------------------------------------- */
-void StaticMemory::sfree(const MemoryID & memory_id,
-			 const VectorID & name) {
-  AKANTU_DEBUG_IN();
-
-  VectorMap & vectors = const_cast<VectorMap &>(getMemory(memory_id));
-
-  VectorMap::iterator vector_it;
-  vector_it = vectors.find(name);
-  if(vector_it == vectors.end()) {
-    AKANTU_DEBUG_ERROR("StaticMemory as no array named " << name
-		      << " for the Memory " << memory_id);
-  }
-
-  delete vector_it->second;
-  vectors.erase(vector_it);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

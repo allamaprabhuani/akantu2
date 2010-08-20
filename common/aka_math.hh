@@ -38,9 +38,9 @@ public:
   /* Matrix Algebra */
   /// y = A*x
   static void matrix_vector(UInt m, UInt n,
-			   const Vector<Real> & A,
-			   const Vector<Real> & x,
-			   Vector<Real> & y);
+			    const Vector<Real> & A,
+			    const Vector<Real> & x,
+			    Vector<Real> & y);
 
   static inline void matrix_vector(UInt m, UInt n,
 				   const Real * A,

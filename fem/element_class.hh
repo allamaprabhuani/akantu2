@@ -65,8 +65,8 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(SurfaceElementType, surface_type, const ElementType &);
 
   static inline UInt getShapeSize();
-  static inline UInt getShapeDerivatiesSize();
-  static inline UInt getJacobiansSize();
+  static inline UInt getShapeDerivativesSize();
+  static inline UInt getJacobianSize();
 
   /// compute the in-radius
   static inline Real getInradius(const Real * coord);

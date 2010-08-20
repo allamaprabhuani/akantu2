@@ -26,41 +26,14 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-SolidMechanicsModel::SolidMechanicsModel(UInt spatial_dimension,
-					 const ModelID & id,
-					 const MemoryID & memory_id) :
-  Model(spatial_dimension, id, memory_id),
-  time_step(NAN), f_m2a(1.0),
-  integrator(new CentralDifference()) {
-  AKANTU_DEBUG_IN();
-
-  this->displacement = NULL;
-  this->mass         = NULL;
-  this->velocity     = NULL;
-  this->acceleration = NULL;
-  this->force        = NULL;
-  this->residual     = NULL;
-  this->boundary     = NULL;
-
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->stress          [t] = NULL;
-    this->strain          [t] = NULL;
-    this->element_material[t] = NULL;
-  }
-
-  materials.clear();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt spatial_dimension,
 					 const ModelID & id,
 					 const MemoryID & memory_id) :
   Model(mesh, spatial_dimension, id, memory_id),
   time_step(NAN), f_m2a(1.0),
-  integrator(new CentralDifference()) {
+  integrator(new CentralDifference()),
+  vector_initalized(false) {
   AKANTU_DEBUG_IN();
 
   this->displacement = NULL;
@@ -73,9 +46,10 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->stress          [t] = NULL;
-    this->strain          [t] = NULL;
     this->element_material[t] = NULL;
+#ifdef AKANTU_USE_MPI
+    this->ghost_element_material[t] = NULL;
+#endif
   }
 
   materials.clear();
@@ -87,48 +61,23 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 SolidMechanicsModel::~SolidMechanicsModel() {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG(dblAccessory, "Deleting displacements vector of type");
-  dealloc(displacement->getID());
-  displacement = NULL;
+  if(vector_initalized) {
+    dealloc(displacement->getID());
+    dealloc(mass->getID());
+    dealloc(velocity->getID());
+    dealloc(acceleration->getID());
+    dealloc(force->getID());
+    dealloc(residual->getID());
+    dealloc(boundary->getID());
 
-  AKANTU_DEBUG(dblAccessory, "Deleting mass vector of type");
-  dealloc(mass->getID());
-  mass = NULL;
-
-  AKANTU_DEBUG(dblAccessory, "Deleting velocity vector of type");
-  dealloc(velocity->getID());
-  velocity = NULL;
-
-  AKANTU_DEBUG(dblAccessory, "Deleting acceleration vector of type");
-  dealloc(acceleration->getID());
-  acceleration = NULL;
-
-  AKANTU_DEBUG(dblAccessory, "Deleting force vector of type");
-  dealloc(force->getID());
-  force = NULL;
-
-  AKANTU_DEBUG(dblAccessory, "Deleting residual vector of type");
-  dealloc(residual->getID());
-  residual = NULL;
-
-  AKANTU_DEBUG(dblAccessory, "Deleting boundary vector of type");
-  dealloc(boundary->getID());
-  boundary = NULL;
-
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    AKANTU_DEBUG(dblAccessory, "Deleting stress derivatives vector of type " << *it);
-    dealloc(stress[*it]->getID());
-    stress[*it] = NULL;
-
-    AKANTU_DEBUG(dblAccessory, "Deleting strain vector of type " << *it);
-    dealloc(strain[*it]->getID());
-    strain[*it] = NULL;
-
-    AKANTU_DEBUG(dblAccessory, "Deleting element_material vector of type " << *it);
-    dealloc(element_material[*it]->getID());
-    element_material[*it] = NULL;
+    const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      dealloc(element_material[*it]->getID());
+#ifdef AKANTU_USE_MPI
+      dealloc(ghost_element_material[*it]->getID());
+#endif
+    }
   }
 
   std::vector<Material *>::iterator mat_it;
@@ -165,25 +114,18 @@ void SolidMechanicsModel::initVectors() {
   acceleration = &(alloc<Real>(sstr_acce.str(), nb_nodes, spatial_dimension, init_val));
   force        = &(alloc<Real>(sstr_forc.str(), nb_nodes, spatial_dimension, init_val));
   residual     = &(alloc<Real>(sstr_resi.str(), nb_nodes, spatial_dimension, init_val));
-  boundary     = &(alloc<bool> (sstr_boun.str(), nb_nodes, spatial_dimension, false));
+  boundary     = &(alloc<bool>(sstr_boun.str(), nb_nodes, spatial_dimension, false));
 
   const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    UInt nb_quadrature_points = fem->getNbQuadraturePoints(*it);
     UInt nb_element           = fem->getMesh().getNbElement(*it);
 
-    std::stringstream sstr_stre; sstr_stre << id << ":stress:" << *it;
-    std::stringstream sstr_stra; sstr_stra << id << ":strain:" << *it;
     std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
-    stress          [*it] = &(alloc<Real>(sstr_stre.str(), nb_element,
-					  nb_quadrature_points * spatial_dimension * spatial_dimension,
-					  init_val));
-    strain          [*it] = &(alloc<Real>(sstr_stra.str(), nb_element,
-					  nb_quadrature_points * spatial_dimension * spatial_dimension,
-					  init_val));
     element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
   }
+
+  vector_initalized = true;
 
   AKANTU_DEBUG_OUT();
 }
@@ -217,13 +159,15 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     to_lower(keyword);
     if(keyword == "material") {
       std::string type; sstr >> type;
+      to_lower(type);
       std::string obracket; sstr >> obracket;
       if(obracket != "[")
 	AKANTU_DEBUG_ERROR("Malformed material file : missing [ at line " << current_line);
 
       std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count++ << ":" << type;
       Material * material;
-      if(type == "elastic") material = new MaterialElastic(*this, sstr.str());
+      MaterialID mat_id = sstr_mat.str();
+      if(type == "elastic") material = new MaterialElastic(*this, mat_id);
       else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
 			      << type << " at line " << current_line);
 
@@ -238,12 +182,12 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 	if(pos == std::string::npos)
 	  AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
 			     << current_line);
-	
+
 	keyword = line.substr(0, pos);  trim(keyword);
 	value   = line.substr(pos + 1); trim(value);
 
 	try {
-	  material->setParam(keyword, value);
+	  material->setParam(keyword, value, mat_id);
 	} catch (Exception ex) {
 	  AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
 			     << ex.info() << "\" at line " << current_line);
@@ -275,60 +219,111 @@ void SolidMechanicsModel::initMaterials() {
   const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     UInt nb_element = fem->getMesh().getNbElement(*it);
     UInt * elem_mat_val = element_material[*it]->values;
 
     for (UInt el = 0; el < nb_element; ++el) {
-      mat_val[elem_mat_val[el]]->element_filter[*it]->push_back(el);
+      mat_val[elem_mat_val[el]]->addElement(*it, el);
     }
   }
+
+#ifdef AKANTU_USE_MPI
+  /// fill the element filters of the materials using the element_material arrays
+  const Mesh::ConnectivityTypeList & ghost_type_list = fem->getMesh().getConnectivityTypeList(false);
+  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+
+    UInt nb_element = fem->getMesh().getNbGhostElement(*it);
+    UInt * elem_mat_val = ghost_element_material[*it]->values;
+
+    for (UInt el = 0; el < nb_element; ++el) {
+      mat_val[elem_mat_val[el]]->addGhostElement(*it, el);
+    }
+  }
+#endif
 }
 
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initModel() {
   fem->initShapeFunctions();
+#ifdef AKANTU_USE_MPI
+  fem->initShapeFunctions(false);
+#endif
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleMass() {
   AKANTU_DEBUG_IN();
 
-  Material ** mat_val = &(materials.at(0));
-
   UInt nb_nodes = fem->getMesh().getNbNodes();
   memset(mass->values, 0, nb_nodes*sizeof(Real));
+
+  assembleMass(true);
+#ifdef AKANTU_USE_MPI
+  assembleMass(false);
+#endif
+
+#ifdef AKANTU_USE_MPI
+  /// @todo synchronize mass for the nodes of ghost elements
+#endif
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::assembleMass(bool local) {
+  AKANTU_DEBUG_IN();
+
+  Material ** mat_val = &(materials.at(0));
 
   const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_nodes_per_element = fem->getMesh().getNbNodesPerElement(*it);
-    UInt nb_element           = fem->getMesh().getNbElement(*it);
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+    UInt shape_size           = FEM::getShapeSize(*it);
 
-    const Vector<Real> & shapes = fem->getShapes(*it);
-    Vector<Real> * rho_phi_i = new Vector<Real>(nb_element, nb_nodes_per_element, "rho_x_shapes");
+    UInt nb_element;
+    const Vector<Real> * shapes;
+    UInt * elem_mat_val;
+#ifdef AKANTU_USE_MPI
+    if(local) {
+#endif
+      nb_element   = fem->getMesh().getNbElement(*it);
+      shapes       = &(fem->getShapes(*it));
+      elem_mat_val = element_material[*it]->values;
+#ifdef AKANTU_USE_MPI
+    } else {
+      nb_element   = fem->getMesh().getNbGhostElement(*it);
+      shapes       = &(fem->getGhostShapes(*it));
+      elem_mat_val = ghost_element_material[*it]->values;
+    }
+#endif
 
-    UInt * elem_mat_val = element_material[*it]->values;
+    Vector<Real> * rho_phi_i = new Vector<Real>(nb_element, shape_size, "rho_x_shapes");
+
     Real * rho_phi_i_val = rho_phi_i->values;
-    Real * shapes_val = shapes.values;
+    Real * shapes_val = shapes->values;
 
     /// compute rho * \phi_i for each nodes of each element
     for (UInt el = 0; el < nb_element; ++el) {
       Real rho = mat_val[elem_mat_val[el]]->getRho();
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      for (UInt n = 0; n < shape_size; ++n) {
 	*rho_phi_i_val++ = rho * *shapes_val++;
       }
     }
 
-    Vector<Real> * int_rho_phi_i = new Vector<Real>(nb_element, nb_nodes_per_element, "inte_rho_x_shapes");
-    fem->integrate(*rho_phi_i, *int_rho_phi_i, nb_nodes_per_element, *it);
+    Vector<Real> * int_rho_phi_i = new Vector<Real>(nb_element, shape_size / nb_quadrature_points,
+						    "inte_rho_x_shapes");
+    fem->integrate(*rho_phi_i, *int_rho_phi_i, nb_nodes_per_element, *it, local);
     delete rho_phi_i;
 
-    fem->assembleVector(*int_rho_phi_i, *mass, 1, *it);
+    fem->assembleVector(*int_rho_phi_i, *mass, 1, *it, local);
     delete int_rho_phi_i;
   }
 
@@ -338,6 +333,10 @@ void SolidMechanicsModel::assembleMass() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidual() {
   AKANTU_DEBUG_IN();
+
+#ifdef AKANTU_USE_MPI
+  /// @todo start communications
+#endif
 
   UInt nb_nodes = fem->getMesh().getNbNodes();
 
@@ -355,54 +354,23 @@ void SolidMechanicsModel::updateResidual() {
   /// copy the forces in residual for boundary conditions
   memcpy(residual->values, force->values, nb_nodes*spatial_dimension*sizeof(Real));
 
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
-
-    UInt nb_nodes_per_element = fem->getMesh().getNbNodesPerElement(*it);
-    UInt nb_element           = fem->getMesh().getNbElement(*it);
-    UInt nb_quadrature_points = fem->getNbQuadraturePoints(*it);
-
-    fem->gradientOnQuadraturePoints(*current_position, *strain[*it], spatial_dimension, *it);
-
-    /// compute the constitutive law for each materials
-    std::vector<Material *>::iterator mat_it;
-    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-      (*mat_it)->constitutiveLaw(*it);
-    }
-
-    Vector<Real> * sigma_dphi_dx =
-      new Vector<Real>(nb_element, nb_nodes_per_element * spatial_dimension * nb_quadrature_points);
-
-    const Vector<Real> & shapes_derivatives = fem->getShapesDerivatives(*it);
-
-    Real * shapesd_val       = shapes_derivatives.values;
-    Real * stress_val        = stress[*it]->values;
-    Real * sigma_dphi_dx_val = sigma_dphi_dx->values;
-
-    UInt offset_shapesd_val       = spatial_dimension * nb_nodes_per_element;
-    UInt offset_stress_val        = spatial_dimension * spatial_dimension;
-    UInt offset_sigma_dphi_dx_val = spatial_dimension * nb_nodes_per_element;
-
-    /// compute \sigma * \partial \phi / \partial X
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quadrature_points; ++q) {
-	Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			     shapesd_val, stress_val, sigma_dphi_dx_val);
-	shapesd_val       += offset_shapesd_val;
-	stress_val        += offset_stress_val;
-	sigma_dphi_dx_val += offset_sigma_dphi_dx_val;
-      }
-    }
-
-    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element, nb_nodes_per_element*spatial_dimension);
-    fem->integrate(*sigma_dphi_dx, *int_sigma_dphi_dx, nb_nodes_per_element*spatial_dimension, *it);
-    delete sigma_dphi_dx;
-
-    fem->assembleVector(*int_sigma_dphi_dx, *residual, residual->getNbComponent(), *it, NULL, -1);
-    delete int_sigma_dphi_dx;
+  /// call update residual on each local elements
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->updateResidual(*current_position);
   }
+
+
+#ifdef AKANTU_USE_MPI
+  /// @todo finalize communications
+
+  /// call update residual on each ghost elements
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->updateResidual(*current_position);
+  }
+#endif
+
   delete current_position;
 
   AKANTU_DEBUG_OUT();
@@ -606,8 +574,8 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
-    stress          [*it]->printself(stream, indent + 3);
-    strain          [*it]->printself(stream, indent + 3);
+    // stress          [*it]->printself(stream, indent + 3);
+    // strain          [*it]->printself(stream, indent + 3);
     element_material[*it]->printself(stream, indent + 3);
     stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
   }

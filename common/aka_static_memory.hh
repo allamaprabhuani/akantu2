@@ -57,7 +57,7 @@ public:
   /// Get the global instance of the StaticMemory
   static StaticMemory * getStaticMemory();
 
-public:
+  static bool isInstantiated() { return is_instantiated; };
 
   /// access to an Vector
   inline const VectorBase & getVector(const MemoryID & memory_id,
@@ -108,6 +108,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+
+  /// is the static memory instantiated
+  static bool is_instantiated;
 
   /// unique instance of the StaticMemory
   static StaticMemory * single_static_memory;

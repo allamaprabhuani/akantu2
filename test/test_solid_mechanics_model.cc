@@ -82,8 +82,8 @@ int main(int argc, char *argv[])
   dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model->getResidual().values, 2, "force");
-  dumper.AddElemDataField(model->getStrain(akantu::_triangle_1).values, 4, "strain");
-  dumper.AddElemDataField(model->getStress(akantu::_triangle_1).values, 4, "stress");
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_triangle_1).values, 4, "strain");
+  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_triangle_1).values, 4, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();

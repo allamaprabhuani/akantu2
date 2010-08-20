@@ -43,19 +43,31 @@ void MaterialElastic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::constitutiveLaw(ElementType el_type) {
+void MaterialElastic::constitutiveLaw(ElementType el_type, bool local) {
   AKANTU_DEBUG_IN();
-  UInt nb_element           = element_filter[el_type]->getSize();
-  UInt spatial_dimension    = model->getSpatialDimension();
-  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type);
-  UInt size_strain        = spatial_dimension * spatial_dimension;
 
-  UInt * element_filter_val = element_filter[el_type]->values;
+  UInt spatial_dimension    = model.getSpatialDimension();
+  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);
+  UInt size_strain          = spatial_dimension * spatial_dimension;
 
-  Real * strain  = model->getStrain(el_type).values;
-  Real * stress  = model->getStress(el_type).values;
+  UInt nb_element;
   Real * strain_val;
   Real * stress_val;
+
+#ifdef AKANTU_USE_MPI
+  if(local) {
+#endif //AKANTU_USE_MPI
+    nb_element   = element_filter[el_type]->getSize();
+    strain_val = strain[el_type]->values;
+    stress_val = stress[el_type]->values;
+#ifdef AKANTU_USE_MPI
+  } else {
+    nb_element = element_filter[el_type]->getSize();
+    strain_val = strain[el_type]->values;
+    stress_val = stress[el_type]->values;
+    potential_energy_flag = false;
+  }
+#endif //AKANTU_USE_MPI
 
   Real * epot = NULL;
   if (potential_energy_flag) epot = potential_energy[el_type]->values;
@@ -65,9 +77,6 @@ void MaterialElastic::constitutiveLaw(ElementType el_type) {
 
   /// for each element
   for (UInt el = 0; el < nb_element; ++el) {
-    strain_val = strain + element_filter_val[el] * size_strain * nb_quadrature_points;
-    stress_val = stress + element_filter_val[el] * size_strain * nb_quadrature_points;
-
     /// for each quadrature points
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       memset(F, 0, 3 * 3 * sizeof(Real));
@@ -92,12 +101,13 @@ void MaterialElastic::constitutiveLaw(ElementType el_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::setParam(const std::string & key, const std::string & value) {
+void MaterialElastic::setParam(const std::string & key, const std::string & value,
+			       const MaterialID & id) {
   std::stringstream sstr(value);
   if(key == "rho") { sstr >> rho; }
   else if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
-  else { Material::setParam(key, value); }
+  else { Material::setParam(key, value, id); }
 }
 
 

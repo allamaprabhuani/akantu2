@@ -21,12 +21,18 @@
 #include "aka_memory.hh"
 #include "mesh.hh"
 #include "fem.hh"
-
+#ifdef AKANTU_USE_MPI
+#  include "communicator.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
+#ifdef AKANTU_USE_MPI
+class Model : public Memory, public Communicator {
+#else
 class Model : public Memory {
+#endif
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -64,7 +70,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   virtual void initModel() = 0;
 
   /// function to print the containt of the class
@@ -106,7 +111,6 @@ inline std::ostream & operator <<(std::ostream & stream, const Model & _this)
   _this.printself(stream);
   return stream;
 }
-
 
 __END_AKANTU__
 

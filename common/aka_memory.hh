@@ -65,6 +65,9 @@ public:
 
   AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
 
+  template<class T>
+  inline Vector<T> & getVector(const VectorID & name);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -73,6 +76,7 @@ private:
   /// the static memory instance
   StaticMemory * static_memory;
 
+protected:
   /// the id registred in the static memory
   MemoryID memory_id;
 

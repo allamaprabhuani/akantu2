@@ -30,6 +30,11 @@ template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
 
 /* -------------------------------------------------------------------------- */
 inline void Memory::dealloc(const VectorID & name) {
+  AKANTU_DEBUG(dblAccessory, "Deleting the vector " << name);
   static_memory->sfree(memory_id, name);
 }
 
+/* -------------------------------------------------------------------------- */
+template<class T> inline Vector<T> & Memory::getVector(const VectorID & name) {
+  return static_cast< Vector<T> & >(const_cast<VectorBase &>(static_memory->getVector(memory_id, name)));
+}

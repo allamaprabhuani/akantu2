@@ -12,32 +12,23 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Real> & SolidMechanicsModel::getStress(ElementType type) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(stress[type] != NULL,
-		      "The model " << id << " has no element of kind : "<< type);
+// inline Vector<Real> & SolidMechanicsModel::getStress(ElementType type) {
+//   AKANTU_DEBUG_IN();
+//   AKANTU_DEBUG_ASSERT(stress[type] != NULL,
+// 		      "The model " << id << " has no element of kind : "<< type);
 
-  AKANTU_DEBUG_OUT();
-  return *(stress[type]);
-}
+//   AKANTU_DEBUG_OUT();
+//   return *(stress[type]);
+// }
 
-/* -------------------------------------------------------------------------- */
-inline Vector<Real> & SolidMechanicsModel::getStrain(ElementType type) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(strain[type] != NULL,
-		      "The model " << id << " has no element of kind : "<< type);
-  AKANTU_DEBUG_OUT();
-  return *(strain[type]);
-}
-
-/* -------------------------------------------------------------------------- */
-inline Vector<UInt> & SolidMechanicsModel::getElementMaterial(ElementType type) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(element_material[type] != NULL,
-		      "The model " << id << " has no element of kind : "<< type);
-  AKANTU_DEBUG_OUT();
-  return *element_material[type];
-}
+// /* -------------------------------------------------------------------------- */
+// inline Vector<Real> & SolidMechanicsModel::getStrain(ElementType type) {
+//   AKANTU_DEBUG_IN();
+//   AKANTU_DEBUG_ASSERT(strain[type] != NULL,
+// 		      "The model " << id << " has no element of kind : "<< type);
+//   AKANTU_DEBUG_OUT();
+//   return *(strain[type]);
+// }
 
 /* -------------------------------------------------------------------------- */
 inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {

@@ -26,9 +26,9 @@
 
 __BEGIN_AKANTU__
 
-typedef Vector<Real> * ByConnectivityTypeReal[_max_element_type];
-typedef Vector<Int>  * ByConnectivityTypeInt[_max_element_type];
-typedef Vector<UInt> * ByConnectivityTypeUInt[_max_element_type];
+typedef Vector<Real> * ByElementTypeReal[_max_element_type];
+typedef Vector<Int>  * ByElementTypeInt[_max_element_type];
+typedef Vector<UInt> * ByElementTypeUInt[_max_element_type];
 
 class FEM : public Memory {
   /* ------------------------------------------------------------------------ */
@@ -50,17 +50,18 @@ public:
 public:
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
-  void initShapeFunctions();
+  void initShapeFunctions(bool local = true);
 
   /// compute the  volume of an element
-  Real volume(ElementType type, Int element);
+  Real volume(ElementType type, Int element) const;
 
   /// interpolate nodal values on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
-				     const Vector<UInt> * element = NULL);
+				     bool local = true,
+				     const Vector<UInt> * filter_elements = NULL) const;
 
 
   /// compute the gradient of u on the quadrature points
@@ -68,26 +69,30 @@ public:
 				  Vector<Real> &nablauq,
 				  UInt nb_degre_of_freedom,
 				  const ElementType & type,
-				  const Vector<UInt> * element = NULL);
+				  bool local = true,
+				  const Vector<UInt> * filter_elements = NULL) const;
 
   /// integrate f for all elements of type "type"
   void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
 		 UInt nb_degre_of_freedom,
 		 const ElementType & type,
-		 const Vector<UInt> * filter_elements = NULL);
+		 bool local = true,
+		 const Vector<UInt> * filter_elements = NULL) const;
 
   /// integrate f on the element "elem" of type "type"
   inline void integrate(const Vector<Real> & f,
 			Real *intf,
 			UInt nb_degre_of_freedom,
 			const ElementType & type,
-			const UInt elem);
+			const UInt elem,
+			bool local = true) const;
 
   /// integrate a scalar value on all elements of type "type"
   Real integrate(const Vector<Real> & f,
 		 const ElementType & type,
-		 const Vector<UInt> * filter_elements = NULL);
+		 bool local = true,
+		 const Vector<UInt> * filter_elements = NULL) const;
 
 
   /// assemble vectors
@@ -95,9 +100,9 @@ public:
 		      Vector<Real> & nodal_values,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
+		      bool local = true,
 		      const Vector<UInt> * filter_elements = NULL,
-		      Real scale_factor = 1,
-		      bool is_init_to_zero = true);
+		      Real scale_factor = 1) const;
 
   void assembleMatrix() {};
 
@@ -105,9 +110,13 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
+  /// initialise the class
+  void init();
+
+  /// integrate on one element
   inline void integrate(Real *f, Real *jac, Real * inte,
 			UInt nb_degre_of_freedom,
-			UInt nb_quadrature_points);
+			UInt nb_quadrature_points) const;
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -119,16 +128,35 @@ public:
   inline Mesh & getMesh() const;
 
   /// get the number of quadrature points of an element
-  inline UInt getNbQuadraturePoints(const ElementType & type) const;
+  static inline UInt getNbQuadraturePoints(const ElementType & type);
+
+  /// get the size of the shapes returned by the element class
+  static inline UInt getShapeSize(const ElementType & type);
+
+  /// get the size of the shapes derivatives returned by the element class
+  static inline UInt getShapeDerivativesSize(const ElementType & type);
+
+  /// get the size of the jacobian returned by the element class
+  static inline UInt getJacobianSize(const ElementType & type);
 
   /// get the in-radius of an element
-  inline Real getElementInradius(Real * coord, const ElementType & type) const;
+  static inline Real getElementInradius(Real * coord, const ElementType & type);
 
-  /// get a the shape vector
-  inline const Vector<Real> & getShapes(const ElementType & type) const;
+  /// get a the shapes vector
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Shapes, shapes, const Vector<Real> &);
 
-  /// get a the shape derivatives vector
-  inline const Vector<Real> & getShapesDerivatives(const ElementType & type) const;
+  /// get a the shapes derivatives vector
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
+
+#ifdef AKANTU_USE_MPI
+  /// get a the ghost shapes vector
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
+				   const Vector<Real> &);
+
+  /// get a the ghost shapes derivatives vector
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapesDerivatives, ghost_shapes_derivatives,
+				   const Vector<Real> &);
+#endif //AKANTU_USE_MPI
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -148,13 +176,24 @@ private:
   bool created_mesh;
 
   /// shape functions for all elements
-  ByConnectivityTypeReal shapes;
+  ByElementTypeReal shapes;
 
   /// shape derivatives for all elements
-  ByConnectivityTypeReal shapes_derivatives;
+  ByElementTypeReal shapes_derivatives;
 
   /// jacobians for all elements
-  ByConnectivityTypeReal jacobians;
+  ByElementTypeReal jacobians;
+
+#ifdef AKANTU_USE_MPI
+  /// shape functions for all elements
+  ByElementTypeReal ghost_shapes;
+
+  /// shape derivatives for all elements
+  ByElementTypeReal ghost_shapes_derivatives;
+
+  /// jacobians for all elements
+  ByElementTypeReal ghost_jacobians;
+#endif //AKANTU_USE_MPI
 
 };
 

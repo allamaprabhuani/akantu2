@@ -87,8 +87,8 @@ int main(int argc, char *argv[])
   dumper.AddNodeDataField(model->getVelocity().values, 3, "velocity");
   dumper.AddNodeDataField(model->getMass().values, 1, "mass");
   dumper.AddNodeDataField(model->getResidual().values, 3, "force");
-  dumper.AddElemDataField(model->getStrain(akantu::_tetrahedra_1).values, 9, "strain");
-  dumper.AddElemDataField(model->getStress(akantu::_tetrahedra_1).values, 9, "stress");
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_tetrahedra_1).values, 9, "strain");
+  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_tetrahedra_1).values, 9, "stress");
   dumper.SetPrefix("paraview/");
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER

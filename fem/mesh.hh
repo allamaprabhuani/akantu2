@@ -9,6 +9,7 @@
  *
  * <insert license here>
  *
+ * @todo struct element + function linerized index <-> element
  */
 
 /* -------------------------------------------------------------------------- */
@@ -24,6 +25,18 @@
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
+
+class Element {
+public:
+  Element(ElementType type = _not_defined, UInt element = 0) :
+    type(type), element(element) {};
+
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+public:
+  ElementType type;
+  UInt element;
+};
 
 /* -------------------------------------------------------------------------- */
 class Mesh : protected Memory {
@@ -48,7 +61,7 @@ public:
    * array, by getting the vector of coordinates
    */
   Mesh(UInt spatial_dimension,
-       const Vector<Real> & nodes,
+       Vector<Real> & nodes,
        const MeshID & id = "mesh",
        const MemoryID & memory_id = 0);
 
@@ -58,6 +71,11 @@ public:
   typedef std::set<ElementType> ConnectivityTypeList;
 
   typedef Vector<UInt> * ConnectivityMap[_max_element_type];
+
+private:
+  /// initialize the connectivity to NULL
+  void initConnectivities();
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -65,6 +83,33 @@ public:
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+  Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
+
+#ifdef AKANTU_USE_MPI
+  Vector<UInt> & createGhostConnectivity(ElementType type, UInt nb_element);
+#endif //AKANTU_USE_MPI
+
+  /// convert a element to a linearized element
+  inline UInt elementToLinearized(const Element & elem);
+
+  /// convert a linearized element to an element
+  inline Element linearizedToElement (UInt linearized_element);
+
+  /// update the types offsets array for the conversions
+  inline void updateTypesOffsets();
+
+#ifdef AKANTU_USE_MPI
+  /// convert a element to a linearized element
+  inline UInt ghostElementToLinearized(const Element & elem);
+
+  /// convert a linearized element to an element
+  inline Element ghostLinearizedToElement (UInt linearized_element);
+
+  /// update the types offsets array for the conversions
+  inline void updateGhostTypesOffsets();
+#endif //AKANTU_USE_MPI
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -74,37 +119,37 @@ public:
 
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
-  AKANTU_GET_MACRO(ConnectivityTypeList, type_set, const ConnectivityTypeList &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, Vector<UInt> &);
 
-  inline Vector<Real> & getNodes() const;
-
-  inline UInt getNbNodes() const;
-
-  Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
-
-  inline Vector<UInt> & getConnectivity(ElementType type) const;
+#ifdef AKANTU_USE_MPI
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, ghost_connectivities, Vector<UInt> &);
+#endif //AKANTU_USE_MPI
 
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type) const;
 
+  inline const ConnectivityTypeList & getConnectivityTypeList(bool local = true) const;
+
+  AKANTU_GET_MACRO(Nodes, *nodes, Vector<Real> &);
+  AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
+
   /// get the number of nodes per element for a given element type
-  inline UInt getNbNodesPerElement(const ElementType & type) const;
+  static inline UInt getNbNodesPerElement(const ElementType & type);
 
   /// get the number of nodes per element for a given element type considered as
   /// a first order element
-  inline UInt getNbNodesPerElementP1(const ElementType & type) const;
+  static inline UInt getNbNodesPerElementP1(const ElementType & type);
 
   /// get spatial dimension of a type of element
-  inline UInt getSpatialDimension(const ElementType & type) const;
+  static inline UInt getSpatialDimension(const ElementType & type);
 
   /// get the type of the surface element associated to a given element
-  inline const ElementType getSurfaceElementType(const ElementType & type) const;
+  static inline const ElementType getSurfaceElementType(const ElementType & type);
 
 private:
   friend class MeshIOMSH;
 
   inline Vector<UInt> * getConnectivityPointer(ElementType type) const;
-
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -128,12 +173,34 @@ private:
 
   /// the spatial dimension of this mesh
   UInt spatial_dimension;
+
+  /// types offsets
+  Vector<UInt> types_offsets;
+
+#ifdef AKANTU_USE_MPI
+  /// all class of elements present in this mesh (for heterogenous meshes)
+  ConnectivityMap ghost_connectivities;
+
+  /// list of all existing types in the mesh
+  ConnectivityTypeList ghost_type_set;
+
+  /// ghost types offsets
+  Vector<UInt> ghost_types_offsets;
+#endif //AKANTU_USE_MPI
 };
 
 
 /* -------------------------------------------------------------------------- */
 /* Inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+
+/// standard output stream operator
+inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
+
 
 #include "mesh_inline_impl.cc"
 

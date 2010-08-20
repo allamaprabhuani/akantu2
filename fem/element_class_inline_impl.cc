@@ -17,17 +17,17 @@ template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline UInt ElementClass<type>::getShapeDerivatiesSize() {
+template<ElementType type> inline UInt ElementClass<type>::getShapeDerivativesSize() {
   return nb_quadrature_points * nb_nodes_per_element * spatial_dimension;
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline UInt ElementClass<type>::getJacobiansSize() {
+template<ElementType type> inline UInt ElementClass<type>::getJacobianSize() {
   return nb_quadrature_points;
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> 
+template<ElementType type>
 void ElementClass<type>::shapeFunctions(__attribute__ ((unused)) const Real * coord,
 					__attribute__ ((unused)) Real * shape,
 					__attribute__ ((unused)) Real * dshape,
@@ -49,4 +49,3 @@ inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real 
 // #include "element_classes/element_class_triangle_2.cc"
 #include "element_classes/element_class_tetrahedra_1.cc"
 // #include "element_classes/element_class_tetrahedra_2.cc"
-
