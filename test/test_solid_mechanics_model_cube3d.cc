@@ -96,7 +96,6 @@ int main(int argc, char *argv[])
   model->setPotentialEnergyFlagOn();
   for(akantu::UInt s = 0; s < max_steps; ++s) {
     model->explicitPred();
-    dumper.Dump();
     model->updateResidual();
     model->updateAcceleration();
     model->explicitCorr();
