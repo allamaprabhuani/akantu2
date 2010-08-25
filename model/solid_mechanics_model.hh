@@ -77,6 +77,9 @@ public:
   /// explicit integration corrector
   void explicitCorr();
 
+  /// compute boundary forces from quadrature point force values
+  void computeForcesFromQuadraturePointForceValues();
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

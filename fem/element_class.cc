@@ -19,14 +19,14 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type> UInt ElementClass<type>::nb_nodes_per_element    = 0;
-template<ElementType type> UInt ElementClass<type>::nb_nodes_per_element_p1 = 0;
+template<ElementType type> ElementType ElementClass<type>::element_p1       = 0;
 template<ElementType type> UInt ElementClass<type>::nb_quadrature_points    = 0;
 template<ElementType type> UInt ElementClass<type>::spatial_dimension       = 0;
 template<ElementType type> ElementType ElementClass<type>::facet_type     = _not_defined;
 
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_line_1>::nb_nodes_per_element    = 2;
-template<> UInt ElementClass<_line_1>::nb_nodes_per_element_p1 = 2;
+template<> ElementType ElementClass<_line_1>::element_p1       = _line_1;
 template<> UInt ElementClass<_line_1>::nb_quadrature_points    = 1;
 template<> UInt ElementClass<_line_1>::spatial_dimension       = 1;
 template<> UInt ElementClass<_line_1>::nb_facets               = 2;
@@ -36,7 +36,7 @@ template<> UInt * ElementClass<_line_1>::facet_connectivity[]  = {&vec_facet_con
 								  &vec_facet_connectivity[1]};
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_line_2>::nb_nodes_per_element    = 3;
-template<> UInt ElementClass<_line_2>::nb_nodes_per_element_p1 = 2;
+template<> ElementType ElementClass<_line_2>::element_p1       = _line_1;
 template<> UInt ElementClass<_line_2>::nb_quadrature_points    = 2;
 template<> UInt ElementClass<_line_2>::spatial_dimension       = 1;
 template<> UInt ElementClass<_line_2>::nb_facets               = 2;
@@ -46,7 +46,7 @@ template<> UInt * ElementClass<_line_2>::facet_connectivity[]  = {&vec_facet_con
 								  &vec_facet_connectivity[1]};
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_triangle_1>::nb_nodes_per_element    = 3;
-template<> UInt ElementClass<_triangle_1>::nb_nodes_per_element_p1 = 3;
+template<> ElementType ElementClass<_triangle_1>::element_p1       = _triangle_1;
 template<> UInt ElementClass<_triangle_1>::nb_quadrature_points    = 1;
 template<> UInt ElementClass<_triangle_1>::spatial_dimension       = 2;
 template<> UInt ElementClass<_triangle_1>::nb_facets               = 3;
@@ -57,7 +57,7 @@ template<> UInt * ElementClass<_triangle_1>::facet_connectivity[]  = {&vec_facet
 								  &vec_facet_connectivity[4]};
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_triangle_2>::nb_nodes_per_element    = 6;
-template<> UInt ElementClass<_triangle_2>::nb_nodes_per_element_p1 = 3;
+template<> ElementType ElementClass<_triangle_2>::element_p1       = _triangle_1;
 template<> UInt ElementClass<_triangle_2>::nb_quadrature_points    = 2;
 template<> UInt ElementClass<_triangle_2>::spatial_dimension       = 2;
 template<> UInt ElementClass<_triangle_2>::nb_facets               = 3;
@@ -68,7 +68,7 @@ template<> UInt * ElementClass<_triangle_2>::facet_connectivity[]  = {&vec_facet
 								  &vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_tetrahedra_1>::nb_nodes_per_element    = 4;
-template<> UInt ElementClass<_tetrahedra_1>::nb_nodes_per_element_p1 = 4;
+template<> ElementType ElementClass<_tetrahedra_1>::element_p1       = _tetrahedra_1;
 template<> UInt ElementClass<_tetrahedra_1>::nb_quadrature_points    = 1;
 template<> UInt ElementClass<_tetrahedra_1>::spatial_dimension       = 3;
 template<> UInt ElementClass<_tetrahedra_1>::nb_facets               = 4;
@@ -80,7 +80,7 @@ template<> UInt * ElementClass<_tetrahedra_1>::facet_connectivity[]  = {&vec_fac
 								      &vec_facet_connectivity[9]};
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_tetrahedra_2>::nb_nodes_per_element    = 10;
-template<> UInt ElementClass<_tetrahedra_2>::nb_nodes_per_element_p1 = 4;
+template<> ElementType ElementClass<_tetrahedra_2>::element_p1       = _tetrahedra_1;
 template<> UInt ElementClass<_tetrahedra_2>::nb_quadrature_points    = 4;
 template<> UInt ElementClass<_tetrahedra_2>::spatial_dimension       = 3;
 template<> UInt ElementClass<_tetrahedra_2>::nb_facets               = 4;

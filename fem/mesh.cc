@@ -150,6 +150,13 @@ Vector<UInt> & Mesh::createConnectivity(ElementType type, UInt nb_element) {
   return *connectivities[type];
 }
 
+/* -------------------------------------------------------------------------- */
+Vector<Real> & Mesh::createNormals(ElementType type) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ERROR("TOBEIMPLEMENTED");
+  AKANTU_DEBUG_OUT();
+  return *normals[type];
+}
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_MPI

@@ -50,6 +50,12 @@ public:
 			     Real * shape_deriv,
 			     Real * jacobian);
 
+  /// rotate the coordinates so that they are in the dimension of the element
+  inline static void changeDimension(const Real * coord,UInt dim,
+				    Real * element_coords);
+
+
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
@@ -59,7 +65,7 @@ public:
 public:
 
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement, nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElementP1, nb_nodes_per_element_p1, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(ElementP1, element_p1, ElementType);
   static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, spatial_dimension, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(FacetElementType, facet_type, const ElementType &);
@@ -81,9 +87,6 @@ private:
   /// Number of nodes per element
   static UInt nb_nodes_per_element;
 
-  /// Number of nodes per element
-  static UInt nb_nodes_per_element_p1;
-
   /// Number of quadrature points per element
   static UInt nb_quadrature_points;
 
@@ -99,8 +102,11 @@ private:
   /// local connectivity of facets
   static UInt * facet_connectivity[];
   
-  /// vectorial connectivity of facets;
+  /// vectorial connectivity of facets
   static UInt vec_facet_connectivity[];
+
+  /// type of element P1 associated
+  static ElementType element_p1;
 };
 
 

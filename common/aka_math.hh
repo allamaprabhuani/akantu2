@@ -79,8 +79,26 @@ public:
   /// determinent of a 3x3 matrix
   static inline Real det3(const Real * mat);
 
+  /// determinent of a 2x2 matrix
+  static inline Real det2(const Real * mat);
+
   /// inverse a 3x3 matrix
   static inline void inv3(const Real * mat, Real * inv);
+
+  /// inverse a 2x2 matrix
+  static inline void inv2(const Real * mat, Real * inv);
+
+  /// vector cross product 
+  static inline void vectorProduct3(const Real * v1, const Real * v2, Real * res);
+
+  /// compute normal a normal to a vector 
+  static inline void normal2(const Real * v1, Real * res);
+
+  /// normalize a vector 
+  static inline void normalize2(Real * v);
+
+  /// normalize a vector 
+  static inline Real norm2(Real * v);
 
   /* Geometry */
   /// distance in 2D between x and y
@@ -98,6 +116,8 @@ public:
   /// volume of a tetrahedron
   static inline Real tetrahedron_volume(const Real * coord);
 
+  ///
+  
 };
 
 

@@ -36,8 +36,12 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// build map from nodes to elements
   void static buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+  /// build facets elements : boundary and/or internals
   void static buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
+  /// build normal to some elements
+  void static buildNormals(Mesh & mesh, UInt spatial_dimension=0);
   
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

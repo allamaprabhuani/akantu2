@@ -35,12 +35,15 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset
   UInt * conn_val[nb_types];
   UInt nb_element[nb_types];
   
+  ElementType typeP1;
+
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(mesh.getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
     nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
-    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElementP1(type);
+    typeP1 = mesh.getElementP1(type);
+    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(typeP1);
 
     conn_val[nb_good_types] = mesh.getConnectivity(type).values;
     nb_element[nb_good_types] = mesh.getConnectivity(type).getSize();
@@ -98,7 +101,8 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
 
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Vector<Real> nodes = mesh.getNodes();
+
   
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -107,10 +111,7 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   UInt nb_good_types = 0;
   
   UInt nb_nodes_per_element[nb_types];
-  UInt nb_nodes_per_element_p1[nb_types];
-
   UInt nb_nodes_per_facet[nb_types];
-  UInt nb_nodes_per_facet_p1[nb_types];
   
   UInt nb_facets[nb_types];
   UInt ** node_in_facet[nb_types];
@@ -123,21 +124,20 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   ElementType facet_type;
 
   Mesh * internal_facets_mesh = NULL;
+  UInt spatial_dimension = mesh.getSpatialDimension();
   if (internal_flag) internal_facets_mesh = mesh.getInternalFacetsMeshPointer();
   
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    if(mesh.getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
+    if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
 
     nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
-    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElementP1(type);
 
     facet_type = mesh.getFacetElementType(type);
     nb_facets[nb_good_types] = mesh.getNbFacetsPerElementType(type);
     node_in_facet[nb_good_types] = mesh.getFacetLocalConnectivityPerElementType(type);
  
     nb_nodes_per_facet[nb_good_types]    = mesh.getNbNodesPerElement(facet_type);
-    nb_nodes_per_facet_p1[nb_good_types] = mesh.getNbNodesPerElementP1(facet_type);
 
     if (boundary_flag){
       // getting connectivity of boundary facets
@@ -222,6 +222,50 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 
   AKANTU_DEBUG_OUT();  
 
+}
+
+
+void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  
+  UInt nb_types = type_list.size();
+  UInt nb_nodes_per_element[nb_types];
+  UInt nb_nodes_per_element_p1[nb_types];
+  UInt nb_good_types = 0;
+
+  Vector<UInt> * connectivity[nb_types];
+  Vector<Real> * normals[nb_types];
+
+  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+  
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    ElementType typeP1 = mesh.getElementP1(type);
+    if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
+    
+    nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
+    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(typeP1);
+
+    // getting connectivity 
+    connectivity[nb_good_types] = mesh.getConnectivityPointer(type);
+    if (!connectivity[nb_good_types])
+      AKANTU_DEBUG_ERROR("connectivity is not allocatted : this should probably not have happend");
+    
+    //getting array of normals
+    normals[nb_good_types] = mesh.getNormalsPointer(type);
+    if(normals[nb_good_types])
+      normals[nb_good_types]->resize(0);
+    else
+      normals[nb_good_types] = &mesh.createNormals(type);
+    
+
+    nb_good_types++;
+  }
+  
+  
 }
 
 __END_AKANTU__

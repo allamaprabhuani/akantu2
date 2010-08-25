@@ -177,12 +177,48 @@ inline Real Math::distance_3d(const Real * x, const Real * y) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline Real Math::det2(const Real * mat) {
+  return mat[0]*mat[3] - mat[1]*mat[2];
+}
+/* -------------------------------------------------------------------------- */
 inline Real Math::det3(const Real * mat) {
   return 
       mat[0]*(mat[4]*mat[8]-mat[7]*mat[5]) 
     - mat[3]*(mat[1]*mat[8]-mat[7]*mat[2]) 
     + mat[6]*(mat[1]*mat[5]-mat[4]*mat[2]);
 }
+/* -------------------------------------------------------------------------- */
+inline void Math::normal2(const Real * vec,Real * normal) {
+  if (vec[1]){
+    normal[0] = 1;
+    normal[2] = - vec[0]/vec[1];
+    Math::normalize2(normal);
+  }
+  else {
+    normal[0] = 0;
+    normal[1] = 1;
+  }
+}
+/* -------------------------------------------------------------------------- */
+inline void Math::normalize2(Real * vec) {
+  Real norm = Math::norm2(vec);
+  vec[0] /= norm;
+  vec[1] /= norm;
+}
+/* -------------------------------------------------------------------------- */
+inline Real Math::norm2(Real * vec) {
+  return sqrt(vec[0]*vec[0] + vec[1]*vec[1]);
+}
+/* -------------------------------------------------------------------------- */
+inline void Math::inv2(const Real * mat,Real * inv) {
+  Real det_mat = det2(mat);
+
+  inv[0] = mat[3]/det_mat;   
+  inv[1] = -mat[1]/det_mat;   
+  inv[2] = -mat[2]/det_mat;   
+  inv[3] = mat[0]/det_mat;   
+}
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 inline void Math::inv3(const Real * mat,Real * inv) {
@@ -199,7 +235,12 @@ inline void Math::inv3(const Real * mat,Real * inv) {
   inv[8] = (mat[0]*mat[4] - mat[3]*mat[1])/det_mat;
 }
 
-
+/* -------------------------------------------------------------------------- */
+inline void Math::vectorProduct3(const Real * v1, const Real * v2, Real * res) {
+  res[0] = v1[1]*v2[2] - v1[2]*v2[1];
+  res[1] = v1[2]*v2[0] - v1[0]*v2[2];
+  res[1] = v1[0]*v2[1] - v1[1]*v2[0];
+}
 /* -------------------------------------------------------------------------- */
 inline Real Math::tetrahedron_volume(const Real * coord) {
   Real xx[9],vol;

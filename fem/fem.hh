@@ -36,8 +36,6 @@ class FEM : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  FEM(UInt spatial_dimension, FEMID id = "fem", MemoryID memory_id = 0);
-
   FEM(Mesh & mesh, UInt spatial_dimension = 0,
       FEMID id = "fem", MemoryID memory_id = 0);
 
@@ -52,9 +50,6 @@ public:
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(bool local = true);
 
-  /// compute the  volume of an element
-  Real volume(ElementType type, Int element) const;
-
   /// interpolate nodal values on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
@@ -63,6 +58,10 @@ public:
 				     bool local = true,
 				     const Vector<UInt> * filter_elements = NULL) const;
 
+  /// interpolate nodal values on the quadrature points
+  void computeNormasOnQuadraturePoints(const ElementType & type,
+				       bool local = true,
+				       const Vector<UInt> * filter_elements = NULL) const;
 
   /// compute the gradient of u on the quadrature points
   void gradientOnQuadraturePoints(const Vector<Real> &u,
@@ -122,7 +121,7 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+  AKANTU_GET_MACRO(ElementDimension, element_dimension, UInt);
 
   /// get the mesh contained in the fem object
   inline Mesh & getMesh() const;
@@ -167,7 +166,7 @@ private:
   FEMID id;
 
   /// spatial dimension of the problem
-  UInt spatial_dimension;
+  UInt element_dimension;
 
   /// the mesh on which all computation are made
   Mesh * mesh;

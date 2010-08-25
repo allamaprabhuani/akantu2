@@ -22,24 +22,11 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-FEM::FEM(UInt spatial_dimension, FEMID id, MemoryID memory_id) :
-  Memory(memory_id), id(id), spatial_dimension(spatial_dimension), created_mesh(true) {
-  AKANTU_DEBUG_IN();
-  std::stringstream sstr;
-  sstr << id << ":mesh";
-
-  init();
-
-  this->mesh = new Mesh(spatial_dimension, sstr.str(), memory_id);
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-FEM::FEM(Mesh & mesh, UInt spatial_dimension, FEMID id, MemoryID memory_id) :
+FEM::FEM(Mesh & mesh, UInt element_dimension, FEMID id, MemoryID memory_id) :
   Memory(memory_id), id(id), created_mesh(false) {
   AKANTU_DEBUG_IN();
-  this->spatial_dimension = (spatial_dimension != 0) ?
-    spatial_dimension : mesh.getSpatialDimension();
+  this->element_dimension = (element_dimension != 0) ?
+    element_dimension : mesh.getSpatialDimension();
 
   init();
 
@@ -99,6 +86,7 @@ FEM::~FEM() {
 void FEM::initShapeFunctions(bool local) {
   AKANTU_DEBUG_IN();
   Real * coord = mesh->getNodes().values;
+  UInt spatial_dimension = mesh->getSpatialDimension();
 
   const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList(local);
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -115,7 +103,7 @@ void FEM::initShapeFunctions(bool local) {
     UInt size_of_shapesd   = FEM::getShapeDerivativesSize(type);
     UInt size_of_jacobians = FEM::getJacobianSize(type);
 
-    if(element_type_spatial_dimension != spatial_dimension) continue;
+    if(element_type_spatial_dimension != element_dimension) continue;
 
     UInt * elem_val;
     UInt nb_element;
@@ -155,25 +143,57 @@ void FEM::initShapeFunctions(bool local) {
     Real * shapesd_val   = shapes_derivatives_tmp->values;
     Real * jacobians_val = jacobians_tmp->values;
 
+    /* -------------------------------------------------------------------------- */
+    /* compute shapes when no rotation is required */
+
 #define COMPUTE_SHAPES(type)						\
     do {								\
-      Real local_coord[spatial_dimension * nb_nodes_per_element];	\
-      for (UInt elem = 0; elem < nb_element; ++elem) {			\
-	int offset = elem * nb_nodes_per_element;			\
-	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
-	  memcpy(local_coord + id * spatial_dimension,			\
-		 coord + elem_val[offset + id] * spatial_dimension,	\
-		 spatial_dimension*sizeof(Real));			\
+      if (need_rotation) {						\
+	Real local_coord[spatial_dimension * nb_nodes_per_element];	\
+	Real element_coord[element_dimension * nb_nodes_per_element];	\
+	for (UInt elem = 0; elem < nb_element; ++elem) {		\
+	  int offset = elem * nb_nodes_per_element;			\
+	  for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
+	    memcpy(local_coord + id * spatial_dimension,		\
+		   coord + elem_val[offset + id] * spatial_dimension,	\
+		   spatial_dimension*sizeof(Real));			\
+	  }                                                             \
+	  ElementClass<type>::changeDimension(local_coord,              \
+					      spatial_dimension,	\
+					      element_coord);		\
+	  								\
+	  ElementClass<type>::shapeFunctions(element_coord,		\
+					     shapes_val,		\
+					     shapesd_val,		\
+					     jacobians_val);		\
+	  shapes_val += size_of_shapes;					\
+	  shapesd_val += size_of_shapesd;				\
+	  jacobians_val += size_of_jacobians;				\
+	}                                                               \
+      }                                                                 \
+      else {                                                            \
+	Real local_coord[element_dimension * nb_nodes_per_element];	\
+	for (UInt elem = 0; elem < nb_element; ++elem) {		\
+	  int offset = elem * nb_nodes_per_element;			\
+	  for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
+	    memcpy(local_coord + id * element_dimension,		\
+		   coord + elem_val[offset + id] * element_dimension,	\
+		   element_dimension*sizeof(Real));			\
+	  }								\
+	  ElementClass<type>::shapeFunctions(local_coord,		\
+					     shapes_val,		\
+					     shapesd_val,		\
+					     jacobians_val);		\
+	  shapes_val += size_of_shapes;					\
+	  shapesd_val += size_of_shapesd;				\
+	  jacobians_val += size_of_jacobians;				\
 	}								\
-	ElementClass<type>::shapeFunctions(local_coord,			\
-					   shapes_val,			\
-					   shapesd_val,			\
-					   jacobians_val);		\
-	shapes_val += size_of_shapes;					\
-	shapesd_val += size_of_shapesd;					\
-	jacobians_val += size_of_jacobians;				\
-      }									\
-    } while(0)
+      }						                        \
+  } while(0)
+
+/* -------------------------------------------------------------------------- */
+
+    bool need_rotation = mesh->getSpatialDimension() != element_dimension;
 
     switch(type) {
     case _line_1       : { COMPUTE_SHAPES(_line_1      ); break; }
@@ -347,7 +367,7 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points * spatial_dimension,
+  AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points * element_dimension,
 		      "The vector out_nablauq(" << out_nablauq.getID()
 		      << ") has not the good number of component.");
 
@@ -357,8 +377,8 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
   Real * u_val       = in_u.values;
   Real * nablauq_val = out_nablauq.values;
 
-  UInt offset_nablauq = nb_degre_of_freedom * spatial_dimension;
-  UInt offset_shaped  = nb_nodes_per_element * spatial_dimension;
+  UInt offset_nablauq = nb_degre_of_freedom * element_dimension;
+  UInt offset_shaped  = nb_nodes_per_element * element_dimension;
 
   Real * shaped  = shaped_val;
   Real * u       = static_cast<Real *>(calloc(nb_nodes_per_element * nb_degre_of_freedom,
@@ -379,7 +399,7 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
 
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       /// \nabla(U) = U^t * dphi/dx
-      Math::matrixt_matrix(nb_degre_of_freedom, spatial_dimension, nb_nodes_per_element,
+      Math::matrixt_matrix(nb_degre_of_freedom, element_dimension, nb_nodes_per_element,
 			   u,
 			   shaped,
 			   nablauq_val);
@@ -607,7 +627,7 @@ void FEM::printself(std::ostream & stream, int indent) const {
 
   stream << space << "FEM [" << std::endl;
   stream << space << " + id                : " << id << std::endl;
-  stream << space << " + spatial dimension : " << spatial_dimension << std::endl;
+  stream << space << " + element dimension : " << element_dimension << std::endl;
 
   stream << space << " + mesh [" << std::endl;
   mesh->printself(stream, indent + 2);
@@ -617,7 +637,7 @@ void FEM::printself(std::ostream & stream, int indent) const {
   const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (mesh->getSpatialDimension(*it) != spatial_dimension) continue;
+    if (mesh->getSpatialDimension(*it) != element_dimension) continue;
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
     shapes            [*it]->printself(stream, indent + 3);
     shapes_derivatives[*it]->printself(stream, indent + 3);

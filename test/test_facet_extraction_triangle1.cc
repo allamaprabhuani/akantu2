@@ -26,18 +26,17 @@
 #  include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
 
+using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::UInt max_steps = 10000;
-  akantu::Real epot, ekin;
   int dim = 2;
 
-  akantu::Mesh mesh(dim);
-  akantu::MeshIOMSH mesh_io;
+  Mesh mesh(dim);
+  MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
   
-  akantu::MeshUtils::buildFacets(mesh,1,1);
+  MeshUtils::buildFacets(mesh,1,1);
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
@@ -45,8 +44,8 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(akantu::_triangle_1).values,
-   			 TRIANGLE1, mesh.getNbElement(akantu::_triangle_1), C_MODE);
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_1).values,
+   			 TRIANGLE1, mesh.getNbElement(_triangle_1), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -55,15 +54,15 @@ int main(int argc, char *argv[])
   dumper_facet.SetMode(TEXT);
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_boundary");
-  dumper_facet.SetConnectivity((int*)mesh.getConnectivity(akantu::_line_1).values,
-			       LINE1, mesh.getNbElement(akantu::_line_1), C_MODE);
+  dumper_facet.SetConnectivity((int*)mesh.getConnectivity(_line_1).values,
+			       LINE1, mesh.getNbElement(_line_1), C_MODE);
   dumper_facet.SetPrefix("paraview/");
   dumper_facet.Init();
   dumper_facet.Dump();
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
-  dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(akantu::_line_1).values,
-  			       LINE1, mesh.getInternalFacetsMesh().getNbElement(akantu::_line_1), C_MODE);
+  dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(_line_1).values,
+  			       LINE1, mesh.getInternalFacetsMesh().getNbElement(_line_1), C_MODE);
   dumper_facet.Init();
   dumper_facet.Dump();
 

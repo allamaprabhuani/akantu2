@@ -63,9 +63,7 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
 
   /// dxds = J^{-1}
   Real inv_dxds[spatial_dimension*spatial_dimension];
-
-  inv_dxds[0] =  dxds[3]/det_dxds;   inv_dxds[1] = -dxds[1]/det_dxds;
-  inv_dxds[2] = -dxds[2]/det_dxds;   inv_dxds[3] =  dxds[0]/det_dxds;
+  Math::inv2(inv_dxds,dxds);
 
   jacobian[0] = det_dxds * weight;
 
@@ -79,5 +77,7 @@ template<> inline Real ElementClass<_triangle_1>::getInradius(const Real * coord
   return Math::triangle_inradius(coord);
 }
 
-
-
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_triangle_1>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
+  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+}

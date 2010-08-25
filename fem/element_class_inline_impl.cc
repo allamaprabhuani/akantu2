@@ -27,6 +27,11 @@ template<ElementType type> inline UInt ElementClass<type>::getJacobianSize() {
 }
 
 /* -------------------------------------------------------------------------- */
+template<ElementType type> inline void ElementClass<type>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
+  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+}
+
+/* -------------------------------------------------------------------------- */
 template<ElementType type>
 void ElementClass<type>::shapeFunctions(__attribute__ ((unused)) const Real * coord,
 					__attribute__ ((unused)) Real * shape,

@@ -134,8 +134,8 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _triangle_2   : stream << "triangle_2"  ; break;
     case _tetrahedra_1 : stream << "tetrahedra_1"; break;
     case _tetrahedra_2 : stream << "tetrahedra_2"; break;
-    case _not_defined  :
-    case _max_element_type :  stream << "unknown ElementType (" << type << ")"; break;
+    case _not_defined  : stream << "undefined element type" ; break;
+    case _max_element_type :  stream << "unknown ElementType (" << (int)type << ")"; break;
     }
   return stream;
 }

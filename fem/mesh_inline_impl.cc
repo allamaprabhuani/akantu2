@@ -100,6 +100,14 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(ElementType type) const {
   AKANTU_DEBUG_OUT();
   return connectivities[type];
 }
+
+/* -------------------------------------------------------------------------- */
+inline Vector<Real> * Mesh::getNormalsPointer(ElementType type) const {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+  return normals[type];
+}
 /* -------------------------------------------------------------------------- */
 inline const Mesh & Mesh::getInternalFacetsMesh() const {
   AKANTU_DEBUG_IN();
@@ -162,20 +170,20 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbNodesPerElementP1(const ElementType & type) {
+inline ElementType Mesh::getElementP1(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element_p1;
-#define GET_NB_NODES_PER_ELEMENT_P1(type)				\
-  nb_nodes_per_element_p1 = ElementClass<type>::getNbNodesPerElementP1()
+  ElementType element_p1;
+#define GET_ELEMENT_P1(type)				\
+  element_p1 = ElementClass<type>::getElementP1()
 
   switch(type) {
-  case _line_1       : { GET_NB_NODES_PER_ELEMENT_P1(_line_1      ); break; }
-  case _line_2       : { GET_NB_NODES_PER_ELEMENT_P1(_line_2      ); break; }
-  case _triangle_1   : { GET_NB_NODES_PER_ELEMENT_P1(_triangle_1  ); break; }
-  case _triangle_2   : { GET_NB_NODES_PER_ELEMENT_P1(_triangle_2  ); break; }
-  case _tetrahedra_1 : { GET_NB_NODES_PER_ELEMENT_P1(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { GET_NB_NODES_PER_ELEMENT_P1(_tetrahedra_2); break; }
+  case _line_1       : { GET_ELEMENT_P1(_line_1      ); break; }
+  case _line_2       : { GET_ELEMENT_P1(_line_2      ); break; }
+  case _triangle_1   : { GET_ELEMENT_P1(_triangle_1  ); break; }
+  case _triangle_2   : { GET_ELEMENT_P1(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_ELEMENT_P1(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_ELEMENT_P1(_tetrahedra_2); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -185,7 +193,7 @@ inline UInt Mesh::getNbNodesPerElementP1(const ElementType & type) {
 #undef GET_NB_NODES_PER_ELEMENT_P1
 
   AKANTU_DEBUG_OUT();
-  return nb_nodes_per_element_p1;
+  return element_p1;
 }
 
 /* -------------------------------------------------------------------------- */

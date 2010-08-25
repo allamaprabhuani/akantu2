@@ -72,27 +72,11 @@ template<> inline void ElementClass<_tetrahedra_1>::shapeFunctions(const Real * 
   Math::matrix_matrix(spatial_dimension, spatial_dimension, nb_nodes_per_element,
 		      dnds, x, dxds);
 
-  //  det A =   a11(a22*a33-a32*a23) 
-  //          - a21(a12*a33-a32*a13) 
-  //          + a31(a12*a23-a22*a13)
   Real det_dxds = Math::det3(dxds);
-    //   dxds[0]*(dxds[4]*dxds[8]-dxds[7]*dxds[5]) 
-    // - dxds[3]*(dxds[1]*dxds[8]-dxds[7]*dxds[2]) 
-    // + dxds[6]*(dxds[1]*dxds[5]-dxds[4]*dxds[2]);
 
   /// dxds = J^{-1}
   Real inv_dxds[spatial_dimension*spatial_dimension];
-  
   Math::inv3(dxds,inv_dxds);
-  // inv_dxds[0] = (dxds[4]*dxds[8] - dxds[7]*dxds[5])/det_dxds;   
-  // inv_dxds[1] = (dxds[2]*dxds[7] - dxds[8]*dxds[1])/det_dxds;   
-  // inv_dxds[2] = (dxds[1]*dxds[5] - dxds[4]*dxds[2])/det_dxds;   
-  // inv_dxds[3] = (dxds[5]*dxds[6] - dxds[8]*dxds[3])/det_dxds;   
-  // inv_dxds[4] = (dxds[0]*dxds[8] - dxds[6]*dxds[2])/det_dxds;   
-  // inv_dxds[5] = (dxds[2]*dxds[3] - dxds[5]*dxds[0])/det_dxds;   
-  // inv_dxds[6] = (dxds[3]*dxds[7] - dxds[6]*dxds[4])/det_dxds;   
-  // inv_dxds[7] = (dxds[1]*dxds[6] - dxds[7]*dxds[0])/det_dxds;   
-  // inv_dxds[8] = (dxds[0]*dxds[4] - dxds[3]*dxds[1])/det_dxds;
 
   jacobian[0] = det_dxds * weight;
 
@@ -106,6 +90,10 @@ template<> inline Real ElementClass<_tetrahedra_1>::getInradius(const Real * coo
   return Math::tetrahedron_inradius(coord);
 }
 
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_tetrahedra_1>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
+  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+}
 
 
 

@@ -21,6 +21,7 @@
 #include "aka_memory.hh"
 #include "mesh.hh"
 #include "fem.hh"
+#include "mesh_utils.hh"
 #ifdef AKANTU_USE_MPI
 #  include "communicator.hh"
 #endif
@@ -38,33 +39,12 @@ class Model : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Model(UInt spatial_dimension,
-	const ModelID & id = "model",
-	const MemoryID & memory_id = 0) :
-    Memory(memory_id), id(id), spatial_dimension(spatial_dimension) {
-    AKANTU_DEBUG_IN();
-    std::stringstream sstr; sstr << id << ":fem";
-    this->fem = new FEM(spatial_dimension, sstr.str(), memory_id);
-    AKANTU_DEBUG_OUT();
-  };
+  inline Model(Mesh & mesh,
+	       UInt spatial_dimension = 0,
+	       const ModelID & id = "model",
+	       const MemoryID & memory_id = 0);
 
-  Model(Mesh & mesh,
-	UInt spatial_dimension = 0,
-	const ModelID & id = "model",
-	const MemoryID & memory_id = 0) :
-    Memory(memory_id), id(id) {
-    AKANTU_DEBUG_IN();
-    this->spatial_dimension = (spatial_dimension == 0) ? mesh.getSpatialDimension() : spatial_dimension;
-    std::stringstream sstr; sstr << id << ":fem";
-    this->fem = new FEM(mesh, spatial_dimension, sstr.str(), memory_id);
-    AKANTU_DEBUG_OUT();
-  };
-
-  virtual ~Model() {
-    AKANTU_DEBUG_IN();
-    delete fem;
-    AKANTU_DEBUG_OUT();
-  };
+  inline virtual ~Model();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -84,6 +64,8 @@ public:
 
   AKANTU_GET_MACRO(FEM, *fem, const FEM &);
 
+  inline FEM & getFEMBoundary();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -96,6 +78,8 @@ protected:
 
   /// the main fem object present in all  models
   FEM * fem;
+  /// the fem object present in all  models for boundaries
+  FEM * fem_boundary;
 };
 
 
@@ -103,7 +87,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-///#include "model_inline_impl.cc"
+#include "model_inline_impl.cc"
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Model & _this)
