@@ -26,6 +26,12 @@
 
 __BEGIN_AKANTU__
 
+/* -------------------------------------------------------------------------- */
+typedef Vector<Real> * ByElementTypeReal[_max_element_type];
+typedef Vector<Int>  * ByElementTypeInt [_max_element_type];
+typedef Vector<UInt> * ByElementTypeUInt[_max_element_type];
+
+/* -------------------------------------------------------------------------- */
 class Element {
 public:
   Element(ElementType type = _not_defined, UInt element = 0) :
@@ -70,8 +76,6 @@ public:
 
   typedef std::set<ElementType> ConnectivityTypeList;
 
-  typedef Vector<UInt> * ConnectivityMap[_max_element_type];
-
   typedef Vector<Real> * NormalsMap[_max_element_type];
 
 private:
@@ -86,11 +90,9 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
+  //  Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
 
-#ifdef AKANTU_USE_MPI
-  Vector<UInt> & createGhostConnectivity(ElementType type, UInt nb_element);
-#endif //AKANTU_USE_MPI
+  //  Vector<UInt> & createGhostConnectivity(ElementType type, UInt nb_element);
 
   /// create the array of normals
   Vector<Real> & createNormals(ElementType type);
@@ -104,7 +106,6 @@ public:
   /// update the types offsets array for the conversions
   inline void updateTypesOffsets();
 
-#ifdef AKANTU_USE_MPI
   /// convert a element to a linearized element
   inline UInt ghostElementToLinearized(const Element & elem);
 
@@ -113,7 +114,6 @@ public:
 
   /// update the types offsets array for the conversions
   inline void updateGhostTypesOffsets();
-#endif //AKANTU_USE_MPI
 
 
   /* ------------------------------------------------------------------------ */
@@ -124,29 +124,36 @@ public:
 
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, Vector<UInt> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, Vector<Real> &);
+  AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
+  AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
 
-  inline const Mesh & getInternalFacetsMesh() const;
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostConnectivity, ghost_connectivities, const Vector<UInt> &);
 
-#ifdef AKANTU_USE_MPI
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, ghost_connectivities, Vector<UInt> &);
-#endif //AKANTU_USE_MPI
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
 
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type) const;
 
-  inline const ConnectivityTypeList & getConnectivityTypeList(bool local = true) const;
+  /// get the number of ghost element of a type in the mesh
+  inline UInt getNbGhostElement(const ElementType & type) const;
 
-  AKANTU_GET_MACRO(Nodes, *nodes, Vector<Real> &);
-  AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
+  /// get the connectivity list either for the elements or the ghost elements
+  inline const ConnectivityTypeList & getConnectivityTypeList(GhostType ghost_type = _not_ghost) const;
+
+  /// get the mesh of the internal facets
+  inline const Mesh & getInternalFacetsMesh() const;
+
+  /* ------------------------------------------------------------------------ */
+  /* Wrappers on ElementClass functions                                       */
+  /* ------------------------------------------------------------------------ */
 
   /// get the number of nodes per element for a given element type
   static inline UInt getNbNodesPerElement(const ElementType & type);
 
   /// get the number of nodes per element for a given element type considered as
   /// a first order element
-  static inline ElementType getElementP1(const ElementType & type);
+  static inline ElementType getP1ElementType(const ElementType & type);
 
   /// get spatial dimension of a type of element
   static inline UInt getSpatialDimension(const ElementType & type);
@@ -164,7 +171,8 @@ private:
   friend class MeshIOMSH;
   friend class MeshUtils;
 
-  inline Vector<UInt> * getConnectivityPointer(ElementType type) const;
+  inline Vector<UInt> * getConnectivityPointer(ElementType type);
+  inline Vector<UInt> * getGhostConnectivityPointer(ElementType type);
   inline Mesh * getInternalFacetsMeshPointer();
   inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
@@ -183,10 +191,10 @@ private:
   bool created_nodes;
 
   /// all class of elements present in this mesh (for heterogenous meshes)
-  ConnectivityMap connectivities;
+  ByElementTypeUInt connectivities;
 
   /// map to normals for all class of elements present in this mesh 
-  NormalsMap normals;
+  ByElementTypeReal normals;
 
   /// list of all existing types in the mesh
   ConnectivityTypeList type_set;
@@ -200,16 +208,14 @@ private:
   /// types offsets
   Vector<UInt> types_offsets;
 
-#ifdef AKANTU_USE_MPI
   /// all class of elements present in this mesh (for heterogenous meshes)
-  ConnectivityMap ghost_connectivities;
+  ByElementTypeUInt ghost_connectivities;
 
   /// list of all existing types in the mesh
   ConnectivityTypeList ghost_type_set;
 
   /// ghost types offsets
   Vector<UInt> ghost_types_offsets;
-#endif //AKANTU_USE_MPI
 };
 
 

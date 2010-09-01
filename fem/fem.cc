@@ -40,12 +40,10 @@ void FEM::init() {
     this->shapes            [t] = NULL;
     this->shapes_derivatives[t] = NULL;
     this->jacobians         [t] = NULL;
-#ifdef AKANTU_USE_MPI
+
     this->ghost_shapes            [t] = NULL;
     this->ghost_shapes_derivatives[t] = NULL;
     this->ghost_jacobians         [t] = NULL;
-#endif //AKANTU_USE_MPI
-
   }
 }
 
@@ -64,11 +62,9 @@ FEM::~FEM() {
       dealloc(shapes_derivatives[*it]->getID());
       dealloc(jacobians[*it]->getID());
 
-#ifdef AKANTU_USE_MPI
       dealloc(ghost_shapes[*it]->getID());
       dealloc(ghost_shapes_derivatives[*it]->getID());
       dealloc(ghost_jacobians[*it]->getID());
-#endif //AKANTU_USE_MPI
     }
   }
 
@@ -83,12 +79,12 @@ FEM::~FEM() {
 }
 
 /* -------------------------------------------------------------------------- */
-void FEM::initShapeFunctions(bool local) {
+void FEM::initShapeFunctions(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
 
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList(local);
+  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;
 
   for(it = type_list.begin();
@@ -108,18 +104,15 @@ void FEM::initShapeFunctions(bool local) {
     UInt * elem_val;
     UInt nb_element;
     std::string ghost = "";
-#ifdef AKANTU_USE_MPI
-    if(local) {
-#endif //AKANTU_USE_MPI
+
+    if(ghost_type == _not_ghost) {
       elem_val   = mesh->getConnectivity(type).values;
       nb_element = mesh->getConnectivity(type).getSize();
-#ifdef AKANTU_USE_MPI
     } else {
       ghost = "ghost_";
       elem_val   = mesh->getGhostConnectivity(type).values;
       nb_element = mesh->getGhostConnectivity(type).getSize();
     }
-#endif //AKANTU_USE_MPI
 
     std::stringstream sstr_shapes;
     sstr_shapes << id << ":" << ghost << "shapes:" << type;
@@ -209,20 +202,15 @@ void FEM::initShapeFunctions(bool local) {
     }
 #undef COMPUTE_SHAPES
 
-#ifdef AKANTU_USE_MPI
-    if(local) {
-#endif //AKANTU_USE_MPI
+    if(ghost_type == _not_ghost) {
       shapes[type]             = shapes_tmp;
       shapes_derivatives[type] = shapes_derivatives_tmp;
       jacobians[type]          = jacobians_tmp;
-#ifdef AKANTU_USE_MPI
     } else {
       ghost_shapes[type]             = shapes_tmp;
       ghost_shapes_derivatives[type] = shapes_derivatives_tmp;
       ghost_jacobians[type]          = jacobians_tmp;
     }
-#endif //AKANTU_USE_MPI
-
   }
   AKANTU_DEBUG_OUT();
 }
@@ -232,7 +220,7 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
 					Vector<Real> &out_uq,
 					UInt nb_degre_of_freedom,
 					const ElementType & type,
-					bool local,
+					GhostType ghost_type,
 					const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -240,19 +228,15 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
   UInt nb_element;
   UInt * conn_val;
 
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+  if(ghost_type == _not_ghost) {
     shapes_loc = shapes[type];
     nb_element = mesh->getNbElement(type);
     conn_val   = mesh->getConnectivity(type).values;
-#ifdef AKANTU_USE_MPI
   } else {
     shapes_loc = ghost_shapes[type];
     nb_element = mesh->getNbGhostElement(type);
     conn_val   = mesh->getGhostConnectivity(type).values;
   }
-#endif //AKANTU_USE_MPI
 
   AKANTU_DEBUG_ASSERT(shapes_loc != NULL,
 		      "No shapes for the type " << type);
@@ -324,7 +308,7 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
 				     Vector<Real> &out_nablauq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
-				     bool local,
+				     GhostType ghost_type,
 				     const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -332,20 +316,15 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
   UInt nb_element;
   UInt * conn_val;
 
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+  if(ghost_type == _not_ghost) {
     shapesd_loc = shapes_derivatives[type];
     nb_element  = mesh->getNbElement(type);
     conn_val    = mesh->getConnectivity(type).values;
-#ifdef AKANTU_USE_MPI
   } else {
     shapesd_loc = ghost_shapes_derivatives[type];
     nb_element  = mesh->getNbGhostElement(type);
     conn_val    = mesh->getGhostConnectivity(type).values;
   }
-#endif //AKANTU_USE_MPI
-
 
   AKANTU_DEBUG_ASSERT(shapesd_loc != NULL,
 		      "No shapes for the type " << type);
@@ -420,24 +399,20 @@ void FEM::integrate(const Vector<Real> & in_f,
 		    Vector<Real> &intf,
 		    UInt nb_degre_of_freedom,
 		    const ElementType & type,
-		    bool local,
+		    GhostType ghost_type,
 		    const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   Vector<Real> * jac_loc;
   UInt nb_element;
 
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+  if(ghost_type == _not_ghost) {
     jac_loc     = jacobians[type];
     nb_element  = mesh->getNbElement(type);
-#ifdef AKANTU_USE_MPI
   } else {
     jac_loc     = jacobians[type];
     nb_element  = mesh->getNbGhostElement(type);
   }
-#endif //AKANTU_USE_MPI
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
   UInt size_of_jacobians    = FEM::getJacobianSize(type);
@@ -491,23 +466,19 @@ void FEM::integrate(const Vector<Real> & in_f,
 /* -------------------------------------------------------------------------- */
 Real FEM::integrate(const Vector<Real> & in_f,
 		    const ElementType & type,
-		    bool local,
+		    GhostType ghost_type,
 		    const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
   Vector<Real> * jac_loc;
   UInt nb_element;
 
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+  if(ghost_type == _not_ghost) {
     jac_loc     = shapes_derivatives[type];
     nb_element  = mesh->getNbElement(type);
-#ifdef AKANTU_USE_MPI
   } else {
     jac_loc     = ghost_shapes_derivatives[type];
     nb_element  = mesh->getNbGhostElement(type);
   }
-#endif //AKANTU_USE_MPI
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
   UInt size_of_jacobians    = FEM::getJacobianSize(type);
@@ -526,12 +497,10 @@ Real FEM::integrate(const Vector<Real> & in_f,
 		      << ") has not the good number of component.");
 
   Real intf = 0.;
-  Real * in_f_val = in_f.values;
-  Real * jac_val  = jac_loc->values;
-
+  Real * in_f_val  = in_f.values;
+  Real * jac_val   = jac_loc->values;
   UInt offset_in_f = in_f.getNbComponent();
-
-  Real * jac      = jac_val;
+  Real * jac       = jac_val;
 
   for (UInt el = 0; el < nb_element; ++el) {
     if(filter_elements != NULL) {
@@ -556,7 +525,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 Vector<Real> & nodal_values,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
-			 bool local,
+			 GhostType ghost_type,
 			 const Vector<UInt> * filter_elements,
 			 Real scale_factor) const {
   AKANTU_DEBUG_IN();
@@ -564,17 +533,13 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
   UInt nb_element;
   UInt * conn_val;
 
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+  if(ghost_type == _not_ghost) {
     nb_element  = mesh->getNbElement(type);
     conn_val    = mesh->getConnectivity(type).values;
-#ifdef AKANTU_USE_MPI
   } else {
     nb_element  = mesh->getNbGhostElement(type);
     conn_val    = mesh->getGhostConnectivity(type).values;
   }
-#endif //AKANTU_USE_MPI
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_nodes = mesh->getNbNodes();
@@ -600,7 +565,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
   nodal_values.resize(nb_nodes);
 
   Real * elementary_vect_val = elementary_vect.values;
-  Real * nodal_values_val = nodal_values.values;
+  Real * nodal_values_val    = nodal_values.values;
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;

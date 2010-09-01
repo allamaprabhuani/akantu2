@@ -11,23 +11,52 @@
  *
  */
 
+
+/* -------------------------------------------------------------------------- */
+inline void Material::addElement(ElementType type, UInt element) {
+  element_filter[type]->push_back(element);
+  strain[type]->push_back(REAL_INIT_VALUE);
+  stress[type]->push_back(REAL_INIT_VALUE);
+  if(potential_energy_vector)
+    potential_energy[type]->push_back(REAL_INIT_VALUE);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Material::addGhostElement(ElementType type, UInt element) {
+  ghost_element_filter[type]->push_back(element);
+  ghost_strain[type]->push_back(REAL_INIT_VALUE);
+  ghost_stress[type]->push_back(REAL_INIT_VALUE);
+  if(potential_energy_vector)
+    ghost_potential_energy[type]->push_back(REAL_INIT_VALUE);
+}
+
 /* -------------------------------------------------------------------------- */
 inline void Material::setPotentialEnergyFlagOn(){
   AKANTU_DEBUG_IN();
 
   if(!potential_energy_vector) {
     /// for each connectivity types allocate the element filer array of the material
-    UInt spatial_dimension = model.getSpatialDimension();
-    const Mesh::ConnectivityTypeList & type_list = model.getFEM().getMesh().getConnectivityTypeList();
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(model.getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
-      UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-      UInt nb_element = element_filter[*it]->getSize();
-      std::stringstream sstr; sstr << id << ":potential_energy:"<< *it;
-      potential_energy[*it] = &(alloc<Real> (sstr.str(), nb_element, nb_quadrature_points, NAN));
-    }
+    for(UInt t = _not_defined + 1; t < _max_element_type; ++t) {
+      ElementType type = (ElementType) t;
+      if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
+      UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+      if(element_filter[type] != NULL) {
+	UInt nb_element = element_filter[type]->getSize();
+	std::stringstream sstr; sstr << id << ":potential_energy:"<< type;
+	potential_energy[type] = &(alloc<Real> (sstr.str(), nb_element,
+						nb_quadrature_points,
+						REAL_INIT_VALUE));
+      }
+
+      if(ghost_element_filter[type] != NULL) {
+	UInt nb_element = ghost_element_filter[type]->getSize();
+	std::stringstream sstr; sstr << id << ":ghost_potential_energy:"<< type;
+	ghost_potential_energy[type] = &(alloc<Real> (sstr.str(), nb_element,
+						      nb_quadrature_points,
+						      REAL_INIT_VALUE));
+      }
+    }
     potential_energy_vector = true;
   }
 
@@ -42,3 +71,39 @@ inline void Material::setPotentialEnergyFlagOff(){
   AKANTU_DEBUG_OUT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+inline UInt Material::getNbDataToPack(const Element & element,
+				      GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+  return 0;
+};
+
+/* -------------------------------------------------------------------------- */
+inline UInt Material::getNbDataToUnpack(const Element & element,
+					GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+  return 0;
+};
+
+/* -------------------------------------------------------------------------- */
+inline void Material::packData(Real ** buffer,
+			       const Element & element,
+			       GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+};
+
+/* -------------------------------------------------------------------------- */
+inline void Material::unpackData(Real ** buffer,
+				 const Element & element,
+				 GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+};

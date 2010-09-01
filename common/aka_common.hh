@@ -54,6 +54,13 @@ typedef int Int;
 
 typedef std::string ID;
 
+#ifdef AKANTU_DEBUG
+  static const Real REAL_INIT_VALUE = std::numeric_limits<Real>::quiet_NaN();
+#else
+  static const Real REAL_INIT_VALUE = 0;
+#endif
+
+
 /* -------------------------------------------------------------------------- */
 /* Memory types                                                               */
 /* -------------------------------------------------------------------------- */
@@ -84,6 +91,22 @@ enum ElementType {
 enum MaterialType {
   _elastic = 0,
   _max_material_type
+};
+
+/* -------------------------------------------------------------------------- */
+/* Ghosts handling                                                            */
+/* -------------------------------------------------------------------------- */
+
+enum GhostSynchronizationTag {
+  /// SolidMechanicsModel tags
+  _gst_smm_mass,
+  _gst_smm_residual,
+};
+
+enum GhostType {
+  _not_ghost,
+  _ghost,
+  _casper  // not used but a real cute ghost
 };
 
 /* -------------------------------------------------------------------------- */
@@ -134,8 +157,8 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _triangle_2   : stream << "triangle_2"  ; break;
     case _tetrahedra_1 : stream << "tetrahedra_1"; break;
     case _tetrahedra_2 : stream << "tetrahedra_2"; break;
-    case _not_defined  : stream << "undefined element type" ; break;
-    case _max_element_type :  stream << "unknown ElementType (" << (int)type << ")"; break;
+    case _not_defined  : stream << "undefined" ; break;
+    case _max_element_type :  stream << "ElementType(" << (int) type << ")"; break;
     }
   return stream;
 }

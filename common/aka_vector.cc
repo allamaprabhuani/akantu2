@@ -114,6 +114,10 @@ template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep) {
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::~Vector () {
   AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_INFO("Freeing "
+		    << allocated_size*nb_component*sizeof(T) / 1024.
+		    << "kB (" << id <<")");
+
   free(values);
   size = allocated_size = 0;
   AKANTU_DEBUG_OUT();
@@ -130,7 +134,7 @@ template <class T> void Vector<T>::allocate(UInt size,
     AKANTU_DEBUG_ASSERT(values != NULL,
 			"Cannot allocate "
 			<< nb_component * size * sizeof(T) / 1024.
-			<< "kB");
+			<< "kB (" << id <<")");
   }
 
   if (values == NULL) {
@@ -138,7 +142,7 @@ template <class T> void Vector<T>::allocate(UInt size,
   } else {
     AKANTU_DEBUG_INFO("Allocated "
 		      << size * nb_component * sizeof(T) / 1024.
-		      << "kB");
+		      << "kB (" << id <<")");
     this->size = this->allocated_size = size;
   }
 
@@ -155,7 +159,7 @@ template <class T> void Vector<T>::resize (UInt new_size) {
     if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
       AKANTU_DEBUG_INFO("Freeing "
 			<< (allocated_size - size)*nb_component*sizeof(T) / 1024.
-			<< "kB");
+			<< "kB (" << id <<")");
 
       /// Normally there are no allocation problem when reducing an array
       values = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));

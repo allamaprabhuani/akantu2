@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
   memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
   memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
   memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
-  
+
   model->readMaterials("material.dat");
   model->initMaterials();
   model->initModel();
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
   //   }
 
   // }
-  
+
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
   const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
     UInt shape_size           = FEM::getShapeSize(*it);
-    
+
     UInt nb_element;
     const Vector<Real> * shapes;
 

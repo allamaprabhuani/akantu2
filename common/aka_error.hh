@@ -115,6 +115,8 @@ private:
 #ifndef AKANTU_MPI
 #define AKANTU_EXIT(status)			\
   do {						\
+    int * p = NULL;				\
+    *p = 2;					\
     exit(status);				\
   } while(0)
 #else

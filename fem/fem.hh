@@ -26,10 +26,6 @@
 
 __BEGIN_AKANTU__
 
-typedef Vector<Real> * ByElementTypeReal[_max_element_type];
-typedef Vector<Int>  * ByElementTypeInt[_max_element_type];
-typedef Vector<UInt> * ByElementTypeUInt[_max_element_type];
-
 class FEM : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -48,14 +44,14 @@ public:
 public:
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
-  void initShapeFunctions(bool local = true);
+  void initShapeFunctions(GhostType ghost_type = _not_ghost);
 
   /// interpolate nodal values on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
-				     bool local = true,
+				     GhostType ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const;
 
   /// interpolate nodal values on the quadrature points
@@ -68,7 +64,7 @@ public:
 				  Vector<Real> &nablauq,
 				  UInt nb_degre_of_freedom,
 				  const ElementType & type,
-				  bool local = true,
+				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
   /// integrate f for all elements of type "type"
@@ -76,7 +72,7 @@ public:
 		 Vector<Real> &intf,
 		 UInt nb_degre_of_freedom,
 		 const ElementType & type,
-		 bool local = true,
+		 GhostType ghost_type = _not_ghost,
 		 const Vector<UInt> * filter_elements = NULL) const;
 
   /// integrate f on the element "elem" of type "type"
@@ -85,12 +81,12 @@ public:
 			UInt nb_degre_of_freedom,
 			const ElementType & type,
 			const UInt elem,
-			bool local = true) const;
+			GhostType ghost_type = _not_ghost) const;
 
   /// integrate a scalar value on all elements of type "type"
   Real integrate(const Vector<Real> & f,
 		 const ElementType & type,
-		 bool local = true,
+		 GhostType ghost_type = _not_ghost,
 		 const Vector<UInt> * filter_elements = NULL) const;
 
 
@@ -99,7 +95,7 @@ public:
 		      Vector<Real> & nodal_values,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
-		      bool local = true,
+		      GhostType ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL,
 		      Real scale_factor = 1) const;
 
@@ -147,7 +143,6 @@ public:
   /// get a the shapes derivatives vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
 
-#ifdef AKANTU_USE_MPI
   /// get a the ghost shapes vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
 				   const Vector<Real> &);
@@ -155,7 +150,6 @@ public:
   /// get a the ghost shapes derivatives vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapesDerivatives, ghost_shapes_derivatives,
 				   const Vector<Real> &);
-#endif //AKANTU_USE_MPI
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -183,7 +177,6 @@ private:
   /// jacobians for all elements
   ByElementTypeReal jacobians;
 
-#ifdef AKANTU_USE_MPI
   /// shape functions for all elements
   ByElementTypeReal ghost_shapes;
 
@@ -192,8 +185,6 @@ private:
 
   /// jacobians for all elements
   ByElementTypeReal ghost_jacobians;
-#endif //AKANTU_USE_MPI
-
 };
 
 

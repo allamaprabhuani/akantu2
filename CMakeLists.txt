@@ -84,8 +84,23 @@ if(AKANTU_USE_IOHELPER)
     set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
       ${IOHELPER_LIBRARIES}
       )
-    endif(IOHELPER_FOUND)
+  endif(IOHELPER_FOUND)
 endif(AKANTU_USE_IOHELPER)
+
+# Scotch
+option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
+if(AKANTU_USE_SCOTCH)
+  include(${AKANTU_CMAKE_DIR}/FindScotch.cmake)
+  if(SCOTCH_FOUND)
+    add_definitions(-DAKANTU_USE_SCOTCH)
+    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
+      ${SCOTCH_INCLUDE_PATH}
+      )
+    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+      ${SCOTCH_LIBRARIES}
+      )
+  endif(SCOTCH_FOUND)
+endif(AKANTU_USE_SCOTCH)
 
 #===============================================================================
 # Library
@@ -109,14 +124,25 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
+  synchronizer/ghost_synchronizer.cc
   )
+
+if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+  set(AKANTU_COMMON_SRC
+    ${AKANTU_COMMON_SRC}
+    mesh_utils/mesh_partition/mesh_partition_scotch.cc
+    )
+  endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+
 
 set(AKANTU_INCLUDE_DIRS
   common
   fem/
   mesh_utils/
-  mesh_utils/mesh_io
+  mesh_utils/mesh_io/
+  mesh_utils/mesh_partition/
   model/
+  synchronizer/
   )
 
 include_directories(
@@ -146,6 +172,13 @@ if(BUILD_UNIT_TEST)
     test/test_facet_extraction_triangle1.cc
     test/test_facet_extraction_tetra1.cc
     )
+
+  if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+    set(AKANTU_UNIT_TESTS
+      ${AKANTU_UNIT_TESTS}
+      test/test_mesh_partitionate.cc
+      )
+  endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
 
   foreach(_test ${AKANTU_UNIT_TESTS})
     get_filename_component(_target "${_test}" NAME_WE)

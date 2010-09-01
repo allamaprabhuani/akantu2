@@ -1,9 +1,9 @@
 /**
- * @file   mesh_partition_scotch.hh
+ * @file   synchronizer.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Aug 13 10:00:06 2010
+ * @date   Mon Aug 23 13:48:37 2010
  *
- * @brief  mesh partitioning based on libScotch
+ * @brief  interface for communicator and pbc synchronizers
  *
  * @section LICENSE
  *
@@ -13,35 +13,27 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_PARTITION_SCOTCH_HH__
-#define __AKANTU_MESH_PARTITION_SCOTCH_HH__
-
-/* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh_partition.hh"
-
-/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_SYNCHRONIZER_HH__
+#define __AKANTU_SYNCHRONIZER_HH__
 
 __BEGIN_AKANTU__
 
-class MeshPartitionScotch : public MeshPartition {
+class Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimension,
-		      const MemoryID & memory_id = 0);
+  Synchronizer();
+  virtual ~Synchronizer();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void partitionate(UInt nb_part);
-
   /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -60,16 +52,16 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "mesh_partition_scotch_inline_impl.cc"
+//#include "synchronizer_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshPartitionScotch & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+inline std::ostream & operator <<(std::ostream & stream, const Synchronizer & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_PARTITION_SCOTCH_HH__ */
+#endif /* __AKANTU_SYNCHRONIZER_HH__ */

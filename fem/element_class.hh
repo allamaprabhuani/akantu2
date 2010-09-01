@@ -65,7 +65,7 @@ public:
 public:
 
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement, nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(ElementP1, element_p1, ElementType);
+  static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, p1_element_type, ElementType);
   static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, spatial_dimension, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(FacetElementType, facet_type, const ElementType &);
@@ -101,12 +101,12 @@ private:
 
   /// local connectivity of facets
   static UInt * facet_connectivity[];
-  
+
   /// vectorial connectivity of facets
   static UInt vec_facet_connectivity[];
 
   /// type of element P1 associated
-  static ElementType element_p1;
+  static ElementType p1_element_type;
 };
 
 

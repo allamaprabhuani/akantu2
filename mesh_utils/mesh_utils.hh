@@ -27,10 +27,10 @@ class MeshUtils {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   MeshUtils();
   virtual ~MeshUtils();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -42,20 +42,20 @@ public:
   void static buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
   /// build normal to some elements
   void static buildNormals(Mesh & mesh, UInt spatial_dimension=0);
-  
+
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  
+
 };
 
 

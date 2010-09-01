@@ -42,7 +42,7 @@ public:
 		const MaterialID & id);
 
   /// constitutive law for all element of a type
-  void constitutiveLaw(ElementType el_type, bool local = true);
+  void constitutiveLaw(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for a given quadrature point
   inline void constitutiveLaw(Real * F, Real * sigma, Real * epot);

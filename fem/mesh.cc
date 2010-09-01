@@ -34,12 +34,10 @@ void Element::printself(std::ostream & stream, int indent) const {
 Mesh::Mesh(UInt spatial_dimension,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(true), spatial_dimension(spatial_dimension), internal_facets_mesh(NULL),
-  types_offsets(Vector<UInt>(_max_element_type + 1, 1))
-#ifdef AKANTU_USE_MPI
-  , ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1))
-#endif
-{
+  Memory(memory_id), id(id), created_nodes(true), spatial_dimension(spatial_dimension),
+  internal_facets_mesh(NULL),
+  types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
   AKANTU_DEBUG_IN();
 
   initConnectivities();
@@ -57,12 +55,10 @@ Mesh::Mesh(UInt spatial_dimension,
 	   const VectorID & nodes_id,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension), internal_facets_mesh(NULL),
-  types_offsets(Vector<UInt>(_max_element_type + 1, 1))
-#ifdef AKANTU_USE_MPI
-  , ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1))
-#endif
-{
+  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension),
+  internal_facets_mesh(NULL),
+  types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
   AKANTU_DEBUG_IN();
 
   initConnectivities();
@@ -77,12 +73,10 @@ Mesh::Mesh(UInt spatial_dimension,
 	   Vector<Real> & nodes,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension), internal_facets_mesh(NULL),
-  types_offsets(Vector<UInt>(_max_element_type + 1, 1))
-#ifdef AKANTU_USE_MPI
-  , ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1))
-#endif
-{
+  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension),
+  internal_facets_mesh(NULL),
+  types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
   AKANTU_DEBUG_IN();
 
   initConnectivities();
@@ -96,9 +90,7 @@ Mesh::Mesh(UInt spatial_dimension,
 void Mesh::initConnectivities() {
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     connectivities[t] = NULL;
-#ifdef AKANTU_USE_MPI
     ghost_connectivities[t] = NULL;
-#endif //AKANTU_USE_MPI
   }
   this->types_offsets.resize(_max_element_type);
 }
@@ -110,45 +102,43 @@ Mesh::~Mesh() {
     dealloc(nodes->getID());
   }
 
-  ConnectivityTypeList::const_iterator it;
-  for(it = type_set.begin();
-      it != type_set.end();
-      ++it) {
-    if(connectivities[*it]) {
-      dealloc(connectivities[*it]->getID());
-#ifdef AKANTU_USE_MPI
-      dealloc(ghost_connectivities[*it]->getID());
-#endif //AKANTU_USE_MPI
+  for(UInt t = _not_defined; t < _max_element_type; ++t) {
+    if(connectivities[t]) {
+      dealloc(connectivities[t]->getID());
+    }
+    if(ghost_connectivities[t]) {
+      dealloc(ghost_connectivities[t]->getID());
     }
   }
+
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-Vector<UInt> & Mesh::createConnectivity(ElementType type, UInt nb_element) {
-  AKANTU_DEBUG_IN();
-  UInt nb_nodes_per_element;
+// /* -------------------------------------------------------------------------- */
+// Vector<UInt> & Mesh::createConnectivity(ElementType type, UInt nb_element) {
+//   AKANTU_DEBUG_IN();
+//   UInt nb_nodes_per_element;
 
-  AKANTU_DEBUG_ASSERT(connectivities[type] == NULL,
-		      "The connectivity vector for the type "
-		      << type << "already exist");
+//   AKANTU_DEBUG_ASSERT(connectivities[type] == NULL,
+// 		      "The connectivity vector for the type "
+// 		      << type << "already exist");
 
-  nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+//   nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-  std::stringstream sstr;
-  sstr << id << ":connectivity:" << type;
+//   std::stringstream sstr;
+//   sstr << id << ":connectivity:" << type;
 
-  connectivities[type] = &(alloc<UInt>(sstr.str(),
-				     nb_element,
-				     nb_nodes_per_element));
+//   connectivities[type] = &(alloc<UInt>(sstr.str(),
+// 				     nb_element,
+// 				     nb_nodes_per_element));
 
-  type_set.insert(type);
+//   type_set.insert(type);
 
-  updateTypesOffsets();
+//   updateTypesOffsets();
 
-  AKANTU_DEBUG_OUT();
-  return *connectivities[type];
-}
+//   AKANTU_DEBUG_OUT();
+//   return *connectivities[type];
+// }
 
 /* -------------------------------------------------------------------------- */
 Vector<Real> & Mesh::createNormals(ElementType type) {
@@ -158,33 +148,31 @@ Vector<Real> & Mesh::createNormals(ElementType type) {
   return *normals[type];
 }
 
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_MPI
-Vector<UInt> & Mesh::createGhostConnectivity(ElementType type, UInt nb_element) {
-  AKANTU_DEBUG_IN();
-  UInt nb_nodes_per_element;
+// /* -------------------------------------------------------------------------- */
+// Vector<UInt> & Mesh::createGhostConnectivity(ElementType type, UInt nb_element) {
+//   AKANTU_DEBUG_IN();
+//   UInt nb_nodes_per_element;
 
-  AKANTU_DEBUG_ASSERT(ghost_connectivities[type] == NULL,
-		      "The connectivity vector for the type "
-		      << type << "already exist");
+//   AKANTU_DEBUG_ASSERT(ghost_connectivities[type] == NULL,
+// 		      "The connectivity vector for the type "
+// 		      << type << "already exist");
 
-  nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+//   nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-  std::stringstream sstr;
-  sstr << id << ":ghost_connectivity:" << type;
+//   std::stringstream sstr;
+//   sstr << id << ":ghost_connectivity:" << type;
 
-  ghost_connectivities[type] = &(alloc<UInt>(sstr.str(),
-				       nb_element,
-				       nb_nodes_per_element));
+//   ghost_connectivities[type] = &(alloc<UInt>(sstr.str(),
+// 				       nb_element,
+// 				       nb_nodes_per_element));
 
-  ghost_type_set.insert(type);
+//   ghost_type_set.insert(type);
 
-  updateGhostTypesOffsets();
+//   updateGhostTypesOffsets();
 
-  AKANTU_DEBUG_OUT();
-  return *ghost_connectivities[type];
-}
-#endif //AKANTU_USE_MPI
+//   AKANTU_DEBUG_OUT();
+//   return *ghost_connectivities[type];
+// }
 
 /* -------------------------------------------------------------------------- */
 void Mesh::printself(std::ostream & stream, int indent) const {
@@ -204,13 +192,11 @@ void Mesh::printself(std::ostream & stream, int indent) const {
     (connectivities[*it])->printself(stream, indent+2);
     stream << space << " ]" << std::endl;
   }
-#ifdef AKANTU_USE_MPI
   for(it = ghost_type_set.begin(); it != ghost_type_set.end(); ++it) {
     stream << space << " + ghost_connectivities ("<< *it <<") [" << std::endl;
     (ghost_connectivities[*it])->printself(stream, indent+2);
     stream << space << " ]" << std::endl;
   }
-#endif //AKANTU_USE_MPI
   stream << space << "]" << std::endl;
 }
 

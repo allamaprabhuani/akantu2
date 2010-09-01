@@ -43,10 +43,9 @@ void MaterialElastic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::constitutiveLaw(ElementType el_type, bool local) {
+void MaterialElastic::constitutiveLaw(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension    = model.getSpatialDimension();
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);
   UInt size_strain          = spatial_dimension * spatial_dimension;
 
@@ -54,20 +53,18 @@ void MaterialElastic::constitutiveLaw(ElementType el_type, bool local) {
   Real * strain_val;
   Real * stress_val;
 
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+  if(ghost_type == _not_ghost) {
     nb_element   = element_filter[el_type]->getSize();
     strain_val = strain[el_type]->values;
     stress_val = stress[el_type]->values;
-#ifdef AKANTU_USE_MPI
   } else {
-    nb_element = element_filter[el_type]->getSize();
-    strain_val = strain[el_type]->values;
-    stress_val = stress[el_type]->values;
+    nb_element = ghost_element_filter[el_type]->getSize();
+    strain_val = ghost_strain[el_type]->values;
+    stress_val = ghost_stress[el_type]->values;
     potential_energy_flag = false;
   }
-#endif //AKANTU_USE_MPI
+
+  if (nb_element == 0) return;
 
   Real * epot = NULL;
   if (potential_energy_flag) epot = potential_energy[el_type]->values;

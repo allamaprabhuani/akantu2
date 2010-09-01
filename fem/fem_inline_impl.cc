@@ -17,18 +17,15 @@ inline void FEM::integrate(const Vector<Real> & f,
 			   UInt nb_degre_of_freedom,
 			   const ElementType & type,
 			   const UInt elem,
-			   bool local) const {
+			   GhostType ghost_type) const {
 
   Vector<Real> * jac_loc;
-#ifdef AKANTU_USE_MPI
-  if(local) {
-#endif //AKANTU_USE_MPI
+
+  if(ghost_type == _not_ghost) {
     jac_loc     = shapes_derivatives[type];
-#ifdef AKANTU_USE_MPI
   } else {
     jac_loc     = ghost_shapes_derivatives[type];
   }
-#endif //AKANTU_USE_MPI
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
   UInt size_of_jacobians    = FEM::getJacobianSize(type);
@@ -202,4 +199,3 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-

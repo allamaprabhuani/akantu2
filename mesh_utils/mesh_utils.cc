@@ -18,41 +18,46 @@
 
 __BEGIN_AKANTU__
 
-void MeshUtils::buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem){
+/* -------------------------------------------------------------------------- */
+void MeshUtils::buildNode2Elements(const Mesh & mesh,
+				   Vector<UInt> & node_offset,
+				   Vector<UInt> & node_to_elem) {
   AKANTU_DEBUG_IN();
-  
+
   UInt nb_nodes = mesh.getNbNodes();
-  
+
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
-  
+
   UInt nb_types = type_list.size();
   UInt nb_good_types = 0;
-  
+
   UInt nb_nodes_per_element[nb_types];
   UInt nb_nodes_per_element_p1[nb_types];
-  
+
   UInt * conn_val[nb_types];
   UInt nb_element[nb_types];
-  
-  ElementType typeP1;
+
+  ElementType type_p1;
 
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    if(mesh.getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
+    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
-    nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
-    typeP1 = mesh.getElementP1(type);
-    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(typeP1);
+    nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
+    type_p1 = Mesh::getP1ElementType(type);
+    nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
 
     conn_val[nb_good_types] = mesh.getConnectivity(type).values;
     nb_element[nb_good_types] = mesh.getConnectivity(type).getSize();
     nb_good_types++;
   }
 
-  AKANTU_DEBUG_ASSERT(nb_good_types  != 0,"some elements must be found in right dimension to compute facets!");
+  AKANTU_DEBUG_ASSERT(nb_good_types  != 0,
+		      "Some elements must be found in right dimension to compute facets!");
+
   /// array for the node-element list
-  node_offset.resize(nb_nodes+1);
+  node_offset.resize(nb_nodes + 1);
   UInt * node_offset_val = node_offset.values;
 
   /// count number of occurrence of each node
@@ -85,10 +90,10 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset
   for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
   node_offset_val[0] = 0;
 
-  AKANTU_DEBUG_OUT();  
+  AKANTU_DEBUG_OUT();
 }
 
-
+/* -------------------------------------------------------------------------- */
 void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag){
   AKANTU_DEBUG_IN();
 
@@ -100,19 +105,15 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   std::cout << "node offset " << std::endl << node_offset << std::endl;
   std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
 
-
-  Vector<Real> nodes = mesh.getNodes();
-
-  
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
-  
+
   UInt nb_types = type_list.size();
   UInt nb_good_types = 0;
-  
+
   UInt nb_nodes_per_element[nb_types];
   UInt nb_nodes_per_facet[nb_types];
-  
+
   UInt nb_facets[nb_types];
   UInt ** node_in_facet[nb_types];
   Vector<UInt> * connectivity_facets[nb_types];
@@ -126,7 +127,7 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   Mesh * internal_facets_mesh = NULL;
   UInt spatial_dimension = mesh.getSpatialDimension();
   if (internal_flag) internal_facets_mesh = mesh.getInternalFacetsMeshPointer();
-  
+
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
@@ -136,24 +137,19 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
     facet_type = mesh.getFacetElementType(type);
     nb_facets[nb_good_types] = mesh.getNbFacetsPerElementType(type);
     node_in_facet[nb_good_types] = mesh.getFacetLocalConnectivityPerElementType(type);
- 
+
     nb_nodes_per_facet[nb_good_types]    = mesh.getNbNodesPerElement(facet_type);
 
     if (boundary_flag){
       // getting connectivity of boundary facets
       connectivity_facets[nb_good_types] = mesh.getConnectivityPointer(facet_type);
-      if(connectivity_facets[nb_good_types])
-	connectivity_facets[nb_good_types]->resize(0);
-      else
-	connectivity_facets[nb_good_types] = &mesh.createConnectivity(facet_type,0);
+      connectivity_facets[nb_good_types]->resize(0);
     }
     if (internal_flag){
       // getting connectivity of internal facets
-      connectivity_internal_facets[nb_good_types] = internal_facets_mesh->getConnectivityPointer(facet_type);
-      if(connectivity_internal_facets[nb_good_types])
-	connectivity_internal_facets[nb_good_types]->resize(0);
-      else
-	connectivity_internal_facets[nb_good_types] = &internal_facets_mesh->createConnectivity(facet_type,0);
+      connectivity_internal_facets[nb_good_types] =
+	internal_facets_mesh->getConnectivityPointer(facet_type);
+      connectivity_internal_facets[nb_good_types]->resize(0);
     }
 
     conn_val[nb_good_types] = mesh.getConnectivity(type).values;
@@ -165,7 +161,7 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   /// count number of occurrence of each node
   for (UInt t = 0,linearized_el = 0; t < nb_good_types; ++t) {
     for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el) {
-      
+
       UInt el_offset = el*nb_nodes_per_element[t];
       for (UInt f = 0; f < nb_facets[t]; ++f) {
 	//build the nodes involved in facet 'f'
@@ -176,7 +172,7 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	}
 	//our reference is the first node
 	UInt * first_node_elements = node_to_elem.values+node_offset.values[facet_nodes[0]];
-	UInt first_node_nelements = 
+	UInt first_node_nelements =
 	  node_offset.values[facet_nodes[0]+1]-
 	  node_offset.values[facet_nodes[0]];
 	counter.resize(first_node_nelements);
@@ -184,7 +180,7 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	//loop over the other nodes to search intersecting elements
 	for (UInt n = 1; n < nb_nodes_per_facet[t]; ++n) {
 	  UInt * node_elements = node_to_elem.values+node_offset.values[facet_nodes[n]];
-	  UInt node_nelements = 
+	  UInt node_nelements =
 	    node_offset.values[facet_nodes[n]+1]-
 	    node_offset.values[facet_nodes[n]];
 	  for (UInt el1 = 0; el1 < first_node_nelements; ++el1) {
@@ -204,11 +200,11 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	  UInt el_index = node_to_elem.values[node_offset.values[facet_nodes[0]]+el1];
 	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index > linearized_el){
 	    connected_element = el_index;
-	    AKANTU_DEBUG_INFO("connecting elements " << linearized_el << " and " << el_index);   
+	    AKANTU_DEBUG_INFO("connecting elements " << linearized_el << " and " << el_index);
 	    if (internal_flag)
 	      connectivity_internal_facets[t]->push_back(facet_nodes);
 	  }
-	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index != linearized_el) 
+	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index != linearized_el)
 	    connected_facet = true;
 	}
 	if (!connected_facet) {
@@ -220,17 +216,17 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
     }
   }
 
-  AKANTU_DEBUG_OUT();  
+  AKANTU_DEBUG_OUT();
 
 }
 
-
+/* -------------------------------------------------------------------------- */
 void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
-
+  AKANTU_DEBUG_IN();
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
-  
+
   UInt nb_types = type_list.size();
   UInt nb_nodes_per_element[nb_types];
   UInt nb_nodes_per_element_p1[nb_types];
@@ -240,32 +236,31 @@ void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
   Vector<Real> * normals[nb_types];
 
   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
-  
+
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    ElementType typeP1 = mesh.getElementP1(type);
+    ElementType type_p1 = mesh.getP1ElementType(type);
     if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
-    
-    nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
-    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(typeP1);
 
-    // getting connectivity 
+    nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
+    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(type_p1);
+
+    // getting connectivity
     connectivity[nb_good_types] = mesh.getConnectivityPointer(type);
     if (!connectivity[nb_good_types])
       AKANTU_DEBUG_ERROR("connectivity is not allocatted : this should probably not have happend");
-    
+
     //getting array of normals
     normals[nb_good_types] = mesh.getNormalsPointer(type);
     if(normals[nb_good_types])
       normals[nb_good_types]->resize(0);
     else
       normals[nb_good_types] = &mesh.createNormals(type);
-    
+
 
     nb_good_types++;
   }
-  
-  
+  AKANTU_DEBUG_OUT();
 }
 
 __END_AKANTU__

@@ -223,7 +223,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
       sstr >> nb_nodes;
       current_line++;
 
-      Vector<Real> & nodes = mesh.getNodes();
+      Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
       nodes.resize(nb_nodes);
 
       UInt index;
@@ -283,11 +283,11 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	    connectivity->resize(nb_elements_read);
 
 	  connectivity = mesh.getConnectivityPointer(akantu_type);
-	  if(connectivity)
+	  //	  if(connectivity)
 	    connectivity->resize(nb_elements);
-	  else
-	    connectivity = &mesh.createConnectivity(akantu_type,
-						    nb_elements);
+	  //	  else
+	  //	    connectivity = &mesh.createConnectivity(akantu_type,
+	  //						    nb_elements);
 
 	  node_per_element = connectivity->getNbComponent();
 	  akantu_type_old = akantu_type;
@@ -339,7 +339,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   std::ofstream outfile;
-  Vector<Real> & nodes = mesh.getNodes();
+  const Vector<Real> & nodes = mesh.getNodes();
 
   outfile.open(filename.c_str());
 
@@ -373,7 +373,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   Int nb_elements = 0;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    Vector<UInt> & connectivity = mesh.getConnectivity(*it);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(*it);
     nb_elements += connectivity.getSize();
   }
   outfile << nb_elements << std::endl;
@@ -381,7 +381,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   UInt element_idx = 1;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    Vector<UInt> & connectivity = mesh.getConnectivity(type);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
 
     for(UInt i = 0; i < connectivity.getSize(); ++i) {
       UInt offset = i * connectivity.getNbComponent();

@@ -21,13 +21,13 @@
 #include "aka_memory.hh"
 #include "fem.hh"
 #include "mesh.hh"
-#include "solid_mechanics_model.hh"
+//#include "solid_mechanics_model.hh"
 
 
 /* -------------------------------------------------------------------------- */
-// namespace akantu {
-//   class SolidMechanicsModel;
-// };
+namespace akantu {
+  class SolidMechanicsModel;
+};
 
 __BEGIN_AKANTU__
 
@@ -53,19 +53,41 @@ public:
   virtual void initMaterial();
 
   /// compute the residual for this material
-  void updateResidual(Vector<Real> & current_position, bool local = true);
+  void updateResidual(Vector<Real> & current_position, GhostType ghost_type = _not_ghost);
 
   /// constitutive law
-  virtual void constitutiveLaw(ElementType el_type, bool local = true) = 0;
+  virtual void constitutiveLaw(ElementType el_type, GhostType ghost_type = _not_ghost) = 0;
 
   /// compute the stable time step for an element of size h
   virtual Real getStableTimeStep(Real h) = 0;
 
-  /// add an element to the local mesh
-  void addElement(ElementType type, UInt element);
+  /// add an element to the local mesh filter
+  inline void addElement(ElementType type, UInt element);
+
+  /// add an element to the local mesh filter for ghost element
+  inline void addGhostElement(ElementType type, UInt element);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
+
+  /* ------------------------------------------------------------------------ */
+  /* Ghost Synchronizer inherited members                                     */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  inline virtual UInt getNbDataToPack(const Element & element,
+				      GhostSynchronizationTag tag);
+
+  inline virtual UInt getNbDataToUnpack(const Element & element,
+					GhostSynchronizationTag tag);
+
+  inline virtual void packData(Real ** buffer,
+			       const Element & element,
+			       GhostSynchronizationTag tag);
+
+  inline virtual void unpackData(Real ** buffer,
+				 const Element & element,
+				 GhostSynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -75,8 +97,8 @@ public:
   AKANTU_GET_MACRO(ID, id, const MaterialID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
 
-  inline void setPotentialEnergyFlagOn();
-  inline void setPotentialEnergyFlagOff();
+  void setPotentialEnergyFlagOn();
+  void setPotentialEnergyFlagOff();
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Strain, strain, const Vector<Real> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Stress, stress, const Vector<Real> &);
@@ -89,11 +111,17 @@ protected:
   /// id of the material
   MaterialID id;
 
+  /// spatial dimension
+  UInt spatial_dimension;
+
   /// material name
   std::string name;
 
   /// The model to witch the material belong
-  SolidMechanicsModel & model;
+  SolidMechanicsModel * model;
+
+  /// density : rho
+  Real rho;
 
   /// stresses arrays ordered by element types
   ByElementTypeReal stress;
@@ -101,11 +129,17 @@ protected:
   /// strains arrays ordered by element types
   ByElementTypeReal strain;
 
-  /// density : rho
-  Real rho;
-
   /// list of element handled by the material
   ByElementTypeUInt element_filter;
+
+  /// stresses arrays ordered by element types
+  ByElementTypeReal ghost_stress;
+
+  /// strains arrays ordered by element types
+  ByElementTypeReal ghost_strain;
+
+  /// list of element handled by the material
+  ByElementTypeUInt ghost_element_filter;
 
   /// has to compute potential energy or not
   bool potential_energy_flag;
@@ -115,6 +149,9 @@ protected:
 
   /// potential energy by element
   ByElementTypeReal potential_energy;
+
+  /// potential energy by element
+  ByElementTypeReal ghost_potential_energy;
 
   /// boolean to know if the material has been initialized
   bool is_init;

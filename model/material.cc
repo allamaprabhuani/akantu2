@@ -19,21 +19,21 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
-  Memory(model.getMemoryID()), id(id), name(""), model(model),
-  potential_energy_flag(false), potential_energy_vector(false),
+  Memory(model.getMemoryID()), id(id),
+  spatial_dimension(model.getSpatialDimension()), name(""),
+  model(&model), potential_energy_flag(false), potential_energy_vector(false),
   is_init(false) {
   AKANTU_DEBUG_IN();
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->stress          [t] = NULL;
-    this->strain          [t] = NULL;
-    this->potential_energy[t] = NULL;
-#ifdef AKANTU_USE_MPI
+    this->stress                [t] = NULL;
+    this->strain                [t] = NULL;
+    this->potential_energy      [t] = NULL;
+    this->element_filter        [t] = NULL;
     this->ghost_stress          [t] = NULL;
     this->ghost_strain          [t] = NULL;
     this->ghost_potential_energy[t] = NULL;
-#endif //AKANTU_USE_MPI
-
+    this->ghost_element_filter  [t] = NULL;
   }
 
   AKANTU_DEBUG_OUT();
@@ -43,26 +43,20 @@ Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
 Material::~Material() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
-
-  const Mesh::ConnectivityTypeList & type_list = model.getFEM().getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    if(element_filter[*it]) {
-      dealloc(element_filter[*it]->getID());
-      dealloc(stress[*it]->getID());
-      dealloc(strain[*it]->getID());
-
-
-#ifdef AKANTU_USE_MPI
-      dealloc(ghost_element_filter[*it]->getID());
-      dealloc(ghost_stress[*it]->getID());
-      dealloc(ghost_strain[*it]->getID());
-#endif
+  for(UInt t = _not_defined; t < _max_element_type; ++t) {
+    if(element_filter[t]) {
+      dealloc(element_filter[t]->getID());
+      dealloc(stress[t]->getID());
+      dealloc(strain[t]->getID());
     }
-    if(potential_energy[*it]){
-      dealloc(potential_energy[*it]->getID());
+    if(potential_energy[t]){
+      dealloc(potential_energy[t]->getID());
+    }
+
+    if(ghost_element_filter[t]) {
+      dealloc(ghost_element_filter[t]->getID());
+      dealloc(ghost_stress[t]->getID());
+      dealloc(ghost_strain[t]->getID());
     }
   }
 
@@ -81,10 +75,10 @@ void Material::initMaterial() {
   AKANTU_DEBUG_IN();
 
   /// for each connectivity types allocate the element filer array of the material
-  UInt spatial_dimension = model.getSpatialDimension();
+  UInt spatial_dimension = model->getSpatialDimension();
 
-  const Mesh::ConnectivityTypeList & type_list = model.getFEM().getMesh().getConnectivityTypeList();
-
+  const Mesh::ConnectivityTypeList & type_list =
+    model->getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
@@ -102,18 +96,40 @@ void Material::initMaterial() {
 				nb_quadrature_points * spatial_dimension * spatial_dimension));
   }
 
+
+  const Mesh::ConnectivityTypeList & ghost_type_list =
+    model->getFEM().getMesh().getConnectivityTypeList(_ghost);
+
+  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+
+    std::stringstream sstr; sstr << id << ":ghost_element_filer:"<< *it;
+    ghost_element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
+
+    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+
+    std::stringstream sstr_stre; sstr_stre << id << ":ghost_stress:" << *it;
+    std::stringstream sstr_stra; sstr_stra << id << ":ghost_strain:" << *it;
+
+    ghost_stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
+				nb_quadrature_points * spatial_dimension * spatial_dimension));
+    ghost_strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
+				nb_quadrature_points * spatial_dimension * spatial_dimension));
+  }
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::updateResidual(Vector<Real> & current_position, bool local) {
+void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  UInt spatial_dimension = model->getSpatialDimension();
 
-  Vector<Real> & residual = model.getResidual();
+  Vector<Real> & residual = model->getResidual();
 
-  const Mesh::ConnectivityTypeList & type_list = model.getFEM().getMesh().getConnectivityTypeList(local);
+  const Mesh::ConnectivityTypeList & type_list =
+    model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
 
@@ -127,35 +143,32 @@ void Material::updateResidual(Vector<Real> & current_position, bool local) {
     Vector<Real> * stress_vect;
     Vector<UInt> * elem_filter;
     const Vector<Real> * shapes_derivatives;
-#ifdef AKANTU_USE_MPI
-    if(local) {
-#endif // AKANTU_USE_MPI
+
+    if(ghost_type == _not_ghost) {
       elem_filter = element_filter[*it];
       strain_vect = strain[*it];
       stress_vect = stress[*it];
-      shapes_derivatives = &(model.getFEM().getShapesDerivatives(*it));
-#ifdef AKANTU_USE_MPI
+      shapes_derivatives = &(model->getFEM().getShapesDerivatives(*it));
     } else {
       elem_filter = ghost_element_filter[*it];
       strain_vect = ghost_strain[*it];
-      stress_vect = ghist_stress[*it];
-      shapes_derivatives = &(model.getFEM().getGhostShapesDerivatives(*it));
+      stress_vect = ghost_stress[*it];
+      shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(*it));
     }
-#endif // AKANTU_USE_MPI
 
     UInt nb_element = elem_filter->getSize();
 
     /// compute the deformation gradient (current_position -> strain)
-    model.getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
+    model->getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
 					      spatial_dimension,
-					      *it, local, elem_filter);
+					      *it, ghost_type, elem_filter);
 
     /// (strain -> stress)
-    constitutiveLaw(*it, local);
+    constitutiveLaw(*it, ghost_type);
 
     /// compute \sigma * \partial \phi / \partial X
     Vector<Real> * sigma_dphi_dx =
-      new Vector<Real>(nb_element, size_of_shapes_derivatives);
+      new Vector<Real>(nb_element, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
 
     Real * shapesd           = shapes_derivatives->values;
@@ -182,50 +195,22 @@ void Material::updateResidual(Vector<Real> & current_position, bool local) {
 
     /// integrate \sigma * \partial \phi / \partial X
     Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element,
-							nb_nodes_per_element * spatial_dimension);
-    model.getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-			     size_of_shapes_derivatives / nb_quadrature_points,
-			     *it, local, element_filter[*it]);
+							nb_nodes_per_element * spatial_dimension,
+							"int_sigma_x_dphi_/_dX");
+    model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
+			      size_of_shapes_derivatives / nb_quadrature_points,
+			      *it, ghost_type, element_filter[*it]);
     delete sigma_dphi_dx;
 
     /// assemble
-    model.getFEM().assembleVector(*int_sigma_dphi_dx, residual,
-				  residual.getNbComponent(),
-				  *it, local, element_filter[*it], -1);
+    model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
+				   residual.getNbComponent(),
+				   *it, ghost_type, element_filter[*it], -1);
     delete int_sigma_dphi_dx;
   }
 
   AKANTU_DEBUG_OUT();
 }
-
 /* -------------------------------------------------------------------------- */
-void Material::addElement(ElementType type, UInt element) {
-
-#ifdef AKANTU_DEBUG
-  Real init_val = std::numeric_limits<Real>::quiet_NaN();
-#else
-  Real init_val = 0;
-#endif
-
-  element_filter[type]->push_back(element);
-  strain[type]->push_back(init_val);
-  stress[type]->push_back(init_val);
-}
-
-#ifdef AKANTU_USE_MPI
-/* -------------------------------------------------------------------------- */
-void Material::addGhostElement(ElementType type, UInt element) {
-
-#ifdef AKANTU_DEBUG
-  Real init_val = std::numeric_limits<Real>::quiet_NaN();
-#else
-  Real init_val = 0;
-#endif
-
-  ghost_element_filter[type]->push_back(element);
-  ghost_strain[type]->push_back(init_val);
-  ghost_stress[type]->push_back(init_val);
-}
-#endif //AKANTU_USE_MPI
 
 __END_AKANTU__

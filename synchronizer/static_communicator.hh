@@ -1,9 +1,9 @@
 /**
- * @file   mesh_partition_scotch.hh
+ * @file   static_communicator.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Aug 13 10:00:06 2010
+ * @date   Thu Aug 19 15:34:09 2010
  *
- * @brief  mesh partitioning based on libScotch
+ * @brief  Class handling the parallel communications
  *
  * @section LICENSE
  *
@@ -13,46 +13,41 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_PARTITION_SCOTCH_HH__
-#define __AKANTU_MESH_PARTITION_SCOTCH_HH__
-
-/* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh_partition.hh"
-
-/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_STATIC_COMMUNICATOR_HH__
+#define __AKANTU_STATIC_COMMUNICATOR_HH__
 
 __BEGIN_AKANTU__
 
-class MeshPartitionScotch : public MeshPartition {
+class StaticCommunicator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-public:
+private:
+  StaticCommunicator() { };
 
-  MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimension,
-		      const MemoryID & memory_id = 0);
+public:
+  virtual ~StaticCommunicator() { };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void partitionate(UInt nb_part);
-
-  /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const;
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  StaticCommunicator * getStaticCommunicator();
+
+  static bool isInstantiated() const { return isInstantiated; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  static isInstantiated;
 
+  static StaticCommunicator * static_communicator;
 };
 
 
@@ -60,16 +55,9 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "mesh_partition_scotch_inline_impl.cc"
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshPartitionScotch & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+//#include "static_communicator_inline_impl.cc"
 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_PARTITION_SCOTCH_HH__ */
+#endif /* __AKANTU_STATIC_COMMUNICATOR_HH__ */

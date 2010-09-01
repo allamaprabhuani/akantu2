@@ -22,6 +22,7 @@ inline Model::Model(Mesh & mesh,
   std::stringstream sstr; sstr << id << ":fem";
   this->fem = new FEM(mesh, spatial_dimension, sstr.str(), memory_id);
   this->fem_boundary = NULL;
+
   AKANTU_DEBUG_OUT();
 }
 

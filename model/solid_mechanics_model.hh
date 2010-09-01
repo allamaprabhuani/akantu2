@@ -19,10 +19,12 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "model.hh"
+#include "material.hh"
+
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-  class Material;
+  //  class Material;
   class IntegrationScheme2ndOrder;
 }
 
@@ -85,10 +87,30 @@ public:
 
 private:
   /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMass(bool local);
+  void assembleMass(GhostType ghost_type);
+
 
   /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                 */
+  /* Ghost Synchronizer inherited members                                     */
+  /* ------------------------------------------------------------------------ */
+protected:
+
+  inline virtual UInt getNbDataToPack(const Element & element,
+				      GhostSynchronizationTag tag);
+
+  inline virtual UInt getNbDataToUnpack(const Element & element,
+					GhostSynchronizationTag tag);
+
+  inline virtual void packData(Real ** buffer,
+			       const Element & element,
+			       GhostSynchronizationTag tag);
+
+  inline virtual void unpackData(Real ** buffer,
+				 const Element & element,
+				 GhostSynchronizationTag tag);
+
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
@@ -151,8 +173,11 @@ private:
   /// boundaries array
   Vector<bool> * boundary;
 
-  /// materials of all element
+  /// materials of all elements
   ByElementTypeUInt element_material;
+
+  /// materials of all ghost elements
+  ByElementTypeUInt ghost_element_material;
 
   /// list of used materials
   std::vector<Material *> materials;

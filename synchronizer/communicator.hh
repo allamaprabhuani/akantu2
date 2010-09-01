@@ -1,9 +1,9 @@
 /**
- * @file   mesh_partition_scotch.hh
+ * @file   communicator.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Aug 13 10:00:06 2010
+ * @date   Thu Aug 19 15:28:35 2010
  *
- * @brief  mesh partitioning based on libScotch
+ * @brief  wrapper to the static communicator
  *
  * @section LICENSE
  *
@@ -13,35 +13,33 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_PARTITION_SCOTCH_HH__
-#define __AKANTU_MESH_PARTITION_SCOTCH_HH__
+#ifndef __AKANTU_COMMUNICATOR_HH__
+#define __AKANTU_COMMUNICATOR_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh_partition.hh"
+#include "static_communicator.hh"
+#include "synchronizer.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class MeshPartitionScotch : public MeshPartition {
+class Communicator : Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimension,
-		      const MemoryID & memory_id = 0);
+  Communicator();
+  virtual ~Communicator();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void partitionate(UInt nb_part);
 
-  /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const;
+protected:
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -52,7 +50,24 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  /// the static memory instance
+  StaticCommunicator * static_communicator;
 
+  /// size of data to send to each processor by communication tag
+  std::map< GhostSynchronizationTag, Vector<UInt> > size_to_send;
+
+  /// size of data to receive form each processor by communication tag
+  std::map< GhostSynchronizationTag, Vector<UInt> > size_to_receive;
+
+  Vector<Real> * send_buffer;
+
+  Vector<Real> * receive_buffer;
+
+  /// list of real element to send ordered by type then by receiver processors
+  Vector<UInt> *** element_to_send;
+
+  /// list of ghost element to receive ordered by type then by sender processors
+  Vector<UInt> *** element_to_recieve;
 };
 
 
@@ -60,16 +75,8 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "mesh_partition_scotch_inline_impl.cc"
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshPartitionScotch & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
-
+//#include "communicator_inline_impl.cc"
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_PARTITION_SCOTCH_HH__ */
+#endif /* __AKANTU_COMMUNICATOR_HH__ */

@@ -22,18 +22,13 @@
 #include "mesh.hh"
 #include "fem.hh"
 #include "mesh_utils.hh"
-#ifdef AKANTU_USE_MPI
-#  include "communicator.hh"
-#endif
+#include "ghost_synchronizer.hh"
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-#ifdef AKANTU_USE_MPI
-class Model : public Memory, public Communicator {
-#else
-class Model : public Memory {
-#endif
+class Model : public Memory, public GhostSynchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

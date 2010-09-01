@@ -22,7 +22,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-
 __BEGIN_AKANTU__
 
 class MeshPartition : public Memory {
@@ -44,33 +43,39 @@ public:
   virtual void partitionate(UInt nb_part) = 0;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const = 0;
+  //virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
-private:
+protected:
 
   /// build the dual graph of the mesh, for all element of spatial_dimension
-  void buildDualGraph();
+  void buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Partition, partitions, const Vector<UInt> &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
+  /// id
+  std::string id;
+
   /// the mesh to partition
   const Mesh & mesh;
 
   /// dimension of the elements to consider in the mesh
   UInt spatial_dimension;
 
-  /// array of offset in dadjncy
-  Vector<UInt> * dxadj;
+  /// partition numbers
+  ByElementTypeUInt partitions;
 
-  /// array of adjency for every vertex
-  Vector<UInt> * dadjncy;
+  ByElementTypeUInt ghost_partitions;
+
+  ByElementTypeUInt ghost_partitions_offset;
 };
 
 
@@ -81,11 +86,11 @@ private:
 //#include "mesh_partition_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MeshPartition & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const MeshPartition & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
 
 
 __END_AKANTU__
