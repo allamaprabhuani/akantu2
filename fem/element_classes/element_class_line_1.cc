@@ -63,9 +63,32 @@ template<> inline Real ElementClass<_line_1>::getInradius(const Real * coord) {
   return sqrt((coord[0] - coord[1])*(coord[0] - coord[1]));
 }
 
+
+
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_1>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
-  if (dim != 2) AKANTU_DEBUG_ERROR("Is it a sens in changing coordinates from " << dim << " to line elements ?");
+template<> inline void ElementClass<_line_1>::translateCoordinates(const Real * coord, 
+								   const UInt dim, 
+								   const UInt n_points,
+								   Real * translated_coords,
+								   bool flag_inverse){
+  Real coeff;
+  if (flag_inverse) coeff = 1.;
+  else coeff = -1.;
+
+  for (UInt j = 0; j < n_points; ++j) {
+    for (UInt i = 0; i < dim; ++i) {
+      translated_coords[i+j*dim] += coeff*coord[i];
+    }
+  }
+}
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_line_1>::computeRotationMatrix(const Real * coord, 
+								    const UInt dim, 
+								    Real * rotmatrix, 
+								    bool inverse_flag){
+  if (dim != 2) AKANTU_DEBUG_ERROR("cannot compute non invertible rotation matrix"
+				   << "=>Is it a sens in changing coordinates from " 
+				   << dim << " to line elements ?");
   Real vecs[dim*nb_nodes_per_element];
   //compute first vector
   for (UInt j = 0; j < nb_nodes_per_element-1; ++j) {
@@ -79,19 +102,66 @@ template<> inline void ElementClass<_line_1>::changeDimension(const Real * coord
   Math::normalize2(vecs);
   Math::normalize2(vecs+dim);
   //invert to find the matrix rotation
-  Real rotation[dim*nb_nodes_per_element];
-  Math::inv2(vecs,rotation);
+  if (!inverse_flag)
+    Math::inv2(vecs,rotmatrix);
+  else
+    memcpy(rotmatrix,vecs,sizeof(Real)*dim*dim);
+}
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_line_1>::changeDimension(const Real * coord, 
+							      const UInt dim, 
+							      const UInt n_points, 
+							      Real * local_coord) {
+  Real rotation[dim*dim];
+  computeRotationMatrix(coord,dim,rotation); 
+  Real local_coord_dim[dim*n_points];
   //rotation of the coordinates
-  //compute points
-  Real points[dim*nb_nodes_per_element];
-  for (UInt j = 0; j < nb_nodes_per_element; ++j) {
-    for (UInt i = 0; i < dim; ++i) {
-      points[i+j*dim] = coord[i+j*dim]- coord[i];
-    }
-  }
-  Real local_coord_dim[dim*nb_nodes_per_element];
+  Real points[dim*n_points];
+  memcpy(points,coord,sizeof(Real)*dim*n_points);
+  translateCoordinates(coord,dim,n_points,points);
   Math::matrix_matrix(dim,dim,dim,points,rotation,local_coord_dim);
-  for (UInt i = 0; i < nb_nodes_per_element; ++i) {
+  for (UInt i = 0 ; i < n_points ; ++i) {
     local_coord[i] = local_coord_dim[i*dim];
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_line_1>::unchangeDimension(const Real * coord, 
+								const Real * points,
+								const UInt dim,
+								const UInt n_points,
+								Real * local_coord) {
+  Real rotation[dim*nb_nodes_per_element];
+  computeRotationMatrix(coord,dim,rotation,true); 
+  
+  //rotation of the coordinates
+  //compute points
+  Real points_dim[dim*n_points];
+  memset(points_dim,0,sizeof(Real)*dim*n_points);
+  for (UInt j = 0; j < n_points; ++j) {
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      points_dim[i+j*dim] = points[j*spatial_dimension+i];
+    }
+  }
+  Math::matrix_matrix(n_points,dim,dim,points_dim,rotation,local_coord);
+  translateCoordinates(coord,dim,n_points,local_coord,1);  
+}
+
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_line_1>::computeQuadPointCoord(const Real * coord, const UInt dim, Real * local_coord) {
+  Real pos[nb_nodes_per_element];
+  if (dim > 1) {
+    changeDimension(coord,dim,nb_nodes_per_element,pos);
+  }
+  else {
+    pos[0] = coord[0];
+    pos[1] = coord[1];    
+  }
+  Real R = 1./(pos[1]-pos[0]);
+
+  //uniq quad point is
+  Real quad_point = 0.5/R;
+
+  if (dim == spatial_dimension) local_coord[0] = quad_point + pos[0];
+  else unchangeDimension(coord,&quad_point,dim,1,local_coord);
 }

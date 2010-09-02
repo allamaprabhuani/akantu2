@@ -12,6 +12,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+template<ElementType type> inline UInt ElementClass<type>::getNbQuadraturePoint() {
+  return nb_quadrature_points;
+}
+
+/* -------------------------------------------------------------------------- */
 template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
   return nb_quadrature_points * nb_nodes_per_element;
 }
@@ -27,9 +32,14 @@ template<ElementType type> inline UInt ElementClass<type>::getJacobianSize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline void ElementClass<type>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
+template<ElementType type> inline void ElementClass<type>::changeDimension(const Real * coord, const UInt dim, UInt n_points, Real * local_coord) {
   AKANTU_DEBUG_ERROR("TO IMPLEMENT");
 }
+/* -------------------------------------------------------------------------- */
+template<ElementType type> inline void ElementClass<type>::computeQuadPointCoord(const Real * coord, const UInt dim, Real * quad_coord) {
+  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+}
+
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>

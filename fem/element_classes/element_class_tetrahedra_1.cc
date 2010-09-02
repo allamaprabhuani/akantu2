@@ -90,10 +90,6 @@ template<> inline Real ElementClass<_tetrahedra_1>::getInradius(const Real * coo
   return Math::tetrahedron_inradius(coord);
 }
 
-/* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_tetrahedra_1>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
-  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
-}
 
 
 

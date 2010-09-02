@@ -46,6 +46,9 @@ public:
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(GhostType ghost_type = _not_ghost);
 
+  /// pre-compute all the quadrature points coordinates
+  void computeQuadraturePointsCoords();
+
   /// interpolate nodal values on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
@@ -128,6 +131,9 @@ public:
   /// get the size of the shapes returned by the element class
   static inline UInt getShapeSize(const ElementType & type);
 
+  /// get the number of quadrature points
+  static inline UInt getNbQuadraturePoint(const ElementType & type);
+
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
@@ -142,6 +148,9 @@ public:
 
   /// get a the shapes derivatives vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
+
+  /// get a the quadrature point coordinates
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(QuadraturePointsCoords, quadrature_points_coords, const Vector<Real> &);
 
   /// get a the ghost shapes vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
@@ -176,6 +185,9 @@ private:
 
   /// jacobians for all elements
   ByElementTypeReal jacobians;
+
+  /// quadrature points real coordinates
+  ByElementTypeReal quadrature_points_coords;
 
   /// shape functions for all elements
   ByElementTypeReal ghost_shapes;

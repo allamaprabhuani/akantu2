@@ -163,7 +163,7 @@ template <class T> void Vector<T>::resize (UInt new_size) {
 
       /// Normally there are no allocation problem when reducing an array
       values = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));
-      allocated_size = size;
+      allocated_size = new_size;
     }
 
     size = new_size;

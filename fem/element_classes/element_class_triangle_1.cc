@@ -78,6 +78,6 @@ template<> inline Real ElementClass<_triangle_1>::getInradius(const Real * coord
 }
 
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_triangle_1>::changeDimension(const Real * coord, UInt dim, Real * local_coord) {
+template<> inline void ElementClass<_triangle_1>::changeDimension(const Real * coord, UInt dim, UInt n_points, Real * local_coord) {
   AKANTU_DEBUG_ERROR("TO IMPLEMENT");
 }

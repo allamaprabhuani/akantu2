@@ -51,10 +51,24 @@ public:
 			     Real * jacobian);
 
   /// rotate the coordinates so that they are in the dimension of the element
-  inline static void changeDimension(const Real * coord,UInt dim,
-				    Real * element_coords);
+  inline static void changeDimension(const Real * coord, const UInt dim,
+				     const UInt n_points, Real * element_coords);
 
+  /// rotate the coordinates so that they are in the dimension of the element
+  inline static void unchangeDimension(const Real * coord, const Real * points,const UInt dim,
+				       const UInt n_points, Real * element_coords);
 
+  /// compute rotation matrix from one dimension to an other
+  inline static void computeRotationMatrix(const Real * coord, const UInt dim,
+					   Real * rotation_matrix,bool inverse_flag=0);
+
+  /// translate coordinates from first point
+  inline static void translateCoordinates(const Real * coord, const UInt dim,const UInt n_points,
+					  Real * translated_coords,bool inverse_flag=0);
+
+  /// compute the quadrature point position in real space
+  inline static void computeQuadPointCoord(const Real * coord, const UInt dim, Real * quad_coord);
+  
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
@@ -72,6 +86,7 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(NbFacetsPerElement, nb_facets, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(FacetLocalConnectivityPerElement, facet_connectivity, UInt**);
 
+  static inline UInt getNbQuadraturePoint();
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivativesSize();
   static inline UInt getJacobianSize();

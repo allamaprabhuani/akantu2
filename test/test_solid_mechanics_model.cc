@@ -26,6 +26,13 @@
 
 using namespace akantu;
 
+void trac(double * position,double * traction){
+  traction[0] = traction[1] = 0.0;
+  if(fabs(position[0])< 1e-4){
+    traction[0] = -position[1];
+  }
+}
+
 int main(int argc, char *argv[])
 {
   UInt max_steps = 1;
@@ -33,7 +40,7 @@ int main(int argc, char *argv[])
 
   Mesh mesh(2);
   MeshIOMSH mesh_io;
-  mesh_io.read("triangle.msh", mesh);
+  mesh_io.read("carre.msh", mesh);
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
@@ -74,6 +81,8 @@ int main(int argc, char *argv[])
 
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
+  fem_boundary.computeQuadraturePointsCoords();
+
   const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
@@ -81,29 +90,36 @@ int main(int argc, char *argv[])
 
     //    ElementType facet_type = Mesh::getFacetElementType(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-    UInt shape_size           = FEM::getShapeSize(*it);
+    UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
 
+    
     UInt nb_element;
     const Vector<Real> * shapes;
-
+    const Vector<Real> * quad_coords;
+ 
     nb_element   = fem_boundary.getMesh().getNbElement(*it);
+    quad_coords = &(fem_boundary.getQuadraturePointsCoords(*it));
+
     shapes       = &(fem_boundary.getShapes(*it));
 
-    Vector<Real> * funct = new Vector<Real>(nb_element, 2*shape_size, "myfunction");
+    Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad*nb_nodes_per_element, "myfunction");
 
     Real * funct_val = funct->values;
     Real * shapes_val = shapes->values;
 
-    /// compute rho * \phi_i for each nodes of each element
+    /// compute t * \phi_i for each nodes of each element
     for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt n = 0; n < shape_size; ++n) {
-	*funct_val++ = 1* *shapes_val++;
-	*funct_val++ = 0;
+      for (UInt q = 0; q < nb_quad; ++q) {
+	double X[2];
+	trac(quad_coords->values+el*nb_quad*2+q,X);
+	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	  *funct_val++ = X[0] * *shapes_val;
+	  *funct_val++ = X[1] * *shapes_val++;
+	}
       }
     }
 
-    Vector<Real> * int_funct = new Vector<Real>(nb_element, 2*shape_size / nb_quadrature_points,
+    Vector<Real> * int_funct = new Vector<Real>(nb_element, 2*nb_nodes_per_element,
 						    "inte_funct");
     fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
     delete funct;

@@ -87,6 +87,32 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
   AKANTU_DEBUG_OUT();
   return nb_quadrature_points;
 }
+/* -------------------------------------------------------------------------- */
+inline UInt FEM::getNbQuadraturePoint(const ElementType & type) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_quads;
+#define GET_NB_QUADS(type)				\
+  nb_quads = ElementClass<type>::getNbQuadraturePoints()
+
+  switch(type) {
+  case _line_1       : { GET_NB_QUADS(_line_1      ); break; }
+  case _line_2       : { GET_NB_QUADS(_line_2      ); break; }
+  case _triangle_1   : { GET_NB_QUADS(_triangle_1  ); break; }
+  case _triangle_2   : { GET_NB_QUADS(_triangle_2  ); break; }
+  case _tetrahedra_1 : { GET_NB_QUADS(_tetrahedra_1); break; }
+  case _tetrahedra_2 : { GET_NB_QUADS(_tetrahedra_2); break; }
+  case _not_defined:
+  case _max_element_type:  {
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);
+    break; }
+  }
+
+#undef GET_NB_QUADS
+
+  AKANTU_DEBUG_OUT();
+  return nb_quads;
+}
 
 /* -------------------------------------------------------------------------- */
 inline UInt FEM::getShapeSize(const ElementType & type) {
