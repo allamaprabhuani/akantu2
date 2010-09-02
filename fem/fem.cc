@@ -233,7 +233,7 @@ void FEM::computeQuadraturePointsCoords() {
 
     UInt element_type_spatial_dimension = Mesh::getSpatialDimension(type);
     UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
-    UInt nb_quad_points                 = FEM::getNbQuadraturePoint(type);
+    UInt nb_quad_points                 = FEM::getNbQuadraturePoints(type);
 
     if(element_type_spatial_dimension != element_dimension) continue;
 

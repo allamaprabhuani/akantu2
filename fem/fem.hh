@@ -125,14 +125,11 @@ public:
   /// get the mesh contained in the fem object
   inline Mesh & getMesh() const;
 
-  /// get the number of quadrature points of an element
-  static inline UInt getNbQuadraturePoints(const ElementType & type);
-
   /// get the size of the shapes returned by the element class
   static inline UInt getShapeSize(const ElementType & type);
 
   /// get the number of quadrature points
-  static inline UInt getNbQuadraturePoint(const ElementType & type);
+  static inline UInt getNbQuadraturePoints(const ElementType & type);
 
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
@@ -188,6 +185,9 @@ private:
 
   /// quadrature points real coordinates
   ByElementTypeReal quadrature_points_coords;
+
+  /// normals at quadrature points
+  ByElementTypeReal normals_on_quad_points;
 
   /// shape functions for all elements
   ByElementTypeReal ghost_shapes;
