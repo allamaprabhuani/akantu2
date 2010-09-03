@@ -10,7 +10,7 @@
 // by the load_mesh_msh function in adlib.
 
 // Mesh size
-h  = 0.1;    // Top cube
+h  = 0.5;    // Top cube
 hy = 0.5;    // Top cube
 
 // Dimensions of top cube
