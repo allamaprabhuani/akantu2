@@ -165,3 +165,23 @@ template<> inline void ElementClass<_line_1>::computeQuadPointCoord(const Real *
   if (dim == spatial_dimension) local_coord[0] = quad_point + pos[0];
   else unchangeDimension(coord,&quad_point,dim,1,local_coord);
 }
+
+/* -------------------------------------------------------------------------- */
+template<> inline void ElementClass<_line_1>::computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals) {
+  if (dim == 1) AKANTU_DEBUG_ERROR("cannot compute normal of line element in 1D");
+  Real vec[2*dim];
+  vec[0] = coord[2] - coord[0];
+  vec[1] = coord[3] - coord[1];
+
+  if (dim > 2) AKANTU_DEBUG_ERROR("To implement");
+  Math::normalize2(vec);
+  Math::normal2(vec,vec+dim);
+  Real sign = Math::det2(vec);
+  if (sign > 0){
+    vec[2] *= -1;
+    vec[3] *= -1;
+  }
+
+  memcpy(normals,vec+2,sizeof(Real)*2);
+  
+}

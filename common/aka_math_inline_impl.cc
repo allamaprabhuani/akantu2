@@ -191,7 +191,7 @@ inline Real Math::det3(const Real * mat) {
 inline void Math::normal2(const Real * vec,Real * normal) {
   if (vec[1]){
     normal[0] = 1;
-    normal[2] = - vec[0]/vec[1];
+    normal[1] = -1.*vec[0]/vec[1];
     Math::normalize2(normal);
   }
   else {

@@ -39,6 +39,10 @@ template<ElementType type> inline void ElementClass<type>::changeDimension(const
 template<ElementType type> inline void ElementClass<type>::computeQuadPointCoord(const Real * coord, const UInt dim, Real * quad_coord) {
   AKANTU_DEBUG_ERROR("TO IMPLEMENT");
 }
+/* -------------------------------------------------------------------------- */
+template<ElementType type> inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals) {
+  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+}
 
 
 /* -------------------------------------------------------------------------- */

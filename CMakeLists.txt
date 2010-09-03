@@ -159,30 +159,38 @@ set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 # Tests
 #===============================================================================
 
-option(BUILD_UNIT_TEST "Build the unit test")
-if(BUILD_UNIT_TEST)
-  set(AKANTU_UNIT_TESTS
-    test/test_static_memory.cc
-    test/test_mesh_io_msh.cc
-    test/test_vector.cc
-    test/test_fem.cc
-    test/test_solid_mechanics_model.cc
-    test/test_solid_mechanics_model_cube3d.cc
-    test/test_solid_mechanics_model_bar_traction2d.cc
-    test/test_facet_extraction_triangle1.cc
-    test/test_facet_extraction_tetra1.cc
-    )
+option(TEST_FLAG "Activate tests" OFF)
+if(TEST_FLAG)
+subdirs(test)
+endif(TEST_FLAG)
 
-  if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
-    set(AKANTU_UNIT_TESTS
-      ${AKANTU_UNIT_TESTS}
-      test/test_mesh_partitionate.cc
-      )
-  endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
-
-  foreach(_test ${AKANTU_UNIT_TESTS})
-    get_filename_component(_target "${_test}" NAME_WE)
-    add_executable(${_target} ${_test})
-    target_link_libraries(${_target} akantu ${AKANTU_EXTERNAL_LIBRARIES})
-  endforeach(_test)
-endif(BUILD_UNIT_TEST)
+#option(BUILD_UNIT_TEST "Build the unit test")
+#if(BUILD_UNIT_TEST)
+#  set(AKANTU_UNIT_TESTS
+#    test/test_static_memory.cc
+#    test/test_mesh_io_msh.cc
+#    test/test_vector.cc
+#    test/test_fem.cc
+#    test/test_solid_mechanics_model.cc
+#    test/test_solid_mechanics_model_cube3d.cc
+#    test/test_solid_mechanics_model_bar_traction2d.cc
+#    test/test_facet_extraction_triangle1.cc
+#    test/test_facet_extraction_tetra1.cc
+#    test/test_interpolate_line_1.cc
+#    test/test_interpolate_triangle_1.cc
+#    test/test_interpolate_tetrahedra_1.cc
+#    )
+#
+#  if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+#    set(AKANTU_UNIT_TESTS
+#      ${AKANTU_UNIT_TESTS}
+#      test/test_mesh_partitionate.cc
+#      )
+#  endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+#
+#  foreach(_test ${AKANTU_UNIT_TESTS})
+#    get_filename_component(_target "${_test}" NAME_WE)
+#    add_executable(${_target} ${_test})
+#    target_link_libraries(${_target} akantu ${AKANTU_EXTERNAL_LIBRARIES})
+#  endforeach(_test)
+#endif(BUILD_UNIT_TEST)

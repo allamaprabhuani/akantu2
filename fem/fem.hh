@@ -47,7 +47,10 @@ public:
   void initShapeFunctions(GhostType ghost_type = _not_ghost);
 
   /// pre-compute all the quadrature points coordinates
-  void computeQuadraturePointsCoords();
+  void computeQuadraturePointsCoords(GhostType ghost_type = _not_ghost);
+
+  /// pre-compute normals on quadrature points
+  void computeNormalsOnQuadPoints(GhostType ghost_type = _not_ghost);
 
   /// interpolate nodal values on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
@@ -56,11 +59,6 @@ public:
 				     const ElementType & type,
 				     GhostType ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const;
-
-  /// interpolate nodal values on the quadrature points
-  void computeNormasOnQuadraturePoints(const ElementType & type,
-				       bool local = true,
-				       const Vector<UInt> * filter_elements = NULL) const;
 
   /// compute the gradient of u on the quadrature points
   void gradientOnQuadraturePoints(const Vector<Real> &u,
@@ -146,8 +144,11 @@ public:
   /// get a the shapes derivatives vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
 
-  /// get a the quadrature point coordinates
+  /// get the quadrature point coordinates
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(QuadraturePointsCoords, quadrature_points_coords, const Vector<Real> &);
+
+  /// get the normals on quadrature points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NormalsOnQuadPoints, normals_on_quad_points, const Vector<Real> &);
 
   /// get a the ghost shapes vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,

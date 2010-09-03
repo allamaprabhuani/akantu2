@@ -68,6 +68,9 @@ public:
 
   /// compute the quadrature point position in real space
   inline static void computeQuadPointCoord(const Real * coord, const UInt dim, Real * quad_coord);
+
+  /// compute the normals on quadrature points
+  inline static void computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals);
   
 
   /// function to print the containt of the class

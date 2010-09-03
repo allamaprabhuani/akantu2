@@ -61,7 +61,8 @@ FEM::~FEM() {
       dealloc(shapes[*it]->getID());
       dealloc(shapes_derivatives[*it]->getID());
       dealloc(jacobians[*it]->getID());
-
+    }
+    if(ghost_shapes[*it]) {
       dealloc(ghost_shapes[*it]->getID());
       dealloc(ghost_shapes_derivatives[*it]->getID());
       dealloc(ghost_jacobians[*it]->getID());
@@ -217,7 +218,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void FEM::computeQuadraturePointsCoords() {
+void FEM::computeQuadraturePointsCoords(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
@@ -240,18 +241,14 @@ void FEM::computeQuadraturePointsCoords() {
     UInt * elem_val;
     UInt nb_element;
     std::string ghost = "";
-#ifdef AKANTU_USE_MPI
-    if(local) {
-#endif //AKANTU_USE_MPI
+    if(ghost_type == _not_ghost) {
       elem_val   = mesh->getConnectivity(type).values;
       nb_element = mesh->getConnectivity(type).getSize();
-#ifdef AKANTU_USE_MPI
     } else {
       ghost = "ghost_";
       elem_val   = mesh->getGhostConnectivity(type).values;
       nb_element = mesh->getGhostConnectivity(type).getSize();
     }
-#endif //AKANTU_USE_MPI
 
     std::stringstream sstr_quad_coord;
     sstr_quad_coord << id << ":" << ghost << "quadcoord:" << type;
@@ -294,19 +291,97 @@ void FEM::computeQuadraturePointsCoords() {
     }
 #undef COMPUTE_SHAPES
 
-#ifdef AKANTU_USE_MPI
-    if(local) {
-#endif //AKANTU_USE_MPI
+    if(ghost_type == _not_ghost) {
       quadrature_points_coords[type]             = quad_coord_tmp;
-#ifdef AKANTU_USE_MPI
     } else {
       AKANTU_DEBUG_ERROR("to be implemented");
     }
-#endif //AKANTU_USE_MPI
-
   }
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+  Real * coord = mesh->getNodes().values;
+  UInt spatial_dimension = mesh->getSpatialDimension();
+
+  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  for(it = type_list.begin();
+      it != type_list.end();
+      ++it) {
+
+    ElementType type = *it;
+
+    UInt element_type_spatial_dimension = Mesh::getSpatialDimension(type);
+    UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
+    UInt nb_quad_points                 = FEM::getNbQuadraturePoints(type);
+
+    if(element_type_spatial_dimension != element_dimension) continue;
+
+    UInt * elem_val;
+    UInt nb_element;
+    std::string ghost = "";
+
+    if(ghost_type == _not_ghost) {
+      elem_val   = mesh->getConnectivity(type).values;
+      nb_element = mesh->getConnectivity(type).getSize();
+    } else {
+      ghost = "ghost_";
+      elem_val   = mesh->getGhostConnectivity(type).values;
+      nb_element = mesh->getGhostConnectivity(type).getSize();
+    }
+
+    std::stringstream sstr_normals_on_quad;
+    sstr_normals_on_quad << id << ":" << ghost << "normals_onquad:" << type;
+    Vector<Real> * normals_on_quad_tmp = &(alloc<Real>(sstr_normals_on_quad.str(),
+					      nb_element,
+					      nb_quad_points*spatial_dimension));
+
+    Real * normals_on_quad_val    = normals_on_quad_tmp->values;
+
+#define COMPUTE_NORMALS_ON_QUAD(type)					\
+    do {								\
+      Real local_coord[spatial_dimension * nb_nodes_per_element];	\
+      for (UInt elem = 0; elem < nb_element; ++elem) {			\
+	int offset = elem * nb_nodes_per_element;			\
+	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
+	  memcpy(local_coord + id * spatial_dimension,			\
+		 coord + elem_val[offset + id] * spatial_dimension,	\
+		 spatial_dimension*sizeof(Real));			\
+	}								\
+	ElementClass<type>::computeNormalsOnQuadPoint(local_coord,      \
+						  spatial_dimension,	\
+						  normals_on_quad_val);	\
+	normals_on_quad_val += spatial_dimension*nb_quad_points;      	\
+      }									\
+    } while(0)
+    
+    switch(type) {
+    case _line_1       : { COMPUTE_NORMALS_ON_QUAD(_line_1      ); break; }
+    case _line_2       : { COMPUTE_NORMALS_ON_QUAD(_line_2      ); break; }
+    case _triangle_1   : { COMPUTE_NORMALS_ON_QUAD(_triangle_1  ); break; }
+    case _triangle_2   : { COMPUTE_NORMALS_ON_QUAD(_triangle_2  ); break; }
+    case _tetrahedra_1 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedra_1); break; }
+    case _tetrahedra_2 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedra_2); break; }
+    case _not_defined:
+    case _max_element_type:  {
+      AKANTU_DEBUG_ERROR("Wrong type : " << type);
+      break; }
+    }
+#undef COMPUTE_SHAPES
+
+    if(ghost_type == _not_ghost) {
+      normals_on_quad_points[type]             = normals_on_quad_tmp;
+    } else {
+      AKANTU_DEBUG_ERROR("to be implemented");
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
