@@ -63,7 +63,7 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
 
   /// dxds = J^{-1}
   Real inv_dxds[spatial_dimension*spatial_dimension];
-  Math::inv2(inv_dxds,dxds);
+  Math::inv2(dxds,inv_dxds);
 
   jacobian[0] = det_dxds * weight;
 

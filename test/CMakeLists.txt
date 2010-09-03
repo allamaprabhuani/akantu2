@@ -32,7 +32,7 @@ macro(add_mesh MESH_TARGET GEO_FILE DIM ORDER)
       OUTPUT ${_msh_file}
       DEPENDS ${_geo_file}
       COMMAND gmsh
-      ARGS -${DIM} -order ${ORDER} -optimize -o ${_msh_file} ${_geo_file}
+      ARGS -${DIM} -order ${ORDER} -optimize -o ${_msh_file} ${_geo_file} 2>&1 > /dev/null
       )
     add_custom_target(${MESH_TARGET}
       DEPENDS ${_msh_file})
