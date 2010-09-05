@@ -12,6 +12,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
+inline CommunicationRequestMPI::CommunicationRequestMPI() {
+  request = new MPI_Request;
+}
+
+/* -------------------------------------------------------------------------- */
+inline CommunicationRequestMPI::~CommunicationRequestMPI() {
+  delete request;
+}
+
+/* -------------------------------------------------------------------------- */
 inline StaticCommunicatorMPI::StaticCommunicatorMPI(int * argc, char *** argv) {
   MPI_Init(argc, argv);
   setMPIComm(MPI_COMM_WORLD);
@@ -60,39 +70,57 @@ inline void StaticCommunicatorMPI::receive(Real * buffer, Int size,
 }
 
 /* -------------------------------------------------------------------------- */
-inline CommunicationRequest StaticCommunicatorMPI::asyncSend(UInt * buffer, Int size,
+inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(UInt * buffer, Int size,
 							     Int receiver, Int tag) {
-  CommunicationRequestMPI request;
-  Int ret = MPI_Isend(buffer, size, MPI_UNSIGNED, receiver, tag, communicator, &(request.getMPIRequest()));
+  CommunicationRequestMPI * request = new CommunicationRequestMPI();
+  Int ret = MPI_Isend(buffer, size, MPI_UNSIGNED, receiver, tag, communicator, request->getMPIRequest());
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Isend.");
   return request;
 };
 
 /* -------------------------------------------------------------------------- */
-inline CommunicationRequest StaticCommunicatorMPI::asyncSend(Real * buffer, Int size,
+inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(Real * buffer, Int size,
 							     Int receiver, Int tag) {
-  CommunicationRequestMPI request;
-  Int ret = MPI_Isend(buffer, size, MPI_DOUBLE, receiver, tag, communicator, &(request.getMPIRequest()));
+  CommunicationRequestMPI * request = new CommunicationRequestMPI();
+  Int ret = MPI_Isend(buffer, size, MPI_DOUBLE, receiver, tag, communicator, request->getMPIRequest());
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Isend.");
   return request;
 };
 
 /* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::wait(CommunicationRequest & request) {
+inline void StaticCommunicatorMPI::wait(CommunicationRequest * request) {
   MPI_Status status;
-  CommunicationRequestMPI & req_mpi = static_cast<CommunicationRequestMPI &>(request);
-  MPI_Request * req = &(req_mpi.getMPIRequest());
+  CommunicationRequestMPI * req_mpi = static_cast<CommunicationRequestMPI *>(request);
+  MPI_Request * req = req_mpi->getMPIRequest();
   Int ret = MPI_Wait(req, &status);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_WAIT.");
 }
 
 /* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::waitAll(std::vector<CommunicationRequest> & requests) {
+inline void StaticCommunicatorMPI::waitAll(std::vector<CommunicationRequest *> & requests) {
   MPI_Status status;
-  std::vector<CommunicationRequest>::iterator it;
+  std::vector<CommunicationRequest *>::iterator it;
   for(it = requests.begin(); it != requests.end(); ++it) {
-    MPI_Request * req = &(static_cast<CommunicationRequestMPI &>(*it).getMPIRequest());
+    MPI_Request * req = static_cast<CommunicationRequestMPI *>(*it)->getMPIRequest();
     Int ret = MPI_Wait(req, &status);
     AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_WAIT.");
   }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicatorMPI::freeCommunicationRequest(CommunicationRequest * request) {
+  delete request;
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicatorMPI::freeCommunicationRequest(std::vector<CommunicationRequest *> & requests) {
+  std::vector<CommunicationRequest *>::iterator it;
+  for(it = requests.begin(); it != requests.end(); ++it) {
+    delete (*it);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicatorMPI::barrier() {
+  MPI_Barrier(communicator);
 }

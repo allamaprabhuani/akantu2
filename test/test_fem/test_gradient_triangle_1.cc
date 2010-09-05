@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   mesh_io.read("triangle.msh", my_mesh);
   FEM *fem = new FEM(my_mesh,2,"my_fem");
 
-  _debug_level = dblDump;
+  debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
 
   std::cout << *fem << std::endl;

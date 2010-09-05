@@ -23,7 +23,8 @@
 __BEGIN_AKANTU__
 
 class CommunicationRequest {
-
+public:
+  virtual ~CommunicationRequest() {};
 };
 
 
@@ -42,36 +43,43 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void send(UInt * buffer, Int size, Int receiver, Int tag) { };
-  virtual void send(Real * buffer, Int size, Int receiver, Int tag) { };
+  virtual void send(UInt * buffer, Int size, Int receiver, Int tag) = 0;
+  virtual void send(Real * buffer, Int size, Int receiver, Int tag) = 0;
 
-  virtual void receive(UInt * buffer, Int size, Int sender, Int tag) { };
-  virtual void receive(Real * buffer, Int size, Int sender, Int tag) { };
+  virtual void receive(UInt * buffer, Int size, Int sender, Int tag) = 0;
+  virtual void receive(Real * buffer, Int size, Int sender, Int tag) = 0;
 
-  virtual CommunicationRequest asyncSend(UInt * buffer, Int size,
-					 Int receiver, Int tag) {
-    return CommunicationRequest(); };
-  virtual CommunicationRequest asyncSend(Real * buffer, Int size,
-					 Int receiver, Int tag) {
-    return CommunicationRequest(); };
+  virtual CommunicationRequest * asyncSend(UInt * buffer, Int size,
+					   Int receiver, Int tag) = 0;
+  // {
+  //   return new CommunicationRequest(); };
+  virtual CommunicationRequest * asyncSend(Real * buffer, Int size,
+					   Int receiver, Int tag) = 0;
+  // {
+  //   return new CommunicationRequest();
+  // };
 
-  virtual void wait(CommunicationRequest & request) {};
+  virtual void wait(CommunicationRequest * request) = 0;
 
-  virtual void waitAll(std::vector<CommunicationRequest> & requests) {};
+  virtual void waitAll(std::vector<CommunicationRequest *> & requests) = 0;
+
+  virtual void freeCommunicationRequest(CommunicationRequest * request) = 0;
+  virtual void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests) = 0;
+
+  virtual void barrier() = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  virtual Int getNbProc() = 0;
+  virtual Int whoAmI() = 0;
+
   static StaticCommunicator * getStaticCommunicator(CommunicatorType type = _communicator_mpi);
 
   static StaticCommunicator * getStaticCommunicator(int * argc, char *** argv, CommunicatorType type = _communicator_mpi);
 
   static bool isInstantiated() { return is_instantiated; };
-
-  virtual Int getNbProc() { return 1; };
-
-  virtual Int whoAmI() { return 0; };
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

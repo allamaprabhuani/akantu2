@@ -25,7 +25,8 @@ void initialize(int * argc, char *** argv) {
   AKANTU_DEBUG_IN();
 
   StaticMemory::getStaticMemory();
-  StaticCommunicator::getStaticCommunicator(argc, argv);
+  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator(argc, argv);
+  debug::setParallelContext(comm->whoAmI(), comm->getNbProc());
 
   AKANTU_DEBUG_OUT();
 }
@@ -35,7 +36,11 @@ void finalize() {
   AKANTU_DEBUG_IN();
 
   if(StaticMemory::isInstantiated()) delete StaticMemory::getStaticMemory();
-  if(StaticCommunicator::isInstantiated()) delete StaticCommunicator::getStaticCommunicator();
+  if(StaticCommunicator::isInstantiated()) {
+    StaticCommunicator *comm = StaticCommunicator::getStaticCommunicator();
+    comm->barrier();
+    delete comm;
+  }
 
   AKANTU_DEBUG_OUT();
 }

@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
     communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
 
+  comm->barrier();
+
   delete communicator;
 
 #ifdef AKANTU_USE_IOHELPER
@@ -61,7 +63,7 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(type).values,
+  dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
    			 TRIANGLE1, nb_element, C_MODE);
   double * part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
@@ -70,6 +72,8 @@ int main(int argc, char *argv[])
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
+
+  delete part;
 #endif //AKANTU_USE_IOHELPER
 
   akantu::finalize();

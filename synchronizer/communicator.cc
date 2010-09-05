@@ -147,7 +147,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
 
       /// send all connectivity and ghost information to all processors
-      std::vector<CommunicationRequest> requests;
+      std::vector<CommunicationRequest *> requests;
       for (UInt p = 0; p < nb_proc; ++p) {
 	if(p != root) {
 	  UInt size[4];
@@ -156,6 +156,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	  size[2] = nb_ghost_element[p];
 	  size[3] = nb_element_to_send[p];
 	  comm->send(size, 4, p, 0);
+	  AKANTU_DEBUG_INFO("Sending connectivities to proc " << p);
 	  requests.push_back(comm->asyncSend(buffers[p],
 					    nb_nodes_per_element * (nb_local_element[p] +
 								    nb_ghost_element[p]),
@@ -166,6 +167,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
 
       /// create the renumbered connectivity
+      AKANTU_DEBUG_INFO("Renumbering local connectivities");
       MeshUtils::renumberMeshNodes(mesh,
 				   local_connectivity,
 				   nb_local_element[root],
@@ -208,6 +210,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       /// last data to compute the communication scheme
       for (UInt p = 0; p < nb_proc; ++p) {
 	if(p != root) {
+	  AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
 	  requests.push_back(comm->asyncSend(buffers[p],
 						  nb_element_to_send[p] + nb_ghost_element[p],
 						  p, 2));
@@ -216,14 +219,29 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	}
       }
 
+      AKANTU_DEBUG_INFO("Creating communications scheme");
       communicator->fillCommunicationScheme(local_partitions,
 					    nb_local_element[root],
 					    nb_ghost_element[root],
 					    nb_element_to_send[root],
 					    type);
 
+      comm->barrier();
+
       comm->waitAll(requests);
+      comm->freeCommunicationRequest(requests);
       requests.clear();
+    }
+
+    for (UInt p = 0; p < nb_proc; ++p) {
+      if(p != root) {
+	UInt size[4];
+	size[0] = (UInt) _not_defined;
+	size[1] = 0;
+	size[2] = 0;
+	size[3] = 0;
+	comm->send(size, 4, p, 0);
+      }
     }
 
     /**
@@ -236,6 +254,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       UInt nb_nodes;
       UInt * buffer;
       if(p != root) {
+	AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
 	comm->receive(&nb_nodes, 1, p, 0);
 	buffer = new UInt[nb_nodes];
 	comm->receive(buffer, nb_nodes, p, 3);
@@ -256,6 +275,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
       if(p != root) { /// send them for distant processors
 	delete [] buffer;
+	AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
 	comm->send(nodes_to_send, nb_nodes * spatial_dimension, p, 4);
 	delete [] nodes_to_send;
       } else { /// save them for local processor
@@ -285,16 +305,18 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       UInt nb_local_element     = size[1];
       UInt nb_ghost_element     = size[2];
       UInt nb_element_to_send   = size[3];
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
       if(type != _not_defined) {
+	UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
 	local_connectivity = new UInt[(nb_local_element + nb_ghost_element) *
 				      nb_nodes_per_element];
+	AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
 	comm->receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
 								  nb_ghost_element),
 			   root, 1);
 
-
+	AKANTU_DEBUG_INFO("Renumbering local connectivities");
 	MeshUtils::renumberMeshNodes(mesh,
 				     local_connectivity,
 				     nb_local_element,
@@ -305,10 +327,14 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	delete [] local_connectivity;
 
 	local_partitions = new UInt[nb_element_to_send + nb_ghost_element];
+	AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
 	comm->receive(local_partitions,
 			   nb_element_to_send + nb_ghost_element,
 			   root, 2);
 
+	comm->barrier();
+
+	AKANTU_DEBUG_INFO("Creating communications scheme");
 	communicator->fillCommunicationScheme(local_partitions,
 					     nb_local_element,
 					     nb_ghost_element,
@@ -319,15 +345,16 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
     } while(type != _not_defined);
 
-
     /**
      * Nodes coordinate construction and synchronization on distant processors
      */
+    AKANTU_DEBUG_INFO("Sending list of nodes from proc " << root);
     UInt nb_nodes = old_nodes.getSize();
     comm->send(&nb_nodes, 1, root, 0);
     comm->send(old_nodes.values, nb_nodes, root, 3);
 
     nodes->resize(nb_nodes);
+    AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
     comm->receive(nodes->values, nb_nodes * spatial_dimension, root, 4);
   }
 
@@ -350,7 +377,7 @@ void Communicator::fillCommunicationScheme(UInt * partition,
     element_to_send[type]->resize(nb_element_to_send);
   } else {
     std::stringstream sstr; sstr << id << ":element_to_send";
-    element_to_send[type]        = &(alloc<UInt>(sstr.str(), nb_element_to_send, 1));
+    element_to_send[type]        = &(alloc<UInt>(sstr.str(), 0, 1));
     sstr << "_offset";
     element_to_send_offset[type] = &(alloc<UInt>(sstr.str(), nb_proc + 1, 1));
   }
@@ -369,21 +396,21 @@ void Communicator::fillCommunicationScheme(UInt * partition,
   for (UInt i = nb_proc; i > 0; --i) send_offset[i]  = send_offset[i-1];
   send_offset[0] = 0;
 
+  element_to_send[type]->resize(send_offset[nb_proc]);
+
   UInt * elem_to_send = element_to_send[type]->values;
   part = partition;
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
     UInt nb_send = *part++;
     for (UInt p = 0; p < nb_send; ++p) {
-      elem_to_send[send_offset[*part++]] = lel;
+      elem_to_send[send_offset[*part++]++] = lel;
     }
   }
 
   for (UInt i = nb_proc; i > 0; --i) send_offset[i]  = send_offset[i-1];
   send_offset[0] = 0;
 
-
   partition = part; /// finished with the local element, goes to the ghost part
-
 
   if(element_to_receive[type]) {
     element_to_receive_offset[type]->resize(nb_proc + 1);
@@ -409,8 +436,11 @@ void Communicator::fillCommunicationScheme(UInt * partition,
 
   UInt * elem_to_receive = element_to_receive[type]->values;
   part = partition;
-  for (UInt lel = 0; lel < nb_local_element; ++lel) {
-    elem_to_receive[receive_offset[*part++]] = lel;
+  std::cout << "nb_ghost_element : " << nb_ghost_element;
+
+  for (UInt lel = 0; lel < nb_ghost_element; ++lel) {
+    std::cout << "lel : " << lel << " " << *part << " - > " << receive_offset[*part] << std::endl;
+    elem_to_receive[receive_offset[*part++]++] = lel;
   }
 
   for (UInt i = nb_proc; i > 0; --i) receive_offset[i]  = receive_offset[i-1];

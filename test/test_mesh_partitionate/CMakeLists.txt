@@ -11,4 +11,9 @@
 #
 #===============================================================================
 
-REGISTER_TEST(test_mesh_partitionate test_mesh_partitionate.cc)
+register_test(test_mesh_partitionate_scotch
+  test_mesh_partitionate.cc)
+add_mesh(test_mesh_partitionate_mesh
+  triangle.geo 2 1)
+add_dependencies(test_mesh_partitionate_scotch
+  test_mesh_partitionate_mesh)

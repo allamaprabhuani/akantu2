@@ -130,6 +130,7 @@ set(AKANTU_COMMON_SRC
   common/aka_memory.cc
   common/aka_vector.cc
   common/aka_math.cc
+  common/aka_error.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
@@ -182,12 +183,11 @@ add_library(akantu ${AKANTU_COMMON_SRC})
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 
 
-
 #===============================================================================
 # Tests
 #===============================================================================
 
-option(TEST_FLAG "Activate tests" OFF)
-if(TEST_FLAG)
-subdirs(test)
-endif(TEST_FLAG)
+option(AKANTU_TESTS "Activate tests" OFF)
+if(AKANTU_TESTS)
+  subdirs(test)
+endif(AKANTU_TESTS)

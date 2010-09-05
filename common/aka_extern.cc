@@ -29,14 +29,19 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* error.hpp variables                                                        */
 /* -------------------------------------------------------------------------- */
-/// standard output for debug messages
-std::ostream & _akantu_debug_cout = std::cerr;
+namespace debug {
+  /// standard output for debug messages
+  std::ostream & _akantu_debug_cout = std::cerr;
 
-/// standard output for normal messages
-std::ostream & _akantu_cout = std::cout;
+  /// standard output for normal messages
+  std::ostream & _akantu_cout = std::cout;
 
-/// debug level
-DebugLevel _debug_level = (DebugLevel) 5;
+  /// debug level
+  DebugLevel _debug_level = (DebugLevel) 5;
+
+  /// parallel context used in debug messages
+  std::string _parallel_context = "";
+};
 
 /* -------------------------------------------------------------------------- */
 

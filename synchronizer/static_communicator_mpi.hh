@@ -30,14 +30,16 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class CommunicationRequestMPI : public CommunicationRequest {
 public:
-  MPI_Request & getMPIRequest() { return request; };
+  inline CommunicationRequestMPI();
+  inline ~CommunicationRequestMPI();
+  inline MPI_Request * getMPIRequest() { return request; };
 private:
-  MPI_Request request;
+  MPI_Request * request;
 };
 
 
 /* -------------------------------------------------------------------------- */
-class StaticCommunicatorMPI : public StaticCommunicator {
+class StaticCommunicatorMPI : public virtual StaticCommunicator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -57,23 +59,28 @@ public:
   inline void receive(UInt * buffer, Int size, Int sender, Int tag);
   inline void receive(Real * buffer, Int size, Int sender, Int tag);
 
-  inline CommunicationRequest asyncSend(UInt * buffer, Int size, Int receiver, Int tag);
-  inline CommunicationRequest asyncSend(Real * buffer, Int size, Int receiver, Int tag);
+  inline CommunicationRequest * asyncSend(UInt * buffer, Int size, Int receiver, Int tag);
+  inline CommunicationRequest * asyncSend(Real * buffer, Int size, Int receiver, Int tag);
 
-  inline void wait(CommunicationRequest & request);
+  inline void wait(CommunicationRequest * request);
 
-  inline void waitAll(std::vector<CommunicationRequest> & requests);
+  inline void waitAll(std::vector<CommunicationRequest *> & requests);
 
+  inline void freeCommunicationRequest(CommunicationRequest * request);
+  inline void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
+
+  inline void barrier();
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline Int getNbProc() { return psize; };
+  inline void setMPIComm(MPI_Comm comm);
 
+  inline Int getNbProc() { return psize; };
   inline Int whoAmI() { return prank; };
 
-  inline void setMPIComm(MPI_Comm comm);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

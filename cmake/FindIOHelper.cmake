@@ -15,12 +15,12 @@
 set(IOHELPER_LIBRARY "NOTFOUND" CACHE INTERNAL "Cleared" FORCE)
 find_library(IOHELPER_LIBRARY IOHelper
   PATHS ${IOHELPER_DIR}
-  PATH_SUFFIXES . src
+  PATH_SUFFIXES src
   )
 
 find_path(IOHELPER_INCLUDE_PATH io_helper.h
   PATHS ${IOHELPER_DIR}
-  PATH_SUFFIXES . src
+  PATH_SUFFIXES src
   )
 
 #===============================================================================

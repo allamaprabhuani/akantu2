@@ -58,12 +58,19 @@ enum DebugLevel {
   dblDump        = 100
 };
 /* -------------------------------------------------------------------------- */
+namespace debug {
+  extern std::ostream & _akantu_cout;
 
-extern std::ostream & _akantu_cout;
+  extern std::ostream & _akantu_debug_cout;
 
-extern std::ostream & _akantu_debug_cout;
+  extern DebugLevel _debug_level;
 
-extern DebugLevel _debug_level;
+  extern std::string _parallel_context;
+  
+  void setDebugLevel(const DebugLevel & level);
+
+  void setParallelContext(int rank, int size);
+};
 
 /* -------------------------------------------------------------------------- */
 /// exception class that can be thrown by akantu
@@ -112,8 +119,9 @@ private:
   unsigned int  _line;
 };
 
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 #define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
 #ifndef AKANTU_USE_MPI
 #define AKANTU_EXIT(status)			\
@@ -155,31 +163,35 @@ private:
 /* -------------------------------------------------------------------------- */
 #else
 #define AKANTU_DEBUG(level,info)					\
-  ((akantu::_debug_level >= level) &&					\
-   (_akantu_debug_cout << info << " " << AKANTU_LOCATION << std::endl))
+  ((::akantu::debug::_debug_level >= level) &&				\
+   (::akantu::debug::_akantu_debug_cout					\
+    << ::akantu::debug::_parallel_context				\
+    << info << " "							\
+    << AKANTU_LOCATION							\
+    << std::endl))
 
 #define AKANTU_DEBUG_TEST(level)		\
-  (akantu::_debug_level >= (level))
+  (::akantu::debug::_debug_level >= (level))
 
-#define AKANTU_DEBUG_IN()					\
-  AKANTU_DEBUG(akantu::dblIn     , "==> " << __func__ << "()")
+#define AKANTU_DEBUG_IN()						\
+  AKANTU_DEBUG(::akantu::dblIn     , "==> " << __func__ << "()")
 
-#define AKANTU_DEBUG_OUT()					\
-  AKANTU_DEBUG(akantu::dblOut    , "<== " << __func__ << "()")
+#define AKANTU_DEBUG_OUT()						\
+  AKANTU_DEBUG(::akantu::dblOut    , "<== " << __func__ << "()")
 
 #define AKANTU_DEBUG_INFO(info)				\
-  AKANTU_DEBUG(akantu::dblInfo   , "--- " << info)
+  AKANTU_DEBUG(::akantu::dblInfo   , "--- " << info)
 
 #define AKANTU_DEBUG_WARNING(info)			\
-  AKANTU_DEBUG(akantu::dblWarning, "??? " << info)
+  AKANTU_DEBUG(::akantu::dblWarning, "??? " << info)
 
 #define AKANTU_DEBUG_TRACE(info)			\
-  AKANTU_DEBUG(akantu::dblTrace  , ">>> " << info)
+  AKANTU_DEBUG(::akantu::dblTrace  , ">>> " << info)
 
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
-      AKANTU_DEBUG(dblAssert, "assert [" << #test << "] "		\
+      AKANTU_DEBUG(::akantu::dblAssert, "assert [" << #test << "] "	\
 		   << "!!! " << info);					\
       AKANTU_EXIT(EXIT_FAILURE);					\
     }									\
@@ -187,11 +199,11 @@ private:
 
 #define AKANTU_DEBUG_ERROR(info)					\
   do {									\
-    AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
+    AKANTU_DEBUG(::akantu::dblError, "!!! " << info);			\
     AKANTU_EXIT(EXIT_FAILURE);						\
   } while(0)
 
-#endif
+#endif // AKANTU_NDEBUG
 
 /* -------------------------------------------------------------------------- */
 
