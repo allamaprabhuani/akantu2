@@ -108,19 +108,6 @@ inline void StaticCommunicatorMPI::waitAll(std::vector<CommunicationRequest *> &
 }
 
 /* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::freeCommunicationRequest(CommunicationRequest * request) {
-  delete request;
-}
-
-/* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::freeCommunicationRequest(std::vector<CommunicationRequest *> & requests) {
-  std::vector<CommunicationRequest *>::iterator it;
-  for(it = requests.begin(); it != requests.end(); ++it) {
-    delete (*it);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 inline void StaticCommunicatorMPI::barrier() {
   MPI_Barrier(communicator);
 }

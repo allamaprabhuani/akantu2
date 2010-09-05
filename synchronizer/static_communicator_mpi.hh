@@ -66,9 +66,6 @@ public:
 
   inline void waitAll(std::vector<CommunicationRequest *> & requests);
 
-  inline void freeCommunicationRequest(CommunicationRequest * request);
-  inline void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
-
   inline void barrier();
   
   /* ------------------------------------------------------------------------ */

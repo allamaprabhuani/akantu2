@@ -63,8 +63,8 @@ public:
 
   virtual void waitAll(std::vector<CommunicationRequest *> & requests) = 0;
 
-  virtual void freeCommunicationRequest(CommunicationRequest * request) = 0;
-  virtual void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests) = 0;
+  virtual void freeCommunicationRequest(CommunicationRequest * request);
+  virtual void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
 
   virtual void barrier() = 0;
 
@@ -99,7 +99,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "static_communicator_inline_impl.cc"
+#include "static_communicator_inline_impl.cc"
 
 
 __END_AKANTU__

@@ -13,6 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "static_communicator.hh"
+#include "static_communicator_dummy.hh"
+
 #ifdef AKANTU_USE_MPI
 #  include "static_communicator_mpi.hh"
 #endif
@@ -34,8 +36,8 @@ StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType 
       AKANTU_DEBUG_ERROR("You must call getStaticCommunicator(argc, argv) to create a MPI communicator");
 #endif
 
-  // if (!static_communicator)
-  //   static_communicator = new StaticCommunicator();
+  if (!static_communicator)
+    static_communicator = new StaticCommunicatorDummy();
 
   is_instantiated = true;
 
