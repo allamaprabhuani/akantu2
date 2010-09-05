@@ -283,11 +283,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	    connectivity->resize(nb_elements_read);
 
 	  connectivity = mesh.getConnectivityPointer(akantu_type);
-	  //	  if(connectivity)
-	    connectivity->resize(nb_elements);
-	  //	  else
-	  //	    connectivity = &mesh.createConnectivity(akantu_type,
-	  //						    nb_elements);
+	  connectivity->resize(nb_elements);
 
 	  node_per_element = connectivity->getNbComponent();
 	  akantu_type_old = akantu_type;

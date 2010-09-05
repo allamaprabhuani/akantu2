@@ -34,7 +34,7 @@ public:
 
   Memory(MemoryID memory_id = 0);
 
-  virtual ~Memory() {};
+  virtual ~Memory();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -80,6 +80,8 @@ protected:
   /// the id registred in the static memory
   MemoryID memory_id;
 
+  /// list of allocated vectors id
+  std::list<VectorID> handeld_vectors_id;
 };
 
 

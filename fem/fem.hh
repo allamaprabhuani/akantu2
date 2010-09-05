@@ -172,9 +172,6 @@ private:
   /// the mesh on which all computation are made
   Mesh * mesh;
 
-  /// has the mesh been created by this object
-  bool created_mesh;
-
   /// shape functions for all elements
   ByElementTypeReal shapes;
 

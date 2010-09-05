@@ -9,7 +9,6 @@
  *
  * <insert license here>
  *
- * @todo struct element + function linerized index <-> element
  */
 
 /* -------------------------------------------------------------------------- */
@@ -170,10 +169,16 @@ public:
 private:
   friend class MeshIOMSH;
   friend class MeshUtils;
+  friend class Communicator;
+
+  AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
 
   inline Vector<UInt> * getConnectivityPointer(ElementType type);
+
   inline Vector<UInt> * getGhostConnectivityPointer(ElementType type);
+
   inline Mesh * getInternalFacetsMeshPointer();
+
   inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   /* ------------------------------------------------------------------------ */

@@ -16,16 +16,22 @@
 #ifndef __AKANTU_SYNCHRONIZER_HH__
 #define __AKANTU_SYNCHRONIZER_HH__
 
+/* -------------------------------------------------------------------------- */
+#include "aka_memory.hh"
+
+/* -------------------------------------------------------------------------- */
+
 __BEGIN_AKANTU__
 
-class Synchronizer {
+class Synchronizer : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  Synchronizer();
-  virtual ~Synchronizer();
+  Synchronizer(SynchronizerID id = "synchronizer", MemoryID memory_id = 0);
+
+  virtual ~Synchronizer() { };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -33,7 +39,7 @@ public:
 public:
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -43,8 +49,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
+  /// id of the synchronizer
+  SynchronizerID id;
 };
 
 
@@ -55,11 +63,11 @@ private:
 //#include "synchronizer_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const Synchronizer & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const Synchronizer & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
 
 
 __END_AKANTU__

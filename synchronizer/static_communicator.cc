@@ -12,25 +12,48 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "static_communicator.cc"
+#include "static_communicator.hh"
+#ifdef AKANTU_USE_MPI
+#  include "static_communicator_mpi.hh"
+#endif
 
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-bool isInstantiated = false;
-StaticCommunicator * static_communicator = true;
+bool StaticCommunicator::is_instantiated = false;
+StaticCommunicator * StaticCommunicator::static_communicator = NULL;
 
 /* -------------------------------------------------------------------------- */
-StaticCommunicator::getStaticCommunicator() {
+StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType type) {
   AKANTU_DEBUG_IN();
+
+#ifdef AKANTU_USE_MPI
+  if(type == _communicator_mpi)
+    if (!static_communicator)
+      AKANTU_DEBUG_ERROR("You must call getStaticCommunicator(argc, argv) to create a MPI communicator");
+#endif
 
   if (!static_communicator)
     static_communicator = new StaticCommunicator();
 
+  is_instantiated = true;
+
   AKANTU_DEBUG_OUT();
   return static_communicator;
+
 }
+
 /* -------------------------------------------------------------------------- */
+StaticCommunicator * StaticCommunicator::getStaticCommunicator(int * argc, char *** argv,
+							       CommunicatorType type) {
+#ifdef AKANTU_USE_MPI
+  if(type == _communicator_mpi)
+    if (!static_communicator)
+      static_communicator = dynamic_cast<StaticCommunicator *>(new StaticCommunicatorMPI(argc, argv));
+#endif
+
+  return getStaticCommunicator(type);
+}
 
 __END_AKANTU__

@@ -37,11 +37,20 @@ public:
 public:
 
   /// build map from nodes to elements
-  void static buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
   /// build facets elements : boundary and/or internals
-  void static buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
+  static void buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
   /// build normal to some elements
-  void static buildNormals(Mesh & mesh, UInt spatial_dimension=0);
+  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
+
+  /// take  the local_connectivity  array  as  the array  of  local and  ghost
+  /// connectivity, renumber the nodes and set the connectivity of the mesh
+  static void renumberMeshNodes(Mesh & mesh,
+				UInt * local_connectivities,
+				UInt nb_local_element,
+				UInt nb_ghost_element,
+				ElementType type,
+				Vector<UInt> * old_nodes);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

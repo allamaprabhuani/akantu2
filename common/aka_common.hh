@@ -31,6 +31,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <list>
 #include <limits>
 #include <algorithm>
 
@@ -54,10 +55,10 @@ typedef int Int;
 
 typedef std::string ID;
 
-#ifdef AKANTU_DEBUG
-  static const Real REAL_INIT_VALUE = std::numeric_limits<Real>::quiet_NaN();
-#else
+#ifdef AKANTU_NDEBUG
   static const Real REAL_INIT_VALUE = 0;
+#else
+  static const Real REAL_INIT_VALUE = std::numeric_limits<Real>::quiet_NaN();
 #endif
 
 
@@ -96,6 +97,13 @@ enum MaterialType {
 /* -------------------------------------------------------------------------- */
 /* Ghosts handling                                                            */
 /* -------------------------------------------------------------------------- */
+
+typedef ID SynchronizerID;
+
+enum CommunicatorType {
+  _communicator_mpi,
+  _communicator_dummy
+};
 
 enum GhostSynchronizationTag {
   /// SolidMechanicsModel tags
@@ -164,7 +172,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 }
 
 /* -------------------------------------------------------------------------- */
-void initialize();
+void initialize(int * argc, char *** argv);
 
 /* -------------------------------------------------------------------------- */
 void finalize ();

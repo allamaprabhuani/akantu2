@@ -98,18 +98,6 @@ void Mesh::initConnectivities() {
 /* -------------------------------------------------------------------------- */
 Mesh::~Mesh() {
   AKANTU_DEBUG_IN();
-  if(created_nodes) {
-    dealloc(nodes->getID());
-  }
-
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    if(connectivities[t]) {
-      dealloc(connectivities[t]->getID());
-    }
-    if(ghost_connectivities[t]) {
-      dealloc(ghost_connectivities[t]->getID());
-    }
-  }
 
   AKANTU_DEBUG_OUT();
 }

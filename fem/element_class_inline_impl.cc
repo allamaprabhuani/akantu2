@@ -58,6 +58,7 @@ void ElementClass<type>::shapeFunctions(__attribute__ ((unused)) const Real * co
 template<ElementType type>
 inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real * coord) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+  return 0;
 }
 
 /* -------------------------------------------------------------------------- */

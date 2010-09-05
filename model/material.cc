@@ -43,23 +43,6 @@ Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
 Material::~Material() {
   AKANTU_DEBUG_IN();
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    if(element_filter[t]) {
-      dealloc(element_filter[t]->getID());
-      dealloc(stress[t]->getID());
-      dealloc(strain[t]->getID());
-    }
-    if(potential_energy[t]){
-      dealloc(potential_energy[t]->getID());
-    }
-
-    if(ghost_element_filter[t]) {
-      dealloc(ghost_element_filter[t]->getID());
-      dealloc(ghost_stress[t]->getID());
-      dealloc(ghost_strain[t]->getID());
-    }
-  }
-
   AKANTU_DEBUG_OUT();
 }
 

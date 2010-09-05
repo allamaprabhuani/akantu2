@@ -184,9 +184,6 @@ private:
 
   /// integration scheme of second order used
   IntegrationScheme2ndOrder * integrator;
-
-  /// Are the vectors initialized ?
-  bool vector_initalized;
 };
 
 

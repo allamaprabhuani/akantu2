@@ -47,7 +47,7 @@ private:
 
 public:
 
-  //  virtual ~StaticMemory();
+  virtual ~StaticMemory();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -58,6 +58,9 @@ public:
   static StaticMemory * getStaticMemory();
 
   static bool isInstantiated() { return is_instantiated; };
+
+  /// remove a reference on the static memory
+  void destroy();
 
   /// access to an Vector
   inline const VectorBase & getVector(const MemoryID & memory_id,
@@ -117,6 +120,9 @@ private:
 
   /// map of all allocated arrays, indexed by their names
   MemoryMap memories;
+
+  /// number of references on the static memory
+  static UInt nb_reference;
 };
 
 #include "aka_static_memory_inline_impl.cc"

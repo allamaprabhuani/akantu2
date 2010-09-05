@@ -263,4 +263,59 @@ void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void MeshUtils::renumberMeshNodes(Mesh & mesh,
+				  UInt * local_connectivities,
+				  UInt nb_local_element,
+				  UInt nb_ghost_element,
+				  ElementType type,
+				  Vector<UInt> * old_nodes) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+  UInt * conn = local_connectivities;
+
+  std::map<UInt, UInt> nodes_numbers;
+  UInt node_counter = 0;
+
+  for (UInt el = 0; el < nb_local_element + nb_ghost_element; ++el) {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      std::map<UInt, UInt>::iterator nn = nodes_numbers.find(*conn);
+      if(nn == nodes_numbers.end()) {
+	nodes_numbers[*conn] = node_counter;
+	*conn = node_counter;
+	node_counter++;
+      } else {
+	*conn = nn->second;
+      }
+      *conn++;
+    }
+  }
+
+  Vector<UInt> * local_conn = mesh.getConnectivityPointer(type);
+  local_conn->resize(nb_local_element);
+  memcpy(local_conn->values,
+	 local_connectivities,
+	 nb_local_element * nb_nodes_per_element * sizeof(UInt));
+
+  Vector<UInt> * ghost_conn = mesh.getGhostConnectivityPointer(type);
+  ghost_conn->resize(nb_ghost_element);
+  memcpy(ghost_conn->values,
+	 local_connectivities + nb_local_element * nb_nodes_per_element,
+	 nb_ghost_element * nb_nodes_per_element * sizeof(UInt));
+
+  if(old_nodes) {
+    old_nodes->resize(0);
+    std::map<UInt, UInt>::iterator nn;
+    for(nn = nodes_numbers.begin();
+	nn != nodes_numbers.end();
+	++nn) {
+      old_nodes->push_back(nn->first);
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 __END_AKANTU__

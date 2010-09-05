@@ -19,6 +19,9 @@
 #include <ostream>
 #include <sstream>
 
+#ifdef AKANTU_USE_MPI
+#include <mpi.h>
+#endif
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 
@@ -112,7 +115,7 @@ private:
 /* -------------------------------------------------------------------------- */
 
 #define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
-#ifndef AKANTU_MPI
+#ifndef AKANTU_USE_MPI
 #define AKANTU_EXIT(status)			\
   do {						\
     int * p = NULL;				\
@@ -120,12 +123,23 @@ private:
     exit(status);				\
   } while(0)
 #else
-#define AKANTU_EXIT(status)			\
-  do {						\
-    MPI_Finalize();				\
-    exit(status);				\
+#define AKANTU_EXIT(status)						\
+  do {									\
+    int * p = NULL;							\
+    *p = 2;								\
+    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);				\
   } while(0)
 #endif
+
+/* -------------------------------------------------------------------------- */
+#define AKANTU_EXCEPTION(info)						\
+  do {									\
+    AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
+    std::stringstream s_info;						\
+    s_info << info ;							\
+    Exception ex(s_info.str(), __FILE__, __LINE__ );			\
+    throw ex;								\
+  } while(0)
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
 #define AKANTU_DEBUG_TEST(level)   (0)
@@ -136,14 +150,7 @@ private:
 #define AKANTU_DEBUG_WARNING(info)
 #define AKANTU_DEBUG_TRACE(info)
 #define AKANTU_DEBUG_ASSERT(test,info)
-#define AKANTU_DEBUG_ERROR(info)					\
-  do {									\
-    AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
-    std::stringstream s_info;						\
-    s_info << info ;							\
-    Exception ex(s_info.str(), __FILE__, __LINE__ );			\
-    throw ex;								\
-  } while(0)
+#define AKANTU_DEBUG_ERROR(info)   AKANTU_EXCEPTION(info)
 
 /* -------------------------------------------------------------------------- */
 #else

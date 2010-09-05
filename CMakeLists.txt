@@ -87,6 +87,23 @@ if(AKANTU_USE_IOHELPER)
   endif(IOHELPER_FOUND)
 endif(AKANTU_USE_IOHELPER)
 
+# MPI
+option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
+if(AKANTU_USE_MPI)
+  find_package(MPI)
+  if(MPI_FOUND)
+    add_definitions(-DAKANTU_USE_MPI)
+    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
+      ${MPI_INCLUDE_PATH}
+      )
+    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+      ${MPI_LIBRARY}
+      ${MPI_EXTRA_LIBRARY}
+      )
+  endif(MPI_FOUND)
+endif(AKANTU_USE_MPI)
+
+
 # Scotch
 option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
 if(AKANTU_USE_SCOTCH)
@@ -125,14 +142,25 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
   synchronizer/ghost_synchronizer.cc
+  synchronizer/synchronizer.cc
+  synchronizer/communicator.cc
+  synchronizer/static_communicator.cc
   )
+
+#if(AKANTU_USE_MPI AND MPI_FOUND)
+#  set(AKANTU_COMMON_SRC
+#    ${AKANTU_COMMON_SRC}
+#    synchronizer/static_communicator_mpi.cc
+#    )
+#endif(AKANTU_USE_MPI AND MPI_FOUND)
+
 
 if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     mesh_utils/mesh_partition/mesh_partition_scotch.cc
     )
-  endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
 
 
 set(AKANTU_INCLUDE_DIRS
@@ -163,34 +191,3 @@ option(TEST_FLAG "Activate tests" OFF)
 if(TEST_FLAG)
 subdirs(test)
 endif(TEST_FLAG)
-
-#option(BUILD_UNIT_TEST "Build the unit test")
-#if(BUILD_UNIT_TEST)
-#  set(AKANTU_UNIT_TESTS
-#    test/test_static_memory.cc
-#    test/test_mesh_io_msh.cc
-#    test/test_vector.cc
-#    test/test_fem.cc
-#    test/test_solid_mechanics_model.cc
-#    test/test_solid_mechanics_model_cube3d.cc
-#    test/test_solid_mechanics_model_bar_traction2d.cc
-#    test/test_facet_extraction_triangle1.cc
-#    test/test_facet_extraction_tetra1.cc
-#    test/test_interpolate_line_1.cc
-#    test/test_interpolate_triangle_1.cc
-#    test/test_interpolate_tetrahedra_1.cc
-#    )
-#
-#  if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
-#    set(AKANTU_UNIT_TESTS
-#      ${AKANTU_UNIT_TESTS}
-#      test/test_mesh_partitionate.cc
-#      )
-#  endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
-#
-#  foreach(_test ${AKANTU_UNIT_TESTS})
-#    get_filename_component(_target "${_test}" NAME_WE)
-#    add_executable(${_target} ${_test})
-#    target_link_libraries(${_target} akantu ${AKANTU_EXTERNAL_LIBRARIES})
-#  endforeach(_test)
-#endif(BUILD_UNIT_TEST)

@@ -36,18 +36,9 @@ MeshPartition::MeshPartition(const Mesh & mesh, UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 MeshPartition::~MeshPartition() {
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
+  AKANTU_DEBUG_IN();
 
-    if(partitions[type]) {
-      dealloc(partitions[type]->getID());
-      dealloc(ghost_partitions[type]->getID());
-      dealloc(ghost_partitions_offset[type]->getID());
-    }
-  }
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

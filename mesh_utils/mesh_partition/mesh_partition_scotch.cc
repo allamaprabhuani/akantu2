@@ -37,6 +37,11 @@ MeshPartitionScotch::MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimensi
 void MeshPartitionScotch::partitionate(UInt nb_part) {
   AKANTU_DEBUG_IN();
 
+  nb_partitions = nb_part;
+
+  AKANTU_DEBUG_INFO("Partitioning the mesh " << mesh.getID()
+		    << " in " << nb_part << " parts.");
+
   Vector<Int> dxadj;
   Vector<Int> dadjncy;
 
@@ -166,7 +171,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 
     partitions[type] = &(alloc<UInt>(sstr.str(), nb_element, 1, 0));
 
-    ghost_partitions_offset[type] = &(alloc<UInt>(sstr_gi.str(), nb_element, 1, 0));
+    ghost_partitions_offset[type] = &(alloc<UInt>(sstr_gi.str(), nb_element + 1, 1, 0));
     ghost_partitions       [type] = &(alloc<UInt>(sstr_g.str(), 0, 1, 0));
 
     for (UInt el = 0; el < nb_element; ++el, ++linerized_el) {

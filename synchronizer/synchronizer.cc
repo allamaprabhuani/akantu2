@@ -13,3 +13,13 @@
 
 /* -------------------------------------------------------------------------- */
 #include "synchronizer.hh"
+/* -------------------------------------------------------------------------- */
+
+__BEGIN_AKANTU__
+
+Synchronizer::Synchronizer(SynchronizerID id, MemoryID memory_id) :
+  Memory(memory_id), id(id) {
+
+}
+
+__END_AKANTU__

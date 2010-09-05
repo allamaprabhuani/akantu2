@@ -56,6 +56,12 @@ protected:
 public:
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Partition, partitions, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostPartition,
+				   ghost_partitions, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostPartitionOffset,
+				   ghost_partitions_offset, const Vector<UInt> &);
+
+  AKANTU_GET_MACRO(NbPartition, nb_partitions, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -69,6 +75,9 @@ protected:
 
   /// dimension of the elements to consider in the mesh
   UInt spatial_dimension;
+
+  /// number of partitions
+  UInt nb_partitions;
 
   /// partition numbers
   ByElementTypeUInt partitions;

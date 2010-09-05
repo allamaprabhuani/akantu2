@@ -17,8 +17,12 @@
 #define __AKANTU_COMMUNICATOR_HH__
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "aka_vector.hh"
 #include "static_communicator.hh"
 #include "synchronizer.hh"
+#include "mesh.hh"
+#include "mesh_partition.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -30,14 +34,26 @@ class Communicator : Synchronizer {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Communicator();
+  Communicator(SynchronizerID id = "communicator", MemoryID memory_id = 0);
   virtual ~Communicator();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get a mesh and a partition and create the local mesh and the associated communicator
+  static Communicator * createCommunicatorDistributeMesh(Mesh & mesh,
+							 const MeshPartition * partition,
+							 UInt root = 0,
+							 SynchronizerID id = "communicator",
+							 MemoryID memory_id = 0);
 
+  /// fill the communications array of a communicator based on a partition array
+  void fillCommunicationScheme(UInt * partition,
+			       UInt nb_local_element,
+			       UInt nb_ghost_element,
+			       UInt nb_element_to_send,
+			       ElementType type);
 
 protected:
 
@@ -59,15 +75,16 @@ private:
   /// size of data to receive form each processor by communication tag
   std::map< GhostSynchronizationTag, Vector<UInt> > size_to_receive;
 
-  Vector<Real> * send_buffer;
-
-  Vector<Real> * receive_buffer;
+  Vector<Real> send_buffer;
+  Vector<Real> receive_buffer;
 
   /// list of real element to send ordered by type then by receiver processors
-  Vector<UInt> *** element_to_send;
+  ByElementTypeUInt element_to_send_offset;
+  ByElementTypeUInt element_to_send;
 
   /// list of ghost element to receive ordered by type then by sender processors
-  Vector<UInt> *** element_to_recieve;
+  ByElementTypeUInt element_to_receive_offset;
+  ByElementTypeUInt element_to_receive;
 };
 
 

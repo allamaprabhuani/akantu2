@@ -32,8 +32,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 const MemoryID & memory_id) :
   Model(mesh, spatial_dimension, id, memory_id),
   time_step(NAN), f_m2a(1.0),
-  integrator(new CentralDifference()),
-  vector_initalized(false) {
+  integrator(new CentralDifference()) {
   AKANTU_DEBUG_IN();
 
   this->displacement = NULL;
@@ -61,25 +60,6 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModel::~SolidMechanicsModel() {
   AKANTU_DEBUG_IN();
-
-  if(vector_initalized) {
-    dealloc(displacement->getID());
-    dealloc(mass->getID());
-    dealloc(velocity->getID());
-    dealloc(acceleration->getID());
-    dealloc(force->getID());
-    dealloc(residual->getID());
-    dealloc(boundary->getID());
-
-    for(UInt t = _not_defined; t < _max_element_type; ++t) {
-      if(element_material[t]) {
-	dealloc(element_material[t]->getID());
-      }
-      if(ghost_element_material[t]) {
-	dealloc(ghost_element_material[t]->getID());
-      }
-    }
-  }
 
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
@@ -130,8 +110,6 @@ void SolidMechanicsModel::initVectors() {
     std::stringstream sstr_elma; sstr_elma << id << ":ghost_element_material:" << *it;
     ghost_element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
   }
-
-  vector_initalized = true;
 
   AKANTU_DEBUG_OUT();
 }

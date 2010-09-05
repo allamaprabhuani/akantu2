@@ -15,6 +15,7 @@
 template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
 						    UInt size,
 						    UInt nb_component) {
+  handeld_vectors_id.push_back(name);
   return static_memory->smalloc<T>(memory_id, name,
 				   size, nb_component);
 }
@@ -24,6 +25,7 @@ template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
 						   UInt size,
 						   UInt nb_component,
 						   const T & init_value) {
+  handeld_vectors_id.push_back(name);
   return static_memory->smalloc<T>(memory_id, name,
 				   size, nb_component, init_value);
 }
@@ -32,6 +34,7 @@ template<class T> inline Vector<T> & Memory::alloc(const VectorID & name,
 inline void Memory::dealloc(const VectorID & name) {
   AKANTU_DEBUG(dblAccessory, "Deleting the vector " << name);
   static_memory->sfree(memory_id, name);
+  handeld_vectors_id.remove(name);
 }
 
 /* -------------------------------------------------------------------------- */

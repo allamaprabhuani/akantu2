@@ -23,7 +23,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 FEM::FEM(Mesh & mesh, UInt element_dimension, FEMID id, MemoryID memory_id) :
-  Memory(memory_id), id(id), created_mesh(false) {
+  Memory(memory_id), id(id) {
   AKANTU_DEBUG_IN();
   this->element_dimension = (element_dimension != 0) ?
     element_dimension : mesh.getSpatialDimension();
@@ -50,29 +50,6 @@ void FEM::init() {
 /* -------------------------------------------------------------------------- */
 FEM::~FEM() {
   AKANTU_DEBUG_IN();
-
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-
-  for(it = type_list.begin();
-      it != type_list.end();
-      ++it) {
-    if(shapes[*it]) {
-      dealloc(shapes[*it]->getID());
-      dealloc(shapes_derivatives[*it]->getID());
-      dealloc(jacobians[*it]->getID());
-    }
-    if(ghost_shapes[*it]) {
-      dealloc(ghost_shapes[*it]->getID());
-      dealloc(ghost_shapes_derivatives[*it]->getID());
-      dealloc(ghost_jacobians[*it]->getID());
-    }
-  }
-
-  if(created_mesh) {
-    AKANTU_DEBUG(dblAccessory, "Deleting mesh");
-    delete mesh;
-  }
 
   mesh = NULL;
 
@@ -154,7 +131,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 	  }                                                             \
 	  ElementClass<type>::changeDimension(local_coord,              \
 					      spatial_dimension,	\
-	                                      nb_nodes_per_element,     \
+					      nb_nodes_per_element,     \
 					      element_coord);		\
 	  								\
 	  ElementClass<type>::shapeFunctions(element_coord,		\
@@ -183,7 +160,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 	  shapesd_val += size_of_shapesd;				\
 	  jacobians_val += size_of_jacobians;				\
 	}								\
-      }						                        \
+      }									\
   } while(0)
 
 /* -------------------------------------------------------------------------- */
@@ -271,10 +248,10 @@ void FEM::computeQuadraturePointsCoords(GhostType ghost_type) {
 	ElementClass<type>::computeQuadPointCoord(local_coord,          \
 						  spatial_dimension,	\
 						  quad_coord_val);	\
-	quad_coord_val += spatial_dimension*nb_quad_points;      	\
+	quad_coord_val += spatial_dimension*nb_quad_points;	 	\
       }									\
     } while(0)
-    
+
     //    bool need_rotation = mesh->getSpatialDimension() != element_dimension;
 
     switch(type) {
@@ -358,7 +335,7 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
 	normals_on_quad_val += spatial_dimension*nb_quad_points;      	\
       }									\
     } while(0)
-    
+
     switch(type) {
     case _line_1       : { COMPUTE_NORMALS_ON_QUAD(_line_1      ); break; }
     case _line_2       : { COMPUTE_NORMALS_ON_QUAD(_line_2      ); break; }

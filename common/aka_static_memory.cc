@@ -23,6 +23,7 @@ __BEGIN_AKANTU__
 
 bool StaticMemory::is_instantiated = false;
 StaticMemory * StaticMemory::single_static_memory = NULL;
+UInt StaticMemory::nb_reference = 0;
 
 /* -------------------------------------------------------------------------- */
 StaticMemory * StaticMemory::getStaticMemory() {
@@ -30,27 +31,61 @@ StaticMemory * StaticMemory::getStaticMemory() {
     single_static_memory = new StaticMemory();
     is_instantiated = true;
   }
+
+  nb_reference++;
+
   return single_static_memory;
 }
 
+/* -------------------------------------------------------------------------- */
+void StaticMemory::destroy() {
+  nb_reference--;
+  if(nb_reference == 0) {
+    delete single_static_memory;
+  }
+}
 
+/* -------------------------------------------------------------------------- */
+StaticMemory::~StaticMemory() {
+  AKANTU_DEBUG_IN();
+
+  MemoryMap::iterator memory_it;
+  for(memory_it = memories.begin(); memory_it != memories.end(); ++memory_it) {
+    VectorMap::iterator vector_it;
+    for(vector_it = (memory_it->second).begin();
+	vector_it != (memory_it->second).end();
+	++vector_it) {
+      delete vector_it->second;
+    }
+    (memory_it->second).clear();
+  }
+  memories.clear();
+  is_instantiated = false;
+  AKANTU_DEBUG_OUT();
+}
 /* -------------------------------------------------------------------------- */
 void StaticMemory::sfree(const MemoryID & memory_id,
 			 const VectorID & name) {
   AKANTU_DEBUG_IN();
 
-  VectorMap & vectors = const_cast<VectorMap &>(getMemory(memory_id));
-
-  VectorMap::iterator vector_it;
-  vector_it = vectors.find(name);
-  if(vector_it == vectors.end()) {
-    AKANTU_DEBUG_ERROR("StaticMemory as no array named " << name
-		      << " for the Memory " << memory_id);
+  try {
+    VectorMap & vectors = const_cast<VectorMap &>(getMemory(memory_id));
+    VectorMap::iterator vector_it;
+    vector_it = vectors.find(name);
+    if(vector_it != vectors.end()) {
+      delete vector_it->second;
+      vectors.erase(vector_it);
+      AKANTU_DEBUG_INFO("Vector " << name << " removed from the static memory number " << memory_id);
+      AKANTU_DEBUG_OUT();
+      return;
+    }
+  } catch (Exception e) {
+    AKANTU_DEBUG_INFO("The memory " << memory_id << " does not exist (perhaps already freed)");
+    AKANTU_DEBUG_OUT();
+    return;
   }
 
-  delete vector_it->second;
-  vectors.erase(vector_it);
-
+  AKANTU_DEBUG_INFO("The vector " << name << " does not exist (perhaps already freed)");
   AKANTU_DEBUG_OUT();
 }
 
