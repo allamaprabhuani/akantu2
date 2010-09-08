@@ -22,7 +22,7 @@ inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
 
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
-						 GhostSynchronizationTag tag) {
+						 GhostSynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -53,7 +53,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
-						   GhostSynchronizationTag tag) {
+						   GhostSynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -85,7 +85,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packData(Real ** buffer,
 					  const Element & element,
-					  GhostSynchronizationTag tag) {
+					  GhostSynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
@@ -94,6 +94,7 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
 #ifdef AKANTU_DEBUG
   Real * coord = fem->getMesh().getNodes().values;
   UInt * conn  = fem->getMesh().getConnectivity(element.type).values;
+  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
 
   memset(*buffer, 0, spatial_dimension * sizeof(Real));
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
@@ -131,7 +132,7 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackData(Real ** buffer,
 					    const Element & element,
-					    GhostSynchronizationTag tag) {
+					    GhostSynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
@@ -140,6 +141,7 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
 #ifdef AKANTU_DEBUG
   Real * coord = fem->getMesh().getNodes().values;
   UInt * conn  = fem->getMesh().getConnectivity(element.type).values;
+  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
 
   Real barycenter[spatial_dimension];
   memset(barycenter, 0, spatial_dimension * sizeof(Real));

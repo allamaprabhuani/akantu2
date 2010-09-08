@@ -93,21 +93,21 @@ private:
   /* ------------------------------------------------------------------------ */
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
-protected:
+public:
 
   inline virtual UInt getNbDataToPack(const Element & element,
-				      GhostSynchronizationTag tag);
+				      GhostSynchronizationTag tag) const;
 
   inline virtual UInt getNbDataToUnpack(const Element & element,
-					GhostSynchronizationTag tag);
+					GhostSynchronizationTag tag) const;
 
   inline virtual void packData(Real ** buffer,
 			       const Element & element,
-			       GhostSynchronizationTag tag);
+			       GhostSynchronizationTag tag) const;
 
   inline virtual void unpackData(Real ** buffer,
 				 const Element & element,
-				 GhostSynchronizationTag tag);
+				 GhostSynchronizationTag tag) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
