@@ -109,6 +109,7 @@ enum GhostSynchronizationTag {
   /// SolidMechanicsModel tags
   _gst_smm_mass,
   _gst_smm_residual,
+  _gst_test
 };
 
 enum GhostType {
@@ -142,7 +143,7 @@ enum GhostType {
   }
 
 #define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)	\
-  inline type get##name (const ElementType & el_type) const {		\
+  inline type get##name (const ::akantu::ElementType & el_type) const {	\
     AKANTU_DEBUG_IN();							\
     AKANTU_DEBUG_ASSERT(variable[el_type] != NULL,			\
 			"No " << #variable << " of type "		\

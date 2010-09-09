@@ -42,13 +42,26 @@ public:
 
   virtual CommunicationRequest * asyncSend(UInt * buffer, Int size,
 					   Int receiver, Int tag) {
-    return new CommunicationRequest(); 
+    return new CommunicationRequest(0, 0);
   };
 
   virtual CommunicationRequest * asyncSend(Real * buffer, Int size,
 					   Int receiver, Int tag) {
-    return new CommunicationRequest();
+    return new CommunicationRequest(0, 0);
   };
+
+  virtual CommunicationRequest * asyncReceive(UInt * buffer, Int size,
+					      Int sender, Int tag) {
+    return new CommunicationRequest(0, 0);
+  };
+
+  virtual CommunicationRequest * asyncReceive(Real * buffer, Int size,
+					      Int sender, Int tag) {
+    return new CommunicationRequest(0, 0);
+  };
+
+  virtual bool testRequest(CommunicationRequest * request) { return true; };
+
 
   virtual void wait(CommunicationRequest * request) {};
 

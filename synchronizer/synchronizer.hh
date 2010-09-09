@@ -21,6 +21,10 @@
 
 /* -------------------------------------------------------------------------- */
 
+namespace akantu {
+  class GhostSynchronizer;
+};
+
 __BEGIN_AKANTU__
 
 class Synchronizer : public Memory {
@@ -38,8 +42,19 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const;
+  /// synchronize ghosts
+  virtual void synchronize(GhostSynchronizationTag tag) = 0;
+
+  /// asynchronous synchronization of ghosts
+  virtual void asynchronousSynchronize(GhostSynchronizationTag tag) = 0;
+
+  /// wait end of asynchronous synchronization of ghosts
+  virtual void waitEndSynchronize(GhostSynchronizationTag tag) = 0;
+
+  /// register a new communication
+  virtual void registerTag(GhostSynchronizationTag tag) = 0;
+
+  void registerGhostSynchronizer(const GhostSynchronizer & ghost_synchronizer);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -53,21 +68,10 @@ protected:
 
   /// id of the synchronizer
   SynchronizerID id;
+
+  /// the associated ghost_synchonizer
+  const GhostSynchronizer * ghost_synchronizer;
 };
-
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-//#include "synchronizer_inline_impl.cc"
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const Synchronizer & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
 
 
 __END_AKANTU__

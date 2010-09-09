@@ -50,7 +50,7 @@ public:
 				UInt nb_local_element,
 				UInt nb_ghost_element,
 				ElementType type,
-				Vector<UInt> * old_nodes);
+				Vector<UInt> & old_nodes);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

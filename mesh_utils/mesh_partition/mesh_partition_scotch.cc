@@ -154,48 +154,10 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 
   /// free the scotch data structures
   SCOTCH_stratExit(&scotch_strat);
+  SCOTCH_graphFree(&scotch_graph);
   SCOTCH_graphExit(&scotch_graph);
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  UInt linerized_el = 0;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
-
-    UInt nb_element = mesh.getNbElement(*it);
-
-    std::stringstream sstr;    sstr    << mesh.getID() << ":partition:" << type;
-    std::stringstream sstr_gi; sstr_gi << mesh.getID() << ":ghost_partition_offset:" << type;
-    std::stringstream sstr_g;  sstr_g  << mesh.getID() << ":ghost_partition:" << type;
-
-    partitions[type] = &(alloc<UInt>(sstr.str(), nb_element, 1, 0));
-
-    ghost_partitions_offset[type] = &(alloc<UInt>(sstr_gi.str(), nb_element + 1, 1, 0));
-    ghost_partitions       [type] = &(alloc<UInt>(sstr_g.str(), 0, 1, 0));
-
-    for (UInt el = 0; el < nb_element; ++el, ++linerized_el) {
-      UInt part = parttab[linerized_el];
-
-      partitions[type]->values[el] = part;
-
-      for (Int adj = dxadj.values[linerized_el]; adj < dxadj.values[linerized_el + 1]; ++adj) {
-	UInt adj_el = dadjncy.values[adj];
-	UInt adj_part = parttab[adj_el];
-	if(part != adj_part) {
-	  ghost_partitions[type]->push_back(adj_part);
-	  ghost_partitions_offset[type]->values[el]++;
-	}
-      }
-    }
-
-    /// convert the ghost_partitions_offset array in an offset array
-    for (UInt i = 1; i < nb_element; ++i)
-      ghost_partitions_offset[type]->values[i] += ghost_partitions_offset[type]->values[i-1];
-    for (UInt i = nb_element; i > 0; --i)
-      ghost_partitions_offset[type]->values[i]  = ghost_partitions_offset[type]->values[i-1];
-    ghost_partitions_offset[type]->values[0] = 0;
-  }
+  fillPartitionInformations(mesh, parttab);
 
   delete [] parttab;
   AKANTU_DEBUG_OUT();

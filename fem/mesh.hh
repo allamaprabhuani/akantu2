@@ -36,11 +36,18 @@ public:
   Element(ElementType type = _not_defined, UInt element = 0) :
     type(type), element(element) {};
 
+  Element(const Element & element) {
+    this->type    = element.type;
+    this->element = element.element;
+    this->gid     = element.gid;
+  }
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 public:
   ElementType type;
   UInt element;
+  UInt gid;
 };
 
 /* -------------------------------------------------------------------------- */

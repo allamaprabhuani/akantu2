@@ -20,7 +20,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Functions VectorBase                                                       */
 /* -------------------------------------------------------------------------- */
-VectorBase::VectorBase(const VectorID & id) : 
+VectorBase::VectorBase(const VectorID & id) :
   id(id), allocated_size(0), size(0), nb_component(1), size_of_type(0) {
 }
 
@@ -58,7 +58,7 @@ template <class T> Vector<T>::Vector (UInt size,
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
 				      const T def_values[],
-				      const VectorID & id) : 
+				      const VectorID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -75,7 +75,7 @@ template <class T> Vector<T>::Vector (UInt size,
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
 				      const T & value,
-				      const VectorID & id) : 
+				      const VectorID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -189,6 +189,16 @@ template <class T> void Vector<T>::resize (UInt new_size) {
   size = new_size;
   values = tmp_ptr;
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T> Int Vector<T>::find(const T & elem) const {
+  AKANTU_DEBUG_IN();
+  UInt i = 0;
+  for (; (i < size) && (values[i] != elem); ++i);
+
+  AKANTU_DEBUG_OUT();
+  return (i == size) ? -1 : i;
 }
 
 /* -------------------------------------------------------------------------- */

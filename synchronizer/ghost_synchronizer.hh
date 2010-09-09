@@ -19,9 +19,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "synchronizer.hh"
 
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+  class Synchronizer;
+}
 
 __BEGIN_AKANTU__
 
@@ -33,15 +35,12 @@ public:
 
   GhostSynchronizer();
 
-  virtual ~GhostSynchronizer() {};
+  virtual ~GhostSynchronizer();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
-  /// create a communicator
-  //static const Communicator & createCommunicator(const Mesh & mesh, const MeshPartition & partition);
 
   /// synchronize ghosts
   void synchronize(GhostSynchronizationTag tag);
@@ -58,23 +57,20 @@ public:
   /// register a new synchronization
   void registerSynchronizer(Synchronizer & synchronizer);
 
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const;
+public:
+  virtual UInt getNbDataToPack(const Element & element,
+			       GhostSynchronizationTag tag) const = 0;
 
-protected:
-  inline virtual UInt getNbDataToPack(const Element & element,
-				      GhostSynchronizationTag tag) = 0;
+  virtual UInt getNbDataToUnpack(const Element & element,
+				 GhostSynchronizationTag tag) const = 0;
 
-  inline virtual UInt getNbDataToUnpack(const Element & element,
-					GhostSynchronizationTag tag) = 0;
+  virtual void packData(Real ** buffer,
+			const Element & element,
+			GhostSynchronizationTag tag) const = 0;
 
-  inline virtual void packData(Real ** buffer,
-			       const Element & element,
-			       GhostSynchronizationTag tag) = 0;
-
-  inline virtual void unpackData(Real ** buffer,
-				 const Element & element,
-				 GhostSynchronizationTag tag) = 0;
+  virtual void unpackData(Real ** buffer,
+			  const Element & element,
+			  GhostSynchronizationTag tag) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -86,7 +82,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// list of synchronizers
-  std::vector<Synchronizer *> synchronizers;
+  std::list<Synchronizer *> synchronizers;
 
   /// number of tags registered
   UInt nb_ghost_synchronization_tags;

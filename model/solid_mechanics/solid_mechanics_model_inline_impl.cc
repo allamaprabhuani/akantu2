@@ -100,7 +100,7 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt offset_conn = conn[el_offset + n] * spatial_dimension;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      *buffer[i] += coord[offset_conn + i] / (double) spatial_dimension;
+      *buffer[i] += coord[offset_conn + i] / (Real) nb_nodes_per_element;
     }
   }
   *buffer += spatial_dimension;
@@ -148,7 +148,7 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt offset_conn = conn[el_offset + n] * spatial_dimension;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      barycenter[i] += coord[offset_conn + i] / (double) spatial_dimension;
+      barycenter[i] += coord[offset_conn + i] / (Real) nb_nodes_per_element;
     }
   }
 

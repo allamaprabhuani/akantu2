@@ -13,6 +13,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "ghost_synchronizer.hh"
 #include "communicator.hh"
 #include "static_communicator.hh"
 #include "mesh_utils.hh"
@@ -35,12 +37,30 @@ Communicator::Communicator(SynchronizerID id,
     element_to_receive       [t] = NULL;
   }
 
+  UInt nb_proc = static_communicator->getNbProc();
+  send_buffer = new Vector<Real>[nb_proc];
+  recv_buffer = new Vector<Real>[nb_proc];
+
+  send_element = new std::vector<Element>[nb_proc];
+  recv_element = new std::vector<Element>[nb_proc];
+
+
+  size_to_send.clear();
+  size_to_receive.clear();
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 Communicator::~Communicator() {
   AKANTU_DEBUG_IN();
+
+  delete [] send_buffer;
+  delete [] recv_buffer;
+
+  delete [] send_element;
+  delete [] recv_element;
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -110,7 +130,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	  nb_ghost_element[ghost_partition[part]]++;
 	}
 	nb_element_to_send[partition_num[el]] +=
-	  ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1;
+	  ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1 + 1;
       }
 
       /// allocating buffers
@@ -133,7 +153,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
 
       /// copying the connectivity of ghost element
-      //conn_val = mesh.getGhostConnectivity(type).values;
       for (UInt el = 0; el < nb_element; ++el) {
 	for (UInt part = ghost_partition_offset[el];
 	     part < ghost_partition_offset[el + 1];
@@ -161,6 +180,23 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 					    nb_nodes_per_element * (nb_local_element[p] +
 								    nb_ghost_element[p]),
 					    p, 1));
+
+	  for (UInt i = 0; i < nb_local_element[p]; ++i) {
+	    std::cout << p << " - lel " << i << " : ";
+	    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	      std::cout << buffers[p][i*nb_nodes_per_element + n] << " ";
+	    }
+	    std::cout << std::endl;
+	  }
+
+	  for (UInt i = 0; i < nb_ghost_element[p]; ++i) {
+	    std::cout << p << " - gel " << i << " : ";
+	    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	      std::cout << buffers[p][(i+nb_local_element[p])*nb_nodes_per_element + n] << " ";
+	    }
+	    std::cout << std::endl;
+	  }
+
 	} else {
 	  local_connectivity = buffers[p];
 	}
@@ -173,9 +209,10 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 				   nb_local_element[root],
 				   nb_ghost_element[root],
 				   type,
-				   &old_nodes);
+				   old_nodes);
 
       comm->waitAll(requests);
+      comm->freeCommunicationRequest(requests);
       requests.clear();
       for (UInt p = 0; p < nb_proc; ++p) {
 	delete [] buffers[p];
@@ -183,7 +220,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
 
       for (UInt p = 0; p < nb_proc; ++p) {
-	buffers[p] = new UInt[nb_ghost_element[p] + nb_element_to_send[p]];
+	buffers[p] = new UInt[2*nb_ghost_element[p] + nb_element_to_send[p]];
 	buffers_tmp[p] = buffers[p];
       }
 
@@ -192,6 +229,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       memset(count_by_proc, 0, nb_proc*sizeof(UInt));
       for (UInt el = 0; el < nb_element; ++el) {
 	*(buffers_tmp[partition_num[el]]++) = ghost_partition_offset[el + 1] - ghost_partition_offset[el];
+	*(buffers_tmp[partition_num[el]]++) = el;
 	for (UInt part = ghost_partition_offset[el], i = 0;
 	     part < ghost_partition_offset[el + 1];
 	     ++part, ++i) {
@@ -204,6 +242,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	     part < ghost_partition_offset[el + 1];
 	     ++part, ++i) {
 	  *(buffers_tmp[ghost_partition[part]]++) = partition_num[el];
+	  *(buffers_tmp[ghost_partition[part]]++) = el;
 	}
       }
 
@@ -212,7 +251,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	if(p != root) {
 	  AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
 	  requests.push_back(comm->asyncSend(buffers[p],
-						  nb_element_to_send[p] + nb_ghost_element[p],
+						  nb_element_to_send[p] + nb_ghost_element[p] * 2,
 						  p, 2));
 	} else {
 	  local_partitions = buffers[p];
@@ -226,11 +265,13 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 					    nb_element_to_send[root],
 					    type);
 
-      comm->barrier();
-
       comm->waitAll(requests);
       comm->freeCommunicationRequest(requests);
       requests.clear();
+
+      for (UInt p = 0; p < nb_proc; ++p) {
+	delete [] buffers[p];
+      }
     }
 
     for (UInt p = 0; p < nb_proc; ++p) {
@@ -322,17 +363,15 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 				     nb_local_element,
 				     nb_ghost_element,
 				     type,
-				     &old_nodes);
+				     old_nodes);
 
 	delete [] local_connectivity;
 
-	local_partitions = new UInt[nb_element_to_send + nb_ghost_element];
+	local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
 	AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
 	comm->receive(local_partitions,
-			   nb_element_to_send + nb_ghost_element,
+			   nb_element_to_send + nb_ghost_element * 2,
 			   root, 2);
-
-	comm->barrier();
 
 	AKANTU_DEBUG_INFO("Creating communications scheme");
 	communicator->fillCommunicationScheme(local_partitions,
@@ -371,6 +410,8 @@ void Communicator::fillCommunicationScheme(UInt * partition,
   AKANTU_DEBUG_IN();
 
   UInt nb_proc = static_communicator->getNbProc();
+  Element element;
+  element.type = type;
 
   if(element_to_send[type]) {
     element_to_send_offset[type]->resize(nb_proc + 1);
@@ -386,9 +427,11 @@ void Communicator::fillCommunicationScheme(UInt * partition,
   memset(send_offset, 0, (nb_proc + 1) * sizeof(UInt));
   UInt * part = partition;
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
-    UInt nb_send = *part++;
+    UInt nb_send = *part; part++;
+    part++; // global element id
     for (UInt p = 0; p < nb_send; ++p) {
-      send_offset[*part++]++;
+      send_offset[*part]++;
+      part++;
     }
   }
 
@@ -401,9 +444,14 @@ void Communicator::fillCommunicationScheme(UInt * partition,
   UInt * elem_to_send = element_to_send[type]->values;
   part = partition;
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
-    UInt nb_send = *part++;
+    UInt nb_send = *part; part++;
+    element.gid = *part; part++; // global element id
+    element.element = lel;
     for (UInt p = 0; p < nb_send; ++p) {
-      elem_to_send[send_offset[*part++]++] = lel;
+      UInt proc = *part; part++;
+      elem_to_send[send_offset[proc]++] = lel;
+      AKANTU_DEBUG_WARNING("Sending : " << element << " to proc " << proc);
+      (send_element[proc]).push_back(element);
     }
   }
 
@@ -427,7 +475,8 @@ void Communicator::fillCommunicationScheme(UInt * partition,
 
   part = partition;
   for (UInt gel = 0; gel < nb_ghost_element; ++gel) {
-    receive_offset[*part++]++;
+    receive_offset[*part]++; part++;
+    part++;
   }
 
   for (UInt i = 1; i < nb_proc; ++i) receive_offset[i] += receive_offset[i-1];
@@ -438,9 +487,17 @@ void Communicator::fillCommunicationScheme(UInt * partition,
   part = partition;
   std::cout << "nb_ghost_element : " << nb_ghost_element;
 
-  for (UInt lel = 0; lel < nb_ghost_element; ++lel) {
-    std::cout << "lel : " << lel << " " << *part << " - > " << receive_offset[*part] << std::endl;
-    elem_to_receive[receive_offset[*part++]++] = lel;
+  for (UInt gel = 0; gel < nb_ghost_element; ++gel) {
+    UInt proc = *part; part++;
+    std::cout << "lel : " << gel << " " << proc << " - > " << receive_offset[proc] << std::endl;
+    elem_to_receive[receive_offset[proc]++] = gel;
+
+    element.element = gel;
+    element.gid = *part; part++;
+
+    AKANTU_DEBUG_WARNING("Receiving : " << element << " from proc " << proc);
+
+    recv_element[proc].push_back(element);
   }
 
   for (UInt i = nb_proc; i > 0; --i) receive_offset[i]  = receive_offset[i-1];
@@ -449,5 +506,177 @@ void Communicator::fillCommunicationScheme(UInt * partition,
 }
 
 /* -------------------------------------------------------------------------- */
+void Communicator::synchronize(GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  asynchronousSynchronize(tag);
+
+  waitEndSynchronize(tag);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  UInt psize = static_communicator->getNbProc();
+  UInt prank = static_communicator->whoAmI();
+
+  AKANTU_DEBUG_ASSERT(send_requests.size() == 0,
+		      "There must be some pending sending communications");
+
+
+  for (UInt p = 0; p < psize; ++p) {
+    UInt ssize = (size_to_send[tag]).values[p];
+    if(p == prank || ssize == 0) continue;
+
+    AKANTU_DEBUG_INFO("Packing data for proc" << p);
+    send_buffer[p].resize(ssize);
+    Real * buffer = send_buffer[p].values;
+
+    for (std::vector<Element>::const_iterator sit = send_element[p].begin();
+	 sit != send_element[p].end();
+	 ++sit) {
+      std::cout << "toto " << *sit;
+      ghost_synchronizer->packData(&buffer, *sit, tag);
+    }
+
+    // for(UInt t = _not_defined + 1; t < _max_element_type; ++t) {
+    //   if (element_to_send_offset[t] == NULL) continue;
+    //   Element el;
+    //   el.type = (ElementType) t;
+
+    //   for (UInt osel = element_to_send_offset[t]->values[p];
+    // 	   osel < element_to_send_offset[t]->values[p + 1]; ++osel) {
+    // 	el.element = element_to_send[t]->values[osel];
+
+    //   }
+    // }
+
+    AKANTU_DEBUG_INFO("Posting send to proc " << p);
+    send_requests.push_back(static_communicator->asyncSend(send_buffer[p].values,
+						       ssize,
+						       p,
+						       (Int) tag));
+  }
+
+  AKANTU_DEBUG_ASSERT(recv_requests.size() == 0,
+		      "There must be some pending receive communications");
+
+  for (UInt p = 0; p < psize; ++p) {
+    UInt rsize = size_to_receive[tag].values[p];
+    if(p == prank || rsize == 0) continue;
+    recv_buffer[p].resize(rsize);
+
+    AKANTU_DEBUG_INFO("Posting receive from proc " << p);
+    recv_requests.push_back(static_communicator->asyncReceive(recv_buffer[p].values,
+							      send_buffer[p].getSize(),
+							      p,
+							      (Int) tag));
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  while(!recv_requests.empty()) {
+    std::list<std::vector<CommunicationRequest *>::iterator> req_finished;
+    for (std::vector<CommunicationRequest *>::iterator req_it = recv_requests.begin();
+	 req_it != recv_requests.end() ; ++req_it) {
+      CommunicationRequest * req = *req_it;
+
+      if(static_communicator->testRequest(req)) {
+	UInt proc = req->getSource();
+	AKANTU_DEBUG_INFO("Unpacking data coming from proc " << proc);
+	Real * buffer = recv_buffer[proc].values;
+
+	for (std::vector<Element>::const_iterator rit = recv_element[proc].begin();
+	     rit != recv_element[proc].end();
+	     ++rit) {
+	  ghost_synchronizer->unpackData(&buffer, *rit, tag);
+	}
+
+	// for(UInt t = _not_defined + 1; t < _max_element_type; ++t) {
+	//   if (element_to_receive_offset[t] == NULL) continue;
+	//   Element el;
+	//   el.type = (ElementType) t;
+
+	//   for (UInt orel = element_to_receive_offset[t]->values[proc];
+	//        orel < element_to_receive_offset[t]->values[proc + 1]; ++orel) {
+	//     el.element = element_to_receive[t]->values[orel];
+	//     ghost_synchronizer->unpackData(&buffer, el, tag);
+	//   }
+	// }
+
+	req_finished.push_back(req_it);
+	static_communicator->freeCommunicationRequest(req);
+      }
+    }
+
+    std::list<std::vector<CommunicationRequest *>::iterator>::iterator it;
+    for(it = req_finished.begin(); it != req_finished.end(); ++it) {
+      recv_requests.erase(*it);
+    }
+  }
+
+  static_communicator->waitAll(send_requests);
+  static_communicator->freeCommunicationRequest(send_requests);
+  send_requests.clear();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::registerTag(GhostSynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+  UInt psize = static_communicator->getNbProc();
+  UInt prank = static_communicator->whoAmI();
+
+  AKANTU_DEBUG_ASSERT(size_to_send.find(tag) == size_to_send.end(),
+		      "The GhostSynchronizationTag " << tag
+		      << "is already registered in " << id);
+
+  size_to_send   [tag].resize(psize);
+  size_to_receive[tag].resize(psize);
+
+  for (UInt p = 0; p < psize; ++p) {
+    UInt ssend    = 0;
+    UInt sreceive = 0;
+
+    for(UInt t = _not_defined + 1; t < _max_element_type; ++t) {
+      Element el;
+      el.type = (ElementType) t;
+
+      if (element_to_send_offset[t] != NULL) {
+	for (UInt osel = element_to_send_offset[t]->values[p];
+	     osel < element_to_send_offset[t]->values[p + 1]; ++osel) {
+	  el.element = element_to_send[t]->values[osel];
+	  ssend += ghost_synchronizer->getNbDataToPack(el, tag);
+	}
+      }
+      if (element_to_send_offset[t] != NULL) {
+	for (UInt orel = element_to_receive_offset[t]->values[p];
+	     orel < element_to_receive_offset[t]->values[p + 1]; ++orel) {
+	  el.element = element_to_receive[t]->values[orel];
+	  sreceive += ghost_synchronizer->getNbDataToUnpack(el, tag);
+	}
+      }
+    }
+
+    AKANTU_DEBUG_ASSERT(((p == prank) && ((ssend == 0) && (sreceive == 0))) || (p != prank),
+			"Communicator should not send data to himself or  receive data from himself, this must be a bug.");
+
+    size_to_send   [tag].values[p] = ssend;
+    size_to_receive[tag].values[p] = sreceive;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 __END_AKANTU__

@@ -24,7 +24,14 @@ __BEGIN_AKANTU__
 
 class CommunicationRequest {
 public:
+  CommunicationRequest(UInt source, UInt dest) : source(source), destination(dest) {};
   virtual ~CommunicationRequest() {};
+
+  AKANTU_GET_MACRO(Source, source, UInt);
+  AKANTU_GET_MACRO(Destination, destination, UInt);
+private:
+  UInt source;
+  UInt destination;
 };
 
 
@@ -51,13 +58,15 @@ public:
 
   virtual CommunicationRequest * asyncSend(UInt * buffer, Int size,
 					   Int receiver, Int tag) = 0;
-  // {
-  //   return new CommunicationRequest(); };
   virtual CommunicationRequest * asyncSend(Real * buffer, Int size,
 					   Int receiver, Int tag) = 0;
-  // {
-  //   return new CommunicationRequest();
-  // };
+
+  virtual CommunicationRequest * asyncReceive(UInt * buffer, Int size,
+					      Int sender, Int tag) = 0;
+  virtual CommunicationRequest * asyncReceive(Real * buffer, Int size,
+					      Int sender, Int tag) = 0;
+
+  virtual bool testRequest(CommunicationRequest * request) = 0;
 
   virtual void wait(CommunicationRequest * request) = 0;
 

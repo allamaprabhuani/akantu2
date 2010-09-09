@@ -133,6 +133,11 @@ public:
 
   //  Vector<T>& operator=(const Vector<T>& vect);
 
+  /// search elem in the vector, return  the position of the first occurrence or
+  /// -1 if not found
+  Int find(const T & elem) const;
+
+
 protected:
   /// perform the allocation for the constructors
   void allocate(UInt size, UInt nb_component = 1);

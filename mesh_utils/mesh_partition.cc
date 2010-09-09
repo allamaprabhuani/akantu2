@@ -186,4 +186,75 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void MeshPartition::fillPartitionInformations(const Mesh & mesh,
+					      const Int * linearized_partitions) {
+  AKANTU_DEBUG_IN();
+
+  Vector<UInt> node_offset;
+  Vector<UInt> node_index;
+
+  MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
+
+  UInt * node_offset_val = node_offset.values;
+  UInt * node_index_val = node_index.values;
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  UInt linearized_el = 0;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
+
+    UInt nb_element = mesh.getNbElement(*it);
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    std::stringstream sstr;    sstr    << mesh.getID() << ":partition:" << type;
+    std::stringstream sstr_gi; sstr_gi << mesh.getID() << ":ghost_partition_offset:" << type;
+    std::stringstream sstr_g;  sstr_g  << mesh.getID() << ":ghost_partition:" << type;
+
+    partitions             [type] = &(alloc<UInt>(sstr.str(), nb_element, 1, 0));
+    ghost_partitions_offset[type] = &(alloc<UInt>(sstr_gi.str(), nb_element + 1, 1, 0));
+    ghost_partitions       [type] = &(alloc<UInt>(sstr_g.str(), 0, 1, 0));
+
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+
+    for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
+      UInt part = linearized_partitions[linearized_el];
+
+      partitions[type]->values[el] = part;
+      std::list<UInt> list_adj_part;
+      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	UInt node = connectivity.values[el * nb_nodes_per_element + n];
+	for (UInt ne = node_offset_val[node]; ne < node_offset_val[node + 1]; ++ne) {
+	  UInt adj_el = node_index_val[ne];
+	  UInt adj_part = linearized_partitions[adj_el];
+	  if(part != adj_part) {
+	    list_adj_part.push_back(adj_part);
+	  }
+	}
+      }
+
+      list_adj_part.sort();
+      list_adj_part.unique();
+
+      for(std::list<UInt>::iterator it = list_adj_part.begin();
+	  it != list_adj_part.end();
+	  ++it) {
+	ghost_partitions[type]->push_back(*it);
+	ghost_partitions_offset[type]->values[el]++;
+      }
+    }
+
+    /// convert the ghost_partitions_offset array in an offset array
+    for (UInt i = 1; i < nb_element; ++i)
+      ghost_partitions_offset[type]->values[i] += ghost_partitions_offset[type]->values[i-1];
+    for (UInt i = nb_element; i > 0; --i)
+      ghost_partitions_offset[type]->values[i]  = ghost_partitions_offset[type]->values[i-1];
+    ghost_partitions_offset[type]->values[0] = 0;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 __END_AKANTU__

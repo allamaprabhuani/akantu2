@@ -30,7 +30,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class CommunicationRequestMPI : public CommunicationRequest {
 public:
-  inline CommunicationRequestMPI();
+  inline CommunicationRequestMPI(UInt source, UInt dest);
   inline ~CommunicationRequestMPI();
   inline MPI_Request * getMPIRequest() { return request; };
 private:
@@ -62,12 +62,19 @@ public:
   inline CommunicationRequest * asyncSend(UInt * buffer, Int size, Int receiver, Int tag);
   inline CommunicationRequest * asyncSend(Real * buffer, Int size, Int receiver, Int tag);
 
+  virtual CommunicationRequest * asyncReceive(UInt * buffer, Int size,
+					      Int sender, Int tag);
+  virtual CommunicationRequest * asyncReceive(Real * buffer, Int size,
+					      Int sender, Int tag);
+
+  virtual bool testRequest(CommunicationRequest * request);
+
   inline void wait(CommunicationRequest * request);
 
   inline void waitAll(std::vector<CommunicationRequest *> & requests);
 
   inline void barrier();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

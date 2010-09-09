@@ -134,10 +134,10 @@ set(AKANTU_COMMON_SRC
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
-  model/solid_mechanics_model.cc
-  model/material.cc
-  model/materials/material_elastic.cc
   model/integration_scheme/central_difference.cc
+  model/solid_mechanics/solid_mechanics_model.cc
+  model/solid_mechanics/material.cc
+  model/solid_mechanics/materials/material_elastic.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
@@ -171,6 +171,9 @@ set(AKANTU_INCLUDE_DIRS
   mesh_utils/mesh_io/
   mesh_utils/mesh_partition/
   model/
+  model/integeration_scheme
+  model/solid_mechanics
+  model/solid_mechanics/materials
   synchronizer/
   )
 

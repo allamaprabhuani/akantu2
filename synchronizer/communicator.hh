@@ -28,7 +28,7 @@
 
 __BEGIN_AKANTU__
 
-class Communicator : Synchronizer {
+class Communicator : public Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -48,14 +48,28 @@ public:
 							 SynchronizerID id = "communicator",
 							 MemoryID memory_id = 0);
 
+  /* ------------------------------------------------------------------------ */
+  /* Inherited from Synchronizer                                              */
+  /* ------------------------------------------------------------------------ */
+  /// synchronize ghosts
+  void synchronize(GhostSynchronizationTag tag);
+
+  /// asynchronous synchronization of ghosts
+  void asynchronousSynchronize(GhostSynchronizationTag tag);
+
+  /// wait end of asynchronous synchronization of ghosts
+  void waitEndSynchronize(GhostSynchronizationTag tag);
+
+  /// register a new communication
+  void registerTag(GhostSynchronizationTag tag);
+
+protected:
   /// fill the communications array of a communicator based on a partition array
   void fillCommunicationScheme(UInt * partition,
 			       UInt nb_local_element,
 			       UInt nb_ghost_element,
 			       UInt nb_element_to_send,
 			       ElementType type);
-
-protected:
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -75,12 +89,20 @@ private:
   /// size of data to receive form each processor by communication tag
   std::map< GhostSynchronizationTag, Vector<UInt> > size_to_receive;
 
-  Vector<Real> send_buffer;
-  Vector<Real> receive_buffer;
+  Vector<Real> * send_buffer;
+  Vector<Real> * recv_buffer;
+
+  /// send requests
+  std::vector<CommunicationRequest *> send_requests;
+  /// receive requests
+  std::vector<CommunicationRequest *> recv_requests;
 
   /// list of real element to send ordered by type then by receiver processors
   ByElementTypeUInt element_to_send_offset;
   ByElementTypeUInt element_to_send;
+
+  std::vector<Element> * send_element;
+  std::vector<Element> * recv_element;
 
   /// list of ghost element to receive ordered by type then by sender processors
   ByElementTypeUInt element_to_receive_offset;
