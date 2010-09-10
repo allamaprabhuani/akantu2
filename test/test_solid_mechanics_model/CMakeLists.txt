@@ -11,15 +11,20 @@
 #
 #===============================================================================
 
-REGISTER_TEST(test_solid_mechanics_model_bar_traction2d test_solid_mechanics_model_bar_traction2d.cc)
+register_test(test_solid_mechanics_model_bar_traction2d test_solid_mechanics_model_bar_traction2d.cc)
 add_mesh(bar bar.geo 2 1)
 add_dependencies(test_solid_mechanics_model_bar_traction2d bar)
 
-REGISTER_TEST(test_solid_mechanics_model test_solid_mechanics_model.cc)
+register_test(test_solid_mechanics_model test_solid_mechanics_model.cc)
 add_mesh(triangle triangle.geo 2 1)
 add_dependencies(test_solid_mechanics_model triangle)
 
-REGISTER_TEST(test_solid_mechanics_model_cube3d test_solid_mechanics_model_cube3d.cc)
-add_mesh(lcube cube.geo 3 1)
-add_dependencies(test_solid_mechanics_model_cube3d lcube)
+register_test(test_solid_mechanics_model_cube3d test_solid_mechanics_model_cube3d.cc)
+add_mesh(cube_mesh cube.geo 3 1)
+add_dependencies(test_solid_mechanics_model_cube3d cube_mesh)
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
+  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
+  COPYONLY
+  )

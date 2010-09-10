@@ -26,6 +26,31 @@ __BEGIN_AKANTU__
 bool StaticCommunicator::is_instantiated = false;
 StaticCommunicator * StaticCommunicator::static_communicator = NULL;
 
+UInt CommunicationRequest::counter = 0;
+
+/* -------------------------------------------------------------------------- */
+CommunicationRequest::CommunicationRequest(UInt source, UInt dest) :
+  source(source), destination(dest) {
+  this->id = counter++;
+}
+
+/* -------------------------------------------------------------------------- */
+CommunicationRequest::~CommunicationRequest() {
+
+}
+
+/* -------------------------------------------------------------------------- */
+void CommunicationRequest::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << space << "CommunicationRequest [" << std::endl;
+  stream << space << " + id          : " << id << std::endl;
+  stream << space << " + source      : " << source << std::endl;
+  stream << space << " + destination : " << destination << std::endl;
+  stream << space << "]" << std::endl;
+}
+
 /* -------------------------------------------------------------------------- */
 StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType type) {
   AKANTU_DEBUG_IN();

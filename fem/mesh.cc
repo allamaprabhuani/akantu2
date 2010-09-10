@@ -102,32 +102,6 @@ Mesh::~Mesh() {
   AKANTU_DEBUG_OUT();
 }
 
-// /* -------------------------------------------------------------------------- */
-// Vector<UInt> & Mesh::createConnectivity(ElementType type, UInt nb_element) {
-//   AKANTU_DEBUG_IN();
-//   UInt nb_nodes_per_element;
-
-//   AKANTU_DEBUG_ASSERT(connectivities[type] == NULL,
-// 		      "The connectivity vector for the type "
-// 		      << type << "already exist");
-
-//   nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-//   std::stringstream sstr;
-//   sstr << id << ":connectivity:" << type;
-
-//   connectivities[type] = &(alloc<UInt>(sstr.str(),
-// 				     nb_element,
-// 				     nb_nodes_per_element));
-
-//   type_set.insert(type);
-
-//   updateTypesOffsets();
-
-//   AKANTU_DEBUG_OUT();
-//   return *connectivities[type];
-// }
-
 /* -------------------------------------------------------------------------- */
 Vector<Real> & Mesh::createNormals(ElementType type) {
   AKANTU_DEBUG_IN();
@@ -135,32 +109,6 @@ Vector<Real> & Mesh::createNormals(ElementType type) {
   AKANTU_DEBUG_OUT();
   return *normals[type];
 }
-
-// /* -------------------------------------------------------------------------- */
-// Vector<UInt> & Mesh::createGhostConnectivity(ElementType type, UInt nb_element) {
-//   AKANTU_DEBUG_IN();
-//   UInt nb_nodes_per_element;
-
-//   AKANTU_DEBUG_ASSERT(ghost_connectivities[type] == NULL,
-// 		      "The connectivity vector for the type "
-// 		      << type << "already exist");
-
-//   nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-//   std::stringstream sstr;
-//   sstr << id << ":ghost_connectivity:" << type;
-
-//   ghost_connectivities[type] = &(alloc<UInt>(sstr.str(),
-// 				       nb_element,
-// 				       nb_nodes_per_element));
-
-//   ghost_type_set.insert(type);
-
-//   updateGhostTypesOffsets();
-
-//   AKANTU_DEBUG_OUT();
-//   return *ghost_connectivities[type];
-// }
 
 /* -------------------------------------------------------------------------- */
 void Mesh::printself(std::ostream & stream, int indent) const {

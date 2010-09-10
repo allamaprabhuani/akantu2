@@ -32,14 +32,14 @@ VectorBase::~VectorBase() {
 void VectorBase::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-  stream << indent << "VectorBase [" << std::endl;
-  stream << indent << " + size             : " << size << std::endl;
-  stream << indent << " + nb component     : " << nb_component << std::endl;
-  stream << indent << " + allocated size   : " << allocated_size << std::endl;
+  stream << space << "VectorBase [" << std::endl;
+  stream << space << " + size             : " << size << std::endl;
+  stream << space << " + nb component     : " << nb_component << std::endl;
+  stream << space << " + allocated size   : " << allocated_size << std::endl;
   Real mem_size = (allocated_size * nb_component * size_of_type) / 1024.;
-  stream << indent << " + size of type     : " << size_of_type << "B" << std::endl;
-  stream << indent << " + memory allocated : " << mem_size << "kB" << std::endl;
-  stream << indent << "]" << std::endl;
+  stream << space << " + size of type     : " << size_of_type << "B" << std::endl;
+  stream << space << " + memory allocated : " << mem_size << "kB" << std::endl;
+  stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -114,9 +114,9 @@ template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep) {
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::~Vector () {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_INFO("Freeing "
-		    << allocated_size*nb_component*sizeof(T) / 1024.
-		    << "kB (" << id <<")");
+  AKANTU_DEBUG(dblAccessory, "Freeing "
+	       << allocated_size*nb_component*sizeof(T) / 1024.
+	       << "kB (" << id <<")");
 
   free(values);
   size = allocated_size = 0;
@@ -140,9 +140,9 @@ template <class T> void Vector<T>::allocate(UInt size,
   if (values == NULL) {
     this->size = this->allocated_size = 0;
   } else {
-    AKANTU_DEBUG_INFO("Allocated "
-		      << size * nb_component * sizeof(T) / 1024.
-		      << "kB (" << id <<")");
+    AKANTU_DEBUG(dblAccessory, "Allocated "
+		 << size * nb_component * sizeof(T) / 1024.
+		 << "kB (" << id <<")");
     this->size = this->allocated_size = size;
   }
 
@@ -157,9 +157,9 @@ template <class T> void Vector<T>::resize (UInt new_size) {
   AKANTU_DEBUG_IN();
   if(new_size <= allocated_size) {
     if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
-      AKANTU_DEBUG_INFO("Freeing "
-			<< (allocated_size - size)*nb_component*sizeof(T) / 1024.
-			<< "kB (" << id <<")");
+      AKANTU_DEBUG(dblAccessory, "Freeing "
+		   << (allocated_size - size)*nb_component*sizeof(T) / 1024.
+		   << "kB (" << id <<")");
 
       /// Normally there are no allocation problem when reducing an array
       values = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));
@@ -181,9 +181,9 @@ template <class T> void Vector<T>::resize (UInt new_size) {
 		      << "kB");
   if (!tmp_ptr) return;
 
-  AKANTU_DEBUG_INFO("Allocating "
-		    << (size_to_alloc - allocated_size)*nb_component*sizeof(T) / 1024.
-		    << "kB");
+  AKANTU_DEBUG(dblAccessory, "Allocating "
+	       << (size_to_alloc - allocated_size)*nb_component*sizeof(T) / 1024.
+	       << "kB");
 
   allocated_size = size_to_alloc;
   size = new_size;

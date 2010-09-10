@@ -195,6 +195,33 @@ inline UInt Mesh::getNbGhostElement(const ElementType & type) const {
 }
 
 /* -------------------------------------------------------------------------- */
+inline void Mesh::getBarycenter(UInt element, ElementType type, Real * barycenter,
+				GhostType ghost_type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt * conn_val;
+  if (ghost_type == _not_ghost) {
+    conn_val = getConnectivity(type).values;
+  } else {
+    conn_val = getGhostConnectivity(type).values;
+  }
+  UInt nb_nodes_per_element = getNbNodesPerElement(type);
+
+  Real local_coord[spatial_dimension * nb_nodes_per_element];
+
+  UInt offset = element * nb_nodes_per_element;
+  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    memcpy(local_coord + n * spatial_dimension,
+	   nodes->values + conn_val[offset + n] * spatial_dimension,
+	   spatial_dimension*sizeof(Real));
+  }
+
+  Math::barycenter(local_coord, nb_nodes_per_element, spatial_dimension, barycenter);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
@@ -352,8 +379,7 @@ inline UInt ** Mesh::getFacetLocalConnectivityPerElementType(const ElementType &
   }
 
 #undef GET_SURFACE_TYPE
-  
+
   AKANTU_DEBUG_OUT();
   return facet_conn;
 }
-

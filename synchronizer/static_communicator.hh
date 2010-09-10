@@ -24,14 +24,18 @@ __BEGIN_AKANTU__
 
 class CommunicationRequest {
 public:
-  CommunicationRequest(UInt source, UInt dest) : source(source), destination(dest) {};
-  virtual ~CommunicationRequest() {};
+  CommunicationRequest(UInt source, UInt dest);
+  virtual ~CommunicationRequest();
+
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   AKANTU_GET_MACRO(Source, source, UInt);
   AKANTU_GET_MACRO(Destination, destination, UInt);
 private:
   UInt source;
   UInt destination;
+  UInt id;
+  static UInt counter;
 };
 
 
@@ -109,6 +113,15 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 #include "static_communicator_inline_impl.cc"
+
+/* -------------------------------------------------------------------------- */
+/* Inline Functions VectorBase                                                */
+/* -------------------------------------------------------------------------- */
+inline std::ostream & operator<<(std::ostream & stream, const CommunicationRequest & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__

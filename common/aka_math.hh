@@ -29,7 +29,7 @@ class Math {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -88,16 +88,16 @@ public:
   /// inverse a 2x2 matrix
   static inline void inv2(const Real * mat, Real * inv);
 
-  /// vector cross product 
+  /// vector cross product
   static inline void vectorProduct3(const Real * v1, const Real * v2, Real * res);
 
-  /// compute normal a normal to a vector 
+  /// compute normal a normal to a vector
   static inline void normal2(const Real * v1, Real * res);
 
-  /// normalize a vector 
+  /// normalize a vector
   static inline void normalize2(Real * v);
 
-  /// normalize a vector 
+  /// normalize a vector
   static inline Real norm2(Real * v);
 
   /* Geometry */
@@ -116,8 +116,11 @@ public:
   /// volume of a tetrahedron
   static inline Real tetrahedron_volume(const Real * coord);
 
-  ///
-  
+  /// compute the barycenter of n points
+  static inline void barycenter(const Real * coord,
+				UInt nb_points, UInt spatial_dimension,
+				Real * barycenter);
+
 };
 
 

@@ -49,6 +49,9 @@ void GhostSynchronizer::synchronize(GhostSynchronizationTag tag) {
   AKANTU_DEBUG_ASSERT(registered_synchronization.find(tag) != registered_synchronization.end(),
 		      "Tag " << tag << " is not registered.");
 
+  AKANTU_DEBUG_INFO("Synchronizing the tag : "
+		    << registered_synchronization.find(tag)->second
+		    << " (" << tag <<")");
   for (std::list<Synchronizer *>::iterator it = synchronizers.begin();
        it != synchronizers.end();
        ++it) {

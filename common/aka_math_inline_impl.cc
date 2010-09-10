@@ -170,7 +170,7 @@ inline Real Math::triangle_inradius(const Real * coord) {
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::distance_3d(const Real * x, const Real * y) {
-  return sqrt((y[0] - x[0])*(y[0] - x[0]) 
+  return sqrt((y[0] - x[0])*(y[0] - x[0])
 	      + (y[1] - x[1])*(y[1] - x[1])
 	      + (y[2] - x[2])*(y[2] - x[2])
 	      );
@@ -182,9 +182,9 @@ inline Real Math::det2(const Real * mat) {
 }
 /* -------------------------------------------------------------------------- */
 inline Real Math::det3(const Real * mat) {
-  return 
-      mat[0]*(mat[4]*mat[8]-mat[7]*mat[5]) 
-    - mat[3]*(mat[1]*mat[8]-mat[7]*mat[2]) 
+  return
+      mat[0]*(mat[4]*mat[8]-mat[7]*mat[5])
+    - mat[3]*(mat[1]*mat[8]-mat[7]*mat[2])
     + mat[6]*(mat[1]*mat[5]-mat[4]*mat[2]);
 }
 /* -------------------------------------------------------------------------- */
@@ -213,10 +213,10 @@ inline Real Math::norm2(Real * vec) {
 inline void Math::inv2(const Real * mat,Real * inv) {
   Real det_mat = det2(mat);
 
-  inv[0] = mat[3]/det_mat;   
-  inv[1] = -mat[1]/det_mat;   
-  inv[2] = -mat[2]/det_mat;   
-  inv[3] = mat[0]/det_mat;   
+  inv[0] = mat[3]/det_mat;
+  inv[1] = -mat[1]/det_mat;
+  inv[2] = -mat[2]/det_mat;
+  inv[3] = mat[0]/det_mat;
 }
 /* -------------------------------------------------------------------------- */
 
@@ -224,14 +224,14 @@ inline void Math::inv2(const Real * mat,Real * inv) {
 inline void Math::inv3(const Real * mat,Real * inv) {
   Real det_mat = det3(mat);
 
-  inv[0] = (mat[4]*mat[8] - mat[7]*mat[5])/det_mat;   
-  inv[1] = (mat[2]*mat[7] - mat[8]*mat[1])/det_mat;   
-  inv[2] = (mat[1]*mat[5] - mat[4]*mat[2])/det_mat;   
-  inv[3] = (mat[5]*mat[6] - mat[8]*mat[3])/det_mat;   
-  inv[4] = (mat[0]*mat[8] - mat[6]*mat[2])/det_mat;   
-  inv[5] = (mat[2]*mat[3] - mat[5]*mat[0])/det_mat;   
-  inv[6] = (mat[3]*mat[7] - mat[6]*mat[4])/det_mat;   
-  inv[7] = (mat[1]*mat[6] - mat[7]*mat[0])/det_mat;   
+  inv[0] = (mat[4]*mat[8] - mat[7]*mat[5])/det_mat;
+  inv[1] = (mat[2]*mat[7] - mat[8]*mat[1])/det_mat;
+  inv[2] = (mat[1]*mat[5] - mat[4]*mat[2])/det_mat;
+  inv[3] = (mat[5]*mat[6] - mat[8]*mat[3])/det_mat;
+  inv[4] = (mat[0]*mat[8] - mat[6]*mat[2])/det_mat;
+  inv[5] = (mat[2]*mat[3] - mat[5]*mat[0])/det_mat;
+  inv[6] = (mat[3]*mat[7] - mat[6]*mat[4])/det_mat;
+  inv[7] = (mat[1]*mat[6] - mat[7]*mat[0])/det_mat;
   inv[8] = (mat[0]*mat[4] - mat[3]*mat[1])/det_mat;
 }
 
@@ -245,31 +245,36 @@ inline void Math::vectorProduct3(const Real * v1, const Real * v2, Real * res) {
 inline Real Math::tetrahedron_volume(const Real * coord) {
   Real xx[9],vol;
   const Real *x1 = coord,*x2 = coord+3,*x3 = coord+6,*x4 = coord+9;
-  
-  xx[0] = x2[0];xx[1] = x2[1];xx[2] = x2[2];  
-  xx[3] = x3[0];xx[4] = x3[1];xx[5] = x3[2];  
+
+  xx[0] = x2[0];xx[1] = x2[1];xx[2] = x2[2];
+  xx[3] = x3[0];xx[4] = x3[1];xx[5] = x3[2];
   xx[6] = x4[0];xx[7] = x4[1];xx[8] = x4[2];
   vol = det3(xx);
-  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];  
-  xx[3] = x3[0];xx[4] = x3[1];xx[5] = x3[2];  
+
+  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];
+  xx[3] = x3[0];xx[4] = x3[1];xx[5] = x3[2];
   xx[6] = x4[0];xx[7] = x4[1];xx[8] = x4[2];
   vol -= det3(xx);
-  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];  
-  xx[3] = x2[0];xx[4] = x2[1];xx[5] = x2[2];  
+
+  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];
+  xx[3] = x2[0];xx[4] = x2[1];xx[5] = x2[2];
   xx[6] = x4[0];xx[7] = x4[1];xx[8] = x4[2];
   vol += det3(xx);
-  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];  
-  xx[3] = x2[0];xx[4] = x2[1];xx[5] = x2[2];  
+
+  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];
+  xx[3] = x2[0];xx[4] = x2[1];xx[5] = x2[2];
   xx[6] = x3[0];xx[7] = x3[1];xx[8] = x3[2];
   vol -= det3(xx);
+
   vol /= 6;
+
   return vol;
 }
 
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::tetrahedron_inradius(const Real * coord) {
- 
+
   Real l12, l13, l14, l23, l24, l34;
   l12 = distance_3d(coord  , coord+3);
   l13 = distance_3d(coord  , coord+6);
@@ -293,6 +298,20 @@ inline Real Math::tetrahedron_inradius(const Real * coord) {
   s4 = sqrt(s4*(s4-l13)*(s4-l34)*(s4-l14));
 
   Real volume = Math::tetrahedron_volume(coord);
-  
+
   return 3*volume/(s1+s2+s3+s4);
 }
+
+/* -------------------------------------------------------------------------- */
+inline void Math::barycenter(const Real * coord,
+			     UInt nb_points, UInt spatial_dimension,
+			     Real * barycenter) {
+  memset(barycenter, 0, spatial_dimension * sizeof(Real));
+  for (UInt n = 0; n < nb_points; ++n) {
+    UInt offset = n * spatial_dimension;
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      barycenter[i] += coord[offset + i] / (Real) nb_points;
+    }
+  }
+}
+

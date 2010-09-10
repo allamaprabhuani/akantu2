@@ -93,7 +93,7 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(UInt * buffer,
 								  Int sender, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(sender, prank);
   Int ret = MPI_Irecv(buffer, size, MPI_UNSIGNED, sender, tag, communicator, request->getMPIRequest());
-  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Isend.");
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Irecv.");
   return request;
 };
 
@@ -102,7 +102,7 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(Real * buffer,
 								  Int sender, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(sender, prank);
   Int ret = MPI_Irecv(buffer, size, MPI_DOUBLE, sender, tag, communicator, request->getMPIRequest());
-  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Isend.");
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Irecv.");
   return request;
 };
 
@@ -113,7 +113,7 @@ inline bool StaticCommunicatorMPI::testRequest(CommunicationRequest * request) {
   MPI_Request * req = req_mpi->getMPIRequest();
   int flag;
   Int ret = MPI_Test(req, &flag, &status);
-  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_WAIT.");
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Test.");
   return (flag != 0);
 }
 
@@ -123,7 +123,7 @@ inline void StaticCommunicatorMPI::wait(CommunicationRequest * request) {
   CommunicationRequestMPI * req_mpi = static_cast<CommunicationRequestMPI *>(request);
   MPI_Request * req = req_mpi->getMPIRequest();
   Int ret = MPI_Wait(req, &status);
-  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_WAIT.");
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Wait.");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,7 +133,7 @@ inline void StaticCommunicatorMPI::waitAll(std::vector<CommunicationRequest *> &
   for(it = requests.begin(); it != requests.end(); ++it) {
     MPI_Request * req = static_cast<CommunicationRequestMPI *>(*it)->getMPIRequest();
     Int ret = MPI_Wait(req, &status);
-    AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_WAIT.");
+    AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Wait.");
   }
 }
 

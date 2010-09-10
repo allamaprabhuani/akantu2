@@ -34,7 +34,7 @@ typedef Vector<UInt> * ByElementTypeUInt[_max_element_type];
 class Element {
 public:
   Element(ElementType type = _not_defined, UInt element = 0) :
-    type(type), element(element) {};
+    type(type), element(element), gid(0) {};
 
   Element(const Element & element) {
     this->type    = element.type;
@@ -150,10 +150,14 @@ public:
   /// get the mesh of the internal facets
   inline const Mesh & getInternalFacetsMesh() const;
 
+  /// compute the barycenter of a given element
+  inline void getBarycenter(UInt element, ElementType type, Real * barycenter,
+			    GhostType ghost_type = _not_ghost) const;
+
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */
-
+public:
   /// get the number of nodes per element for a given element type
   static inline UInt getNbNodesPerElement(const ElementType & type);
 

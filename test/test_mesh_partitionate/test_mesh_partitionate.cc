@@ -96,12 +96,6 @@ TestSynchronizer::TestSynchronizer(const akantu::Mesh & mesh) : mesh(mesh) {
 TestSynchronizer::~TestSynchronizer() {
   akantu::UInt spatial_dimension = mesh.getSpatialDimension();
 
-  // const akantu::Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  // for(it = type_list.begin(); it != type_list.end(); ++it) {
-  //   if(akantu::Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-  //   delete barycenter[*it];
-  // }
-
   akantu::Mesh::ConnectivityTypeList::const_iterator it;
   const akantu::Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(akantu::_ghost);
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
@@ -123,29 +117,18 @@ akantu::UInt TestSynchronizer::getNbDataToUnpack(const akantu::Element & element
 void TestSynchronizer::packData(akantu::Real ** buffer,
 				const akantu::Element & element,
 				akantu::GhostSynchronizationTag tag) const {
-  AKANTU_DEBUG_WARNING("Packing info for " << element);
+  //  AKANTU_DEBUG_WARNING("Packing info for " << element);
 
-  akantu::UInt nb_nodes_per_element = akantu::Mesh::getNbNodesPerElement(element.type);
-  akantu::UInt el_offset  = element.element * nb_nodes_per_element;
-
-  akantu::Real * coord = mesh.getNodes().values;
-  akantu::UInt * conn  = mesh.getConnectivity(element.type).values;
   akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(element.type);
+  mesh.getBarycenter(element.element, element.type, *buffer);
 
-  memset(*buffer, 0, spatial_dimension * sizeof(akantu::Real));
-  for (akantu::UInt n = 0; n < nb_nodes_per_element; ++n) {
-    akantu::UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-    for (akantu::UInt i = 0; i < spatial_dimension; ++i) {
-      (*buffer)[i] += coord[offset_conn + i] / (akantu::Real) nb_nodes_per_element;
-    }
-  }
   *buffer += spatial_dimension;
 }
 
 void TestSynchronizer::unpackData(akantu::Real ** buffer,
 				  const akantu::Element & element,
 				  akantu::GhostSynchronizationTag tag) const {
-  AKANTU_DEBUG_WARNING("Unpacking info for " << element);
+  //  AKANTU_DEBUG_WARNING("Unpacking info for " << element);
 
   akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(element.type);
   memcpy(ghost_barycenter[element.type]->values + element.element * spatial_dimension,
@@ -164,7 +147,7 @@ int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
 
-  akantu::debug::setDebugLevel(akantu::dblWarning);
+  //  akantu::debug::setDebugLevel(akantu::dblWarning);
 
   int dim = 2;
   akantu::ElementType type = akantu::_triangle_1;
@@ -202,12 +185,13 @@ int main(int argc, char *argv[])
   }
 
   AKANTU_DEBUG_INFO("Synchronizing tag");
-  if (prank == 0) {
-    test_synchronizer.synchronize(akantu::_gst_test);
-    //    comm->barrier();
+  if (prank != 0) {
+    test_synchronizer.asynchronousSynchronize(akantu::_gst_test);
+    comm->barrier();
+    test_synchronizer.waitEndSynchronize(akantu::_gst_test);
   } else {
-    //    comm->barrier();
     test_synchronizer.synchronize(akantu::_gst_test);
+    comm->barrier();
   }
 
 
@@ -216,40 +200,21 @@ int main(int argc, char *argv[])
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
     if(akantu::Mesh::getSpatialDimension(*it) != mesh.getSpatialDimension()) continue;
 
-    akantu::UInt nb_nodes_per_element = akantu::Mesh::getNbNodesPerElement(*it);
-    akantu::Real * coord = mesh.getNodes().values;
-    akantu::UInt * conn  = mesh.getConnectivity(*it).values;
     akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(*it);
-
     akantu::UInt nb_ghost_element = mesh.getNbGhostElement(*it);
 
     for (akantu::UInt el = 0; el < nb_ghost_element; ++el) {
       akantu::Real barycenter[spatial_dimension];
-      memset(barycenter, 0, spatial_dimension * sizeof(akantu::Real));
+      mesh.getBarycenter(el, *it, barycenter, akantu::_ghost);
 
-      akantu::UInt el_offset  = el * nb_nodes_per_element;
-
-      for (akantu::UInt n = 0; n < nb_nodes_per_element; ++n) {
-	akantu::UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-	for (akantu::UInt i = 0; i < spatial_dimension; ++i) {
-	  barycenter[i] += coord[offset_conn + i] / (akantu::Real) nb_nodes_per_element;
-	}
-      }
-
-      if (prank == 0)
-	std::cout << "Element : " << el << " (" <<  *it << ") - ";
       for (akantu::UInt i = 0; i < spatial_dimension; ++i) {
-	if (prank == 0) {
-	  std::cout << "c" << i << " : "
-		    << test_synchronizer.getGhostBarycenter(*it).values[el * spatial_dimension + i]
-		    << " " << barycenter[i] << " ";
 	if(barycenter[i] !=
 	   test_synchronizer.getGhostBarycenter(*it).values[el * spatial_dimension + i])
-	  std::cout << "x ";
-	}
+	  AKANTU_DEBUG_ERROR("The barycenter of ghost element " << el
+			     << " on proc " << prank
+			     << " does not match the one get during synchronisation" );
       }
-      if (prank == 0)
-	std::cout << std::endl;
+
     }
   }
 
