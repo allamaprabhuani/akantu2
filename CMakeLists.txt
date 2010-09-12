@@ -88,6 +88,7 @@ if(AKANTU_USE_IOHELPER)
 endif(AKANTU_USE_IOHELPER)
 
 # MPI
+set(AKANTU_MPI_ON FALSE)
 option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
 if(AKANTU_USE_MPI)
   find_package(MPI)
@@ -100,11 +101,13 @@ if(AKANTU_USE_MPI)
       ${MPI_LIBRARY}
       ${MPI_EXTRA_LIBRARY}
       )
+    set(AKANTU_MPI_ON TRUE)
   endif(MPI_FOUND)
 endif(AKANTU_USE_MPI)
 
 
 # Scotch
+set(AKANTU_SCOTCH_ON FALSE)
 option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
 if(AKANTU_USE_SCOTCH)
   include(${AKANTU_CMAKE_DIR}/FindScotch.cmake)
@@ -116,6 +119,7 @@ if(AKANTU_USE_SCOTCH)
     set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
       ${SCOTCH_LIBRARIES}
       )
+    set(AKANTU_SCOTCH_ON TRUE)
   endif(SCOTCH_FOUND)
 endif(AKANTU_USE_SCOTCH)
 
@@ -156,12 +160,12 @@ set(AKANTU_COMMON_SRC
 #endif(AKANTU_USE_MPI AND MPI_FOUND)
 
 
-if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+if(AKANTU_SCOTCH_ON)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     mesh_utils/mesh_partition/mesh_partition_scotch.cc
     )
-endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+endif(AKANTU_SCOTCH_ON)
 
 
 set(AKANTU_INCLUDE_DIRS

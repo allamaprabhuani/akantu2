@@ -1,9 +1,9 @@
 /**
- * @file   test_facet_extraction.cc
- * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
+ * @file   test_synchronizer_communication.cc
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug 19 13:05:27 2010
  *
- * @brief  test of internal facet extraction
+ * @brief  test to synchronize barycenters
  *
  * @section LICENSE
  *
@@ -56,7 +56,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  //  akantu::ByElementTypeReal barycenter;
   std::string id;
 
   akantu::ByElementTypeReal ghost_barycenter;
@@ -70,13 +69,6 @@ protected:
 TestSynchronizer::TestSynchronizer(const akantu::Mesh & mesh) : mesh(mesh) {
   akantu::UInt spatial_dimension = mesh.getSpatialDimension();
 
-  // const akantu::Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  // for(it = type_list.begin(); it != type_list.end(); ++it) {
-  //   if(akantu::Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-  //   akantu::UInt nb_element = mesh.getNbElement(*it);
-  //   barycenter[*it] = new akantu::Vector<akantu::Real>(nb_element, spatial_dimension, "barycenter");
-  // }
   id = "test_synchronizer";
 
   akantu::Mesh::ConnectivityTypeList::const_iterator it;
@@ -117,8 +109,6 @@ akantu::UInt TestSynchronizer::getNbDataToUnpack(const akantu::Element & element
 void TestSynchronizer::packData(akantu::Real ** buffer,
 				const akantu::Element & element,
 				akantu::GhostSynchronizationTag tag) const {
-  //  AKANTU_DEBUG_WARNING("Packing info for " << element);
-
   akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(element.type);
   mesh.getBarycenter(element.element, element.type, *buffer);
 
@@ -128,8 +118,6 @@ void TestSynchronizer::packData(akantu::Real ** buffer,
 void TestSynchronizer::unpackData(akantu::Real ** buffer,
 				  const akantu::Element & element,
 				  akantu::GhostSynchronizationTag tag) const {
-  //  AKANTU_DEBUG_WARNING("Unpacking info for " << element);
-
   akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(element.type);
   memcpy(ghost_barycenter[element.type]->values + element.element * spatial_dimension,
 	 *buffer, spatial_dimension * sizeof(akantu::Real));
@@ -146,8 +134,6 @@ void TestSynchronizer::unpackData(akantu::Real ** buffer,
 int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
-
-  //  akantu::debug::setDebugLevel(akantu::dblWarning);
 
   int dim = 2;
   akantu::ElementType type = akantu::_triangle_1;
@@ -176,23 +162,10 @@ int main(int argc, char *argv[])
   test_synchronizer.registerSynchronizer(*communicator);
 
   AKANTU_DEBUG_INFO("Registering tag");
-  if (prank == 0) {
-    test_synchronizer.registerTag(akantu::_gst_test, "barycenter");
-    comm->barrier();
-  } else {
-    comm->barrier();
-    test_synchronizer.registerTag(akantu::_gst_test, "barycenter");
-  }
+  test_synchronizer.registerTag(akantu::_gst_test, "barycenter");
 
   AKANTU_DEBUG_INFO("Synchronizing tag");
-  if (prank != 0) {
-    test_synchronizer.asynchronousSynchronize(akantu::_gst_test);
-    comm->barrier();
-    test_synchronizer.waitEndSynchronize(akantu::_gst_test);
-  } else {
-    test_synchronizer.synchronize(akantu::_gst_test);
-    comm->barrier();
-  }
+  test_synchronizer.synchronize(akantu::_gst_test);
 
 
   akantu::Mesh::ConnectivityTypeList::const_iterator it;
@@ -217,7 +190,6 @@ int main(int argc, char *argv[])
 
     }
   }
-
 
 
 #ifdef AKANTU_USE_IOHELPER

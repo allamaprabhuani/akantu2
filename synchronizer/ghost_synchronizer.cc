@@ -39,6 +39,8 @@ GhostSynchronizer::~GhostSynchronizer() {
   }
   synchronizers.clear();
 
+  registered_synchronization.clear();
+
   AKANTU_DEBUG_OUT();
 }
 

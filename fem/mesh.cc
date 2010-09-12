@@ -26,7 +26,7 @@ __BEGIN_AKANTU__
 void Element::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-  stream << space << "Element [" << type << ", " << element << "("<< gid <<")]";
+  stream << space << "Element [" << type << ", " << element << "]";
 }
 
 

@@ -86,7 +86,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
   AKANTU_DEBUG_ASSERT(SCOTCH_graphCheck(&scotch_graph) == 0,
 		      "Graph to partition is not consistent");
 
-#ifdef AKANTU_NDEBUG
+#ifndef AKANTU_NDEBUG
   if (AKANTU_DEBUG_TEST(dblDump)) {
     /// save initial graph
     FILE *fgraphinit=fopen("GraphIniFile.grf", "w");
@@ -106,7 +106,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
       ElementType type = *f_it;
       if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
-      UInt nb_element = mesh.getNbElement(*it);
+      UInt nb_element = mesh.getNbElement(*f_it);
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
       const Vector<UInt> & connectivity = mesh.getConnectivity(type);
 
@@ -137,7 +137,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
   AKANTU_DEBUG_ASSERT(SCOTCH_graphCheck(&scotch_graph) == 0,
 		      "Partitioned graph is not consistent");
 
-#ifdef AKANTU_NDEBUG
+#ifndef AKANTU_NDEBUG
   if (AKANTU_DEBUG_TEST(dblDump)) {
     /// save the partitioned graph
     FILE *fgraph=fopen("GraphFile.grf", "w");

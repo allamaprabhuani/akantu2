@@ -11,23 +11,41 @@
 #
 #===============================================================================
 
-add_mesh(line line.geo 1 1)
-REGISTER_TEST(test_interpolate_line_1 test_interpolate_line_1.cc)
-add_dependencies(test_interpolate_line_1 line)
-REGISTER_TEST(test_gradient_line_1 test_gradient_line_1.cc)
-add_dependencies(test_gradient_line_1 line)
+#===============================================================================
+# 1D
+#===============================================================================
+add_mesh(test_fem_line1_mesh line.geo 1 1)
 
-add_mesh(ltriangle triangle.geo 2 1)
-REGISTER_TEST(test_interpolate_triangle_1 test_interpolate_triangle_1.cc)
-add_dependencies(test_interpolate_triangle_1 ltriangle)
-REGISTER_TEST(test_gradient_triangle_1 test_gradient_triangle_1.cc)
-add_dependencies(test_gradient_triangle_1 ltriangle)
+#===============================================================================
+register_test(test_interpolate_line_1 test_interpolate_line_1.cc)
+add_dependencies(test_interpolate_line_1 test_fem_line1_mesh)
+#===============================================================================
+register_test(test_gradient_line_1 test_gradient_line_1.cc)
+add_dependencies(test_gradient_line_1 test_fem_line1_mesh)
 
 
-add_mesh(llcube cube.geo 3 1)
-REGISTER_TEST(test_interpolate_tetrahedra_1 test_interpolate_tetrahedra_1.cc)
-add_dependencies(test_interpolate_tetrahedra_1 llcube)
-REGISTER_TEST(test_gradient_tetrahedra_1 test_gradient_tetrahedra_1.cc)
-add_dependencies(test_gradient_tetrahedra_1 llcube)
+#===============================================================================
+# 2D
+#===============================================================================
+add_mesh(test_fem_triangle1_mesh triangle.geo 2 1)
+
+#===============================================================================
+register_test(test_interpolate_triangle_1 test_interpolate_triangle_1.cc)
+add_dependencies(test_interpolate_triangle_1 test_fem_triangle1_mesh)
+#===============================================================================
+register_test(test_gradient_triangle_1 test_gradient_triangle_1.cc)
+add_dependencies(test_gradient_triangle_1 test_fem_triangle1_mesh)
+
+#===============================================================================
+# 3D
+#===============================================================================
+add_mesh(test_fem_tetra1_mesh cube.geo 3 1)
+
+#===============================================================================
+register_test(test_interpolate_tetrahedra_1 test_interpolate_tetrahedra_1.cc)
+add_dependencies(test_interpolate_tetrahedra_1 test_fem_tetra1_mesh)
+#===============================================================================
+register_test(test_gradient_tetrahedra_1 test_gradient_tetrahedra_1.cc)
+add_dependencies(test_gradient_tetrahedra_1 test_fem_tetra1_mesh)
 
 

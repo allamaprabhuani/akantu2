@@ -1,6 +1,6 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @date   Fri Jun 11 09:46:59 2010
 #
 # @section LICENSE
@@ -11,7 +11,10 @@
 #
 #===============================================================================
 
-add_mesh(test_mesh_io_mesh cube.geo 3 1)
+add_mesh(test_synchronizer_communication_mesh
+  triangle.geo 2 1)
 
-register_test(test_mesh_io_msh test_mesh_io_msh.cc)
-add_dependencies(test_mesh_io_msh test_mesh_io_mesh)
+register_test(test_synchronizer_communication
+  test_synchronizer_communication.cc)
+add_dependencies(test_synchronizer_communication
+  test_synchronizer_communication_mesh)

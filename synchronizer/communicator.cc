@@ -55,6 +55,15 @@ Communicator::Communicator(SynchronizerID id,
 Communicator::~Communicator() {
   AKANTU_DEBUG_IN();
 
+  UInt psize = static_communicator->getNbProc();
+  for (UInt p = 0; p < psize; ++p) {
+    send_buffer[p].resize(0);
+    recv_buffer[p].resize(0);
+
+    send_element[p].clear();
+    recv_element[p].clear();
+  }
+
   delete [] send_buffer;
   delete [] recv_buffer;
 
@@ -130,7 +139,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	  nb_ghost_element[ghost_partition[part]]++;
 	}
 	nb_element_to_send[partition_num[el]] +=
-	  ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1 + 1;
+	  ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1;
       }
 
       /// allocating buffers
@@ -161,7 +170,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	  memcpy(buffers_tmp[proc],
 		 conn_val + el * nb_nodes_per_element,
 		 nb_nodes_per_element * sizeof(UInt));
-	  //AKANTU_DEBUG_WARNING("Storing element " << el << " in " << proc << " ghost elements");
 	  buffers_tmp[proc] += nb_nodes_per_element;
 	}
       }
@@ -176,35 +184,18 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	  size[2] = nb_ghost_element[p];
 	  size[3] = nb_element_to_send[p];
 	  comm->send(size, 4, p, 0);
-	  AKANTU_DEBUG(dblAccessory, "Sending connectivities to proc " << p);
+	  AKANTU_DEBUG_INFO("Sending connectivities to proc " << p);
 	  requests.push_back(comm->asyncSend(buffers[p],
 					    nb_nodes_per_element * (nb_local_element[p] +
 								    nb_ghost_element[p]),
 					    p, 1));
-
-	  for (UInt i = 0; i < nb_local_element[p]; ++i) {
-	    std::cout << p << " - lel " << i << " : ";
-	    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	      std::cout << buffers[p][i*nb_nodes_per_element + n] << " ";
-	    }
-	    std::cout << std::endl;
-	  }
-
-	  for (UInt i = 0; i < nb_ghost_element[p]; ++i) {
-	    std::cout << p << " - gel " << i << " : ";
-	    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	      std::cout << buffers[p][(i+nb_local_element[p])*nb_nodes_per_element + n] << " ";
-	    }
-	    std::cout << std::endl;
-	  }
-
 	} else {
 	  local_connectivity = buffers[p];
 	}
       }
 
       /// create the renumbered connectivity
-      AKANTU_DEBUG(dblAccessory, "Renumbering local connectivities");
+      AKANTU_DEBUG_INFO("Renumbering local connectivities");
       MeshUtils::renumberMeshNodes(mesh,
 				   local_connectivity,
 				   nb_local_element[root],
@@ -221,7 +212,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
 
       for (UInt p = 0; p < nb_proc; ++p) {
-	buffers[p] = new UInt[2*nb_ghost_element[p] + nb_element_to_send[p]];
+	buffers[p] = new UInt[nb_ghost_element[p] + nb_element_to_send[p]];
 	buffers_tmp[p] = buffers[p];
       }
 
@@ -230,7 +221,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       memset(count_by_proc, 0, nb_proc*sizeof(UInt));
       for (UInt el = 0; el < nb_element; ++el) {
 	*(buffers_tmp[partition_num[el]]++) = ghost_partition_offset[el + 1] - ghost_partition_offset[el];
-	*(buffers_tmp[partition_num[el]]++) = el;
 	for (UInt part = ghost_partition_offset[el], i = 0;
 	     part < ghost_partition_offset[el + 1];
 	     ++part, ++i) {
@@ -243,23 +233,22 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	     part < ghost_partition_offset[el + 1];
 	     ++part, ++i) {
 	  *(buffers_tmp[ghost_partition[part]]++) = partition_num[el];
-	  *(buffers_tmp[ghost_partition[part]]++) = el;
 	}
       }
 
       /// last data to compute the communication scheme
       for (UInt p = 0; p < nb_proc; ++p) {
 	if(p != root) {
-	  AKANTU_DEBUG(dblAccessory, "Sending partition informations to proc " << p);
+	  AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
 	  requests.push_back(comm->asyncSend(buffers[p],
-						  nb_element_to_send[p] + nb_ghost_element[p] * 2,
-						  p, 2));
+					     nb_element_to_send[p] + nb_ghost_element[p],
+					     p, 2));
 	} else {
 	  local_partitions = buffers[p];
 	}
       }
 
-      AKANTU_DEBUG(dblAccessory, "Creating communications scheme");
+      AKANTU_DEBUG_INFO("Creating communications scheme");
       communicator->fillCommunicationScheme(local_partitions,
 					    nb_local_element[root],
 					    nb_ghost_element[root],
@@ -296,7 +285,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       UInt nb_nodes;
       UInt * buffer;
       if(p != root) {
-	AKANTU_DEBUG(dblAccessory, "Receiving list of nodes from proc " << p);
+	AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
 	comm->receive(&nb_nodes, 1, p, 0);
 	buffer = new UInt[nb_nodes];
 	comm->receive(buffer, nb_nodes, p, 3);
@@ -317,7 +306,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
       if(p != root) { /// send them for distant processors
 	delete [] buffer;
-	AKANTU_DEBUG(dblAccessory, "Sending coordinates to proc " << p);
+	AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
 	comm->send(nodes_to_send, nb_nodes * spatial_dimension, p, 4);
 	delete [] nodes_to_send;
       } else { /// save them for local processor
@@ -353,12 +342,12 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
 	local_connectivity = new UInt[(nb_local_element + nb_ghost_element) *
 				      nb_nodes_per_element];
-	AKANTU_DEBUG(dblAccessory, "Receiving connectivities from proc " << root);
+	AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
 	comm->receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
 								  nb_ghost_element),
 			   root, 1);
 
-	AKANTU_DEBUG(dblAccessory, "Renumbering local connectivities");
+	AKANTU_DEBUG_INFO("Renumbering local connectivities");
 	MeshUtils::renumberMeshNodes(mesh,
 				     local_connectivity,
 				     nb_local_element,
@@ -369,12 +358,12 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	delete [] local_connectivity;
 
 	local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
-	AKANTU_DEBUG(dblAccessory, "Receiving partition informations from proc " << root);
+	AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
 	comm->receive(local_partitions,
 			   nb_element_to_send + nb_ghost_element * 2,
 			   root, 2);
 
-	AKANTU_DEBUG(dblAccessory, "Creating communications scheme");
+	AKANTU_DEBUG_INFO("Creating communications scheme");
 	communicator->fillCommunicationScheme(local_partitions,
 					     nb_local_element,
 					     nb_ghost_element,
@@ -388,13 +377,13 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     /**
      * Nodes coordinate construction and synchronization on distant processors
      */
-    AKANTU_DEBUG(dblAccessory, "Sending list of nodes to proc " << root);
+    AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
     UInt nb_nodes = old_nodes.getSize();
     comm->send(&nb_nodes, 1, root, 0);
     comm->send(old_nodes.values, nb_nodes, root, 3);
 
     nodes->resize(nb_nodes);
-    AKANTU_DEBUG(dblAccessory, "Receiving coordinates from proc " << root);
+    AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
     comm->receive(nodes->values, nb_nodes * spatial_dimension, root, 4);
   }
 
@@ -418,23 +407,20 @@ void Communicator::fillCommunicationScheme(UInt * partition,
   part = partition;
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
     UInt nb_send = *part; part++;
-    element.gid = *part; part++; // global element id
     element.element = lel;
     for (UInt p = 0; p < nb_send; ++p) {
       UInt proc = *part; part++;
-      AKANTU_DEBUG_WARNING("Sending : " << element << " to proc " << proc);
+
+      AKANTU_DEBUG(dblAccessory, "Must send : " << element << " to proc " << proc);
       (send_element[proc]).push_back(element);
     }
   }
 
   for (UInt gel = 0; gel < nb_ghost_element; ++gel) {
     UInt proc = *part; part++;
-
     element.element = gel;
-    element.gid = *part; part++;
 
-    AKANTU_DEBUG_WARNING("Receiving : " << element << " from proc " << proc);
-
+    AKANTU_DEBUG(dblAccessory, "Must recv : " << element << " from proc " << proc);
     recv_element[proc].push_back(element);
   }
 
@@ -462,12 +448,11 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
   AKANTU_DEBUG_ASSERT(send_requests.size() == 0,
 		      "There must be some pending sending communications");
 
-
   for (UInt p = 0; p < psize; ++p) {
     UInt ssize = (size_to_send[tag]).values[p];
     if(p == prank || ssize == 0) continue;
 
-    AKANTU_DEBUG(dblAccessory, "Packing data for proc" << p);
+    AKANTU_DEBUG_INFO("Packing data for proc" << p);
     send_buffer[p].resize(ssize);
     Real * buffer = send_buffer[p].values;
 
@@ -479,13 +464,7 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
       elements++;
     }
 
-    // for (std::vector<Element>::const_iterator sit = send_element[p].begin();
-    // 	 sit != send_element[p].end();
-    // 	 ++sit) {
-    //   ghost_synchronizer->packData(&buffer, *sit, tag);
-    // }
-
-    AKANTU_DEBUG(dblAccessory, "Posting send to proc " << p);
+    AKANTU_DEBUG_INFO("Posting send to proc " << p);
     send_requests.push_back(static_communicator->asyncSend(send_buffer[p].values,
 						       ssize,
 						       p,
@@ -500,7 +479,7 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
     if(p == prank || rsize == 0) continue;
     recv_buffer[p].resize(rsize);
 
-    AKANTU_DEBUG(dblAccessory, "Posting receive from proc " << p);
+    AKANTU_DEBUG_INFO("Posting receive from proc " << p);
     recv_requests.push_back(static_communicator->asyncReceive(recv_buffer[p].values,
 							      rsize,
 							      p,
@@ -525,7 +504,7 @@ void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
 
       if(static_communicator->testRequest(req)) {
 	UInt proc = req->getSource();
-	AKANTU_DEBUG(dblAccessory, "Unpacking data coming from proc " << proc);
+	AKANTU_DEBUG_INFO("Unpacking data coming from proc " << proc);
 	Real * buffer = recv_buffer[proc].values;
 
 	Element * elements = &recv_element[proc].at(0);
@@ -585,8 +564,8 @@ void Communicator::registerTag(GhostSynchronizationTag tag) {
 	   ++rit) {
 	sreceive += ghost_synchronizer->getNbDataToUnpack(*rit, tag);
       }
-      AKANTU_DEBUG(dblAccessory, "I have " << ssend << " data to send to " << p
-		   << " and " << sreceive << " data to receive");
+      AKANTU_DEBUG_INFO("I have " << ssend << " data to send to " << p
+			<< " and " << sreceive << " data to receive");
     }
 
     size_to_send   [tag].values[p] = ssend;

@@ -84,6 +84,10 @@ add_example(test_solid_mechanics_model "Test solid mechanics object")
 add_example(test_static_memory "Test static memory")
 add_example(test_vector "Test akantu vector")
 
-if(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+if(AKANTU_SCOTCH_ON)
   add_example(test_mesh_partitionate "Test mesh partition creation")
-endif(AKANTU_USE_SCOTCH AND SCOTCH_FOUND)
+endif()
+
+if(AKANTU_MPI_ON)
+  add_example(test_synchronizer "Test synchronizers")
+endif()

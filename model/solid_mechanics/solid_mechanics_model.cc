@@ -246,6 +246,7 @@ void SolidMechanicsModel::assembleMass() {
   assembleMass(_ghost);
 
   /// @todo synchronize mass for the nodes of ghost elements
+  synchronize(_gst_smm_mass);
 
   AKANTU_DEBUG_OUT();
 }
