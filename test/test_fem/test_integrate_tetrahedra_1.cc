@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
   mesh_io.read("cube.msh", my_mesh);
   FEM *fem = new FEM(my_mesh,3,"my_fem");
 
-  _debug_level = dblDump;
+  debug::_debug_level = dblDump;
   fem->initShapeFunctions();
 
   std::cout << *fem << std::endl;
