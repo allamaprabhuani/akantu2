@@ -66,9 +66,6 @@ public:
   inline static void translateCoordinates(const Real * coord, const UInt dim,const UInt n_points,
 					  Real * translated_coords,bool inverse_flag=0);
 
-  /// compute the quadrature point position in real space
-  inline static void computeQuadPointCoord(const Real * coord, const UInt dim, Real * quad_coord);
-
   /// compute the normals on quadrature points
   inline static void computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals);
   

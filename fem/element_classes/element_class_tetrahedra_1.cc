@@ -46,7 +46,7 @@ template<> inline void ElementClass<_tetrahedra_1>::shapeFunctions(const Real * 
    * N4 = t
    */
 
-  Real weight = .5;
+  Real weight = 1./6.;
 
   /// shape functions
   shape[0] = 1./4.; //N1(q_0)
@@ -79,6 +79,8 @@ template<> inline void ElementClass<_tetrahedra_1>::shapeFunctions(const Real * 
   Math::inv3(dxds,inv_dxds);
 
   jacobian[0] = det_dxds * weight;
+  AKANTU_DEBUG_ASSERT(jacobian[0]>0,
+		      "negative jacobian computed problem in the element numerotation ? ");
 
   Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
 			dnds, inv_dxds, shape_deriv);

@@ -128,6 +128,10 @@ public:
   /// change the size of the vector and allocate more memory if needed
   void resize(UInt size);
 
+  /// change the number of components by interlacing data
+  void extendComponentsInterlaced(UInt multiplicator,UInt stride);
+
+  
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

@@ -153,7 +153,7 @@ template <class T> void Vector<T>::allocate(UInt size,
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> void Vector<T>::resize (UInt new_size) {
+template <class T> void Vector<T>::resize(UInt new_size) {
   AKANTU_DEBUG_IN();
   if(new_size <= allocated_size) {
     if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
@@ -188,6 +188,28 @@ template <class T> void Vector<T>::resize (UInt new_size) {
   allocated_size = size_to_alloc;
   size = new_size;
   values = tmp_ptr;
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+template <class T> void Vector<T>::extendComponentsInterlaced(UInt multiplicator,UInt stride) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(multiplicator > 1,
+		      "you can only extend a vector by changing the number of components");
+  AKANTU_DEBUG_ASSERT(nb_component%stride == 0,
+		      "stride must divide actual number of components");
+  values = static_cast<T*>(realloc(values, nb_component*multiplicator*size* sizeof(T)));
+  UInt strided_component = nb_component/stride;
+  UInt new_component = strided_component * multiplicator;
+  for (UInt i = 0,k=size-1; i < size; ++i,--k) {
+    for (UInt j = 0; j < new_component; ++j) {
+      UInt m = new_component - j -1;
+      UInt n = m*strided_component/new_component;
+      for (UInt l = 0,p=stride-1;  l < stride; ++l,--p) {
+	values[k*new_component*stride+m*stride+p] = values[k*strided_component*stride+n*stride+p];
+      }
+    }
+  }
+  nb_component = new_component*stride;
   AKANTU_DEBUG_OUT();
 }
 

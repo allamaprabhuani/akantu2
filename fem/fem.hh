@@ -46,9 +46,6 @@ public:
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(GhostType ghost_type = _not_ghost);
 
-  /// pre-compute all the quadrature points coordinates
-  void computeQuadraturePointsCoords(GhostType ghost_type = _not_ghost);
-
   /// pre-compute normals on quadrature points
   void computeNormalsOnQuadPoints(GhostType ghost_type = _not_ghost);
 
@@ -144,9 +141,6 @@ public:
   /// get a the shapes derivatives vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
 
-  /// get the quadrature point coordinates
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(QuadraturePointsCoords, quadrature_points_coords, const Vector<Real> &);
-
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NormalsOnQuadPoints, normals_on_quad_points, const Vector<Real> &);
 
@@ -180,9 +174,6 @@ private:
 
   /// jacobians for all elements
   ByElementTypeReal jacobians;
-
-  /// quadrature points real coordinates
-  ByElementTypeReal quadrature_points_coords;
 
   /// normals at quadrature points
   ByElementTypeReal normals_on_quad_points;

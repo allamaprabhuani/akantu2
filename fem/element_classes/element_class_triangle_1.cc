@@ -66,6 +66,8 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
   Math::inv2(dxds,inv_dxds);
 
   jacobian[0] = det_dxds * weight;
+  AKANTU_DEBUG_ASSERT(jacobian[0]>0,
+		      "negative jacobian computed problem in the element numerotation ? ");
 
   Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
 			dnds, inv_dxds, shape_deriv);

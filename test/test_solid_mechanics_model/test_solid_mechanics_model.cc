@@ -28,8 +28,8 @@ using namespace akantu;
 
 void trac(double * position,double * traction){
   memset(traction,0,sizeof(Real)*4);
-  traction[0] = 1;
-  traction[3] = 1;
+  traction[0] = 1000;
+  traction[3] = 1000;
 
   // if(fabs(position[0])< 1e-4){
   //   traction[0] = -position[1];
@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
 
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
-  fem_boundary.computeQuadraturePointsCoords();
   fem_boundary.computeNormalsOnQuadPoints();
 
   const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
@@ -100,38 +99,38 @@ int main(int argc, char *argv[])
     
     UInt nb_element;
     const Vector<Real> * shapes;
-    const Vector<Real> * quad_coords;
+    Vector<Real> quad_coords(0,2,"quad_coords");
     const Vector<Real> * normals_on_quad;
  
     nb_element   = fem_boundary.getMesh().getNbElement(*it);
-    quad_coords = &(fem_boundary.getQuadraturePointsCoords(*it));
+    fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, _line_1);
     normals_on_quad = &(fem_boundary.getNormalsOnQuadPoints(*it));
 
     shapes       = &(fem_boundary.getShapes(*it));
 
     Vector<Real> * sigma_funct = new Vector<Real>(nb_element, 4*nb_quad, "myfunction");
-    Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad*nb_nodes_per_element, "myfunction");
+    Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad, "myfunction");
 
-    Real * funct_val = funct->values;
     Real * sigma_funct_val = sigma_funct->values;
     Real * shapes_val = shapes->values;
 
     /// compute t * \phi_i for each nodes of each element
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quad; ++q) {
-	trac(quad_coords->values+el*nb_quad*2+q,sigma_funct_val);
+	trac(quad_coords.values+el*nb_quad*2+q,sigma_funct_val);
 	sigma_funct_val += 4;
       }
     }
 
-    /// compute t * \phi_i for each nodes of each element
+    Math::matrix_vector(2,2,*sigma_funct,*normals_on_quad,*funct);
+    funct->extendComponentsInterlaced(nb_nodes_per_element,2);
+
+    Real * funct_val = funct->values;
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quad; ++q) {
-	double X[4];
-	trac(quad_coords->values+el*nb_quad*2+q,X);
 	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  *funct_val++ = X[0] * *shapes_val;
-	  *funct_val++ = X[1] * *shapes_val++;
+	  *funct_val++ *= *shapes_val;
+	  *funct_val++ *= *shapes_val++;
 	}
       }
     }
@@ -164,6 +163,7 @@ int main(int argc, char *argv[])
   dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_1).values, 4, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_1).values, 4, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
+  dumper.SetEmbeddedValue("force", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER

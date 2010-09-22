@@ -28,8 +28,8 @@ using namespace akantu;
 
 void trac(double * position,double * traction){
   memset(traction,0,sizeof(Real)*4);
-  traction[0] = 1;
-  traction[3] = 1;
+  traction[0] = 1000;
+  traction[3] = 1000;
 
   // if(fabs(position[0])< 1e-4){
   //   traction[0] = -position[1];
@@ -39,12 +39,12 @@ void trac(double * position,double * traction){
 
 int main(int argc, char *argv[])
 {
-  UInt max_steps = 1;
+  UInt max_steps = 10000;
   Real epot, ekin;
 
   Mesh mesh(2);
   MeshIOMSH mesh_io;
-  mesh_io.read("triangle.msh", mesh);
+  mesh_io.read("circle.msh", mesh);
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
   memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
   memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
   memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
+  memset(model->getResidual().values,     0, 2*nb_nodes*sizeof(Real));
+  memset(model->getMass().values,     1, nb_nodes*sizeof(Real));
 
   model->readMaterials("material.dat");
   model->initMaterials();
@@ -151,7 +153,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  dumper.SetMode(BASE64);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_1).values,
@@ -159,13 +161,17 @@ int main(int argc, char *argv[])
   dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model->getForce().values, 2, "force");
+  dumper.AddNodeDataField(model->getMass().values, 1, "Mass");
   dumper.AddNodeDataField(model->getResidual().values, 2, "residual");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_1).values, 4, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_1).values, 4, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("force", 1);
+  dumper.SetEmbeddedValue("residual", 1);
+  dumper.SetEmbeddedValue("velocity", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
+  dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
   model->setPotentialEnergyFlagOn();
@@ -183,7 +189,7 @@ int main(int argc, char *argv[])
 	      << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 10 == 0) dumper.Dump();
+    if(s % 100 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
 

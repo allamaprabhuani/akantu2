@@ -148,25 +148,6 @@ template<> inline void ElementClass<_line_1>::unchangeDimension(const Real * coo
 }
 
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_1>::computeQuadPointCoord(const Real * coord, const UInt dim, Real * local_coord) {
-  Real pos[nb_nodes_per_element];
-  if (dim > 1) {
-    changeDimension(coord,dim,nb_nodes_per_element,pos);
-  }
-  else {
-    pos[0] = coord[0];
-    pos[1] = coord[1];    
-  }
-  Real R = 1./(pos[1]-pos[0]);
-
-  //uniq quad point is
-  Real quad_point = 0.5/R;
-
-  if (dim == spatial_dimension) local_coord[0] = quad_point + pos[0];
-  else unchangeDimension(coord,&quad_point,dim,1,local_coord);
-}
-
-/* -------------------------------------------------------------------------- */
 template<> inline void ElementClass<_line_1>::computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals) {
   if (dim == 1) AKANTU_DEBUG_ERROR("cannot compute normal of line element in 1D");
   Real vec[2*dim];

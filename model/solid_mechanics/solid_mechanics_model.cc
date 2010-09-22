@@ -248,6 +248,15 @@ void SolidMechanicsModel::assembleMass() {
   /// @todo synchronize mass for the nodes of ghost elements
   synchronize(_gst_smm_mass);
 
+  /// for not connected nodes put mass to one in order to avoid
+  /// wrong range in paraview
+  Real * mass_values = mass->values;
+  for (UInt i = 0; i < nb_nodes; ++i) {
+    if (!mass_values[i] || isnan(mass_values[i]))
+      mass_values[i] = 1;
+  }
+    
+
   AKANTU_DEBUG_OUT();
 }
 
