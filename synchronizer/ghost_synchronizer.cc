@@ -114,6 +114,21 @@ void GhostSynchronizer::registerTag(GhostSynchronizationTag tag,
 }
 
 /* -------------------------------------------------------------------------- */
+void GhostSynchronizer::allReduce(Real * values,
+				  const SynchronizerOperation & op,
+				  UInt nb_values) {
+  AKANTU_DEBUG_IN();
+
+  for (std::list<Synchronizer *>::iterator it = synchronizers.begin();
+       it != synchronizers.end();
+       ++it) {
+    (*it)->allReduce(values, nb_values, op);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void GhostSynchronizer::registerSynchronizer(Synchronizer & synchronizer) {
   AKANTU_DEBUG_IN();
 

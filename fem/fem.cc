@@ -174,6 +174,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
     case _triangle_2   : { COMPUTE_SHAPES(_triangle_2  ); break; }
     case _tetrahedra_1 : { COMPUTE_SHAPES(_tetrahedra_1); break; }
     case _tetrahedra_2 : { COMPUTE_SHAPES(_tetrahedra_2); break; }
+    case _point:
     case _not_defined:
     case _max_element_type:  {
       AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -260,6 +261,7 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     case _triangle_2   : { COMPUTE_NORMALS_ON_QUAD(_triangle_2  ); break; }
     case _tetrahedra_1 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedra_1); break; }
     case _tetrahedra_2 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedra_2); break; }
+    case _point:
     case _not_defined:
     case _max_element_type:  {
       AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -472,7 +474,7 @@ void FEM::integrate(const Vector<Real> & in_f,
     jac_loc     = jacobians[type];
     nb_element  = mesh->getNbElement(type);
   } else {
-    jac_loc     = jacobians[type];
+    jac_loc     = ghost_jacobians[type];
     nb_element  = mesh->getNbGhostElement(type);
   }
 
@@ -485,9 +487,9 @@ void FEM::integrate(const Vector<Real> & in_f,
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_f.getSize() == mesh->getNbElement(type),
-		      "The vector in_f(" << in_f.getID()
-		      << ") has not the good size.");
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == nb_element,
+		      "The vector in_f(" << in_f.getID() << " size " << in_f.getSize()
+		      << ") has not the good size (" << nb_element << ").");
   AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good number of component.");
@@ -535,10 +537,10 @@ Real FEM::integrate(const Vector<Real> & in_f,
   UInt nb_element;
 
   if(ghost_type == _not_ghost) {
-    jac_loc     = shapes_derivatives[type];
+    jac_loc     = jacobians[type];
     nb_element  = mesh->getNbElement(type);
   } else {
-    jac_loc     = ghost_shapes_derivatives[type];
+    jac_loc     = ghost_jacobians[type];
     nb_element  = mesh->getNbGhostElement(type);
   }
 
@@ -551,7 +553,7 @@ Real FEM::integrate(const Vector<Real> & in_f,
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_f.getSize() == mesh->getNbElement(type),
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == nb_element,
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good size.");
   AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_quadrature_points,

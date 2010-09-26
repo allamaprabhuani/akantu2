@@ -62,18 +62,21 @@ public:
   inline CommunicationRequest * asyncSend(UInt * buffer, Int size, Int receiver, Int tag);
   inline CommunicationRequest * asyncSend(Real * buffer, Int size, Int receiver, Int tag);
 
-  virtual CommunicationRequest * asyncReceive(UInt * buffer, Int size,
+  inline CommunicationRequest * asyncReceive(UInt * buffer, Int size,
 					      Int sender, Int tag);
-  virtual CommunicationRequest * asyncReceive(Real * buffer, Int size,
+  inline CommunicationRequest * asyncReceive(Real * buffer, Int size,
 					      Int sender, Int tag);
 
-  virtual bool testRequest(CommunicationRequest * request);
+  inline bool testRequest(CommunicationRequest * request);
 
   inline void wait(CommunicationRequest * request);
 
   inline void waitAll(std::vector<CommunicationRequest *> & requests);
 
   inline void barrier();
+
+  inline void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
+  inline void allReduce(UInt * values, UInt nb_values, const SynchronizerOperation & op);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -90,6 +93,8 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   MPI_Comm communicator;
+
+  static MPI_Op synchronizer_operation_to_mpi_op[_so_null + 1];
 };
 
 

@@ -76,6 +76,7 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
   case _triangle_2   : { GET_NB_QUAD_POINTS(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_NB_QUAD_POINTS(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_NB_QUAD_POINTS(_tetrahedra_2); break; }
+  case _point:
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -103,6 +104,7 @@ inline UInt FEM::getShapeSize(const ElementType & type) {
   case _triangle_2   : { GET_SHAPE_SIZE(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_SHAPE_SIZE(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_SHAPE_SIZE(_tetrahedra_2); break; }
+  case _point:
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -130,6 +132,7 @@ inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
   case _triangle_2   : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedra_2); break; }
+  case _point:
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -157,6 +160,7 @@ inline UInt FEM::getJacobianSize(const ElementType & type) {
   case _triangle_2   : { GET_JACOBIAN_SIZE(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_JACOBIAN_SIZE(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_JACOBIAN_SIZE(_tetrahedra_2); break; }
+  case _point:
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -186,6 +190,7 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
   case _triangle_2   : { GET_INRADIUS(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_INRADIUS(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_INRADIUS(_tetrahedra_2); break; }
+  case _point:
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);

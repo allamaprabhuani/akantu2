@@ -129,12 +129,12 @@ endif(AKANTU_USE_SCOTCH)
 
 set(AKANTU_COMMON_SRC
   common/aka_common.cc
+  common/aka_error.cc
   common/aka_extern.cc
   common/aka_static_memory.cc
   common/aka_memory.cc
   common/aka_vector.cc
   common/aka_math.cc
-  common/aka_error.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
@@ -152,12 +152,12 @@ set(AKANTU_COMMON_SRC
   synchronizer/static_communicator.cc
   )
 
-#if(AKANTU_USE_MPI AND MPI_FOUND)
-#  set(AKANTU_COMMON_SRC
-#    ${AKANTU_COMMON_SRC}
-#    synchronizer/static_communicator_mpi.cc
-#    )
-#endif(AKANTU_USE_MPI AND MPI_FOUND)
+if(AKANTU_USE_MPI AND MPI_FOUND)
+  set(AKANTU_COMMON_SRC
+    ${AKANTU_COMMON_SRC}
+    synchronizer/static_communicator_mpi.cc
+    )
+endif(AKANTU_USE_MPI AND MPI_FOUND)
 
 
 if(AKANTU_SCOTCH_ON)

@@ -22,7 +22,7 @@
 #include "fem.hh"
 #include "mesh.hh"
 //#include "solid_mechanics_model.hh"
-
+#include "static_communicator.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -99,6 +99,7 @@ public:
 
   void setPotentialEnergyFlagOn();
   void setPotentialEnergyFlagOff();
+  Real getPotentialEnergy();
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Strain, strain, const Vector<Real> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Stress, stress, const Vector<Real> &);
@@ -174,5 +175,64 @@ __END_AKANTU__
 
 #include "materials/material_elastic.hh"
 
-#endif /* __AKANTU_MATERIAL_HH__ */
+/* -------------------------------------------------------------------------- */
+/* Auto loop                                                                  */
+/* -------------------------------------------------------------------------- */
 
+#define MATERIAL_LITTLE_DISP_QUADRATURE_POINT_LOOP_BEGIN		\
+  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);	\
+  UInt size_strain          = spatial_dimension * spatial_dimension;	\
+  									\
+  UInt nb_element;							\
+  Real * strain_val;							\
+  Real * stress_val;							\
+  bool potential_energy_flag_tmp;					\
+  									\
+  if(ghost_type == _not_ghost) {					\
+    nb_element   = element_filter[el_type]->getSize();			\
+    strain_val = strain[el_type]->values;				\
+    stress_val = stress[el_type]->values;				\
+  } else {								\
+    nb_element = ghost_element_filter[el_type]->getSize();		\
+    strain_val = ghost_strain[el_type]->values;				\
+    stress_val = ghost_stress[el_type]->values;				\
+    potential_energy_flag_tmp = potential_energy_flag;			\
+    potential_energy_flag = false;					\
+  }									\
+  									\
+  if (nb_element == 0) return;						\
+  									\
+  Real * epot = NULL;							\
+  if (potential_energy_flag) epot = potential_energy[el_type]->values;	\
+  									\
+  Real F[3*3];								\
+  Real sigma[3*3];							\
+									\
+  for (UInt el = 0; el < nb_element; ++el) {				\
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {			\
+      memset(F, 0, 3 * 3 * sizeof(Real));				\
+									\
+      for (UInt i = 0; i < spatial_dimension; ++i)			\
+	for (UInt j = 0; j < spatial_dimension; ++j)			\
+	  F[3*i + j] = strain_val[spatial_dimension * i + j];		\
+  									\
+      for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
+
+
+#define MATERIAL_LITTLE_DISP_QUADRATURE_POINT_LOOP_END			\
+      for (UInt i = 0; i < spatial_dimension; ++i)			\
+	for (UInt j = 0; j < spatial_dimension; ++j)			\
+	  stress_val[spatial_dimension*i + j] = sigma[3 * i + j];	\
+									\
+      strain_val += size_strain;					\
+      stress_val += size_strain;					\
+      if (potential_energy_flag) epot += nb_quadrature_points;		\
+    }									\
+  }                                                                     \
+									\
+  if(ghost_type == _ghost) {                                            \
+    potential_energy_flag = potential_energy_flag_tmp;			\
+  }
+
+
+#endif /* __AKANTU_MATERIAL_HH__ */

@@ -25,12 +25,20 @@ template<ElementType type> UInt ElementClass<type>::spatial_dimension       = 0;
 template<ElementType type> ElementType ElementClass<type>::facet_type       = _not_defined;
 
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_point>::nb_nodes_per_element     = 1;
+template<> ElementType ElementClass<_point>::p1_element_type   = _point;
+template<> ElementType ElementClass<_point>::facet_type        = _not_defined;
+template<> UInt ElementClass<_point>::spatial_dimension        = 0;
+template<> UInt ElementClass<_point>::nb_facets                = 0;
+template<> UInt * ElementClass<_point>::facet_connectivity[]   = {};
+
+/* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_line_1>::nb_nodes_per_element    = 2;
 template<> ElementType ElementClass<_line_1>::p1_element_type  = _line_1;
 template<> UInt ElementClass<_line_1>::nb_quadrature_points    = 1;
 template<> UInt ElementClass<_line_1>::spatial_dimension       = 1;
 template<> UInt ElementClass<_line_1>::nb_facets               = 2;
-template<> ElementType ElementClass<_line_1>::facet_type       = _not_defined;
+template<> ElementType ElementClass<_line_1>::facet_type       = _point;
 template<> UInt ElementClass<_line_1>::vec_facet_connectivity[]= {0,
 								  1};
 template<> UInt * ElementClass<_line_1>::facet_connectivity[]  = {&vec_facet_connectivity[0],
@@ -41,7 +49,7 @@ template<> ElementType ElementClass<_line_2>::p1_element_type  = _line_1;
 template<> UInt ElementClass<_line_2>::nb_quadrature_points    = 2;
 template<> UInt ElementClass<_line_2>::spatial_dimension       = 1;
 template<> UInt ElementClass<_line_2>::nb_facets               = 2;
-template<> ElementType ElementClass<_line_2>::facet_type       = _not_defined;
+template<> ElementType ElementClass<_line_2>::facet_type       = _point;
 template<> UInt ElementClass<_line_2>::vec_facet_connectivity[]= {0,
 								  1};
 template<> UInt * ElementClass<_line_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],

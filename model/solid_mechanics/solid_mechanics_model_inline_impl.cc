@@ -29,7 +29,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
 #ifdef AKANTU_DEBUG
-  size += spatial_dimension; /// position of the barycenter of the P1 element (only for check)
+  size += spatial_dimension; /// position of the barycenter of the element (only for check)
 #endif
 
   switch(tag) {
@@ -38,8 +38,14 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
     break;
   }
   case _gst_smm_residual: {
+    size += nb_nodes_per_element * spatial_dimension; // displacement
+
     UInt mat = element_material[element.type]->values[element.element];
     size += materials[mat]->getNbDataToPack(element, tag);
+    break;
+  }
+  case _gst_smm_boundary: {
+    size += nb_nodes_per_element * spatial_dimension * 3; // force, displacement, boundary
     break;
   }
   default: {
@@ -60,7 +66,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
 #ifdef AKANTU_DEBUG
-  size += spatial_dimension; /// position of the barycenter of the P1 element (only for check)
+  size += spatial_dimension; /// position of the barycenter of the element (only for check)
 #endif
 
   switch(tag) {
@@ -69,8 +75,14 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
     break;
   }
   case _gst_smm_residual: {
+    size += nb_nodes_per_element * spatial_dimension; // displacement
+
     UInt mat = ghost_element_material[element.type]->values[element.element];
     size += materials[mat]->getNbDataToPack(element, tag);
+    break;
+  }
+  case _gst_smm_boundary: {
+    size += nb_nodes_per_element * spatial_dimension * 3; // force, displacement, boundary
     break;
   }
   default: {
@@ -79,7 +91,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   }
 
   AKANTU_DEBUG_OUT();
-  return 0;
+  return size;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -90,35 +102,48 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
+  UInt * conn  = fem->getMesh().getConnectivity(element.type).values;
 
 #ifdef AKANTU_DEBUG
-  Real * coord = fem->getMesh().getNodes().values;
-  UInt * conn  = fem->getMesh().getConnectivity(element.type).values;
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-
-  memset(*buffer, 0, spatial_dimension * sizeof(Real));
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      *buffer[i] += coord[offset_conn + i] / (Real) nb_nodes_per_element;
-    }
-  }
-  *buffer += spatial_dimension;
+  fem->getMesh().getBarycenter(element.element, element.type, *buffer);
+  (*buffer) += spatial_dimension;
 #endif
-
 
   switch(tag) {
   case _gst_smm_mass: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-      **buffer = mass->values[offset_conn];
-      *buffer++;
+      UInt offset_conn = conn[el_offset + n];
+      (*buffer)[n] = mass->values[offset_conn];
     }
+    *buffer += nb_nodes_per_element;
     break;
   }
   case _gst_smm_residual: {
-    UInt mat = ghost_element_material[element.type]->values[element.element];
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
+      memcpy(*buffer, current_position->values + offset_conn, spatial_dimension * sizeof(Real));
+      *buffer += spatial_dimension;
+    }
+
+    UInt mat = element_material[element.type]->values[element.element];
     materials[mat]->packData(buffer, element, tag);
+    break;
+  }
+  case _gst_smm_boundary: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
+
+      memcpy(*buffer, force->values + offset_conn, spatial_dimension * sizeof(Real));
+      *buffer += spatial_dimension;
+
+      memcpy(*buffer, velocity->values + offset_conn, spatial_dimension * sizeof(Real));
+      *buffer += spatial_dimension;
+
+      for (UInt i = 0; i < spatial_dimension; ++i) {
+	(*buffer)[i] = boundary->values[offset_conn + i] ? 1.0 : -1.0;
+      }
+      *buffer += spatial_dimension;
+    }
     break;
   }
   default: {
@@ -137,27 +162,19 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
+  UInt * conn  = fem->getMesh().getGhostConnectivity(element.type).values;
 
 #ifdef AKANTU_DEBUG
-  Real * coord = fem->getMesh().getNodes().values;
-  UInt * conn  = fem->getMesh().getConnectivity(element.type).values;
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-
   Real barycenter[spatial_dimension];
-  memset(barycenter, 0, spatial_dimension * sizeof(Real));
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      barycenter[i] += coord[offset_conn + i] / (Real) nb_nodes_per_element;
-    }
-  }
+  fem->getMesh().getBarycenter(element.element, element.type, barycenter, _ghost);
 
   Real tolerance = 1e-15;
-
   for (UInt i = 0; i < spatial_dimension; ++i) {
-    if(abs(barycenter[i] - *buffer[i]) <= tolerance)
+    if(!(fabs(barycenter[i] - (*buffer)[i]) <= tolerance))
       AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element : "
-			 << element);
+			 << element
+			 << "(barycenter[" << i << "] = " << barycenter[i]
+			 << " and (*buffer)[" << i << "] = " << (*buffer)[i] << ")");
   }
   *buffer += spatial_dimension;
 #endif
@@ -165,15 +182,38 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
   switch(tag) {
   case _gst_smm_mass: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-      mass->values[offset_conn] = **buffer;
-      *buffer++;
+      UInt offset_conn = conn[el_offset + n];
+      mass->values[offset_conn] = (*buffer)[n];
     }
+    *buffer += nb_nodes_per_element;
     break;
   }
   case _gst_smm_residual: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
+      memcpy(current_position->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
+      *buffer += spatial_dimension;
+    }
+
     UInt mat = ghost_element_material[element.type]->values[element.element];
     materials[mat]->unpackData(buffer, element, tag);
+    break;
+  }
+  case _gst_smm_boundary: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
+
+      memcpy(force->values + offset_conn, *buffer, spatial_dimension * sizeof(Real));
+      *buffer += spatial_dimension;
+
+      memcpy(velocity->values + offset_conn, *buffer, spatial_dimension * sizeof(Real));
+      *buffer += spatial_dimension;
+
+      for (UInt i = 0; i < spatial_dimension; ++i) {
+	boundary->values[offset_conn + i] = ((*buffer)[i] > 0) ? true : false;
+      }
+      *buffer += spatial_dimension;
+    }
     break;
   }
   default: {

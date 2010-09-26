@@ -82,6 +82,9 @@ public:
   /// compute boundary forces from quadrature point force values
   void computeForcesFromQuadraturePointForceValues();
 
+  /// synchronize the ghost element boundaries values
+  void synchronizeBoundaries();
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -172,6 +175,9 @@ private:
 
   /// boundaries array
   Vector<bool> * boundary;
+
+  /// array of current position used during update residual
+  Vector<Real> * current_position;
 
   /// materials of all elements
   ByElementTypeUInt element_material;

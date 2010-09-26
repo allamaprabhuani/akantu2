@@ -67,10 +67,13 @@ namespace debug {
   extern DebugLevel _debug_level;
 
   extern std::string _parallel_context;
-  
+
   void setDebugLevel(const DebugLevel & level);
 
   void setParallelContext(int rank, int size);
+
+  void initSignalHandler();
+  void printBacktrace(int sig);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -127,15 +130,13 @@ private:
 #ifndef AKANTU_USE_MPI
 #define AKANTU_EXIT(status)			\
   do {						\
-    int * p = NULL;				\
-    *p = 2;					\
+    akantu::debug::printBacktrace(15);		\
     exit(status);				\
   } while(0)
 #else
 #define AKANTU_EXIT(status)						\
   do {									\
-    int * p = NULL;							\
-    *p = 2;								\
+    akantu::debug::printBacktrace(15);					\
     MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);				\
   } while(0)
 #endif

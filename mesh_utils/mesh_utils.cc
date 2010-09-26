@@ -102,8 +102,8 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 
   buildNode2Elements(mesh,node_offset,node_to_elem);
 
-  std::cout << "node offset " << std::endl << node_offset << std::endl;
-  std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
+  //  std::cout << "node offset " << std::endl << node_offset << std::endl;
+  // std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;

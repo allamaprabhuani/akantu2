@@ -15,7 +15,7 @@
 # 1D
 #===============================================================================
 add_mesh(test_fem_line1_mesh line.geo 1 1)
-REGISTER_TEST(test_integrate_line_1 test_integrate_line_1.cc)
+register_test(test_integrate_line_1 test_integrate_line_1.cc)
 add_dependencies(test_integrate_line_1 line)
 
 #===============================================================================
@@ -24,7 +24,7 @@ add_dependencies(test_interpolate_line_1 test_fem_line1_mesh)
 #===============================================================================
 register_test(test_gradient_line_1 test_gradient_line_1.cc)
 add_dependencies(test_gradient_line_1 test_fem_line1_mesh)
-REGISTER_TEST(test_integrate_triangle_1 test_integrate_triangle_1.cc)
+register_test(test_integrate_triangle_1 test_integrate_triangle_1.cc)
 add_dependencies(test_integrate_triangle_1 ltriangle)
 
 
@@ -32,7 +32,7 @@ add_dependencies(test_integrate_triangle_1 ltriangle)
 # 2D
 #===============================================================================
 add_mesh(test_fem_triangle1_mesh triangle.geo 2 1)
-REGISTER_TEST(test_integrate_tetrahedra_1 test_integrate_tetrahedra_1.cc)
+register_test(test_integrate_tetrahedra_1 test_integrate_tetrahedra_1.cc)
 add_dependencies(test_integrate_tetrahedra_1 llcube)
 
 #===============================================================================

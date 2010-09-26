@@ -26,8 +26,9 @@ inline void Material::addGhostElement(ElementType type, UInt element) {
   ghost_element_filter[type]->push_back(element);
   ghost_strain[type]->push_back(REAL_INIT_VALUE);
   ghost_stress[type]->push_back(REAL_INIT_VALUE);
-  if(potential_energy_vector)
-    ghost_potential_energy[type]->push_back(REAL_INIT_VALUE);
+
+  // if(potential_energy_vector)
+  //   ghost_potential_energy[type]->push_back(REAL_INIT_VALUE);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -49,13 +50,13 @@ inline void Material::setPotentialEnergyFlagOn(){
 						REAL_INIT_VALUE));
       }
 
-      if(ghost_element_filter[type] != NULL) {
-	UInt nb_element = ghost_element_filter[type]->getSize();
-	std::stringstream sstr; sstr << id << ":ghost_potential_energy:"<< type;
-	ghost_potential_energy[type] = &(alloc<Real> (sstr.str(), nb_element,
-						      nb_quadrature_points,
-						      REAL_INIT_VALUE));
-      }
+      // if(ghost_element_filter[type] != NULL) {
+      // 	UInt nb_element = ghost_element_filter[type]->getSize();
+      // 	std::stringstream sstr; sstr << id << ":ghost_potential_energy:"<< type;
+      // 	ghost_potential_energy[type] = &(alloc<Real> (sstr.str(), nb_element,
+      // 						      nb_quadrature_points,
+      // 						      REAL_INIT_VALUE));
+      // }
     }
     potential_energy_vector = true;
   }

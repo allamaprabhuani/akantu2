@@ -20,6 +20,7 @@
 #include "aka_math.hh"
 #include "integration_scheme/central_difference.hh"
 
+#include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
 
 
@@ -51,6 +52,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   registerTag(_gst_smm_mass, "Mass");
   registerTag(_gst_smm_residual, "Explicit Residual");
+  registerTag(_gst_smm_boundary, "Boundary conditions");
 
   materials.clear();
 
@@ -66,6 +68,8 @@ SolidMechanicsModel::~SolidMechanicsModel() {
     delete *mat_it;
   }
   materials.clear();
+
+  delete integrator;
 
   AKANTU_DEBUG_OUT();
 }
@@ -90,6 +94,9 @@ void SolidMechanicsModel::initVectors() {
   force        = &(alloc<Real>(sstr_forc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   residual     = &(alloc<Real>(sstr_resi.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   boundary     = &(alloc<bool>(sstr_boun.str(), nb_nodes, spatial_dimension, false));
+
+  std::stringstream sstr_curp; sstr_curp << id << ":current_position_tmp";
+  current_position = &(alloc<Real>(sstr_curp.str(), 0, spatial_dimension, REAL_INIT_VALUE));
 
   const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -213,6 +220,7 @@ void SolidMechanicsModel::initMaterials() {
     }
   }
 
+  //@todo synchronize element material
   /// fill the element filters of the materials using the element_material arrays
   const Mesh::ConnectivityTypeList & ghost_type_list =
     fem->getMesh().getConnectivityTypeList(_ghost);
@@ -245,9 +253,6 @@ void SolidMechanicsModel::assembleMass() {
   assembleMass(_not_ghost);
   assembleMass(_ghost);
 
-  /// @todo synchronize mass for the nodes of ghost elements
-  synchronize(_gst_smm_mass);
-
   /// for not connected nodes put mass to one in order to avoid
   /// wrong range in paraview
   Real * mass_values = mass->values;
@@ -255,7 +260,7 @@ void SolidMechanicsModel::assembleMass() {
     if (!mass_values[i] || isnan(mass_values[i]))
       mass_values[i] = 1;
   }
-    
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -320,11 +325,10 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
 void SolidMechanicsModel::updateResidual() {
   AKANTU_DEBUG_IN();
 
-  /// @todo start synchronization
-
   UInt nb_nodes = fem->getMesh().getNbNodes();
 
-  Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
+  current_position->resize(nb_nodes);
+  //Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
   Real * current_position_val = current_position->values;
   Real * position_val         = fem->getMesh().getNodes().values;
   Real * displacement_val     = displacement->values;
@@ -335,6 +339,9 @@ void SolidMechanicsModel::updateResidual() {
     *current_position_val++ += *displacement_val++;
   }
 
+  /// start synchronization
+  asynchronousSynchronize(_gst_smm_residual);
+
   /// copy the forces in residual for boundary conditions
   memcpy(residual->values, force->values, nb_nodes*spatial_dimension*sizeof(Real));
 
@@ -344,15 +351,15 @@ void SolidMechanicsModel::updateResidual() {
     (*mat_it)->updateResidual(*current_position, _not_ghost);
   }
 
-
-  /// @todo finalize communications
+  /// finalize communications
+  waitEndSynchronize(_gst_smm_residual);
 
   /// call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     (*mat_it)->updateResidual(*current_position, _ghost);
   }
 
-  delete current_position;
+  //  current_position;
 
   AKANTU_DEBUG_OUT();
 }
@@ -362,6 +369,7 @@ void SolidMechanicsModel::updateAcceleration() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = acceleration->getSize();
+
   UInt nb_degre_of_freedom = acceleration->getNbComponent();
 
   Real * mass_val     = mass->values;
@@ -411,6 +419,14 @@ void SolidMechanicsModel::explicitCorr() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::synchronizeBoundaries() {
+  AKANTU_DEBUG_IN();
+  synchronize(_gst_smm_boundary);
+  AKANTU_DEBUG_OUT();
+};
+
+
+/* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getStableTimeStep() {
   AKANTU_DEBUG_IN();
 
@@ -456,7 +472,9 @@ Real SolidMechanicsModel::getStableTimeStep() {
   }
 
 
-  /// @todo reduction min over all processors
+  /// reduction min over all processors
+  allReduce(&min_dt, _so_min);
+
 
   AKANTU_DEBUG_OUT();
   return min_dt;
@@ -488,20 +506,14 @@ Real SolidMechanicsModel::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
 
-  /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
-
-    std::vector<Material *>::iterator mat_it;
-    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-      epot += fem->integrate((*mat_it)->getPotentialEnergy(*it),
-			     *it);
-    }
+  /// call update residual on each local elements
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    epot += (*mat_it)->getPotentialEnergy();
   }
 
-  /// @todo reduction sum over all processors
+  /// reduction sum over all processors
+  allReduce(&epot, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return epot;
@@ -510,26 +522,57 @@ Real SolidMechanicsModel::getPotentialEnergy() {
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getKineticEnergy() {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = velocity->getSize();
-  UInt nb_degre_of_freedom = velocity->getNbComponent();
-
-  Real * mass_val = mass->values;
-  Real * vel_val  = velocity->values;
 
   Real ekin = 0.;
 
+  UInt nb_nodes = fem->getMesh().getNbNodes();
+  Vector<Real> * v_square = new Vector<Real>(nb_nodes, 1, "v_square");
+
+  Real * vel_val  = velocity->values;
+  Real * v_s_val  = v_square->values;
+
   for (UInt n = 0; n < nb_nodes; ++n) {
-    Real norm_vel = 0.;
-    for (UInt d = 0; d < nb_degre_of_freedom; d++) {
-      norm_vel += *vel_val * *vel_val;
+    *v_s_val = 0;
+    for (UInt s = 0; s < spatial_dimension; ++s) {
+      *v_s_val += *vel_val * *vel_val;
       vel_val++;
     }
-    ekin += *mass_val * norm_vel;
-
-    mass_val++;
+    v_s_val++;
   }
 
-  /// @todo reduction sum over all processors
+  Material ** mat_val = &(materials.at(0));
+
+  const Mesh:: ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+
+    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+    UInt nb_element = fem->getMesh().getNbElement(*it);
+
+    Vector<Real> * v_square_el = new Vector<Real>(nb_element, nb_quadrature_points, "v_square per element");
+
+    fem->interpolateOnQuadraturePoints(*v_square, *v_square_el, 1, *it);
+
+    Real * v_square_el_val = v_square_el->values;
+    UInt * elem_mat_val = element_material[*it]->values;
+
+    for (UInt el = 0; el < nb_element; ++el) {
+      Real rho = mat_val[elem_mat_val[el]]->getRho();
+      for (UInt q = 0; q < nb_quadrature_points; ++q) {
+	*v_square_el_val *= rho;
+	v_square_el_val++;
+      }
+    }
+
+    ekin += fem->integrate(*v_square_el, *it);
+
+    delete v_square_el;
+  }
+  delete v_square;
+
+  /// reduction sum over all processors
+  allReduce(&ekin, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return ekin * .5;

@@ -51,6 +51,9 @@ public:
   /// wait end of asynchronous synchronization of ghosts
   virtual void waitEndSynchronize(GhostSynchronizationTag tag) = 0;
 
+  virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) = 0;
+
+  /* ------------------------------------------------------------------------ */
   /// register a new communication
   virtual void registerTag(GhostSynchronizationTag tag) = 0;
 

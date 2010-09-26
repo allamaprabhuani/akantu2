@@ -86,7 +86,8 @@ enum ElementType {
   _triangle_2   = 4,
   _tetrahedra_1 = 5,
   _tetrahedra_2 = 6,
-  _max_element_type
+  _max_element_type,
+  _point
 };
 
 enum MaterialType {
@@ -109,6 +110,8 @@ enum GhostSynchronizationTag {
   /// SolidMechanicsModel tags
   _gst_smm_mass,
   _gst_smm_residual,
+  _gst_smm_boundary,
+  /// Test
   _gst_test
 };
 
@@ -116,6 +119,13 @@ enum GhostType {
   _not_ghost,
   _ghost,
   _casper  // not used but a real cute ghost
+};
+
+enum SynchronizerOperation {
+  _so_sum,
+  _so_min,
+  _so_max,
+  _so_null
 };
 
 /* -------------------------------------------------------------------------- */
@@ -168,6 +178,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _tetrahedra_2 : stream << "tetrahedra_2"; break;
     case _not_defined  : stream << "undefined" ; break;
     case _max_element_type :  stream << "ElementType(" << (int) type << ")"; break;
+    case _point        : stream << "point"; break;
     }
   return stream;
 }

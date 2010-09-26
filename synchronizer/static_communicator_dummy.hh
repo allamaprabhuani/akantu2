@@ -69,6 +69,9 @@ public:
 
   virtual void barrier() {};
 
+  virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) {};
+  virtual void allReduce(UInt * values, UInt nb_values, const SynchronizerOperation & op) {};
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

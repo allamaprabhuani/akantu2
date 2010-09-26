@@ -30,6 +30,7 @@ find_path(SCOTCH_INCLUDE_PATH scotch.h
 
 #===============================================================================
 mark_as_advanced(SCOTCH_LIBRARY)
+mark_as_advanced(SCOTCH_LIBRARY_ERR)
 mark_as_advanced(SCOTCH_INCLUDE_PATH)
 
 set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY} ${SCOTCH_LIBRARY_ERR})

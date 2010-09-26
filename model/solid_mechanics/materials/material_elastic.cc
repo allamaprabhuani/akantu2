@@ -46,54 +46,10 @@ void MaterialElastic::initMaterial() {
 void MaterialElastic::constitutiveLaw(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);
-  UInt size_strain          = spatial_dimension * spatial_dimension;
+  MATERIAL_LITTLE_DISP_QUADRATURE_POINT_LOOP_BEGIN;
+  constitutiveLaw(F, sigma, epot);
+  MATERIAL_LITTLE_DISP_QUADRATURE_POINT_LOOP_END;
 
-  UInt nb_element;
-  Real * strain_val;
-  Real * stress_val;
-
-  if(ghost_type == _not_ghost) {
-    nb_element   = element_filter[el_type]->getSize();
-    strain_val = strain[el_type]->values;
-    stress_val = stress[el_type]->values;
-  } else {
-    nb_element = ghost_element_filter[el_type]->getSize();
-    strain_val = ghost_strain[el_type]->values;
-    stress_val = ghost_stress[el_type]->values;
-    potential_energy_flag = false;
-  }
-
-  if (nb_element == 0) return;
-
-  Real * epot = NULL;
-  if (potential_energy_flag) epot = potential_energy[el_type]->values;
-
-  Real F[3*3];
-  Real sigma[3*3];
-
-  /// for each element
-  for (UInt el = 0; el < nb_element; ++el) {
-    /// for each quadrature points
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      memset(F, 0, 3 * 3 * sizeof(Real));
-      for (UInt i = 0; i < spatial_dimension; ++i)
-	for (UInt j = 0; j < spatial_dimension; ++j)
-	  F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-      for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
-
-      constitutiveLaw(F, sigma, epot);
-
-      for (UInt i = 0; i < spatial_dimension; ++i)
-	for (UInt j = 0; j < spatial_dimension; ++j)
-	  stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
-
-      strain_val += size_strain;
-      stress_val += size_strain;
-      if (potential_energy_flag) epot += nb_quadrature_points;
-    }
-  }
   AKANTU_DEBUG_OUT();
 }
 

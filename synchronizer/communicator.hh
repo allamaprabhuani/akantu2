@@ -60,6 +60,10 @@ public:
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronize(GhostSynchronizationTag tag);
 
+  /// do a all reduce operation
+  void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
+
+  /* ------------------------------------------------------------------------ */
   /// register a new communication
   void registerTag(GhostSynchronizationTag tag);
 
@@ -107,6 +111,9 @@ private:
   /// list of ghost element to receive ordered by type then by sender processors
   ByElementTypeUInt element_to_receive_offset;
   ByElementTypeUInt element_to_receive;
+
+  UInt nb_proc;
+  UInt rank;
 };
 
 

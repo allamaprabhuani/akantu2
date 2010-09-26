@@ -42,6 +42,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /* ------------------------------------------------------------------------ */
   /// synchronize ghosts
   void synchronize(GhostSynchronizationTag tag);
 
@@ -51,6 +52,10 @@ public:
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronize(GhostSynchronizationTag tag);
 
+  /// reduce a value (essentially for communications synchronizer)
+  void allReduce(Real * values, const SynchronizerOperation & op, UInt nb_values = 1);
+
+  /* ------------------------------------------------------------------------ */
   /// register a new communication
   void registerTag(GhostSynchronizationTag tag, const std::string & name);
 

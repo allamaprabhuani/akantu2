@@ -182,18 +182,39 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 							"int_sigma_x_dphi_/_dX");
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
 			      size_of_shapes_derivatives / nb_quadrature_points,
-			      *it, ghost_type, element_filter[*it]);
+			      *it, ghost_type,
+			      elem_filter);
     delete sigma_dphi_dx;
 
     /// assemble
     model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
 				   residual.getNbComponent(),
-				   *it, ghost_type, element_filter[*it], -1);
+				   *it, ghost_type, elem_filter, -1);
     delete int_sigma_dphi_dx;
   }
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+Real Material::getPotentialEnergy() {
+  AKANTU_DEBUG_IN();
+  Real epot = 0.;
+
+  /// fill the element filters of the materials using the element_material arrays
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+
+    epot += model->getFEM().integrate(*potential_energy[*it], *it,
+				      _not_ghost, element_filter[*it]);
+  }
+
+  AKANTU_DEBUG_OUT();
+  return epot;
+}
+
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__

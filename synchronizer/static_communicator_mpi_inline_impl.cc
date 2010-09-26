@@ -43,14 +43,14 @@ inline void StaticCommunicatorMPI::setMPIComm(MPI_Comm comm) {
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicatorMPI::send(UInt * buffer, Int size,
 					Int receiver, Int tag) {
-  Int ret = MPI_Send(buffer, size, MPI_UNSIGNED, receiver, tag, communicator);
+  int ret = MPI_Send(buffer, size, MPI_UNSIGNED, receiver, tag, communicator);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Send.");
 }
 
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicatorMPI::send(Real * buffer, Int size,
 					Int receiver, Int tag) {
-  Int ret = MPI_Send(buffer, size, MPI_DOUBLE, receiver, tag, communicator);
+  int ret = MPI_Send(buffer, size, MPI_DOUBLE, receiver, tag, communicator);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Send.");
 }
 
@@ -58,7 +58,7 @@ inline void StaticCommunicatorMPI::send(Real * buffer, Int size,
 inline void StaticCommunicatorMPI::receive(UInt * buffer, Int size,
 					   Int sender, Int tag) {
   MPI_Status status;
-  Int ret = MPI_Recv(buffer, size, MPI_UNSIGNED, sender, tag, communicator, &status);
+  int ret = MPI_Recv(buffer, size, MPI_UNSIGNED, sender, tag, communicator, &status);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Recv.");
 }
 
@@ -66,7 +66,7 @@ inline void StaticCommunicatorMPI::receive(UInt * buffer, Int size,
 inline void StaticCommunicatorMPI::receive(Real * buffer, Int size,
 					   Int sender, Int tag) {
   MPI_Status status;
-  Int ret = MPI_Recv(buffer, size, MPI_DOUBLE, sender, tag, communicator, &status);
+  int ret = MPI_Recv(buffer, size, MPI_DOUBLE, sender, tag, communicator, &status);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Recv.");
 }
 
@@ -74,7 +74,7 @@ inline void StaticCommunicatorMPI::receive(Real * buffer, Int size,
 inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(UInt * buffer, Int size,
 							     Int receiver, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(prank, receiver);
-  Int ret = MPI_Isend(buffer, size, MPI_UNSIGNED, receiver, tag, communicator, request->getMPIRequest());
+  int ret = MPI_Isend(buffer, size, MPI_UNSIGNED, receiver, tag, communicator, request->getMPIRequest());
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Isend.");
   return request;
 };
@@ -83,7 +83,7 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(UInt * buffer, In
 inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(Real * buffer, Int size,
 							     Int receiver, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(prank, receiver);
-  Int ret = MPI_Isend(buffer, size, MPI_DOUBLE, receiver, tag, communicator, request->getMPIRequest());
+  int ret = MPI_Isend(buffer, size, MPI_DOUBLE, receiver, tag, communicator, request->getMPIRequest());
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Isend.");
   return request;
 };
@@ -92,7 +92,7 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(Real * buffer, In
 inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(UInt * buffer, Int size,
 								  Int sender, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(sender, prank);
-  Int ret = MPI_Irecv(buffer, size, MPI_UNSIGNED, sender, tag, communicator, request->getMPIRequest());
+  int ret = MPI_Irecv(buffer, size, MPI_UNSIGNED, sender, tag, communicator, request->getMPIRequest());
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Irecv.");
   return request;
 };
@@ -101,7 +101,7 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(UInt * buffer,
 inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(Real * buffer, Int size,
 								  Int sender, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(sender, prank);
-  Int ret = MPI_Irecv(buffer, size, MPI_DOUBLE, sender, tag, communicator, request->getMPIRequest());
+  int ret = MPI_Irecv(buffer, size, MPI_DOUBLE, sender, tag, communicator, request->getMPIRequest());
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Irecv.");
   return request;
 };
@@ -109,10 +109,11 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(Real * buffer,
 /* -------------------------------------------------------------------------- */
 inline bool StaticCommunicatorMPI::testRequest(CommunicationRequest * request) {
   MPI_Status status;
+  int flag;
   CommunicationRequestMPI * req_mpi = static_cast<CommunicationRequestMPI *>(request);
   MPI_Request * req = req_mpi->getMPIRequest();
-  int flag;
-  Int ret = MPI_Test(req, &flag, &status);
+
+  int ret = MPI_Test(req, &flag, &status);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Test.");
   return (flag != 0);
 }
@@ -122,7 +123,8 @@ inline void StaticCommunicatorMPI::wait(CommunicationRequest * request) {
   MPI_Status status;
   CommunicationRequestMPI * req_mpi = static_cast<CommunicationRequestMPI *>(request);
   MPI_Request * req = req_mpi->getMPIRequest();
-  Int ret = MPI_Wait(req, &status);
+
+  int ret = MPI_Wait(req, &status);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Wait.");
 }
 
@@ -132,7 +134,7 @@ inline void StaticCommunicatorMPI::waitAll(std::vector<CommunicationRequest *> &
   std::vector<CommunicationRequest *>::iterator it;
   for(it = requests.begin(); it != requests.end(); ++it) {
     MPI_Request * req = static_cast<CommunicationRequestMPI *>(*it)->getMPIRequest();
-    Int ret = MPI_Wait(req, &status);
+    int ret = MPI_Wait(req, &status);
     AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Wait.");
   }
 }
@@ -140,4 +142,22 @@ inline void StaticCommunicatorMPI::waitAll(std::vector<CommunicationRequest *> &
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicatorMPI::barrier() {
   MPI_Barrier(communicator);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicatorMPI::allReduce(UInt * values, UInt nb_values,
+					     const SynchronizerOperation & op) {
+  int ret = MPI_Allreduce(MPI_IN_PLACE, values, nb_values, MPI_UNSIGNED,
+			  synchronizer_operation_to_mpi_op[op],
+			  communicator);
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Allreduce.");
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicatorMPI::allReduce(Real * values, UInt nb_values,
+					     const SynchronizerOperation & op) {
+  int ret = MPI_Allreduce(MPI_IN_PLACE, values, nb_values, MPI_DOUBLE,
+			  synchronizer_operation_to_mpi_op[op],
+			  communicator);
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Allreduce.");
 }

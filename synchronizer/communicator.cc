@@ -37,13 +37,14 @@ Communicator::Communicator(SynchronizerID id,
     element_to_receive       [t] = NULL;
   }
 
-  UInt nb_proc = static_communicator->getNbProc();
+  nb_proc = static_communicator->getNbProc();
+  rank    = static_communicator->whoAmI();
+
   send_buffer = new Vector<Real>[nb_proc];
   recv_buffer = new Vector<Real>[nb_proc];
 
   send_element = new std::vector<Element>[nb_proc];
   recv_element = new std::vector<Element>[nb_proc];
-
 
   size_to_send.clear();
   size_to_receive.clear();
@@ -55,8 +56,7 @@ Communicator::Communicator(SynchronizerID id,
 Communicator::~Communicator() {
   AKANTU_DEBUG_IN();
 
-  UInt psize = static_communicator->getNbProc();
-  for (UInt p = 0; p < psize; ++p) {
+  for (UInt p = 0; p < nb_proc; ++p) {
     send_buffer[p].resize(0);
     recv_buffer[p].resize(0);
 
@@ -83,7 +83,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
   AKANTU_DEBUG_IN();
 
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
 
@@ -442,28 +441,26 @@ void Communicator::synchronize(GhostSynchronizationTag tag) {
 void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  UInt psize = static_communicator->getNbProc();
-  UInt prank = static_communicator->whoAmI();
-
   AKANTU_DEBUG_ASSERT(send_requests.size() == 0,
 		      "There must be some pending sending communications");
 
-  for (UInt p = 0; p < psize; ++p) {
+  for (UInt p = 0; p < nb_proc; ++p) {
     UInt ssize = (size_to_send[tag]).values[p];
-    if(p == prank || ssize == 0) continue;
+    if(p == rank || ssize == 0) continue;
 
-    AKANTU_DEBUG_INFO("Packing data for proc" << p);
     send_buffer[p].resize(ssize);
     Real * buffer = send_buffer[p].values;
 
-
     Element * elements = &(send_element[p].at(0));
     UInt nb_elements   =  send_element[p].size();
+    AKANTU_DEBUG_INFO("Packing data for proc " << p
+		      << " (" << ssize << "/" << nb_elements
+		      <<" data to send/elements)");
     for (UInt el = 0; el < nb_elements; ++el) {
       ghost_synchronizer->packData(&buffer, *elements, tag);
       elements++;
     }
-
+    std::cerr << std::dec;
     AKANTU_DEBUG_INFO("Posting send to proc " << p);
     send_requests.push_back(static_communicator->asyncSend(send_buffer[p].values,
 						       ssize,
@@ -474,12 +471,12 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
   AKANTU_DEBUG_ASSERT(recv_requests.size() == 0,
 		      "There must be some pending receive communications");
 
-  for (UInt p = 0; p < psize; ++p) {
-    UInt rsize = size_to_receive[tag].values[p];
-    if(p == prank || rsize == 0) continue;
+  for (UInt p = 0; p < nb_proc; ++p) {
+    UInt rsize = (size_to_receive[tag]).values[p];
+    if(p == rank || rsize == 0) continue;
     recv_buffer[p].resize(rsize);
 
-    AKANTU_DEBUG_INFO("Posting receive from proc " << p);
+    AKANTU_DEBUG_INFO("Posting receive from proc " << p << " (" << rsize << " data to receive)");
     recv_requests.push_back(static_communicator->asyncReceive(recv_buffer[p].values,
 							      rsize,
 							      p,
@@ -536,23 +533,27 @@ void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
 }
 
 /* -------------------------------------------------------------------------- */
+void Communicator::allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) {
+  AKANTU_DEBUG_IN();
+  static_communicator->allReduce(values, nb_values, op);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void Communicator::registerTag(GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();
-
-  UInt psize = static_communicator->getNbProc();
-  UInt prank = static_communicator->whoAmI();
 
   AKANTU_DEBUG_ASSERT(size_to_send.find(tag) == size_to_send.end(),
 		      "The GhostSynchronizationTag " << tag
 		      << "is already registered in " << id);
 
-  size_to_send   [tag].resize(psize);
-  size_to_receive[tag].resize(psize);
+  size_to_send   [tag].resize(nb_proc);
+  size_to_receive[tag].resize(nb_proc);
 
-  for (UInt p = 0; p < psize; ++p) {
+  for (UInt p = 0; p < nb_proc; ++p) {
     UInt ssend    = 0;
     UInt sreceive = 0;
-    if(p != prank) {
+    if(p != rank) {
       for (std::vector<Element>::const_iterator sit = send_element[p].begin();
 	   sit != send_element[p].end();
 	   ++sit) {
@@ -565,7 +566,7 @@ void Communicator::registerTag(GhostSynchronizationTag tag) {
 	sreceive += ghost_synchronizer->getNbDataToUnpack(*rit, tag);
       }
       AKANTU_DEBUG_INFO("I have " << ssend << " data to send to " << p
-			<< " and " << sreceive << " data to receive");
+			<< " and " << sreceive << " data to receive for tag " << tag);
     }
 
     size_to_send   [tag].values[p] = ssend;

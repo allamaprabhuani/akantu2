@@ -236,6 +236,7 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   case _triangle_2   : { GET_NB_NODES_PER_ELEMENT(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_NB_NODES_PER_ELEMENT(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_NB_NODES_PER_ELEMENT(_tetrahedra_2); break; }
+  case _point        : { GET_NB_NODES_PER_ELEMENT(_point       ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -263,6 +264,7 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
   case _triangle_2   : { GET_ELEMENT_P1(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_ELEMENT_P1(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_ELEMENT_P1(_tetrahedra_2); break; }
+  case _point        : { GET_ELEMENT_P1(_point       ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -290,6 +292,7 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   case _triangle_2   : { GET_SPATIAL_DIMENSION(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_SPATIAL_DIMENSION(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_SPATIAL_DIMENSION(_tetrahedra_2); break; }
+  case _point        : { GET_SPATIAL_DIMENSION(_point       ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -317,13 +320,14 @@ inline const ElementType Mesh::getFacetElementType(const ElementType & type) {
   case _triangle_2   : { GET_FACET_TYPE(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_FACET_TYPE(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_FACET_TYPE(_tetrahedra_2); break; }
+  case _point        : { GET_FACET_TYPE(_point       ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
     break; }
   }
 
-#undef GET_SURFACE_TYPE
+#undef GET_FACET_TYPE
 
   AKANTU_DEBUG_OUT();
   return surface_type;
@@ -344,13 +348,14 @@ inline UInt Mesh::getNbFacetsPerElementType(const ElementType & type) const {
   case _triangle_2   : { GET_NB_FACET(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_NB_FACET(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_NB_FACET(_tetrahedra_2); break; }
+  case _point        : { GET_NB_FACET(_point       ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
     break; }
   }
 
-#undef GET_SURFACE_TYPE
+#undef GET_NB_FACET
 
   AKANTU_DEBUG_OUT();
   return n_facet;
@@ -372,13 +377,14 @@ inline UInt ** Mesh::getFacetLocalConnectivityPerElementType(const ElementType &
   case _triangle_2   : { GET_FACET_CON(_triangle_2  ); break; }
   case _tetrahedra_1 : { GET_FACET_CON(_tetrahedra_1); break; }
   case _tetrahedra_2 : { GET_FACET_CON(_tetrahedra_2); break; }
+  case _point        : { GET_FACET_CON(_point       ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
     break; }
   }
 
-#undef GET_SURFACE_TYPE
+#undef GET_FACET_CON
 
   AKANTU_DEBUG_OUT();
   return facet_conn;
