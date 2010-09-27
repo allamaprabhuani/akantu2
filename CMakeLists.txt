@@ -178,6 +178,7 @@ set(AKANTU_INCLUDE_DIRS
   model/integeration_scheme
   model/solid_mechanics
   model/solid_mechanics/materials
+  model/solid_mechanics/contact
   synchronizer/
   )
 

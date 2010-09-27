@@ -26,6 +26,7 @@
 namespace akantu {
   //  class Material;
   class IntegrationScheme2ndOrder;
+  class Contact;
 }
 
 __BEGIN_AKANTU__
@@ -144,6 +145,8 @@ public:
   Real getPotentialEnergy();
   Real getKineticEnergy();
 
+  AKANTU_SET_MACRO(Contact, contact, Contact *);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -190,6 +193,9 @@ private:
 
   /// integration scheme of second order used
   IntegrationScheme2ndOrder * integrator;
+
+  /// object to resolve the contact
+  Contact * contact;
 };
 
 

@@ -77,6 +77,7 @@ typedef ID MeshID;
 typedef ID FEMID;
 typedef ID ModelID;
 typedef ID MaterialID;
+typedef ID ContactID;
 
 enum ElementType {
   _not_defined  = 0,
