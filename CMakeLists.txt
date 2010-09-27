@@ -123,6 +123,9 @@ if(AKANTU_USE_SCOTCH)
   endif(SCOTCH_FOUND)
 endif(AKANTU_USE_SCOTCH)
 
+# Doxygen
+OPTION(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
+
 #===============================================================================
 # Library
 #===============================================================================
@@ -191,11 +194,31 @@ add_library(akantu ${AKANTU_COMMON_SRC})
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 
 
+#===========================================================================
+# Documentation
+#===========================================================================
+
+if(AKANTU_DOCUMENTATION)
+  find_package(Doxygen)
+
+  if(DOXYGEN_FOUND)
+    set(DOXYGEN_WARNINGS NO)
+    set(DOXYGEN_QUIET YES)
+    if(CMAKE_VERBOSE_MAKEFILE)
+      set(DOXYGEN_WARNINGS YES)
+      set(DOXYGEN_QUIET NO)
+    endif(CMAKE_VERBOSE_MAKEFILE)
+
+    add_subdirectory(doc/doxygen)
+  endif(DOXYGEN_FOUND)
+endif(AKANTU_DOCUMENTATION)
+
+
 #===============================================================================
 # Tests
 #===============================================================================
 
 option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
-  subdirs(test)
+  add_subdirectory(test)
 endif(AKANTU_TESTS)
