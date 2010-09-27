@@ -16,10 +16,10 @@ Point(103) = { Lx,  Ly, 0.0,  h}; // Bottom Face
 Point(104) = { 0.0, Ly, 0.0,  h}; // Bottom Face
 
 // Base Cube
-Line(101) = {101,102}; // Bottom Face
-Line(102) = {102,103}; // Bottom Face
-Line(103) = {103,104}; // Bottom Face
-Line(104) = {104,101}; // Bottom Face
+Line(101) = {101, 102}; // Bottom Face
+Line(102) = {102, 103}; // Bottom Face
+Line(103) = {103, 104}; // Bottom Face
+Line(104) = {104, 101}; // Bottom Face
 
 // Base Cube
 Line Loop(101) = {101:104};

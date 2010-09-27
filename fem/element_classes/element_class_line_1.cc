@@ -9,6 +9,24 @@
  *
  * <insert license here>
  *
+ * @section DESCRIPTION
+ *
+ * @verbatim
+              q
+   --x--------|--------x---> \xi
+    -1        0        1
+ @endverbatim
+ *
+ * @subsection shapes Shape functions
+ * @f{eqnarray*}{
+ * N1 &=& 1/2(1 - \xi) \\
+ * N2 &=& 1/2(1 + \xi)
+ * @f}
+ *
+ * @subsection quad_points Position of quadrature points
+ * @f{eqnarray*}{
+ * \xi_{q0}  &=& 0
+ * @f}
  */
 
 template<> UInt ElementClass<_line_1>::nb_nodes_per_element;
@@ -26,48 +44,36 @@ template<> inline void ElementClass<_line_1>::shapeFunctions(const Real * x,
 							     Real * shape,
 							     Real * shape_deriv,
 							     Real * jacobian) {
-  /**
-   *           q
-   *  x--------|--------x
-   * -1        0        1
-   *
-   * N1(e) = 1/2 (1 - e)
-   * N2(e) = 1/2 (1 + e)
-   */
-
-  Real weight = 2;
+  Real weight = 2.;
 
   /// shape functions
-  shape[0] = .5; //N1(0)
-  shape[1] = .5; //N2(0)
+  shape[0] = .5; /// N1(0)
+  shape[1] = .5; /// N2(0)
 
   Real dnds[nb_nodes_per_element*spatial_dimension];
-  ///dN1/de
+  /// dN1/de
   dnds[0] = - .5;
-  ///dN2/de
+  /// dN2/de
   dnds[1] =   .5;
 
   Real dxds = dnds[0]*x[0] + dnds[1]*x[1];
 
   jacobian[0] = dxds * weight;
-  AKANTU_DEBUG_ASSERT(jacobian[0]>0,
-		      "negative jacobian computed problem in the element numerotation ? ");
+  AKANTU_DEBUG_ASSERT(jacobian[0] > 0,
+		      "Negative jacobian computed, possible problem in the element node order.");
 
   shape_deriv[0] = dnds[0] / dxds;
   shape_deriv[1] = dnds[1] / dxds;
 }
-
 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_line_1>::getInradius(const Real * coord) {
   return sqrt((coord[0] - coord[1])*(coord[0] - coord[1]));
 }
 
-
-
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_1>::translateCoordinates(const Real * coord, 
-								   const UInt dim, 
+template<> inline void ElementClass<_line_1>::translateCoordinates(const Real * coord,
+								   const UInt dim,
 								   const UInt n_points,
 								   Real * translated_coords,
 								   bool flag_inverse){
@@ -81,13 +87,14 @@ template<> inline void ElementClass<_line_1>::translateCoordinates(const Real * 
     }
   }
 }
+
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_1>::computeRotationMatrix(const Real * coord, 
-								    const UInt dim, 
-								    Real * rotmatrix, 
+template<> inline void ElementClass<_line_1>::computeRotationMatrix(const Real * coord,
+								    const UInt dim,
+								    Real * rotmatrix,
 								    bool inverse_flag){
   if (dim != 2) AKANTU_DEBUG_ERROR("cannot compute non invertible rotation matrix"
-				   << "=>Is it a sens in changing coordinates from " 
+				   << "=>Is it a sens in changing coordinates from "
 				   << dim << " to line elements ?");
   Real vecs[dim*nb_nodes_per_element];
   //compute first vector
@@ -107,33 +114,39 @@ template<> inline void ElementClass<_line_1>::computeRotationMatrix(const Real *
   else
     memcpy(rotmatrix,vecs,sizeof(Real)*dim*dim);
 }
+
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_1>::changeDimension(const Real * coord, 
-							      const UInt dim, 
-							      const UInt n_points, 
+template<> inline void ElementClass<_line_1>::changeDimension(const Real * coord,
+							      const UInt dim,
+							      const UInt n_points,
 							      Real * local_coord) {
   Real rotation[dim*dim];
-  computeRotationMatrix(coord,dim,rotation); 
+  computeRotationMatrix(coord, dim, rotation);
+
   Real local_coord_dim[dim*n_points];
+
   //rotation of the coordinates
   Real points[dim*n_points];
-  memcpy(points,coord,sizeof(Real)*dim*n_points);
-  translateCoordinates(coord,dim,n_points,points);
-  Math::matrix_matrix(dim,dim,dim,points,rotation,local_coord_dim);
+
+  memcpy(points, coord, dim * n_points * sizeof(Real));
+  translateCoordinates(coord, dim, n_points, points);
+
+  Math::matrix_matrix(dim, dim, dim, points, rotation, local_coord_dim);
+
   for (UInt i = 0 ; i < n_points ; ++i) {
     local_coord[i] = local_coord_dim[i*dim];
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_1>::unchangeDimension(const Real * coord, 
+template<> inline void ElementClass<_line_1>::unchangeDimension(const Real * coord,
 								const Real * points,
 								const UInt dim,
 								const UInt n_points,
 								Real * local_coord) {
   Real rotation[dim*nb_nodes_per_element];
-  computeRotationMatrix(coord,dim,rotation,true); 
-  
+  computeRotationMatrix(coord,dim,rotation,true);
+
   //rotation of the coordinates
   //compute points
   Real points_dim[dim*n_points];
@@ -144,7 +157,7 @@ template<> inline void ElementClass<_line_1>::unchangeDimension(const Real * coo
     }
   }
   Math::matrix_matrix(n_points,dim,dim,points_dim,rotation,local_coord);
-  translateCoordinates(coord,dim,n_points,local_coord,1);  
+  translateCoordinates(coord,dim,n_points,local_coord,1);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -164,5 +177,5 @@ template<> inline void ElementClass<_line_1>::computeNormalsOnQuadPoint(const Re
   }
 
   memcpy(normals,vec+2,sizeof(Real)*2);
-  
+
 }

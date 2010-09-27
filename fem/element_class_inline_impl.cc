@@ -32,12 +32,17 @@ template<ElementType type> inline UInt ElementClass<type>::getJacobianSize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline void ElementClass<type>::changeDimension(const Real * coord, const UInt dim, UInt n_points, Real * local_coord) {
-  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+template<ElementType type> inline void ElementClass<type>::changeDimension(__attribute__ ((unused)) const Real * coord,
+									   __attribute__ ((unused)) const UInt dim,
+									   __attribute__ ((unused)) UInt n_points,
+									   __attribute__ ((unused)) Real * local_coord) {
+  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals) {
-  AKANTU_DEBUG_ERROR("TO IMPLEMENT");
+template<ElementType type> inline void ElementClass<type>::computeNormalsOnQuadPoint(__attribute__ ((unused)) const Real * coord,
+										     __attribute__ ((unused)) const UInt dim,
+										     __attribute__ ((unused)) Real * normals) {
+  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
 
@@ -62,6 +67,6 @@ inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real 
 #include "element_classes/element_class_line_1.cc"
 // #include "element_classes/element_class_line_2.cc"
 #include "element_classes/element_class_triangle_1.cc"
-// #include "element_classes/element_class_triangle_2.cc"
+#include "element_classes/element_class_triangle_2.cc"
 #include "element_classes/element_class_tetrahedra_1.cc"
 // #include "element_classes/element_class_tetrahedra_2.cc"

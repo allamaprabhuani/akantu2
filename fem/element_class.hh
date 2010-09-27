@@ -26,6 +26,13 @@
 
 __BEGIN_AKANTU__
 
+
+/**
+ * Class describing  the different  type of element  for mesh or  finite element
+ * purpose
+ *
+ * @tparam type the element type for the specialization of the element class
+ */
 template<ElementType type> class ElementClass {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -68,7 +75,7 @@ public:
 
   /// compute the normals on quadrature points
   inline static void computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals);
-  
+
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};

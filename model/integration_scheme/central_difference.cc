@@ -38,10 +38,10 @@ void CentralDifference::integrationSchemePred(Real delta_t,
 
   for (UInt d = 0; d < nb_degre_of_freedom; d++) {
     if(!(*boundary_val)) {
-      /// u_{n+1} = u_{n} +  \Delta t * \dot{u}_n + \frac{\Delta t^2}{2} * \ddot{u}_n
+      /// @f$ u_{n+1} = u_{n} +  \Delta t * \dot{u}_n + \frac{\Delta t^2}{2} * \ddot{u}_n @f$
       *u_val += delta_t * *u_dot_val + delta_t_2_d2 * *u_dot_dot_val;
 
-      /// \dot{u}_{n+1} = \dot{u}_{n} +  \frac{\Delta t}{2} * \ddot{u}_{n}
+      /// @f$ \dot{u}_{n+1} = \dot{u}_{n} +  \frac{\Delta t}{2} * \ddot{u}_{n} @f$
       *u_dot_val += delta_t_d2 * *u_dot_dot_val;
     }
     u_val++;
@@ -74,7 +74,7 @@ void CentralDifference::integrationSchemeCorr(Real delta_t,
 
   for (UInt d = 0; d < nb_degre_of_freedom; d++) {
     if(!(*boundary_val)) {
-      /// \dot{u}_{n+1} = \dot{u}_{n} +  \frac{\Delta t}{2} * \ddot{u}_{n+1}
+      /// @f$ \dot{u}_{n+1} = \dot{u}_{n} +  \frac{\Delta t}{2} * \ddot{u}_{n+1} @f$
       *u_dot_val += delta_t_d2 * *u_dot_dot_val;
     }
     //    u_val++;

@@ -62,10 +62,11 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
     AKANTU_DEBUG_ERROR("The vector \"" << name << "\" is already registred in the memory " << memory_id);
   }
 
-  (memory_it->second)[name] = new Vector<T>(size, nb_component, name);
+  Vector<T> * tmp_vect = new Vector<T>(size, nb_component, name);
+  (memory_it->second)[name] = dynamic_cast<VectorBase *>(tmp_vect);
 
   AKANTU_DEBUG_OUT();
-  return static_cast<Vector<T> &>(*(memory_it->second)[name]);
+  return *tmp_vect;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,10 +89,11 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
     AKANTU_DEBUG_ERROR("The vector \"" << name << "\" is already registred in the memory " << memory_id);
   }
 
-  (memory_it->second)[name] = new Vector<T>(size, nb_component, init_value, name);
+  Vector<T> * tmp_vect = new Vector<T>(size, nb_component, init_value, name);
+  (memory_it->second)[name] = dynamic_cast<VectorBase *>(tmp_vect);
 
   AKANTU_DEBUG_OUT();
-  return static_cast<Vector<T> &>(*(memory_it->second)[name]);
+  return *tmp_vect;
 }
 
 /* -------------------------------------------------------------------------- */

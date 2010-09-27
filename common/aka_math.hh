@@ -36,7 +36,7 @@ public:
 public:
 
   /* Matrix Algebra */
-  /// y = A*x
+  /// @f$ y = A*x @f$
   static void matrix_vector(UInt m, UInt n,
 			    const Vector<Real> & A,
 			    const Vector<Real> & x,
@@ -47,7 +47,7 @@ public:
 				   const Real * x,
 				   Real * y);
 
-  /// C = A*B
+  /// @f$ C = A*B @f$
   static void matrix_matrix(UInt m, UInt n, UInt k,
 			   const Vector<Real> & A,
 			   const Vector<Real> & B,
@@ -58,19 +58,19 @@ public:
 				   const Real * B,
 				   Real * C);
 
-  /// C = A^t*B
+  /// @f$ C = A^t*B @f$
   static inline void matrixt_matrix(UInt m, UInt n, UInt k,
 				    const Real * A,
 				    const Real * B,
 				    Real * C);
 
-  /// C = A*B^t
+  /// @f$ C = A*B^t @f$
   static inline void matrix_matrixt(UInt m, UInt n, UInt k,
 				    const Real * A,
 				    const Real * B,
 				    Real * C);
 
-  /// C = A^t*B^t
+  /// @f$ C = A^t*B^t @f$
   static inline void matrixt_matrixt(UInt m, UInt n, UInt k,
 				     const Real * A,
 				     const Real * B,

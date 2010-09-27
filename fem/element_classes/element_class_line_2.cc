@@ -12,7 +12,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-
+template<> UInt ElementClass<_line_2>::nb_nodes_per_element;
+template<> UInt ElementClass<_line_2>::nb_quadrature_points;
+template<> UInt ElementClass<_line_2>::spatial_dimension;
 

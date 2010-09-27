@@ -70,7 +70,7 @@ template<> UInt * ElementClass<_triangle_1>::facet_connectivity[]  = {&vec_facet
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_triangle_2>::nb_nodes_per_element    = 6;
 template<> ElementType ElementClass<_triangle_2>::p1_element_type  = _triangle_1;
-template<> UInt ElementClass<_triangle_2>::nb_quadrature_points    = 2;
+template<> UInt ElementClass<_triangle_2>::nb_quadrature_points    = 3;
 template<> UInt ElementClass<_triangle_2>::spatial_dimension       = 2;
 template<> UInt ElementClass<_triangle_2>::nb_facets               = 3;
 template<> ElementType ElementClass<_triangle_2>::facet_type       = _line_2;
