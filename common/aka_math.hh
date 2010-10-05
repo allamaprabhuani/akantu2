@@ -35,13 +35,16 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /* Matrix Algebra */
+  /* ------------------------------------------------------------------------ */
+  /* Matrix algebra                                                           */
+  /* ------------------------------------------------------------------------ */
   /// @f$ y = A*x @f$
   static void matrix_vector(UInt m, UInt n,
 			    const Vector<Real> & A,
 			    const Vector<Real> & x,
 			    Vector<Real> & y);
 
+  /// @f$ y = A*x @f$
   static inline void matrix_vector(UInt m, UInt n,
 				   const Real * A,
 				   const Real * x,
@@ -53,6 +56,7 @@ public:
 			   const Vector<Real> & B,
 			   Vector<Real> & C);
 
+  /// @f$ C = A*B @f$
   static inline void matrix_matrix(UInt m, UInt n, UInt k,
 				   const Real * A,
 				   const Real * B,
@@ -100,7 +104,9 @@ public:
   /// normalize a vector
   static inline Real norm2(Real * v);
 
-  /* Geometry */
+  /* ------------------------------------------------------------------------ */
+  /* Geometry                                                                 */
+  /* ------------------------------------------------------------------------ */
   /// distance in 2D between x and y
   static inline Real distance_2d(const Real * x, const Real * y);
 
@@ -108,7 +114,7 @@ public:
   static inline Real distance_3d(const Real * x, const Real * y);
 
   /// radius of the in-circle of a triangle
-  static inline Real triangle_inradius(const Real * coord);
+  static inline Real triangle_inradius(const Real * coord1, const Real * coord2, const Real * coord3);
 
   /// radius of the in-circle of a tetrahedron
   static inline Real tetrahedron_inradius(const Real * coord);

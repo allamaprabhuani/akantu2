@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   akantu::Real time_step = model->getStableTimeStep();
   model->setTimeStep(time_step/10.);
 
-  model->assembleMass();
+  model->assembleMassDiagonal();
 
   std::cout << *model << std::endl;
 

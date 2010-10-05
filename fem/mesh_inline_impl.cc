@@ -95,6 +95,23 @@ inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(GhostTyp
 }
 
 /* -------------------------------------------------------------------------- */
+inline Vector<UInt> * Mesh::getNodesGlobalIdsPointer() {
+  AKANTU_DEBUG_IN();
+
+  if(nodes_global_ids == NULL) {
+    std::stringstream sstr;
+    sstr << id << ":nodes_global_ids";
+    nodes_global_ids = &(alloc<UInt>(sstr.str(),
+				     nodes->getSize(),
+				     1));
+  }
+
+  AKANTU_DEBUG_OUT();
+  return nodes_global_ids;
+}
+
+
+/* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getConnectivityPointer(ElementType type) {
   AKANTU_DEBUG_IN();
 

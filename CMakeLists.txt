@@ -141,8 +141,9 @@ set(AKANTU_COMMON_SRC
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
-  model/integration_scheme/central_difference.cc
+#  model/integration_scheme/central_difference.cc
   model/solid_mechanics/solid_mechanics_model.cc
+  model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/material.cc
   model/solid_mechanics/materials/material_elastic.cc
   mesh_utils/mesh_io.cc
@@ -178,7 +179,7 @@ set(AKANTU_INCLUDE_DIRS
   mesh_utils/mesh_io/
   mesh_utils/mesh_partition/
   model/
-  model/integeration_scheme
+  model/integration_scheme
   model/solid_mechanics
   model/solid_mechanics/materials
   model/solid_mechanics/contact
@@ -222,3 +223,4 @@ option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
   add_subdirectory(test)
 endif(AKANTU_TESTS)
+

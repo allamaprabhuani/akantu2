@@ -15,7 +15,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialElastic::constitutiveLaw(Real * F, Real * sigma, Real * epot) {
+inline void MaterialElastic::computeStress(Real * F, Real * sigma) {
   Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
 
   /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
@@ -26,12 +26,15 @@ inline void MaterialElastic::constitutiveLaw(Real * F, Real * sigma, Real * epot
   sigma[1] = sigma[3] =  mu * (F[1] + F[3]);
   sigma[2] = sigma[6] =  mu * (F[2] + F[6]);
   sigma[5] = sigma[7] =  mu * (F[5] + F[7]);
+}
 
-  if(potential_energy_flag) {
-    *epot = 0.;
-    for (UInt i = 0; i < 9; ++i) *epot += sigma[i] * F[i];
-    *epot *= .5;
-  }
+/* -------------------------------------------------------------------------- */
+inline void MaterialElastic::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
+  *epot = 0.;
+  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
+      *epot += sigma[t] * (F[t] - (i == j));
+  *epot *= .5;
 }
 
 /* -------------------------------------------------------------------------- */

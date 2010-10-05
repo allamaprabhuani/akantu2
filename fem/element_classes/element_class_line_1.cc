@@ -13,19 +13,19 @@
  *
  * @verbatim
               q
-   --x--------|--------x---> \xi
+   --x--------|--------x---> x
     -1        0        1
  @endverbatim
  *
  * @subsection shapes Shape functions
  * @f{eqnarray*}{
- * N1 &=& 1/2(1 - \xi) \\
- * N2 &=& 1/2(1 + \xi)
+ * w_1(x) &=& 1/2(1 - x) \\
+ * w_2(x) &=& 1/2(1 + x)
  * @f}
  *
  * @subsection quad_points Position of quadrature points
  * @f{eqnarray*}{
- * \xi_{q0}  &=& 0
+ * x_{q}  &=& 0
  * @f}
  */
 
@@ -47,8 +47,8 @@ template<> inline void ElementClass<_line_1>::shapeFunctions(const Real * x,
   Real weight = 2.;
 
   /// shape functions
-  shape[0] = .5; /// N1(0)
-  shape[1] = .5; /// N2(0)
+  shape[0] = .5;
+  shape[1] = .5;
 
   Real dnds[nb_nodes_per_element*spatial_dimension];
   /// dN1/de

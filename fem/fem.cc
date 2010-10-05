@@ -410,7 +410,8 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points * element_dimension,
+  AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent()
+		      == nb_degre_of_freedom * nb_quadrature_points * element_dimension,
 		      "The vector out_nablauq(" << out_nablauq.getID()
 		      << ") has not the good number of component.");
 
@@ -618,7 +619,8 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 		      "The vector elementary_vect(" << elementary_vect.getID()
 		      << ") has not the good size.");
 
-  AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent() == nb_degre_of_freedom * nb_nodes_per_element,
+  AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent()
+		      == nb_degre_of_freedom * nb_nodes_per_element,
 		      "The vector elementary_vect(" << elementary_vect.getID()
 		      << ") has not the good number of component.");
 

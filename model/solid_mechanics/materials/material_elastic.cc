@@ -43,15 +43,49 @@ void MaterialElastic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::constitutiveLaw(ElementType el_type, GhostType ghost_type) {
+void MaterialElastic::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MATERIAL_LITTLE_DISP_QUADRATURE_POINT_LOOP_BEGIN;
-  constitutiveLaw(F, sigma, epot);
-  MATERIAL_LITTLE_DISP_QUADRATURE_POINT_LOOP_END;
+  Real F[3*3];
+  Real sigma[3*3];
+
+  MATERIAL_QUADRATURE_POINT_LOOP_BEGIN;
+  memset(F, 0, 3 * 3 * sizeof(Real));
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      F[3*i + j] = strain_val[spatial_dimension * i + j];
+
+  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
+
+  computeStress(F, sigma);
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
+
+  MATERIAL_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void MaterialElastic::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  if(ghost_type != _not_ghost) return;
+  Real * epot = potential_energy[el_type]->values;
+
+  MATERIAL_QUADRATURE_POINT_LOOP_BEGIN;
+
+  computePotentialEnergy(strain_val, stress_val, epot);
+  epot++;
+
+  MATERIAL_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void MaterialElastic::setParam(const std::string & key, const std::string & value,

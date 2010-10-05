@@ -27,13 +27,18 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
+  ElementType type = _triangle_2;
+  UInt dim = 2;
+
   MeshIOMSH mesh_io;
-  Mesh my_mesh(2);
+  Mesh my_mesh(dim);
   mesh_io.read("triangle2.msh", my_mesh);
-  FEM *fem = new FEM(my_mesh,2,"my_fem");
+  FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
   debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
+
+  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   std::cout << *fem << std::endl;
 
@@ -41,21 +46,21 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> grad_on_quad(0, 2 * 2 * 3, "grad_on_quad");
+  Vector<Real> grad_on_quad(0, 2 * dim * nb_quadrature_points, "grad_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
     const_val.values[i * 2 + 1] = 2.;
   }
 
-  fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, _triangle_2);
+  fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, type);
   std::ofstream my_file("out.txt");
   my_file << const_val << std::endl;
   my_file << grad_on_quad << std::endl;
 
   // compute gradient of coordinates
-  Vector<Real> grad_coord_on_quad(0, 4 * 3, "grad_coord_on_quad");
-  fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), _triangle_2);
+  Vector<Real> grad_coord_on_quad(0, dim * dim * nb_quadrature_points, "grad_coord_on_quad");
+  fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), type);
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
 

@@ -36,7 +36,7 @@
 int main(int argc, char *argv[])
 {
   akantu::UInt spatial_dimension = 1;
-  akantu::ElementType type = akantu::_line_1;
+  akantu::ElementType type = akantu::_line_2;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
 
@@ -93,17 +93,13 @@ int main(int argc, char *argv[])
 
   std::cout << model->getMaterial(0) << std::endl;
 
-  model->assembleMass();
+  model->assembleMassDiagonal();
 
 
 #ifdef AKANTU_USE_IOHELPER
   /// set to 0 only for the first paraview dump
   memset(model->getResidual().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getMaterial(0).getStrain(type).values, 0,
-	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
-  memset(model->getMaterial(0).getStress(type).values, 0,
-	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
 #endif //AKANTU_USE_IOHELPER
 
 
@@ -133,7 +129,7 @@ int main(int argc, char *argv[])
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "line_para");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 LINE1, nb_element, C_MODE);
+			 LINE2, nb_element, C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,
@@ -142,39 +138,15 @@ int main(int argc, char *argv[])
 			  spatial_dimension, "force");
   dumper.AddNodeDataField(model->getAcceleration().values,
 			  spatial_dimension, "acceleration");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
-			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
-			  spatial_dimension*spatial_dimension, "stress");
+  dumper.AddNodeDataField(model->getMass().values,
+			  spatial_dimension, "mass");
   double * part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
     part[i] = prank;
   dumper.AddElemDataField(part, 1, "partitions");
-  //  dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
-
-  unsigned int nb_ghost_element = mesh.getNbGhostElement(type);
-  DumperParaview dumper_ghost;
-  dumper_ghost.SetMode(TEXT);
-  dumper_ghost.SetParallelContext(prank, psize);
-  dumper_ghost.SetPoints(mesh.getNodes().values,
-			 spatial_dimension, nb_nodes, "line_para_ghost");
-  dumper_ghost.SetConnectivity((int*) mesh.getGhostConnectivity(type).values,
-   			 LINE1, nb_ghost_element, C_MODE);
-  dumper_ghost.AddNodeDataField(model->getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper_ghost.AddNodeDataField(model->getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper_ghost.AddNodeDataField(model->getResidual().values,
-			  spatial_dimension, "force");
-  dumper_ghost.AddNodeDataField(model->getAcceleration().values,
-				spatial_dimension, "acceleration");
-
-  dumper_ghost.SetPrefix("paraview/");
-  dumper_ghost.Init();
-  dumper_ghost.Dump();
 #endif //AKANTU_USE_IOHELPER
 
 
@@ -195,9 +167,8 @@ int main(int argc, char *argv[])
     }
 
 #ifdef AKANTU_USE_IOHELPER
-    //    if(s % 100 == 0) 
+    //    if(s % 100 == 0)
     dumper.Dump();
-    dumper_ghost.Dump();
 #endif //AKANTU_USE_IOHELPER
     if(s % 10 == 0) std::cerr << "passing step " << s << "/" << max_steps << std::endl;
   }

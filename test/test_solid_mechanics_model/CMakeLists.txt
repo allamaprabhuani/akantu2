@@ -16,12 +16,12 @@ add_mesh(test_solid_mechanics_model_square_mesh triangle.geo 2 1)
 add_mesh(test_solid_mechanics_model_circle_mesh circle.geo 2 1)
 
 register_test(test_solid_mechanics_model_square test_solid_mechanics_model_square.cc)
-add_dependencies(test_solid_mechanics_model_square 
-  test_solid_mechanics_model_square_mesh 
+add_dependencies(test_solid_mechanics_model_square
+  test_solid_mechanics_model_square_mesh
   test_solid_mechanics_model_circle_mesh)
 
 #===============================================================================
-add_mesh(test_bar_traction_2d_mesh bar.geo 2 1)
+add_mesh(test_bar_traction_2d_mesh bar.geo 2 2)
 
 register_test(test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d.cc)
@@ -34,7 +34,7 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
     test_bar_traction_2d_mesh)
 
 
-  add_mesh(test_solid_mechanics_model_line_mesh line.geo 1 1)
+  add_mesh(test_solid_mechanics_model_line_mesh line.geo 1 2)
 
   register_test(test_solid_mechanics_model_line_parallel
     test_solid_mechanics_model_line_parallel.cc)

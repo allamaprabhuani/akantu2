@@ -104,12 +104,19 @@ void Material::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Compute  the  residual  by  assembling  @f$\int_{e}  \sigma_e  \frac{\partial
+ * \varphi}{\partial X} dX @f$
+ *
+ * @param[in] current_position nodes postition + displacements
+ * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
+ */
 void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  Vector<Real> & residual = model->getResidual();
+  Vector<Real> & residual = const_cast<Vector<Real> &>(model->getResidual());
 
   const Mesh::ConnectivityTypeList & type_list =
     model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
@@ -141,18 +148,19 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     UInt nb_element = elem_filter->getSize();
 
-    /// compute the deformation gradient (current_position -> strain)
+    /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
 					      spatial_dimension,
 					      *it, ghost_type, elem_filter);
 
-    /// (strain -> stress)
-    constitutiveLaw(*it, ghost_type);
+    /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
+    computeStress(*it, ghost_type);
 
-    /// compute \sigma * \partial \phi / \partial X
+    if(potential_energy_flag) computePotentialEnergy(*it, ghost_type);
+
+    /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
       new Vector<Real>(nb_element, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
-
 
     Real * shapesd           = shapes_derivatives->values;
     UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
@@ -176,7 +184,10 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
       }
     }
 
-    /// integrate \sigma * \partial \phi / \partial X
+    /**
+     * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
+     * \mathbf{\sigma}_q \overline w_q J_q@f$
+     */
     Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element,
 							nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
@@ -201,14 +212,16 @@ Real Material::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
 
-  /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+  /// integrate the potential energy for each type of elements
+  if(potential_energy_flag) {
+    const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
 
-    epot += model->getFEM().integrate(*potential_energy[*it], *it,
-				      _not_ghost, element_filter[*it]);
+      epot += model->getFEM().integrate(*potential_energy[*it], *it,
+					_not_ghost, element_filter[*it]);
+    }
   }
 
   AKANTU_DEBUG_OUT();

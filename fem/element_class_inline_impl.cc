@@ -65,7 +65,7 @@ inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real 
 /* -------------------------------------------------------------------------- */
 
 #include "element_classes/element_class_line_1.cc"
-// #include "element_classes/element_class_line_2.cc"
+#include "element_classes/element_class_line_2.cc"
 #include "element_classes/element_class_triangle_1.cc"
 #include "element_classes/element_class_triangle_2.cc"
 #include "element_classes/element_class_tetrahedra_1.cc"

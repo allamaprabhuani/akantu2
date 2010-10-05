@@ -12,7 +12,7 @@
 #===============================================================================
 
 add_mesh(test_mesh_partitionate_mesh
-  triangle.geo 2 1)
+  triangle.geo 2 2)
 
 register_test(test_mesh_partitionate_scotch
   test_mesh_partitionate_scotch.cc)

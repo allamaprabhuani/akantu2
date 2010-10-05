@@ -184,6 +184,8 @@ private:
 
   AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
 
+  inline Vector<UInt> * getNodesGlobalIdsPointer();
+
   inline Vector<UInt> * getConnectivityPointer(ElementType type);
 
   inline Vector<UInt> * getGhostConnectivityPointer(ElementType type);
@@ -203,13 +205,16 @@ private:
   /// array of the nodes coordinates
   Vector<Real> * nodes;
 
+  /// global node ids
+  Vector<UInt> * nodes_global_ids;
+
   /// boolean to know if the nodes have to be deleted with the mesh or not
   bool created_nodes;
 
   /// all class of elements present in this mesh (for heterogenous meshes)
   ByElementTypeUInt connectivities;
 
-  /// map to normals for all class of elements present in this mesh 
+  /// map to normals for all class of elements present in this mesh
   ByElementTypeReal normals;
 
   /// list of all existing types in the mesh

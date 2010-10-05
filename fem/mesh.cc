@@ -34,7 +34,8 @@ void Element::printself(std::ostream & stream, int indent) const {
 Mesh::Mesh(UInt spatial_dimension,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(true), spatial_dimension(spatial_dimension),
+  Memory(memory_id), id(id), nodes_global_ids(NULL),
+  created_nodes(true), spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
@@ -55,7 +56,8 @@ Mesh::Mesh(UInt spatial_dimension,
 	   const VectorID & nodes_id,
 	   const MeshID & id,
 	   const MemoryID & memory_id) :
-  Memory(memory_id), id(id), created_nodes(false), spatial_dimension(spatial_dimension),
+  Memory(memory_id), id(id), nodes_global_ids(NULL),
+  created_nodes(false), spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {

@@ -91,5 +91,5 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_triangle_1>::getInradius(const Real * coord) {
-  return Math::triangle_inradius(coord);
+  return Math::triangle_inradius(coord, coord+2, coord+4);
 }

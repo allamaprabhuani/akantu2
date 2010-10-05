@@ -42,10 +42,17 @@ public:
 		const MaterialID & id);
 
   /// constitutive law for all element of a type
-  void constitutiveLaw(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for a given quadrature point
-  inline void constitutiveLaw(Real * F, Real * sigma, Real * epot);
+  inline void computeStress(Real * F, Real * sigma);
+
+  /// compute the potential energy for all elements
+  void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// compute the potential energy for on element
+  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
+
 
   /// compute the celerity of wave in the material
   inline Real celerity();

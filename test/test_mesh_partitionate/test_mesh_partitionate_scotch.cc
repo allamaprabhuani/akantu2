@@ -16,6 +16,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
+#include "fem.hh"
 #include "mesh_io_msh.hh"
 #include "mesh_partition_scotch.hh"
 /* -------------------------------------------------------------------------- */
@@ -31,8 +32,10 @@ int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
 
+  akantu::debug::setDebugLevel(akantu::dblDump);
+
   int dim = 2;
-  akantu::ElementType type = akantu::_triangle_1;
+  akantu::ElementType type = akantu::_triangle_2;
   akantu::Mesh mesh(dim);
 
   akantu::MeshIOMSH mesh_io;
@@ -49,10 +52,14 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
   dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
-   			 TRIANGLE1, nb_element, C_MODE);
-  double * part = new double[nb_element];
+   			 TRIANGLE2, nb_element, C_MODE);
+
+  akantu::UInt  nb_quadrature_points = akantu::FEM::getNbQuadraturePoints(type);
+  double * part = new double[nb_element*nb_quadrature_points];
+  akantu::UInt * part_val = partition->getPartition(type).values;
   for (unsigned int i = 0; i < nb_element; ++i)
-    part[i] = partition->getPartition(type).values[i];
+    for (unsigned int q = 0; q < nb_quadrature_points; ++q)
+      part[i*nb_quadrature_points + q] = part_val[i];
   dumper.AddElemDataField(part, 1, "partitions");
   dumper.SetPrefix("paraview/");
   dumper.Init();

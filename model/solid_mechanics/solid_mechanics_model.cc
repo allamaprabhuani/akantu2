@@ -18,7 +18,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "aka_math.hh"
-#include "integration_scheme/central_difference.hh"
+#include "integration_scheme_2nd_order.hh"
 
 #include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
@@ -130,7 +130,7 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
   UInt current_line = 0, mat_count = materials.size();
 
   if(!infile.good()) {
-    AKANTU_DEBUG_ERROR("Canot open file " << filename);
+    AKANTU_DEBUG_ERROR("Cannot open file " << filename);
   }
 
   while(infile.good()) {
@@ -244,89 +244,12 @@ void SolidMechanicsModel::initModel() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMass() {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_nodes = fem->getMesh().getNbNodes();
-  memset(mass->values, 0, nb_nodes*sizeof(Real));
-
-  assembleMass(_not_ghost);
-  assembleMass(_ghost);
-
-  /// for not connected nodes put mass to one in order to avoid
-  /// wrong range in paraview
-  Real * mass_values = mass->values;
-  for (UInt i = 0; i < nb_nodes; ++i) {
-    if (!mass_values[i] || isnan(mass_values[i]))
-      mass_values[i] = 1;
-  }
-
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Material ** mat_val = &(materials.at(0));
-
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-    UInt shape_size           = FEM::getShapeSize(*it);
-
-    UInt nb_element;
-    const Vector<Real> * shapes;
-    UInt * elem_mat_val;
-
-    if(ghost_type == _not_ghost) {
-      nb_element   = fem->getMesh().getNbElement(*it);
-      shapes       = &(fem->getShapes(*it));
-      elem_mat_val = element_material[*it]->values;
-    } else {
-      nb_element   = fem->getMesh().getNbGhostElement(*it);
-      shapes       = &(fem->getGhostShapes(*it));
-      elem_mat_val = ghost_element_material[*it]->values;
-    }
-
-    if (nb_element == 0) continue;
-
-    Vector<Real> * rho_phi_i = new Vector<Real>(nb_element, shape_size, "rho_x_shapes");
-
-    Real * rho_phi_i_val = rho_phi_i->values;
-    Real * shapes_val = shapes->values;
-
-    /// compute rho * \phi_i for each nodes of each element
-    for (UInt el = 0; el < nb_element; ++el) {
-      Real rho = mat_val[elem_mat_val[el]]->getRho();
-      for (UInt n = 0; n < shape_size; ++n) {
-	*rho_phi_i_val++ = rho * *shapes_val++;
-      }
-    }
-
-    Vector<Real> * int_rho_phi_i = new Vector<Real>(nb_element, shape_size / nb_quadrature_points,
-						    "inte_rho_x_shapes");
-    fem->integrate(*rho_phi_i, *int_rho_phi_i, nb_nodes_per_element, *it, ghost_type);
-    delete rho_phi_i;
-
-    fem->assembleVector(*int_rho_phi_i, *mass, 1, *it, ghost_type);
-    delete int_rho_phi_i;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidual() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = fem->getMesh().getNbNodes();
 
+  residual->resize(nb_nodes);
   current_position->resize(nb_nodes);
   //Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
   Real * current_position_val = current_position->values;

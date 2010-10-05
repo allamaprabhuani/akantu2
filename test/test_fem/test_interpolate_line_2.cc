@@ -1,8 +1,7 @@
 /**
- * @file   test_integrate_triangle_2
+ * @file   test_interpolate_triangle_2.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Mon Jul 19 10:55:49 2010
+ * @date   Sun Oct  3 16:53:59 2010
  *
  * @brief  test of the fem class
  *
@@ -11,6 +10,8 @@
  * <insert license here>
  *
  */
+
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 #include <cstdlib>
@@ -28,18 +29,20 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  ElementType type = _triangle_2;
-  UInt dim = 2;
+  ElementType type = _line_2;
+  UInt dim = 1;
 
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
-  mesh_io.read("triangle2.msh", my_mesh);
+
+  mesh_io.read("line2.msh", my_mesh);
+
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
-  debug::_debug_level = dblDump;
-  fem->initShapeFunctions();
-
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+
+  debug::setDebugLevel(dblDump);
+  fem->initShapeFunctions();
 
   std::cout << *fem << std::endl;
 
@@ -53,22 +56,21 @@ int main(int argc, char *argv[]) {
     const_val.values[i * 2 + 0] = 1.;
     const_val.values[i * 2 + 1] = 2.;
   }
-  //interpolate function on quadrature points
+
   fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
-  //integrate function on elements
-  akantu::Vector<akantu::Real> int_val_on_elem(0, 2, "int_val_on_elem");
-  fem->integrate(val_on_quad, int_val_on_elem, 2, type);
-
-  // get global integration value
-  Real value[2] = {0,0};
   std::ofstream my_file("out.txt");
-  my_file << int_val_on_elem << std::endl;
-  for (UInt i = 0; i < fem->getMesh().getNbElement(type); ++i) {
-    value[0] += int_val_on_elem.values[2*i];
-    value[1] += int_val_on_elem.values[2*i+1];
-  }
+  my_file << const_val << std::endl;
+  my_file << val_on_quad << std::endl;
 
-  my_file << "integral is " << value[0] << " " << value[1] << std::endl;
+  // interpolate coordinates
+  Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension() * nb_quadrature_points, "coord_on_quad");
+
+  fem->interpolateOnQuadraturePoints(my_mesh.getNodes(),
+				     coord_on_quad,
+				     my_mesh.getSpatialDimension(),
+				     type);
+  my_file << my_mesh.getNodes() << std::endl;
+  my_file << coord_on_quad << std::endl;
 
   delete fem;
   finalize();

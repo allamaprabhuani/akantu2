@@ -59,7 +59,8 @@ private:
 
 };
 
-
 __END_AKANTU__
+
+#include "integration_scheme/newmark-beta.hh"
 
 #endif /* __AKANTU_INTEGRATION_SCHEME_2ND_ORDER_HH__ */

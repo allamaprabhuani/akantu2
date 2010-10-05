@@ -35,9 +35,9 @@
 
 int main(int argc, char *argv[])
 {
-  akantu::ElementType type = akantu::_triangle_1;
+  akantu::ElementType type = akantu::_triangle_2;
   akantu::UInt spatial_dimension = 2;
-  akantu::UInt max_steps = 1000;
+  akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.2;
 
   akantu::initialize(&argc, &argv);
@@ -51,6 +51,9 @@ int main(int argc, char *argv[])
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
+  /* ------------------------------------------------------------------------ */
+  /* Parallel initialization                                                  */
+  /* ------------------------------------------------------------------------ */
   akantu::Communicator * communicator;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
@@ -64,18 +67,21 @@ int main(int argc, char *argv[])
     communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
 
-  //  std::cout << mesh << std::endl;
-
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
+  /* ------------------------------------------------------------------------ */
+  /* Initialization                                                           */
+  /* ------------------------------------------------------------------------ */
   /// model initialization
   model->initVectors();
 
   /// set vectors to 0
   memset(model->getForce().values,        0,
+	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
+  memset(model->getResidual().values,        0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
   memset(model->getVelocity().values,     0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
@@ -94,15 +100,18 @@ int main(int argc, char *argv[])
   if(prank == 0)
     std::cout << model->getMaterial(0) << std::endl;
 
-  model->assembleMass();
+  model->assembleMassDiagonal();
 
-
-  /// boundary conditions
+  /* ------------------------------------------------------------------------ */
+  /* Boundary + initial conditions                                            */
+  /* ------------------------------------------------------------------------ */
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    // model->getDisplacement().values[spatial_dimension*i]
+    //   = model->getFEM().getMesh().getNodes().values[spatial_dimension*i] / 100.;
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
       model->getDisplacement().values[spatial_dimension*i]
-	= (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100.;
+     	= (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100.;
 
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
       model->getBoundary().values[spatial_dimension*i] = true;
@@ -116,11 +125,6 @@ int main(int argc, char *argv[])
   model->synchronizeBoundaries();
 
 
-  akantu::Real time_step = model->getStableTimeStep() * time_factor;
-  if(prank == 0)
-    std::cout << "Time Step = " << time_step << "s" << std::endl;
-  model->setTimeStep(time_step);
-
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
@@ -128,7 +132,7 @@ int main(int argc, char *argv[])
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "bar2d_para");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 TRIANGLE1, nb_element, C_MODE);
+			 TRIANGLE2, nb_element, C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getMass().values,
@@ -143,48 +147,35 @@ int main(int argc, char *argv[])
 			  spatial_dimension*spatial_dimension, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
 			  spatial_dimension*spatial_dimension, "stress");
-  double * part = new double[nb_element];
+  akantu::UInt  nb_quadrature_points = akantu::FEM::getNbQuadraturePoints(type);
+  double * part = new double[nb_element*nb_quadrature_points];
   for (unsigned int i = 0; i < nb_element; ++i)
-    part[i] = prank;
+    for (unsigned int q = 0; q < nb_quadrature_points; ++q)
+      part[i*nb_quadrature_points + q] = prank;
+
   dumper.AddElemDataField(part, 1, "partitions");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
-  //dumper.Dump();
-
-  DumperParaview dumper_ghost;
-  if (psize > 1) {
-    unsigned int nb_ghost_element = mesh.getNbGhostElement(type);
-    dumper_ghost.SetMode(TEXT);
-    dumper_ghost.SetParallelContext(prank, psize);
-    dumper_ghost.SetPoints(mesh.getNodes().values,
-			   spatial_dimension, nb_nodes, "bar2d_para_ghost");
-    dumper_ghost.SetConnectivity((int*) mesh.getGhostConnectivity(type).values,
-				 TRIANGLE1, nb_ghost_element, C_MODE);
-    dumper_ghost.AddNodeDataField(model->getDisplacement().values,
-				  spatial_dimension, "displacements");
-    dumper_ghost.AddNodeDataField(model->getMass().values,
-				  1, "mass");
-    dumper_ghost.AddNodeDataField(model->getVelocity().values,
-				  spatial_dimension, "velocity");
-    dumper_ghost.AddNodeDataField(model->getResidual().values,
-				  spatial_dimension, "force");
-    dumper_ghost.AddNodeDataField(model->getAcceleration().values,
-				  spatial_dimension, "acceleration");
-    dumper_ghost.SetPrefix("paraview/");
-    dumper_ghost.Init();
-    //    dumper_ghost.Dump();
-  }
+  dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
   model->setPotentialEnergyFlagOn();
-
   std::ofstream energy;
   if(prank == 0) {
     energy.open("energy.csv");
     energy << "id,epot,ekin,tot" << std::endl;
   }
 
+  /// Setting time step
+  akantu::Real time_step = model->getStableTimeStep() * time_factor;
+  if(prank == 0)
+    std::cout << "Time Step = " << time_step << "s" << std::endl;
+  model->setTimeStep(time_step);
+
+  /* ------------------------------------------------------------------------ */
+  /* Main loop                                                                */
+  /* ------------------------------------------------------------------------ */
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
     model->explicitPred();
 
@@ -196,18 +187,17 @@ int main(int argc, char *argv[])
     akantu::Real ekin = model->getKineticEnergy();
 
     if(prank == 0 && (s % 10 == 0)) {
-      energy << s << "," << epot << "," << ekin << "," << epot + ekin
-	     << std::endl;
+       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
+       energy << s << "," << epot << "," << ekin << "," << epot + ekin
+	      << std::endl;
     }
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 10 == 0) {
+      //      dumper.Init();
       dumper.Dump();
-      //      if (psize > 1) dumper_ghost.Dump();
     }
 #endif //AKANTU_USE_IOHELPER
-    if(prank == 0)
-      if(s % 10 == 0) std::cerr << "passing step " << s << "/" << max_steps << std::endl;
   }
 
   delete [] part;

@@ -145,40 +145,6 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::distance_2d(const Real * x, const Real * y) {
-  return sqrt((y[0] - x[0])*(y[0] - x[0]) + (y[1] - x[1])*(y[1] - x[1]));
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real Math::triangle_inradius(const Real * coord) {
-  /**
-   * @f{eqnarray*}{
-   * r &=& A / s \\
-   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
-   * s &=& \frac{a + b + c}{2}
-   * @f}
-   */
-
-  Real a, b, c;
-  a = distance_2d(coord  , coord+2);
-  b = distance_2d(coord+2, coord+4);
-  c = distance_2d(coord  , coord+4);
-
-  Real s;
-  s = (a + b + c) * 0.5;
-
-  return sqrt((s - a) * (s - b) * (s - c) / s);
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real Math::distance_3d(const Real * x, const Real * y) {
-  return sqrt((y[0] - x[0])*(y[0] - x[0])
-	      + (y[1] - x[1])*(y[1] - x[1])
-	      + (y[2] - x[2])*(y[2] - x[2])
-	      );
-}
-
-/* -------------------------------------------------------------------------- */
 inline Real Math::det2(const Real * mat) {
   return mat[0]*mat[3] - mat[1]*mat[2];
 }
@@ -246,6 +212,42 @@ inline void Math::vectorProduct3(const Real * v1, const Real * v2, Real * res) {
   res[0] = v1[1]*v2[2] - v1[2]*v2[1];
   res[1] = v1[2]*v2[0] - v1[0]*v2[2];
   res[1] = v1[0]*v2[1] - v1[1]*v2[0];
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::distance_2d(const Real * x, const Real * y) {
+  return sqrt((y[0] - x[0])*(y[0] - x[0]) + (y[1] - x[1])*(y[1] - x[1]));
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::triangle_inradius(const Real * coord1,
+				    const Real * coord2,
+				    const Real * coord3) {
+  /**
+   * @f{eqnarray*}{
+   * r &=& A / s \\
+   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
+   * s &=& \frac{a + b + c}{2}
+   * @f}
+   */
+
+  Real a, b, c;
+  a = distance_2d(coord1, coord2);
+  b = distance_2d(coord2, coord3);
+  c = distance_2d(coord1, coord3);
+
+  Real s;
+  s = (a + b + c) * 0.5;
+
+  return sqrt((s - a) * (s - b) * (s - c) / s);
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::distance_3d(const Real * x, const Real * y) {
+  return sqrt((y[0] - x[0])*(y[0] - x[0])
+	      + (y[1] - x[1])*(y[1] - x[1])
+	      + (y[2] - x[2])*(y[2] - x[2])
+	      );
 }
 
 /* -------------------------------------------------------------------------- */

@@ -49,14 +49,6 @@ inline void Material::setPotentialEnergyFlagOn(){
 						nb_quadrature_points,
 						REAL_INIT_VALUE));
       }
-
-      // if(ghost_element_filter[type] != NULL) {
-      // 	UInt nb_element = ghost_element_filter[type]->getSize();
-      // 	std::stringstream sstr; sstr << id << ":ghost_potential_energy:"<< type;
-      // 	ghost_potential_energy[type] = &(alloc<Real> (sstr.str(), nb_element,
-      // 						      nb_quadrature_points,
-      // 						      REAL_INIT_VALUE));
-      // }
     }
     potential_energy_vector = true;
   }

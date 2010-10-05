@@ -701,7 +701,7 @@ INLINE_SOURCES         = NO
 # doxygen to hide any special comment blocks from generated source code
 # fragments. Normal C and C++ comments will always remain visible.
 
-STRIP_CODE_COMMENTS    = YES
+STRIP_CODE_COMMENTS    = NO
 
 # If the REFERENCED_BY_RELATION tag is set to YES
 # then for each documented function all documented
@@ -820,7 +820,7 @@ HTML_ALIGN_MEMBERS     = YES
 # JavaScript and DHTML is required (for instance Mozilla 1.0+, Firefox
 # Netscape 6.0+, Internet explorer 5.0+, Konqueror, or Safari).
 
-HTML_DYNAMIC_SECTIONS  = NO
+HTML_DYNAMIC_SECTIONS  = YES
 
 # If the GENERATE_DOCSET tag is set to YES, additional index files
 # will be generated that can be used as input for Apple's Xcode 3

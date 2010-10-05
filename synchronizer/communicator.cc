@@ -88,7 +88,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
   UInt * local_connectivity;
   UInt * local_partitions;
-  Vector<UInt> old_nodes;
+  Vector<UInt> * old_nodes = mesh.getNodesGlobalIdsPointer();
   Vector<Real> * nodes = mesh.getNodesPointer();
 
   UInt spatial_dimension = nodes->getNbComponent();
@@ -200,7 +200,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 				   nb_local_element[root],
 				   nb_ghost_element[root],
 				   type,
-				   old_nodes);
+				   *old_nodes);
 
       comm->waitAll(requests);
       comm->freeCommunicationRequest(requests);
@@ -289,8 +289,8 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	buffer = new UInt[nb_nodes];
 	comm->receive(buffer, nb_nodes, p, 3);
       } else {
-	nb_nodes = old_nodes.getSize();
-	buffer = old_nodes.values;
+	nb_nodes = old_nodes->getSize();
+	buffer = old_nodes->values;
       }
 
       /// get the coordinates for the selected nodes
@@ -314,7 +314,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     }
 
     /// construct the local nodes coordinates
-    UInt nb_nodes = old_nodes.getSize();
+    UInt nb_nodes = old_nodes->getSize();
     nodes->resize(nb_nodes);
     memcpy(nodes->values, local_nodes, nb_nodes * spatial_dimension * sizeof(Real));
     delete [] local_nodes;
@@ -352,7 +352,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 				     nb_local_element,
 				     nb_ghost_element,
 				     type,
-				     old_nodes);
+				     *old_nodes);
 
 	delete [] local_connectivity;
 
@@ -377,9 +377,9 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
      * Nodes coordinate construction and synchronization on distant processors
      */
     AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
-    UInt nb_nodes = old_nodes.getSize();
+    UInt nb_nodes = old_nodes->getSize();
     comm->send(&nb_nodes, 1, root, 0);
-    comm->send(old_nodes.values, nb_nodes, root, 3);
+    comm->send(old_nodes->values, nb_nodes, root, 3);
 
     nodes->resize(nb_nodes);
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);

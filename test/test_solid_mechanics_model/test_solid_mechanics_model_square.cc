@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
   Real time_step = model->getStableTimeStep();
   model->setTimeStep(time_step/10.);
 
-  model->assembleMass();
+  model->assembleMassDiagonal();
 
   std::cout << *model << std::endl;
 
@@ -98,12 +98,11 @@ int main(int argc, char *argv[])
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
 
-    
     UInt nb_element;
     const Vector<Real> * shapes;
     Vector<Real> quad_coords(0,2,"quad_coords");
     const Vector<Real> * normals_on_quad;
- 
+
     nb_element   = fem_boundary.getMesh().getNbElement(*it);
     fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, _line_1);
     normals_on_quad = &(fem_boundary.getNormalsOnQuadPoints(*it));
@@ -143,7 +142,7 @@ int main(int argc, char *argv[])
     fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
     delete funct;
 
-    fem_boundary.assembleVector(*int_funct,model->getForce(), 2, *it);
+    fem_boundary.assembleVector(*int_funct,const_cast<Vector<Real> &>(model->getForce()), 2, *it);
     delete int_funct;
   }
 
