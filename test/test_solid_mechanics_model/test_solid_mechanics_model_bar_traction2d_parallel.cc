@@ -31,14 +31,12 @@
 #  include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
 
-#define CHECK_STRESS
-
 int main(int argc, char *argv[])
 {
   akantu::ElementType type = akantu::_triangle_2;
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 5000;
-  akantu::Real time_factor = 0.2;
+  akantu::Real time_factor = 0.8;
 
   akantu::initialize(&argc, &argv);
 
@@ -167,6 +165,8 @@ int main(int argc, char *argv[])
     energy << "id,epot,ekin,tot" << std::endl;
   }
 
+  double total_time = 0.;
+
   /// Setting time step
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
   if(prank == 0)
@@ -177,14 +177,21 @@ int main(int argc, char *argv[])
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
+
+    double start = MPI_Wtime();
+
     model->explicitPred();
 
     model->updateResidual();
     model->updateAcceleration();
     model->explicitCorr();
 
+    double end = MPI_Wtime();
+
     akantu::Real epot = model->getPotentialEnergy();
     akantu::Real ekin = model->getKineticEnergy();
+
+    total_time += end - start;
 
     if(prank == 0 && (s % 10 == 0)) {
        std::cerr << "passing step " << s << "/" << max_steps << std::endl;
@@ -194,11 +201,12 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 10 == 0) {
-      //      dumper.Init();
       dumper.Dump();
     }
 #endif //AKANTU_USE_IOHELPER
   }
+
+  if(prank == 0) std::cout << "Time : " << psize << " " << total_time / max_steps << " " << total_time << std::endl;
 
   delete [] part;
   delete model;

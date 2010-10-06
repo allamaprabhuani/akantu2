@@ -323,7 +323,7 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const ElementType Mesh::getFacetElementType(const ElementType & type) {
+inline ElementType Mesh::getFacetElementType(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   ElementType surface_type;

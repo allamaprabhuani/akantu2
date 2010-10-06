@@ -195,11 +195,11 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	}
 	bool connected_facet = false;
 	//the connected elements are those for which counter is n_facet
-	UInt connected_element = -1;
+	//	UInt connected_element = -1;
 	for (UInt el1 = 0; el1 < counter.getSize(); el1++) {
 	  UInt el_index = node_to_elem.values[node_offset.values[facet_nodes[0]]+el1];
 	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index > linearized_el){
-	    connected_element = el_index;
+	    //	    connected_element = el_index;
 	    AKANTU_DEBUG(dblDump,"connecting elements " << linearized_el << " and " << el_index);   
 	    if (internal_flag)
 	      connectivity_internal_facets[t]->push_back(facet_nodes);

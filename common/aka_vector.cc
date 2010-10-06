@@ -220,7 +220,7 @@ template <class T> Int Vector<T>::find(const T & elem) const {
   for (; (i < size) && (values[i] != elem); ++i);
 
   AKANTU_DEBUG_OUT();
-  return (i == size) ? -1 : i;
+  return (i == size) ? -1 : (Int) i;
 }
 
 /* -------------------------------------------------------------------------- */

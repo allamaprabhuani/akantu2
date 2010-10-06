@@ -175,7 +175,7 @@ public:
   inline UInt ** getFacetLocalConnectivityPerElementType(const ElementType & type) const;
 
   /// get the type of the surface element associated to a given element
-  static inline const ElementType getFacetElementType(const ElementType & type);
+  static inline ElementType getFacetElementType(const ElementType & type);
 
 private:
   friend class MeshIOMSH;
