@@ -126,6 +126,21 @@ endif(AKANTU_USE_SCOTCH)
 # Doxygen
 OPTION(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 
+# BLAS
+set(AKANTU_BLAS_ON FALSE)
+option(AKANTU_USE_BLAS "Use BLAS for arithmetic operations" OFF)
+if(AKANTU_USE_BLAS)
+  find_package(BLAS)
+  if(BLAS_FOUND)
+    add_definitions(-DAKANTU_USE_BLAS)
+    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+      ${BLAS_LIBRARIES}
+      )
+    set(AKANTU_BLAS_ON TRUE)
+  endif(BLAS_FOUND)
+endif(AKANTU_USE_BLAS)
+
+
 #===============================================================================
 # Library
 #===============================================================================

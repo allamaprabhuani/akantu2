@@ -224,6 +224,17 @@ template <class T> Int Vector<T>::find(const T & elem) const {
 }
 
 /* -------------------------------------------------------------------------- */
+template <> Int Vector<Real>::find(const Real & elem) const {
+  AKANTU_DEBUG_IN();
+  UInt i = 0;
+  Real epsilon = std::numeric_limits<Real>::epsilon();
+  for (; (i < size) && (fabs(values[i] - elem) <= epsilon); ++i);
+
+  AKANTU_DEBUG_OUT();
+  return (i == size) ? -1 : (Int) i;
+}
+
+/* -------------------------------------------------------------------------- */
 template <class T> void Vector<T>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

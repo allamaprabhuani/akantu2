@@ -192,6 +192,18 @@ void initialize(int * argc, char *** argv);
 /* -------------------------------------------------------------------------- */
 void finalize ();
 
+/* -------------------------------------------------------------------------- */
+/*
+ * For intel compiler annoying remark
+ */
+#if defined(__INTEL_COMPILER)
+/// remark #981: operands are evaluated in unspecified order
+#pragma warning ( disable : 981 )
+
+/// remark #383: value copied to temporary, reference to temporary used
+#pragma warning ( disable : 383 )
+
+#endif //defined(__INTEL_COMPILER)
 
 /* -------------------------------------------------------------------------- */
 /* string manipulation                                                        */
@@ -211,20 +223,6 @@ inline void trim(std::string & to_trim) {
     to_trim = to_trim.substr(first, last - first + 1);
   } else to_trim = "";
 }
-
-
-/* -------------------------------------------------------------------------- */
-/*
- * For intel compiler annoying remark
- */
-#if defined(__INTEL_COMPILER)
-/// remark #981: operands are evaluated in unspecified order
-#pragma warning ( disable : 981 )
-
-/// remark #383: value copied to temporary, reference to temporary used
-#pragma warning ( disable : 383 )
-
-#endif //defined(__INTEL_COMPILER)
 
 __END_AKANTU__
 

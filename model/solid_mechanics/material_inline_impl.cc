@@ -66,37 +66,37 @@ inline void Material::setPotentialEnergyFlagOff(){
 
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getNbDataToPack(const Element & element,
-				      GhostSynchronizationTag tag) {
+inline UInt Material::getNbDataToPack(__attribute__ ((unused)) const Element & element,
+				      __attribute__ ((unused)) GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
   return 0;
-};
+}
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getNbDataToUnpack(const Element & element,
-					GhostSynchronizationTag tag) {
+inline UInt Material::getNbDataToUnpack(__attribute__ ((unused)) const Element & element,
+					__attribute__ ((unused)) GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
   return 0;
-};
+}
 
 /* -------------------------------------------------------------------------- */
-inline void Material::packData(Real ** buffer,
-			       const Element & element,
-			       GhostSynchronizationTag tag) {
+inline void Material::packData(__attribute__ ((unused)) Real ** buffer,
+			       __attribute__ ((unused)) const Element & element,
+			       __attribute__ ((unused)) GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
-inline void Material::unpackData(Real ** buffer,
-				 const Element & element,
-				 GhostSynchronizationTag tag) {
+inline void Material::unpackData(__attribute__ ((unused)) Real ** buffer,
+				 __attribute__ ((unused)) const Element & element,
+				 __attribute__ ((unused)) GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
-};
+}

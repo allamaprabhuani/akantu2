@@ -93,7 +93,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
   UInt spatial_dimension = nodes->getNbComponent();
 
-  Communicator * communicator = new Communicator();
+  Communicator * communicator = new Communicator(id, memory_id);
 
   if(nb_proc == 1) return communicator;
 
@@ -251,7 +251,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       communicator->fillCommunicationScheme(local_partitions,
 					    nb_local_element[root],
 					    nb_ghost_element[root],
-					    nb_element_to_send[root],
 					    type);
 
       comm->waitAll(requests);
@@ -366,7 +365,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	communicator->fillCommunicationScheme(local_partitions,
 					     nb_local_element,
 					     nb_ghost_element,
-					     nb_element_to_send,
 					     type);
 
 	delete [] local_partitions;
@@ -394,7 +392,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 void Communicator::fillCommunicationScheme(UInt * partition,
 					   UInt nb_local_element,
 					   UInt nb_ghost_element,
-					   UInt nb_element_to_send,
 					   ElementType type) {
   AKANTU_DEBUG_IN();
 

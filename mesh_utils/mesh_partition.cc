@@ -238,10 +238,10 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
       list_adj_part.sort();
       list_adj_part.unique();
 
-      for(std::list<UInt>::iterator it = list_adj_part.begin();
-	  it != list_adj_part.end();
-	  ++it) {
-	ghost_partitions[type]->push_back(*it);
+      for(std::list<UInt>::iterator adj_it = list_adj_part.begin();
+	  adj_it != list_adj_part.end();
+	  ++adj_it) {
+	ghost_partitions[type]->push_back(*adj_it);
 	ghost_partitions_offset[type]->values[el]++;
       }
     }

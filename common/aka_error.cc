@@ -102,6 +102,6 @@ namespace debug {
     *segfault = 0;
   }
 
-};
+}
 
 __END_AKANTU__

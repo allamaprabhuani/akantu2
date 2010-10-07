@@ -351,7 +351,7 @@ inline ElementType Mesh::getFacetElementType(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbFacetsPerElementType(const ElementType & type) const {
+inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt n_facet;
@@ -380,7 +380,7 @@ inline UInt Mesh::getNbFacetsPerElementType(const ElementType & type) const {
 
 
 /* -------------------------------------------------------------------------- */
-inline UInt ** Mesh::getFacetLocalConnectivityPerElementType(const ElementType & type) const {
+inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt ** facet_conn;

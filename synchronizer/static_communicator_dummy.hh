@@ -34,43 +34,67 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void send(UInt * buffer, Int size, Int receiver, Int tag) {};
-  virtual void send(Real * buffer, Int size, Int receiver, Int tag) {};
+  virtual void send(__attribute__ ((unused)) UInt * buffer,
+		    __attribute__ ((unused)) Int size,
+		    __attribute__ ((unused)) Int receiver,
+		    __attribute__ ((unused)) Int tag) {};
+  virtual void send(__attribute__ ((unused)) Real * buffer,
+		    __attribute__ ((unused)) Int size,
+		    __attribute__ ((unused)) Int receiver,
+		    __attribute__ ((unused)) Int tag) {};
 
-  virtual void receive(UInt * buffer, Int size, Int sender, Int tag) {};
-  virtual void receive(Real * buffer, Int size, Int sender, Int tag) {};
+  virtual void receive(__attribute__ ((unused)) UInt * buffer,
+		       __attribute__ ((unused)) Int size,
+		       __attribute__ ((unused)) Int sender,
+		       __attribute__ ((unused)) Int tag) {};
+  virtual void receive(__attribute__ ((unused)) Real * buffer,
+		       __attribute__ ((unused)) Int size,
+		       __attribute__ ((unused)) Int sender,
+		       __attribute__ ((unused)) Int tag) {};
 
-  virtual CommunicationRequest * asyncSend(UInt * buffer, Int size,
-					   Int receiver, Int tag) {
+  virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) UInt * buffer,
+					   __attribute__ ((unused)) Int size,
+					   __attribute__ ((unused)) Int receiver,
+					   __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
 
-  virtual CommunicationRequest * asyncSend(Real * buffer, Int size,
-					   Int receiver, Int tag) {
+  virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) Real * buffer,
+					   __attribute__ ((unused)) Int size,
+					   __attribute__ ((unused)) Int receiver,
+					   __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
 
-  virtual CommunicationRequest * asyncReceive(UInt * buffer, Int size,
-					      Int sender, Int tag) {
+  virtual CommunicationRequest * asyncReceive(__attribute__ ((unused)) UInt * buffer,
+					      __attribute__ ((unused)) Int size,
+					      __attribute__ ((unused)) Int sender,
+					      __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
 
-  virtual CommunicationRequest * asyncReceive(Real * buffer, Int size,
-					      Int sender, Int tag) {
+  virtual CommunicationRequest * asyncReceive(__attribute__ ((unused)) Real * buffer,
+					      __attribute__ ((unused)) Int size,
+					      __attribute__ ((unused)) Int sender,
+					      __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
 
-  virtual bool testRequest(CommunicationRequest * request) { return true; };
+  virtual bool testRequest(__attribute__ ((unused)) CommunicationRequest * request) { return true; };
 
 
-  virtual void wait(CommunicationRequest * request) {};
+  virtual void wait(__attribute__ ((unused)) CommunicationRequest * request) {};
 
-  virtual void waitAll(std::vector<CommunicationRequest *> & requests) {};
+  virtual void waitAll(__attribute__ ((unused)) std::vector<CommunicationRequest *> & requests) {};
 
   virtual void barrier() {};
 
-  virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) {};
-  virtual void allReduce(UInt * values, UInt nb_values, const SynchronizerOperation & op) {};
+  virtual void allReduce(__attribute__ ((unused)) Real * values,
+			 __attribute__ ((unused)) UInt nb_values,
+			 __attribute__ ((unused)) const SynchronizerOperation & op) {};
+  virtual void allReduce(__attribute__ ((unused)) UInt * values,
+			 __attribute__ ((unused)) UInt nb_values,
+			 __attribute__ ((unused)) const SynchronizerOperation & op) {};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

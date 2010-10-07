@@ -72,7 +72,6 @@ protected:
   void fillCommunicationScheme(UInt * partition,
 			       UInt nb_local_element,
 			       UInt nb_ghost_element,
-			       UInt nb_element_to_send,
 			       ElementType type);
 
   /* ------------------------------------------------------------------------ */

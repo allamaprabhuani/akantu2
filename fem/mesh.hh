@@ -169,10 +169,10 @@ public:
   static inline UInt getSpatialDimension(const ElementType & type);
 
   /// get number of facets of a given element type
-  inline UInt getNbFacetsPerElementType(const ElementType & type) const;
+  static inline UInt getNbFacetsPerElement(const ElementType & type);
 
   /// get number of facets of a given element type
-  inline UInt ** getFacetLocalConnectivityPerElementType(const ElementType & type) const;
+  static inline UInt ** getFacetLocalConnectivity(const ElementType & type);
 
   /// get the type of the surface element associated to a given element
   static inline ElementType getFacetElementType(const ElementType & type);

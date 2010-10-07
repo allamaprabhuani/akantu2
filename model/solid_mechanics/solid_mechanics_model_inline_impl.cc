@@ -55,7 +55,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
 
   AKANTU_DEBUG_OUT();
   return size;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
@@ -92,7 +92,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
 
   AKANTU_DEBUG_OUT();
   return size;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packData(Real ** buffer,
@@ -152,7 +152,7 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
   }
 
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackData(Real ** buffer,
@@ -222,4 +222,4 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
   }
 
   AKANTU_DEBUG_OUT();
-};
+}

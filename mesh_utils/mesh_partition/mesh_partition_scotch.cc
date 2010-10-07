@@ -13,6 +13,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <cstdio>
+#include <fstream>
 extern "C" {
 #include <scotch.h>
 }
@@ -89,13 +90,14 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 #ifndef AKANTU_NDEBUG
   if (AKANTU_DEBUG_TEST(dblDump)) {
     /// save initial graph
-    FILE *fgraphinit=fopen("GraphIniFile.grf", "w");
+    FILE *fgraphinit = fopen("GraphIniFile.grf", "w");
     SCOTCH_graphSave(&scotch_graph,fgraphinit);
     fclose(fgraphinit);
 
     /// write geometry file
-    FILE *fgeominit=fopen("GeomIniFile.xyz", "w");
-    fprintf(fgeominit,"%d\n%d\n",spatial_dimension,vertnbr);
+    std::ofstream fgeominit;
+    fgeominit.open("GeomIniFile.xyz");
+    fgeominit << spatial_dimension << std::endl << vertnbr << std::endl;
 
     const Vector<Real> & nodes = mesh.getNodes();
 
@@ -119,14 +121,14 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 	    mid[s] += ((Real) nodes.values[node * spatial_dimension + s]) / ((Real) nb_nodes_per_element);
 	}
 
-	fprintf(fgeominit, "%d ", out_linerized_el++);
+	fgeominit << out_linerized_el++ << " ";
 	for (UInt s = 0; s < spatial_dimension; ++s)
-	  fprintf(fgeominit, "%f ",mid[s]);
+	  fgeominit << mid[s] << " ";
 
-	fprintf(fgeominit, "\n");
+	fgeominit << std::endl;;
       }
     }
-    fclose(fgeominit);
+    fgeominit.close();
   }
 #endif
 
@@ -145,10 +147,11 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
     fclose(fgraph);
 
     /// save the partition map
-    FILE *fmap=fopen("MapFile.map", "w");
-    fprintf(fmap,"%d\n",vertnbr);
-    for (Int i = 0; i < vertnbr; i++) fprintf(fmap, "%d    %d\n", i, parttab[i]);
-    fclose(fmap);
+    std::ofstream fmap;
+    fmap.open("MapFile.map");
+    fmap << vertnbr << std::endl;
+    for (Int i = 0; i < vertnbr; i++) fmap << i << "    " << parttab[i] << std::endl;
+    fmap.close();
   }
 #endif
 

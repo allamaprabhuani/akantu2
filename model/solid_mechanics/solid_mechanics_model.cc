@@ -122,6 +122,14 @@ void SolidMechanicsModel::initVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
+static void my_getline(std::istream & stream, std::string str) {
+  std::getline(stream, str); //read the line
+  size_t pos = str.find("#"); //remove the comment
+  str = str.substr(0, pos); 
+  trim(str); // remove unnecessary spaces
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
   std::ifstream infile;
   infile.open(filename.c_str());
@@ -134,12 +142,11 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
   }
 
   while(infile.good()) {
-    std::getline(infile, line);
+    my_getline(infile, line);
+    //    std::getline(infile, line);
+    //    size_t pos = line.find("#");
+    //    line = line.substr(0, pos);
     current_line++;
-
-    /// remove comments
-    size_t pos = line.find("#");
-    line = line.substr(0, pos);
     if(line.empty()) continue;
 
     std::stringstream sstr(line);
@@ -163,13 +170,15 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 			      << type << " at line " << current_line);
 
       /// read the material properties
-      std::getline(infile, line);
-      size_t pos = line.find("#");
-      line = line.substr(0, pos);
-      trim(line);
+      my_getline(infile, line);
+      //std::getline(infile, line);
+      //pos = line.find("#");
+      //line = line.substr(0, pos);
+      //trim(line);
       current_line++;
+
       while(line[0] != ']') {
-	pos = line.find("=");
+	size_t pos = line.find("=");
 	if(pos == std::string::npos)
 	  AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
 			     << current_line);
@@ -184,10 +193,12 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 			     << ex.info() << "\" at line " << current_line);
 	}
 
-	std::getline(infile, line);
-	size_t pos = line.find("#");
-	line = line.substr(0, pos);
-	trim(line);
+	my_getline(infile, line);
+	//std::getline(infile, line);
+	//pos = line.find("#");
+	//line = line.substr(0, pos);
+	//trim(line);
+	current_line++;
       }
       materials.push_back(material);
     }
@@ -346,7 +357,7 @@ void SolidMechanicsModel::synchronizeBoundaries() {
   AKANTU_DEBUG_IN();
   synchronize(_gst_smm_boundary);
   AKANTU_DEBUG_OUT();
-};
+}
 
 
 /* -------------------------------------------------------------------------- */

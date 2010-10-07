@@ -181,8 +181,8 @@ int main(int argc, char *argv[])
       mesh.getBarycenter(el, *it, barycenter, akantu::_ghost);
 
       for (akantu::UInt i = 0; i < spatial_dimension; ++i) {
-	if(barycenter[i] !=
-	   test_synchronizer.getGhostBarycenter(*it).values[el * spatial_dimension + i])
+	if(fabs(barycenter[i] - test_synchronizer.getGhostBarycenter(*it).values[el * spatial_dimension + i])
+	   > std::numeric_limits<akantu::Real>::epsilon())
 	  AKANTU_DEBUG_ERROR("The barycenter of ghost element " << el
 			     << " on proc " << prank
 			     << " does not match the one get during synchronisation" );

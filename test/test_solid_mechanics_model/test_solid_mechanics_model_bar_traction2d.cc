@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
   std::cout << model->getMaterial(0) << std::endl;
 
-  model->assembleMassDiagonal();
+  model->assembleMassLumped();
 
 
 #ifdef AKANTU_USE_IOHELPER

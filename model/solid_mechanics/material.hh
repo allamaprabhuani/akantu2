@@ -27,7 +27,7 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
   class SolidMechanicsModel;
-};
+}
 
 __BEGIN_AKANTU__
 
@@ -192,7 +192,6 @@ __END_AKANTU__
   UInt nb_element;							\
   Real * strain_val;							\
   Real * stress_val;							\
-  bool potential_energy_flag_tmp;					\
   									\
   if(ghost_type == _not_ghost) {					\
     nb_element   = element_filter[el_type]->getSize();			\

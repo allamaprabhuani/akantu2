@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
   if(prank == 0)
     std::cout << model->getMaterial(0) << std::endl;
 
-  model->assembleMassDiagonal();
+  model->assembleMassLumped();
 
   /* ------------------------------------------------------------------------ */
   /* Boundary + initial conditions                                            */

@@ -23,7 +23,7 @@
 
 namespace akantu {
   class GhostSynchronizer;
-};
+}
 
 __BEGIN_AKANTU__
 

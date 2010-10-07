@@ -26,7 +26,7 @@
 
 using namespace akantu;
 
-void trac(double * position,double * traction){
+static void trac(__attribute__ ((unused)) double * position,double * traction){
   memset(traction,0,sizeof(Real)*4);
   traction[0] = 1000;
   traction[3] = 1000;
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
   Real time_step = model->getStableTimeStep();
   model->setTimeStep(time_step/10.);
 
-  model->assembleMassDiagonal();
+  model->assembleMassLumped();
 
   std::cout << *model << std::endl;
 

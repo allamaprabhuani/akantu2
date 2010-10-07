@@ -74,7 +74,7 @@ namespace debug {
 
   void initSignalHandler();
   void printBacktrace(int sig);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 /// exception class that can be thrown by akantu

@@ -21,20 +21,20 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMassDiagonal() {
+void SolidMechanicsModel::assembleMassLumped() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = fem->getMesh().getNbNodes();
   memset(mass->values, 0, nb_nodes*sizeof(Real));
 
-  assembleMassDiagonal(_not_ghost);
-  assembleMassDiagonal(_ghost);
+  assembleMassLumped(_not_ghost);
+  assembleMassLumped(_ghost);
 
   /// for not connected nodes put mass to one in order to avoid
   /// wrong range in paraview
   Real * mass_values = mass->values;
   for (UInt i = 0; i < nb_nodes; ++i) {
-    if (!mass_values[i] || isnan(mass_values[i]))
+    if (fabs(mass_values[i]) < std::numeric_limits<Real>::epsilon() || isnan(mass_values[i]))
       mass_values[i] = 1;
   }
 
@@ -43,7 +43,7 @@ void SolidMechanicsModel::assembleMassDiagonal() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMassDiagonal(GhostType ghost_type) {
+void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList(ghost_type);
@@ -52,9 +52,9 @@ void SolidMechanicsModel::assembleMassDiagonal(GhostType ghost_type) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     switch(*it) {
     case _triangle_2:
-      assembleMassDiagonalTriangle2(ghost_type);
+      assembleMassLumpedDiagonalScaling(ghost_type, *it);
       break;
-    default: assembleMassDiagonalGeneric(ghost_type, *it);
+    default: assembleMassLumpedRowSum(ghost_type, *it);
     }
   }
 
@@ -62,7 +62,10 @@ void SolidMechanicsModel::assembleMassDiagonal(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMassDiagonalGeneric(GhostType ghost_type, ElementType type) {
+/**
+ * @f$ \tilde{M}_{i} = \sum_j M_{ij} = \sum_j \int \rho \varphi_i \varphi_j dV = \int \rho \varphi_i dV @f$
+ */
+void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, ElementType type) {
   AKANTU_DEBUG_IN();
   Material ** mat_val = &(materials.at(0));
 
@@ -94,7 +97,7 @@ void SolidMechanicsModel::assembleMassDiagonalGeneric(GhostType ghost_type, Elem
   Real * rho_phi_i_val = rho_phi_i->values;
   Real * shapes_val = shapes->values;
 
-  /// compute @f$ rho * \phi_i @f$ for each nodes of each element
+  /// compute @f$ rho * \varphi_i @f$ for each nodes of each element
   for (UInt el = 0; el < nb_element; ++el) {
     Real rho = mat_val[elem_mat_val[el]]->getRho();
     for (UInt n = 0; n < shape_size; ++n) {
@@ -113,19 +116,33 @@ void SolidMechanicsModel::assembleMassDiagonalGeneric(GhostType ghost_type, Elem
   AKANTU_DEBUG_OUT();
 }
 
+
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMassDiagonalTriangle2(GhostType ghost_type) {
+/**
+ * @f$ \tilde{M}_{i} = c * M_{ii} = \int_{V_e} \rho dV @f$
+ */
+void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type, ElementType type) {
   AKANTU_DEBUG_IN();
   Material ** mat_val = &(materials.at(0));
 
-  ElementType type = _triangle_2;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  UInt shape_size           = FEM::getShapeSize(type);
+  UInt nb_nodes_per_element_p1 = Mesh::getNbNodesPerElement(Mesh::getP1ElementType(type));
+  UInt nb_nodes_per_element    = Mesh::getNbNodesPerElement(type);
+  UInt nb_quadrature_points    = FEM::getNbQuadraturePoints(type);
 
   UInt nb_element;
-  const Vector<Real> * shapes;
   UInt * elem_mat_val;
+
+  Real corner_factor = 0;
+  Real mid_factor    = 0;
+  switch(type){
+  case _triangle_2 : 
+    corner_factor = 1./12.;
+    mid_factor    = 1./4.;
+    break;
+  default:
+    corner_factor = 0;
+    mid_factor    = 0;
+  }
 
   if(ghost_type == _not_ghost) {
     nb_element   = fem->getMesh().getNbElement(type);
@@ -146,13 +163,13 @@ void SolidMechanicsModel::assembleMassDiagonalTriangle2(GhostType ghost_type) {
 
   /// compute @f$ rho @f$ for each nodes of each element
   for (UInt el = 0; el < nb_element; ++el) {
-    Real rho = mat_val[elem_mat_val[el]]->getRho();
+    Real rho = mat_val[elem_mat_val[el]]->getRho(); /// here rho is constant in an element
     for (UInt n = 0; n < nb_quadrature_points; ++n) {
       *rho_1_val++ = rho;
     }
   }
 
-  /// compute @f$ \int \rho dV @f$ for each element
+  /// compute @f$ \int \rho dV = \rho V @f$ for each element
   Vector<Real> * int_rho_1 = new Vector<Real>(nb_element, 1,
 					      "inte_rho_x_1");
   fem->integrate(*rho_1, *int_rho_1, 1, type, ghost_type);
@@ -162,12 +179,15 @@ void SolidMechanicsModel::assembleMassDiagonalTriangle2(GhostType ghost_type) {
   Vector<Real> * mass_per_node = new Vector<Real>(nb_element, nb_nodes_per_element, "mass_per_node");
   Real * int_rho_1_val = int_rho_1->values;
   Real * mass_per_node_val = mass_per_node->values;
-  for (UInt e = 0; e < nb_element; ++e) {
-    Real lmass = *int_rho_1_val / 12;
-    for (UInt n = 0; n < 3; ++n) *mass_per_node_val++ = lmass; /// corner points 1/12 of the element mass
 
-    lmass = *int_rho_1_val / 4;
-    for (UInt n = 3; n < 6; ++n) *mass_per_node_val++ = lmass; /// mid points 1/4 of the element mass
+  for (UInt e = 0; e < nb_element; ++e) {
+    Real lmass = *int_rho_1_val * corner_factor;
+    for (UInt n = 0; n < nb_nodes_per_element_p1; ++n)
+      *mass_per_node_val++ = lmass; /// corner points
+
+    lmass = *int_rho_1_val * mid_factor;
+    for (UInt n = nb_nodes_per_element_p1; n < nb_nodes_per_element; ++n)
+      *mass_per_node_val++ = lmass; /// mid points
 
     int_rho_1_val++;
   }

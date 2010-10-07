@@ -135,8 +135,8 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
     nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
 
     facet_type = mesh.getFacetElementType(type);
-    nb_facets[nb_good_types] = mesh.getNbFacetsPerElementType(type);
-    node_in_facet[nb_good_types] = mesh.getFacetLocalConnectivityPerElementType(type);
+    nb_facets[nb_good_types] = mesh.getNbFacetsPerElement(type);
+    node_in_facet[nb_good_types] = mesh.getFacetLocalConnectivity(type);
 
     nb_nodes_per_facet[nb_good_types]    = mesh.getNbNodesPerElement(facet_type);
 
@@ -226,10 +226,10 @@ void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
-
   UInt nb_types = type_list.size();
   UInt nb_nodes_per_element[nb_types];
   UInt nb_nodes_per_element_p1[nb_types];
+
   UInt nb_good_types = 0;
 
   Vector<UInt> * connectivity[nb_types];
@@ -248,7 +248,7 @@ void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
     // getting connectivity
     connectivity[nb_good_types] = mesh.getConnectivityPointer(type);
     if (!connectivity[nb_good_types])
-      AKANTU_DEBUG_ERROR("connectivity is not allocatted : this should probably not have happend");
+      AKANTU_DEBUG_ERROR("connectivity is not allocatted : this should probably not have happened");
 
     //getting array of normals
     normals[nb_good_types] = mesh.getNormalsPointer(type);
@@ -256,7 +256,6 @@ void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
       normals[nb_good_types]->resize(0);
     else
       normals[nb_good_types] = &mesh.createNormals(type);
-
 
     nb_good_types++;
   }

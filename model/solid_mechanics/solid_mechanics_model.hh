@@ -66,7 +66,7 @@ public:
   void initModel();
 
   /// assemble the lumped mass matrix
-  void assembleMassDiagonal();
+  void assembleMassLumped();
 
   /// assemble the residual for the explicit scheme
   void updateResidual();
@@ -91,13 +91,13 @@ public:
 
 private:
   /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassDiagonal(GhostType ghost_type);
+  void assembleMassLumped(GhostType ghost_type);
 
   /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassDiagonalGeneric(GhostType ghost_type, ElementType type);
+  void assembleMassLumpedRowSum(GhostType ghost_type, ElementType type);
 
   /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassDiagonalTriangle2(GhostType ghost_type);
+  void assembleMassLumpedDiagonalScaling(GhostType ghost_type, ElementType type);
 
 
   /* ------------------------------------------------------------------------ */

@@ -41,7 +41,7 @@ namespace debug {
 
   /// parallel context used in debug messages
   std::string _parallel_context = "";
-};
+}
 
 /* -------------------------------------------------------------------------- */
 
