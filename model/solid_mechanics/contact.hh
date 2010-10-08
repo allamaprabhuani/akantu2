@@ -1,6 +1,8 @@
 /**
  * @file   contact.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Kammer <david.kammer@epfl.ch>
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @date   Mon Sep 27 09:47:27 2010
  *
  * @brief  Interface for contact classes
@@ -23,34 +25,55 @@
 
 __BEGIN_AKANTU__
 
+namespace akantu {
+  class ContactSearch;
+}
+
 class Contact : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-public:
-
-  Contact(const SolidMechanicsModel & model, const ContactID & id = "contact", const MemoryID & memory_id = 0) :
-    Memory(memory_id), id(id), model(model) {
+protected:
+  Contact(const SolidMechanicsModel & model,
+	  const ContactSearch & contact_search,
+	  const ContactID & id = "contact",
+	  const MemoryID & memory_id = 0) :
+    Memory(memory_id), id(id), model(model), contact_search(contact_search) {
     AKANTU_DEBUG_IN();
 
     AKANTU_DEBUG_OUT();
   };
 
+public:
   virtual ~Contact();
+
+  static Contact * newContact(const SolidMechanicsModel & model,
+			      const ContactType & contact_type,
+			      const ContactSearchType & contact_search_type,
+			      const ContactNeighborStructureType & contact_neighbor_structure_type,
+			      const ContactID & id = "contact");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// update the internal structures
+  virtual void initContact();
+
+  /// check if the neighbor structure need an update
+  virtual void checkAndUpdate();
 
   /// update the internal structures
-  virtual void updateContact() = 0;
+  virtual void updateContact();
 
   /// solve the contact
   virtual void solveContact() = 0;
 
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const;
+  /// add a new master surface
+  void addMasterSurface(const Surface & master_surface);
+
+  /// remove a master surface
+  void removeMasterSurface(const Surface & master_surface);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -65,8 +88,14 @@ private:
   /// id of the contact class
   ContactID id;
 
-  /// Associated model
+  /// associated model
   SolidMechanicsModel & model;
+
+  /// contact search object
+  ContactSearch * contact_search;
+
+  /// list of master surfaces
+  std::vector<Surface> master_surfaces;
 };
 
 
@@ -77,11 +106,11 @@ private:
 //#include "contact_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const Contact & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const Contact & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+//}
 
 
 __END_AKANTU__
