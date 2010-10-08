@@ -130,14 +130,16 @@ private:
 #ifndef AKANTU_USE_MPI
 #define AKANTU_EXIT(status)			\
   do {						\
-    akantu::debug::printBacktrace(15);		\
+    if (status != EXIT_SUCCESS)                 \ 
+      akantu::debug::printBacktrace(15);        \
     exit(status);				\
-  } while(0)
+} while(0)
 #else
-#define AKANTU_EXIT(status)						\
-  do {									\
-    akantu::debug::printBacktrace(15);					\
-    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);				\
+#define AKANTU_EXIT(status)			\
+  do {						\
+    if (status != EXIT_SUCCESS)                 \ 
+      akantu::debug::printBacktrace(15);	\
+    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);	\
   } while(0)
 #endif
 

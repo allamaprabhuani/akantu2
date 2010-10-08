@@ -79,15 +79,16 @@ typedef ID MeshID;
 typedef ID FEMID;
 typedef ID ModelID;
 typedef ID MaterialID;
-typedef ID ContactID;
+
+typedef UInt Surface;
 
 enum ElementType {
   _not_defined  = 0,
   _line_1       = 1, // implemented
-  _line_2       = 2,
-  _triangle_1   = 3,
-  _triangle_2   = 4,
-  _tetrahedra_1 = 5,
+  _line_2       = 2, // implemented
+  _triangle_1   = 3, // implemented
+  _triangle_2   = 4, // implemented
+  _tetrahedra_1 = 5, // implemented
   _tetrahedra_2 = 6,
   _max_element_type,
   _point
@@ -96,6 +97,25 @@ enum ElementType {
 enum MaterialType {
   _elastic = 0,
   _max_material_type
+};
+
+/* -------------------------------------------------------------------------- */
+/* Contact                                                                    */
+/* -------------------------------------------------------------------------- */
+typedef ID ContactID;
+typedef ID ContactSearchID;
+typedef ID ContactNeighborStructureID;
+
+enum ContactType {
+  _ct_not_defined = 0
+};
+
+enum ContactSearchType {
+  _cst_not_defined = 0
+};
+
+enum ContactNeighborStructureType {
+  _cnst_not_defined = 0
 };
 
 /* -------------------------------------------------------------------------- */

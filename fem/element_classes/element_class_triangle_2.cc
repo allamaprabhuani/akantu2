@@ -103,7 +103,7 @@ template<> inline void ElementClass<_triangle_2>::shapeFunctions(const Real * x,
   for (UInt q = 0; q < nb_quadrature_points; ++q) {
     /// Natural coordinates
     Real c0 = 1 - cquad[0] - cquad[1]; /// @f$ c0 = 1 - \xi - \eta @f$
-    Real c1 = cquad[0];                /// @f$ c1 = \x1 @f$
+    Real c1 = cquad[0];                /// @f$ c1 = \xi @f$
     Real c2 = cquad[1];                /// @f$ c2 = \eta @f$
 
     shape[0] = c0 * (2 * c0 - 1.);

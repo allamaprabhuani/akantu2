@@ -18,6 +18,13 @@
 #ifndef __AKANTU_CONTACT_NEIGHBOR_STRUCTURE_HH__
 #define __AKANTU_CONTACT_NEIGHBOR_STRUCTURE_HH__
 
+/* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "aka_vector.hh"
+#include "contact_search.hh"
+
+/* -------------------------------------------------------------------------- */
+
 __BEGIN_AKANTU__
 
 class NeighborList {
@@ -45,7 +52,8 @@ public:
   ContactNeighborStructure(const ContactSearch & contact_search,
 			   const Surface & master_surface,
 			   const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
-  virtual ~ContactNeighborStructure();
+
+  virtual ~ContactNeighborStructure() {};
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -65,7 +73,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the neighbor list
-  virtual NeighborList * getNeighborList();
+  virtual NeighborList * getNeighborList() = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

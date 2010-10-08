@@ -23,7 +23,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Contact::Contact(const SolidMechanicsModel & model,
-		 const ContactSearch & contact_search,
+		 ContactSearch & contact_search,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
   Memory(memory_id), id(id), model(model), contact_search(&contact_search) {
@@ -54,7 +54,7 @@ void Contact::checkAndUpdate() {
   AKANTU_DEBUG_IN();
 
   std::vector<Surface>::iterator it;
-  for (it = master_surface.begin(); it != master_surface.end(); ++it) {
+  for (it = master_surfaces.begin(); it != master_surfaces.end(); ++it) {
     if(contact_search->checkIfUpdateStructureNeeded(*it)) {
       contact_search->updateStructure(*it);
     }
@@ -68,7 +68,7 @@ void Contact::updateContact() {
   AKANTU_DEBUG_IN();
 
   std::vector<Surface>::iterator it;
-  for (it = master_surface.begin(); it != master_surface.end(); ++it) {
+  for (it = master_surfaces.begin(); it != master_surfaces.end(); ++it) {
     contact_search->updateStructure(*it);
   }
   

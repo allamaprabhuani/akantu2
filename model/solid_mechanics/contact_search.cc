@@ -25,7 +25,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 ContactSearch::ContactSearch(const Contact & contact,
 			     const ContactNeighborStructureType & neighbors_structure_type,
-			     const ContactSearchID & id = "search_contact") :
+			     const ContactSearchID & id) :
   id(id), contact(contact), neighbors_structure_type(neighbors_structure_type) {
   AKANTU_DEBUG_IN();
   
@@ -65,7 +65,7 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
   AKANTU_DEBUG_ASSERT(neighbors_structure.find(master_surface) == neighbors_structure.end(),
 		      "Master surface already registered in the search object " << id);
   
-  ContactNeighborStructure * tmp_neighbors_structure;
+  ContactNeighborStructure * tmp_neighbors_structure = NULL;
   
   std::stringstream sstr;
   sstr << id << ":contact_neighbor_structure:" << neighbors_structure_type << ":" << master_surface;
@@ -77,7 +77,7 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
     break;
   }
   
-  neighbors_structure[master] = tmp_neighbors_structure;
+  neighbors_structure[master_surface] = tmp_neighbors_structure;
 
   AKANTU_DEBUG_OUT();
 }
@@ -90,7 +90,7 @@ void ContactSearch::removeMasterSurface(const Surface & master_surface) {
 		      "Master surface not registered in the search object " << id);
 
   delete neighbors_structure[master_surface];
-  neighbors_structure.erase(master_surface)
+  neighbors_structure.erase(neighbors_structure.find(master_surface));
 
   AKANTU_DEBUG_OUT();
 }

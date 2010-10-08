@@ -20,14 +20,15 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
+#include "contact_search.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-namespace akantu {
-  class ContactSearch;
-}
+// namespace akantu {
+//   class ContactSearch;
+// }
 
 class Contact : public Memory {
   /* ------------------------------------------------------------------------ */
@@ -35,14 +36,9 @@ class Contact : public Memory {
   /* ------------------------------------------------------------------------ */
 protected:
   Contact(const SolidMechanicsModel & model,
-	  const ContactSearch & contact_search,
+	  ContactSearch & contact_search,
 	  const ContactID & id = "contact",
-	  const MemoryID & memory_id = 0) :
-    Memory(memory_id), id(id), model(model), contact_search(contact_search) {
-    AKANTU_DEBUG_IN();
-
-    AKANTU_DEBUG_OUT();
-  };
+	  const MemoryID & memory_id = 0);
 
 public:
   virtual ~Contact();
@@ -79,7 +75,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(ID, id, const ContactID & id);
+  AKANTU_GET_MACRO(ID, id, const ContactID &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -89,7 +85,7 @@ private:
   ContactID id;
 
   /// associated model
-  SolidMechanicsModel & model;
+  const SolidMechanicsModel & model;
 
   /// contact search object
   ContactSearch * contact_search;

@@ -14,6 +14,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "contact_neighbor_structure.hh"
+
+/* -------------------------------------------------------------------------- */
+
+__BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
 ContactNeighborStructure::ContactNeighborStructure(const ContactSearch & contact_search,
 						   const Surface & master_surface,
 						   const ContactNeighborStructureID & id) :
@@ -28,3 +35,5 @@ bool ContactNeighborStructure::check() {
   AKANTU_DEBUG_ERROR("Check not implemented for this neighbors structure : " << id);
   AKANTU_DEBUG_OUT();
 }
+
+__END_AKANTU__
