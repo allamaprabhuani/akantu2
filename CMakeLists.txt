@@ -130,16 +130,16 @@ OPTION(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 set(AKANTU_BLAS_ON FALSE)
 option(AKANTU_USE_BLAS "Use BLAS for arithmetic operations" OFF)
 if(AKANTU_USE_BLAS)
+  enable_language(Fortran)
   find_package(BLAS)
   if(BLAS_FOUND)
-    add_definitions(-DAKANTU_USE_BLAS)
+    add_definitions(-DAKANTU_USE_CBLAS)
     set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
       ${BLAS_LIBRARIES}
       )
     set(AKANTU_BLAS_ON TRUE)
   endif(BLAS_FOUND)
 endif(AKANTU_USE_BLAS)
-
 
 #===============================================================================
 # Library

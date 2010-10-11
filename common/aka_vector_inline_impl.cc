@@ -32,6 +32,7 @@ template <class T> inline void Vector<T>::push_back(const T & value) {
   UInt pos = size;
 
   resize(size+1);
+  /// @todo see if with std::uninitialized_fill it allow to build vector of objects
   for (UInt i = 0; i < nb_component; ++i) {
     values[pos*nb_component + i] = value;
   }

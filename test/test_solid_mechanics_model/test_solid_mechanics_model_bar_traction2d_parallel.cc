@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
   akantu::Communicator * communicator;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
-    mesh_io.read("bar.msh", mesh);
+    mesh_io.read("bar2.msh", mesh);
     akantu::MeshPartition * partition =
       new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);

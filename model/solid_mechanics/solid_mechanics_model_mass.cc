@@ -135,7 +135,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
   Real corner_factor = 0;
   Real mid_factor    = 0;
   switch(type){
-  case _triangle_2 : 
+  case _triangle_2 :
     corner_factor = 1./12.;
     mid_factor    = 1./4.;
     break;

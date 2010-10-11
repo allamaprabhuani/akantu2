@@ -10,6 +10,11 @@
  * <insert license here>
  *
  */
+#ifndef AKANTU_USE_CBLAS_MKL
+#include <cblas.h>
+#else
+#include <mkl_cblas.h>
+#endif
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt m, UInt n,
@@ -69,7 +74,7 @@ inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
 	      m, n, k,
 	      1,
-	      A, k,
+	      A, m,
 	      B, n,
 	      0,
 	      C, n);
@@ -98,7 +103,7 @@ inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 	      m, n, k,
 	      1,
 	      A, k,
-	      B, n,
+	      B, k,
 	      0,
 	      C, n);
 #else
@@ -126,8 +131,8 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasTrans,
 	      m, n, k,
 	      1,
-	      A, k,
-	      B, n,
+	      A, m,
+	      B, k,
 	      0,
 	      C, n);
 #else

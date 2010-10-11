@@ -122,7 +122,7 @@ void SolidMechanicsModel::initVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
-static void my_getline(std::istream & stream, std::string str) {
+static void my_getline(std::istream & stream, std::string & str) {
   std::getline(stream, str); //read the line
   size_t pos = str.find("#"); //remove the comment
   str = str.substr(0, pos); 
@@ -209,13 +209,15 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initMaterials() {
-  Material ** mat_val = &(materials.at(0));
+  AKANTU_DEBUG_ASSERT(materials.size() != 0, "No material to initialize !");
 
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     /// init internals properties
     (*mat_it)->initMaterial();
   }
+
+  Material ** mat_val = &(materials.at(0));
 
   /// fill the element filters of the materials using the element_material arrays
   const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList(_not_ghost);

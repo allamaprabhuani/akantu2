@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
-  mesh_io.read("bar.msh", mesh);
+  mesh_io.read("bar1.msh", mesh);
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
