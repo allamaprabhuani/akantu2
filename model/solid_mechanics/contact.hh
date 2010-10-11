@@ -77,6 +77,8 @@ public:
 public:
   AKANTU_GET_MACRO(ID, id, const ContactID &);
 
+  AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

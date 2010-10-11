@@ -154,6 +154,12 @@ public:
   inline void getBarycenter(UInt element, ElementType type, Real * barycenter,
 			    GhostType ghost_type = _not_ghost) const;
 
+  /// get the surface values of facets @todo implement getSurfaceValues
+  inline const Vector<UInt> & getSurfaceValues(const ElementType & type) const;
+
+  /// get number of surfaces @todo implement getNbSurfaces
+  inline UInt getNbSurfaces() const;
+
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */

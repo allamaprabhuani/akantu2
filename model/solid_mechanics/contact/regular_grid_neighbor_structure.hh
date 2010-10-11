@@ -1,11 +1,9 @@
 /**
- * @file   contact_neighbor_structure.hh
+ * @file   regular_grid_neighbor_structure.hh
  * @author David Kammer <david.kammer@epfl.ch>
- * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Oct  8 12:36:15 2010
+ * @date   Mon Oct 11 10:35:04 2010
  *
- * @brief  Interface of the structure handling the neighbor lists
+ * @brief  Structure that handles the neighbor lists by a regular grid 
  *
  * @section LICENSE
  *
@@ -15,67 +13,58 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_NEIGHBOR_STRUCTURE_HH__
-#define __AKANTU_CONTACT_NEIGHBOR_STRUCTURE_HH__
+#ifndef __AKANTU_REGULAR_GRID_NEIGHBOR_STRUCTURE_HH__
+#define __AKANTU_REGULAR_GRID_NEIGHBOR_STRUCTURE_HH__
 
 /* -------------------------------------------------------------------------- */
+
 #include "aka_common.hh"
 #include "aka_vector.hh"
-#include "contact_search.hh"
+#include "contact_neighbor_structure.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class NeighborList {
-public:
-  /// number of impactor nodes
-  UInt nb_nodes;
-
-  /// list of nodes of slave surfaces near the master one
-  Vector<UInt> impactor_nodes;
-
-  /// neighbor facets (sparse storage)
-  Vector<UInt> facets_offset;
-  Vector<UInt> facets;
-};
-
-/* -------------------------------------------------------------------------- */
-
-
-class ContactNeighborStructure {
+class RegularGridNeighborStructure : public ContactNeighborStructure {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactNeighborStructure(const ContactSearch & contact_search,
-			   const Surface & master_surface,
-			   const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
+  RegularGridNeighborStructure(const ContactSearch & contact_search,
+			       const Surface & master_surface,
+			       const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
 
-  virtual ~ContactNeighborStructure() {};
+  virtual ~RegularGridNeighborStructure();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the structure
-  virtual void init() = 0;
-  
+  virtual void init();
+
   /// update the structure
-  virtual void update() = 0;
-  
+  virtual void update();
+
   /// check if an update is needed
   virtual bool check();
+  
 
+  /// function to print the contain of the class
+  //virtual void printself(std::ostream & stream, int indent = 0) const;
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the neighbor list
-  virtual NeighborList * getNeighborList() = 0;
+  /// set grid spacing
+  inline void setGridSpacing(Real spacing, UInt component);
 
-  AKANTU_GET_MACRO(ContactSearch, contact_search, const ContactSearch &);
+  /// get grid spacing
+  inline Real getGridSpacing(UInt component) const;
+  
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -83,14 +72,36 @@ public:
 private:
   /// id of the object
   ContactNeighborStructureID id;
-
+  
   /// associated contact search class
   const ContactSearch & contact_search;
-  
+
   /// associated master surface
   const Surface & master_surface;
+
+  /// spatial dimension
+  UInt spatial_dimension;
+
+  /// grid spacing
+  Real grid_spacing[3];
+
 };
+
+
+/* -------------------------------------------------------------------------- */
+/* inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+
+#include "regular_grid_neighbor_structure_inline_impl.cc"
+
+/// standard output stream operator
+/*inline std::ostream & operator <<(std::ostream & stream, const RegularGridNeighborStructure & _this)
+{
+  _this.printself(stream);
+  return stream;
+  }*/
+
 
 __END_AKANTU__
 
-#endif /* __AKANTU_CONTACT_NEIGHBOR_STRUCTURE_HH__ */
+#endif /* __AKANTU_REGULAR_GRID_NEIGHBOR_STRUCTURE_HH__ */
