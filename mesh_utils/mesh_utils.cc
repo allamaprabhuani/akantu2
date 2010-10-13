@@ -94,6 +94,50 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
+void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh, 
+						ElementType type,
+						Vector<UInt> & node_offset,
+						Vector<UInt> & node_to_elem) {
+
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  UInt nb_elements = mesh.getConnectivity(type).getSize();
+
+  UInt * conn_val = mesh.getConnectivity(type).values;
+
+  /// array for the node-element list
+  node_offset.resize(nb_nodes + 1);
+  UInt * node_offset_val = node_offset.values;
+  
+  /// count number of occurrence of each node
+  for (UInt el = 0; el < nb_elements; ++el)
+    for (UInt n = 0; n < nb_nodes_per_element; ++n)
+      node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
+
+  /// convert the occurrence array in a csr one
+  for (UInt i = 1; i < nb_nodes; ++i) node_offset_val[i] += node_offset_val[i-1];
+  for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
+  node_offset_val[0] = 0;
+
+  /// save the element index in the node-element list
+  node_to_elem.resize(node_offset_val[nb_nodes]);
+  UInt * node_to_elem_val = node_to_elem.values;
+
+  for (UInt el = 0; el < nb_elements; ++el)
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      node_to_elem_val[node_offset_val[conn_val[nb_nodes_per_element*el + n]]] = el;
+      node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
+    }
+
+  ///  rearrange node_offset to start with 0
+  for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
+  node_offset_val[0] = 0;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag){
   AKANTU_DEBUG_IN();
 

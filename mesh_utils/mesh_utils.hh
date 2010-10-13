@@ -38,6 +38,8 @@ public:
 
   /// build map from nodes to elements
   static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+  /// build map from nodes to elements for a specific element type
+  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
   /// build facets elements : boundary and/or internals
   static void buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
   /// build normal to some elements
