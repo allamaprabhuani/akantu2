@@ -30,7 +30,7 @@ ContactSearch::ContactSearch(const Contact & contact,
   AKANTU_DEBUG_IN();
   
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
 ContactSearch::~ContactSearch() {

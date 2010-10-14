@@ -34,6 +34,8 @@ bool ContactNeighborStructure::check() {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ERROR("Check not implemented for this neighbors structure : " << id);
   AKANTU_DEBUG_OUT();
+
+  return false;
 }
 
 __END_AKANTU__

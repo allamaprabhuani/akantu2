@@ -23,7 +23,6 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 				   Vector<UInt> & node_offset,
 				   Vector<UInt> & node_to_elem) {
   AKANTU_DEBUG_IN();
-
   UInt nb_nodes = mesh.getNbNodes();
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -100,6 +99,7 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
 						Vector<UInt> & node_to_elem) {
 
   AKANTU_DEBUG_IN();
+  UInt nb_nodes = mesh.getNbNodes();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_elements = mesh.getConnectivity(type).getSize();
