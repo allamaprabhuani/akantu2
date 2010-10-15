@@ -1,5 +1,5 @@
 /**
- * @file   test_interpolate_triangle_1
+ * @file   test_interpolate_triangle_1.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -37,9 +37,6 @@ int main(int argc, char *argv[]) {
 
   std::cout << *fem << std::endl;
 
-  StaticMemory * st_mem = StaticMemory::getStaticMemory();
-  std::cout << *st_mem << std::endl;
-
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
   Vector<Real> val_on_quad(0, 2, "val_on_quad");
 
@@ -59,7 +56,7 @@ int main(int argc, char *argv[]) {
   my_file << my_mesh.getNodes() << std::endl;
   my_file << coord_on_quad << std::endl;
 
-  //  delete fem;
+  delete fem;
   //  finalize();
 
   return EXIT_SUCCESS;

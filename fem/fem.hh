@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -37,7 +37,6 @@ public:
 
   virtual ~FEM();
 
-  //  typedef std::map<ElementType, Vector<Real> *> ByTypeRealMap;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -97,6 +96,8 @@ public:
 		      const Vector<UInt> * filter_elements = NULL,
 		      Real scale_factor = 1) const;
 
+
+  /// assemble matrix in the complete sparse matrix
   void assembleMatrix() {};
 
   /// function to print the containt of the class

@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 #ifndef AKANTU_USE_CBLAS_MKL

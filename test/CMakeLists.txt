@@ -25,25 +25,6 @@ macro(register_test test_name source_list)
 endmacro()
 
 #===============================================================================
-macro(add_mesh MESH_TARGET GEO_FILE DIM ORDER)
-  set(_geo_file ${CMAKE_CURRENT_SOURCE_DIR}/${GEO_FILE})
-  get_filename_component(_msh_file "${GEO_FILE}" NAME_WE)
-  set(_msh_file ${CMAKE_CURRENT_BINARY_DIR}/${_msh_file}.msh)
-  if(EXISTS ${_geo_file})
-    add_custom_command(
-      OUTPUT ${_msh_file}
-      DEPENDS ${_geo_file}
-      COMMAND gmsh
-      ARGS -${DIM} -order ${ORDER} -optimize -o ${_msh_file} ${_geo_file} 2>&1 > /dev/null
-      )
-    add_custom_target(${MESH_TARGET}
-      DEPENDS ${_msh_file})
-  else(EXISTS ${_geo_file})
-    message(FATAL_ERROR "File ${_geo_file} not found")
-  endif(EXISTS ${_geo_file})
-endmacro()
-
-#===============================================================================
 macro(add_example example_name desc)
   string(TOUPPER ${example_name} upper_name)
 

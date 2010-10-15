@@ -39,6 +39,8 @@ enable_language(CXX)
 #===============================================================================
 
 set(AKANTU_CMAKE_DIR "${AKANTU_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 
 #===============================================================================
@@ -75,7 +77,7 @@ endif(NOT AKANTU_DEBUG)
 # IOHelper
 option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" OFF)
 if(AKANTU_USE_IOHELPER)
-  include(${AKANTU_CMAKE_DIR}/FindIOHelper.cmake)
+  find_package(IOHelper REQUIRED)
   if(IOHELPER_FOUND)
     add_definitions(-DAKANTU_USE_IOHELPER)
     set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
@@ -91,7 +93,7 @@ endif(AKANTU_USE_IOHELPER)
 set(AKANTU_MPI_ON FALSE)
 option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
 if(AKANTU_USE_MPI)
-  find_package(MPI)
+  find_package(MPI REQUIRED)
   if(MPI_FOUND)
     add_definitions(-DAKANTU_USE_MPI)
     set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
@@ -110,7 +112,7 @@ endif(AKANTU_USE_MPI)
 set(AKANTU_SCOTCH_ON FALSE)
 option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
 if(AKANTU_USE_SCOTCH)
-  include(${AKANTU_CMAKE_DIR}/FindScotch.cmake)
+  find_package(Scotch REQUIRED)
   if(SCOTCH_FOUND)
     add_definitions(-DAKANTU_USE_SCOTCH)
     set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
@@ -216,9 +218,8 @@ set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 #===========================================================================
 # Documentation
 #===========================================================================
-
 if(AKANTU_DOCUMENTATION)
-  find_package(Doxygen)
+  find_package(Doxygen REQUIRED)
 
   if(DOXYGEN_FOUND)
     set(DOXYGEN_WARNINGS NO)
@@ -236,9 +237,8 @@ endif(AKANTU_DOCUMENTATION)
 #===============================================================================
 # Tests
 #===============================================================================
-
 option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
+  find_package(GMSH REQUIRED)
   add_subdirectory(test)
 endif(AKANTU_TESTS)
-

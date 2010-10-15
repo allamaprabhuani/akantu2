@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     value[0] += int_val_on_elem.values[2*i];
     value[1] += int_val_on_elem.values[2*i+1];
   }
-  
+
   my_file << "integral is " << value[0] << " " << value[1] << std::endl;
 
 

@@ -1,13 +1,14 @@
 /**
  * @file   solid_mechanics_model.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 22 11:51:06 2010
+ * @date[creation]            Thu Jul 22 11:51:06 2010
+ * @date[last modification]   Thu Oct 14 14:00:06 2010
  *
  * @brief  Model of Solid Mechanics
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -130,13 +131,15 @@ public:
   AKANTU_GET_MACRO(F_M2A, f_m2a, Real);
   AKANTU_SET_MACRO(F_M2A, f_m2a, Real);
 
-  AKANTU_GET_MACRO(Displacement, *displacement, const Vector<Real> &);
-  AKANTU_GET_MACRO(Mass,         *mass,         const Vector<Real> &);
-  AKANTU_GET_MACRO(Velocity,     *velocity,     const Vector<Real> &);
-  AKANTU_GET_MACRO(Acceleration, *acceleration, const Vector<Real> &);
-  AKANTU_GET_MACRO(Force,        *force,        const Vector<Real> &);
-  AKANTU_GET_MACRO(Residual,     *residual,     const Vector<Real> &);
-  AKANTU_GET_MACRO(Boundary,     *boundary,     const Vector<bool> &);
+  AKANTU_GET_MACRO(Displacement,    *displacement,     const Vector<Real> &);
+  AKANTU_GET_MACRO(CurrentPosition, *current_position, const Vector<Real> &);
+  AKANTU_GET_MACRO(Increment,       *increment,        const Vector<Real> &);
+  AKANTU_GET_MACRO(Mass,            *mass,             const Vector<Real> &);
+  AKANTU_GET_MACRO(Velocity,        *velocity,         const Vector<Real> &);
+  AKANTU_GET_MACRO(Acceleration,    *acceleration,     const Vector<Real> &);
+  AKANTU_GET_MACRO(Force,           *force,            const Vector<Real> &);
+  AKANTU_GET_MACRO(Residual,        *residual,         const Vector<Real> &);
+  AKANTU_GET_MACRO(Boundary,        *boundary,         const Vector<bool> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, const Vector<UInt> &);
 
@@ -152,6 +155,8 @@ public:
   Real getKineticEnergy();
 
   AKANTU_SET_MACRO(Contact, contact, Contact *);
+
+  inline void setIncrementFlagOn();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -199,6 +204,12 @@ private:
 
   /// integration scheme of second order used
   IntegrationScheme2ndOrder * integrator;
+
+  /// increment of displacement
+  Vector<Real> * increment;
+
+  /// flag defining if the increment must be computed or not
+  bool increment_flag;
 
   /// object to resolve the contact
   Contact * contact;

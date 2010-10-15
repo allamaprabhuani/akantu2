@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -670,9 +670,11 @@ void FEM::printself(std::ostream & stream, int indent) const {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if (mesh->getSpatialDimension(*it) != element_dimension) continue;
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
-    shapes            [*it]->printself(stream, indent + 3);
-    shapes_derivatives[*it]->printself(stream, indent + 3);
-    jacobians         [*it]->printself(stream, indent + 3);
+    if(shapes[*it]) {
+      shapes            [*it]->printself(stream, indent + 3);
+      shapes_derivatives[*it]->printself(stream, indent + 3);
+      jacobians         [*it]->printself(stream, indent + 3);
+    }
     stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
   }
   stream << space << AKANTU_INDENT << "]" << std::endl;

@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  * @section DESCRIPTION
  *
@@ -124,26 +124,30 @@ enum ContactNeighborStructureType {
 
 typedef ID SynchronizerID;
 
+/// @CommunicatorType type of communication method to use
 enum CommunicatorType {
   _communicator_mpi,
   _communicator_dummy
 };
 
+/// @enum GhostSynchronizationTag type of synchronizations
 enum GhostSynchronizationTag {
   /// SolidMechanicsModel tags
-  _gst_smm_mass,
-  _gst_smm_residual,
-  _gst_smm_boundary,
-  /// Test
+  _gst_smm_mass,      /// synchronization of the SolidMechanicsModel.mass
+  _gst_smm_residual,  /// synchronization of the SolidMechanicsModel.current_position
+  _gst_smm_boundary,  /// synchronization of the boundary, forces, velocities and displacement
+  /// Test tag
   _gst_test
 };
 
+/// @enum GhostType type of ghost
 enum GhostType {
   _not_ghost,
   _ghost,
   _casper  // not used but a real cute ghost
 };
 
+/// @enum SynchronizerOperation reduce operation that the synchronizer can perform
 enum SynchronizerOperation {
   _so_sum,
   _so_min,

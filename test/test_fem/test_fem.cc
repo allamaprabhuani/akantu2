@@ -1,5 +1,5 @@
 /**
- * @file   fem.cc
+ * @file   test_fem.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 

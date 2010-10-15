@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -43,6 +43,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   this->force        = NULL;
   this->residual     = NULL;
   this->boundary     = NULL;
+
+  this->increment    = NULL;
 
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
@@ -103,10 +105,11 @@ void SolidMechanicsModel::initVectors() {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     UInt nb_element           = fem->getMesh().getNbElement(*it);
 
-    std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
-    element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
+    if(!element_material[*it]) {
+      std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
+      element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
+    }
   }
-
 
   const Mesh::ConnectivityTypeList & ghost_type_list =
     fem->getMesh().getConnectivityTypeList(_ghost);
@@ -125,7 +128,7 @@ void SolidMechanicsModel::initVectors() {
 static void my_getline(std::istream & stream, std::string & str) {
   std::getline(stream, str); //read the line
   size_t pos = str.find("#"); //remove the comment
-  str = str.substr(0, pos); 
+  str = str.substr(0, pos);
   trim(str); // remove unnecessary spaces
 }
 
@@ -143,10 +146,8 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 
   while(infile.good()) {
     my_getline(infile, line);
-    //    std::getline(infile, line);
-    //    size_t pos = line.find("#");
-    //    line = line.substr(0, pos);
     current_line++;
+
     if(line.empty()) continue;
 
     std::stringstream sstr(line);
@@ -171,10 +172,6 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 
       /// read the material properties
       my_getline(infile, line);
-      //std::getline(infile, line);
-      //pos = line.find("#");
-      //line = line.substr(0, pos);
-      //trim(line);
       current_line++;
 
       while(line[0] != ']') {
@@ -194,10 +191,6 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 	}
 
 	my_getline(infile, line);
-	//std::getline(infile, line);
-	//pos = line.find("#");
-	//line = line.substr(0, pos);
-	//trim(line);
 	current_line++;
       }
       materials.push_back(material);
@@ -233,7 +226,8 @@ void SolidMechanicsModel::initMaterials() {
     }
   }
 
-  //@todo synchronize element material
+  /// @todo synchronize element material
+
   /// fill the element filters of the materials using the element_material arrays
   const Mesh::ConnectivityTypeList & ghost_type_list =
     fem->getMesh().getConnectivityTypeList(_ghost);
@@ -332,11 +326,27 @@ void SolidMechanicsModel::updateAcceleration() {
 void SolidMechanicsModel::explicitPred() {
   AKANTU_DEBUG_IN();
 
+  if(increment_flag) {
+    memcpy(increment->values, displacement->values, displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
+  }
+
   integrator->integrationSchemePred(time_step,
 				    *displacement,
 				    *velocity,
 				    *acceleration,
 				    *boundary);
+
+  if(increment_flag) {
+    Real * inc_val = increment->values;
+    Real * dis_val = displacement->values;
+    UInt nb_nodes = displacement->getSize();
+
+    for (UInt n = 0; n < nb_nodes; ++n) {
+      *inc_val = *dis_val - *inc_val;
+      *inc_val++;
+      *dis_val++;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -361,6 +371,20 @@ void SolidMechanicsModel::synchronizeBoundaries() {
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::setIncrementFlagOn() {
+  AKANTU_DEBUG_IN();
+
+  if(!increment) {
+    UInt nb_nodes = fem->getMesh().getNbNodes();
+    std::stringstream sstr_inc; sstr_inc << id << ":increment";
+    increment = &(alloc<Real>(sstr_inc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
+  }
+
+  increment_flag = true;
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getStableTimeStep() {

@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * \<insert license here\>
  *
  */
 
@@ -26,8 +26,13 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+/// to store data Vector<Real> by element type
 typedef Vector<Real> * ByElementTypeReal[_max_element_type];
+
+/// to store data Vector<Int> by element type
 typedef Vector<Int>  * ByElementTypeInt [_max_element_type];
+
+/// to store data Vector<UInt> by element type
 typedef Vector<UInt> * ByElementTypeUInt[_max_element_type];
 
 /* -------------------------------------------------------------------------- */
@@ -51,6 +56,28 @@ public:
 };
 
 /* -------------------------------------------------------------------------- */
+
+/** 
+ * @class Mesh this contain the coordinates of the nodes in the Mesh.nodes Vector,
+ * and the connectivity. The connectivity are stored in by element types.
+ *
+ * To know all the element types present in a mesh you can get the Mesh::ConnectivityTypeList
+ *
+ * In order to loop on all element you have to loop on all types like this :
+ * @code
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    UInt nb_element  = mesh.getNbElement(*it);
+    UInt * conn      = mesh.getConnectivity(*it).values;
+
+    for(UInt e = 0; e < nb_element; ++e) {
+      ...
+    }
+  }
+  @endcode
+ */
 class Mesh : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -80,6 +107,7 @@ public:
 
   virtual ~Mesh();
 
+  /// @typedef ConnectivityTypeList list of the types present in a Mesh
   typedef std::set<ElementType> ConnectivityTypeList;
 
   typedef Vector<Real> * NormalsMap[_max_element_type];

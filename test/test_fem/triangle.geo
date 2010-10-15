@@ -1,5 +1,5 @@
 // Mesh size
-h  = 0.5;    // Top cube
+h  = 1;    // Top cube
 
 // Dimensions of top cube
 Lx = 1;
@@ -26,5 +26,3 @@ Line Loop(101) = {101:104};
 
 // Base Cube
 Plane Surface(101) = {101};
-
-Physical Surface(6) = {101};
