@@ -94,6 +94,18 @@ private:
 
   /// list of master surfaces
   std::vector<Surface> master_surfaces;
+
+  /// offset of nodes per surface
+  Vector<UInt> surface_to_nodes_offset;
+
+  /// list of surface nodes
+  Vector<UInt> surface_nodes; // /!\ Node can occur multiple time
+
+  /// offset of surface elements per surface node
+  Vector<UInt> node_to_elements_offset;
+
+  /// list of surface elements
+  Vector<UInt> surface_elements;
 };
 
 
