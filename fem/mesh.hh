@@ -161,6 +161,8 @@ public:
   AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
   AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
 
+  AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
+
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, const Vector<UInt> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostConnectivity, ghost_connectivities, const Vector<UInt> &);
 
@@ -183,10 +185,8 @@ public:
 			    GhostType ghost_type = _not_ghost) const;
 
   /// get the surface values of facets @todo implement getSurfaceValues
-  inline const Vector<UInt> & getSurfaceValues(const ElementType & type) const;
+  inline const Vector<UInt> & getSurfaceId(const ElementType & type) const;
 
-  /// get number of surfaces @todo implement getNbSurfaces
-  inline UInt getNbSurfaces() const;
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -271,6 +271,12 @@ private:
 
   /// ghost types offsets
   Vector<UInt> ghost_types_offsets;
+
+  /// number of surfaces present in this mesh
+  UInt nb_surfaces;
+
+  /// surface id of the surface elements in this mesh
+  ByElementTypeUInt surface_id; 
 };
 
 

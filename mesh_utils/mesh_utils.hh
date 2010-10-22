@@ -37,7 +37,7 @@ public:
 public:
 
   /// build map from nodes to elements
-  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem, UInt spatial_dimension = 0);
   /// build map from nodes to elements for a specific element type
   static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
   /// build facets elements : boundary and/or internals
@@ -53,6 +53,10 @@ public:
 				UInt nb_ghost_element,
 				ElementType type,
 				Vector<UInt> & old_nodes);
+
+  /// Detect closed surfaces of the mesh and save the surface id 
+  /// of the surface elements in the array surface_id
+  static void buildSurfaceID(Mesh & mesh);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

@@ -21,8 +21,10 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2Elements(const Mesh & mesh,
 				   Vector<UInt> & node_offset,
-				   Vector<UInt> & node_to_elem) {
+				   Vector<UInt> & node_to_elem,
+				   UInt spatial_dimension) {
   AKANTU_DEBUG_IN();
+  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes = mesh.getNbNodes();
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -41,7 +43,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
+    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
     nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
     type_p1 = Mesh::getP1ElementType(type);
@@ -350,4 +352,121 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void MeshUtils::buildSurfaceID(Mesh & mesh) {
+  AKANTU_DEBUG_IN();
+
+  Vector<UInt> node_offset;
+  Vector<UInt> node_to_elem;
+
+  /// Get list of surface elements
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  buildNode2Elements(mesh, node_offset, node_to_elem, spatial_dimension-1);
+
+
+  /// Find which types of elements have been linearized
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  
+  UInt nb_types = type_list.size();
+  ElementType lin_element_type[nb_types];
+  UInt nb_lin_types = 0;
+
+  UInt nb_nodes_per_element[nb_types];
+  UInt nb_nodes_per_element_p1[nb_types];
+
+  UInt * conn_val[nb_types];
+  UInt nb_element[nb_types];
+
+  ElementType type_p1;
+
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    if(Mesh::getSpatialDimension(type) != spatial_dimension-1) continue;
+
+    lin_element_type[nb_lin_types] = type;
+    nb_nodes_per_element[nb_lin_types]    = Mesh::getNbNodesPerElement(type);
+    type_p1 = Mesh::getP1ElementType(type);
+    nb_nodes_per_element_p1[nb_lin_types] = Mesh::getNbNodesPerElement(type_p1);
+
+    conn_val[nb_lin_types] = mesh.getConnectivity(type).values;
+    nb_element[nb_lin_types] = mesh.getConnectivity(type).getSize();
+    nb_lin_types++;
+  }
+
+  for (UInt i = 1; i < nb_lin_types; ++i) nb_element[i] += nb_element[i+1];
+  for (UInt i = nb_lin_types; i > 0; --i) nb_element[i] = nb_element[i-1];
+  nb_element[0] = 0;
+
+  /// Find close surfaces
+  Vector<Int> surface_value_id(1, nb_element[nb_lin_types], -1);
+  Int * surf_val = surface_value_id.values;
+  UInt nb_surfaces = 0;
+ 
+  UInt nb_cecked_elements;
+  UInt nb_elements_to_ceck;
+  UInt * elements_to_ceck = (UInt *)calloc(nb_element[nb_lin_types], sizeof(UInt));
+  
+  for (UInt lin_el = 0; lin_el < nb_element[nb_lin_types+1]; ++lin_el) {
+    
+    if(surf_val[lin_el] != -1) continue; /* Surface id already assigned */
+
+    /* First element of new surface */
+
+    surf_val[lin_el] = nb_surfaces;
+    nb_cecked_elements = 0;
+    nb_elements_to_ceck = 1;
+    memset(elements_to_ceck, 0, nb_element[nb_lin_types]*sizeof(UInt));
+    elements_to_ceck[0] = lin_el;
+    
+    // Find others elements belonging to this surface
+    while(nb_cecked_elements < nb_elements_to_ceck) {
+      
+      UInt ceck_lin_el = elements_to_ceck[nb_cecked_elements];
+
+      // Transform linearized index of element into ElementType one
+      UInt lin_type_nb = 0;
+      while (ceck_lin_el >= nb_element[lin_type_nb+1])
+	lin_type_nb++;
+      UInt ceck_el = ceck_lin_el - nb_element[lin_type_nb];
+
+      // Get connected elements
+      UInt el_offset = ceck_el*nb_nodes_per_element[lin_type_nb];
+      for (UInt n = 0; n < nb_nodes_per_element_p1[lin_type_nb]; ++n) {
+	UInt node_id = conn_val[lin_type_nb][el_offset + n];
+	for (UInt i = node_offset.values[node_id]; i < node_offset.values[node_id+1]; ++i)
+	  if(surf_val[node_to_elem.values[i]] == -1) { /* Found new surface element */
+	    surf_val[node_to_elem.values[i]] = nb_surfaces;
+	    elements_to_ceck[nb_elements_to_ceck];
+	    nb_elements_to_ceck++;
+	  }
+      }
+
+      nb_cecked_elements++;
+    }
+
+    nb_surfaces++;
+  }
+
+  free(elements_to_ceck);
+
+  /// Transform local linearized element index in the global one
+  for (UInt i = 0; i < nb_lin_types; ++i) nb_element[i] = nb_element[i+1] - nb_element[i];
+  UInt el_offset = 0;
+
+  for (UInt type_it = 0; type_it < nb_lin_types; ++type_it) {
+    ElementType type = lin_element_type[type_it];
+    mesh.surface_id[type]->resize(nb_element[type_it]);
+    for (UInt el = 0; el < nb_element[type_it]; ++el)
+      mesh.surface_id[type]->values[el] = surf_val[el+el_offset];
+    el_offset += nb_element[type_it];
+  }
+
+  /// Set nb_surfaces in mesh
+  mesh.nb_surfaces = nb_surfaces;
+
+  AKANTU_DEBUG_OUT();
+}
 __END_AKANTU__
+
+//  LocalWords:  ElementType

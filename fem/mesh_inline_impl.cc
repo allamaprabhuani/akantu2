@@ -239,6 +239,17 @@ inline void Mesh::getBarycenter(UInt element, ElementType type, Real * barycente
 }
 
 /* -------------------------------------------------------------------------- */
+inline const Vector<UInt> & Mesh::getSurfaceId(const ElementType & type) const{
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(surface_id[type] != NULL,
+		      "No element of kind : " << type << " in " << id);
+
+  AKANTU_DEBUG_OUT();
+  return *surface_id[type];
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
