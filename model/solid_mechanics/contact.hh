@@ -98,14 +98,14 @@ private:
   /// offset of nodes per surface
   Vector<UInt> surface_to_nodes_offset;
 
-  /// list of surface nodes
-  Vector<UInt> surface_nodes; // /!\ Node can occur multiple time
+  /// list of surface nodes @warning Node can occur multiple time
+  Vector<UInt> surface_to_nodes;
 
   /// offset of surface elements per surface node
-  Vector<UInt> node_to_elements_offset;
+  ByElementTypeUInt node_to_elements_offset;
 
   /// list of surface elements
-  Vector<UInt> surface_elements;
+  ByElementTypeUInt node_to_elements;
 };
 
 
