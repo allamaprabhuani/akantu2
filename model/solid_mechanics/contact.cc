@@ -16,6 +16,7 @@
 /* -------------------------------------------------------------------------- */
 #include "contact.hh"
 #include "contact_search.hh"
+#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -123,6 +124,7 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
     //    tmp_search = new ContactSearch(this, contact_neighbor_structure_type, sstr.str());
     AKANTU_DEBUG_ERROR("Not a valid contact search type : " << contact_search_type);
     break;
+  // case _cst_2d_expli: { tmp_search = new ContactSearch2d(this, contact_neighbor_structure_type, sstr.str()); break; }
   }
 
   Contact * tmp_contact = NULL;
@@ -131,6 +133,7 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
     // tmp_contact = new Contact(model, tmp_search, id);
     AKANTU_DEBUG_ERROR("Not a valid contact type : " << contact_type);
     break;
+  // case _ct_2d_expli: { tmp_contact = new Contact2d(model, tmp_search, id); break; }
   }
 
   AKANTU_DEBUG_OUT();

@@ -1,3 +1,4 @@
+
 /**
  * @file   contact.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
@@ -104,7 +105,7 @@ private:
   /// offset of surface elements per surface node
   ByElementTypeUInt node_to_elements_offset;
 
-  /// list of surface elements
+  /// list of surface elements id (elements can occur multiple times)
   ByElementTypeUInt node_to_elements;
 };
 

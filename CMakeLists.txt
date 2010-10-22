@@ -242,3 +242,14 @@ if(AKANTU_TESTS)
   find_package(GMSH REQUIRED)
   add_subdirectory(test)
 endif(AKANTU_TESTS)
+
+
+
+#===============================================================================
+# Examples
+#===============================================================================
+
+option(AKANTU_EXAMPLES "Activate examples" OFF)
+if(AKANTU_EXAMPLES)
+  add_subdirectory(examples)
+endif(AKANTU_EXAMPLES)
