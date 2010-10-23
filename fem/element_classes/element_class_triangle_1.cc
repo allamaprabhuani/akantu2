@@ -37,22 +37,33 @@
  * @f}
  */
 
+  // /// shape functions
+  // shape[0] = 1./3.; /// N1(q_0)
+  // shape[1] = 1./3.; /// N2(q_0)
+  // shape[2] = 1./3.; /// N3(q_0)
+
+
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_triangle_1>::nb_nodes_per_element;
 template<> UInt ElementClass<_triangle_1>::nb_quadrature_points;
 template<> UInt ElementClass<_triangle_1>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
-								 Real * shape,
-								 Real * shape_deriv,
-								 Real * jacobian) {
-  Real weight = .5;
+template <> inline void ElementClass<_triangle_1>::computeShapes(const Real * natural_coords, 
+							    Real * shapes){
 
-  /// shape functions
-  shape[0] = 1./3.; /// N1(q_0)
-  shape[1] = 1./3.; /// N2(q_0)
-  shape[2] = 1./3.; /// N3(q_0)
+  /// Natural coordinates
+  Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
+  Real c1 = natural_coords[0];                /// @f$ c1 = \xi @f$
+  Real c2 = natural_coords[1];                /// @f$ c2 = \eta @f$
+
+  shapes[0] = c0; /// N1(q_0)
+  shapes[1] = c1; /// N2(q_0)
+  shapes[2] = c2; /// N3(q_0)
+}
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_triangle_1>::computeDNDS(const Real * natural_coords,
+							  Real * dnds){
 
   /**
    * @f[
@@ -64,29 +75,27 @@ template<> inline void ElementClass<_triangle_1>::shapeFunctions(const Real * x,
    *        \right)
    * @f]
    */
-  Real dnds[nb_nodes_per_element*spatial_dimension];
+
   dnds[0] = -1.; dnds[1] =  1.; dnds[2] =  0.;
   dnds[3] = -1.; dnds[4] =  0.; dnds[5] =  1.;
-
-  /// @f$ J = dxds = dnds * x @f$
-  Real dxds[spatial_dimension*spatial_dimension];
-  Math::matrix_matrix(spatial_dimension, spatial_dimension, nb_nodes_per_element,
-		      dnds, x, dxds);
-
-  Real det_dxds = dxds[0] * dxds[3] - dxds[2] * dxds[1];
-
-  /// @f$ dxds = J^{-1} @f$
-  Real inv_dxds[spatial_dimension*spatial_dimension];
-  Math::inv2(dxds,inv_dxds);
-
-  jacobian[0] = det_dxds * weight;
-
-  AKANTU_DEBUG_ASSERT(jacobian[0] > 0,
-		      "Negative jacobian computed, possible problem in the element node order.");
-
-  Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			dnds, inv_dxds, shape_deriv);
 }
+
+
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_triangle_1>::computeJacobian(const Real * dxds,
+								   const UInt dimension, 
+								   Real & jac){
+
+  if (dimension == spatial_dimension){
+    Real weight = .5;
+    Real det_dxds = Math::det2(dxds);
+    jac = det_dxds * weight;
+  }  
+  else {
+    AKANTU_DEBUG_ERROR("to be implemented");
+  }
+}
+ 
 
 
 /* -------------------------------------------------------------------------- */

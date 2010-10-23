@@ -119,53 +119,26 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 
 #define COMPUTE_SHAPES(type)						\
     do {								\
-      if (need_rotation) {						\
-	Real local_coord[spatial_dimension * nb_nodes_per_element];	\
-	Real element_coord[element_dimension * nb_nodes_per_element];	\
-	for (UInt elem = 0; elem < nb_element; ++elem) {		\
-	  int offset = elem * nb_nodes_per_element;			\
-	  for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
-	    memcpy(local_coord + id * spatial_dimension,		\
-		   coord + elem_val[offset + id] * spatial_dimension,	\
-		   spatial_dimension*sizeof(Real));			\
-	  }                                                             \
-	  ElementClass<type>::changeDimension(local_coord,              \
-					      spatial_dimension,	\
-					      nb_nodes_per_element,     \
-					      element_coord);		\
-	  								\
-	  ElementClass<type>::shapeFunctions(element_coord,		\
-					     shapes_val,		\
-					     shapesd_val,		\
-					     jacobians_val);		\
-	  shapes_val += size_of_shapes;					\
-	  shapesd_val += size_of_shapesd;				\
-	  jacobians_val += size_of_jacobians;				\
-	}                                                               \
-      }                                                                 \
-      else {                                                            \
-	Real local_coord[element_dimension * nb_nodes_per_element];	\
-	for (UInt elem = 0; elem < nb_element; ++elem) {		\
-	  int offset = elem * nb_nodes_per_element;			\
-	  for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
-	    memcpy(local_coord + id * element_dimension,		\
-		   coord + elem_val[offset + id] * element_dimension,	\
-		   element_dimension*sizeof(Real));			\
-	  }								\
-	  ElementClass<type>::shapeFunctions(local_coord,		\
-					     shapes_val,		\
-					     shapesd_val,		\
-					     jacobians_val);		\
-	  shapes_val += size_of_shapes;					\
-	  shapesd_val += size_of_shapesd;				\
-	  jacobians_val += size_of_jacobians;				\
+      Real local_coord[element_dimension * nb_nodes_per_element];	\
+      for (UInt elem = 0; elem < nb_element; ++elem) {			\
+	int offset = elem * nb_nodes_per_element;			\
+	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
+	  memcpy(local_coord + id * element_dimension,			\
+		 coord + elem_val[offset + id] * element_dimension,	\
+		 element_dimension*sizeof(Real));			\
 	}								\
+	ElementClass<type>::preComputeStandards(local_coord,		\
+				 spatial_dimension,			\
+				 shapes_val,				\
+				 shapesd_val,				\
+				 jacobians_val);			\
+	shapes_val += size_of_shapes;					\
+	shapesd_val += size_of_shapesd;					\
+	jacobians_val += size_of_jacobians;				\
       }									\
-  } while(0)
+    } while(0)
 
 /* -------------------------------------------------------------------------- */
-
-    bool need_rotation = mesh->getSpatialDimension() != element_dimension;
 
     switch(type) {
     case _line_1       : { COMPUTE_SHAPES(_line_1      ); break; }

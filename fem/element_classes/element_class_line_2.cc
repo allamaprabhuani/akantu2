@@ -43,54 +43,50 @@
  * @f]
  */
 
+  // /// quadrature point position
+  // Real quad[spatial_dimension * nb_quadrature_points];
+  // quad[0] = -1./sqrt(3);
+  // quad[1] = 1./sqrt(3);
+
+
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_line_2>::nb_nodes_per_element;
 template<> UInt ElementClass<_line_2>::nb_quadrature_points;
 template<> UInt ElementClass<_line_2>::spatial_dimension;
 
+
+
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_line_2>::shapeFunctions(const Real * x,
-								 Real * shape,
-								 Real * shape_deriv,
-								 Real * jacobian) {
+template <> inline void ElementClass<_line_2>::computeShapes(const Real * natural_coords, 
+							    Real * shapes){
+  Real c = natural_coords[0];
+  shapes[0] = (c - 1) * c / 2;
+  shapes[1] = (c + 1) * c / 2;
+  shapes[2] = 1 - c * c;
+}
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_line_2>::computeDNDS(const Real * natural_coords,
+							  Real * dnds){
 
-  Real weight = 1;
-
-  /// quadrature point position
-  Real quad[spatial_dimension * nb_quadrature_points];
-  quad[0] = -1./sqrt(3);
-  quad[1] = 1./sqrt(3);
-
-  Real * cquad = quad;
-
-  for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    shape[0] = (cquad[0] - 1) * cquad[0] / 2;
-    shape[1] = (cquad[0] + 1) * cquad[0] / 2;
-    shape[2] = 1 - cquad[0] * cquad[0];
-
-
-    Real dnds[nb_nodes_per_element*spatial_dimension];
-    dnds[0]  = cquad[0] - .5;
-    dnds[1]  = cquad[0] + .5;
-    dnds[2]  = -2 * cquad[0];
-
-    Real dxds =  dnds[0] * x[0] + dnds[1] * x[1] + dnds[2] * x[2];
-
-    jacobian[0] = dxds * weight;
-    AKANTU_DEBUG_ASSERT(jacobian[0] > 0,
-			"Negative jacobian computed, possible problem in the element node order.");
-
-    shape_deriv[0] = dnds[0] / dxds;
-    shape_deriv[1] = dnds[1] / dxds;
-    shape_deriv[2] = dnds[2] / dxds;
-
-    cquad += spatial_dimension;
-    shape += nb_nodes_per_element;
-    shape_deriv += nb_nodes_per_element * spatial_dimension;
-    jacobian++;
-  }
+  Real c = natural_coords[0];
+  dnds[0]  = c - .5;
+  dnds[1]  = c + .5;
+  dnds[2]  = -2 * c;
 }
 
+
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_line_2>::computeJacobian(const Real * dxds,
+								   const UInt dimension, 
+								   Real & jac){
+  if (dimension == spatial_dimension){
+    Real weight = 1;
+    jac = dxds[0] * weight;
+  }  
+  else {
+    AKANTU_DEBUG_ERROR("to be implemented");
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_line_2>::getInradius(const Real * coord) {

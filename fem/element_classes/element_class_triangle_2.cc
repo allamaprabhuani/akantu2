@@ -74,106 +74,104 @@
  * @f}
  */
 
+  // /// quadrature point position
+  // quad[0] = 1./6.; /// q0_{\xi}
+  // quad[1] = 1./6.; /// q0_{\eta}
+
+  // quad[2] = 2./3.; /// q1_{\xi}
+  // quad[3] = 1./6.; /// q1_{\eta}
+
+  // quad[4] = 1./6.; /// q2_{\xi}
+  // quad[5] = 2./3.; /// q2_{\eta}
+
+
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_triangle_2>::nb_nodes_per_element;
 template<> UInt ElementClass<_triangle_2>::nb_quadrature_points;
 template<> UInt ElementClass<_triangle_2>::spatial_dimension;
 
+
 /* -------------------------------------------------------------------------- */
-template<> inline void ElementClass<_triangle_2>::shapeFunctions(const Real * x,
-								 Real * shape,
-								 Real * shape_deriv,
-								 Real * jacobian) {
+template <> inline void ElementClass<_triangle_2>::computeShapes(const Real * natural_coords, 
+								 Real * shapes){
+  
+  /// Natural coordinates
+  Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
+  Real c1 = natural_coords[0];                /// @f$ c1 = \xi @f$
+  Real c2 = natural_coords[1];                /// @f$ c2 = \eta @f$
+  
+  shapes[0] = c0 * (2 * c0 - 1.);
+  shapes[1] = c1 * (2 * c1 - 1.);
+  shapes[2] = c2 * (2 * c2 - 1.);
+  shapes[3] = 4 * c0 * c1;
+  shapes[4] = 4 * c1 * c2;
+  shapes[5] = 4 * c2 * c0;
+}
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_triangle_2>::computeDNDS(const Real * natural_coords,
+							       Real * dnds){
+  /**
+   * @f[
+   * dnds =  \left(
+   *   \begin{array}{cccccc}
+   *       \frac{\partial N1}{\partial \xi}
+   *     & \frac{\partial N2}{\partial \xi}
+   *     & \frac{\partial N3}{\partial \xi}
+   *     & \frac{\partial N4}{\partial \xi}
+   *     & \frac{\partial N5}{\partial \xi}
+   *     & \frac{\partial N6}{\partial \xi} \	\
+   *
+   *       \frac{\partial N1}{\partial \eta}
+   *     & \frac{\partial N2}{\partial \eta}
+   *     & \frac{\partial N3}{\partial \eta}
+   *     & \frac{\partial N4}{\partial \eta}
+   *     & \frac{\partial N5}{\partial \eta}
+   *     & \frac{\partial N6}{\partial \eta}
+   *   \end{array}
+   * \right) @f]
+   */
 
-  Real weight = 1./6.;
+  /// Natural coordinates
+  Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
+  Real c1 = natural_coords[0];                /// @f$ c1 = \xi @f$
+  Real c2 = natural_coords[1];                /// @f$ c2 = \eta @f$
+  
+  dnds[0]  = 1 - 4 * c0;
+  dnds[1]  = 4 * c1 - 1.;
+  dnds[2]  = 0.;
+  dnds[3]  = 4 * (c0 - c1);
+  dnds[4]  = 4 * c2;
+  dnds[5]  = - 4 * c2;
+  
+  dnds[6]  = 1 - 4 * c0;
+  dnds[7]  = 0.;
+  dnds[8]  = 4 * c2 - 1.;
+  dnds[9]  = - 4 * c1;
+  dnds[10] = 4 * c1;
+  dnds[11] = 4 * (c0 - c2);
 
-  /// quadrature point position
-  Real quad[spatial_dimension * nb_quadrature_points];
-  quad[0] = 1./6.; /// q0_{\xi}
-  quad[1] = 1./6.; /// q0_{\eta}
-
-  quad[2] = 2./3.; /// q1_{\xi}
-  quad[3] = 1./6.; /// q1_{\eta}
-
-  quad[4] = 1./6.; /// q2_{\xi}
-  quad[5] = 2./3.; /// q2_{\eta}
-
-  Real * cquad = quad;
-
-  for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    /// Natural coordinates
-    Real c0 = 1 - cquad[0] - cquad[1]; /// @f$ c0 = 1 - \xi - \eta @f$
-    Real c1 = cquad[0];                /// @f$ c1 = \xi @f$
-    Real c2 = cquad[1];                /// @f$ c2 = \eta @f$
-
-    shape[0] = c0 * (2 * c0 - 1.);
-    shape[1] = c1 * (2 * c1 - 1.);
-    shape[2] = c2 * (2 * c2 - 1.);
-    shape[3] = 4 * c0 * c1;
-    shape[4] = 4 * c1 * c2;
-    shape[5] = 4 * c2 * c0;
-
-    /**
-     * @f[
-     * dnds =  \left(
-     *   \begin{array}{cccccc}
-     *       \frac{\partial N1}{\partial \xi}
-     *     & \frac{\partial N2}{\partial \xi}
-     *     & \frac{\partial N3}{\partial \xi}
-     *     & \frac{\partial N4}{\partial \xi}
-     *     & \frac{\partial N5}{\partial \xi}
-     *     & \frac{\partial N6}{\partial \xi} \\
-     *
-     *       \frac{\partial N1}{\partial \eta}
-     *     & \frac{\partial N2}{\partial \eta}
-     *     & \frac{\partial N3}{\partial \eta}
-     *     & \frac{\partial N4}{\partial \eta}
-     *     & \frac{\partial N5}{\partial \eta}
-     *     & \frac{\partial N6}{\partial \eta}
-     *   \end{array}
-     * \right) @f]
-     */
-    Real dnds[nb_nodes_per_element*spatial_dimension];
-    dnds[0]  = 1 - 4 * c0;
-    dnds[1]  = 4 * c1 - 1.;
-    dnds[2]  = 0.;
-    dnds[3]  = 4 * (c0 - c1);
-    dnds[4]  = 4 * c2;
-    dnds[5]  = - 4 * c2;
-
-    dnds[6]  = 1 - 4 * c0;
-    dnds[7]  = 0.;
-    dnds[8]  = 4 * c2 - 1.;
-    dnds[9]  = - 4 * c1;
-    dnds[10] = 4 * c1;
-    dnds[11] = 4 * (c0 - c2);
-
-    /// @f$ J = dxds = dnds * x @f$
-    Real dxds[spatial_dimension*spatial_dimension];
-    Math::matrix_matrix(spatial_dimension, spatial_dimension, nb_nodes_per_element,
-			dnds, x, dxds);
-
-    Real det_dxds = Math::det2(dxds);
-
-    /// @f$ dxds = J^{-1} @f$
-    Real inv_dxds[spatial_dimension*spatial_dimension];
-    Math::inv2(dxds, inv_dxds);
-
-    jacobian[0] = det_dxds * weight;
-    AKANTU_DEBUG_ASSERT(jacobian[0] > 0,
-			"Negative jacobian computed, possible problem in the element node order.");
-
-    Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			  dnds, inv_dxds, shape_deriv);
-
-    cquad += spatial_dimension;
-    shape += nb_nodes_per_element;
-    shape_deriv += nb_nodes_per_element * spatial_dimension;
-    jacobian++;
-  }
 }
 
 
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_triangle_2>::computeJacobian(const Real * dxds,
+								   const UInt dimension, 
+								   Real & jac){
+  
+  // if element dimension is the same as the space dimension
+  // then jacobian factor is the determinent of dxds
+  if (dimension == spatial_dimension){
+    Real weight = 1./6.;
+    jac = Math::det2(dxds)*weight;
+    AKANTU_DEBUG_ASSERT(jac > 0,
+			"Negative jacobian computed, possible problem in the element node order.");
+    
+  }
+  else {
+    AKANTU_DEBUG_ERROR("to implement");
+  }
+}
+ 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_triangle_2>::getInradius(const Real * coord) {
   UInt triangles[4][3] = {

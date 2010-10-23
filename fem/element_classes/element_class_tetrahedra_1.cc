@@ -44,24 +44,35 @@
 
 /* -------------------------------------------------------------------------- */
 
+  // /// shape functions
+  // shape[0] = 1./4.; /// N1(q_0)
+  // shape[1] = 1./4.; /// N2(q_0)
+  // shape[2] = 1./4.; /// N3(q_0)
+  // shape[3] = 1./4.; /// N4(q_0)
+
+
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_tetrahedra_1>::nb_nodes_per_element;
 template<> UInt ElementClass<_tetrahedra_1>::nb_quadrature_points;
 template<> UInt ElementClass<_tetrahedra_1>::spatial_dimension;
 
+
 /* -------------------------------------------------------------------------- */
-
-template<> inline void ElementClass<_tetrahedra_1>::shapeFunctions(const Real * x,
-								 Real * shape,
-								 Real * shape_deriv,
-								 Real * jacobian) {
-  Real weight = 1./6.;
-
-  /// shape functions
-  shape[0] = 1./4.; /// N1(q_0)
-  shape[1] = 1./4.; /// N2(q_0)
-  shape[2] = 1./4.; /// N3(q_0)
-  shape[3] = 1./4.; /// N4(q_0)
+template <> inline void ElementClass<_tetrahedra_1>::computeShapes(const Real * natural_coords, 
+							    Real * shapes){
+  Real c0 = natural_coords[1]; /// @f$ c0 = \eta @f$
+  Real c1 = natural_coords[2]; /// @f$ c1 = \zeta @f$
+  Real c2 = 1 - natural_coords[0] -  natural_coords[1] -  natural_coords[2];/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
+  Real c3 = natural_coords[0]; /// @f$ c2 = \xi @f$
+  
+  shapes[0] = c0;
+  shapes[1] = c1;
+  shapes[2] = c2;
+  shapes[3] = c3;
+}
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_tetrahedra_1>::computeDNDS(const Real * natural_coords,
+							  Real * dnds){
 
   /**
    * @f[
@@ -77,31 +88,30 @@ template<> inline void ElementClass<_tetrahedra_1>::shapeFunctions(const Real * 
    *        \right)
    * @f]
    */
-  Real dnds[nb_nodes_per_element*spatial_dimension];
+
   dnds[0] = -1.; dnds[1] = 1.; dnds[2]  = 0.; dnds[3]  = 0.;
   dnds[4] = -1.; dnds[5] = 0.; dnds[6]  = 1.; dnds[7]  = 0.;
   dnds[8] = -1.; dnds[9] = 0.; dnds[10] = 0.; dnds[11] = 1.;
 
-  /// @f$ J = dxds = dnds * x @f$
-  Real dxds[spatial_dimension*spatial_dimension];
-  Math::matrix_matrix(spatial_dimension, spatial_dimension, nb_nodes_per_element,
-		      dnds, x, dxds);
 
-  Real det_dxds = Math::det3(dxds);
-
-  /// @f$ dxds = J^{-1} @f$
-  Real inv_dxds[spatial_dimension*spatial_dimension];
-  Math::inv3(dxds,inv_dxds);
-
-  jacobian[0] = det_dxds * weight;
-  AKANTU_DEBUG_ASSERT(jacobian[0] > 0,
-		      "Negative jacobian computed, possible problem in the element node order.");
-
-  Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			dnds, inv_dxds, shape_deriv);
 }
 
 
+/* -------------------------------------------------------------------------- */
+template <> inline void ElementClass<_tetrahedra_1>::computeJacobian(const Real * dxds,
+								   const UInt dimension, 
+								   Real & jac){
+
+  if (dimension == spatial_dimension){
+    Real weight = 1./6.;
+    Real det_dxds = Math::det3(dxds);
+    jac = det_dxds * weight;    
+  }  
+  else {
+    AKANTU_DEBUG_ERROR("to be implemented");
+  }
+}
+ 
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_tetrahedra_1>::getInradius(const Real * coord) {
   return Math::tetrahedron_inradius(coord);

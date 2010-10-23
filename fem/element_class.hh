@@ -52,31 +52,66 @@ public:
    * @param[out] shape_deriv shape functions derivatives [nb_quad*node_per_elem*spatial_dim]
    * @param[out] jacobian  jacobians * integration weights [nb_quad]
    */
-  inline static void shapeFunctions(const Real * coord,
-			     Real * shape,
-			     Real * shape_deriv,
-			     Real * jacobian);
-
-  /// rotate the coordinates so that they are in the dimension of the element
-  inline static void changeDimension(const Real * coord, const UInt dim,
-				     const UInt n_points, Real * element_coords);
-
-  /// rotate the coordinates so that they are in the dimension of the element
-  inline static void unchangeDimension(const Real * coord, const Real * points,const UInt dim,
-				       const UInt n_points, Real * element_coords);
-
-  /// compute rotation matrix from one dimension to an other
-  inline static void computeRotationMatrix(const Real * coord, const UInt dim,
-					   Real * rotation_matrix,bool inverse_flag=0);
-
-  /// translate coordinates from first point
-  inline static void translateCoordinates(const Real * coord, const UInt dim,const UInt n_points,
-					  Real * translated_coords,bool inverse_flag=0);
-
-  /// compute the normals on quadrature points
-  inline static void computeNormalsOnQuadPoint(const Real * coord, const UInt dim, Real * normals);
-
-
+  inline static void preComputeStandards(const Real * coord,
+				    const UInt dimension,
+				    Real * shape,
+				    Real * shape_deriv,
+				    Real * jacobian);
+  /// compute the shape values for a point given in natural coordinates
+  inline static void computeShapes(const Real * natural_coords, Real * shapes);
+  /// compute the shape values for a set of points given in natural coordinates
+  inline static void computeShapes(const Real * natural_coords, const UInt nb_points, Real * shapes);
+  /** compute dxds the variation of real coordinates along with variation of natural coordinates
+   * on a given point in natural coordinates
+   */
+  inline static void computeDXDS(const Real * dnds,
+				 const Real * node_coords, 
+				 const UInt dimension, 
+				 Real * dxds);
+  /** compute dxds the variation of real coordinates along with variation of natural coordinates
+   * on a given set of points in natural coordinates
+   */
+  inline static void computeDXDS(const Real * dnds, 
+				 const UInt nb_points,
+				 const Real * node_coords, 
+				 const UInt dimension, Real * dxds);
+  /** compute dnds the variation of real shape functions along with variation of natural coordinates
+   * on a given point in natural coordinates
+   */
+  inline static void computeDNDS(const Real * natural_coords,
+				 Real * dnds);
+  /** compute dnds the variation of shape functions along with variation of natural coordinates
+   * on a given set of points in natural coordinates
+   */
+  inline static void computeDNDS(const Real * natural_coords, 
+				 const UInt nb_points,
+				 Real * dnds);
+  /// compute jacobian (or integration variable change factor) for a set of points
+  inline static void computeJacobian(const Real * dxds,
+				     const UInt nb_points,
+				     const UInt dimension, 
+				     Real * jac);
+  /// compute jacobian (or integration variable change factor) for a given point
+  inline static void computeJacobian(const Real * dxds,
+				     const UInt dimension, 
+				     Real & jac);
+  /// compute shape derivatives (input is dxds) for a set of points
+  inline static void computeShapeDerivatives(const Real * dxds, 
+					     const Real * dnds,
+					     const UInt nb_points,
+					     const UInt dimension, 
+					     Real * shape_deriv);
+  /// compute shape derivatives (input is dxds) for a given point
+  inline static void computeShapeDerivatives(const Real * dxds, 
+					     const Real * dnds, 
+					     Real * shape_deriv);
+  
+  /// compute normals on quad points
+  inline static void computeNormalsOnQuadPoint(const Real * dxds, 
+					       const UInt dimension, 
+					       Real * normals);
+  
+  
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
@@ -129,6 +164,9 @@ private:
 
   /// type of element P1 associated
   static ElementType p1_element_type;
+
+  /// quadrature points in natural coordinates
+  static Real quad[];
 };
 
 
