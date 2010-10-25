@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   model->initModel();
   std::cout << model->getMaterial(0) << std::endl;
 
-  model->assembleMass();
+  model->assembleMassLumped();
 
 
   /// Paraview Helper

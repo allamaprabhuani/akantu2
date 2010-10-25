@@ -1,6 +1,6 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Leo 
+# @author Leo
 # @date   Fri Sep 29 16:46:30 2010 ...più precisi di così
 #
 # @section LICENSE
@@ -14,9 +14,9 @@
 #===============================================================================
 add_mesh(2d_compression_mesh square_2d.geo 2 1)
 
-register_test(2d_compression
+register_example(2d_compression
   2d_compression.cc)
-add_dependencies(2d_compression 
+add_dependencies(2d_compression
   2d_compression_mesh)
 
 #===============================================================================
