@@ -195,12 +195,12 @@ __END_AKANTU__
   									\
   if(ghost_type == _not_ghost) {					\
     nb_element   = element_filter[el_type]->getSize();			\
-    stress[el_type]->resize(nb_element);				\
+    stress[el_type]->resize(nb_element*nb_quadrature_points);		\
     strain_val = strain[el_type]->values;				\
     stress_val = stress[el_type]->values;				\
   } else {								\
     nb_element = ghost_element_filter[el_type]->getSize();		\
-    ghost_stress[el_type]->resize(nb_element);				\
+    ghost_stress[el_type]->resize(nb_element*nb_quadrature_points);	\
     strain_val = ghost_strain[el_type]->values;				\
     stress_val = ghost_stress[el_type]->values;				\
   }									\

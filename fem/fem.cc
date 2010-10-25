@@ -205,8 +205,8 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     std::stringstream sstr_normals_on_quad;
     sstr_normals_on_quad << id << ":" << ghost << "normals_onquad:" << type;
     Vector<Real> * normals_on_quad_tmp = &(alloc<Real>(sstr_normals_on_quad.str(),
-					      nb_element,
-					      nb_quad_points*spatial_dimension));
+					      nb_element*nb_quad_points,
+					      spatial_dimension));
 
     Real * normals_on_quad_val    = normals_on_quad_tmp->values;
 
@@ -477,7 +477,7 @@ void FEM::integrate(const Vector<Real> & in_f,
   Real * intf_val = intf.values;
   Real * jac_val  = jac_loc->values;
 
-  UInt offset_in_f = in_f.getNbComponent();
+  UInt offset_in_f = in_f.getNbComponent()*nb_quadrature_points;
   UInt offset_intf = intf.getNbComponent();
 
   Real * jac      = jac_val;

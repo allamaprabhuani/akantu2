@@ -156,7 +156,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
-      new Vector<Real>(nb_element, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
     Real * shapesd           = shapes_derivatives->values;
     UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
@@ -170,7 +170,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     UInt offset_sigma_dphi_dx_val = spatial_dimension * nb_nodes_per_element;
 
     for (UInt el = 0; el < nb_element; ++el) {
-      shapesd_val = shapesd + elem_filter_val[el]*size_of_shapesd;
+      shapesd_val = shapesd + elem_filter_val[el]*size_of_shapesd*nb_quadrature_points;
       for (UInt q = 0; q < nb_quadrature_points; ++q) {
 	Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
 			     shapesd_val, stress_val, sigma_dphi_dx_val);
@@ -184,7 +184,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
      * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
-    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element,
+    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0,
 							nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,

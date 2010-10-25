@@ -510,7 +510,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
     UInt nb_element = fem->getMesh().getNbElement(*it);
 
-    Vector<Real> * v_square_el = new Vector<Real>(nb_element, nb_quadrature_points, "v_square per element");
+    Vector<Real> * v_square_el = new Vector<Real>(nb_element*nb_quadrature_points, 1, "v_square per element");
 
     fem->interpolateOnQuadraturePoints(*v_square, *v_square_el, 1, *it);
 
