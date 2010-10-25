@@ -244,11 +244,9 @@ if(AKANTU_TESTS)
 endif(AKANTU_TESTS)
 
 
-
 #===============================================================================
 # Examples
 #===============================================================================
-
 option(AKANTU_EXAMPLES "Activate examples" OFF)
 if(AKANTU_EXAMPLES)
   add_subdirectory(examples)
