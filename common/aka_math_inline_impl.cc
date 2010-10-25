@@ -16,7 +16,7 @@
 # else // AKANTU_USE_CBLAS_MKL
 #  include <mkl_cblas.h>
 # endif //AKANTU_USE_CBLAS_MKL
-#enfif //AKANTU_USE_CBLAS
+#endif //AKANTU_USE_CBLAS
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt m, UInt n,
