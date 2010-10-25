@@ -131,8 +131,7 @@ public:
   static inline UInt getNbQuadraturePoint();
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivativesSize();
-  static inline UInt getJacobianSize();
-
+  
   /// compute the in-radius
   static inline Real getInradius(const Real * coord);
 

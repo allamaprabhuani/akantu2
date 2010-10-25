@@ -18,18 +18,14 @@ template<ElementType type> inline UInt ElementClass<type>::getNbQuadraturePoint(
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
-  return nb_quadrature_points * nb_nodes_per_element;
+  return nb_nodes_per_element;
 }
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type> inline UInt ElementClass<type>::getShapeDerivativesSize() {
-  return nb_quadrature_points * nb_nodes_per_element * spatial_dimension;
+  return nb_nodes_per_element * spatial_dimension;
 }
 
-/* -------------------------------------------------------------------------- */
-template<ElementType type> inline UInt ElementClass<type>::getJacobianSize() {
-  return nb_quadrature_points;
-}
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline void ElementClass<type>::preComputeStandards(const Real * coord,
@@ -166,10 +162,32 @@ inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real 
 }
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void ElementClass<type>::computeNormalsOnQuadPoint(__attribute__ ((unused)) const Real * coord,
-							  __attribute__ ((unused)) const UInt dimension,
-							  __attribute__ ((unused)) Real * normals) {
-  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord,
+							  const UInt dimension,
+							  Real * normals) {
+  AKANTU_DEBUG_ASSERT((dimension - 1) == spatial_dimension,
+		      "cannot extract a normal because of dimension mismatch " 
+		      << dimension << " " << spatial_dimension);    
+  
+  Real * cpoint = const_cast<Real *>(quad);
+  Real * cnormals = normals;
+  Real dnds[spatial_dimension*nb_nodes_per_element];
+  Real dxds[spatial_dimension*dimension];
+
+  for (UInt p = 0; p < nb_quadrature_points; ++p) {
+    computeDNDS(cpoint,dnds);
+    computeDXDS(dnds,coord,dimension,dxds);    
+    if (dimension == 2) {
+      Math::normal2(dxds,cnormals);
+    }
+    if (dimension == 3){
+      Math::normal3(dxds,dxds+dimension,cnormals);
+    }
+    cpoint += spatial_dimension;
+    cnormals += dimension;
+  }
+
+
 }
 /* -------------------------------------------------------------------------- */
 template <ElementType type> 

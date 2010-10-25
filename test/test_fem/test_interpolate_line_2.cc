@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+  //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2 * nb_quadrature_points, "val_on_quad");
+  Vector<Real> val_on_quad(0, 2 , "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   my_file << val_on_quad << std::endl;
 
   // interpolate coordinates
-  Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension() * nb_quadrature_points, "coord_on_quad");
+  Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension() , "coord_on_quad");
 
   fem->interpolateOnQuadraturePoints(my_mesh.getNodes(),
 				     coord_on_quad,

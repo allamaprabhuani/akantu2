@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
   debug::_debug_level = dblDump;
   fem->initShapeFunctions();
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+  //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   std::cout << *fem << std::endl;
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2 * nb_quadrature_points, "val_on_quad");
+  Vector<Real> val_on_quad(0, 2 , "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
@@ -62,13 +62,26 @@ int main(int argc, char *argv[]) {
   // get global integration value
   Real value[2] = {0,0};
   std::ofstream my_file("out.txt");
-  my_file << int_val_on_elem << std::endl;
+  my_file << val_on_quad << std::endl << int_val_on_elem << std::endl;
   for (UInt i = 0; i < fem->getMesh().getNbElement(type); ++i) {
     value[0] += int_val_on_elem.values[2*i];
     value[1] += int_val_on_elem.values[2*i+1];
   }
 
   my_file << "integral is " << value[0] << " " << value[1] << std::endl;
+
+  FEM * fem_boundary = new FEM(my_mesh, dim-1, "my_fem_boundary");
+  fem_boundary->initShapeFunctions();
+
+
+  //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_line_2);
+  UInt nb_boundary_quad              = FEM::getNbQuadraturePoints(_line_2);
+
+  Vector<Real> val_on_bquad(0, nb_boundary_quad, "val_on_quad");    
+  for (UInt i = 0; i < const_val.getSize(); ++i) {
+    const_val.values[i * 2 + 0] = 1.;
+  }
+
 
   delete fem;
   finalize();

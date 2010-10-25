@@ -20,6 +20,8 @@ add_dependencies(test_solid_mechanics_model_square
   test_solid_mechanics_model_square_mesh
   test_solid_mechanics_model_circle_mesh)
 
+register_test(test_solid_mechanics_model_circle_2 test_solid_mechanics_model_circle_2.cc)
+
 #===============================================================================
 add_mesh(test_bar_traction_2d_mesh1 bar1.geo 2 1)
 add_mesh(test_bar_traction_2d_mesh2 bar2.geo 2 2)
@@ -57,3 +59,4 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
   COPYONLY
   )
+

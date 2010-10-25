@@ -130,9 +130,6 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
-  /// get the size of the jacobian returned by the element class
-  static inline UInt getJacobianSize(const ElementType & type);
-
   /// get the in-radius of an element
   static inline Real getElementInradius(Real * coord, const ElementType & type);
 

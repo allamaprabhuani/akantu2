@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
   debug::_debug_level = dblDump;
   fem->initShapeFunctions();
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+  //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   std::cout << *fem << std::endl;
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2 * nb_quadrature_points, "val_on_quad");
+  Vector<Real> val_on_quad(0, 2 , "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;

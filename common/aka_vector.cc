@@ -262,7 +262,7 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   stream << space << " + allocated size : " << this->allocated_size << std::endl;
   stream << space << " + memory size    : "
 	 << real_size << "kB" << std::endl;
-  stream << space << " + adresse        : " << std::hex << this->values
+  stream << space << " + address        : " << std::hex << this->values
 	 << std::dec << std::endl;
 
   stream.precision(prec);

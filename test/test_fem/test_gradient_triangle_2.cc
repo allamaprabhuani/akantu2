@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+  //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   std::cout << *fem << std::endl;
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> grad_on_quad(0, 2 * dim * nb_quadrature_points, "grad_on_quad");
+  Vector<Real> grad_on_quad(0, 2 * dim, "grad_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   my_file << grad_on_quad << std::endl;
 
   // compute gradient of coordinates
-  Vector<Real> grad_coord_on_quad(0, dim * dim * nb_quadrature_points, "grad_coord_on_quad");
+  Vector<Real> grad_coord_on_quad(0, dim * dim, "grad_coord_on_quad");
   fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), type);
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;

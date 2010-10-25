@@ -66,7 +66,7 @@ template <> inline void ElementClass<_line_1>::computeJacobian(const Real * dxds
     jac = dxds[0]*weight;
   }
   else {
-    AKANTU_DEBUG_ERROR("to be implemented");
+    jac = Math::norm2(dxds);
   }
 }
  

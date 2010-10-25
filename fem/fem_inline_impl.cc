@@ -28,13 +28,12 @@ inline void FEM::integrate(const Vector<Real> & f,
   }
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  UInt size_of_jacobians    = FEM::getJacobianSize(type);
-
-  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
+  
+  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom ,
 		      "The vector f do not have the good number of component.");
 
   Real * f_val    = f.values + elem * f.getNbComponent();
-  Real * jac_val  = jac_loc->values + elem * size_of_jacobians;
+  Real * jac_val  = jac_loc->values + elem * nb_quadrature_points;
 
   integrate(f_val, jac_val, intf, nb_degre_of_freedom, nb_quadrature_points);
 }
@@ -144,35 +143,6 @@ inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
   AKANTU_DEBUG_OUT();
   return shape_derivatives_size;
 }
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getJacobianSize(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt jacobian_size;
-#define GET_JACOBIAN_SIZE(type)				\
-  jacobian_size = ElementClass<type>::getJacobianSize()
-
-  switch(type) {
-  case _line_1       : { GET_JACOBIAN_SIZE(_line_1      ); break; }
-  case _line_2       : { GET_JACOBIAN_SIZE(_line_2      ); break; }
-  case _triangle_1   : { GET_JACOBIAN_SIZE(_triangle_1  ); break; }
-  case _triangle_2   : { GET_JACOBIAN_SIZE(_triangle_2  ); break; }
-  case _tetrahedra_1 : { GET_JACOBIAN_SIZE(_tetrahedra_1); break; }
-  case _tetrahedra_2 : { GET_JACOBIAN_SIZE(_tetrahedra_2); break; }
-  case _point:
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
-#undef GET_JACOBIAN_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return jacobian_size;
-}
-
 
 /* -------------------------------------------------------------------------- */
 inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {

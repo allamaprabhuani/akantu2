@@ -75,7 +75,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
     UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
     UInt size_of_shapes    = FEM::getShapeSize(type);
     UInt size_of_shapesd   = FEM::getShapeDerivativesSize(type);
-    UInt size_of_jacobians = FEM::getJacobianSize(type);
+    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
     if(element_type_spatial_dimension != element_dimension) continue;
 
@@ -95,20 +95,20 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
     std::stringstream sstr_shapes;
     sstr_shapes << id << ":" << ghost << "shapes:" << type;
     Vector<Real> * shapes_tmp = &(alloc<Real>(sstr_shapes.str(),
-					      nb_element,
+					      nb_element*nb_quadrature_points,
 					      size_of_shapes));
 
     std::stringstream sstr_shapesd;
     sstr_shapesd << id << ":" << ghost << "shapes_derivatives:" << type;
     Vector<Real> * shapes_derivatives_tmp = &(alloc<Real>(sstr_shapesd.str(),
-							  nb_element,
+							  nb_element*nb_quadrature_points,
 							  size_of_shapesd));
 
     std::stringstream sstr_jacobians;
     sstr_jacobians << id << ":" << ghost << "jacobians:" << type;
     Vector<Real> * jacobians_tmp = &(alloc<Real>(sstr_jacobians.str(),
-						 nb_element,
-						 size_of_jacobians));
+						 nb_element*nb_quadrature_points,
+						 1));
 
     Real * shapes_val    = shapes_tmp->values;
     Real * shapesd_val   = shapes_derivatives_tmp->values;
@@ -123,18 +123,18 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
       for (UInt elem = 0; elem < nb_element; ++elem) {			\
 	int offset = elem * nb_nodes_per_element;			\
 	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
-	  memcpy(local_coord + id * element_dimension,			\
-		 coord + elem_val[offset + id] * element_dimension,	\
-		 element_dimension*sizeof(Real));			\
+	  memcpy(local_coord + id * spatial_dimension,			\
+		 coord + elem_val[offset + id] * spatial_dimension,	\
+		 spatial_dimension*sizeof(Real));			\
 	}								\
 	ElementClass<type>::preComputeStandards(local_coord,		\
 				 spatial_dimension,			\
 				 shapes_val,				\
 				 shapesd_val,				\
 				 jacobians_val);			\
-	shapes_val += size_of_shapes;					\
-	shapesd_val += size_of_shapesd;					\
-	jacobians_val += size_of_jacobians;				\
+	shapes_val += size_of_shapes*nb_quadrature_points;		\
+	shapesd_val += size_of_shapesd*nb_quadrature_points;		\
+	jacobians_val += nb_quadrature_points;				\
       }									\
     } while(0)
 
@@ -289,7 +289,7 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
+  AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_degre_of_freedom ,
 		      "The vector out_uq(" << out_uq.getID()
 		      << ") has not the good number of component.");
 
@@ -299,13 +299,13 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
     filter_elem_val = filter_elements->values;
   }
 
-  out_uq.resize(nb_element);
+  out_uq.resize(nb_element * nb_quadrature_points);
 
   Real * shape_val = shapes_loc->values;
   Real * u_val     = in_u.values;
   Real * uq_val    = out_uq.values;
 
-  UInt offset_uq   = out_uq.getNbComponent();
+  UInt offset_uq   = out_uq.getNbComponent()*nb_quadrature_points;
 
   Real * shape = shape_val;
   Real * u = static_cast<Real *>(calloc(nb_nodes_per_element * nb_degre_of_freedom,
@@ -314,7 +314,7 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
     if(filter_elements != NULL) {
-      shape     = shape_val + filter_elem_val[el] * size_of_shapes;
+      shape     = shape_val + filter_elem_val[el] * size_of_shapes*nb_quadrature_points;
       el_offset = filter_elem_val[el] * nb_nodes_per_element;
     }
 
@@ -330,7 +330,7 @@ void FEM::interpolateOnQuadraturePoints(const Vector<Real> &in_u,
 
     uq_val += offset_uq;
     if(filter_elements == NULL) {
-      shape += size_of_shapes;
+      shape += size_of_shapes*nb_quadrature_points;
     }
   }
 
@@ -379,16 +379,16 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
   AKANTU_DEBUG_ASSERT(in_u.getSize() == mesh->getNbNodes(),
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good size.");
-  AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
+  AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom ,
 		      "The vector in_u(" << in_u.getID()
 		      << ") has not the good number of component.");
 
   AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent()
-		      == nb_degre_of_freedom * nb_quadrature_points * element_dimension,
+		      == nb_degre_of_freedom * element_dimension,
 		      "The vector out_nablauq(" << out_nablauq.getID()
 		      << ") has not the good number of component.");
 
-  out_nablauq.resize(nb_element);
+  out_nablauq.resize(nb_element * nb_quadrature_points);
 
   Real * shaped_val  = shapesd_loc->values;
   Real * u_val       = in_u.values;
@@ -404,7 +404,7 @@ void FEM::gradientOnQuadraturePoints(const Vector<Real> &in_u,
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
     if(filter_elements != NULL) {
-      shaped    = shaped_val  + filter_elem_val[el] * size_of_shapes_derivatives;
+      shaped    = shaped_val  + filter_elem_val[el] * size_of_shapes_derivatives*nb_quadrature_points;
       el_offset = filter_elem_val[el] * nb_nodes_per_element;
     }
 
@@ -453,18 +453,17 @@ void FEM::integrate(const Vector<Real> & in_f,
   }
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  UInt size_of_jacobians    = FEM::getJacobianSize(type);
-
+  
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
     nb_element      = filter_elements->getSize();
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_f.getSize() == nb_element,
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == nb_element * nb_quadrature_points,
 		      "The vector in_f(" << in_f.getID() << " size " << in_f.getSize()
 		      << ") has not the good size (" << nb_element << ").");
-  AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_degre_of_freedom * nb_quadrature_points,
+  AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_degre_of_freedom ,
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good number of component.");
   AKANTU_DEBUG_ASSERT(intf.getNbComponent() == nb_degre_of_freedom,
@@ -485,7 +484,7 @@ void FEM::integrate(const Vector<Real> & in_f,
 
   for (UInt el = 0; el < nb_element; ++el) {
     if(filter_elements != NULL) {
-      jac      = jac_val  + filter_elem_val[el] * size_of_jacobians;
+      jac      = jac_val  + filter_elem_val[el] * nb_quadrature_points;
     }
 
     integrate(in_f_val, jac, intf_val, nb_degre_of_freedom, nb_quadrature_points);
@@ -493,7 +492,7 @@ void FEM::integrate(const Vector<Real> & in_f,
     in_f_val += offset_in_f;
     intf_val += offset_intf;
     if(filter_elements == NULL) {
-      jac      += size_of_jacobians;
+      jac      += nb_quadrature_points;
     }
   }
 
@@ -519,18 +518,17 @@ Real FEM::integrate(const Vector<Real> & in_f,
   }
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  UInt size_of_jacobians    = FEM::getJacobianSize(type);
-
+  
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
     nb_element      = filter_elements->getSize();
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_f.getSize() == nb_element,
+  AKANTU_DEBUG_ASSERT(in_f.getSize() == nb_element * nb_quadrature_points,
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good size.");
-  AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == nb_quadrature_points,
+  AKANTU_DEBUG_ASSERT(in_f.getNbComponent() == 1,
 		      "The vector in_f(" << in_f.getID()
 		      << ") has not the good number of component.");
 
@@ -542,7 +540,7 @@ Real FEM::integrate(const Vector<Real> & in_f,
 
   for (UInt el = 0; el < nb_element; ++el) {
     if(filter_elements != NULL) {
-      jac = jac_val  + filter_elem_val[el] * size_of_jacobians;
+      jac = jac_val  + filter_elem_val[el] * nb_quadrature_points;
     }
     Real el_intf;
     integrate(in_f_val, jac, &el_intf, 1, nb_quadrature_points);
@@ -550,7 +548,7 @@ Real FEM::integrate(const Vector<Real> & in_f,
 
     in_f_val += offset_in_f;
     if(filter_elements == NULL) {
-      jac += size_of_jacobians;
+      jac += nb_quadrature_points;
     }
   }
 
@@ -593,7 +591,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 		      << ") has not the good size.");
 
   AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent()
-		      == nb_degre_of_freedom * nb_nodes_per_element,
+		      == nb_degre_of_freedom*nb_nodes_per_element,
 		      "The vector elementary_vect(" << elementary_vect.getID()
 		      << ") has not the good number of component.");
 

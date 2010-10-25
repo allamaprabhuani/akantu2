@@ -98,11 +98,20 @@ public:
   /// compute normal a normal to a vector
   static inline void normal2(const Real * v1, Real * res);
 
+  /// compute normal a normal to a vector
+  static inline void normal3(const Real * v1,const Real * v2, Real * res);
+
   /// normalize a vector
   static inline void normalize2(Real * v);
 
   /// normalize a vector
-  static inline Real norm2(Real * v);
+  static inline void normalize3(Real * v);
+
+  /// return norm of a 2-vector
+  static inline Real norm2(const Real * v);
+
+  /// return norm of a 3-vector
+  static inline Real norm3(const Real * v);
 
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */

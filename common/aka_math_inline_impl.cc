@@ -166,15 +166,15 @@ inline Real Math::det3(const Real * mat) {
 
 /* -------------------------------------------------------------------------- */
 inline void Math::normal2(const Real * vec,Real * normal) {
-  if (fabs(vec[1]) > std::numeric_limits<Real>::epsilon()){
-    normal[0] = 1;
-    normal[1] = -1.*vec[0]/vec[1];
+    normal[0] = vec[1];
+    normal[1] = -vec[0];
     Math::normalize2(normal);
-  }
-  else {
-    normal[0] = 0;
-    normal[1] = 1;
-  }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Math::normal3(const Real * vec1,const Real * vec2,Real * normal) {
+  Math::vectorProduct3(vec1,vec2,normal);
+  Math::normalize3(normal);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -185,8 +185,21 @@ inline void Math::normalize2(Real * vec) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::norm2(Real * vec) {
+inline void Math::normalize3(Real * vec) {
+  Real norm = Math::norm3(vec);
+  vec[0] /= norm;
+  vec[1] /= norm;
+  vec[2] /= norm;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::norm2(const Real * vec) {
   return sqrt(vec[0]*vec[0] + vec[1]*vec[1]);
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::norm3(const Real * vec) {
+  return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -218,7 +231,7 @@ inline void Math::inv3(const Real * mat,Real * inv) {
 inline void Math::vectorProduct3(const Real * v1, const Real * v2, Real * res) {
   res[0] = v1[1]*v2[2] - v1[2]*v2[1];
   res[1] = v1[2]*v2[0] - v1[0]*v2[2];
-  res[1] = v1[0]*v2[1] - v1[1]*v2[0];
+  res[2] = v1[0]*v2[1] - v1[1]*v2[0];
 }
 
 /* -------------------------------------------------------------------------- */

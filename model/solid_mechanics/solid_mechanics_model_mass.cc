@@ -69,7 +69,6 @@ void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, Element
   AKANTU_DEBUG_IN();
   Material ** mat_val = &(materials.at(0));
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
   UInt shape_size           = FEM::getShapeSize(type);
 
@@ -105,9 +104,9 @@ void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, Element
     }
   }
 
-  Vector<Real> * int_rho_phi_i = new Vector<Real>(nb_element * nb_quadrature_points, shape_size,
+  Vector<Real> * int_rho_phi_i = new Vector<Real>(0, shape_size,
 						  "inte_rho_x_shapes");
-  fem->integrate(*rho_phi_i, *int_rho_phi_i, nb_nodes_per_element, type, ghost_type);
+  fem->integrate(*rho_phi_i, *int_rho_phi_i, shape_size, type, ghost_type);
   delete rho_phi_i;
 
   fem->assembleVector(*int_rho_phi_i, *mass, 1, type, ghost_type);

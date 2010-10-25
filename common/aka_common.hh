@@ -117,7 +117,8 @@ enum ContactSearchType {
 };
 
 enum ContactNeighborStructureType {
-  _cnst_not_defined = 0
+  _cnst_not_defined = 0,
+  _cnst_regular_grid
 };
 
 /* -------------------------------------------------------------------------- */

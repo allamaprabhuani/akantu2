@@ -77,14 +77,14 @@ template <> inline void ElementClass<_line_2>::computeDNDS(const Real * natural_
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_line_2>::computeJacobian(const Real * dxds,
-								   const UInt dimension, 
-								   Real & jac){
+							       const UInt dimension, 
+							       Real & jac){
   if (dimension == spatial_dimension){
     Real weight = 1;
     jac = dxds[0] * weight;
   }  
   else {
-    AKANTU_DEBUG_ERROR("to be implemented");
+    jac = Math::norm2(dxds);
   }
 }
 
