@@ -10,11 +10,13 @@
  * \<insert license here\>
  *
  */
-#ifndef AKANTU_USE_CBLAS_MKL
-#include <cblas.h>
-#else
-#include <mkl_cblas.h>
-#endif
+#ifdef AKANTU_USE_CBLAS
+# ifndef AKANTU_USE_CBLAS_MKL
+#  include <cblas.h>
+# else // AKANTU_USE_CBLAS_MKL
+#  include <mkl_cblas.h>
+# endif //AKANTU_USE_CBLAS_MKL
+#enfif //AKANTU_USE_CBLAS
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt m, UInt n,
@@ -191,10 +193,10 @@ inline Real Math::norm2(Real * vec) {
 inline void Math::inv2(const Real * mat,Real * inv) {
   Real det_mat = det2(mat);
 
-  inv[0] = mat[3]/det_mat;
-  inv[1] = -mat[1]/det_mat;
-  inv[2] = -mat[2]/det_mat;
-  inv[3] = mat[0]/det_mat;
+  inv[0] =  mat[3] / det_mat;
+  inv[1] = -mat[1] / det_mat;
+  inv[2] = -mat[2] / det_mat;
+  inv[3] =  mat[0] / det_mat;
 }
 
 /* -------------------------------------------------------------------------- */
