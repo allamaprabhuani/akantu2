@@ -68,15 +68,13 @@ void Material::initMaterial() {
     std::stringstream sstr; sstr << id << ":element_filer:"<< *it;
     element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
 
-    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-
     std::stringstream sstr_stre; sstr_stre << id << ":stress:" << *it;
     std::stringstream sstr_stra; sstr_stra << id << ":strain:" << *it;
 
     stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
-				nb_quadrature_points * spatial_dimension * spatial_dimension));
+				spatial_dimension * spatial_dimension));
     strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
-				nb_quadrature_points * spatial_dimension * spatial_dimension));
+				spatial_dimension * spatial_dimension));
   }
 
 
@@ -89,15 +87,13 @@ void Material::initMaterial() {
     std::stringstream sstr; sstr << id << ":ghost_element_filer:"<< *it;
     ghost_element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
 
-    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-
     std::stringstream sstr_stre; sstr_stre << id << ":ghost_stress:" << *it;
     std::stringstream sstr_stra; sstr_stra << id << ":ghost_strain:" << *it;
 
     ghost_stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
-				nb_quadrature_points * spatial_dimension * spatial_dimension));
+				spatial_dimension * spatial_dimension));
     ghost_strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
-				nb_quadrature_points * spatial_dimension * spatial_dimension));
+				spatial_dimension * spatial_dimension));
   }
 
   AKANTU_DEBUG_OUT();
@@ -192,7 +188,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 							nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-			      size_of_shapes_derivatives / nb_quadrature_points,
+			      size_of_shapes_derivatives,
 			      *it, ghost_type,
 			      elem_filter);
     delete sigma_dphi_dx;

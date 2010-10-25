@@ -92,7 +92,7 @@ void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, Element
     return;
   }
 
-  Vector<Real> * rho_phi_i = new Vector<Real>(nb_element, shape_size, "rho_x_shapes");
+  Vector<Real> * rho_phi_i = new Vector<Real>(nb_element * nb_quadrature_points, shape_size, "rho_x_shapes");
 
   Real * rho_phi_i_val = rho_phi_i->values;
   Real * shapes_val = shapes->values;
@@ -100,19 +100,19 @@ void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, Element
   /// compute @f$ rho * \varphi_i @f$ for each nodes of each element
   for (UInt el = 0; el < nb_element; ++el) {
     Real rho = mat_val[elem_mat_val[el]]->getRho();
-    for (UInt n = 0; n < shape_size; ++n) {
+    for (UInt n = 0; n < shape_size * nb_quadrature_points; ++n) {
       *rho_phi_i_val++ = rho * *shapes_val++;
     }
   }
 
-  Vector<Real> * int_rho_phi_i = new Vector<Real>(nb_element, shape_size / nb_quadrature_points,
+  Vector<Real> * int_rho_phi_i = new Vector<Real>(nb_element * nb_quadrature_points, shape_size,
 						  "inte_rho_x_shapes");
   fem->integrate(*rho_phi_i, *int_rho_phi_i, nb_nodes_per_element, type, ghost_type);
   delete rho_phi_i;
 
   fem->assembleVector(*int_rho_phi_i, *mass, 1, type, ghost_type);
   delete int_rho_phi_i;
- 
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -157,7 +157,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
     return;
   }
 
-  Vector<Real> * rho_1 = new Vector<Real>(nb_element, nb_quadrature_points, "rho_x_1");
+  Vector<Real> * rho_1 = new Vector<Real>(nb_element * nb_quadrature_points, 1, "rho_x_1");
 
   Real * rho_1_val = rho_1->values;
 
@@ -170,7 +170,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
   }
 
   /// compute @f$ \int \rho dV = \rho V @f$ for each element
-  Vector<Real> * int_rho_1 = new Vector<Real>(nb_element, 1,
+  Vector<Real> * int_rho_1 = new Vector<Real>(nb_element * nb_quadrature_points, 1,
 					      "inte_rho_x_1");
   fem->integrate(*rho_1, *int_rho_1, 1, type, ghost_type);
   delete rho_1;
