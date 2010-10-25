@@ -32,6 +32,8 @@ public:
   /// number of impactor nodes
   UInt nb_nodes;
 
+  /// @todo check if data must be stored by element type (different surface elements)
+
   /// list of nodes of slave surfaces near the master one
   Vector<UInt> impactor_nodes;
 
