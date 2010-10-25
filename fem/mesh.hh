@@ -228,6 +228,8 @@ private:
 
   inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
+  inline Vector<UInt> * getSurfaceIdPointer(ElementType type);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -276,7 +278,7 @@ private:
   UInt nb_surfaces;
 
   /// surface id of the surface elements in this mesh
-  ByElementTypeUInt surface_id; 
+  ByElementTypeUInt surface_id;
 };
 
 

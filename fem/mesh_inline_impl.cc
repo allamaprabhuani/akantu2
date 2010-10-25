@@ -166,6 +166,7 @@ inline Vector<Real> * Mesh::getNormalsPointer(ElementType type) const {
   AKANTU_DEBUG_OUT();
   return normals[type];
 }
+
 /* -------------------------------------------------------------------------- */
 inline const Mesh & Mesh::getInternalFacetsMesh() const {
   AKANTU_DEBUG_IN();
@@ -188,6 +189,26 @@ inline Mesh * Mesh::getInternalFacetsMeshPointer() {
 
   return internal_facets_mesh;
 }
+
+/* -------------------------------------------------------------------------- */
+inline Vector<UInt> * Mesh::getSurfaceIdPointer(ElementType type) {
+  AKANTU_DEBUG_IN();
+
+  if(surface_id[type] == NULL) {
+    std::stringstream sstr;
+    sstr << id << ":surface_id:" << type;
+    surface_id[type] = &(alloc<UInt>(sstr.str(),
+				     0,
+				     1));
+
+    AKANTU_DEBUG_INFO("The surface id vector for the type "
+		      << type << " created");
+  }
+
+  AKANTU_DEBUG_OUT();
+  return surface_id[type];
+}
+
 
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type) const {
