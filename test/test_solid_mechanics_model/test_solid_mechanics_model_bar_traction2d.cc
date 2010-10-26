@@ -32,6 +32,8 @@
 
 int main(int argc, char *argv[])
 {
+  akantu::ElementType type = akantu::_triangle_1;
+  akantu::UInt paraview_type = TRIANGLE1;
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
@@ -45,7 +47,7 @@ int main(int argc, char *argv[])
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(akantu::_triangle_1);
+  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
   /// model initialization
   model->initVectors();
@@ -75,9 +77,9 @@ int main(int argc, char *argv[])
   /// set to 0 only for the first paraview dump
   memset(model->getResidual().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getMaterial(0).getStrain(akantu::_triangle_1).values, 0,
+  memset(model->getMaterial(0).getStrain(type).values, 0,
 	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
-  memset(model->getMaterial(0).getStress(akantu::_triangle_1).values, 0,
+  memset(model->getMaterial(0).getStress(type).values, 0,
 	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
 #endif //AKANTU_USE_IOHELPER
 
@@ -108,17 +110,17 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_triangle_1).values,
-			 TRIANGLE1, nb_element, C_MODE);
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
+			 paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,
 			  spatial_dimension, "velocity");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_triangle_1).values,
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_triangle_1).values,
+  dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
 			  spatial_dimension*spatial_dimension, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
@@ -148,7 +150,7 @@ int main(int argc, char *argv[])
 #ifdef CHECK_STRESS
     akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
     akantu::UInt max_el = 0;
-    akantu::Real * stress = model->getMaterial(0).getStress(akantu::_triangle_1).values;
+    akantu::Real * stress = model->getMaterial(0).getStress(type).values;
     for (akantu::UInt i = 0; i < nb_element; ++i) {
       if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
 	max_stress = stress[i*spatial_dimension*spatial_dimension];
@@ -158,8 +160,8 @@ int main(int argc, char *argv[])
 
     akantu::Real * coord    = model->getFEM().getMesh().getNodes().values;
     akantu::Real * disp_val = model->getDisplacement().values;
-    akantu::UInt * conn     = model->getFEM().getMesh().getConnectivity(akantu::_triangle_1).values;
-    akantu::UInt nb_nodes_per_element = model->getFEM().getMesh().getNbNodesPerElement(akantu::_triangle_1);
+    akantu::UInt * conn     = model->getFEM().getMesh().getConnectivity(type).values;
+    akantu::UInt nb_nodes_per_element = model->getFEM().getMesh().getNbNodesPerElement(type);
     akantu::Real * coords = new akantu::Real[spatial_dimension];
     akantu::Real min_x = std::numeric_limits<akantu::Real>::max();
     akantu::Real max_x = std::numeric_limits<akantu::Real>::min();

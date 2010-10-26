@@ -28,7 +28,7 @@ add_mesh(test_bar_traction_2d_mesh2 bar2.geo 2 2)
 
 register_test(test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d.cc)
-add_dependencies(test_solid_mechanics_model_bar_traction2d test_bar_traction_2d_mesh1)
+add_dependencies(test_solid_mechanics_model_bar_traction2d test_bar_traction_2d_mesh1 test_bar_traction_2d_mesh2)
 
 if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
   register_test(test_solid_mechanics_model_bar_traction2d_parallel
