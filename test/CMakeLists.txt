@@ -17,6 +17,7 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 #===============================================================================
 # List of tests
 #===============================================================================
+add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
 add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
 add_akantu_test(test_fem "Test finite element functionalties")
 add_akantu_test(test_mesh_io "Test mesh io object")

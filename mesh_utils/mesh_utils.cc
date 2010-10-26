@@ -369,14 +369,14 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
   Mesh::ConnectivityTypeList::const_iterator it;
   
   UInt nb_types = type_list.size();
-  ElementType lin_element_type[2];
+  ElementType lin_element_type[nb_types];
   UInt nb_lin_types = 0;
 
-  UInt nb_nodes_per_element[2];
-  UInt nb_nodes_per_element_p1[2];
+  UInt nb_nodes_per_element[nb_types];
+  UInt nb_nodes_per_element_p1[nb_types];
 
-  UInt * conn_val[2];
-  UInt nb_element[2];
+  UInt * conn_val[nb_types];
+  UInt nb_element[nb_types];
 
   ElementType type_p1;
 
@@ -405,14 +405,14 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
  
   UInt nb_cecked_elements;
   UInt nb_elements_to_ceck;
-  UInt * elements_to_ceck = (UInt *)calloc(nb_element[nb_lin_types], sizeof(UInt));
+  UInt * elements_to_ceck = new UInt [nb_element[nb_lin_types]];
+  memset(elements_to_ceck, 0, nb_element[nb_lin_types]*sizeof(UInt));
   
   for (UInt lin_el = 0; lin_el < nb_element[nb_lin_types]; ++lin_el) {
     
     if(surf_val[lin_el] != -1) continue; /* Surface id already assigned */
 
     /* First element of new surface */
-
     surf_val[lin_el] = nb_surfaces;
     nb_cecked_elements = 0;
     nb_elements_to_ceck = 1;
@@ -448,7 +448,7 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
     nb_surfaces++;
   }
 
-  free(elements_to_ceck);
+  delete [] elements_to_ceck;
 
   /// Transform local linearized element index in the global one
   for (UInt i = 0; i < nb_lin_types; ++i) nb_element[i] = nb_element[i+1] - nb_element[i];
@@ -458,9 +458,8 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
     ElementType type = lin_element_type[type_it];
     Vector<UInt> * surf_id_type = mesh.getSurfaceIdPointer(type);
     surf_id_type->resize(nb_element[type_it]);
-    // mesh.surface_id[type]->resize(nb_element[type_it]);
     for (UInt el = 0; el < nb_element[type_it]; ++el)
-      mesh.surface_id[type]->values[el] = surf_val[el+el_offset];
+      surf_id_type->values[el] = surf_val[el+el_offset];
     el_offset += nb_element[type_it];
   }
 

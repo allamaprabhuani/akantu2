@@ -93,6 +93,7 @@ void Mesh::initConnectivities() {
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     connectivities[t] = NULL;
     ghost_connectivities[t] = NULL;
+    surface_id[t] = NULL;
   }
   this->types_offsets.resize(_max_element_type);
 }
