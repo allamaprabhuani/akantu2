@@ -1,7 +1,7 @@
 /**
- * @file   test_surface_extraction_2d.cc
+ * @file   test_surface_extraction_3d.cc
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Mon Oct 25 09:47:15 2010
+ * @date   Mon Oct 25 11:40:12 2010
  *
  * @brief  
  *
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper_surface;
   dumper_surface.SetMode(TEXT);
 
-  dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
+  dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
   
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_triangle_1).values,
   			       TRIANGLE1, mesh.getNbElement(_triangle_1), C_MODE);

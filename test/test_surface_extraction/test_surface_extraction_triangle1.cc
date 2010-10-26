@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper_surface;
   dumper_surface.SetMode(TEXT);
 
-  dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
+  dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
   
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_line_1).values,
 			       LINE1, mesh.getNbElement(_line_1), C_MODE);
