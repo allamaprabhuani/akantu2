@@ -23,8 +23,8 @@ add_dependencies(test_solid_mechanics_model_square
 register_test(test_solid_mechanics_model_circle_2 test_solid_mechanics_model_circle_2.cc)
 
 #===============================================================================
-add_mesh(test_bar_traction_2d_mesh1 bar1.geo 2 1)
-add_mesh(test_bar_traction_2d_mesh2 bar2.geo 2 2)
+add_mesh(test_bar_traction_2d_mesh1 bar.geo 2 1 OUTPUT bar1.msh)
+add_mesh(test_bar_traction_2d_mesh2 bar.geo 2 2 OUTPUT bar2.msh)
 
 register_test(test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d.cc)
