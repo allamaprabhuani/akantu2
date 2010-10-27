@@ -38,7 +38,8 @@ Mesh::Mesh(UInt spatial_dimension,
   created_nodes(true), spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
+  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  nb_surfaces(0) {
   AKANTU_DEBUG_IN();
 
   initConnectivities();

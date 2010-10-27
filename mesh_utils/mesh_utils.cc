@@ -62,8 +62,8 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   UInt * node_offset_val = node_offset.values;
 
   /// count number of occurrence of each node
+  memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
   for (UInt t = 0; t < nb_good_types; ++t) {
-    memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
     for (UInt el = 0; el < nb_element[t]; ++el) {
       UInt el_offset = el*nb_nodes_per_element[t];
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
@@ -111,6 +111,7 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
   /// array for the node-element list
   node_offset.resize(nb_nodes + 1);
   UInt * node_offset_val = node_offset.values;
+  memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
   
   /// count number of occurrence of each node
   for (UInt el = 0; el < nb_elements; ++el)
@@ -382,15 +383,16 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
 
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != spatial_dimension-1) continue;
+    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
-    lin_element_type[nb_lin_types] = type;
-    nb_nodes_per_element[nb_lin_types]    = Mesh::getNbNodesPerElement(type);
-    type_p1 = Mesh::getP1ElementType(type);
+    ElementType facet_type = mesh.getFacetElementType(type);
+    lin_element_type[nb_lin_types] = facet_type;
+    nb_nodes_per_element[nb_lin_types]    = Mesh::getNbNodesPerElement(facet_type);
+    type_p1 = Mesh::getP1ElementType(facet_type);
     nb_nodes_per_element_p1[nb_lin_types] = Mesh::getNbNodesPerElement(type_p1);
 
-    conn_val[nb_lin_types] = mesh.getConnectivity(type).values;
-    nb_element[nb_lin_types] = mesh.getConnectivity(type).getSize();
+    conn_val[nb_lin_types] = mesh.getConnectivity(facet_type).values;
+    nb_element[nb_lin_types] = mesh.getConnectivity(facet_type).getSize();
     nb_lin_types++;
   }
 

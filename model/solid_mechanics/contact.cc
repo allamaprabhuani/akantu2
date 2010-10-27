@@ -28,9 +28,15 @@ __BEGIN_AKANTU__
 Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model) {
+  Memory(memory_id), id(id), model(model), 
+  master_surfaces(NULL), surface_to_nodes_offset(NULL)
+
+{
   AKANTU_DEBUG_IN();
-  
+  for (UInt i = 0; i < _max_element_type; ++i) {
+    node_to_elements_offset[i] = NULL;
+    node_to_elements[i] = NULL;
+  }
   AKANTU_DEBUG_OUT();
 }
 
@@ -45,6 +51,90 @@ Contact::~Contact() {
 /* -------------------------------------------------------------------------- */
 void Contact::initContact() {
   AKANTU_DEBUG_IN();
+
+  Mesh & mesh = model.getFEM().getMesh();
+  const UInt nb_nodes = mesh.getNbNodes();
+
+  /// Build surfaces if not done yet
+  if(mesh.getNbSurfaces() == 0) { /* initialise nb_surfaces to zero in mesh_io */
+    MeshUtils::buildFacets(mesh,1,0);
+    MeshUtils::buildSurfaceID(mesh);
+    for (UInt i = 0; i < mesh.getNbSurfaces(); ++i)
+      addMasterSurface(i);
+  }
+
+  /// Detect facet types
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  UInt nb_types = type_list.size();
+  UInt  nb_facet_types = 0;
+  ElementType facet_type[_max_element_type];
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
+    facet_type[nb_facet_types] = mesh.getFacetElementType(type);
+    nb_facet_types++;
+  }
+
+  const UInt nb_surfaces = mesh.getNbSurfaces();
+
+  UInt * surf_nodes_id = new UInt [nb_nodes*nb_surfaces];
+  memset(surf_nodes_id, 0, nb_nodes*nb_surfaces*sizeof(Int));
+
+  /// Fill class members node_to_elements_offset and node_to_element
+  for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
+
+    ElementType type = facet_type[el_type];
+    const UInt *surf_id_val = mesh.getSurfaceId(type).values;
+    std::stringstream sstr_name; sstr_name << id << ":node_to_elements_offset:" << type;
+    this->node_to_elements_offset[type] = &(alloc<UInt>(sstr_name.str(),0,1));
+    sstr_name << id << ":node_to_elements:" << type;
+    this->node_to_elements[type] = &(alloc<UInt>(sstr_name.str(),0,1));
+    MeshUtils::buildNode2ElementsByElementType(mesh, type, *(node_to_elements_offset[type]), *(node_to_elements[type]));
+    UInt * node_off_val = node_to_elements_offset[type]->values;
+    UInt * node_elem_val = node_to_elements[type]->values;
+    for (UInt n = 0; n < nb_nodes; ++n)
+      if(node_off_val[n] != node_off_val[n+1])
+	for (UInt c_el = node_off_val[n]; c_el < node_off_val[n+1]; ++c_el) {
+	  UInt surf_id = surf_id_val[node_elem_val[c_el]];
+	  surf_nodes_id[surf_id*nb_nodes + n] = 1; 
+	}
+  }
+
+  /// Count nodes per surfaces
+  this->surface_to_nodes_offset.resize(nb_surfaces+1);
+  UInt * surf_nodes_off_val = surface_to_nodes_offset.values;
+  memset(surf_nodes_off_val, 0, (nb_surfaces + 1)*sizeof(UInt));
+
+  for (UInt i = 0; i < nb_surfaces; ++i)
+    for (UInt n = 0; n < nb_nodes; ++n)
+      if(surf_nodes_id[i*nb_nodes+n] == 1)
+	surf_nodes_off_val[i]++;
+
+  /// convert the occurrence array in a csr one
+  for (UInt i = 1; i < nb_surfaces; ++i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
+  for (UInt i = nb_surfaces; i > 0; --i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
+  surf_nodes_off_val[0] = 0;
+
+  /// Fill surface_to_nodes (save node index)
+  surface_to_nodes.resize(surf_nodes_off_val[nb_surfaces]);
+  UInt * surf_nodes_val = surface_to_nodes.values;
+  
+  for (UInt i = 0; i < nb_surfaces; ++i)
+    for (UInt n = 0; n < nb_nodes; ++n)
+      if(surf_nodes_id[i*nb_nodes+n] == 1) {
+	surf_nodes_val[surf_nodes_off_val[i]] = n;
+	surf_nodes_off_val[i]++;
+      }
+
+  /// rearrange surface_to_nodes_offset to start with 0
+  for (UInt i = nb_surfaces; i > 0; --i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
+  surf_nodes_off_val[0] = 0;
+
+  delete [] surf_nodes_id;
   
   contact_search->initSearch();
 
