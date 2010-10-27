@@ -166,6 +166,9 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/contact.cc
   model/solid_mechanics/contact_search.cc
   model/solid_mechanics/contact_neighbor_structure.cc
+  model/solid_mechanics/contact/regular_grid_neighbor_structure.cc
+  model/solid_mechanics/contact/contact_search_3d_explicit.cc
+  model/solid_mechanics/contact/contact_3d_explicit.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc

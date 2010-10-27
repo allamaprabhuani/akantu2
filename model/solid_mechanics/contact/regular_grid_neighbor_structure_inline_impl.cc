@@ -13,7 +13,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline void setGridSpacing(Real spacing, UInt component) {
+template<UInt spatial_dimension>
+inline void RegularGridNeighborStructure<spatial_dimension>::setGridSpacing(Real spacing, UInt component) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
 		      component << " is out of range (spatial dimension = " << 
@@ -24,7 +25,8 @@ inline void setGridSpacing(Real spacing, UInt component) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real getGridSpacing(UInt component) const {
+template<UInt spatial_dimension>
+inline Real RegularGridNeighborStructure<spatial_dimension>::getGridSpacing(UInt component) const {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
 		      component << " is out of range (spatial dimension = " << 
@@ -33,4 +35,5 @@ inline Real getGridSpacing(UInt component) const {
   AKANTU_DEBUG_OUT();
   return grid_spacing[component];
 }
+
 
