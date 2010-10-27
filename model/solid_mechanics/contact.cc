@@ -17,6 +17,8 @@
 #include "contact.hh"
 #include "contact_search.hh"
 #include "aka_common.hh"
+#include "contact_3d_explicit.hh"
+#include "contact_search_3d_explicit.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -24,10 +26,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Contact::Contact(const SolidMechanicsModel & model,
-		 ContactSearch & contact_search,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model), contact_search(&contact_search) {
+  Memory(memory_id), id(id), model(model) {
   AKANTU_DEBUG_IN();
   
   AKANTU_DEBUG_OUT();
@@ -112,28 +113,38 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
 			      const ContactType & contact_type,
 			      const ContactSearchType & contact_search_type,
 			      const ContactNeighborStructureType & contact_neighbor_structure_type,
-			      const ContactID & id) {
+			      const ContactID & id,
+			      const MemoryID & memory_id) {
   AKANTU_DEBUG_IN();
   
+  Contact * tmp_contact = NULL;
+  ContactSearch * tmp_search = NULL;
+
+  switch(contact_type) {
+    // case _ct_2d_expli: { tmp_contact = new Contact2d(model, tmp_search, id); break; }
+  case _ct_3d_expli: {
+    tmp_contact = new Contact3dExplicit(model, id, memory_id);
+    break;
+  }
+  case _ct_not_defined: {
+    AKANTU_DEBUG_ERROR("Not a valid contact type : " << contact_type);
+    break;
+  }
+  }
+
   std::stringstream sstr;
   sstr << id << ":contact_search";
 
-  ContactSearch * tmp_search = NULL;
   switch(contact_search_type) {
-  case _cst_not_defined:
-    //    tmp_search = new ContactSearch(this, contact_neighbor_structure_type, sstr.str());
+  // case _cst_2d_expli: { tmp_search = new ContactSearch2d(this, contact_neighbor_structure_type, sstr.str()); break; }
+  case _cst_3d_expli: {
+    tmp_search = new ContactSearch3dExplicit(*tmp_contact, contact_neighbor_structure_type, sstr.str());
+    break;
+  }
+  case _cst_not_defined: {
     AKANTU_DEBUG_ERROR("Not a valid contact search type : " << contact_search_type);
     break;
-  // case _cst_2d_expli: { tmp_search = new ContactSearch2d(this, contact_neighbor_structure_type, sstr.str()); break; }
   }
-
-  Contact * tmp_contact = NULL;
-  switch(contact_search_type) {
-  case _ct_not_defined:
-    // tmp_contact = new Contact(model, tmp_search, id);
-    AKANTU_DEBUG_ERROR("Not a valid contact type : " << contact_type);
-    break;
-  // case _ct_2d_expli: { tmp_contact = new Contact2d(model, tmp_search, id); break; }
   }
 
   AKANTU_DEBUG_OUT();

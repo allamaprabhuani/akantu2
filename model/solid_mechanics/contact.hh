@@ -37,7 +37,6 @@ class Contact : public Memory {
   /* ------------------------------------------------------------------------ */
 protected:
   Contact(const SolidMechanicsModel & model,
-	  ContactSearch & contact_search,
 	  const ContactID & id = "contact",
 	  const MemoryID & memory_id = 0);
 
@@ -48,7 +47,8 @@ public:
 			      const ContactType & contact_type,
 			      const ContactSearchType & contact_search_type,
 			      const ContactNeighborStructureType & contact_neighbor_structure_type,
-			      const ContactID & id = "contact");
+			      const ContactID & id = "contact",
+			      const MemoryID & memory_id = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -79,6 +79,10 @@ public:
   AKANTU_GET_MACRO(ID, id, const ContactID &);
 
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &);
+
+  void setContactSearch(ContactSearch & contact_search) {
+    this->contact_search = &contact_search;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

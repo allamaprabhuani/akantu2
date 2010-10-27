@@ -60,7 +60,7 @@ class ContactSearch {
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactSearch(const Contact & contact,
+  ContactSearch(Contact & contact,
 		const ContactNeighborStructureType & neighbors_structure_type,
 		const ContactSearchID & id = "search_contact");
 

@@ -23,12 +23,14 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-ContactSearch::ContactSearch(const Contact & contact,
+ContactSearch::ContactSearch(Contact & contact,
 			     const ContactNeighborStructureType & neighbors_structure_type,
 			     const ContactSearchID & id) :
   id(id), contact(contact), neighbors_structure_type(neighbors_structure_type) {
   AKANTU_DEBUG_IN();
-  
+
+  contact.setContactSearch(*this);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -75,6 +77,7 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
     // if mesh.getSpatialDimension() == 2 then RegularGridNeighborStructure<2>(...);
     // else if mesh.getSpatialDimension() == 3 then RegularGridNeighborStructure<3>(...);
     // else error
+    break;
   case _cnst_not_defined : 
     //    tmp_neighbors_structure = new ContactNeighborStructureGrid2d(this, master_surface, sstr.str());
     AKANTU_DEBUG_ERROR("Not a valid neighbors structure type : " << neighbors_structure_type);
