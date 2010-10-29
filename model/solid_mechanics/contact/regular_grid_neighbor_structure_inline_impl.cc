@@ -60,4 +60,12 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(U
   return security_factor[component];
 }
 
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline NeighborList * RegularGridNeighborStructure<spatial_dimension>::getNeighborList() const {
+  AKANTU_DEBUG_IN();
+  
+  AKANTU_DEBUG_OUT();
+  return neighbor_list;
+}
 

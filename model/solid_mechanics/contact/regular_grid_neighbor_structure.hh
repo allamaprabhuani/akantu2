@@ -84,7 +84,9 @@ public:
 
   /// get security factor
   inline Real getSecurityFactor(UInt component) const;
-  
+
+  /// get the neighbor list for the impactor nodes to the given master surface
+  inline NeighborList * getNeighborList() const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

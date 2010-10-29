@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
 					     _cst_3d_expli, 
 					     _cnst_regular_grid);
 
+  my_contact->initContact();
   
   
   finalize();

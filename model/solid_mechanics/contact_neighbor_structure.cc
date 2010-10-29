@@ -26,6 +26,14 @@ ContactNeighborStructure::ContactNeighborStructure(const ContactSearch & contact
 						   const ContactNeighborStructureID & id) :
   id(id), contact_search(contact_search), master_surface(master_surface) {
   AKANTU_DEBUG_IN();
+
+  /// initialization of neighbor list
+  neighbor_list.nb_nodes = 0;
+  neighbor_list.impactor_nodes = NULL;
+  for (UInt i = 0; i < _max_element_type; ++i) {
+    neighbor_list.facets_offset[i] = NULL;
+    neighbor_list.facets       [i] = NULL;
+  }
   
   AKANTU_DEBUG_OUT();
 }

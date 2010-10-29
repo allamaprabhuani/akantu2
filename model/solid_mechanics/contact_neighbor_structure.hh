@@ -92,6 +92,9 @@ protected:
   
   /// associated master surface
   const Surface & master_surface;
+
+  /// neighbor list
+  NeighborList neighbor_list;
 };
 
 __END_AKANTU__

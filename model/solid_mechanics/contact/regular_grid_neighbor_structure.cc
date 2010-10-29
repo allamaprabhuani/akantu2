@@ -341,14 +341,14 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
   UInt nb_impactor_nodes = impactor_nodes_cell_offset[nb_cells];
   
   /// declare neighbor list
-  NeighborList my_neighbor_list;
-  my_neighbor_list.nb_nodes = 0;
-  my_neighbor_list.impactor_nodes = new Vector<UInt>(nb_impactor_nodes, 1);
-  UInt * impactor_nodes_val = impactor_nodes->values;
-  for (UInt i = 0; i < _max_element_type; ++i) {
-    my_neighbor_list.facets_offset[i] = NULL;
-    my_neighbor_list.facets       [i] = NULL;
-  }
+  //  NeighborList neighbor_list;
+  //neighbor_list.nb_nodes = 0;
+  neighbor_list.impactor_nodes = new Vector<UInt>(nb_impactor_nodes, 1);
+  UInt * impactor_nodes_val = neighbor_list.impactor_nodes->values;
+  // for (UInt i = 0; i < _max_element_type; ++i) {
+  //   neighbor_list.facets_offset[i] = NULL;
+  //   neighbor_list.facets       [i] = NULL;
+  // }
   
   /// define maximal number of neighbor cells and include it-self
   UInt max_nb_neighbor_cells;
@@ -390,12 +390,12 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
     
     std::stringstream sstr_name_offset; 
     sstr_name_offset << id << ":facets_offset:" << type;
-    my_neighbor_list.facets_offset[type] = new Vector<UInt>(0, 1, sstr_name_offset.str());
-    Vector<UInt> & tmp_facets_offset = *(my_neighbor_list.facets_offset[type]);
+    neighbor_list.facets_offset[type] = new Vector<UInt>(0, 1, sstr_name_offset.str());
+    Vector<UInt> & tmp_facets_offset = *(neighbor_list.facets_offset[type]);
     std::stringstream sstr_name;
     sstr_name << id << ":facets:" << type;
-    my_neighbor_list.facets[type] = new Vector<UInt>(0, 1, sstr_name.str());// declare vector that is ??
-    Vector<UInt> & tmp_facets = *(my_neighbor_list.facets[type]);
+    neighbor_list.facets[type] = new Vector<UInt>(0, 1, sstr_name.str());// declare vector that is ??
+    Vector<UInt> & tmp_facets = *(neighbor_list.facets[type]);
 
     for(UInt in = 0; in < nb_impactor_nodes; ++in) {
       UInt current_impactor_node = impactor_nodes[in];
@@ -434,7 +434,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
 	
 	for(UInt imp = min_impactor_offset; imp < max_impactor_offset; ++imp) {
 	  UInt impactor_node = impactor_nodes_cell[imp];
-	  impactor_nodes_val(my_neighbor_list.nb_nodes++) = impactor_node;
+	  impactor_nodes_val(neighbor_list.nb_nodes++) = impactor_node;
 	  for(it_set = master_surface_elements.begin(); it_set != master_surface_elements.end(); it_set++) {
 	    tmp_facets.push_back(*it_set);
 	  }
@@ -449,10 +449,11 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
       }
     }
     
-    for (UInt i = 1; i < my_neighbor_list.nb_nodes; ++i) tmp_facets_offset[i] += tmp_facets_offset[i - 1];
-    for (UInt i = my_neighbor_list.nb_nodes; i > 0; --i) tmp_facets_offset[i]  = tmp_facets_offset[i - 1];
+    for (UInt i = 1; i < neighbor_list.nb_nodes; ++i) tmp_facets_offset[i] += tmp_facets_offset[i - 1];
+    for (UInt i = neighbor_list.nb_nodes; i > 0; --i) tmp_facets_offset[i]  = tmp_facets_offset[i - 1];
     tmp_facets_offset[0] = 0;
     
+    delete visited_node;
     
   }
 
@@ -817,7 +818,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
   
   
   delete cell;
-  delete visited_node;
+
 
 
 AKANTU_DEBUG_OUT();
