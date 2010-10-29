@@ -28,9 +28,14 @@ RegularGridNeighborStructure<spatial_dimension>::RegularGridNeighborStructure(co
   
   mesh = contact_search.getContact().getModel().getFEM().getMesh();
   //  spatial_dimension = mesh.getSpatialDimension();
+  
   grid_spacing[0] = 0.1;
   grid_spacing[1] = 0.1;
   grid_spacing[2] = 0.1;
+  
+  security_factor[0] = 0.5;
+  security_factor[1] = 0.5;
+  security_factor[2] = 0.5;
   
   AKANTU_DEBUG_OUT();
 }
@@ -75,13 +80,16 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 	if(y < 0 || y >= directional_nb_cells[1]) continue; // border cell?
 	if(x == directional_cell[0] && y == directional_cell[1]) continue; // do only return neighbors not itself!
 
+	UInt neighbor_directional_cell[2];
+	neighbor_directional_cell[0] = x;
+	neighbor_directional_cell[1] = y;
 	/// compute global cell index
-	UInt neighbor_cell;
-	neighbor_cell = directional_cell[spatial_dimension - 1];
-	for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
-	  neighbor_cell *= directional_nb_cells[dim];
-	  neighbor_cell += directional_cell[dim];
-	}
+	UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
+	// neighbor_cell = directional_cell[spatial_dimension - 1];
+	// for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+	//   neighbor_cell *= directional_nb_cells[dim];
+	//   neighbor_cell += directional_cell[dim];
+	// }
 	
 	/// add the neighbor cell to the list
 	neighbors[nb_neighbors++] = neighbor_cell;
@@ -101,13 +109,18 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 	  if(z < 0 || z >= directional_nb_cells[2]) continue; // border cell?
 	  if(x == directional_cell[0] && y == directional_cell[1] && z == directional_cell[2]) continue; // do only return neighbors not itself!
 
+	  UInt neighbor_directional_cell[spatial_dimension];
+	  neighbor_directional_cell[0] = x;
+	  neighbor_directional_cell[1] = y;
+	  neighbor_directional_cell[2] = z;
+
 	  /// compute global cell index
-	  UInt neighbor_cell;
-	  neighbor_cell = directional_cell[spatial_dimension - 1];
-	  for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
-	    neighbor_cell *= directional_nb_cells[dim];
-	    neighbor_cell += directional_cell[dim];
-	  }
+	  UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
+	  // neighbor_cell = directional_cell[spatial_dimension - 1];
+	  // for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+	  //   neighbor_cell *= directional_nb_cells[dim];
+	  //   neighbor_cell += directional_cell[dim];
+	  // }
 	  
 	  /// add the neighbor cell to the list
 	  neighbors[nb_neighbors++] = neighbor_cell;
@@ -144,7 +157,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
     }
   }
 
-  // how to get surface_to_nodes_offset etc
+  // get nodes that are on a given surface
   UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
   UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
 
@@ -233,11 +246,12 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
     
       /// compute global cell index
       if(cell_val[sn] != not_grid_space_node) {
-	cell_val[sn] = directional_cell[spatial_dimension - 1];
-	for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
-	  cell_val[sn] *= directional_nb_cells[dim];
-	  cell_val[sn] += directional_cell[dim];
-	}
+	cell_val[sn] = computeCellNb(directional_nb_cells, directional_cell);
+	// cell_val[sn] = directional_cell[spatial_dimension - 1];
+	// for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+	//   cell_val[sn] *= directional_nb_cells[dim];
+	//   cell_val[sn] += directional_cell[dim];
+	// }
       }
     }
   } 
@@ -316,14 +330,25 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
 
   for (UInt i = nb_cells; i > 0; --i) {
     impactor_nodes_cell_offset[i] = impactor_nodes_cell_offset[i - 1];
-    master_nodes_cell_offset  [i] = master_nodes_cell_offset  [i - 1];
+    master_nodes_cell_offset  [i] =   master_nodes_cell_offset[i - 1];
   }
   impactor_nodes_cell_offset[0] = 0;
   master_nodes_cell_offset  [0] = 0;
+
   
 
   cell_val = cell->values;
   UInt nb_impactor_nodes = impactor_nodes_cell_offset[nb_cells];
+  
+  /// declare neighbor list
+  NeighborList my_neighbor_list;
+  my_neighbor_list.nb_nodes = 0;
+  my_neighbor_list.impactor_nodes = new Vector<UInt>(nb_impactor_nodes, 1);
+  UInt * impactor_nodes_val = impactor_nodes->values;
+  for (UInt i = 0; i < _max_element_type; ++i) {
+    my_neighbor_list.facets_offset[i] = NULL;
+    my_neighbor_list.facets       [i] = NULL;
+  }
   
   /// define maximal number of neighbor cells and include it-self
   UInt max_nb_neighbor_cells;
@@ -334,53 +359,179 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
     max_nb_neighbor_cells = 27;
   }
 
-  Vector<bool> visited_node = new Vector<bool>(nb_impactor_nodes, 1, false);
-  bool * visited_node_val = visited_node->values;
-  UInt neighbor_cells[max_nb_neighbor_cells];
+  ByElementTypeUInt node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset();
+  ByElementTypeUInt node_to_elements = contact_search.getContact().getNodeToElements();
 
-  /// get access to members of the contact class
-  ByElementTypeUInt node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset().values; // not sure if right !!
-  ByElementTypeUInt node_to_elements = contact_search.getContact().getNodeToElements().values;
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
 
-  // get loop out of meshutils ----------------------------------------------------------------- !!!
-
-  for(UInt in = 0; in < nb_impactor_nodes; ++in) {
-    /// test if nodes has not already been visited
-    if(!visited_node_val[in]) {
-
-      /// find and store cell numbers of neighbor cells and it-self
-      UInt current_cell = cell_val[impactor_nodes[in]];
-      AKANTU_DEBUG_ASSERT(current_cell >= 0, "Bad cell index. This case normally should not happen !!");
-      UInt nb_neighbor_cells = computeNeighborCells(current_cell, neighbor_cells, directional_nb_cells);
-      neighbor_cells[nb_neighbor_cells++] = current_cell;
-      
-      /// define a set in which the found master surface elements are stored
-      std::set<UInt> master_surface_elements;
-
-      /// find all master elements that are in the considered region
-      for(UInt cl = 0; cl < nb_neighbor_cells; ++cl) {
-
-	/// get cell number and offset range
-	current_cell = neighbor_cells[cl];
-	UInt min_offset = master_nodes_cell_offset[current_cell];
-	UInt max_offset = master_nodes_cell_offset[current_cell + 1];
-	
-	for(UInt mn = min_offset; mn < max_offset; ++mn) {
-	  UInt master_node = master_nodes_cell[mn];
-	  // find and add master elements
-	  UInt min_surf_offset = ;
-
-	}
-      }
-
-      /// eliminate all duplications of found master elements
-
-      /// add all impactor nodes being in the current cell and mark them as visited
-      
-
-      /// assign the master elements
+  /// find existing surface element types
+  UInt nb_types = type_list.size();
+  UInt nb_facet_types = 0;
+  ElementType facet_type[_max_element_type];
+ 
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    if(node_to_elements_offset[type] != NULL) {
+      facet_type[nb_facet_types++] = mesh.getFacetElementType(type);
     }
   }
+
+  /// loop over all existing surface element types
+  for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
+    ElementType type = facet_type[el_type];
+
+    UInt * node_to_elements_offset_val = node_to_elements_offset[type]->values;
+    UInt * node_to_elements_val = node_to_elements[type]->values;
+
+    Vector<bool> visited_node = new Vector<bool>(nb_impactor_nodes, 1, false); // does it need a delete at the end ?
+    bool * visited_node_val = visited_node->values;
+    UInt neighbor_cells[max_nb_neighbor_cells];
+    
+    std::stringstream sstr_name_offset; 
+    sstr_name_offset << id << ":facets_offset:" << type;
+    my_neighbor_list.facets_offset[type] = new Vector<UInt>(0, 1, sstr_name_offset.str());
+    Vector<UInt> & tmp_facets_offset = *(my_neighbor_list.facets_offset[type]);
+    std::stringstream sstr_name;
+    sstr_name << id << ":facets:" << type;
+    my_neighbor_list.facets[type] = new Vector<UInt>(0, 1, sstr_name.str());// declare vector that is ??
+    Vector<UInt> & tmp_facets = *(my_neighbor_list.facets[type]);
+
+    for(UInt in = 0; in < nb_impactor_nodes; ++in) {
+      UInt current_impactor_node = impactor_nodes[in];
+      /// test if nodes has not already been visited
+      if(!visited_node_val[in]) {
+	
+	/// find and store cell numbers of neighbor cells and it-self
+	UInt current_cell = cell_val[current_impactor_node];
+	AKANTU_DEBUG_ASSERT(current_cell >= 0, "Bad cell index. This case normally should not happen !!");
+	UInt nb_neighbor_cells = computeNeighborCells(current_cell, neighbor_cells, directional_nb_cells);
+	neighbor_cells[nb_neighbor_cells++] = current_cell;
+	
+	/// define a set in which the found master surface elements are stored
+	std::set<UInt> master_surface_elements;
+	std::set<UInt>::iterator it_set;
+	
+	/// find all master elements that are in the considered region
+	for(UInt cl = 0; cl < nb_neighbor_cells; ++cl) {
+	  
+	  /// get cell number and offset range
+	  UInt considered_cell = neighbor_cells[cl];
+	  UInt min_master_offset = master_nodes_cell_offset[considered_cell];
+	  UInt max_master_offset = master_nodes_cell_offset[considered_cell + 1];
+	  
+	  for(UInt mn = min_master_offset; mn < max_master_offset; ++mn) {
+	    UInt master_node = master_nodes_cell[mn];
+	    UInt min_element_offset = node_to_elements_offset_val[master_node];
+	    UInt max_element_offset = node_to_elements_offset_val[master_node + 1];
+	    
+	    for(UInt el = min_element_offset; el < max_element_offset; ++el)
+	      master_surface_elements.insert(node_to_elements_val[el]);
+	  }
+	}
+	UInt min_impactor_offset = impactor_nodes_cell_offset[current_cell];
+	UInt max_impactor_offset = impactor_nodes_cell_offset[current_cell + 1];
+	
+	for(UInt imp = min_impactor_offset; imp < max_impactor_offset; ++imp) {
+	  UInt impactor_node = impactor_nodes_cell[imp];
+	  impactor_nodes_val(my_neighbor_list.nb_nodes++) = impactor_node;
+	  for(it_set = master_surface_elements.begin(); it_set != master_surface_elements.end(); it_set++) {
+	    tmp_facets.push_back(*it_set);
+	  }
+	  tmp_facets_offset.push_back(master_surface_elements.size());
+	  for(UInt inn = 0; inn < nb_impactor_nodes; ++inn) {
+	    if(impactor_nodes[inn] == impactor_node) {
+	      visited_node_val[inn] = true;
+	      break;
+	    }
+	  }
+	}
+      }
+    }
+    
+    for (UInt i = 1; i < my_neighbor_list.nb_nodes; ++i) tmp_facets_offset[i] += tmp_facets_offset[i - 1];
+    for (UInt i = my_neighbor_list.nb_nodes; i > 0; --i) tmp_facets_offset[i]  = tmp_facets_offset[i - 1];
+    tmp_facets_offset[0] = 0;
+    
+    
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Vector<bool> visited_node = new Vector<bool>(nb_impactor_nodes, 1, false);
+  // bool * visited_node_val = visited_node->values;
+  // UInt neighbor_cells[max_nb_neighbor_cells];
+
+  // /// get access to members of the contact class
+  // ByElementTypeUInt node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset();
+  // ByElementTypeUInt node_to_elements = contact_search.getContact().getNodeToElements();
+  
+  // const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  // Mesh::ConnectivityTypeList::const_iterator it;
+
+  // // get loop out of meshutils ----------------------------------------------------------------- !!!
+
+  // for(UInt in = 0; in < nb_impactor_nodes; ++in) {
+  //   /// test if nodes has not already been visited
+  //   if(!visited_node_val[in]) {
+
+  //     /// find and store cell numbers of neighbor cells and it-self
+  //     UInt current_cell = cell_val[impactor_nodes[in]];
+  //     AKANTU_DEBUG_ASSERT(current_cell >= 0, "Bad cell index. This case normally should not happen !!");
+  //     UInt nb_neighbor_cells = computeNeighborCells(current_cell, neighbor_cells, directional_nb_cells);
+  //     neighbor_cells[nb_neighbor_cells++] = current_cell;
+      
+  //     /// define a set in which the found master surface elements are stored
+  //     std::set<UInt> master_surface_elements;
+
+  //     /// find all master elements that are in the considered region
+  //     for(UInt cl = 0; cl < nb_neighbor_cells; ++cl) {
+
+  // 	/// get cell number and offset range
+  // 	current_cell = neighbor_cells[cl];
+  // 	UInt min_offset = master_nodes_cell_offset[current_cell];
+  // 	UInt max_offset = master_nodes_cell_offset[current_cell + 1];
+	
+  // 	for(UInt mn = min_offset; mn < max_offset; ++mn) {
+  // 	  UInt master_node = master_nodes_cell[mn];
+  // 	  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  // 	    if(node_to_elements_offset[*it] != NULL) {
+  // 	      UInt min_surf_offset = node_to_elements_offset[*it]->values[master_node];
+  // 	      UInt max_surf_offset = node_to_elements_offset[*it]->values[master_node + 1];
+  // 	      for(UInt ms
+  // 	    }
+  // 	  }
+  // 	  // find and add master elements
+  // 	  UInt min_surf_offset = ;
+
+  // 	}
+  //     }
+
+  //     /// eliminate all duplications of found master elements
+
+  //     /// add all impactor nodes being in the current cell and mark them as visited
+      
+
+  //     /// assign the master elements
+  //   }
+  // }
 
 
 
@@ -666,52 +817,72 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
   
   
   delete cell;
+  delete visited_node;
 
 
 AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt * directional_nb_cells, 
+									   UInt * directional_cell) {
+
+  AKANTU_DEBUG_IN();
+  UInt cell_number = directional_cell[spatial_dimension - 1];
+  for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+    cell_number *= directional_nb_cells[dim];
+    cell_number += directional_cell[dim];
+  }
+  
+  AKANTU_DEBUG_OUT();  
+  return cell_number;
+}
+
+/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension> 
 bool RegularGridNeighborStructure<spatial_dimension>::check() {
   
+  /// test if increment flag is on
+  /// @todo compute test if increment flag is on and give warning if not
+
   AKANTU_DEBUG_IN();
 
   bool need_update = false;
+  UInt nb_surfaces = mesh.getNbSurfaces();
+  Real * current_increment = contact_search.getContact().getModel().getIncrement().values;
 
-  // UInt nb_surfaces = mesh.getNbSurfaces();
+  Real max[spatial_dimension];
   
-  // Real * current_increment = contact_search.getContact().getModel().getCurrentPosition().values;
+  /// initialize max table with extrem values
+  for(UInt dim = 0; dim < spatial_dimension; ++dim)
+    max[surf][dim] = std::numeric_limits<Real>::min();
 
-  // Real max[nb_surfaces][spatial_dimension];
-  // Real min[nb_surfaces][spatial_dimension];
+  // get the nodes that are on the surfaces
+  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
+  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
 
-  // /// initialize max and min table with extrem values
-  // for(UInt surf = 0; surf < nb_surfaces; ++surf) {
-  //   for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-  //     max[surf][dim] = std::numeric_limits<Real>::min();
-  //     min[surf][dim] = std::numeric_limits<Real>::max();
-  //   }
-  // }
-
-  // // how to get surface_to_nodes_offset etc
-  // UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
-  // UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
-
-  // /// find max and min values of current position for each surface
-  // for(UInt surf = 0; surf < nb_surfaces; ++surf) {
-  //   UInt min_surf_offset = surface_to_nodes_offset[surf];
-  //   UInt max_surf_offset = surface_to_nodes_offset[surf + 1];
-  //   for(UInt n = min_surf_offset; n < max_surf_offset; ++n) {
-  //     UInt cur_node = surface_to_nodes[n];
-  //     for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-  // 	Real cur_position = current_position[cur_node + dim];
-  // 	max[surf][dim] = std::max(max[surf][dim], cur_position);
-  // 	min[surf][dim] = std::min(min[surf][dim], cur_position);
-  //     }
-  //   } 
-  // }
+  /// find maximal increment of surface nodes in all directions
+  for(UInt surf = 0; surf < nb_surfaces; ++surf) {
+    UInt min_surf_offset = surface_to_nodes_offset[surf];
+    UInt max_surf_offset = surface_to_nodes_offset[surf + 1];
+    for(UInt n = min_surf_offset; n < max_surf_offset; ++n) {
+      UInt cur_node = surface_to_nodes[n];
+      for(UInt dim = 0; dim < spatial_dimension; ++dim) {
+  	Real cur_increment = current_increment[cur_node + dim];
+  	max[dim] = std::max(max[dim], std::static_cast<Real>(std::abs(cur_increment)));
+      }
+    } 
+  }
   
+  /// test if the total increment is larger than a critical distance
+  for(UInt dim = 0; dim < spatial_dimension; ++dim) {
+    max_increment[dim] += max[dim];
+    if(max_increment[dim] > security_factor[dim] * grid_spacing[dim]) {
+      need_update = true;
+      break;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
   return need_update;

@@ -22,6 +22,7 @@
 #include "aka_common.hh"
 #include "aka_vector.hh"
 #include "contact_search.hh"
+#include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -38,8 +39,8 @@ public:
   Vector<UInt> impactor_nodes;
 
   /// neighbor facets (sparse storage)
-  Vector<UInt> facets_offset;
-  Vector<UInt> facets;
+  ByElementTypeUInt facets_offset;
+  ByElementTypeUInt facets;
 };
 
 /* -------------------------------------------------------------------------- */

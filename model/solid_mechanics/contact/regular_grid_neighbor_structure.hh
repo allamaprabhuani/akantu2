@@ -28,6 +28,11 @@
 
 __BEGIN_AKANTU__
 
+/* -------------------------------------------------------------------------- */
+//typedef std::set<UInt> * ByElementTypeUIntSet[_max_element_type];
+
+
+/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension> 
 class RegularGridNeighborStructure : public ContactNeighborStructure {
   /* ------------------------------------------------------------------------ */
@@ -46,13 +51,13 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the structure
-  virtual void init();
+  void init();
 
   /// update the structure
-  virtual void update();
+  void update();
 
   /// check if an update is needed
-  virtual bool check();
+  bool check();
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -60,6 +65,9 @@ public:
 private:
   /// compute neighbor cells for a given cell and return number of found neighbor cells
   inline UInt computeNeighborCells(UInt cell, UInt * neighbors, UInt * directional_nb_cells);
+
+  /// compute global cell number given the directional cell number
+  inline UInt computeCellNb(UInt * directional_nb_cells, UInt * directional_cell);
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -70,6 +78,12 @@ public:
 
   /// get grid spacing
   inline Real getGridSpacing(UInt component) const;
+
+  /// set security factor
+  inline void setSecurityFactor(Real factor, UInt component);
+
+  /// get security factor
+  inline Real getSecurityFactor(UInt component) const;
   
 
   /* ------------------------------------------------------------------------ */
@@ -85,6 +99,11 @@ private:
   /// grid spacing
   Real grid_spacing[3];
 
+  /// maximal displacement since last grid update
+  Real max_increment[3];
+
+  /// security factor for grid update test
+  Real security_factor[3];
 };
 
 

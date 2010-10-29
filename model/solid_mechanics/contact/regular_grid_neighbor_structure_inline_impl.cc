@@ -36,4 +36,28 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getGridSpacing(UInt
   return grid_spacing[component];
 }
 
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline void RegularGridNeighborStructure<spatial_dimension>::setSecurityFactor(Real factor, UInt component) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
+		      component << " is out of range (spatial dimension = " << 
+		      spatial_dimension << ")");
+
+  security_factor[component] = factor;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(UInt component) const {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
+		      component << " is out of range (spatial dimension = " << 
+		      spatial_dimension << ")");
+  
+  AKANTU_DEBUG_OUT();
+  return security_factor[component];
+}
+
 
