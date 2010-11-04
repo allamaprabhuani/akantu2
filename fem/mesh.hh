@@ -184,7 +184,7 @@ public:
   inline void getBarycenter(UInt element, ElementType type, Real * barycenter,
 			    GhostType ghost_type = _not_ghost) const;
 
-  /// get the surface values of facets @todo implement getSurfaceValues
+  /// get the surface values of facets
   inline const Vector<UInt> & getSurfaceId(const ElementType & type) const;
 
 

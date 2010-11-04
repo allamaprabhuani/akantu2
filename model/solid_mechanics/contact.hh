@@ -55,7 +55,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// update the internal structures
-  virtual void initContact();
+  virtual void initContact(bool add_surfaces_flag = 1);
 
   /// check if the neighbor structure need an update
   virtual void checkAndUpdate();
@@ -79,6 +79,12 @@ public:
   AKANTU_GET_MACRO(ID, id, const ContactID &);
 
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &);
+
+  AKANTU_GET_MACRO(SurfaceToNodesOffset, surface_to_nodes_offset, const Vector<UInt> &);
+
+  AKANTU_GET_MACRO(NodeToElementsOffset, node_to_elements_offset, const ByElementTypeUInt &);
+
+  AKANTU_GET_MACRO(NodeToElements, node_to_elements, const ByElementTypeUInt &);
 
   void setContactSearch(ContactSearch & contact_search) {
     this->contact_search = &contact_search;

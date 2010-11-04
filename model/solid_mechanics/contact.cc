@@ -49,7 +49,7 @@ Contact::~Contact() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Contact::initContact() {
+void Contact::initContact(bool add_surfaces_flag) {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = model.getFEM().getMesh();
@@ -59,6 +59,9 @@ void Contact::initContact() {
   if(mesh.getNbSurfaces() == 0) { /* initialise nb_surfaces to zero in mesh_io */
     MeshUtils::buildFacets(mesh,1,0);
     MeshUtils::buildSurfaceID(mesh);
+  }
+
+  if(add_surfaces_flag) {
     for (UInt i = 0; i < mesh.getNbSurfaces(); ++i)
       addMasterSurface(i);
   }
@@ -89,10 +92,10 @@ void Contact::initContact() {
 
     ElementType type = facet_type[el_type];
     const UInt *surf_id_val = mesh.getSurfaceId(type).values;
-    std::stringstream sstr_name; sstr_name << id << ":node_to_elements_offset:" << type;
-    this->node_to_elements_offset[type] = &(alloc<UInt>(sstr_name.str(),0,1));
-    sstr_name << id << ":node_to_elements:" << type;
-    this->node_to_elements[type] = &(alloc<UInt>(sstr_name.str(),0,1));
+    std::stringstream sstr_name_1; sstr_name_1 << id << ":node_to_elements_offset:" << type;
+    this->node_to_elements_offset[type] = &(alloc<UInt>(sstr_name_1.str(),0,1));
+    std::stringstream sstr_name_2; sstr_name_2 << id << ":node_to_elements:" << type;
+    this->node_to_elements[type] = &(alloc<UInt>(sstr_name_2.str(),0,1));
     MeshUtils::buildNode2ElementsByElementType(mesh, type, *(node_to_elements_offset[type]), *(node_to_elements[type]));
     UInt * node_off_val = node_to_elements_offset[type]->values;
     UInt * node_elem_val = node_to_elements[type]->values;
