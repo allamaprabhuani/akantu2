@@ -62,13 +62,15 @@ macro(ADD_MESH MESH_TARGET GEO_FILE DIM ORDER)
       ${arguments}
       )
 
+    set(_geo_file ${CMAKE_CURRENT_SOURCE_DIR}/${GEO_FILE})
+
     if(ADD_MESH_OUTPUT)
       set(_msh_file ${CMAKE_CURRENT_BINARY_DIR}/${ADD_MESH_OUTPUT})
     else(ADD_MESH_OUTPUT)
-      set(_geo_file ${CMAKE_CURRENT_SOURCE_DIR}/${GEO_FILE})
       get_filename_component(_msh_file "${GEO_FILE}" NAME_WE)
       set(_msh_file ${CMAKE_CURRENT_BINARY_DIR}/${_msh_file}.msh)
     endif(ADD_MESH_OUTPUT)
+
     if(EXISTS ${_geo_file})
       add_custom_command(
 	OUTPUT ${_msh_file}
