@@ -23,7 +23,7 @@ add_akantu_test(test_fem "Test finite element functionalties")
 add_akantu_test(test_mesh_io "Test mesh io object")
 add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
 add_akantu_test(test_solid_mechanics_model "Test solid mechanics object")
-add_akantu_test(test_solver "Test solver function")
+# add_akantu_test(test_solver "Test solver function")
 
 if(AKANTU_BUILD_CONTACT)
   add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
