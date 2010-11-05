@@ -28,18 +28,21 @@ __BEGIN_AKANTU__
 Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model), 
+  Memory(memory_id), id(id), model(model),
   master_surfaces(NULL), surface_to_nodes_offset(NULL)
 
 {
   AKANTU_DEBUG_IN();
+
   for (UInt i = 0; i < _max_element_type; ++i) {
     node_to_elements_offset[i] = NULL;
     node_to_elements[i] = NULL;
   }
+
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
 Contact::~Contact() {
   AKANTU_DEBUG_IN();
 
@@ -103,7 +106,7 @@ void Contact::initContact(bool add_surfaces_flag) {
       if(node_off_val[n] != node_off_val[n+1])
 	for (UInt c_el = node_off_val[n]; c_el < node_off_val[n+1]; ++c_el) {
 	  UInt surf_id = surf_id_val[node_elem_val[c_el]];
-	  surf_nodes_id[surf_id*nb_nodes + n] = 1; 
+	  surf_nodes_id[surf_id*nb_nodes + n] = 1;
 	}
   }
 
@@ -125,7 +128,7 @@ void Contact::initContact(bool add_surfaces_flag) {
   /// Fill surface_to_nodes (save node index)
   surface_to_nodes.resize(surf_nodes_off_val[nb_surfaces]);
   UInt * surf_nodes_val = surface_to_nodes.values;
-  
+
   for (UInt i = 0; i < nb_surfaces; ++i)
     for (UInt n = 0; n < nb_nodes; ++n)
       if(surf_nodes_id[i*nb_nodes+n] == 1) {
@@ -138,7 +141,7 @@ void Contact::initContact(bool add_surfaces_flag) {
   surf_nodes_off_val[0] = 0;
 
   delete [] surf_nodes_id;
-  
+
   contact_search->initSearch();
 
   AKANTU_DEBUG_OUT();
@@ -166,19 +169,19 @@ void Contact::updateContact() {
   for (it = master_surfaces.begin(); it != master_surfaces.end(); ++it) {
     contact_search->updateStructure(*it);
   }
-  
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void Contact::addMasterSurface(const Surface & master_surface) {
   AKANTU_DEBUG_IN();
-  
+
   AKANTU_DEBUG_ASSERT(std::find(master_surfaces.begin(),
 				master_surfaces.end(),
 				master_surface) == master_surfaces.end(),
 		      "Master surface already registered in the master surface list");
-  
+
   master_surfaces.push_back(master_surface);
   contact_search->addMasterSurface(master_surface);
   AKANTU_DEBUG_OUT();
@@ -209,7 +212,7 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
 			      const ContactID & id,
 			      const MemoryID & memory_id) {
   AKANTU_DEBUG_IN();
-  
+
   Contact * tmp_contact = NULL;
   ContactSearch * tmp_search = NULL;
 

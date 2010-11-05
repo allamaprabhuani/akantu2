@@ -17,14 +17,18 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 #===============================================================================
 # List of tests
 #===============================================================================
-add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
-add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
-add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
+add_akantu_test(test_vector "Test akantu vector")
+add_akantu_test(test_static_memory "Test static memory")
 add_akantu_test(test_fem "Test finite element functionalties")
 add_akantu_test(test_mesh_io "Test mesh io object")
+add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
 add_akantu_test(test_solid_mechanics_model "Test solid mechanics object")
-add_akantu_test(test_static_memory "Test static memory")
-add_akantu_test(test_vector "Test akantu vector")
+add_akantu_test(test_solver "Test solver function")
+
+if(AKANTU_BUILD_CONTACT)
+  add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
+add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
+endif(AKANTU_BUILD_CONTACT)
 
 if(AKANTU_SCOTCH_ON)
   add_akantu_test(test_mesh_partitionate "Test mesh partition creation")
@@ -33,3 +37,4 @@ endif(AKANTU_SCOTCH_ON)
 if(AKANTU_MPI_ON)
   add_akantu_test(test_synchronizer "Test synchronizers")
 endif(AKANTU_MPI_ON)
+

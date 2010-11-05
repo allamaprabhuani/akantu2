@@ -67,15 +67,29 @@ endif(NOT AKANTU_NO_LIBRARY_VERSION)
 #===============================================================================
 # Options
 #===============================================================================
+option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
+option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
+
+# compilation switch
+option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
+
+# features
+option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" OFF)
+option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
+option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
+option(AKANTU_USE_BLAS "Use BLAS for arithmetic operations" OFF)
+
+
+#===============================================================================
+# Options handling
+#===============================================================================
 
 # Debug
-option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
 if(NOT AKANTU_DEBUG)
   add_definitions(-DAKANTU_NDEBUG)
 endif(NOT AKANTU_DEBUG)
 
 # IOHelper
-option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" OFF)
 if(AKANTU_USE_IOHELPER)
   find_package(IOHelper REQUIRED)
   if(IOHELPER_FOUND)
@@ -91,7 +105,6 @@ endif(AKANTU_USE_IOHELPER)
 
 # MPI
 set(AKANTU_MPI_ON FALSE)
-option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
 if(AKANTU_USE_MPI)
   find_package(MPI REQUIRED)
   if(MPI_FOUND)
@@ -110,7 +123,6 @@ endif(AKANTU_USE_MPI)
 
 # Scotch
 set(AKANTU_SCOTCH_ON FALSE)
-option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
 if(AKANTU_USE_SCOTCH)
   find_package(Scotch REQUIRED)
   if(SCOTCH_FOUND)
@@ -125,12 +137,8 @@ if(AKANTU_USE_SCOTCH)
   endif(SCOTCH_FOUND)
 endif(AKANTU_USE_SCOTCH)
 
-# Doxygen
-OPTION(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
-
 # BLAS
 set(AKANTU_BLAS_ON FALSE)
-option(AKANTU_USE_BLAS "Use BLAS for arithmetic operations" OFF)
 if(AKANTU_USE_BLAS)
   enable_language(Fortran)
   find_package(BLAS)
@@ -163,21 +171,31 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/material.cc
   model/solid_mechanics/materials/material_elastic.cc
+  mesh_utils/mesh_io.cc
+  mesh_utils/mesh_io/mesh_io_msh.cc
+  mesh_utils/mesh_partition.cc
+  mesh_utils/mesh_utils.cc
+  solver/sparse_matrix.cc
+  synchronizer/ghost_synchronizer.cc
+  synchronizer/synchronizer.cc
+  synchronizer/communicator.cc
+  synchronizer/static_communicator.cc
+  )
+
+set(AKANTU_CONTACT_SRC
   model/solid_mechanics/contact.cc
   model/solid_mechanics/contact_search.cc
   model/solid_mechanics/contact_neighbor_structure.cc
   model/solid_mechanics/contact/regular_grid_neighbor_structure.cc
   model/solid_mechanics/contact/contact_search_3d_explicit.cc
   model/solid_mechanics/contact/contact_3d_explicit.cc
-  mesh_utils/mesh_io.cc
-  mesh_utils/mesh_io/mesh_io_msh.cc
-  mesh_utils/mesh_partition.cc
-  mesh_utils/mesh_utils.cc
-  synchronizer/ghost_synchronizer.cc
-  synchronizer/synchronizer.cc
-  synchronizer/communicator.cc
-  synchronizer/static_communicator.cc
   )
+
+if(AKANTU_BUILD_CONTACT)
+  set(AKANTU_CONTACT_SRC
+    ${AKANTU_COMMON_SRC}
+    ${AKANTU_CONTACT_SRC})
+endif(AKANTU_BUILD_CONTACT)
 
 if(AKANTU_USE_MPI AND MPI_FOUND)
   set(AKANTU_COMMON_SRC
@@ -207,6 +225,7 @@ set(AKANTU_INCLUDE_DIRS
   model/solid_mechanics/materials
   model/solid_mechanics/contact
   synchronizer/
+  solver/
   )
 
 include_directories(

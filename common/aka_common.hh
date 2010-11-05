@@ -79,24 +79,33 @@ typedef ID MeshID;
 typedef ID FEMID;
 typedef ID ModelID;
 typedef ID MaterialID;
+typedef ID SparseMatrixID;
 
 typedef UInt Surface;
 
+/// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
   _not_defined  = 0,
-  _line_1       = 1, // implemented
-  _line_2       = 2, // implemented
-  _triangle_1   = 3, // implemented
-  _triangle_2   = 4, // implemented
-  _tetrahedra_1 = 5, // implemented
-  _tetrahedra_2 = 6,
+  _line_1       = 1, /// first  order segment
+  _line_2       = 2, /// second order segment
+  _triangle_1   = 3, /// first  order triangle
+  _triangle_2   = 4, /// second order triangle
+  _tetrahedra_1 = 5, /// first  order tetrahedron
+  _tetrahedra_2 = 6, /// second order tetrahedron @remark not implemented yet
   _max_element_type,
-  _point
+  _point /// point only for some algorithm to be generic like mesh partitioning
 };
 
+/// @enum MaterialType different materials implemented
 enum MaterialType {
   _elastic = 0,
   _max_material_type
+};
+
+/// @enum SparseMatrixType type of sparse matrix used
+enum SparseMatrixType {
+  _unsymmetric,
+  _symmetric
 };
 
 /* -------------------------------------------------------------------------- */
@@ -129,7 +138,7 @@ enum ContactNeighborStructureType {
 
 typedef ID SynchronizerID;
 
-/// @CommunicatorType type of communication method to use
+/// @enum CommunicatorType type of communication method to use
 enum CommunicatorType {
   _communicator_mpi,
   _communicator_dummy
