@@ -17,14 +17,15 @@
 #define __AKANTU_REGULAR_GRID_NEIGHBOR_STRUCTURE_HH__
 
 /* -------------------------------------------------------------------------- */
-
 #include "aka_common.hh"
 #include "aka_vector.hh"
 #include "contact_neighbor_structure.hh"
-#include "mesh.hh"
 
 
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+  class mesh;
+}
 
 __BEGIN_AKANTU__
 
@@ -63,11 +64,14 @@ public:
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
+  /// compute neighbor structure
+  void update(Real * node_position);
+
   /// compute neighbor cells for a given cell and return number of found neighbor cells
   inline UInt computeNeighborCells(UInt cell, UInt * neighbors, UInt * directional_nb_cells);
 
   /// compute global cell number given the directional cell number
-  inline UInt computeCellNb(UInt * directional_nb_cells, UInt * directional_cell);
+  inline UInt computeCellNb(UInt * directional_nb_cells, Int * directional_cell);
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -86,7 +90,7 @@ public:
   inline Real getSecurityFactor(UInt component) const;
 
   /// get the neighbor list for the impactor nodes to the given master surface
-  inline NeighborList * getNeighborList() const;
+  inline NeighborList * getNeighborList();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

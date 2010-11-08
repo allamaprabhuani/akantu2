@@ -21,11 +21,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_vector.hh"
-
+#include "contact.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-  class Contact;
   class ContactNeighborStructure;
 }
 
@@ -93,6 +92,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO(Contact, contact, const Contact &);
+
+  const ContactNeighborStructure & getContactNeighborStructure(const Surface & master_surface) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

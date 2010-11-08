@@ -21,15 +21,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
-#include "contact_search.hh"
+//#include "contact_search.hh"
 
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+   class ContactSearch;
+}
 
 __BEGIN_AKANTU__
-
-// namespace akantu {
-//   class ContactSearch;
-// }
 
 class Contact : public Memory {
   /* ------------------------------------------------------------------------ */
@@ -55,7 +54,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// update the internal structures
-  virtual void initContact(bool add_surfaces_flag = 1);
+  virtual void initContact(bool add_surfaces_flag = true);
 
   /// check if the neighbor structure need an update
   virtual void checkAndUpdate();
@@ -80,11 +79,15 @@ public:
 
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &);
 
+  AKANTU_GET_MACRO(ContactSearch, * contact_search, const ContactSearch &);
+
   AKANTU_GET_MACRO(SurfaceToNodesOffset, surface_to_nodes_offset, const Vector<UInt> &);
 
-  AKANTU_GET_MACRO(NodeToElementsOffset, node_to_elements_offset, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO(SurfaceToNodes, surface_to_nodes, const Vector<UInt> &);
 
-  AKANTU_GET_MACRO(NodeToElements, node_to_elements, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NodeToElementsOffset, node_to_elements_offset, const Vector<UInt> &);
+
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NodeToElements, node_to_elements, const Vector<UInt> &);
 
   void setContactSearch(ContactSearch & contact_search) {
     this->contact_search = &contact_search;

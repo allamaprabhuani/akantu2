@@ -262,7 +262,6 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
       UInt msh_type;
       ElementType akantu_type, akantu_type_old = _not_defined;
       Vector<UInt> *connectivity = NULL;
-      UInt nb_elements_read = 0;
       UInt node_per_element = 0;
 
       for(UInt i = 0; i < nb_elements; ++i) {
@@ -279,15 +278,11 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	if(akantu_type == _not_defined) continue;
 
 	if(akantu_type != akantu_type_old) {
-	  if(connectivity)
-	    connectivity->resize(nb_elements_read);
-
 	  connectivity = mesh.getConnectivityPointer(akantu_type);
-	  connectivity->resize(nb_elements);
+	  connectivity->resize(0);
 
 	  node_per_element = connectivity->getNbComponent();
 	  akantu_type_old = akantu_type;
-	  nb_elements_read = 0;
 	}
 
 	/// read tags informations
@@ -305,8 +300,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	  sstr_elem >> tag; //number-of-nodes
 	}
 
-	/// read the connectivities informations
-	UInt offset = nb_elements_read * node_per_element;
+	UInt local_connect[node_per_element];
 	for(UInt j = 0; j < node_per_element; ++j) {
 	  UInt node_index;
 	  sstr_elem >> node_index;
@@ -315,11 +309,10 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 			     "Node number not in range : line " << current_line);
 
 	  node_index -= first_node_number + 1;
-	  connectivity->values[offset + _read_order[akantu_type][j]] = node_index;
+	  local_connect[_read_order[akantu_type][j]] = node_index;
 	}
-	nb_elements_read++;
+	connectivity->push_back(local_connect);
       }
-      connectivity->resize(nb_elements_read);
       std::getline(infile, line); /// the end of block line
     }
 

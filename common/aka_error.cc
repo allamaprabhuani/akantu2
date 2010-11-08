@@ -98,8 +98,8 @@ namespace debug {
 
     std::cerr << "END BACKTRACE" << std::endl;
 
-    int * segfault = NULL;
-    *segfault = 0;
+    // int * segfault = NULL;
+    // *segfault = 0;
   }
 
 }

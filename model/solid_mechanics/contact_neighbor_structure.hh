@@ -21,9 +21,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_vector.hh"
-#include "contact_search.hh"
 #include "mesh.hh"
-
+#include "contact_search.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -78,7 +77,11 @@ public:
   /// get the neighbor list
   virtual NeighborList * getNeighborList() = 0;
 
+  AKANTU_GET_MACRO(ID, id, const ContactNeighborStructureID)
+
   AKANTU_GET_MACRO(ContactSearch, contact_search, const ContactSearch &);
+
+  AKANTU_GET_MACRO(MasterSurface, master_surface, const Surface &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -91,7 +94,7 @@ protected:
   const ContactSearch & contact_search;
   
   /// associated master surface
-  const Surface & master_surface;
+  Surface master_surface;
 
   /// neighbor list
   NeighborList neighbor_list;

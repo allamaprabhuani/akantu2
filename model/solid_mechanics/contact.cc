@@ -29,7 +29,7 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
   Memory(memory_id), id(id), model(model),
-  master_surfaces(NULL), surface_to_nodes_offset(NULL)
+  master_surfaces(NULL), surface_to_nodes(NULL), surface_to_nodes_offset(NULL)
 
 {
   AKANTU_DEBUG_IN();
@@ -65,9 +65,11 @@ void Contact::initContact(bool add_surfaces_flag) {
   }
 
   if(add_surfaces_flag) {
-    for (UInt i = 0; i < mesh.getNbSurfaces(); ++i)
+    for (UInt i = 0; i < mesh.getNbSurfaces(); ++i) {
       addMasterSurface(i);
-  }
+      std::cout << "Master surface " << i << " has been added" << std::endl << std::endl;
+    } 
+  }	
 
   /// Detect facet types
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -121,9 +123,12 @@ void Contact::initContact(bool add_surfaces_flag) {
 	surf_nodes_off_val[i]++;
 
   /// convert the occurrence array in a csr one
-  for (UInt i = 1; i < nb_surfaces; ++i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
+  for (UInt i = 1; i < nb_surfaces; ++i) surf_nodes_off_val[i] += surf_nodes_off_val[i-1];
   for (UInt i = nb_surfaces; i > 0; --i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
   surf_nodes_off_val[0] = 0;
+
+  // std::stringstream stn_name; stn_name << id << ":surface_to_nodes";
+  // this->surface_to_nodes = alloc<UInt>(stn_name.str(),surf_nodes_off_val[nb_surfaces],1);
 
   /// Fill surface_to_nodes (save node index)
   surface_to_nodes.resize(surf_nodes_off_val[nb_surfaces]);

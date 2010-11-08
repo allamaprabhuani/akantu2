@@ -62,10 +62,110 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(U
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline NeighborList * RegularGridNeighborStructure<spatial_dimension>::getNeighborList() const {
+inline NeighborList * RegularGridNeighborStructure<spatial_dimension>::getNeighborList()  {
   AKANTU_DEBUG_IN();
   
   AKANTU_DEBUG_OUT();
-  return neighbor_list;
+  return &neighbor_list;
 }
 
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt * directional_nb_cells, 
+									   Int * directional_cell) {
+
+  AKANTU_DEBUG_IN();
+  UInt cell_number = directional_cell[spatial_dimension - 1];
+  for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+    cell_number *= directional_nb_cells[dim];
+    cell_number += directional_cell[dim];
+  }
+  
+  AKANTU_DEBUG_OUT();  
+  return cell_number;
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension> 
+inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCells(UInt cell, 
+										  UInt * neighbors, 
+										  UInt * directional_nb_cells) {
+  AKANTU_DEBUG_IN();
+  UInt nb_neighbors = 0;
+  UInt directional_cell[spatial_dimension];
+  UInt global_cell_nb = cell;
+
+  /// find the directional cell number
+  for(Int dir = spatial_dimension - 1; dir >= 0; --dir) {
+    UInt factor = 1;
+    for(UInt i = 0; i < dir; ++dir) {
+      factor *= directional_nb_cells[i];
+    }
+    directional_cell[dir] = std::floor(global_cell_nb / factor); // integer division !
+    global_cell_nb -= directional_cell[dir] * factor;
+  }
+  
+  /// compute neighbor cells
+  UInt neighbor_thickness = 1; // the number of neighbors for a given direction
+  /// computation for 2D
+  if(spatial_dimension == 2) {
+    
+    for(Int x = directional_cell[0] - neighbor_thickness; x <= directional_cell[0] + neighbor_thickness; ++x) {
+      if(x < 0 || x >= directional_nb_cells[0]) continue; // border cell?
+      
+      for(Int y = directional_cell[1] - neighbor_thickness; y <= directional_cell[1] + neighbor_thickness; ++y) {
+	if(y < 0 || y >= directional_nb_cells[1]) continue; // border cell?
+	if(x == directional_cell[0] && y == directional_cell[1]) continue; // do only return neighbors not itself!
+
+	Int neighbor_directional_cell[2];
+	neighbor_directional_cell[0] = x;
+	neighbor_directional_cell[1] = y;
+	/// compute global cell index
+	UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
+	// neighbor_cell = directional_cell[spatial_dimension - 1];
+	// for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+	//   neighbor_cell *= directional_nb_cells[dim];
+	//   neighbor_cell += directional_cell[dim];
+	// }
+	
+	/// add the neighbor cell to the list
+	neighbors[nb_neighbors++] = neighbor_cell;
+      }
+    }
+  }
+  /// computation for 3D
+  else if(spatial_dimension == 3) {
+        
+    for(Int x = directional_cell[0] - neighbor_thickness; x <= directional_cell[0] + neighbor_thickness; ++x) {
+      if(x < 0 || x >= directional_nb_cells[0]) continue; // border cell?
+      
+      for(Int y = directional_cell[1] - neighbor_thickness; y <= directional_cell[1] + neighbor_thickness; ++y) {
+	if(y < 0 || y >= directional_nb_cells[1]) continue; // border cell?
+	
+	for(Int z = directional_cell[2] - neighbor_thickness; z <= directional_cell[2] + neighbor_thickness; ++z) {
+	  if(z < 0 || z >= directional_nb_cells[2]) continue; // border cell?
+	  if(x == directional_cell[0] && y == directional_cell[1] && z == directional_cell[2]) continue; // do only return neighbors not itself!
+
+	  Int neighbor_directional_cell[spatial_dimension];
+	  neighbor_directional_cell[0] = x;
+	  neighbor_directional_cell[1] = y;
+	  neighbor_directional_cell[2] = z;
+
+	  /// compute global cell index
+	  UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
+	  // neighbor_cell = directional_cell[spatial_dimension - 1];
+	  // for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+	  //   neighbor_cell *= directional_nb_cells[dim];
+	  //   neighbor_cell += directional_cell[dim];
+	  // }
+	  
+	  /// add the neighbor cell to the list
+	  neighbors[nb_neighbors++] = neighbor_cell;
+	}
+      }
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return nb_neighbors;
+}

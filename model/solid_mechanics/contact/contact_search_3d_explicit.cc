@@ -30,9 +30,11 @@ ContactSearch3dExplicit::ContactSearch3dExplicit(Contact & contact,
 /* -------------------------------------------------------------------------- */
 PenetrationList * ContactSearch3dExplicit::findPenetration(const Surface & master_surface) {
   AKANTU_DEBUG_IN();
-  
+
+  PenetrationList penetration_list;
+
   AKANTU_DEBUG_OUT();
-  return ;
+  return &penetration_list;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -164,8 +164,10 @@ template <class T> void Vector<T>::resize(UInt new_size) {
 
       /// Normally there are no allocation problem when reducing an array
       T * tmp_ptr = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));
-      if(tmp_ptr == NULL) {
-	AKANTU_DEBUG_ERROR("Cannot allocate more data (" << id << ")");
+      if(new_size != 0 && tmp_ptr == NULL) {
+	AKANTU_DEBUG_ERROR("Cannot free data (" << id << ")"
+			   << " [current allocated size : " << allocated_size << " | " 
+			   << "requested size : " << new_size << "]");
       }
       values = tmp_ptr;
       allocated_size = new_size;
@@ -186,7 +188,9 @@ template <class T> void Vector<T>::resize(UInt new_size) {
 		      << size_to_alloc * nb_component * sizeof(T) / 1024.
 		      << "kB");
   if (tmp_ptr == NULL) {
-    AKANTU_DEBUG_ERROR("Cannot allocate more data (" << id << ")");
+    AKANTU_DEBUG_ERROR("Cannot allocate more data (" << id << ")"
+		       << " [current allocated size : " << allocated_size << " | " 
+		       << "requested size : " << new_size << "]");
   }
 
   AKANTU_DEBUG(dblAccessory, "Allocating "

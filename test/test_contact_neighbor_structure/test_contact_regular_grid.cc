@@ -21,6 +21,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_neighbor_structure.hh"
 
 
 
@@ -105,8 +106,62 @@ int main(int argc, char *argv[])
 					     _cst_3d_expli, 
 					     _cnst_regular_grid);
 
-  my_contact->initContact();
+  std::cout << "add master surface" << std::endl;
+
+  my_contact->addMasterSurface(0);
   
+  std::cout << "master surface added" << std::endl;
+
+  std::cout << "start contact initialization" << std::endl;
+
+  my_contact->initContact(false);
+
+  std::cout << "contact initialization completed" << std::endl;
+
+
+  
+  NeighborList * my_neighbor_list = const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(0)).getNeighborList();
+
+#ifdef AKANTU_USE_IOHELPER
+  DumperParaview dumper_neighbor;
+  dumper_neighbor.SetMode(TEXT);
+
+  dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-neighbor-elements");
+  
+  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_1).values,
+				 TRIANGLE1, my_mesh.getNbElement(_triangle_1), C_MODE);
+
+  UInt nb_nodes_neigh = my_neighbor_list->nb_nodes;
+  Vector<UInt> impact_nodes = my_neighbor_list->impactor_nodes;
+  UInt * impact_nodes_val = impact_nodes.values;
+
+  std::cout << "we have " << nb_nodes_neigh << " impactor nodes" << std::endl;
+
+  std::cout << "the first node is: " << impact_nodes_val[0] << "; and the last node is: " << impact_nodes_val[nb_nodes_neigh-1] << std::endl;
+
+  UInt * node_to_elem_offset_val = my_neighbor_list->facets_offset[_triangle_1]->values;
+  UInt * node_to_elem_val = my_neighbor_list->facets[_triangle_1]->values;
+
+  double * neigh_elem = new double [my_mesh.getNbElement(_triangle_1)];
+  for (UInt i = 0; i < my_mesh.getNbElement(_triangle_1); ++i)
+    neigh_elem[i] = 0.0; //(double)my_mesh.getSurfaceId(_triangle_1).values[i];
+  
+  UInt n = impact_nodes_val[4];
+  for (UInt i = node_to_elem_offset_val[n]; i < node_to_elem_offset_val[n+1]; ++i)
+    neigh_elem[node_to_elem_val[i]] = 1.;
+
+
+  dumper_neighbor.AddElemDataField(neigh_elem, 1, "neighbor id");
+
+ 
+  dumper_neighbor.SetPrefix("paraview/");
+  dumper_neighbor.Init();
+  dumper_neighbor.Dump();
+
+  delete [] neigh_elem;
+
+#endif //AKANTU_USE_IOHELPER
+
   
   finalize();
 

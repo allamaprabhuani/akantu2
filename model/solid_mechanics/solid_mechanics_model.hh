@@ -156,7 +156,7 @@ public:
 
   AKANTU_SET_MACRO(Contact, contact, Contact *);
 
-  inline void setIncrementFlagOn();
+  void setIncrementFlagOn();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -17,6 +17,7 @@
 #include "contact_search.hh"
 #include "contact.hh"
 #include "contact_neighbor_structure.hh"
+#include "regular_grid_neighbor_structure.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -52,8 +53,16 @@ ContactSearch::~ContactSearch() {
 void ContactSearch::initSearch() {
   AKANTU_DEBUG_IN();
 
+  std::cout << "start initSearch()" << std::endl;
+
   std::map<Surface, ContactNeighborStructure *>::iterator it;
   for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
+    std::cout << "we have master surface: " << it->first << " that has a NS with master surface: "<< it->second->getMasterSurface() << std::endl;
+    
+  }
+
+  for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
+    std::cout << "call ContactNeighborStructure for master surface: " << it->first << std::endl;
     it->second->init();
   }
 
@@ -67,17 +76,34 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
   AKANTU_DEBUG_ASSERT(neighbors_structure.find(master_surface) == neighbors_structure.end(),
 		      "Master surface already registered in the search object " << id);
 
+  std::map<Surface, ContactNeighborStructure *>::iterator it;
+  for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
+    std::cout << "before contact_search:addMasterSurface: we have master surface: " << it->first << " that has a NS with master surface: "<< it->second->getMasterSurface() << std::endl;
+    
+  }
+
   ContactNeighborStructure * tmp_neighbors_structure = NULL;
 
   std::stringstream sstr;
   sstr << id << ":contact_neighbor_structure:" << neighbors_structure_type << ":" << master_surface;
 
   switch(neighbors_structure_type) {
-  case _cnst_regular_grid :
+  case _cnst_regular_grid : {
+    Mesh & mesh = contact.getModel().getFEM().getMesh();
+    if (mesh.getSpatialDimension() == 2) {
+      tmp_neighbors_structure = new RegularGridNeighborStructure<2>(*this, master_surface, sstr.str());
+    }
+    else if(mesh.getSpatialDimension() == 3) {
+      tmp_neighbors_structure = new RegularGridNeighborStructure<3>(*this, master_surface, sstr.str());
+    }
+    else 
+      AKANTU_DEBUG_ERROR("RegularGridNeighborStructure does not exist for dimension: " 
+			 << mesh.getSpatialDimension());
     // if mesh.getSpatialDimension() == 2 then RegularGridNeighborStructure<2>(...);
     // else if mesh.getSpatialDimension() == 3 then RegularGridNeighborStructure<3>(...);
     // else error
     break;
+  }
   case _cnst_not_defined :
     //    tmp_neighbors_structure = new ContactNeighborStructureGrid2d(this, master_surface, sstr.str());
     AKANTU_DEBUG_ERROR("Not a valid neighbors structure type : " << neighbors_structure_type);
@@ -85,6 +111,14 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
   }
 
   neighbors_structure[master_surface] = tmp_neighbors_structure;
+
+  std::cout << "contact_search -> addMasterSurface: we have a NS with master surface: " << tmp_neighbors_structure->getMasterSurface() << std::endl;
+
+  //std::map<Surface, ContactNeighborStructure *>::iterator it;
+  for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
+    std::cout << "after contact_search:addMasterSurface: we have master surface: " << it->first << " that has a NS with master surface: "<< it->second->getID() << std::endl;
+    
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -124,6 +158,16 @@ bool ContactSearch::checkIfUpdateStructureNeeded(const Surface & master_surface)
 
   AKANTU_DEBUG_OUT();
   return check;
+}
+
+/* -------------------------------------------------------------------------- */
+const ContactNeighborStructure & ContactSearch::getContactNeighborStructure(const Surface & master_surface) const {
+  AKANTU_DEBUG_IN();
+  std::map<Surface, ContactNeighborStructure *>::const_iterator it = neighbors_structure.find(master_surface);
+  AKANTU_DEBUG_ASSERT(it != neighbors_structure.end(), "Master surface not registred in contact search.");
+
+  AKANTU_DEBUG_OUT();
+  return *(it->second);
 }
 
 
