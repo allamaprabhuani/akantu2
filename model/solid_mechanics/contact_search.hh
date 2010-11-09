@@ -39,15 +39,15 @@ public:
   Vector<UInt> penetrating_nodes;
 
   /// list of penetrated facets
-  Vector<UInt> penetrated_facets_offset;
-  Vector<UInt> penetrated_facet;
+  ByElementTypeUInt penetrated_facets_offset;
+  ByElementTypeUInt penetrated_facets;
 
   /// normal of the penetrated facets
-  Vector<Real> facets_normals;
+  ByElementTypeReal facets_normals;
   /// gap between the penetrated facets and the node
-  Vector<Real> gap;
+  ByElementTypeReal gaps;
   /// position of the node projected on the penetrated facets
-  Vector<Real> projected_position;
+  ByElementTypeReal projected_positions;
 };
 
 /* -------------------------------------------------------------------------- */
