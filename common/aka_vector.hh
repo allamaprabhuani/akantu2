@@ -109,6 +109,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// get jth componemt of the ith tuple in read-only
+  inline const T & get(UInt i, UInt j = 0) const;
   /// get jth componemt of the ith tuple
   inline T & at(UInt i, UInt j = 0);
 

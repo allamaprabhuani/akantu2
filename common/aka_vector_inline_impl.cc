@@ -26,6 +26,18 @@ template <class T> inline T & Vector<T>::at(UInt i, UInt j) {
   return values[i*nb_component + j];
 }
 
+template <class T> inline const T & Vector<T>::get(UInt i, UInt j) const{
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(size > 0,
+		      "The vector is empty");
+  AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
+		      "The value at position [" << i << "," << j
+		      << "] is out of range");
+
+  AKANTU_DEBUG_OUT();
+  return values[i*nb_component + j];
+}
+
 /* -------------------------------------------------------------------------- */
 template <class T> inline void Vector<T>::push_back(const T & value) {
   AKANTU_DEBUG_IN();
