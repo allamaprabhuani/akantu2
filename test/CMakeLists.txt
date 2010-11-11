@@ -27,7 +27,7 @@ add_akantu_test(test_solid_mechanics_model "Test solid mechanics object")
 
 if(AKANTU_BUILD_CONTACT)
   add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
-add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
+  add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
 endif(AKANTU_BUILD_CONTACT)
 
 if(AKANTU_SCOTCH_ON)

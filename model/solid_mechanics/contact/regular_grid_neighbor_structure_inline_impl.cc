@@ -76,7 +76,7 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt 
 
   AKANTU_DEBUG_IN();
   UInt cell_number = directional_cell[spatial_dimension - 1];
-  for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
+  for(Int dim = spatial_dimension - 2; dim >= 0; --dim) {
     cell_number *= directional_nb_cells[dim];
     cell_number += directional_cell[dim];
   }
@@ -92,13 +92,14 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 										  UInt * directional_nb_cells) {
   AKANTU_DEBUG_IN();
   UInt nb_neighbors = 0;
-  UInt directional_cell[spatial_dimension];
+  UInt max_spatial_dimension = 3; // to avoid warnings while compiling
+  UInt directional_cell[max_spatial_dimension];
   UInt global_cell_nb = cell;
 
   /// find the directional cell number
   for(Int dir = spatial_dimension - 1; dir >= 0; --dir) {
     UInt factor = 1;
-    for(UInt i = 0; i < dir; ++dir) {
+    for(UInt i = 0; i < dir; ++i) {
       factor *= directional_nb_cells[i];
     }
     directional_cell[dir] = std::floor(global_cell_nb / factor); // integer division !
@@ -107,6 +108,7 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
   
   /// compute neighbor cells
   UInt neighbor_thickness = 1; // the number of neighbors for a given direction
+  
   /// computation for 2D
   if(spatial_dimension == 2) {
     
@@ -120,13 +122,9 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 	Int neighbor_directional_cell[2];
 	neighbor_directional_cell[0] = x;
 	neighbor_directional_cell[1] = y;
+
 	/// compute global cell index
 	UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
-	// neighbor_cell = directional_cell[spatial_dimension - 1];
-	// for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
-	//   neighbor_cell *= directional_nb_cells[dim];
-	//   neighbor_cell += directional_cell[dim];
-	// }
 	
 	/// add the neighbor cell to the list
 	neighbors[nb_neighbors++] = neighbor_cell;
@@ -146,18 +144,14 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 	  if(z < 0 || z >= directional_nb_cells[2]) continue; // border cell?
 	  if(x == directional_cell[0] && y == directional_cell[1] && z == directional_cell[2]) continue; // do only return neighbors not itself!
 
-	  Int neighbor_directional_cell[spatial_dimension];
+	  UInt local_spatial_dimension = 3; // to avoid warnings while compiling
+	  Int neighbor_directional_cell[local_spatial_dimension];
 	  neighbor_directional_cell[0] = x;
 	  neighbor_directional_cell[1] = y;
 	  neighbor_directional_cell[2] = z;
 
 	  /// compute global cell index
 	  UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
-	  // neighbor_cell = directional_cell[spatial_dimension - 1];
-	  // for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
-	  //   neighbor_cell *= directional_nb_cells[dim];
-	  //   neighbor_cell += directional_cell[dim];
-	  // }
 	  
 	  /// add the neighbor cell to the list
 	  neighbors[nb_neighbors++] = neighbor_cell;

@@ -35,8 +35,6 @@ ContactNeighborStructure::ContactNeighborStructure(const ContactSearch & contact
     neighbor_list.facets       [i] = NULL;
   }
 
-  std::cout << "ContactNeighborStructure has been constructed for master surface: " << this->master_surface << std::endl;
-  
   AKANTU_DEBUG_OUT();
 }
 

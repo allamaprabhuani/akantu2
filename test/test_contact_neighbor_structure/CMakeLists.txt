@@ -12,10 +12,10 @@
 #===============================================================================
 
 #===============================================================================
-#add_mesh(test_surface_extraction_2d_mesh squares.geo 2 1)
+add_mesh(test_regular_grid_2d_mesh squares.geo 2 1)
 
-#register_test(test_surface_extraction_triangle1 test_surface_extraction_triangle1.cc)
-#add_dependencies(test_surface_extraction_triangle1 test_surface_extraction_2d_mesh)
+register_test(test_contact_regular_grid_triangle1 test_contact_regular_grid_triangle1.cc)
+add_dependencies(test_contact_regular_grid_triangle1 test_regular_grid_2d_mesh)
 
 #===============================================================================
 add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)

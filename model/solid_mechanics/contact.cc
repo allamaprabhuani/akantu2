@@ -67,7 +67,7 @@ void Contact::initContact(bool add_surfaces_flag) {
   if(add_surfaces_flag) {
     for (UInt i = 0; i < mesh.getNbSurfaces(); ++i) {
       addMasterSurface(i);
-      std::cout << "Master surface " << i << " has been added" << std::endl << std::endl;
+      std::cout << "Master surface " << i << " has been added automatically" << std::endl;
     } 
   }	
 

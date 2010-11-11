@@ -12,13 +12,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include <math.h>
-
-/* -------------------------------------------------------------------------- */
 #include "regular_grid_neighbor_structure.hh"
-
 #include "contact_search.hh"
 #include "solid_mechanics_model.hh"
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -32,17 +29,13 @@ RegularGridNeighborStructure<spatial_dimension>::RegularGridNeighborStructure(co
   
   AKANTU_DEBUG_IN();
   
-  std::cout << "call of RegularGridNeighborStructure with master surface: " << master_surface << std::endl;
-
-  //  spatial_dimension = mesh.getSpatialDimension();
-
   /// make sure that the increments are computed
   const_cast<SolidMechanicsModel &>(contact_search.getContact().getModel()).setIncrementFlagOn();
 
   /// arbitrary initial value
-  grid_spacing[0] = 0.1;
-  grid_spacing[1] = 0.1;
-  grid_spacing[2] = 0.1;
+  grid_spacing[0] = 0.05;
+  grid_spacing[1] = 0.05;
+  grid_spacing[2] = 0.05;
 
   /// securty factor of max 0.5 is needed for a neighborlist that is always complete 
   security_factor[0] = 0.5;
@@ -67,8 +60,6 @@ template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::init() {
   AKANTU_DEBUG_IN();
   
-  std::cout << "RegularGridNeighborStructure initialization with master surface: " << this->master_surface << std::endl;
-  
   Real * node_coordinates = mesh.getNodes().values;
   this->update(node_coordinates);
 
@@ -79,8 +70,6 @@ void RegularGridNeighborStructure<spatial_dimension>::init() {
 template<UInt spatial_dimension> 
 void RegularGridNeighborStructure<spatial_dimension>::update() {
   AKANTU_DEBUG_IN();
-
-  std::cout << "RegularGridNeighborStructure update with master surface: " << this->master_surface << std::endl;
 
   Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().values;
   this->update(node_current_position);
@@ -98,17 +87,19 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   AKANTU_DEBUG_ASSERT(master_surface < nb_surfaces, "Master surface (" << 
 		      master_surface << ") out of surface range (number of surfaces: " << 
 		      nb_surfaces << ") !!");
-  
-  //Real * node_position = contact_search.getContact().getModel().getCurrentPosition().values;
 
-  Real max[nb_surfaces][spatial_dimension];
-  Real min[nb_surfaces][spatial_dimension];
+  // ----------------------------
+  /// find max and min values for each surface
+  // ----------------------------
+
+  Real bound_max[nb_surfaces][spatial_dimension];
+  Real bound_min[nb_surfaces][spatial_dimension];
 
   /// initialize max and min table with extrem values
   for(UInt surf = 0; surf < nb_surfaces; ++surf) {
     for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-      max[surf][dim] = std::numeric_limits<Real>::min();
-      min[surf][dim] = std::numeric_limits<Real>::max();
+      bound_max[surf][dim] = - std::numeric_limits<Real>::max();
+      bound_min[surf][dim] =   std::numeric_limits<Real>::max();
     }
   }
 
@@ -120,46 +111,43 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   for(UInt surf = 0; surf < nb_surfaces; ++surf) {
     UInt min_surf_offset = surface_to_nodes_offset[surf];
     UInt max_surf_offset = surface_to_nodes_offset[surf + 1];
-    std::cout << "surface: " << surf << std::endl;
     for(UInt n = min_surf_offset; n < max_surf_offset; ++n) {
       UInt cur_node = surface_to_nodes[n];
-      std::cout << "current nodes: " << cur_node << " : ";
       for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-	Real cur_position = node_position[cur_node + dim];
-	std::cout << cur_position << " ";
-	max[surf][dim] = std::max(max[surf][dim], cur_position);
-	min[surf][dim] = std::min(min[surf][dim], cur_position);
+	Real cur_position = node_position[cur_node * spatial_dimension + dim];
+	bound_max[surf][dim] = std::max(bound_max[surf][dim], cur_position);
+	bound_min[surf][dim] = std::min(bound_min[surf][dim], cur_position);
       }
-      std::cout << std::endl;
     } 
   }
 
-  // print for error search
-  for(UInt surf = 0; surf < nb_surfaces; ++surf) {
-    for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-      std::cout << "surface " << surf << " has min: " << min[surf][dim] << " and max: " << max[surf][dim] << " for direction " << dim << std::endl;
-    }
-  }
+  // ----------------------------
+  /// define grid geometry
+  // ----------------------------
 
   /// define grid geometry around the master surface
   Real grid_min[spatial_dimension];
   Real grid_max[spatial_dimension];
   UInt directional_nb_cells[spatial_dimension];
-  UInt nb_cells = 0;
+  UInt nb_cells = 1;
   
   for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-    Real grid_length = max[master_surface][dim] - min[master_surface][dim];
+    Real grid_length = bound_max[master_surface][dim] - bound_min[master_surface][dim];
 
     /// get nb of cells needed to cover total length and add a cell to each side (start, end)
     directional_nb_cells[dim] = static_cast<UInt>(ceil(grid_length / grid_spacing[dim])) + 2;
-    nb_cells += directional_nb_cells[dim];
+    nb_cells *= directional_nb_cells[dim];
 
     Real additional_grid_length = (directional_nb_cells[dim]*grid_spacing[dim] - grid_length) / 2.;
 
     /// get minimal and maximal coordinates of the grid
-    grid_min[dim] = min[master_surface][dim] - additional_grid_length;
-    grid_max[dim] = max[master_surface][dim] + additional_grid_length;
+    grid_min[dim] = bound_min[master_surface][dim] - additional_grid_length;
+    grid_max[dim] = bound_max[master_surface][dim] + additional_grid_length;
   }
+
+  // ----------------------------
+  /// find surfaces being in the grid space
+  // ----------------------------
 
   /// find surfaces being in the grid space
   UInt nb_grid_surfaces = 0;
@@ -168,7 +156,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 
   for(UInt surf = 0; surf < nb_surfaces; ++surf) {
     for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-      if(max[surf][dim] < grid_min[dim] || min[surf][dim] > grid_max[dim])
+      if(bound_max[surf][dim] < grid_min[dim] || bound_min[surf][dim] > grid_max[dim])
   	not_grid_space = 1;
     }
     if(not_grid_space == 0 || surf == master_surface) {
@@ -180,6 +168,9 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   /// if number of grid surfaces is equal to 1 we do not need to consider any slave surface
   /// @todo exit with empty neighbor list
 
+  // ----------------------------
+  /// define cell number for all surface nodes
+  // ----------------------------
 
   /// assign cell number to all surface nodes (put -1 if out of grid space) (cell numbers start with zero)
   Int not_grid_space_node    = -1;  // should not be same as not_grid_space_surface and be < 0
@@ -201,28 +192,26 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 
       /// compute cell index for all directions
       for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-	Real cur_position = node_position[cur_node + dim];
+	Real cur_position = node_position[cur_node * spatial_dimension + dim];
 	directional_cell[dim] = static_cast<UInt>(floor((cur_position - grid_min[dim])/grid_spacing[dim]));
       }
       
       /// test if out of grid space
       for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-	if(directional_cell[dim] < 0 || directional_cell[dim] > directional_nb_cells[dim])
+	if(directional_cell[dim] < 0 || directional_cell[dim] >= directional_nb_cells[dim]) {
 	  cell_val[n] = not_grid_space_node;
+	}
       }
     
       /// compute global cell index
-      if(cell_val[n] != not_grid_space_node) {
+      if(cell_val[n] != not_grid_space_node)
 	cell_val[n] = computeCellNb(directional_nb_cells, directional_cell);
-	// cell_val[sn] = directional_cell[spatial_dimension - 1];
-	// for(Int dim = spatial_dimension - 2; dim > 0; --dim) {
-	//   cell_val[sn] *= directional_nb_cells[dim];
-	//   cell_val[sn] += directional_cell[dim];
-	// }
-      }
     }
   } 
 
+  // ----------------------------
+  /// find all impactor and master nodes for given cell
+  // ----------------------------
 
   /// define offset arrays for nodes per cell which will be computed below
   UInt * impactor_nodes_cell_offset = new UInt[nb_cells + 1];
@@ -245,8 +234,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
     }
 
     for(UInt n = min_surf_offset; n < max_surf_offset; ++n) {
-      UInt node = surface_to_nodes[n];
-      UInt cell = cell_val[node];
+      Int cell = cell_val[n];
       if(cell != not_grid_space_node)
 	nodes_cell_offset[cell]++;
     }
@@ -289,7 +277,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
     /// loop over the nodes of surf and create nodes_cell
     for(UInt n = min_surf_offset; n < max_surf_offset; ++n) {
       UInt node = surface_to_nodes[n];
-      UInt cell = cell_val[node];
+      Int cell = cell_val[n];
       if(cell != not_grid_space_node)
 	nodes_cell[nodes_cell_offset[cell]++] = node;
     }
@@ -301,22 +289,16 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   }
   impactor_nodes_cell_offset[0] = 0;
   master_nodes_cell_offset  [0] = 0;
-
   
+  // ----------------------------
+  /// construct neighbor structure
+  // ----------------------------
 
   cell_val = cell->values;
   UInt nb_impactor_nodes = impactor_nodes_cell_offset[nb_cells];
-  
-  /// declare neighbor list
-  //  NeighborList neighbor_list;
-  //neighbor_list.nb_nodes = 0;
-  //neighbor_list.impactor_nodes = new Vector<UInt>(nb_impactor_nodes, 1);
+
   neighbor_list.impactor_nodes.resize(nb_impactor_nodes);
   UInt * impactor_nodes_val = neighbor_list.impactor_nodes.values;
-  // for (UInt i = 0; i < _max_element_type; ++i) {
-  //   neighbor_list.facets_offset[i] = NULL;
-  //   neighbor_list.facets       [i] = NULL;
-  // }
   
   /// define maximal number of neighbor cells and include it-self
   UInt max_nb_neighbor_cells;
@@ -326,9 +308,6 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   else if(spatial_dimension == 3) {
     max_nb_neighbor_cells = 27;
   }
-
-  //const ByElementTypeUInt & node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset();
-  //ByElementTypeUInt node_to_elements = contact_search.getContact().getNodeToElements();
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -340,8 +319,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
  
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    const Vector<UInt> & nte = contact_search.getContact().getNodeToElements(type);
-    if(type == (spatial_dimension-1) && nte.getSize() != 0) {
+    if(mesh.getSpatialDimension(type) == spatial_dimension) {
       facet_type[nb_facet_types++] = mesh.getFacetElementType(type);
     }
   }
@@ -354,7 +332,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
     const Vector<UInt> & node_to_elements = contact_search.getContact().getNodeToElements(type);
 
     UInt * node_to_elements_offset_val = node_to_elements_offset.values;
-    UInt * node_to_elements_val        = node_to_elements.values;;
+    UInt * node_to_elements_val        = node_to_elements.values;
 
     Vector<bool> * visited_node = new Vector<bool>(nb_impactor_nodes, 1, false); // does it need a delete at the end ?
     bool * visited_node_val = visited_node->values;
@@ -364,7 +342,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
     sstr_name_offset << id << ":facets_offset:" << type;
     neighbor_list.facets_offset[type] = new Vector<UInt>(0, 1, sstr_name_offset.str());
     Vector<UInt> & tmp_facets_offset = *(neighbor_list.facets_offset[type]);
-    UInt * tmp_facets_offset_val = tmp_facets_offset.values;
+
     std::stringstream sstr_name;
     sstr_name << id << ":facets:" << type;
     neighbor_list.facets[type] = new Vector<UInt>(0, 1, sstr_name.str());// declare vector that is ??
@@ -378,7 +356,17 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 	/// find and store cell numbers of neighbor cells and it-self
 	AKANTU_DEBUG_ASSERT(cell_val[current_impactor_node] >= 0, 
 			    "Bad cell index. This case normally should not happen !!");
-	UInt current_cell = cell_val[current_impactor_node];
+
+	UInt current_cell;
+	for(UInt i = 0; i < nb_surface_nodes; ++i) {
+	  if(surface_to_nodes[i] == current_impactor_node) {
+	    current_cell = cell_val[i];
+	    break;
+	  }
+	}
+	// test if current_cell was initialized
+
+	//UInt current_cell = cell_val[current_impactor_node];
 	UInt nb_neighbor_cells = computeNeighborCells(current_cell, neighbor_cells, directional_nb_cells);
 	neighbor_cells[nb_neighbor_cells++] = current_cell;
 	
@@ -422,7 +410,9 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 	}
       }
     }
-    
+
+    UInt * tmp_facets_offset_val = tmp_facets_offset.values;
+     
     for (UInt i = 1; i < neighbor_list.nb_nodes; ++i) tmp_facets_offset_val[i] += tmp_facets_offset_val[i - 1];
     for (UInt i = neighbor_list.nb_nodes; i > 0; --i) tmp_facets_offset_val[i]  = tmp_facets_offset_val[i - 1];
     tmp_facets_offset_val[0] = 0;
@@ -431,7 +421,10 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
     
   }
   
+  delete impactor_nodes_cell;
+  delete master_nodes_cell;
   delete cell;
+  
 
   AKANTU_DEBUG_OUT();
 }
@@ -440,9 +433,6 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 template<UInt spatial_dimension> 
 bool RegularGridNeighborStructure<spatial_dimension>::check() {
   
-  /// test if increment flag is on
-  /// @todo compute test if increment flag is on and give warning if not
-
   AKANTU_DEBUG_IN();
 
   bool need_update = false;
@@ -466,7 +456,7 @@ bool RegularGridNeighborStructure<spatial_dimension>::check() {
     for(UInt n = min_surf_offset; n < max_surf_offset; ++n) {
       UInt cur_node = surface_to_nodes[n];
       for(UInt dim = 0; dim < spatial_dimension; ++dim) {
-  	Real cur_increment = current_increment[cur_node + dim];
+  	Real cur_increment = current_increment[cur_node * spatial_dimension + dim];
   	max[dim] = std::max(max[dim], fabs(cur_increment));
       }
     } 
