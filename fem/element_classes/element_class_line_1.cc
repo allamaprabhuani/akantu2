@@ -62,12 +62,13 @@ template <> inline void ElementClass<_line_1>::computeJacobian(const Real * dxds
 								   Real & jac){
 
   if (dimension == spatial_dimension){
-    Real weight = 2.;
-    jac = dxds[0]*weight;
+    jac = dxds[0];
   }
   else {
     jac = Math::norm2(dxds);
   }
+  // multiplication by integration weight 
+  jac *= 2;
 }
  
 /* -------------------------------------------------------------------------- */

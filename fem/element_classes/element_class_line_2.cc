@@ -79,13 +79,15 @@ template <> inline void ElementClass<_line_2>::computeDNDS(const Real * natural_
 template <> inline void ElementClass<_line_2>::computeJacobian(const Real * dxds,
 							       const UInt dimension, 
 							       Real & jac){
+  Real weight = 1;
   if (dimension == spatial_dimension){
-    Real weight = 1;
-    jac = dxds[0] * weight;
+    jac = dxds[0];
   }  
   else {
     jac = Math::norm2(dxds);
   }
+
+  jac *= weight;
 }
 
 /* -------------------------------------------------------------------------- */
