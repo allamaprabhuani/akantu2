@@ -28,34 +28,39 @@ template<ElementType type> inline UInt ElementClass<type>::getShapeDerivativesSi
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void ElementClass<type>::preComputeStandards(const Real * coord,
+void ElementClass<type>::preComputeStandards(const Real * coord,
 						    const UInt dimension,
 						    Real * shape,
 						    Real * dshape,
 						    Real * jacobians) {
-  //ask for computation of shapes
-  computeShapes(quad,nb_quadrature_points,shape);
-  //compute dnds
-  Real dnds[nb_nodes_per_element*spatial_dimension*nb_quadrature_points];
-  computeDNDS(quad,nb_quadrature_points,dnds);
+  // ask for computation of shapes
+  computeShapes(quad, nb_quadrature_points, shape);
+
+  // compute dnds
+  Real dnds[nb_nodes_per_element * spatial_dimension * nb_quadrature_points];
+  computeDNDS(quad, nb_quadrature_points, dnds);
+
   // compute dxds
-  Real dxds[dimension*spatial_dimension*nb_quadrature_points];
-  computeDXDS(dnds,nb_quadrature_points,coord,dimension,dxds);
+  Real dxds[dimension * spatial_dimension * nb_quadrature_points];
+  computeDXDS(dnds, nb_quadrature_points, coord, dimension, dxds);
+
   // jacobian 
-  computeJacobian(dxds,nb_quadrature_points,dimension,jacobians);
+  computeJacobian(dxds, nb_quadrature_points, dimension, jacobians);
+
   // if dimension == spatial_dimension compute shape derivatives
-  if (dimension == spatial_dimension)
-    computeShapeDerivatives(dxds,dnds,nb_quadrature_points,dimension,dshape);
+  if (dimension == spatial_dimension) {
+    computeShapeDerivatives(dxds, dnds, nb_quadrature_points, dimension, dshape);
+  }
 }
+
 /* -------------------------------------------------------------------------- */
 template <ElementType type> 
 inline void ElementClass<type>::computeShapes(const Real * natural_coords, 
 					      const UInt nb_points, 
-					      Real * shapes){
-  
-  Real * cpoint = const_cast<Real *>(natural_coords);
+					      Real * shapes) {
+    Real * cpoint = const_cast<Real *>(natural_coords);
   for (UInt p = 0; p < nb_points; ++p) {
-    computeShapes(cpoint,shapes);
+    computeShapes(cpoint, shapes);
     shapes += nb_nodes_per_element;
     cpoint += spatial_dimension;
   }
@@ -64,13 +69,13 @@ inline void ElementClass<type>::computeShapes(const Real * natural_coords,
 template<ElementType type>
 inline void ElementClass<type>::computeDNDS(const Real * natural_coords,
 					    const UInt nb_points,
-					    Real * dnds){
+					    Real * dnds) {
   Real * cpoint = const_cast<Real *>(natural_coords);
   Real * cdnds = dnds;
   for (UInt p = 0; p < nb_points; ++p) {
-    computeDNDS(cpoint,cdnds);
+    computeDNDS(cpoint, cdnds);
     cpoint += spatial_dimension;
-    cdnds += nb_nodes_per_element*spatial_dimension;
+    cdnds += nb_nodes_per_element * spatial_dimension;
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -79,13 +84,13 @@ inline void ElementClass<type>::computeDXDS(const Real * dnds,
 					    const UInt nb_points,
 					    const Real * node_coords, 
 					    const UInt dimension, 
-					    Real * dxds){
+					    Real * dxds) {
   Real * cdnds = const_cast<Real *>(dnds);
   Real * cdxds = dxds;
   for (UInt p = 0; p < nb_points; ++p) {
-    computeDXDS(cdnds,node_coords,dimension,cdxds);
-    cdnds += nb_nodes_per_element*spatial_dimension;
-    cdxds += spatial_dimension*dimension;
+    computeDXDS(cdnds, node_coords, dimension, cdxds);
+    cdnds += nb_nodes_per_element * spatial_dimension;
+    cdxds += spatial_dimension * dimension;
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -93,7 +98,7 @@ template <ElementType type>
 inline void ElementClass<type>::computeDXDS(const Real * dnds,
 					    const Real * node_coords, 
 					    const UInt dimension, 
-					    Real * dxds){
+					    Real * dxds) {
   /// @f$ J = dxds = dnds * x @f$
   Math::matrix_matrix(spatial_dimension, dimension, nb_nodes_per_element,
 		      dnds, node_coords, dxds);
@@ -104,14 +109,14 @@ template <ElementType type>
 inline void ElementClass<type>::computeJacobian(const Real * dxds,
 						const UInt nb_points,
 						const UInt dimension, 
-						Real * jac){
+						Real * jac) {
   Real * cdxds = const_cast<Real *>(dxds);
   Real * cjac = jac;
   for (UInt p = 0; p < nb_points; ++p) {
-    computeJacobian(cdxds,dimension,*cjac);
-    AKANTU_DEBUG_ASSERT(*cjac > 0,
+    computeJacobian(cdxds, dimension, *cjac);
+    AKANTU_DEBUG_ASSERT((cjac[0] > 0),
 			"Negative jacobian computed, possible problem in the element node order.");
-    cdxds += spatial_dimension*dimension;
+    cdxds += spatial_dimension * dimension;
     cjac++;
   }
 }
@@ -121,20 +126,18 @@ inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
 							const Real * dnds,
 							const UInt nb_points,
 							const UInt dimension, 
-							Real * shape_deriv){
-  
+							Real * shape_deriv) {
   AKANTU_DEBUG_ASSERT(dimension == spatial_dimension,"gradient in space " 
 		      << dimension 
 		      << " cannot be evaluated for element of dimension "
 		      << spatial_dimension);
 
-
   Real * cdxds = const_cast<Real *>(dxds);
   Real * cdnds = const_cast<Real *>(dnds);
   for (UInt p = 0; p < nb_points; ++p) {
-    computeShapeDerivatives(cdxds,cdnds,shape_deriv);
-    cdnds += spatial_dimension*nb_nodes_per_element;
-    cdxds += spatial_dimension*spatial_dimension;
+    computeShapeDerivatives(cdxds, cdnds, shape_deriv);
+    cdnds += spatial_dimension * nb_nodes_per_element;
+    cdxds += spatial_dimension * spatial_dimension;
     shape_deriv += nb_nodes_per_element * spatial_dimension;
   }
 }
@@ -142,14 +145,12 @@ inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
 template <ElementType type>
 inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
 							const Real * dnds,
-							Real * shape_deriv){
-  
-  /// @f$ dxds = J^{-1} @f$
-  Real inv_dxds[spatial_dimension*spatial_dimension];
+							Real * shape_deriv) {
+    /// @f$ dxds = J^{-1} @f$
+  Real inv_dxds[spatial_dimension * spatial_dimension];
   if (spatial_dimension == 1) inv_dxds[0] = 1./dxds[0];
   if (spatial_dimension == 2) Math::inv2(dxds, inv_dxds);
   if (spatial_dimension == 3) Math::inv3(dxds, inv_dxds);
-
 
   Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
 			dnds, inv_dxds, shape_deriv);

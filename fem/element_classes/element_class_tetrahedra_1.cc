@@ -59,7 +59,7 @@ template<> UInt ElementClass<_tetrahedra_1>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_tetrahedra_1>::computeShapes(const Real * natural_coords, 
-							    Real * shapes){
+								   Real * shapes){
   Real c0 = natural_coords[1]; /// @f$ c0 = \eta @f$
   Real c1 = natural_coords[2]; /// @f$ c1 = \zeta @f$
   Real c2 = 1 - natural_coords[0] -  natural_coords[1] -  natural_coords[2];/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
@@ -71,8 +71,8 @@ template <> inline void ElementClass<_tetrahedra_1>::computeShapes(const Real * 
   shapes[3] = c3;
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedra_1>::computeDNDS(const Real * natural_coords,
-							  Real * dnds){
+template <> inline void ElementClass<_tetrahedra_1>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
+								 Real * dnds) {
 
   /**
    * @f[
@@ -99,8 +99,8 @@ template <> inline void ElementClass<_tetrahedra_1>::computeDNDS(const Real * na
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_tetrahedra_1>::computeJacobian(const Real * dxds,
-								   const UInt dimension, 
-								   Real & jac){
+								     const UInt dimension, 
+								     Real & jac) {
 
   if (dimension == spatial_dimension){
     Real weight = 1./6.;

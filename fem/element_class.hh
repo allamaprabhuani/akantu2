@@ -53,10 +53,10 @@ public:
    * @param[out] jacobian  jacobians * integration weights [nb_quad]
    */
   inline static void preComputeStandards(const Real * coord,
-				    const UInt dimension,
-				    Real * shape,
-				    Real * shape_deriv,
-				    Real * jacobian);
+					 const UInt dimension,
+					 Real * shape,
+					 Real * shape_deriv,
+					 Real * jacobian);
   /// compute the shape values for a point given in natural coordinates
   inline static void computeShapes(const Real * natural_coords, Real * shapes);
   /// compute the shape values for a set of points given in natural coordinates

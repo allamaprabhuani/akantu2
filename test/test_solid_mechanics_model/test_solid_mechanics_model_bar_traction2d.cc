@@ -149,12 +149,12 @@ int main(int argc, char *argv[])
 
 #ifdef CHECK_STRESS
     akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
-    akantu::UInt max_el = 0;
+    //akantu::UInt max_el = 0;
     akantu::Real * stress = model->getMaterial(0).getStress(type).values;
     for (akantu::UInt i = 0; i < nb_element; ++i) {
       if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
 	max_stress = stress[i*spatial_dimension*spatial_dimension];
-	max_el = i;
+	//	max_el = i;
       }
     }
 

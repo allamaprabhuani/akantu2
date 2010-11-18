@@ -62,14 +62,14 @@ template <> inline void ElementClass<_triangle_1>::computeShapes(const Real * na
   shapes[2] = c2; /// N3(q_0)
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_1>::computeDNDS(const Real * natural_coords,
-							  Real * dnds){
+template <> inline void ElementClass<_triangle_1>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
+							       Real * dnds){
 
   /**
    * @f[
    * dnds = \left(
    *          \begin{array}{cccccc}
-   *            \frac{\partial N1}{\partial \xi}  & \frac{\partial N2}{\partial \xi}  & \frac{\partial N3}{\partial \xi} \ \
+   *            \frac{\partial N1}{\partial \xi}  & \frac{\partial N2}{\partial \xi}  & \frac{\partial N3}{\partial \xi} \\
    *            \frac{\partial N1}{\partial \eta} & \frac{\partial N2}{\partial \eta} & \frac{\partial N3}{\partial \eta}
    *          \end{array}
    *        \right)
