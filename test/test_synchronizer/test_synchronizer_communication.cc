@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
   akantu::initialize(&argc, &argv);
 
   int dim = 2;
-  akantu::ElementType type = akantu::_triangle_1;
+  akantu::ElementType type = akantu::_triangle_3;
   akantu::Mesh mesh(dim);
 
   akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();

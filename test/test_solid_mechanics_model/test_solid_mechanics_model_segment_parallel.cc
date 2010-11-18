@@ -36,7 +36,7 @@
 int main(int argc, char *argv[])
 {
   akantu::UInt spatial_dimension = 1;
-  akantu::ElementType type = akantu::_line_2;
+  akantu::ElementType type = akantu::_segment_3;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
   akantu::Communicator * communicator;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
-    mesh_io.read("line.msh", mesh);
+    mesh_io.read("segment.msh", mesh);
     akantu::MeshPartition * partition =
       new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);

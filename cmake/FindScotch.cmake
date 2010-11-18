@@ -23,7 +23,7 @@ find_library(SCOTCH_LIBRARY_ERR scotcherr
   PATH_SUFFIXES src/libscotch lib
   )
 
-find_path(SCOTCH_INCLUDE_DIRS scotch.h
+find_path(SCOTCH_INCLUDE_PATH scotch.h
   PATHS ${SCOTCH_DIR}
   PATH_SUFFIXES include scotch src/libscotch
   )
@@ -31,7 +31,7 @@ find_path(SCOTCH_INCLUDE_DIRS scotch.h
 #===============================================================================
 mark_as_advanced(SCOTCH_LIBRARY)
 mark_as_advanced(SCOTCH_LIBRARY_ERR)
-mark_as_advanced(SCOTCH_INCLUDE_DIRS)
+mark_as_advanced(SCOTCH_INCLUDE_PATH)
 
 set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY} ${SCOTCH_LIBRARY_ERR})
 set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for scotch" FORCE)
@@ -39,7 +39,7 @@ set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for scotc
 #===============================================================================
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SCOTCH DEFAULT_MSG
-  SCOTCH_LIBRARY SCOTCH_LIBRARY_ERR SCOTCH_INCLUDE_DIRS)
+  SCOTCH_LIBRARY SCOTCH_LIBRARY_ERR SCOTCH_INCLUDE_PATH)
 
 #===============================================================================
 if(NOT SCOTCH_FOUND)

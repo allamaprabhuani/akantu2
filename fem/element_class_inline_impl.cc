@@ -214,9 +214,9 @@ inline void ElementClass<type>::computeJacobian(__attribute__ ((unused)) const R
 
 
 
-#include "element_classes/element_class_line_1.cc"
-#include "element_classes/element_class_line_2.cc"
-#include "element_classes/element_class_triangle_1.cc"
-#include "element_classes/element_class_triangle_2.cc"
-#include "element_classes/element_class_tetrahedra_1.cc"
-// #include "element_classes/element_class_tetrahedra_2.cc"
+#include "element_classes/element_class_segment_2.cc"
+#include "element_classes/element_class_segment_3.cc"
+#include "element_classes/element_class_triangle_3.cc"
+#include "element_classes/element_class_triangle_6.cc"
+#include "element_classes/element_class_tetrahedron_6.cc"
+// #include "element_classes/element_class_tetrahedron_10.cc"

@@ -1,5 +1,5 @@
 /**
- * @file   test_interpolate_triangle_2
+ * @file   test_gradient_triangle_6.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -27,20 +27,18 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  ElementType type = _triangle_2;
+  ElementType type = _triangle_6;
   UInt dim = 2;
 
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
-
-  mesh_io.read("triangle2.msh", my_mesh);
-
+  mesh_io.read("triangle_6.msh", my_mesh);
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
-
-  //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
+
+  //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   std::cout << *fem << std::endl;
 
@@ -48,27 +46,23 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2, "val_on_quad");
+  Vector<Real> grad_on_quad(0, 2 * dim, "grad_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
     const_val.values[i * 2 + 1] = 2.;
   }
 
-  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
+  fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, type);
   std::ofstream my_file("out.txt");
   my_file << const_val << std::endl;
-  my_file << val_on_quad << std::endl;
+  my_file << grad_on_quad << std::endl;
 
-  // interpolate coordinates
-  Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension(), "coord_on_quad");
-
-  fem->interpolateOnQuadraturePoints(my_mesh.getNodes(),
-				     coord_on_quad,
-				     my_mesh.getSpatialDimension(),
-				     type);
+  // compute gradient of coordinates
+  Vector<Real> grad_coord_on_quad(0, dim * dim, "grad_coord_on_quad");
+  fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), type);
   my_file << my_mesh.getNodes() << std::endl;
-  my_file << coord_on_quad << std::endl;
+  my_file << grad_coord_on_quad << std::endl;
 
   delete fem;
   finalize();

@@ -1,5 +1,5 @@
 /**
- * @file   fem.cc
+ * @file   test_gradient_triangle_3.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -29,7 +29,7 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(2);
-  mesh_io.read("triangle.msh", my_mesh);
+  mesh_io.read("triangle_3.msh", my_mesh);
   FEM *fem = new FEM(my_mesh,2,"my_fem");
 
   debug::setDebugLevel(dblDump);
@@ -48,14 +48,14 @@ int main(int argc, char *argv[]) {
     const_val.values[i * 2 + 1] = 2.;
   }
 
-  fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, _triangle_1);
+  fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, _triangle_3);
   std::ofstream my_file("out.txt");
   my_file << const_val << std::endl;
   my_file << grad_on_quad << std::endl;
 
   // compute gradient of coordinates
   Vector<Real> grad_coord_on_quad(0, 4, "grad_coord_on_quad");
-  fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), _triangle_1);
+  fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), _triangle_3);
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
   

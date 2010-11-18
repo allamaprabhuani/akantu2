@@ -1,7 +1,7 @@
 /**
- * @file   test_gradient_triangle_2
+ * @file   test_gradient_segment_3.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Jul 19 10:55:49 2010
+ * @date   Sun Oct  3 17:04:25 2010
  *
  * @brief  test of the fem class
  *
@@ -27,12 +27,12 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  ElementType type = _triangle_2;
-  UInt dim = 2;
+  ElementType type = _segment_3;
+  UInt dim = 1;
 
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
-  mesh_io.read("triangle2.msh", my_mesh);
+  mesh_io.read("segment_3.msh", my_mesh);
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
   debug::setDebugLevel(dblDump);
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> grad_on_quad(0, 2 * dim, "grad_on_quad");
+  Vector<Real> grad_on_quad(0, 2 * dim , "grad_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;

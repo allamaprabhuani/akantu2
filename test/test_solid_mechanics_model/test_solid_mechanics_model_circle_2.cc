@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
   UInt max_steps = 10000;
   Real epot, ekin;
 
-  ElementType type = _line_2;
+  ElementType type = _segment_3;
 
   Mesh mesh(2);
   MeshIOMSH mesh_io;
@@ -157,15 +157,15 @@ int main(int argc, char *argv[])
   dumper.SetMode(BASE64);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_2).values,
-			 TRIANGLE2, model->getFEM().getMesh().getNbElement(_triangle_2), C_MODE);
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_6).values,
+			 TRIANGLE2, model->getFEM().getMesh().getNbElement(_triangle_6), C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model->getForce().values, 2, "force");
   dumper.AddNodeDataField(model->getMass().values, 1, "Mass");
   dumper.AddNodeDataField(model->getResidual().values, 2, "residual");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_2).values, 4, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_2).values, 4, "stress");
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_6).values, 4, "strain");
+  dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_6).values, 4, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("force", 1);
   dumper.SetEmbeddedValue("residual", 1);

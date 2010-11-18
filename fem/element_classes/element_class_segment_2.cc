@@ -1,9 +1,9 @@
 /**
- * @file   element_class_line_1.cc
+ * @file   element_class_segment_2.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 15 10:28:28 2010
  *
- * @brief  Specialization of the element_class class for the type _line_1
+ * @brief  Specialization of the element_class class for the type _segment_2
  *
  * @section LICENSE
  *
@@ -30,13 +30,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_line_1>::nb_nodes_per_element;
-template<> UInt ElementClass<_line_1>::nb_quadrature_points;
-template<> UInt ElementClass<_line_1>::spatial_dimension;
+template<> UInt ElementClass<_segment_2>::nb_nodes_per_element;
+template<> UInt ElementClass<_segment_2>::nb_quadrature_points;
+template<> UInt ElementClass<_segment_2>::spatial_dimension;
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_line_1>::computeShapes(const Real * natural_coords, 
+template <> inline void ElementClass<_segment_2>::computeShapes(const Real * natural_coords, 
 							     Real * shapes){
 
   /// natural coordinate
@@ -46,7 +46,7 @@ template <> inline void ElementClass<_line_1>::computeShapes(const Real * natura
   shapes[1] =0.5*(1+c);
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_line_1>::computeDNDS(__attribute__ ((unused)) 
+template <> inline void ElementClass<_segment_2>::computeDNDS(__attribute__ ((unused)) 
 							   const Real * natural_coords,
 							   Real * dnds){
   /// dN1/de
@@ -57,7 +57,7 @@ template <> inline void ElementClass<_line_1>::computeDNDS(__attribute__ ((unuse
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_line_1>::computeJacobian(const Real * dxds,
+template <> inline void ElementClass<_segment_2>::computeJacobian(const Real * dxds,
 								   const UInt dimension, 
 								   Real & jac){
 
@@ -72,7 +72,7 @@ template <> inline void ElementClass<_line_1>::computeJacobian(const Real * dxds
 }
  
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_line_1>::getInradius(const Real * coord) {
+template<> inline Real ElementClass<_segment_2>::getInradius(const Real * coord) {
   return sqrt((coord[0] - coord[1])*(coord[0] - coord[1]));
 }
 

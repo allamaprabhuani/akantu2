@@ -1,9 +1,9 @@
 /**
- * @file   element_class_triangle_1.cc
+ * @file   element_class_triangle_3.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 15 10:28:28 2010
  *
- * @brief  Specialization of the element_class class for the type _triangle_1
+ * @brief  Specialization of the element_class class for the type _triangle_3
  *
  * @section LICENSE
  *
@@ -44,12 +44,12 @@
 
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_triangle_1>::nb_nodes_per_element;
-template<> UInt ElementClass<_triangle_1>::nb_quadrature_points;
-template<> UInt ElementClass<_triangle_1>::spatial_dimension;
+template<> UInt ElementClass<_triangle_3>::nb_nodes_per_element;
+template<> UInt ElementClass<_triangle_3>::nb_quadrature_points;
+template<> UInt ElementClass<_triangle_3>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_1>::computeShapes(const Real * natural_coords, 
+template <> inline void ElementClass<_triangle_3>::computeShapes(const Real * natural_coords, 
 							    Real * shapes){
 
   /// Natural coordinates
@@ -62,7 +62,7 @@ template <> inline void ElementClass<_triangle_1>::computeShapes(const Real * na
   shapes[2] = c2; /// N3(q_0)
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_1>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
+template <> inline void ElementClass<_triangle_3>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
 							       Real * dnds){
 
   /**
@@ -82,7 +82,7 @@ template <> inline void ElementClass<_triangle_1>::computeDNDS(__attribute__ ((u
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_1>::computeJacobian(const Real * dxds,
+template <> inline void ElementClass<_triangle_3>::computeJacobian(const Real * dxds,
 								   const UInt dimension, 
 								   Real & jac){
 
@@ -99,6 +99,6 @@ template <> inline void ElementClass<_triangle_1>::computeJacobian(const Real * 
 
 
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_triangle_1>::getInradius(const Real * coord) {
+template<> inline Real ElementClass<_triangle_3>::getInradius(const Real * coord) {
   return Math::triangle_inradius(coord, coord+2, coord+4);
 }

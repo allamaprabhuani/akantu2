@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
   
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedra_1).values,
-   			 TETRA1, my_mesh.getNbElement(_tetrahedra_1), C_MODE);
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_6).values,
+   			 TETRA1, my_mesh.getNbElement(_tetrahedron_6), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
 
   dumper_surface.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
   
-  dumper_surface.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_1).values,
-				 TRIANGLE1, my_mesh.getNbElement(_triangle_1), C_MODE);
-  double * surf_id = new double [my_mesh.getSurfaceId(_triangle_1).getSize()];
-  for (UInt i = 0; i < my_mesh.getSurfaceId(_triangle_1).getSize(); ++i)
-    surf_id[i] = (double)my_mesh.getSurfaceId(_triangle_1).values[i];
+  dumper_surface.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
+				 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
+  double * surf_id = new double [my_mesh.getSurfaceId(_triangle_3).getSize()];
+  for (UInt i = 0; i < my_mesh.getSurfaceId(_triangle_3).getSize(); ++i)
+    surf_id[i] = (double)my_mesh.getSurfaceId(_triangle_3).values[i];
   dumper_surface.AddElemDataField(surf_id, 1, "surface_id");
   delete [] surf_id;
   dumper_surface.SetPrefix("paraview/");
@@ -118,8 +118,8 @@ int main(int argc, char *argv[])
 
   dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-neighbor-elements");
   
-  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_1).values,
-				 TRIANGLE1, my_mesh.getNbElement(_triangle_1), C_MODE);
+  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
+				 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
 
   UInt nb_nodes_neigh = my_neighbor_list->nb_nodes;
   Vector<UInt> impact_nodes = my_neighbor_list->impactor_nodes;
@@ -132,11 +132,11 @@ int main(int argc, char *argv[])
   }
   std::cout << std::endl;
 
-  UInt * node_to_elem_offset_val = my_neighbor_list->facets_offset[_triangle_1]->values;
-  UInt * node_to_elem_val = my_neighbor_list->facets[_triangle_1]->values;
+  UInt * node_to_elem_offset_val = my_neighbor_list->facets_offset[_triangle_3]->values;
+  UInt * node_to_elem_val = my_neighbor_list->facets[_triangle_3]->values;
 
-  double * neigh_elem = new double [my_mesh.getNbElement(_triangle_1)];
-  for (UInt i = 0; i < my_mesh.getNbElement(_triangle_1); ++i)
+  double * neigh_elem = new double [my_mesh.getNbElement(_triangle_3)];
+  for (UInt i = 0; i < my_mesh.getNbElement(_triangle_3); ++i)
     neigh_elem[i] = 0.0; 
   
   UInt visualize_node = 7;

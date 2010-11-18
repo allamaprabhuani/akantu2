@@ -33,91 +33,91 @@ template<> UInt ElementClass<_point>::nb_facets                = 0;
 template<> UInt * ElementClass<_point>::facet_connectivity[]   = {};
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_line_1>::nb_nodes_per_element    = 2;
-template<> ElementType ElementClass<_line_1>::p1_element_type  = _line_1;
-template<> UInt ElementClass<_line_1>::nb_quadrature_points    = 1;
-template<> Real ElementClass<_line_1>::quad[] = {0};
-template<> UInt ElementClass<_line_1>::spatial_dimension       = 1;
-template<> UInt ElementClass<_line_1>::nb_facets               = 2;
-template<> ElementType ElementClass<_line_1>::facet_type       = _point;
-template<> UInt ElementClass<_line_1>::vec_facet_connectivity[]= {0,
-								  1};
-template<> UInt * ElementClass<_line_1>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-								  &vec_facet_connectivity[1]};
+template<> UInt ElementClass<_segment_2>::nb_nodes_per_element    = 2;
+template<> ElementType ElementClass<_segment_2>::p1_element_type  = _segment_2;
+template<> UInt ElementClass<_segment_2>::nb_quadrature_points    = 1;
+template<> Real ElementClass<_segment_2>::quad[] = {0};
+template<> UInt ElementClass<_segment_2>::spatial_dimension       = 1;
+template<> UInt ElementClass<_segment_2>::nb_facets               = 2;
+template<> ElementType ElementClass<_segment_2>::facet_type       = _point;
+template<> UInt ElementClass<_segment_2>::vec_facet_connectivity[]= {0,
+								     1};
+template<> UInt * ElementClass<_segment_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+								     &vec_facet_connectivity[1]};
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_line_2>::nb_nodes_per_element    = 3;
-template<> ElementType ElementClass<_line_2>::p1_element_type  = _line_1;
-template<> UInt ElementClass<_line_2>::nb_quadrature_points    = 2;
-template<> Real ElementClass<_line_2>::quad[] = {-1./sqrt(3.),1./sqrt(3.)};
-template<> UInt ElementClass<_line_2>::spatial_dimension       = 1;
-template<> UInt ElementClass<_line_2>::nb_facets               = 2;
-template<> ElementType ElementClass<_line_2>::facet_type       = _point;
-template<> UInt ElementClass<_line_2>::vec_facet_connectivity[]= {0,
-								  1};
-template<> UInt * ElementClass<_line_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-								  &vec_facet_connectivity[1]};
+template<> UInt ElementClass<_segment_3>::nb_nodes_per_element    = 3;
+template<> ElementType ElementClass<_segment_3>::p1_element_type  = _segment_2;
+template<> UInt ElementClass<_segment_3>::nb_quadrature_points    = 2;
+template<> Real ElementClass<_segment_3>::quad[] = {-1./sqrt(3.),1./sqrt(3.)};
+template<> UInt ElementClass<_segment_3>::spatial_dimension       = 1;
+template<> UInt ElementClass<_segment_3>::nb_facets               = 2;
+template<> ElementType ElementClass<_segment_3>::facet_type       = _point;
+template<> UInt ElementClass<_segment_3>::vec_facet_connectivity[]= {0,
+								     1};
+template<> UInt * ElementClass<_segment_3>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+								     &vec_facet_connectivity[1]};
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_triangle_1>::nb_nodes_per_element    = 3;
-template<> ElementType ElementClass<_triangle_1>::p1_element_type  = _triangle_1;
-template<> UInt ElementClass<_triangle_1>::nb_quadrature_points    = 1;
-template<> Real ElementClass<_triangle_1>::quad[] = {1./3., 1./3.};
-template<> UInt ElementClass<_triangle_1>::spatial_dimension       = 2;
-template<> UInt ElementClass<_triangle_1>::nb_facets               = 3;
-template<> ElementType ElementClass<_triangle_1>::facet_type       = _line_1;
-template<> UInt ElementClass<_triangle_1>::vec_facet_connectivity[]= {0, 1,
+template<> UInt ElementClass<_triangle_3>::nb_nodes_per_element    = 3;
+template<> ElementType ElementClass<_triangle_3>::p1_element_type  = _triangle_3;
+template<> UInt ElementClass<_triangle_3>::nb_quadrature_points    = 1;
+template<> Real ElementClass<_triangle_3>::quad[] = {1./3., 1./3.};
+template<> UInt ElementClass<_triangle_3>::spatial_dimension       = 2;
+template<> UInt ElementClass<_triangle_3>::nb_facets               = 3;
+template<> ElementType ElementClass<_triangle_3>::facet_type       = _segment_2;
+template<> UInt ElementClass<_triangle_3>::vec_facet_connectivity[]= {0, 1,
 								      1, 2,
 								      2, 0};
-template<> UInt * ElementClass<_triangle_1>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+template<> UInt * ElementClass<_triangle_3>::facet_connectivity[]  = {&vec_facet_connectivity[0],
 								      &vec_facet_connectivity[2],
 								      &vec_facet_connectivity[4]};
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_triangle_2>::nb_nodes_per_element    = 6;
-template<> ElementType ElementClass<_triangle_2>::p1_element_type  = _triangle_1;
-template<> UInt ElementClass<_triangle_2>::nb_quadrature_points    = 3;
-template<> Real ElementClass<_triangle_2>::quad[] = {1./6., 1./6.,
+template<> UInt ElementClass<_triangle_6>::nb_nodes_per_element    = 6;
+template<> ElementType ElementClass<_triangle_6>::p1_element_type  = _triangle_3;
+template<> UInt ElementClass<_triangle_6>::nb_quadrature_points    = 3;
+template<> Real ElementClass<_triangle_6>::quad[] = {1./6., 1./6.,
                                                      2./3., 1./6.,
                                                      1./6., 2./3.};
-template<> UInt ElementClass<_triangle_2>::spatial_dimension       = 2;
-template<> UInt ElementClass<_triangle_2>::nb_facets               = 3;
-template<> ElementType ElementClass<_triangle_2>::facet_type       = _line_2;
-template<> UInt ElementClass<_triangle_2>::vec_facet_connectivity[]= {0, 1, 3,
+template<> UInt ElementClass<_triangle_6>::spatial_dimension       = 2;
+template<> UInt ElementClass<_triangle_6>::nb_facets               = 3;
+template<> ElementType ElementClass<_triangle_6>::facet_type       = _segment_3;
+template<> UInt ElementClass<_triangle_6>::vec_facet_connectivity[]= {0, 1, 3,
 								      1, 2, 4,
 								      2, 0, 5};
-template<> UInt * ElementClass<_triangle_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+template<> UInt * ElementClass<_triangle_6>::facet_connectivity[]  = {&vec_facet_connectivity[0],
 								      &vec_facet_connectivity[3],
 								      &vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_tetrahedra_1>::nb_nodes_per_element    = 4;
-template<> ElementType ElementClass<_tetrahedra_1>::p1_element_type  = _tetrahedra_1;
-template<> UInt ElementClass<_tetrahedra_1>::nb_quadrature_points    = 1;
-template<> Real ElementClass<_tetrahedra_1>::quad[] = {1./4., 1./4.,1./4.};
-template<> UInt ElementClass<_tetrahedra_1>::spatial_dimension       = 3;
-template<> UInt ElementClass<_tetrahedra_1>::nb_facets               = 4;
-template<> ElementType ElementClass<_tetrahedra_1>::facet_type       = _triangle_1;
-template<> UInt ElementClass<_tetrahedra_1>::vec_facet_connectivity[]= {0, 2, 1,
-									1, 2, 3,
-									2, 0, 3,
-									0, 1, 3};
-template<> UInt * ElementClass<_tetrahedra_1>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-									&vec_facet_connectivity[3],
-									&vec_facet_connectivity[6],
-									&vec_facet_connectivity[9]};
+template<> UInt ElementClass<_tetrahedron_6>::nb_nodes_per_element    = 4;
+template<> ElementType ElementClass<_tetrahedron_6>::p1_element_type  = _tetrahedron_6;
+template<> UInt ElementClass<_tetrahedron_6>::nb_quadrature_points    = 1;
+template<> Real ElementClass<_tetrahedron_6>::quad[] = {1./4., 1./4.,1./4.};
+template<> UInt ElementClass<_tetrahedron_6>::spatial_dimension       = 3;
+template<> UInt ElementClass<_tetrahedron_6>::nb_facets               = 4;
+template<> ElementType ElementClass<_tetrahedron_6>::facet_type       = _triangle_3;
+template<> UInt ElementClass<_tetrahedron_6>::vec_facet_connectivity[]= {0, 2, 1,
+									 1, 2, 3,
+									 2, 0, 3,
+									 0, 1, 3};
+template<> UInt * ElementClass<_tetrahedron_6>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+									 &vec_facet_connectivity[3],
+									 &vec_facet_connectivity[6],
+									 &vec_facet_connectivity[9]};
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_tetrahedra_2>::nb_nodes_per_element    = 10;
-template<> ElementType ElementClass<_tetrahedra_2>::p1_element_type  = _tetrahedra_1;
-template<> UInt ElementClass<_tetrahedra_2>::nb_quadrature_points    = 4;
-template<> Real ElementClass<_tetrahedra_2>::quad[] = {};
-template<> UInt ElementClass<_tetrahedra_2>::spatial_dimension       = 3;
-template<> UInt ElementClass<_tetrahedra_2>::nb_facets               = 4;
-template<> ElementType ElementClass<_tetrahedra_2>::facet_type       = _triangle_2;
-template<> UInt ElementClass<_tetrahedra_2>::vec_facet_connectivity[]= {0, 2, 1, 6, 5, 4,
-									1, 2, 3, 5, 8, 9,
-									2, 0, 3, 8, 7, 6,
-									0, 1, 3, 4, 9, 7};
-template<> UInt * ElementClass<_tetrahedra_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-									&vec_facet_connectivity[3],
-									&vec_facet_connectivity[6],
-									&vec_facet_connectivity[9]};
+template<> UInt ElementClass<_tetrahedron_10>::nb_nodes_per_element    = 10;
+template<> ElementType ElementClass<_tetrahedron_10>::p1_element_type  = _tetrahedron_6;
+template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points    = 4;
+template<> Real ElementClass<_tetrahedron_10>::quad[] = {};
+template<> UInt ElementClass<_tetrahedron_10>::spatial_dimension       = 3;
+template<> UInt ElementClass<_tetrahedron_10>::nb_facets               = 4;
+template<> ElementType ElementClass<_tetrahedron_10>::facet_type       = _triangle_6;
+template<> UInt ElementClass<_tetrahedron_10>::vec_facet_connectivity[]= {0, 2, 1, 6, 5, 4,
+									  1, 2, 3, 5, 8, 9,
+									  2, 0, 3, 8, 7, 6,
+									  0, 1, 3, 4, 9, 7};
+template<> UInt * ElementClass<_tetrahedron_10>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+									  &vec_facet_connectivity[3],
+									  &vec_facet_connectivity[6],
+									  &vec_facet_connectivity[9]};
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__

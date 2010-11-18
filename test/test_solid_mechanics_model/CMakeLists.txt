@@ -37,12 +37,12 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
     test_bar_traction_2d_mesh2)
 
 
-  add_mesh(test_solid_mechanics_model_line_mesh line.geo 1 2)
+  add_mesh(test_solid_mechanics_model_segment_mesh segment.geo 1 2)
 
-  register_test(test_solid_mechanics_model_line_parallel
-    test_solid_mechanics_model_line_parallel.cc)
-  add_dependencies(test_solid_mechanics_model_line_parallel
-    test_solid_mechanics_model_line_mesh)
+  register_test(test_solid_mechanics_model_segment_parallel
+    test_solid_mechanics_model_segment_parallel.cc)
+  add_dependencies(test_solid_mechanics_model_segment_parallel
+    test_solid_mechanics_model_segment_mesh)
 endif()
 
 #===============================================================================

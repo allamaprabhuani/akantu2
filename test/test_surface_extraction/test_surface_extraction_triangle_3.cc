@@ -1,7 +1,7 @@
 /**
- * @file   test_surface_extraction_3d.cc
+ * @file   test_surface_extraction_2d.cc
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Mon Oct 25 11:40:12 2010
+ * @date   Mon Oct 25 09:47:15 2010
  *
  * @brief  
  *
@@ -29,11 +29,11 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 3;
+  int dim = 2;
 
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("cubes.msh", mesh);
+  mesh_io.read("squares.msh", mesh);
   
   MeshUtils::buildFacets(mesh,1,0);
   MeshUtils::buildSurfaceID(mesh);
@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedra_1).values,
-   			 TETRA1, mesh.getNbElement(_tetrahedra_1), C_MODE);
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
+   			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -55,11 +55,11 @@ int main(int argc, char *argv[])
 
   dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
   
-  dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_triangle_1).values,
-  			       TRIANGLE1, mesh.getNbElement(_triangle_1), C_MODE);
-  double * surf_id = new double [mesh.getSurfaceId(_triangle_1).getSize()];
-  for (UInt i = 0; i < mesh.getSurfaceId(_triangle_1).getSize(); ++i)
-    surf_id[i] = (double)mesh.getSurfaceId(_triangle_1).values[i];
+  dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
+			       LINE1, mesh.getNbElement(_segment_2), C_MODE);
+  double * surf_id = new double [mesh.getSurfaceId(_segment_2).getSize()];
+  for (UInt i = 0; i < mesh.getSurfaceId(_segment_2).getSize(); ++i)
+    surf_id[i] = (double)mesh.getSurfaceId(_segment_2).values[i];
   dumper_surface.AddElemDataField(surf_id, 1, "surface_id");
   delete [] surf_id;
   dumper_surface.SetPrefix("paraview/");

@@ -32,7 +32,7 @@
 
 int main(int argc, char *argv[])
 {
-  akantu::ElementType type = akantu::_triangle_1;
+  akantu::ElementType type = akantu::_triangle_3;
   akantu::UInt paraview_type = TRIANGLE1;
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;

@@ -51,7 +51,7 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     switch(*it) {
-    case _triangle_2:
+    case _triangle_6:
       assembleMassLumpedDiagonalScaling(ghost_type, *it);
       break;
     default: assembleMassLumpedRowSum(ghost_type, *it);
@@ -134,7 +134,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
   Real corner_factor = 0;
   Real mid_factor    = 0;
   switch(type){
-  case _triangle_2 :
+  case _triangle_6 :
     corner_factor = 1./12.;
     mid_factor    = 1./4.;
     break;

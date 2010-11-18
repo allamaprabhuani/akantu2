@@ -1,5 +1,5 @@
 /**
- * @file   fem.cc
+ * @file   test_gradient_tetrahedron_6.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -28,11 +28,11 @@ using namespace akantu;
 
 int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
-  Mesh my_mesh(2);
-  mesh_io.read("triangle.msh", my_mesh);
-  FEM *fem = new FEM(my_mesh,2,"my_fem");
+  Mesh my_mesh(3);
+  mesh_io.read("cube.msh", my_mesh);
+  FEM *fem = new FEM(my_mesh,3,"my_fem");
 
-  debug::_debug_level = dblDump;
+  debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
 
   std::cout << *fem << std::endl;
@@ -41,28 +41,24 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2, "val_on_quad");
+  Vector<Real> grad_on_quad(0, 2*3, "grad_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
     const_val.values[i * 2 + 1] = 2.;
   }
-  //interpolate function on quadrature points
-  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, _triangle_1);
-  //integrate function on elements
-  akantu::Vector<akantu::Real> int_val_on_elem(0, 2, "int_val_on_elem");
-  fem->integrate(val_on_quad,int_val_on_elem,2,_triangle_1);
-  // get global integration value
-  Real value[2] = {0,0};
+
+  fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, _tetrahedron_6);
   std::ofstream my_file("out.txt");
-  my_file << int_val_on_elem << std::endl;
-  for (UInt i = 0; i < fem->getMesh().getNbElement(_triangle_1); ++i) {
-    value[0] += int_val_on_elem.values[2*i];
-    value[1] += int_val_on_elem.values[2*i+1];
-  }
+  my_file << const_val << std::endl;
+  my_file << grad_on_quad << std::endl;
 
-  my_file << "integral is " << value[0] << " " << value[1] << std::endl;
-
+  // compute gradient of coordinates
+  Vector<Real> grad_coord_on_quad(0, 9, "grad_coord_on_quad");
+  fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), _tetrahedron_6);
+  my_file << my_mesh.getNodes() << std::endl;
+  my_file << grad_coord_on_quad << std::endl;
+  
 
 
   //  delete fem;

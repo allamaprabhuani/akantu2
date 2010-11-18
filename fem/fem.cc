@@ -141,12 +141,12 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 
     switch(type) {
-    case _line_1       : { COMPUTE_SHAPES(_line_1      ); break; }
-    case _line_2       : { COMPUTE_SHAPES(_line_2      ); break; }
-    case _triangle_1   : { COMPUTE_SHAPES(_triangle_1  ); break; }
-    case _triangle_2   : { COMPUTE_SHAPES(_triangle_2  ); break; }
-    case _tetrahedra_1 : { COMPUTE_SHAPES(_tetrahedra_1); break; }
-    case _tetrahedra_2 : { COMPUTE_SHAPES(_tetrahedra_2); break; }
+    case _segment_2       : { COMPUTE_SHAPES(_segment_2      ); break; }
+    case _segment_3       : { COMPUTE_SHAPES(_segment_3      ); break; }
+    case _triangle_3   : { COMPUTE_SHAPES(_triangle_3  ); break; }
+    case _triangle_6   : { COMPUTE_SHAPES(_triangle_6  ); break; }
+    case _tetrahedron_6 : { COMPUTE_SHAPES(_tetrahedron_6); break; }
+    case _tetrahedron_10 : { COMPUTE_SHAPES(_tetrahedron_10); break; }
     case _point:
     case _not_defined:
     case _max_element_type:  {
@@ -228,12 +228,12 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     } while(0)
 
     switch(type) {
-    case _line_1       : { COMPUTE_NORMALS_ON_QUAD(_line_1      ); break; }
-    case _line_2       : { COMPUTE_NORMALS_ON_QUAD(_line_2      ); break; }
-    case _triangle_1   : { COMPUTE_NORMALS_ON_QUAD(_triangle_1  ); break; }
-    case _triangle_2   : { COMPUTE_NORMALS_ON_QUAD(_triangle_2  ); break; }
-    case _tetrahedra_1 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedra_1); break; }
-    case _tetrahedra_2 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedra_2); break; }
+    case _segment_2       : { COMPUTE_NORMALS_ON_QUAD(_segment_2      ); break; }
+    case _segment_3       : { COMPUTE_NORMALS_ON_QUAD(_segment_3      ); break; }
+    case _triangle_3   : { COMPUTE_NORMALS_ON_QUAD(_triangle_3  ); break; }
+    case _triangle_6   : { COMPUTE_NORMALS_ON_QUAD(_triangle_6  ); break; }
+    case _tetrahedron_6 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_6); break; }
+    case _tetrahedron_10 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_10); break; }
     case _point:
     case _not_defined:
     case _max_element_type:  {

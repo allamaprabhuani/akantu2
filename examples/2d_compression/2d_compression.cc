@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_elements = model->getFEM().getMesh().getNbElement(akantu::_triangle_1);
+  akantu::UInt nb_elements = model->getFEM().getMesh().getNbElement(akantu::_triangle_3);
 
   /// model initialization
   model->initVectors();
@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
   /// Paraview Helper
   memset(model->getResidual().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getMaterial(0).getStrain(akantu::_triangle_1).values, 0,
+  memset(model->getMaterial(0).getStrain(akantu::_triangle_3).values, 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(akantu::Real));
-  memset(model->getMaterial(0).getStress(akantu::_triangle_1).values, 0,
+  memset(model->getMaterial(0).getStress(akantu::_triangle_3).values, 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(akantu::Real));
 
 
@@ -200,12 +200,12 @@ static void InitParaview(akantu::SolidMechanicsModel * model)
 {
   akantu::UInt spatial_dimension = model->getSpatialDimension();
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_elements = model->getFEM().getMesh().getNbElement(akantu::_triangle_1);
+  akantu::UInt nb_elements = model->getFEM().getMesh().getNbElement(akantu::_triangle_3);
 
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_triangle_1).values,
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_triangle_3).values,
 			 TRIANGLE1, nb_elements, C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
@@ -213,9 +213,9 @@ static void InitParaview(akantu::SolidMechanicsModel * model)
 			  spatial_dimension, "velocity");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_triangle_1).values,
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_triangle_3).values,
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_triangle_1).values,
+  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_triangle_3).values,
 			  spatial_dimension*spatial_dimension, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");

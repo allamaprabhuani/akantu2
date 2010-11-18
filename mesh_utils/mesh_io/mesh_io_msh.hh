@@ -58,17 +58,17 @@ private:
   /// MSH element types
   enum MSHElementType {
     _msh_not_defined   = 0,
-    _msh_line_1        = 1,   // 2-node line.
-    _msh_triangle_1    = 2,   // 3-node triangle.
+    _msh_segment_2        = 1,   // 2-node line.
+    _msh_triangle_3    = 2,   // 3-node triangle.
     _msh_quadrangle_1  = 3,   // 4-node quadrangle.
-    _msh_tetrahedron_1 = 4,   // 4-node tetrahedron.
+    _msh_tetrahedron_6 = 4,   // 4-node tetrahedron.
     _msh_hexaedron_1   = 5,   // 8-node hexahedron.
     _msh_prism_1       = 6,   // 6-node prism.
     _msh_pyramid_1     = 7,   // 5-node pyramid.
-    _msh_line_2        = 8,   // 3-node second order line
-    _msh_triangle_2    = 9,   // 6-node second order triangle
+    _msh_segment_3        = 8,   // 3-node second order line
+    _msh_triangle_6    = 9,   // 6-node second order triangle
     _msh_quadrangle_2  = 10,  // 9-node second order quadrangle
-    _msh_tetrahedron_2 = 11,  // 10-node second order tetrahedron
+    _msh_tetrahedron_10 = 11,  // 10-node second order tetrahedron
     _msh_hexaedron_2   = 12,  // 27-node second order hexahedron
     _msh_prism_2       = 13,  // 18-node second order prism
     _msh_pyramid_2     = 14,  // 14-node second order pyramid

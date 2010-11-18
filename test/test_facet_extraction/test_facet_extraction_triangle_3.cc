@@ -30,11 +30,11 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 3;
+  int dim = 2;
 
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("cube.msh", mesh);
+  mesh_io.read("square.msh", mesh);
   
   MeshUtils::buildFacets(mesh,1,1);
 
@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedra_1).values,
-			 TETRA1, mesh.getNbElement(_tetrahedra_1), C_MODE);
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
+   			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -54,18 +54,17 @@ int main(int argc, char *argv[])
   dumper_facet.SetMode(TEXT);
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_boundary");
-  dumper_facet.SetConnectivity((int*)mesh.getConnectivity(_triangle_1).values,
-			 TRIANGLE1, mesh.getNbElement(_triangle_1), C_MODE);
+  dumper_facet.SetConnectivity((int*)mesh.getConnectivity(_segment_2).values,
+			       LINE1, mesh.getNbElement(_segment_2), C_MODE);
   dumper_facet.SetPrefix("paraview/");
   dumper_facet.Init();
   dumper_facet.Dump();
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
-  dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(_triangle_1).values,
-  			       TRIANGLE1, mesh.getInternalFacetsMesh().getNbElement(_triangle_1), C_MODE);
+  dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(_segment_2).values,
+  			       LINE1, mesh.getInternalFacetsMesh().getNbElement(_segment_2), C_MODE);
   dumper_facet.Init();
   dumper_facet.Dump();
-
 
 #endif //AKANTU_USE_IOHELPER
 

@@ -1,9 +1,9 @@
 /**
- * @file   element_class_tetrahedra_1.cc
+ * @file   element_class_tetrahedron_6.cc
  * @author Guillaume ANCIAUX <anciaux@epfl.ch>
  * @date   Mon Aug 16 18:09:53 2010
  *
- * @brief  Specialization of the element_class class for the type _tetrahedra_1
+ * @brief  Specialization of the element_class class for the type _tetrahedron_6
  *
  * @section LICENSE
  *
@@ -52,13 +52,13 @@
 
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_tetrahedra_1>::nb_nodes_per_element;
-template<> UInt ElementClass<_tetrahedra_1>::nb_quadrature_points;
-template<> UInt ElementClass<_tetrahedra_1>::spatial_dimension;
+template<> UInt ElementClass<_tetrahedron_6>::nb_nodes_per_element;
+template<> UInt ElementClass<_tetrahedron_6>::nb_quadrature_points;
+template<> UInt ElementClass<_tetrahedron_6>::spatial_dimension;
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedra_1>::computeShapes(const Real * natural_coords, 
+template <> inline void ElementClass<_tetrahedron_6>::computeShapes(const Real * natural_coords, 
 								   Real * shapes){
   Real c0 = natural_coords[1]; /// @f$ c0 = \eta @f$
   Real c1 = natural_coords[2]; /// @f$ c1 = \zeta @f$
@@ -71,7 +71,7 @@ template <> inline void ElementClass<_tetrahedra_1>::computeShapes(const Real * 
   shapes[3] = c3;
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedra_1>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
+template <> inline void ElementClass<_tetrahedron_6>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
 								 Real * dnds) {
 
   /**
@@ -98,7 +98,7 @@ template <> inline void ElementClass<_tetrahedra_1>::computeDNDS(__attribute__ (
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedra_1>::computeJacobian(const Real * dxds,
+template <> inline void ElementClass<_tetrahedron_6>::computeJacobian(const Real * dxds,
 								     const UInt dimension, 
 								     Real & jac) {
 
@@ -113,6 +113,6 @@ template <> inline void ElementClass<_tetrahedra_1>::computeJacobian(const Real 
 }
  
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_tetrahedra_1>::getInradius(const Real * coord) {
+template<> inline Real ElementClass<_tetrahedron_6>::getInradius(const Real * coord) {
   return Math::tetrahedron_inradius(coord);
 }

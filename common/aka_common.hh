@@ -86,12 +86,12 @@ typedef UInt Surface;
 /// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
   _not_defined  = 0,
-  _line_1       = 1, /// first  order segment
-  _line_2       = 2, /// second order segment
-  _triangle_1   = 3, /// first  order triangle
-  _triangle_2   = 4, /// second order triangle
-  _tetrahedra_1 = 5, /// first  order tetrahedron
-  _tetrahedra_2 = 6, /// second order tetrahedron @remark not implemented yet
+  _segment_2       = 1, /// first  order segment
+  _segment_3       = 2, /// second order segment
+  _triangle_3   = 3, /// first  order triangle
+  _triangle_6   = 4, /// second order triangle
+  _tetrahedron_6 = 5, /// first  order tetrahedron
+  _tetrahedron_10 = 6, /// second order tetrahedron @remark not implemented yet
   _max_element_type,
   _point /// point only for some algorithm to be generic like mesh partitioning
 };
@@ -211,12 +211,12 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
   switch(type)
     {
-    case _line_1       : stream << "line_1"  ; break;
-    case _line_2       : stream << "line_2"  ; break;
-    case _triangle_1   : stream << "triangle_1"  ; break;
-    case _triangle_2   : stream << "triangle_2"  ; break;
-    case _tetrahedra_1 : stream << "tetrahedra_1"; break;
-    case _tetrahedra_2 : stream << "tetrahedra_2"; break;
+    case _segment_2       : stream << "segment_2"  ; break;
+    case _segment_3       : stream << "segment_3"  ; break;
+    case _triangle_3   : stream << "triangle_3"  ; break;
+    case _triangle_6   : stream << "triangle_6"  ; break;
+    case _tetrahedron_6 : stream << "tetrahedron_6"; break;
+    case _tetrahedron_10 : stream << "tetrahedron_10"; break;
     case _not_defined  : stream << "undefined" ; break;
     case _max_element_type :  stream << "ElementType(" << (int) type << ")"; break;
     case _point        : stream << "point"; break;
