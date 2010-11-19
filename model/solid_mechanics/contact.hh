@@ -36,6 +36,7 @@ class Contact : public Memory {
   /* ------------------------------------------------------------------------ */
 protected:
   Contact(const SolidMechanicsModel & model,
+	  const ContactType & type,
 	  const ContactID & id = "contact",
 	  const MemoryID & memory_id = 0);
 
@@ -55,6 +56,15 @@ public:
 public:
   /// update the internal structures
   virtual void initContact(bool add_surfaces_flag = true);
+
+  /// initiate the contact search structure
+  virtual void initSearch();
+
+  /// initialize all neighbor structures
+  virtual void initNeighborStructure();
+
+  /// initialize one neighbor structure
+  virtual void initNeighborStructure(const Surface & master_surface);
 
   /// check if the neighbor structure need an update
   virtual void checkAndUpdate();
@@ -89,6 +99,8 @@ public:
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NodeToElements, node_to_elements, const Vector<UInt> &);
 
+  AKANTU_GET_MACRO(Type, type, const ContactType &);
+
   void setContactSearch(ContactSearch & contact_search) {
     this->contact_search = &contact_search;
   }
@@ -120,6 +132,9 @@ private:
 
   /// list of surface elements id (elements can occur multiple times)
   ByElementTypeUInt node_to_elements;
+
+  /// type of contact object
+  ContactType type;
 };
 
 

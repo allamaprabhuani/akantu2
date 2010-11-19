@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 
   my_contact->addMasterSurface(master);
   
-  NeighborList * my_neighbor_list = const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList();
+  const NeighborList & my_neighbor_list = const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList();
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper_neighbor;
@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
   dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_segment_2).values,
 				 LINE1, my_mesh.getNbElement(_segment_2), C_MODE);
 
-  UInt nb_nodes_neigh = my_neighbor_list->nb_nodes;
-  Vector<UInt> impact_nodes = my_neighbor_list->impactor_nodes;
+  UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
+  Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
 
   /// print impactor nodes
@@ -132,8 +132,8 @@ int main(int argc, char *argv[])
   }
   std::cout << std::endl;
 
-  UInt * node_to_elem_offset_val = my_neighbor_list->facets_offset[_segment_2]->values;
-  UInt * node_to_elem_val = my_neighbor_list->facets[_segment_2]->values;
+  UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset[_segment_2]->values;
+  UInt * node_to_elem_val = my_neighbor_list.facets[_segment_2]->values;
 
   double * neigh_elem = new double [my_mesh.getNbElement(_segment_2)];
   for (UInt i = 0; i < my_mesh.getNbElement(_segment_2); ++i)

@@ -19,9 +19,10 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Contact3dExplicit::Contact3dExplicit(const SolidMechanicsModel & model,
+				     const ContactType & type,
 				     const ContactID & id,
 				     const MemoryID & memory_id) :
-  Contact(model, id, memory_id) {
+  Contact(model, type, id, memory_id) {
   AKANTU_DEBUG_IN();
   
   AKANTU_DEBUG_OUT();

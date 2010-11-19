@@ -26,8 +26,10 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 ContactSearch::ContactSearch(Contact & contact,
 			     const ContactNeighborStructureType & neighbors_structure_type,
+			     const ContactSearchType & type,
 			     const ContactSearchID & id) :
-  id(id), contact(contact), neighbors_structure_type(neighbors_structure_type) {
+  id(id), contact(contact), neighbors_structure_type(neighbors_structure_type),
+  type(type) {
   AKANTU_DEBUG_IN();
 
   contact.setContactSearch(*this);
@@ -52,12 +54,32 @@ ContactSearch::~ContactSearch() {
 /* -------------------------------------------------------------------------- */
 void ContactSearch::initSearch() {
   AKANTU_DEBUG_IN();
+  
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactSearch::initNeighborStructure() {
+  AKANTU_DEBUG_IN();
 
   std::map<Surface, ContactNeighborStructure *>::iterator it;
   for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
-    it->second->init();
+    it->second->initNeighborStructure();
   }
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactSearch::initNeighborStructure(const Surface & master_surface) {
+  AKANTU_DEBUG_IN();
+  
+  std::map<Surface, ContactNeighborStructure *>::iterator it;
+  for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
+    if(it->first == master_surface)
+      it->second->initNeighborStructure();
+  }
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -77,10 +99,10 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
   case _cnst_regular_grid : {
     Mesh & mesh = contact.getModel().getFEM().getMesh();
     if (mesh.getSpatialDimension() == 2) {
-      tmp_neighbors_structure = new RegularGridNeighborStructure<2>(*this, master_surface, sstr.str());
+      tmp_neighbors_structure = new RegularGridNeighborStructure<2>(*this, master_surface, neighbors_structure_type, sstr.str());
     }
     else if(mesh.getSpatialDimension() == 3) {
-      tmp_neighbors_structure = new RegularGridNeighborStructure<3>(*this, master_surface, sstr.str());
+      tmp_neighbors_structure = new RegularGridNeighborStructure<3>(*this, master_surface, neighbors_structure_type, sstr.str());
     }
     else 
       AKANTU_DEBUG_ERROR("RegularGridNeighborStructure does not exist for dimension: " 
@@ -92,8 +114,6 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
     AKANTU_DEBUG_ERROR("Not a valid neighbors structure type : " << neighbors_structure_type);
     break;
   }
-
-  tmp_neighbors_structure->init();
 
   neighbors_structure[master_surface] = tmp_neighbors_structure;
 

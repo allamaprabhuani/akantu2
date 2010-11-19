@@ -29,10 +29,11 @@ __BEGIN_AKANTU__
 
 class NeighborList {
 public:
+  NeighborList();
+  virtual ~NeighborList();
+public:
   /// number of impactor nodes
-  UInt nb_nodes;
-
-  /// @todo check if data must be stored by element type (different surface elements)
+  //UInt nb_nodes;
 
   /// list of nodes of slave surfaces near the master one
   Vector<UInt> impactor_nodes;
@@ -53,16 +54,17 @@ public:
   
   ContactNeighborStructure(const ContactSearch & contact_search,
 			   const Surface & master_surface,
+			   const ContactNeighborStructureType & type,
 			   const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
 
-  virtual ~ContactNeighborStructure() {};
+  virtual ~ContactNeighborStructure();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the structure
-  virtual void init() = 0;
+  virtual void initNeighborStructure() = 0;
   
   /// update the structure
   virtual void update() = 0;
@@ -75,13 +77,15 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the neighbor list
-  virtual NeighborList * getNeighborList() = 0;
+  AKANTU_GET_MACRO(NeighborList, *neighbor_list, const NeighborList &);
 
   AKANTU_GET_MACRO(ID, id, const ContactNeighborStructureID)
 
   AKANTU_GET_MACRO(ContactSearch, contact_search, const ContactSearch &);
 
   AKANTU_GET_MACRO(MasterSurface, master_surface, const Surface &);
+
+  AKANTU_GET_MACRO(Type, type, const ContactNeighborStructureType &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -97,7 +101,11 @@ protected:
   Surface master_surface;
 
   /// neighbor list
-  NeighborList neighbor_list;
+  NeighborList * neighbor_list;
+
+  /// type of contact neighbor structure object
+  ContactNeighborStructureType type;
+
 };
 
 __END_AKANTU__

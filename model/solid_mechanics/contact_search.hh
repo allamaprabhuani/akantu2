@@ -61,6 +61,7 @@ public:
   
   ContactSearch(Contact & contact,
 		const ContactNeighborStructureType & neighbors_structure_type,
+		const ContactSearchType & type,
 		const ContactSearchID & id = "search_contact");
 
   virtual ~ContactSearch();
@@ -71,6 +72,12 @@ public:
 public:
   /// initialize the needed structures
   virtual void initSearch();
+
+  /// initialize all neighbor structures
+  virtual void initNeighborStructure();
+
+  /// initialize one neighbor structure
+  virtual void initNeighborStructure(const Surface & master_surface);
 
   /// build the penetration list
   virtual PenetrationList * findPenetration(const Surface & master_surface) = 0;
@@ -93,6 +100,8 @@ public:
 public:
   AKANTU_GET_MACRO(Contact, contact, const Contact &);
 
+  AKANTU_GET_MACRO(Type, type, const ContactSearchType &);
+
   const ContactNeighborStructure & getContactNeighborStructure(const Surface & master_surface) const;
 
   /* ------------------------------------------------------------------------ */
@@ -110,6 +119,9 @@ private:
 
   /// structure used to handle neighbors lists
   std::map<Surface, ContactNeighborStructure *> neighbors_structure;
+
+  /// type of contact search object
+  ContactSearchType type;
 };
 
 __END_AKANTU__

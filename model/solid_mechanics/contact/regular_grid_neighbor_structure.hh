@@ -30,7 +30,15 @@ namespace akantu {
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-//typedef std::set<UInt> * ByElementTypeUIntSet[_max_element_type];
+class NodesNeighborList : public NeighborList {
+public:
+  NodesNeighborList();
+  virtual ~NodesNeighborList() {};
+public:
+  /// neighbor master nodes
+  Vector<UInt> master_nodes_offset;
+  Vector<UInt> master_nodes;
+};
 
 
 /* -------------------------------------------------------------------------- */
@@ -43,6 +51,7 @@ public:
 
   RegularGridNeighborStructure(const ContactSearch & contact_search,
 			       const Surface & master_surface,
+			       const ContactNeighborStructureType & type,
 			       const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
 
   virtual ~RegularGridNeighborStructure();
@@ -52,7 +61,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the structure
-  void init();
+  void initNeighborStructure();
 
   /// update the structure
   void update();
@@ -67,12 +76,32 @@ private:
   /// compute neighbor structure
   void update(Real * node_position);
 
+  /// construct neighbor list 
+  void constructNeighborList(UInt directional_nb_cells[spatial_dimension], 
+			     UInt nb_cells, 
+			     Vector<Int> * cell, 
+			     UInt * impactor_nodes_cell_offset, 
+			     UInt * impactor_nodes_cell, 
+			     UInt * master_nodes_cell_offset, 
+			     UInt * master_nodes_cell);
+
+
+  /// construct nodes neighbor list 
+  void constructNodesNeighborList(UInt directional_nb_cells[spatial_dimension], 
+				  UInt nb_cells, 
+				  Vector<Int> * cell, 
+				  UInt * impactor_nodes_cell_offset, 
+				  UInt * impactor_nodes_cell, 
+				  UInt * master_nodes_cell_offset, 
+				  UInt * master_nodes_cell);
+
+
   /// compute neighbor cells for a given cell and return number of found neighbor cells
   inline UInt computeNeighborCells(UInt cell, UInt * neighbors, UInt * directional_nb_cells);
 
   /// compute global cell number given the directional cell number
   inline UInt computeCellNb(UInt * directional_nb_cells, Int * directional_cell);
-  
+ 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -89,9 +118,6 @@ public:
   /// get security factor
   inline Real getSecurityFactor(UInt component) const;
 
-  /// get the neighbor list for the impactor nodes to the given master surface
-  inline NeighborList * getNeighborList();
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -99,8 +125,8 @@ private:
   /// the mesh
   const Mesh & mesh;
 
-  /// spatial dimension
-  //UInt spatial_dimension;
+  /// type of neighbor list to create
+  bool nodes_neighbor_list;
 
   /// grid spacing
   Real grid_spacing[3];

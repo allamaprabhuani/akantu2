@@ -19,8 +19,9 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 ContactSearch3dExplicit::ContactSearch3dExplicit(Contact & contact,
 						 const ContactNeighborStructureType & neighbors_structure_type,
+						 const ContactSearchType & type,
 						 const ContactSearchID & id) :
-  ContactSearch(contact, neighbors_structure_type, id) {
+  ContactSearch(contact, neighbors_structure_type, type, id) {
   AKANTU_DEBUG_IN();
   
   AKANTU_DEBUG_OUT();

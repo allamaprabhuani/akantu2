@@ -26,12 +26,12 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Contact::Contact(const SolidMechanicsModel & model,
+		 const ContactType & type,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
   Memory(memory_id), id(id), model(model),
-  master_surfaces(NULL), surface_to_nodes(NULL), surface_to_nodes_offset(NULL)
-
-{
+  master_surfaces(NULL), surface_to_nodes(NULL), surface_to_nodes_offset(NULL),
+  type(type) {
   AKANTU_DEBUG_IN();
 
   for (UInt i = 0; i < _max_element_type; ++i) {
@@ -63,13 +63,6 @@ void Contact::initContact(bool add_surfaces_flag) {
     MeshUtils::buildFacets(mesh,1,0);
     MeshUtils::buildSurfaceID(mesh);
   }
-
-  if(add_surfaces_flag) {
-    for (UInt i = 0; i < mesh.getNbSurfaces(); ++i) {
-      addMasterSurface(i);
-      std::cout << "Master surface " << i << " has been added automatically" << std::endl;
-    } 
-  }	
 
   /// Detect facet types
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -147,10 +140,43 @@ void Contact::initContact(bool add_surfaces_flag) {
 
   delete [] surf_nodes_id;
 
+  if(add_surfaces_flag) {
+    for (UInt i = 0; i < mesh.getNbSurfaces(); ++i) {
+      addMasterSurface(i);
+      std::cout << "Master surface " << i << " has been added automatically" << std::endl;
+    } 
+  }	
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Contact::initSearch() {
+  AKANTU_DEBUG_IN();
+
   contact_search->initSearch();
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void Contact::initNeighborStructure() {
+  AKANTU_DEBUG_IN();
+
+  contact_search->initNeighborStructure();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Contact::initNeighborStructure(const Surface & master_surface) {
+  AKANTU_DEBUG_IN();
+  
+  contact_search->initNeighborStructure();
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void Contact::checkAndUpdate() {
@@ -224,7 +250,7 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   switch(contact_type) {
     // case _ct_2d_expli: { tmp_contact = new Contact2d(model, tmp_search, id); break; }
   case _ct_3d_expli: {
-    tmp_contact = new Contact3dExplicit(model, id, memory_id);
+    tmp_contact = new Contact3dExplicit(model, contact_type, id, memory_id);
     break;
   }
   case _ct_not_defined: {
@@ -239,7 +265,7 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   switch(contact_search_type) {
   // case _cst_2d_expli: { tmp_search = new ContactSearch2d(this, contact_neighbor_structure_type, sstr.str()); break; }
   case _cst_3d_expli: {
-    tmp_search = new ContactSearch3dExplicit(*tmp_contact, contact_neighbor_structure_type, sstr.str());
+    tmp_search = new ContactSearch3dExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
     break;
   }
   case _cst_not_defined: {

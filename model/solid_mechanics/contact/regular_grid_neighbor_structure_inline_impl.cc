@@ -62,15 +62,6 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(U
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline NeighborList * RegularGridNeighborStructure<spatial_dimension>::getNeighborList()  {
-  AKANTU_DEBUG_IN();
-  
-  AKANTU_DEBUG_OUT();
-  return &neighbor_list;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt * directional_nb_cells, 
 									   Int * directional_cell) {
 

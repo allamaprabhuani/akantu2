@@ -32,6 +32,7 @@ class Contact3dExplicit : public Contact {
 public:
   
   Contact3dExplicit(const SolidMechanicsModel & model,
+		    const ContactType & type,
 		    const ContactID & id = "contact",
 		    const MemoryID & memory_id = 0);
   

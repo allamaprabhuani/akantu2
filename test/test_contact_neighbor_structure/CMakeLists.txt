@@ -14,11 +14,17 @@
 #===============================================================================
 add_mesh(test_regular_grid_2d_mesh squares.geo 2 1)
 
-register_test(test_contact_regular_grid_triangle1 test_contact_regular_grid_triangle1.cc)
-add_dependencies(test_contact_regular_grid_triangle1 test_regular_grid_2d_mesh)
+register_test(test_contact_regular_grid_triangle_3 test_contact_regular_grid_triangle_3.cc)
+add_dependencies(test_contact_regular_grid_triangle_3 test_regular_grid_2d_mesh)
 
 #===============================================================================
 add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
 
 register_test(test_contact_regular_grid test_contact_regular_grid.cc)
 add_dependencies(test_contact_regular_grid test_regular_grid_3d_mesh)
+
+#===============================================================================
+#add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
+
+register_test(test_contact_regular_grid_nodes test_contact_regular_grid_nodes.cc)
+add_dependencies(test_contact_regular_grid_nodes test_regular_grid_3d_mesh)

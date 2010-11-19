@@ -35,6 +35,7 @@ public:
   
   ContactSearch3dExplicit(Contact & contact,
 			  const ContactNeighborStructureType & neighbors_structure_type,
+			  const ContactSearchType & type,
 			  const ContactSearchID & id = "search_contact");
 
   //virtual ~ContactSearch3dExplicit();

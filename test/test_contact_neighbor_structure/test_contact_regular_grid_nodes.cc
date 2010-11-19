@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
+  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "rgn-test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_6).values,
    			 TETRA1, my_mesh.getNbElement(_tetrahedron_6), C_MODE);
   dumper.SetPrefix("paraview/");
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper_surface;
   dumper_surface.SetMode(TEXT);
 
-  dumper_surface.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
+  dumper_surface.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "rgn-test-surface-extraction_boundary");
   
   dumper_surface.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
 				 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
@@ -98,10 +98,10 @@ int main(int argc, char *argv[])
 
    /// contact declaration
   Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_2d_expli, 
-					     _cst_2d_expli, 
+					     _ct_3d_expli, 
+					     _cst_3d_expli, 
 					     _cnst_regular_grid);
-  // how to use contact and contact search types for testing the reg grid with normal nl?
+
   my_contact->initContact(false);
 
   Surface master = 0;
@@ -110,7 +110,9 @@ int main(int argc, char *argv[])
 
   my_contact->initNeighborStructure(master);
   
-  const NeighborList & my_neighbor_list = const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList();
+  NodesNeighborList & my_neighbor_list = dynamic_cast<NodesNeighborList &>(const_cast<NeighborList&>(const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList()));
+
+  //const NeighborList & my_neighbor_list = const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList();
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
@@ -122,7 +124,7 @@ int main(int argc, char *argv[])
     std::cout << " " << impact_nodes_val[i];
   }
   std::cout << std::endl;
-  /*
+
   UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
   UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
   
@@ -132,40 +134,7 @@ int main(int argc, char *argv[])
       std::cout << " " << master_nodes_val[mn];
     }
     std::cout << std::endl;
-    }*/  
-
-
-#ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper_neighbor;
-  dumper_neighbor.SetMode(TEXT);
-
-  dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-neighbor-elements");
-  
-  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
-				 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
-
-  UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset[_triangle_3]->values;
-  UInt * node_to_elem_val = my_neighbor_list.facets[_triangle_3]->values;
-
-  double * neigh_elem = new double [my_mesh.getNbElement(_triangle_3)];
-  for (UInt i = 0; i < my_mesh.getNbElement(_triangle_3); ++i)
-    neigh_elem[i] = 0.0; 
-  
-  UInt visualize_node = 7;
-  UInt n = impact_nodes_val[visualize_node];
-  std::cout << "plot for node: " << n << std::endl;
-  for (UInt i = node_to_elem_offset_val[visualize_node]; i < node_to_elem_offset_val[visualize_node+1]; ++i)
-    neigh_elem[node_to_elem_val[i]] = 1.;
-
-  dumper_neighbor.AddElemDataField(neigh_elem, 1, "neighbor id");
- 
-  dumper_neighbor.SetPrefix("paraview/");
-  dumper_neighbor.Init();
-  dumper_neighbor.Dump();
-
-  delete [] neigh_elem;
-
-  #endif //AKANTU_USE_IOHELPER
+  }  
 
   delete my_contact;
   
