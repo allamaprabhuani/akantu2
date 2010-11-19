@@ -131,25 +131,25 @@ public:
   AKANTU_GET_MACRO(F_M2A, f_m2a, Real);
   AKANTU_SET_MACRO(F_M2A, f_m2a, Real);
 
-  AKANTU_GET_MACRO(Displacement,    *displacement,     const Vector<Real> &);
+  AKANTU_GET_MACRO(Displacement,    *displacement,           Vector<Real> &);
   AKANTU_GET_MACRO(CurrentPosition, *current_position, const Vector<Real> &);
   AKANTU_GET_MACRO(Increment,       *increment,        const Vector<Real> &);
   AKANTU_GET_MACRO(Mass,            *mass,             const Vector<Real> &);
-  AKANTU_GET_MACRO(Velocity,        *velocity,         const Vector<Real> &);
-  AKANTU_GET_MACRO(Acceleration,    *acceleration,     const Vector<Real> &);
-  AKANTU_GET_MACRO(Force,           *force,            const Vector<Real> &);
+  AKANTU_GET_MACRO(Velocity,        *velocity,               Vector<Real> &);
+  AKANTU_GET_MACRO(Acceleration,    *acceleration,           Vector<Real> &);
+  AKANTU_GET_MACRO(Force,           *force,                  Vector<Real> &);
   AKANTU_GET_MACRO(Residual,        *residual,         const Vector<Real> &);
-  AKANTU_GET_MACRO(Boundary,        *boundary,         const Vector<bool> &);
+  AKANTU_GET_MACRO(Boundary,        *boundary,               Vector<bool> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, Vector<UInt> &);
 
   inline Material & getMaterial(UInt mat_index);
 
   /// compute the stable time step
   Real getStableTimeStep();
 
-  void setPotentialEnergyFlagOn();
-  void setPotentialEnergyFlagOff();
+  // void setPotentialEnergyFlagOn();
+  // void setPotentialEnergyFlagOff();
 
   Real getPotentialEnergy();
   Real getKineticEnergy();

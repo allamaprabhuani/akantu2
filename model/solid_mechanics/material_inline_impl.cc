@@ -19,8 +19,9 @@ inline void Material::addElement(ElementType type, UInt element) {
   for (UInt i = 0; i < nb_quadrature_points; ++i) {
     strain[type]->push_back(REAL_INIT_VALUE);
     stress[type]->push_back(REAL_INIT_VALUE);
-    if(potential_energy_vector)
+    if(potential_energy[type] != NULL) {
       potential_energy[type]->push_back(REAL_INIT_VALUE);
+    }
   }
 }
 
@@ -35,40 +36,6 @@ inline void Material::addGhostElement(ElementType type, UInt element) {
   // if(potential_energy_vector)
   //   ghost_potential_energy[type]->push_back(REAL_INIT_VALUE);
 }
-
-/* -------------------------------------------------------------------------- */
-inline void Material::setPotentialEnergyFlagOn(){
-  AKANTU_DEBUG_IN();
-
-  if(!potential_energy_vector) {
-    /// for each connectivity types allocate the element filer array of the material
-    for(UInt t = _not_defined + 1; t < _max_element_type; ++t) {
-      ElementType type = (ElementType) t;
-      if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
-
-      UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-      if(element_filter[type] != NULL) {
-	UInt nb_element = element_filter[type]->getSize();
-	std::stringstream sstr; sstr << id << ":potential_energy:"<< type;
-	potential_energy[type] = &(alloc<Real> (sstr.str(), nb_element * nb_quadrature_points,
-						1,
-						REAL_INIT_VALUE));
-      }
-    }
-    potential_energy_vector = true;
-  }
-
-  potential_energy_flag = true;
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-inline void Material::setPotentialEnergyFlagOff(){
-  AKANTU_DEBUG_IN();
-  potential_energy_flag = false;
-  AKANTU_DEBUG_OUT();
-}
-
 
 /* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataToPack(__attribute__ ((unused)) const Element & element,

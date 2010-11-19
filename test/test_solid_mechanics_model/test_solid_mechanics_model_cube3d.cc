@@ -93,7 +93,6 @@ int main(int argc, char *argv[])
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER
 
-  model->setPotentialEnergyFlagOn();
   for(akantu::UInt s = 0; s < max_steps; ++s) {
     model->explicitPred();
     model->updateResidual();

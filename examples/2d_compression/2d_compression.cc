@@ -85,7 +85,6 @@ int main(int argc, char *argv[])
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model->setTimeStep(time_step);
 
-  model->setPotentialEnergyFlagOn();
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
 
     if(s<=100)

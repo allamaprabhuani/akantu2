@@ -441,27 +441,6 @@ Real SolidMechanicsModel::getStableTimeStep() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::setPotentialEnergyFlagOn() {
-  AKANTU_DEBUG_IN();
-  std::vector<Material *>::iterator mat_it;
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->setPotentialEnergyFlagOn();
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::setPotentialEnergyFlagOff() {
-  AKANTU_DEBUG_IN();
-  std::vector<Material *>::iterator mat_it;
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->setPotentialEnergyFlagOff();
-  }
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
   Real epot = 0.;

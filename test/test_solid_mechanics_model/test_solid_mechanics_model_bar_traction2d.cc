@@ -134,7 +134,6 @@ int main(int argc, char *argv[])
   outfile.open("stress");
 #endif // CHECK_STRESS
 
-  model->setPotentialEnergyFlagOn();
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
     model->explicitPred();
 

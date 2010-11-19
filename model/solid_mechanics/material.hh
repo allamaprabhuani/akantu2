@@ -60,6 +60,9 @@ public:
   virtual void computeStress(ElementType el_type,
 			     GhostType ghost_type = _not_ghost) = 0;
 
+  /// compute the potential energy by element
+  void computePotentialEnergyByElement();
+
   /// compute the potential energy
   virtual void computePotentialEnergy(ElementType el_type,
 				      GhostType ghost_type = _not_ghost) = 0;
@@ -103,8 +106,6 @@ public:
   AKANTU_GET_MACRO(ID, id, const MaterialID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
 
-  void setPotentialEnergyFlagOn();
-  void setPotentialEnergyFlagOff();
   Real getPotentialEnergy();
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Strain, strain, const Vector<Real> &);
@@ -147,9 +148,6 @@ protected:
 
   /// list of element handled by the material
   ByElementTypeUInt ghost_element_filter;
-
-  /// has to compute potential energy or not
-  bool potential_energy_flag;
 
   /// is the vector for potential energy initialized
   bool potential_energy_vector;

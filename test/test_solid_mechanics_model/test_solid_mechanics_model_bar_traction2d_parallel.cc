@@ -158,7 +158,6 @@ int main(int argc, char *argv[])
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  model->setPotentialEnergyFlagOn();
   std::ofstream energy;
   if(prank == 0) {
     energy.open("energy.csv");

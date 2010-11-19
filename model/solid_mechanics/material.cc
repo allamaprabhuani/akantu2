@@ -21,7 +21,7 @@ __BEGIN_AKANTU__
 Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
   Memory(model.getMemoryID()), id(id),
   spatial_dimension(model.getSpatialDimension()), name(""),
-  model(&model), potential_energy_flag(false), potential_energy_vector(false),
+  model(&model), potential_energy_vector(false),
   is_init(false) {
   AKANTU_DEBUG_IN();
 
@@ -152,8 +152,6 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
 
-    if(potential_energy_flag) computePotentialEnergy(*it, ghost_type);
-
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
@@ -204,20 +202,45 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 }
 
 /* -------------------------------------------------------------------------- */
+void Material::computePotentialEnergyByElement() {
+  AKANTU_DEBUG_IN();
+
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+
+    if(potential_energy[*it] == NULL) {
+      UInt nb_element = element_filter[*it]->getSize();
+      UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+      
+      std::stringstream sstr; sstr << id << ":potential_energy:"<< *it;
+      potential_energy[*it] = &(alloc<Real> (sstr.str(), nb_element * nb_quadrature_points,
+					     1,
+					     REAL_INIT_VALUE));
+    }
+
+    computePotentialEnergy(*it);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 Real Material::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
 
-  /// integrate the potential energy for each type of elements
-  if(potential_energy_flag) {
-    const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+  computePotentialEnergyByElement();
 
-      epot += model->getFEM().integrate(*potential_energy[*it], *it,
-					_not_ghost, element_filter[*it]);
-    }
+  /// integrate the potential energy for each type of elements
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+
+    epot += model->getFEM().integrate(*potential_energy[*it], *it,
+				      _not_ghost, element_filter[*it]);
   }
 
   AKANTU_DEBUG_OUT();

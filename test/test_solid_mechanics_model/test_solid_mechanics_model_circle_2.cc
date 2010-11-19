@@ -175,7 +175,6 @@ int main(int argc, char *argv[])
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  model->setPotentialEnergyFlagOn();
   for(UInt s = 0; s < max_steps; ++s) {
     model->explicitPred();
 
