@@ -25,8 +25,10 @@
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-   class ContactSearch;
+  class ContactSearch;
+  class PenetrationList;
 }
+
 
 __BEGIN_AKANTU__
 
@@ -89,11 +91,15 @@ public:
 
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &);
 
+  AKANTU_GET_MACRO(FrictionCoefficient, friction_coefficient, const Real &);
+
   AKANTU_GET_MACRO(ContactSearch, * contact_search, const ContactSearch &);
 
   AKANTU_GET_MACRO(SurfaceToNodesOffset, surface_to_nodes_offset, const Vector<UInt> &);
 
   AKANTU_GET_MACRO(SurfaceToNodes, surface_to_nodes, const Vector<UInt> &);
+
+  AKANTU_GET_MACRO(MasterSurfaces, master_surfaces, const std::vector<Surface> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NodeToElementsOffset, node_to_elements_offset, const Vector<UInt> &);
 
@@ -105,6 +111,9 @@ public:
     this->contact_search = &contact_search;
   }
 
+  /// Set friction coefficient  (default value = 0)
+  AKANTU_SET_MACRO(FrictionCoefficient, friction_coefficient, Real);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -114,6 +123,9 @@ private:
 
   /// associated model
   const SolidMechanicsModel & model;
+
+  /// friction coefficient
+  Real friction_coefficient;
 
   /// contact search object
   ContactSearch * contact_search;

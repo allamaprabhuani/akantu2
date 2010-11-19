@@ -235,6 +235,11 @@ inline void Math::vectorProduct3(const Real * v1, const Real * v2, Real * res) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline Real Math::vectorDot2(const Real * v1, const Real * v2) {
+  return (v1[0]*v2[0] + v1[1]*v2[1]);
+}
+
+/* -------------------------------------------------------------------------- */
 inline Real Math::distance_2d(const Real * x, const Real * y) {
   return sqrt((y[0] - x[0])*(y[0] - x[0]) + (y[1] - x[1])*(y[1] - x[1]));
 }
@@ -341,5 +346,11 @@ inline void Math::barycenter(const Real * coord,
       barycenter[i] += coord[offset + i] / (Real) nb_points;
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Math::vector_2d(const Real * x, const Real * y, Real *res) {
+  res[0] = y[0]-x[0];
+  res[1] = y[1]-x[1];
 }
 

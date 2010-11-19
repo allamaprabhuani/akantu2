@@ -113,6 +113,9 @@ public:
   /// return norm of a 3-vector
   static inline Real norm3(const Real * v);
 
+  /// return the dot product between 2 vectors in 2d
+  static inline Real vectorDot2(const Real * v1, const Real * v2);
+
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */
@@ -135,6 +138,9 @@ public:
   static inline void barycenter(const Real * coord,
 				UInt nb_points, UInt spatial_dimension,
 				Real * barycenter);
+
+  /// vector between x and y
+  static inline void vector_2d(const Real * x, const Real * y, Real *vec);
 
 };
 

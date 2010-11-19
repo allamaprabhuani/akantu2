@@ -53,7 +53,7 @@ public:
 /* -------------------------------------------------------------------------- */
 
 
-class ContactSearch {
+class ContactSearch : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -98,8 +98,10 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Contact, contact, const Contact &);
+  AKANTU_GET_MACRO(ID, id, const ContactSearchID &);
 
+  AKANTU_GET_MACRO(Contact, contact, const Contact &);
+  
   AKANTU_GET_MACRO(Type, type, const ContactSearchType &);
 
   const ContactNeighborStructure & getContactNeighborStructure(const Surface & master_surface) const;

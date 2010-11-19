@@ -19,6 +19,8 @@
 #include "aka_common.hh"
 #include "contact_3d_explicit.hh"
 #include "contact_search_3d_explicit.hh"
+#include "contact_2d_explicit.hh"
+#include "contact_search_2d_explicit.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -29,9 +31,10 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactType & type,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model),
+  Memory(memory_id), id(id), model(model), friction_coefficient(0.),
   master_surfaces(NULL), surface_to_nodes(NULL), surface_to_nodes_offset(NULL),
   type(type) {
+
   AKANTU_DEBUG_IN();
 
   for (UInt i = 0; i < _max_element_type; ++i) {
@@ -248,7 +251,10 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   ContactSearch * tmp_search = NULL;
 
   switch(contact_type) {
-    // case _ct_2d_expli: { tmp_contact = new Contact2d(model, tmp_search, id); break; }
+  case _ct_2d_expli: { 
+    tmp_contact = new Contact2dExplicit(model, contact_type, id, memory_id); 
+    break;
+  }
   case _ct_3d_expli: {
     tmp_contact = new Contact3dExplicit(model, contact_type, id, memory_id);
     break;
@@ -263,7 +269,10 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   sstr << id << ":contact_search";
 
   switch(contact_search_type) {
-  // case _cst_2d_expli: { tmp_search = new ContactSearch2d(this, contact_neighbor_structure_type, sstr.str()); break; }
+  case _cst_2d_expli: { 
+    tmp_search = new ContactSearch2dExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
+    break; 
+  }
   case _cst_3d_expli: {
     tmp_search = new ContactSearch3dExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
     break;
