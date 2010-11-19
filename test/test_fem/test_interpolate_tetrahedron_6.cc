@@ -27,10 +27,12 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
+  UInt dim = 3;
+  ElementType type = _tetrahedron_6;
   MeshIOMSH mesh_io;
-  Mesh my_mesh(3);
-  mesh_io.read("cube.msh", my_mesh);
-  FEM *fem = new FEM(my_mesh,3,"my_fem");
+  Mesh my_mesh(dim);
+  mesh_io.read("cube1.msh", my_mesh);
+  FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
   debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
@@ -48,19 +50,19 @@ int main(int argc, char *argv[]) {
     const_val.values[i * 2 + 1] = 2.;
   }
 
-  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, _tetrahedron_6);
+  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
   std::ofstream my_file("out.txt");
   my_file << const_val << std::endl;
   my_file << val_on_quad << std::endl;
 
   // interpolate coordinates
   Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension(), "coord_on_quad");
-  fem->interpolateOnQuadraturePoints(my_mesh.getNodes(), coord_on_quad, my_mesh.getSpatialDimension(), _tetrahedron_6);
+  fem->interpolateOnQuadraturePoints(my_mesh.getNodes(), coord_on_quad, my_mesh.getSpatialDimension(), type);
   my_file << my_mesh.getNodes() << std::endl;
   my_file << coord_on_quad << std::endl;
 
-  //  delete fem;
-  //  finalize();
+  delete fem;
+  finalize();
 
   return EXIT_SUCCESS;
 }

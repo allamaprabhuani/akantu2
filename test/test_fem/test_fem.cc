@@ -28,7 +28,7 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(1);
-  mesh_io.read("segment_2.msh", my_mesh);
+  mesh_io.read("line1.msh", my_mesh);
   FEM *fem = new FEM(my_mesh,1,"my_fem");
 
   fem->initShapeFunctions();

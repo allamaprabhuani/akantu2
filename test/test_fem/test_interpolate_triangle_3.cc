@@ -29,7 +29,7 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(2);
-  mesh_io.read("triangle_3.msh", my_mesh);
+  mesh_io.read("square1.msh", my_mesh);
   FEM *fem = new FEM(my_mesh,2,"my_fem");
 
   debug::setDebugLevel(dblDump);

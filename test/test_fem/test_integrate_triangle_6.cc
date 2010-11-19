@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
-  mesh_io.read("triangle_6.msh", my_mesh);
+  mesh_io.read("square2.msh", my_mesh);
   //mesh_io.read("circle2.msh", my_mesh);
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
   //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_segment_3);
   UInt nb_boundary_quad              = FEM::getNbQuadraturePoints(_segment_3);
 
-  Vector<Real> val_on_bquad(0, nb_boundary_quad, "val_on_quad");    
+  Vector<Real> val_on_bquad(0, nb_boundary_quad, "val_on_quad");
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
   }

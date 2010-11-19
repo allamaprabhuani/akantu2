@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
 
-  mesh_io.read("segment_3.msh", my_mesh);
+  mesh_io.read("line2.msh", my_mesh);
 
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
 

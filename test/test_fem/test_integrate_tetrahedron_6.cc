@@ -27,10 +27,12 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
+  UInt dim = 3;
+  ElementType type = _tetrahedron_6;
   MeshIOMSH mesh_io;
-  Mesh my_mesh(3);
-  mesh_io.read("cube.msh", my_mesh);
-  FEM *fem = new FEM(my_mesh,3,"my_fem");
+  Mesh my_mesh(dim);
+  mesh_io.read("cube1.msh", my_mesh);
+  FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
   debug::_debug_level = dblDump;
   fem->initShapeFunctions();
@@ -48,26 +50,23 @@ int main(int argc, char *argv[]) {
     const_val.values[i * 2 + 1] = 2.;
   }
   //interpolate function on quadrature points
-  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, _tetrahedron_6);
+  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
   //integrate function on elements
   akantu::Vector<akantu::Real> int_val_on_elem(0, 2, "int_val_on_elem");
-  fem->integrate(val_on_quad,int_val_on_elem,2,_tetrahedron_6);
+  fem->integrate(val_on_quad, int_val_on_elem, 2, type);
   // get global integration value
   Real value[2] = {0,0};
   std::ofstream my_file("out.txt");
   my_file << int_val_on_elem << std::endl;
-  for (UInt i = 0; i < fem->getMesh().getNbElement(_tetrahedron_6); ++i) {
+  for (UInt i = 0; i < fem->getMesh().getNbElement(type); ++i) {
     value[0] += int_val_on_elem.values[2*i];
     value[1] += int_val_on_elem.values[2*i+1];
   }
-  
+
   my_file << "integral is " << value[0] << " " << value[1] << std::endl;
 
-
-
-  //  delete fem;
-
-  //  finalize();
+  delete fem;
+  finalize();
 
   return EXIT_SUCCESS;
 }
