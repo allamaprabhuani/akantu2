@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
   mesh_io.read("triangle_6.msh", my_mesh);
+  //mesh_io.read("circle2.msh", my_mesh);
   FEM *fem = new FEM(my_mesh, dim, "my_fem");
 
   debug::_debug_level = dblDump;

@@ -44,6 +44,8 @@ add_dependencies(test_gradient_segment_3 test_fem_segment_3_mesh)
 #===============================================================================
 add_mesh(test_fem_triangle_3_mesh triangle.geo 2 1 OUTPUT triangle_3.msh)
 add_mesh(test_fem_triangle_6_mesh triangle.geo 2 2 OUTPUT triangle_6.msh)
+add_mesh(test_fem_circle2_mesh circle.geo 2 2 OUTPUT circle2.msh)
+#add_mesh(test_fem_circle1_mesh circle.geo 2 1 OUTPUT circle1.msh)
 
 #===============================================================================
 # 1st order
@@ -59,7 +61,8 @@ add_dependencies(test_gradient_triangle_3 test_fem_triangle_3_mesh)
 #===============================================================================
 # 2nd order
 register_test(test_integrate_triangle_6 test_integrate_triangle_6.cc)
-add_dependencies(test_integrate_triangle_6 test_fem_triangle_6_mesh)
+add_dependencies(test_integrate_triangle_6 test_fem_triangle_6_mesh
+test_fem_circle2_mesh test_fem_circle1_mesh)
 #===============================================================================
 register_test(test_interpolate_triangle_6 test_interpolate_triangle_6.cc)
 add_dependencies(test_interpolate_triangle_6 test_fem_triangle_6_mesh)
