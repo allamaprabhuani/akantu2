@@ -81,24 +81,30 @@ public:
   /// explicit integration corrector
   void explicitCorr();
 
-  /// compute boundary forces from quadrature point force values
-  void computeForcesFromQuadraturePointForceValues();
-
   /// synchronize the ghost element boundaries values
   void synchronizeBoundaries();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  /// integrate a force on the boundary by providing a stress tensor 
+  void computeForcesByStressTensor(const Vector<Real> & stresses, const ElementType & type);
+
+  /// integrate a force on the boundary by providing a traction vector
+  void computeForcesByTractionVector(const Vector<Real> & tractions, const ElementType & type);
+
+  /// compute force vector from a function(x,y,z) that describe stresses
+  void computeForcesFromFunction(void (*myf)(double *,double *), UInt function_type);
+
 private:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
   /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassLumpedRowSum(GhostType ghost_type, ElementType type);
+  void assembleMassLumpedRowSum(GhostType ghost_type, const ElementType type);
 
   /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassLumpedDiagonalScaling(GhostType ghost_type, ElementType type);
+  void assembleMassLumpedDiagonalScaling(GhostType ghost_type, const ElementType type);
 
 
   /* ------------------------------------------------------------------------ */

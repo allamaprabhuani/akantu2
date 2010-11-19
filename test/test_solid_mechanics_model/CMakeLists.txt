@@ -13,7 +13,7 @@
 
 #===============================================================================
 add_mesh(test_solid_mechanics_model_square_mesh triangle.geo 2 1)
-add_mesh(test_solid_mechanics_model_circle_mesh circle.geo 2 1)
+add_mesh(test_solid_mechanics_model_circle_mesh circle.geo 2 2)
 
 register_test(test_solid_mechanics_model_square test_solid_mechanics_model_square.cc)
 add_dependencies(test_solid_mechanics_model_square

@@ -87,63 +87,65 @@ int main(int argc, char *argv[])
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnQuadPoints();
 
-  const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != fem_boundary.getElementDimension()) continue;
+  model->computeForcesFromFunction(trac,0);
 
-    //    ElementType facet_type = Mesh::getFacetElementType(*it);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
+  // const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
+  // Mesh::ConnectivityTypeList::const_iterator it;
+  // for(it = type_list.begin(); it != type_list.end(); ++it) {
+  //   if(Mesh::getSpatialDimension(*it) != fem_boundary.getElementDimension()) continue;
+
+  //   //    ElementType facet_type = Mesh::getFacetElementType(*it);
+  //   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+  //   UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
 
     
-    UInt nb_element;
-    const Vector<Real> * shapes;
-    Vector<Real> quad_coords(0,2,"quad_coords");
-    const Vector<Real> * normals_on_quad;
+  //   UInt nb_element;
+  //   const Vector<Real> * shapes;
+  //   Vector<Real> quad_coords(0,2,"quad_coords");
+  //   const Vector<Real> * normals_on_quad;
  
-    nb_element   = fem_boundary.getMesh().getNbElement(*it);
-    fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, _segment_2);
-    normals_on_quad = &(fem_boundary.getNormalsOnQuadPoints(*it));
+  //   nb_element   = fem_boundary.getMesh().getNbElement(*it);
+  //   fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, _segment_2);
+  //   normals_on_quad = &(fem_boundary.getNormalsOnQuadPoints(*it));
 
-    shapes       = &(fem_boundary.getShapes(*it));
+  //   shapes       = &(fem_boundary.getShapes(*it));
 
-    Vector<Real> * sigma_funct = new Vector<Real>(nb_element, 4*nb_quad, "myfunction");
-    Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad, "myfunction");
+  //   Vector<Real> * sigma_funct = new Vector<Real>(nb_element, 4*nb_quad, "myfunction");
+  //   Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad, "myfunction");
 
-    Real * sigma_funct_val = sigma_funct->values;
-    Real * shapes_val = shapes->values;
+  //   Real * sigma_funct_val = sigma_funct->values;
+  //   Real * shapes_val = shapes->values;
 
-    /// compute t * \phi_i for each nodes of each element
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quad; ++q) {
-	trac(quad_coords.values+el*nb_quad*2+q,sigma_funct_val);
-	sigma_funct_val += 4;
-      }
-    }
+  //   /// compute t * \phi_i for each nodes of each element
+  //   for (UInt el = 0; el < nb_element; ++el) {
+  //     for (UInt q = 0; q < nb_quad; ++q) {
+  // 	trac(quad_coords.values+el*nb_quad*2+q,sigma_funct_val);
+  // 	sigma_funct_val += 4;
+  //     }
+  //   }
 
-    Math::matrix_vector(2,2,*sigma_funct,*normals_on_quad,*funct);
-    funct->extendComponentsInterlaced(nb_nodes_per_element,2);
+  //   Math::matrix_vector(2,2,*sigma_funct,*normals_on_quad,*funct);
+  //   funct->extendComponentsInterlaced(nb_nodes_per_element,2);
 
-    Real * funct_val = funct->values;
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quad; ++q) {
-	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  *funct_val++ *= *shapes_val;
-	  *funct_val++ *= *shapes_val++;
-	}
-      }
-    }
+  //   Real * funct_val = funct->values;
+  //   for (UInt el = 0; el < nb_element; ++el) {
+  //     for (UInt q = 0; q < nb_quad; ++q) {
+  // 	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+  // 	  *funct_val++ *= *shapes_val;
+  // 	  *funct_val++ *= *shapes_val++;
+  // 	}
+  //     }
+  //   }
 
 
-    Vector<Real> * int_funct = new Vector<Real>(nb_element, 2*nb_nodes_per_element,
-						    "inte_funct");
-    fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
-    delete funct;
+  //   Vector<Real> * int_funct = new Vector<Real>(nb_element, 2*nb_nodes_per_element,
+  // 						    "inte_funct");
+  //   fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
+  //   delete funct;
 
-    fem_boundary.assembleVector(*int_funct,model->getForce(), 2, *it);
-    delete int_funct;
-  }
+  //   fem_boundary.assembleVector(*int_funct,model->getForce(), 2, *it);
+  //   delete int_funct;
+  // }
 
 
   //  model->getDisplacement().values[1] = 0.1;
