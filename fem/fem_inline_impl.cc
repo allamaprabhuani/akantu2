@@ -73,7 +73,7 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
   case _segment_3       : { GET_NB_QUAD_POINTS(_segment_3      ); break; }
   case _triangle_3   : { GET_NB_QUAD_POINTS(_triangle_3  ); break; }
   case _triangle_6   : { GET_NB_QUAD_POINTS(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_NB_QUAD_POINTS(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_NB_QUAD_POINTS(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_NB_QUAD_POINTS(_tetrahedron_10); break; }
   case _point:
   case _not_defined:
@@ -101,7 +101,7 @@ inline UInt FEM::getShapeSize(const ElementType & type) {
   case _segment_3       : { GET_SHAPE_SIZE(_segment_3      ); break; }
   case _triangle_3   : { GET_SHAPE_SIZE(_triangle_3  ); break; }
   case _triangle_6   : { GET_SHAPE_SIZE(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_SHAPE_SIZE(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_SHAPE_SIZE(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_SHAPE_SIZE(_tetrahedron_10); break; }
   case _point:
   case _not_defined:
@@ -129,7 +129,7 @@ inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
   case _segment_3       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_3      ); break; }
   case _triangle_3   : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_3  ); break; }
   case _triangle_6   : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_10); break; }
   case _point:
   case _not_defined:
@@ -158,7 +158,7 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
   case _segment_3       : { GET_INRADIUS(_segment_3      ); break; }
   case _triangle_3   : { GET_INRADIUS(_triangle_3  ); break; }
   case _triangle_6   : { GET_INRADIUS(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_INRADIUS(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_INRADIUS(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_INRADIUS(_tetrahedron_10); break; }
   case _point:
   case _not_defined:

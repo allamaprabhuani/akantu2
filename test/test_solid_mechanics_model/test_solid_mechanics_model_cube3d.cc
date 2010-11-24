@@ -81,14 +81,14 @@ int main(int argc, char *argv[])
   //  dumper.SetMode(TEXT);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_tetrahedron_6).values,
-			 TETRA1, model->getFEM().getMesh().getNbElement(akantu::_tetrahedron_6), C_MODE);
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(akantu::_tetrahedron_4).values,
+			 TETRA1, model->getFEM().getMesh().getNbElement(akantu::_tetrahedron_4), C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 3, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 3, "velocity");
   dumper.AddNodeDataField(model->getMass().values, 1, "mass");
   dumper.AddNodeDataField(model->getResidual().values, 3, "force");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_tetrahedron_6).values, 9, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_tetrahedron_6).values, 9, "stress");
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(akantu::_tetrahedron_4).values, 9, "strain");
+  dumper.AddElemDataField(model->getMaterial(0).getStress(akantu::_tetrahedron_4).values, 9, "stress");
   dumper.SetPrefix("paraview/");
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER

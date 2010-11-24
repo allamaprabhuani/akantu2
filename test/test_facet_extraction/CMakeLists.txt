@@ -20,6 +20,6 @@ add_dependencies(test_facet_extraction_triangle_3 test_facet_square_mesh)
 #===============================================================================
 add_mesh(test_facet_cube_mesh cube.geo 3 1)
 
-register_test(test_facet_extraction_tetrahedron_6 test_facet_extraction_tetrahedron_6.cc)
-add_dependencies(test_facet_extraction_tetrahedron_6 test_facet_cube_mesh)
+register_test(test_facet_extraction_tetrahedron_4 test_facet_extraction_tetrahedron_4.cc)
+add_dependencies(test_facet_extraction_tetrahedron_4 test_facet_cube_mesh)
 

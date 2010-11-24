@@ -80,11 +80,11 @@ add_mesh(test_fem_cube_2_mesh cube.geo 3 1 OUTPUT cube1.msh)
 
 #===============================================================================
 # 1st order
-register_test(test_integrate_tetrahedron_6 test_integrate_tetrahedron_6.cc)
-add_dependencies(test_integrate_tetrahedron_6 test_fem_cube_2_mesh)
+register_test(test_integrate_tetrahedron_4 test_integrate_tetrahedron_4.cc)
+add_dependencies(test_integrate_tetrahedron_4 test_fem_cube_2_mesh)
 #===============================================================================
-register_test(test_interpolate_tetrahedron_6 test_interpolate_tetrahedron_6.cc)
-add_dependencies(test_interpolate_tetrahedron_6 test_fem_cube_2_mesh)
+register_test(test_interpolate_tetrahedron_4 test_interpolate_tetrahedron_4.cc)
+add_dependencies(test_interpolate_tetrahedron_4 test_fem_cube_2_mesh)
 #===============================================================================
-register_test(test_gradient_tetrahedron_6 test_gradient_tetrahedron_6.cc)
-add_dependencies(test_gradient_tetrahedron_6 test_fem_cube_2_mesh)
+register_test(test_gradient_tetrahedron_4 test_gradient_tetrahedron_4.cc)
+add_dependencies(test_gradient_tetrahedron_4 test_fem_cube_2_mesh)

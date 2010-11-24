@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_6).values,
-			 TETRA1, mesh.getNbElement(_tetrahedron_6), C_MODE);
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
+			 TETRA1, mesh.getNbElement(_tetrahedron_4), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();

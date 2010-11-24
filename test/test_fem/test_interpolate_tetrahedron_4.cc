@@ -1,5 +1,5 @@
 /**
- * @file   test_interpolate_tetrahedron_6.cc
+ * @file   test_interpolate_tetrahedron_4.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -28,7 +28,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[]) {
   UInt dim = 3;
-  ElementType type = _tetrahedron_6;
+  ElementType type = _tetrahedron_4;
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
   mesh_io.read("cube1.msh", my_mesh);

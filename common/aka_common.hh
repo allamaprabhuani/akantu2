@@ -90,7 +90,7 @@ enum ElementType {
   _segment_3       = 2, /// second order segment
   _triangle_3   = 3, /// first  order triangle
   _triangle_6   = 4, /// second order triangle
-  _tetrahedron_6 = 5, /// first  order tetrahedron
+  _tetrahedron_4 = 5, /// first  order tetrahedron
   _tetrahedron_10 = 6, /// second order tetrahedron @remark not implemented yet
   _max_element_type,
   _point /// point only for some algorithm to be generic like mesh partitioning
@@ -215,7 +215,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _segment_3       : stream << "segment_3"  ; break;
     case _triangle_3   : stream << "triangle_3"  ; break;
     case _triangle_6   : stream << "triangle_6"  ; break;
-    case _tetrahedron_6 : stream << "tetrahedron_6"; break;
+    case _tetrahedron_4 : stream << "tetrahedron_4"; break;
     case _tetrahedron_10 : stream << "tetrahedron_10"; break;
     case _not_defined  : stream << "undefined" ; break;
     case _max_element_type :  stream << "ElementType(" << (int) type << ")"; break;

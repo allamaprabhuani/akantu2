@@ -145,7 +145,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
     case _segment_3       : { COMPUTE_SHAPES(_segment_3      ); break; }
     case _triangle_3   : { COMPUTE_SHAPES(_triangle_3  ); break; }
     case _triangle_6   : { COMPUTE_SHAPES(_triangle_6  ); break; }
-    case _tetrahedron_6 : { COMPUTE_SHAPES(_tetrahedron_6); break; }
+    case _tetrahedron_4 : { COMPUTE_SHAPES(_tetrahedron_4); break; }
     case _tetrahedron_10 : { COMPUTE_SHAPES(_tetrahedron_10); break; }
     case _point:
     case _not_defined:
@@ -232,7 +232,7 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     case _segment_3       : { COMPUTE_NORMALS_ON_QUAD(_segment_3      ); break; }
     case _triangle_3   : { COMPUTE_NORMALS_ON_QUAD(_triangle_3  ); break; }
     case _triangle_6   : { COMPUTE_NORMALS_ON_QUAD(_triangle_6  ); break; }
-    case _tetrahedron_6 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_6); break; }
+    case _tetrahedron_4 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_4); break; }
     case _tetrahedron_10 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_10); break; }
     case _point:
     case _not_defined:

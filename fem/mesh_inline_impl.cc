@@ -283,7 +283,7 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   case _segment_3       : { GET_NB_NODES_PER_ELEMENT(_segment_3      ); break; }
   case _triangle_3   : { GET_NB_NODES_PER_ELEMENT(_triangle_3  ); break; }
   case _triangle_6   : { GET_NB_NODES_PER_ELEMENT(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_10); break; }
   case _point        : { GET_NB_NODES_PER_ELEMENT(_point       ); break; }
   case _not_defined:
@@ -311,7 +311,7 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
   case _segment_3       : { GET_ELEMENT_P1(_segment_3      ); break; }
   case _triangle_3   : { GET_ELEMENT_P1(_triangle_3  ); break; }
   case _triangle_6   : { GET_ELEMENT_P1(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_ELEMENT_P1(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_ELEMENT_P1(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_ELEMENT_P1(_tetrahedron_10); break; }
   case _point        : { GET_ELEMENT_P1(_point       ); break; }
   case _not_defined:
@@ -339,7 +339,7 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   case _segment_3       : { GET_SPATIAL_DIMENSION(_segment_3      ); break; }
   case _triangle_3   : { GET_SPATIAL_DIMENSION(_triangle_3  ); break; }
   case _triangle_6   : { GET_SPATIAL_DIMENSION(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_SPATIAL_DIMENSION(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_SPATIAL_DIMENSION(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_SPATIAL_DIMENSION(_tetrahedron_10); break; }
   case _point        : { GET_SPATIAL_DIMENSION(_point       ); break; }
   case _not_defined:
@@ -367,7 +367,7 @@ inline ElementType Mesh::getFacetElementType(const ElementType & type) {
   case _segment_3       : { GET_FACET_TYPE(_segment_3      ); break; }
   case _triangle_3   : { GET_FACET_TYPE(_triangle_3  ); break; }
   case _triangle_6   : { GET_FACET_TYPE(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_FACET_TYPE(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_FACET_TYPE(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_FACET_TYPE(_tetrahedron_10); break; }
   case _point        : { GET_FACET_TYPE(_point       ); break; }
   case _not_defined:
@@ -395,7 +395,7 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
   case _segment_3       : { GET_NB_FACET(_segment_3      ); break; }
   case _triangle_3   : { GET_NB_FACET(_triangle_3  ); break; }
   case _triangle_6   : { GET_NB_FACET(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_NB_FACET(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_NB_FACET(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_NB_FACET(_tetrahedron_10); break; }
   case _point        : { GET_NB_FACET(_point       ); break; }
   case _not_defined:
@@ -424,7 +424,7 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
   case _segment_3       : { GET_FACET_CON(_segment_3      ); break; }
   case _triangle_3   : { GET_FACET_CON(_triangle_3  ); break; }
   case _triangle_6   : { GET_FACET_CON(_triangle_6  ); break; }
-  case _tetrahedron_6 : { GET_FACET_CON(_tetrahedron_6); break; }
+  case _tetrahedron_4 : { GET_FACET_CON(_tetrahedron_4); break; }
   case _tetrahedron_10 : { GET_FACET_CON(_tetrahedron_10); break; }
   case _point        : { GET_FACET_CON(_point       ); break; }
   case _not_defined:
