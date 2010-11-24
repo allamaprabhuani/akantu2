@@ -62,6 +62,30 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(U
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
+inline void RegularGridNeighborStructure<spatial_dimension>::setMaxIncrement(Real increment, UInt component) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
+		      component << " is out of range (spatial dimension = " << 
+		      spatial_dimension << ")");
+
+  max_increment[component] = increment;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline Real RegularGridNeighborStructure<spatial_dimension>::getMaxIncrement(UInt component) const {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
+		      component << " is out of range (spatial dimension = " << 
+		      spatial_dimension << ")");
+  
+  AKANTU_DEBUG_OUT();
+  return max_increment[component];
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt * directional_nb_cells, 
 									   Int * directional_cell) {
 

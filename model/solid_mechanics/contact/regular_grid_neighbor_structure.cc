@@ -99,6 +99,10 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
 
   Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().values;
   this->update(node_current_position);
+
+  /// reset max_increment to zero
+  for(UInt i = 0; i < spatial_dimension; ++i)
+    max_increment[0] = 0.0;
   
   AKANTU_DEBUG_OUT();
 }
@@ -587,7 +591,7 @@ bool RegularGridNeighborStructure<spatial_dimension>::check() {
   
   /// initialize max table with extrem values
   for(UInt dim = 0; dim < spatial_dimension; ++dim)
-    max[dim] = std::numeric_limits<Real>::min();
+    max[dim] = 0.0;
 
   // get the nodes that are on the surfaces
   UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;

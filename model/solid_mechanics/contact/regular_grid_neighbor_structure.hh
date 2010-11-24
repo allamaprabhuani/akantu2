@@ -118,6 +118,12 @@ public:
   /// get security factor
   inline Real getSecurityFactor(UInt component) const;
 
+  /// set max increment
+  inline void setMaxIncrement(Real increment, UInt component);
+
+  /// get max increment
+  inline Real getMaxIncrement(UInt component) const;
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
