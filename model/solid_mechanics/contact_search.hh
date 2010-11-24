@@ -80,7 +80,7 @@ public:
   virtual void initNeighborStructure(const Surface & master_surface);
 
   /// build the penetration list
-  virtual PenetrationList * findPenetration(const Surface & master_surface) = 0;
+  virtual void findPenetration(const Surface & master_surface, PenetrationList & penetration_list) = 0;
 
   /// update the neighbor structure
   virtual void updateStructure(const Surface & master_surface);
@@ -93,6 +93,10 @@ public:
 
   /// remove a master surface
   void removeMasterSurface(const Surface & master_surface);
+
+private:
+  /// compute the maximal increment for all surface nodes in each direction
+  void computeMaxIncrement(Real * max_increment);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -109,7 +113,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// id of the object
   ContactSearchID id;
 

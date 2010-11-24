@@ -50,16 +50,16 @@ public:
 private:
 
   /// Project back nodes on penetrated segments
-  void projectNodesOnSegements(PenetrationList * pen_list);
+  void projectNodesOnSegements(PenetrationList & pen_list);
 
   /// Decompose velocities prior impact to compute normal velocities
-  void computeNormalVelocities(PenetrationList * pen_list, Vector<Real> & gap_der, Vector<Real> & vel_norm);
+  void computeNormalVelocities(PenetrationList & pen_list, Vector<Real> & gap_der, Vector<Real> & vel_norm);
   
   /// Decompose velocities prior impact to compute friction velocities
-  void computeFrictionVelocities(PenetrationList * pen_list, Vector<Real> & gap_der, Vector<Real> & vel_norm, Vector<Real> & vel_fric);
+  void computeFrictionVelocities(PenetrationList & pen_list, Vector<Real> & gap_der, Vector<Real> & vel_norm, Vector<Real> & vel_fric);
 
   /// Update velocities adding normal and friction components
-  void updatePostImpactVelocities(PenetrationList *pen_list,Vector<Real> & vel_norm, Vector<Real> & vel_fric);
+  void updatePostImpactVelocities(PenetrationList & pen_list,Vector<Real> & vel_norm, Vector<Real> & vel_fric);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

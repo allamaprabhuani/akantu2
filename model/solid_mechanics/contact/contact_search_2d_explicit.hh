@@ -57,7 +57,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  PenetrationList * findPenetration(const Surface & master_surface);
+  void findPenetration(const Surface & master_surface, PenetrationList & penetration_list);
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

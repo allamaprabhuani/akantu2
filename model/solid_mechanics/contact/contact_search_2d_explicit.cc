@@ -40,7 +40,7 @@ ContactSearch2dExplicit::~ContactSearch2dExplicit() {
 }
 
 /* -------------------------------------------------------------------------- */
-PenetrationList * ContactSearch2dExplicit::findPenetration(const Surface & master_surface) {
+void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, PenetrationList & penetration_list) {
   AKANTU_DEBUG_IN();
 
   //const ContactNeighborStructureType & neighbor_type = getContactNeighborStructureType();
@@ -178,8 +178,6 @@ PenetrationList * ContactSearch2dExplicit::findPenetration(const Surface & maste
     }
   }
   pen_list->penetrated_facets_offset[el_type]->push_back(pen_list->nb_nodes);
-
-  return pen_list;
 
   AKANTU_DEBUG_OUT();
 }

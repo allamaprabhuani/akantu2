@@ -117,7 +117,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// id of the contact class
   ContactID id;
 
@@ -133,6 +133,10 @@ private:
   /// list of master surfaces
   std::vector<Surface> master_surfaces;
 
+  /// type of contact object
+  ContactType type;
+
+private:
   /// offset of nodes per surface
   Vector<UInt> surface_to_nodes_offset;
 
@@ -145,8 +149,6 @@ private:
   /// list of surface elements id (elements can occur multiple times)
   ByElementTypeUInt node_to_elements;
 
-  /// type of contact object
-  ContactType type;
 };
 
 
