@@ -12,11 +12,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <fstream>
-
-/* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
-#include "material.hh"
 #include "aka_math.hh"
 #include "integration_scheme_2nd_order.hh"
 
@@ -123,126 +119,6 @@ void SolidMechanicsModel::initVectors() {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-static void my_getline(std::istream & stream, std::string & str) {
-  std::getline(stream, str); //read the line
-  size_t pos = str.find("#"); //remove the comment
-  str = str.substr(0, pos);
-  trim(str); // remove unnecessary spaces
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::readMaterials(const std::string & filename) {
-  std::ifstream infile;
-  infile.open(filename.c_str());
-
-  std::string line;
-  UInt current_line = 0, mat_count = materials.size();
-
-  if(!infile.good()) {
-    AKANTU_DEBUG_ERROR("Cannot open file " << filename);
-  }
-
-  while(infile.good()) {
-    my_getline(infile, line);
-    current_line++;
-
-    if(line.empty()) continue;
-
-    std::stringstream sstr(line);
-    std::string keyword;
-    std::string value;
-
-    sstr >> keyword;
-    to_lower(keyword);
-    if(keyword == "material") {
-      std::string type; sstr >> type;
-      to_lower(type);
-      std::string obracket; sstr >> obracket;
-      if(obracket != "[")
-	AKANTU_DEBUG_ERROR("Malformed material file : missing [ at line " << current_line);
-
-      std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count++ << ":" << type;
-      Material * material;
-      MaterialID mat_id = sstr_mat.str();
-      if(type == "elastic") material = new MaterialElastic(*this, mat_id);
-      else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
-			      << type << " at line " << current_line);
-
-      /// read the material properties
-      my_getline(infile, line);
-      current_line++;
-
-      while(line[0] != ']') {
-	size_t pos = line.find("=");
-	if(pos == std::string::npos)
-	  AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
-			     << current_line);
-
-	keyword = line.substr(0, pos);  trim(keyword);
-	value   = line.substr(pos + 1); trim(value);
-
-	try {
-	  material->setParam(keyword, value, mat_id);
-	} catch (Exception ex) {
-	  AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
-			     << ex.info() << "\" at line " << current_line);
-	}
-
-	my_getline(infile, line);
-	current_line++;
-      }
-      materials.push_back(material);
-    }
-  }
-
-  infile.close();
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initMaterials() {
-  AKANTU_DEBUG_ASSERT(materials.size() != 0, "No material to initialize !");
-
-  std::vector<Material *>::iterator mat_it;
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    /// init internals properties
-    (*mat_it)->initMaterial();
-  }
-
-  Material ** mat_val = &(materials.at(0));
-
-  /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList(_not_ghost);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-    UInt nb_element = fem->getMesh().getNbElement(*it);
-    UInt * elem_mat_val = element_material[*it]->values;
-
-    for (UInt el = 0; el < nb_element; ++el) {
-      mat_val[elem_mat_val[el]]->addElement(*it, el);
-    }
-  }
-
-  /// @todo synchronize element material
-
-  /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & ghost_type_list =
-    fem->getMesh().getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-    UInt nb_element = fem->getMesh().getNbGhostElement(*it);
-    UInt * elem_mat_val = ghost_element_material[*it]->values;
-
-    for (UInt el = 0; el < nb_element; ++el) {
-      mat_val[elem_mat_val[el]]->addGhostElement(*it, el);
-    }
-  }
-}
-
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initModel() {

@@ -18,8 +18,8 @@ if(AKANTU_TESTS)
   mark_as_advanced(AKANTU_BUILD_ALL_TESTS)
 endif(AKANTU_TESTS)
 #===============================================================================
-macro(register_test test_name source_list)
-  add_executable(${test_name} ${source_list})
+macro(register_test test_name ${ARGN})
+  add_executable(${test_name} ${ARGN})
   target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 endmacro()
 

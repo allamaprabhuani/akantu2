@@ -20,6 +20,33 @@ inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
   return *materials[mat_index];
 }
 
+
+
+/* -------------------------------------------------------------------------- */
+template <typename M> 
+UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename, 
+					     const std::string & keyword) {
+
+  MaterialParser parser;
+  parser.open(filename);
+  std::string key = keyword;
+  to_lower(key);
+  std::string mat_name = parser.getNextMaterialType();
+  while (mat_name != ""){
+    if (mat_name == key) break;
+    mat_name = parser.getNextMaterialType();
+  }
+  if (mat_name != key) AKANTU_DEBUG_ERROR("material " 
+					      << key 
+					      << " not found in file " << filename);
+  
+  std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
+  MaterialID mat_id = sstr_mat.str();
+  Material * mat = parser.readMaterialObject<M>(*this,mat_id);
+  materials.push_back(mat);
+  return materials.size();;
+}
+
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
 						 GhostSynchronizationTag tag) const {

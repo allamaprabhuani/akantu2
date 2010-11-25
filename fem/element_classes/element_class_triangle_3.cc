@@ -86,14 +86,18 @@ template <> inline void ElementClass<_triangle_3>::computeJacobian(const Real * 
 								   const UInt dimension, 
 								   Real & jac){
 
+  const Real weight = .5;
   if (dimension == spatial_dimension){
-    Real weight = .5;
+
     Real det_dxds = Math::det2(dxds);
-    jac = det_dxds * weight;
+    jac = det_dxds;
   }  
   else {
-    AKANTU_DEBUG_ERROR("to be implemented");
+    Real vprod[dimension]; 
+    Math::vectorProduct3(dxds,dxds+3,vprod);
+    jac = Math::norm3(vprod);
   }
+  jac *= weight;
 }
  
 

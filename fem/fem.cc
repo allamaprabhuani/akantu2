@@ -119,7 +119,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 
 #define COMPUTE_SHAPES(type)						\
     do {								\
-      Real local_coord[element_dimension * nb_nodes_per_element];	\
+      Real local_coord[spatial_dimension * nb_nodes_per_element];	\
       for (UInt elem = 0; elem < nb_element; ++elem) {			\
 	int offset = elem * nb_nodes_per_element;			\
 	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\

@@ -170,6 +170,7 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_boundary.cc
+  model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
   model/solid_mechanics/materials/material_elastic.cc
   mesh_utils/mesh_io.cc

@@ -17,11 +17,16 @@
 #ifndef __AKANTU_SOLID_MECHANICS_MODEL_HH__
 #define __AKANTU_SOLID_MECHANICS_MODEL_HH__
 
+
+/* -------------------------------------------------------------------------- */
+#include <fstream>
+/* -------------------------------------------------------------------------- */
+
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "model.hh"
 #include "material.hh"
-
+#include "material_parser.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -59,7 +64,17 @@ public:
 
   /// read the material files to instantiate all the materials
   void readMaterials(const std::string & filename);
-
+  /// read a custom material with a keyword and class as template
+  template <typename M>
+  UInt readCustomMaterial(const std::string & filename, 
+				const std::string & keyword);
+  
+  /// read properties part of a material file and create the material
+  template <typename M> 
+  Material * readMaterialProperties(std::ifstream & infile,
+				    MaterialID mat_id,
+				    UInt &current_line);
+  
   /// initialize all internal arrays for materials
   void initMaterials();
 
