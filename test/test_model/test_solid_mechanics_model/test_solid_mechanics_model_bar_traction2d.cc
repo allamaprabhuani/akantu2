@@ -30,6 +30,15 @@
 #define CHECK_STRESS
 
 
+static void trac(double * position,double * traction){
+  memset(traction,0,sizeof(akantu::Real)*2);
+  if (fabs(position[0] - 10) < 1e-2){
+    traction[0] = 1000;
+    traction[1] = 1000;
+  }
+}
+
+
 int main(int argc, char *argv[])
 {
   akantu::ElementType type = akantu::_triangle_3;
@@ -87,8 +96,8 @@ int main(int argc, char *argv[])
   /// boundary conditions
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
-      model->getDisplacement().values[spatial_dimension*i] = (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100. ;
+    // if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
+    //   model->getDisplacement().values[spatial_dimension*i] = (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100. ;
 
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
 	model->getBoundary().values[spatial_dimension*i] = true;
@@ -98,6 +107,11 @@ int main(int argc, char *argv[])
       model->getBoundary().values[spatial_dimension*i + 1] = true;
     }
   }
+
+  akantu::FEM & fem_boundary = model->getFEMBoundary();
+  fem_boundary.initShapeFunctions();
+  fem_boundary.computeNormalsOnQuadPoints();
+  model->computeForcesFromFunction(trac,0);
 
 
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
@@ -118,11 +132,14 @@ int main(int argc, char *argv[])
 			  spatial_dimension, "velocity");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
+  dumper.AddNodeDataField(model->getForce().values,
+			  spatial_dimension, "applied_force");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
 			  spatial_dimension*spatial_dimension, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
 			  spatial_dimension*spatial_dimension, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
+  dumper.SetEmbeddedValue("applied_force", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
