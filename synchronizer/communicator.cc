@@ -86,8 +86,8 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
 
-  UInt * local_connectivity;
-  UInt * local_partitions;
+  UInt * local_connectivity = NULL;
+  UInt * local_partitions = NULL;
   Vector<UInt> * old_nodes = mesh.getNodesGlobalIdsPointer();
   Vector<Real> * nodes = mesh.getNodesPointer();
 
@@ -278,7 +278,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
      */
 
     /// get the list of nodes to send and send them
-    Real * local_nodes;
+    Real * local_nodes = NULL;
     for (UInt p = 0; p < nb_proc; ++p) {
       UInt nb_nodes;
       UInt * buffer;

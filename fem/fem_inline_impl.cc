@@ -64,7 +64,7 @@ inline Mesh & FEM::getMesh() const {
 inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points;
+  UInt nb_quadrature_points = 0;
 #define GET_NB_QUAD_POINTS(type)					\
   nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints()
 
@@ -92,7 +92,7 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
 inline UInt FEM::getShapeSize(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt shape_size;
+  UInt shape_size = 0;
 #define GET_SHAPE_SIZE(type)				\
   shape_size = ElementClass<type>::getShapeSize()
 
@@ -120,7 +120,7 @@ inline UInt FEM::getShapeSize(const ElementType & type) {
 inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt shape_derivatives_size;
+  UInt shape_derivatives_size = 0;
 #define GET_SHAPE_DERIVATIVES_SIZE(type)				\
   shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
 
@@ -148,7 +148,7 @@ inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
 inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  Real inradius;
+  Real inradius = 0;
 
 #define GET_INRADIUS(type)						\
   inradius = ElementClass<type>::getInradius(coord);			\

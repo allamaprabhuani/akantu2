@@ -274,7 +274,7 @@ inline const Vector<UInt> & Mesh::getSurfaceId(const ElementType & type) const{
 inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element;
+  UInt nb_nodes_per_element = 0;
 #define GET_NB_NODES_PER_ELEMENT(type)					\
   nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
 
@@ -302,7 +302,7 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
 inline ElementType Mesh::getP1ElementType(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  ElementType element_p1;
+  ElementType element_p1 = _not_defined;
 #define GET_ELEMENT_P1(type)				\
   element_p1 = ElementClass<type>::getP1ElementType()
 
@@ -330,7 +330,7 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
 inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension;
+  UInt spatial_dimension = 0;
 #define GET_SPATIAL_DIMENSION(type)					\
   spatial_dimension = ElementClass<type>::getSpatialDimension()
 
@@ -358,7 +358,7 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
 inline ElementType Mesh::getFacetElementType(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  ElementType surface_type;
+  ElementType surface_type = _not_defined;
 #define GET_FACET_TYPE(type)					\
   surface_type = ElementClass<type>::getFacetElementType()
 
@@ -386,7 +386,7 @@ inline ElementType Mesh::getFacetElementType(const ElementType & type) {
 inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt n_facet;
+  UInt n_facet = 0;
 #define GET_NB_FACET(type)					\
   n_facet = ElementClass<type>::getNbFacetsPerElement()
 
@@ -415,7 +415,7 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
 inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt ** facet_conn;
+  UInt ** facet_conn = NULL;
 #define GET_FACET_CON(type)                                      \
   facet_conn = ElementClass<type>::getFacetLocalConnectivityPerElement()
 
