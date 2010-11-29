@@ -177,7 +177,7 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
-  solver/sparse_matrix.cc
+#  solver/sparse_matrix.cc
   synchronizer/ghost_synchronizer.cc
   synchronizer/synchronizer.cc
   synchronizer/communicator.cc

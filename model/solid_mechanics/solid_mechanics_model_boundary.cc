@@ -20,8 +20,12 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
+/** 
+ * @param myf pointer to a function that fills a vector/tensor with respect to passed coordinates
+ * @param function_type flag to specify the take of function: 0 is tensor like and 1 is traction like. 
+ */
 void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double *), 
-						    UInt function_type = 0){
+						    BoundaryFunctionType function_type){
   
 
   /** function type is 
@@ -39,6 +43,15 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
   name << id << ":solidmechanics:quad_coords";  
   Vector<Real> quad_coords(0,spatial_dimension,"quad_coords");
 
+  UInt offset = 0;
+  switch(function_type) {
+  case _bft_stress:
+    offset = spatial_dimension*spatial_dimension; break;
+  case _bft_forces:
+    offset = spatial_dimension; break;
+  }
+
+
   //prepare the loop over element types
   const Mesh::ConnectivityTypeList & type_list = fem_boundary->getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -53,13 +66,15 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
 
 
     Real * imposed_val = NULL;
-    if (function_type == 0){
+    switch(function_type) {
+    case _bft_stress:
       stress_funct.resize(nb_element*nb_quad);
       imposed_val = stress_funct.values;
-    }
-    else {
+      break;
+    case _bft_forces:
       traction_funct.resize(nb_element*nb_quad);
       imposed_val = traction_funct.values;
+      break;
     }
 
     /// sigma/tractions on each quadrature points
@@ -67,16 +82,16 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
       Real * qcoord = quad_coords.values+el*nb_quad*spatial_dimension;
       for (UInt q = 0; q < nb_quad; ++q) {
 	myf(qcoord+q,imposed_val);
-	if (function_type == 0)
-	  imposed_val += spatial_dimension*spatial_dimension;
-	else 
-	  imposed_val += spatial_dimension;
+	imposed_val += offset;
       }
     }
-    if (function_type == 0)    
-      computeForcesByStressTensor(stress_funct,(*it));
-    else
-      computeForcesByTractionVector(traction_funct,(*it));
+
+    switch(function_type) {
+    case _bft_stress:
+      computeForcesByStressTensor(stress_funct,(*it)); break;
+    case _bft_forces:
+      computeForcesByTractionVector(traction_funct,(*it)); break;
+    }
   }
 } 
 

@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
   akantu::FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnQuadPoints();
-  model->computeForcesFromFunction(trac,0);
+  model->computeForcesFromFunction(trac, akantu::_bft_forces);
 
 
   akantu::Real time_step = model->getStableTimeStep() * time_factor;

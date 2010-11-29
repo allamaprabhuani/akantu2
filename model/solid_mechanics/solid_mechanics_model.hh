@@ -109,7 +109,7 @@ public:
   void computeForcesByTractionVector(const Vector<Real> & tractions, const ElementType & type);
 
   /// compute force vector from a function(x,y,z) that describe stresses
-  void computeForcesFromFunction(void (*myf)(double *,double *), UInt function_type);
+  void computeForcesFromFunction(void (*myf)(double *,double *), BoundaryFunctionType function_type);
 
 private:
   /// assemble the lumped mass matrix for local and ghost elements

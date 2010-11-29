@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnQuadPoints();
-  model->computeForcesFromFunction(trac,0);
+  model->computeForcesFromFunction(trac, akantu::_bft_forces);
 
 #ifdef AKANTU_USE_IOHELPER
   model->updateResidual();

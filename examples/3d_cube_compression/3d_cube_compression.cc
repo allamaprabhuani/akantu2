@@ -19,6 +19,7 @@
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
+#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */

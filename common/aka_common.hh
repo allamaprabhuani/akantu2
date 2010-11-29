@@ -102,6 +102,13 @@ enum MaterialType {
   _max_material_type
 };
 
+
+/// @enum BoundaryFunctionType type of function passed for boundary conditions
+enum BoundaryFunctionType {
+  _bft_forces,
+  _bft_stress
+};
+
 /// @enum SparseMatrixType type of sparse matrix used
 enum SparseMatrixType {
   _unsymmetric,
