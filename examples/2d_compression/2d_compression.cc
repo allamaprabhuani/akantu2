@@ -3,7 +3,7 @@
  * @author Leo
  * @date   Thu Sep 30 17:05:00 2010
  *
- * @brief  2d dynamic explicit compression test with akantu 
+ * @brief  2d dynamic explicit compression test with akantu
  *
  * @section LICENSE
  *
@@ -23,8 +23,9 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
-
+#ifdef AKANTU_USE_IOHELPER
 #include "io_helper.h"
+#endif //AKANTU_USE_IOHELPER
 
 //using namespace akantu;
 
@@ -32,10 +33,12 @@ static void setInitialConditions(akantu::SolidMechanicsModel *);
 static void setBoundaryConditions(akantu::SolidMechanicsModel *, akantu::Vector<akantu::UInt> *);
 static void Apply_Displacement(akantu::SolidMechanicsModel *, akantu::Vector<akantu::UInt> *, akantu::Real);
 static void reduceVelocities(akantu::SolidMechanicsModel *, akantu::Real);
+
+#ifdef AKANTU_USE_IOHELPER
 static void InitParaview(akantu::SolidMechanicsModel *);
 
 DumperParaview dumper;
-
+#endif //AKANTU_USE_IOHELPER
 
 int main(int argc, char *argv[])
 {
@@ -78,8 +81,10 @@ int main(int argc, char *argv[])
   akantu::Vector<akantu::UInt> * face_node = new akantu::Vector<akantu::UInt>(0, 2, "face_node");
   setBoundaryConditions(model, face_node);
 
+#ifdef AKANTU_USE_IOHELPER
   /// Paraview Helper
   InitParaview(model);
+#endif //AKANTU_USE_IOHELPER
 
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
   std::cout << "Time Step = " << time_step << "s" << std::endl;
@@ -97,8 +102,10 @@ int main(int argc, char *argv[])
     model->updateAcceleration();
     model->explicitCorr();
 
+#ifdef AKANTU_USE_IOHELPER
     if(s % 200 == 0)
       dumper.Dump();
+#endif //AKANTU_USE_IOHELPER
 
     if(s%100 == 0 && s>499)
       reduceVelocities(model, 0.95);
@@ -135,7 +142,6 @@ static void setInitialConditions(akantu::SolidMechanicsModel * model)
 static void setBoundaryConditions(akantu::SolidMechanicsModel * model, akantu::Vector<akantu::UInt> * face_node)
 {
   akantu::Real eps = 1e-16;
-  akantu::Real x_min, x_max;
   akantu::Real * coord = model->getFEM().getMesh().getNodes().values;
   bool * id = model->getBoundary().values;
   akantu::Real y_min = std::numeric_limits<akantu::Real>::max();
@@ -168,11 +174,10 @@ static void Apply_Displacement(akantu::SolidMechanicsModel * model, akantu::Vect
 {
   akantu::Real * disp_val = model->getDisplacement().values;
   const akantu::UInt nb_face_nodes = face_node->getSize();
-  akantu::Real * dis_val = model->getDisplacement().values;
-  
+
   for(akantu::UInt i=0; i<nb_face_nodes; ++i)
     if(face_node->values[2*i] == 1)  { /// Node on top surface
-      dis_val[2*(face_node->values[2*i+1])+1] += delta;
+      disp_val[2*(face_node->values[2*i+1])+1] += delta;
     }
 }
 
@@ -182,19 +187,19 @@ static void reduceVelocities(akantu::SolidMechanicsModel * model, akantu::Real r
 {
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::Real * velocities = model->getVelocity().values;
-  
+
   if(ratio>1.) {
     fprintf(stderr,"**error** in Reduce_Velocities ratio bigger than 1!\n");
     exit(-1);
   }
-    
+
   for(akantu::UInt i =0; i<nb_nodes; i++) {
     velocities[2*i] *= ratio;
     velocities[2*i+1] *= ratio;
   }
 }
 
-
+#ifdef AKANTU_USE_IOHELPER
 static void InitParaview(akantu::SolidMechanicsModel * model)
 {
   akantu::UInt spatial_dimension = model->getSpatialDimension();
@@ -221,3 +226,4 @@ static void InitParaview(akantu::SolidMechanicsModel * model)
   dumper.Init();
   dumper.Dump();
 }
+#endif //AKANTU_USE_IOHELPER

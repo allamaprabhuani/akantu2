@@ -37,7 +37,6 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
   add_dependencies(test_solid_mechanics_model_bar_traction2d_parallel
     test_bar_traction_2d_mesh2)
 
-
   add_mesh(test_solid_mechanics_model_segment_mesh segment.geo 1 2)
 
   register_test(test_solid_mechanics_model_segment_parallel
@@ -61,3 +60,4 @@ configure_file(
   COPYONLY
   )
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

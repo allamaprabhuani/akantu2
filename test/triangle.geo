@@ -1,19 +1,7 @@
-// CUBE ON CUBE (2 BODIES) 3D:
-
-// REMARKS:
-//   Physical Surfaces are defined so that load_mesh_msh can load
-// directly the surface element structure. When creating Plane Surface,
-// the surface normal has to point to the inside of the body. Otherwise the
-// solvecontact3d algorithm won't work. The Physical Surface number 
-// corresponds to the face number. The face numbering has to start with 1!
-//   Physical Volume defines the material of each body. This can be read
-// by the load_mesh_msh function in adlib.
-
 // Mesh size
-h  = 0.1;    // Top cube
-hy = 0.5;    // Top cube
+h  = 0.1;
 
-// Dimensions of top cube
+// Dimensions of top square
 Lx = 1;
 Ly = 1;
 

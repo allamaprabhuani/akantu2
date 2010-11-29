@@ -23,3 +23,4 @@ add_mesh(test_facet_cube_mesh cube.geo 3 1)
 register_test(test_facet_extraction_tetrahedron_4 test_facet_extraction_tetrahedron_4.cc)
 add_dependencies(test_facet_extraction_tetrahedron_4 test_facet_cube_mesh)
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

@@ -136,7 +136,10 @@ int main(int argc, char *argv[])
   akantu::initialize(&argc, &argv);
 
   int dim = 2;
+#ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_triangle_3;
+#endif //AKANTU_USE_IOHELPER
+
   akantu::Mesh mesh(dim);
 
   akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();

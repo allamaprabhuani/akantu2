@@ -42,7 +42,9 @@ static void trac(double * position,double * traction){
 int main(int argc, char *argv[])
 {
   akantu::ElementType type = akantu::_triangle_3;
+#ifdef AKANTU_USE_IOHELPER
   akantu::UInt paraview_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;

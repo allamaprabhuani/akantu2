@@ -33,7 +33,9 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_triangle_6;
+#endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.8;
@@ -68,8 +70,9 @@ int main(int argc, char *argv[])
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+#ifdef AKANTU_USE_IOHELPER
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
-
+#endif //AKANTU_USE_IOHELPER
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
@@ -207,7 +210,10 @@ int main(int argc, char *argv[])
 
   if(prank == 0) std::cout << "Time : " << psize << " " << total_time / max_steps << " " << total_time << std::endl;
 
+#ifdef AKANTU_USE_IOHELPER
   delete [] part;
+#endif //AKANTU_USE_IOHELPER
+
   delete model;
 
   akantu::finalize();

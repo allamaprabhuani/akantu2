@@ -18,3 +18,4 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 # List of examples
 #===============================================================================
 add_example(2d_compression "Compression example")
+add_example(3d_cube_compression "Cube compression example")
