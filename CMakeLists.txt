@@ -177,7 +177,7 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
-#  solver/sparse_matrix.cc
+  solver/sparse_matrix.cc
   synchronizer/ghost_synchronizer.cc
   synchronizer/synchronizer.cc
   synchronizer/communicator.cc
@@ -275,5 +275,6 @@ endif(AKANTU_TESTS)
 #===============================================================================
 option(AKANTU_EXAMPLES "Activate examples" OFF)
 if(AKANTU_EXAMPLES)
+  find_package(GMSH REQUIRED)
   add_subdirectory(examples)
 endif(AKANTU_EXAMPLES)
