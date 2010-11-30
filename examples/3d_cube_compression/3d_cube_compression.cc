@@ -22,6 +22,10 @@
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
+#include "static_communicator.hh"
+#include "communicator.hh"
+#include "mesh_partition_scotch.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
@@ -38,16 +42,41 @@ int main(int argc, char *argv[])
   akantu::UInt max_steps = 5000;
   akantu::Real time_step = 1e-6;
 
-  //  akantu::Real epot, ekin;
+  akantu::initialize(&argc, &argv);
 
+  akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm->getNbProc();
+  akantu::Int prank = comm->whoAmI();
+
+  //  akantu::Real epot, ekin;
   akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("cube.msh", mesh);
+
+  /* ------------------------------------------------------------------------ */
+  /* Parallel initialization                                                  */
+  /* ------------------------------------------------------------------------ */
+  akantu::Communicator * communicator;
+  if(prank == 0) {
+    akantu::MeshIOMSH mesh_io;
+    mesh_io.read("cube.msh", mesh);
+    akantu::MeshPartition * partition =
+      new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition->partitionate(psize);
+    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
+    delete partition;
+  } else {
+    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
+  }
+
+  // akantu::Mesh mesh(spatial_dimension);
+  // akantu::MeshIOMSH mesh_io;
+  // mesh_io.read("cube.msh", mesh);
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+
+  std::cout << "Nb nodes : " << nb_nodes << " - nb elements : " << nb_element << std::endl;
 
   /// model initialization
   model->initVectors();
@@ -65,6 +94,8 @@ int main(int argc, char *argv[])
 
   model->readMaterials("material.dat");
   model->initMaterials();
+  model->registerSynchronizer(*communicator);
+
 
   model->initModel();
 
@@ -129,19 +160,27 @@ int main(int argc, char *argv[])
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
+  double total_time = 0.;
 
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
+    double start = MPI_Wtime();
+
     model->explicitPred();
 
     model->updateResidual();
     model->updateAcceleration();
     model->explicitCorr();
 
+    double end = MPI_Wtime();
+    total_time += end - start;
+
 #ifdef AKANTU_USE_IOHELPER
     if(s % 1 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
     if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
+
+  if(prank == 0) std::cout << "Time : " << psize << " " << total_time / max_steps << " " << total_time << std::endl;
 
   return EXIT_SUCCESS;
 }

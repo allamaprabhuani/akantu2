@@ -18,4 +18,7 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 # List of examples
 #===============================================================================
 add_example(2d_compression "Compression example")
-add_example(3d_cube_compression "Cube compression example")
+
+if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
+  add_example(3d_cube_compression "Cube compression example")
+endif(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
