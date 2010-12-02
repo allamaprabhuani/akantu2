@@ -32,9 +32,9 @@ __BEGIN_AKANTU__
 
 class PenetrationList {
 public:
-  /// number of penetrating nodes
-  UInt nb_nodes;
-
+  PenetrationList();
+  virtual ~PenetrationList();
+public:
   /// nodes who have penetrated the master surface
   Vector<UInt> penetrating_nodes;
 

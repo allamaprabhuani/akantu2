@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_2d");
+  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "rg2d-test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
    			 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
   dumper.SetPrefix("paraview/");
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper_surface;
   dumper_surface.SetMode(TEXT);
 
-  dumper_surface.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary_2d");
+  dumper_surface.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "rg2d-test-surface-extraction_boundary");
   
   dumper_surface.SetConnectivity((int *)my_mesh.getConnectivity(_segment_2).values,
 				 LINE1, my_mesh.getNbElement(_segment_2), C_MODE);
@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
 
   /// contact declaration
   Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_3d_expli, 
-					     _cst_3d_expli, 
+					     _ct_2d_expli, 
+					     _cst_2d_expli, 
 					     _cnst_regular_grid);
 
   my_contact->initContact(false);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper_neighbor;
   dumper_neighbor.SetMode(TEXT);
 
-  dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "test-neighbor-elements_2d");
+  dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "rg2d-test-neighbor-elements");
   
   dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_segment_2).values,
 				 LINE1, my_mesh.getNbElement(_segment_2), C_MODE);

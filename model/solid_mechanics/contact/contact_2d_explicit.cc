@@ -108,7 +108,7 @@ void Contact2dExplicit::solveContact() {
     PenetrationList pen_list;
     contact_search->findPenetration(*it, pen_list);
 
-    if(pen_list.nb_nodes > 0) {
+    if(pen_list.penetrating_nodes.getSize() > 0) {
       Vector<Real> gap_der;
       Vector<Real> vel_norm(0, 2);
       Vector<Real> vel_fric(0, 2);
@@ -140,13 +140,13 @@ void Contact2dExplicit::projectNodesOnSegements(PenetrationList & pen_list) {
   Real * inc_val = model.getIncrement().values;
   Real * disp_val = model.getDisplacement().values;
   Real * pos_val = model.getCurrentPosition().values;
-  Real * delta = new Real[dim*pen_list.nb_nodes];
+  Real * delta = new Real[dim*pen_list.penetrating_nodes.getSize()];
 
   ElementType el_type = _segment_2;
   UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type).values;
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
-  for (UInt n = 0; n < pen_list.nb_nodes; ++n) {
+  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
     UInt i_node = pen_list.penetrating_nodes.values[n];
     for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el <  pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
       /// Project node on segment according to its projection
@@ -182,7 +182,7 @@ void Contact2dExplicit::projectNodesOnSegements(PenetrationList & pen_list) {
   }
 
   /// Update displacement and increment of the projected nodes
-  for (UInt n = 0; n < pen_list.nb_nodes; ++n) {
+  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
     UInt i_node = pen_list.penetrating_nodes.values[n];
     pos_val[dim*n] +=delta[n];
     pos_val[dim*n+1] += delta[n+1];
@@ -212,13 +212,13 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
   Real * mass_val = model.getMass().values;
   Real * pos_val = model.getCurrentPosition().values;
 
-  gap_der.resize(6*pen_list.nb_nodes);
-  vel_norm.resize(6*pen_list.nb_nodes);
+  gap_der.resize(6*pen_list.penetrating_nodes.getSize());
+  vel_norm.resize(6*pen_list.penetrating_nodes.getSize());
   Real * dg = gap_der.values;
   Real * v_n = vel_norm.values; 
 
   /// Loop over projected nodes
-  for (UInt n = 0; n < pen_list.nb_nodes; ++n) {
+  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
     const UInt i_node = pen_list.penetrating_nodes.values[n];
 
     for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
@@ -281,9 +281,9 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
   AKANTU_DEBUG_IN();
 
-  vel_fric.resize(6*pen_list.nb_nodes);
+  vel_fric.resize(6*pen_list.penetrating_nodes.getSize());
   if (getFrictionCoefficient() == 0) {
-    memset(vel_fric.values, 0, (6*pen_list.nb_nodes)*sizeof(Real));
+    memset(vel_fric.values, 0, (6*pen_list.penetrating_nodes.getSize())*sizeof(Real));
     return;
   }
 
@@ -300,7 +300,7 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
   Real * v_f = vel_fric.values; 
 
   /// Loop over projected nodes
-  for (UInt n = 0; n < pen_list.nb_nodes; ++n) {
+  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
     UInt i_node = pen_list.penetrating_nodes.values[n];
 
     for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
@@ -362,7 +362,7 @@ void Contact2dExplicit::updatePostImpactVelocities(PenetrationList & pen_list,
   Real * v_f = vel_fric.values;
 
   /// Loop over projected nodes
-  for (UInt n = 0; n < pen_list.nb_nodes; ++n) {
+  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
     const UInt i_node = pen_list.penetrating_nodes.values[n];
 
     for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) { 

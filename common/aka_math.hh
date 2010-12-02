@@ -116,6 +116,9 @@ public:
   /// return the dot product between 2 vectors in 2d
   static inline Real vectorDot2(const Real * v1, const Real * v2);
 
+  /// return the dot product between 2 vectors in 3d
+  static inline Real vectorDot3(const Real * v1, const Real * v2);
+
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */
@@ -140,7 +143,10 @@ public:
 				Real * barycenter);
 
   /// vector between x and y
-  static inline void vector_2d(const Real * x, const Real * y, Real *vec);
+  static inline void vector_2d(const Real * x, const Real * y, Real * vec);
+
+  /// vector pointing from x to y in 3 spatial dimension
+  static inline void vector_3d(const Real * x, const Real * y, Real * vec);
 
 };
 

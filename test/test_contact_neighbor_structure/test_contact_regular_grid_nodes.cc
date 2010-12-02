@@ -110,7 +110,9 @@ int main(int argc, char *argv[])
 
   my_contact->initNeighborStructure(master);
   
-  NodesNeighborList & my_neighbor_list = dynamic_cast<NodesNeighborList &>(const_cast<NeighborList&>(const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList()));
+  const NodesNeighborList & my_neighbor_list = dynamic_cast<const NodesNeighborList &>(my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList());
+
+  //  NodesNeighborList & my_neighbor_list = dynamic_cast<NodesNeighborList &>(const_cast<NeighborList&>(const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList()));
 
   //const NeighborList & my_neighbor_list = const_cast<ContactNeighborStructure&>(my_contact->getContactSearch().getContactNeighborStructure(master)).getNeighborList();
 

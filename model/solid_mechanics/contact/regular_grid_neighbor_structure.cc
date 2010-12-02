@@ -403,6 +403,8 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt
     UInt * node_to_elements_offset_val = node_to_elements_offset.values;
     UInt * node_to_elements_val        = node_to_elements.values;
 
+    UInt * surface_id_val = mesh.getSurfaceId(type).values;
+
     Vector<bool> * visited_node = new Vector<bool>(nb_impactor_nodes, 1, false); // does it need a delete at the end ?
     bool * visited_node_val = visited_node->values;
     UInt neighbor_cells[max_nb_neighbor_cells];
@@ -456,8 +458,10 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt
 	    UInt min_element_offset = node_to_elements_offset_val[master_node];
 	    UInt max_element_offset = node_to_elements_offset_val[master_node + 1];
 	    
-	    for(UInt el = min_element_offset; el < max_element_offset; ++el)
-	      master_surface_elements.insert(node_to_elements_val[el]);
+	    for(UInt el = min_element_offset; el < max_element_offset; ++el) {
+	      if(surface_id_val[node_to_elements_val[el]] == master_surface) 
+		 master_surface_elements.insert(node_to_elements_val[el]);
+	    }
 	  }
 	}
 	UInt min_impactor_offset = impactor_nodes_cell_offset[current_cell];
