@@ -146,7 +146,7 @@ template <ElementType type>
 inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
 							const Real * dnds,
 							Real * shape_deriv) {
-    /// @f$ dxds = J^{-1} @f$
+  /// @f$ dxds = J^{-1} @f$
   Real inv_dxds[spatial_dimension * spatial_dimension];
   if (spatial_dimension == 1) inv_dxds[0] = 1./dxds[0];
   if (spatial_dimension == 2) Math::inv2(dxds, inv_dxds);
@@ -219,4 +219,4 @@ inline void ElementClass<type>::computeJacobian(__attribute__ ((unused)) const R
 #include "element_classes/element_class_triangle_3.cc"
 #include "element_classes/element_class_triangle_6.cc"
 #include "element_classes/element_class_tetrahedron_4.cc"
-// #include "element_classes/element_class_tetrahedron_10.cc"
+#include "element_classes/element_class_tetrahedron_10.cc"

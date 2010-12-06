@@ -114,5 +114,5 @@ template <> inline void ElementClass<_tetrahedron_4>::computeJacobian(const Real
  
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_tetrahedron_4>::getInradius(const Real * coord) {
-  return Math::tetrahedron_inradius(coord);
+  return Math::tetrahedron_inradius(coord, coord+3, coord+6, coord+9);
 }

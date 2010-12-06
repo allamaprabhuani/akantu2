@@ -281,28 +281,30 @@ inline Real Math::distance_3d(const Real * x, const Real * y) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::tetrahedron_volume(const Real * coord) {
-  Real xx[9],vol;
-  const Real *x1 = coord,*x2 = coord+3,*x3 = coord+6,*x4 = coord+9;
+inline Real Math::tetrahedron_volume(const Real * coord1,
+				     const Real * coord2,
+				     const Real * coord3,
+				     const Real * coord4) {
+  Real xx[9], vol;
 
-  xx[0] = x2[0];xx[1] = x2[1];xx[2] = x2[2];
-  xx[3] = x3[0];xx[4] = x3[1];xx[5] = x3[2];
-  xx[6] = x4[0];xx[7] = x4[1];xx[8] = x4[2];
+  xx[0] = coord2[0]; xx[1] = coord2[1]; xx[2] = coord2[2];
+  xx[3] = coord3[0]; xx[4] = coord3[1]; xx[5] = coord3[2];
+  xx[6] = coord4[0]; xx[7] = coord4[1]; xx[8] = coord4[2];
   vol = det3(xx);
 
-  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];
-  xx[3] = x3[0];xx[4] = x3[1];xx[5] = x3[2];
-  xx[6] = x4[0];xx[7] = x4[1];xx[8] = x4[2];
+  xx[0] = coord1[0]; xx[1] = coord1[1]; xx[2] = coord1[2];
+  xx[3] = coord3[0]; xx[4] = coord3[1]; xx[5] = coord3[2];
+  xx[6] = coord4[0]; xx[7] = coord4[1]; xx[8] = coord4[2];
   vol -= det3(xx);
 
-  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];
-  xx[3] = x2[0];xx[4] = x2[1];xx[5] = x2[2];
-  xx[6] = x4[0];xx[7] = x4[1];xx[8] = x4[2];
+  xx[0] = coord1[0]; xx[1] = coord1[1]; xx[2] = coord1[2];
+  xx[3] = coord2[0]; xx[4] = coord2[1]; xx[5] = coord2[2];
+  xx[6] = coord4[0]; xx[7] = coord4[1]; xx[8] = coord4[2];
   vol += det3(xx);
 
-  xx[0] = x1[0];xx[1] = x1[1];xx[2] = x1[2];
-  xx[3] = x2[0];xx[4] = x2[1];xx[5] = x2[2];
-  xx[6] = x3[0];xx[7] = x3[1];xx[8] = x3[2];
+  xx[0] = coord1[0]; xx[1] = coord1[1]; xx[2] = coord1[2];
+  xx[3] = coord2[0]; xx[4] = coord2[1]; xx[5] = coord2[2];
+  xx[6] = coord3[0]; xx[7] = coord3[1]; xx[8] = coord3[2];
   vol -= det3(xx);
 
   vol /= 6;
@@ -311,15 +313,18 @@ inline Real Math::tetrahedron_volume(const Real * coord) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::tetrahedron_inradius(const Real * coord) {
+inline Real Math::tetrahedron_inradius(const Real * coord1,
+				       const Real * coord2,
+				       const Real * coord3,
+				       const Real * coord4) {
 
   Real l12, l13, l14, l23, l24, l34;
-  l12 = distance_3d(coord  , coord+3);
-  l13 = distance_3d(coord  , coord+6);
-  l14 = distance_3d(coord  , coord+9);
-  l23 = distance_3d(coord+3, coord+6);
-  l24 = distance_3d(coord+3, coord+9);
-  l34 = distance_3d(coord+6, coord+9);
+  l12 = distance_3d(coord1, coord2);
+  l13 = distance_3d(coord1, coord3);
+  l14 = distance_3d(coord1, coord4);
+  l23 = distance_3d(coord2, coord3);
+  l24 = distance_3d(coord2, coord4);
+  l34 = distance_3d(coord3, coord4);
 
   Real s1, s2, s3, s4;
 
@@ -335,7 +340,7 @@ inline Real Math::tetrahedron_inradius(const Real * coord) {
   s4 = (l13 + l34 + l24) * 0.5;
   s4 = sqrt(s4*(s4-l13)*(s4-l34)*(s4-l14));
 
-  Real volume = Math::tetrahedron_volume(coord);
+  Real volume = Math::tetrahedron_volume(coord1,coord2,coord3,coord4);
 
   return 3*volume/(s1+s2+s3+s4);
 }

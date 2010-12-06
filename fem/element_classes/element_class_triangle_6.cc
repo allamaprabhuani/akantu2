@@ -183,9 +183,9 @@ template<> inline Real ElementClass<_triangle_6>::getInradius(const Real * coord
 
   Real inradius = std::numeric_limits<Real>::max();
   for (UInt t = 0; t < 4; t++) {
-    Real ir = Math::triangle_inradius(coord + triangles[t][0] * 2,
-				      coord + triangles[t][1] * 2,
-				      coord + triangles[t][2] * 2);
+    Real ir = Math::triangle_inradius(coord + triangles[t][0] * spatial_dimension,
+				      coord + triangles[t][1] * spatial_dimension,
+				      coord + triangles[t][2] * spatial_dimension);
     inradius = ir < inradius ? ir : inradius;
   }
 

@@ -90,7 +90,7 @@ template<> UInt * ElementClass<_triangle_6>::facet_connectivity[]  = {&vec_facet
 template<> UInt ElementClass<_tetrahedron_4>::nb_nodes_per_element    = 4;
 template<> ElementType ElementClass<_tetrahedron_4>::p1_element_type  = _tetrahedron_4;
 template<> UInt ElementClass<_tetrahedron_4>::nb_quadrature_points    = 1;
-template<> Real ElementClass<_tetrahedron_4>::quad[] = {1./4., 1./4.,1./4.};
+template<> Real ElementClass<_tetrahedron_4>::quad[] = {1./4., 1./4., 1./4.};
 template<> UInt ElementClass<_tetrahedron_4>::spatial_dimension       = 3;
 template<> UInt ElementClass<_tetrahedron_4>::nb_facets               = 4;
 template<> ElementType ElementClass<_tetrahedron_4>::facet_type       = _triangle_3;
@@ -106,18 +106,21 @@ template<> UInt * ElementClass<_tetrahedron_4>::facet_connectivity[]  = {&vec_fa
 template<> UInt ElementClass<_tetrahedron_10>::nb_nodes_per_element    = 10;
 template<> ElementType ElementClass<_tetrahedron_10>::p1_element_type  = _tetrahedron_4;
 template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points    = 4;
-template<> Real ElementClass<_tetrahedron_10>::quad[] = {};
+template<> Real ElementClass<_tetrahedron_10>::quad[] = {0.1381966011250, 0.1381966011250, 0.1381966011250,  // a = (5-sqrt(5))/20
+                                                         0.5854101966250, 0.1381966011250, 0.1381966011250,  // b = (5+3*sqrt(5))/20
+                                                         0.1381966011250, 0.5854101966250, 0.1381966011250,
+                                                         0.1381966011250, 0.1381966011250, 0.5854101966250};
 template<> UInt ElementClass<_tetrahedron_10>::spatial_dimension       = 3;
 template<> UInt ElementClass<_tetrahedron_10>::nb_facets               = 4;
 template<> ElementType ElementClass<_tetrahedron_10>::facet_type       = _triangle_6;
 template<> UInt ElementClass<_tetrahedron_10>::vec_facet_connectivity[]= {0, 2, 1, 6, 5, 4,
-									  1, 2, 3, 5, 8, 9,
-									  2, 0, 3, 8, 7, 6,
-									  0, 1, 3, 4, 9, 7};
+									  1, 2, 3, 5, 9, 8,
+									  2, 0, 3, 6, 7, 9,
+									  0, 1, 3, 4, 8, 7};
 template<> UInt * ElementClass<_tetrahedron_10>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-									  &vec_facet_connectivity[3],
 									  &vec_facet_connectivity[6],
-									  &vec_facet_connectivity[9]};
+									  &vec_facet_connectivity[12],
+									  &vec_facet_connectivity[18]};
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__

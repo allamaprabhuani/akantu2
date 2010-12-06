@@ -30,12 +30,12 @@ int main(int argc, char *argv[])
 {
   akantu::UInt max_steps = 10000;
   akantu::Real epot, ekin;
-  akantu::ElementType type = akantu::_tetrahedron_4;
-  akantu::UInt paratype = TETRA1;
+  akantu::ElementType type = akantu::_tetrahedron_10;
+  akantu::UInt paratype = TETRA2;
 
   akantu::Mesh mesh(3);
   akantu::MeshIOMSH mesh_io;
-  mesh_io.read("cube1.msh", mesh);
+  mesh_io.read("cube2.msh", mesh);
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
@@ -61,15 +61,15 @@ int main(int argc, char *argv[])
 
 
   /// boundary conditions
-  akantu::Real eps = 1e-16;
+  akantu::Real eps = 1e-2;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    model->getDisplacement().values[3*i] = model->getFEM().getMesh().getNodes().values[3*i] / 100.;
+    model->getDisplacement().values[3*i+2] = model->getFEM().getMesh().getNodes().values[3*i+2] / 100.;
 
-    if(model->getFEM().getMesh().getNodes().values[3*i] <= eps) {
-      model->getBoundary().values[3*i    ] = true;
+    if(model->getFEM().getMesh().getNodes().values[3*i + 2] <= eps) {
+      model->getBoundary().values[3*i + 2] = true;
     }
-    if(model->getFEM().getMesh().getNodes().values[3*i + 1] <= eps) {
-      model->getBoundary().values[3*i + 1] = true;
+    if(model->getFEM().getMesh().getNodes().values[3*i] <= eps) {
+      model->getBoundary().values[3*i] = true;
     }
 
   }

@@ -132,10 +132,10 @@ public:
   static inline Real triangle_inradius(const Real * coord1, const Real * coord2, const Real * coord3);
 
   /// radius of the in-circle of a tetrahedron
-  static inline Real tetrahedron_inradius(const Real * coord);
+  static inline Real tetrahedron_inradius(const Real * coord1, const Real * coord2, const Real * coord3, const Real * coord4);
 
   /// volume of a tetrahedron
-  static inline Real tetrahedron_volume(const Real * coord);
+  static inline Real tetrahedron_volume(const Real * coord1, const Real * coord2, const Real * coord3, const Real * coord4);
 
   /// compute the barycenter of n points
   static inline void barycenter(const Real * coord,

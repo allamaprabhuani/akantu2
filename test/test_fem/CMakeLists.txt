@@ -76,15 +76,27 @@ add_dependencies(test_gradient_triangle_6 test_fem_square_2_mesh)
 #===============================================================================
 # 3D
 #===============================================================================
-add_mesh(test_fem_cube_2_mesh cube.geo 3 1 OUTPUT cube1.msh)
+add_mesh(test_fem_cube_1_mesh cube.geo 3 1 OUTPUT cube1.msh)
+add_mesh(test_fem_cube_2_mesh cube.geo 3 2 OUTPUT cube2.msh)
 
 #===============================================================================
 # 1st order
 register_test(test_integrate_tetrahedron_4 test_integrate_tetrahedron_4.cc)
-add_dependencies(test_integrate_tetrahedron_4 test_fem_cube_2_mesh)
+add_dependencies(test_integrate_tetrahedron_4 test_fem_cube_1_mesh)
 #===============================================================================
 register_test(test_interpolate_tetrahedron_4 test_interpolate_tetrahedron_4.cc)
-add_dependencies(test_interpolate_tetrahedron_4 test_fem_cube_2_mesh)
+add_dependencies(test_interpolate_tetrahedron_4 test_fem_cube_1_mesh)
 #===============================================================================
 register_test(test_gradient_tetrahedron_4 test_gradient_tetrahedron_4.cc)
-add_dependencies(test_gradient_tetrahedron_4 test_fem_cube_2_mesh)
+add_dependencies(test_gradient_tetrahedron_4 test_fem_cube_1_mesh)
+
+#===============================================================================
+# 2nd order
+register_test(test_integrate_tetrahedron_10 test_integrate_tetrahedron_10.cc)
+add_dependencies(test_integrate_tetrahedron_10 test_fem_cube_2_mesh)
+#===============================================================================
+register_test(test_interpolate_tetrahedron_10 test_interpolate_tetrahedron_10.cc)
+add_dependencies(test_interpolate_tetrahedron_10 test_fem_cube_2_mesh)
+#===============================================================================
+register_test(test_gradient_tetrahedron_10 test_gradient_tetrahedron_10.cc)
+add_dependencies(test_gradient_tetrahedron_10 test_fem_cube_2_mesh)
