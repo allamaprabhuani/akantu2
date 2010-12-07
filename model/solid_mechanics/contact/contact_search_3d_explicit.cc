@@ -154,8 +154,8 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
 	UInt current_element = surface_elements.at(el).element;
 	penetration_list.penetrated_facets[current_type]->push_back(current_element);
 	
-	Real normal[spatial_dimension];
-	Real projected_position[spatial_dimension];	
+	Real normal[3];
+	Real projected_position[3];	
 	Real gap;
 	computeComponentsOfProjection(current_impactor_node,
 				      current_element,
@@ -164,9 +164,9 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
 				      gap,
 				      projected_position);
 
-	penetration_list.facets_normals[current_element]->push_back(normal);
-	penetration_list.projected_positions[current_element]->push_back(projected_position);
-	penetration_list.gaps[current_element]->push_back(gap);
+	penetration_list.facets_normals[current_type]->push_back(normal);
+	penetration_list.projected_positions[current_type]->push_back(projected_position);
+	penetration_list.gaps[current_type]->push_back(gap);
 	
 	nb_penetrated_elements++;
 	nb_elements_type[current_type]++;
@@ -176,6 +176,7 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
       for(it = type_list.begin(); it != type_list.end(); ++it) {
 	ElementType type = *it;
 	if(mesh.getSpatialDimension(type) == spatial_dimension) {
+	  penetration_list.penetrating_nodes.push_back(current_impactor_node);
 	  ElementType current_facet_type = mesh.getFacetElementType(type);
 	  penetration_list.penetrated_facets_offset[current_facet_type]->push_back(nb_elements_type[current_facet_type]);
 	}      
@@ -189,43 +190,48 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
 	if(!are_inside_val[el] && are_in_projection_area_val[el]) {
 	  is_outside = true;
 	}
-      } 
-    }
-    
-    // it is not definitly outside take all elements to which it is at least inside
-    if(!is_outside) {
-      for(UInt el = 0; el < nb_surface_elements; ++el) {
-	if(are_inside_val[el] && !are_in_projection_area_val[el]) {
-
-	  ElementType current_type = surface_elements.at(el).type;
-	  UInt current_element = surface_elements.at(el).element;
-	  penetration_list.penetrated_facets[current_type]->push_back(current_element);
-	  
-	  Real normal[spatial_dimension];
-	  Real projected_position[spatial_dimension];	
-	  Real gap;
-	  computeComponentsOfProjection(current_impactor_node,
-					current_element,
-					current_type,
-					normal,
-					gap,
-					projected_position);
-	  
-	  penetration_list.facets_normals[current_element]->push_back(normal);
-	  penetration_list.projected_positions[current_element]->push_back(projected_position);
-	  penetration_list.gaps[current_element]->push_back(gap);
-	  	  
-	  nb_penetrated_elements++;
-	  nb_elements_type[current_type]++;
-	}
       }
-      for(it = type_list.begin(); it != type_list.end(); ++it) {
-	ElementType type = *it;
-	if(mesh.getSpatialDimension(type) == spatial_dimension) {
-	  ElementType current_facet_type = mesh.getFacetElementType(type);
-	  penetration_list.penetrated_facets_offset[current_facet_type]->push_back(nb_elements_type[current_facet_type]);
-	}      
-      } 
+ 
+      // it is not definitly outside take all elements to which it is at least inside
+      if(!is_outside) {
+	bool found_inside_node = false;
+	for(UInt el = 0; el < nb_surface_elements; ++el) {
+	  if(are_inside_val[el] && !are_in_projection_area_val[el]) {
+	    
+	    ElementType current_type = surface_elements.at(el).type;
+	    UInt current_element = surface_elements.at(el).element;
+	    penetration_list.penetrated_facets[current_type]->push_back(current_element);
+	    
+	    Real normal[3];
+	    Real projected_position[3];	
+	    Real gap;
+	    computeComponentsOfProjection(current_impactor_node,
+					  current_element,
+					  current_type,
+					  normal,
+					  gap,
+					  projected_position);
+	    
+	    penetration_list.facets_normals[current_type]->push_back(normal);
+	    penetration_list.projected_positions[current_type]->push_back(projected_position);
+	    penetration_list.gaps[current_type]->push_back(gap);
+	    
+	    nb_penetrated_elements++;
+	    nb_elements_type[current_type]++;
+	    found_inside_node = true;
+	  }
+	}
+	if(found_inside_node) {
+	  for(it = type_list.begin(); it != type_list.end(); ++it) {
+	    ElementType type = *it;
+	    if(mesh.getSpatialDimension(type) == spatial_dimension) {
+	      penetration_list.penetrating_nodes.push_back(current_impactor_node);
+	      ElementType current_facet_type = mesh.getFacetElementType(type);
+	      penetration_list.penetrated_facets_offset[current_facet_type]->push_back(nb_elements_type[current_facet_type]);
+	    }      
+	  }
+	} 
+      }
     }
     
     delete are_in_projection_area;
@@ -371,16 +377,15 @@ void ContactSearch3dExplicit::computeComponentsOfProjectionTriangle3(const UInt 
   Real * position_impactor_node = &(current_position[impactor_node * spatial_dimension]);
 
   /// compute the normal of the face
-  Real vector_1[dim];
-  Real vector_2[dim];
-  
+  Real vector_1[3];
+  Real vector_2[3];
   Math::vector_3d(position_node_1, position_node_2, vector_1); /// @todo: check if correct order of nodes !!  
   Math::vector_3d(position_node_1, position_node_3, vector_2);
   Math::normal3(vector_1, vector_2, normal);
 
   /// compute the gap between impactor and face
   /// gap positive if impactor outside of surface
-  Real vector_node_1_impactor[dim];
+  Real vector_node_1_impactor[3];
   Math::vector_3d(position_node_1, position_impactor_node, vector_node_1_impactor);
   gap = Math::vectorDot3(vector_node_1_impactor, normal);
 
@@ -407,10 +412,10 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
   
   Real * current_position = contact.getModel().getCurrentPosition().values;
   UInt * connectivity = mesh.getConnectivity(type).values;
-  
-  Real normal[dim];
-  Real gap;
-  Real projected_position[dim];
+
+  Real gap;  
+  Real normal[3];
+  Real projected_position[3];
   computeComponentsOfProjectionTriangle3(impactor_node, surface_element, normal, gap, projected_position);
   
   // -------------------------------------------------------
@@ -433,9 +438,9 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
 
   Real triangle_area;
   Real test_area = 0.0;
-  Real tmp_vector_1[dim];
-  Real tmp_vector_2[dim];
-  Real tmp_vector_3[dim];
+  Real tmp_vector_1[3];
+  Real tmp_vector_2[3];
+  Real tmp_vector_3[3];
   
   // find area of triangle
   Math::vector_3d(position_node_1, position_node_2, tmp_vector_1);
@@ -444,9 +449,10 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
   triangle_area = 0.5 * Math::norm3(tmp_vector_3);
 
   // compute areas of projected position and two nodes of master triangle
+  UInt nb_sub_areas = nb_nodes_element;
   UInt node_order[4];
   node_order[0] = 0; node_order[1] = 1; node_order[2] = 2; node_order[3] = 0;
-  for(UInt i=0; i < spatial_dimension; ++i) {
+  for(UInt i=0; i < nb_sub_areas; ++i) {
     position_node_1 = &(current_position[connectivity[node_1 + node_order[i  ]] * spatial_dimension]);
     position_node_2 = &(current_position[connectivity[node_1 + node_order[i+1]] * spatial_dimension]);
     Math::vector_3d(projected_position, position_node_1, tmp_vector_1);
@@ -456,7 +462,8 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
   }
 
   // the projection is outside if the test area is larger than the area of the triangle
-  if(test_area > triangle_area)
+  Real tolerance = std::numeric_limits<Real>::epsilon();
+  if((test_area - triangle_area) > tolerance)
     is_in_projection_area = false;  
   else
     is_in_projection_area = true;

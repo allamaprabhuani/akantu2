@@ -368,6 +368,6 @@ inline void Math::vector_2d(const Real * x, const Real * y, Real * res) {
 inline void Math::vector_3d(const Real * x, const Real * y, Real * res) {
   res[0] = y[0]-x[0];
   res[1] = y[1]-x[1];
-  res[3] = y[2]-x[2];
+  res[2] = y[2]-x[2];
 }
 
