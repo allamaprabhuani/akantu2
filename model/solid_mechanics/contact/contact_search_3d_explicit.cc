@@ -409,6 +409,7 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
   const UInt dim = spatial_dimension;
   const ElementType type = _triangle_3;
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
+  const Real tolerance = std::numeric_limits<Real>::epsilon();
   
   Real * current_position = contact.getModel().getCurrentPosition().values;
   UInt * connectivity = mesh.getConnectivity(type).values;
@@ -422,7 +423,7 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
   /// Find if impactor node is inside or outside of the face
   // -------------------------------------------------------
 
-  if(gap < 0.0)
+  if(gap < -tolerance)
     is_inside = true;  
   else
     is_inside = false;
@@ -462,7 +463,6 @@ void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impa
   }
 
   // the projection is outside if the test area is larger than the area of the triangle
-  Real tolerance = std::numeric_limits<Real>::epsilon();
   if((test_area - triangle_area) > tolerance)
     is_in_projection_area = false;  
   else

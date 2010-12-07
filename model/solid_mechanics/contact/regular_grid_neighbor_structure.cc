@@ -485,6 +485,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt
       }
     }
 
+    tmp_facets_offset.resize(tmp_facets_offset.getSize()+1); // increase size off offset table by one
     UInt * tmp_facets_offset_val = tmp_facets_offset.values;
      
     for (UInt i = 1; i < neighbor_list->impactor_nodes.getSize(); ++i) tmp_facets_offset_val[i] += tmp_facets_offset_val[i - 1];
@@ -571,6 +572,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList
     nodes_neighbor_list->master_nodes_offset.push_back(tmp_nb_master_nodes);
   }
 
+  nodes_neighbor_list->master_nodes_offset.resize(nodes_neighbor_list->master_nodes_offset.getSize()+1); // increase size off offset table by one
   UInt * master_nodes_offset_val = nodes_neighbor_list->master_nodes_offset.values;
   
   for (UInt i = 1; i < nodes_neighbor_list->impactor_nodes.getSize(); ++i) master_nodes_offset_val[i] += master_nodes_offset_val[i - 1];
