@@ -89,3 +89,7 @@ template <class T> inline void Vector<T>::erase(UInt i){
 inline UInt VectorBase::getMemorySize() const {
  return allocated_size * nb_component * size_of_type;
 }
+
+inline void VectorBase::empty() {
+  size = 0;
+}

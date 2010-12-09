@@ -44,6 +44,9 @@ public:
   /// get the amount of space allocated in bytes
   inline UInt getMemorySize() const;
 
+  /// set the size to zero without freeing the allocated space
+  inline void empty();
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

@@ -18,6 +18,8 @@
 #include "contact.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
+#include "grid_2d_neighbor_structure.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -137,6 +139,10 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
     else 
       AKANTU_DEBUG_ERROR("RegularGridNeighborStructure does not exist for dimension: " 
 			 << mesh.getSpatialDimension());
+    break;
+  }
+  case _cnst_2d_grid : {
+    tmp_neighbors_structure = new Grid2dNeighborStructure(*this, master_surface, neighbors_structure_type, sstr.str());
     break;
   }
   case _cnst_not_defined :

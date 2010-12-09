@@ -120,14 +120,13 @@ void Contact2dExplicit::solveContact() {
       computeNormalVelocities(pen_list, gap_der, vel_norm);
 
       /// Compute friction velocities
-      computeFrictionVelocities(pen_list, gap_der, vel_norm, vel_fric);
+      if(friction_coefficient > 1.e-6)
+	computeFrictionVelocities(pen_list, gap_der, vel_norm, vel_fric);
 
       /// Update post-impact velocities
       updatePostImpactVelocities(pen_list, vel_norm, vel_fric);
     }
-  }
-
-  
+  }  
   AKANTU_DEBUG_OUT();
 }
 
