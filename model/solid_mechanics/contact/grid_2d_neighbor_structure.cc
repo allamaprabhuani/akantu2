@@ -124,10 +124,10 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   y_intersection[0] -= 1.49999*spacing;
   y_intersection[1] += 1.49999*spacing;
 
-  x_intersection[0] = std::max(x_intersection[0], x_bounds[master_surface]);
-  x_intersection[1] = std::min(x_intersection[0+1], x_bounds[master_surface+1]);
-  y_intersection[0] = std::max(y_intersection[0], y_bounds[master_surface]);
-  y_intersection[1] = std::min(y_intersection[0+1], y_bounds[master_surface+1]);
+  x_intersection[0] = std::max(x_intersection[0], x_bounds[2*master_surface]);
+  x_intersection[1] = std::min(x_intersection[0+1], x_bounds[2*master_surface+1]);
+  y_intersection[0] = std::max(y_intersection[0], y_bounds[2*master_surface]);
+  y_intersection[1] = std::min(y_intersection[0+1], y_bounds[2*master_surface+1]);
 
 
   /// define grid dimension
