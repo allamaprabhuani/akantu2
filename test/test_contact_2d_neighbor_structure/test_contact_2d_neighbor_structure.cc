@@ -23,12 +23,19 @@
 #include "contact.hh"
 #include "contact_neighbor_structure.hh"
 
+using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
+static void initParaview(Mesh & mesh);
+static void initParaviewSurface(Mesh & mesh);
+static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_list);
+double * facet_id;
+double * node_id;
+DumperParaview dumper_surface;
 #endif //AKANTU_USE_IOHELPER
 
-using namespace akantu;
+
 
 int main(int argc, char *argv[])
 {
@@ -115,10 +122,20 @@ int main(int argc, char *argv[])
   std::vector<Surface>::iterator it;
   // for (it = master_surfaces.begin(); it != master_surfaces.end(); ++it) {
 
+#ifdef AKANTU_USE_IOHELPER
+  initParaview(mesh);
+  initParaviewSurface(mesh);
+#endif //AKANTU_USE_IOHELPER
+  
+
   UInt nb_surfaces = mesh.getNbSurfaces();
   for (UInt s = 0; s < nb_surfaces; ++s) {
 
     const NeighborList & my_neighbor_list = my_contact->getContactSearch().getContactNeighborStructure(s).getNeighborList();
+
+#ifdef AKANTU_USE_IOHELPER
+    printParaviewSurface(mesh, my_neighbor_list);
+#endif //AKANTU_USE_IOHELPER
   
     UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
     UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
@@ -140,28 +157,8 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-  // DumperParaview dumper_neighbor;
-  // dumper_neighbor.SetMode(TEXT);
-  // dumper_neighbor.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "triangle_3_test-neighbor-elements");
-  // dumper_neighbor.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
-  // 				 LINE1, mesh.getNbElement(_segment_2), C_MODE);
-
-  // double * neigh_elem = new double [mesh.getNbElement(_segment_2)];
-  // for (UInt i = 0; i < mesh.getNbElement(_segment_2); ++i)
-  //   neigh_elem[i] = 0.0; 
-  
-  // UInt visualize_node = 1;
-  // UInt n = impact_nodes_val[visualize_node];
-  // std::cout << "plot for node: " << n << std::endl;
-  // for (UInt i = node_to_elem_offset_val[visualize_node]; i < node_to_elem_offset_val[visualize_node+1]; ++i)
-  //   neigh_elem[node_facet_val[i]] = 1.;
-
-  // dumper_neighbor.AddElemDataField(neigh_elem, 1, "neighbor id");
-  // dumper_neighbor.SetPrefix("paraview/");
-  // dumper_neighbor.Init();
-  // dumper_neighbor.Dump();
-
-  // delete [] neigh_elem;
+  delete [] node_id;
+  delete [] facet_id;
 #endif //AKANTU_USE_IOHELPER
   
   finalize();
@@ -169,13 +166,17 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
+
+/// Paraview prints
+#ifdef AKANTU_USE_IOHELPER
+
 static void initParaview(Mesh & mesh) {
 
   DumperParaview dumper;
   dumper.SetMode(TEXT);
 
   UInt  nb_nodes = mesh.getNbNodes();
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-2d-neighbor");
+  dumper.SetPoints(mesh.getNodes().values, 2, nb_nodes, "test-2d-neighbor");
   dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
    			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
   dumper.SetPrefix("paraview/");
@@ -184,17 +185,38 @@ static void initParaview(Mesh & mesh) {
 }
 
 
-static void initParaviewSurface(Mesh & mesh, NeighborList & my_neighbor_list) {
+static void initParaviewSurface(Mesh & mesh) {
+  
+  //DumperParaview dumper_surface;
 
-  DumperParaview dumper_surface;
-  dumper.SetMode(TEXT);
+  dumper_surface.SetMode(TEXT);
 
   UInt  nb_nodes = mesh.getNbNodes();
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-2d-neighbor");
+  dumper_surface.SetPoints(mesh.getNodes().values, 2, nb_nodes, "test-2d-neighbor-surface");
 
 
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
 			       LINE1, mesh.getNbElement(_segment_2), C_MODE);
+
+  
+  facet_id = new double [mesh.getConnectivity(_segment_2).getSize()];
+  memset(facet_id, 0, mesh.getConnectivity(_segment_2).getSize()*sizeof(double));
+
+  node_id = new double [nb_nodes];
+  memset(node_id, 0, nb_nodes*sizeof(double));
+
+  dumper_surface.AddElemDataField(facet_id, 1, "master_segments");
+  dumper_surface.AddNodeDataField(node_id, 1, "slave_nodes");
+
+  dumper_surface.SetPrefix("paraview/");
+  dumper_surface.Init();
+  dumper_surface.Dump();
+  // delete [] facet_id;
+  // delete [] node_id;
+  // return  dumper_surface;
+}
+
+static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_list) {
 
   UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
   UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
@@ -202,7 +224,19 @@ static void initParaviewSurface(Mesh & mesh, NeighborList & my_neighbor_list) {
   UInt nb_facets = my_neighbor_list.facets[_segment_2]->getSize();
   UInt * node_facet_val = my_neighbor_list.facets[_segment_2]->values;
 
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  // double * node_id = new double [mesh.getNbNodes()];
+  memset(node_id, 0, mesh.getNbNodes()*sizeof(double));
+
+  // double * facet_id = new double [mesh.getConnectivity(_segment_2).getSize()];
+  memset(facet_id, 0, mesh.getConnectivity(_segment_2).getSize()*sizeof(double));
+
+  for (UInt n = 0; n < nb_impactors; ++n)
+    node_id[impactors_val[n]] = 1.;
+
+  for (UInt el = 0; el < nb_facets; ++el)
+    facet_id[node_facet_val[el]] = 1.;
+
+  dumper_surface.Dump();
 }
+
+#endif //AKANTU_USE_IOHELPER
