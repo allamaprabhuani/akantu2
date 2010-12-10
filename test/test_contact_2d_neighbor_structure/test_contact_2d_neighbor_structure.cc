@@ -168,3 +168,41 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
+
+static void initParaview(Mesh & mesh) {
+
+  DumperParaview dumper;
+  dumper.SetMode(TEXT);
+
+  UInt  nb_nodes = mesh.getNbNodes();
+  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-2d-neighbor");
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
+   			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
+  dumper.SetPrefix("paraview/");
+  dumper.Init();
+  dumper.Dump();
+}
+
+
+static void initParaviewSurface(Mesh & mesh, NeighborList & my_neighbor_list) {
+
+  DumperParaview dumper_surface;
+  dumper.SetMode(TEXT);
+
+  UInt  nb_nodes = mesh.getNbNodes();
+  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-2d-neighbor");
+
+
+  dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
+			       LINE1, mesh.getNbElement(_segment_2), C_MODE);
+
+  UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
+  UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
+  
+  UInt nb_facets = my_neighbor_list.facets[_segment_2]->getSize();
+  UInt * node_facet_val = my_neighbor_list.facets[_segment_2]->values;
+
+  dumper.SetPrefix("paraview/");
+  dumper.Init();
+  dumper.Dump();
+}
