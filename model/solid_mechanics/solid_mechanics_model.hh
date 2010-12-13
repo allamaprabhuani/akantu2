@@ -66,15 +66,15 @@ public:
   void readMaterials(const std::string & filename);
   /// read a custom material with a keyword and class as template
   template <typename M>
-  UInt readCustomMaterial(const std::string & filename, 
+  UInt readCustomMaterial(const std::string & filename,
 				const std::string & keyword);
-  
+
   /// read properties part of a material file and create the material
-  template <typename M> 
+  template <typename M>
   Material * readMaterialProperties(std::ifstream & infile,
 				    MaterialID mat_id,
 				    UInt &current_line);
-  
+
   /// initialize all internal arrays for materials
   void initMaterials();
 
@@ -105,7 +105,7 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  /// integrate a force on the boundary by providing a stress tensor 
+  /// integrate a force on the boundary by providing a stress tensor
   void computeForcesByStressTensor(const Vector<Real> & stresses, const ElementType & type);
 
   /// integrate a force on the boundary by providing a traction vector
