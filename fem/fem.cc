@@ -41,6 +41,8 @@ void FEM::init() {
     this->shapes_derivatives[t] = NULL;
     this->jacobians         [t] = NULL;
 
+    this->normals_on_quad_points[t] = NULL;
+
     this->ghost_shapes            [t] = NULL;
     this->ghost_shapes_derivatives[t] = NULL;
     this->ghost_jacobians         [t] = NULL;
@@ -141,12 +143,13 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 
     switch(type) {
-    case _segment_2       : { COMPUTE_SHAPES(_segment_2      ); break; }
-    case _segment_3       : { COMPUTE_SHAPES(_segment_3      ); break; }
-    case _triangle_3   : { COMPUTE_SHAPES(_triangle_3  ); break; }
-    case _triangle_6   : { COMPUTE_SHAPES(_triangle_6  ); break; }
-    case _tetrahedron_4 : { COMPUTE_SHAPES(_tetrahedron_4); break; }
-    case _tetrahedron_10 : { COMPUTE_SHAPES(_tetrahedron_10); break; }
+    case _segment_2       : { COMPUTE_SHAPES(_segment_2     ); break; }
+    case _segment_3       : { COMPUTE_SHAPES(_segment_3     ); break; }
+    case _triangle_3      : { COMPUTE_SHAPES(_triangle_3    ); break; }
+    case _triangle_6      : { COMPUTE_SHAPES(_triangle_6    ); break; }
+    case _tetrahedron_4   : { COMPUTE_SHAPES(_tetrahedron_4 ); break; }
+    case _tetrahedron_10  : { COMPUTE_SHAPES(_tetrahedron_10); break; }
+    case _quadrangle_4    : { COMPUTE_SHAPES(_quadrangle_4  ); break; }
     case _point:
     case _not_defined:
     case _max_element_type:  {
@@ -228,19 +231,20 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     } while(0)
 
     switch(type) {
-    case _segment_2       : { COMPUTE_NORMALS_ON_QUAD(_segment_2      ); break; }
-    case _segment_3       : { COMPUTE_NORMALS_ON_QUAD(_segment_3      ); break; }
-    case _triangle_3   : { COMPUTE_NORMALS_ON_QUAD(_triangle_3  ); break; }
-    case _triangle_6   : { COMPUTE_NORMALS_ON_QUAD(_triangle_6  ); break; }
-    case _tetrahedron_4 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_4); break; }
-    case _tetrahedron_10 : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_10); break; }
+    case _segment_2       : { COMPUTE_NORMALS_ON_QUAD(_segment_2     ); break; }
+    case _segment_3       : { COMPUTE_NORMALS_ON_QUAD(_segment_3     ); break; }
+    case _triangle_3      : { COMPUTE_NORMALS_ON_QUAD(_triangle_3    ); break; }
+    case _triangle_6      : { COMPUTE_NORMALS_ON_QUAD(_triangle_6    ); break; }
+    case _tetrahedron_4   : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_4 ); break; }
+    case _tetrahedron_10  : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_10); break; }
+    case _quadrangle_4    : { COMPUTE_NORMALS_ON_QUAD(_quadrangle_4  ); break; }
     case _point:
     case _not_defined:
     case _max_element_type:  {
       AKANTU_DEBUG_ERROR("Wrong type : " << type);
       break; }
     }
-#undef COMPUTE_SHAPES
+#undef COMPUTE_NORMALS_ON_QUAD
 
     if(ghost_type == _not_ghost) {
       normals_on_quad_points[type]             = normals_on_quad_tmp;
@@ -453,7 +457,7 @@ void FEM::integrate(const Vector<Real> & in_f,
   }
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  
+
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
     nb_element      = filter_elements->getSize();
@@ -518,7 +522,7 @@ Real FEM::integrate(const Vector<Real> & in_f,
   }
 
   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  
+
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
     nb_element      = filter_elements->getSize();
@@ -535,14 +539,15 @@ Real FEM::integrate(const Vector<Real> & in_f,
   Real intf = 0.;
   Real * in_f_val  = in_f.values;
   Real * jac_val   = jac_loc->values;
-  UInt offset_in_f = in_f.getNbComponent();
+  UInt offset_in_f = in_f.getNbComponent() * nb_quadrature_points;
   Real * jac       = jac_val;
 
   for (UInt el = 0; el < nb_element; ++el) {
     if(filter_elements != NULL) {
       jac = jac_val  + filter_elem_val[el] * nb_quadrature_points;
     }
-    Real el_intf;
+
+    Real el_intf = 0;
     integrate(in_f_val, jac, &el_intf, 1, nb_quadrature_points);
     intf += el_intf;
 
@@ -652,6 +657,7 @@ void FEM::printself(std::ostream & stream, int indent) const {
 
   stream << space << "]" << std::endl;
 }
+/* -------------------------------------------------------------------------- */
 
 
 __END_AKANTU__

@@ -160,12 +160,12 @@ inline Vector<UInt> * Mesh::getGhostConnectivityPointer(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Real> * Mesh::getNormalsPointer(ElementType type) const {
-  AKANTU_DEBUG_IN();
+// inline Vector<Real> * Mesh::getNormalsPointer(ElementType type) const {
+//   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_OUT();
-  return normals[type];
-}
+//   AKANTU_DEBUG_OUT();
+//   return normals[type];
+// }
 
 /* -------------------------------------------------------------------------- */
 inline const Mesh & Mesh::getInternalFacetsMesh() const {
@@ -279,13 +279,14 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
 
   switch(type) {
-  case _segment_2       : { GET_NB_NODES_PER_ELEMENT(_segment_2      ); break; }
-  case _segment_3       : { GET_NB_NODES_PER_ELEMENT(_segment_3      ); break; }
-  case _triangle_3   : { GET_NB_NODES_PER_ELEMENT(_triangle_3  ); break; }
-  case _triangle_6   : { GET_NB_NODES_PER_ELEMENT(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_10); break; }
-  case _point        : { GET_NB_NODES_PER_ELEMENT(_point       ); break; }
+  case _segment_2       : { GET_NB_NODES_PER_ELEMENT(_segment_2     ); break; }
+  case _segment_3       : { GET_NB_NODES_PER_ELEMENT(_segment_3     ); break; }
+  case _triangle_3      : { GET_NB_NODES_PER_ELEMENT(_triangle_3    ); break; }
+  case _triangle_6      : { GET_NB_NODES_PER_ELEMENT(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_NB_NODES_PER_ELEMENT(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_NB_NODES_PER_ELEMENT(_quadrangle_4  ); break; }
+  case _point           : { GET_NB_NODES_PER_ELEMENT(_point         ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -307,13 +308,14 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
   element_p1 = ElementClass<type>::getP1ElementType()
 
   switch(type) {
-  case _segment_2       : { GET_ELEMENT_P1(_segment_2      ); break; }
-  case _segment_3       : { GET_ELEMENT_P1(_segment_3      ); break; }
-  case _triangle_3   : { GET_ELEMENT_P1(_triangle_3  ); break; }
-  case _triangle_6   : { GET_ELEMENT_P1(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_ELEMENT_P1(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_ELEMENT_P1(_tetrahedron_10); break; }
-  case _point        : { GET_ELEMENT_P1(_point       ); break; }
+  case _segment_2       : { GET_ELEMENT_P1(_segment_2     ); break; }
+  case _segment_3       : { GET_ELEMENT_P1(_segment_3     ); break; }
+  case _triangle_3      : { GET_ELEMENT_P1(_triangle_3    ); break; }
+  case _triangle_6      : { GET_ELEMENT_P1(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_ELEMENT_P1(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_ELEMENT_P1(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_ELEMENT_P1(_quadrangle_4  ); break; }
+  case _point           : { GET_ELEMENT_P1(_point         ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -335,13 +337,14 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   spatial_dimension = ElementClass<type>::getSpatialDimension()
 
   switch(type) {
-  case _segment_2       : { GET_SPATIAL_DIMENSION(_segment_2      ); break; }
-  case _segment_3       : { GET_SPATIAL_DIMENSION(_segment_3      ); break; }
-  case _triangle_3   : { GET_SPATIAL_DIMENSION(_triangle_3  ); break; }
-  case _triangle_6   : { GET_SPATIAL_DIMENSION(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_SPATIAL_DIMENSION(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_SPATIAL_DIMENSION(_tetrahedron_10); break; }
-  case _point        : { GET_SPATIAL_DIMENSION(_point       ); break; }
+  case _segment_2       : { GET_SPATIAL_DIMENSION(_segment_2     ); break; }
+  case _segment_3       : { GET_SPATIAL_DIMENSION(_segment_3     ); break; }
+  case _triangle_3      : { GET_SPATIAL_DIMENSION(_triangle_3    ); break; }
+  case _triangle_6      : { GET_SPATIAL_DIMENSION(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_SPATIAL_DIMENSION(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_SPATIAL_DIMENSION(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_SPATIAL_DIMENSION(_quadrangle_4  ); break; }
+  case _point           : { GET_SPATIAL_DIMENSION(_point         ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -363,13 +366,14 @@ inline ElementType Mesh::getFacetElementType(const ElementType & type) {
   surface_type = ElementClass<type>::getFacetElementType()
 
   switch(type) {
-  case _segment_2       : { GET_FACET_TYPE(_segment_2      ); break; }
-  case _segment_3       : { GET_FACET_TYPE(_segment_3      ); break; }
-  case _triangle_3   : { GET_FACET_TYPE(_triangle_3  ); break; }
-  case _triangle_6   : { GET_FACET_TYPE(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_FACET_TYPE(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_FACET_TYPE(_tetrahedron_10); break; }
-  case _point        : { GET_FACET_TYPE(_point       ); break; }
+  case _segment_2       : { GET_FACET_TYPE(_segment_2     ); break; }
+  case _segment_3       : { GET_FACET_TYPE(_segment_3     ); break; }
+  case _triangle_3      : { GET_FACET_TYPE(_triangle_3    ); break; }
+  case _triangle_6      : { GET_FACET_TYPE(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_FACET_TYPE(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_FACET_TYPE(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_FACET_TYPE(_quadrangle_4  ); break; }
+  case _point           : { GET_FACET_TYPE(_point         ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -391,13 +395,14 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
   n_facet = ElementClass<type>::getNbFacetsPerElement()
 
   switch(type) {
-  case _segment_2       : { GET_NB_FACET(_segment_2      ); break; }
-  case _segment_3       : { GET_NB_FACET(_segment_3      ); break; }
-  case _triangle_3   : { GET_NB_FACET(_triangle_3  ); break; }
-  case _triangle_6   : { GET_NB_FACET(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_NB_FACET(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_NB_FACET(_tetrahedron_10); break; }
-  case _point        : { GET_NB_FACET(_point       ); break; }
+  case _segment_2       : { GET_NB_FACET(_segment_2     ); break; }
+  case _segment_3       : { GET_NB_FACET(_segment_3     ); break; }
+  case _triangle_3      : { GET_NB_FACET(_triangle_3    ); break; }
+  case _triangle_6      : { GET_NB_FACET(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_NB_FACET(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_NB_FACET(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_NB_FACET(_quadrangle_4  ); break; }
+  case _point           : { GET_NB_FACET(_point         ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);
@@ -420,13 +425,14 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
   facet_conn = ElementClass<type>::getFacetLocalConnectivityPerElement()
 
   switch(type) {
-  case _segment_2       : { GET_FACET_CON(_segment_2      ); break; }
-  case _segment_3       : { GET_FACET_CON(_segment_3      ); break; }
-  case _triangle_3   : { GET_FACET_CON(_triangle_3  ); break; }
-  case _triangle_6   : { GET_FACET_CON(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_FACET_CON(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_FACET_CON(_tetrahedron_10); break; }
-  case _point        : { GET_FACET_CON(_point       ); break; }
+  case _segment_2       : { GET_FACET_CON(_segment_2     ); break; }
+  case _segment_3       : { GET_FACET_CON(_segment_3     ); break; }
+  case _triangle_3      : { GET_FACET_CON(_triangle_3    ); break; }
+  case _triangle_6      : { GET_FACET_CON(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_FACET_CON(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_FACET_CON(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_FACET_CON(_quadrangle_4  ); break; }
+  case _point           : { GET_FACET_CON(_point         ); break; }
   case _not_defined:
   case _max_element_type:  {
     AKANTU_DEBUG_ERROR("Wrong type : " << type);

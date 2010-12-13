@@ -119,7 +119,7 @@ template <> inline void ElementClass<_triangle_6>::computeDNDS(const Real * natu
    *     & \frac{\partial N3}{\partial \xi}
    *     & \frac{\partial N4}{\partial \xi}
    *     & \frac{\partial N5}{\partial \xi}
-   *     & \frac{\partial N6}{\partial \xi} \	\
+   *     & \frac{\partial N6}{\partial \xi} \\
    *
    *       \frac{\partial N1}{\partial \eta}
    *     & \frac{\partial N2}{\partial \eta}

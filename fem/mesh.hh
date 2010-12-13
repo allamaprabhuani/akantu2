@@ -129,7 +129,7 @@ public:
   //  Vector<UInt> & createGhostConnectivity(ElementType type, UInt nb_element);
 
   /// create the array of normals
-  Vector<Real> & createNormals(ElementType type);
+  //  Vector<Real> & createNormals(ElementType type);
 
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem);
@@ -156,17 +156,25 @@ public:
 public:
   AKANTU_GET_MACRO(ID, id, const MeshID &);
 
+  /// get the spatial dimension of the mesh = number of component of the coordinates
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
+  /// get the nodes Vector aka coordinates
   AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
+  /// get the number of nodes
   AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
+  /// get the Vector of global ids of the nodes (only used in parallel)
+  AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Vector<UInt> &);
 
+  /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
+  /// get the connectivity Vector for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, const Vector<UInt> &);
+  /// get the connecticity of ghost elements of a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostConnectivity, ghost_connectivities, const Vector<UInt> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
+  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
 
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type) const;
@@ -226,7 +234,7 @@ private:
 
   inline Mesh * getInternalFacetsMeshPointer();
 
-  inline Vector<Real> * getNormalsPointer(ElementType type) const;
+  // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   inline Vector<UInt> * getSurfaceIdPointer(ElementType type);
 

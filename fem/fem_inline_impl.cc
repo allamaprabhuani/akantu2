@@ -1,5 +1,5 @@
 /**
- * @file   fem_inline.impl.cc
+ * @file   fem_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 12:21:36 2010
  *
@@ -15,25 +15,23 @@
 inline void FEM::integrate(const Vector<Real> & f,
 			   Real * intf,
 			   UInt nb_degre_of_freedom,
-			   const ElementType & type,
-			   const UInt elem,
+			   const Element & elem,
 			   GhostType ghost_type) const {
 
   Vector<Real> * jac_loc;
 
   if(ghost_type == _not_ghost) {
-    jac_loc     = shapes_derivatives[type];
+    jac_loc     = jacobians[elem.type];
   } else {
-    jac_loc     = ghost_shapes_derivatives[type];
+    jac_loc     = ghost_jacobians[elem.type];
   }
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  
+  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(elem.type);
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom ,
 		      "The vector f do not have the good number of component.");
 
-  Real * f_val    = f.values + elem * f.getNbComponent();
-  Real * jac_val  = jac_loc->values + elem * nb_quadrature_points;
+  Real * f_val    = f.values + elem.element * f.getNbComponent();
+  Real * jac_val  = jac_loc->values + elem.element * nb_quadrature_points;
 
   integrate(f_val, jac_val, intf, nb_degre_of_freedom, nb_quadrature_points);
 }
@@ -69,12 +67,13 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
   nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints()
 
   switch(type) {
-  case _segment_2       : { GET_NB_QUAD_POINTS(_segment_2      ); break; }
-  case _segment_3       : { GET_NB_QUAD_POINTS(_segment_3      ); break; }
-  case _triangle_3   : { GET_NB_QUAD_POINTS(_triangle_3  ); break; }
-  case _triangle_6   : { GET_NB_QUAD_POINTS(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_NB_QUAD_POINTS(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_NB_QUAD_POINTS(_tetrahedron_10); break; }
+  case _segment_2       : { GET_NB_QUAD_POINTS(_segment_2     ); break; }
+  case _segment_3       : { GET_NB_QUAD_POINTS(_segment_3     ); break; }
+  case _triangle_3      : { GET_NB_QUAD_POINTS(_triangle_3    ); break; }
+  case _triangle_6      : { GET_NB_QUAD_POINTS(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_NB_QUAD_POINTS(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_NB_QUAD_POINTS(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_NB_QUAD_POINTS(_quadrangle_4  ); break; }
   case _point:
   case _not_defined:
   case _max_element_type:  {
@@ -97,12 +96,13 @@ inline UInt FEM::getShapeSize(const ElementType & type) {
   shape_size = ElementClass<type>::getShapeSize()
 
   switch(type) {
-  case _segment_2       : { GET_SHAPE_SIZE(_segment_2      ); break; }
-  case _segment_3       : { GET_SHAPE_SIZE(_segment_3      ); break; }
-  case _triangle_3   : { GET_SHAPE_SIZE(_triangle_3  ); break; }
-  case _triangle_6   : { GET_SHAPE_SIZE(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_SHAPE_SIZE(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_SHAPE_SIZE(_tetrahedron_10); break; }
+  case _segment_2       : { GET_SHAPE_SIZE(_segment_2     ); break; }
+  case _segment_3       : { GET_SHAPE_SIZE(_segment_3     ); break; }
+  case _triangle_3      : { GET_SHAPE_SIZE(_triangle_3    ); break; }
+  case _triangle_6      : { GET_SHAPE_SIZE(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_SHAPE_SIZE(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_SHAPE_SIZE(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_SHAPE_SIZE(_quadrangle_4  ); break; }
   case _point:
   case _not_defined:
   case _max_element_type:  {
@@ -125,12 +125,13 @@ inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
   shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
 
   switch(type) {
-  case _segment_2       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_2      ); break; }
-  case _segment_3       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_3      ); break; }
-  case _triangle_3   : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_3  ); break; }
-  case _triangle_6   : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_10); break; }
+  case _segment_2       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_2     ); break; }
+  case _segment_3       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_3     ); break; }
+  case _triangle_3      : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_3    ); break; }
+  case _triangle_6      : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_SHAPE_DERIVATIVES_SIZE(_quadrangle_4  ); break; }
   case _point:
   case _not_defined:
   case _max_element_type:  {
@@ -154,12 +155,13 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
   inradius = ElementClass<type>::getInradius(coord);			\
 
   switch(type) {
-  case _segment_2       : { GET_INRADIUS(_segment_2      ); break; }
-  case _segment_3       : { GET_INRADIUS(_segment_3      ); break; }
-  case _triangle_3   : { GET_INRADIUS(_triangle_3  ); break; }
-  case _triangle_6   : { GET_INRADIUS(_triangle_6  ); break; }
-  case _tetrahedron_4 : { GET_INRADIUS(_tetrahedron_4); break; }
-  case _tetrahedron_10 : { GET_INRADIUS(_tetrahedron_10); break; }
+  case _segment_2       : { GET_INRADIUS(_segment_2     ); break; }
+  case _segment_3       : { GET_INRADIUS(_segment_3     ); break; }
+  case _triangle_3      : { GET_INRADIUS(_triangle_3    ); break; }
+  case _triangle_6      : { GET_INRADIUS(_triangle_6    ); break; }
+  case _tetrahedron_4   : { GET_INRADIUS(_tetrahedron_4 ); break; }
+  case _tetrahedron_10  : { GET_INRADIUS(_tetrahedron_10); break; }
+  case _quadrangle_4    : { GET_INRADIUS(_quadrangle_4  ); break; }
   case _point:
   case _not_defined:
   case _max_element_type:  {

@@ -107,12 +107,12 @@ Mesh::~Mesh() {
 }
 
 /* -------------------------------------------------------------------------- */
-Vector<Real> & Mesh::createNormals(ElementType type) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ERROR("TOBEIMPLEMENTED");
-  AKANTU_DEBUG_OUT();
-  return *normals[type];
-}
+// Vector<Real> & Mesh::createNormals(ElementType type) {
+//   AKANTU_DEBUG_IN();
+//   AKANTU_DEBUG_ERROR("TOBEIMPLEMENTED");
+//   AKANTU_DEBUG_OUT();
+//   return *normals[type];
+// }
 
 /* -------------------------------------------------------------------------- */
 void Mesh::printself(std::ostream & stream, int indent) const {

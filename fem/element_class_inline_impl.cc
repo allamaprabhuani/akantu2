@@ -1,6 +1,7 @@
 /**
  * @file   element_class_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Thu Jul 15 10:28:28 2010
  *
  * @brief  Implementation of the inline functions of the class element_class
@@ -58,7 +59,7 @@ template <ElementType type>
 inline void ElementClass<type>::computeShapes(const Real * natural_coords, 
 					      const UInt nb_points, 
 					      Real * shapes) {
-    Real * cpoint = const_cast<Real *>(natural_coords);
+  Real * cpoint = const_cast<Real *>(natural_coords);
   for (UInt p = 0; p < nb_points; ++p) {
     computeShapes(cpoint, shapes);
     shapes += nb_nodes_per_element;
@@ -220,3 +221,4 @@ inline void ElementClass<type>::computeJacobian(__attribute__ ((unused)) const R
 #include "element_classes/element_class_triangle_6.cc"
 #include "element_classes/element_class_tetrahedron_4.cc"
 #include "element_classes/element_class_tetrahedron_10.cc"
+#include "element_classes/element_class_quadrangle_4.cc"
