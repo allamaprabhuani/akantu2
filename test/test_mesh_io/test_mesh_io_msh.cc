@@ -1,5 +1,5 @@
 /**
- * @file   mesh_io_msh.cc
+ * @file   test_mesh_io_msh.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Jul 14 14:27:11 2010
  *

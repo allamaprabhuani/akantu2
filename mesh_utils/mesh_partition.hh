@@ -1,5 +1,5 @@
 /**
- * @file   mesh_partition.h
+ * @file   mesh_partition.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug 12 16:24:40 2010
  *
@@ -13,8 +13,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_PARTITION_H__
-#define __AKANTU_MESH_PARTITION_H__
+#ifndef __AKANTU_MESH_PARTITION_HH__
+#define __AKANTU_MESH_PARTITION_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "aka_memory.hh"
@@ -106,4 +106,4 @@ protected:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_PARTITION_H__ */
+#endif /* __AKANTU_MESH_PARTITION_HH__ */

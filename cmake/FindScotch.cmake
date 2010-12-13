@@ -43,5 +43,5 @@ find_package_handle_standard_args(SCOTCH DEFAULT_MSG
 
 #===============================================================================
 if(NOT SCOTCH_FOUND)
-  set(SCOTCH_DIR "" CACHE PATH "Location of IOHelper source directory.")
+  set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
 endif(NOT SCOTCH_FOUND)

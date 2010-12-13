@@ -1,5 +1,5 @@
 /**
- * @file   test_mesh_partition_scotch.cc
+ * @file   test_mesh_partitionate_scotch.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug 19 13:05:27 2010
  *

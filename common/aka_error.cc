@@ -30,6 +30,11 @@ namespace debug {
   }
 
   /* ------------------------------------------------------------------------ */
+  const DebugLevel & getDebugLevel() {
+    return _debug_level;
+  }
+
+  /* ------------------------------------------------------------------------ */
   void setParallelContext(int rank, int size) {
     std::stringstream sstr;
     sstr << "[" << std::setfill(' ') << std::right << std::setw(3) << (rank + 1) << "/" << size << "] ";

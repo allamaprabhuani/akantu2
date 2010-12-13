@@ -1,5 +1,5 @@
 /**
- * @file   vector.cc
+ * @file   test_vector.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue Jun 29 17:32:23 2010
  *

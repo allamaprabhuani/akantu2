@@ -65,3 +65,5 @@ protected:
 __END_AKANTU__
 
 #endif /* __AKANTU_MESH_IO_HH__ */
+
+#include "mesh_io_msh.hh"

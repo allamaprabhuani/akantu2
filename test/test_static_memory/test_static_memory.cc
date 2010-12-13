@@ -1,5 +1,5 @@
 /**
- * @file   test/static_memory.cc
+ * @file   test_static_memory.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Jun 11 11:55:54 2010
  *

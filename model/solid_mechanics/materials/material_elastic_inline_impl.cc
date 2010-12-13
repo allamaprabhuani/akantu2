@@ -33,7 +33,8 @@ inline void MaterialElastic::computePotentialEnergy(Real * F, Real * sigma, Real
   *epot = 0.;
   for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      *epot += sigma[t] * (F[t] - (i == j));
+      (*epot) += sigma[t] * (F[t] - (i == j));
+
   *epot *= .5;
 }
 

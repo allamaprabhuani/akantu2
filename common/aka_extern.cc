@@ -1,5 +1,5 @@
 /**
- * @file   aka_extern.cpp
+ * @file   aka_extern.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jun 14 14:34:14 2010
  *

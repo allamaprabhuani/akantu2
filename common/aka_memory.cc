@@ -1,5 +1,5 @@
 /**
- * @file   aka_memory.cpp
+ * @file   aka_memory.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue Jun 15 11:15:53 2010
  *

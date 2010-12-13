@@ -14,9 +14,9 @@
 /* -------------------------------------------------------------------------- */
 #include <cstdio>
 #include <fstream>
-extern "C" {
+//extern "C" {
 #include <scotch.h>
-}
+//}
 /* -------------------------------------------------------------------------- */
 #include "mesh_partition_scotch.hh"
 
@@ -63,10 +63,10 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
   SCOTCH_Num * vendtab = NULL;                  //array of after-last indices in edgetab
   SCOTCH_Num * velotab = NULL;                  //integer  load  associated with
 						//every vertex ( optional )
-  SCOTCH_Num *edlotab = NULL;                   //integer  load  associated with
+  SCOTCH_Num * edlotab = NULL;                  //integer  load  associated with
 						//every edge ( optional )
-  SCOTCH_Num *edgetab = dadjncy.values;         // adjacency array of every vertex
-  SCOTCH_Num *vlbltab = NULL;                   // vertex label array (optional)
+  SCOTCH_Num * edgetab = dadjncy.values;        // adjacency array of every vertex
+  SCOTCH_Num * vlbltab = NULL;                  // vertex label array (optional)
 
   /// Allocate space for Scotch arrays
   parttab = new SCOTCH_Num[vertnbr];

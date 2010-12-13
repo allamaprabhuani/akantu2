@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
   
   MeshUtils::buildFacets(mesh,1,1);
 
-  unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
+  unsigned int nb_nodes = mesh.getNbNodes();
   DumperParaview dumper;
   dumper.SetMode(TEXT);
 

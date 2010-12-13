@@ -45,6 +45,9 @@ public:
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(GhostType ghost_type = _not_ghost);
 
+  /// build the profile of the sparse matrix corresponding to the mesh
+  void initSparseMatrixProfile(SparseMatrixType sparse_matrix_type = _unsymmetric);
+
   /// pre-compute normals on quadrature points
   void computeNormalsOnQuadPoints(GhostType ghost_type = _not_ghost);
 
@@ -74,11 +77,10 @@ public:
 
   /// integrate f on the element "elem" of type "type"
   inline void integrate(const Vector<Real> & f,
-			Real *intf,
-			UInt nb_degre_of_freedom,
-			const ElementType & type,
-			const UInt elem,
-			GhostType ghost_type = _not_ghost) const;
+   			Real *intf,
+   			UInt nb_degre_of_freedom,
+   			const Element & elem,
+  			GhostType ghost_type = _not_ghost) const;
 
   /// integrate a scalar value on all elements of type "type"
   Real integrate(const Vector<Real> & f,

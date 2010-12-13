@@ -268,46 +268,46 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
-  AKANTU_DEBUG_IN();
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
+// void MeshUtils::buildNormals(Mesh & mesh,UInt spatial_dimension){
+//   AKANTU_DEBUG_IN();
+//   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+//   Mesh::ConnectivityTypeList::const_iterator it;
 
-  UInt nb_types = type_list.size();
-  UInt nb_nodes_per_element[nb_types];
-  UInt nb_nodes_per_element_p1[nb_types];
+//   UInt nb_types = type_list.size();
+//   UInt nb_nodes_per_element[nb_types];
+//   UInt nb_nodes_per_element_p1[nb_types];
 
-  UInt nb_good_types = 0;
+//   UInt nb_good_types = 0;
 
-  Vector<UInt> * connectivity[nb_types];
-  Vector<Real> * normals[nb_types];
+//   Vector<UInt> * connectivity[nb_types];
+//   Vector<Real> * normals[nb_types];
 
-  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+//   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    ElementType type = *it;
-    ElementType type_p1 = mesh.getP1ElementType(type);
-    if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
+//   for(it = type_list.begin(); it != type_list.end(); ++it) {
+//     ElementType type = *it;
+//     ElementType type_p1 = mesh.getP1ElementType(type);
+//     if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
 
-    nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
-    nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(type_p1);
+//     nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
+//     nb_nodes_per_element_p1[nb_good_types] = mesh.getNbNodesPerElement(type_p1);
 
-    // getting connectivity
-    connectivity[nb_good_types] = mesh.getConnectivityPointer(type);
-    if (!connectivity[nb_good_types])
-      AKANTU_DEBUG_ERROR("connectivity is not allocatted : this should probably not have happened");
+//     // getting connectivity
+//     connectivity[nb_good_types] = mesh.getConnectivityPointer(type);
+//     if (!connectivity[nb_good_types])
+//       AKANTU_DEBUG_ERROR("connectivity is not allocatted : this should probably not have happened");
 
-    //getting array of normals
-    normals[nb_good_types] = mesh.getNormalsPointer(type);
-    if(normals[nb_good_types])
-      normals[nb_good_types]->resize(0);
-    else
-      normals[nb_good_types] = &mesh.createNormals(type);
+//     //getting array of normals
+//     normals[nb_good_types] = mesh.getNormalsPointer(type);
+//     if(normals[nb_good_types])
+//       normals[nb_good_types]->resize(0);
+//     else
+//       normals[nb_good_types] = &mesh.createNormals(type);
 
-    nb_good_types++;
-  }
-  AKANTU_DEBUG_OUT();
-}
+//     nb_good_types++;
+//   }
+//   AKANTU_DEBUG_OUT();
+// }
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::renumberMeshNodes(Mesh & mesh,

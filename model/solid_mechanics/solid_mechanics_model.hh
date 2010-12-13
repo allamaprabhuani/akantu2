@@ -84,8 +84,11 @@ public:
   /// assemble the lumped mass matrix
   void assembleMassLumped();
 
+  /// update the current position vector
+  void updateCurrentPosition();
+
   /// assemble the residual for the explicit scheme
-  void updateResidual();
+  void updateResidual(bool need_update_current_position = true);
 
   /// compute the acceleration from the residual
   void updateAcceleration();

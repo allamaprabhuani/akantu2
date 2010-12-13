@@ -69,60 +69,61 @@ namespace debug {
   extern std::string _parallel_context;
 
   void setDebugLevel(const DebugLevel & level);
+  const DebugLevel & getDebugLevel();
 
   void setParallelContext(int rank, int size);
 
   void initSignalHandler();
   void printBacktrace(int sig);
-}
 
-/* -------------------------------------------------------------------------- */
-/// exception class that can be thrown by akantu
-class Exception : public std::exception {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
 
-  //! full constructor
-  Exception(std::string info, std::string file, unsigned int line) :
-    _info(info), _file(file), _line(line) { }
+  /* -------------------------------------------------------------------------- */
+  /// exception class that can be thrown by akantu
+  class Exception : public std::exception {
+    /* ------------------------------------------------------------------------ */
+    /* Constructors/Destructors                                                 */
+    /* ------------------------------------------------------------------------ */
+  public:
 
-  //! destructor
-  virtual ~Exception() throw() {};
+    //! full constructor
+    Exception(std::string info, std::string file, unsigned int line) :
+      _info(info), _file(file), _line(line) { }
 
-  /* ------------------------------------------------------------------------ */
-  /*  Methods                                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
+    //! destructor
+    virtual ~Exception() throw() {};
 
-  virtual const char* what() const throw() {
-    std::stringstream stream;
-    stream << "akantu::Exception"
-	   << " : " << _info
-	   << " ["  << _file << ":" << _line << "]";
-    return stream.str().c_str();
-  }
+    /* ------------------------------------------------------------------------ */
+    /*  Methods                                                                 */
+    /* ------------------------------------------------------------------------ */
+  public:
 
-  virtual const char* info() const throw() {
-    return _info.c_str();
-  }
+    virtual const char* what() const throw() {
+      std::stringstream stream;
+      stream << "akantu::Exception"
+	     << " : " << _info
+	     << " ["  << _file << ":" << _line << "]";
+      return stream.str().c_str();
+    }
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-private:
+    virtual const char* info() const throw() {
+      return _info.c_str();
+    }
 
-  /// exception description and additionals
-  std::string   _info;
+    /* ------------------------------------------------------------------------ */
+    /* Class Members                                                            */
+    /* ------------------------------------------------------------------------ */
+  private:
 
-  /// file it is thrown from
-  std::string   _file;
+    /// exception description and additionals
+    std::string   _info;
 
-  /// ligne it is thrown from
-  unsigned int  _line;
+    /// file it is thrown from
+    std::string   _file;
+
+    /// ligne it is thrown from
+    unsigned int  _line;
+  };
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -149,9 +150,10 @@ private:
     AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
     std::stringstream s_info;						\
     s_info << info ;							\
-    Exception ex(s_info.str(), __FILE__, __LINE__ );			\
+    ::akantu::debug::Exception ex(s_info.str(), __FILE__, __LINE__ );	\
     throw ex;								\
   } while(0)
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
 #define AKANTU_DEBUG_TEST(level)   (0)

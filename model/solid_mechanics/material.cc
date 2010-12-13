@@ -213,7 +213,7 @@ void Material::computePotentialEnergyByElement() {
     if(potential_energy[*it] == NULL) {
       UInt nb_element = element_filter[*it]->getSize();
       UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-      
+
       std::stringstream sstr; sstr << id << ":potential_energy:"<< *it;
       potential_energy[*it] = &(alloc<Real> (sstr.str(), nb_element * nb_quadrature_points,
 					     1,

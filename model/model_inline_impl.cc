@@ -30,16 +30,21 @@ inline Model::Model(Mesh & mesh,
 inline Model::~Model() {
   AKANTU_DEBUG_IN();
   delete fem;
+
+  if(fem_boundary) delete fem_boundary;
+
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 inline FEM & Model::getFEMBoundary(){
   AKANTU_DEBUG_IN();
+
   if (!fem_boundary){
     MeshUtils::buildFacets(fem->getMesh());
-    std::stringstream sstr; sstr << id << ":femboundary";    
-    this->fem_boundary = new FEM(fem->getMesh(), spatial_dimension-1, sstr.str(), memory_id);    
+    std::stringstream sstr; sstr << id << ":femboundary";
+    this->fem_boundary = new FEM(fem->getMesh(), spatial_dimension-1, sstr.str(), memory_id);
   }
+
   AKANTU_DEBUG_OUT();
   return *this->fem_boundary;
 }

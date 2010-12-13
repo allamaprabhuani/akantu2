@@ -29,7 +29,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 const MemoryID & memory_id) :
   Model(mesh, spatial_dimension, id, memory_id),
   time_step(NAN), f_m2a(1.0),
-  integrator(new CentralDifference()) {
+  integrator(new CentralDifference()),
+  increment_flag(false) {
   AKANTU_DEBUG_IN();
 
   this->displacement = NULL;
@@ -127,12 +128,9 @@ void SolidMechanicsModel::initModel() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::updateResidual() {
-  AKANTU_DEBUG_IN();
-
+void SolidMechanicsModel::updateCurrentPosition() {
   UInt nb_nodes = fem->getMesh().getNbNodes();
 
-  residual->resize(nb_nodes);
   current_position->resize(nb_nodes);
   //Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
   Real * current_position_val = current_position->values;
@@ -144,6 +142,17 @@ void SolidMechanicsModel::updateResidual() {
   for (UInt n = 0; n < nb_nodes*spatial_dimension; ++n) {
     *current_position_val++ += *displacement_val++;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updateResidual(bool need_update_current_position) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes = fem->getMesh().getNbNodes();
+
+  residual->resize(nb_nodes);
+
+  if (need_update_current_position) updateCurrentPosition();
 
   /// start synchronization
   asynchronousSynchronize(_gst_smm_residual);
@@ -341,50 +350,63 @@ Real SolidMechanicsModel::getKineticEnergy() {
   Real ekin = 0.;
 
   UInt nb_nodes = fem->getMesh().getNbNodes();
-  Vector<Real> * v_square = new Vector<Real>(nb_nodes, 1, "v_square");
+  //  Vector<Real> * v_square = new Vector<Real>(nb_nodes, 1, "v_square");
 
   Real * vel_val  = velocity->values;
-  Real * v_s_val  = v_square->values;
+  Real * mass_val = mass->values;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
-    *v_s_val = 0;
-    for (UInt s = 0; s < spatial_dimension; ++s) {
-      *v_s_val += *vel_val * *vel_val;
+    Real v2 = 0;
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      v2 += *vel_val * *vel_val;
       vel_val++;
     }
-    v_s_val++;
+    ekin += *mass_val * v2;
+    mass_val++;
   }
 
-  Material ** mat_val = &(materials.at(0));
 
-  const Mesh:: ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+  // Real * v_s_val  = v_square->values;
 
-    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
-    UInt nb_element = fem->getMesh().getNbElement(*it);
+  // for (UInt n = 0; n < nb_nodes; ++n) {
+  //   *v_s_val = 0;
+  //   for (UInt s = 0; s < spatial_dimension; ++s) {
+  //     *v_s_val += *vel_val * *vel_val;
+  //     vel_val++;
+  //   }
+  //   v_s_val++;
+  // }
 
-    Vector<Real> * v_square_el = new Vector<Real>(nb_element*nb_quadrature_points, 1, "v_square per element");
+  // Material ** mat_val = &(materials.at(0));
 
-    fem->interpolateOnQuadraturePoints(*v_square, *v_square_el, 1, *it);
+  // const Mesh:: ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
+  // Mesh::ConnectivityTypeList::const_iterator it;
+  // for(it = type_list.begin(); it != type_list.end(); ++it) {
+  //   if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
 
-    Real * v_square_el_val = v_square_el->values;
-    UInt * elem_mat_val = element_material[*it]->values;
+  //   UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+  //   UInt nb_element = fem->getMesh().getNbElement(*it);
 
-    for (UInt el = 0; el < nb_element; ++el) {
-      Real rho = mat_val[elem_mat_val[el]]->getRho();
-      for (UInt q = 0; q < nb_quadrature_points; ++q) {
-	*v_square_el_val *= rho;
-	v_square_el_val++;
-      }
-    }
+  //   Vector<Real> * v_square_el = new Vector<Real>(nb_element * nb_quadrature_points, 1, "v_square per element");
 
-    ekin += fem->integrate(*v_square_el, *it);
+  //   fem->interpolateOnQuadraturePoints(*v_square, *v_square_el, 1, *it);
 
-    delete v_square_el;
-  }
-  delete v_square;
+  //   Real * v_square_el_val = v_square_el->values;
+  //   UInt * elem_mat_val = element_material[*it]->values;
+
+  //   for (UInt el = 0; el < nb_element; ++el) {
+  //     Real rho = mat_val[elem_mat_val[el]]->getRho();
+  //     for (UInt q = 0; q < nb_quadrature_points; ++q) {
+  // 	*v_square_el_val *= rho;
+  // 	v_square_el_val++;
+  //     }
+  //   }
+
+  //   ekin += fem->integrate(*v_square_el, *it);
+
+  //   delete v_square_el;
+  // }
+  // delete v_square;
 
   /// reduction sum over all processors
   allReduce(&ekin, _so_sum);

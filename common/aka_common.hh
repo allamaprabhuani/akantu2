@@ -80,18 +80,20 @@ typedef ID FEMID;
 typedef ID ModelID;
 typedef ID MaterialID;
 typedef ID SparseMatrixID;
+typedef ID SolverID;
 
 typedef UInt Surface;
 
 /// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
-  _not_defined  = 0,
+  _not_defined     = 0,
   _segment_2       = 1, /// first  order segment
   _segment_3       = 2, /// second order segment
-  _triangle_3   = 3, /// first  order triangle
-  _triangle_6   = 4, /// second order triangle
-  _tetrahedron_4 = 5, /// first  order tetrahedron
-  _tetrahedron_10 = 6, /// second order tetrahedron @remark not implemented yet
+  _triangle_3      = 3, /// first  order triangle
+  _triangle_6      = 4, /// second order triangle
+  _tetrahedron_4   = 5, /// first  order tetrahedron
+  _tetrahedron_10  = 6, /// second order tetrahedron @remark not implemented yet
+  _quadrangle_4,        /// first  order quadrangle
   _max_element_type,
   _point /// point only for some algorithm to be generic like mesh partitioning
 };
@@ -219,15 +221,16 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
   switch(type)
     {
-    case _segment_2       : stream << "segment_2"  ; break;
-    case _segment_3       : stream << "segment_3"  ; break;
-    case _triangle_3   : stream << "triangle_3"  ; break;
-    case _triangle_6   : stream << "triangle_6"  ; break;
-    case _tetrahedron_4 : stream << "tetrahedron_4"; break;
-    case _tetrahedron_10 : stream << "tetrahedron_10"; break;
-    case _not_defined  : stream << "undefined" ; break;
-    case _max_element_type :  stream << "ElementType(" << (int) type << ")"; break;
-    case _point        : stream << "point"; break;
+    case _segment_2        : stream << "segment_2"     ; break;
+    case _segment_3        : stream << "segment_3"     ; break;
+    case _triangle_3       : stream << "triangle_3"    ; break;
+    case _triangle_6       : stream << "triangle_6"    ; break;
+    case _tetrahedron_4    : stream << "tetrahedron_4" ; break;
+    case _tetrahedron_10   : stream << "tetrahedron_10"; break;
+    case _quadrangle_4     : stream << "quadrangle_4"  ; break;
+    case _not_defined      : stream << "undefined"     ; break;
+    case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
+    case _point            : stream << "point"; break;
     }
   return stream;
 }

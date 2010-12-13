@@ -77,7 +77,9 @@ option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
 option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" OFF)
 option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
 option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
+option(AKANTU_USE_MUMPS "Add Mumps support in akantu" OFF)
 option(AKANTU_USE_BLAS "Use BLAS for arithmetic operations" OFF)
+option(AKANTU_USE_EPSN "Use EPSN streering environment" OFF)
 
 
 #===============================================================================
@@ -120,7 +122,6 @@ if(AKANTU_USE_MPI)
   endif(MPI_FOUND)
 endif(AKANTU_USE_MPI)
 
-
 # Scotch
 set(AKANTU_SCOTCH_ON FALSE)
 if(AKANTU_USE_SCOTCH)
@@ -137,6 +138,22 @@ if(AKANTU_USE_SCOTCH)
   endif(SCOTCH_FOUND)
 endif(AKANTU_USE_SCOTCH)
 
+# MUMPS
+set(AKANTU_MUMPS_ON FALSE)
+if(AKANTU_USE_MUMPS)
+  find_package(Mumps REQUIRED)
+  if(MUMPS_FOUND)
+    add_definitions(-DAKANTU_USE_MUMPS)
+    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
+      ${MUMPS_INCLUDE_PATH}
+      )
+    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+      ${MUMPS_LIBRARIES}
+      )
+    set(AKANTU_MUMPS_ON TRUE)
+  endif(MUMPS_FOUND)
+endif(AKANTU_USE_MUMPS)
+
 # BLAS
 set(AKANTU_BLAS_ON FALSE)
 if(AKANTU_USE_BLAS)
@@ -150,6 +167,22 @@ if(AKANTU_USE_BLAS)
     set(AKANTU_BLAS_ON TRUE)
   endif(BLAS_FOUND)
 endif(AKANTU_USE_BLAS)
+
+# EPSN
+set(AKANTU_EPSN_ON FALSE)
+if(AKANTU_USE_EPSN)
+  find_package(EPSN)
+  if(EPSN_FOUND)
+    add_definitions(-DAKANTU_USE_EPSN)
+    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
+      ${EPSN_INCLUDE_DIR}
+      )
+    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+      ${EPSN_LIBRARIES}
+      )
+    set(AKANTU_EPSN_ON TRUE)
+  endif(EPSN_FOUND)
+endif(AKANTU_USE_EPSN)
 
 #===============================================================================
 # Library
@@ -177,7 +210,8 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
-#  solver/sparse_matrix.cc
+  solver/sparse_matrix.cc
+  solver/solver.cc
   synchronizer/ghost_synchronizer.cc
   synchronizer/synchronizer.cc
   synchronizer/communicator.cc
@@ -216,6 +250,14 @@ if(AKANTU_SCOTCH_ON)
     mesh_utils/mesh_partition/mesh_partition_scotch.cc
     )
 endif(AKANTU_SCOTCH_ON)
+
+
+if(AKANTU_MUMPS_ON)
+  set(AKANTU_COMMON_SRC
+    ${AKANTU_COMMON_SRC}
+    solver/solver_mumps.cc
+    )
+endif(AKANTU_MUMPS_ON)
 
 
 set(AKANTU_INCLUDE_DIRS

@@ -43,7 +43,7 @@ public:
   /// build facets elements : boundary and/or internals
   static void buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
   /// build normal to some elements
-  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
+  //  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
 
   /// take  the local_connectivity  array  as  the array  of  local and  ghost
   /// connectivity, renumber the nodes and set the connectivity of the mesh

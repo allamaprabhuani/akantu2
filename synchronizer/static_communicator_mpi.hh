@@ -83,7 +83,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline void setMPIComm(MPI_Comm comm);
+  inline void setMPICommunicator(MPI_Comm comm);
+  inline MPI_Comm getMPICommunicator();
 
   inline Int getNbProc() { return psize; };
   inline Int whoAmI() { return prank; };
