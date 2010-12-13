@@ -22,3 +22,7 @@ add_example(2d_compression "Compression example")
 if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
   add_example(3d_cube_compression "Cube compression example")
 endif(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
+
+if(AKANTU_EPSN_ON)
+  add_example(epsn "Example of steering akantu with EPSN")
+endif(AKANTU_EPSN_ON)
