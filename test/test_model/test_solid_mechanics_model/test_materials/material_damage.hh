@@ -1,5 +1,5 @@
 /**
- * @file   material_elastic.hh
+ * @file   material_damage.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *

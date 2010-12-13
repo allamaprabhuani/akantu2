@@ -30,8 +30,11 @@ int main(int argc, char *argv[])
 {
   akantu::UInt max_steps = 10000;
   akantu::Real epot, ekin;
+
+#ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_tetrahedron_10;
   akantu::UInt paratype = TETRA2;
+#endif //AKANTU_USE_IOHELPER
 
   akantu::Mesh mesh(3);
   akantu::MeshIOMSH mesh_io;
@@ -63,15 +66,15 @@ int main(int argc, char *argv[])
   /// boundary conditions
   akantu::Real eps = 1e-2;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    model->getDisplacement().values[3*i+2] = model->getFEM().getMesh().getNodes().values[3*i+2] / 100.;
+    model->getDisplacement().values[3*i] = model->getFEM().getMesh().getNodes().values[3*i] / 100.;
 
-    if(model->getFEM().getMesh().getNodes().values[3*i + 2] <= eps) {
-      model->getBoundary().values[3*i + 2] = true;
-    }
     if(model->getFEM().getMesh().getNodes().values[3*i] <= eps) {
-      model->getBoundary().values[3*i] = true;
+      model->getBoundary().values[3*i    ] = true;
     }
 
+    if(model->getFEM().getMesh().getNodes().values[3*i + 1] <= eps) {
+      model->getBoundary().values[3*i + 1] = true;
+    }
   }
   //  model->getDisplacement().values[1] = 0.1;
 
@@ -80,7 +83,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   //  dumper.SetMode(TEXT);
 
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates");
+  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates2");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
 			 paratype, model->getFEM().getMesh().getNbElement(type), C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 3, "displacements");
@@ -93,6 +96,10 @@ int main(int argc, char *argv[])
   dumper.Init();
 #endif //AKANTU_USE_IOHELPER
 
+  std::ofstream energy;
+  energy.open("energy.csv");
+  energy << "id,epot,ekin,tot" << std::endl;
+
   for(akantu::UInt s = 0; s < max_steps; ++s) {
     model->explicitPred();
     model->updateResidual();
@@ -103,13 +110,16 @@ int main(int argc, char *argv[])
     epot = model->getPotentialEnergy();
     ekin = model->getKineticEnergy();
 
-    std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
-	      << std::endl;
+    std::cerr << "passing step " << s << "/" << max_steps << std::endl;
+    energy << s << "," << epot << "," << ekin << "," << epot + ekin
+	   << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 10 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
+
+  energy.close();
 
   return EXIT_SUCCESS;
 }

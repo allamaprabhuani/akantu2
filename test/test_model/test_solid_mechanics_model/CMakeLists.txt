@@ -18,7 +18,7 @@ endif(AKANTU_BUILD_CONTACT)
 
 #===============================================================================
 add_mesh(test_solid_mechanics_model_square_mesh triangle.geo 2 1)
-add_mesh(test_solid_mechanics_model_circle_mesh circle.geo 2 2)
+add_mesh(test_solid_mechanics_model_circle_mesh circle.geo 2 1)
 
 register_test(test_solid_mechanics_model_square test_solid_mechanics_model_square.cc)
 add_dependencies(test_solid_mechanics_model_square
@@ -30,10 +30,15 @@ register_test(test_solid_mechanics_model_circle_2 test_solid_mechanics_model_cir
 #===============================================================================
 add_mesh(test_bar_traction_2d_mesh1 bar.geo 2 1 OUTPUT bar1.msh)
 add_mesh(test_bar_traction_2d_mesh2 bar.geo 2 2 OUTPUT bar2.msh)
+add_mesh(test_bar_traction_2d_mesh_structured1 bar.geo 2 1 OUTPUT bar_structured1.msh)
 
 register_test(test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d.cc)
 add_dependencies(test_solid_mechanics_model_bar_traction2d test_bar_traction_2d_mesh1 test_bar_traction_2d_mesh2)
+
+register_test(test_solid_mechanics_model_bar_traction2d_structured
+  test_solid_mechanics_model_bar_traction2d_structured.cc)
+add_dependencies(test_solid_mechanics_model_bar_traction2d_structured test_bar_traction_2d_mesh_structured1)
 
 if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
   register_test(test_solid_mechanics_model_bar_traction2d_parallel

@@ -27,23 +27,23 @@
 #  include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
 
-#define CHECK_STRESS
+//#define CHECK_STRESS
 
 
-static void trac(double * position,double * traction){
-  memset(traction,0,sizeof(akantu::Real)*2);
-  if (fabs(position[0] - 10) < 1e-2){
-    traction[0] = 1000;
-    traction[1] = 1000;
-  }
-}
+// static void trac(double * position,double * traction){
+//   memset(traction,0,sizeof(akantu::Real)*2);
+//   if (fabs(position[0] - 10) < 1e-2){
+//     traction[0] = 1000;
+//     traction[1] = 1000;
+//   }
+// }
 
 
 int main(int argc, char *argv[])
 {
-  akantu::ElementType type = akantu::_triangle_3;
+  akantu::ElementType type = akantu::_triangle_6;
 #ifdef AKANTU_USE_IOHELPER
-  akantu::UInt paraview_type = TRIANGLE1;
+  akantu::UInt paraview_type = TRIANGLE2;
 #endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
-  mesh_io.read("bar1.msh", mesh);
+  mesh_io.read("bar2.msh", mesh);
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
@@ -98,8 +98,8 @@ int main(int argc, char *argv[])
   /// boundary conditions
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    // if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
-    //   model->getDisplacement().values[spatial_dimension*i] = (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100. ;
+    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
+      model->getDisplacement().values[spatial_dimension*i] = (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100. ;
 
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
 	model->getBoundary().values[spatial_dimension*i] = true;
@@ -110,10 +110,10 @@ int main(int argc, char *argv[])
     }
   }
 
-  akantu::FEM & fem_boundary = model->getFEMBoundary();
-  fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnQuadPoints();
-  model->computeForcesFromFunction(trac, akantu::_bft_forces);
+  // akantu::FEM & fem_boundary = model->getFEMBoundary();
+  // fem_boundary.initShapeFunctions();
+  // fem_boundary.computeNormalsOnQuadPoints();
+  // model->computeForcesFromFunction(trac, akantu::_bft_forces);
 
 
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
@@ -153,6 +153,11 @@ int main(int argc, char *argv[])
   outfile.open("stress");
 #endif // CHECK_STRESS
 
+  std::ofstream energy;
+  energy.open("energy.csv");
+  energy << "id,epot,ekin,tot" << std::endl;
+
+
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
     model->explicitPred();
 
@@ -160,8 +165,13 @@ int main(int argc, char *argv[])
     model->updateAcceleration();
     model->explicitCorr();
 
-    // epot = model->getPotentialEnergy();
-    // ekin = model->getKineticEnergy();
+    akantu::Real epot = model->getPotentialEnergy();
+    akantu::Real ekin = model->getKineticEnergy();
+
+    std::cerr << "passing step " << s << "/" << max_steps << std::endl;
+    energy << s << "," << epot << "," << ekin << "," << epot + ekin
+	   << std::endl;
+
     // std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
     // 	      << std::endl;
 
@@ -202,7 +212,6 @@ int main(int argc, char *argv[])
     }
 
 
-
     outfile << s << " " << .5 * (min_x + max_x) << " " << min_x << " " << max_x << " " << max_x - min_x << " " << max_stress << std::endl;
 
     delete [] coords;
@@ -215,10 +224,15 @@ int main(int argc, char *argv[])
     if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 
+  energy.close();
+
 #ifdef CHECK_STRESS
   outfile.close();
 #endif // CHECK_STRESS
 
+  delete model;
+
+  akantu::finalize();
 
   return EXIT_SUCCESS;
 }
