@@ -1,5 +1,5 @@
 /**
- * @file   test_gradient_tetrahedron_10.cc
+ * @file   test_gradient_XXXX.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -27,11 +27,12 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  UInt dim = 3;
-  ElementType type = _tetrahedron_10;
+  ElementType type = XXXX;
+  UInt dim = DIM;
+
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
-  mesh_io.read("cube2.msh", my_mesh);
+  mesh_io.read("FILE.msh", my_mesh);
   FEM fem(my_mesh, dim, "my_fem");
 
   debug::setDebugLevel(dblDump);
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
   my_file << grad_on_quad << std::endl;
 
   // compute gradient of coordinates
-  Vector<Real> grad_coord_on_quad(0, 9, "grad_coord_on_quad");
+  Vector<Real> grad_coord_on_quad(0, dim * dim, "grad_coord_on_quad");
   fem.gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), type);
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
@@ -77,8 +78,6 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-
-
 
   finalize();
 

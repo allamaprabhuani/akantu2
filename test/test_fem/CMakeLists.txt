@@ -46,9 +46,10 @@ add_mesh(test_fem_square_1_mesh square.geo 2 1 OUTPUT square1.msh)
 add_mesh(test_fem_square_2_mesh square.geo 2 2 OUTPUT square2.msh)
 add_mesh(test_fem_circle_1_mesh circle.geo 2 1 OUTPUT circle1.msh)
 add_mesh(test_fem_circle_2_mesh circle.geo 2 2 OUTPUT circle2.msh)
+add_mesh(test_fem_square_struct_1_mesh square_structured.geo 2 1 OUTPUT square_structured1.msh)
 
 #===============================================================================
-# 1st order
+# 1st order unstructured
 register_test(test_integrate_triangle_3 test_integrate_triangle_3.cc)
 add_dependencies(test_integrate_triangle_3
   test_fem_square_1_mesh
@@ -59,6 +60,19 @@ add_dependencies(test_interpolate_triangle_3 test_fem_square_1_mesh)
 #===============================================================================
 register_test(test_gradient_triangle_3 test_gradient_triangle_3.cc)
 add_dependencies(test_gradient_triangle_3 test_fem_square_1_mesh)
+#===============================================================================
+# 1st order structured
+register_test(test_integrate_quadrangle_4 test_integrate_quadrangle_4.cc)
+add_dependencies(test_integrate_quadrangle_4
+  test_fem_square_1_mesh
+  test_fem_circle_1_mesh)
+#===============================================================================
+register_test(test_interpolate_quadrangle_4 test_interpolate_quadrangle_4.cc)
+add_dependencies(test_interpolate_quadrangle_4 test_fem_square_struct_1_mesh)
+#===============================================================================
+register_test(test_gradient_quadrangle_4 test_gradient_quadrangle_4.cc)
+add_dependencies(test_gradient_quadrangle_4 test_fem_square_struct_1_mesh)
+
 
 #===============================================================================
 # 2nd order
