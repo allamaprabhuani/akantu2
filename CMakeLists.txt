@@ -306,6 +306,9 @@ endif(AKANTU_DOCUMENTATION)
 #===============================================================================
 # Tests
 #===============================================================================
+ENABLE_TESTING()
+INCLUDE(CTest)
+
 option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
   find_package(GMSH REQUIRED)
