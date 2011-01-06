@@ -6,6 +6,7 @@
 ##   INCLUDE(CTest)
 set(CTEST_PROJECT_NAME "Akantu")
 set(CTEST_NIGHTLY_START_TIME "06:10:00 EST")
+set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 set(CTEST_DROP_METHOD "http")
 set(CTEST_DROP_SITE "lsmssrv1")
