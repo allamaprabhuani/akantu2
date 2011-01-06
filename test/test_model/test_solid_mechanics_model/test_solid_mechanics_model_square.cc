@@ -44,7 +44,9 @@ int main(int argc, char *argv[])
 
   ElementType type  = _triangle_3;
   ElementType ftype = Mesh::getFacetElementType(type);
+#ifdef AKANTU_USE_IOHELPER
   UInt para_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
 
   Mesh mesh(2);
   MeshIOMSH mesh_io;
