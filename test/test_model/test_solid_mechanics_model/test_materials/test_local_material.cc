@@ -27,10 +27,14 @@
 
 using namespace akantu;
 
+akantu::Real eps = 1e-10;
+
 static void trac(__attribute__ ((unused)) double * position,double * stress){
   memset(stress,0,sizeof(Real)*4);
-  stress[0] = 1000;
-  stress[3] = 1000;
+  if (fabs(position[0] - 10) < eps){
+    stress[0] = 10000;
+    stress[3] = 10000;
+  }
 }
 
 int main(int argc, char *argv[])
@@ -38,7 +42,8 @@ int main(int argc, char *argv[])
   UInt max_steps = 10000;
   Real epot, ekin;
 
-  Mesh mesh(2);
+  const UInt spatial_dimension = 2;
+  Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
   mesh_io.read("circle2.msh", mesh);
 
@@ -65,6 +70,19 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   std::cout << *model << std::endl;
+
+  /// Dirichlet boundary conditions
+  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    
+    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
+	model->getBoundary().values[spatial_dimension*i] = true;
+
+    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] <= eps ||
+       model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
+      model->getBoundary().values[spatial_dimension*i + 1] = true;
+    }
+  }
+
 
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
