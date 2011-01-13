@@ -97,18 +97,18 @@ TestSynchronizer::~TestSynchronizer() {
 }
 
 akantu::UInt TestSynchronizer::getNbDataToPack(const akantu::Element & element,
-					       akantu::GhostSynchronizationTag tag) const {
+					       __attribute__ ((unused)) akantu::GhostSynchronizationTag tag) const {
   return akantu::Mesh::getSpatialDimension(element.type);
 }
 
 akantu::UInt TestSynchronizer::getNbDataToUnpack(const akantu::Element & element,
-						 akantu::GhostSynchronizationTag tag) const {
+						 __attribute__ ((unused)) akantu::GhostSynchronizationTag tag) const {
   return akantu::Mesh::getSpatialDimension(element.type);
 }
 
 void TestSynchronizer::packData(akantu::Real ** buffer,
 				const akantu::Element & element,
-				akantu::GhostSynchronizationTag tag) const {
+				__attribute__ ((unused)) akantu::GhostSynchronizationTag tag) const {
   akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(element.type);
   mesh.getBarycenter(element.element, element.type, *buffer);
 
@@ -117,7 +117,7 @@ void TestSynchronizer::packData(akantu::Real ** buffer,
 
 void TestSynchronizer::unpackData(akantu::Real ** buffer,
 				  const akantu::Element & element,
-				  akantu::GhostSynchronizationTag tag) const {
+				  __attribute__ ((unused)) akantu::GhostSynchronizationTag tag) const {
   akantu::UInt spatial_dimension = akantu::Mesh::getSpatialDimension(element.type);
   memcpy(ghost_barycenter[element.type]->values + element.element * spatial_dimension,
 	 *buffer, spatial_dimension * sizeof(akantu::Real));
@@ -190,7 +190,6 @@ int main(int argc, char *argv[])
 			     << " on proc " << prank
 			     << " does not match the one get during synchronisation" );
       }
-
     }
   }
 

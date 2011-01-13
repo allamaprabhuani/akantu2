@@ -3,7 +3,7 @@
  * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
  * @date   Fri Nov 19 10:23:03 2010
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -20,27 +20,25 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
-/** 
+/**
  * @param myf pointer to a function that fills a vector/tensor with respect to passed coordinates
- * @param function_type flag to specify the take of function: 0 is tensor like and 1 is traction like. 
+ * @param function_type flag to specify the take of function: _bft_stress is tensor like and _bft_forces is traction like.
  */
-void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double *), 
+void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double *),
 						    BoundaryFunctionType function_type){
-  
-
-  /** function type is 
-   ** 0 : stress function is given
-   ** 1 : traction function is given
+  /** function type is
+   ** _bft_forces : traction function is given
+   ** _bft_stress : stress function is given
    */
 
   std::stringstream name;
   name << id << ":solidmechanics:imposed_traction";
   Vector<Real> traction_funct(0, spatial_dimension,name.str());
   name.clear();
-  name << id << ":solidmechanics:imposed_stresses";  
+  name << id << ":solidmechanics:imposed_stresses";
   Vector<Real> stress_funct(0, spatial_dimension*spatial_dimension,name.str());
   name.clear();
-  name << id << ":solidmechanics:quad_coords";  
+  name << id << ":solidmechanics:quad_coords";
   Vector<Real> quad_coords(0,spatial_dimension,"quad_coords");
 
   UInt offset = 0;
@@ -51,7 +49,6 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
     offset = spatial_dimension; break;
   }
 
-
   //prepare the loop over element types
   const Mesh::ConnectivityTypeList & type_list = fem_boundary->getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -61,9 +58,8 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
     UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
     UInt nb_element = fem_boundary->getMesh().getNbElement(*it);
 
-    fem_boundary->interpolateOnQuadraturePoints(fem_boundary->getMesh().getNodes(), 
+    fem_boundary->interpolateOnQuadraturePoints(fem_boundary->getMesh().getNodes(),
 						quad_coords, spatial_dimension, (*it));
-
 
     Real * imposed_val = NULL;
     switch(function_type) {
@@ -93,7 +89,7 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
       computeForcesByTractionVector(traction_funct,(*it)); break;
     }
   }
-} 
+}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stresses, const ElementType & type){
@@ -104,7 +100,7 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
 
   // check dimension match
   AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == fem_boundary->getElementDimension(),
-		      "element type dimension does not match the dimension of boundaries : " << 
+		      "element type dimension does not match the dimension of boundaries : " <<
 		      fem_boundary->getElementDimension() << " != " <<
 		      Mesh::getSpatialDimension(type));
 
@@ -121,11 +117,11 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
   std::stringstream name;
   name << id << ":solidmechanics:" << type << ":traction_boundary";
   Vector<Real> funct(nb_element*nb_quad, spatial_dimension,name.str());
-  const Vector<Real> & normals_on_quad = fem_boundary->getNormalsOnQuadPoints(type);  
+  const Vector<Real> & normals_on_quad = fem_boundary->getNormalsOnQuadPoints(type);
 
   Math::matrix_vector(spatial_dimension,spatial_dimension,stresses,normals_on_quad,funct);
   computeForcesByTractionVector(funct,type);
-  AKANTU_DEBUG_OUT();  
+  AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tractions, const ElementType & type){
@@ -137,7 +133,7 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
 
   // check dimension match
   AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == fem_boundary->getElementDimension(),
-		      "element type dimension does not match the dimension of boundaries : " << 
+		      "element type dimension does not match the dimension of boundaries : " <<
 		      fem_boundary->getElementDimension() << " != " <<
 		      Mesh::getSpatialDimension(type));
 
@@ -175,7 +171,7 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
   fem_boundary->integrate(funct, int_funct, spatial_dimension*nb_nodes_per_element, type);
   // assemble the result into force vector
   fem_boundary->assembleVector(int_funct,const_cast<Vector<Real> &>(getForce()), spatial_dimension, type);
-  AKANTU_DEBUG_OUT();  
+  AKANTU_DEBUG_OUT();
 }
 
 __END_AKANTU__

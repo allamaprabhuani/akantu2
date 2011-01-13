@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   my_file << grad_coord_on_quad << std::endl;
 
   UInt nb_quads = my_mesh.getNbElement(type) * FEM::getNbQuadraturePoints(type);
-  Real eps = 25 * std::numeric_limits<Real>::epsilon();
+  Real eps = 30 * std::numeric_limits<Real>::epsilon();
   std::cout << "Epsilon : " << eps << std::endl;
   for (UInt q = 0; q < nb_quads; ++q) {
     for (UInt i = 0; i < dim; ++i) {
@@ -77,8 +77,6 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-
-
 
   finalize();
 

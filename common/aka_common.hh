@@ -107,8 +107,8 @@ enum MaterialType {
 
 /// @enum BoundaryFunctionType type of function passed for boundary conditions
 enum BoundaryFunctionType {
-  _bft_forces,
-  _bft_stress
+  _bft_stress,
+  _bft_forces
 };
 
 /// @enum SparseMatrixType type of sparse matrix used

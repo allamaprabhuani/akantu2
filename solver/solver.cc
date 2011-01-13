@@ -26,11 +26,6 @@ Solver::Solver(SparseMatrix & matrix,
   AKANTU_DEBUG_IN();
 
 
-  //  std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
-
-  //  rhs = &(alloc<Real>(sstr_rhs.str(), nb_nodes * nb_degre_of_freedom, 1, REAL_INIT_VALUE));
-
-
   AKANTU_DEBUG_OUT();
 }
 

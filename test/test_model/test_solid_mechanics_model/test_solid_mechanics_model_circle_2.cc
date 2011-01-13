@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnQuadPoints();
-  model->computeForcesFromFunction(trac, akantu::_bft_forces);
+  model->computeForcesFromFunction(trac, akantu::_bft_stress);
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;

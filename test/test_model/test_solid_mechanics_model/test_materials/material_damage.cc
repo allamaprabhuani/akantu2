@@ -46,7 +46,7 @@ void MaterialDamage::initMaterial() {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     std::stringstream sstr_damage; sstr_damage << id << ":damage:" << *it;
     damage[*it] = &(alloc<Real>(sstr_damage.str(), 0,
-				1));
+				1, REAL_INIT_VALUE));
   }
 
 

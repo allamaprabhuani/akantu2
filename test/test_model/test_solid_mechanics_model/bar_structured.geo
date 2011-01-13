@@ -1,5 +1,5 @@
 // Mesh size
-h  = 0.1;    // Top cube
+h  = 0.08;    // Top cube
 
 // Dimensions of top cube
 Lx = 10;
@@ -30,5 +30,4 @@ Plane Surface(101) = {101};
 Physical Surface(1) = {101};
 
 Transfinite Surface "*";
-
-Redefine Surface "*";
+Recombine Surface "*";

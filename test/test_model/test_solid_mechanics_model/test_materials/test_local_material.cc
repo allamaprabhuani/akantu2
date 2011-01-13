@@ -27,13 +27,13 @@
 
 using namespace akantu;
 
-akantu::Real eps = 1e-10;
+akantu::Real eps = 1e-5;
 
 static void trac(__attribute__ ((unused)) double * position,double * stress){
-  memset(stress,0,sizeof(Real)*4);
+  memset(stress, 0, sizeof(Real)*4);
   if (fabs(position[0] - 10) < eps){
-    stress[0] = 10000;
-    stress[3] = 10000;
+    stress[0] = 1000000;
+    stress[3] = 1000000;
   }
 }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
   const UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
-  mesh_io.read("circle2.msh", mesh);
+  mesh_io.read("bar.msh", mesh);
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
   /// Dirichlet boundary conditions
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    
+
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
 	model->getBoundary().values[spatial_dimension*i] = true;
 
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnQuadPoints();
-  model->computeForcesFromFunction(trac, akantu::_bft_forces);
+  model->computeForcesFromFunction(trac, akantu::_bft_stress);
 
 #ifdef AKANTU_USE_IOHELPER
   model->updateResidual();
@@ -137,6 +137,3 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-
-

@@ -29,16 +29,6 @@
 
 //#define CHECK_STRESS
 
-
-// static void trac(double * position,double * traction){
-//   memset(traction,0,sizeof(akantu::Real)*2);
-//   if (fabs(position[0] - 10) < 1e-2){
-//     traction[0] = 1000;
-//     traction[1] = 1000;
-//   }
-// }
-
-
 int main(int argc, char *argv[])
 {
   akantu::ElementType type = akantu::_triangle_6;
@@ -58,7 +48,9 @@ int main(int argc, char *argv[])
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+#ifdef AKANTU_USE_IOHELPER
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+#endif //AKANTU_USE_IOHELPER
 
   /// model initialization
   model->initVectors();
@@ -110,18 +102,14 @@ int main(int argc, char *argv[])
     }
   }
 
-  // akantu::FEM & fem_boundary = model->getFEMBoundary();
-  // fem_boundary.initShapeFunctions();
-  // fem_boundary.computeNormalsOnQuadPoints();
-  // model->computeForcesFromFunction(trac, akantu::_bft_forces);
-
-
+  /// set the time step
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model->setTimeStep(time_step);
-  //  model->setTimeStep(3.54379e-07);
+
 
 #ifdef AKANTU_USE_IOHELPER
+  /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
@@ -157,7 +145,6 @@ int main(int argc, char *argv[])
   energy.open("energy.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
-
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
     model->explicitPred();
 
@@ -172,17 +159,13 @@ int main(int argc, char *argv[])
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
 	   << std::endl;
 
-    // std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
-    // 	      << std::endl;
-
 #ifdef CHECK_STRESS
+    /// search the position of the maximum of stress to determine the wave speed
     akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
-    //akantu::UInt max_el = 0;
     akantu::Real * stress = model->getMaterial(0).getStress(type).values;
     for (akantu::UInt i = 0; i < nb_element; ++i) {
       if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
 	max_stress = stress[i*spatial_dimension*spatial_dimension];
-	//	max_el = i;
       }
     }
 

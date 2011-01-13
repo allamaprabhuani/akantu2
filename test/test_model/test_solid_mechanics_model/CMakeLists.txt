@@ -18,19 +18,22 @@ endif(AKANTU_BUILD_CONTACT)
 
 #===============================================================================
 add_mesh(test_solid_mechanics_model_square_mesh triangle.geo 2 1)
-add_mesh(test_solid_mechanics_model_circle_mesh circle.geo 2 1)
+add_mesh(test_solid_mechanics_model_circle_mesh1 circle.geo 2 1 OUTPUT circle1.msh)
+add_mesh(test_solid_mechanics_model_circle_mesh2 circle.geo 2 2 OUTPUT circle2.msh)
 
 register_test(test_solid_mechanics_model_square test_solid_mechanics_model_square.cc)
 add_dependencies(test_solid_mechanics_model_square
   test_solid_mechanics_model_square_mesh
-  test_solid_mechanics_model_circle_mesh)
+  test_solid_mechanics_model_circle_mesh1)
 
 register_test(test_solid_mechanics_model_circle_2 test_solid_mechanics_model_circle_2.cc)
+add_dependencies(test_solid_mechanics_model_circle_2
+  test_solid_mechanics_model_circle_mesh2)
 
 #===============================================================================
 add_mesh(test_bar_traction_2d_mesh1 bar.geo 2 1 OUTPUT bar1.msh)
 add_mesh(test_bar_traction_2d_mesh2 bar.geo 2 2 OUTPUT bar2.msh)
-add_mesh(test_bar_traction_2d_mesh_structured1 bar.geo 2 1 OUTPUT bar_structured1.msh)
+add_mesh(test_bar_traction_2d_mesh_structured1 bar_structured.geo 2 1 OUTPUT bar_structured1.msh)
 
 register_test(test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d.cc)
@@ -52,6 +55,18 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
     test_solid_mechanics_model_segment_parallel.cc)
   add_dependencies(test_solid_mechanics_model_segment_parallel
     test_solid_mechanics_model_segment_mesh)
+
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_solid_mechanics_model_bar_traction2d_parallel.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/test_solid_mechanics_model_bar_traction2d_parallel.sh
+    COPYONLY
+    )
+
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_solid_mechanics_model_segment_parallel.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/test_solid_mechanics_model_segment_parallel.sh
+    COPYONLY
+    )
 endif()
 
 #===============================================================================
@@ -75,3 +90,4 @@ configure_file(
   )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+
