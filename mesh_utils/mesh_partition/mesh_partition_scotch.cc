@@ -14,9 +14,15 @@
 /* -------------------------------------------------------------------------- */
 #include <cstdio>
 #include <fstream>
-//extern "C" {
+
+#ifndef AKANTU_SCOTCH_NO_EXTERN
+extern "C" {
+#endif
 #include <scotch.h>
-//}
+#ifndef AKANTU_SCOTCH_NO_EXTERN
+}
+#endif
+
 /* -------------------------------------------------------------------------- */
 #include "mesh_partition_scotch.hh"
 
