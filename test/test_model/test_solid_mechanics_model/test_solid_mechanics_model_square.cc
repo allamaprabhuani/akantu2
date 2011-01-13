@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
   Mesh mesh(2);
   MeshIOMSH mesh_io;
-  mesh_io.read("circle.msh", mesh);
+  mesh_io.read("square.msh", mesh);
 
   SolidMechanicsModel model(mesh);
 

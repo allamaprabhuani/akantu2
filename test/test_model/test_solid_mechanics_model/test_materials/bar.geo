@@ -1,5 +1,5 @@
 // Mesh size
-h  = 0.1;    // Top cube
+h  = 0.5;    // Top cube
 
 // Dimensions of top cube
 Lx = 10;

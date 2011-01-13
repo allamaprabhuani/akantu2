@@ -28,7 +28,7 @@
 
 int main(int argc, char *argv[])
 {
-  akantu::UInt max_steps = 10000;
+  akantu::UInt max_steps = 1000;
   akantu::Real epot, ekin;
 
 #ifdef AKANTU_USE_IOHELPER

@@ -17,14 +17,14 @@ if(AKANTU_BUILD_CONTACT)
 endif(AKANTU_BUILD_CONTACT)
 
 #===============================================================================
-add_mesh(test_solid_mechanics_model_square_mesh triangle.geo 2 1)
+add_mesh(test_solid_mechanics_model_square_mesh square.geo 2 1)
 add_mesh(test_solid_mechanics_model_circle_mesh1 circle.geo 2 1 OUTPUT circle1.msh)
 add_mesh(test_solid_mechanics_model_circle_mesh2 circle.geo 2 2 OUTPUT circle2.msh)
 
 register_test(test_solid_mechanics_model_square test_solid_mechanics_model_square.cc)
 add_dependencies(test_solid_mechanics_model_square
   test_solid_mechanics_model_square_mesh
-  test_solid_mechanics_model_circle_mesh1)
+  )
 
 register_test(test_solid_mechanics_model_circle_2 test_solid_mechanics_model_circle_2.cc)
 add_dependencies(test_solid_mechanics_model_circle_2
