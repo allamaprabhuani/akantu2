@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("cubes.msh", my_mesh);
+  mesh_io.read("squares.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
     if(s == 2) {
       Real * coord = my_mesh.getNodes().values;
       for(UInt n = 0; n < nb_nodes; ++n) {
-	if(coord[n*dim + 2] > 1.0) {
-	  displacement[n*dim+2] = -0.01;
+	if(coord[n*dim + 0] > 1.0) {
+	  displacement[n*dim+0] = -0.02;
 	}
       }
       /*

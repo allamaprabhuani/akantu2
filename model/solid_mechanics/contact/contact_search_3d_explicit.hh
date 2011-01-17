@@ -59,11 +59,17 @@ private:
   inline Real computeSquareDistanceBetweenNodes(const UInt node_1, const UInt node_2);
 
   /// test if impactor node is inside and in the projection area
-void checkPenetrationSituation(const UInt impactor_node, 
-			       const UInt surface_element, 
-			       const ElementType type,
-			       bool & is_inside,
-			       bool & is_in_projection_area);
+  void checkPenetrationSituation(const UInt impactor_node, 
+				 const UInt surface_element, 
+				 const ElementType type,
+				 bool & is_inside,
+				 bool & is_in_projection_area);
+
+  /// test if impactor node is inside and in the projection area for segment_2
+  void checkPenetrationSituationSegment2(const UInt impactor_node, 
+					 const UInt surface_element, 
+					 bool & is_inside, 
+					 bool & is_in_projection_area);
 
   /// test if impactor node is inside and in the projection area for triangle_3
   void checkPenetrationSituationTriangle3(const UInt impactor_node, 
@@ -78,6 +84,13 @@ void checkPenetrationSituation(const UInt impactor_node,
 				     Real * normal,
 				     Real & gap,
 				     Real * projected_position);
+
+  /// compute the normal, the gap and the projected position for impactor for segment_2
+  void computeComponentsOfProjectionSegment2(const UInt impactor_node,
+					     const UInt surface_element,
+					     Real * normal,
+					     Real & gap,
+					     Real * projected_position);
 
   /// compute the normal, the gap and the projected position for impactor for triangle_3
   void computeComponentsOfProjectionTriangle3(const UInt impactor_node,

@@ -12,10 +12,10 @@
 #===============================================================================
 
 #===============================================================================
-#add_mesh(test_regular_grid_2d_mesh squares.geo 2 1)
+add_mesh(test_3d_explicit_mesh_squares squares.geo 2 1)
 
-#register_test(test_regular_grid_triangle_3 test_regular_grid_triangle_3.cc)
-#add_dependencies(test_regular_grid_triangle_3 test_regular_grid_2d_mesh)
+register_test(test_3d_explicit_triangle_3 test_3d_explicit_triangle_3.cc)
+add_dependencies(test_3d_explicit_triangle_3 test_3d_explicit_mesh_squares)
 
 #===============================================================================
 add_mesh(test_3d_explicit_mesh cubes.geo 3 1)

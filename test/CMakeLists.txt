@@ -29,8 +29,6 @@ add_akantu_test(test_model "Test model objects")
 if(AKANTU_BUILD_CONTACT)
   #add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
   add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
-  add_akantu_test(test_contact_2d_expli "Test contact algorithm in 2d (frictionless)")
-  add_akantu_test(test_contact_2d_neighbor_structure "Test contact neighbor structure only for 2d")
 endif(AKANTU_BUILD_CONTACT)
 
 if(AKANTU_SCOTCH_ON)

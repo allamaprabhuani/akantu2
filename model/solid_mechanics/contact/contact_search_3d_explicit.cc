@@ -319,6 +319,10 @@ void ContactSearch3dExplicit::computeComponentsOfProjection(const UInt impactor_
   AKANTU_DEBUG_IN();
 
   switch(type) {
+  case _segment_2: {
+    computeComponentsOfProjectionSegment2(impactor_node, surface_element, normal, gap, projected_position);
+    break;
+  }
   case _triangle_3: {
     computeComponentsOfProjectionTriangle3(impactor_node, surface_element, normal, gap, projected_position);
     break;
@@ -342,6 +346,10 @@ void ContactSearch3dExplicit::checkPenetrationSituation(const UInt impactor_node
   AKANTU_DEBUG_IN();
 
   switch(type) {
+  case _segment_2: {
+    checkPenetrationSituationSegment2(impactor_node, surface_element, is_inside, is_in_projection_area);
+    break;
+  }
   case _triangle_3: {
     checkPenetrationSituationTriangle3(impactor_node, surface_element, is_inside, is_in_projection_area);
     break;
@@ -354,6 +362,46 @@ void ContactSearch3dExplicit::checkPenetrationSituation(const UInt impactor_node
   
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void ContactSearch3dExplicit::computeComponentsOfProjectionSegment2(const UInt impactor_node,
+								    const UInt surface_element,
+								    Real * normal,
+								    Real & gap,
+								    Real * projected_position) {
+  AKANTU_DEBUG_IN();
+  
+  const UInt dim = spatial_dimension;
+  const ElementType type = _segment_2;
+  const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
+  
+  Real * current_position = contact.getModel().getCurrentPosition().values;
+  UInt * connectivity = mesh.getConnectivity(type).values;
+
+  UInt node_1 = surface_element * nb_nodes_element;
+  Real * position_node_1 = &(current_position[connectivity[node_1 + 0] * spatial_dimension]);
+  Real * position_node_2 = &(current_position[connectivity[node_1 + 1] * spatial_dimension]);
+  Real * position_impactor_node = &(current_position[impactor_node * spatial_dimension]);
+
+  /// compute the normal of the face
+  Real vector_1[2];
+  Math::vector_2d(position_node_1, position_node_2, vector_1); /// @todo: check if correct order of nodes !!  
+  Math::normal2(vector_1, normal);
+
+  /// compute the gap between impactor and face
+  /// gap positive if impactor outside of surface
+  Real vector_node_1_impactor[2];
+  Math::vector_2d(position_node_1, position_impactor_node, vector_node_1_impactor);
+  gap = Math::vectorDot2(vector_node_1_impactor, normal);
+
+  /// compute the projected position of the impactor node onto the face
+  for(UInt i=0; i < dim; ++i) {
+    projected_position[i] = position_impactor_node[i] - gap * normal[i];
+  }
+    
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void ContactSearch3dExplicit::computeComponentsOfProjectionTriangle3(const UInt impactor_node,
@@ -396,6 +444,65 @@ void ContactSearch3dExplicit::computeComponentsOfProjectionTriangle3(const UInt 
     
   AKANTU_DEBUG_OUT();
 }
+
+
+/* -------------------------------------------------------------------------- */
+void ContactSearch3dExplicit::checkPenetrationSituationSegment2(const UInt impactor_node, 
+								const UInt surface_element, 
+								bool & is_inside, 
+								bool & is_in_projection_area) {
+
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(spatial_dimension == 2, "wrong spatial dimension (=" << spatial_dimension << ") for checkPenetrationSituationSegment2");
+  const UInt dim = spatial_dimension;
+  const ElementType type = _segment_2;
+  const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
+  const Real tolerance = std::numeric_limits<Real>::epsilon();
+  
+  Real * current_position = contact.getModel().getCurrentPosition().values;
+  UInt * connectivity = mesh.getConnectivity(type).values;
+
+  Real gap;  
+  Real normal[2];
+  Real projected_position[2];
+  computeComponentsOfProjectionSegment2(impactor_node, surface_element, normal, gap, projected_position);
+  
+  // -------------------------------------------------------
+  /// Find if impactor node is inside or outside of the face
+  // -------------------------------------------------------
+
+  if(gap < -tolerance)
+    is_inside = true;  
+  else
+    is_inside = false;
+
+  // ----------------------------------------------------
+  /// Find if impactor node is in projection area of face
+  // ----------------------------------------------------
+
+  UInt node_1 = surface_element * nb_nodes_element;
+  Real * position_node_1 = &(current_position[connectivity[node_1 + 0] * spatial_dimension]);
+  Real * position_node_2 = &(current_position[connectivity[node_1 + 1] * spatial_dimension]);
+
+  Real tmp_vector_1_imp[2];
+  Real tmp_vector_1_2[2];
+  
+  // find vectors from master node 1 to impactor and master node 2
+  Math::vector_2d(position_node_1, position_node_2, tmp_vector_1_2);
+  Math::vector_2d(position_node_1, projected_position, tmp_vector_1_imp);
+
+  Real length_difference = Math::norm2(tmp_vector_1_imp) - Math::norm2(tmp_vector_1_2);
+
+  // the projection is outside if the test area is larger than the area of the triangle
+  if(length_difference > tolerance)
+    is_in_projection_area = false;  
+  else
+    is_in_projection_area = true;
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impactor_node, 
