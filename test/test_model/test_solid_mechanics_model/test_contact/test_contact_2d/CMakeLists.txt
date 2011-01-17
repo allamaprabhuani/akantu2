@@ -1,7 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Fri Dec 03 11:09:59 2010
+# @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+# @date   Mon Jan 17 11:48:11 2011
 #
 # @section LICENSE
 #
@@ -13,7 +13,8 @@
 
 #===============================================================================
 
-add_subdirectory("test_neighbor_structure")
-add_subdirectory("test_contact_search")
-add_subdirectory("test_contact_2d")
+add_subdirectory("test_contact_2d_expli")
+#add_subdirectory("test_contact_2d_expli_fric")
+
+
 

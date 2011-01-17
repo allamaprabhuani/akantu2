@@ -1,7 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Fri Dec 03 11:09:59 2010
+# @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+# @date   Fri Dec  3 15:12:22 2010
 #
 # @section LICENSE
 #
@@ -12,8 +12,7 @@
 #===============================================================================
 
 #===============================================================================
+add_mesh(test_contact_2d_expli_mesh squares.geo 2 1)
 
-add_subdirectory("test_neighbor_structure")
-add_subdirectory("test_contact_search")
-add_subdirectory("test_contact_2d")
-
+register_test(test_contact_2d_expli test_contact_2d_expli.cc)
+add_dependencies(test_contact_2d_expli test_contact_2d_expli_mesh)
