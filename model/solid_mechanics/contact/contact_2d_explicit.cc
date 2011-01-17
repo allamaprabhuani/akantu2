@@ -109,29 +109,28 @@ void Contact2dExplicit::solveContact() {
     contact_search->findPenetration(*it, pen_list);
 
     if(pen_list.penetrating_nodes.getSize() > 0) {
-      Vector<Real> gap_der;
       Vector<Real> vel_norm(0, 2);
       Vector<Real> vel_fric(0, 2);
+      Vector<UInt> nodes_index(0, 2);
 
       /// Remove node to segment penetrations
-      projectNodesOnSegements(pen_list);
+      projectNodesOnSegments(pen_list, nodes_index);
 
       /// Compute normal velocities of impacting nodes according to the normal linear momenta
-      computeNormalVelocities(pen_list, gap_der, vel_norm);
+      computeNormalVelocities(pen_list, nodes_index, vel_norm);
 
       /// Compute friction velocities
-      if(friction_coefficient > 1.e-6)
-	computeFrictionVelocities(pen_list, gap_der, vel_norm, vel_fric);
+      computeFrictionVelocities(pen_list, nodes_index, vel_norm, vel_fric);
 
       /// Update post-impact velocities
-      updatePostImpactVelocities(pen_list, vel_norm, vel_fric);
+      updatePostImpactVelocities(pen_list, nodes_index, vel_norm, vel_fric);
     }
   }  
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Contact2dExplicit::projectNodesOnSegements(PenetrationList & pen_list) {
+void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Vector<UInt> & nodes_index) {
   AKANTU_DEBUG_IN();
   
   UInt dim = 2;
@@ -144,36 +143,42 @@ void Contact2dExplicit::projectNodesOnSegements(PenetrationList & pen_list) {
   ElementType el_type = _segment_2;
   UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type).values;
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
+  nodes_index.resize(3*pen_list.penetrating_nodes.getSize());
+  UInt * index = nodes_index.values;
 
   for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
-    UInt i_node = pen_list.penetrating_nodes.values[n];
+    const UInt i_node = pen_list.penetrating_nodes.values[n];
     for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el <  pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
       /// Project node on segment according to its projection
-      Real proj = pen_list.projected_positions[el_type]->values[el];
+      Real proj = pen_list.projected_positions[el_type]->values[n];
 
-      if(proj > PROJ_TOL && proj < 1.-PROJ_TOL || proj == 1. || proj == 0.) {
-	delta[n] = -pen_list.gaps[el_type]->values[el]*pen_list.facets_normals[el_type]->values[dim*el];
-	delta[n+1] = -pen_list.gaps[el_type]->values[el]*pen_list.facets_normals[el_type]->values[dim*el+1];
+      index[n*3] = conn_val[elem_nodes*pen_list.penetrated_facets[el_type]->values[n]];
+      index[n*3+1] = conn_val[elem_nodes*pen_list.penetrated_facets[el_type]->values[n]+1];
+      index[n*3+2] = i_node;
+
+      if(proj > PROJ_TOL && proj < 1.-PROJ_TOL) {
+	delta[2*n] = -pen_list.gaps[el_type]->values[n]*pen_list.facets_normals[el_type]->values[dim*el];
+	delta[2*n+1] = -pen_list.gaps[el_type]->values[n]*pen_list.facets_normals[el_type]->values[dim*el+1];
       }
 
       else if(proj <= PROJ_TOL) {
-	delta[n] = pos_val[conn_val[elem_nodes*el]]-pos_val[dim*i_node];
-	delta[n+1] = pos_val[conn_val[elem_nodes*el]+1]-pos_val[dim*i_node+1];
+	delta[2*n] = pos_val[dim*index[n*3]]-pos_val[dim*i_node];
+	delta[2*n+1] = pos_val[dim*index[n*3]+1]-pos_val[dim*i_node+1];
 	if(proj < -PROJ_TOL) {
-	  Real modulus = sqrt(delta[n]*delta[n]+delta[n+1]*delta[n+1]);
-	  pen_list.facets_normals[el_type]->values[dim*el] = delta[n]/modulus;
-	  pen_list.facets_normals[el_type]->values[dim*el+1] = delta[n+1]/modulus;
+	  Real modulus = sqrt(delta[2*n]*delta[2*n]+delta[2*n+1]*delta[2*n+1]);
+	  pen_list.facets_normals[el_type]->values[dim*el] = delta[2*n]/modulus;
+	  pen_list.facets_normals[el_type]->values[dim*el+1] = delta[2*n+1]/modulus;
 	}
 	proj = 0.;
       }
 
       else { /* proj >= 1.- PROJ_TOL */
-	delta[n] = pos_val[conn_val[elem_nodes*el]]-pos_val[dim*i_node];
-	delta[n+1] = pos_val[conn_val[elem_nodes*el]+1]-pos_val[dim*i_node+1];
+	delta[2*n] = pos_val[dim*index[n*3+1]]-pos_val[dim*i_node];
+	delta[2*n+1] = pos_val[dim*index[n*3+1]+1]-pos_val[dim*i_node+1];
 	if(proj > 1.+PROJ_TOL) {
-	  Real modulus = sqrt(delta[n]*delta[n]+delta[n+1]*delta[n+1]);
-	  pen_list.facets_normals[el_type]->values[dim*el] = delta[n]/modulus;
-	  pen_list.facets_normals[el_type]->values[dim*el] = delta[n+1]/modulus;
+	  Real modulus = sqrt(delta[2*n]*delta[2*n]+delta[2*n+1]*delta[2*n+1]);
+	  pen_list.facets_normals[el_type]->values[dim*el] = delta[2*n]/modulus;
+	  pen_list.facets_normals[el_type]->values[dim*el] = delta[2*n+1]/modulus;
 	}
 	proj = 1.;
       }
@@ -183,12 +188,13 @@ void Contact2dExplicit::projectNodesOnSegements(PenetrationList & pen_list) {
   /// Update displacement and increment of the projected nodes
   for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
     UInt i_node = pen_list.penetrating_nodes.values[n];
-    pos_val[dim*n] +=delta[n];
-    pos_val[dim*n+1] += delta[n+1];
-    disp_val[dim*n] += delta[n];
-    disp_val[dim*n+1] += delta[n+1];
-    inc_val[dim*n] += delta[n];
-    inc_val[dim*n+1] +=delta[n+1];
+    
+    pos_val[dim*index[n*3+2]] +=delta[2*n];
+    pos_val[dim*index[n*3+2]+1] += delta[2*n+1];
+    disp_val[dim*index[n*3+2]] += delta[2*n];
+    disp_val[dim*index[n*3+2]+1] += delta[2*n+1];
+    inc_val[dim*index[n*3+2]] += delta[2*n];
+    inc_val[dim*index[n*3+2]+1] +=delta[2*n+1];
   }
 
   delete [] delta;
@@ -197,7 +203,7 @@ void Contact2dExplicit::projectNodesOnSegements(PenetrationList & pen_list) {
 }
 
 void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list, 
-						Vector<Real> & gap_der, 
+						Vector<UInt> & nodes_index, 
 						Vector<Real> & vel_norm) {
   AKANTU_DEBUG_IN();
 
@@ -211,62 +217,58 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
   Real * mass_val = model.getMass().values;
   Real * pos_val = model.getCurrentPosition().values;
 
-  gap_der.resize(6*pen_list.penetrating_nodes.getSize());
   vel_norm.resize(6*pen_list.penetrating_nodes.getSize());
-  Real * dg = gap_der.values;
-  Real * v_n = vel_norm.values; 
+  Real * v_n = vel_norm.values;
+  UInt * index = nodes_index.values;
+  Real dg[6];
 
   /// Loop over projected nodes
   for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
-    const UInt i_node = pen_list.penetrating_nodes.values[n];
+    
+    // for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
 
-    for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
-
-      const UInt node1 = conn_val[el*elem_nodes];
-      const UInt node2 = conn_val[el*elem_nodes+1];
-      const UInt index[3] = {node1, node2, i_node};
-      Real proj = pen_list.projected_positions[el_type]->values[el];
+      Real proj = pen_list.projected_positions[el_type]->values[n];
 
       /// Fill gap derivative
       if (proj < PROJ_TOL) {
-	dg[n*6] = pen_list.facets_normals[el_type]->values[2*el+0];
-	dg[n*6+1] = pen_list.facets_normals[el_type]->values[2*el+1];
-	dg[n*6+2] = 0.;
-	dg[n*6+3] = 0.;
-	dg[n*6+4] = -pen_list.facets_normals[el_type]->values[2*el+0];
-	dg[n*6+5] = -pen_list.facets_normals[el_type]->values[2*el+1];
+	dg[0] = pen_list.facets_normals[el_type]->values[2*n+0];
+	dg[1] = pen_list.facets_normals[el_type]->values[2*n+1];
+	dg[2] = 0.;
+	dg[3] = 0.;
+	dg[4] = -pen_list.facets_normals[el_type]->values[2*n+0];
+	dg[5] = -pen_list.facets_normals[el_type]->values[2*n+1];
       }
       else if (proj > 1.-PROJ_TOL) {
-	dg[n*6] = 0.;
-	dg[n*6+1] = 0.;
-	dg[n*6+2] = pen_list.facets_normals[el_type]->values[2*el+0];
-	dg[n*6+3] = pen_list.facets_normals[el_type]->values[2*el+1];
-	dg[n*6+4] = -pen_list.facets_normals[el_type]->values[2*el+0];
-	dg[n*6+5] = -pen_list.facets_normals[el_type]->values[2*el+1];
+	dg[0] = 0.;
+	dg[1] = 0.;
+	dg[2] = pen_list.facets_normals[el_type]->values[2*n+0];
+	dg[3] = pen_list.facets_normals[el_type]->values[2*n+1];
+	dg[4] = -pen_list.facets_normals[el_type]->values[2*n+0];
+	dg[5] = -pen_list.facets_normals[el_type]->values[2*n+1];
       }
       else {
-      dg[n*6] =  pos_val[i_node*dim+1]-pos_val[node2*dim+1];
-      dg[n*6+1] =  pos_val[node2*dim]-pos_val[i_node*dim];
-      dg[n*6+2] =  pos_val[node1*dim+1]-pos_val[i_node*dim+1];
-      dg[n*6+3] =  pos_val[i_node*dim]-pos_val[node1*dim];
-      dg[n*6+4] =  pos_val[node2*dim+1]-pos_val[node1*dim+1];
-      dg[n*6+5] =  pos_val[node1*dim]-pos_val[node2*dim];
+      dg[0] =  pos_val[index[n*3+2]*dim+1]-pos_val[index[n*3+1]*dim+1];
+      dg[1] =  pos_val[index[n*3+1]*dim]-pos_val[index[n*3+2]*dim];
+      dg[2] =  pos_val[index[n*3]*dim+1]-pos_val[index[n*3+2]*dim+1];
+      dg[3] =  pos_val[index[n*3+2]*dim]-pos_val[index[n*3]*dim];
+      dg[4] =  pos_val[index[n*3+1]*dim+1]-pos_val[index[n*3]*dim+1];
+      dg[5] =  pos_val[index[n*3]*dim]-pos_val[index[n*3+1]*dim];
       }
 
       /// Compute normal velocities exchanged during impact
       Real temp1 = 0., temp2 = 0.;
       for (UInt i=0; i<3; ++i)
 	for (UInt j = 0; j < dim; ++j) {
-	  temp1 += dg[n*6+i*dim+j]*vel_val[dim*index[i]+j];
-	  temp1 += dg[n*6+i*dim+j]*dg[n*6+i*dim+j]/mass_val[index[i]];
+	  temp1 += dg[i*dim+j]*vel_val[dim*index[3*n+i]+j];
+	  temp2 += dg[i*dim+j]*dg[i*dim+j]/mass_val[index[3*n+i]];
 	}
       temp1 /= temp2;
 
       for (UInt i=0; i<3; ++i)
 	for (UInt j = 0; j < dim; ++j)
-	  v_n[i] = temp1*dg[n*6+i*dim+j]/mass_val[index[i]];
+	  v_n[n*6+i*dim+j] = temp1*dg[i*dim+j]/mass_val[index[3*n+i]];
 
-    }
+    // }
   }
 
   AKANTU_DEBUG_OUT();
@@ -274,7 +276,7 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
 /* -------------------------------------------------------------------------- */
  void Contact2dExplicit::computeFrictionVelocities(PenetrationList & pen_list, 
-						  Vector<Real> & gap_der, 
+						  Vector<UInt> & nodes_index, 
 						  Vector<Real> & vel_norm,
 						  Vector<Real> & vel_fric) {
 
@@ -297,30 +299,28 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
   Real * v_n = vel_norm.values;
   Real * v_f = vel_fric.values; 
+  UInt * index = nodes_index.values;
 
   /// Loop over projected nodes
   for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
-    UInt i_node = pen_list.penetrating_nodes.values[n];
 
-    for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
+    // for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) {
 
-      const UInt node1 = conn_val[el*elem_nodes];
-      const UInt node2 = conn_val[el*elem_nodes+1];
-      const UInt index[3] = {node1, node2, i_node};
-      const Real h[3] = {1.-pen_list.projected_positions[el_type]->values[el],
-			 pen_list.projected_positions[el_type]->values[el], -1.};
+
+      const Real h[3] = {1.-pen_list.projected_positions[el_type]->values[n],
+			 pen_list.projected_positions[el_type]->values[n], -1.};
       Real temp[3] = {0., 0., 0.};
 
       for (UInt i=0; i<3; ++i) {
-	temp[0] += h[i]*vel_val[dim*index[i]];
-	temp[1] += h[i]*vel_val[dim*index[i]+1];
-	temp[2] += h[i]*h[i]/mass_val[index[i]];
+	temp[0] += h[i]*vel_val[dim*index[i+3*n]];
+	temp[1] += h[i]*vel_val[dim*index[i+3*n]+1];
+	temp[2] += h[i]*h[i]/mass_val[index[i+3*n]];
       }
 
       /// Compute non-fixed components of velocities
       for (UInt i=0; i<2; ++i)
 	for (UInt j=0; j<3; ++j)
-	  v_f[n*6+j*dim+i] = temp[i]*h[j]/(temp[2]*mass_val[index[j]]);
+	  v_f[n*6+j*dim+i] = temp[i]*h[j]/(temp[2]*mass_val[index[3*n+j]]);
  
       /// Compute slide components of velocities
       for (UInt i=0; i<6; ++i)
@@ -330,15 +330,15 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
       memset(temp, 0, 3*sizeof(Real));
       for (UInt i=0; i<3; ++i)
 	for (UInt j = 0; j < dim; ++j) {
-	temp[0] += v_n[n*6+i*dim+j]*v_n[n*6+i*dim+j]/mass_val[index[i]];
-	temp[1] += v_f[n*6+i*dim+j]*v_f[n*6+i*dim+j]/mass_val[index[i]];
+	temp[0] += v_n[n*6+i*dim+j]*v_n[n*6+i*dim+j]/mass_val[index[3*n+i]];
+	temp[1] += v_f[n*6+i*dim+j]*v_f[n*6+i*dim+j]/mass_val[index[3*n+i]];
       }
       Real mu = sqrt(temp[0]/temp[1])*getFrictionCoefficient();
 
       if (mu < 1.)
 	for (UInt i=0; i<6; ++i)
 	  v_f[i] *= mu;
-    }
+    // }
   }
 
   AKANTU_DEBUG_OUT();
@@ -346,35 +346,25 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
 /* -------------------------------------------------------------------------- */
 void Contact2dExplicit::updatePostImpactVelocities(PenetrationList & pen_list,
+						   Vector<UInt> & nodes_index,
 						   Vector<Real> & vel_norm,
 						   Vector<Real> & vel_fric) {
 
   AKANTU_DEBUG_IN();
-  const ElementType el_type = _segment_2;
-  const SolidMechanicsModel & model = getModel();
-  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type).values;
-  UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
+
   const UInt dim = 2;
     
   Real * v = model.getVelocity().values;
   Real * v_n = vel_norm.values;
   Real * v_f = vel_fric.values;
+  UInt * index = nodes_index.values;
 
   /// Loop over projected nodes
-  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
-    const UInt i_node = pen_list.penetrating_nodes.values[n];
+  for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n)
+    for (UInt i = 0; i < 3; ++i)
+      for (UInt j = 0; j < dim; ++j)
+	v[dim*index[3*n+i]+j] -= ((1.+coefficient_of_restitution)*v_n[n*6+dim*i+j] + v_f[n*6+dim*i+j]);
 
-    for (UInt el = pen_list.penetrated_facets_offset[el_type]->values[n]; el < pen_list.penetrated_facets_offset[el_type]->values[n+1]; ++el) { 
-
-      const UInt node1 = conn_val[el*elem_nodes];
-      const UInt node2 = conn_val[el*elem_nodes+1];
-      const UInt index[3] = {node1, node2, i_node};
-
-      for (UInt i = 0; i < 3; ++i)
-	for (UInt j = 0; j < dim; ++j)
-	  v[dim*index[i]+j] -= ((1.+coefficient_of_restitution)*v_n[n*6+dim*i+j] + v_f[n*6+dim*i+j]);
-    }
-  }
   AKANTU_DEBUG_OUT();
 }
 

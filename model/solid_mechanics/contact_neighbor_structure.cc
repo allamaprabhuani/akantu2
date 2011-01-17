@@ -62,8 +62,6 @@ ContactNeighborStructure::ContactNeighborStructure(const ContactSearch & contact
 ContactNeighborStructure::~ContactNeighborStructure() {
   AKANTU_DEBUG_IN();
 
-  delete neighbor_list;
-
   AKANTU_DEBUG_OUT();
 }
 

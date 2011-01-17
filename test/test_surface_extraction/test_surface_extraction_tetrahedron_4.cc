@@ -68,5 +68,6 @@ int main(int argc, char *argv[])
 
 #endif //AKANTU_USE_IOHELPER
 
+  finalize();
   return EXIT_SUCCESS;
 }

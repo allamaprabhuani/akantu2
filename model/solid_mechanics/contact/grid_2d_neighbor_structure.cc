@@ -48,7 +48,7 @@ Grid2dNeighborStructure::~Grid2dNeighborStructure() {
 
   AKANTU_DEBUG_IN();
 
-  delete[] this->neighbor_list;
+  delete neighbor_list;
 
   AKANTU_DEBUG_OUT();
 }
@@ -68,6 +68,26 @@ void Grid2dNeighborStructure::initNeighborStructure() {
 bool Grid2dNeighborStructure::check() {
 
   AKANTU_DEBUG_IN();
+
+  UInt nb_surfaces = mesh.getNbSurfaces();
+  Real * inc_val = contact_search.getContact().getModel().getIncrement().values;
+
+  Real max[2] = {0. ,0.};
+  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().values;
+  UInt * surf_nodes = contact_search.getContact().getSurfaceToNodes().values;
+
+  for (UInt s = 0; s < nb_surfaces; ++s)
+    for (UInt n = surf_nodes_off[s]; n < surf_nodes_off[n+1]; ++n) {
+      UInt i_node = surf_nodes[n];
+      for (UInt i = 0; i < 2; ++i) 
+	max[i] = std::max(max[i], fabs(inc_val[2*i_node+i]));
+    }
+
+  for (UInt i = 0; i < 2; ++i) {
+    max_increment[i] += max[i];
+    if(max_increment[i] > spacing)
+      return true;    
+  }
 
   return false;
   AKANTU_DEBUG_OUT();

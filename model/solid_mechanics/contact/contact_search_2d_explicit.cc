@@ -40,7 +40,7 @@ ContactSearch2dExplicit::~ContactSearch2dExplicit() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, PenetrationList & penetration_list) {
+void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, PenetrationList & pen_list) {
   AKANTU_DEBUG_IN();
 
   //const ContactNeighborStructureType & neighbor_type = getContactNeighborStructureType();
@@ -53,26 +53,32 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
   const Contact & contact = getContact();
   Real * pos_val = contact.getModel().getCurrentPosition().values;
 
+  //contact.getModel().updateCurrentPosition();
+  /// compute current_position = initial_position + displacement temp
+  // Real * coord = contact.getModel().getFEM().getMesh().getNodes().values;
+  // Real * disp = contact.getModel().getDisplacement().values;
+  // Real * pos_val = new Real[contact.getModel().getFEM().getMesh().getNodes().getSize()];
+  // for (UInt n = 0; n < contact.getModel().getFEM().getMesh().getNodes().getSize(); ++n) 
+  //   pos_val[n] = coord[n] + disp[n];
+
   Mesh & mesh = contact.getModel().getFEM().getMesh();
-  
-  PenetrationList * pen_list = new PenetrationList;
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
   const ContactSearchID & id = getID();
-  
-  /// Alloc space for Penetration class members in the static memory
-  std::stringstream sstr_pfo; sstr_pfo << id << ":penetrated_facets_offset:" << el_type;
-  pen_list->penetrated_facets_offset[el_type] = &(alloc<UInt>(sstr_pfo.str(),0,1));
-  std::stringstream sstr_pf; sstr_pf << id << ":penetrated_facet:" << el_type;
-  pen_list->penetrated_facets[el_type] = &(alloc<UInt>(sstr_pf.str(),0,1));
-  std::stringstream sstr_fn; sstr_fn << id << ":facet_normals:" << el_type;
-  pen_list->facets_normals[el_type] = &(alloc<Real>(sstr_fn.str(),0,2));
-  std::stringstream sstr_g; sstr_g << id << ":gaps:" << el_type;
-  pen_list->gaps[el_type] = &(alloc<Real>(sstr_g.str(),0,1));
-  std::stringstream sstr_pp; sstr_pp << id << ":projected_positions:" << el_type;
-  pen_list->projected_positions[el_type] = &(alloc<Real>(sstr_pp.str(),0,1));
 
-  //pen_list->nb_nodes = 0;
+   /// Alloc space for Penetration class members
+  std::stringstream sstr_pfo; sstr_pfo << id << ":penetrated_facets_offset:" << el_type;
+  pen_list.penetrated_facets_offset[el_type] = new Vector<UInt>(0, 1, sstr_pfo.str());
+  std::stringstream sstr_pf; sstr_pf << id << ":penetrated_facet:" << el_type;
+  pen_list.penetrated_facets[el_type] = new Vector<UInt>(0 ,1, sstr_pf.str());
+  std::stringstream sstr_fn; sstr_fn << id << ":facet_normals:" << el_type;
+  pen_list.facets_normals[el_type] = new Vector<Real>(0, 2, sstr_fn.str());
+  std::stringstream sstr_g; sstr_g << id << ":gaps:" << el_type;
+  pen_list.gaps[el_type] = new Vector<Real>(0, 1, sstr_g.str());
+  std::stringstream sstr_pp; sstr_pp << id << ":projected_positions:" << el_type;
+  pen_list.projected_positions[el_type] = new Vector<Real>(0, 1, sstr_pp.str());
+
+  //pen_list.nb_nodes = 0;
 
   UInt * facets_off_val = neigh_list.facets_offset[el_type]->values;
   UInt * facets_val = neigh_list.facets[el_type]->values;
@@ -80,7 +86,7 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
   UInt * node_to_el_off_val = contact.getNodeToElementsOffset(el_type).values;
   UInt * node_to_el_val = contact.getNodeToElements(el_type).values;
 
-  UInt * conn_val = contact.getModel().getFEM().getMesh().getConnectivity(el_type).values;
+  UInt * conn_val = mesh.getConnectivity(el_type).values;
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
   /// Loop over the impactor nodes to detect possible penetrations
@@ -90,7 +96,7 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
     Real *x3 = &pos_val[i_node*2];
 
     /// Loop over elements nearby the impactor node    
-    for (UInt i_el = facets_off_val[i_node]; i_el < facets_off_val[i_node+1]; ++i_el) {
+    for (UInt i_el = facets_off_val[i]; i_el < facets_off_val[i+1]; ++i_el) {
 
       UInt facet = facets_val[i_el];
       Real * x1 = &pos_val[2*conn_val[facet*elem_nodes]];
@@ -127,16 +133,14 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
 	  if(test_pen == _node_1 || (test_pen==_yes && proj < 0.-PROJ_TOL)) {
 
 	    // Find index of neighbor facet
-	    for (UInt i = node_to_el_val[conn_val[facet*elem_nodes]]; i < node_to_el_val[conn_val[facet*elem_nodes]+1]; ++i)
+	    for (UInt i = node_to_el_off_val[conn_val[facet*elem_nodes]]; i < node_to_el_off_val[conn_val[facet*elem_nodes]+1]; ++i)
 	      if(node_to_el_val[i] != facet /* &&  on same surface? */) {
 		c_facet = node_to_el_val[i];
 		break;
 	      }
 
 	    if(c_facet != facet) {
-	      Real * x_node1 = &pos_val[2*conn_val[c_facet*elem_nodes]];
-	      find_proj = checkProjectionAdjacentFacet(pen_list, facet, c_facet, i_node,
-						       x_node1, x1, x3, proj, el_type);
+	      find_proj = checkProjectionAdjacentFacet(pen_list, facet, c_facet, i_node, proj, el_type);
 	      if(find_proj == true)
 		break;
 	    }
@@ -145,19 +149,17 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
 	  }
 
 	  /// Projection on neighbor facet which shares to node2
-	  if(test_pen == _node_2 || (test_pen==_yes && proj > 0.+PROJ_TOL)) {
+	  if(test_pen == _node_2 || (test_pen==_yes && proj > 1.+PROJ_TOL)) {
 
 	    // Find index of neighbor facet
-	    for (UInt i = node_to_el_val[conn_val[facet*elem_nodes+1]]; i < node_to_el_val[conn_val[facet*elem_nodes+1]+1]; ++i)
+	    for (UInt i = node_to_el_off_val[conn_val[facet*elem_nodes]]; i < node_to_el_off_val[conn_val[facet*elem_nodes]+1]; ++i)
 	      if(node_to_el_val[i] != facet /* &&  on same surface? */) {
 		c_facet = node_to_el_val[i];
 		break;
 	      }
 
 	    if(c_facet != facet) {
-	      Real * x_node2 = &pos_val[2*conn_val[c_facet*elem_nodes+1]];
-	      find_proj = checkProjectionAdjacentFacet(pen_list, facet, c_facet, i_node,
-						       x2, x_node2, x3, proj, el_type);
+	      find_proj = checkProjectionAdjacentFacet(pen_list, facet, c_facet, i_node, proj, el_type);
 	      if(find_proj == true)
 		break;
 	    }
@@ -166,18 +168,18 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
 	  }
 
 	  /// Save data for projection on this facet -> Check if projection outside in solve?
-	  pen_list->penetrating_nodes.push_back(i_node);
-	  pen_list->penetrated_facets_offset[el_type]->push_back(pen_list->penetrating_nodes.getSize());
-	  pen_list->penetrated_facets[el_type]->push_back(facet);
-	  pen_list->facets_normals[el_type]->push_back(vec_normal); /* Correct ? */
-	  pen_list->gaps[el_type]->push_back(gap);
-	  pen_list->projected_positions[el_type]->push_back(proj);
-	  //pen_list->penetrating_nodes.getSize()++;
+	  pen_list.penetrated_facets_offset[el_type]->push_back(pen_list.penetrating_nodes.getSize());
+	  pen_list.penetrating_nodes.push_back(i_node);	  
+	  pen_list.penetrated_facets[el_type]->push_back(facet);
+	  pen_list.facets_normals[el_type]->push_back(vec_normal); /* Correct ? */
+	  pen_list.gaps[el_type]->push_back(gap);
+	  pen_list.projected_positions[el_type]->push_back(proj);
+	  //pen_list.penetrating_nodes.getSize()++;
 	}
       }
     }
   }
-  pen_list->penetrated_facets_offset[el_type]->push_back(pen_list->penetrating_nodes.getSize());
+  pen_list.penetrated_facets_offset[el_type]->push_back(pen_list.penetrating_nodes.getSize());
 
   AKANTU_DEBUG_OUT();
 }
@@ -321,10 +323,21 @@ AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList * const pen_list, UInt facet, UInt c_facet, UInt i_node, Real * x1, Real * x2, Real * x3, Real old_proj, ElementType el_type)
+bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList & pen_list, UInt facet, UInt c_facet, UInt i_node, Real old_proj, ElementType el_type)
  {
    AKANTU_DEBUG_IN();
    
+   UInt * conn_val = contact.getModel().getFEM().getMesh().getConnectivity(el_type).values;
+   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
+
+   UInt node1 = conn_val[c_facet*elem_nodes];
+   UInt node2 = conn_val[c_facet*elem_nodes+1];
+
+   Real * pos_val = contact.getModel().getCurrentPosition().values;
+   Real * x1 = &pos_val[2*node1];
+   Real * x2 = &pos_val[2*node2];
+   Real * x3 = &pos_val[2*i_node]; 
+
    Real vec_surf[2];
    Real vec_normal[2];
    Real vec_dist[2];
@@ -341,38 +354,48 @@ bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList * con
  
        /// Save data on penetration list
        if(old_proj < 0. || old_proj > 1.) { /* (project on adjacent segment) */
-	 pen_list->penetrating_nodes.push_back(i_node);
 	 
-	 pen_list->penetrated_facets_offset[el_type]->push_back(pen_list->penetrating_nodes.getSize());
-	 pen_list->penetrated_facets[el_type]->push_back(c_facet);
-	 pen_list->facets_normals[el_type]->push_back(vec_normal); /* Correct ? */
-	 pen_list->gaps[el_type]->push_back(gap);
-	 pen_list->projected_positions[el_type]->push_back(proj);
-	 //pen_list->penetrating_nodes.getSize()++;
+	 pen_list.penetrated_facets_offset[el_type]->push_back(pen_list.penetrating_nodes.getSize());
+	 pen_list.penetrating_nodes.push_back(i_node);
+	 pen_list.penetrated_facets[el_type]->push_back(c_facet);
+	 pen_list.facets_normals[el_type]->push_back(vec_normal); /* Correct ? */
+	 pen_list.gaps[el_type]->push_back(gap);
+	 pen_list.projected_positions[el_type]->push_back(proj);
+	 //pen_list.penetrating_nodes.getSize()++;
 	 return true;
        }
+
+       InterType test_pen = Detect_Intersection(node1, node2, i_node, vec_surf, vec_dist, gap);
+       if(test_pen == _no)
+	 return false;
  
        /* project on node (compute new normal) */
        Real new_normal[2] = {0.,0.};
        if(old_proj < 0.5) {
-	 new_normal[0] = -x3[0]+x2[0];
-	 new_normal[1] = -x3[1]+x2[1];
-	 pen_list->projected_positions[el_type]->push_back(0.);
+	 Real * x4 = &pos_val[2*conn_val[elem_nodes*facet+1]];
+	 Math::vector_2d(x1, x4, vec_surf);
+	 Math::normal2(vec_surf, vec_normal);
+	 // new_normal[0] = -x3[0]+x2[0];
+	 // new_normal[1] = -x3[1]+x2[1];
+	 pen_list.projected_positions[el_type]->push_back(0.);
+	 gap = Math::distance_2d(x3, x2);
        }
        else {
-	 new_normal[0] = -x3[0]+x1[0];
-	 new_normal[1] = -x3[1]+x1[1];
-	 pen_list->projected_positions[el_type]->push_back(1.);
+	 Real * x4 = &pos_val[2*conn_val[elem_nodes*facet]];
+	 Math::vector_2d(x4, x2, vec_surf);
+	 Math::normal2(vec_surf, vec_normal);
+	 // new_normal[0] = -x3[0]+x1[0];
+	 // new_normal[1] = -x3[1]+x1[1];
+	 pen_list.projected_positions[el_type]->push_back(1.);
+	 gap = Math::distance_2d(x3, x1);
        }
-       Real new_gap = sqrt(new_normal[0]*new_normal[0]+new_normal[1]*new_normal[1]);
-       new_normal[0] /= new_gap;
-       new_normal[1] /= new_gap;
-       pen_list->penetrated_facets_offset[el_type]->push_back(pen_list->penetrating_nodes.getSize());
-       pen_list->penetrating_nodes.push_back(i_node);
-       pen_list->penetrated_facets[el_type]->push_back(facet);
-       pen_list->facets_normals[el_type]->push_back(new_normal);
-       pen_list->gaps[el_type]->push_back(new_gap);
-       //pen_list->penetrating_nodes.getSize()++;
+       // Real new_gap = sqrt(new_normal[0]*new_normal[0]+new_normal[1]*new_normal[1]);
+       pen_list.penetrated_facets_offset[el_type]->push_back(pen_list.penetrating_nodes.getSize());
+       pen_list.penetrating_nodes.push_back(i_node);
+       pen_list.penetrated_facets[el_type]->push_back(facet);
+       pen_list.facets_normals[el_type]->push_back(vec_normal);
+       pen_list.gaps[el_type]->push_back(gap);
+       //pen_list.penetrating_nodes.getSize()++;
        return true;
      }
    }

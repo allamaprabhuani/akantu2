@@ -58,6 +58,16 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   void findPenetration(const Surface & master_surface, PenetrationList & penetration_list);
+
+private:
+  template <typename T> inline Int getSign(T v);
+
+  // inline Real F_LINE(UInt node1, UInt node2, UInt node3);
+
+  InterType Detect_Intersection(UInt node1, UInt node2, UInt node3, Real *vec_surf, Real *vec_dist, Real gap);
+
+  bool checkProjectionAdjacentFacet(PenetrationList & pen_list, UInt facet, UInt c_facet, UInt i_node, Real old_proj, ElementType el_type);
+
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -69,13 +79,6 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  template <typename T> inline Int getSign(T v);
-
-  // inline Real F_LINE(UInt node1, UInt node2, UInt node3);
-
-  InterType Detect_Intersection(UInt node1, UInt node2, UInt node3, Real *vec_surf, Real *vec_dist, Real gap);
-
-  bool checkProjectionAdjacentFacet(PenetrationList * const pen_list, UInt facet, UInt c_facet, UInt i_node, Real * x1, Real * x2, Real * x3, Real proj, ElementType el_type);
 };
 
 

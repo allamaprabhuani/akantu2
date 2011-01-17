@@ -76,7 +76,7 @@ template<UInt spatial_dimension>
 RegularGridNeighborStructure<spatial_dimension>::~RegularGridNeighborStructure() {
   AKANTU_DEBUG_IN();
 
-  
+  delete neighbor_list;
 
   AKANTU_DEBUG_OUT();
 }

@@ -112,11 +112,6 @@ int main(int argc, char *argv[])
   my_contact->setFrictionCoefficient(0.);
   my_contact->initNeighborStructure();
 
-  // Surface master = 0;
-  // my_contact->addMasterSurface(master);
-
-  // my_contact->initNeighborStructure(master);
-
   /// get master surfaces with associated neighbor list
   const std::vector<Surface> & master_surfaces = my_contact->getMasterSurfaces();
   std::vector<Surface>::iterator it;
@@ -161,6 +156,8 @@ int main(int argc, char *argv[])
   delete [] facet_id;
 #endif //AKANTU_USE_IOHELPER
   
+  delete my_contact;
+  delete model;
   finalize();
 
   return EXIT_SUCCESS;
