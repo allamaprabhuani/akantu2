@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
   MeshUtils::buildFacets(my_mesh,1,0);
   MeshUtils::buildSurfaceID(my_mesh);
 
-  UInt max_steps = 2; 
+  UInt max_steps = 3; 
   unsigned int nb_nodes = my_mesh.getNbNodes();
 
   /// dump facet and surface information to paraview
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
    /// contact declaration
   Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_3d_expli, 
+					     _ct_rigid_no_fric, 
 					     _cst_3d_expli, 
 					     _cnst_regular_grid);
 
@@ -164,6 +164,7 @@ int main(int argc, char *argv[])
     my_model.updateCurrentPosition();
 
     /// compute the penetration list
+    std::cout << "Before solveContact" << std::endl;
     PenetrationList * my_penetration_list = new PenetrationList();
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
@@ -175,6 +176,23 @@ int main(int argc, char *argv[])
       std::cout << " " << pen_nodes_val[i];
     std::cout << std::endl;
     delete my_penetration_list;
+
+    /// solve contact
+    my_contact->solveContact();
+
+    /// compute the penetration list
+    std::cout << "After solveContact" << std::endl;
+    PenetrationList * my_penetration_list_2 = new PenetrationList();
+    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list_2);
+
+    UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();
+    Vector<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
+    UInt * pen_nodes_2_val = pen_nodes_2.values;
+    std::cout << "we have " << nb_nodes_pen_2 << " penetrating nodes:";
+    for (UInt i = 0; i < nb_nodes_pen_2; ++i)
+      std::cout << " " << pen_nodes_2_val[i];
+    std::cout << std::endl;
+    delete my_penetration_list_2;
 
     /// compute the residual
     my_model.updateResidual(false);

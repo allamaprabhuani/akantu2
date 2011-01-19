@@ -1,0 +1,13 @@
+material elastic [
+	 name = steel_1
+	 rho = 7800   # density
+	 E   = 2.1e11 # young's modulus
+	 nu  = 0.3    # poisson's ratio
+]
+
+material elastic [
+	 name = steel_2
+	 rho = 7800   # density
+	 E   = 2.1e11 # young's modulus
+	 nu  = 0.3    # poisson's ratio
+]

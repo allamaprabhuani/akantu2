@@ -86,7 +86,8 @@ template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::initNeighborStructure() {
   AKANTU_DEBUG_IN();
   
-  Real * node_coordinates = mesh.getNodes().values;
+  //Real * node_coordinates = mesh.getNodes().values;
+  Real * node_coordinates = contact_search.getContact().getModel().getCurrentPosition().values;
   this->update(node_coordinates);
 
   AKANTU_DEBUG_OUT();

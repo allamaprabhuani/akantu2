@@ -1,9 +1,9 @@
 /**
  * @file   test_contact_regular_grid.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jan 17 11:13:42 2011
+ * @date   Wed Jan 19 12:40:42 2011
  *
- * @brief  test contact search for 2d case in explicit
+ * @brief  test rigid contact without friction for 3d case in explicit
  *
  * @section LICENSE
  *
@@ -34,19 +34,19 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 2;
-  const ElementType element_type = _triangle_3;
+  int dim = 3;
+  const ElementType element_type = _tetrahedron_4;
 
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("squares.msh", my_mesh);
+  mesh_io.read("cubes.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
   MeshUtils::buildSurfaceID(my_mesh);
 
-  UInt max_steps = 2; 
+  UInt max_steps = 3; 
   unsigned int nb_nodes = my_mesh.getNbNodes();
 
   /// dump facet and surface information to paraview
@@ -54,9 +54,9 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_nodes_test-surface-extraction");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
-   			 TETRA1, my_mesh.getNbElement(_triangle_3), C_MODE);
+  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_test-surface-extraction");
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
+   			 TETRA1, my_mesh.getNbElement(_tetrahedron_4), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
    /// contact declaration
   Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_3d_expli, 
+					     _ct_rigid_no_fric, 
 					     _cst_3d_expli, 
 					     _cnst_regular_grid);
 
@@ -137,8 +137,8 @@ int main(int argc, char *argv[])
     if(s == 2) {
       Real * coord = my_mesh.getNodes().values;
       for(UInt n = 0; n < nb_nodes; ++n) {
-	if(coord[n*dim + 0] > 1.0) {
-	  displacement[n*dim+0] = -0.02;
+	if(coord[n*dim + 2] > 1.0) {
+	  displacement[n*dim+2] = -0.01;
 	}
       }
       /*
@@ -159,11 +159,12 @@ int main(int argc, char *argv[])
 
     /// central difference predictor
     my_model.explicitPred();
-    
-    /// update current position
+
+    /// update current positions
     my_model.updateCurrentPosition();
 
     /// compute the penetration list
+    std::cout << "Before solveContact" << std::endl;
     PenetrationList * my_penetration_list = new PenetrationList();
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
@@ -175,6 +176,24 @@ int main(int argc, char *argv[])
       std::cout << " " << pen_nodes_val[i];
     std::cout << std::endl;
     delete my_penetration_list;
+
+    /// solve contact
+    my_contact->solveContact();
+
+
+    /// compute the penetration list
+    std::cout << "After solveContact" << std::endl;
+    PenetrationList * my_penetration_list_2 = new PenetrationList();
+    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list_2);
+
+    UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();
+    Vector<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
+    UInt * pen_nodes_2_val = pen_nodes_2.values;
+    std::cout << "we have " << nb_nodes_pen_2 << " penetrating nodes:";
+    for (UInt i = 0; i < nb_nodes_pen_2; ++i)
+      std::cout << " " << pen_nodes_2_val[i];
+    std::cout << std::endl;
+    delete my_penetration_list_2;
 
     /// compute the residual
     my_model.updateResidual(false);

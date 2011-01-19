@@ -16,4 +16,5 @@
 add_subdirectory("test_neighbor_structure")
 add_subdirectory("test_contact_search")
 add_subdirectory("test_contact_2d")
+add_subdirectory("test_contact_rigid_no_friction")
 

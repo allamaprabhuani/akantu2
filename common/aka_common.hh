@@ -125,9 +125,10 @@ typedef ID ContactSearchID;
 typedef ID ContactNeighborStructureID;
 
 enum ContactType {
-  _ct_not_defined = 0,
-  _ct_2d_expli    = 1,
-  _ct_3d_expli    = 2
+  _ct_not_defined   = 0,
+  _ct_2d_expli      = 1,
+  _ct_3d_expli      = 2,
+  _ct_rigid_no_fric = 3
 };
 
 enum ContactSearchType {

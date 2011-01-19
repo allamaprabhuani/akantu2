@@ -94,6 +94,8 @@ int main(int argc, char *argv[])
   Surface master = 0;
   Surface impactor = 1;
   my_contact->addMasterSurface(master);
+  
+  my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
 
   const NodesNeighborList & my_neighbor_list = dynamic_cast<const NodesNeighborList &>(my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList());
@@ -158,8 +160,8 @@ int main(int argc, char *argv[])
     /// central difference predictor
     my_model.explicitPred();
 
-    /// compute the residual
-    my_model.updateResidual();
+    /// update current positions
+    my_model.updateCurrentPosition();
 
     /// compute the penetration list
     PenetrationList * my_penetration_list = new PenetrationList();
@@ -173,6 +175,9 @@ int main(int argc, char *argv[])
       std::cout << " " << pen_nodes_val[i];
     std::cout << std::endl;
     delete my_penetration_list;
+
+    /// compute the residual
+    my_model.updateResidual(false);
     
     /// compute the acceleration
     my_model.updateAcceleration();
