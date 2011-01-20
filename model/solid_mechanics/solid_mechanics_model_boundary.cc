@@ -44,7 +44,7 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
   UInt offset = 0;
   switch(function_type) {
   case _bft_stress:
-    offset = spatial_dimension*spatial_dimension; break;
+    offset = spatial_dimension * spatial_dimension; break;
   case _bft_forces:
     offset = spatial_dimension; break;
   }
@@ -61,6 +61,7 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
     fem_boundary->interpolateOnQuadraturePoints(fem_boundary->getMesh().getNodes(),
 						quad_coords, spatial_dimension, (*it));
 
+
     Real * imposed_val = NULL;
     switch(function_type) {
     case _bft_stress:
@@ -74,11 +75,12 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
     }
 
     /// sigma/tractions on each quadrature points
+    Real * qcoord = quad_coords.values;
     for (UInt el = 0; el < nb_element; ++el) {
-      Real * qcoord = quad_coords.values+el*nb_quad*spatial_dimension;
       for (UInt q = 0; q < nb_quad; ++q) {
-	myf(qcoord+q,imposed_val);
+	myf(qcoord, imposed_val);
 	imposed_val += offset;
+	qcoord += spatial_dimension;
       }
     }
 

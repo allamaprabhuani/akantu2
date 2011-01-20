@@ -80,6 +80,20 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
   /* ------------------------------------------------------------------------ */
+  /* Function for all materials                                               */
+  /* ------------------------------------------------------------------------ */
+protected:
+  /// allocate an internal vector
+  void initInternalVector(ByElementTypeReal & vect,
+			  UInt nb_component,
+			  const std::string & id,
+			  GhostType ghost_type = _not_ghost);
+
+  /// resize an internal vector
+  void resizeInternalVector(ByElementTypeReal & vect,
+			    GhostType ghost_type = _not_ghost);
+
+  /* ------------------------------------------------------------------------ */
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 public:

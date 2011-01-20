@@ -43,12 +43,6 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
 void SolidMechanicsModel::initMaterials() {
   AKANTU_DEBUG_ASSERT(materials.size() != 0, "No material to initialize !");
 
-  std::vector<Material *>::iterator mat_it;
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    /// init internals properties
-    (*mat_it)->initMaterial();
-  }
-
   Material ** mat_val = &(materials.at(0));
 
   /// fill the element filters of the materials using the element_material arrays
@@ -79,6 +73,12 @@ void SolidMechanicsModel::initMaterials() {
     for (UInt el = 0; el < nb_element; ++el) {
       mat_val[elem_mat_val[el]]->addGhostElement(*it, el);
     }
+  }
+
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    /// init internals properties
+    (*mat_it)->initMaterial();
   }
 }
 

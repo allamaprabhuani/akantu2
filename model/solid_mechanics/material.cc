@@ -36,6 +36,48 @@ Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
     this->ghost_element_filter  [t] = NULL;
   }
 
+  /// for each connectivity types allocate the element filer array of the material
+  initInternalVector(strain, spatial_dimension*spatial_dimension, "strain", _not_ghost);
+  initInternalVector(ghost_strain, spatial_dimension*spatial_dimension, "strain", _ghost);
+  initInternalVector(stress, spatial_dimension*spatial_dimension, "stress", _not_ghost);
+  initInternalVector(ghost_stress, spatial_dimension*spatial_dimension, "stress", _ghost);
+
+  const Mesh::ConnectivityTypeList & type_list =
+    model.getFEM().getMesh().getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+    std::stringstream sstr; sstr << id << ":element_filer:"<< *it;
+    element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
+
+    // std::stringstream sstr_stre; sstr_stre << id << ":stress:" << *it;
+    // std::stringstream sstr_stra; sstr_stra << id << ":strain:" << *it;
+
+    // stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
+    // 				spatial_dimension * spatial_dimension));
+    // strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
+    // 				spatial_dimension * spatial_dimension));
+  }
+
+
+  const Mesh::ConnectivityTypeList & ghost_type_list =
+    model.getFEM().getMesh().getConnectivityTypeList(_ghost);
+
+  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+
+    std::stringstream sstr; sstr << id << ":ghost_element_filer:"<< *it;
+    ghost_element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
+
+    // std::stringstream sstr_stre; sstr_stre << id << ":ghost_stress:" << *it;
+    // std::stringstream sstr_stra; sstr_stra << id << ":ghost_strain:" << *it;
+
+    // ghost_stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
+    // 				      spatial_dimension * spatial_dimension));
+    // ghost_strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
+    // 				      spatial_dimension * spatial_dimension));
+  }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -57,47 +99,71 @@ void Material::setParam(const std::string & key, const std::string & value,
 void Material::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  /// for each connectivity types allocate the element filer array of the material
-  UInt spatial_dimension = model->getSpatialDimension();
+  AKANTU_DEBUG_OUT();
+}
 
-  const Mesh::ConnectivityTypeList & type_list =
-    model->getFEM().getMesh().getConnectivityTypeList();
+
+/* -------------------------------------------------------------------------- */
+void Material::initInternalVector(ByElementTypeReal & vect,
+				  UInt nb_component,
+				  const std::string & vect_id,
+				  GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  for(UInt t = _not_defined; t < _max_element_type; ++t)
+    vect[t] = NULL;
+
+  std::string ghost_id = "";
+
+  if (ghost_type == _ghost) {
+    ghost_id = "ghost_";
+  }
+
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    std::stringstream sstr; sstr << id << ":element_filer:"<< *it;
-    element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
-
-    std::stringstream sstr_stre; sstr_stre << id << ":stress:" << *it;
-    std::stringstream sstr_stra; sstr_stra << id << ":strain:" << *it;
-
-    stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
-				spatial_dimension * spatial_dimension));
-    strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
-				spatial_dimension * spatial_dimension));
-  }
-
-
-  const Mesh::ConnectivityTypeList & ghost_type_list =
-    model->getFEM().getMesh().getConnectivityTypeList(_ghost);
-
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-    std::stringstream sstr; sstr << id << ":ghost_element_filer:"<< *it;
-    ghost_element_filter[*it] = &(alloc<UInt> (sstr.str(), 0, 1));
-
-    std::stringstream sstr_stre; sstr_stre << id << ":ghost_stress:" << *it;
-    std::stringstream sstr_stra; sstr_stra << id << ":ghost_strain:" << *it;
-
-    ghost_stress[*it] = &(alloc<Real>(sstr_stre.str(), 0,
-				spatial_dimension * spatial_dimension));
-    ghost_strain[*it] = &(alloc<Real>(sstr_stra.str(), 0,
-				spatial_dimension * spatial_dimension));
+    std::stringstream sstr_damage; sstr_damage << id << ":" << ghost_id << vect_id << ":" << *it;
+    vect[*it] = &(alloc<Real>(sstr_damage.str(), 0,
+			      nb_component, REAL_INIT_VALUE));
   }
 
   AKANTU_DEBUG_OUT();
 }
+
+
+/* -------------------------------------------------------------------------- */
+void Material::resizeInternalVector(ByElementTypeReal & vect,
+				    GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+
+    Vector<UInt> * elem_filter;
+    if (ghost_type == _not_ghost) {
+      elem_filter = element_filter[*it];
+    } else if (ghost_type == _ghost) {
+      elem_filter = ghost_element_filter[*it];
+    }
+
+    UInt nb_element           = elem_filter->getSize();
+    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+    UInt new_size = nb_element*nb_quadrature_points;
+
+    UInt size = vect[*it]->getSize();
+    UInt nb_component = vect[*it]->getNbComponent();
+    vect[*it]->resize(new_size);
+    memset(vect[*it]->values + size * nb_component, 0, (new_size - size) * nb_component * sizeof(Real));
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+
 
 /* -------------------------------------------------------------------------- */
 /**
