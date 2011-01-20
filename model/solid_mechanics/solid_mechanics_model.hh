@@ -165,6 +165,8 @@ public:
   AKANTU_GET_MACRO(Residual,        *residual,         const Vector<Real> &);
   AKANTU_GET_MACRO(Boundary,        *boundary,               Vector<bool> &);
 
+  AKANTU_GET_MACRO(IncrementFlag, increment_flag, bool);
+
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, Vector<UInt> &);
 
   inline Material & getMaterial(UInt mat_index);
@@ -179,7 +181,7 @@ public:
   Real getKineticEnergy();
 
   AKANTU_SET_MACRO(Contact, contact, Contact *);
-
+  
   void setIncrementFlagOn();
 
   /* ------------------------------------------------------------------------ */

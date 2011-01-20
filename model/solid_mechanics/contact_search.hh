@@ -109,7 +109,7 @@ public:
   AKANTU_GET_MACRO(Type, type, const ContactSearchType &);
 
   const ContactNeighborStructure & getContactNeighborStructure(const Surface & master_surface) const;
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

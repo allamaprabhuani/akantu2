@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
   Surface master = 0;
   my_contact->addMasterSurface(master);
 
+  my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   
   const NeighborList & my_neighbor_list = my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList();

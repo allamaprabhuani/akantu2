@@ -537,19 +537,20 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList
     //nodes_neighbor_list->nb_nodes += 1;
     
     /// find and store cell numbers of neighbor cells and it-self
-    AKANTU_DEBUG_ASSERT(cell_val[current_impactor_node] >= 0, 
-			"Bad cell index. This case normally should not happen !!");
-
+    
     UInt current_cell;
     bool init = false;
     for(UInt i = 0; i < nb_surface_nodes; ++i) {
       if(surface_to_nodes[i] == current_impactor_node) {
+	AKANTU_DEBUG_ASSERT(cell_val[i] >= 0, "Bad cell index. This case normally should not happen !!");	
 	current_cell = cell_val[i];
 	init = true;
 	break;
       }
     }
     AKANTU_DEBUG_ASSERT(init, "Cell number of node is not initialized");
+   
+
 
     UInt nb_neighbor_cells = computeNeighborCells(current_cell, neighbor_cells, directional_nb_cells);
     neighbor_cells[nb_neighbor_cells++] = current_cell;

@@ -46,7 +46,7 @@ void ContactRigidNoFriction::solveContact() {
 
   for(UInt master=0; master < master_surfaces.size(); ++master) {
     PenetrationList * penet_list = new PenetrationList();
-    contact_search->findPenetration(master, *penet_list);
+    contact_search->findPenetration(master_surfaces.at(master), *penet_list);
     solvePenetrationClosestProjection(*penet_list);
     delete penet_list;
   }
@@ -171,6 +171,7 @@ void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list,
   AKANTU_DEBUG_IN();
   
   const UInt dim = model.getSpatialDimension();
+  const bool increment_flag = model.getIncrementFlag();
 
   UInt * penetrating_nodes   = penet_list.penetrating_nodes.values;
   Real * facets_normals      = penet_list.facets_normals[facet_type]->values;
@@ -179,7 +180,9 @@ void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list,
 
   Real * current_position = model.getCurrentPosition().values;
   Real * displacement     = model.getDisplacement().values;
-  Real * increment        = model.getIncrement().values;
+  Real * increment = NULL;
+  if(increment_flag)
+    increment = model.getIncrement().values;
 
   UInt impactor_node = penetrating_nodes[impactor_index];
 
@@ -187,7 +190,8 @@ void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list,
     current_position[impactor_node*dim + i] = projected_positions[facet_offset*dim + i];
     Real displacement_correction = gaps[facet_offset] * facets_normals[facet_offset*dim + i];
     displacement[impactor_node*dim + i] = displacement[impactor_node*dim + i] - displacement_correction;
-    increment   [impactor_node*dim + i] = increment   [impactor_node*dim + i] - displacement_correction;
+    if(increment_flag)
+      increment   [impactor_node*dim + i] = increment   [impactor_node*dim + i] - displacement_correction;
   }
 
   AKANTU_DEBUG_OUT();

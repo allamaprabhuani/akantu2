@@ -24,6 +24,12 @@ register_test(test_contact_rigid_no_friction_tetrahedron_4 test_contact_rigid_no
 add_dependencies(test_contact_rigid_no_friction_tetrahedron_4 test_cubes_mesh)
 
 #===============================================================================
+add_mesh(test_hertz_2d_mesh hertz.geo 2 1)
+
+register_test(test_contact_rigid_no_friction_hertz_2d test_contact_rigid_no_friction_hertz_2d.cc)
+add_dependencies(test_contact_rigid_no_friction_hertz_2d test_hertz_2d_mesh)
+
+#===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
