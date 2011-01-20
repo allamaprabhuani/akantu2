@@ -16,6 +16,8 @@
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
+  akantu::initialize(&argc, &argv);
+
   akantu::StaticMemory * st_mem = akantu::StaticMemory::getStaticMemory();
 
   akantu::Vector<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
@@ -27,6 +29,8 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   st_mem->sfree(0, "test_int");
+
+  akantu::finalize();
 
   exit(EXIT_SUCCESS);
 }

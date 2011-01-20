@@ -28,6 +28,9 @@ MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & i
   Yd  = 50;
   Sd  = 5000;
 
+  for(UInt t = _not_defined; t < _max_element_type; ++t)
+    this->damage[t] = NULL;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -35,9 +38,6 @@ MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & i
 void MaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
-
-  for(UInt t = _not_defined; t < _max_element_type; ++t) 
-    this->damage[t] = NULL;
 
   const Mesh::ConnectivityTypeList & type_list =
     model->getFEM().getMesh().getConnectivityTypeList();
@@ -48,7 +48,6 @@ void MaterialDamage::initMaterial() {
     damage[*it] = &(alloc<Real>(sstr_damage.str(), 0,
 				1, REAL_INIT_VALUE));
   }
-
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));

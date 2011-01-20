@@ -27,7 +27,7 @@ inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam) {
   sigma[2] = sigma[6] =  mu * (F[2] + F[6]);
   sigma[5] = sigma[7] =  mu * (F[5] + F[7]);
 
-  Real Y = 
+  Real Y =
     sigma[0]*F[0] +
     sigma[1]*F[1] +
     sigma[2]*F[2] +
@@ -38,22 +38,22 @@ inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam) {
     sigma[7]*F[7] +
     sigma[8]*F[8];
 
-  Y*= 0.5;
+  Y *= 0.5;
 
   Real Fd = Y - Yd - Sd*dam;
 
-  if (Fd > 0) dam = (Fd - Y + Yd)/(-Sd);
+  if (Fd > 0) dam = (Y - Yd) / Sd;
   dam = std::min(dam,1.);
 
   sigma[0] *= 1-dam;
-  sigma[4] *= 1-dam; 
+  sigma[4] *= 1-dam;
   sigma[8] *= 1-dam;
-  sigma[1] *= 1-dam; 
-  sigma[3] *= 1-dam;  
-  sigma[2] *= 1-dam; 
-  sigma[6] *= 1-dam;  
-  sigma[5] *= 1-dam; 
-  sigma[7] *= 1-dam;  
+  sigma[1] *= 1-dam;
+  sigma[3] *= 1-dam;
+  sigma[2] *= 1-dam;
+  sigma[6] *= 1-dam;
+  sigma[5] *= 1-dam;
+  sigma[7] *= 1-dam;
 }
 
 /* -------------------------------------------------------------------------- */

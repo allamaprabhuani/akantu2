@@ -27,25 +27,28 @@
 
 using namespace akantu;
 
-akantu::Real eps = 1e-5;
+akantu::Real eps = 1e-10;
 
 static void trac(__attribute__ ((unused)) double * position,double * stress){
   memset(stress, 0, sizeof(Real)*4);
   if (fabs(position[0] - 10) < eps){
-    stress[0] = 1000000;
-    stress[3] = 1000000;
+    stress[0] = 3e6;
+    stress[3] = 3e6;
   }
 }
 
 int main(int argc, char *argv[])
 {
-  UInt max_steps = 10000;
+  UInt max_steps = 20000;
   Real epot, ekin;
+
+  Real bar_height = 4.;
 
   const UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
-  mesh_io.read("bar.msh", mesh);
+  //  mesh_io.read("bar.msh", mesh);
+  mesh_io.read("barre_trou.msh", mesh);
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
@@ -78,7 +81,7 @@ int main(int argc, char *argv[])
 	model->getBoundary().values[spatial_dimension*i] = true;
 
     if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] <= eps ||
-       model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
+       model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] >= bar_height - eps ) {
       model->getBoundary().values[spatial_dimension*i + 1] = true;
     }
   }
