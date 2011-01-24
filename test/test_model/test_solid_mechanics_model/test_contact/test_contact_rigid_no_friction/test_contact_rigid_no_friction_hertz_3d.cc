@@ -1,9 +1,9 @@
 /**
- * @file   test_contact_regular_grid.cc
+ * @file   test_contact_rigid_no_friction_hertz_3d.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Wed Jan 19 15:04:42 2011
+ * @date   Thu Jan 20 15:50:42 2011
  *
- * @brief  test contact search for 2d hertz in explicit
+ * @brief  test contact search for 3d hertz in explicit
  *
  * @section LICENSE
  *
@@ -34,9 +34,9 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 2;
-  const ElementType element_type = _triangle_3;
-  const UInt paraview_type = TRIANGLE1;
+  int dim = 3;
+  const ElementType element_type = _tetrahedron_4;
+  const UInt paraview_type = TETRA1;
   
   UInt max_steps = 200000;
   UInt imposing_steps = 100000;
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("hertz_2d.msh", my_mesh);
+  mesh_io.read("hertz_3d.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -87,9 +87,10 @@ int main(int argc, char *argv[])
   my_contact->addMasterSurface(master);
   
   //  const_cast<RegularGridNeighborStructure<2> &>(my_contact->getContactSearch().getContactNeighborStructure(master)).setGridSpacing(0.15, 0);
-  const  RegularGridNeighborStructure<2> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<2> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
-  const_cast<RegularGridNeighborStructure<2>&>(my_rgns).setGridSpacing(0.075, 0);
-  const_cast<RegularGridNeighborStructure<2>&>(my_rgns).setGridSpacing(0.075, 1);
+  const  RegularGridNeighborStructure<3> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<3> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
+  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 0);
+  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 1);
+  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 2);
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
@@ -109,13 +110,16 @@ int main(int argc, char *argv[])
     UInt node = surface_to_nodes[n];
     Real x_coord = coordinates[node*dim];
     Real y_coord = coordinates[node*dim + 1];
+    Real z_coord = coordinates[node*dim + 2];
     if (x_coord < 0.00001)
       boundary[node*dim] = true;
+    if (z_coord < 0.00001)
+      boundary[node*dim+2] = true;
     if (y_coord > -0.00001) {
       boundary[node*dim + 1] = true;
       top_nodes->push_back(node);
     }
-    if (x_coord < 0.00001 && y_coord > -0.00001)
+    if (x_coord < 0.00001 && y_coord > -0.00001 && z_coord < 0.00001)
       middle_point = node;
   }
   // ground boundary conditions
@@ -125,6 +129,7 @@ int main(int argc, char *argv[])
     if (y_coord < -1.2)
       boundary[node*dim]     = true;
       boundary[node*dim + 1] = true;
+      boundary[node*dim + 2] = true;
   }
   UInt * top_nodes_val = top_nodes->values;
   
@@ -132,7 +137,7 @@ int main(int argc, char *argv[])
   /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_2d");
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_3d");
   dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
 			 paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().values,
@@ -144,13 +149,13 @@ int main(int argc, char *argv[])
   dumper.AddElemDataField(my_model.getMaterial(0).getStress(element_type).values, dim*dim, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/hertz_2d/");
+  dumper.SetPrefix("paraview/hertz_3d/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
   std::ofstream hertz;
-  hertz.open("hertz_2d.csv");
+  hertz.open("hertz_3d.csv");
   hertz << "%id,ftop,fcont,zone" << std::endl;
 
 
@@ -165,7 +170,7 @@ int main(int argc, char *argv[])
       my_model.updateCurrentPosition();
       my_contact->updateContact();    
     }
-
+    
     if(s <= imposing_steps) {
       Real current_displacement = max_displacement/(static_cast<Real>(imposing_steps))*s;
       for(UInt n=0; n<top_nodes->getSize(); ++n) {
@@ -173,7 +178,7 @@ int main(int argc, char *argv[])
 	displacement[node*dim + 1] = current_displacement;
       }
     }
-
+    
     my_model.explicitPred();
    
     my_model.updateCurrentPosition();

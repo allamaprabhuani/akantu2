@@ -1,9 +1,9 @@
 /**
- * @file   test_contact_regular_grid.cc
+ * @file   test_contact_rigid_no_friction_force_2d.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Wed Jan 19 15:04:42 2011
+ * @date   Mon Jan 24 10:04:42 2011
  *
- * @brief  test contact search for 2d hertz in explicit
+ * @brief  test for force in 2d rigid contact in explicit
  *
  * @section LICENSE
  *
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("hertz_2d.msh", my_mesh);
+  mesh_io.read("force_2d.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
   /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_2d");
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_force_2d");
   dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
 			 paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().values,
@@ -144,14 +144,14 @@ int main(int argc, char *argv[])
   dumper.AddElemDataField(my_model.getMaterial(0).getStress(element_type).values, dim*dim, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/hertz_2d/");
+  dumper.SetPrefix("paraview/force_2d/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  std::ofstream hertz;
-  hertz.open("hertz_2d.csv");
-  hertz << "%id,ftop,fcont,zone" << std::endl;
+  std::ofstream force_out;
+  force_out.open("force_2d.csv");
+  force_out << "%id,ftop,fcont,zone" << std::endl;
 
 
   /* ------------------------------------------------------------------------ */
@@ -208,16 +208,16 @@ int main(int argc, char *argv[])
     }
     delete my_penetration_list;
 
-    hertz << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
+    force_out << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
 
  
 
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) dumper.Dump();
+    if(s % 1000 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
 
-  hertz.close();
+  force_out.close();
 
   delete my_contact;
  

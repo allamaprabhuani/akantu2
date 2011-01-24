@@ -1,4 +1,4 @@
-h_contact = 0.01;
+h_contact = 0.005;
 h_sphere = 0.1;
 h_plate = 0.05;	 
 
