@@ -41,14 +41,15 @@ RegularGridNeighborStructure<spatial_dimension>::RegularGridNeighborStructure(co
   AKANTU_DEBUG_IN();
 
   /// chose the neighbor list and initialize it
-  if (contact_search.getType() == _cst_3d_expli) {
+  /*if (contact_search.getType() == _cst_3d_expli) {
     neighbor_list = new NodesNeighborList();
     nodes_neighbor_list = true;
   }
   else {
     neighbor_list = new NeighborList();
     nodes_neighbor_list = false;
-  }  
+    } */
+  this->constructNeighborList();
 
   /// make sure that the increments are computed
   const_cast<SolidMechanicsModel &>(contact_search.getContact().getModel()).setIncrementFlagOn();
@@ -98,12 +99,16 @@ template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::update() {
   AKANTU_DEBUG_IN();
 
+  // delete neighbor list and reconstruct it
+  delete this->neighbor_list;
+  this->constructNeighborList();
+
   Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().values;
   this->update(node_current_position);
 
   /// reset max_increment to zero
   for(UInt i = 0; i < spatial_dimension; ++i)
-    max_increment[0] = 0.0;
+    max_increment[i] = 0.0;
   
   AKANTU_DEBUG_OUT();
 }
@@ -630,6 +635,51 @@ bool RegularGridNeighborStructure<spatial_dimension>::check() {
   AKANTU_DEBUG_OUT();
   return need_update;
 }
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension> 
+void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
+  AKANTU_DEBUG_IN();
+
+  Real min_cell_size[3];
+
+  const Mesh::ConnectivityTypeList & type_list = this->mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  /// find existing surface element types
+  UInt nb_types = type_list.size();
+  UInt nb_facet_types = 0;
+  ElementType facet_type[_max_element_type];
+ 
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    if(mesh.getSpatialDimension(type) == spatial_dimension) {
+      facet_type[nb_facet_types++] = mesh.getFacetElementType(type);
+    }
+  }
+
+  /// loop over all existing surface element types
+  for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
+    ElementType type = facet_type[el_type];
+    UInt nb_element  = mesh.getNbElement(type);
+    UInt nb_nodes_element = mesh.getNbNodesPerElement(type);
+    UInt * conn      = mesh.getConnectivity(type).values;
+
+    const UInt *surf_id_val = mesh.getSurfaceId(type).values;
+    
+    for(UInt e = 0; e < nb_element; ++e) {
+      if(surf_id_val[e] == master_surface) {
+	for(UInt n = 0; n < nb_nodes_element; ++n) {
+	  
+	}
+      }
+    }
+
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 template class RegularGridNeighborStructure<2>;
 template class RegularGridNeighborStructure<3>;

@@ -1,5 +1,5 @@
 /**
- * @file   test_contact_regular_grid.cc
+ * @file   test_3d_explicit_tetrahedron_4.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Fri Dec 03 12:11:42 2010
  *

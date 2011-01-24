@@ -178,3 +178,21 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
   AKANTU_DEBUG_OUT();
   return nb_neighbors;
 }
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList() {
+
+  AKANTU_DEBUG_IN();
+  if (contact_search.getType() == _cst_3d_expli) {
+    neighbor_list = new NodesNeighborList();
+    nodes_neighbor_list = true;
+  }
+  else {
+    neighbor_list = new NeighborList();
+    nodes_neighbor_list = false;
+  }
+   
+  AKANTU_DEBUG_OUT();  
+}
+

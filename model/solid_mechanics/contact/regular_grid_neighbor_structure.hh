@@ -101,6 +101,12 @@ private:
 
   /// compute global cell number given the directional cell number
   inline UInt computeCellNb(UInt * directional_nb_cells, Int * directional_cell);
+
+  /// initializes the neighbor list
+  inline void constructNeighborList();
+
+  /// compute minimal grid size and set it
+  void setMinimalGridSpacing();
  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
