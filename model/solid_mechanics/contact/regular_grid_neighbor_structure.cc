@@ -86,7 +86,8 @@ RegularGridNeighborStructure<spatial_dimension>::~RegularGridNeighborStructure()
 template<UInt spatial_dimension> 
 void RegularGridNeighborStructure<spatial_dimension>::initNeighborStructure() {
   AKANTU_DEBUG_IN();
-  
+
+  this->setMinimalGridSpacing();  
   //Real * node_coordinates = mesh.getNodes().values;
   Real * node_coordinates = contact_search.getContact().getModel().getCurrentPosition().values;
   this->update(node_coordinates);
@@ -99,6 +100,7 @@ template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::update() {
   AKANTU_DEBUG_IN();
 
+  this->setMinimalGridSpacing();
   // delete neighbor list and reconstruct it
   delete this->neighbor_list;
   this->constructNeighborList();
@@ -641,7 +643,9 @@ template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
   AKANTU_DEBUG_IN();
 
-  Real min_cell_size[3];
+  Real min_cell_size[3] = {0.,0.,0.};
+  Real margin = 1.2;
+  Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().values;
 
   const Mesh::ConnectivityTypeList & type_list = this->mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -669,13 +673,37 @@ void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
     
     for(UInt e = 0; e < nb_element; ++e) {
       if(surf_id_val[e] == master_surface) {
+	Real min_coord[3];
+	Real max_coord[3];
+	for(UInt dim = 0; dim < spatial_dimension; ++dim) {
+	    min_coord[dim] =   std::numeric_limits<Real>::max();
+	    max_coord[dim] = - std::numeric_limits<Real>::max();
+	}
 	for(UInt n = 0; n < nb_nodes_element; ++n) {
-	  
+	  UInt node = conn[e*nb_nodes_element + n];
+	  for(UInt dim = 0; dim < spatial_dimension; ++dim) {
+	    Real cur_position = node_current_position[node*spatial_dimension + dim];
+	    min_coord[dim] = std::min(min_coord[dim], cur_position);
+	    max_coord[dim] = std::max(max_coord[dim], cur_position);
+	  } 
+	}
+	for(UInt dim = 0; dim < spatial_dimension; ++dim) {
+	  min_cell_size[dim] = std::max(min_cell_size[dim], max_coord[dim] - min_coord[dim]);
 	}
       }
     }
-
   }
+
+  // find largest grid_spacing in all direction
+  Real max_grid_spacing = 0.;
+  for(UInt dim = 0; dim < spatial_dimension; ++dim)
+    max_grid_spacing = std::max(max_grid_spacing, min_cell_size[dim]);
+
+  // use the max grid spacing for all direction (multiplied by a margin)
+  for(UInt dim = 0; dim < spatial_dimension; ++dim)
+    this->grid_spacing[dim] = margin * max_grid_spacing;
+
+  
 
   AKANTU_DEBUG_OUT();
 }

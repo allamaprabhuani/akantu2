@@ -86,11 +86,10 @@ int main(int argc, char *argv[])
   Surface master = 1;
   my_contact->addMasterSurface(master);
   
-  //  const_cast<RegularGridNeighborStructure<2> &>(my_contact->getContactSearch().getContactNeighborStructure(master)).setGridSpacing(0.15, 0);
-  const  RegularGridNeighborStructure<3> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<3> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
+  /*const  RegularGridNeighborStructure<3> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<3> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
   const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 0);
   const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 1);
-  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 2);
+  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 2);*/
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);

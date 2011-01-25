@@ -1,5 +1,5 @@
 /**
- * @file   test_contact_regular_grid.cc
+ * @file   test_contact_rigid_no_friction_triangle_3.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Mon Jan 17 11:13:42 2011
  *

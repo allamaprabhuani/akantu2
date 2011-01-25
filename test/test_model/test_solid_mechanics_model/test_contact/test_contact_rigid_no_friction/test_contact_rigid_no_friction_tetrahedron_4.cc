@@ -1,5 +1,5 @@
 /**
- * @file   test_contact_regular_grid.cc
+ * @file   test_contact_rigid_no_friction_tetrahedron_4.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Wed Jan 19 12:40:42 2011
  *
