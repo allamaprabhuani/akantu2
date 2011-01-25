@@ -345,10 +345,10 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 			  master_nodes_cell_offset, 
 			  master_nodes_cell);
   
-  delete impactor_nodes_cell;
-  delete impactor_nodes_cell_offset;
-  delete master_nodes_cell;
-  delete master_nodes_cell_offset;
+  delete [] impactor_nodes_cell;
+  delete [] impactor_nodes_cell_offset;
+  delete [] master_nodes_cell;
+  delete [] master_nodes_cell_offset;
   delete cell;
   
   AKANTU_DEBUG_OUT();
