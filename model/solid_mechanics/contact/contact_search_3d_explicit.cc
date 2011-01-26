@@ -294,7 +294,7 @@ void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surf
     UInt max_offset = master_nodes_offset_val[imp + 1];
 
     Real min_square_distance = std::numeric_limits<Real>::max();
-    UInt closest_master_node;
+    UInt closest_master_node = (UInt)-1;                     // for finding error
     for(UInt mn = min_offset; mn < max_offset; ++mn) {
       UInt current_master_node = master_nodes_val[mn];
       Real square_distance = computeSquareDistanceBetweenNodes(current_impactor_node, current_master_node);
@@ -303,6 +303,8 @@ void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surf
 	closest_master_node = current_master_node;
       }
     }
+    if (closest_master_node == ((UInt)-1))
+      std::cout << "no closest_master_node for impactor node " << current_impactor_node << std::endl;
     closest_master_nodes_val[imp] = closest_master_node;
   }
 
