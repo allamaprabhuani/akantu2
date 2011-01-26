@@ -46,8 +46,10 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
   UInt nb_impactor_nodes = neighbor_list.impactor_nodes.getSize();
   
   Vector<UInt> * closest_master_nodes = new Vector<UInt>(nb_impactor_nodes, 1);
-  findClosestMasterNodes(master_surface, closest_master_nodes);
+  Vector<bool> * has_closest_master_node = new Vector<bool>(nb_impactor_nodes, 1, false);
+  findClosestMasterNodes(master_surface, closest_master_nodes, has_closest_master_node);
   UInt * closest_master_nodes_val = closest_master_nodes->values;
+  bool * has_closest_master_node_val = has_closest_master_node->values;
 
   /// get list of impactor and master nodes from neighbor list
   UInt * impactor_nodes_val = neighbor_list.impactor_nodes.values;  
@@ -93,6 +95,10 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
   }
   
   for(UInt in = 0; in < nb_impactor_nodes; ++in) {
+
+    if (!has_closest_master_node_val[in])
+      continue;
+
     UInt current_impactor_node = impactor_nodes_val[in];
     UInt closest_master_node = closest_master_nodes_val[in];
 
@@ -266,9 +272,11 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
 
 /* -------------------------------------------------------------------------- */
 void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surface, 
-						     Vector<UInt> * closest_master_nodes) {
+						     Vector<UInt> * closest_master_nodes,
+						     Vector<bool> * has_closest_master_node) {
   AKANTU_DEBUG_IN();
 
+  bool * has_closest_master_node_val = has_closest_master_node->values;
   UInt * closest_master_nodes_val = closest_master_nodes->values;
 
   /// get the NodesNeighborList for the given master surface
@@ -293,6 +301,10 @@ void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surf
     UInt min_offset = master_nodes_offset_val[imp];
     UInt max_offset = master_nodes_offset_val[imp + 1];
 
+    // if there is no master node go to next impactor node
+    if (min_offset == max_offset)
+      continue;
+
     Real min_square_distance = std::numeric_limits<Real>::max();
     UInt closest_master_node = (UInt)-1;                     // for finding error
     for(UInt mn = min_offset; mn < max_offset; ++mn) {
@@ -303,8 +315,8 @@ void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surf
 	closest_master_node = current_master_node;
       }
     }
-    if (closest_master_node == ((UInt)-1))
-      std::cout << "no closest_master_node for impactor node " << current_impactor_node << std::endl;
+    AKANTU_DEBUG_ASSERT(closest_master_node != ((UInt)-1), "could not find a closest master node for impactor node: " << current_impactor_node);
+    has_closest_master_node_val[imp] = true;
     closest_master_nodes_val[imp] = closest_master_node;
   }
 
