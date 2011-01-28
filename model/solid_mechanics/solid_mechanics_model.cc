@@ -127,8 +127,11 @@ void SolidMechanicsModel::initModel() {
   fem->initShapeFunctions(_ghost);
 }
 
+
+
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateCurrentPosition() {
+  AKANTU_DEBUG_IN();
   UInt nb_nodes = fem->getMesh().getNbNodes();
 
   current_position->resize(nb_nodes);
@@ -142,23 +145,31 @@ void SolidMechanicsModel::updateCurrentPosition() {
   for (UInt n = 0; n < nb_nodes*spatial_dimension; ++n) {
     *current_position_val++ += *displacement_val++;
   }
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::updateResidual(bool need_update_current_position) {
+void SolidMechanicsModel::initializeUpdateResidualData() {
   AKANTU_DEBUG_IN();
-
   UInt nb_nodes = fem->getMesh().getNbNodes();
-
   residual->resize(nb_nodes);
-
-  if (need_update_current_position) updateCurrentPosition();
-
-  /// start synchronization
-  asynchronousSynchronize(_gst_smm_residual);
 
   /// copy the forces in residual for boundary conditions
   memcpy(residual->values, force->values, nb_nodes*spatial_dimension*sizeof(Real));
+
+  updateCurrentPosition();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updateResidual(bool need_initialize) {
+  AKANTU_DEBUG_IN();
+
+  if (need_initialize) initializeUpdateResidualData();
+
+  /// start synchronization
+  asynchronousSynchronize(_gst_smm_residual);
 
   /// call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
