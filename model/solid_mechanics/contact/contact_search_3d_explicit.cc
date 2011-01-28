@@ -266,6 +266,7 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
   }
   
   delete closest_master_nodes;
+  delete has_closest_master_node;
   
   AKANTU_DEBUG_OUT();
 }

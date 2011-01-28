@@ -220,6 +220,7 @@ int main(int argc, char *argv[])
   hertz.close();
 
   delete my_contact;
+  delete top_nodes;
  
   finalize();
 
