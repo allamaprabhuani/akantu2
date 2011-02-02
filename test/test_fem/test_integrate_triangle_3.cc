@@ -63,11 +63,8 @@ int main(int argc, char *argv[]) {
 
   my_file << "integral is " << value[0] << " " << value[1] << std::endl;
 
-
-
-  //  delete fem;
-
-  //  finalize();
+  delete fem;
+  finalize();
 
   return EXIT_SUCCESS;
 }

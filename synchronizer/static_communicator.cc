@@ -55,14 +55,12 @@ void CommunicationRequest::printself(std::ostream & stream, int indent) const {
 StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType type) {
   AKANTU_DEBUG_IN();
 
-  if(type == _communicator_mpi) {
 #ifdef AKANTU_USE_MPI
+  if(type == _communicator_mpi) {
     if (!static_communicator)
       AKANTU_DEBUG_ERROR("You must call getStaticCommunicator(argc, argv) to create a MPI communicator");
-#else
-    AKANTU_DEBUG_ERROR("You must recompile with the AKANTU_USE_MPI option ON to use a MPI communicator.");
-#endif
   }
+#endif
 
   if (!static_communicator)
     static_communicator = new StaticCommunicatorDummy();
@@ -78,14 +76,13 @@ StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType 
 StaticCommunicator * StaticCommunicator::getStaticCommunicator(__attribute__ ((unused)) int * argc,
 							       __attribute__ ((unused)) char *** argv,
   							       CommunicatorType type) {
-  if(type == _communicator_mpi) {
+
 #ifdef AKANTU_USE_MPI
+  if(type == _communicator_mpi) {
     if (!static_communicator)
       static_communicator = dynamic_cast<StaticCommunicator *>(new StaticCommunicatorMPI(argc, argv));
-#else
-    AKANTU_DEBUG_ERROR("You must recompile with the AKANTU_USE_MPI option ON to use a MPI communicator.");
-#endif
   }
+#endif
 
   return getStaticCommunicator(type);
 }

@@ -34,6 +34,10 @@ public:
 	      const SolverID & id = "solver_mumps",
 	      const MemoryID & memory_id = 0);
 
+  SolverMumps(SparseMatrix & sparse_matrix,
+	      const SolverID & id = "solver_mumps",
+	      const MemoryID & memory_id = 0);
+
   virtual ~SolverMumps();
 
   /* ------------------------------------------------------------------------ */
@@ -69,6 +73,21 @@ private:
   /// mumps data
   DMUMPS_STRUC_C mumps_data;
 
+  /* ------------------------------------------------------------------------ */
+  /* Local types                                                              */
+  /* ------------------------------------------------------------------------ */
+private:
+
+  enum SolverMumpsJob {
+    _smj_initialize = -1,
+    _smj_analyze = 1,
+    _smj_factorize = 2,
+    _smj_solve = 3,
+    _smj_analyze_factorize = 4,
+    _smj_factorize_solve = 5,
+    _smj_complete = 6, // analyze, factorize, solve
+    _smj_destroy = -2
+  };
 };
 
 

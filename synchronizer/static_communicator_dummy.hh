@@ -90,18 +90,39 @@ public:
   virtual void barrier() {};
 
   virtual void allReduce(__attribute__ ((unused)) Real * values,
-			 __attribute__ ((unused)) UInt nb_values,
+			 __attribute__ ((unused)) Int nb_values,
 			 __attribute__ ((unused)) const SynchronizerOperation & op) {};
   virtual void allReduce(__attribute__ ((unused)) UInt * values,
-			 __attribute__ ((unused)) UInt nb_values,
+			 __attribute__ ((unused)) Int nb_values,
 			 __attribute__ ((unused)) const SynchronizerOperation & op) {};
+
+  inline void gather(__attribute__ ((unused)) Real * values,
+		     __attribute__ ((unused)) Int nb_values,
+		     __attribute__ ((unused)) Int root) {};
+  inline void gather(__attribute__ ((unused)) UInt * values,
+		     __attribute__ ((unused)) Int nb_values,
+		     __attribute__ ((unused)) Int root) {};
+  inline void gather(__attribute__ ((unused)) Int * values,
+		     __attribute__ ((unused)) Int nb_values,
+		     __attribute__ ((unused)) Int root) {};
+
+  inline void gatherv(__attribute__ ((unused)) Real * values,
+		      __attribute__ ((unused)) Int * nb_values,
+		      __attribute__ ((unused)) Int root) {};
+  inline void gatherv(__attribute__ ((unused)) UInt * values,
+		      __attribute__ ((unused)) Int * nb_values,
+		      __attribute__ ((unused)) Int root) {};
+  inline void gatherv(__attribute__ ((unused)) Int * values,
+		      __attribute__ ((unused)) Int * nb_values,
+		      __attribute__ ((unused)) Int root) {};
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual Int getNbProc() { return 1; };
-  virtual Int whoAmI() { return 0; };
+  virtual Int getNbProc() const { return 1; };
+  virtual Int whoAmI() const { return 0; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -81,15 +81,23 @@ public:
 
   virtual void barrier() = 0;
 
-  virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) = 0;
-  virtual void allReduce(UInt * values, UInt nb_values, const SynchronizerOperation & op) = 0;
+  virtual void allReduce(Real * values, Int nb_values, const SynchronizerOperation & op) = 0;
+  virtual void allReduce(UInt * values, Int nb_values, const SynchronizerOperation & op) = 0;
+
+  virtual void gather(Real * values, Int nb_values, Int root) = 0;
+  virtual void gather(UInt * values, Int nb_values, Int root) = 0;
+  virtual void gather(Int * values, Int nb_values, Int root) = 0;
+
+  virtual void gatherv(Real * values, Int * nb_values, Int root) = 0;
+  virtual void gatherv(UInt * values, Int * nb_values, Int root) = 0;
+  virtual void gatherv(Int * values, Int * nb_values, Int root) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual Int getNbProc() = 0;
-  virtual Int whoAmI() = 0;
+  virtual Int getNbProc() const = 0;
+  virtual Int whoAmI() const = 0;
 
   static StaticCommunicator * getStaticCommunicator(CommunicatorType type = _communicator_mpi);
 

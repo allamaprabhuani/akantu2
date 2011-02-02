@@ -12,17 +12,17 @@
 #===============================================================================
 
 #===============================================================================
-find_library(MUMPS_LIBRARY_DMUMPS NAME dmumps
+find_library(MUMPS_LIBRARY_DMUMPS NAME dmumps_scotch
    PATHS ${MUMPS_DIR} /usr
    PATH_SUFFIXES lib
    )
 
-find_library(MUMPS_LIBRARY_COMMON NAME mumps_common
+find_library(MUMPS_LIBRARY_COMMON NAME mumps_common_scotch
    PATHS ${MUMPS_DIR}
    PATH_SUFFIXES lib
    )
 
-find_library(MUMPS_LIBRARY_PORD NAME pord
+find_library(MUMPS_LIBRARY_PORD NAME pord_scotch
    PATHS ${MUMPS_DIR}
    PATH_SUFFIXES lib
    )

@@ -35,7 +35,14 @@ public:
 	       UInt nb_degre_of_freedom,
 	       const SparseMatrixID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
-  //  virtual ~SparseMatrix();
+
+  SparseMatrix(UInt size,
+	       const SparseMatrixType & sparse_matrix_type,
+	       UInt nb_degre_of_freedom,
+	       const SparseMatrixID & id = "sparse_matrix",
+	       const MemoryID & memory_id = 0);
+
+  virtual ~SparseMatrix();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -44,8 +51,12 @@ public:
   /// add a non-zero element
   UInt addToProfile(UInt i, UInt j);
 
-  // /// add a non-zero element with local number of nodes
-  // UInt addToProfileLocal(UInt i, UInt j);
+  /// set the matrix to 0
+  inline void clear();
+
+  /// assemble a local matrix in the sparse one
+  inline void addToMatrix(UInt i, UInt j, Real value);
+
 
   /// assemble a local matrix in the sparse one
   inline void addToMatrix(const Vector<Real> & local_matrix,
@@ -77,7 +88,11 @@ public:
 
   AKANTU_GET_MACRO(NbNonZero, nb_non_zero, UInt);
 
+  AKANTU_GET_MACRO(Size, size, UInt);
+
   AKANTU_GET_MACRO(NbDegreOfFreedom, nb_degre_of_freedom, UInt);
+
+  AKANTU_GET_MACRO(SparseMatrixType, sparse_matrix_type, const SparseMatrixType &)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -93,7 +108,10 @@ private:
   UInt nb_degre_of_freedom;
 
   /// Mesh corresponding to the profile
-  const Mesh & mesh;
+  const Mesh * mesh;
+
+  /// Size of the matrix
+  UInt size;
 
   /// number of processors
   UInt nb_proc;
@@ -112,6 +130,11 @@ private:
 
   /// information to know where to assemble an element in a global sparse matrix
   ByElementTypeUInt element_to_sparse_profile;
+
+  /* map for  (i,j) ->  k correspondence \warning std::map are slow
+   *  \todo improve  with hash_map (non standard in stl) or unordered_map (boost or C++0x)
+   */
+  std::map<std::pair<UInt, UInt>, UInt> * irn_jcn_to_k;
 };
 
 

@@ -41,7 +41,7 @@ inline void StaticCommunicatorMPI::setMPICommunicator(MPI_Comm comm) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline MPI_Comm StaticCommunicatorMPI::getMPICommunicator() {
+inline MPI_Comm StaticCommunicatorMPI::getMPICommunicator() const {
   return communicator;
 }
 
@@ -202,7 +202,7 @@ inline void StaticCommunicatorMPI::barrier() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::allReduce(UInt * values, UInt nb_values,
+inline void StaticCommunicatorMPI::allReduce(UInt * values, Int nb_values,
 					     const SynchronizerOperation & op) {
 #if !defined(AKANTU_NDEBUG)
   int ret =
@@ -214,7 +214,7 @@ inline void StaticCommunicatorMPI::allReduce(UInt * values, UInt nb_values,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::allReduce(Real * values, UInt nb_values,
+inline void StaticCommunicatorMPI::allReduce(Real * values, Int nb_values,
 					     const SynchronizerOperation & op) {
 #if !defined(AKANTU_NDEBUG)
   int ret =
@@ -224,3 +224,79 @@ inline void StaticCommunicatorMPI::allReduce(Real * values, UInt nb_values,
 		  communicator);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Allreduce.");
 }
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicatorMPI::_gather(T * values, Int nb_values, Int root) {
+  T * send_buf = NULL, * recv_buf = NULL;
+  if(prank == root) {
+    send_buf = (T *) MPI_IN_PLACE;
+    recv_buf = values;
+  } else {
+    send_buf = values;
+  }
+
+  MPI_Datatype type = getMPIDatatype<T>();
+
+#if !defined(AKANTU_NDEBUG)
+  int ret =
+#endif
+    MPI_Gather(send_buf, nb_values, type, recv_buf, nb_values, type, root, communicator);
+
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Gather.");
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicatorMPI::_gatherv(T * values, Int * nb_values, Int root) {
+  Int * displs = NULL;
+  if(prank == root) {
+    displs = new Int[psize];
+    displs[0] = 0;
+    for (Int i = 1; i < psize; ++i) {
+      displs[i] = displs[i-1] + nb_values[i-1];
+    }
+  }
+
+  T * send_buf = NULL, * recv_buf = NULL;
+  if(prank == root) {
+    send_buf = (T *) MPI_IN_PLACE;
+    recv_buf = values;
+  } else send_buf = values;
+
+  MPI_Datatype type = getMPIDatatype<T>();
+
+#if !defined(AKANTU_NDEBUG)
+  int ret =
+#endif
+    MPI_Gatherv(send_buf, *nb_values, type, recv_buf, nb_values, displs, type, root, communicator);
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Gather.");
+
+  if(prank == root) {
+    delete [] displs;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype() {
+  return MPI_DATATYPE_NULL;
+}
+
+template<>
+inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype<Real>() {
+  return MPI_DOUBLE;
+}
+
+template<>
+inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype<UInt>() {
+  return MPI_UNSIGNED;
+}
+
+template<>
+inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype<Int>() {
+  return MPI_INT;
+}
+
+/* -------------------------------------------------------------------------- */
+

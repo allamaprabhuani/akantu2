@@ -22,6 +22,7 @@
 #include "aka_vector.hh"
 #include "sparse_matrix.hh"
 #include "mesh.hh"
+#include "static_communicator.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -67,6 +68,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(RHS, *rhs, Vector<Real> &);
+
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -85,6 +89,9 @@ protected:
 
   /// mesh
   const Mesh * mesh;
+
+  /// pointer to the communicator
+  StaticCommunicator * communicator;
 };
 
 
@@ -100,7 +107,6 @@ protected:
 //   _this.printself(stream);
 //   return stream;
 // }
-
 
 __END_AKANTU__
 

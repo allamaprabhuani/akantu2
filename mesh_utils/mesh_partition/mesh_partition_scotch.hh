@@ -20,6 +20,14 @@
 #include "aka_common.hh"
 #include "mesh_partition.hh"
 
+#ifndef AKANTU_SCOTCH_NO_EXTERN
+extern "C" {
+#endif
+#include <scotch.h>
+#ifndef AKANTU_SCOTCH_NO_EXTERN
+}
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -40,8 +48,15 @@ public:
 
   virtual void partitionate(UInt nb_part);
 
+  virtual void reorder();
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
+
+private:
+  SCOTCH_Mesh * createMesh();
+
+  void destroyMesh(SCOTCH_Mesh * meshptr);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

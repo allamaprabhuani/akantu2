@@ -42,6 +42,8 @@ public:
 
   virtual void partitionate(UInt nb_part) = 0;
 
+  virtual void reorder() = 0;
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 

@@ -51,7 +51,7 @@ if(AKANTU_TESTS)
 endif(AKANTU_TESTS)
 
 #===============================================================================
-macro(register_test test_name ${ARGN})
+macro(register_test test_name)
   add_executable(${test_name} ${ARGN})
   target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 

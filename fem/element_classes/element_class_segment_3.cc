@@ -43,11 +43,6 @@
  * @f]
  */
 
-  // /// quadrature point position
-  // Real quad[spatial_dimension * nb_quadrature_points];
-  // quad[0] = -1./sqrt(3);
-  // quad[1] = 1./sqrt(3);
-
 
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_segment_3>::nb_nodes_per_element;

@@ -30,11 +30,24 @@ int main(int argc, char *argv[]) {
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("triangle.msh", mesh);
 
+  akantu::SparseMatrix sparse_matrix_hand(10, akantu::_symmetric, 1, "hand");
 
-  akantu::SparseMatrix sparse_matrix(mesh, akantu::_symmetric, 2);
+  for(akantu::UInt i = 0; i < 10; ++i) {
+    sparse_matrix_hand.addToProfile(i, i);
+  }
 
+  sparse_matrix_hand.addToProfile(0,9);
+
+  for(akantu::UInt i = 0; i < 10; ++i) {
+    sparse_matrix_hand.addToMatrix(i, i, i*10);
+  }
+  sparse_matrix_hand.addToMatrix(0,9, 100);
+
+  sparse_matrix_hand.saveProfile("profile_hand.mtx");
+  sparse_matrix_hand.saveMatrix("matrix_hand.mtx");
+
+  akantu::SparseMatrix sparse_matrix(mesh, akantu::_symmetric, 2, "mesh");
   sparse_matrix.buildProfile();
-
   sparse_matrix.saveProfile("profile.mtx");
 
   akantu::finalize();

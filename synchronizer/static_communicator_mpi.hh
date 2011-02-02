@@ -75,8 +75,26 @@ public:
 
   inline void barrier();
 
-  inline void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
-  inline void allReduce(UInt * values, UInt nb_values, const SynchronizerOperation & op);
+  inline void allReduce(Real * values, Int nb_values, const SynchronizerOperation & op);
+  inline void allReduce(UInt * values, Int nb_values, const SynchronizerOperation & op);
+
+  inline void gather(Real * values, Int nb_values, Int root) { _gather(values, nb_values, root); };
+  inline void gather(UInt * values, Int nb_values, Int root) { _gather(values, nb_values, root); };
+  inline void gather(Int  * values, Int nb_values, Int root) { _gather(values, nb_values, root); };
+
+  inline void gatherv(Real * values, Int * nb_values, Int root) { _gatherv(values, nb_values, root); };
+  inline void gatherv(UInt * values, Int * nb_values, Int root) { _gatherv(values, nb_values, root); };
+  inline void gatherv(Int  * values, Int * nb_values, Int root) { _gatherv(values, nb_values, root); };
+
+private:
+  template<typename T>
+  inline MPI_Datatype getMPIDatatype();
+
+  template<typename T>
+  inline void _gather(T * values, Int nb_values, Int root);
+
+  template<typename T>
+  inline void _gatherv(T * values, Int * nb_values, Int root);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -84,10 +102,10 @@ public:
 public:
 
   inline void setMPICommunicator(MPI_Comm comm);
-  inline MPI_Comm getMPICommunicator();
+  inline MPI_Comm getMPICommunicator() const;
 
-  inline Int getNbProc() { return psize; };
-  inline Int whoAmI() { return prank; };
+  inline Int getNbProc() const { return psize; };
+  inline Int whoAmI() const { return prank; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

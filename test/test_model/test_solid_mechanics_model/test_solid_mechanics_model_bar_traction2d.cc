@@ -31,8 +31,8 @@
 
 int main(int argc, char *argv[])
 {
-  akantu::ElementType type = akantu::_triangle_6;
 #ifdef AKANTU_USE_IOHELPER
+  akantu::ElementType type = akantu::_triangle_6;
   akantu::UInt paraview_type = TRIANGLE2;
 #endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 2;

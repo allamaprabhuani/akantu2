@@ -95,7 +95,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh, 
+void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
 						ElementType type,
 						Vector<UInt> & node_offset,
 						Vector<UInt> & node_to_elem) {
@@ -112,7 +112,7 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
   node_offset.resize(nb_nodes + 1);
   UInt * node_offset_val = node_offset.values;
   memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
-  
+
   /// count number of occurrence of each node
   for (UInt el = 0; el < nb_elements; ++el)
     for (UInt n = 0; n < nb_nodes_per_element; ++n)
@@ -247,7 +247,7 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	  UInt el_index = node_to_elem.values[node_offset.values[facet_nodes[0]]+el1];
 	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index > linearized_el){
 	    //	    connected_element = el_index;
-	    AKANTU_DEBUG(dblDump,"connecting elements " << linearized_el << " and " << el_index);   
+	    AKANTU_DEBUG(dblDump,"connecting elements " << linearized_el << " and " << el_index);
 	    if (internal_flag)
 	      connectivity_internal_facets[t]->push_back(facet_nodes);
 	  }
@@ -368,7 +368,7 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
   /// Find which types of elements have been linearized
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
-  
+
   UInt nb_types = type_list.size();
   ElementType lin_element_type[nb_types];
   UInt nb_lin_types = 0;
@@ -404,14 +404,14 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
   Vector<Int> surface_value_id(1, nb_element[nb_lin_types], -1);
   Int * surf_val = surface_value_id.values;
   UInt nb_surfaces = 0;
- 
+
   UInt nb_cecked_elements;
   UInt nb_elements_to_ceck;
   UInt * elements_to_ceck = new UInt [nb_element[nb_lin_types]];
   memset(elements_to_ceck, 0, nb_element[nb_lin_types]*sizeof(UInt));
-  
+
   for (UInt lin_el = 0; lin_el < nb_element[nb_lin_types]; ++lin_el) {
-    
+
     if(surf_val[lin_el] != -1) continue; /* Surface id already assigned */
 
     /* First element of new surface */
@@ -420,10 +420,10 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
     nb_elements_to_ceck = 1;
     memset(elements_to_ceck, 0, nb_element[nb_lin_types]*sizeof(UInt));
     elements_to_ceck[0] = lin_el;
-    
+
     // Find others elements belonging to this surface
     while(nb_cecked_elements < nb_elements_to_ceck) {
-      
+
       UInt ceck_lin_el = elements_to_ceck[nb_cecked_elements];
 
       // Transform linearized index of element into ElementType one

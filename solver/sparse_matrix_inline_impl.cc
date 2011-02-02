@@ -12,25 +12,51 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// UInt SparseMatrix::addToProfile(UInt i, UInt j) {
-//   nb_non_zero++;
-//   irn.push_back(i);
-//   jcn.push_back(j);
-//   a.resize(a.getSize() + 1); a.values[a.getSize() - 1] = 0;
+inline UInt SparseMatrix::addToProfile(UInt i, UInt j) {
+  if(!irn_jcn_to_k) irn_jcn_to_k = new std::map<std::pair<UInt, UInt>, UInt>;
 
-//   return nb_non_zero;
-// }
+  std::pair<UInt, UInt> jcn_irn = std::make_pair(i, j);
 
-// /* -------------------------------------------------------------------------- */
-// UInt SparseMatrix::addToProfileLocal(UInt i, UInt j) {
-//   UInt gi = local_to_global->values[i];
-//   UInt gj = local_to_global->values[j];
-//   return addToProfile(gi, gj);
-// }
+  AKANTU_DEBUG_ASSERT(irn_jcn_to_k->find(jcn_irn) == irn_jcn_to_k->end(),
+		      "Couple (i,j) = (" << i << "," << j << ") already in the profile");
+
+  irn.push_back(i + 1);
+  jcn.push_back(j + 1);
+
+  //  a.resize(a.getSize() + 1);
+  Real zero = 0;
+  a.push_back(zero);
+
+  (*irn_jcn_to_k)[jcn_irn] = nb_non_zero;
+
+  nb_non_zero++;
+
+  return nb_non_zero - 1;
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SparseMatrix::clear() {
+  memset(a.values, 0, nb_non_zero*sizeof(Real));
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
+  std::pair<UInt, UInt> jcn_irn = std::make_pair(i, j);
+  std::map<std::pair<UInt, UInt>, UInt>::iterator irn_jcn_to_k_it = irn_jcn_to_k->find(jcn_irn);
+
+  AKANTU_DEBUG_ASSERT(irn_jcn_to_k_it != irn_jcn_to_k->end(),
+		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
+
+  std::cerr << "AAAAAAAA " << irn_jcn_to_k_it->second << std::endl;
+  a.values[irn_jcn_to_k_it->second] += value;
+}
 
 /* -------------------------------------------------------------------------- */
 inline void SparseMatrix::addToMatrix(const Vector<Real> & local_matrix,
- 			       const Element & element) {
+				      const Element & element) {
+  AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
+		      "No profile stored for this kind of element call first buildProfile()");
+
   UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 

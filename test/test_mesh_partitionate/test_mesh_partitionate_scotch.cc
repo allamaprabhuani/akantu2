@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
 
 #endif //AKANTU_USE_IOHELPER
 
+  partition->reorder();
+
   delete partition;
 
   akantu::finalize();

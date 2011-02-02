@@ -30,8 +30,37 @@ SparseMatrix::SparseMatrix(const Mesh & mesh,
   Memory(memory_id), id(id),
   sparse_matrix_type(sparse_matrix_type),
   nb_degre_of_freedom(nb_degre_of_freedom),
-  mesh(mesh),
-  irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A") {
+  mesh(&mesh),
+  nb_non_zero(0),
+  irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
+  irn_jcn_to_k(NULL) {
+  AKANTU_DEBUG_IN();
+
+  size = mesh.getNbNodes();
+
+  for(UInt t = _not_defined; t < _max_element_type; ++t) {
+    this->element_to_sparse_profile[t] = NULL;
+  }
+
+  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
+  nb_proc = comm->getNbProc();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+SparseMatrix::SparseMatrix(UInt size,
+			   const SparseMatrixType & sparse_matrix_type,
+			   UInt nb_degre_of_freedom,
+			   const SparseMatrixID & id,
+			   const MemoryID & memory_id) :
+  Memory(memory_id), id(id),
+  sparse_matrix_type(sparse_matrix_type),
+  nb_degre_of_freedom(nb_degre_of_freedom),
+  mesh(NULL), size(size),
+  nb_non_zero(0),
+  irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
+  irn_jcn_to_k(NULL) {
   AKANTU_DEBUG_IN();
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
@@ -44,24 +73,33 @@ SparseMatrix::SparseMatrix(const Mesh & mesh,
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+SparseMatrix::~SparseMatrix() {
+  AKANTU_DEBUG_IN();
+  if (irn_jcn_to_k) delete irn_jcn_to_k;
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 void SparseMatrix::buildProfile() {
   AKANTU_DEBUG_IN();
 
-  std::map<std::pair<UInt, UInt>, UInt> irn_jcn_to_k;
+  if(irn_jcn_to_k) delete irn_jcn_to_k;
+  irn_jcn_to_k = new std::map<std::pair<UInt, UInt>, UInt>;
+
+  //  std::map<std::pair<UInt, UInt>, UInt> irn_jcn_to_k;
   std::map<std::pair<UInt, UInt>, UInt>::iterator irn_jcn_to_k_it;
 
   nb_non_zero = 0;
   irn.resize(0);
   jcn.resize(0);
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (Mesh::getSpatialDimension(*it) != mesh.getSpatialDimension()) continue;
+    if (Mesh::getSpatialDimension(*it) != mesh->getSpatialDimension()) continue;
 
-    UInt nb_element = mesh.getNbElement(*it);
+    UInt nb_element = mesh->getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
     if (element_to_sparse_profile[*it] == NULL) {
@@ -82,9 +120,9 @@ void SparseMatrix::buildProfile() {
     }
 
     UInt * global_nodes_ids_val = NULL;
-    if(nb_proc > 1) global_nodes_ids_val = mesh.getGlobalNodesIds().values;
+    if(nb_proc > 1) global_nodes_ids_val = mesh->getGlobalNodesIds().values;
     UInt * elem_to_sparse_val = element_to_sparse_profile[*it]->values;
-    UInt * conn_val = mesh.getConnectivity(*it).values;
+    UInt * conn_val = mesh->getConnectivity(*it).values;
 
     for (UInt e = 0; e < nb_element; ++e) {                                     // loop on element
       UInt count = 0;
@@ -105,15 +143,15 @@ void SparseMatrix::buildProfile() {
 	      std::pair<UInt, UInt> jcn_irn;
 	      if ((sparse_matrix_type == _symmetric) && c_irn < c_jcn) jcn_irn = std::make_pair(c_jcn, c_irn);
 	      else jcn_irn = std::make_pair(c_irn, c_jcn);
-	      irn_jcn_to_k_it = irn_jcn_to_k.find(jcn_irn);
+	      irn_jcn_to_k_it = irn_jcn_to_k->find(jcn_irn);
 
-	      if (irn_jcn_to_k_it == irn_jcn_to_k.end()) {
+	      if (irn_jcn_to_k_it == irn_jcn_to_k->end()) {
 		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " new (" << nb_non_zero << ")" << std::endl;
 		*elem_to_sparse_val++ = nb_non_zero;
 		count++;
-		irn_jcn_to_k[jcn_irn] = nb_non_zero;
-		irn.push_back(c_irn);
-		jcn.push_back(c_jcn);
+		(*irn_jcn_to_k)[jcn_irn] = nb_non_zero;
+		irn.push_back(c_irn + 1);
+		jcn.push_back(c_jcn + 1);
 		nb_non_zero++;
 	      } else {
 		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " old (" << irn_jcn_to_k_it->second << ")" << std::endl;
@@ -147,7 +185,7 @@ void SparseMatrix::saveProfile(const std::string & filename) {
   else outfile << " general";
   outfile << std::endl;
 
-  UInt m = mesh.getNbNodes() * nb_degre_of_freedom;
+  UInt m = size * nb_degre_of_freedom;
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
@@ -173,7 +211,7 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
   else outfile << " general";
   outfile << std::endl;
 
-  UInt m = mesh.getNbNodes() * nb_degre_of_freedom;
+  UInt m = size * nb_degre_of_freedom;
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {

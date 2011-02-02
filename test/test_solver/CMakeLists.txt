@@ -18,3 +18,5 @@ add_dependencies(test_sparse_matrix_profile test_solver_mesh)
 
 register_test(test_sparse_matrix_assemble test_sparse_matrix_assemble.cc)
 add_dependencies(test_sparse_matrix_assemble test_solver_mesh)
+
+register_test(test_solver_mumps test_solver_mumps.cc)
