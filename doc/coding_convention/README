@@ -40,7 +40,8 @@ Help tools for emacs
     * in the (custom-set-variables) add this lines to generate the files headers (C-c d i)
 
       '(doxymacs-doxygen-style "JavaDoc")
-      '(doxymacs-file-comment-template (quote ("/**" > n " * " (doxymacs-doxygen-command-char) "file   " (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") > n " * " (doxymacs-doxygen-command-char) "author " (user-full-name) (doxymacs-user-mail-address) > n " * " (doxymacs-doxygen-command-char) "date   " (current-time-string) > n " *" > n " * " (doxymacs-doxygen-command-char) "brief  " (p "Brief description of this file: ") > n " *" > n " * " (doxymacs-doxygen-command-char) "section LICENSE" > n " *" > n " * <insert license here>" > n " *" > n " */" > n > n "/* -------------------------------------------------------------------------- */" > n)))
+ '(doxymacs-file-comment-template (quote ("/**" > n " * " (doxymacs-doxygen-command-char) "file   " (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") > n " * " (doxymacs-doxygen-command-char) "author " (user-full-name) (doxymacs-user-mail-address) > n " * " (doxymacs-doxygen-command-char) "date   " (current-time-string) > n " *" > n " * " (doxymacs-doxygen-command-char) "brief  " (p "Brief description of this file: ") > n " *" > n " * " (doxymacs-doxygen-command-char) "section LICENSE" > n " *" > n " * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)" > n " * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)" > n " *" > n " * Akantu is free  software: you can redistribute it and/or  modify it under the" > n " * terms  of the  GNU Lesser  General Public  License as  published by  the Free" > n " * Software Foundation, either version 3 of the License, or (at your option) any" > n " * later version." > n " *" > n " * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY" > n " * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR" > n " * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more" > n " * details." > n " *" > n " * You should  have received  a copy  of the GNU  Lesser General  Public License" > n " * along with Akantu. If not, see <http://www.gnu.org/licenses/>." > n " *" > n " */" > n > n "/* -------------------------------------------------------------------------- */" > n)))
+
 
  - for the snippet code you can use yasnippet
    some specific snippet files for akantu can be found in the *snippet/* directory
@@ -68,18 +69,11 @@ Help tools for emacs
    To know your orgnisation type have a look into /usr/share/emacs/site-lisp/yasnippet/snippets/
    Then copy the the file provided in the doc directory either by:
 
-
-      
     cp -r /usr/share/emacs/site-lisp/yasnippet ~/.emacs.d/yasnippet
     cp $AKANTU_DIR/doc/coding_convention/snippet/akantu ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/
-    cp $AKANTU_DIR/doc/coding_convention/snippet/inout ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/	
-    cp $AKANTU_DIR/doc/coding_convention/snippet/class ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/	
+    cp $AKANTU_DIR/doc/coding_convention/snippet/inout ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/
+    cp $AKANTU_DIR/doc/coding_convention/snippet/class ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/c++-mode/
     cp $AKANTU_DIR/doc/coding_convention/snippet/once ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/
     cp $AKANTU_DIR/doc/coding_convention/snippet/for ~/.emacs.d/yasnippet/snippets/text-mode/cc-mode/
 
    either by (TODO nico)
-
-
-
-
-
