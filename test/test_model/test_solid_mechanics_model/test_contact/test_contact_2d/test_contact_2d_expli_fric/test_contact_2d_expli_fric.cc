@@ -7,7 +7,21 @@
  *
  * @section LICENSE
  *
- * <insert lisence here>
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -36,22 +50,22 @@
 using namespace akantu;
 
 class Boundary {
-public:  
+public:
   Boundary(Mesh & mesh, SolidMechanicsModel & model);
   virtual ~Boundary();
-  
+
   reduceGap(const Real threshold, const Real gap);
   setBoundaryConditions();
-  
+
 public:
-  
+
 
 public:
 private:
-  /// 
+  ///
   SolidMechanicsModel & model;
 
-  /// 
+  ///
   Mesh & mesh;
 
   Real top_bounds[];
@@ -60,7 +74,7 @@ private:
 
 
 
-static void 
+static void
 static void setBoundaryConditions(SolidMechanicsModel & model);
 void my_force(double * coord, double *T);
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio);
@@ -113,7 +127,7 @@ int main(int argc, char *argv[])
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
   memset(model->getMaterial(0).getStress(_triangle_3).values, 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
-  
+
   /// Paraview Helper
   #ifdef AKANTU_USE_IOHELPER
   initParaview(*model);
@@ -128,9 +142,9 @@ int main(int argc, char *argv[])
   setBoundaryConditions(*model);
 
   /// define and initialize contact
-  Contact * my_contact = Contact::newContact(*model, 
-					     _ct_2d_expli, 
-					     _cst_2d_expli, 
+  Contact * my_contact = Contact::newContact(*model,
+					     _ct_2d_expli,
+					     _cst_2d_expli,
 					     _cnst_2d_grid);
 
   my_contact->initContact(true);
@@ -150,13 +164,13 @@ int main(int argc, char *argv[])
 
     model->updateAcceleration();
     model->explicitCorr();
-    
+
     if(s % 200 == 0)
       dumper.Dump();
 
     if(s%100 == 0 && s>499)
       reduceVelocities(*model, 0.95);
-    
+
     if(s % 500 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 
@@ -204,7 +218,7 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
     if (coord[2*n+1] > y_max)
       y_max = coord[2*n+1];
     if (coord[2*n+1] < y_min)
-      y_min = coord[2*n+1];    
+      y_min = coord[2*n+1];
   }
 
   FEM & b_fem = model.getFEMBoundary();
@@ -216,7 +230,7 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
   for (UInt i = 0; i < nb_nodes; ++i) {
     if (coord[2*i+1] < y_min + 1.e-5) {
       id[2*i+1] = true;
-      std::cout << " " << i << " "; 
+      std::cout << " " << i << " ";
     }
   }
   std::cout << "are blocked" << std::endl;
@@ -238,12 +252,12 @@ static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio
 {
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   Real * velocities = model.getVelocity().values;
-  
+
   if(ratio>1.) {
     fprintf(stderr,"**error** in Reduce_Velocities ratio bigger than 1!\n");
     exit(-1);
   }
-    
+
   for(UInt i =0; i<nb_nodes; i++) {
     velocities[2*i] *= ratio;
     velocities[2*i+1] *= ratio;

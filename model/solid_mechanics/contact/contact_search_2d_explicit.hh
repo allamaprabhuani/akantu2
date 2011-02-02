@@ -7,7 +7,21 @@
  *
  * @section LICENSE
  *
- * <insert license here>
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -45,14 +59,14 @@ class ContactSearch2dExplicit : public ContactSearch {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   ContactSearch2dExplicit(Contact & contact,
 			  const ContactNeighborStructureType & neighbors_structure_type,
 			  const ContactSearchType & type,
 			  const ContactSearchID & id = "search_contact_2d");
 
   virtual ~ContactSearch2dExplicit();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -68,12 +82,12 @@ private:
 
   bool checkProjectionAdjacentFacet(PenetrationList & pen_list, UInt facet, UInt c_facet, UInt i_node, Real old_proj, ElementType el_type);
 
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
