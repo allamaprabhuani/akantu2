@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -119,6 +119,8 @@ enum MaterialType {
 };
 
 
+typedef void (*BoundaryFunction)(double *,double *);
+
 /// @enum BoundaryFunctionType type of function passed for boundary conditions
 enum BoundaryFunctionType {
   _bft_stress,
@@ -173,7 +175,7 @@ enum CommunicatorType {
 enum GhostSynchronizationTag {
   /// SolidMechanicsModel tags
   _gst_smm_mass,      /// synchronization of the SolidMechanicsModel.mass
-  _gst_smm_residual,  /// synchronization of the SolidMechanicsModel.current_position
+  _gst_smm_for_strain,  /// synchronization of the SolidMechanicsModel.current_position
   _gst_smm_boundary,  /// synchronization of the boundary, forces, velocities and displacement
   /// Test tag
   _gst_test

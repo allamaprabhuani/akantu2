@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -112,23 +112,33 @@ public:
 
   inline void gather(__attribute__ ((unused)) Real * values,
 		     __attribute__ ((unused)) Int nb_values,
-		     __attribute__ ((unused)) Int root) {};
+		     __attribute__ ((unused)) Int root = 0) {};
   inline void gather(__attribute__ ((unused)) UInt * values,
 		     __attribute__ ((unused)) Int nb_values,
-		     __attribute__ ((unused)) Int root) {};
+		     __attribute__ ((unused)) Int root = 0) {};
   inline void gather(__attribute__ ((unused)) Int * values,
 		     __attribute__ ((unused)) Int nb_values,
-		     __attribute__ ((unused)) Int root) {};
+		     __attribute__ ((unused)) Int root = 0) {};
 
   inline void gatherv(__attribute__ ((unused)) Real * values,
 		      __attribute__ ((unused)) Int * nb_values,
-		      __attribute__ ((unused)) Int root) {};
+		      __attribute__ ((unused)) Int root = 0) {};
   inline void gatherv(__attribute__ ((unused)) UInt * values,
 		      __attribute__ ((unused)) Int * nb_values,
-		      __attribute__ ((unused)) Int root) {};
+		      __attribute__ ((unused)) Int root = 0) {};
   inline void gatherv(__attribute__ ((unused)) Int * values,
 		      __attribute__ ((unused)) Int * nb_values,
-		      __attribute__ ((unused)) Int root) {};
+		      __attribute__ ((unused)) Int root = 0) {};
+
+  inline void broadcast(__attribute__ ((unused)) Real * values,
+			__attribute__ ((unused)) Int nb_values,
+			__attribute__ ((unused)) Int root = 0) {};
+  inline void broadcast(__attribute__ ((unused)) UInt * values,
+			__attribute__ ((unused)) Int nb_values,
+			__attribute__ ((unused)) Int root = 0) {};
+  inline void broadcast(__attribute__ ((unused)) Int * values,
+			__attribute__ ((unused)) Int nb_values,
+			__attribute__ ((unused)) Int root = 0) {};
 
 
   /* ------------------------------------------------------------------------ */

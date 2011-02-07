@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -98,13 +98,18 @@ public:
   virtual void allReduce(Real * values, Int nb_values, const SynchronizerOperation & op) = 0;
   virtual void allReduce(UInt * values, Int nb_values, const SynchronizerOperation & op) = 0;
 
-  virtual void gather(Real * values, Int nb_values, Int root) = 0;
-  virtual void gather(UInt * values, Int nb_values, Int root) = 0;
-  virtual void gather(Int * values, Int nb_values, Int root) = 0;
+  virtual void gather(Real * values, Int nb_values, Int root = 0) = 0;
+  virtual void gather(UInt * values, Int nb_values, Int root = 0) = 0;
+  virtual void gather(Int  * values, Int nb_values, Int root = 0) = 0;
 
-  virtual void gatherv(Real * values, Int * nb_values, Int root) = 0;
-  virtual void gatherv(UInt * values, Int * nb_values, Int root) = 0;
-  virtual void gatherv(Int * values, Int * nb_values, Int root) = 0;
+  virtual void gatherv(Real * values, Int * nb_values, Int root = 0) = 0;
+  virtual void gatherv(UInt * values, Int * nb_values, Int root = 0) = 0;
+  virtual void gatherv(Int  * values, Int * nb_values, Int root = 0) = 0;
+
+  virtual void broadcast(Real * values, Int nb_values, Int root = 0) = 0;
+  virtual void broadcast(UInt * values, Int nb_values, Int root = 0) = 0;
+  virtual void broadcast(Int  * values, Int nb_values, Int root = 0) = 0;
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

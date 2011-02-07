@@ -8,7 +8,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -397,6 +397,10 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
     comm->receive(nodes->values, nb_nodes * spatial_dimension, root, 4);
   }
+
+  comm->broadcast(&(mesh.nb_global_nodes), 1, root);
+
+
 
   AKANTU_DEBUG_OUT();
   return communicator;

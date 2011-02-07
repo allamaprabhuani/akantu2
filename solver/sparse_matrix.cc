@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -50,7 +50,7 @@ SparseMatrix::SparseMatrix(const Mesh & mesh,
   irn_jcn_to_k(NULL) {
   AKANTU_DEBUG_IN();
 
-  size = mesh.getNbNodes();
+  size = mesh.getNbGlobalNodes();
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     this->element_to_sparse_profile[t] = NULL;
@@ -118,6 +118,7 @@ void SparseMatrix::buildProfile() {
 
     if (element_to_sparse_profile[*it] == NULL) {
       std::stringstream sstr;
+
       UInt nb_values_per_elem = nb_degre_of_freedom * nb_nodes_per_element;
       if (sparse_matrix_type == _symmetric) {
      	nb_values_per_elem = (nb_values_per_elem * (nb_values_per_elem + 1)) / 2;
@@ -130,7 +131,7 @@ void SparseMatrix::buildProfile() {
     						     nb_element,
     						     nb_values_per_elem));
 
-      std::cout << "COUNT " <<  nb_values_per_elem << std::endl;
+      //      std::cout << "COUNT " <<  nb_values_per_elem << std::endl;
     }
 
     UInt * global_nodes_ids_val = NULL;
@@ -160,7 +161,7 @@ void SparseMatrix::buildProfile() {
 	      irn_jcn_to_k_it = irn_jcn_to_k->find(jcn_irn);
 
 	      if (irn_jcn_to_k_it == irn_jcn_to_k->end()) {
-		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " new (" << nb_non_zero << ")" << std::endl;
+		//		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " new (" << nb_non_zero << ")" << std::endl;
 		*elem_to_sparse_val++ = nb_non_zero;
 		count++;
 		(*irn_jcn_to_k)[jcn_irn] = nb_non_zero;
@@ -168,7 +169,7 @@ void SparseMatrix::buildProfile() {
 		jcn.push_back(c_jcn + 1);
 		nb_non_zero++;
 	      } else {
-		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " old (" << irn_jcn_to_k_it->second << ")" << std::endl;
+		//		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " old (" << irn_jcn_to_k_it->second << ")" << std::endl;
 		*elem_to_sparse_val++ = irn_jcn_to_k_it->second;
 		count++;
 	      }
@@ -177,7 +178,7 @@ void SparseMatrix::buildProfile() {
 	}
       }
       conn_val += nb_nodes_per_element;
-      std::cout << "COUNT " << e << " " << count << std::endl;
+      //      std::cout << "COUNT " << e << " " << count << std::endl;
     }
   }
 
@@ -203,7 +204,7 @@ void SparseMatrix::saveProfile(const std::string & filename) {
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
-    outfile << irn.values[i]+1 << " " << jcn.values[i]+1 << " 1" << std::endl;
+    outfile << irn.values[i] << " " << jcn.values[i] << " 1" << std::endl;
   }
 
   outfile.close();
@@ -229,7 +230,7 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
-    outfile << irn.values[i]+1 << " " << jcn.values[i]+1 << " " << a.values[i] << std::endl;
+    outfile << irn.values[i] << " " << jcn.values[i] << " " << a.values[i] << std::endl;
   }
 
   outfile.close();

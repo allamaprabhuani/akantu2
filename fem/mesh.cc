@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -62,6 +62,8 @@ Mesh::Mesh(UInt spatial_dimension,
   sstr << id << ":coordinates";
   this->nodes = &(alloc<Real>(sstr.str(), 0, this->spatial_dimension));
 
+  nb_global_nodes = 0;
+
   AKANTU_DEBUG_OUT();
 
 }
@@ -81,6 +83,7 @@ Mesh::Mesh(UInt spatial_dimension,
   initConnectivities();
 
   this->nodes = &(getVector<Real>(nodes_id));
+  nb_global_nodes = nodes->getSize();
 
   AKANTU_DEBUG_OUT();
 }
@@ -99,6 +102,7 @@ Mesh::Mesh(UInt spatial_dimension,
   initConnectivities();
 
   this->nodes = &(nodes);
+  nb_global_nodes = nodes.getSize();
 
   AKANTU_DEBUG_OUT();
 }

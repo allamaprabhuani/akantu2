@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
 
-  akantu::debug::setDebugLevel(akantu::dblDump);
+  //  akantu::debug::setDebugLevel(akantu::dblDump);
 
   akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
   akantu::UInt n = 10 * comm->getNbProc();
@@ -54,12 +54,20 @@ int main(int argc, char *argv[])
       solver->getRHS().values[i] = 1.;
     }
 
-  //  sparse_matrix->saveMatrix("solver_matrix.mtx");
+
+  std::stringstream sstr; sstr << "solver_matrix.mtx" << comm->whoAmI();
+  sparse_matrix->saveMatrix(sstr.str());
+
+  std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB " << comm->whoAmI() << std::endl;
+
+
   solver->initialize();
   solver->solve();
 
   if(comm->whoAmI() == 0) {
+    akantu::debug::setDebugLevel(akantu::dblDump);
     std::cout << solver->getRHS() << std::endl;
+    akantu::debug::setDebugLevel(akantu::dblWarning);
   }
 
   delete solver;

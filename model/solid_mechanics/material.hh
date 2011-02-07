@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -70,16 +70,10 @@ public:
   void updateResidual(Vector<Real> & current_position,
 		      GhostType ghost_type = _not_ghost);
 
-  /// constitutive law
-  virtual void computeStress(ElementType el_type,
-			     GhostType ghost_type = _not_ghost) = 0;
 
-  /// compute the potential energy by element
-  void computePotentialEnergyByElement();
-
-  /// compute the potential energy
-  virtual void computePotentialEnergy(ElementType el_type,
-				      GhostType ghost_type = _not_ghost) = 0;
+  /// compute the stiffness matrix
+  void computeStiffnessMatrix(Vector<Real> & current_position,
+			      GhostType ghost_type);
 
   /// compute the stable time step for an element of size h
   virtual Real getStableTimeStep(Real h) = 0;
@@ -92,6 +86,19 @@ public:
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
+protected:
+
+  /// constitutive law
+  virtual void computeStress(ElementType el_type,
+			     GhostType ghost_type = _not_ghost) = 0;
+
+  /// compute the potential energy by element
+  void computePotentialEnergyByElement();
+
+  /// compute the potential energy
+  virtual void computePotentialEnergy(ElementType el_type,
+				      GhostType ghost_type = _not_ghost) = 0;
+
 
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */

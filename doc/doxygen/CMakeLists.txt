@@ -5,7 +5,7 @@
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -50,4 +50,3 @@ add_custom_target(akantu-doc-forced
 
 install(DIRECTORY ${DOXYGEN_OUTPUT_DIR}
   DESTINATION share/akantu-${akantu_VERSION}/doc)
-

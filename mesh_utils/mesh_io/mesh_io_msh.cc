@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -176,16 +176,16 @@ ElementType MeshIOMSH::_msh_to_akantu_element_types[16] =
     _not_defined
   };
 
-// MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type] =
-//   {
-//     _msh_not_defined,   // _not_defined
-//     _msh_segment_2,     // _segment_2
-//     _msh_segment_3,     // _segment_3
-//     _msh_triangle_3,    // _triangle_3
-//     _msh_triangle_6,    // _triangle_6
-//     _msh_tetrahedron_4, // _tetrahedron_4
-//     _msh_tetrahedron_10 // _tetrahedron_10
-//   };
+MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type] =
+  {
+    _msh_not_defined,   // _not_defined
+    _msh_segment_2,     // _segment_2
+    _msh_segment_3,     // _segment_3
+    _msh_triangle_3,    // _triangle_3
+    _msh_triangle_6,    // _triangle_6
+    _msh_tetrahedron_4, // _tetrahedron_4
+    _msh_tetrahedron_10 // _tetrahedron_10
+  };
 
 
 /* -------------------------------------------------------------------------- */
@@ -240,6 +240,8 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 
       Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
       nodes.resize(nb_nodes);
+      mesh.nb_global_nodes = nb_nodes;
+
 
       UInt index;
       Real coord[3];
@@ -348,9 +350,11 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   outfile.open(filename.c_str());
 
   outfile << "$MeshFormat" << std::endl;
-  outfile << "2 0 8" << std::endl;;
+  outfile << "2.1 0 8" << std::endl;;
   outfile << "$EndMeshFormat" << std::endl;;
 
+
+  outfile << std::setprecision(std::numeric_limits<Real>::digits10);
   outfile << "$Nodes" << std::endl;;
   outfile << nodes.getSize() << std::endl;;
 
@@ -375,8 +379,10 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
+  UInt spatial_dimension = mesh.getSpatialDimension();
   Int nb_elements = 0;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
+    //    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     const Vector<UInt> & connectivity = mesh.getConnectivity(*it);
     nb_elements += connectivity.getSize();
   }
@@ -385,18 +391,21 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   UInt element_idx = 1;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
+    //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
+
     const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+
 
     for(UInt i = 0; i < connectivity.getSize(); ++i) {
       UInt offset = i * connectivity.getNbComponent();
-      outfile << element_idx << " " << type << " 3 0 0 0";
+      outfile << element_idx << " " << _akantu_to_msh_element_types[type] << " 3 1 1 0";
 
       for(UInt j = 0; j < connectivity.getNbComponent(); ++j) {
-	outfile << " " << connectivity.values[offset + j];
+	outfile << " " << connectivity.values[offset + j] + 1;
       }
       outfile << std::endl;
+      element_idx++;
     }
-    element_idx++;
   }
 
   outfile << "$EndElements" << std::endl;;

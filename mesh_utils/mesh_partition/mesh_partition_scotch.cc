@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -178,7 +178,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 
     /// write geometry file
     std::ofstream fgeominit;
-    fgeominit.open("GeomMeshFile.xyz");
+    fgeominit.open("ScotchMesh.xyz");
     fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
     const Vector<Real> & nodes = mesh.getNodes();
@@ -223,6 +223,8 @@ void MeshPartitionScotch::destroyMesh(SCOTCH_Mesh * meshptr) {
   delete [] edgetab;
 
   SCOTCH_meshExit(meshptr);
+
+  delete meshptr;
 
   AKANTU_DEBUG_OUT();
 }
@@ -366,8 +368,83 @@ void MeshPartitionScotch::reorder() {
   AKANTU_DEBUG_INFO("Reordering the mesh " << mesh.getID());
   SCOTCH_Mesh * scotch_mesh = createMesh();
 
+  UInt nb_nodes = mesh.getNbNodes();
 
+  SCOTCH_Strat    scotch_strat;
+  // SCOTCH_Ordering scotch_order;
+
+
+  SCOTCH_Num * permtab = new SCOTCH_Num[nb_nodes];
+  SCOTCH_Num * peritab = NULL;
+  SCOTCH_Num   cblknbr = 0;
+  SCOTCH_Num * rangtab = NULL;
+  SCOTCH_Num * treetab = NULL;
+
+  /// Initialize the strategy structure
+  SCOTCH_stratInit (&scotch_strat);
+
+  SCOTCH_Graph scotch_graph;
+
+  SCOTCH_graphInit(&scotch_graph);
+  SCOTCH_meshGraph(scotch_mesh, &scotch_graph);
+
+#ifndef AKANTU_NDEBUG
+  if (AKANTU_DEBUG_TEST(dblDump)) {
+    FILE *fgraphinit = fopen("ScotchMesh.grf", "w");
+    SCOTCH_graphSave(&scotch_graph,fgraphinit);
+    fclose(fgraphinit);
+  }
+#endif
+
+  /// Check the graph
+  // AKANTU_DEBUG_ASSERT(SCOTCH_graphCheck(&scotch_graph) == 0,
+  //		      "Mesh to Graph is not consistent");
+
+
+  SCOTCH_graphOrder(&scotch_graph, &scotch_strat,
+		    permtab,
+		    peritab,
+		    &cblknbr,
+		    rangtab,
+		    treetab);
+
+  SCOTCH_graphExit(&scotch_graph);
+  SCOTCH_stratExit(&scotch_strat);
   destroyMesh(scotch_mesh);
+
+  /// Renumbering
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    ElementType type = *it;
+    //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
+
+    UInt nb_element = mesh.getNbElement(type);
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+
+    UInt * conn  = connectivity.values;
+    for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
+      *conn = permtab[*conn];
+    }
+  }
+
+  /// \todo think of a in-place way to do it
+  Real * new_coordinates = new Real[spatial_dimension * nb_nodes];
+  Real * old_coordinates = mesh.getNodes().values;
+  for (UInt i = 0; i < nb_nodes; ++i) {
+    memcpy(new_coordinates + permtab[i] * spatial_dimension,
+	   old_coordinates + i * spatial_dimension,
+	   spatial_dimension * sizeof(Real));
+  }
+  memcpy(old_coordinates, new_coordinates, nb_nodes * spatial_dimension * sizeof(Real));
+  delete [] new_coordinates;
+
+  delete [] permtab;
 
   AKANTU_DEBUG_OUT();
 }

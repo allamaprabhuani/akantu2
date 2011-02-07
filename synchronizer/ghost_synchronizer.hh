@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -77,16 +77,33 @@ public:
   void registerSynchronizer(Synchronizer & synchronizer);
 
 public:
+  /**
+   * @brief get  the number of  data to send  for a given akantu::Element  and a
+   * given akantu::GhostSynchronizationTag
+   */
   virtual UInt getNbDataToPack(const Element & element,
 			       GhostSynchronizationTag tag) const = 0;
 
+
+  /**
+   * @brief get the number of data  to receive for a given akantu::Element and a
+   * given akantu::GhostSynchronizationTag
+   */
   virtual UInt getNbDataToUnpack(const Element & element,
 				 GhostSynchronizationTag tag) const = 0;
 
+  /**
+   * @brief   pack  the   data  for   a  given   akantu::Element  and   a  given
+   * akantu::GhostSynchronizationTag
+   */
   virtual void packData(Real ** buffer,
 			const Element & element,
 			GhostSynchronizationTag tag) const = 0;
 
+  /**
+   * @brief   unpack  the   data  for   a  given   akantu::Element  and   a  given
+   * akantu::GhostSynchronizationTag
+   */
   virtual void unpackData(Real ** buffer,
 			  const Element & element,
 			  GhostSynchronizationTag tag) const = 0;

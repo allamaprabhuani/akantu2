@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -64,7 +64,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   }
 
   registerTag(_gst_smm_mass, "Mass");
-  registerTag(_gst_smm_residual, "Explicit Residual");
+  registerTag(_gst_smm_for_strain, "Explicit Residual");
   registerTag(_gst_smm_boundary, "Boundary conditions");
 
   materials.clear();
@@ -86,6 +86,10 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+/* Initialisation                                                             */
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initVectors() {
@@ -176,6 +180,11 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
   AKANTU_DEBUG_OUT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* Explicit scheme                                                            */
+/* -------------------------------------------------------------------------- */
+
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_IN();
@@ -183,7 +192,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   if (need_initialize) initializeUpdateResidualData();
 
   /// start synchronization
-  asynchronousSynchronize(_gst_smm_residual);
+  asynchronousSynchronize(_gst_smm_for_strain);
 
   /// call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
@@ -192,7 +201,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   }
 
   /// finalize communications
-  waitEndSynchronize(_gst_smm_residual);
+  waitEndSynchronize(_gst_smm_for_strain);
 
   /// call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
@@ -237,7 +246,9 @@ void SolidMechanicsModel::explicitPred() {
   AKANTU_DEBUG_IN();
 
   if(increment_flag) {
-    memcpy(increment->values, displacement->values, displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
+    memcpy(increment->values,
+	   displacement->values,
+	   displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
   }
 
   integrator->integrationSchemePred(time_step,
@@ -273,6 +284,41 @@ void SolidMechanicsModel::explicitCorr() {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+/* Implicit scheme                                                            */
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::assembleStiffnessMatrix() {
+  AKANTU_DEBUG_IN();
+
+  initializeUpdateResidualData();
+
+  /// start synchronization
+  asynchronousSynchronize(_gst_smm_for_strain);
+
+  /// call compute stiffness matrix on each local elements
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->computeStiffnessMatrix(*current_position, _not_ghost);
+  }
+
+  /// finalize communications
+  waitEndSynchronize(_gst_smm_for_strain);
+
+  /// call compute stiffness matrix on each ghost elements
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->computeStiffnessMatrix(*current_position, _ghost);
+  }
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Information                                                                */
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::synchronizeBoundaries() {

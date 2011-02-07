@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -180,6 +180,9 @@ public:
   /// get the Vector of global ids of the nodes (only used in parallel)
   AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Vector<UInt> &);
 
+  /// get the global number of nodes
+  AKANTU_GET_MACRO(NbGlobalNodes, nb_global_nodes, UInt);
+
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
@@ -265,6 +268,9 @@ private:
 
   /// global node ids
   Vector<UInt> * nodes_global_ids;
+
+  /// global number of nodes;
+  UInt nb_global_nodes;
 
   /// boolean to know if the nodes have to be deleted with the mesh or not
   bool created_nodes;

@@ -5,7 +5,7 @@
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -32,6 +32,11 @@ add_dependencies(test_sparse_matrix_profile test_solver_mesh)
 
 register_test(test_sparse_matrix_assemble test_sparse_matrix_assemble.cc)
 add_dependencies(test_sparse_matrix_assemble test_solver_mesh)
+
+if(AKANTU_MPI_ON)
+  register_test(test_sparse_matrix_profile_parallel test_sparse_matrix_profile_parallel.cc)
+  add_dependencies(test_sparse_matrix_profile_parallel test_solver_mesh)
+endif(AKANTU_MPI_ON)
 
 if(AKANTU_MUMPS_ON)
   register_test(test_solver_mumps test_solver_mumps.cc)

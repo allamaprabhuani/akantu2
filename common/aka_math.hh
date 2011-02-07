@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -69,6 +69,12 @@ public:
 			   const Vector<Real> & A,
 			   const Vector<Real> & B,
 			   Vector<Real> & C);
+
+  /// @f$ C = A*B^t @f$
+  static void matrix_matrixt(UInt m, UInt n, UInt k,
+			     const Vector<Real> & A,
+			     const Vector<Real> & B,
+			     Vector<Real> & C);
 
   /// @f$ C = A*B @f$
   static inline void matrix_matrix(UInt m, UInt n, UInt k,

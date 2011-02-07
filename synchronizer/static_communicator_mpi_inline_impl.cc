@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -289,6 +289,18 @@ inline void StaticCommunicatorMPI::_gatherv(T * values, Int * nb_values, Int roo
   if(prank == root) {
     delete [] displs;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicatorMPI::_broadcast(T * values, Int nb_values, Int root) {
+  MPI_Datatype type = getMPIDatatype<T>();
+
+#if !defined(AKANTU_NDEBUG)
+  int ret =
+#endif
+    MPI_Bcast(values, nb_values, type, root, communicator);
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Gather.");
 }
 
 /* -------------------------------------------------------------------------- */

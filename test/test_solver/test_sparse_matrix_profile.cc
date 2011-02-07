@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -33,6 +33,10 @@
 #include "mesh_io.hh"
 
 #include "sparse_matrix.hh"
+
+#ifdef AKANTU_USE_SCOTCH
+#include "mesh_partition_scotch.hh"
+#endif
 
 /* -------------------------------------------------------------------------- */
 
@@ -63,6 +67,18 @@ int main(int argc, char *argv[]) {
   akantu::SparseMatrix sparse_matrix(mesh, akantu::_symmetric, 2, "mesh");
   sparse_matrix.buildProfile();
   sparse_matrix.saveProfile("profile.mtx");
+
+#ifdef AKANTU_USE_SCOTCH
+  mesh_io.write("triangle_breorder.msh", mesh);
+
+  akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+  partition->reorder();
+  delete partition;
+
+  sparse_matrix.buildProfile();
+  sparse_matrix.saveProfile("profile_reorder.mtx");
+  mesh_io.write("triangle_reorder.msh", mesh);
+#endif
 
   akantu::finalize();
 

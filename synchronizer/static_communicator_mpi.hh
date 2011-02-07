@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -92,13 +92,18 @@ public:
   inline void allReduce(Real * values, Int nb_values, const SynchronizerOperation & op);
   inline void allReduce(UInt * values, Int nb_values, const SynchronizerOperation & op);
 
-  inline void gather(Real * values, Int nb_values, Int root) { _gather(values, nb_values, root); };
-  inline void gather(UInt * values, Int nb_values, Int root) { _gather(values, nb_values, root); };
-  inline void gather(Int  * values, Int nb_values, Int root) { _gather(values, nb_values, root); };
+  inline void gather(Real * values, Int nb_values, Int root = 0) { _gather(values, nb_values, root); };
+  inline void gather(UInt * values, Int nb_values, Int root = 0) { _gather(values, nb_values, root); };
+  inline void gather(Int  * values, Int nb_values, Int root = 0) { _gather(values, nb_values, root); };
 
-  inline void gatherv(Real * values, Int * nb_values, Int root) { _gatherv(values, nb_values, root); };
-  inline void gatherv(UInt * values, Int * nb_values, Int root) { _gatherv(values, nb_values, root); };
-  inline void gatherv(Int  * values, Int * nb_values, Int root) { _gatherv(values, nb_values, root); };
+  inline void gatherv(Real * values, Int * nb_values, Int root = 0) { _gatherv(values, nb_values, root); };
+  inline void gatherv(UInt * values, Int * nb_values, Int root = 0) { _gatherv(values, nb_values, root); };
+  inline void gatherv(Int  * values, Int * nb_values, Int root = 0) { _gatherv(values, nb_values, root); };
+
+  inline void broadcast(Real * values, Int nb_values, Int root = 0) { _broadcast(values, nb_values, root); };
+  inline void broadcast(UInt * values, Int nb_values, Int root = 0) { _broadcast(values, nb_values, root); };
+  inline void broadcast(Int  * values, Int nb_values, Int root = 0) { _broadcast(values, nb_values, root); };
+
 
 private:
   template<typename T>
@@ -109,6 +114,9 @@ private:
 
   template<typename T>
   inline void _gatherv(T * values, Int * nb_values, Int root);
+
+  template<typename T>
+  inline void _broadcast(T * values, Int nb_values, Int root);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

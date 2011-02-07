@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -35,10 +35,12 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 /**
- * @param myf pointer to a function that fills a vector/tensor with respect to passed coordinates
- * @param function_type flag to specify the take of function: _bft_stress is tensor like and _bft_forces is traction like.
+ * @param myf pointer  to a function that fills a  vector/tensor with respect to
+ * passed coordinates
+ * @param function_type  flag to  specify the take  of function:  _bft_stress is
+ * tensor like and _bft_forces is traction like.
  */
-void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double *),
+void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 						    BoundaryFunctionType function_type){
   /** function type is
    ** _bft_forces : traction function is given
@@ -108,7 +110,8 @@ void SolidMechanicsModel::computeForcesFromFunction(void (*myf)(double *,double 
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stresses, const ElementType & type){
+void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stresses,
+						      const ElementType & type){
   AKANTU_DEBUG_IN();
 
   UInt nb_element = fem_boundary->getMesh().getNbElement(type);
@@ -140,7 +143,8 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tractions, const ElementType & type){
+void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tractions,
+							const ElementType & type){
   AKANTU_DEBUG_IN();
 
   UInt nb_element = fem_boundary->getMesh().getNbElement(type);

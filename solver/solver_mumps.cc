@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -109,7 +109,7 @@ SolverMumps::SolverMumps(const Mesh & mesh,
   std::stringstream sstr_mat; sstr_mat << id << ":sparse_matrix";
   matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
 
-  UInt nb_nodes = mesh.getNbNodes();
+  UInt nb_nodes = mesh.getNbGlobalNodes();
 
   std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
 
@@ -169,7 +169,6 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   UInt nb_degre_of_freedom = matrix.getNbDegreOfFreedom();
 
   std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
-
 
   mumps_data.sym = 2 * (matrix.getSparseMatrixType() == _symmetric);
 
@@ -239,49 +238,53 @@ void SolverMumps::initialize() {
   icntl(5) = 0; // Assembled matrix
 
 #ifdef AKANTU_USE_MPI
+  icntl(18) = 3; //fully distributed
+  icntl(28) = 0; //parallel analysis
+
   mumps_data.nz_loc  = matrix->getNbNonZero();
   mumps_data.irn_loc = matrix->getIRN().values;
   mumps_data.jcn_loc = matrix->getJCN().values;
 
-  icntl(18) = 3; //fully distributed
-  icntl(28) = 0; //parallel analysis
-
 // #ifdef AKANTU_USE_PTSCOTCH
+//   mumps_data.nz_loc  = matrix->getNbNonZero();
+//   mumps_data.irn_loc = matrix->getIRN().values;
+//   mumps_data.jcn_loc = matrix->getJCN().values;
+
 //   icntl(18) = 3; //fully distributed
 //   icntl(28) = 2; //parallel analysis
 // #else //  AKANTU_USE_PTSCOTCH
 //   icntl(18) = 2; // distributed, sequential analysis
 //   icntl(28) = 1; //sequential analysis
 
-//   if (communicator->whoAmI() == 0) {
-//     Int * nb_non_zero_loc = new Int[communicator->getNbProc()];
-//     nb_non_zero_loc[0] = matrix->getNbNonZero();
+  // if (communicator->whoAmI() == 0) {
+  //   Int * nb_non_zero_loc = new Int[communicator->getNbProc()];
+  //   nb_non_zero_loc[0] = matrix->getNbNonZero();
 
-//     communicator->gather(nb_non_zero_loc, 1, 0);
+  //   communicator->gather(nb_non_zero_loc, 1, 0);
 
-//     UInt nb_non_zero = 0;
-//     for (Int i = 0; i < communicator->getNbProc(); ++i) {
-//       nb_non_zero += nb_non_zero_loc[i];
-//     }
+  //   UInt nb_non_zero = 0;
+  //   for (Int i = 0; i < communicator->getNbProc(); ++i) {
+  //     nb_non_zero += nb_non_zero_loc[i];
+  //   }
 
-//     Int * irn = new Int[nb_non_zero];
-//     Int * jcn = new Int[nb_non_zero];
+  //   Int * irn = new Int[nb_non_zero];
+  //   Int * jcn = new Int[nb_non_zero];
 
-//     memcpy(irn, matrix->getIRN().values, *nb_non_zero_loc * sizeof(int));
-//     memcpy(jcn, matrix->getJCN().values, *nb_non_zero_loc * sizeof(int));
+  //   memcpy(irn, matrix->getIRN().values, *nb_non_zero_loc * sizeof(int));
+  //   memcpy(jcn, matrix->getJCN().values, *nb_non_zero_loc * sizeof(int));
 
-//     communicator->gatherv(irn, nb_non_zero_loc, 0);
-//     communicator->gatherv(jcn, nb_non_zero_loc, 0);
+  //   communicator->gatherv(irn, nb_non_zero_loc, 0);
+  //   communicator->gatherv(jcn, nb_non_zero_loc, 0);
 
-//     mumps_data.nz  = nb_non_zero;
-//     mumps_data.irn = irn;
-//     mumps_data.jcn = jcn;
-//   } else {
-//     Int nb_non_zero_loc = matrix->getNbNonZero();
-//     communicator->gather(&nb_non_zero_loc, 1, 0);
-//     communicator->gatherv(matrix->getIRN().values, &nb_non_zero_loc, 0);
-//     communicator->gatherv(matrix->getJCN().values, &nb_non_zero_loc, 0);
-//   }
+  //   mumps_data.nz  = nb_non_zero;
+  //   mumps_data.irn = irn;
+  //   mumps_data.jcn = jcn;
+  // } else {
+  //   Int nb_non_zero_loc = matrix->getNbNonZero();
+  //   communicator->gather(&nb_non_zero_loc, 1, 0);
+  //   communicator->gatherv(matrix->getIRN().values, &nb_non_zero_loc, 0);
+  //   communicator->gatherv(matrix->getJCN().values, &nb_non_zero_loc, 0);
+  // }
 // #endif // AKANTU_USE_PTSCOTCH
 
 #else //AKANTU_USE_MPI
@@ -297,12 +300,12 @@ void SolverMumps::initialize() {
   dmumps_c(&mumps_data);
 
 
-#ifdef AKANTU_USE_MPI
-#ifdef AKANTU_USE_PTSCOTCH
-  delete [] mumps_data.irn;
-  delete [] mumps_data.jcn;
-#endif
-#endif
+// #ifdef AKANTU_USE_MPI
+// #ifdef AKANTU_USE_PTSCOTCH
+//   delete [] mumps_data.irn;
+//   delete [] mumps_data.jcn;
+// #endif
+// #endif
 
   AKANTU_DEBUG_OUT();
 }

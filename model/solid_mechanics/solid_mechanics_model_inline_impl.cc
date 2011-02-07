@@ -7,7 +7,7 @@
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique fédérale de Lausanne)
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -78,7 +78,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
     size += nb_nodes_per_element; // mass vector
     break;
   }
-  case _gst_smm_residual: {
+  case _gst_smm_for_strain: {
     size += nb_nodes_per_element * spatial_dimension; // displacement
 
     UInt mat = element_material[element.type]->values[element.element];
@@ -115,7 +115,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
     size += nb_nodes_per_element; // mass vector
     break;
   }
-  case _gst_smm_residual: {
+  case _gst_smm_for_strain: {
     size += nb_nodes_per_element * spatial_dimension; // displacement
 
     UInt mat = ghost_element_material[element.type]->values[element.element];
@@ -159,7 +159,7 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
     *buffer += nb_nodes_per_element;
     break;
   }
-  case _gst_smm_residual: {
+  case _gst_smm_for_strain: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n] * spatial_dimension;
       memcpy(*buffer, current_position->values + offset_conn, spatial_dimension * sizeof(Real));
@@ -229,7 +229,7 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
     *buffer += nb_nodes_per_element;
     break;
   }
-  case _gst_smm_residual: {
+  case _gst_smm_for_strain: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n] * spatial_dimension;
       memcpy(current_position->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
