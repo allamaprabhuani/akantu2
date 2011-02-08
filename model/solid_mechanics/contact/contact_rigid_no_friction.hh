@@ -60,6 +60,9 @@ public:
   /// solve the contact
   void solveContact();
   
+  /// avoid adhesion by delocking contact nodes that have tensile contact force
+  void avoidAdhesion();
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -76,11 +79,18 @@ private:
 		       const ElementType facet_type, 
 		       const UInt facet_offset);
 
+  void lockImpactorNode(const PenetrationList & penet_list, 
+			const UInt impactor_index, 
+			const ElementType facet_type, 
+			const UInt facet_offset);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+  /// get the vector containing the active impactor nodes
+  AKANTU_GET_MACRO(ActiveImpactorNodes, active_impactor_nodes, const Vector<UInt> *);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -90,6 +100,14 @@ private:
   
   /// the mesh
   const Mesh & mesh;
+
+  /// the normal to the master surface
+  Vector<Int> * master_normals;
+
+  /// list of active impactor nodes
+  Vector<UInt> * active_impactor_nodes;  
+  
+  
 
 };
 

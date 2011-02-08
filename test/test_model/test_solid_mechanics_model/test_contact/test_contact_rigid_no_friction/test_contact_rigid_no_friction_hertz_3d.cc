@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
 
     my_contact->solveContact();
 
-    my_model.updateResidual(false);
+    my_model.updateResidual();
 
     Real * residual = my_model.getResidual().values; 
     Real top_force = 0.;

@@ -42,6 +42,9 @@ ContactRigidNoFriction::ContactRigidNoFriction(const SolidMechanicsModel & model
   Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()) {
   AKANTU_DEBUG_IN();
   
+  this->master_normals = new Vector<Int>(0, spatial_dimension);
+  this->active_impactor_nodes = new Vector<UInt>(0,1);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -175,6 +178,7 @@ void ContactRigidNoFriction::solvePenetrationClosestProjection(const Penetration
 
     // correct the position of the impactor
     projectImpactor(penet_list, n, penetrated_type, penetrated_facet_offset);
+    lockImpactorNode(penet_list, n, penetrated_type, penetrated_facet_offset);
   }
 
   AKANTU_DEBUG_OUT();
@@ -185,7 +189,6 @@ void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list,
 
   AKANTU_DEBUG_IN();
   
-  const UInt dim = model.getSpatialDimension();
   const bool increment_flag = model.getIncrementFlag();
 
   UInt * penetrating_nodes   = penet_list.penetrating_nodes.values;
@@ -201,16 +204,76 @@ void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list,
 
   UInt impactor_node = penetrating_nodes[impactor_index];
 
-  for(UInt i=0; i < dim; ++i) {
-    current_position[impactor_node*dim + i] = projected_positions[facet_offset*dim + i];
-    Real displacement_correction = gaps[facet_offset] * facets_normals[facet_offset*dim + i];
-    displacement[impactor_node*dim + i] = displacement[impactor_node*dim + i] - displacement_correction;
+  for(UInt i=0; i < spatial_dimension; ++i) {
+    current_position[impactor_node*spatial_dimension + i] = projected_positions[facet_offset*spatial_dimension + i];
+    Real displacement_correction = gaps[facet_offset] * facets_normals[facet_offset*spatial_dimension + i];
+    displacement[impactor_node*spatial_dimension + i] = displacement[impactor_node*spatial_dimension + i] - displacement_correction;
     if(increment_flag)
-      increment   [impactor_node*dim + i] = increment   [impactor_node*dim + i] - displacement_correction;
+      increment   [impactor_node*spatial_dimension + i] = increment   [impactor_node*spatial_dimension + i] - displacement_correction;
   }
 
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void ContactRigidNoFriction::lockImpactorNode(const PenetrationList & penet_list, const UInt impactor_index, const ElementType facet_type, const UInt facet_offset) {
+  AKANTU_DEBUG_IN();
+  
+  UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
+  UInt impactor_node = penetrating_nodes[impactor_index];
+
+  Real * facets_normals = penet_list.facets_normals[facet_type]->values;
+  Real * facet_normal = &facets_normals[facet_offset*spatial_dimension];
+  Int * normal = new Int[spatial_dimension];
+
+  bool * bound_val = this->model.getBoundary().values;
+  Real * veloc_val = this->model.getVelocity().values;
+  Real * accel_val = this->model.getAcceleration().values;
+
+  for(UInt i = 0; i < spatial_dimension; ++i)
+    normal[i] = static_cast<Int>(floor(facet_normal[i] + 0.5));
+  
+  for(UInt i = 0; i < spatial_dimension; ++i) {
+    if(normal[i] != 0) {
+      UInt index = impactor_node * spatial_dimension + i;
+      bound_val[index] = true;
+      veloc_val[index] = 0.;
+      accel_val[index] = 0.;
+    }
+  }
+
+  this->active_impactor_nodes->push_back(impactor_node);
+  this->master_normals->push_back(normal);
+
+  delete [] normal;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactRigidNoFriction::avoidAdhesion() {
+  AKANTU_DEBUG_IN();
+
+  Real * residual_val = this->model.getResidual().values;
+  bool * bound_val    = this->model.getBoundary().values;
+
+  for (UInt n=0; n < this->active_impactor_nodes->getSize(); ++n) {
+    UInt current_node = this->active_impactor_nodes->at(n);
+    
+    for (UInt i=0; i < spatial_dimension; ++i) {
+      Int direction = this->master_normals->at(n,i);
+      Real force = residual_val[current_node * spatial_dimension + i];
+      if(force * direction > 0.) {
+	bound_val[current_node * spatial_dimension + i] = false;
+	this->active_impactor_nodes->erase(n);
+	this->master_normals->erase(n);
+	n--;
+	break;
+      }
+    }
+  }
+  
+  AKANTU_DEBUG_OUT();
+}
 
 __END_AKANTU__

@@ -35,6 +35,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_rigid_no_friction.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -90,10 +91,12 @@ int main(int argc, char *argv[])
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * my_contact = Contact::newContact(my_model, 
+  Contact * contact = Contact::newContact(my_model, 
 					     _ct_rigid_no_fric, 
 					     _cst_3d_expli, 
 					     _cnst_regular_grid);
+
+  ContactRigidNoFriction * my_contact = dynamic_cast<ContactRigidNoFriction *>(contact);
 
   my_contact->initContact(false);
 
@@ -166,6 +169,10 @@ int main(int argc, char *argv[])
   hertz.open("hertz_2d.csv");
   hertz << "%id,ftop,fcont,zone" << std::endl;
 
+  std::ofstream energy;
+  energy.open("hertz_2d_energy.csv");
+  energy << "%id,kin,pot" << std::endl;
+
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
@@ -189,40 +196,51 @@ int main(int argc, char *argv[])
 
     my_model.explicitPred();
    
-    my_model.updateCurrentPosition();
+    my_model.initializeUpdateResidualData();
 
     /// compute the penetration list
-    PenetrationList * my_penetration_list = new PenetrationList();
+    /*PenetrationList * my_penetration_list = new PenetrationList();
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
     Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
-    UInt * pen_nodes_val = pen_nodes.values;
+    UInt * pen_nodes_val = pen_nodes.values;*/
 
     my_contact->solveContact();
 
     my_model.updateResidual(false);
 
+    my_contact->avoidAdhesion();
+
+    // find the total force applied at the imposed displacement surface (top)
     Real * residual = my_model.getResidual().values; 
     Real top_force = 0.;
     for(UInt n=0; n<top_nodes->getSize(); ++n) {
       UInt node = top_nodes_val[n];
       top_force += residual[node*dim + 1];
     }
-    my_model.updateCurrentPosition();
+   
+    // find the total contact force and contact area
+    const Vector<UInt> * active_imp_nodes = my_contact->getActiveImpactorNodes();
+    UInt * active_imp_nodes_val = active_imp_nodes->values;
     Real * current_position = my_model.getCurrentPosition().values; 
     Real contact_force = 0.;
     Real contact_zone = 0.;
-    for (UInt i = 0; i < nb_nodes_pen; ++i) {
-      UInt node = pen_nodes_val[i];
+    for (UInt i = 0; i < active_imp_nodes->getSize(); ++i) {
+      UInt node = active_imp_nodes_val[i];
       contact_force += residual[node*dim + 1];
       contact_zone = std::max(contact_zone, current_position[node*dim]); 
     }
-    delete my_penetration_list;
+    //delete my_penetration_list;
 
     hertz << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
 
     my_model.updateAcceleration();
     my_model.explicitCorr();
+
+    Real epot = my_model.getPotentialEnergy();
+    Real ekin = my_model.getKineticEnergy();
+    energy << s << "," << ekin << "," << epot << std::endl;
+
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 100 == 0) dumper.Dump();
@@ -230,6 +248,7 @@ int main(int argc, char *argv[])
   }
 
   hertz.close();
+  energy.close();
 
   delete my_contact;
  

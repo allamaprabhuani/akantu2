@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     delete my_penetration_list;
 
     /// compute the residual
-    my_model.updateResidual(false);
+    my_model.updateResidual();
     
     /// compute the acceleration
     my_model.updateAcceleration();
