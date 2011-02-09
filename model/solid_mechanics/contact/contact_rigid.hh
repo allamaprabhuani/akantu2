@@ -1,5 +1,5 @@
 /**
- * @file   contact_rigid_no_friction.hh
+ * @file   contact_rigid.hh
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Mon Jan 17 14:10:05 2011
  *
@@ -28,8 +28,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_RIGID_NO_FRICTION_HH__
-#define __AKANTU_CONTACT_RIGID_NO_FRICTION_HH__
+#ifndef __AKANTU_CONTACT_RIGID_HH__
+#define __AKANTU_CONTACT_RIGID_HH__
 
 /* -------------------------------------------------------------------------- */
 
@@ -40,18 +40,18 @@
 
 __BEGIN_AKANTU__
 
-class ContactRigidNoFriction : public Contact {
+class ContactRigid : public Contact {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactRigidNoFriction(const SolidMechanicsModel & model,
-			 const ContactType & type,
-			 const ContactID & id = "contact",
-			 const MemoryID & memory_id = 0);
+  ContactRigid(const SolidMechanicsModel & model,
+	       const ContactType & type,
+	       const ContactID & id = "contact",
+	       const MemoryID & memory_id = 0);
   
-  virtual ~ContactRigidNoFriction();
+  virtual ~ContactRigid();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -126,10 +126,10 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "contact_rigid_no_friction_inline_impl.cc"
+//#include "contact_rigid_inline_impl.cc"
 
 /// standard output stream operator
-//inline std::ostream & operator <<(std::ostream & stream, const ContactRigidNoFriction & _this)
+//inline std::ostream & operator <<(std::ostream & stream, const ContactRigid & _this)
 //{
 //  _this.printself(stream);
 //  return stream;
@@ -138,4 +138,4 @@ private:
 
 __END_AKANTU__
 
-#endif /*__AKANTU_CONTACT_RIGID_NO_FRICTION_HH__ */
+#endif /*__AKANTU_CONTACT_RIGID_HH__ */

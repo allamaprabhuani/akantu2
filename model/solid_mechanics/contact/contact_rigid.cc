@@ -1,5 +1,5 @@
 /**
- * @file   contact_rigid_no_friction.cc
+ * @file   contact_rigid.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Tue Oct 26 17:15:08 2010
  *
@@ -27,7 +27,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "contact_rigid_no_friction.hh"
+#include "contact_rigid.hh"
 #include "contact_search.hh"
 
 
@@ -35,10 +35,10 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
-ContactRigidNoFriction::ContactRigidNoFriction(const SolidMechanicsModel & model,
-					       const ContactType & type,
-					       const ContactID & id,
-					       const MemoryID & memory_id) :
+ContactRigid::ContactRigid(const SolidMechanicsModel & model,
+			   const ContactType & type,
+			   const ContactID & id,
+			   const MemoryID & memory_id) :
   Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()) {
   AKANTU_DEBUG_IN();
   
@@ -50,7 +50,7 @@ ContactRigidNoFriction::ContactRigidNoFriction(const SolidMechanicsModel & model
 }
 
 /* -------------------------------------------------------------------------- */
-ContactRigidNoFriction::~ContactRigidNoFriction() {
+ContactRigid::~ContactRigid() {
   AKANTU_DEBUG_IN();
 
   delete this->master_normals;
@@ -62,7 +62,7 @@ ContactRigidNoFriction::~ContactRigidNoFriction() {
 
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::solveContact() {
+void ContactRigid::solveContact() {
   AKANTU_DEBUG_IN();
 
   for(UInt master=0; master < master_surfaces.size(); ++master) {
@@ -76,7 +76,7 @@ void ContactRigidNoFriction::solveContact() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*void ContactRigidNoFriction::solvePenetration(const PenetrationList & penet_list) {
+/*void ContactRigid::solvePenetration(const PenetrationList & penet_list) {
   AKANTU_DEBUG_IN();
 
   const UInt dim = ;
@@ -140,7 +140,7 @@ void ContactRigidNoFriction::solveContact() {
   }*/
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::solvePenetrationClosestProjection(const PenetrationList & penet_list) {
+void ContactRigid::solvePenetrationClosestProjection(const PenetrationList & penet_list) {
   AKANTU_DEBUG_IN();
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -188,7 +188,7 @@ void ContactRigidNoFriction::solvePenetrationClosestProjection(const Penetration
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list, const UInt impactor_index, const ElementType facet_type, const UInt facet_offset) {
+void ContactRigid::projectImpactor(const PenetrationList & penet_list, const UInt impactor_index, const ElementType facet_type, const UInt facet_offset) {
 
   AKANTU_DEBUG_IN();
   
@@ -219,7 +219,7 @@ void ContactRigidNoFriction::projectImpactor(const PenetrationList & penet_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::lockImpactorNode(const PenetrationList & penet_list, const UInt impactor_index, const ElementType facet_type, const UInt facet_offset) {
+void ContactRigid::lockImpactorNode(const PenetrationList & penet_list, const UInt impactor_index, const ElementType facet_type, const UInt facet_offset) {
   AKANTU_DEBUG_IN();
   
   UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
@@ -257,7 +257,7 @@ void ContactRigidNoFriction::lockImpactorNode(const PenetrationList & penet_list
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::avoidAdhesion() {
+void ContactRigid::avoidAdhesion() {
   AKANTU_DEBUG_IN();
 
   Real * residual_val = this->model.getResidual().values;
@@ -284,7 +284,7 @@ void ContactRigidNoFriction::avoidAdhesion() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::addFriction() {
+void ContactRigid::addFriction() {
   AKANTU_DEBUG_IN();
   
   Real friction_coef = 0.3; // temp solution until friction coefficient better defined 
@@ -367,7 +367,7 @@ void ContactRigidNoFriction::addFriction() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigidNoFriction::addSticking() {
+void ContactRigid::addSticking() {
   AKANTU_DEBUG_IN();
   
   Real * velocity_val = this->model.getVelocity().values;

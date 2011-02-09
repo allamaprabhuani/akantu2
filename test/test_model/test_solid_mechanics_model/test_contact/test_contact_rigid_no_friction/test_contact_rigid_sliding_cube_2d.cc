@@ -35,7 +35,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
-#include "contact_rigid_no_friction.hh"
+#include "contact_rigid.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -106,11 +106,11 @@ int main(int argc, char *argv[])
 
    /// contact declaration
   Contact * contact = Contact::newContact(my_model, 
-					     _ct_rigid_no_fric, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
 
-  ContactRigidNoFriction * my_contact = dynamic_cast<ContactRigidNoFriction *>(contact);
+  ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
   my_contact->initContact(false);
 

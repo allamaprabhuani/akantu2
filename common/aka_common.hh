@@ -173,16 +173,16 @@ typedef ID ContactSearchID;
 typedef ID ContactNeighborStructureID;
 
 enum ContactType {
-  _ct_not_defined   = 0,
-  _ct_2d_expli      = 1,
-  _ct_3d_expli      = 2,
-  _ct_rigid_no_fric = 3
+  _ct_not_defined = 0,
+  _ct_2d_expli    = 1,
+  _ct_3d_expli    = 2,
+  _ct_rigid       = 3
 };
 
 enum ContactSearchType {
   _cst_not_defined = 0,
   _cst_2d_expli    = 1,
-  _cst_expli    = 2
+  _cst_expli       = 2
 };
 
 enum ContactNeighborStructureType {

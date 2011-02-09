@@ -35,7 +35,7 @@
 #include "contact_search_explicit.hh"
 #include "contact_2d_explicit.hh"
 #include "contact_search_2d_explicit.hh"
-#include "contact_rigid_no_friction.hh"
+#include "contact_rigid.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -274,8 +274,8 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
     tmp_contact = new Contact3dExplicit(model, contact_type, id, memory_id);
     break;
   }
-  case _ct_rigid_no_fric: {
-    tmp_contact = new ContactRigidNoFriction(model, contact_type, id, memory_id);
+  case _ct_rigid: {
+    tmp_contact = new ContactRigid(model, contact_type, id, memory_id);
     break;
   }
   case _ct_not_defined: {

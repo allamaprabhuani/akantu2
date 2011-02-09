@@ -252,7 +252,7 @@ set(AKANTU_CONTACT_SRC
   model/solid_mechanics/contact/contact_search_explicit.cc
   model/solid_mechanics/contact/contact_3d_explicit.cc
   model/solid_mechanics/contact/grid_2d_neighbor_structure.cc
-  model/solid_mechanics/contact/contact_rigid_no_friction.cc
+  model/solid_mechanics/contact/contact_rigid.cc
   )
 
 if(AKANTU_BUILD_CONTACT)
