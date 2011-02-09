@@ -147,6 +147,14 @@ public:
 				   const std::string & obj_id,
 				   const std::string & vec_id,
 				   GhostType ghost_type);
+
+  /// init a by-element-type real vector with provided ids
+  void initByElementTypeUIntVector(ByElementTypeUInt & v,UInt nb_component,
+				   UInt dimension,
+				   const std::string & obj_id,
+				   const std::string & vec_id,
+				   GhostType ghost_type=_not_ghost);
+
   
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem);
@@ -318,6 +326,9 @@ private:
   Real xmin[3];
   /// max of coordinates
   Real xmax[3];
+
+  /// list of elements that are reversed due to pbc
+  ByElementTypeUInt reversed_elements_pbc;
 };
 
 /* -------------------------------------------------------------------------- */

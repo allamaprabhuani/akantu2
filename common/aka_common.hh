@@ -71,6 +71,7 @@ typedef int Int;
 
 typedef std::string ID;
 
+static const Real UINT_INIT_VALUE = 0;
 #ifdef AKANTU_NDEBUG
   static const Real REAL_INIT_VALUE = 0;
 #else

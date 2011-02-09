@@ -115,23 +115,25 @@ void Material::initInternalVector(ByElementTypeReal & vect,
 				  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t)
-    vect[t] = NULL;
+  model->getFEM().getMesh().initByElementTypeRealVector(vect,nb_component,spatial_dimension,
+							 id,vect_id,ghost_type);
+  // for(UInt t = _not_defined; t < _max_element_type; ++t)
+  //   vect[t] = NULL;
 
-  std::string ghost_id = "";
+  // std::string ghost_id = "";
 
-  if (ghost_type == _ghost) {
-    ghost_id = "ghost_";
-  }
+  // if (ghost_type == _ghost) {
+  //   ghost_id = "ghost_";
+  // }
 
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    std::stringstream sstr_damage; sstr_damage << id << ":" << ghost_id << vect_id << ":" << *it;
-    vect[*it] = &(alloc<Real>(sstr_damage.str(), 0,
-			      nb_component, REAL_INIT_VALUE));
-  }
+  // const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
+  // Mesh::ConnectivityTypeList::const_iterator it;
+  // for(it = type_list.begin(); it != type_list.end(); ++it) {
+  //   if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+  //   std::stringstream sstr_damage; sstr_damage << id << ":" << ghost_id << vect_id << ":" << *it;
+  //   vect[*it] = &(alloc<Real>(sstr_damage.str(), 0,
+  // 			      nb_component, REAL_INIT_VALUE));
+  // }
 
   AKANTU_DEBUG_OUT();
 }

@@ -1,6 +1,6 @@
 /**
  * @file   mesh_pbc.cc
- * @author anciaux <guillaume.anciaux@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Tue Feb  8 10:48:01 2011
  *
  * @brief  periodic boundary condition connectivity tweak
@@ -88,22 +88,29 @@ void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
       ++it;
     }
   }
+
+  //allocate and initialize list of reversed elements
+  mesh.initByElementTypeUIntVector(mesh.reversed_elements_pbc,1,0,mesh.id,"reversed");
   // now loop over the elements to change the connectivity of some elements
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    UInt nb_elem = mesh.getNbElement(*it);
-    UInt nb_node_per_elem = mesh.getNbNodesPerElement(*it);
+    ElementType type = *it;
+    UInt nb_elem = mesh.getNbElement(type);
+    UInt nb_nodes_per_elem = mesh.getNbNodesPerElement(type);
     UInt * conn = mesh.getConnectivityPointer(*it)->values;
-    for (UInt index = 0; index < nb_elem*nb_node_per_elem; index++) {
-      if (pbc_pair.count(conn[index])){
-	conn[index] = pbc_pair[conn[index]];
+    UInt index = 0;
+    Vector<UInt> & list = *(mesh.reversed_elements_pbc[type]);
+    for (UInt el = 0; el < nb_elem; el++) {
+      for (UInt k = 0; k < nb_nodes_per_elem; ++k,++index){
+	if (pbc_pair.count(conn[index])){
+	  conn[index] = pbc_pair[conn[index]];
+	}	
       }
+      list.push_back(el);
     }
   }
-
 }
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -199,61 +206,5 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
   AKANTU_DEBUG_INFO("found " <<  pbc_pair.size() << " pairs for direction " << dir);
 
 }
-
-// // now put together the map in such a way that only one indirection is associating pbc nodes
-// int cpt=0;
-// is_pair_at_corner = malloc(sizeof(int)*(n_pbc_pair_x+n_pbc_pair_y+n_pbc_pair_z));
-// memset(is_pair_at_corner,0,sizeof(int)*(n_pbc_pair_x+n_pbc_pair_y+n_pbc_pair_z));
-// if (pbc_nodes_1) free(pbc_nodes_1);
-// pbc_nodes_1 = malloc(sizeof(int)*(n_pbc_pair_x+n_pbc_pair_y+n_pbc_pair_z));
-// if (pbc_nodes_2) free(pbc_nodes_2);
-// pbc_nodes_2 = malloc(sizeof(int)*(n_pbc_pair_x+n_pbc_pair_y+n_pbc_pair_z));
-
-// for(i=0; i<n_pbc_pair_x; i++){
-//   pbc_nodes_1[i] = pbc_nodesx_1[i];
-//   pbc_nodes_2[i] = pbc_nodesx_2[i];
-//   int index = pbc_nodes_1[i];
-//   cpt = 0;
-//   if (are_float_equal(coordinates[3*index+0],min[0]) || 
-//       are_float_equal(coordinates[3*index+0],max[0])) ++cpt;
-//   if (are_float_equal(coordinates[3*index+1],min[1]) || 
-// 	are_float_equal(coordinates[3*index+1],max[1])) ++cpt;
-//   if (are_float_equal(coordinates[3*index+2],min[2]) || 
-//       are_float_equal(coordinates[3*index+2],max[2])) ++cpt;
-//   is_pair_at_corner[i] = cpt;
-//  }
-// n_pbc_pair = n_pbc_pair_x;
-// fprintf(stderr,"added %d pairs for x direction\n",n_pbc_pair);
-// //doing for y (including forward and exclusion
-// int added;
-// added = MergePairs(pbc_nodes_1,pbc_nodes_2,is_pair_at_corner,n_pbc_pair,pbc_nodesy_1,pbc_nodesy_2,n_pbc_pair_y,n_pbc_pair_x+n_pbc_pair_y+n_pbc_pair_z);
-// fprintf(stderr,"added %d pairs for y direction\n",added);
-// n_pbc_pair += added;
-// //doing for z (including forward and exclusion
-// added = MergePairs(pbc_nodes_1,pbc_nodes_2,is_pair_at_corner,n_pbc_pair,pbc_nodesz_1,pbc_nodesz_2,n_pbc_pair_z,n_pbc_pair_x+n_pbc_pair_y+n_pbc_pair_z);
-// if (is_pair_at_corner) free(is_pair_at_corner);
-// fprintf(stderr,"added %d pairs for z direction\n",added);
-// n_pbc_pair += added;
-// fprintf(stderr,"now total number of pairs is %d\n",n_pbc_pair);
-// //do a last check that there are no duplicate pairs due to pbc in multiple dimensions
-// Remove_pairs_duplicate();
-
-// if (adlib_myrank == 1){
-//   fprintf(stderr,"give local pairs :\n");
-//   for(i=0; i<n_pbc_pair; i++) 
-//     fprintf(stderr,"pair %d : forward node %d (%f %f %f) to node %d (%f %f %f)\n",
-// 	    i,pbc_nodes_1[i],
-// 	    coordinates[3*pbc_nodes_1[i]],coordinates[3*pbc_nodes_1[i]+1],coordinates[3*pbc_nodes_1[i]+2],
-// 	    pbc_nodes_2[i],
-// 	    coordinates[3*pbc_nodes_2[i]],coordinates[3*pbc_nodes_2[i]+1],coordinates[3*pbc_nodes_2[i]+2]);
-//  }
-
-// if (pbc_nodesx_1) free(pbc_nodesx_1);
-// if (pbc_nodesy_1) free(pbc_nodesy_1);
-// if (pbc_nodesz_1) free(pbc_nodesz_1);
-// if (pbc_nodesx_2) free(pbc_nodesx_2);
-// if (pbc_nodesy_2) free(pbc_nodesy_2);
-// if (pbc_nodesz_2) free(pbc_nodesz_2);  
-// }
 
 __END_AKANTU__

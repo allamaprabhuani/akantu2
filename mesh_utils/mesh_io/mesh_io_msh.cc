@@ -379,10 +379,8 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
   Int nb_elements = 0;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    //    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     const Vector<UInt> & connectivity = mesh.getConnectivity(*it);
     nb_elements += connectivity.getSize();
   }
