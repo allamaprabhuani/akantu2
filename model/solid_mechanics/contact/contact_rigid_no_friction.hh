@@ -63,6 +63,12 @@ public:
   /// avoid adhesion by delocking contact nodes that have tensile contact force
   void avoidAdhesion();
 
+  /// add friction forces
+  void addFriction();
+
+  /// find nodes that stick
+  void addSticking();
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -91,6 +97,9 @@ public:
   /// get the vector containing the active impactor nodes
   AKANTU_GET_MACRO(ActiveImpactorNodes, active_impactor_nodes, const Vector<UInt> *);
 
+  /// get the vector that indicates if an impactor node sticks
+  AKANTU_GET_MACRO(NodeIsSticking, node_is_sticking, const Vector<bool> *);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -107,7 +116,8 @@ private:
   /// list of active impactor nodes
   Vector<UInt> * active_impactor_nodes;  
   
-  
+  /// show if node is sticking
+  Vector<bool> * node_is_sticking;
 
 };
 
