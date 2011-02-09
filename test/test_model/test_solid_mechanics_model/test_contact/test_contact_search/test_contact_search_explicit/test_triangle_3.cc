@@ -1,9 +1,9 @@
 /**
- * @file   test_3d_explicit_triangle_3.cc
+ * @file   test_triangle_3.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Mon Jan 17 11:13:42 2011
  *
- * @brief  test contact search for 2d case in explicit
+ * @brief  test contact search explicit for 2d case with triangle_3 elements
  *
  * @section LICENSE
  *

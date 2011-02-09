@@ -1,9 +1,9 @@
 /**
- * @file   test_3d_explicit_tetrahedron_4.cc
+ * @file   test_tetrahedron_4.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Fri Dec 03 12:11:42 2010
  *
- * @brief  test contact search for 3d case in explicit
+ * @brief  test contact_search_explicit for 3d case with tetrahedron_4 elements
  *
  * @section LICENSE
  *

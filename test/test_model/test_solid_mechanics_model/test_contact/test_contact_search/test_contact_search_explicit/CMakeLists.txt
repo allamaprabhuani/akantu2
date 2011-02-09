@@ -26,16 +26,16 @@
 #===============================================================================
 
 #===============================================================================
-add_mesh(test_3d_explicit_mesh_squares squares.geo 2 1)
+add_mesh(test_mesh_squares squares.geo 2 1)
 
-register_test(test_3d_explicit_triangle_3 test_3d_explicit_triangle_3.cc)
-add_dependencies(test_3d_explicit_triangle_3 test_3d_explicit_mesh_squares)
+register_test(test_triangle_3 test_triangle_3.cc)
+add_dependencies(test_triangle_3 test_mesh_squares)
 
 #===============================================================================
-add_mesh(test_3d_explicit_mesh cubes.geo 3 1)
+add_mesh(test_mesh_cubes cubes.geo 3 1)
 
-register_test(test_3d_explicit_tetrahedron_4 test_3d_explicit_tetrahedron_4.cc)
-add_dependencies(test_3d_explicit_tetrahedron_4 test_3d_explicit_mesh)
+register_test(test_tetrahedron_4 test_tetrahedron_4.cc)
+add_dependencies(test_tetrahedron_4 test_mesh_cubes)
 
 #===============================================================================
 #add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
