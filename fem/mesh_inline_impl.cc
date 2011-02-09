@@ -366,3 +366,16 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_OUT();
   return facet_conn;
 }
+
+/* -------------------------------------------------------------------------- */
+inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
+						     Real * coord,
+						     UInt * connectivity,
+						     UInt n_nodes){
+  for (UInt id = 0; id < n_nodes; ++id) {			
+    memcpy(local_coord + id * spatial_dimension,			
+	   coord + connectivity[id] * spatial_dimension,		
+	   spatial_dimension*sizeof(Real));				
+  }
+}
+

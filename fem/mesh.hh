@@ -155,6 +155,11 @@ public:
 				   const std::string & vec_id,
 				   GhostType ghost_type=_not_ghost);
 
+  /// extract coordinates of nodes from an element
+  inline void extractNodalCoordinatesFromElement(Real * local_coords,
+						 Real * coord,
+						 UInt * connectivity,
+						 UInt n_nodes);
   
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem);

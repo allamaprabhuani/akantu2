@@ -50,38 +50,32 @@ int main(int argc, char *argv[])
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
   
-  MeshUtils::tweakConnectivityForPBC(mesh,1,1,1);
+  MeshUtils::tweakConnectivityForPBC(mesh,1,0,0);
 
-// #ifdef AKANTU_USE_IOHELPER
-//   unsigned int nb_nodes = mesh.getNbNodes();
-//   DumperParaview dumper;
-//   dumper.SetMode(TEXT);
+  SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
+  model->initVectors();
+  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  memset(model->getForce().values,        0, 2*nb_nodes*sizeof(Real));
+  memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
+  memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
+  memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
 
-//   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction");
-//   dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
-// 			 TETRA1, mesh.getNbElement(_tetrahedron_4), C_MODE);
-//   dumper.SetPrefix("paraview/");
-//   dumper.Init();
-//   dumper.Dump();
+  model->readMaterials("material.dat");
+  model->initMaterials();
+  model->initModel();
 
-//   DumperParaview dumper_facet;
-//   dumper_facet.SetMode(TEXT);
+ #ifdef AKANTU_USE_IOHELPER
+  DumperParaview dumper;
+  dumper.SetMode(TEXT);
 
-//   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_boundary");
-//   dumper_facet.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
-// 			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
-//   dumper_facet.SetPrefix("paraview/");
-//   dumper_facet.Init();
-//   dumper_facet.Dump();
+  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-pbc-tweak");
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
+			 TETRA1, mesh.getNbElement(_tetrahedron_4), C_MODE);
+  dumper.SetPrefix("paraview/");
+  dumper.Init();
+  dumper.Dump();
 
-//   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
-//   dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(_triangle_3).values,
-//   			       TRIANGLE1, mesh.getInternalFacetsMesh().getNbElement(_triangle_3), C_MODE);
-//   dumper_facet.Init();
-//   dumper_facet.Dump();
-
-
-//#endif //AKANTU_USE_IOHELPER
+#endif //AKANTU_USE_IOHELPER
 
   return EXIT_SUCCESS;
 }

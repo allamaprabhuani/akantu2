@@ -139,12 +139,8 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
     do {								\
       Real local_coord[spatial_dimension * nb_nodes_per_element];	\
       for (UInt elem = 0; elem < nb_element; ++elem) {			\
-	int offset = elem * nb_nodes_per_element;			\
-	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
-	  memcpy(local_coord + id * spatial_dimension,			\
-		 coord + elem_val[offset + id] * spatial_dimension,	\
-		 spatial_dimension*sizeof(Real));			\
-	}								\
+	mesh->extractNodalCoordinatesFromElement(local_coord,		\
+        coord,elem_val+elem*nb_nodes_per_element,nb_nodes_per_element);	\
 	ElementClass<type>::preComputeStandards(local_coord,		\
 						spatial_dimension,	\
 						shapes_val,		\
@@ -156,7 +152,6 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
       }									\
     } while(0)
     /* ---------------------------------------------------------------------- */
-    
     AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_SHAPES)      
 #undef COMPUTE_SHAPES
 
@@ -226,12 +221,8 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     do {								\
       Real local_coord[spatial_dimension * nb_nodes_per_element];	\
       for (UInt elem = 0; elem < nb_element; ++elem) {			\
-	int offset = elem * nb_nodes_per_element;			\
-	for (UInt id = 0; id < nb_nodes_per_element; ++id) {		\
-	  memcpy(local_coord + id * spatial_dimension,			\
-		 coord + elem_val[offset + id] * spatial_dimension,	\
-		 spatial_dimension*sizeof(Real));			\
-	}								\
+	mesh->extractNodalCoordinatesFromElement(local_coord,		\
+        coord,elem_val+elem*nb_nodes_per_element,nb_nodes_per_element);	\
 	ElementClass<type>::computeNormalsOnQuadPoint(local_coord,      \
 						  spatial_dimension,	\
 						  normals_on_quad_val);	\
