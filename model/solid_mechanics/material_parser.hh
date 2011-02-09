@@ -1,6 +1,6 @@
 /**
  * @file   material_parser.hh
- * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
+ * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
  * @date   Thu Nov 25 11:43:48 2010
  *
  * @brief

@@ -36,9 +36,11 @@
 #include "mesh.hh"
 #include "element_class.hh"
 
-/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
+
+
+
 
 class FEM : public Memory {
   /* ------------------------------------------------------------------------ */
@@ -201,7 +203,6 @@ private:
   /// jacobians for all elements
   ByElementTypeReal ghost_jacobians;
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

@@ -138,13 +138,16 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  //  Vector<UInt> & createConnectivity(ElementType type, UInt nb_element);
+  /// function that computes the bounding box (fills xmin, xmax)
+  void computeBoundingBox();
 
-  //  Vector<UInt> & createGhostConnectivity(ElementType type, UInt nb_element);
-
-  /// create the array of normals
-  //  Vector<Real> & createNormals(ElementType type);
-
+  /// init a by-element-type real vector with provided ids
+  void initByElementTypeRealVector(ByElementTypeReal & v,UInt nb_component,
+				   UInt dimension,
+				   const std::string & obj_id,
+				   const std::string & vec_id,
+				   GhostType ghost_type);
+  
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem);
 
@@ -162,6 +165,9 @@ public:
 
   /// update the types offsets array for the conversions
   inline void updateGhostTypesOffsets();
+
+ 
+ 
 
 
   /* ------------------------------------------------------------------------ */
@@ -307,8 +313,12 @@ private:
 
   /// surface id of the surface elements in this mesh
   ByElementTypeUInt surface_id;
-};
 
+  /// min of coordinates
+  Real xmin[3];
+  /// max of coordinates
+  Real xmax[3];
+};
 
 /* -------------------------------------------------------------------------- */
 /* Inline functions                                                           */
@@ -320,7 +330,6 @@ inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
   _this.printself(stream);
   return stream;
 }
-
 
 #include "mesh_inline_impl.cc"
 

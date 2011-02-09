@@ -64,6 +64,8 @@ Mesh::Mesh(UInt spatial_dimension,
 
   nb_global_nodes = 0;
 
+  computeBoundingBox();
+
   AKANTU_DEBUG_OUT();
 
 }
@@ -85,6 +87,8 @@ Mesh::Mesh(UInt spatial_dimension,
   this->nodes = &(getVector<Real>(nodes_id));
   nb_global_nodes = nodes->getSize();
 
+  computeBoundingBox();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -103,6 +107,8 @@ Mesh::Mesh(UInt spatial_dimension,
 
   this->nodes = &(nodes);
   nb_global_nodes = nodes.getSize();
+
+  computeBoundingBox();
 
   AKANTU_DEBUG_OUT();
 }
@@ -123,14 +129,6 @@ Mesh::~Mesh() {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-// Vector<Real> & Mesh::createNormals(ElementType type) {
-//   AKANTU_DEBUG_IN();
-//   AKANTU_DEBUG_ERROR("TOBEIMPLEMENTED");
-//   AKANTU_DEBUG_OUT();
-//   return *normals[type];
-// }
 
 /* -------------------------------------------------------------------------- */
 void Mesh::printself(std::ostream & stream, int indent) const {
@@ -157,7 +155,62 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   }
   stream << space << "]" << std::endl;
 }
+/* -------------------------------------------------------------------------- */
+
+void Mesh::computeBoundingBox(){
+  AKANTU_DEBUG_IN();
+  UInt dim = spatial_dimension;
+  memset(xmin,REAL_INIT_VALUE,3*sizeof(Real));
+  memset(xmax,REAL_INIT_VALUE,3*sizeof(Real));
+
+  for (UInt k = 0; k < dim; ++k) {
+    xmin[k] = std::numeric_limits<double>::max();
+    xmax[k] = std::numeric_limits<double>::min();
+  }
+
+  Real * coords = nodes->values;
+  for (UInt i = 0; i < nodes->getSize(); ++i) {
+    for (UInt k = 0; k < dim; ++k) {
+      xmin[k] = fmin(xmin[k],coords[dim*i+k]);
+      xmax[k] = fmax(xmax[k],coords[dim*i+k]);
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
+void Mesh::initByElementTypeRealVector(ByElementTypeReal & vect,
+				       UInt nb_component,
+				       UInt dim,
+				       const std::string & obj_id,
+				       const std::string & vect_id,
+				       GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  for(UInt t = _not_defined; t < _max_element_type; ++t)
+    vect[t] = NULL;
+  
+  std::string ghost_id = "";
+  
+  if (ghost_type == _ghost) {
+    ghost_id = "ghost_";
+  }
+
+  const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != dim) continue;
+    std::stringstream sstr_damage; sstr_damage << obj_id << ":" << ghost_id << vect_id << ":" << *it;
+    if (vect[*it] == NULL){
+      vect[*it] = &(alloc<Real>(sstr_damage.str(), 0,
+				nb_component, REAL_INIT_VALUE));
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+
 
 __END_AKANTU__

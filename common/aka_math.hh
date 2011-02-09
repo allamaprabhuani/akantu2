@@ -168,6 +168,11 @@ public:
   /// vector pointing from x to y in 3 spatial dimension
   static inline void vector_3d(const Real * x, const Real * y, Real * vec);
 
+  /// test if two scalar are equal within a given tolerance
+  static inline bool are_float_equal(const Real x, const Real y);
+
+  /// tolerance for functions that need one
+  static Real tolerance;
 };
 
 

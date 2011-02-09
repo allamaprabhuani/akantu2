@@ -38,9 +38,12 @@ template<ElementType type> UInt ElementClass<type>::nb_quadrature_points    = 0;
 template<ElementType type> UInt ElementClass<type>::spatial_dimension       = 0;
 template<ElementType type> ElementType ElementClass<type>::facet_type       = _not_defined;
 
+
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_point>::nb_nodes_per_element     = 1;
 template<> ElementType ElementClass<_point>::p1_element_type   = _point;
+template<> UInt ElementClass<_point>::nb_quadrature_points     = 1;
+template<> Real ElementClass<_point>::quad[]                   = {0};
 template<> ElementType ElementClass<_point>::facet_type        = _not_defined;
 template<> UInt ElementClass<_point>::spatial_dimension        = 0;
 template<> UInt ElementClass<_point>::nb_facets                = 0;
@@ -152,6 +155,8 @@ template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[4],
 									&vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
+
+
 
 __END_AKANTU__
 

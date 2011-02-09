@@ -1,6 +1,6 @@
 /**
  * @file   test_facet_extraction.cc
- * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
+ * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
  * @date   Thu Aug 19 13:05:27 2010
  *
  * @brief  test of internal facet extraction

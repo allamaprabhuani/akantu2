@@ -1,6 +1,7 @@
 /**
  * @file   fem.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Fri Jul 16 11:03:02 2010
  *
  * @brief  Implementation of the FEM class
@@ -31,9 +32,11 @@
 #include "element_class.hh"
 #include "aka_math.hh"
 
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
+
 
 /* -------------------------------------------------------------------------- */
 FEM::FEM(Mesh & mesh, UInt element_dimension, FEMID id, MemoryID memory_id) :
@@ -75,6 +78,7 @@ FEM::~FEM() {
 /* -------------------------------------------------------------------------- */
 void FEM::initShapeFunctions(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
   Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
 
@@ -130,9 +134,7 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
     Real * shapesd_val   = shapes_derivatives_tmp->values;
     Real * jacobians_val = jacobians_tmp->values;
 
-    /* -------------------------------------------------------------------------- */
-    /* compute shapes when no rotation is required */
-
+    /* ---------------------------------------------------------------------- */
 #define COMPUTE_SHAPES(type)						\
     do {								\
       Real local_coord[spatial_dimension * nb_nodes_per_element];	\
@@ -153,23 +155,9 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 	jacobians_val += nb_quadrature_points;				\
       }									\
     } while(0)
-
-/* -------------------------------------------------------------------------- */
-
-    switch(type) {
-    case _segment_2       : { COMPUTE_SHAPES(_segment_2     ); break; }
-    case _segment_3       : { COMPUTE_SHAPES(_segment_3     ); break; }
-    case _triangle_3      : { COMPUTE_SHAPES(_triangle_3    ); break; }
-    case _triangle_6      : { COMPUTE_SHAPES(_triangle_6    ); break; }
-    case _tetrahedron_4   : { COMPUTE_SHAPES(_tetrahedron_4 ); break; }
-    case _tetrahedron_10  : { COMPUTE_SHAPES(_tetrahedron_10); break; }
-    case _quadrangle_4    : { COMPUTE_SHAPES(_quadrangle_4  ); break; }
-    case _point:
-    case _not_defined:
-    case _max_element_type:  {
-      AKANTU_DEBUG_ERROR("Wrong type : " << type);
-      break; }
-    }
+    /* ---------------------------------------------------------------------- */
+    
+    AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_SHAPES)      
 #undef COMPUTE_SHAPES
 
     if(ghost_type == _not_ghost) {
@@ -188,9 +176,19 @@ void FEM::initShapeFunctions(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
   Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
 
+  //allocate the normal arrays
+  if (ghost_type == _not_ghost)
+    mesh->initByElementTypeRealVector(normals_on_quad_points,spatial_dimension,element_dimension,
+				id,"normals_onquad",ghost_type);
+  else{
+    AKANTU_DEBUG_ERROR("to be implemented");
+  }
+
+  //loop over the type to build the normals
   const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
@@ -210,23 +208,20 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
     UInt nb_element;
     std::string ghost = "";
 
+    Real * normals_on_quad_val    = NULL;
+
     if(ghost_type == _not_ghost) {
       elem_val   = mesh->getConnectivity(type).values;
       nb_element = mesh->getConnectivity(type).getSize();
+      normals_on_quad_val =  normals_on_quad_points[type]->values;
     } else {
       ghost = "ghost_";
       elem_val   = mesh->getGhostConnectivity(type).values;
       nb_element = mesh->getGhostConnectivity(type).getSize();
     }
 
-    std::stringstream sstr_normals_on_quad;
-    sstr_normals_on_quad << id << ":" << ghost << "normals_onquad:" << type;
-    Vector<Real> * normals_on_quad_tmp = &(alloc<Real>(sstr_normals_on_quad.str(),
-					      nb_element*nb_quad_points,
-					      spatial_dimension));
 
-    Real * normals_on_quad_val    = normals_on_quad_tmp->values;
-
+    /* ---------------------------------------------------------------------- */
 #define COMPUTE_NORMALS_ON_QUAD(type)					\
     do {								\
       Real local_coord[spatial_dimension * nb_nodes_per_element];	\
@@ -243,28 +238,11 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
 	normals_on_quad_val += spatial_dimension*nb_quad_points;      	\
       }									\
     } while(0)
-
-    switch(type) {
-    case _segment_2       : { COMPUTE_NORMALS_ON_QUAD(_segment_2     ); break; }
-    case _segment_3       : { COMPUTE_NORMALS_ON_QUAD(_segment_3     ); break; }
-    case _triangle_3      : { COMPUTE_NORMALS_ON_QUAD(_triangle_3    ); break; }
-    case _triangle_6      : { COMPUTE_NORMALS_ON_QUAD(_triangle_6    ); break; }
-    case _tetrahedron_4   : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_4 ); break; }
-    case _tetrahedron_10  : { COMPUTE_NORMALS_ON_QUAD(_tetrahedron_10); break; }
-    case _quadrangle_4    : { COMPUTE_NORMALS_ON_QUAD(_quadrangle_4  ); break; }
-    case _point:
-    case _not_defined:
-    case _max_element_type:  {
-      AKANTU_DEBUG_ERROR("Wrong type : " << type);
-      break; }
-    }
+    /* ---------------------------------------------------------------------- */
+    
+    AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD)
 #undef COMPUTE_NORMALS_ON_QUAD
 
-    if(ghost_type == _not_ghost) {
-      normals_on_quad_points[type]             = normals_on_quad_tmp;
-    } else {
-      AKANTU_DEBUG_ERROR("to be implemented");
-    }
   }
   AKANTU_DEBUG_OUT();
 }

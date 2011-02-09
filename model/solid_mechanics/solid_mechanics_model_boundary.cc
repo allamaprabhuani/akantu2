@@ -1,6 +1,6 @@
 /**
  * @file   solid_mechanics_model_boundary.cc
- * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
+ * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
  * @date   Fri Nov 19 10:23:03 2010
  *
  * @brief

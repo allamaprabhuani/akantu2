@@ -98,6 +98,37 @@ typedef ID SolverID;
 
 typedef UInt Surface;
 
+
+/* -------------------------------------------------------------------------- */
+// BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
+#include <boost/preprocessor.hpp>
+
+#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
+  case type : { macro(type); break;}
+
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro)				\
+  switch(type) {							\
+    BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,AKANTU_ELEMENT_TYPE) \
+  case _not_defined:							\
+  case _max_element_type:  {						\
+    AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
+    break;								\
+  }									\
+  }		     				                
+/* -------------------------------------------------------------------------- */
+
+/// @boost sequence of element to loop on in global tasks
+#define AKANTU_ELEMENT_TYPE			\
+  (_segment_2)					\
+  (_segment_3)					\
+  (_triangle_3)					\
+  (_triangle_6)					\
+  (_tetrahedron_4)				\
+  (_tetrahedron_10)				\
+  (_quadrangle_4)				\
+  (_point)
+
+
 /// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
   _not_defined     = 0,

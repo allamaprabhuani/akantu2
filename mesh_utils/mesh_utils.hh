@@ -1,6 +1,6 @@
 /**
  * @file   mesh_utils.hh
- * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
+ * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
  * @date   Wed Aug 18 14:03:39 2010
  *
  * @brief All mesh utils necessary for various tasks
@@ -72,6 +72,10 @@ public:
   /// of the surface elements in the array surface_id
   static void buildSurfaceID(Mesh & mesh);
 
+  /// tweak mesh connectivity to activate pbc
+  static void tweakConnectivityForPBC(Mesh & mesh,UInt flag_x,
+				      UInt flag_y=false,UInt flag_z=false);
+
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -84,6 +88,10 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+
+  /// compute pbc pair for on egiven direction
+  static void computePBCMap(const Mesh & mymesh,const UInt dir,
+		     std::map<UInt,UInt> & pbc_pair);
 
 };
 

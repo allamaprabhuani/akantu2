@@ -1,6 +1,7 @@
 /**
  * @file   fem_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Mon Jul 19 12:21:36 2010
  *
  * @brief  Implementation of the inline functions of the FEM Class
@@ -80,21 +81,7 @@ inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
 #define GET_NB_QUAD_POINTS(type)					\
   nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints()
 
-  switch(type) {
-  case _segment_2       : { GET_NB_QUAD_POINTS(_segment_2     ); break; }
-  case _segment_3       : { GET_NB_QUAD_POINTS(_segment_3     ); break; }
-  case _triangle_3      : { GET_NB_QUAD_POINTS(_triangle_3    ); break; }
-  case _triangle_6      : { GET_NB_QUAD_POINTS(_triangle_6    ); break; }
-  case _tetrahedron_4   : { GET_NB_QUAD_POINTS(_tetrahedron_4 ); break; }
-  case _tetrahedron_10  : { GET_NB_QUAD_POINTS(_tetrahedron_10); break; }
-  case _quadrangle_4    : { GET_NB_QUAD_POINTS(_quadrangle_4  ); break; }
-  case _point:
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_QUAD_POINTS)
 #undef GET_NB_QUAD_POINTS
 
   AKANTU_DEBUG_OUT();
@@ -109,21 +96,7 @@ inline UInt FEM::getShapeSize(const ElementType & type) {
 #define GET_SHAPE_SIZE(type)				\
   shape_size = ElementClass<type>::getShapeSize()
 
-  switch(type) {
-  case _segment_2       : { GET_SHAPE_SIZE(_segment_2     ); break; }
-  case _segment_3       : { GET_SHAPE_SIZE(_segment_3     ); break; }
-  case _triangle_3      : { GET_SHAPE_SIZE(_triangle_3    ); break; }
-  case _triangle_6      : { GET_SHAPE_SIZE(_triangle_6    ); break; }
-  case _tetrahedron_4   : { GET_SHAPE_SIZE(_tetrahedron_4 ); break; }
-  case _tetrahedron_10  : { GET_SHAPE_SIZE(_tetrahedron_10); break; }
-  case _quadrangle_4    : { GET_SHAPE_SIZE(_quadrangle_4  ); break; }
-  case _point:
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_SIZE)
 #undef GET_SHAPE_SIZE
 
   AKANTU_DEBUG_OUT();
@@ -138,21 +111,7 @@ inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
 #define GET_SHAPE_DERIVATIVES_SIZE(type)				\
   shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
 
-  switch(type) {
-  case _segment_2       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_2     ); break; }
-  case _segment_3       : { GET_SHAPE_DERIVATIVES_SIZE(_segment_3     ); break; }
-  case _triangle_3      : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_3    ); break; }
-  case _triangle_6      : { GET_SHAPE_DERIVATIVES_SIZE(_triangle_6    ); break; }
-  case _tetrahedron_4   : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_4 ); break; }
-  case _tetrahedron_10  : { GET_SHAPE_DERIVATIVES_SIZE(_tetrahedron_10); break; }
-  case _quadrangle_4    : { GET_SHAPE_DERIVATIVES_SIZE(_quadrangle_4  ); break; }
-  case _point:
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_SIZE)
 #undef GET_SHAPE_DERIVATIVES_SIZE
 
   AKANTU_DEBUG_OUT();
@@ -168,21 +127,7 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
 #define GET_INRADIUS(type)						\
   inradius = ElementClass<type>::getInradius(coord);			\
 
-  switch(type) {
-  case _segment_2       : { GET_INRADIUS(_segment_2     ); break; }
-  case _segment_3       : { GET_INRADIUS(_segment_3     ); break; }
-  case _triangle_3      : { GET_INRADIUS(_triangle_3    ); break; }
-  case _triangle_6      : { GET_INRADIUS(_triangle_6    ); break; }
-  case _tetrahedron_4   : { GET_INRADIUS(_tetrahedron_4 ); break; }
-  case _tetrahedron_10  : { GET_INRADIUS(_tetrahedron_10); break; }
-  case _quadrangle_4    : { GET_INRADIUS(_quadrangle_4  ); break; }
-  case _point:
-  case _not_defined:
-  case _max_element_type:  {
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);
-    break; }
-  }
-
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_INRADIUS)
 #undef GET_INRADIUS
 
   AKANTU_DEBUG_OUT();

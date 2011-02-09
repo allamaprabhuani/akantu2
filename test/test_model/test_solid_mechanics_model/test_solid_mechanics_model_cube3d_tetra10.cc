@@ -1,6 +1,6 @@
 /**
  * @file   test_solid_mechanics_model_cube3d.cc
- * @author Guillaume ANCIAUX <anciaux@lsmscluster1.epfl.ch>
+ * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
  * @date   Tue Aug 17 11:31:22 2010
  *
  * @brief  test of the class SolidMechanicsModel on the 3d cube

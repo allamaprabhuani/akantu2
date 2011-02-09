@@ -385,3 +385,7 @@ inline void Math::vector_3d(const Real * x, const Real * y, Real * res) {
   res[2] = y[2]-x[2];
 }
 
+/* -------------------------------------------------------------------------- */
+inline bool Math::are_float_equal(const Real x, const Real y){
+  return (fabs( x - y) < tolerance);
+}

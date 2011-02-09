@@ -100,6 +100,15 @@ option(AKANTU_USE_EPSN "Use EPSN streering environment" OFF)
 # Options handling
 #===============================================================================
 
+#===========================================================================
+# Documentation
+#===========================================================================
+find_package(Boost REQUIRED)
+if(BOOST_FOUND)
+  include_directories(BOOST_INCLUDE_PATH)
+endif(BOOST_FOUND)
+
+
 # Debug
 if(NOT AKANTU_DEBUG)
   add_definitions(-DAKANTU_NDEBUG)
@@ -221,6 +230,7 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/material.cc
   model/solid_mechanics/materials/material_elastic.cc
   mesh_utils/mesh_io.cc
+  mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
