@@ -27,4 +27,4 @@
 
 #===============================================================================
 
-add_subdirectory("test_contact_search_3d_explicit")
+add_subdirectory("test_contact_search_explicit")

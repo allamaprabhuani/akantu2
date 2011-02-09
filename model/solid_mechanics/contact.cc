@@ -32,7 +32,7 @@
 #include "contact_search.hh"
 #include "aka_common.hh"
 #include "contact_3d_explicit.hh"
-#include "contact_search_3d_explicit.hh"
+#include "contact_search_explicit.hh"
 #include "contact_2d_explicit.hh"
 #include "contact_search_2d_explicit.hh"
 #include "contact_rigid_no_friction.hh"
@@ -292,8 +292,8 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
     tmp_search = new ContactSearch2dExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
     break; 
   }
-  case _cst_3d_expli: {
-    tmp_search = new ContactSearch3dExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
+  case _cst_expli: {
+    tmp_search = new ContactSearchExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
     break;
   }
   case _cst_not_defined: {

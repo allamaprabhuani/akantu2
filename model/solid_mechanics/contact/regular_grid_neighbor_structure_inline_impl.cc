@@ -198,7 +198,7 @@ template<UInt spatial_dimension>
 inline void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList() {
 
   AKANTU_DEBUG_IN();
-  if (contact_search.getType() == _cst_3d_expli) {
+  if (contact_search.getType() == _cst_expli) {
     neighbor_list = new NodesNeighborList();
     nodes_neighbor_list = true;
   }

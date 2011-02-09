@@ -1,5 +1,5 @@
 /**
- * @file   contact_search_3d_explicit.cc
+ * @file   contact_search_explicit.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Tue Oct 26 18:49:04 2010
  *
@@ -28,15 +28,15 @@
 
 /* -------------------------------------------------------------------------- */
 #include "regular_grid_neighbor_structure.hh"
-#include "contact_search_3d_explicit.hh"
+#include "contact_search_explicit.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-ContactSearch3dExplicit::ContactSearch3dExplicit(Contact & contact,
-						 const ContactNeighborStructureType & neighbors_structure_type,
-						 const ContactSearchType & type,
-						 const ContactSearchID & id) :
+ContactSearchExplicit::ContactSearchExplicit(Contact & contact,
+					     const ContactNeighborStructureType & neighbors_structure_type,
+					     const ContactSearchType & type,
+					     const ContactSearchID & id) :
   ContactSearch(contact, neighbors_structure_type, type, id), spatial_dimension(contact.getModel().getSpatialDimension()), mesh(contact.getModel().getFEM().getMesh()) {
   AKANTU_DEBUG_IN();
 
@@ -45,7 +45,7 @@ ContactSearch3dExplicit::ContactSearch3dExplicit(Contact & contact,
 
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, PenetrationList & penetration_list) {
+void ContactSearchExplicit::findPenetration(const Surface & master_surface, PenetrationList & penetration_list) {
   AKANTU_DEBUG_IN();
 
   /// get the NodesNeighborList for the given master surface
@@ -287,9 +287,9 @@ void ContactSearch3dExplicit::findPenetration(const Surface & master_surface, Pe
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surface,
-						     Vector<UInt> * closest_master_nodes,
-						     Vector<bool> * has_closest_master_node) {
+void ContactSearchExplicit::findClosestMasterNodes(const Surface & master_surface,
+						   Vector<UInt> * closest_master_nodes,
+						   Vector<bool> * has_closest_master_node) {
   AKANTU_DEBUG_IN();
 
   bool * has_closest_master_node_val = has_closest_master_node->values;
@@ -340,12 +340,12 @@ void ContactSearch3dExplicit::findClosestMasterNodes(const Surface & master_surf
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::computeComponentsOfProjection(const UInt impactor_node,
-							    const UInt surface_element,
-							    const ElementType type,
-							    Real * normal,
-							    Real & gap,
-							    Real * projected_position) {
+void ContactSearchExplicit::computeComponentsOfProjection(const UInt impactor_node,
+							  const UInt surface_element,
+							  const ElementType type,
+							  Real * normal,
+							  Real & gap,
+							  Real * projected_position) {
   AKANTU_DEBUG_IN();
 
   switch(type) {
@@ -368,11 +368,11 @@ void ContactSearch3dExplicit::computeComponentsOfProjection(const UInt impactor_
 
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::checkPenetrationSituation(const UInt impactor_node,
-							const UInt surface_element,
-							const ElementType type,
-							bool & is_inside,
-							bool & is_in_projection_area) {
+void ContactSearchExplicit::checkPenetrationSituation(const UInt impactor_node,
+						      const UInt surface_element,
+						      const ElementType type,
+						      bool & is_inside,
+						      bool & is_in_projection_area) {
   AKANTU_DEBUG_IN();
 
   switch(type) {
@@ -394,11 +394,11 @@ void ContactSearch3dExplicit::checkPenetrationSituation(const UInt impactor_node
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::computeComponentsOfProjectionSegment2(const UInt impactor_node,
-								    const UInt surface_element,
-								    Real * normal,
-								    Real & gap,
-								    Real * projected_position) {
+void ContactSearchExplicit::computeComponentsOfProjectionSegment2(const UInt impactor_node,
+								  const UInt surface_element,
+								  Real * normal,
+								  Real & gap,
+								  Real * projected_position) {
   AKANTU_DEBUG_IN();
 
   const UInt dim = spatial_dimension;
@@ -434,11 +434,11 @@ void ContactSearch3dExplicit::computeComponentsOfProjectionSegment2(const UInt i
 
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::computeComponentsOfProjectionTriangle3(const UInt impactor_node,
-								     const UInt surface_element,
-								     Real * normal,
-								     Real & gap,
-								     Real * projected_position) {
+void ContactSearchExplicit::computeComponentsOfProjectionTriangle3(const UInt impactor_node,
+								   const UInt surface_element,
+								   Real * normal,
+								   Real & gap,
+								   Real * projected_position) {
   AKANTU_DEBUG_IN();
 
   const UInt dim = spatial_dimension;
@@ -477,10 +477,10 @@ void ContactSearch3dExplicit::computeComponentsOfProjectionTriangle3(const UInt 
 
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::checkPenetrationSituationSegment2(const UInt impactor_node,
-								const UInt surface_element,
-								bool & is_inside,
-								bool & is_in_projection_area) {
+void ContactSearchExplicit::checkPenetrationSituationSegment2(const UInt impactor_node,
+							      const UInt surface_element,
+							      bool & is_inside,
+							      bool & is_in_projection_area) {
 
   AKANTU_DEBUG_IN();
 
@@ -535,10 +535,10 @@ void ContactSearch3dExplicit::checkPenetrationSituationSegment2(const UInt impac
 
 
 /* -------------------------------------------------------------------------- */
-void ContactSearch3dExplicit::checkPenetrationSituationTriangle3(const UInt impactor_node,
-								 const UInt surface_element,
-								 bool & is_inside,
-								 bool & is_in_projection_area) {
+void ContactSearchExplicit::checkPenetrationSituationTriangle3(const UInt impactor_node,
+							       const UInt surface_element,
+							       bool & is_inside,
+							       bool & is_in_projection_area) {
 
   AKANTU_DEBUG_IN();
 

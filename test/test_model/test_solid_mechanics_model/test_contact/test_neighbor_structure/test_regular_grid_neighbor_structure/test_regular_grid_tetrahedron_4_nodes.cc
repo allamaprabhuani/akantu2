@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
    /// contact declaration
   Contact * my_contact = Contact::newContact(my_model, 
 					     _ct_3d_expli, 
-					     _cst_3d_expli, 
+					     _cst_expli, 
 					     _cnst_regular_grid);
 
   my_contact->initContact(false);

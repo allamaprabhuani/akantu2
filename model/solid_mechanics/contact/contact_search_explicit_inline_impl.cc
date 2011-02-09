@@ -1,5 +1,5 @@
 /**
- * @file   contact_search_3d_explicit_inline_impl.cc
+ * @file   contact_search_explicit_inline_impl.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Thu Nov 25 15:22:31 2010
  *
@@ -26,7 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Real ContactSearch3dExplicit::computeSquareDistanceBetweenNodes(const UInt node_1, const UInt node_2) {
+inline Real ContactSearchExplicit::computeSquareDistanceBetweenNodes(const UInt node_1, const UInt node_2) {
   AKANTU_DEBUG_IN();
   
   Real square_distance = 0.0;

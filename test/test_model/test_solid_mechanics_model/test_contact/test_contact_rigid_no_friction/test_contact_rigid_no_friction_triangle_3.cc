@@ -38,7 +38,7 @@
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
-#include "contact_search_3d_explicit.hh"
+#include "contact_search_explicit.hh"
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
    /// contact declaration
   Contact * my_contact = Contact::newContact(my_model, 
 					     _ct_rigid_no_fric, 
-					     _cst_3d_expli, 
+					     _cst_expli, 
 					     _cnst_regular_grid);
 
   my_contact->initContact(false);

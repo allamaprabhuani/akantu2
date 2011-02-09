@@ -1,5 +1,5 @@
 /**
- * @file   contact_search_3d_explicit.hh
+ * @file   contact_search_explicit.hh
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Tue Oct 26 18:43:27 2010
  *
@@ -30,8 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_SEARCH_3D_EXPLICIT_HH__
-#define __AKANTU_CONTACT_SEARCH_3D_EXPLICIT_HH__
+#ifndef __AKANTU_CONTACT_SEARCH_EXPLICIT_HH__
+#define __AKANTU_CONTACT_SEARCH_EXPLICIT_HH__
 
 /* -------------------------------------------------------------------------- */
 
@@ -43,18 +43,18 @@
 
 __BEGIN_AKANTU__
 
-class ContactSearch3dExplicit : public ContactSearch {
+class ContactSearchExplicit : public ContactSearch {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactSearch3dExplicit(Contact & contact,
-			  const ContactNeighborStructureType & neighbors_structure_type,
-			  const ContactSearchType & type,
-			  const ContactSearchID & id = "search_contact");
+  ContactSearchExplicit(Contact & contact,
+			const ContactNeighborStructureType & neighbors_structure_type,
+			const ContactSearchType & type,
+			const ContactSearchID & id = "search_contact");
 
-  //virtual ~ContactSearch3dExplicit();
+  //virtual ~ContactSearchExplicit();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -138,10 +138,10 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "contact_search_3d_explicit_inline_impl.cc"
+#include "contact_search_explicit_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const ContactSearch3dExplicit & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const ContactSearchExplicit & _this)
 // {
 //   _this.printself(stream);
 //   return stream;
@@ -149,5 +149,5 @@ private:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_CONTACT_SEARCH_3D_EXPLICIT_HH__ */
+#endif /* __AKANTU_CONTACT_SEARCH_EXPLICIT_HH__ */
 
