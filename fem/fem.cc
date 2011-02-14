@@ -177,7 +177,7 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
 
   //allocate the normal arrays
   if (ghost_type == _not_ghost)
-    mesh->initByElementTypeRealVector(normals_on_quad_points,spatial_dimension,element_dimension,
+    mesh->initByElementTypeRealVector(normals_on_quad_points, spatial_dimension, element_dimension,
 				id,"normals_onquad",ghost_type);
   else{
     AKANTU_DEBUG_ERROR("to be implemented");
@@ -201,16 +201,16 @@ void FEM::computeNormalsOnQuadPoints(GhostType ghost_type) {
 
     UInt * elem_val;
     UInt nb_element;
-    std::string ghost = "";
 
     Real * normals_on_quad_val    = NULL;
 
     if(ghost_type == _not_ghost) {
       elem_val   = mesh->getConnectivity(type).values;
       nb_element = mesh->getConnectivity(type).getSize();
+
+      normals_on_quad_points[type]->resize(nb_element * nb_quad_points);
       normals_on_quad_val =  normals_on_quad_points[type]->values;
     } else {
-      ghost = "ghost_";
       elem_val   = mesh->getGhostConnectivity(type).values;
       nb_element = mesh->getGhostConnectivity(type).getSize();
     }
