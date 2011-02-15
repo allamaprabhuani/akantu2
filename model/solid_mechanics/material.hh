@@ -86,6 +86,7 @@ public:
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
+
 protected:
 
   /// constitutive law
@@ -219,9 +220,9 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define MATERIAL_QUADRATURE_POINT_LOOP_BEGIN				\
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);	\
+  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type); \
   UInt size_strain          = spatial_dimension * spatial_dimension;	\
-  									\
+									\
   UInt nb_element;							\
   Real * strain_val;							\
   Real * stress_val;							\

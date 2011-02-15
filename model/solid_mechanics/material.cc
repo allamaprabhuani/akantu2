@@ -89,7 +89,7 @@ Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
 /* -------------------------------------------------------------------------- */
 Material::~Material() {
   AKANTU_DEBUG_IN();
-
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -103,7 +103,10 @@ void Material::setParam(const std::string & key, const std::string & value,
 /* -------------------------------------------------------------------------- */
 void Material::initMaterial() {
   AKANTU_DEBUG_IN();
-
+  resizeInternalVector(stress,_not_ghost);
+  resizeInternalVector(ghost_stress,_ghost);
+  resizeInternalVector(strain,_not_ghost);
+  resizeInternalVector(ghost_strain,_ghost);
   AKANTU_DEBUG_OUT();
 }
 
@@ -144,7 +147,7 @@ void Material::resizeInternalVector(ByElementTypeReal & vect,
 				    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
@@ -157,7 +160,7 @@ void Material::resizeInternalVector(ByElementTypeReal & vect,
     }
 
     UInt nb_element           = elem_filter->getSize();
-    UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+    UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it);
     UInt new_size = nb_element*nb_quadrature_points;
 
     UInt size = vect[*it]->getSize();
@@ -194,8 +197,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
-    UInt size_of_shapes_derivatives = FEM::getShapeDerivativesSize(*it);
-    UInt nb_quadrature_points       = FEM::getNbQuadraturePoints(*it);
+    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it);
 
     Vector<Real> * strain_vect;
     Vector<Real> * stress_vect;
@@ -213,6 +215,8 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
       stress_vect = ghost_stress[*it];
       shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(*it));
     }
+
+    UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
 
     UInt nb_element = elem_filter->getSize();
 
@@ -315,8 +319,7 @@ void Material::computeStiffnessMatrix(Vector<Real> & current_position, GhostType
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
-    UInt size_of_shapes_derivatives = FEM::getShapeDerivativesSize(*it);
-    UInt nb_quadrature_points       = FEM::getNbQuadraturePoints(*it);
+    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it);
 
     Vector<Real> * strain_vect;
     Vector<UInt> * elem_filter;
@@ -331,6 +334,8 @@ void Material::computeStiffnessMatrix(Vector<Real> & current_position, GhostType
       strain_vect = ghost_strain[*it];
       shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(*it));
     }
+
+    UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
 
     UInt nb_element = elem_filter->getSize();
 
@@ -422,7 +427,7 @@ void Material::computePotentialEnergyByElement() {
 
     if(potential_energy[*it] == NULL) {
       UInt nb_element = element_filter[*it]->getSize();
-      UInt nb_quadrature_points = FEM::getNbQuadraturePoints(*it);
+      UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it);
 
       std::stringstream sstr; sstr << id << ":potential_energy:"<< *it;
       potential_energy[*it] = &(alloc<Real> (sstr.str(), nb_element * nb_quadrature_points,

@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
   memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
   memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
 
+  model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
-  model->initModel();
 
  #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;

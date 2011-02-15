@@ -78,9 +78,10 @@ int main(int argc, char *argv[])
   memset(model.getResidual().values,     0, 2*nb_nodes*sizeof(Real));
   memset(model.getMass().values,     1, nb_nodes*sizeof(Real));
 
+  model.initModel();
   model.readMaterials("material.dat");
   model.initMaterials();
-  model.initModel();
+
 
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
 
   FEM & fem_boundary = model.getFEMBoundary();
   fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnQuadPoints();
+  fem_boundary.computeNormalsOnControlPoints();
 
   const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -116,7 +117,8 @@ int main(int argc, char *argv[])
 
     //    ElementType facet_type = Mesh::getFacetElementType(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
+    const Vector<Real> & quads = fem_boundary.getQuadraturePoints(*it);
+    UInt nb_quad              = quads.getSize();
 
     UInt nb_element;
     const Vector<Real> * shapes;

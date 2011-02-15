@@ -38,14 +38,18 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
-					 UInt spatial_dimension,
+					 UInt dim,
 					 const ModelID & id,
 					 const MemoryID & memory_id) :
-  Model(mesh, spatial_dimension, id, memory_id),
+  Model(id, memory_id),
   time_step(NAN), f_m2a(1.0),
   integrator(new CentralDifference()),
-  increment_flag(false) {
+  increment_flag(false),
+  spatial_dimension(dim) {
   AKANTU_DEBUG_IN();
+
+  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+  registerFEMObject<MyFEMType>("SolidMechanicsFEM",mesh,spatial_dimension);
 
   this->displacement = NULL;
   this->mass         = NULL;
@@ -95,7 +99,7 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 void SolidMechanicsModel::initVectors() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = fem->getMesh().getNbNodes();
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
   std::stringstream sstr_disp; sstr_disp << id << ":displacement";
   std::stringstream sstr_mass; sstr_mass << id << ":mass";
   std::stringstream sstr_velo; sstr_velo << id << ":velocity";
@@ -115,10 +119,10 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_curp; sstr_curp << id << ":current_position_tmp";
   current_position = &(alloc<Real>(sstr_curp.str(), 0, spatial_dimension, REAL_INIT_VALUE));
 
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    UInt nb_element           = fem->getMesh().getNbElement(*it);
+    UInt nb_element           = getFEM().getMesh().getNbElement(*it);
 
     if(!element_material[*it]) {
       std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
@@ -127,10 +131,10 @@ void SolidMechanicsModel::initVectors() {
   }
 
   const Mesh::ConnectivityTypeList & ghost_type_list =
-    fem->getMesh().getConnectivityTypeList(_ghost);
+    getFEM().getMesh().getConnectivityTypeList(_ghost);
 
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    UInt nb_element           = fem->getMesh().getNbGhostElement(*it);
+    UInt nb_element           = getFEM().getMesh().getNbGhostElement(*it);
 
     std::stringstream sstr_elma; sstr_elma << id << ":ghost_element_material:" << *it;
     ghost_element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
@@ -141,8 +145,8 @@ void SolidMechanicsModel::initVectors() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initModel() {
-  fem->initShapeFunctions(_not_ghost);
-  fem->initShapeFunctions(_ghost);
+  getFEM().initShapeFunctions(_not_ghost);
+  getFEM().initShapeFunctions(_ghost);
 }
 
 
@@ -150,12 +154,12 @@ void SolidMechanicsModel::initModel() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateCurrentPosition() {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = fem->getMesh().getNbNodes();
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
 
   current_position->resize(nb_nodes);
   //Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
   Real * current_position_val = current_position->values;
-  Real * position_val         = fem->getMesh().getNodes().values;
+  Real * position_val         = getFEM().getMesh().getNodes().values;
   Real * displacement_val     = displacement->values;
 
   /// compute current_position = initial_position + displacement
@@ -169,7 +173,7 @@ void SolidMechanicsModel::updateCurrentPosition() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initializeUpdateResidualData() {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = fem->getMesh().getNbNodes();
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
   residual->resize(nb_nodes);
 
   /// copy the forces in residual for boundary conditions
@@ -332,7 +336,7 @@ void SolidMechanicsModel::setIncrementFlagOn() {
   AKANTU_DEBUG_IN();
 
   if(!increment) {
-    UInt nb_nodes = fem->getMesh().getNbNodes();
+    UInt nb_nodes = getFEM().getMesh().getNbNodes();
     std::stringstream sstr_inc; sstr_inc << id << ":increment";
     increment = &(alloc<Real>(sstr_inc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   }
@@ -349,19 +353,19 @@ Real SolidMechanicsModel::getStableTimeStep() {
   Material ** mat_val = &(materials.at(0));
   Real min_dt = std::numeric_limits<Real>::max();
 
-  Real * coord    = fem->getMesh().getNodes().values;
+  Real * coord    = getFEM().getMesh().getNodes().values;
   Real * disp_val = displacement->values;
 
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(fem->getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
 
 
-    UInt nb_nodes_per_element = fem->getMesh().getNbNodesPerElement(*it);
-    UInt nb_element           = fem->getMesh().getNbElement(*it);
+    UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(*it);
+    UInt nb_element           = getFEM().getMesh().getNbElement(*it);
 
-    UInt * conn         = fem->getMesh().getConnectivity(*it).values;
+    UInt * conn         = getFEM().getMesh().getConnectivity(*it).values;
     UInt * elem_mat_val = element_material[*it]->values;
     Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 
@@ -379,7 +383,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
 	}
       }
 
-      Real el_size    = fem->getElementInradius(u, *it);
+      Real el_size    = getFEM().getElementInradius(u, *it);
       Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size);
       min_dt = min_dt > el_dt ? el_dt : min_dt;
     }
@@ -420,7 +424,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
 
   Real ekin = 0.;
 
-  UInt nb_nodes = fem->getMesh().getNbNodes();
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
   //  Vector<Real> * v_square = new Vector<Real>(nb_nodes, 1, "v_square");
 
   Real * vel_val  = velocity->values;
@@ -496,7 +500,7 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << " + spatial dimension : " << spatial_dimension << std::endl;
 
   stream << space << " + fem [" << std::endl;
-  fem->printself(stream, indent + 2);
+  getFEM().printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
   stream << space << " + nodals information [" << std::endl;
   displacement->printself(stream, indent + 2);
@@ -509,7 +513,7 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + connectivity type information [" << std::endl;
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;

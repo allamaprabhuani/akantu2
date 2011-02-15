@@ -77,7 +77,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 
   Real F[3*3];
   Real sigma[3*3];
-  damage[el_type]->resize(FEM::getNbQuadraturePoints(el_type)*element_filter[el_type]->getSize());
+  damage[el_type]->resize(model->getFEM().getNbQuadraturePoints(el_type)*element_filter[el_type]->getSize());
   Real * dam = damage[el_type]->values;
 
   MATERIAL_QUADRATURE_POINT_LOOP_BEGIN;

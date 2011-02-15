@@ -38,7 +38,7 @@ __BEGIN_AKANTU__
 void SolidMechanicsModel::assembleMassLumped() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = fem->getMesh().getNbNodes();
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
   memset(mass->values, 0, nb_nodes*sizeof(Real));
 
   assembleMassLumped(_not_ghost);
@@ -60,7 +60,7 @@ void SolidMechanicsModel::assembleMassLumped() {
 void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList(ghost_type);
+  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
@@ -84,22 +84,23 @@ void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, Element
   AKANTU_DEBUG_IN();
   Material ** mat_val = &(materials.at(0));
 
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  UInt shape_size           = FEM::getShapeSize(type);
+  UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
 
   UInt nb_element;
   const Vector<Real> * shapes;
   UInt * elem_mat_val;
 
   if(ghost_type == _not_ghost) {
-    nb_element   = fem->getMesh().getNbElement(type);
-    shapes       = &(fem->getShapes(type));
+    nb_element   = getFEM().getMesh().getNbElement(type);
+    shapes       = &(getFEM().getShapes(type));
     elem_mat_val = element_material[type]->values;
   } else {
-    nb_element   = fem->getMesh().getNbGhostElement(type);
-    shapes       = &(fem->getGhostShapes(type));
+    nb_element   = getFEM().getMesh().getNbGhostElement(type);
+    shapes       = &(getFEM().getGhostShapes(type));
     elem_mat_val = ghost_element_material[type]->values;
   }
+
+  UInt shape_size           = shapes->getNbComponent();
 
   if (nb_element == 0) {
     AKANTU_DEBUG_OUT();
@@ -121,10 +122,10 @@ void SolidMechanicsModel::assembleMassLumpedRowSum(GhostType ghost_type, Element
 
   Vector<Real> * int_rho_phi_i = new Vector<Real>(0, shape_size,
 						  "inte_rho_x_shapes");
-  fem->integrate(*rho_phi_i, *int_rho_phi_i, shape_size, type, ghost_type);
+  getFEM().integrate(*rho_phi_i, *int_rho_phi_i, shape_size, type, ghost_type);
   delete rho_phi_i;
 
-  fem->assembleVector(*int_rho_phi_i, *mass, 1, type, ghost_type);
+  getFEM().assembleVector(*int_rho_phi_i, *mass, 1, type, ghost_type);
   delete int_rho_phi_i;
 
   AKANTU_DEBUG_OUT();
@@ -141,7 +142,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
 
   UInt nb_nodes_per_element_p1 = Mesh::getNbNodesPerElement(Mesh::getP1ElementType(type));
   UInt nb_nodes_per_element    = Mesh::getNbNodesPerElement(type);
-  UInt nb_quadrature_points    = FEM::getNbQuadraturePoints(type);
+  UInt nb_quadrature_points    = getFEM().getNbQuadraturePoints(type);
 
   UInt nb_element;
   UInt * elem_mat_val;
@@ -163,10 +164,10 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
   }
 
   if(ghost_type == _not_ghost) {
-    nb_element   = fem->getMesh().getNbElement(type);
+    nb_element   = getFEM().getMesh().getNbElement(type);
     elem_mat_val = element_material[type]->values;
   } else {
-    nb_element   = fem->getMesh().getNbGhostElement(type);
+    nb_element   = getFEM().getMesh().getNbGhostElement(type);
     elem_mat_val = ghost_element_material[type]->values;
   }
 
@@ -190,7 +191,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
   /// compute @f$ \int \rho dV = \rho V @f$ for each element
   Vector<Real> * int_rho_1 = new Vector<Real>(nb_element * nb_quadrature_points, 1,
 					      "inte_rho_x_1");
-  fem->integrate(*rho_1, *int_rho_1, 1, type, ghost_type);
+  getFEM().integrate(*rho_1, *int_rho_1, 1, type, ghost_type);
   delete rho_1;
 
   /// distribute the mass of the element to the nodes
@@ -211,7 +212,7 @@ void SolidMechanicsModel::assembleMassLumpedDiagonalScaling(GhostType ghost_type
   }
   delete int_rho_1;
 
-  fem->assembleVector(*mass_per_node, *mass, 1, type, ghost_type);
+  getFEM().assembleVector(*mass_per_node, *mass, 1, type, ghost_type);
   delete mass_per_node;
 
   AKANTU_DEBUG_OUT();

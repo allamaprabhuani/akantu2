@@ -29,26 +29,11 @@
 /* -------------------------------------------------------------------------- */
 inline void Material::addElement(ElementType type, UInt element) {
   element_filter[type]->push_back(element);
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  for (UInt i = 0; i < nb_quadrature_points; ++i) {
-    strain[type]->push_back(REAL_INIT_VALUE);
-    stress[type]->push_back(REAL_INIT_VALUE);
-    if(potential_energy[type] != NULL) {
-      potential_energy[type]->push_back(REAL_INIT_VALUE);
-    }
-  }
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Material::addGhostElement(ElementType type, UInt element) {
   ghost_element_filter[type]->push_back(element);
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
-  for (UInt i = 0; i < nb_quadrature_points; ++i) {
-    ghost_strain[type]->push_back(REAL_INIT_VALUE);
-    ghost_stress[type]->push_back(REAL_INIT_VALUE);
-  }
-  // if(potential_energy_vector)
-  //   ghost_potential_energy[type]->push_back(REAL_INIT_VALUE);
 }
 
 /* -------------------------------------------------------------------------- */

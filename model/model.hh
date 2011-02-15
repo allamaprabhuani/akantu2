@@ -48,9 +48,7 @@ class Model : public Memory, public GhostSynchronizer {
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline Model(Mesh & mesh,
-	       UInt spatial_dimension = 0,
-	       const ModelID & id = "model",
+  inline Model(const ModelID & id = "model",
 	       const MemoryID & memory_id = 0);
 
   inline virtual ~Model();
@@ -69,28 +67,43 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
-
-  AKANTU_GET_MACRO(FEM, *fem, const FEM &);
-
-  inline FEM & getFEMBoundary();
-
+  /// synchronize the boundary in case of parallel run
   virtual void synchronizeBoundaries() {};
+
+  /// return the fem object associated with a provided name
+  inline FEM & getFEM(std::string name = "") const;
+  /// return the fem boundary object associated with a provided name
+  inline FEM & getFEMBoundary(std::string name = "");
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+
+  /// register a fem object associated with name
+  template <typename FEMClass> inline void registerFEMObject(const std::string & name,
+							     Mesh & mesh,
+							     UInt spatial_dimension);
+
 protected:
+  /// return the fem object associated with a provided name
+  template <typename FEMClass>
+  inline FEMClass & getFEM(std::string name = "") const;
+  /// return the fem boundary object associated with a provided name
+  template <typename FEMClass>
+  inline FEMClass & getFEMBoundary(std::string name = "");
+
+
+protected:
+
   /// id
   ModelID id;
-
-  /// the spatial dimension
-  UInt spatial_dimension;
-
   /// the main fem object present in all  models
-  FEM * fem;
+  std::map<std::string,FEM *> fems;
   /// the fem object present in all  models for boundaries
-  FEM * fem_boundary;
+  std::map<std::string,FEM *> fems_boundary;
+  /// default fem object
+  std::string default_fem;
+
 };
 
 

@@ -106,11 +106,12 @@ int main(int argc, char *argv[])
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
 
+  model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
   model->registerSynchronizer(*communicator);
 
-  model->initModel();
+
 
   if(prank == 0)
     std::cout << model->getMaterial(0) << std::endl;
@@ -162,7 +163,7 @@ int main(int argc, char *argv[])
 			  spatial_dimension*spatial_dimension, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
 			  spatial_dimension*spatial_dimension, "stress");
-  akantu::UInt  nb_quadrature_points = akantu::FEM::getNbQuadraturePoints(type);
+  akantu::UInt  nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
   double * part = new double[nb_element*nb_quadrature_points];
   for (unsigned int i = 0; i < nb_element; ++i)
     for (unsigned int q = 0; q < nb_quadrature_points; ++q)

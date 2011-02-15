@@ -76,10 +76,10 @@ int main(int argc, char *argv[])
   memset(model->getResidual().values,     0, 2*nb_nodes*sizeof(Real));
   memset(model->getMass().values,     1, nb_nodes*sizeof(Real));
 
-  model->readCustomMaterial<MaterialDamage>("material.dat","DAMAGE");
-
-  model->initMaterials();
   model->initModel();
+  model->readCustomMaterial<MaterialDamage>("material.dat","DAMAGE");
+  model->initMaterials();
+
 
   Real time_step = model->getStableTimeStep();
   model->setTimeStep(time_step/10.);
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnQuadPoints();
+  fem_boundary.computeNormalsOnControlPoints();
   model->computeForcesFromFunction(trac, akantu::_bft_stress);
 
 #ifdef AKANTU_USE_IOHELPER

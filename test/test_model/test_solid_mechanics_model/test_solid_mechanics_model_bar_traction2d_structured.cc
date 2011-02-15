@@ -71,10 +71,9 @@ int main(int argc, char *argv[])
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
 
+  model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
-
-  model->initModel();
 
   std::cout << model->getMaterial(0) << std::endl;
 

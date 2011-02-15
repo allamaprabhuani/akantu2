@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
    			 TRIANGLE2, nb_element, C_MODE);
 
-  akantu::UInt  nb_quadrature_points = akantu::FEM::getNbQuadraturePoints(type);
+  akantu::UInt  nb_quadrature_points = 3;
   double * part = new double[nb_element*nb_quadrature_points];
   akantu::UInt * part_val = partition->getPartition(type).values;
   for (unsigned int i = 0; i < nb_element; ++i)

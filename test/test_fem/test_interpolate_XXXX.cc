@@ -34,6 +34,8 @@
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
+#include "shape_lagrange.hh"
+#include "integrator_gauss.hh"
 
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
@@ -47,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   mesh_io.read("XXXX.msh", my_mesh);
 
-  FEM fem(my_mesh, dim, "my_fem");
+  FEM<IntegratorGauss,ShapeLagrange> fem(my_mesh, dim, "my_fem");
 
   //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 

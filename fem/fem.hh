@@ -58,53 +58,77 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// pre-compute all the shape functions, their derivatives and the jacobians
-  void initShapeFunctions(GhostType ghost_type = _not_ghost);
-
   /// build the profile of the sparse matrix corresponding to the mesh
   void initSparseMatrixProfile(SparseMatrixType sparse_matrix_type = _unsymmetric);
 
-  /// pre-compute normals on quadrature points
-  void computeNormalsOnQuadPoints(GhostType ghost_type = _not_ghost);
 
-  /// interpolate nodal values on the quadrature points
+  /// pre-compute all the shape functions, their derivatives and the jacobians
+  virtual void initShapeFunctions(GhostType ghost_type = _not_ghost)=0;
+
+  /* ------------------------------------------------------------------------ */
+  /* Integration method bridges                                               */
+  /* ------------------------------------------------------------------------ */ 
+
+  /// integrate f for all elements of type "type"
+  virtual void integrate(const Vector<Real> & f,
+		 Vector<Real> &intf,
+		 UInt nb_degre_of_freedom,
+   		 const ElementType & type,
+   		 GhostType ghost_type = _not_ghost,
+   		 const Vector<UInt> * filter_elements = NULL) const = 0;
+
+  /// integrate a scalar value on all elements of type "type"
+  virtual Real integrate(const Vector<Real> & f,
+   		 const ElementType & type,
+   		 GhostType ghost_type = _not_ghost,
+   		 const Vector<UInt> * filter_elements = NULL) const = 0;
+
+  /* ------------------------------------------------------------------------ */
+  /* compatibility with old FEM fashion */
+  /* ------------------------------------------------------------------------ */
+     
+  /// get the number of quadrature points
+  virtual UInt getNbQuadraturePoints(const ElementType & type)=0;
+  /// get the precomputed shapes
+  const virtual Vector<Real> & getShapes(const ElementType & type)=0;
+  /// get the precomputed ghost shapes
+  const virtual Vector<Real> & getGhostShapes(const ElementType & type)=0;
+  /// get the derivatives of shapes
+  const virtual Vector<Real> & getShapesDerivatives(const ElementType & type)=0;
+  /// get the ghost derivatives of shapes
+  const virtual Vector<Real> & getGhostShapesDerivatives(const ElementType & type)=0;
+  /// get quadrature points
+  const virtual Vector<Real> & getQuadraturePoints(const ElementType & type)=0;
+
+  /* ------------------------------------------------------------------------ */
+  /* Shape method bridges                                                     */
+  /* ------------------------------------------------------------------------ */
+
+  virtual 
+  void gradientOnQuadraturePoints(const Vector<Real> &u,
+				  Vector<Real> &nablauq,
+				  const UInt nb_degre_of_freedom,
+				  const ElementType & type,
+				  GhostType ghost_type = _not_ghost,
+				  const Vector<UInt> * filter_elements = NULL)=0;
+
+  virtual 
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
 				     GhostType ghost_type = _not_ghost,
-				     const Vector<UInt> * filter_elements = NULL) const;
+				     const Vector<UInt> * filter_elements = NULL) const =0;
+  
+  /* ------------------------------------------------------------------------ */
+  /* Other methods                                                            */
+  /* ------------------------------------------------------------------------ */
 
-  /// compute the gradient of u on the quadrature points
-  void gradientOnQuadraturePoints(const Vector<Real> &u,
-				  Vector<Real> &nablauq,
-				  UInt nb_degre_of_freedom,
-				  const ElementType & type,
-				  GhostType ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const;
-
-  /// integrate f for all elements of type "type"
-  void integrate(const Vector<Real> & f,
-		 Vector<Real> &intf,
-		 UInt nb_degre_of_freedom,
-		 const ElementType & type,
-		 GhostType ghost_type = _not_ghost,
-		 const Vector<UInt> * filter_elements = NULL) const;
-
-  /// integrate f on the element "elem" of type "type"
-  inline void integrate(const Vector<Real> & f,
-   			Real *intf,
-   			UInt nb_degre_of_freedom,
-   			const Element & elem,
-  			GhostType ghost_type = _not_ghost) const;
-
-  /// integrate a scalar value on all elements of type "type"
-  Real integrate(const Vector<Real> & f,
-		 const ElementType & type,
-		 GhostType ghost_type = _not_ghost,
-		 const Vector<UInt> * filter_elements = NULL) const;
+  /// pre-compute normals on control points
+  virtual void computeNormalsOnControlPoints(GhostType ghost_type = _not_ghost)=0;
 
 
+  
   /// assemble vectors
   void assembleVector(const Vector<Real> & elementary_vect,
 		      Vector<Real> & nodal_values,
@@ -125,10 +149,6 @@ private:
   /// initialise the class
   void init();
 
-  /// integrate on one element
-  inline void integrate(Real *f, Real *jac, Real * inte,
-			UInt nb_degre_of_freedom,
-			UInt nb_quadrature_points) const;
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -139,39 +159,17 @@ public:
   /// get the mesh contained in the fem object
   inline Mesh & getMesh() const;
 
-  /// get the size of the shapes returned by the element class
-  static inline UInt getShapeSize(const ElementType & type);
-
-  /// get the number of quadrature points
-  static inline UInt getNbQuadraturePoints(const ElementType & type);
-
-  /// get the size of the shapes derivatives returned by the element class
-  static inline UInt getShapeDerivativesSize(const ElementType & type);
-
   /// get the in-radius of an element
   static inline Real getElementInradius(Real * coord, const ElementType & type);
-
-  /// get a the shapes vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Shapes, shapes, const Vector<Real> &);
-
-  /// get a the shapes derivatives vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
 
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NormalsOnQuadPoints, normals_on_quad_points, const Vector<Real> &);
 
-  /// get a the ghost shapes vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
-				   const Vector<Real> &);
-
-  /// get a the ghost shapes derivatives vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapesDerivatives, ghost_shapes_derivatives,
-				   const Vector<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
   /// id of the fem object
   FEMID id;
@@ -182,26 +180,9 @@ private:
   /// the mesh on which all computation are made
   Mesh * mesh;
 
-  /// shape functions for all elements
-  ByElementTypeReal shapes;
-
-  /// shape derivatives for all elements
-  ByElementTypeReal shapes_derivatives;
-
-  /// jacobians for all elements
-  ByElementTypeReal jacobians;
-
   /// normals at quadrature points
   ByElementTypeReal normals_on_quad_points;
 
-  /// shape functions for all elements
-  ByElementTypeReal ghost_shapes;
-
-  /// shape derivatives for all elements
-  ByElementTypeReal ghost_shapes_derivatives;
-
-  /// jacobians for all elements
-  ByElementTypeReal ghost_jacobians;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -209,6 +190,7 @@ private:
 /* -------------------------------------------------------------------------- */
 
 #include "fem_inline_impl.cc"
+
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const FEM & _this)
@@ -219,5 +201,6 @@ inline std::ostream & operator <<(std::ostream & stream, const FEM & _this)
 
 __END_AKANTU__
 
+#include "fem_template.hh"
 
 #endif /* __AKANTU_FEM_HH__ */

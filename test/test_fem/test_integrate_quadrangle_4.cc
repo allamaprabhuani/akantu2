@@ -32,6 +32,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "fem.hh"
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
 
   mesh_io.read("square_structured1.msh", my_mesh);
 
-  FEM fem(my_mesh, dim, "my_fem");
+  FEMTemplate<IntegratorGauss,ShapeLagrange> fem(my_mesh, dim, "my_fem");
 
   debug::_debug_level = dblDump;
   fem.initShapeFunctions();
@@ -82,11 +84,11 @@ int main(int argc, char *argv[]) {
 
   my_file << "integral is " << value[0] << " " << value[1] << std::endl;
 
-  FEM fem_boundary(my_mesh, dim-1, "my_fem_boundary");
+  FEMTemplate<IntegratorGauss,ShapeLagrange> fem_boundary(my_mesh, dim-1, "my_fem_boundary");
   fem_boundary.initShapeFunctions();
 
   ElementType bound_type = Mesh::getFacetElementType(type);
-  UInt nb_boundary_quad  = FEM::getNbQuadraturePoints(bound_type);
+  UInt nb_boundary_quad  = fem_boundary.getNbQuadraturePoints(bound_type);
 
   Vector<Real> val_on_bquad(0, nb_boundary_quad, "val_on_quad");
   for (UInt i = 0; i < const_val.getSize(); ++i) {

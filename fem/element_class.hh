@@ -143,6 +143,7 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(FacetLocalConnectivityPerElement, facet_connectivity, UInt**);
 
   static inline UInt getNbQuadraturePoint();
+  static inline Real * getQuadraturePoints();
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivativesSize();
   

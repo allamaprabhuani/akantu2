@@ -219,10 +219,12 @@ set(AKANTU_COMMON_SRC
   common/aka_memory.cc
   common/aka_vector.cc
   common/aka_math.cc
+  fem/shape_lagrange.cc
+  fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
-#  model/integration_scheme/central_difference.cc
+  fem/fem_template.cc
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_boundary.cc

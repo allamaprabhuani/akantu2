@@ -66,15 +66,15 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
   }
 
   //prepare the loop over element types
-  const Mesh::ConnectivityTypeList & type_list = fem_boundary->getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = getFEMBoundary().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != fem_boundary->getElementDimension()) continue;
+    if(Mesh::getSpatialDimension(*it) != getFEMBoundary().getElementDimension()) continue;
 
-    UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
-    UInt nb_element = fem_boundary->getMesh().getNbElement(*it);
+    UInt nb_quad              = getFEMBoundary().getNbQuadraturePoints(*it);
+    UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it);
 
-    fem_boundary->interpolateOnQuadraturePoints(fem_boundary->getMesh().getNodes(),
+    getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
 						quad_coords, spatial_dimension, (*it));
 
 
@@ -114,13 +114,13 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
 						      const ElementType & type){
   AKANTU_DEBUG_IN();
 
-  UInt nb_element = fem_boundary->getMesh().getNbElement(type);
-  UInt nb_quad = FEM::getNbQuadraturePoints(type);
+  UInt nb_element = getFEMBoundary().getMesh().getNbElement(type);
+  UInt nb_quad = getFEMBoundary().getNbQuadraturePoints(type);
 
   // check dimension match
-  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == fem_boundary->getElementDimension(),
+  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == getFEMBoundary().getElementDimension(),
 		      "element type dimension does not match the dimension of boundaries : " <<
-		      fem_boundary->getElementDimension() << " != " <<
+		      getFEMBoundary().getElementDimension() << " != " <<
 		      Mesh::getSpatialDimension(type));
 
   // check size of the vector
@@ -136,7 +136,7 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
   std::stringstream name;
   name << id << ":solidmechanics:" << type << ":traction_boundary";
   Vector<Real> funct(nb_element*nb_quad, spatial_dimension,name.str());
-  const Vector<Real> & normals_on_quad = fem_boundary->getNormalsOnQuadPoints(type);
+  const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(type);
 
   Math::matrix_vector(spatial_dimension,spatial_dimension,stresses,normals_on_quad,funct);
   computeForcesByTractionVector(funct,type);
@@ -147,14 +147,14 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
 							const ElementType & type){
   AKANTU_DEBUG_IN();
 
-  UInt nb_element = fem_boundary->getMesh().getNbElement(type);
-  UInt nb_nodes_per_element = fem_boundary->getMesh().getNbNodesPerElement(type);
-  UInt nb_quad = FEM::getNbQuadraturePoints(type);
+  UInt nb_element = getFEMBoundary().getMesh().getNbElement(type);
+  UInt nb_nodes_per_element = getFEMBoundary().getMesh().getNbNodesPerElement(type);
+  UInt nb_quad = getFEMBoundary().getNbQuadraturePoints(type);
 
   // check dimension match
-  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == fem_boundary->getElementDimension(),
+  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == getFEMBoundary().getElementDimension(),
 		      "element type dimension does not match the dimension of boundaries : " <<
-		      fem_boundary->getElementDimension() << " != " <<
+		      getFEMBoundary().getElementDimension() << " != " <<
 		      Mesh::getSpatialDimension(type));
 
   // check size of the vector
@@ -172,7 +172,7 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
   funct.extendComponentsInterlaced(nb_nodes_per_element,spatial_dimension);
   // multiply by the shapes
   Real * funct_val = funct.values;
-  Real * shapes_val = (fem_boundary->getShapes(type)).values;
+  Real * shapes_val = (getFEMBoundary().getShapes(type)).values;
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quad; ++q) {
       for (UInt n = 0; n < nb_nodes_per_element; ++n,++shapes_val) {
@@ -188,9 +188,9 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
   name << id << ":solidmechanics:" << type << ":integral_boundary";
   Vector<Real> int_funct(nb_element, spatial_dimension*nb_nodes_per_element,name.str());
   //do the integration
-  fem_boundary->integrate(funct, int_funct, spatial_dimension*nb_nodes_per_element, type);
+  getFEMBoundary().integrate(funct, int_funct, spatial_dimension*nb_nodes_per_element, type);
   // assemble the result into force vector
-  fem_boundary->assembleVector(int_funct,const_cast<Vector<Real> &>(getForce()), spatial_dimension, type);
+  getFEMBoundary().assembleVector(int_funct,const_cast<Vector<Real> &>(getForce()), spatial_dimension, type);
   AKANTU_DEBUG_OUT();
 }
 

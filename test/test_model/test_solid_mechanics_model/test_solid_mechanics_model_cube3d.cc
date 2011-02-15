@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
   memset(model->getAcceleration().values, 0, 3*nb_nodes*sizeof(akantu::Real));
   memset(model->getDisplacement().values, 0, 3*nb_nodes*sizeof(akantu::Real));
 
+  model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
-  model->initModel();
 
   akantu::Real time_step = model->getStableTimeStep();
   model->setTimeStep(time_step/10.);

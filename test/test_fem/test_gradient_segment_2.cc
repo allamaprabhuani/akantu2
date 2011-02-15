@@ -31,6 +31,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "fem.hh"
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(1);
   mesh_io.read("line1.msh", my_mesh);
-  FEM *fem = new FEM(my_mesh,1,"my_fem");
+  FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh,1,"my_fem");
 
   debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();

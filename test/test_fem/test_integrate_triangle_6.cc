@@ -35,6 +35,8 @@
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
 
 
 /* -------------------------------------------------------------------------- */
@@ -49,7 +51,7 @@ int main(int argc, char *argv[]) {
   Mesh my_mesh(dim);
   mesh_io.read("square2.msh", my_mesh);
   //mesh_io.read("circle2.msh", my_mesh);
-  FEM *fem = new FEM(my_mesh, dim, "my_fem");
+  FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
   debug::_debug_level = dblDump;
   fem->initShapeFunctions();
@@ -85,12 +87,12 @@ int main(int argc, char *argv[]) {
 
   my_file << "integral is " << value[0] << " " << value[1] << std::endl;
 
-  FEM * fem_boundary = new FEM(my_mesh, dim-1, "my_fem_boundary");
+  FEM * fem_boundary = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim-1, "my_fem_boundary");
   fem_boundary->initShapeFunctions();
 
 
   //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_segment_3);
-  UInt nb_boundary_quad              = FEM::getNbQuadraturePoints(_segment_3);
+  UInt nb_boundary_quad              = fem_boundary->getNbQuadraturePoints(_segment_3);
 
   Vector<Real> val_on_bquad(0, nb_boundary_quad, "val_on_quad");
   for (UInt i = 0; i < const_val.getSize(); ++i) {

@@ -26,97 +26,12 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
-inline void FEM::integrate(const Vector<Real> & f,
-			   Real * intf,
-			   UInt nb_degre_of_freedom,
-			   const Element & elem,
-			   GhostType ghost_type) const {
-
-  Vector<Real> * jac_loc;
-
-  if(ghost_type == _not_ghost) {
-    jac_loc     = jacobians[elem.type];
-  } else {
-    jac_loc     = ghost_jacobians[elem.type];
-  }
-
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(elem.type);
-  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom ,
-		      "The vector f do not have the good number of component.");
-
-  Real * f_val    = f.values + elem.element * f.getNbComponent();
-  Real * jac_val  = jac_loc->values + elem.element * nb_quadrature_points;
-
-  integrate(f_val, jac_val, intf, nb_degre_of_freedom, nb_quadrature_points);
-}
-
-
-/* -------------------------------------------------------------------------- */
-inline void FEM::integrate(Real *f, Real *jac, Real * inte,
-			   UInt nb_degre_of_freedom,
-			   UInt nb_quadrature_points) const {
-  memset(inte, 0, nb_degre_of_freedom * sizeof(Real));
-
-  Real *cjac = jac;
-  for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    for (UInt dof = 0; dof < nb_degre_of_freedom; ++dof) {
-      inte[dof] += *f * *cjac;
-      ++f;
-    }
-    ++cjac;
-  }
-}
 
 /* -------------------------------------------------------------------------- */
 inline Mesh & FEM::getMesh() const {
   return *mesh;
 }
 
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_quadrature_points = 0;
-#define GET_NB_QUAD_POINTS(type)					\
-  nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints()
-
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_QUAD_POINTS)
-#undef GET_NB_QUAD_POINTS
-
-  AKANTU_DEBUG_OUT();
-  return nb_quadrature_points;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getShapeSize(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt shape_size = 0;
-#define GET_SHAPE_SIZE(type)				\
-  shape_size = ElementClass<type>::getShapeSize()
-
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_SIZE)
-#undef GET_SHAPE_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return shape_size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt FEM::getShapeDerivativesSize(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt shape_derivatives_size = 0;
-#define GET_SHAPE_DERIVATIVES_SIZE(type)				\
-  shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
-
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_SIZE)
-#undef GET_SHAPE_DERIVATIVES_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return shape_derivatives_size;
-}
 
 /* -------------------------------------------------------------------------- */
 inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
@@ -134,4 +49,19 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
   return inradius;
 }
 
-/* -------------------------------------------------------------------------- */
+// /* -------------------------------------------------------------------------- */
+// inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
+//   AKANTU_DEBUG_IN();
+
+//   UInt nb_quad_points = 0;
+
+// #define GET_NB_QUAD(type)					
+//   nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
+
+//   AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_QUAD)
+// #undef GET_NB_QUAD
+    
+//   AKANTU_DEBUG_OUT();
+//   return nb_quad_points;
+// }
+

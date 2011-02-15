@@ -32,6 +32,11 @@ template<ElementType type> inline UInt ElementClass<type>::getNbQuadraturePoint(
 }
 
 /* -------------------------------------------------------------------------- */
+template<ElementType type> inline Real * ElementClass<type>::getQuadraturePoints() {
+  return quad;
+}
+
+/* -------------------------------------------------------------------------- */
 template<ElementType type> inline UInt ElementClass<type>::getShapeSize() {
   return nb_nodes_per_element;
 }

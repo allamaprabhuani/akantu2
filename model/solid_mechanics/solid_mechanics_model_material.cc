@@ -60,12 +60,12 @@ void SolidMechanicsModel::initMaterials() {
   Material ** mat_val = &(materials.at(0));
 
   /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & type_list = fem->getMesh().getConnectivityTypeList(_not_ghost);
+  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList(_not_ghost);
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_element = fem->getMesh().getNbElement(*it);
+    UInt nb_element = getFEM().getMesh().getNbElement(*it);
     UInt * elem_mat_val = element_material[*it]->values;
 
     for (UInt el = 0; el < nb_element; ++el) {
@@ -73,15 +73,18 @@ void SolidMechanicsModel::initMaterials() {
     }
   }
 
+  
+
+
   /// @todo synchronize element material
 
   /// fill the element filters of the materials using the element_material arrays
   const Mesh::ConnectivityTypeList & ghost_type_list =
-    fem->getMesh().getConnectivityTypeList(_ghost);
+    getFEM().getMesh().getConnectivityTypeList(_ghost);
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_element = fem->getMesh().getNbGhostElement(*it);
+    UInt nb_element = getFEM().getMesh().getNbGhostElement(*it);
     UInt * elem_mat_val = ghost_element_material[*it]->values;
 
     for (UInt el = 0; el < nb_element; ++el) {

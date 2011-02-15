@@ -42,6 +42,8 @@
 #include "material.hh"
 #include "material_parser.hh"
 #include "sparse_matrix.hh"
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -53,10 +55,13 @@ namespace akantu {
 __BEGIN_AKANTU__
 
 class SolidMechanicsModel : public Model {
+
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  
+  typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
   SolidMechanicsModel(UInt spatial_dimension,
 		      const ModelID & id = "solid_mechanics_model",
@@ -194,6 +199,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// return the dimension of the system space
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
+
   /// get the current value of the time step
   AKANTU_GET_MACRO(TimeStep, time_step, Real);
   /// set the value of the time step
@@ -319,6 +327,10 @@ private:
 
   /// object to resolve the contact
   Contact * contact;
+
+  /// the spatial dimension
+  UInt spatial_dimension;
+
 };
 
 

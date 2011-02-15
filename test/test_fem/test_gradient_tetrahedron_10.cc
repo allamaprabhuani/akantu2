@@ -31,6 +31,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "fem.hh"
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
@@ -46,7 +48,7 @@ int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
   mesh_io.read("cube2.msh", my_mesh);
-  FEM fem(my_mesh, dim, "my_fem");
+  FEMTemplate<IntegratorGauss,ShapeLagrange> fem(my_mesh, dim, "my_fem");
 
   debug::setDebugLevel(dblDump);
   fem.initShapeFunctions();
@@ -72,7 +74,7 @@ int main(int argc, char *argv[]) {
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
 
-  UInt nb_quads = my_mesh.getNbElement(type) * FEM::getNbQuadraturePoints(type);
+  UInt nb_quads = my_mesh.getNbElement(type) * fem.getNbQuadraturePoints(type);
   Real eps = 30 * std::numeric_limits<Real>::epsilon();
   std::cout << "Epsilon : " << eps << std::endl;
   for (UInt q = 0; q < nb_quads; ++q) {

@@ -143,10 +143,10 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = fem->getMesh().getConnectivity(element.type).values;
+  UInt * conn  = getFEM().getMesh().getConnectivity(element.type).values;
 
 #ifdef AKANTU_DEBUG
-  fem->getMesh().getBarycenter(element.element, element.type, *buffer);
+  getFEM().getMesh().getBarycenter(element.element, element.type, *buffer);
   (*buffer) += spatial_dimension;
 #endif
 
@@ -203,11 +203,11 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = fem->getMesh().getGhostConnectivity(element.type).values;
+  UInt * conn  = getFEM().getMesh().getGhostConnectivity(element.type).values;
 
 #ifdef AKANTU_DEBUG
   Real barycenter[spatial_dimension];
-  fem->getMesh().getBarycenter(element.element, element.type, barycenter, _ghost);
+  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter, _ghost);
 
   Real tolerance = 1e-15;
   for (UInt i = 0; i < spatial_dimension; ++i) {
