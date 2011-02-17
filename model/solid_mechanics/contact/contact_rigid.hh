@@ -52,22 +52,51 @@ public:
 	       const MemoryID & memory_id = 0);
   
   virtual ~ContactRigid();
+
+  /* ------------------------------------------------------------------------ */
+  /* Active Contact Nodes Class (per Master Surface)                          */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  class ImpactorNodesInfoPerMaster {
+  public:
+    ImpactorNodesInfoPerMaster(const Surface master_id, const UInt spatial_dimension);
+    virtual ~ImpactorNodesInfoPerMaster();
+  public:
+    /// master surface id
+    Surface master_id;
+
+    /// the normal to the master surface element
+    Vector<Int> * master_normals;
+    
+    /// list of active impactor nodes
+    Vector<UInt> * active_impactor_nodes;  
+  
+    /// show if node is sticking
+    Vector<bool> * node_is_sticking;
+  };
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// solve the contact
-  void solveContact();
+  virtual void solveContact();
   
   /// avoid adhesion by delocking contact nodes that have tensile contact force
-  void avoidAdhesion();
+  virtual void avoidAdhesion();
 
   /// add friction forces
-  void addFriction();
+  virtual void addFriction();
 
   /// find nodes that stick
-  void addSticking();
+  virtual void addSticking();
+
+  /// add a new master surface
+  virtual void addMasterSurface(const Surface & master_surface);
+
+  /// remove a master surface
+  virtual void removeMasterSurface(const Surface & master_surface);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -77,7 +106,8 @@ private:
   //void solvePenetration(const PenetrationList & penet_list);
 
   /// solve penetration to the closest facet
-  void solvePenetrationClosestProjection(const PenetrationList & penet_list);
+  void solvePenetrationClosestProjection(const UInt master_index, 
+					 const PenetrationList & penet_list);
 
   /// projects the impactor to the projected position
   void projectImpactor(const PenetrationList & penet_list, 
@@ -85,7 +115,8 @@ private:
 		       const ElementType facet_type, 
 		       const UInt facet_offset);
 
-  void lockImpactorNode(const PenetrationList & penet_list, 
+  void lockImpactorNode(const UInt master_index,
+			const PenetrationList & penet_list, 
 			const UInt impactor_index, 
 			const ElementType facet_type, 
 			const UInt facet_offset);
@@ -94,11 +125,14 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the vector containing the active impactor nodes
-  AKANTU_GET_MACRO(ActiveImpactorNodes, active_impactor_nodes, const Vector<UInt> *);
+  /// get the vector full of impactor information objects
+  AKANTU_GET_MACRO(ImpactorsInformation, impactors_information, const std::vector<ImpactorNodesInfoPerMaster *> &);
 
+/// get the vector containing the active impactor nodes
+  //AKANTU_GET_MACRO(ActiveImpactorNodes, active_impactor_nodes, const Vector<UInt> *);
+  
   /// get the vector that indicates if an impactor node sticks
-  AKANTU_GET_MACRO(NodeIsSticking, node_is_sticking, const Vector<bool> *);
+  //AKANTU_GET_MACRO(NodeIsSticking, node_is_sticking, const Vector<bool> *);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -110,14 +144,8 @@ private:
   /// the mesh
   const Mesh & mesh;
 
-  /// the normal to the master surface
-  Vector<Int> * master_normals;
-
-  /// list of active impactor nodes
-  Vector<UInt> * active_impactor_nodes;  
-  
-  /// show if node is sticking
-  Vector<bool> * node_is_sticking;
+  /// list of impactor nodes info for each master surface
+  std::vector<ImpactorNodesInfoPerMaster *> impactors_information;
 
 };
 

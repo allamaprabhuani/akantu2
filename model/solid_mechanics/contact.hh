@@ -92,10 +92,10 @@ public:
   virtual void solveContact() = 0;
 
   /// add a new master surface
-  void addMasterSurface(const Surface & master_surface);
+  virtual void addMasterSurface(const Surface & master_surface);
 
   /// remove a master surface
-  void removeMasterSurface(const Surface & master_surface);
+  virtual void removeMasterSurface(const Surface & master_surface);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
