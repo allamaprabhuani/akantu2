@@ -26,6 +26,7 @@
 #===============================================================================
 
 add_subdirectory("test_materials")
+add_subdirectory("patch_tests")
 if(AKANTU_BUILD_CONTACT)
   add_subdirectory("test_contact")
 endif(AKANTU_BUILD_CONTACT)
@@ -95,7 +96,6 @@ register_test(test_solid_mechanics_model_cube3d_tetra10
   test_solid_mechanics_model_cube3d_tetra10.cc)
 add_dependencies(test_solid_mechanics_model_cube3d_tetra10 test_cube3d_mesh2)
 
-
 #===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
@@ -104,4 +104,3 @@ configure_file(
   )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-
