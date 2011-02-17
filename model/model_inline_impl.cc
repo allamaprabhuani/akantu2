@@ -36,36 +36,66 @@ inline Model::Model(const ModelID & id,
 /* -------------------------------------------------------------------------- */
 inline Model::~Model() {
   AKANTU_DEBUG_IN();
-  
-  AKANTU_DEBUG_OUT();
-}
-/* -------------------------------------------------------------------------- */
-template <typename FEMClass>
-inline FEMClass & Model::getFEMBoundary(std::string name){
-  AKANTU_DEBUG_IN();
-  if (name == "") name = default_fem;
-  if (fems_boundary[name] == NULL){
-    UInt spatial_dimension = fems[name]->getElementDimension();
-    std::stringstream sstr; sstr << id << ":femboundary:" << name;
-    MeshUtils::buildFacets(fems[name]->getMesh());
-    fems_boundary[name] = new FEMClass(fems[name]->getMesh(), 
-				       spatial_dimension-1, 
-				       sstr.str(), 
-				       memory_id); 
+
+  FEMMap::iterator it;
+  for (it = fems.begin(); it != fems.end(); ++it) {
+    if(it->second) delete it->second;
   }
+
+  for (it = fems_boundary.begin(); it != fems_boundary.end(); ++it) {
+    if(it->second) delete it->second;
+  }
+
   AKANTU_DEBUG_OUT();
-  return dynamic_cast<FEMClass>(*fems_boundary[name]);
+}
+/* -------------------------------------------------------------------------- */
+template <typename FEMClass>
+inline FEMClass & Model::getFEMClassBoundary(std::string name){
+  AKANTU_DEBUG_IN();
+
+  if (name == "") name = default_fem;
+
+  FEMMap::const_iterator it_boun = fems_boundary.find(name);
+
+  FEMClass * tmp_fem_boundary;
+
+  if (it_boun == fems_boundary.end()){
+    AKANTU_DEBUG_INFO("Creating FEM boundary " << name);
+
+    FEMMap::const_iterator it = fems.find(name);
+    AKANTU_DEBUG_ASSERT(it != fems.end(), "The FEM " << name << " is not registered");
+
+    UInt spatial_dimension = it->second->getElementDimension();
+    std::stringstream sstr; sstr << id << ":fem_boundary:" << name;
+
+
+    MeshUtils::buildFacets(it->second->getMesh());
+
+    tmp_fem_boundary = new FEMClass(it->second->getMesh(),
+				    spatial_dimension-1,
+				    sstr.str(),
+				    memory_id);
+    fems_boundary[name] = tmp_fem_boundary;
+  } else {
+    tmp_fem_boundary = dynamic_cast<FEMClass *>(it_boun->second);
+  }
+
+  AKANTU_DEBUG_OUT();
+  return *tmp_fem_boundary;
 }
 
 
 /* -------------------------------------------------------------------------- */
 template <typename FEMClass>
-inline FEMClass & Model::getFEM(std::string name) const{
+inline FEMClass & Model::getFEMClass(std::string name) const{
   AKANTU_DEBUG_IN();
+
   if (name == "") name = default_fem;
+
+  FEMMap::const_iterator it = fems.find(name);
+  AKANTU_DEBUG_ASSERT(it != fems.end(), "The FEM " << name << " is not registered");
+
   AKANTU_DEBUG_OUT();
-  std::map<std::string,FEM*>::const_iterator it = fems.find(name);
-  AKANTU_DEBUG_ASSERT(it != fems.end(),"fem  " << name << " not registered");
   return dynamic_cast<FEMClass &>(*(it->second));
 }
 
@@ -73,27 +103,33 @@ inline FEMClass & Model::getFEM(std::string name) const{
 
 template <typename FEMClass>
 inline void Model::registerFEMObject(const std::string & name,
-				     Mesh & mesh, 
+				     Mesh & mesh,
 				     UInt spatial_dimension){
   if (fems.size() == 0) default_fem = name;
-  AKANTU_DEBUG_ASSERT(fems.count(name) == 0,"fem object with name " 
-		      << name 
-		      << " was already created: abort");
+
+  FEMMap::const_iterator it = fems.find(name);
+  AKANTU_DEBUG_ASSERT(it == fems.end(), "FEM object with name "
+		      << name << " was already created");
 
   std::stringstream sstr; sstr << id << ":fem:" << name;
-  fems[name] = new FEMClass(mesh, spatial_dimension, sstr.str(), memory_id); 
-  MeshUtils::buildFacets(fems[name]->getMesh());
-  std::stringstream sstr2; sstr2 << id << ":femboundary" << name;
-  fems_boundary[name] = new FEMClass(mesh, spatial_dimension-1, sstr2.str(), memory_id); 
+  fems[name] = new FEMClass(mesh, spatial_dimension, sstr.str(), memory_id);
+
+  // MeshUtils::buildFacets(fems[name]->getMesh());
+
+  // std::stringstream sstr2; sstr2 << id << ":fem_boundary:" << name;
+  // fems_boundary[name] = new FEMClass(mesh, spatial_dimension-1, sstr2.str(), memory_id);
 }
 
 /* -------------------------------------------------------------------------- */
 inline FEM & Model::getFEM(std::string name) const{
   AKANTU_DEBUG_IN();
+
   if (name == "") name = default_fem;
+
+  FEMMap::const_iterator it = fems.find(name);
+  AKANTU_DEBUG_ASSERT(it != fems.end(),"The FEM " << name << " is not registered");
+
   AKANTU_DEBUG_OUT();
-  std::map<std::string,FEM*>::const_iterator it = fems.find(name);
-  AKANTU_DEBUG_ASSERT(it != fems.end(),"fem  " << name << " not registered");
   return *(it->second);
 }
 
@@ -101,10 +137,15 @@ inline FEM & Model::getFEM(std::string name) const{
 /* -------------------------------------------------------------------------- */
 inline FEM & Model::getFEMBoundary(std::string name){
   AKANTU_DEBUG_IN();
+
   if (name == "") name = default_fem;
-  std::map<std::string,FEM*>::const_iterator it = fems_boundary.find(name);
-  AKANTU_DEBUG_ASSERT(it != fems_boundary.end(),"fem_boundary  " << name << " not registered");
-  AKANTU_DEBUG_ASSERT(fems_boundary[name] != NULL,"fem boundary was not created");
+
+  FEMMap::const_iterator it = fems_boundary.find(name);
+  AKANTU_DEBUG_ASSERT(it != fems_boundary.end(),
+		      "The FEM boundary  " << name << " is not registered");
+  AKANTU_DEBUG_ASSERT(it->second != NULL,
+		      "The FEM boundary " << name << " was not created");
+
   AKANTU_DEBUG_OUT();
-  return *fems_boundary[name];
+  return *(it->second);
 }

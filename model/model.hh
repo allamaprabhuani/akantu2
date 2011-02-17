@@ -53,6 +53,8 @@ public:
 
   inline virtual ~Model();
 
+  typedef std::map<std::string, FEM *> FEMMap;
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -72,38 +74,38 @@ public:
 
   /// return the fem object associated with a provided name
   inline FEM & getFEM(std::string name = "") const;
-  /// return the fem boundary object associated with a provided name
-  inline FEM & getFEMBoundary(std::string name = "");
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /// return the fem boundary object associated with a provided name
+  virtual FEM & getFEMBoundary(std::string name = "");
 
   /// register a fem object associated with name
   template <typename FEMClass> inline void registerFEMObject(const std::string & name,
 							     Mesh & mesh,
 							     UInt spatial_dimension);
-
 protected:
   /// return the fem object associated with a provided name
   template <typename FEMClass>
-  inline FEMClass & getFEM(std::string name = "") const;
+  inline FEMClass & getFEMClass(std::string name = "") const;
+
   /// return the fem boundary object associated with a provided name
   template <typename FEMClass>
-  inline FEMClass & getFEMBoundary(std::string name = "");
+  inline FEMClass & getFEMClassBoundary(std::string name = "");
 
-
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
 protected:
-
   /// id
   ModelID id;
+
   /// the main fem object present in all  models
-  std::map<std::string,FEM *> fems;
+  FEMMap fems;
+
   /// the fem object present in all  models for boundaries
-  std::map<std::string,FEM *> fems_boundary;
+  FEMMap fems_boundary;
+
   /// default fem object
   std::string default_fem;
-
 };
 
 
