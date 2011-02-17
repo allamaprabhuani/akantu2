@@ -241,7 +241,7 @@ template <> inline void ElementClass<_tetrahedron_10>::computeJacobian(const Rea
     jac = det_dxds * weight;    
   }  
   else {
-    AKANTU_DEBUG_ERROR("to be implemented");
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
  

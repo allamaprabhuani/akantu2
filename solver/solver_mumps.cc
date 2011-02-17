@@ -96,65 +96,6 @@
 
 __BEGIN_AKANTU__
 
-
-/* -------------------------------------------------------------------------- */
-SolverMumps::SolverMumps(const Mesh & mesh,
-			 const SparseMatrixType & sparse_matrix_type,
-			 UInt nb_degre_of_freedom,
-			 const SolverID & id,
-			 const MemoryID & memory_id) :
-  Solver(mesh, sparse_matrix_type, nb_degre_of_freedom, id, memory_id) {
-  AKANTU_DEBUG_IN();
-
-  std::stringstream sstr_mat; sstr_mat << id << ":sparse_matrix";
-  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
-
-  UInt nb_nodes = mesh.getNbGlobalNodes();
-
-  std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
-
-  rhs = &(alloc<Real>(sstr_rhs.str(), nb_nodes * nb_degre_of_freedom, 1, REAL_INIT_VALUE));
-
-  mumps_data.sym = 2 * (sparse_matrix_type == _symmetric);
-
-#ifdef AKANTU_USE_MPI
-  mumps_data.par = 1;
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<StaticCommunicatorMPI *>(comm)->getMPICommunicator());
-#else
-  mumps_data.par = 0;
-#endif
-
-  icntl(1) = 2;
-  icntl(2) = 2;
-  icntl(3) = 2;
-
-  icntl(4) = 1;
-  if (debug::getDebugLevel() >= 10)
-    icntl(4) = 4;
-  else if (debug::getDebugLevel() >= 5)
-    icntl(4) = 3;
-  else if (debug::getDebugLevel() >= 3)
-    icntl(4) = 2;
-
-  mumps_data.job = _smj_initialize; //initialize
-  dmumps_c(&mumps_data);
-
-  mumps_data.n   = nb_nodes * nb_degre_of_freedom;
-  strcpy(mumps_data.write_problem, "mumps_matrix.mtx");
-
-  // mumps_data.nz  = 0;
-  // mumps_data.irn = NULL;
-  // mumps_data.jcn = NULL;
-  // mumps_data.a   = NULL;
-  // mumps_data.nz_loc  = 0;
-  // mumps_data.irn_loc = NULL;
-  // mumps_data.jcn_loc = NULL;
-  // mumps_data.a_loc   = NULL;
-
-  AKANTU_DEBUG_OUT();
-}
-
 /* -------------------------------------------------------------------------- */
 SolverMumps::SolverMumps(SparseMatrix & matrix,
 			 const SolverID & id,
@@ -162,14 +103,13 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   Solver(matrix, id, memory_id) {
   AKANTU_DEBUG_IN();
 
-  //  std::stringstream sstr; sstr << id << ":sparse_matrix";
-  //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
-
   UInt size = matrix.getSize();
   UInt nb_degre_of_freedom = matrix.getNbDegreOfFreedom();
 
-  std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
+  //  std::stringstream sstr; sstr << id << ":sparse_matrix";
+  //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
 
+  std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
   mumps_data.sym = 2 * (matrix.getSparseMatrixType() == _symmetric);
 
   communicator = StaticCommunicator::getStaticCommunicator();
@@ -204,15 +144,6 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 
   mumps_data.n   = size * nb_degre_of_freedom;
   strcpy(mumps_data.write_problem, "mumps_matrix.mtx");
-
-  // mumps_data.nz  = 0;
-  // mumps_data.irn = NULL;
-  // mumps_data.jcn = NULL;
-  // mumps_data.a   = NULL;
-  // mumps_data.nz_loc  = 0;
-  // mumps_data.irn_loc = NULL;
-  // mumps_data.jcn_loc = NULL;
-  // mumps_data.a_loc   = NULL;
 
   AKANTU_DEBUG_OUT();
 }
@@ -310,6 +241,13 @@ void SolverMumps::initialize() {
   AKANTU_DEBUG_OUT();
 }
 
+void SolverMumps::setRHS(Vector<Real> & rhs) {
+  AKANTU_DEBUG_ASSERT(rhs.getSize() == this->rhs->getSize(),
+		      "Size of rhs and this->rhs do not match.");
+
+  memcpy(this->rhs->values, rhs.values, rhs.getSize() * sizeof(Real));
+}
+
 /* -------------------------------------------------------------------------- */
 void SolverMumps::solve() {
   AKANTU_DEBUG_IN();
@@ -327,13 +265,22 @@ void SolverMumps::solve() {
   icntl(20) = 0;
   icntl(21) = 0;
 
-  //  mumps_data.nrhs = 1;
-  //  mumps_data.lrhs = mumps_data.n;
-
   mumps_data.job = _smj_factorize_solve; //solve
   dmumps_c(&mumps_data);
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolverMumps::solve(Vector<Real> & solution) {
+  AKANTU_DEBUG_IN();
+
+  solve();
+
   /// @todo spread the rhs vector form host to slaves
+  if(communicator->whoAmI() == 0) {
+    memcpy(solution.values, rhs->values, rhs->getSize() * sizeof(Real));
+  }
 
   AKANTU_DEBUG_OUT();
 }

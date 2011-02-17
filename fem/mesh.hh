@@ -142,7 +142,7 @@ public:
   void computeBoundingBox();
 
   /// init a by-element-type real vector with provided ids
-  void initByElementTypeRealVector(ByElementTypeReal & v,UInt nb_component,
+  void initByElementTypeRealVector(ByElementTypeReal & v, UInt nb_component,
 				   UInt dimension,
 				   const std::string & obj_id,
 				   const std::string & vec_id,

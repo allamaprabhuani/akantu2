@@ -70,8 +70,10 @@ enum DebugLevel {
   dblAccessory   = 9,
   dbl10          = 10,
   dbl100         = 100,
-  dblDump        = 100
+  dblDump        = 100,
+  dblTest        = 1337
 };
+
 /* -------------------------------------------------------------------------- */
 namespace debug {
   extern std::ostream & _akantu_cout;
@@ -170,7 +172,8 @@ namespace debug {
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
-#define AKANTU_DEBUG_TEST(level)   (0)
+#define AKANTU_DEBUG_TEST(level)     (false)
+#define AKANTU_DEBUG_LEVEL_IS_TEST() (false)
 #define AKANTU_DEBUG(level,info)
 #define AKANTU_DEBUG_IN()
 #define AKANTU_DEBUG_OUT()
@@ -193,6 +196,9 @@ namespace debug {
 #define AKANTU_DEBUG_TEST(level)		\
   (::akantu::debug::_debug_level >= (level))
 
+#define AKANTU_DEBUG_LEVEL_IS_TEST()				\
+  (::akantu::debug::_debug_level == (::akantu::dblTest))
+
 #define AKANTU_DEBUG_IN()						\
   AKANTU_DEBUG(::akantu::dblIn     , "==> " << __func__ << "()")
 
@@ -207,6 +213,9 @@ namespace debug {
 
 #define AKANTU_DEBUG_TRACE(info)			\
   AKANTU_DEBUG(::akantu::dblTrace  , ">>> " << info)
+
+#define AKANTU_DEBUG_TO_IMPLEMENT()				\
+  AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !")
 
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\

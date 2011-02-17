@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
     Math::matrix_vector(2,2,*sigma_funct,*normals_on_quad,*funct);
     funct->extendComponentsInterlaced(nb_nodes_per_element,2);
 
+    delete sigma_funct;
+
     Real * funct_val = funct->values;
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quad; ++q) {

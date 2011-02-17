@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
 
 
   solver->initialize();
+
+
   solver->solve();
 
   if(comm->whoAmI() == 0) {

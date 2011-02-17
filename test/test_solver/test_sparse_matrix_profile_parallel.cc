@@ -47,9 +47,9 @@ int main(int argc, char *argv[])
   akantu::initialize(&argc, &argv);
 
   int dim = 2;
-#ifdef AKANTU_USE_IOHELPER
-  akantu::ElementType type = akantu::_triangle_6;
-#endif //AKANTU_USE_IOHELPER
+  //#ifdef AKANTU_USE_IOHELPER
+  //akantu::ElementType type = akantu::_triangle_6;
+  //#endif //AKANTU_USE_IOHELPER
   akantu::Mesh mesh(dim);
 
   //  akantu::debug::setDebugLevel(akantu::dblDump);

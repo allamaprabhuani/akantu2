@@ -80,7 +80,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
   damage[el_type]->resize(model->getFEM().getNbQuadraturePoints(el_type)*element_filter[el_type]->getSize());
   Real * dam = damage[el_type]->values;
 
-  MATERIAL_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
 
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -96,7 +96,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
-  MATERIAL_QUADRATURE_POINT_LOOP_END;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }
@@ -108,12 +108,12 @@ void MaterialDamage::computePotentialEnergy(ElementType el_type, GhostType ghost
   if(ghost_type != _not_ghost) return;
   Real * epot = potential_energy[el_type]->values;
 
-  MATERIAL_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
   computePotentialEnergy(strain_val, stress_val, epot);
   epot++;
 
-  MATERIAL_QUADRATURE_POINT_LOOP_END;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }

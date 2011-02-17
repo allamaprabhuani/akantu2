@@ -52,7 +52,7 @@ namespace debug {
   std::ostream & _akantu_cout = std::cout;
 
   /// debug level
-  DebugLevel _debug_level = (DebugLevel) 5;
+  DebugLevel _debug_level = dblInfo;
 
   /// parallel context used in debug messages
   std::string _parallel_context = "";

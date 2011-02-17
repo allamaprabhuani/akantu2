@@ -120,18 +120,15 @@ void SparseMatrix::buildProfile() {
       std::stringstream sstr;
 
       UInt nb_values_per_elem = nb_degre_of_freedom * nb_nodes_per_element;
-      if (sparse_matrix_type == _symmetric) {
-     	nb_values_per_elem = (nb_values_per_elem * (nb_values_per_elem + 1)) / 2;
-      } else {
-	nb_values_per_elem *= nb_values_per_elem;
-      }
-
+      // if (sparse_matrix_type == _symmetric) {
+      // 	nb_values_per_elem = (nb_values_per_elem * (nb_values_per_elem + 1)) / 2;
+      // } else {
+      nb_values_per_elem *= nb_values_per_elem;
+      // }
       sstr << id << ":" << "element_to_sparse_profile:" << *it;
       element_to_sparse_profile[*it] = &(alloc<UInt>(sstr.str(),
     						     nb_element,
     						     nb_values_per_elem));
-
-      //      std::cout << "COUNT " <<  nb_values_per_elem << std::endl;
     }
 
     UInt * global_nodes_ids_val = NULL;
@@ -146,14 +143,16 @@ void SparseMatrix::buildProfile() {
 	UInt c_jcn = n_j * nb_degre_of_freedom;
 
 	for (UInt d_j = 0; d_j < nb_degre_of_freedom; ++d_j, ++c_jcn) {         // loop on degre of freedom
-	  UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 : nb_nodes_per_element;
+	  //	  UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 : nb_nodes_per_element;
+	  UInt i_end = nb_nodes_per_element;
 
-	  for (UInt i = 0; i < i_end; ++i) {               // loop on rows
+	  for (UInt i = 0; i < i_end; ++i) {                                    // loop on rows
 	    UInt n_i = (nb_proc == 1) ? conn_val[i] : global_nodes_ids_val[conn_val[i]];
 	    UInt c_irn = n_i * nb_degre_of_freedom;
-	    UInt d_i_end = (sparse_matrix_type == _symmetric && i == j) ? d_j + 1 : nb_degre_of_freedom;
+	    //	    UInt d_i_end = (sparse_matrix_type == _symmetric && i == j) ? d_j + 1 : nb_degre_of_freedom;
+	    UInt d_i_end = nb_degre_of_freedom;
 
-	    for (UInt d_i = 0; d_i < d_i_end; ++d_i, ++c_irn) {     // loop on degre of freedom
+	    for (UInt d_i = 0; d_i < d_i_end; ++d_i, ++c_irn) {                 // loop on degre of freedom
 
 	      std::pair<UInt, UInt> jcn_irn;
 	      if ((sparse_matrix_type == _symmetric) && c_irn < c_jcn) jcn_irn = std::make_pair(c_jcn, c_irn);
@@ -161,7 +160,6 @@ void SparseMatrix::buildProfile() {
 	      irn_jcn_to_k_it = irn_jcn_to_k->find(jcn_irn);
 
 	      if (irn_jcn_to_k_it == irn_jcn_to_k->end()) {
-		//		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " new (" << nb_non_zero << ")" << std::endl;
 		*elem_to_sparse_val++ = nb_non_zero;
 		count++;
 		(*irn_jcn_to_k)[jcn_irn] = nb_non_zero;
@@ -169,7 +167,6 @@ void SparseMatrix::buildProfile() {
 		jcn.push_back(c_jcn + 1);
 		nb_non_zero++;
 	      } else {
-		//		std::cout << c_irn << " " << c_jcn << " -> " << jcn_irn.first << " " << jcn_irn.second << " old (" << irn_jcn_to_k_it->second << ")" << std::endl;
 		*elem_to_sparse_val++ = irn_jcn_to_k_it->second;
 		count++;
 	      }
@@ -178,7 +175,6 @@ void SparseMatrix::buildProfile() {
 	}
       }
       conn_val += nb_nodes_per_element;
-      //      std::cout << "COUNT " << e << " " << count << std::endl;
     }
   }
 
@@ -236,6 +232,37 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
   outfile.close();
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT((vect.getSize() == mat.getSize()) && (vect.getNbComponent() == mat.getNbDegreOfFreedom()),
+		      "The size of the matrix and the vector do not match");
+
+  UInt nb_non_zero = mat.getNbNonZero();
+  Real * tmp = new Real [vect.getNbComponent() * vect.getSize()];
+  std::fill_n(tmp, vect.getNbComponent() * vect.getSize(), 0);
+
+  Int * i_val  = mat.getIRN().values;
+  Int * j_val  = mat.getJCN().values;
+  Real * a_val = mat.getA().values;
+
+  Real * vect_val = vect.values;
+
+  for (UInt k = 0; k < nb_non_zero; ++k) {
+    UInt i = *(i_val++);
+    UInt j = *(j_val++);
+    Real a = *(a_val++);
+    tmp[i - 1] += a * vect_val[j - 1];
+  }
+
+  memcpy(vect_val, tmp, vect.getNbComponent() * vect.getSize() * sizeof(Real));
+
+  AKANTU_DEBUG_OUT();
+
+  return vect;
 }
 
 

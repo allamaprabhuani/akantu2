@@ -31,6 +31,12 @@
 #include "integration_scheme_2nd_order.hh"
 
 #include "static_communicator.hh"
+#include "sparse_matrix.hh"
+#include "solver.hh"
+
+#ifdef AKANTU_USE_MUMPS
+#include "solver_mumps.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 
@@ -43,8 +49,9 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 const MemoryID & memory_id) :
   Model(id, memory_id),
   time_step(NAN), f_m2a(1.0),
+  stiffness_matrix(NULL),
   integrator(new CentralDifference()),
-  increment_flag(false),
+  increment_flag(false), solver(NULL),
   spatial_dimension(dim) {
   AKANTU_DEBUG_IN();
 
@@ -87,6 +94,9 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   materials.clear();
 
   delete integrator;
+
+  if(solver) delete solver;
+  if(stiffness_matrix) delete stiffness_matrix;
 
   AKANTU_DEBUG_OUT();
 }
@@ -145,7 +155,10 @@ void SolidMechanicsModel::initVectors() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initModel() {
+  /// \todo add  the current position  as a parameter to  initShapeFunctions for
+  /// large deformation
   getFEM().initShapeFunctions(_not_ghost);
+
   getFEM().initShapeFunctions(_ghost);
 }
 
@@ -294,6 +307,27 @@ void SolidMechanicsModel::explicitCorr() {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initImplicitSolver() {
+  AKANTU_DEBUG_IN();
+
+  std::stringstream sstr; sstr << id << ":stiffness_matrix";
+
+  stiffness_matrix = new SparseMatrix(getFEM().getMesh(), _symmetric,
+				      spatial_dimension, sstr.str(), memory_id);
+
+  stiffness_matrix->buildProfile();
+
+#ifdef AKANTU_USE_MUMPS
+  std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
+  solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+#else
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#endif //AKANTU_USE_MUMPS
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_IN();
 
@@ -305,20 +339,31 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
   /// call compute stiffness matrix on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->computeStiffnessMatrix(*current_position, _not_ghost);
+    (*mat_it)->assembleStiffnessMatrix(*current_position, _not_ghost);
   }
 
-  /// finalize communications
-  waitEndSynchronize(_gst_smm_for_strain);
+  // /// finalize communications
+  // waitEndSynchronize(_gst_smm_for_strain);
 
-  /// call compute stiffness matrix on each ghost elements
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->computeStiffnessMatrix(*current_position, _ghost);
-  }
+  // /// call compute stiffness matrix on each ghost elements
+  // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+  //   (*mat_it)->computeStiffnessMatrix(*current_position, _ghost);
+  // }
 
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::solve(Vector<Real> & solution) {
+  AKANTU_DEBUG_IN();
+
+  solver->setRHS(*force);
+  solver->solve(solution);
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Information                                                                */

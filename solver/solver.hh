@@ -52,12 +52,6 @@ public:
 	 const SolverID & id = "solver",
 	 const MemoryID & memory_id = 0);
 
-  Solver(const Mesh & mesh,
-	 const SparseMatrixType & sparse_matrix_type,
-	 UInt nb_degre_of_freedom,
-	 const SolverID & id = "solver",
-	 const MemoryID & memory_id = 0);
-
   virtual ~Solver();
 
   /* ------------------------------------------------------------------------ */
@@ -69,10 +63,10 @@ public:
   virtual void initialize() = 0;
 
   /// solve
+  virtual void solve(Vector<Real> & solution) = 0;
   virtual void solve() = 0;
 
-  /// assemble local matrices by elements in the global sparse matrix
-  inline void assemble(const Vector<Real> & local_matrix, const Element & element);
+  virtual void setRHS(Vector<Real> & rhs) = 0;
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

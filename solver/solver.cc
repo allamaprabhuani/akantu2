@@ -43,19 +43,6 @@ Solver::Solver(SparseMatrix & matrix,
   AKANTU_DEBUG_OUT();
 }
 
-
-/* -------------------------------------------------------------------------- */
-Solver::Solver(const Mesh & mesh,
-	       __attribute__ ((unused)) const SparseMatrixType & sparse_matrix_type,
-	       __attribute__ ((unused)) UInt nb_degre_of_freedom,
-	       const SolverID & id,
-	       const MemoryID & memory_id) :
-  Memory(memory_id), id(id), matrix(NULL), is_matrix_allocated(false), rhs(NULL), mesh(&mesh) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
-
 /* -------------------------------------------------------------------------- */
 Solver::~Solver() {
   AKANTU_DEBUG_IN();

@@ -57,7 +57,7 @@ set(MUMPS_LIBRARIES
 #===============================================================================
 mark_as_advanced(MUMPS_LIBRARY_COMMON)
 mark_as_advanced(MUMPS_LIBRARY_DMUMPS)
-mark_as_advanced(MUMPS_LIBRARY_PROD)
+mark_as_advanced(MUMPS_LIBRARY_PORD)
 mark_as_advanced(MUMPS_INCLUDE_PATH)
 
 set(MUMPS_LIBRARIES_ALL ${MUMPS_LIBRARY_DMUMPS} ${MUMPS_LIBRARY_COMMON} ${MUMPS_LIBRARY_PROD})

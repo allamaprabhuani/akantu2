@@ -43,6 +43,58 @@ inline void MaterialElastic::computeStress(Real * F, Real * sigma) {
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt dim>
+void  MaterialElastic::computeTangentStiffnessByDim(__attribute__((unused)) akantu::ElementType,
+						    akantu::Vector<Real>& tangent_matrix,
+						    __attribute__((unused)) akantu::GhostType) {
+  AKANTU_DEBUG_IN();
+
+  Real * tangent_val   = tangent_matrix.values;
+  UInt offset_tangent  = tangent_matrix.getNbComponent();
+  UInt nb_quads        = tangent_matrix.getSize();
+
+  if (nb_quads == 0) return;
+
+  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
+  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
+    computeTangentStiffness<dim>(tangent_val);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+void  MaterialElastic::computeTangentStiffness(Real * tangent) {
+
+  UInt n = (dim * (dim - 1) / 2 + dim);
+
+  Real Miiii = kpa + 4./3. * mu;
+  Real Miijj = lambda; // Kpa - 2./3. * mu;
+  Real Mijij = 1./2. * mu; // to check
+
+  tangent[0 * n + 0] = Miiii;
+
+  // test of dimension should by optimized out by the compiler due to the template
+  if(dim >= 2) {
+    tangent[0 * n + 1] = Miijj;
+    tangent[1 * n + 0] = Miijj;
+
+    tangent[(n - 1) * n + (n - 1)] = Mijij;
+  }
+
+  if(dim == 3) {
+    tangent[0 * n + 2] = Miijj;
+    tangent[1 * n + 2] = Miijj;
+    tangent[2 * n + 0] = Miijj;
+    tangent[2 * n + 1] = Miijj;
+
+    tangent[3 * n + 3] = Mijij;
+    tangent[4 * n + 4] = Mijij;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 inline void MaterialElastic::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
   *epot = 0.;
   for (UInt i = 0, t = 0; i < spatial_dimension; ++i)

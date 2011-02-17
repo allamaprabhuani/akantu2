@@ -67,9 +67,6 @@ FEM::~FEM() {
   AKANTU_DEBUG_OUT();
 }
 
-
-
-
 /* -------------------------------------------------------------------------- */
 void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 Vector<Real> & nodal_values,
@@ -135,6 +132,62 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
+			 SparseMatrix & matrix,
+			 UInt nb_degre_of_freedom,
+			 const ElementType & type,
+			 GhostType ghost_type,
+			 const Vector<UInt> * filter_elements) const {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_element;
+
+  if(ghost_type == _not_ghost) {
+    nb_element  = mesh->getNbElement(type);
+  } else {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    nb_element      = filter_elements->getSize();
+    filter_elem_val = filter_elements->values;
+  }
+
+  AKANTU_DEBUG_ASSERT(elementary_mat.getSize() == nb_element,
+		      "The vector elementary_mat(" << elementary_mat.getID()
+		      << ") has not the good size.");
+
+  AKANTU_DEBUG_ASSERT(elementary_mat.getNbComponent()
+		      == nb_degre_of_freedom * nb_nodes_per_element * nb_degre_of_freedom * nb_nodes_per_element,
+		      "The vector elementary_mat(" << elementary_mat.getID()
+		      << ") has not the good number of component.");
+
+  Element elem;
+  elem.type = type;
+
+  Real * elementary_mat_val = elementary_mat.values;
+  UInt offset_elementary_mat = elementary_mat.getNbComponent();
+
+  UInt el;
+  for (UInt e = 0; e < nb_element; ++e) {
+    if(filter_elements != NULL) el = filter_elem_val[e];
+    else el = e;
+    elem.element = el;
+
+    matrix.addToMatrix(elementary_mat_val, elem);
+
+    elementary_mat_val += offset_elementary_mat;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
 
 /* -------------------------------------------------------------------------- */
 void FEM::printself(std::ostream & stream, int indent) const {

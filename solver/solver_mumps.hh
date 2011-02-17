@@ -42,12 +42,6 @@ class SolverMumps : public Solver {
   /* ------------------------------------------------------------------------ */
 public:
 
-  SolverMumps(const Mesh & mesh,
-	      const SparseMatrixType & sparse_matrix_type,
-	      UInt nb_degre_of_freedom,
-	      const SolverID & id = "solver_mumps",
-	      const MemoryID & memory_id = 0);
-
   SolverMumps(SparseMatrix & sparse_matrix,
 	      const SolverID & id = "solver_mumps",
 	      const MemoryID & memory_id = 0);
@@ -63,7 +57,10 @@ public:
   void initialize();
 
   /// factorize and solve the system
+  void solve(Vector<Real> & solution);
   void solve();
+
+  virtual void setRHS(Vector<Real> & rhs);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

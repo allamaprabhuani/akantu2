@@ -26,8 +26,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline void Solver::assemble(const Vector<Real> & local_matrix, const Element & element) {
-  AKANTU_DEBUG_ASSERT(matrix != NULL, "The sparse matrix must be first instantiated.");
+// inline void Solver::assemble(Real * local_matrix, const Element & element) {
+//   AKANTU_DEBUG_ASSERT(matrix != NULL, "The sparse matrix must be first instantiated.");
 
-  matrix->addToMatrix(local_matrix, element);
-}
+//   matrix->addToMatrix(local_matrix, element);
+// }

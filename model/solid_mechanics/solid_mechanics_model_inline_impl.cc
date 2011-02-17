@@ -37,8 +37,8 @@ inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
 
 
 /* -------------------------------------------------------------------------- */
-template <typename M> 
-UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename, 
+template <typename M>
+UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					     const std::string & keyword) {
 
   MaterialParser parser;
@@ -50,15 +50,20 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
     if (mat_name == key) break;
     mat_name = parser.getNextMaterialType();
   }
-  if (mat_name != key) AKANTU_DEBUG_ERROR("material " 
-					      << key 
-					      << " not found in file " << filename);
-  
+  if (mat_name != key) AKANTU_DEBUG_ERROR("material "
+					  << key
+					  << " not found in file " << filename);
+
   std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
   MaterialID mat_id = sstr_mat.str();
   Material * mat = parser.readMaterialObject<M>(*this,mat_id);
   materials.push_back(mat);
   return materials.size();;
+}
+
+/* -------------------------------------------------------------------------- */
+inline FEM & SolidMechanicsModel::getFEMBoundary(std::string name) {
+  return dynamic_cast<FEM &>(getFEMClassBoundary<MyFEMType>(name));
 }
 
 /* -------------------------------------------------------------------------- */

@@ -117,7 +117,7 @@ template <> inline void ElementClass<_quadrangle_4>::computeJacobian(const Real 
     Real det_dxds = Math::det2(dxds);
     jac = det_dxds * weight;
   } else {
-    AKANTU_DEBUG_ERROR("to be implemented");
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
 

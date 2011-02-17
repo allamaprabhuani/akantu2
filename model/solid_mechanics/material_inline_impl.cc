@@ -37,6 +37,64 @@ inline void Material::addGhostElement(ElementType type, UInt element) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
+  return (dim * (dim - 1) / 2 + dim);
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const {
+  UInt size = getTangentStiffnessVoigtSize(dim) * nb_nodes_per_element * dim;
+  memset(Bvoigt, 0, size * sizeof(Real));
+
+  Real * Btmp = B;
+
+  for (UInt i = 0; i < dim; ++i) {
+    Real * Bvoigt_tmp = Bvoigt + i;
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      *Bvoigt_tmp = *Btmp;
+      Btmp++;
+      Bvoigt_tmp += dim;
+    }
+  }
+
+  if(dim == 2) {
+    ///in 2D, fill the @f$ [\frac{\partial N_i}{\partial x}, \frac{\partial N_i}{\partial y}]@f$ row
+    Real * Bvoigt_tmp = Bvoigt + dim * nb_nodes_per_element * 2;
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      Bvoigt_tmp[0] = B[n];
+      Bvoigt_tmp[1] = B[n + nb_nodes_per_element];
+      Bvoigt_tmp += dim;
+    }
+  }
+
+
+  if(dim == 3) {
+    UInt Bvoigt_wcol = dim * nb_nodes_per_element;
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      Real dndx = B[n];
+      Real dndy = B[n + nb_nodes_per_element * 1];
+      Real dndz = B[n + nb_nodes_per_element * 2];
+
+      UInt Bni_off = n * dim;
+
+      ///in 3D, fill the @f$ [0, \frac{\partial N_i}{\partial y}, \frac{N_i}{\partial z}]@f$ row
+      Bvoigt[3 * Bvoigt_wcol + Bni_off + 1] = dndy;
+      Bvoigt[3 * Bvoigt_wcol + Bni_off + 2] = dndz;
+
+      ///in 3D, fill the @f$ [\frac{\partial N_i}{\partial x}, 0, \frac{N_i}{\partial z}]@f$ row
+      Bvoigt[4 * Bvoigt_wcol + Bni_off + 0] = dndx;
+      Bvoigt[4 * Bvoigt_wcol + Bni_off + 2] = dndz;
+
+      ///in 3D, fill the @f$ [\frac{\partial N_i}{\partial x}, \frac{N_i}{\partial y}, 0]@f$ row
+      Bvoigt[5 * Bvoigt_wcol + Bni_off + 0] = dndx;
+      Bvoigt[5 * Bvoigt_wcol + Bni_off + 1] = dndy;
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataToPack(__attribute__ ((unused)) const Element & element,
 				      __attribute__ ((unused)) GhostSynchronizationTag tag) {
   AKANTU_DEBUG_IN();

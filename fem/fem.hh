@@ -35,11 +35,12 @@
 #include "aka_memory.hh"
 #include "mesh.hh"
 #include "element_class.hh"
+#include "sparse_matrix.hh"
+
+/* -------------------------------------------------------------------------- */
 
 
 __BEGIN_AKANTU__
-
-
 
 
 class FEM : public Memory {
@@ -140,7 +141,12 @@ public:
 
 
   /// assemble matrix in the complete sparse matrix
-  void assembleMatrix() {};
+  void assembleMatrix(const Vector<Real> & elementary_mat,
+		      SparseMatrix & matrix,
+		      UInt nb_degre_of_freedom,
+		      const ElementType & type,
+		      GhostType ghost_type = _not_ghost,
+		      const Vector<UInt> * filter_elements = NULL) const;
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

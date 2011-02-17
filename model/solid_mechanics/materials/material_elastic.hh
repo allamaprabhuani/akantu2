@@ -35,6 +35,15 @@
 
 __BEGIN_AKANTU__
 
+/**
+ * Material elastic isotropic
+ *
+ * parameters in the material files :
+ *   - rho : density (default: 0)
+ *   - E   : Young's modulus (default: 0)
+ *   - nu  : Poisson's ratio (default: 1/2)
+ *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
+ */
 class MaterialElastic : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -58,8 +67,10 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
+  /// compute the tangent stiffness matrix for an element type
+  void computeTangentStiffness(const ElementType & el_type,
+			       Vector<Real> & tangent_matrix,
+			       GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
@@ -73,6 +84,18 @@ public:
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+protected:
+  /// constitutive law for a given quadrature point
+  inline void computeStress(Real * F, Real * sigma);
+
+  // /// compute the tangent stiffness matrix for an element type
+  template<UInt dim>
+  void computeTangentStiffnessByDim(akantu::ElementType, akantu::Vector<Real>& tangent_matrix, akantu::GhostType);
+
+  // /// compute the tangent stiffness matrix for an element
+  template<UInt dim>
+  void computeTangentStiffness(Real * tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -99,6 +122,9 @@ private:
 
   /// Bulk modulus
   Real kpa;
+
+  /// Plain stress or plain strain
+  bool plain_stress;
 
 };
 

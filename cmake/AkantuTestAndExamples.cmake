@@ -61,7 +61,7 @@ endmacro()
 #===============================================================================
 if(AKANTU_TESTS)
   option(AKANTU_BUILD_ALL_TESTS "Build all tests")
-  mark_as_advanced(AKANTU_BUILD_ALL_TESTS)
+#  mark_as_advanced(AKANTU_BUILD_ALL_TESTS)
 endif(AKANTU_TESTS)
 
 #===============================================================================
@@ -87,7 +87,7 @@ endmacro()
 #===============================================================================
 if(AKANTU_EXAMPLES)
   option(AKANTU_BUILD_ALL_EXAMPLES "Build all examples")
-  mark_as_advanced(AKANTU_BUILD_ALL_EXAMPLES)
+#  mark_as_advanced(AKANTU_BUILD_ALL_EXAMPLES)
 endif(AKANTU_EXAMPLES)
 
 #===============================================================================

@@ -117,7 +117,7 @@ typedef UInt Surface;
     AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
     break;								\
   }									\
-  }		     				                
+  }
 
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
   macro(type)

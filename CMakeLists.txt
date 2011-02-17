@@ -54,8 +54,8 @@ enable_language(CXX)
 
 set(AKANTU_CMAKE_DIR "${AKANTU_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
+INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 
 #===============================================================================
 # Version Number
@@ -88,13 +88,12 @@ option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
 
 # features
-option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" OFF)
-option(AKANTU_USE_MPI "Add MPI support in akantu" OFF)
-option(AKANTU_USE_SCOTCH "Add Scotch support in akantu" OFF)
-option(AKANTU_USE_MUMPS "Add Mumps support in akantu" OFF)
-option(AKANTU_USE_BLAS "Use BLAS for arithmetic operations" OFF)
-option(AKANTU_USE_EPSN "Use EPSN streering environment" OFF)
-
+add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
+add_optional_package(MPI "Add MPI support in akantu" OFF)
+add_optional_package(Scotch "Add Scotch support in akantu" OFF)
+add_optional_package(Mumps "Add Mumps support in akantu" OFF)
+add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
+add_optional_package(EPSN "Use EPSN streering environment" OFF)
 
 #===============================================================================
 # Options handling
@@ -113,99 +112,6 @@ endif(BOOST_FOUND)
 if(NOT AKANTU_DEBUG)
   add_definitions(-DAKANTU_NDEBUG)
 endif(NOT AKANTU_DEBUG)
-
-# IOHelper
-if(AKANTU_USE_IOHELPER)
-  find_package(IOHelper REQUIRED)
-  if(IOHELPER_FOUND)
-    add_definitions(-DAKANTU_USE_IOHELPER)
-    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-      ${IOHELPER_INCLUDE_PATH}
-      )
-    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-      ${IOHELPER_LIBRARIES}
-      )
-  endif(IOHELPER_FOUND)
-endif(AKANTU_USE_IOHELPER)
-
-# MPI
-set(AKANTU_MPI_ON FALSE)
-if(AKANTU_USE_MPI)
-  find_package(MPI REQUIRED)
-  if(MPI_FOUND)
-    add_definitions(-DAKANTU_USE_MPI)
-    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-      ${MPI_INCLUDE_PATH}
-      )
-    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-      ${MPI_LIBRARY}
-      ${MPI_EXTRA_LIBRARY}
-      )
-    set(AKANTU_MPI_ON TRUE)
-  endif(MPI_FOUND)
-endif(AKANTU_USE_MPI)
-
-# Scotch
-set(AKANTU_SCOTCH_ON FALSE)
-if(AKANTU_USE_SCOTCH)
-  find_package(Scotch REQUIRED)
-  if(SCOTCH_FOUND)
-    add_definitions(-DAKANTU_USE_SCOTCH)
-    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-      ${SCOTCH_INCLUDE_PATH}
-      )
-    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-      ${SCOTCH_LIBRARIES}
-      )
-    set(AKANTU_SCOTCH_ON TRUE)
-  endif(SCOTCH_FOUND)
-endif(AKANTU_USE_SCOTCH)
-
-# MUMPS
-set(AKANTU_MUMPS_ON FALSE)
-if(AKANTU_USE_MUMPS)
-  find_package(Mumps REQUIRED)
-  if(MUMPS_FOUND)
-    add_definitions(-DAKANTU_USE_MUMPS)
-    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-      ${MUMPS_INCLUDE_PATH}
-      )
-    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-      ${MUMPS_LIBRARIES}
-      )
-    set(AKANTU_MUMPS_ON TRUE)
-  endif(MUMPS_FOUND)
-endif(AKANTU_USE_MUMPS)
-
-# BLAS
-set(AKANTU_BLAS_ON FALSE)
-if(AKANTU_USE_BLAS)
-  enable_language(Fortran)
-  find_package(BLAS)
-  if(BLAS_FOUND)
-    add_definitions(-DAKANTU_USE_CBLAS)
-    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-      ${BLAS_LIBRARIES}
-      )
-    set(AKANTU_BLAS_ON TRUE)
-  endif(BLAS_FOUND)
-endif(AKANTU_USE_BLAS)
-
-# EPSN
-set(AKANTU_EPSN_ON FALSE)
-if(AKANTU_USE_EPSN)
-  find_package(EPSN)
-  if(EPSN_FOUND)
-    add_definitions(-DAKANTU_USE_EPSN)
-    set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-      ${EPSN_INCLUDE_DIR}
-      )
-    set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-      ${EPSN_LIBRARIES}
-      )
-    set(AKANTU_EPSN_ON TRUE)
-  endif(EPSN_FOUND)
-endif(AKANTU_USE_EPSN)
 
 #===============================================================================
 # Library
@@ -261,22 +167,21 @@ if(AKANTU_BUILD_CONTACT)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     ${AKANTU_CONTACT_SRC})
-endif(AKANTU_BUILD_CONTACT)
+endif()
 
-if(AKANTU_USE_MPI AND MPI_FOUND)
+if(AKANTU_MPI_ON)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     synchronizer/static_communicator_mpi.cc
     )
-endif(AKANTU_USE_MPI AND MPI_FOUND)
-
+endif()
 
 if(AKANTU_SCOTCH_ON)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     mesh_utils/mesh_partition/mesh_partition_scotch.cc
     )
-endif(AKANTU_SCOTCH_ON)
+endif()
 
 
 if(AKANTU_MUMPS_ON)
@@ -284,8 +189,7 @@ if(AKANTU_MUMPS_ON)
     ${AKANTU_COMMON_SRC}
     solver/solver_mumps.cc
     )
-endif(AKANTU_MUMPS_ON)
-
+endif()
 
 set(AKANTU_INCLUDE_DIRS
   common
@@ -329,19 +233,19 @@ if(AKANTU_DOCUMENTATION)
   endif(DOXYGEN_FOUND)
 endif(AKANTU_DOCUMENTATION)
 
-
 #===============================================================================
 # Tests
 #===============================================================================
 ENABLE_TESTING()
 INCLUDE(CTest)
 
+INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
+
 option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
   find_package(GMSH REQUIRED)
   add_subdirectory(test)
 endif(AKANTU_TESTS)
-
 
 #===============================================================================
 # Examples

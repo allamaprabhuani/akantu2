@@ -389,8 +389,6 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   UInt element_idx = 1;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
-
     const Vector<UInt> & connectivity = mesh.getConnectivity(type);
 
 

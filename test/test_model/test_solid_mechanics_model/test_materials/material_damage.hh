@@ -61,6 +61,11 @@ public:
   /// constitutive law for a given quadrature point
   inline void computeStress(Real * F, Real * sigma,Real & damage);
 
+  /// compute tangent stiffness
+  virtual void computeTangentStiffness(const ElementType & el_type,
+				       Vector<Real> & tangent_matrix,
+				       GhostType ghost_type = _not_ghost) {};
+
   /// compute the potential energy for all elements
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 

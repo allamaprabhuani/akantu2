@@ -84,6 +84,12 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
     )
 endif()
 
+
+if(AKANTU_MUMPS_ON)
+  register_test(test_solid_mechanics_model_implicit_traction test_solid_mechanics_model_implicit_traction.cc)
+  add_dependencies(test_solid_mechanics_model_implicit_traction test_bar_traction_2d_mesh1)
+endif()
+
 #===============================================================================
 add_mesh(test_cube3d_mesh1 cube.geo 3 1 OUTPUT cube1.msh)
 add_mesh(test_cube3d_mesh2 cube.geo 3 2 OUTPUT cube2.msh)

@@ -118,25 +118,8 @@ void Material::initInternalVector(ByElementTypeReal & vect,
 				  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  model->getFEM().getMesh().initByElementTypeRealVector(vect,nb_component,spatial_dimension,
-							 id,vect_id,ghost_type);
-  // for(UInt t = _not_defined; t < _max_element_type; ++t)
-  //   vect[t] = NULL;
-
-  // std::string ghost_id = "";
-
-  // if (ghost_type == _ghost) {
-  //   ghost_id = "ghost_";
-  // }
-
-  // const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList();
-  // Mesh::ConnectivityTypeList::const_iterator it;
-  // for(it = type_list.begin(); it != type_list.end(); ++it) {
-  //   if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-  //   std::stringstream sstr_damage; sstr_damage << id << ":" << ghost_id << vect_id << ":" << *it;
-  //   vect[*it] = &(alloc<Real>(sstr_damage.str(), 0,
-  // 			      nb_component, REAL_INIT_VALUE));
-  // }
+  model->getFEM().getMesh().initByElementTypeRealVector(vect, nb_component, spatial_dimension,
+							id, vect_id, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -196,9 +179,6 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it);
-
     Vector<Real> * strain_vect;
     Vector<Real> * stress_vect;
     Vector<UInt> * elem_filter;
@@ -217,6 +197,8 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     }
 
     UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
+    UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
+    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it);
 
     UInt nb_element = elem_filter->getSize();
 
@@ -235,13 +217,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     Real * shapesd           = shapes_derivatives->values;
     UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
     Real * shapesd_val;
-    //    Real * stress_val        = stress_vect->values;
-    //    Real * sigma_dphi_dx_val = sigma_dphi_dx->values;
     UInt * elem_filter_val   = elem_filter->values;
-
-    //    UInt offset_shapesd_val       = spatial_dimension * nb_nodes_per_element;
-    //    UInt offset_stress_val        = spatial_dimension * spatial_dimension;
-    //    UInt offset_sigma_dphi_dx_val = spatial_dimension * nb_nodes_per_element;
 
     Vector<Real> * shapesd_filtered =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "filtered shapesd");
@@ -277,9 +253,10 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
      * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
-    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0,
-							nb_nodes_per_element * spatial_dimension,
+
+    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0, nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
+
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
 			      size_of_shapes_derivatives,
 			      *it, ghost_type,
@@ -304,12 +281,13 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
  * @param[in] current_position nodes postition + displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void Material::computeStiffnessMatrix(Vector<Real> & current_position, GhostType ghost_type) {
+void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  SparseMatrix K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
+  SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
+  K.clear();
 
   const Mesh::ConnectivityTypeList & type_list =
     model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
@@ -318,49 +296,119 @@ void Material::computeStiffnessMatrix(Vector<Real> & current_position, GhostType
 
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it);
-
-    Vector<Real> * strain_vect;
-    Vector<UInt> * elem_filter;
-    const Vector<Real> * shapes_derivatives;
-
-    if(ghost_type == _not_ghost) {
-      elem_filter = element_filter[*it];
-      strain_vect = strain[*it];
-      shapes_derivatives = &(model->getFEM().getShapesDerivatives(*it));
-    } else {
-      elem_filter = ghost_element_filter[*it];
-      strain_vect = ghost_strain[*it];
-      shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(*it));
+    switch(spatial_dimension) {
+    case 1: { assembleStiffnessMatrix<1>(current_position, *it, ghost_type); break; }
+    case 2: { assembleStiffnessMatrix<2>(current_position, *it, ghost_type); break; }
+    case 3: { assembleStiffnessMatrix<3>(current_position, *it, ghost_type); break; }
     }
+  }
 
-    UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
+  AKANTU_DEBUG_OUT();
+}
 
-    UInt nb_element = elem_filter->getSize();
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
+				       const ElementType & type,
+				       GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
-    model->getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
-					      spatial_dimension,
-					      *it, ghost_type, elem_filter);
+  SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
 
-    //computeTangentStiffness(*it, ghost_type);
+  Vector<Real> * strain_vect;
+  Vector<UInt> * elem_filter;
+  const Vector<Real> * shapes_derivatives;
 
-    /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
-    Vector<Real> * bt_d_b =
-      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+  if(ghost_type == _not_ghost) {
+    elem_filter = element_filter[type];
+    strain_vect = strain[type];
+    shapes_derivatives = &(model->getFEM().getShapesDerivatives(type));
+  } else {
+    elem_filter = ghost_element_filter[type];
+    strain_vect = ghost_strain[type];
+    shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(type));
+  }
+  UInt * elem_filter_val = elem_filter->values;
 
-    Real * shapesd           = shapes_derivatives->values;
-    UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
+  UInt nb_element                 = elem_filter->getSize();
+  UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
+  UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
+  UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type);
+
+  model->getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
+					     dim, type, ghost_type, elem_filter);
+
+  UInt tangent_size = getTangentStiffnessVoigtSize(dim);
+
+  Vector<Real> * tangent_stiffness_matrix =
+    new Vector<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
+		     "tangent_stiffness_matrix");
+
+  computeTangentStiffness(type, *tangent_stiffness_matrix, ghost_type);
+
+  /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+  UInt bt_d_b_size = dim * nb_nodes_per_element;
+
+  Vector<Real> * bt_d_b = new Vector<Real>(nb_element*nb_quadrature_points,
+					   bt_d_b_size * bt_d_b_size,
+					   "B^t*D*B");
+
+  UInt size_of_b = tangent_size * bt_d_b_size;
+  Real * B = new Real[size_of_b];
+  Real * Bt_D = new Real[size_of_b];
+  Real * Bt_D_B = bt_d_b->values;
+  Real * D = tangent_stiffness_matrix->values;
+
+  UInt offset_bt_d_b = bt_d_b_size * bt_d_b_size;
+  UInt offset_d      = tangent_size * tangent_size;
+
+  for (UInt e = 0; e < nb_element; ++e) {
+    Real * shapes_derivatives_val =
+      shapes_derivatives->values + elem_filter_val[e]*size_of_shapes_derivatives*nb_quadrature_points;
+
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {
+      transferBMatrixToSymVoigtBMatrix<dim>(shapes_derivatives_val, B, nb_nodes_per_element);
+      Math::matrixt_matrix(bt_d_b_size, tangent_size, tangent_size, B, D, Bt_D);
+      Math::matrix_matrix(bt_d_b_size, bt_d_b_size, tangent_size, Bt_D, B, Bt_D_B);
+
+      shapes_derivatives_val += size_of_shapes_derivatives;
+      D      += offset_d;
+      Bt_D_B += offset_bt_d_b;
+    }
+  }
+
+  delete [] B;
+  delete [] Bt_D;
+
+  delete tangent_stiffness_matrix;
+
+  /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+  Vector<Real> * int_bt_d_b = new Vector<Real>(0,
+					   bt_d_b_size * bt_d_b_size,
+					   "int_B^t*D*B");
+
+  model->getFEM().integrate(*bt_d_b, *int_bt_d_b,
+			    bt_d_b_size * bt_d_b_size,
+			    type, ghost_type,
+			    elem_filter);
+
+  delete bt_d_b;
+
+  model->getFEM().assembleMatrix(*int_bt_d_b, K, spatial_dimension, type, ghost_type, elem_filter);
+  delete int_bt_d_b;
+
+
+    // /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
+    // computeStress(*it, ghost_type);
+
+    // /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
+    // Vector<Real> * sigma_dphi_dx =
+    //   new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+
+    // Real * shapesd           = shapes_derivatives->values;
+    // UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
     // Real * shapesd_val;
-    //Real * stress_val        = stress_vect->values;
-    // Real * sigma_dphi_dx_val = sigma_dphi_dx->values;
     // UInt * elem_filter_val   = elem_filter->values;
-
-    
-
-    // UInt offset_shapesd_val       = spatial_dimension * nb_nodes_per_element;
-    // UInt offset_stress_val        = spatial_dimension * spatial_dimension;
-    // UInt offset_sigma_dphi_dx_val = spatial_dimension * nb_nodes_per_element;
 
     // Vector<Real> * shapesd_filtered =
     //   new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "filtered shapesd");
@@ -370,8 +418,8 @@ void Material::computeStiffnessMatrix(Vector<Real> & current_position, GhostType
     //   shapesd_val = shapesd + elem_filter_val[el] * size_of_shapesd * nb_quadrature_points;
     //   memcpy(shapesd_filtered_val,
     // 	     shapesd_val,
-    // 	     offset_shapesd_val * nb_quadrature_points * sizeof(Real));
-    //   shapesd_filtered_val += offset_shapesd_val * nb_quadrature_points;
+    // 	     size_of_shapesd * nb_quadrature_points * sizeof(Real));
+    //   shapesd_filtered_val += size_of_shapesd * nb_quadrature_points;
     // }
 
     // Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
@@ -381,36 +429,25 @@ void Material::computeStiffnessMatrix(Vector<Real> & current_position, GhostType
 
     // delete shapesd_filtered;
 
-    // for (UInt el = 0; el < nb_element; ++el) {
-    //   shapesd_val = shapesd + elem_filter_val[el]*size_of_shapesd*nb_quadrature_points;
-    //   for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    // 	Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-    // 			     shapesd_val, stress_val, sigma_dphi_dx_val);
-    // 	shapesd_val       += offset_shapesd_val;
-    // 	stress_val        += offset_stress_val;
-    // 	sigma_dphi_dx_val += offset_sigma_dphi_dx_val;
-    //   }
-    // }
-
-    /**
-     * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
-     * \mathbf{\sigma}_q \overline w_q J_q@f$
-     */
-    // Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0,
-    // 							nb_nodes_per_element * spatial_dimension,
+    // /**
+    //  * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
+    //  * \mathbf{\sigma}_q \overline w_q J_q@f$
+    //  */
+    // Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0, nb_nodes_per_element * spatial_dimension,
     // 							"int_sigma_x_dphi_/_dX");
+
     // model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
     // 			      size_of_shapes_derivatives,
     // 			      *it, ghost_type,
     // 			      elem_filter);
     // delete sigma_dphi_dx;
 
-    /// assemble
+    // /// assemble
     // model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
     // 				   residual.getNbComponent(),
     // 				   *it, ghost_type, elem_filter, -1);
-    //    delete int_sigma_dphi_dx;
-  }
+    // delete int_sigma_dphi_dx;
+
 
   AKANTU_DEBUG_OUT();
 }

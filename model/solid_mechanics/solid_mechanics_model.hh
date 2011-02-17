@@ -41,7 +41,6 @@
 #include "model.hh"
 #include "material.hh"
 #include "material_parser.hh"
-#include "sparse_matrix.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 
@@ -50,6 +49,8 @@ namespace akantu {
   //  class Material;
   class IntegrationScheme2ndOrder;
   class Contact;
+  class Solver;
+  class SparseMatrix;
 }
 
 __BEGIN_AKANTU__
@@ -60,7 +61,7 @@ class SolidMechanicsModel : public Model {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
   SolidMechanicsModel(UInt spatial_dimension,
@@ -117,8 +118,15 @@ public:
   /* Implicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// initialize the stuff for the implicit solver
+  void initImplicitSolver();
+
   /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
+
+  /// solve Ku = f
+  void solve(Vector<Real> & solution);
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
@@ -269,6 +277,8 @@ public:
   /// get the stiffness matrix
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, SparseMatrix &);
 
+  inline FEM & getFEMBoundary(std::string name = "");
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -324,6 +334,9 @@ private:
 
   /// flag defining if the increment must be computed or not
   bool increment_flag;
+
+  /// solver for implicit
+  Solver * solver;
 
   /// object to resolve the contact
   Contact * contact;

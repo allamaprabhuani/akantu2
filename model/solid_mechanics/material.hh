@@ -72,8 +72,8 @@ public:
 
 
   /// compute the stiffness matrix
-  void computeStiffnessMatrix(Vector<Real> & current_position,
-			      GhostType ghost_type);
+  void assembleStiffnessMatrix(Vector<Real> & current_position,
+			       GhostType ghost_type);
 
   /// compute the stable time step for an element of size h
   virtual Real getStableTimeStep(Real h) = 0;
@@ -93,13 +93,30 @@ protected:
   virtual void computeStress(ElementType el_type,
 			     GhostType ghost_type = _not_ghost) = 0;
 
-  /// compute the potential energy by element
-  void computePotentialEnergyByElement();
+  /// compute the tangent stiffness matrix
+  virtual void computeTangentStiffness(const ElementType & el_type,
+				       Vector<Real> & tangent_matrix,
+				       GhostType ghost_type = _not_ghost) = 0;
 
   /// compute the potential energy
   virtual void computePotentialEnergy(ElementType el_type,
 				      GhostType ghost_type = _not_ghost) = 0;
 
+private:
+  template<UInt dim>
+  void assembleStiffnessMatrix(Vector<Real> & current_position,
+			       const ElementType & type,
+			       GhostType ghost_type);
+
+  /// transfer the B matrix to a Voigt notation B matrix
+  template<UInt dim>
+  inline void transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const;
+
+  inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
+
+
+  /// compute the potential energy by element
+  void computePotentialEnergyByElement();
 
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */
@@ -219,7 +236,7 @@ __END_AKANTU__
 /* Auto loop                                                                  */
 /* -------------------------------------------------------------------------- */
 
-#define MATERIAL_QUADRATURE_POINT_LOOP_BEGIN				\
+#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN			\
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type); \
   UInt size_strain          = spatial_dimension * spatial_dimension;	\
 									\
@@ -245,9 +262,43 @@ __END_AKANTU__
     for (UInt q = 0; q < nb_quadrature_points; ++q) {			\
 
 
-#define MATERIAL_QUADRATURE_POINT_LOOP_END				\
+#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END			\
       strain_val += size_strain;					\
       stress_val += size_strain;					\
+    }									\
+  }                                                                     \
+
+
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent)		\
+  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);	\
+  UInt size_strain          = spatial_dimension * spatial_dimension;	\
+  									\
+  UInt nb_element;							\
+  Real * strain_val;							\
+  Real * tangent_val;							\
+  									\
+  if(ghost_type == _not_ghost) {					\
+    nb_element   = element_filter[el_type]->getSize();			\
+    stress[el_type]->resize(nb_element*nb_quadrature_points);		\
+    strain_val = strain[el_type]->values;				\
+  } else {								\
+    nb_element = ghost_element_filter[el_type]->getSize();		\
+    ghost_stress[el_type]->resize(nb_element*nb_quadrature_points);	\
+    strain_val = ghost_strain[el_type]->values;				\
+  }									\
+  tangent_val = tangent.values;						\
+  size_tangent = getTangentStiffnessVoigtSize();			\
+  size_tangent *= size_tangent;						\
+  									\
+  if (nb_element == 0) return;						\
+  									\
+  for (UInt el = 0; el < nb_element; ++el) {				\
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {			\
+
+
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\
+      strain_val += size_strain;					\
+      tangent_val += size_tangent;					\
     }									\
   }                                                                     \
 

@@ -4,6 +4,7 @@
  * @date   Mon Oct  4 20:33:00 2010
  *
  * @brief  sparse matrix storage class (distributed assembled matrix)
+ * This is a COO format (Coordinate List)
  *
  * @section LICENSE
  *
@@ -73,7 +74,7 @@ public:
 
 
   /// assemble a local matrix in the sparse one
-  inline void addToMatrix(const Vector<Real> & local_matrix,
+  inline void addToMatrix(Real * local_matrix,
 			  const Element & element);
 
   /// function to print the contain of the class
@@ -93,7 +94,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   AKANTU_GET_MACRO(IRN, irn, const Vector<Int> &);
 
   AKANTU_GET_MACRO(JCN, jcn, const Vector<Int> &);
@@ -106,7 +106,7 @@ public:
 
   AKANTU_GET_MACRO(NbDegreOfFreedom, nb_degre_of_freedom, UInt);
 
-  AKANTU_GET_MACRO(SparseMatrixType, sparse_matrix_type, const SparseMatrixType &)
+  AKANTU_GET_MACRO(SparseMatrixType, sparse_matrix_type, const SparseMatrixType &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -164,6 +164,8 @@ private:
 //   _this.printself(stream);
 //   return stream;
 // }
+
+Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat);
 
 
 __END_AKANTU__

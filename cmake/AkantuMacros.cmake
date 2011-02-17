@@ -1,8 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
+# @file   AkantuMacros.cmake
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+# @date   Wed Feb  9 10:59:42 2011
+#
+# @brief  Set of macros used by akantu cmake files
 #
 # @section LICENSE
 #
@@ -22,19 +23,34 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-# @section DESCRIPTION
-#
 #===============================================================================
 
 #===============================================================================
-# List of examples
+# macro to include optional packages
+macro(add_optional_package PACKAGE DESC DEFAULT)
+  string(TOUPPER ${PACKAGE} _u_package)
+  set(option_name AKANTU_USE_${_u_package})
+
+  option(${option_name} ${DESC} ${DEFAULT})
+
+  if(${option_name})
+    if(${PACKAGE} MATCHES BLAS)
+      enable_language(Fortran)
+    endif()
+    find_package(${PACKAGE} REQUIRED)
+    if(${_u_package}_FOUND)
+      add_definitions(-DAKANTU_USE_${_u_package})
+      set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
+	${${_u_package}_INCLUDE_PATH}
+	)
+      set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
+	${${_u_package}_LIBRARIES}
+	)
+      set(AKANTU_${_u_package}_ON ON)
+    endif(${_u_package}_FOUND)
+  else()
+    set(AKANTU_${_u_package}_ON OFF)
+  endif(${option_name})
+endmacro()
+
 #===============================================================================
-add_example(2d_compression "Compression example")
-
-if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
-  add_example(3d_cube_compression "Cube compression example")
-endif()
-
-if(AKANTU_EPSN_ON)
-  add_example(epsn "Example of steering akantu with EPSN")
-endif(AKANTU_EPSN_ON)

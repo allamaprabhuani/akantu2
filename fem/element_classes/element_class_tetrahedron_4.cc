@@ -120,9 +120,9 @@ template <> inline void ElementClass<_tetrahedron_4>::computeJacobian(const Real
     Real weight = 1./6.;
     Real det_dxds = Math::det3(dxds);
     jac = det_dxds * weight;    
-  }  
+  }
   else {
-    AKANTU_DEBUG_ERROR("to be implemented");
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
  

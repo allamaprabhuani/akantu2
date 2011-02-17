@@ -189,9 +189,9 @@ void Mesh::initByElementTypeRealVector(ByElementTypeReal & vect,
 
   for(UInt t = _not_defined; t < _max_element_type; ++t)
     vect[t] = NULL;
-  
+
   std::string ghost_id = "";
-  
+
   if (ghost_type == _ghost) {
     ghost_id = "ghost_";
   }
@@ -221,9 +221,9 @@ void Mesh::initByElementTypeUIntVector(ByElementTypeUInt & vect,
 
   for(UInt t = _not_defined; t < _max_element_type; ++t)
     vect[t] = NULL;
-  
+
   std::string ghost_id = "";
-  
+
   if (ghost_type == _ghost) {
     ghost_id = "ghost_";
   }

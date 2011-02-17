@@ -61,12 +61,34 @@ inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
   AKANTU_DEBUG_ASSERT(irn_jcn_to_k_it != irn_jcn_to_k->end(),
 		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
 
-  std::cerr << "AAAAAAAA " << irn_jcn_to_k_it->second << std::endl;
   a.values[irn_jcn_to_k_it->second] += value;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SparseMatrix::addToMatrix(const Vector<Real> & local_matrix,
+// inline void SparseMatrix::addToMatrixSym(const Vector<Real> & local_matrix,
+// 					 const Element & element) {
+//   AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
+// 		      "No profile stored for this kind of element call first buildProfile()");
+
+//   UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
+//   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+
+//   Real * mat_val = local_matrix.values;
+//   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
+//   Real * a_val = a.values;
+
+//   for (UInt j = 0; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
+//     UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 :
+//       nb_nodes_per_element * nb_degre_of_freedom;
+//     for (UInt i = 0; i < i_end; ++i) {
+//       UInt k = *(elem_to_sparse_val++);
+//       a_val[k] += *(mat_val++);
+//     }
+//   }
+// }
+
+/* -------------------------------------------------------------------------- */
+inline void SparseMatrix::addToMatrix(Real * local_matrix,
 				      const Element & element) {
   AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
 		      "No profile stored for this kind of element call first buildProfile()");
@@ -74,14 +96,12 @@ inline void SparseMatrix::addToMatrix(const Vector<Real> & local_matrix,
   UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
-  Real * mat_val = local_matrix.values;
+  Real * mat_val = local_matrix;
   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
   Real * a_val = a.values;
 
   for (UInt j = 0; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
-    UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 :
-      nb_nodes_per_element * nb_degre_of_freedom;
-    for (UInt i = 0; i < i_end; ++i) {
+    for (UInt i = 0; i < nb_nodes_per_element * nb_degre_of_freedom; ++i) {
       UInt k = *(elem_to_sparse_val++);
       a_val[k] += *(mat_val++);
     }
