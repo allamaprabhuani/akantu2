@@ -29,7 +29,9 @@
 #include <cstdlib>
 
 /* -------------------------------------------------------------------------- */
+#include "aka_types.hh"
 #include "aka_vector.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -64,6 +66,29 @@ int main(int argc, char *argv[]) {
   std::cerr << int_vect0;
   int_vect0.push_back(new_elem);
   std::cerr << int_vect0;
+
+  akantu::Vector<double> mat_vect(10, 4, 1.);
+  memset(mat_vect.values, 0, 10*4*sizeof(double));
+
+  typedef akantu::RealTMatrix<2,2> ItType;
+  typedef akantu::Vector<double> RealVector;
+
+  RealVector::iterator<ItType> it;
+  it = mat_vect.begin<ItType>();
+
+  RealVector::iterator<ItType> end = mat_vect.end<ItType>();
+
+  for (; it != end; ++it) {
+    std::cout << *it << std::endl;
+  }
+
+  akantu::RealTMatrix<2,3> m1(1.);
+  akantu::RealTMatrix<3,5> m2(2.);
+  akantu::RealTMatrix<2,5> m3;
+
+  m3 = m1 * m2;
+
+  std::cout << m1 << m2 << m3;
 
   return EXIT_SUCCESS;
 }

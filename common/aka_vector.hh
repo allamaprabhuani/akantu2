@@ -35,7 +35,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -104,22 +103,61 @@ template<class T> class Vector : public VectorBase {
   /* ------------------------------------------------------------------------ */
 public:
 
+  typedef T                  value_type;
+  typedef value_type &       reference;
+  typedef value_type *       pointer_type;
+  typedef const value_type & const_reference;
+
   /// Allocation of a new vector
   Vector(UInt size = 0, UInt nb_component = 1,
 	 const VectorID & id = "");
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,
-  	 const T def_values[], const VectorID & id = "");
+  	 const value_type def_values[], const VectorID & id = "");
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,
-	 const T & value, const VectorID & id = "");
+	 const_reference value, const VectorID & id = "");
 
   /// Copy constructor (deep copy if deep=true) \todo to implement
-  Vector(const Vector<T>& vect, bool deep = true);
+  Vector(const Vector<value_type>& vect, bool deep = true);
 
   virtual ~Vector();
+
+  /* ------------------------------------------------------------------------ */
+  /* Iterator                                                                 */
+  /* ------------------------------------------------------------------------ */
+public:
+  template<typename R>
+  class iterator {
+  public:
+    typedef R returned_type;
+    typedef returned_type & ref_returned_type;
+
+    iterator();
+    iterator(pointer_type data, UInt offset);
+    iterator(const iterator & it);
+
+    ~iterator();
+
+    inline iterator & operator=(const iterator & it);
+
+    inline ref_returned_type operator*() { return *ret; };
+    inline iterator & operator++();
+
+    inline iterator & operator+=(const UInt n);
+
+    inline bool operator==(const iterator & other);
+    inline bool operator!=(const iterator & other);
+
+  private:
+    UInt offset;
+    returned_type * ret;
+  };
+
+  template<typename Ret> inline iterator<Ret> begin();
+  template<typename Ret> inline iterator<Ret> end();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -127,16 +165,16 @@ public:
 public:
 
   /// get jth componemt of the ith tuple in read-only
-  inline const T & get(UInt i, UInt j = 0) const;
+  inline const_reference get(UInt i, UInt j = 0) const;
   /// get jth componemt of the ith tuple
-  inline T & at(UInt i, UInt j = 0);
+  inline reference at(UInt i, UInt j = 0);
 
   /// add an  element at  the and  of the vector  with the  value value  for all
   /// component
-  inline void push_back(const T& value);
+  inline void push_back(const_reference value);
 
   /// add an element at the and of the vector
-  inline void push_back(const T new_elem[]);
+  inline void push_back(const value_type new_elem[]);
 
   /**
    * remove an element and move the last one in the hole
@@ -157,7 +195,7 @@ public:
 
   /// search elem in the vector, return  the position of the first occurrence or
   /// -1 if not found
-  Int find(const T & elem) const;
+  Int find(const_reference elem) const;
 
 
 protected:
@@ -179,6 +217,15 @@ public:
 
 };
 
+
+
+
+__END_AKANTU__
+
+#include "aka_types.hh"
+
+__BEGIN_AKANTU__
+
 #include "aka_vector_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
@@ -199,7 +246,6 @@ inline std::ostream & operator<<(std::ostream & stream, const VectorBase & _this
   _this.printself(stream);
   return stream;
 }
-
 
 
 __END_AKANTU__

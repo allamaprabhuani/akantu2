@@ -288,6 +288,7 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   stream << space << " + size           : " << this->size << std::endl;
   stream << space << " + nb_component   : " << this->nb_component << std::endl;
   stream << space << " + allocated size : " << this->allocated_size << std::endl;
+  if(!AKANTU_DEBUG_LEVEL_IS_TEST())
   stream << space << " + memory size    : "
 	 << real_size << "kB" << std::endl;
   stream << space << " + address        : " << std::hex << this->values
