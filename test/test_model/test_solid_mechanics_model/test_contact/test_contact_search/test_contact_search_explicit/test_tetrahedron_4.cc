@@ -87,10 +87,10 @@ int main(int argc, char *argv[])
   memset(my_model.getDisplacement().values, 0, dim*nb_nodes*sizeof(Real));
 
   Real * displacement = my_model.getDisplacement().values;
-  
+
+  my_model.initModel();  
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
-  my_model.initModel();
 
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     my_model.explicitPred();
 
     /// update current positions
-    my_model.updateCurrentPosition();
+    my_model.initializeUpdateResidualData();
 
     /// compute the penetration list
     PenetrationList * my_penetration_list = new PenetrationList();
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     delete my_penetration_list;
 
     /// compute the residual
-    my_model.updateResidual();
+    my_model.updateResidual(false);
     
     /// compute the acceleration
     my_model.updateAcceleration();

@@ -44,6 +44,12 @@ register_test(test_regular_grid_tetrahedron_4_nodes test_regular_grid_tetrahedro
 add_dependencies(test_regular_grid_tetrahedron_4_nodes test_regular_grid_3d_mesh)
 
 #===============================================================================
+add_mesh(test_regular_grid_3d_mesh_no_neighbors cube.geo 3 1)
+
+register_test(test_regular_grid_tetrahedron_4_nodes_no_neighbors test_regular_grid_tetrahedron_4_nodes_no_neighbors.cc)
+add_dependencies(test_regular_grid_tetrahedron_4_nodes_no_neighbors test_regular_grid_3d_mesh_no_neighbors)
+
+#===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat

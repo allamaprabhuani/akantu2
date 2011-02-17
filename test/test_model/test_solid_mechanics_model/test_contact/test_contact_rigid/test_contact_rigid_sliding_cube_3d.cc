@@ -1,9 +1,9 @@
 /**
- * @file   test_contact_rigid_no_friction_force_3d.cc
+ * @file   test_contact_rigid_sliding_cube_3d.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jan 24 11:56:42 2011
+ * @date   Mon Feb 14 10:56:42 2011
  *
- * @brief  test force for rigid contact 3d in explicit
+ * @brief  test rigid contact for a 3d sliding cube in explicit
  *
  * @section LICENSE
  *
@@ -35,6 +35,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_rigid.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -52,14 +53,23 @@ int main(int argc, char *argv[])
   const ElementType element_type = _tetrahedron_4;
   const UInt paraview_type = TETRA1;
   
-  UInt max_steps = 200000;
+  //UInt max_steps = 200000;
   UInt imposing_steps = 100000;
-  Real max_displacement = -0.1;
+  Real max_displacement = -0.01;
+
+  UInt damping_steps = 10000;
+  UInt damping_interval = 100;
+  Real damping_ratio = 0.5;
+
+  Real imposed_velocity = 401.92;
+  Real needed_time = 0.005;
+
+  UInt additional_steps = 20000;
 
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("force_3d.msh", my_mesh);
+  mesh_io.read("sliding_cube_3d.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -87,24 +97,26 @@ int main(int argc, char *argv[])
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);
 
+  UInt max_steps = static_cast<UInt>(needed_time*10/time_step) + imposing_steps + damping_steps + additional_steps;
+  std::cout << "The number of time steps is found to be: " << max_steps << std::endl;
+  Real * velocity_val = my_model.getVelocity().values;
+  Real * acceleration_val = my_model.getAcceleration().values;
+
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_rigid, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
+  Contact * contact = Contact::newContact(my_model, 
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
+
+  ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
   my_contact->initContact(false);
 
   Surface master = 1;
   my_contact->addMasterSurface(master);
   
-  /*const  RegularGridNeighborStructure<3> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<3> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
-  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 0);
-  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 1);
-  const_cast<RegularGridNeighborStructure<3>&>(my_rgns).setGridSpacing(0.075, 2);*/
-
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   my_contact->initSearch(); // does nothing so far
@@ -117,16 +129,10 @@ int main(int argc, char *argv[])
   bool * boundary = my_model.getBoundary().values;
   UInt * surface_to_nodes_offset = my_contact->getSurfaceToNodesOffset().values;
   UInt * surface_to_nodes        = my_contact->getSurfaceToNodes().values;
-  // symetry boundary conditions
+  // top boundary conditions -> imposing displacement
   for(UInt n = surface_to_nodes_offset[impactor]; n < surface_to_nodes_offset[impactor+1]; ++n) {
     UInt node = surface_to_nodes[n];
-    Real x_coord = coordinates[node*dim];
     Real y_coord = coordinates[node*dim + 1];
-    Real z_coord = coordinates[node*dim + 2];
-    /*if (x_coord < 0.00001)
-      boundary[node*dim] = true;
-    if (z_coord < 0.00001)
-    boundary[node*dim+2] = true;*/
     if (y_coord > -0.00001) {
       boundary[node*dim + 1] = true;
       top_nodes->push_back(node);
@@ -136,7 +142,7 @@ int main(int argc, char *argv[])
   for(UInt n = surface_to_nodes_offset[master]; n < surface_to_nodes_offset[master+1]; ++n) {
     UInt node = surface_to_nodes[n];
     Real y_coord = coordinates[node*dim + 1];
-    if (y_coord < -1.2)
+    if (y_coord < -1.49)
       boundary[node*dim]     = true;
       boundary[node*dim + 1] = true;
       boundary[node*dim + 2] = true;
@@ -147,7 +153,7 @@ int main(int argc, char *argv[])
   /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_force_3d");
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coord_sliding_cube_3d");
   dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
 			 paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().values,
@@ -159,15 +165,20 @@ int main(int argc, char *argv[])
   dumper.AddElemDataField(my_model.getMaterial(0).getStress(element_type).values, dim*dim, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/force_3d/");
+  dumper.SetPrefix("paraview/sliding_cube_3d/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  std::ofstream force_out;
-  force_out.open("force_3d.csv");
-  force_out << "%id,ftop,fcont,zone" << std::endl;
+  std::ofstream out_info;
+  out_info.open("sliding_cube_3d.csv");
+  out_info << "%id,ftop,fcont,zone,stickNode,contNode" << std::endl;
 
+  std::ofstream energy;
+  energy.open("sliding_cube_3d_energy.csv");
+  energy << "%id,kin,pot,tot" << std::endl;
+
+  Real * current_position = my_model.getCurrentPosition().values; 
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
@@ -176,11 +187,12 @@ int main(int argc, char *argv[])
 
     if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
-    if(s == imposing_steps){
+    if(s % 200 == 0){
       my_model.updateCurrentPosition();
       my_contact->updateContact();    
     }
-    
+
+    // impose normal displacement
     if(s <= imposing_steps) {
       Real current_displacement = max_displacement/(static_cast<Real>(imposing_steps))*s;
       for(UInt n=0; n<top_nodes->getSize(); ++n) {
@@ -189,49 +201,114 @@ int main(int argc, char *argv[])
       }
     }
     
+    // damp velocity in order to find equilibrium
+    if(s > imposing_steps && s < imposing_steps+damping_steps && s%damping_interval == 0) {
+      for (UInt i=0; i < nb_nodes; ++i) {
+	for (UInt j=0; j < dim; ++j)
+	  velocity_val[i*dim + j] *= damping_ratio;
+      }
+    }
+
+    // give initial velocity
+    if(s == imposing_steps+damping_steps) {
+      Int master_index = -1;
+      for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
+	if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
+	  master_index = i;
+	  break;
+	}
+      }
+      ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+      bool * stick = imp_info->node_is_sticking->values;
+      for(UInt i=0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
+	stick[i*2] = false;
+	stick[i*2+1] = false;
+      }
+      UInt * connectivity = my_mesh.getConnectivity(element_type).values;
+      UInt nb_nodes_elem = Mesh::getNbNodesPerElement(element_type);
+      for(UInt i=0; i < nb_element; ++i) {
+	Real barycenter[dim];
+	Real * barycenter_p = &barycenter[0];
+	my_mesh.getBarycenter(i,element_type,barycenter_p);
+	if(barycenter_p[1] > -1) {
+	  for (UInt j=0; j < nb_nodes_elem; ++j) {
+	    velocity_val[connectivity[i*nb_nodes_elem+j]*dim] = imposed_velocity;
+	    acceleration_val[connectivity[i*nb_nodes_elem +j]*dim] = 0.;
+	  }
+	}
+      }
+    }
+
     my_model.explicitPred();
    
     my_model.initializeUpdateResidualData();
 
-    /// compute the penetration list
-    PenetrationList * my_penetration_list = new PenetrationList();
-    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
-    UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
-    UInt * pen_nodes_val = pen_nodes.values;
-
     my_contact->solveContact();
 
     my_model.updateResidual(false);
- 
+
+    my_contact->avoidAdhesion();
+
+    my_contact->addFriction();
+
+    // find the total force applied at the imposed displacement surface (top)
     Real * residual = my_model.getResidual().values; 
     Real top_force = 0.;
     for(UInt n=0; n<top_nodes->getSize(); ++n) {
       UInt node = top_nodes_val[n];
       top_force += residual[node*dim + 1];
     }
-    my_model.updateCurrentPosition();
-    Real * current_position = my_model.getCurrentPosition().values; 
+
+    // find index of master surface in impactors_information 
+    Int master_index = -1;
+    for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
+      if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
+	master_index = i;
+	break;
+      }
+    }
+    
+    // find the total contact force and contact area
+    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+    UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;   
     Real contact_force = 0.;
     Real contact_zone = 0.;
-    for (UInt i = 0; i < nb_nodes_pen; ++i) {
-      UInt node = pen_nodes_val[i];
+    for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
+      UInt node = active_imp_nodes_val[i];
       contact_force += residual[node*dim + 1];
-      contact_zone = std::max(contact_zone, current_position[node*dim]); 
+      contact_zone = std::max(contact_zone, current_position[node*dim]);
     }
-    delete my_penetration_list;
 
-    force_out << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
+    out_info << s << "," << top_force << "," << contact_force << "," << contact_zone << ",";
 
     my_model.updateAcceleration();
+
+    my_contact->addSticking();
+
+    const Vector<bool> * sticking_nodes = imp_info->node_is_sticking;
+    bool * sticking_nodes_val = sticking_nodes->values;
+    UInt nb_sticking_nodes = 0;
+    for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
+      if(sticking_nodes_val[i*2])
+	nb_sticking_nodes++;
+    }
+
+    out_info << nb_sticking_nodes << "," << imp_info->active_impactor_nodes->getSize() << std::endl;
+
     my_model.explicitCorr();
 
+    Real epot = my_model.getPotentialEnergy();
+    Real ekin = my_model.getKineticEnergy();
+    energy << s << "," << ekin << "," << epot << "," << ekin+epot << std::endl;
+
+
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 1000 == 0) dumper.Dump();
+    if(s % 100 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
 
-  force_out.close();
+  out_info.close();
+  energy.close();
 
   delete my_contact;
  

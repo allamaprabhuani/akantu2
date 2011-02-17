@@ -82,9 +82,9 @@ int main(int argc, char *argv[])
   memset(my_model.getAcceleration().values, 0, dim*nb_nodes*sizeof(Real));
   memset(my_model.getDisplacement().values, 0, dim*nb_nodes*sizeof(Real));
   
+  my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
-  my_model.initModel();
 
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);

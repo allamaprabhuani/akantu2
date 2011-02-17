@@ -1,9 +1,10 @@
 /**
- * @file   test_regular_grid_tetrahedron_4_nodes.cc
+ * @file   test_regular_grid_tetrahedron_4_nodes_no_neighbors.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Tue Oct 26 16:58:42 2010
  *
- * @brief  test regular grid neighbor structure for 3d case
+ * @brief  test regular grid neighbor structure for 3d case if there are no 
+ *         neighbors
  *
  * @section LICENSE
  *
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("cubes.msh", my_mesh);
+  mesh_io.read("cube.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -67,7 +68,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_test-surface-extraction");
+  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_no_neighbors_test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
    			 TETRA1, my_mesh.getNbElement(_tetrahedron_4), C_MODE);
   dumper.SetPrefix("paraview/");

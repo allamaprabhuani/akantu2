@@ -195,7 +195,7 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
 
   FEM & b_fem = model.getFEMBoundary();
   b_fem.initShapeFunctions();
-  b_fem.computeNormalsOnQuadPoints();
+  b_fem.computeNormalsOnControlPoints();
   bool * id = model.getBoundary().values;
   memset(id, 0, 2*nb_nodes*sizeof(bool));
   std::cout << "Nodes ";

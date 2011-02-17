@@ -78,9 +78,9 @@ int main(int argc, char *argv[])
   memset(my_model.getDisplacement().values, 0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
 
+  my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
-  my_model.initModel();
 
   UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
 
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     
     my_model.explicitPred();
    
-    my_model.updateCurrentPosition();
+    my_model.initializeUpdateResidualData();
 
     /// compute the penetration list
     PenetrationList * my_penetration_list = new PenetrationList();

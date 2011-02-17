@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
   memset(my_model.getDisplacement().values, 0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
 
+  my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
-  my_model.initModel();
 
   UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
 
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
   for(UInt n = surface_to_nodes_offset[master]; n < surface_to_nodes_offset[master+1]; ++n) {
     UInt node = surface_to_nodes[n];
     Real y_coord = coordinates[node*dim + 1];
-    if (y_coord < -1.2)
+    if (y_coord < -1.49)
       boundary[node*dim]     = true;
       boundary[node*dim + 1] = true;
   }
@@ -214,9 +214,16 @@ int main(int argc, char *argv[])
 
     // give initial velocity
     if(s == imposing_steps+damping_steps) {
-      const Vector<UInt> * act_imp_node = my_contact->getActiveImpactorNodes();
-      bool * stick = my_contact->getNodeIsSticking()->values;
-      for(UInt i=0; i < act_imp_node->getSize(); ++i) {
+      Int master_index = -1;
+      for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
+	if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
+	  master_index = i;
+	  break;
+	}
+      }
+      ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+      bool * stick = imp_info->node_is_sticking->values;
+      for(UInt i=0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
 	stick[i*2] = false;
 	stick[i*2+1] = false;
       }
@@ -260,17 +267,25 @@ int main(int argc, char *argv[])
       top_force += residual[node*dim + 1];
     }
    
+    // find index of master surface in impactors_information 
+    Int master_index = -1;
+    for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
+      if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
+	master_index = i;
+	break;
+      }
+    }
+    
     // find the total contact force and contact area
-    const Vector<UInt> * active_imp_nodes = my_contact->getActiveImpactorNodes();
-    UInt * active_imp_nodes_val = active_imp_nodes->values;
+    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+    UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real contact_force = 0.;
     Real contact_zone = 0.;
-    for (UInt i = 0; i < active_imp_nodes->getSize(); ++i) {
+    for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
       UInt node = active_imp_nodes_val[i];
       contact_force += residual[node*dim + 1];
       contact_zone = std::max(contact_zone, current_position[node*dim]);
     }
-    //delete my_penetration_list;
 
     out_info << s << "," << top_force << "," << contact_force << "," << contact_zone << ",";
 
@@ -278,15 +293,15 @@ int main(int argc, char *argv[])
 
     my_contact->addSticking();
 
-    const Vector<bool> * sticking_nodes = my_contact->getNodeIsSticking();
+    const Vector<bool> * sticking_nodes = imp_info->node_is_sticking;
     bool * sticking_nodes_val = sticking_nodes->values;
     UInt nb_sticking_nodes = 0;
-    for (UInt i = 0; i < active_imp_nodes->getSize(); ++i) {
+    for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
       if(sticking_nodes_val[i*2])
 	nb_sticking_nodes++;
     }
 
-    out_info << nb_sticking_nodes << "," << active_imp_nodes->getSize() << std::endl;
+    out_info << nb_sticking_nodes << "," << imp_info->active_impactor_nodes->getSize() << std::endl;
 
     my_model.explicitCorr();
 

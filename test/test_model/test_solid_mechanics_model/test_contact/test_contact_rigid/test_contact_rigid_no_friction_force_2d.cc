@@ -35,6 +35,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_rigid.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -78,9 +79,9 @@ int main(int argc, char *argv[])
   memset(my_model.getDisplacement().values, 0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
 
+  my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
-  my_model.initModel();
 
   UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
 
@@ -90,20 +91,18 @@ int main(int argc, char *argv[])
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_rigid, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
+  Contact * contact = Contact::newContact(my_model, 
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
+
+  ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
   my_contact->initContact(false);
 
   Surface master = 1;
   my_contact->addMasterSurface(master);
   
-  /*const  RegularGridNeighborStructure<2> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<2> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
-  const_cast<RegularGridNeighborStructure<2>&>(my_rgns).setGridSpacing(0.075, 0);
-  const_cast<RegularGridNeighborStructure<2>&>(my_rgns).setGridSpacing(0.075, 1);*/
-
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   my_contact->initSearch(); // does nothing so far
@@ -111,7 +110,6 @@ int main(int argc, char *argv[])
   // boundary conditions
   Surface impactor = 0;
   Vector<UInt> * top_nodes = new Vector<UInt>(0, 1);
-  UInt middle_point;
   Real * coordinates = my_mesh.getNodes().values;
   Real * displacement = my_model.getDisplacement().values;
   bool * boundary = my_model.getBoundary().values;
@@ -120,16 +118,11 @@ int main(int argc, char *argv[])
   // symetry boundary conditions
   for(UInt n = surface_to_nodes_offset[impactor]; n < surface_to_nodes_offset[impactor+1]; ++n) {
     UInt node = surface_to_nodes[n];
-    Real x_coord = coordinates[node*dim];
     Real y_coord = coordinates[node*dim + 1];
-    if (x_coord < 0.00001)
-      boundary[node*dim] = true;
     if (y_coord > -0.00001) {
       boundary[node*dim + 1] = true;
       top_nodes->push_back(node);
     }
-    if (x_coord < 0.00001 && y_coord > -0.00001)
-      middle_point = node;
   }
   // ground boundary conditions
   for(UInt n = surface_to_nodes_offset[master]; n < surface_to_nodes_offset[master+1]; ++n) {
@@ -189,35 +182,33 @@ int main(int argc, char *argv[])
 
     my_model.explicitPred();
    
-    my_model.updateCurrentPosition();
-
-    /// compute the penetration list
-    PenetrationList * my_penetration_list = new PenetrationList();
-    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
-    UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
-    UInt * pen_nodes_val = pen_nodes.values;
-
+    my_model.initializeUpdateResidualData();
+ 
     my_contact->solveContact();
 
     my_model.updateResidual(false);
 
+    my_contact->avoidAdhesion();
+
+    // find the total force applied at the imposed displacement surface (top)
     Real * residual = my_model.getResidual().values; 
     Real top_force = 0.;
     for(UInt n=0; n<top_nodes->getSize(); ++n) {
       UInt node = top_nodes_val[n];
       top_force += residual[node*dim + 1];
     }
-    my_model.updateCurrentPosition();
+
+    // find the total contact force and contact area
+    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master);
+    UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real * current_position = my_model.getCurrentPosition().values; 
     Real contact_force = 0.;
     Real contact_zone = 0.;
-    for (UInt i = 0; i < nb_nodes_pen; ++i) {
-      UInt node = pen_nodes_val[i];
+    for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
+      UInt node = active_imp_nodes_val[i];
       contact_force += residual[node*dim + 1];
       contact_zone = std::max(contact_zone, current_position[node*dim]); 
     }
-    delete my_penetration_list;
 
     force_out << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
 
