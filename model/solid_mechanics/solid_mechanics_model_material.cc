@@ -36,7 +36,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
   MaterialParser parser;
-  parser.open(filename.c_str());
+  parser.open(filename);
   std::string mat_type = parser.getNextMaterialType();
   UInt mat_count = 0;
 
@@ -72,9 +72,6 @@ void SolidMechanicsModel::initMaterials() {
       mat_val[elem_mat_val[el]]->addElement(*it, el);
     }
   }
-
-  
-
 
   /// @todo synchronize element material
 
