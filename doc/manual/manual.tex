@@ -199,4 +199,22 @@ operations. This model contain some Vectors that we will describe now.
 \end{itemize}
 
 
+\subsection{Contact Neighbor Structure}
+
+The contact neighbor structure is an interface which is ment to be heritated from in order to implement different type of contact neighbor structures. It has the following protected attributes:
+\begin{itemize}
+  \item id
+  \item contact search
+  \item master surface
+  \item neighbor list
+  \item type
+\end{itemize}
+The \emph{id} and the \emph{type} are characteristics of the contact neighcor structure object which define its id and its type. The \emph{contact search} attribute is the associated contact search object to the given contact neighbor structure object. The \emph{master surface} attribute is the id of the associated master surface for which the neighbor structure has to be built. Finally, the neighbor list is the constructed neighbor structure which defines the impactor nodes that are in the neighborhood of either a given master node or a given master surface element, depending on the type of contact neighbor structure.
+
+The contact neighbor structure provides the accessor \emph{getNeighborList} to the constructed neighbor list and forces the heritated classes to provide a public \emph{initNeighborStructure} function, which initializes the neighbor structure, as well as a public \emph{update} function, which updates the neighbor structure.
+
+\subsubsection{Regular Grid Neighbor Structure}
+
+The regular grid neighbor structure builds a regular grid around the master surface and uses it in order to construct the neighbor list. This neighbor structure can construct both types of neighbor list, the 
+
 \end{document}

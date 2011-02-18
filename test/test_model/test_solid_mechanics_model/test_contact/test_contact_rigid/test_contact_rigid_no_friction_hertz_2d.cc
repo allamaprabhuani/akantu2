@@ -52,10 +52,15 @@ int main(int argc, char *argv[])
   int dim = 2;
   const ElementType element_type = _triangle_3;
   const UInt paraview_type = TRIANGLE1;
-  
-  UInt max_steps = 200000;
-  UInt imposing_steps = 100000;
-  Real max_displacement = -0.1;
+
+  UInt imposing_steps = 1000;
+  Real max_displacement = -0.01;
+
+  UInt damping_steps = 200000;
+  UInt damping_interval = 50;
+  Real damping_ratio = 0.99;
+
+  UInt max_steps = damping_steps;
 
   /// load mesh
   Mesh my_mesh(dim);
@@ -90,23 +95,40 @@ int main(int argc, char *argv[])
 
   my_model.assembleMassLumped();
 
+  // modify surface id
+  Surface rigid_body_surface = 1;
+  Surface master = 2;
+  UInt nb_surfaces = my_mesh.getNbSurfaces();
+  my_mesh.setNbSurfaces(++nb_surfaces); 
+  ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
+  UInt * connectivity = my_mesh.getConnectivity(surface_element_type).values;
+  UInt nb_nodes_elem = Mesh::getNbNodesPerElement(surface_element_type);
+  UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
+  UInt * surface_id_val = my_mesh.getSurfaceId(surface_element_type).values;
+  for(UInt i=0; i < nb_surface_element; ++i) {
+    if (surface_id_val[i] == rigid_body_surface) {
+      Real barycenter[dim];
+      Real * barycenter_p = &barycenter[0];
+      my_mesh.getBarycenter(i,surface_element_type,barycenter_p);
+      if(barycenter_p[1] > -1.001) {
+	surface_id_val[i] = master;
+      }
+    }
+  }
+
    /// contact declaration
   Contact * contact = Contact::newContact(my_model, 
-					     _ct_rigid, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
 
   ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
   my_contact->initContact(false);
 
-  Surface master = 1;
+  //Surface master = 1;
   my_contact->addMasterSurface(master);
-  
-  /*const  RegularGridNeighborStructure<2> & my_rgns = dynamic_cast<const RegularGridNeighborStructure<2> &>(my_contact->getContactSearch().getContactNeighborStructure(master));
-  const_cast<RegularGridNeighborStructure<2>&>(my_rgns).setGridSpacing(0.075, 0);
-  const_cast<RegularGridNeighborStructure<2>&>(my_rgns).setGridSpacing(0.075, 1);
-  */
+
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   my_contact->initSearch(); // does nothing so far
@@ -114,7 +136,6 @@ int main(int argc, char *argv[])
   // boundary conditions
   Surface impactor = 0;
   Vector<UInt> * top_nodes = new Vector<UInt>(0, 1);
-  UInt middle_point;
   Real * coordinates = my_mesh.getNodes().values;
   Real * displacement = my_model.getDisplacement().values;
   bool * boundary = my_model.getBoundary().values;
@@ -131,18 +152,19 @@ int main(int argc, char *argv[])
       boundary[node*dim + 1] = true;
       top_nodes->push_back(node);
     }
-    if (x_coord < 0.00001 && y_coord > -0.00001)
-      middle_point = node;
   }
   // ground boundary conditions
-  for(UInt n = surface_to_nodes_offset[master]; n < surface_to_nodes_offset[master+1]; ++n) {
+  for(UInt n = surface_to_nodes_offset[rigid_body_surface]; n < surface_to_nodes_offset[rigid_body_surface+1]; ++n) {
     UInt node = surface_to_nodes[n];
     Real y_coord = coordinates[node*dim + 1];
-    if (y_coord < -1.2)
+    if (y_coord < -1.199999) {
       boundary[node*dim]     = true;
       boundary[node*dim + 1] = true;
+    }
   }
   UInt * top_nodes_val = top_nodes->values;
+
+  Real * velocity_val = my_model.getVelocity().values;
   
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
@@ -194,16 +216,17 @@ int main(int argc, char *argv[])
       }
     }
 
+    // damp velocity in order to find equilibrium
+    if(s < damping_steps && s%damping_interval == 0) {
+      for (UInt i=0; i < nb_nodes; ++i) {
+	for (UInt j=0; j < dim; ++j)
+	  velocity_val[i*dim + j] *= damping_ratio;
+      }
+    }
+
     my_model.explicitPred();
    
     my_model.initializeUpdateResidualData();
-
-    /// compute the penetration list
-    /*PenetrationList * my_penetration_list = new PenetrationList();
-    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
-    UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
-    UInt * pen_nodes_val = pen_nodes.values;*/
 
     my_contact->solveContact();
 
@@ -239,7 +262,6 @@ int main(int argc, char *argv[])
       contact_force += residual[node*dim + 1];
       contact_zone = std::max(contact_zone, current_position[node*dim]); 
     }
-    //delete my_penetration_list;
 
     hertz << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
 

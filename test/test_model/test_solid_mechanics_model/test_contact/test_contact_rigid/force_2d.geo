@@ -7,10 +7,10 @@ Point(2) = {0, -1, 0, h_contact};
 Point(3) = {1, -1, 0, h_contact};
 Point(4) = {1, 0, 0, h_sphere};
 
-Point(5) = {-0.25, -1.01, 0, h_plate};
-Point(6) = {-0.25, -1.21, 0, h_plate};
-Point(7) = { 1.25, -1.21, 0, h_plate};
-Point(8) = { 1.25, -1.01, 0, h_plate};
+Point(5) = {-0.25, -1, 0, h_plate};
+Point(6) = {-0.25, -1.2, 0, h_plate};
+Point(7) = { 1.25, -1.2, 0, h_plate};
+Point(8) = { 1.25, -1, 0, h_plate};
 
 Line(1) = {1, 2};
 Line(2) = {2, 3};

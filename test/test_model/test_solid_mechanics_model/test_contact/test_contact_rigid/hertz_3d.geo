@@ -1,21 +1,21 @@
-h_contact = 0.05; //0.01;
-h_sphere = 0.2; //0.1;
-h_plate = 0.05;	 
+h_contact = 0.05; 
+h_sphere = 0.2;
+h_plate = 0.4;	 
 
 Point(1) = {0,  0, 0, h_sphere};
 Point(2) = {1,  0, 0, h_sphere};
 Point(3) = {0, -1, 0, h_contact};
 Point(4) = {0,  0, 1, h_sphere};
 
-Point(5) = {-0.25, -1.01, -0.2, h_plate};
-Point(6) = {-0.25, -1.21, -0.2, h_plate};
-Point(7) = { 1.25, -1.21, -0.2, h_plate};
-Point(8) = { 1.25, -1.01, -0.2, h_plate};
+Point(5) = {-0.25, -1,   -0.2, h_plate};
+Point(6) = {-0.25, -1.2, -0.2, h_plate};
+Point(7) = { 1.25, -1.2, -0.2, h_plate};
+Point(8) = { 1.25, -1,   -0.2, h_plate};
 
-Point(9) = { -0.25, -1.01, 1.2, h_plate};
-Point(10) = {-0.25, -1.21, 1.2, h_plate};
-Point(11) = { 1.25, -1.21, 1.2, h_plate};
-Point(12) = { 1.25, -1.01, 1.2, h_plate};
+Point(9) = { -0.25, -1,   1.2, h_plate};
+Point(10) = {-0.25, -1.2, 1.2, h_plate};
+Point(11) = { 1.25, -1.2, 1.2, h_plate};
+Point(12) = { 1.25, -1,   1.2, h_plate};
 
 Line(1) = {2, 1};
 Line(2) = {1, 4};

@@ -53,9 +53,14 @@ int main(int argc, char *argv[])
   const ElementType element_type = _triangle_3;
   const UInt paraview_type = TRIANGLE1;
   
-  UInt max_steps = 200000;
-  UInt imposing_steps = 100000;
-  Real max_displacement = -0.1;
+  UInt imposing_steps = 1000;
+  Real max_displacement = -0.01;
+
+  UInt damping_steps = 200000;
+  UInt damping_interval = 50;
+  Real damping_ratio = 0.99;
+
+  UInt max_steps = damping_steps;
 
   /// load mesh
   Mesh my_mesh(dim);
@@ -128,12 +133,15 @@ int main(int argc, char *argv[])
   for(UInt n = surface_to_nodes_offset[master]; n < surface_to_nodes_offset[master+1]; ++n) {
     UInt node = surface_to_nodes[n];
     Real y_coord = coordinates[node*dim + 1];
-    if (y_coord < -1.2)
+    if (y_coord < -1.19999) {
       boundary[node*dim]     = true;
       boundary[node*dim + 1] = true;
+    }
   }
   UInt * top_nodes_val = top_nodes->values;
   
+  Real * velocity_val = my_model.getVelocity().values;
+
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   DumperParaview dumper;
@@ -180,6 +188,14 @@ int main(int argc, char *argv[])
       }
     }
 
+    // damp velocity in order to find equilibrium
+    if(s < damping_steps && s%damping_interval == 0) {
+      for (UInt i=0; i < nb_nodes; ++i) {
+	for (UInt j=0; j < dim; ++j)
+	  velocity_val[i*dim + j] *= damping_ratio;
+      }
+    }
+
     my_model.explicitPred();
    
     my_model.initializeUpdateResidualData();
@@ -198,8 +214,17 @@ int main(int argc, char *argv[])
       top_force += residual[node*dim + 1];
     }
 
+    // find index of master surface in impactors_information 
+    Int master_index = -1;
+    for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
+      if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
+	master_index = i;
+	break;
+      }
+    }
+
     // find the total contact force and contact area
-    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master);
+    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
     UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real * current_position = my_model.getCurrentPosition().values; 
     Real contact_force = 0.;

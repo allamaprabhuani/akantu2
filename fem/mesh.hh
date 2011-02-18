@@ -212,6 +212,10 @@ public:
 
   //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
 
+  /// @todo take out this set, if mesh can read surface id
+  /// set the number of surfaces 
+  AKANTU_SET_MACRO(NbSurfaces, nb_surfaces, UInt);
+
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type) const;
 
