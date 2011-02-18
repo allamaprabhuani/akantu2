@@ -103,9 +103,10 @@ add_optional_package(EPSN "Use EPSN streering environment" OFF)
 # Documentation
 #===========================================================================
 find_package(Boost REQUIRED)
-if(BOOST_FOUND)
-  include_directories(BOOST_INCLUDE_PATH)
-endif(BOOST_FOUND)
+
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+endif()
 
 
 # Debug
