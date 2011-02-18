@@ -170,6 +170,9 @@ namespace debug {
     throw ex;								\
   } while(0)
 
+#define AKANTU_DEBUG_TO_IMPLEMENT()				\
+  AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !")
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
 #define AKANTU_DEBUG_TEST(level)     (false)
@@ -213,9 +216,6 @@ namespace debug {
 
 #define AKANTU_DEBUG_TRACE(info)			\
   AKANTU_DEBUG(::akantu::dblTrace  , ">>> " << info)
-
-#define AKANTU_DEBUG_TO_IMPLEMENT()				\
-  AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !")
 
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
