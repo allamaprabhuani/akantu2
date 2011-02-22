@@ -1,6 +1,6 @@
-h_contact = 0.05; 
-h_top = 0.4; 
-h_plate = 0.2;	 
+h_contact = 0.1; 
+h_top = 0.6; 
+h_plate = 0.6;	 
 
 Point(1) = {0,  0, 0, h_top};
 Point(2) = {0, -1, 0, h_contact};
@@ -14,13 +14,13 @@ Point(8) = {1,  0, 1, h_top};
 
 Point(9)  = {-0.25, -1,   -0.25, h_plate};
 Point(10) = {-0.25, -1.5, -0.25, h_plate};
-Point(11) = { 2.25, -1.5, -0.25, h_plate};
-Point(12) = { 2.25, -1,   -0.25, h_plate};
+Point(11) = { 2, -1.5, -0.25, h_plate};
+Point(12) = { 2, -1,   -0.25, h_plate};
 
 Point(13) = {-0.25, -1,   1.25, h_plate};
 Point(14) = {-0.25, -1.5, 1.25, h_plate};
-Point(15) = { 2.25, -1.5, 1.25, h_plate};
-Point(16) = { 2.25, -1,   1.25, h_plate};
+Point(15) = { 2, -1.5, 1.25, h_plate};
+Point(16) = { 2, -1,   1.25, h_plate};
 
 Line(1) = {1, 5};
 Line(2) = {5, 8};

@@ -35,6 +35,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_rigid.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -48,7 +49,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 3;
+  UInt dim = 3;
   const ElementType element_type = _tetrahedron_4;
 
   /// load mesh
@@ -98,16 +99,19 @@ int main(int argc, char *argv[])
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_rigid, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
+  Contact * contact = Contact::newContact(my_model, 
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
+
+  ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
   my_contact->initContact(false);
 
   Surface master = 0;
   Surface impactor = 1;
   my_contact->addMasterSurface(master);
+  my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
   
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
@@ -212,6 +216,8 @@ int main(int argc, char *argv[])
     /// compute the residual
     my_model.updateResidual(false);
     
+    my_contact->avoidAdhesion();
+
     /// compute the acceleration
     my_model.updateAcceleration();
 

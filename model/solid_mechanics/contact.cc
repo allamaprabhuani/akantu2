@@ -46,9 +46,8 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactType & type,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model), friction_coefficient(0.),
-  master_surfaces(NULL), surface_to_nodes(NULL), surface_to_nodes_offset(NULL),
-  type(type) {
+  Memory(memory_id), id(id), model(model), master_surfaces(NULL), 
+  surface_to_nodes(NULL), surface_to_nodes_offset(NULL), type(type) {
 
   AKANTU_DEBUG_IN();
 

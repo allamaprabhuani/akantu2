@@ -80,6 +80,12 @@ register_test(test_contact_rigid_sliding_cube_3d test_contact_rigid_sliding_cube
 add_dependencies(test_contact_rigid_sliding_cube_3d test_sliding_cube_3d_mesh)
 
 #===============================================================================
+add_mesh(test_ball_2d_mesh ball_2d.geo 2 1)
+
+register_test(test_contact_rigid_ball_2d test_contact_rigid_ball_2d.cc)
+add_dependencies(test_contact_rigid_ball_2d test_ball_2d_mesh)
+
+#===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
@@ -94,4 +100,5 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/force_2d)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/force_3d)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_2d)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_3d)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/ball_2d)
 

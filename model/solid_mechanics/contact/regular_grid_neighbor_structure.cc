@@ -28,6 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
+#include "contact_rigid.hh"
 #include "solid_mechanics_model.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -201,21 +202,43 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   /// find surfaces being in the grid space
   // ----------------------------
 
+  AKANTU_DEBUG_ASSERT(contact_search.getContact().getType() == _ct_rigid, 
+		      "This contact type (" << contact_search.getContact().getType() << 
+		      ") does not work with this neighbor structure");
+
+  // find impactor_surfaces for given master
+  const  ContactRigid & its_contact = dynamic_cast<const ContactRigid &>(contact_search.getContact());
+  const std::vector<ContactRigid::ImpactorInformationPerMaster *> imp_info = its_contact.getImpactorsInformation();
+  std::vector<Surface> * impactor_surfaces = NULL;
+  for (UInt m=0; m < imp_info.size(); ++m) {
+      ContactRigid::ImpactorInformationPerMaster * impactor_info = imp_info.at(m);
+    if (impactor_info->master_id == this->master_surface) {
+      impactor_surfaces = impactor_info->impactor_surfaces;
+      break;
+    }
+  }
+
+  AKANTU_DEBUG_ASSERT(impactor_surfaces != NULL, 
+		      "Could not find impactor surfaces for master surface " << master_surface);
+
   /// find surfaces being in the grid space
   UInt nb_grid_surfaces = 0;
   UInt grid_surfaces[nb_surfaces];
-  UInt not_grid_space = 0;
+  bool not_grid_space = false;
 
-  for(UInt surf = 0; surf < nb_surfaces; ++surf) {
+  for(UInt s = 0; s < impactor_surfaces->size(); ++s) {
+    UInt surf = impactor_surfaces->at(s);
     for(UInt dim = 0; dim < spatial_dimension; ++dim) {
       if(bound_max[surf][dim] < grid_min[dim] || bound_min[surf][dim] > grid_max[dim])
-  	not_grid_space = 1;
+  	not_grid_space = true;
     }
-    if(not_grid_space == 0 || surf == master_surface) {
+    if(!not_grid_space) {
       grid_surfaces[nb_grid_surfaces++] = surf;
     }
-    not_grid_space = 0;
+    not_grid_space = false;
   }
+  grid_surfaces[nb_grid_surfaces++] = this->master_surface;
+
 
   /// if number of grid surfaces is equal to 1 we do not need to consider any slave surface
   /// @todo exit with empty neighbor list
@@ -447,18 +470,18 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt
       if(!visited_node_val[in]) {
 	
 	/// find and store cell numbers of neighbor cells and it-self
-	AKANTU_DEBUG_ASSERT(cell_val[current_impactor_node] >= 0, 
-			    "Bad cell index. This case normally should not happen !!");
-
 	UInt current_cell;
+	bool init = false;
 	for(UInt i = 0; i < nb_surface_nodes; ++i) {
 	  if(surface_to_nodes[i] == current_impactor_node) {
+	    AKANTU_DEBUG_ASSERT(cell_val[i] >= 0, "Bad cell index. This case normally should not happen !!");	
 	    current_cell = cell_val[i];
+	    init = true;
 	    break;
 	  }
 	}
-	// test if current_cell was initialized
-
+	AKANTU_DEBUG_ASSERT(init, "Cell number of node is not initialized");
+ 
 	//UInt current_cell = cell_val[current_impactor_node];
 	UInt nb_neighbor_cells = computeNeighborCells(current_cell, neighbor_cells, directional_nb_cells);
 	neighbor_cells[nb_neighbor_cells++] = current_cell;
@@ -717,8 +740,8 @@ void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
   for(UInt dim = 0; dim < spatial_dimension; ++dim)
     this->grid_spacing[dim] = margin * max_grid_spacing;
 
+  std::cout << "The grid spacing used for the regular grid is of size: " << this->grid_spacing[0] << std::endl;
   
-
   AKANTU_DEBUG_OUT();
 }
 

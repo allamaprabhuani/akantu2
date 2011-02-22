@@ -1,6 +1,6 @@
 h_contact = 0.05;
 h_topcube = 0.4;
-h_plate = 0.1;	 
+h_plate = 0.6;	 
 
 Point(1) = {0, 0, 0, h_topcube};
 Point(2) = {0, -1, 0, h_contact};

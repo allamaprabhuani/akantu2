@@ -43,9 +43,9 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 2;
+  UInt dim = 2;
   const ElementType element_type = _triangle_3;
-  const UInt paraview_type = TRIANGLE1;
+  //const UInt paraview_type = TRIANGLE1;
   
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
   my_model.readMaterials("material_check_stress.dat");
   my_model.initMaterials();
 
-  UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
+  //UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
 
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     }
   }
   UInt * top_nodes_val  = top_nodes->values;
-  UInt * base_nodes_val = base_nodes->values;
+  //UInt * base_nodes_val = base_nodes->values;
   
   Real * velocity_val = my_model.getVelocity().values;
 
@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
   
   UInt check_element = 0;
   UInt quadrature_point = 0;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element_type);
-  UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(element_type);
+  //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element_type);
+  //UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(element_type);
   Real * strains  = my_model.getMaterial(0).getStrain(element_type).values;
   Real * stresses = my_model.getMaterial(0).getStress(element_type).values;
   Real * strain_val = &strains[check_element*quadrature_point*dim*dim + quadrature_point];

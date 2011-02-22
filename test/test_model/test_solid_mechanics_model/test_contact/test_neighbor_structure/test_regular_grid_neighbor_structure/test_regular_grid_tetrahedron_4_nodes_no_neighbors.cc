@@ -36,6 +36,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_rigid.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 
@@ -49,7 +50,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 3;
+  UInt dim = 3;
 
   /// load mesh
   Mesh my_mesh(dim);
@@ -96,11 +97,13 @@ int main(int argc, char *argv[])
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * my_contact = Contact::newContact(my_model, 
-					     _ct_3d_expli, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
-
+  Contact * contact = Contact::newContact(my_model, 
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
+  
+  ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
+  
   my_contact->initContact(false);
 
   Surface master = 0;

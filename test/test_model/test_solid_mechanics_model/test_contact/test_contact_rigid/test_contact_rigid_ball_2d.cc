@@ -1,9 +1,9 @@
 /**
- * @file   test_contact_rigid_no_friction_force_3d.cc
+ * @file   test_contact_rigid_ball_2d.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jan 24 11:56:42 2011
+ * @date   Tue Feb 22 09:04:42 2011
  *
- * @brief  test force for rigid contact 3d in explicit
+ * @brief  test rigid contact for a 2d ball
  *
  * @section LICENSE
  *
@@ -49,23 +49,16 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  UInt dim = 3;
-  const ElementType element_type = _tetrahedron_4;
-  const UInt paraview_type = TETRA1;
-  
-  UInt imposing_steps = 1000;
-  Real max_displacement = -0.01;
+  UInt dim = 2;
+  const ElementType element_type = _triangle_3;
+  const UInt paraview_type = TRIANGLE1;
 
-  UInt damping_steps = 200000;
-  UInt damping_interval = 50;
-  Real damping_ratio = 0.99;
-
-  UInt max_steps = damping_steps;
+  UInt max_steps = 200000;
 
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("force_3d.msh", my_mesh);
+  mesh_io.read("ball_2d.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -95,26 +88,37 @@ int main(int argc, char *argv[])
 
   my_model.assembleMassLumped();
 
-  Real * velocity_val = my_model.getVelocity().values;
+  Surface impactor = 4;
+  Surface rigid_body_surface[4];
+  rigid_body_surface[0] = 0;
+  rigid_body_surface[1] = 1;
+  rigid_body_surface[2] = 2;
+  rigid_body_surface[3] = 3;
 
-  Surface impactor = 0;
-  Surface rigid_body_surface = 1;
-  Surface master = 2;
+  Surface master = 5;
+  //master[0] = 5;
+  //master[1] = 6;
+  //master[2] = 7;
+  //master[3] = 8;
 
   // modify surface id
   UInt nb_surfaces = my_mesh.getNbSurfaces();
   my_mesh.setNbSurfaces(++nb_surfaces); 
   ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
-  UInt * connectivity = my_mesh.getConnectivity(surface_element_type).values;
-  //UInt nb_nodes_elem = Mesh::getNbNodesPerElement(surface_element_type);
   UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
   UInt * surface_id_val = my_mesh.getSurfaceId(surface_element_type).values;
   for(UInt i=0; i < nb_surface_element; ++i) {
-    if (surface_id_val[i] == rigid_body_surface) {
+    if ((surface_id_val[i] == rigid_body_surface[0]) ||
+	(surface_id_val[i] == rigid_body_surface[1]) ||
+	(surface_id_val[i] == rigid_body_surface[2]) ||
+	(surface_id_val[i] == rigid_body_surface[3])) {
       Real barycenter[dim];
       Real * barycenter_p = &barycenter[0];
       my_mesh.getBarycenter(i,surface_element_type,barycenter_p);
-      if(barycenter_p[1] > -1.001) {
+      if((barycenter_p[0] > -0.001) && 
+	 (barycenter_p[0] <  0.501) &&
+	 (barycenter_p[1] > -0.001) &&
+	 (barycenter_p[1] <  0.701)) {
 	surface_id_val[i] = master;
       }
     }
@@ -130,7 +134,6 @@ int main(int argc, char *argv[])
 
   my_contact->initContact(false);
 
-  //  Surface master = 1;
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
 
@@ -139,40 +142,27 @@ int main(int argc, char *argv[])
   my_contact->initSearch(); // does nothing so far
 
   // boundary conditions
-  Vector<UInt> * top_nodes = new Vector<UInt>(0, 1);
   Real * coordinates = my_mesh.getNodes().values;
-  Real * displacement = my_model.getDisplacement().values;
   bool * boundary = my_model.getBoundary().values;
-  UInt * surface_to_nodes_offset = my_contact->getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = my_contact->getSurfaceToNodes().values;
-  // symetry boundary conditions
-  for(UInt n = surface_to_nodes_offset[impactor]; n < surface_to_nodes_offset[impactor+1]; ++n) {
-    UInt node = surface_to_nodes[n];
-    Real x_coord = coordinates[node*dim];
-    Real y_coord = coordinates[node*dim + 1];
-    Real z_coord = coordinates[node*dim + 2];
-    if (y_coord > -0.00001) {
-      boundary[node*dim + 1] = true;
-      top_nodes->push_back(node);
+  Real * velocity_val = my_model.getVelocity().values;
+  for (UInt i=0; i < nb_nodes; ++i) {
+    Real x_coord = coordinates[i*dim];
+    Real y_coord = coordinates[i*dim + 1];
+    if((x_coord > 0) &&
+       (x_coord < 0.5) &&
+       (y_coord > 0) &&
+       (y_coord < 0.7)) {
+      velocity_val[i*dim]   = 100;
+      velocity_val[i*dim+1] = -100;
     }
-  }
-  // ground boundary conditions
-  for(UInt n = surface_to_nodes_offset[rigid_body_surface]; n < surface_to_nodes_offset[rigid_body_surface+1]; ++n) {
-    UInt node = surface_to_nodes[n];
-    Real y_coord = coordinates[node*dim + 1];
-    if (y_coord < -1.19999) {
-      boundary[node*dim]     = true;
-      boundary[node*dim + 1] = true;
-      boundary[node*dim + 2] = true;
-    }
-  }
-  UInt * top_nodes_val = top_nodes->values;
+  }  
+
   
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_force_3d");
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coordinates_2d");
   dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
 			 paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().values,
@@ -184,14 +174,14 @@ int main(int argc, char *argv[])
   dumper.AddElemDataField(my_model.getMaterial(0).getStress(element_type).values, dim*dim, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/force_3d/");
+  dumper.SetPrefix("paraview/ball_2d/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  std::ofstream force_out;
-  force_out.open("force_3d.csv");
-  force_out << "%id,ftop,fcont,zone" << std::endl;
+  std::ofstream energy;
+  energy.open("ball_2d_energy.csv");
+  energy << "%id,kin,pot,tot" << std::endl;
 
 
   /* ------------------------------------------------------------------------ */
@@ -201,27 +191,11 @@ int main(int argc, char *argv[])
 
     if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
-    if(s == imposing_steps){
+    if(s % 2000 == 0){
       my_model.updateCurrentPosition();
       my_contact->updateContact();    
     }
-    
-    if(s <= imposing_steps) {
-      Real current_displacement = max_displacement/(static_cast<Real>(imposing_steps))*s;
-      for(UInt n=0; n<top_nodes->getSize(); ++n) {
-	UInt node = top_nodes_val[n];
-	displacement[node*dim + 1] = current_displacement;
-      }
-    }
 
-    // damp velocity in order to find equilibrium
-    if(s < damping_steps && s%damping_interval == 0) {
-      for (UInt i=0; i < nb_nodes; ++i) {
-	for (UInt j=0; j < dim; ++j)
-	  velocity_val[i*dim + j] *= damping_ratio;
-      }
-    }
-    
     my_model.explicitPred();
    
     my_model.initializeUpdateResidualData();
@@ -230,46 +204,26 @@ int main(int argc, char *argv[])
 
     my_model.updateResidual(false);
 
-    // find the total force applied at the imposed displacement surface (top) 
-    Real * residual = my_model.getResidual().values; 
-    Real top_force = 0.;
-    for(UInt n=0; n<top_nodes->getSize(); ++n) {
-      UInt node = top_nodes_val[n];
-      top_force += residual[node*dim + 1];
-    }
+    my_contact->avoidAdhesion();
 
-    // find index of master surface in impactors_information 
-    Int master_index = -1;
-    for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
-      if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
-	master_index = i;
-	break;
-      }
-    }
-
-    // find the total contact force and contact area
-    ContactRigid::ImpactorInformationPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
-    UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
-    Real * current_position = my_model.getCurrentPosition().values; 
-    Real contact_force = 0.;
-    Real contact_zone = 0.;
-    for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
-      UInt node = active_imp_nodes_val[i];
-      contact_force += residual[node*dim + 1];
-      contact_zone = std::max(contact_zone, current_position[node*dim]); 
-    }
-
-    force_out << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
+    my_contact->addFriction();
 
     my_model.updateAcceleration();
     my_model.explicitCorr();
 
+    my_contact->addSticking();
+
+    Real epot = my_model.getPotentialEnergy();
+    Real ekin = my_model.getKineticEnergy();
+    energy << s << "," << ekin << "," << epot << "," << ekin+epot << std::endl;
+
+
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 1000 == 0) dumper.Dump();
+    if(s % 100 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
 
-  force_out.close();
+  energy.close();
 
   delete my_contact;
  

@@ -106,14 +106,15 @@ int main(int argc, char *argv[])
   my_contact->initContact(false);
 
   Surface master = 1;
+  Surface impactor = 0;
   my_contact->addMasterSurface(master);
-  
+  my_contact->addImpactorSurfaceToMasterSurface(impactor, master);  
+
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   my_contact->initSearch(); // does nothing so far
 
   // boundary conditions
-  Surface impactor = 0;
   Vector<UInt> * top_nodes = new Vector<UInt>(0, 1);
   Real * coordinates = my_mesh.getNodes().values;
   Real * displacement = my_model.getDisplacement().values;
@@ -224,7 +225,7 @@ int main(int argc, char *argv[])
     }
 
     // find the total contact force and contact area
-    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+    ContactRigid::ImpactorInformationPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
     UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real * current_position = my_model.getCurrentPosition().values; 
     Real contact_force = 0.;

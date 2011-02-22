@@ -49,7 +49,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 2;
+  UInt dim = 2;
   const ElementType element_type = _triangle_3;
   const UInt paraview_type = TRIANGLE1;
 
@@ -95,14 +95,14 @@ int main(int argc, char *argv[])
 
   my_model.assembleMassLumped();
 
-  // modify surface id
+  Surface impactor = 0;
   Surface rigid_body_surface = 1;
   Surface master = 2;
+
+  // modify surface id
   UInt nb_surfaces = my_mesh.getNbSurfaces();
   my_mesh.setNbSurfaces(++nb_surfaces); 
   ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
-  UInt * connectivity = my_mesh.getConnectivity(surface_element_type).values;
-  UInt nb_nodes_elem = Mesh::getNbNodesPerElement(surface_element_type);
   UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
   UInt * surface_id_val = my_mesh.getSurfaceId(surface_element_type).values;
   for(UInt i=0; i < nb_surface_element; ++i) {
@@ -128,13 +128,13 @@ int main(int argc, char *argv[])
 
   //Surface master = 1;
   my_contact->addMasterSurface(master);
+  my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   my_contact->initSearch(); // does nothing so far
 
   // boundary conditions
-  Surface impactor = 0;
   Vector<UInt> * top_nodes = new Vector<UInt>(0, 1);
   Real * coordinates = my_mesh.getNodes().values;
   Real * displacement = my_model.getDisplacement().values;
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
     }
     
     // find the total contact force and contact area
-    ContactRigid::ImpactorNodesInfoPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+    ContactRigid::ImpactorInformationPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
     UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real * current_position = my_model.getCurrentPosition().values; 
     Real contact_force = 0.;

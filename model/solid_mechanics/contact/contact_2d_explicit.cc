@@ -39,7 +39,8 @@ Contact2dExplicit::Contact2dExplicit(const SolidMechanicsModel & model,
 				     const ContactType & type,
 				     const ContactID & id,
 				     const MemoryID & memory_id) :
-  Contact(model, type, id, memory_id), coefficient_of_restitution(0.) {
+  Contact(model, type, id, memory_id), friction_coefficient(0.), 
+  coefficient_of_restitution(0.) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model.getFEM().getMesh().getSpatialDimension();

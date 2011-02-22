@@ -34,8 +34,10 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-ContactRigid::ImpactorNodesInfoPerMaster::ImpactorNodesInfoPerMaster(const Surface master_id, const UInt spatial_dimension) : master_id(master_id) {
+ContactRigid::ImpactorInformationPerMaster::ImpactorInformationPerMaster(const Surface master_id, const UInt spatial_dimension) : master_id(master_id) {
   AKANTU_DEBUG_IN();
+
+  this->impactor_surfaces = new std::vector<Surface>(0,1);
 
   this->master_normals = new Vector<Int>(0, spatial_dimension);
   this->active_impactor_nodes = new Vector<UInt>(0,1);
@@ -45,9 +47,11 @@ ContactRigid::ImpactorNodesInfoPerMaster::ImpactorNodesInfoPerMaster(const Surfa
 }
 
 /* -------------------------------------------------------------------------- */
-ContactRigid::ImpactorNodesInfoPerMaster::~ImpactorNodesInfoPerMaster() {
+ContactRigid::ImpactorInformationPerMaster::~ImpactorInformationPerMaster() {
   AKANTU_DEBUG_IN();
-  
+
+  delete this->impactor_surfaces;  
+
   delete this->master_normals;
   delete this->active_impactor_nodes;
   delete this->node_is_sticking;
@@ -62,10 +66,6 @@ ContactRigid::ContactRigid(const SolidMechanicsModel & model,
 			   const MemoryID & memory_id) :
   Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()) {
   AKANTU_DEBUG_IN();
-  
-  //this->master_normals = new Vector<Int>(0, spatial_dimension);
-  //this->active_impactor_nodes = new Vector<UInt>(0,1);
-  //this->node_is_sticking = new Vector<bool>(0,2);
 
   AKANTU_DEBUG_OUT();
 }
@@ -73,10 +73,6 @@ ContactRigid::ContactRigid(const SolidMechanicsModel & model,
 /* -------------------------------------------------------------------------- */
 ContactRigid::~ContactRigid() {
   AKANTU_DEBUG_IN();
-
-  //delete this->master_normals;
-  //delete this->active_impactor_nodes;
-  //delete this->node_is_sticking;
 
   AKANTU_DEBUG_OUT();
 }
@@ -87,8 +83,22 @@ void ContactRigid::addMasterSurface(const Surface & master_surface) {
 
   Contact::addMasterSurface(master_surface);
 
-  ImpactorNodesInfoPerMaster * impactor_info = new ImpactorNodesInfoPerMaster(master_surface, this->spatial_dimension);
+  ImpactorInformationPerMaster * impactor_info = new ImpactorInformationPerMaster(master_surface, this->spatial_dimension);
   impactors_information.push_back(impactor_info);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactRigid::addImpactorSurfaceToMasterSurface(const Surface & impactor_surface, const Surface & master_surface) {
+  AKANTU_DEBUG_IN();
+  
+  for (UInt m=0; m < this->impactors_information.size(); ++m) {
+    if (this->impactors_information.at(m)->master_id == master_surface) {
+      this->impactors_information.at(m)->impactor_surfaces->push_back(impactor_surface);
+      break;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -103,6 +113,26 @@ void ContactRigid::removeMasterSurface(const Surface & master_surface) {
     if (this->impactors_information.at(m)->master_id == master_surface) {
       this->impactors_information.erase(this->impactors_information.begin()+m);
       break;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactRigid::removeImpactorSurfaceFromMasterSurface(const Surface & impactor_surface, const Surface & master_surface) {
+  AKANTU_DEBUG_IN();
+  
+  for (UInt m=0; m < this->impactors_information.size(); ++m) {
+    ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(m);
+    if (impactor_info->master_id == master_surface) {
+      for (UInt i=0; i < impactor_info->impactor_surfaces->size(); ++i) {
+	Surface imp_surface = impactor_info->impactor_surfaces->at(i);
+	if (imp_surface == impactor_surface) {
+	  impactor_info->impactor_surfaces->erase(impactor_info->impactor_surfaces->begin()+i);
+	  break;
+	}
+      }
     }
   }
 
@@ -307,7 +337,7 @@ void ContactRigid::lockImpactorNode(const UInt master_index, const PenetrationLi
     }
   }
 
-  ImpactorNodesInfoPerMaster * impactor_info = this->impactors_information.at(master_index);
+  ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(master_index);
   impactor_info->active_impactor_nodes->push_back(impactor_node);
   impactor_info->master_normals->push_back(normal);
   Real init_sticking[2];
@@ -337,7 +367,7 @@ void ContactRigid::avoidAdhesion() {
     }
     AKANTU_DEBUG_ASSERT(master_index != -1, "No impactor information object for master" << master << "in impactors_information vector that is ");
 
-    ImpactorNodesInfoPerMaster * impactor_info = this->impactors_information.at(master_index);
+    ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(master_index);
     
     for (UInt n=0; n < impactor_info->active_impactor_nodes->getSize(); ++n) {
       UInt current_node = impactor_info->active_impactor_nodes->at(n);
@@ -402,7 +432,7 @@ void ContactRigid::addFriction() {
     }
     AKANTU_DEBUG_ASSERT(master_index != -1, "No impactor information object for master" << master << "in impactors_information vector that is ");
 
-    ImpactorNodesInfoPerMaster * impactor_info = this->impactors_information.at(master_index);
+    ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(master_index);
     
     UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
     Int * direction_val = impactor_info->master_normals->values;
@@ -499,7 +529,7 @@ void ContactRigid::addSticking() {
     }
     AKANTU_DEBUG_ASSERT(master_index != -1, "No impactor information object for master" << master << "in impactors_information vector that is ");
 
-    ImpactorNodesInfoPerMaster * impactor_info = this->impactors_information.at(master_index);
+    ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(master_index);
     
     UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
     Int * direction_val = impactor_info->master_normals->values;

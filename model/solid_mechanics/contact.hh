@@ -105,8 +105,6 @@ public:
 
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &);
 
-  AKANTU_GET_MACRO(FrictionCoefficient, friction_coefficient, const Real &);
-
   AKANTU_GET_MACRO(ContactSearch, * contact_search, const ContactSearch &);
 
   AKANTU_GET_MACRO(SurfaceToNodesOffset, surface_to_nodes_offset, const Vector<UInt> &);
@@ -125,9 +123,6 @@ public:
     this->contact_search = &contact_search;
   }
 
-  /// Set friction coefficient  (default value = 0)
-  AKANTU_SET_MACRO(FrictionCoefficient, friction_coefficient, Real);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -137,9 +132,6 @@ protected:
 
   /// associated model
   const SolidMechanicsModel & model;
-
-  /// friction coefficient
-  Real friction_coefficient;
 
   /// contact search object
   ContactSearch * contact_search;

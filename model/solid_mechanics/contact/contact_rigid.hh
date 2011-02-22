@@ -58,20 +58,23 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  class ImpactorNodesInfoPerMaster {
+  class ImpactorInformationPerMaster {
   public:
-    ImpactorNodesInfoPerMaster(const Surface master_id, const UInt spatial_dimension);
-    virtual ~ImpactorNodesInfoPerMaster();
+    ImpactorInformationPerMaster(const Surface master_id, const UInt spatial_dimension);
+    virtual ~ImpactorInformationPerMaster();
   public:
     /// master surface id
     Surface master_id;
 
-    /// the normal to the master surface element
-    Vector<Int> * master_normals;
-    
+    /// impactor surfaces 
+    std::vector<Surface> * impactor_surfaces;
+
     /// list of active impactor nodes
     Vector<UInt> * active_impactor_nodes;  
   
+    /// the normal to the master surface element for each active impactor node
+    Vector<Int> * master_normals;
+    
     /// show if node is sticking
     Vector<bool> * node_is_sticking;
   };
@@ -95,8 +98,16 @@ public:
   /// add a new master surface
   virtual void addMasterSurface(const Surface & master_surface);
 
+  /// add an impactor surface to a master surface
+  virtual void addImpactorSurfaceToMasterSurface(const Surface & impactor_surface,
+						 const Surface & master_surface);
+
   /// remove a master surface
   virtual void removeMasterSurface(const Surface & master_surface);
+
+  /// remove an impactor surface from master surface
+  virtual void removeImpactorSurfaceFromMasterSurface(const Surface & impactor_surface,
+						      const Surface & master_surface);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -126,7 +137,7 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the vector full of impactor information objects
-  AKANTU_GET_MACRO(ImpactorsInformation, impactors_information, const std::vector<ImpactorNodesInfoPerMaster *> &);
+  AKANTU_GET_MACRO(ImpactorsInformation, impactors_information, const std::vector<ImpactorInformationPerMaster *> &);
 
 /// get the vector containing the active impactor nodes
   //AKANTU_GET_MACRO(ActiveImpactorNodes, active_impactor_nodes, const Vector<UInt> *);
@@ -145,7 +156,7 @@ private:
   const Mesh & mesh;
 
   /// list of impactor nodes info for each master surface
-  std::vector<ImpactorNodesInfoPerMaster *> impactors_information;
+  std::vector<ImpactorInformationPerMaster *> impactors_information;
 
 };
 

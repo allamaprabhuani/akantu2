@@ -37,6 +37,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
+#include "contact_2d_explicit.hh"
 #include "io_helper.h"
 /* -------------------------------------------------------------------------- */
 
@@ -115,10 +116,12 @@ int main(int argc, char *argv[])
   setBoundaryConditions(*model);
 
   /// define and initialize contact
-  Contact * my_contact = Contact::newContact(*model, 
-					     _ct_2d_expli, 
-					     _cst_2d_expli, 
-					     _cnst_2d_grid);
+  Contact * contact = Contact::newContact(*model, 
+					  _ct_2d_expli, 
+					  _cst_2d_expli, 
+					  _cnst_2d_grid);
+
+  Contact2dExplicit * my_contact = dynamic_cast<Contact2dExplicit *>(contact);  
 
   my_contact->initContact(true);
   my_contact->setFrictionCoefficient(0.);

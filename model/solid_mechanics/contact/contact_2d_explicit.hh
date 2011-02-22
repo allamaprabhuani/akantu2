@@ -80,14 +80,22 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(FrictionCoefficient, friction_coefficient, const Real &);
+
+  /// Set friction coefficient  (default value = 0)
+  AKANTU_SET_MACRO(FrictionCoefficient, friction_coefficient, Real);
+
   /// Set coefficient of restitution (default value = 0)
   AKANTU_SET_MACRO(CoefficientOfRestitution, coefficient_of_restitution, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
+  /// friction coefficient
+  Real friction_coefficient;
 
+private:
   /// Coefficient of restitution used to compute post impact velocities
   Real coefficient_of_restitution;
 
