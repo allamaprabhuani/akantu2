@@ -71,7 +71,7 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-/** 
+/**
  * @class Mesh this contain the coordinates of the nodes in the Mesh.nodes Vector,
  * and the connectivity. The connectivity are stored in by element types.
  *
@@ -160,7 +160,7 @@ public:
 						 Real * coord,
 						 UInt * connectivity,
 						 UInt n_nodes);
-  
+
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem);
 
@@ -179,9 +179,8 @@ public:
   /// update the types offsets array for the conversions
   inline void updateGhostTypesOffsets();
 
- 
- 
-
+  /// add a Vector of connectivity for the type <type>.
+  inline void addConnecticityType(const ElementType & type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -213,7 +212,7 @@ public:
   //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
 
   /// @todo take out this set, if mesh can read surface id
-  /// set the number of surfaces 
+  /// set the number of surfaces
   AKANTU_SET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
   /// get the number of element of a type in the mesh

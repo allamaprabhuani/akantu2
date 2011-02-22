@@ -178,7 +178,9 @@ inline const Mesh & Mesh::getInternalFacetsMesh() const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
-  if (!internal_facets_mesh) AKANTU_DEBUG_ERROR("internal facets mesh was not created before access => use mesh utils to that purpose");
+  if (!internal_facets_mesh)
+    AKANTU_DEBUG_ERROR("Internal facets mesh was not created before access "
+		       << "=> use mesh utils to that purpose");
   return *internal_facets_mesh;
 }
 
@@ -372,10 +374,14 @@ inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
 						     Real * coord,
 						     UInt * connectivity,
 						     UInt n_nodes){
-  for (UInt id = 0; id < n_nodes; ++id) {			
-    memcpy(local_coord + id * spatial_dimension,			
-	   coord + connectivity[id] * spatial_dimension,		
-	   spatial_dimension*sizeof(Real));				
+  for (UInt id = 0; id < n_nodes; ++id) {
+    memcpy(local_coord + id * spatial_dimension,
+	   coord + connectivity[id] * spatial_dimension,
+	   spatial_dimension*sizeof(Real));
   }
 }
 
+/* -------------------------------------------------------------------------- */
+inline void Mesh::addConnecticityType(const ElementType & type){
+  getConnectivityPointer(type);
+}
