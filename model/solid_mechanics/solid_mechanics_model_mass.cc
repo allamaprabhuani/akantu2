@@ -48,7 +48,7 @@ void SolidMechanicsModel::assembleMassLumped() {
   /// wrong range in paraview
   Real * mass_values = mass->values;
   for (UInt i = 0; i < nb_nodes; ++i) {
-    if (fabs(mass_values[i]) < std::numeric_limits<Real>::epsilon() || mass_values[i] == std::numeric_limits<Real>::quiet_NaN())
+    if (fabs(mass_values[i]) < std::numeric_limits<Real>::epsilon() || Math::isnan(mass_values[i]))
       mass_values[i] = 1;
   }
 

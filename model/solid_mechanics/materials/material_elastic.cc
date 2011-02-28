@@ -98,7 +98,7 @@ void MaterialElastic::computeTangentStiffness(const ElementType & el_type,
   case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
   case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
   }
-};
+}
 
 /* -------------------------------------------------------------------------- */
 void MaterialElastic::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {

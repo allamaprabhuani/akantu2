@@ -169,10 +169,13 @@ public:
   static inline void vector_3d(const Real * x, const Real * y, Real * vec);
 
   /// test if two scalar are equal within a given tolerance
-  static inline bool are_float_equal(const Real x, const Real y);
+  static inline bool are_float_equal(Real x, Real y);
 
   /// tolerance for functions that need one
   static Real tolerance;
+
+  /// test if a real is a NaN
+  static inline bool isnan(Real x);
 };
 
 

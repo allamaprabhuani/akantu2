@@ -160,8 +160,6 @@ void Mesh::printself(std::ostream & stream, int indent) const {
 void Mesh::computeBoundingBox(){
   AKANTU_DEBUG_IN();
   UInt dim = spatial_dimension;
-  memset(xmin,REAL_INIT_VALUE,3*sizeof(Real));
-  memset(xmax,REAL_INIT_VALUE,3*sizeof(Real));
 
   for (UInt k = 0; k < dim; ++k) {
     xmin[k] = std::numeric_limits<double>::max();
@@ -171,8 +169,8 @@ void Mesh::computeBoundingBox(){
   Real * coords = nodes->values;
   for (UInt i = 0; i < nodes->getSize(); ++i) {
     for (UInt k = 0; k < dim; ++k) {
-      xmin[k] = fmin(xmin[k],coords[dim*i+k]);
-      xmax[k] = fmax(xmax[k],coords[dim*i+k]);
+      xmin[k] = std::min(xmin[k],coords[dim*i+k]);
+      xmax[k] = std::max(xmax[k],coords[dim*i+k]);
     }
   }
   AKANTU_DEBUG_OUT();

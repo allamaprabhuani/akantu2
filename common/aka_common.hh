@@ -149,8 +149,8 @@ enum ElementType {
   _tetrahedron_4   = 5, /// first  order tetrahedron
   _tetrahedron_10  = 6, /// second order tetrahedron @remark not implemented yet
   _quadrangle_4,        /// first  order quadrangle
-  _max_element_type,
-  _point /// point only for some algorithm to be generic like mesh partitioning
+  _point,               /// point only for some algorithm to be generic like mesh partitioning
+  _max_element_type
 };
 
 /// @enum MaterialType different materials implemented

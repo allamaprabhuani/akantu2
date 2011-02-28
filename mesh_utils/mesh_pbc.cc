@@ -175,8 +175,8 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
 		      << ") in direction " << dir);	
 
     
-    UInt dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
-    UInt dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
+    Real dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
+    Real dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
 
     if (fabs(dx*dx+dy*dy) < Math::tolerance)
       {

@@ -126,7 +126,7 @@ inline RealTMatrix<m,n> operator* (const RealTMatrix<m,k> & A, const RealTMatrix
   }
 
   return C;
-};
+}
 
 
 /* -------------------------------------------------------------------------- */

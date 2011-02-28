@@ -389,3 +389,8 @@ inline void Math::vector_3d(const Real * x, const Real * y, Real * res) {
 inline bool Math::are_float_equal(const Real x, const Real y){
   return (fabs( x - y) < tolerance);
 }
+
+/* -------------------------------------------------------------------------- */
+inline bool Math::isnan(Real x) {
+  return ::isnan(x);
+}

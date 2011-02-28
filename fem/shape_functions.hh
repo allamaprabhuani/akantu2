@@ -80,7 +80,7 @@ public:
 
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const{};
+  //  virtual void printself(std::ostream & stream, int indent = 0) const {};
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -104,11 +104,11 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const ShapeFunctions & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const ShapeFunctions & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
 
 
 __END_AKANTU__

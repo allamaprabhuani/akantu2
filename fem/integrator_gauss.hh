@@ -112,11 +112,11 @@ private:
 #include "integrator_gauss_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const IntegratorGauss & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const IntegratorGauss & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
 
 __END_AKANTU__
 

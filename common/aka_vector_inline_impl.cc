@@ -101,14 +101,14 @@ template<typename T>
 template<typename Ret>
 inline Vector<T>::iterator<Ret> Vector<T>::begin() {
   return iterator<Ret>(values, nb_component);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 template<typename Ret>
 inline Vector<T>::iterator<Ret> Vector<T>::end() {
   return iterator<Ret>(values + nb_component * size, nb_component);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions VectorBase                                                */
@@ -129,7 +129,7 @@ inline void VectorBase::empty() {
 template<typename T>
 template<typename Ret>
 Vector<T>::iterator<Ret>::iterator() : offset(0), ret(NULL) {
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -138,7 +138,7 @@ Vector<T>::iterator<Ret>::iterator(pointer_type data, UInt offset) : offset(offs
   AKANTU_DEBUG_ASSERT(offset == ret->size(),
 		      "The iterator is not compatible with the type "
 		      << typeid(returned_type).name());
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -155,7 +155,7 @@ template<typename T>
 template<typename Ret>
 Vector<T>::iterator<Ret>::~iterator() {
   delete ret;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

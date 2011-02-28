@@ -63,15 +63,7 @@ void FEMTemplate<Integ,Shape>::gradientOnQuadraturePoints(const Vector<Real> &u,
 							  GhostType ghost_type,
 							  const Vector<UInt> * filter_elements){
   AKANTU_DEBUG_IN();
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
 
-  for(it = type_list.begin();
-      it != type_list.end();
-      ++it) {
-    
-    ElementType type = *it;
-    
 #define COMPUTE_GRADIENT(type)						\
     if (element_dimension == ElementClass<type>::getSpatialDimension()) \
       shape_functions.template gradientOnControlPoints<type>(u,		\
@@ -81,7 +73,7 @@ void FEMTemplate<Integ,Shape>::gradientOnQuadraturePoints(const Vector<Real> &u,
 							     filter_elements);
     AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_GRADIENT)
 #undef COMPUTE_GRADIENT
-  }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -147,16 +139,19 @@ Real FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 				       GhostType ghost_type,
 				       const Vector<UInt> * filter_elements) const{
   AKANTU_DEBUG_IN();
+
+  Real integral = 0.;
+
 #define INTEGRATE(type)						\
-  return integrator.template integrate<type>(f,			\
-					     ghost_type,	\
-					     filter_elements); 
+  integral = integrator.template integrate<type>(f,			\
+						 ghost_type,		\
+						 filter_elements); 
   
   AKANTU_BOOST_ELEMENT_SWITCH(INTEGRATE)
 #undef INTEGRATE
-    
-  return 0;
+  
   AKANTU_DEBUG_OUT();
+  return integral;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -170,11 +165,11 @@ void FEMTemplate<Integ,Shape>::interpolateOnQuadraturePoints(const Vector<Real> 
 
   AKANTU_DEBUG_IN();
 #define INTERPOLATE(type)						\
-  return shape_functions.template interpolateOnControlPoints<type>(u,	\
-								   uq,	\
-								   nb_degree_of_freedom, \
-								   ghost_type, \
-								   filter_elements); 
+  shape_functions.template interpolateOnControlPoints<type>(u,		\
+							    uq,		\
+							    nb_degree_of_freedom, \
+							    ghost_type, \
+							    filter_elements); 
   
   AKANTU_BOOST_ELEMENT_SWITCH(INTERPOLATE)
 #undef INTERPOLATE

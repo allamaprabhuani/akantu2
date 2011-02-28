@@ -52,17 +52,17 @@ public:
 public:
 
   template <ElementType type>  
-  inline void precomputeJacobiansOnQuadraturePoints(const UInt dimension,
-						    GhostType ghost_type){};
+  inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused)) const UInt dimension,
+						    __attribute__ ((unused)) GhostType ghost_type) { }
   
-  void integrateOnElement(const Vector<Real> & f,
-			  Real * intf,
-			  UInt nb_degre_of_freedom,
-			  const Element & elem,
-			  GhostType ghost_type) const {};
+  void integrateOnElement(__attribute__ ((unused)) const Vector<Real> & f,
+			  __attribute__ ((unused)) Real * intf,
+			  __attribute__ ((unused)) UInt nb_degre_of_freedom,
+			  __attribute__ ((unused)) const Element & elem,
+			  __attribute__ ((unused)) GhostType ghost_type) const {};
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const{};
+  //  virtual void printself(std::ostream & stream, int indent = 0) const{};
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -96,11 +96,11 @@ protected:
 //#include "integrator_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const Integrator & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const Integrator & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
 
 
 __END_AKANTU__

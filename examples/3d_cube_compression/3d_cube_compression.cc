@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   akantu::UInt paraview_type = TETRA1;
 #endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 3;
-  akantu::UInt max_steps = 5000;
+  akantu::UInt max_steps = 100;
   akantu::Real time_step = 1e-6;
 
   akantu::initialize(&argc, &argv);
@@ -195,6 +195,8 @@ int main(int argc, char *argv[])
   }
 
   if(prank == 0) std::cout << "Time : " << psize << " " << total_time / max_steps << " " << total_time << std::endl;
+
+  akantu::finalize();
 
   return EXIT_SUCCESS;
 }

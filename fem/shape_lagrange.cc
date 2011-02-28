@@ -51,16 +51,13 @@ void ShapeLagrange::precomputeShapesOnControlPoints(GhostType ghost_type) {
   
   UInt size_of_shapes    = ElementClass<type>::getShapeSize();
   
-  UInt * elem_val;
   UInt nb_element;
   std::string ghost = "";
-  
+
   if(ghost_type == _not_ghost) {
-    elem_val   = mesh->getConnectivity(type).values;
     nb_element = mesh->getConnectivity(type).getSize();
   } else {
     ghost = "ghost_";
-    elem_val   = mesh->getGhostConnectivity(type).values;
     nb_element = mesh->getGhostConnectivity(type).getSize();
   }
   
