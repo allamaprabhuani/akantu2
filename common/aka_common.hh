@@ -273,6 +273,7 @@ enum SynchronizerOperation {
 
 
 
+
 /* -------------------------------------------------------------------------- */
 //! standard output stream operator for ElementType
 inline std::ostream & operator <<(std::ostream & stream, ElementType type)
