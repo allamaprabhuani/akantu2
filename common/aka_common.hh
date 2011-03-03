@@ -123,8 +123,8 @@ typedef UInt Surface;
   macro(type)
 
 #define AKANTU_BOOST_ELEMENT_LIST(macro)				\
-  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,AKANTU_ELEMENT_TYPE) 
-  
+  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,AKANTU_ELEMENT_TYPE)
+
 /* -------------------------------------------------------------------------- */
 
 /// @boost sequence of element to loop on in global tasks

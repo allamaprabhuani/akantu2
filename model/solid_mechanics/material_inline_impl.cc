@@ -48,13 +48,12 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
   UInt size = getTangentStiffnessVoigtSize(dim) * nb_nodes_per_element * dim;
   memset(Bvoigt, 0, size * sizeof(Real));
 
-  Real * Btmp = B;
-
   for (UInt i = 0; i < dim; ++i) {
-    Real * Bvoigt_tmp = Bvoigt + i;
+    Real * Bvoigt_tmp = Bvoigt + i * (dim * nb_nodes_per_element + 1);
+    Real * Btmp = B + i;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       *Bvoigt_tmp = *Btmp;
-      Btmp++;
+      Btmp+= dim;
       Bvoigt_tmp += dim;
     }
   }
@@ -63,8 +62,8 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
     ///in 2D, fill the @f$ [\frac{\partial N_i}{\partial x}, \frac{\partial N_i}{\partial y}]@f$ row
     Real * Bvoigt_tmp = Bvoigt + dim * nb_nodes_per_element * 2;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Bvoigt_tmp[0] = B[n];
-      Bvoigt_tmp[1] = B[n + nb_nodes_per_element];
+      Bvoigt_tmp[0] = B[n * dim + 0];
+      Bvoigt_tmp[1] = B[n * dim + 1];
       Bvoigt_tmp += dim;
     }
   }
@@ -73,9 +72,9 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
   if(dim == 3) {
     UInt Bvoigt_wcol = dim * nb_nodes_per_element;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Real dndx = B[n];
-      Real dndy = B[n + nb_nodes_per_element * 1];
-      Real dndz = B[n + nb_nodes_per_element * 2];
+      Real dndx = B[n * dim + 0];
+      Real dndy = B[n * dim + 1];
+      Real dndz = B[n * dim + 2];
 
       UInt Bni_off = n * dim;
 

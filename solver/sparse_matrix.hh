@@ -57,6 +57,8 @@ public:
 	       const SparseMatrixID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
 
+  SparseMatrix(const SparseMatrix & matrix);
+
   virtual ~SparseMatrix();
 
   /* ------------------------------------------------------------------------ */
@@ -75,7 +77,8 @@ public:
 
   /// assemble a local matrix in the sparse one
   inline void addToMatrix(Real * local_matrix,
-			  const Element & element);
+			  const Element & element,
+			  UInt nb_nodes_per_element);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -83,12 +86,20 @@ public:
   /// fill the profil of the matrix
   void buildProfile();
 
+  /// modify the matrix to "remove" the blocked dof
+  void applyBoundary(const Vector<bool> & boundary);
+
+  /// modify the matrix to "remove" the blocked dof
+  void removeBoundary(const Vector<bool> & boundary);
+
+  /// restore the profile that was before removing the boundaries
+  void restoreProfile();
+
   /// save the profil in a file using the MatrixMarket file format
   void saveProfile(const std::string & filename);
 
   /// save the matrix in a file using the MatrixMarket file format
   void saveMatrix(const std::string & filename);
-
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -141,6 +152,16 @@ private:
 
   /// values : A[k] = Matrix[irn[k]][jcn[k]]
   Vector<Real> a;
+
+
+  /// saved row indexes
+  Vector<Int> * irn_save;
+
+  /// saved column indexes
+  Vector<Int> * jcn_save;
+
+  /// saved size
+  UInt size_save;
 
   /// information to know where to assemble an element in a global sparse matrix
   ByElementTypeUInt element_to_sparse_profile;

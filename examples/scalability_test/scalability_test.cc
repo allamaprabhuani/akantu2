@@ -59,6 +59,13 @@ int main(int argc, char *argv[])
   /* -------------------------------------------------------------------------- */
 
   UInt nex = 100, ney = 100 * psize;
+  if(argc == 3) {
+    nex = atoi(argv[1]);
+    ney = atoi(argv[2]);
+  } else if (argc != 1) {
+    std::cout << "Usage : " << argv[0] << " [nb_x (default 100) nb_y (default 100 * nb proc)]" << std::endl;
+  }
+
   Real height = 1., width = 1. * psize;
 
   /* ------------------------------------------------------------------------ */

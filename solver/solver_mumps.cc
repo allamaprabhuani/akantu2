@@ -104,7 +104,7 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   AKANTU_DEBUG_IN();
 
   UInt size = matrix.getSize();
-  UInt nb_degre_of_freedom = matrix.getNbDegreOfFreedom();
+  //  UInt nb_degre_of_freedom = matrix.getNbDegreOfFreedom();
 
   //  std::stringstream sstr; sstr << id << ":sparse_matrix";
   //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
@@ -122,28 +122,48 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 #endif
 
   if(communicator->whoAmI() == 0) {
-    rhs = &(alloc<Real>(sstr_rhs.str(), size * nb_degre_of_freedom, 1, REAL_INIT_VALUE));
+    rhs = &(alloc<Real>(sstr_rhs.str(), size, 1, REAL_INIT_VALUE));
   } else {
     rhs = NULL;
   }
 
-  icntl(1) = 2;
-  icntl(2) = 2;
-  icntl(3) = 2;
-
-  icntl(4) = 1;
-  if (debug::getDebugLevel() >= 10)
-    icntl(4) = 4;
-  else if (debug::getDebugLevel() >= 5)
-    icntl(4) = 3;
-  else if (debug::getDebugLevel() >= 3)
-    icntl(4) = 2;
 
   mumps_data.job = _smj_initialize; //initialize
   dmumps_c(&mumps_data);
 
-  mumps_data.n   = size * nb_degre_of_freedom;
+  /// No outputs
+  icntl(1) = -1;
+  icntl(2) = -1;
+  icntl(3) = -1;
+  icntl(4) = 0;
+
+  if(AKANTU_DEBUG_TEST(dblTrace)) {
+    icntl(1) = 2;
+    icntl(2) = 2;
+    icntl(3) = 2;
+    icntl(4) = 2;
+  }
+
+  if (AKANTU_DEBUG_TEST(dblDump)) icntl(4) = 4;
+  // else if (debug::getDebugLevel() >= dblAccessory)
+  //   icntl(4) = 0;
+  // else if (debug::getDebugLevel() >= dblSecondary)
+  //   icntl(4) = 0;
+  // else if (debug::getDebugLevel() >= dblCritical)
+  //   icntl(4) = 0;
+
+  mumps_data.n   = size;
   strcpy(mumps_data.write_problem, "mumps_matrix.mtx");
+
+  mumps_data.nz  = 0;
+  mumps_data.irn = NULL;
+  mumps_data.jcn = NULL;
+  mumps_data.a   = NULL;
+  mumps_data.nz_loc  = 0;
+  mumps_data.irn_loc = NULL;
+  mumps_data.jcn_loc = NULL;
+  mumps_data.a_loc   = NULL;
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -152,7 +172,7 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 SolverMumps::~SolverMumps() {
   AKANTU_DEBUG_IN();
 
-  delete matrix;
+  //  delete matrix;
 
   mumps_data.job = _smj_destroy; // destroy
   dmumps_c(&mumps_data);
@@ -230,7 +250,6 @@ void SolverMumps::initialize() {
   mumps_data.job = _smj_analyze; //analyse
   dmumps_c(&mumps_data);
 
-
 // #ifdef AKANTU_USE_MPI
 // #ifdef AKANTU_USE_PTSCOTCH
 //   delete [] mumps_data.irn;
@@ -241,11 +260,12 @@ void SolverMumps::initialize() {
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
 void SolverMumps::setRHS(Vector<Real> & rhs) {
-  AKANTU_DEBUG_ASSERT(rhs.getSize() == this->rhs->getSize(),
-		      "Size of rhs and this->rhs do not match.");
+  AKANTU_DEBUG_ASSERT(rhs.getSize()*rhs.getNbComponent() == this->rhs->getSize(),
+		      "Size of rhs (" << rhs.getSize()*rhs.getNbComponent() << ") and this->rhs (" << this->rhs->getSize() << ") do not match.");
 
-  memcpy(this->rhs->values, rhs.values, rhs.getSize() * sizeof(Real));
+  memcpy(this->rhs->values, rhs.values, this->rhs->getSize() * sizeof(Real));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -267,6 +287,9 @@ void SolverMumps::solve() {
 
   mumps_data.job = _smj_factorize_solve; //solve
   dmumps_c(&mumps_data);
+
+  AKANTU_DEBUG_ASSERT(info(1) != -10, "Singular matrix");
+  AKANTU_DEBUG_ASSERT(info(1) == 0, "Error in mumps suring solve process, check mumps user guide INFO(1) =" << info(0));
 
   AKANTU_DEBUG_OUT();
 }

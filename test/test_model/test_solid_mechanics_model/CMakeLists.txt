@@ -71,23 +71,18 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
   add_dependencies(test_solid_mechanics_model_segment_parallel
     test_solid_mechanics_model_segment_mesh)
 
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_solid_mechanics_model_bar_traction2d_parallel.sh
-    ${CMAKE_CURRENT_BINARY_DIR}/test_solid_mechanics_model_bar_traction2d_parallel.sh
-    COPYONLY
-    )
-
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_solid_mechanics_model_segment_parallel.sh
-    ${CMAKE_CURRENT_BINARY_DIR}/test_solid_mechanics_model_segment_parallel.sh
-    COPYONLY
-    )
+  file(COPY test_solid_mechanics_model_bar_traction2d_parallel.sh DESTINATION .)
+  file(COPY test_solid_mechanics_model_segment_parallel.sh DESTINATION .)
 endif()
 
-
 if(AKANTU_MUMPS_ON)
-  register_test(test_solid_mechanics_model_implicit_traction test_solid_mechanics_model_implicit_traction.cc)
-  add_dependencies(test_solid_mechanics_model_implicit_traction test_bar_traction_2d_mesh1)
+  add_mesh(test_implicit_mesh1 square_implicit.geo 2 1 OUTPUT square_implicit1.msh)
+  register_test(test_solid_mechanics_model_implicit_2d test_solid_mechanics_model_implicit_2d.cc)
+  add_dependencies(test_solid_mechanics_model_implicit_2d test_implicit_mesh1)
+
+  add_mesh(test_solid_mechanics_model_segment_mesh1 segment.geo 1 1 OUTPUT segment1.msh)
+  register_test(test_solid_mechanics_model_implicit_1d test_solid_mechanics_model_implicit_1d.cc)
+  add_dependencies(test_solid_mechanics_model_implicit_1d test_solid_mechanics_model_segment_mesh1)
 endif()
 
 #===============================================================================
@@ -103,10 +98,6 @@ register_test(test_solid_mechanics_model_cube3d_tetra10
 add_dependencies(test_solid_mechanics_model_cube3d_tetra10 test_cube3d_mesh2)
 
 #===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
+file(COPY material.dat DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

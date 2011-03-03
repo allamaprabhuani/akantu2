@@ -39,6 +39,9 @@
 
 __BEGIN_AKANTU__
 
+class Matrix;
+
+
 /// class that afford to store vectors in static memory
 class VectorBase {
   /* ------------------------------------------------------------------------ */
@@ -159,6 +162,9 @@ public:
   template<typename Ret> inline iterator<Ret> begin();
   template<typename Ret> inline iterator<Ret> end();
 
+  inline iterator<Matrix> begin(UInt m, UInt n);
+  inline iterator<Matrix> end(UInt m, UInt n);
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -197,6 +203,8 @@ public:
   /// -1 if not found
   Int find(const_reference elem) const;
 
+  /// set a vvector to 0
+  inline void clear() { memset(values, 0, size*nb_component*sizeof(T)); };
 
 protected:
   /// perform the allocation for the constructors

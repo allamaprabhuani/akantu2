@@ -184,7 +184,8 @@ MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_t
     _msh_triangle_3,    // _triangle_3
     _msh_triangle_6,    // _triangle_6
     _msh_tetrahedron_4, // _tetrahedron_4
-    _msh_tetrahedron_10 // _tetrahedron_10
+    _msh_tetrahedron_10,// _tetrahedron_10
+    _msh_quadrangle_1   // _quadrangle_4
   };
 
 

@@ -110,6 +110,7 @@ inline Vector<T>::iterator<Ret> Vector<T>::end() {
   return iterator<Ret>(values + nb_component * size, nb_component);
 }
 
+
 /* -------------------------------------------------------------------------- */
 /* Inline Functions VectorBase                                                */
 /* -------------------------------------------------------------------------- */
@@ -219,10 +220,7 @@ public:
     }
   };
 
-
   ~iterator() { delete ret; };
-
-
 
   inline iterator & operator=(const iterator & it) {
     if(this != &it) {
@@ -238,9 +236,22 @@ public:
   inline iterator & operator+=(const UInt n) { ret->values += n*offset; return *this; };
 
   inline bool operator==(const iterator & other) { return ret->values == other.ret->values; };
-  inline bool operator!=(const iterator & other) { return ret->values == other.ret->values; };
+  inline bool operator!=(const iterator & other) { return ret->values != other.ret->values; };
 
 private:
     Matrix * ret;
     UInt offset;
 };
+
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::iterator<Matrix> Vector<Real>::begin(UInt m, UInt n) {
+  return iterator<Matrix>(values, nb_component, m, n);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::iterator<Matrix> Vector<Real>::end(UInt m, UInt n) {
+  return iterator<Matrix>(values + nb_component * size, nb_component, m, n);
+}

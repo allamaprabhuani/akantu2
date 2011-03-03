@@ -28,6 +28,14 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_vector.hh"
 
+#ifdef AKANTU_USE_BLAS
+# ifndef AKANTU_USE_CBLAS_MKL
+#  include <cblas.h>
+# else // AKANTU_USE_CBLAS_MKL
+#  include <mkl_cblas.h>
+# endif //AKANTU_USE_CBLAS_MKL
+#endif //AKANTU_USE_BLAS
+
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_AKA_TYPES_HH__
@@ -111,6 +119,7 @@ public:
   RealTMatrix(RealTMatrix & mat) : TMatrix<Real, m, n>(mat) {};
 };
 
+
 template <UInt m, UInt n, UInt k>
 inline RealTMatrix<m,n> operator* (const RealTMatrix<m,k> & A, const RealTMatrix<k,n> & B) {
   RealTMatrix<m,n> C;
@@ -124,7 +133,6 @@ inline RealTMatrix<m,n> operator* (const RealTMatrix<m,k> & A, const RealTMatrix
       }
     }
   }
-
   return C;
 }
 
@@ -161,6 +169,8 @@ inline std::ostream & operator<<(std::ostream & stream, const TMatrix<T,n,m> & _
 /* -------------------------------------------------------------------------- */
 class Matrix {
 public:
+  Matrix() : m(0), n(0), values(NULL), wrapped(true) {};
+
   Matrix(UInt m, UInt n, Real def = 0) : m(m), n(n), values(new Real[n*m]), wrapped(false) {
     std::fill_n(values, n*m, def);
   };
@@ -185,11 +195,58 @@ public:
 
   inline Matrix & operator=(const Matrix & mat) {
     if(this != &mat) {
-      if(values == NULL) { this->values = new Real[n * m]; this->wrapped = false; }
-      memcpy(this->values, &mat[0], size()*sizeof(Real));
+      if(values != NULL) {
+	memcpy(this->values, mat.values, m*n*sizeof(Real));
+      } else {
+	this->m = mat.m;
+	this->n = mat.n;
+
+	this->values = mat.values;
+	const_cast<Matrix &>(mat).wrapped = true;
+	this->wrapped = false;
+      }
     }
     return *this;
   };
+
+  inline Matrix operator* (const Matrix & B) {
+    // UInt m = this->m, n = B.n, k = this->n;
+    // Matrix C(m,n);
+    // C.clear();
+
+    // UInt A_i = 0, C_i = 0;
+    // for (UInt i = 0; i < m; ++i, A_i += k, C_i += n)
+    //   for (UInt j = 0; j < n; ++j)
+    // 	for (UInt l = 0; l < k; ++l)
+    // 	  C[C_i + j] += (*this)[A_i + l] * B[l * n + j];
+    Matrix C(m,n);
+    C.mul(*this, B);
+
+    return C;
+  };
+
+  inline void mul(const Matrix & A, const Matrix & B) {
+    UInt m = A.m, n = B.n, k = A.n;
+#ifdef AKANTU_USE_BLAS
+  ///  C := alpha*op(A)*op(B) + beta*C
+  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+	      m, n, k,
+	      1,
+	      A.values, k,
+	      B.values, n,
+	      0,
+	      this->values, n);
+#else
+    this->clear();
+
+    UInt A_i = 0, C_i = 0;
+    for (UInt i = 0; i < m; ++i, A_i += k, C_i += n)
+      for (UInt j = 0; j < n; ++j)
+	for (UInt l = 0; l < k; ++l)
+	  (*this)[C_i + j] += A[A_i + l] * B[l * n + j];
+#endif
+  };
+
 
   inline void clear() { memset(values, 0, m * n * sizeof(Real)); };
 
@@ -210,7 +267,6 @@ public:
 
   // Real* &data() { return values; };
   // bool &is_wrapped() { return wrapped; };
-
   friend class Vector<Real>;
 
 protected:
@@ -219,6 +275,15 @@ protected:
   Real* values;
   bool wrapped;
 };
+
+
+
+inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
+
 
 __END_AKANTU__
 

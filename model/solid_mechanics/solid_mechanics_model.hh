@@ -126,7 +126,14 @@ public:
   void assembleStiffnessMatrix();
 
   /// solve Ku = f
-  void solve(Vector<Real> & solution);
+  //  void solve(Vector<Real> & solution);
+  void solve();
+
+  /// test the convergence (norm of increment)
+  bool testConvergenceIncrement(Real tolerance);
+
+  /// test the convergence (norm of residual)
+  bool testConvergenceResidual(Real tolerance);
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */

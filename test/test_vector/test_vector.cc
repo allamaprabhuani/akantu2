@@ -82,13 +82,21 @@ int main(int argc, char *argv[]) {
     std::cout << *it << std::endl;
   }
 
-  akantu::RealTMatrix<2,3> m1(1.);
-  akantu::RealTMatrix<3,5> m2(2.);
-  akantu::RealTMatrix<2,5> m3;
-
+  akantu::Matrix m1(2, 3, 1.);
+  akantu::Matrix m2(3, 5, 2.);
+  akantu::Matrix m3;
   m3 = m1 * m2;
 
   std::cout << m1 << m2 << m3;
+
+
+  RealVector::iterator<akantu::Matrix> itm;
+  itm = mat_vect.begin(2, 2);
+  RealVector::iterator<akantu::Matrix> endm = mat_vect.end  (2, 2);
+
+  for (; itm != endm; ++itm) {
+    std::cout << *itm << std::endl;
+  }
 
   return EXIT_SUCCESS;
 }

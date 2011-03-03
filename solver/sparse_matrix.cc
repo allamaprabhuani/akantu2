@@ -50,7 +50,7 @@ SparseMatrix::SparseMatrix(const Mesh & mesh,
   irn_jcn_to_k(NULL) {
   AKANTU_DEBUG_IN();
 
-  size = mesh.getNbGlobalNodes();
+  size = mesh.getNbGlobalNodes()*nb_degre_of_freedom;
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     this->element_to_sparse_profile[t] = NULL;
@@ -58,6 +58,9 @@ SparseMatrix::SparseMatrix(const Mesh & mesh,
 
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   nb_proc = comm->getNbProc();
+
+  irn_save = NULL;
+  jcn_save = NULL;
 
   AKANTU_DEBUG_OUT();
 }
@@ -71,7 +74,7 @@ SparseMatrix::SparseMatrix(UInt size,
   Memory(memory_id), id(id),
   sparse_matrix_type(sparse_matrix_type),
   nb_degre_of_freedom(nb_degre_of_freedom),
-  mesh(NULL), size(size),
+  mesh(NULL), size(size*nb_degre_of_freedom),
   nb_non_zero(0),
   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
   irn_jcn_to_k(NULL) {
@@ -84,13 +87,37 @@ SparseMatrix::SparseMatrix(UInt size,
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   nb_proc = comm->getNbProc();
 
+  irn_save = NULL;
+  jcn_save = NULL;
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
+SparseMatrix::SparseMatrix(const SparseMatrix & matrix) :
+  Memory(matrix.getMemoryID()), sparse_matrix_type(matrix.getSparseMatrixType()),
+  nb_degre_of_freedom(matrix.getNbDegreOfFreedom()),
+  mesh(NULL), size(matrix.getSize()), nb_non_zero(matrix.getNbNonZero()),
+  irn(matrix.getIRN(), true), jcn(matrix.getJCN(), true), a(matrix.getA(), true),
+  irn_jcn_to_k(NULL) {
+  AKANTU_DEBUG_IN();
+
+  irn_save = NULL;
+  jcn_save = NULL;
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
 SparseMatrix::~SparseMatrix() {
   AKANTU_DEBUG_IN();
+
   if (irn_jcn_to_k) delete irn_jcn_to_k;
+
+  if(irn_save) delete irn_save;
+  if(jcn_save) delete jcn_save;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -184,6 +211,86 @@ void SparseMatrix::buildProfile() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SparseMatrix::applyBoundary(const Vector<bool> & boundary) {
+  AKANTU_DEBUG_IN();
+
+  Int * irn_val = irn.values;
+  Int * jcn_val = jcn.values;
+  Real * a_val   = a.values;
+
+  for (UInt i = 0; i < nb_non_zero; ++i) {
+    if(boundary.values[*irn_val - 1] || boundary.values[*jcn_val - 1]) {
+      *a_val *= (*irn_val == *jcn_val);
+    }
+    irn_val++; jcn_val++; a_val++;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SparseMatrix::removeBoundary(const Vector<bool> & boundary) {
+  AKANTU_DEBUG_IN();
+
+  if(irn_save) delete irn_save;
+  if(jcn_save) delete jcn_save;
+
+  irn_save = new Vector<Int>(irn, true);
+  jcn_save = new Vector<Int>(jcn, true);
+
+  UInt n = boundary.getSize()*boundary.getNbComponent();
+
+  UInt * perm = new UInt[n];
+
+  size_save = size;
+  size = 0;
+  for (UInt i = 0; i < n; ++i) {
+    if(!boundary.values[i]) {
+      perm[i] = size;
+      std::cout <<  "perm["<< i <<"] = " << size << std::endl;
+      size++;
+    }
+  }
+
+  for (UInt i = 0; i < nb_non_zero;) {
+    if(boundary.values[irn.at(i) - 1] || boundary.values[jcn.at(i) - 1]) {
+      irn.erase(i);
+      jcn.erase(i);
+      a.erase(i);
+      nb_non_zero--;
+    } else {
+      irn.values[i] = perm[irn.values[i] - 1] + 1;
+      jcn.values[i] = perm[jcn.values[i] - 1] + 1;
+      i++;
+    }
+  }
+
+  delete [] perm;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SparseMatrix::restoreProfile() {
+  AKANTU_DEBUG_IN();
+
+  irn.resize(irn_save->getSize());
+  jcn.resize(jcn_save->getSize());
+
+  nb_non_zero = irn.getSize();
+  a.resize(nb_non_zero);
+  size = size_save;
+
+  memcpy(irn.values, irn_save->values, irn.getSize()*sizeof(Int));
+  memcpy(jcn.values, jcn_save->values, jcn.getSize()*sizeof(Int));
+
+  delete irn_save; irn_save = NULL;
+  delete jcn_save; jcn_save = NULL;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SparseMatrix::saveProfile(const std::string & filename) {
   AKANTU_DEBUG_IN();
 
@@ -196,7 +303,7 @@ void SparseMatrix::saveProfile(const std::string & filename) {
   else outfile << " general";
   outfile << std::endl;
 
-  UInt m = size * nb_degre_of_freedom;
+  UInt m = size;
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
@@ -222,7 +329,7 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
   else outfile << " general";
   outfile << std::endl;
 
-  UInt m = size * nb_degre_of_freedom;
+  UInt m = size;
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
@@ -238,7 +345,8 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
 Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT((vect.getSize() == mat.getSize()) && (vect.getNbComponent() == mat.getNbDegreOfFreedom()),
+  AKANTU_DEBUG_ASSERT((vect.getSize()*vect.getNbComponent() == mat.getSize()) &&
+		      (vect.getNbComponent() == mat.getNbDegreOfFreedom()),
 		      "The size of the matrix and the vector do not match");
 
   UInt nb_non_zero = mat.getNbNonZero();
@@ -264,6 +372,5 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
 
   return vect;
 }
-
 
 __END_AKANTU__

@@ -24,20 +24,20 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifdef AKANTU_USE_CBLAS
-# ifndef AKANTU_USE_CBLAS_MKL
+#ifdef AKANTU_USE_BLAS
+# ifndef AKANTU_USE_BLAS_MKL
 #  include <cblas.h>
-# else // AKANTU_USE_CBLAS_MKL
+# else // AKANTU_USE_BLAS_MKL
 #  include <mkl_cblas.h>
-# endif //AKANTU_USE_CBLAS_MKL
-#endif //AKANTU_USE_CBLAS
+# endif //AKANTU_USE_BLAS_MKL
+#endif //AKANTU_USE_BLAS
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt m, UInt n,
 				const Real * A,
 				const Real * x,
 				Real * y) {
-#ifdef AKANTU_USE_CBLAS
+#ifdef AKANTU_USE_BLAS
   /// y = alpha*op(A)*x + beta*y
   cblas_dgemv(CblasRowMajor, CblasNoTrans,
 	      m, n, 1, A, n, x, 1, 0, y, 1);
@@ -57,7 +57,7 @@ inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
 				const Real * A,
 				const Real * B,
 				Real * C) {
-#ifdef AKANTU_USE_CBLAS
+#ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
 	      m, n, k,
@@ -85,7 +85,7 @@ inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
 				 const Real * A,
 				 const Real * B,
 				 Real * C) {
-#ifdef AKANTU_USE_CBLAS
+#ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
 	      m, n, k,
@@ -113,7 +113,7 @@ inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 				const Real * A,
 				const Real * B,
 				Real * C) {
-#ifdef AKANTU_USE_CBLAS
+#ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
 	      m, n, k,
@@ -142,7 +142,7 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 				  const Real * A,
 				  const Real * B,
 				  Real * C) {
-#ifdef AKANTU_USE_CBLAS
+#ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasTrans,
 	      m, n, k,

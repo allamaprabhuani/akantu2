@@ -89,21 +89,24 @@ inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
 
 /* -------------------------------------------------------------------------- */
 inline void SparseMatrix::addToMatrix(Real * local_matrix,
-				      const Element & element) {
+				      const Element & element,
+				      UInt nb_nodes_per_element) {
   AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
 		      "No profile stored for this kind of element call first buildProfile()");
 
   UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  //  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
   Real * mat_val = local_matrix;
   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
   Real * a_val = a.values;
 
-  for (UInt j = 0; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
-    for (UInt i = 0; i < nb_nodes_per_element * nb_degre_of_freedom; ++i) {
-      UInt k = *(elem_to_sparse_val++);
-      a_val[k] += *(mat_val++);
+  for (UInt i = 0; i < nb_nodes_per_element * nb_degre_of_freedom; ++i) {
+    UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
+    UInt elem_to_sparse_i = i * nb_nodes_per_element * nb_degre_of_freedom;
+    for (UInt j = j_start; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
+      UInt k = elem_to_sparse_val[elem_to_sparse_i + j];
+      a_val[k] += mat_val[elem_to_sparse_i + j];
     }
   }
 }

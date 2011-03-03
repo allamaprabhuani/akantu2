@@ -179,7 +179,7 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
     else el = e;
     elem.element = el;
 
-    matrix.addToMatrix(elementary_mat_val, elem);
+    matrix.addToMatrix(elementary_mat_val, elem, nb_nodes_per_element);
 
     elementary_mat_val += offset_elementary_mat;
   }

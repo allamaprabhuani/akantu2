@@ -95,12 +95,13 @@ add_optional_package(Mumps "Add Mumps support in akantu" OFF)
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
 add_optional_package(EPSN "Use EPSN streering environment" OFF)
 
-#===============================================================================
-# Options handling
-#===============================================================================
+# Debug
+if(NOT AKANTU_DEBUG)
+  add_definitions(-DAKANTU_NDEBUG)
+endif(NOT AKANTU_DEBUG)
 
 #===========================================================================
-# Documentation
+# Dependencies
 #===========================================================================
 find_package(Boost REQUIRED)
 
@@ -108,11 +109,8 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-
-# Debug
-if(NOT AKANTU_DEBUG)
-  add_definitions(-DAKANTU_NDEBUG)
-endif(NOT AKANTU_DEBUG)
+#check_for_isnan(AKANTU_ISNAN)
+#message("ISNAN = "${AKANTU_ISNAN})
 
 #===============================================================================
 # Library

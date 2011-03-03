@@ -70,13 +70,14 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
   UInt n = (dim * (dim - 1) / 2 + dim);
 
   Real Miiii = kpa + 4./3. * mu;
-  Real Miijj = lambda; // Kpa - 2./3. * mu;
-  Real Mijij = 1./2. * mu; // to check
+  Real Miijj = kpa - 2./3. * mu;
+  Real Mijij = mu;
 
   tangent[0 * n + 0] = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the template
   if(dim >= 2) {
+    tangent[1 * n + 1] = Miiii;
     tangent[0 * n + 1] = Miijj;
     tangent[1 * n + 0] = Miijj;
 
@@ -84,6 +85,7 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
   }
 
   if(dim == 3) {
+    tangent[2 * n + 2] = Miiii;
     tangent[0 * n + 2] = Miijj;
     tangent[1 * n + 2] = Miijj;
     tangent[2 * n + 0] = Miijj;

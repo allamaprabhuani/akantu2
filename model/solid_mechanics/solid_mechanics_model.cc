@@ -215,6 +215,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     (*mat_it)->updateResidual(*current_position, _not_ghost);
+    //    (*mat_it)->updateResidual(*displacement, _not_ghost);
   }
 
   /// finalize communications
@@ -223,6 +224,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /// call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     (*mat_it)->updateResidual(*current_position, _ghost);
+    //    (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
   //  current_position;
@@ -318,11 +320,14 @@ void SolidMechanicsModel::initImplicitSolver() {
   stiffness_matrix->buildProfile();
 
 #ifdef AKANTU_USE_MUMPS
-  std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
-  solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+  // std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
+  // solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+
+  // solver->initialize();
 #else
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -331,16 +336,34 @@ void SolidMechanicsModel::initImplicitSolver() {
 void SolidMechanicsModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_IN();
 
-  initializeUpdateResidualData();
+  updateCurrentPosition();
 
   /// start synchronization
   asynchronousSynchronize(_gst_smm_for_strain);
+
+  stiffness_matrix->clear();
 
   /// call compute stiffness matrix on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     (*mat_it)->assembleStiffnessMatrix(*current_position, _not_ghost);
   }
+
+  // UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  // residual->resize(nb_nodes);
+
+  // /// copy the forces in residual for boundary conditions
+  // memcpy(residual->values, displacement->values, nb_nodes*spatial_dimension*sizeof(Real));
+
+  // *residual *= *stiffness_matrix;
+
+  // Real * residual_val = residual->values;
+  // Real * force_val = force->values;
+
+  // for (UInt n = 0; n < spatial_dimension*nb_nodes; ++n) {
+  //   *residual_val = *force_val - *residual_val;
+  //   force_val++; residual_val++;
+  // }
 
   // /// finalize communications
   // waitEndSynchronize(_gst_smm_for_strain);
@@ -355,13 +378,121 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::solve(Vector<Real> & solution) {
+void SolidMechanicsModel::solve() {
   AKANTU_DEBUG_IN();
 
-  solver->setRHS(*force);
-  solver->solve(solution);
+  AKANTU_DEBUG_INFO("Solving an implicit step.");
+
+  //  stiffness_matrix->applyBoundary(*boundary);
+  stiffness_matrix->removeBoundary(*boundary);
+  stiffness_matrix->saveMatrix("K.mtx");
+
+  UInt nb_nodes = displacement->getSize();
+  UInt nb_degre_of_freedom = displacement->getNbComponent();
+
+  Vector<Real> * tmp = new Vector<Real>(0, 1);
+  for (UInt i = 0; i < nb_degre_of_freedom * nb_nodes; ++i) {
+    if(! boundary->values[i]) {
+      tmp->push_back(residual->values[i]);
+    }
+  }
+
+#ifdef AKANTU_USE_MUMPS
+  std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
+  solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+#else
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#endif //AKANTU_USE_MUMPS
+
+  solver->initialize();
+
+  //  solver->setRHS(*residual);
+  solver->setRHS(*tmp);
+
+  if(!increment) setIncrementFlagOn();
+
+  tmp->clear();
+
+  //  solver->solve(*increment);
+  solver->solve(*tmp);
+
+  Real * increment_val     = increment->values;
+  Real * displacement_val  = displacement->values;
+  bool * boundary_val      = boundary->values;
+  Real * tmp_val           = tmp->values;
+
+  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+    if(!(*boundary_val)) {
+      *increment_val = *(tmp_val++);
+      *displacement_val += *increment_val;
+    }
+
+    displacement_val++;
+    boundary_val++;
+    increment_val++;
+  }
+
+  stiffness_matrix->restoreProfile();
+
+  delete tmp;
+  delete solver;
+  solver = NULL;
 
   AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes = displacement->getSize();
+  UInt nb_degre_of_freedom = displacement->getNbComponent();
+
+  Real norm = 0;
+  Real * increment_val     = increment->values;
+  bool * boundary_val      = boundary->values;
+
+  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+    if(!(*boundary_val)) {
+      norm += *increment_val * *increment_val;
+    }
+    boundary_val++;
+    increment_val++;
+  }
+
+  AKANTU_DEBUG_INFO("Norm of increment : " << sqrt(norm));
+
+  AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
+
+  AKANTU_DEBUG_OUT();
+  return (sqrt(norm) < tolerance);
+}
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes = residual->getSize();
+
+  Real norm = 0;
+  Real * residual_val = residual->values;
+  bool * boundary_val = boundary->values;
+
+  for (UInt n = 0; n < nb_nodes * spatial_dimension; ++n) {
+    if(!(*boundary_val)) {
+      norm += *residual_val * *residual_val;
+    }
+    boundary_val++;
+    residual_val++;
+  }
+
+  AKANTU_DEBUG_INFO("Norm of residual : " << sqrt(norm));
+
+  AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
+
+  AKANTU_DEBUG_OUT();
+  return (sqrt(norm) < tolerance);
 }
 
 

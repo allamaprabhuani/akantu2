@@ -316,16 +316,19 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
 
   Vector<Real> * strain_vect;
+  Vector<Real> * stress_vect;
   Vector<UInt> * elem_filter;
   const Vector<Real> * shapes_derivatives;
 
   if(ghost_type == _not_ghost) {
     elem_filter = element_filter[type];
     strain_vect = strain[type];
+    stress_vect = stress[type];
     shapes_derivatives = &(model->getFEM().getShapesDerivatives(type));
   } else {
     elem_filter = ghost_element_filter[type];
-    strain_vect = ghost_strain[type];
+    stress_vect = ghost_strain[type];
+    stress_vect = ghost_stress[type];
     shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(type));
   }
   UInt * elem_filter_val = elem_filter->values;
@@ -396,58 +399,6 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   model->getFEM().assembleMatrix(*int_bt_d_b, K, spatial_dimension, type, ghost_type, elem_filter);
   delete int_bt_d_b;
-
-
-    // /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
-    // computeStress(*it, ghost_type);
-
-    // /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
-    // Vector<Real> * sigma_dphi_dx =
-    //   new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
-
-    // Real * shapesd           = shapes_derivatives->values;
-    // UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
-    // Real * shapesd_val;
-    // UInt * elem_filter_val   = elem_filter->values;
-
-    // Vector<Real> * shapesd_filtered =
-    //   new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "filtered shapesd");
-    // Real * shapesd_filtered_val = shapesd_filtered->values;
-
-    // for (UInt el = 0; el < nb_element; ++el) {
-    //   shapesd_val = shapesd + elem_filter_val[el] * size_of_shapesd * nb_quadrature_points;
-    //   memcpy(shapesd_filtered_val,
-    // 	     shapesd_val,
-    // 	     size_of_shapesd * nb_quadrature_points * sizeof(Real));
-    //   shapesd_filtered_val += size_of_shapesd * nb_quadrature_points;
-    // }
-
-    // Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-    // 			 *shapesd_filtered,
-    // 			 *stress_vect,
-    // 			 *sigma_dphi_dx);
-
-    // delete shapesd_filtered;
-
-    // /**
-    //  * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
-    //  * \mathbf{\sigma}_q \overline w_q J_q@f$
-    //  */
-    // Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0, nb_nodes_per_element * spatial_dimension,
-    // 							"int_sigma_x_dphi_/_dX");
-
-    // model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-    // 			      size_of_shapes_derivatives,
-    // 			      *it, ghost_type,
-    // 			      elem_filter);
-    // delete sigma_dphi_dx;
-
-    // /// assemble
-    // model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
-    // 				   residual.getNbComponent(),
-    // 				   *it, ghost_type, elem_filter, -1);
-    // delete int_sigma_dphi_dx;
-
 
   AKANTU_DEBUG_OUT();
 }
