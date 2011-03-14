@@ -77,25 +77,25 @@ int main(int argc, char *argv[]) {
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
 
-//   UInt nb_quads = my_mesh.getNbElement(type) * FEM::getNbQuadraturePoints(type);
-//   Real eps = 25 * std::numeric_limits<Real>::epsilon();
-//   std::cout << "Epsilon : " << eps << std::endl;
-//   for (UInt q = 0; q < nb_quads; ++q) {
-//     for (UInt i = 0; i < dim; ++i) {
-//       for (UInt j = 0; j < dim; ++j) {
-// 	if(!(fabs(grad_coord_on_quad.values[q*dim*dim+ i*dim + j] - (i == j)) <= eps)) {
-// 	  std::cerr << "Error on the quad point " << q << std::endl;
-// 	  for (UInt oi = 0; oi < dim; ++oi) {
-// 	    for (UInt oj = 0; oj < dim; ++oj) {
-// 	      std::cout << fabs(grad_coord_on_quad.values[q*dim*dim + i*dim + j] - (i == j)) << " ";
-// 	    }
-// 	    std::cout << std::endl;
-// 	  }
-// 	  exit(EXIT_FAILURE);
-// 	}
-//       }
-//     }
-//   }
+  UInt nb_quads = my_mesh.getNbElement(type) * fem->getNbQuadraturePoints(type);;
+  Real eps = 25 * std::numeric_limits<Real>::epsilon();
+  std::cout << "Epsilon : " << eps << std::endl;
+  for (UInt q = 0; q < nb_quads; ++q) {
+    for (UInt i = 0; i < dim; ++i) {
+      for (UInt j = 0; j < dim; ++j) {
+	if(!(fabs(grad_coord_on_quad.values[q*dim*dim+ i*dim + j] - (i == j)) <= eps)) {
+	  std::cerr << "Error on the quad point " << q << std::endl;
+	  for (UInt oi = 0; oi < dim; ++oi) {
+	    for (UInt oj = 0; oj < dim; ++oj) {
+	      std::cout << fabs(grad_coord_on_quad.values[q*dim*dim + i*dim + j] - (i == j)) << " ";
+	    }
+	    std::cout << std::endl;
+	  }
+	  exit(EXIT_FAILURE);
+	}
+      }
+    }
+  }
 
   delete fem;
   finalize();
