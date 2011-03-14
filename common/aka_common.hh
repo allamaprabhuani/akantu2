@@ -136,6 +136,7 @@ typedef UInt Surface;
   (_tetrahedron_4)				\
   (_tetrahedron_10)				\
   (_quadrangle_4)				\
+  (_hexahedron_8)                               \
   (_point)
 
 
@@ -149,6 +150,7 @@ enum ElementType {
   _tetrahedron_4   = 5, /// first  order tetrahedron
   _tetrahedron_10  = 6, /// second order tetrahedron @remark not implemented yet
   _quadrangle_4,        /// first  order quadrangle
+  _hexahedron_8,        /// first  order hexahedron
   _point,               /// point only for some algorithm to be generic like mesh partitioning
   _max_element_type
 };
@@ -287,6 +289,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _tetrahedron_4    : stream << "tetrahedron_4" ; break;
     case _tetrahedron_10   : stream << "tetrahedron_10"; break;
     case _quadrangle_4     : stream << "quadrangle_4"  ; break;
+    case _hexahedron_8     : stream << "hexahedron_8"  ; break;
     case _not_defined      : stream << "undefined"     ; break;
     case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
     case _point            : stream << "point"; break;

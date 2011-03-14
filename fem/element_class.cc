@@ -155,7 +155,33 @@ template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[4],
 									&vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
-
+template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element    = 8;
+template<> ElementType ElementClass<_hexahedron_8>::p1_element_type  = _hexahedron_8;
+template<> UInt ElementClass<_hexahedron_8>::nb_quadrature_points    = 8;
+template<> Real ElementClass<_hexahedron_8>::quad[]                  = {-1./sqrt(3.), -1./sqrt(3.), -1./sqrt(3.),
+ 									 1./sqrt(3.), -1./sqrt(3.), -1./sqrt(3.),
+									 1./sqrt(3.),  1./sqrt(3.), -1./sqrt(3.),
+ 									-1./sqrt(3.),  1./sqrt(3.), -1./sqrt(3.),
+ 									-1./sqrt(3.), -1./sqrt(3.),  1./sqrt(3.),
+									 1./sqrt(3.), -1./sqrt(3.),  1./sqrt(3.),
+									 1./sqrt(3.),  1./sqrt(3.),  1./sqrt(3.),
+ 									-1./sqrt(3.),  1./sqrt(3.),  1./sqrt(3.)};
+template<> UInt ElementClass<_hexahedron_8>::spatial_dimension       = 3;
+template<> UInt ElementClass<_hexahedron_8>::nb_facets               = 6;
+template<> ElementType ElementClass<_hexahedron_8>::facet_type       = _quadrangle_4;
+template<> UInt ElementClass<_hexahedron_8>::vec_facet_connectivity[]= {0, 1, 2, 3,
+									0, 2, 5, 4,
+									1, 2, 6, 5,
+									2, 3, 7, 6,
+									3, 0, 4, 7,
+									4, 5, 6, 7};
+template<> UInt * ElementClass<_hexahedron_8>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+									&vec_facet_connectivity[4],
+									&vec_facet_connectivity[8],
+									&vec_facet_connectivity[12],
+									&vec_facet_connectivity[16],
+									&vec_facet_connectivity[20]};
+/* -------------------------------------------------------------------------- */
 
 
 __END_AKANTU__

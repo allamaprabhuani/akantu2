@@ -76,7 +76,7 @@ private:
     _msh_triangle_3    = 2,   // 3-node triangle.
     _msh_quadrangle_1  = 3,   // 4-node quadrangle.
     _msh_tetrahedron_4 = 4,   // 4-node tetrahedron.
-    _msh_hexaedron_1   = 5,   // 8-node hexahedron.
+    _msh_hexahedron_8  = 5,   // 8-node hexahedron.
     _msh_prism_1       = 6,   // 6-node prism.
     _msh_pyramid_1     = 7,   // 5-node pyramid.
     _msh_segment_3        = 8,   // 3-node second order line

@@ -49,16 +49,19 @@ int main(int argc, char *argv[]) {
 
   mesh_io.read("XXXX.msh", my_mesh);
 
-  FEM<IntegratorGauss,ShapeLagrange> fem(my_mesh, dim, "my_fem");
+  FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
   //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
 
   debug::setDebugLevel(dblDump);
-  fem.initShapeFunctions();
+  fem->initShapeFunctions();
 
-  std::cout << fem << std::endl;
+  std::cout << *fem << std::endl;
 
-  Vector<Real> const_val(fem.getMesh().getNbNodes(), 2, "const_val");
+  StaticMemory * st_mem = StaticMemory::getStaticMemory();
+  std::cout << *st_mem << std::endl;
+
+  Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
   Vector<Real> val_on_quad(0, 2, "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
@@ -66,7 +69,7 @@ int main(int argc, char *argv[]) {
     const_val.values[i * 2 + 1] = 2.;
   }
 
-  fem.interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
+  fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
   std::ofstream my_file("out.txt");
   my_file << const_val << std::endl;
   my_file << val_on_quad << std::endl;
@@ -74,13 +77,14 @@ int main(int argc, char *argv[]) {
   // interpolate coordinates
   Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension(), "coord_on_quad");
 
-  fem.interpolateOnQuadraturePoints(my_mesh.getNodes(),
+  fem->interpolateOnQuadraturePoints(my_mesh.getNodes(),
 				     coord_on_quad,
 				     my_mesh.getSpatialDimension(),
 				     type);
   my_file << my_mesh.getNodes() << std::endl;
   my_file << coord_on_quad << std::endl;
 
+  delete fem;
   finalize();
 
   return EXIT_SUCCESS;

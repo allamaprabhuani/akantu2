@@ -38,6 +38,7 @@
  @endverbatim
  *
  * @subsection shapes Shape functions
+ * @f[
  * \begin{array}{lll}
  * N1 = (1 - \xi) (1 - \eta) / 4
  *       & \frac{\partial N1}{\partial \xi}  = - (1 - \eta) / 4
@@ -52,7 +53,7 @@
  *       & \frac{\partial N4}{\partial \xi}  = - (1 + \eta) / 4
  *       & \frac{\partial N4}{\partial \eta} = (1 - \xi) / 4 \\
  * \end{array}
- * @f}
+ * @f]
  *
  * @subsection quad_points Position of quadrature points
  * @f{eqnarray*}{

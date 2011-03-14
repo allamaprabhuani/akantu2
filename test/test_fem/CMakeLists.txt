@@ -106,6 +106,18 @@ add_dependencies(test_gradient_triangle_6 test_fem_square_2_mesh)
 #===============================================================================
 add_mesh(test_fem_cube_1_mesh cube.geo 3 1 OUTPUT cube1.msh)
 add_mesh(test_fem_cube_2_mesh cube.geo 3 2 OUTPUT cube2.msh)
+add_mesh(test_fem_hexa_struct_1_mesh hexa_structured.geo 3 1 OUTPUT hexa_structured1.msh)
+
+#===============================================================================
+# 1st order structured
+register_test(test_integrate_hexahedron_8 test_integrate_hexahedron_8.cc)
+add_dependencies(test_integrate_hexahedron_8 test_fem_hexa_struct_1_mesh)
+#===============================================================================
+register_test(test_interpolate_hexahedron_8 test_interpolate_hexahedron_8.cc)
+add_dependencies(test_interpolate_hexahedron_8 test_fem_hexa_struct_1_mesh)
+#===============================================================================
+register_test(test_gradient_hexahedron_8 test_gradient_hexahedron_8.cc)
+add_dependencies(test_gradient_hexahedron_8 test_fem_hexa_struct_1_mesh)
 
 #===============================================================================
 # 1st order
