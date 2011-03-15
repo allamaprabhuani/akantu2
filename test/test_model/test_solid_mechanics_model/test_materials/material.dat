@@ -1,4 +1,4 @@
-material damage [
+material local_damage [
 	 name = concrete
 	 rho = 3000   # density
 	 E   = 40e9   # young's modulus

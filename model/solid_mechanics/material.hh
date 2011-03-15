@@ -231,6 +231,7 @@ inline std::ostream & operator <<(std::ostream & stream, const Material & _this)
 __END_AKANTU__
 
 #include "materials/material_elastic.hh"
+#include "materials/material_damage.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Auto loop                                                                  */

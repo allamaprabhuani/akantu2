@@ -155,6 +155,22 @@ template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[4],
 									&vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
+// template<> UInt ElementClass<_quadrangle_6>::nb_nodes_per_element    = 6;
+// template<> ElementType ElementClass<_quadrangle_6>::p1_element_type  = _quadrangle_6;
+// template<> UInt ElementClass<_quadrangle_6>::nb_quadrature_points    = 1;
+// template<> Real ElementClass<_quadrangle_4>::quad[]                  = {0, 0};
+// template<> UInt ElementClass<_quadrangle_4>::spatial_dimension       = 2;
+// template<> UInt ElementClass<_quadrangle_4>::nb_facets               = 4;
+// template<> ElementType ElementClass<_quadrangle_4>::facet_type       = _segment_2;
+// template<> UInt ElementClass<_quadrangle_4>::vec_facet_connectivity[]= {0, 1,
+// 									1, 2,
+// 									2, 3,
+//                                                                         3, 0};
+// template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+// 									&vec_facet_connectivity[2],
+// 									&vec_facet_connectivity[4],
+// 									&vec_facet_connectivity[6]};
+/* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element    = 8;
 template<> ElementType ElementClass<_hexahedron_8>::p1_element_type  = _hexahedron_8;
 template<> UInt ElementClass<_hexahedron_8>::nb_quadrature_points    = 8;
@@ -182,7 +198,6 @@ template<> UInt * ElementClass<_hexahedron_8>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[16],
 									&vec_facet_connectivity[20]};
 /* -------------------------------------------------------------------------- */
-
 
 __END_AKANTU__
 

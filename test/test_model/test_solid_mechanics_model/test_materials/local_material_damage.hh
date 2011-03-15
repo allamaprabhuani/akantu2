@@ -1,6 +1,8 @@
 /**
- * @file   material_damage.hh
+ * @file   local_material_damage.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
  * @brief  Material isotropic elastic
@@ -30,20 +32,20 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DAMAGE_HH__
-#define __AKANTU_MATERIAL_DAMAGE_HH__
+#ifndef __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__
+#define __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__
 
 __BEGIN_AKANTU__
 
-class MaterialDamage : public Material {
+class LocalMaterialDamage : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamage(SolidMechanicsModel & model, const MaterialID & id = "");
+  LocalMaterialDamage(SolidMechanicsModel & model, const MaterialID & id = "");
 
-  virtual ~MaterialDamage() {};
+  virtual ~LocalMaterialDamage() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -121,11 +123,11 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_damage_inline_impl.cc"
+#include "local_material_damage_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamage & _this)
+inline std::ostream & operator <<(std::ostream & stream, const LocalMaterialDamage & _this)
 {
   _this.printself(stream);
   return stream;
@@ -133,4 +135,4 @@ inline std::ostream & operator <<(std::ostream & stream, const MaterialDamage & 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_DAMAGE_HH__ */
+#endif /* __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__ */

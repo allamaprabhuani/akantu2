@@ -1,6 +1,7 @@
 /**
- * @file   test_solid_mechanics_model.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @file   test_local_material.cc
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 14:34:13 2010
  *
  * @brief  test of the class SolidMechanicsModel
@@ -33,7 +34,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "fem.hh"
-#include "material_damage.hh"
+#include "local_material_damage.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
@@ -76,8 +77,10 @@ int main(int argc, char *argv[])
   memset(model->getResidual().values,     0, 2*nb_nodes*sizeof(Real));
   memset(model->getMass().values,     1, nb_nodes*sizeof(Real));
 
+
   model->initModel();
-  model->readCustomMaterial<MaterialDamage>("material.dat","DAMAGE");
+  model->readCustomMaterial<LocalMaterialDamage>("material.dat","LOCAL_DAMAGE");
+
   model->initMaterials();
 
 

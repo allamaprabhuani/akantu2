@@ -1,6 +1,8 @@
 /**
- * @file   material_damage.cc
+ * @file   local_material_damage.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 11:53:52 2010
  *
  * @brief  Specialization of the material class for the damage material
@@ -26,13 +28,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_damage.hh"
+#include "local_material_damage.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & id)  :
+LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model, const MaterialID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
@@ -49,7 +51,7 @@ MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & i
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::initMaterial() {
+void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
@@ -72,7 +74,7 @@ void MaterialDamage::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
+void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
@@ -102,7 +104,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
+void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
@@ -120,7 +122,7 @@ void MaterialDamage::computePotentialEnergy(ElementType el_type, GhostType ghost
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::setParam(const std::string & key, const std::string & value,
+void LocalMaterialDamage::setParam(const std::string & key, const std::string & value,
 			       const MaterialID & id) {
   std::stringstream sstr(value);
   if(key == "rho") { sstr >> rho; }
@@ -133,7 +135,7 @@ void MaterialDamage::setParam(const std::string & key, const std::string & value
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::printself(std::ostream & stream, int indent) const {
+void LocalMaterialDamage::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
