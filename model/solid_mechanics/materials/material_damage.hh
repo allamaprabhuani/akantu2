@@ -69,6 +69,7 @@ public:
   /// compute the potential energy for on element
   inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
 
+  /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(const ElementType & type,
 			       Vector<double> & tangent_matrix,
 			       GhostType ghost_type = _not_ghost) {
@@ -86,7 +87,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the stable time step
-  inline Real getStableTimeStep(Real h);
+  inline Real getStableTimeStep(Real h); 
+  /// return damage value
+  ByElementTypeReal & getDamage(){return damage;};
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

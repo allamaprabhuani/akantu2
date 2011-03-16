@@ -43,9 +43,8 @@ MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & i
   nu  = 1./2.;
   Yd  = 50;
   Sd  = 5000;
+  initInternalVector(this->damage,1,"damage");
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t)
-    this->damage[t] = NULL;
 
   AKANTU_DEBUG_OUT();
 }
@@ -55,20 +54,10 @@ void MaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  const Mesh::ConnectivityTypeList & type_list =
-    model->getFEM().getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    std::stringstream sstr_damage; sstr_damage << id << ":damage:" << *it;
-    damage[*it] = &(alloc<Real>(sstr_damage.str(), 0,
-				1, REAL_INIT_VALUE));
-  }
-
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));
   kpa    = lambda + 2./3. * mu;
-
+  resizeInternalVector(this->damage);
   is_init = true;
   AKANTU_DEBUG_OUT();
 }
@@ -79,7 +68,6 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 
   Real F[3*3];
   Real sigma[3*3];
-  damage[el_type]->resize(model->getFEM().getNbQuadraturePoints(el_type)*element_filter[el_type]->getSize());
   Real * dam = damage[el_type]->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
