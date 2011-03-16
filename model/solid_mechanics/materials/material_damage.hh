@@ -121,7 +121,7 @@ private:
 
   /// damage internal variable
   ByElementTypeReal damage;
-
+  ByElementTypeReal ghost_damage;
 };
 
 /* -------------------------------------------------------------------------- */

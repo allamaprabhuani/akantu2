@@ -43,8 +43,8 @@ MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & i
   nu  = 1./2.;
   Yd  = 50;
   Sd  = 5000;
+  initInternalVector(this->ghost_damage,1,"damage",_ghost);
   initInternalVector(this->damage,1,"damage");
-
 
   AKANTU_DEBUG_OUT();
 }
@@ -58,6 +58,7 @@ void MaterialDamage::initMaterial() {
   mu     = E / (2 * (1 + nu));
   kpa    = lambda + 2./3. * mu;
   resizeInternalVector(this->damage);
+  resizeInternalVector(this->ghost_damage,_ghost);  
   is_init = true;
   AKANTU_DEBUG_OUT();
 }
@@ -68,7 +69,11 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage[el_type]->values;
+  Real * dam ;
+  if(ghost_type==_ghost)
+    dam=ghost_damage[el_type]->values;
+  else
+    dam= damage[el_type]->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
