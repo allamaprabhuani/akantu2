@@ -35,35 +35,37 @@
 
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
-SparseMatrix::SparseMatrix(const Mesh & mesh,
-			   const SparseMatrixType & sparse_matrix_type,
-			   UInt nb_degre_of_freedom,
-			   const SparseMatrixID & id,
-			   const MemoryID & memory_id) :
-  Memory(memory_id), id(id),
-  sparse_matrix_type(sparse_matrix_type),
-  nb_degre_of_freedom(nb_degre_of_freedom),
-  mesh(&mesh),
-  nb_non_zero(0),
-  irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
-  irn_jcn_to_k(NULL) {
-  AKANTU_DEBUG_IN();
+// /* -------------------------------------------------------------------------- */
+// SparseMatrix::SparseMatrix(const Mesh & mesh,
+// 			   const SparseMatrixType & sparse_matrix_type,
+// 			   UInt nb_degre_of_freedom,
+// 			   const SparseMatrixID & id,
+// 			   const MemoryID & memory_id) :
+//   Memory(memory_id), id(id),
+//   sparse_matrix_type(sparse_matrix_type),
+//   nb_degre_of_freedom(nb_degre_of_freedom),
+//   mesh(&mesh),
+//   nb_non_zero(0),
+//   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
+//   irn_jcn_to_k(NULL) {
+//   AKANTU_DEBUG_IN();
 
-  size = mesh.getNbGlobalNodes()*nb_degre_of_freedom;
+//   size = mesh.getNbGlobalNodes()*nb_degre_of_freedom;
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->element_to_sparse_profile[t] = NULL;
-  }
+//   for(UInt t = _not_defined; t < _max_element_type; ++t) {
+//     this->element_to_sparse_profile[t] = NULL;
+//   }
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  nb_proc = comm->getNbProc();
+//   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
+//   nb_proc = comm->getNbProc();
 
-  irn_save = NULL;
-  jcn_save = NULL;
+//   irn_save = NULL;
+//   jcn_save = NULL;
 
-  AKANTU_DEBUG_OUT();
-}
+//   irn_jcn_k = new coordinate_list_map;
+
+//   AKANTU_DEBUG_OUT();
+// }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix::SparseMatrix(UInt size,
@@ -74,15 +76,15 @@ SparseMatrix::SparseMatrix(UInt size,
   Memory(memory_id), id(id),
   sparse_matrix_type(sparse_matrix_type),
   nb_degre_of_freedom(nb_degre_of_freedom),
-  mesh(NULL), size(size*nb_degre_of_freedom),
+  size(size),
   nb_non_zero(0),
   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
   irn_jcn_to_k(NULL) {
   AKANTU_DEBUG_IN();
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->element_to_sparse_profile[t] = NULL;
-  }
+  // for(UInt t = _not_defined; t < _max_element_type; ++t) {
+  //   this->element_to_sparse_profile[t] = NULL;
+  // }
 
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   nb_proc = comm->getNbProc();
@@ -97,7 +99,7 @@ SparseMatrix::SparseMatrix(UInt size,
 SparseMatrix::SparseMatrix(const SparseMatrix & matrix) :
   Memory(matrix.getMemoryID()), sparse_matrix_type(matrix.getSparseMatrixType()),
   nb_degre_of_freedom(matrix.getNbDegreOfFreedom()),
-  mesh(NULL), size(matrix.getSize()), nb_non_zero(matrix.getNbNonZero()),
+  size(matrix.getSize()), nb_non_zero(matrix.getNbNonZero()),
   irn(matrix.getIRN(), true), jcn(matrix.getJCN(), true), a(matrix.getA(), true),
   irn_jcn_to_k(NULL) {
   AKANTU_DEBUG_IN();
@@ -122,87 +124,89 @@ SparseMatrix::~SparseMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::buildProfile() {
+void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_number) {
   AKANTU_DEBUG_IN();
 
-  if(irn_jcn_to_k) delete irn_jcn_to_k;
-  irn_jcn_to_k = new std::map<std::pair<UInt, UInt>, UInt>;
+  // if(irn_jcn_to_k) delete irn_jcn_to_k;
+  // irn_jcn_to_k = new std::map<std::pair<UInt, UInt>, UInt>;
+  clearProfile();
 
-  //  std::map<std::pair<UInt, UInt>, UInt> irn_jcn_to_k;
-  std::map<std::pair<UInt, UInt>, UInt>::iterator irn_jcn_to_k_it;
+  coordinate_list_map::iterator irn_jcn_k_it;
 
-  nb_non_zero = 0;
-  irn.resize(0);
-  jcn.resize(0);
+  // UInt * global_nodes_ids_val = NULL;
+  // if(nb_proc > 1) global_nodes_ids_val = mesh.getGlobalNodesIds().values;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
+  Int * eq_nb_val = equation_number.values;
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (Mesh::getSpatialDimension(*it) != mesh->getSpatialDimension()) continue;
+    if (Mesh::getSpatialDimension(*it) != mesh.getSpatialDimension()) continue;
 
-    UInt nb_element = mesh->getNbElement(*it);
+    UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+    UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
 
-    if (element_to_sparse_profile[*it] == NULL) {
-      std::stringstream sstr;
+    UInt * conn_val = mesh.getConnectivity(*it).values;
+    Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
 
-      UInt nb_values_per_elem = nb_degre_of_freedom * nb_nodes_per_element;
-      // if (sparse_matrix_type == _symmetric) {
-      // 	nb_values_per_elem = (nb_values_per_elem * (nb_values_per_elem + 1)) / 2;
-      // } else {
-      nb_values_per_elem *= nb_values_per_elem;
-      // }
-      sstr << id << ":" << "element_to_sparse_profile:" << *it;
-      element_to_sparse_profile[*it] = &(alloc<UInt>(sstr.str(),
-    						     nb_element,
-    						     nb_values_per_elem));
-    }
 
-    UInt * global_nodes_ids_val = NULL;
-    if(nb_proc > 1) global_nodes_ids_val = mesh->getGlobalNodesIds().values;
-    UInt * elem_to_sparse_val = element_to_sparse_profile[*it]->values;
-    UInt * conn_val = mesh->getConnectivity(*it).values;
+    for (UInt e = 0; e < nb_element; ++e) {
+      Int * tmp_local_eq_nb_val = local_eq_nb_val;
+      for (UInt i = 0; i < nb_nodes_per_element; ++i) {
+	UInt n = conn_val[i];
+	memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
+	tmp_local_eq_nb_val += nb_degre_of_freedom;
+      }
 
-    for (UInt e = 0; e < nb_element; ++e) {                                     // loop on element
-      UInt count = 0;
-      for (UInt j = 0; j < nb_nodes_per_element; ++j) {                         // loop on local column
-	UInt n_j = (nb_proc == 1) ? conn_val[j] : global_nodes_ids_val[conn_val[j]];
-	UInt c_jcn = n_j * nb_degre_of_freedom;
+      for (UInt i = 0; i < size_mat; ++i) {
+	UInt c_irn = local_eq_nb_val[i];
+	UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
+	for (UInt j = j_start; j < size_mat; ++j) {
+	  UInt c_jcn = local_eq_nb_val[j];
+	  UInt irn_jcn = key(c_irn, c_jcn);
+	  irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
 
-	for (UInt d_j = 0; d_j < nb_degre_of_freedom; ++d_j, ++c_jcn) {         // loop on degre of freedom
-	  //	  UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 : nb_nodes_per_element;
-	  UInt i_end = nb_nodes_per_element;
-
-	  for (UInt i = 0; i < i_end; ++i) {                                    // loop on rows
-	    UInt n_i = (nb_proc == 1) ? conn_val[i] : global_nodes_ids_val[conn_val[i]];
-	    UInt c_irn = n_i * nb_degre_of_freedom;
-	    //	    UInt d_i_end = (sparse_matrix_type == _symmetric && i == j) ? d_j + 1 : nb_degre_of_freedom;
-	    UInt d_i_end = nb_degre_of_freedom;
-
-	    for (UInt d_i = 0; d_i < d_i_end; ++d_i, ++c_irn) {                 // loop on degre of freedom
-
-	      std::pair<UInt, UInt> jcn_irn;
-	      if ((sparse_matrix_type == _symmetric) && c_irn < c_jcn) jcn_irn = std::make_pair(c_jcn, c_irn);
-	      else jcn_irn = std::make_pair(c_irn, c_jcn);
-	      irn_jcn_to_k_it = irn_jcn_to_k->find(jcn_irn);
-
-	      if (irn_jcn_to_k_it == irn_jcn_to_k->end()) {
-		*elem_to_sparse_val++ = nb_non_zero;
-		count++;
-		(*irn_jcn_to_k)[jcn_irn] = nb_non_zero;
-		irn.push_back(c_irn + 1);
-		jcn.push_back(c_jcn + 1);
-		nb_non_zero++;
-	      } else {
-		*elem_to_sparse_val++ = irn_jcn_to_k_it->second;
-		count++;
-	      }
-	    }
+	  if (irn_jcn_k_it == irn_jcn_k.end()) {
+	    irn_jcn_k[irn_jcn] = nb_non_zero;
+	    irn.push_back(c_irn + 1);
+	    jcn.push_back(c_jcn + 1);
+	    nb_non_zero++;
 	  }
 	}
       }
       conn_val += nb_nodes_per_element;
     }
+
+    delete [] local_eq_nb_val;
+    // for (UInt e = 0; e < nb_element; ++e) {                                     // loop on element
+    //   for (UInt j = 0; j < nb_nodes_per_element; ++j) {                         // loop on local column
+    // 	UInt n_j = (nb_proc == 1) ? conn_val[j] : global_nodes_ids_val[conn_val[j]];
+    // 	UInt c_jcn = n_j * nb_degre_of_freedom;
+
+    // 	for (UInt d_j = 0; d_j < nb_degre_of_freedom; ++d_j, ++c_jcn) {         // loop on degre of freedom
+    // 	  for (UInt i = 0; i < nb_nodes_per_element; ++i) {                                    // loop on rows
+    // 	    UInt n_i = (nb_proc == 1) ? conn_val[i] : global_nodes_ids_val[conn_val[i]];
+    // 	    UInt c_irn = n_i * nb_degre_of_freedom;
+
+    // 	    for (UInt d_i = 0; d_i < nb_degre_of_freedom; ++d_i, ++c_irn) {     // loop on degre of freedom
+    // 	      UInt irn_jcn;
+    // 	      irn_jcn = key(c_irn, c_jcn);
+
+    // 	      irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
+
+    // 	      if (irn_jcn_k_it == irn_jcn_k.end()) {
+    // 		irn_jcn_k[irn_jcn] = nb_non_zero;
+    // 		irn.push_back(c_irn + 1);
+    // 		jcn.push_back(c_jcn + 1);
+    // 		nb_non_zero++;
+    // 	      }
+    // 	    }
+    // 	  }
+    // 	}
+    //   }
+    //   conn_val += nb_nodes_per_element;
+    // }
   }
 
   a.resize(nb_non_zero);
@@ -211,7 +215,8 @@ void SparseMatrix::buildProfile() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::applyBoundary(const Vector<bool> & boundary) {
+void SparseMatrix::applyBoundary(const Vector<bool> & boundary, 
+				 const unordered_map<UInt, UInt>::type & local_eq_num_to_global) {
   AKANTU_DEBUG_IN();
 
   Int * irn_val = irn.values;
@@ -219,8 +224,10 @@ void SparseMatrix::applyBoundary(const Vector<bool> & boundary) {
   Real * a_val   = a.values;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
-    if(boundary.values[*irn_val - 1] || boundary.values[*jcn_val - 1]) {
-      *a_val *= (*irn_val == *jcn_val);
+    UInt ni = local_eq_num_to_global.find(*irn_val - 1)->second;
+    UInt nj = local_eq_num_to_global.find(*jcn_val - 1)->second;
+    if(boundary.values[ni]  || boundary.values[nj]) {
+     if (*irn_val != *jcn_val) *a_val = 0;
     }
     irn_val++; jcn_val++; a_val++;
   }
@@ -312,6 +319,26 @@ void SparseMatrix::saveProfile(const std::string & filename) {
 
   outfile.close();
 
+
+
+
+  outfile.open("toto.mtx");
+
+  outfile << "%%MatrixMarket matrix coordinate pattern";
+
+  if(sparse_matrix_type == _symmetric) outfile << " symmetric";
+  else outfile << " general";
+  outfile << std::endl;
+
+  outfile << m << " " << m << " " << nb_non_zero << std::endl;
+
+  coordinate_list_map::const_iterator it;
+  for (it = irn_jcn_k.begin(); it != irn_jcn_k.end(); ++it) {
+    outfile << it->first / size + 1 << " " << it->first % size + 1 << " 1" << std::endl;
+  }
+
+  outfile.close();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -321,6 +348,8 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
   AKANTU_DEBUG_IN();
 
   std::ofstream outfile;
+  outfile.precision(std::numeric_limits<Real>::digits10);
+
   outfile.open(filename.c_str());
 
   outfile << "%%MatrixMarket matrix coordinate real";
@@ -329,11 +358,11 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
   else outfile << " general";
   outfile << std::endl;
 
-  UInt m = size;
-  outfile << m << " " << m << " " << nb_non_zero << std::endl;
+  outfile << size << " " << size << " " << nb_non_zero << std::endl;
 
-  for (UInt i = 0; i < nb_non_zero; ++i) {
-    outfile << irn.values[i] << " " << jcn.values[i] << " " << a.values[i] << std::endl;
+  coordinate_list_map::const_iterator it;
+  for (it = irn_jcn_k.begin(); it != irn_jcn_k.end(); ++it) {
+    outfile << it->first / size + 1 << " " << it->first % size + 1 << " " << a.values[it->second] << std::endl;
   }
 
   outfile.close();

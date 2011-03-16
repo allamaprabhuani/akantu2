@@ -169,7 +169,7 @@ template <class T> void Vector<T>::allocate(UInt size,
 
 /* -------------------------------------------------------------------------- */
 template <class T> void Vector<T>::resize(UInt new_size) {
-  AKANTU_DEBUG_IN();
+  //  AKANTU_DEBUG_IN();
   /// free some memory
   if(new_size <= allocated_size) {
     if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
@@ -190,7 +190,7 @@ template <class T> void Vector<T>::resize(UInt new_size) {
 
     size = new_size;
 
-    AKANTU_DEBUG_OUT();
+    //    AKANTU_DEBUG_OUT();
     return;
   }
 
@@ -217,7 +217,7 @@ template <class T> void Vector<T>::resize(UInt new_size) {
   size = new_size;
   values = tmp_ptr;
 
-  AKANTU_DEBUG_OUT();
+  //  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

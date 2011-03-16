@@ -1,6 +1,7 @@
 /**
  * @file   shape_lagrange.cc
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb 10 11:45:51 2011
  *
  * @brief  lagrangian shape functions class
@@ -32,7 +33,7 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-
+/* -------------------------------------------------------------------------- */
 ShapeLagrange::ShapeLagrange(Mesh & mesh,ShapeID id):ShapeFunctions(mesh,id){
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     this->shapes                  [t] = NULL;
@@ -42,15 +43,16 @@ ShapeLagrange::ShapeLagrange(Mesh & mesh,ShapeID id):ShapeFunctions(mesh,id){
   }
 }
 
+/* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrange::precomputeShapesOnControlPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real * natural_coords = control_points[type]->values;
   UInt nb_points = control_points[type]->getSize();
-  
+
   UInt size_of_shapes    = ElementClass<type>::getShapeSize();
-  
+
   UInt nb_element;
   std::string ghost = "";
 
@@ -60,21 +62,21 @@ void ShapeLagrange::precomputeShapesOnControlPoints(GhostType ghost_type) {
     ghost = "ghost_";
     nb_element = mesh->getGhostConnectivity(type).getSize();
   }
-  
+
   std::stringstream sstr_shapes;
   sstr_shapes << id << ":" << ghost << "shapes:" << type;
   Vector<Real> * shapes_tmp = &(alloc<Real>(sstr_shapes.str(),
 					    nb_element*nb_points,
 					    size_of_shapes));
-  
+
   Real * shapes_val    = shapes_tmp->values;
-  for (UInt elem = 0; elem < nb_element; ++elem) {			
-    ElementClass<type>::computeShapes(natural_coords,		
+  for (UInt elem = 0; elem < nb_element; ++elem) {
+    ElementClass<type>::computeShapes(natural_coords,
 				      nb_points,shapes_val);
-    
-    shapes_val += size_of_shapes*nb_points;		
-  }									
-  
+
+    shapes_val += size_of_shapes*nb_points;
+  }
+
   if(ghost_type == _not_ghost) {
     shapes[type]             = shapes_tmp;
   } else {
@@ -84,7 +86,6 @@ void ShapeLagrange::precomputeShapesOnControlPoints(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <ElementType type>
 void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -97,11 +98,11 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
   Real * natural_coords = control_points[type]->values;
   UInt nb_points = control_points[type]->getSize();
-  
+
   UInt * elem_val;
   UInt nb_element;
   std::string ghost = "";
-  
+
   if(ghost_type == _not_ghost) {
     elem_val   = mesh->getConnectivity(type).values;
     nb_element = mesh->getConnectivity(type).getSize();
@@ -110,21 +111,21 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
     elem_val   = mesh->getGhostConnectivity(type).values;
     nb_element = mesh->getGhostConnectivity(type).getSize();
   }
-  
+
   std::stringstream sstr_shapesd;
   sstr_shapesd << id << ":" << ghost << "shapes_derivatives:" << type;
   Vector<Real> * shapes_derivatives_tmp = &(alloc<Real>(sstr_shapesd.str(),
 							nb_element*nb_quadrature_points,
 							size_of_shapesd));
-  
+
   Real * shapesd_val   = shapes_derivatives_tmp->values;
-  Real local_coord[spatial_dimension * nb_nodes_per_element];		
-  for (UInt elem = 0; elem < nb_element; ++elem) {			
-    mesh->extractNodalCoordinatesFromElement(local_coord,		
+  Real local_coord[spatial_dimension * nb_nodes_per_element];
+  for (UInt elem = 0; elem < nb_element; ++elem) {
+    mesh->extractNodalCoordinatesFromElement(local_coord,
 					     coord,
 					     elem_val+elem*nb_nodes_per_element,
-					     nb_nodes_per_element);	
-    
+					     nb_nodes_per_element);
+
     // compute dnds
     Real dnds[nb_nodes_per_element * spatial_dimension * nb_quadrature_points];
     ElementClass<type>::computeDNDS(natural_coords, nb_points, dnds);
@@ -133,8 +134,8 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
     ElementClass<type>::computeDXDS(dnds, nb_quadrature_points, local_coord, spatial_dimension, dxds);
     // compute shape derivatives
     ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_quadrature_points, spatial_dimension, shapesd_val);
-    
-    shapesd_val += size_of_shapesd*nb_quadrature_points;		
+
+    shapesd_val += size_of_shapesd*nb_quadrature_points;
   }
   if(ghost_type == _not_ghost) {
     shapes_derivatives[type] = shapes_derivatives_tmp;
@@ -328,12 +329,10 @@ void ShapeLagrange::gradientOnControlPoints(const Vector<Real> &in_u,
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <ElementType type>
 void ShapeLagrange::setControlPointsByType(Vector<Real> & points){
   control_points[type] = &points;
 }
-
 
 
 /* -------------------------------------------------------------------------- */
@@ -345,7 +344,7 @@ void ShapeLagrange::setControlPointsByType(Vector<Real> & points){
   template void ShapeLagrange::precomputeShapeDerivativesOnControlPoints<type>(GhostType ghost_type); \
   template void ShapeLagrange::setControlPointsByType<type>(Vector<Real> & control_points); \
   template void ShapeLagrange::gradientOnControlPoints<type>(const Vector<Real> &in_u, \
-							     Vector<Real> &out_nablauq, \
+							     Vector<Real> &out_nablauq,	\
 							     UInt nb_degre_of_freedom, \
 							     GhostType ghost_type, \
 							     const Vector<UInt> * filter_elements) const; \
@@ -359,4 +358,3 @@ AKANTU_BOOST_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
 #undef INSTANCIATE_TEMPLATE_CLASS
 
 __END_AKANTU__
-

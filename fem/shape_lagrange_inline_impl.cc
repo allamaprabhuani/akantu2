@@ -3,7 +3,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Thu Feb 10 21:12:54 2011
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *

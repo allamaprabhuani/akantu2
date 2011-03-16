@@ -69,9 +69,10 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
 
   UInt n = (dim * (dim - 1) / 2 + dim);
 
-  Real Miiii = kpa + 4./3. * mu;
-  Real Miijj = kpa - 2./3. * mu;
-  Real Mijij = mu;
+  Real Ep = E/((1+nu)*(1-2*nu));
+  Real Miiii = Ep * (1-nu);
+  Real Miijj = Ep * nu;
+  Real Mijij = Ep * (1-2*nu) * .5;
 
   tangent[0 * n + 0] = Miiii;
 

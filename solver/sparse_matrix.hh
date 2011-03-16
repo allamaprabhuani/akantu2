@@ -45,11 +45,11 @@ class SparseMatrix : private Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  SparseMatrix(const Mesh & mesh,
-	       const SparseMatrixType & sparse_matrix_type,
-	       UInt nb_degre_of_freedom,
-	       const SparseMatrixID & id = "sparse_matrix",
-	       const MemoryID & memory_id = 0);
+  // SparseMatrix(const Mesh & mesh,
+  // 	       const SparseMatrixType & sparse_matrix_type,
+  // 	       UInt nb_degre_of_freedom,
+  // 	       const SparseMatrixID & id = "sparse_matrix",
+  // 	       const MemoryID & memory_id = 0);
 
   SparseMatrix(UInt size,
 	       const SparseMatrixType & sparse_matrix_type,
@@ -65,6 +65,9 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// remove the existing profile
+  inline void clearProfile();
+
   /// add a non-zero element
   UInt addToProfile(UInt i, UInt j);
 
@@ -74,20 +77,12 @@ public:
   /// assemble a local matrix in the sparse one
   inline void addToMatrix(UInt i, UInt j, Real value);
 
-
-  /// assemble a local matrix in the sparse one
-  inline void addToMatrix(Real * local_matrix,
-			  const Element & element,
-			  UInt nb_nodes_per_element);
-
-  /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const;
-
   /// fill the profil of the matrix
-  void buildProfile();
+  void buildProfile(const Mesh & mesh, const Vector<Int> & equation_number);
 
   /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(const Vector<bool> & boundary);
+  void applyBoundary(const Vector<bool> & boundary,
+		     const unordered_map<UInt, UInt>::type & local_eq_num_to_global);
 
   /// modify the matrix to "remove" the blocked dof
   void removeBoundary(const Vector<bool> & boundary);
@@ -101,10 +96,25 @@ public:
   /// save the matrix in a file using the MatrixMarket file format
   void saveMatrix(const std::string & filename);
 
+  /// function to print the contain of the class
+  //virtual void printself(std::ostream & stream, int indent = 0) const;
+
+private:
+  inline UInt key(UInt i, UInt j) const {
+    if(sparse_matrix_type == _symmetric && (i > j))
+      return j * size + i;
+
+    return i * size + j;
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// return the values at potition i, j
+  inline Real operator()(UInt i, UInt j) const;
+  inline Real & operator()(UInt i, UInt j);
+
   AKANTU_GET_MACRO(IRN, irn, const Vector<Int> &);
 
   AKANTU_GET_MACRO(JCN, jcn, const Vector<Int> &);
@@ -133,7 +143,7 @@ private:
   UInt nb_degre_of_freedom;
 
   /// Mesh corresponding to the profile
-  const Mesh * mesh;
+  //  const Mesh * mesh;
 
   /// Size of the matrix
   UInt size;
@@ -164,11 +174,14 @@ private:
   UInt size_save;
 
   /// information to know where to assemble an element in a global sparse matrix
-  ByElementTypeUInt element_to_sparse_profile;
+  //  ByElementTypeUInt element_to_sparse_profile;
 
   /* map for  (i,j) ->  k correspondence \warning std::map are slow
    *  \todo improve  with hash_map (non standard in stl) or unordered_map (boost or C++0x)
    */
+  typedef unordered_map<UInt, UInt>::type coordinate_list_map;
+  coordinate_list_map irn_jcn_k;
+
   std::map<std::pair<UInt, UInt>, UInt> * irn_jcn_to_k;
 };
 

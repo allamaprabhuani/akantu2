@@ -43,6 +43,7 @@
 #include "material_parser.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
+#include "aka_types.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -281,6 +282,9 @@ public:
    */
   void setIncrementFlagOn();
 
+  /// get the equation number Vector<Int>
+  AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
+
   /// get the stiffness matrix
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, SparseMatrix &);
 
@@ -320,6 +324,12 @@ private:
 
   /// array of current position used during update residual
   Vector<Real> * current_position;
+
+  /// position of a dof in the K matrix
+  Vector<Int> * equation_number;
+
+  /// local equation_number to global
+  unordered_map<UInt, UInt>::type local_eq_num_to_global;
 
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;

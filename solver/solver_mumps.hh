@@ -62,6 +62,8 @@ public:
 
   virtual void setRHS(Vector<Real> & rhs);
 
+  void initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom);
+
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -88,6 +90,24 @@ private:
 
   /// mumps data
   DMUMPS_STRUC_C mumps_data;
+
+  /// Vector containing the proc number for each node
+  Vector<UInt> ** rhs_position;
+
+  /// solution repartition over processors
+  Vector<UInt> ** solution_position;
+
+  /// nb node per proc
+  UInt * nb_nodes_per_proc;
+
+  /// nb node per proc
+  UInt * nb_nodes_per_proc_rhs;
+
+  /// nb local nodes
+  UInt nb_local_nodes;
+
+  /// nodes types
+  Int * nodes_type;
 
   /* ------------------------------------------------------------------------ */
   /* Local types                                                              */

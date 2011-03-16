@@ -27,11 +27,10 @@
 
 /* -------------------------------------------------------------------------- */
 inline UInt SparseMatrix::addToProfile(UInt i, UInt j) {
-  if(!irn_jcn_to_k) irn_jcn_to_k = new std::map<std::pair<UInt, UInt>, UInt>;
 
-  std::pair<UInt, UInt> jcn_irn = std::make_pair(i, j);
+  UInt jcn_irn = key(i, j);
 
-  AKANTU_DEBUG_ASSERT(irn_jcn_to_k->find(jcn_irn) == irn_jcn_to_k->end(),
+  AKANTU_DEBUG_ASSERT(irn_jcn_k.find(jcn_irn) == irn_jcn_k.end(),
 		      "Couple (i,j) = (" << i << "," << j << ") already in the profile");
 
   irn.push_back(i + 1);
@@ -41,11 +40,20 @@ inline UInt SparseMatrix::addToProfile(UInt i, UInt j) {
   Real zero = 0;
   a.push_back(zero);
 
-  (*irn_jcn_to_k)[jcn_irn] = nb_non_zero;
+  irn_jcn_k[jcn_irn] = nb_non_zero;
 
   nb_non_zero++;
 
   return nb_non_zero - 1;
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SparseMatrix::clearProfile() {
+  irn_jcn_k.clear();
+  irn.resize(0);
+  jcn.resize(0);
+  a.resize(0);
+  nb_non_zero = 0;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -55,13 +63,31 @@ inline void SparseMatrix::clear() {
 
 /* -------------------------------------------------------------------------- */
 inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
-  std::pair<UInt, UInt> jcn_irn = std::make_pair(i, j);
-  std::map<std::pair<UInt, UInt>, UInt>::iterator irn_jcn_to_k_it = irn_jcn_to_k->find(jcn_irn);
+  UInt jcn_irn = key(i, j);
+  coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
 
-  AKANTU_DEBUG_ASSERT(irn_jcn_to_k_it != irn_jcn_to_k->end(),
+  AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
 		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
 
-  a.values[irn_jcn_to_k_it->second] += value;
+  a.values[irn_jcn_k_it->second] += value;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real SparseMatrix::operator()(UInt i, UInt j) const {
+  UInt jcn_irn = key(i, j);
+  coordinate_list_map::const_iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
+  if(irn_jcn_k_it == irn_jcn_k.end()) return 0;
+  return a.values[irn_jcn_k_it->second];
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real & SparseMatrix::operator()(UInt i, UInt j) {
+  UInt jcn_irn = key(i, j);
+  coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
+  AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
+		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
+
+  return a.values[irn_jcn_k_it->second];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,25 +114,25 @@ inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
 // }
 
 /* -------------------------------------------------------------------------- */
-inline void SparseMatrix::addToMatrix(Real * local_matrix,
-				      const Element & element,
-				      UInt nb_nodes_per_element) {
-  AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
-		      "No profile stored for this kind of element call first buildProfile()");
+// inline void SparseMatrix::addToMatrix(Real * local_matrix,
+// 				      const Element & element,
+// 				      UInt nb_nodes_per_element) {
+//   AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
+// 		      "No profile stored for this kind of element call first buildProfile()");
 
-  UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
-  //  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+//   UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
+//   //  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
-  Real * mat_val = local_matrix;
-  UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
-  Real * a_val = a.values;
+//   Real * mat_val = local_matrix;
+//   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
+//   Real * a_val = a.values;
 
-  for (UInt i = 0; i < nb_nodes_per_element * nb_degre_of_freedom; ++i) {
-    UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
-    UInt elem_to_sparse_i = i * nb_nodes_per_element * nb_degre_of_freedom;
-    for (UInt j = j_start; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
-      UInt k = elem_to_sparse_val[elem_to_sparse_i + j];
-      a_val[k] += mat_val[elem_to_sparse_i + j];
-    }
-  }
-}
+//   for (UInt i = 0; i < nb_nodes_per_element * nb_degre_of_freedom; ++i) {
+//     UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
+//     UInt elem_to_sparse_i = i * nb_nodes_per_element * nb_degre_of_freedom;
+//     for (UInt j = j_start; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
+//       UInt k = elem_to_sparse_val[elem_to_sparse_i + j];
+//       a_val[k] += mat_val[elem_to_sparse_i + j];
+//     }
+//   }
+// }

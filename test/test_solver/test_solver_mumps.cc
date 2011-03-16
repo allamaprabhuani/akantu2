@@ -38,37 +38,162 @@ int main(int argc, char *argv[])
   //  akantu::debug::setDebugLevel(akantu::dblDump);
 
   akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
-  akantu::UInt n = 10 * comm->getNbProc();
+  // akantu::UInt n = 10 * comm->getNbProc();
 
-  akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(n, akantu::_symmetric, 1, "hand");
+  // akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(n, akantu::_symmetric, 1, "hand");
+  // akantu::Solver * solver = new akantu::SolverMumps(*sparse_matrix);
+
+  // akantu::UInt i_start = comm->whoAmI() * 10;
+  // for(akantu::UInt i = i_start; i < i_start + 10; ++i) {
+  //   sparse_matrix->addToProfile(i,i);
+  //   sparse_matrix->addToMatrix(i, i, 1.);
+  // }
+
+  // sparse_matrix->addToProfile(9, 8);
+  // sparse_matrix->addToMatrix(9, 8, -1.);
+  // sparse_matrix->addToMatrix(9, 9, -1.);
+
+// akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(4, akantu::_symmetric, 1, "hand");
+// akantu::Solver * solver = new akantu::SolverMumps(*sparse_matrix);
+
+// sparse_matrix->addToProfile(0, 0);
+// sparse_matrix->addToProfile(1, 0);
+// sparse_matrix->addToProfile(2, 0);
+// sparse_matrix->addToProfile(3, 0);
+// sparse_matrix->addToProfile(1, 1);
+// sparse_matrix->addToProfile(2, 1);
+// sparse_matrix->addToProfile(3, 1);
+// sparse_matrix->addToProfile(2, 2);
+// sparse_matrix->addToProfile(3, 2);
+// sparse_matrix->addToProfile(3, 3);
+
+// sparse_matrix->addToMatrix(0, 0, 0.432692  );
+// sparse_matrix->addToMatrix(0, 1, 0.240385  );
+// sparse_matrix->addToMatrix(0, 2, -0.240385 );
+// sparse_matrix->addToMatrix(0, 3, -0.0480769);
+// sparse_matrix->addToMatrix(1, 1, 0.432692  );
+// sparse_matrix->addToMatrix(1, 2, -0.0480769);
+// sparse_matrix->addToMatrix(1, 3, -0.240385 );
+// sparse_matrix->addToMatrix(2, 2, 0.432692  );
+// sparse_matrix->addToMatrix(2, 3, 0.240385  );
+// sparse_matrix->addToMatrix(3, 3, 0.432692  );
+
+
+  // akantu::Vector<akantu::Real> * rhs;
+  // if(comm->whoAmI() == 0) {
+  //   rhs = new akantu::Vector<akantu::Real>(4, 1);
+  //   rhs->clear();
+  //   rhs->values[0] = 10000;
+  //   rhs->values[1] = 10000;
+  //   // for(akantu::UInt i = 0; i < n; ++i) {
+  //   //   rhs->values[i] = 1.;
+  //   // }
+
+  //   solver->setRHS(*rhs);
+  //   rhs->clear();
+  // }
+
+
+  akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(8, akantu::_symmetric, 1, "hand");
+  sparse_matrix->addToProfile(1-1, 1-1);
+  sparse_matrix->addToProfile(1-1, 2-1);
+  sparse_matrix->addToProfile(1-1, 3-1);
+  sparse_matrix->addToProfile(1-1, 4-1);
+  sparse_matrix->addToProfile(1-1, 5-1);
+  sparse_matrix->addToProfile(1-1, 6-1);
+  sparse_matrix->addToProfile(1-1, 7-1);
+  sparse_matrix->addToProfile(1-1, 8-1);
+  sparse_matrix->addToProfile(2-1, 2-1);
+  sparse_matrix->addToProfile(2-1, 3-1);
+  sparse_matrix->addToProfile(2-1, 4-1);
+  sparse_matrix->addToProfile(2-1, 5-1);
+  sparse_matrix->addToProfile(2-1, 6-1);
+  sparse_matrix->addToProfile(2-1, 7-1);
+  sparse_matrix->addToProfile(2-1, 8-1);
+  sparse_matrix->addToProfile(3-1, 3-1);
+  sparse_matrix->addToProfile(3-1, 4-1);
+  sparse_matrix->addToProfile(3-1, 5-1);
+  sparse_matrix->addToProfile(3-1, 6-1);
+  sparse_matrix->addToProfile(3-1, 7-1);
+  sparse_matrix->addToProfile(3-1, 8-1);
+  sparse_matrix->addToProfile(4-1, 4-1);
+  sparse_matrix->addToProfile(4-1, 5-1);
+  sparse_matrix->addToProfile(4-1, 6-1);
+  sparse_matrix->addToProfile(4-1, 7-1);
+  sparse_matrix->addToProfile(4-1, 8-1);
+  sparse_matrix->addToProfile(5-1, 5-1);
+  sparse_matrix->addToProfile(5-1, 6-1);
+  sparse_matrix->addToProfile(5-1, 7-1);
+  sparse_matrix->addToProfile(5-1, 8-1);
+  sparse_matrix->addToProfile(6-1, 6-1);
+  sparse_matrix->addToProfile(6-1, 7-1);
+  sparse_matrix->addToProfile(6-1, 8-1);
+  sparse_matrix->addToProfile(7-1, 7-1);
+  sparse_matrix->addToProfile(7-1, 8-1);
+  sparse_matrix->addToProfile(8-1, 8-1);
+
+  sparse_matrix->addToMatrix(1-1, 1-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(1-1, 2-1, 0		  );
+  sparse_matrix->addToMatrix(1-1, 3-1, 0		  );
+  sparse_matrix->addToMatrix(1-1, 4-1, 0		  );
+  sparse_matrix->addToMatrix(1-1, 5-1, 0		  );
+  sparse_matrix->addToMatrix(1-1, 6-1, 0		  );
+  sparse_matrix->addToMatrix(1-1, 7-1, 0		  );
+  sparse_matrix->addToMatrix(1-1, 8-1, 0		  );
+  sparse_matrix->addToMatrix(2-1, 2-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(2-1, 3-1, 0		  );
+  sparse_matrix->addToMatrix(2-1, 4-1, 0		  );
+  sparse_matrix->addToMatrix(2-1, 5-1, 0		  );
+  sparse_matrix->addToMatrix(2-1, 6-1, 0		  );
+  sparse_matrix->addToMatrix(2-1, 7-1, 0		  );
+  sparse_matrix->addToMatrix(2-1, 8-1, 0		  );
+  sparse_matrix->addToMatrix(3-1, 3-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(3-1, 4-1, 0		  );
+  sparse_matrix->addToMatrix(3-1, 5-1, 0.240384615384615  );
+  sparse_matrix->addToMatrix(3-1, 6-1, -0.240384615384615 );
+  sparse_matrix->addToMatrix(3-1, 7-1, 0		  );
+  sparse_matrix->addToMatrix(3-1, 8-1, -0.0480769230769231);
+  sparse_matrix->addToMatrix(4-1, 4-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(4-1, 5-1, 0		  );
+  sparse_matrix->addToMatrix(4-1, 6-1, 0		  );
+  sparse_matrix->addToMatrix(4-1, 7-1, 0		  );
+  sparse_matrix->addToMatrix(4-1, 8-1, 0		  );
+  sparse_matrix->addToMatrix(5-1, 5-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(5-1, 6-1, -0.0480769230769231);
+  sparse_matrix->addToMatrix(5-1, 7-1, 0		  );
+  sparse_matrix->addToMatrix(5-1, 8-1, -0.240384615384615 );
+  sparse_matrix->addToMatrix(6-1, 6-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(6-1, 7-1, 0		  );
+  sparse_matrix->addToMatrix(6-1, 8-1, 0.240384615384615  );
+  sparse_matrix->addToMatrix(7-1, 7-1, 0.432692307692308  );
+  sparse_matrix->addToMatrix(7-1, 8-1, 0		  );
+  sparse_matrix->addToMatrix(8-1, 8-1, 0.432692307692308  );
+
   akantu::Solver * solver = new akantu::SolverMumps(*sparse_matrix);
+  akantu::Vector<akantu::Real> * rhs;
+  if(comm->whoAmI() == 0) {
+    rhs = new akantu::Vector<akantu::Real>(8, 1);
+    rhs->clear();
+    rhs->values[2] = 10000;
+    rhs->values[4] = 10000;
+    // for(akantu::UInt i = 0; i < n; ++i) {
+    //   rhs->values[i] = 1.;
+    // }
 
-  akantu::UInt i_start = comm->whoAmI() * 10;
-  for(akantu::UInt i = i_start; i < i_start + 10; ++i) {
-    sparse_matrix->addToProfile(i,i);
-    sparse_matrix->addToMatrix(i, i, 1./(i+1));
+    solver->setRHS(*rhs);
+    rhs->clear();
   }
 
-  if(comm->whoAmI() == 0)
-    for(akantu::UInt i = 0; i < n; ++i) {
-      solver->getRHS().values[i] = 1.;
-    }
-
-
-  std::stringstream sstr; sstr << "solver_matrix.mtx" << comm->whoAmI();
-  sparse_matrix->saveMatrix(sstr.str());
-
-  std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB " << comm->whoAmI() << std::endl;
-
+  //  std::stringstream sstr; sstr << "solver_matrix.mtx" << comm->whoAmI();
+  //  sparse_matrix->saveMatrix(sstr.str());
 
   solver->initialize();
 
-
-  solver->solve();
+  solver->solve(*rhs);
 
   if(comm->whoAmI() == 0) {
     akantu::debug::setDebugLevel(akantu::dblDump);
-    std::cout << solver->getRHS() << std::endl;
+    std::cout << *rhs << std::endl;
     akantu::debug::setDebugLevel(akantu::dblWarning);
   }
 

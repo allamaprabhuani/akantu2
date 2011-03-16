@@ -58,28 +58,35 @@ int main(int argc, char *argv[])
 
   /* -------------------------------------------------------------------------- */
 
-  UInt nex = 100, ney = 100 * psize;
-  if(argc == 3) {
-    nex = atoi(argv[1]);
-    ney = atoi(argv[2]);
-  } else if (argc != 1) {
-    std::cout << "Usage : " << argv[0] << " [nb_x (default 100) nb_y (default 100 * nb proc)]" << std::endl;
-  }
-
-  Real height = 1., width = 1. * psize;
-
-  /* ------------------------------------------------------------------------ */
-
   UInt spatial_dimension = 2;
   ElementType type = _quadrangle_4;
-  UInt max_steps = 1000;
+  UInt max_steps = 100;
   Real time_factor = 0.2;
+
+  UInt nex = 100, ney = 100 * psize;
+  Real height = 1., width = 1. * psize;
+  if(argc == 3 || argc == 4) {
+    nex = atoi(argv[1]);
+    ney = atoi(argv[2]);
+    width = ney / 100.;
+    if(argc == 4) {
+      max_steps = atoi(argv[3]);
+    }
+  } else if (argc != 1) {
+    std::cout << "Usage : " << argv[0] << " [nb_x (default 100) nb_y (default 100 * nb proc)] [nb_step (default 100)]" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+
+
+  /* ------------------------------------------------------------------------ */
 
   // Real epot, ekin;
 
   Mesh mesh(spatial_dimension);
 
   if(prank == 0) {
+    std::cout << "Generating mesh..." << std::endl;
     Real height_el = height / nex;
     Real width_el = width / ney;
     UInt nnx = nex + 1, nny = ney + 1;
@@ -109,15 +116,18 @@ int main(int argc, char *argv[])
       }
     }
 
-    // akantu::MeshIOMSH mesh_io;
-    // mesh_io.write("bar.msh", mesh);
+    akantu::MeshIOMSH mesh_io;
+    mesh_io.write("bar.msh", mesh);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
   /* ------------------------------------------------------------------------ */
   akantu::Communicator * communicator;
   if(prank == 0) {
+    std::cout << "Partitioning mesh..." << std::endl;
     akantu::MeshPartition * partition =
       new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
@@ -172,23 +182,7 @@ int main(int argc, char *argv[])
 // #ifdef AKANTU_USE_IOHELPER
 //   akantu::UInt paraview_type = QUAD1;
 
-//   unsigned int nb_ghost_element = mesh.getNbGhostElement(type);
-//   DumperParaview dumper_ghost;
-//   dumper_ghost.SetMode(TEXT);
-//   dumper_ghost.SetParallelContext(prank, psize);
-//   dumper_ghost.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "ghost_coordinates");
-//   dumper_ghost.SetConnectivity((int*) mesh.getGhostConnectivity(type).values,
-//    			 paraview_type, nb_ghost_element, C_MODE);
-//   double * part = new double[nb_ghost_element];
-//   for (unsigned int i = 0; i < nb_ghost_element; ++i)
-//     part[i] = prank;
-//   dumper_ghost.AddElemDataField(part, 1, "partitions");
-//   dumper_ghost.SetPrefix("paraview/");
-//   dumper_ghost.Init();
-//   dumper_ghost.Dump();
-
-//   delete [] part;
-
+//   double * part;
 //   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
 //   /// set to 0 only for the first paraview dump
@@ -256,7 +250,7 @@ int main(int argc, char *argv[])
     // epot = model->getPotentialEnergy();
     // ekin = model->getKineticEnergy();
 
-    if(s % 500 == 0 && prank == 0) {
+    if(s % (std::max(1,(int)max_steps/10)) == 0 && prank == 0) {
       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
     }
     // energy << s << "," << epot << "," << ekin << "," << epot + ekin

@@ -28,7 +28,29 @@
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Vector<T>                                                 */
 /* -------------------------------------------------------------------------- */
-template <class T> inline T & Vector<T>::at(UInt i, UInt j) {
+
+/* -------------------------------------------------------------------------- */
+template <typename T> inline T & Vector<T>::operator()(UInt i, UInt j) {
+  AKANTU_DEBUG_ASSERT(size > 0,
+		      "The vector is empty");
+  AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
+		      "The value at position [" << i << "," << j
+		      << "] is out of range");
+  return values[i*nb_component + j];
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T> inline const T & Vector<T>::operator()(UInt i, UInt j) const {
+  AKANTU_DEBUG_ASSERT(size > 0,
+		      "The vector is empty");
+  AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
+		      "The value at position [" << i << "," << j
+		      << "] is out of range");
+  return values[i*nb_component + j];
+}
+
+
+template <typename T> inline T & Vector<T>::at(UInt i, UInt j) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector is empty");
@@ -40,7 +62,7 @@ template <class T> inline T & Vector<T>::at(UInt i, UInt j) {
   return values[i*nb_component + j];
 }
 
-template <class T> inline const T & Vector<T>::get(UInt i, UInt j) const{
+template <typename T> inline const T & Vector<T>::get(UInt i, UInt j) const{
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector is empty");
@@ -53,8 +75,8 @@ template <class T> inline const T & Vector<T>::get(UInt i, UInt j) const{
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> inline void Vector<T>::push_back(const T & value) {
-  AKANTU_DEBUG_IN();
+template <typename T> inline void Vector<T>::push_back(const T & value) {
+  //  AKANTU_DEBUG_IN();
   UInt pos = size;
 
   resize(size+1);
@@ -62,23 +84,23 @@ template <class T> inline void Vector<T>::push_back(const T & value) {
   for (UInt i = 0; i < nb_component; ++i) {
     values[pos*nb_component + i] = value;
   }
-  AKANTU_DEBUG_OUT();
+  //  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> inline void Vector<T>::push_back(const T new_elem[]) {
-  AKANTU_DEBUG_IN();
+template <typename T> inline void Vector<T>::push_back(const T new_elem[]) {
+  //  AKANTU_DEBUG_IN();
   UInt pos = size;
 
   resize(size+1);
   for (UInt i = 0; i < nb_component; ++i) {
     values[pos*nb_component + i] = new_elem[i];
   }
-  AKANTU_DEBUG_OUT();
+  //  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> inline void Vector<T>::erase(UInt i){
+template <typename T> inline void Vector<T>::erase(UInt i){
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT((size > 0),
 		      "The vector is empty");

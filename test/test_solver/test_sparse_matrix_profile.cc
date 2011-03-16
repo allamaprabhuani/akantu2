@@ -64,9 +64,23 @@ int main(int argc, char *argv[]) {
   sparse_matrix_hand.saveProfile("profile_hand.mtx");
   sparse_matrix_hand.saveMatrix("matrix_hand.mtx");
 
-  akantu::SparseMatrix sparse_matrix(mesh, akantu::_symmetric, 2, "mesh");
-  sparse_matrix.buildProfile();
+
+  /* ------------------------------------------------------------------------ */
+  akantu::UInt nb_nodes = mesh.getNbNodes();
+  akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric, spatial_dimension, "mesh");
+
+  akantu::Vector<akantu::Int> equation_number(nb_nodes*spatial_dimension);
+
+  akantu::Int * equation_number_val = equation_number.values;
+  for (akantu::UInt n = 0; n < nb_nodes; ++n) {
+    for (akantu::UInt d = 0; d < spatial_dimension; ++d) {
+      *(equation_number_val++) = n * spatial_dimension + d;
+    }
+  }
+
+  sparse_matrix.buildProfile(mesh, equation_number);
   sparse_matrix.saveProfile("profile.mtx");
+  /* ------------------------------------------------------------------------ */
 
 #ifdef AKANTU_USE_SCOTCH
   mesh_io.write("triangle_breorder.msh", mesh);
@@ -75,7 +89,14 @@ int main(int argc, char *argv[]) {
   partition->reorder();
   delete partition;
 
-  sparse_matrix.buildProfile();
+  equation_number_val = equation_number.values;
+  for (akantu::UInt n = 0; n < nb_nodes; ++n) {
+    for (akantu::UInt d = 0; d < spatial_dimension; ++d) {
+      *(equation_number_val++) = n * spatial_dimension + d;
+    }
+  }
+
+  sparse_matrix.buildProfile(mesh, equation_number);
   sparse_matrix.saveProfile("profile_reorder.mtx");
   mesh_io.write("triangle_reorder.msh", mesh);
 #endif

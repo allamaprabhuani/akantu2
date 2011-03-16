@@ -38,6 +38,10 @@
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
+#include "static_communicator.hh"
+#include "communicator.hh"
+#include "mesh_partition_scotch.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
@@ -48,53 +52,51 @@
 #endif
 
 #define bar_length 1
+#define bar_height 1
 
 // static void traction(__attribute__ ((unused)) double * position,double * stress){
-//   memset(stress,0,sizeof(akantu::Real)*4);
-//   //  if(position[0] < akantu::Math::tolerance || fabs(position[0] - bar_length) < akantu::Math::tolerance) {
-//   if(fabs(position[0] - bar_length) < akantu::Math::tolerance) {
-//     stress[0] = 100;
-//     //    stress[3] = 1000;
-//   }
+//    memset(stress,0,sizeof(akantu::Real)*4);
+//    if((fabs(position[1] - bar_height) < akantu::Math::tolerance) || (fabs(position[0] - bar_length) < akantu::Math::tolerance)) {
+//      stress[0] = 1000;
+//      stress[3] = 1000;
+//    }
 // }
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-
+  //  akantu::debug::setDebugLevel(akantu::dblAccessory);
   akantu::initialize(&argc, &argv);
 
-#ifdef AKANTU_USE_IOHELPER
-  akantu::ElementType type = akantu::_triangle_3;
-  akantu::UInt paraview_type = TRIANGLE1;
-#endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 2;
-  // akantu::UInt max_steps = 10000;
-  // akantu::Real time_factor = 0.2;
-
-  //  akantu::Real epot, ekin;
 
   akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("square_implicit1.msh", mesh);
 
-#ifdef AKANTU_USE_SCOTCH
-  mesh_io.write("square_implicit_breorder.msh", mesh);
+  akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm->getNbProc();
+  akantu::Int prank = comm->whoAmI();
 
-  akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
-  partition->reorder();
-  delete partition;
+  /* ------------------------------------------------------------------------ */
+  /* Parallel initialization                                                  */
+  /* ------------------------------------------------------------------------ */
+  akantu::Communicator * communicator;
+  if(prank == 0) {
+    akantu::MeshIOMSH mesh_io;
+    mesh_io.read("square_implicit2.msh", mesh);
 
-  mesh_io.write("square_implicit_reorder.msh", mesh);
-#endif
+    akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition->reorder();
+    partition->partitionate(psize);
+
+    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
+    delete partition;
+  } else {
+    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
+  }
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-#ifdef AKANTU_USE_IOHELPER
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
-#endif //AKANTU_USE_IOHELPER
-
   /// model initialization
   model->initVectors();
 
@@ -112,40 +114,42 @@ int main(int argc, char *argv[])
 
   model->readMaterials("material.dat");
   model->initMaterials();
+  model->registerSynchronizer(*communicator);
 
   model->initImplicitSolver();
 
   std::cout << model->getMaterial(0) << std::endl;
 
   /// boundary conditions
-  akantu::Real eps = 1e-16;
-  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    // if(fabs(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - bar_length)<= eps) {
-    //    model->getDisplacement().values[spatial_dimension*i] = bar_length;
-    //    model->getBoundary().values[spatial_dimension*i] = true;
-    // }
+  const  akantu::Vector<akantu::Real> & position = mesh.getNodes();
+  akantu::Vector<bool> & boundary = model->getBoundary();
+  akantu::Vector<akantu::Real> & displacment = model->getDisplacement();
 
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
-      model->getBoundary().values[spatial_dimension*i] = true;
+  for (akantu::UInt n = 0; n < nb_nodes; ++n) {
+    if(position(n,0) < akantu::Math::tolerance) boundary(n,0) = true;
+    if(position(n,1) < akantu::Math::tolerance) boundary(n,1) = true;
 
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] <= eps)
-      model->getBoundary().values[spatial_dimension*i + 1] = true;
+    if(std::abs(position(n,0) - bar_length) < akantu::Math::tolerance) {
+      boundary(n,0) = true;
+      displacment(n,0) = 0.1;
+    }
   }
-
-  model->getForce().values[1*spatial_dimension] = 10000;
-  model->getForce().values[2*spatial_dimension] = 10000;
-
 
   // akantu::FEM & fem_boundary = model->getFEMBoundary();
   // fem_boundary.initShapeFunctions();
   // fem_boundary.computeNormalsOnControlPoints();
   // model->computeForcesFromFunction(traction, akantu::_bft_stress);
-  model->initializeUpdateResidualData();
+  // model->initializeUpdateResidualData();
 
 #ifdef AKANTU_USE_IOHELPER
+  akantu::ElementType type = akantu::_triangle_6;
+  akantu::UInt paraview_type = TRIANGLE2;
+  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+
   /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
+  dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "implicit");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
@@ -158,6 +162,12 @@ int main(int argc, char *argv[])
 			  spatial_dimension, "applied_force");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "forces");
+  akantu::Real * nodes_type = new akantu::Real[nb_nodes];
+  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    nodes_type[i] = mesh.getNodesType()(i, 0);
+  }
+
+  dumper.AddNodeDataField(nodes_type, 1, "nodes_type");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
 			  spatial_dimension*spatial_dimension, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
@@ -171,17 +181,23 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
 
-  akantu::debug::setDebugLevel(akantu::dblInfo);
+  //  akantu::debug::setDebugLevel(akantu::dblDump);
   akantu::UInt count = 0;
   model->updateResidual();
 #ifdef AKANTU_USE_IOHELPER
     dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
-  while(!model->testConvergenceResidual(1e-1) && (count <= 10)) {
+  while(!model->testConvergenceResidual(1e-3) && (count < 100)) {
     std::cout << "Iter : " << ++count << std::endl;
     model->assembleStiffnessMatrix();
 
+    std::stringstream sstr; sstr << "K" << prank << ".mtx";
+    model->getStiffnessMatrix().saveMatrix(sstr.str());
     model->solve();
+
+    // akantu::debug::setDebugLevel(akantu::dblDump);
+    // std::cout << model->getDisplacement() << std::endl;
+    // akantu::debug::setDebugLevel(akantu::dblInfo);
 
     model->getStiffnessMatrix().saveMatrix("Ktmp.mtx");
 

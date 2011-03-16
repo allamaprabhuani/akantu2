@@ -143,6 +143,7 @@ public:
   /// assemble matrix in the complete sparse matrix
   void assembleMatrix(const Vector<Real> & elementary_mat,
 		      SparseMatrix & matrix,
+		      const Vector<Int> & equation_number,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
 		      GhostType ghost_type = _not_ghost,

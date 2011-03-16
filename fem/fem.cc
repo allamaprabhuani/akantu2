@@ -30,8 +30,8 @@
 #include "fem.hh"
 #include "mesh.hh"
 #include "element_class.hh"
+#include "static_communicator.hh"
 #include "aka_math.hh"
-
 
 /* -------------------------------------------------------------------------- */
 
@@ -136,14 +136,15 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 /* -------------------------------------------------------------------------- */
 void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 			 SparseMatrix & matrix,
+			 const Vector<Int> & equation_number,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
 			 GhostType ghost_type,
 			 const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element;
 
+  UInt nb_element;
   if(ghost_type == _not_ghost) {
     nb_element  = mesh->getNbElement(type);
   } else {
@@ -167,22 +168,36 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 		      "The vector elementary_mat(" << elementary_mat.getID()
 		      << ") has not the good number of component.");
 
-  Element elem;
-  elem.type = type;
-
   Real * elementary_mat_val = elementary_mat.values;
   UInt offset_elementary_mat = elementary_mat.getNbComponent();
+  UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
+  UInt * connectivity_val = mesh->getConnectivity(type).values;
 
-  UInt el;
+  Int * eq_nb_val = equation_number.values;
+  Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
+
   for (UInt e = 0; e < nb_element; ++e) {
+    UInt el = e;
     if(filter_elements != NULL) el = filter_elem_val[e];
-    else el = e;
-    elem.element = el;
 
-    matrix.addToMatrix(elementary_mat_val, elem, nb_nodes_per_element);
+    Int * tmp_local_eq_nb_val = local_eq_nb_val;
+    UInt * conn_val = connectivity_val + el * nb_nodes_per_element;
+    for (UInt i = 0; i < nb_nodes_per_element; ++i) {
+      UInt n = conn_val[i];
+      memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
+      tmp_local_eq_nb_val += nb_degre_of_freedom;
+    }
 
+    for (UInt i = 0; i < size_mat; ++i) {
+      UInt j_start = (matrix.getSparseMatrixType() == _symmetric) ? i : 0;
+      for (UInt j = j_start; j < size_mat; ++j) {
+	matrix(local_eq_nb_val[i], local_eq_nb_val[j]) += elementary_mat_val[i * size_mat + j];
+      }
+    }
     elementary_mat_val += offset_elementary_mat;
   }
+
+  delete [] local_eq_nb_val;
 
   AKANTU_DEBUG_OUT();
 }
@@ -202,20 +217,20 @@ void FEM::printself(std::ostream & stream, int indent) const {
   mesh->printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
-  stream << space << " + connectivity type information [" << std::endl;
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (mesh->getSpatialDimension(*it) != element_dimension) continue;
-    stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
-    // if(shapes[*it]) {
-    //   shapes            [*it]->printself(stream, indent + 3);
-    //   shapes_derivatives[*it]->printself(stream, indent + 3);
-    //   jacobians         [*it]->printself(stream, indent + 3);
-    // }
-    stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
-  }
-  stream << space << AKANTU_INDENT << "]" << std::endl;
+  // stream << space << " + connectivity type information [" << std::endl;
+  // const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
+  // Mesh::ConnectivityTypeList::const_iterator it;
+  // for(it = type_list.begin(); it != type_list.end(); ++it) {
+  //   if (mesh->getSpatialDimension(*it) != element_dimension) continue;
+  //   stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
+  //   // if(shapes[*it]) {
+  //   //   shapes            [*it]->printself(stream, indent + 3);
+  //   //   shapes_derivatives[*it]->printself(stream, indent + 3);
+  //   //   jacobians         [*it]->printself(stream, indent + 3);
+  //   // }
+  //   stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
+  // }
+  // stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << "]" << std::endl;
 }

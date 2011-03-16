@@ -109,7 +109,6 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   //  std::stringstream sstr; sstr << id << ":sparse_matrix";
   //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
 
-  std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
   mumps_data.sym = 2 * (matrix.getSparseMatrixType() == _symmetric);
 
   communicator = StaticCommunicator::getStaticCommunicator();
@@ -122,19 +121,35 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 #endif
 
   if(communicator->whoAmI() == 0) {
+    std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
     rhs = &(alloc<Real>(sstr_rhs.str(), size, 1, REAL_INIT_VALUE));
+
+#ifdef AKANTU_USE_MPI
+    UInt nb_proc = communicator->getNbProc();
+    nb_nodes_per_proc     = new UInt[nb_proc];
+    nb_nodes_per_proc_rhs = new UInt[nb_proc];
+
+    rhs_position      = new Vector<UInt>*[nb_proc];
+    solution_position = new Vector<UInt>*[nb_proc];
+    for (Int p = 0; p < communicator->getNbProc(); ++p) {
+      rhs_position[p]      = new Vector<UInt>(0,1);
+      solution_position[p] = new Vector<UInt>(0,1);
+    }
+#endif
   } else {
     rhs = NULL;
+    nb_nodes_per_proc = NULL;
   }
-
 
   mumps_data.job = _smj_initialize; //initialize
   dmumps_c(&mumps_data);
 
+  mumps_data.nz_alloc = 0;
+
   /// No outputs
-  icntl(1) = -1;
-  icntl(2) = -1;
-  icntl(3) = -1;
+  icntl(1) = 0;
+  icntl(2) = 0;
+  icntl(3) = 0;
   icntl(4) = 0;
 
   if(AKANTU_DEBUG_TEST(dblTrace)) {
@@ -152,17 +167,9 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   // else if (debug::getDebugLevel() >= dblCritical)
   //   icntl(4) = 0;
 
+
   mumps_data.n   = size;
   strcpy(mumps_data.write_problem, "mumps_matrix.mtx");
-
-  mumps_data.nz  = 0;
-  mumps_data.irn = NULL;
-  mumps_data.jcn = NULL;
-  mumps_data.a   = NULL;
-  mumps_data.nz_loc  = 0;
-  mumps_data.irn_loc = NULL;
-  mumps_data.jcn_loc = NULL;
-  mumps_data.a_loc   = NULL;
 
 
   AKANTU_DEBUG_OUT();
@@ -172,20 +179,98 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 SolverMumps::~SolverMumps() {
   AKANTU_DEBUG_IN();
 
-  //  delete matrix;
-
   mumps_data.job = _smj_destroy; // destroy
   dmumps_c(&mumps_data);
+
+#ifdef AKANTU_USE_MPI
+  if(communicator->whoAmI() == 0) {
+    delete [] nb_nodes_per_proc;
+    delete [] nb_nodes_per_proc_rhs;
+
+    for (Int p = 0; p < communicator->getNbProc(); ++p) {
+      delete rhs_position[p];
+      delete solution_position[p];
+    }
+
+    delete [] rhs_position;
+    delete [] solution_position;
+  }
+#endif
 
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom) {
+  AKANTU_DEBUG_IN();
+
+#ifdef AKANTU_USE_MPI
+  nb_local_nodes = mesh.getNbNodes();
+  Vector<UInt> local_nodes(0,2);
+
+  nodes_type = mesh.getNodesType().values;
+  UInt * global_node_id = mesh.getGlobalNodesIds().values;
+
+  UInt local_node_val[2];
+  for (UInt n = 0; n < nb_local_nodes; ++n) {
+    local_node_val[0] = global_node_id[n];
+    if(nodes_type[n] == -1 || nodes_type[n] == -2) {
+      local_node_val[1] = 0;
+    } else if (nodes_type[n] >= -1) {
+      local_node_val[1] = 1;
+    }
+    local_nodes.push_back(local_node_val);
+  }
+
+  nb_local_nodes = local_nodes.getSize();
+
+  UInt nb_proc = communicator->getNbProc();
+  if(communicator->whoAmI() == 0) {
+    nb_nodes_per_proc[0] = nb_local_nodes;
+
+    communicator->gather(nb_nodes_per_proc, 1);
+
+    for (UInt p = 0; p < nb_proc; ++p) {
+      UInt * buffer;
+      if(p == 0) buffer = local_nodes.values;
+      else {
+	buffer = new UInt[nb_nodes_per_proc[p] * 2];
+	communicator->receive(buffer, 2 * nb_nodes_per_proc[p], p, 0);
+      }
+
+      solution_position[p]->resize(0);
+      nb_nodes_per_proc_rhs[p] = 0;
+      for (UInt n = 0; n < nb_nodes_per_proc[p]; ++n) {
+	UInt node = buffer[2 * n] * nb_degre_of_freedom;
+	if(buffer[2*n + 1] == 0) {
+	  nb_nodes_per_proc_rhs[p]++;
+	  for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	    rhs_position[p]->push_back(node + d);
+	  }
+	}
+	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	  solution_position[p]->push_back(node + d);
+	}
+      }
+
+      if(p != 0) delete [] buffer;
+    }
+  } else {
+    communicator->gather(&nb_local_nodes, 1);
+    communicator->send(local_nodes.values, 2 * nb_local_nodes, 0, 0);
+  }
+#endif // AKANTU_USE_MPI
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initialize() {
   AKANTU_DEBUG_IN();
 
-  //  matrix->buildProfile();
+  /// Default Scaling
+  icntl(8) = 77;
+
   icntl(5) = 0; // Assembled matrix
 
 #ifdef AKANTU_USE_MPI
@@ -237,7 +322,6 @@ void SolverMumps::initialize() {
   //   communicator->gatherv(matrix->getJCN().values, &nb_non_zero_loc, 0);
   // }
 // #endif // AKANTU_USE_PTSCOTCH
-
 #else //AKANTU_USE_MPI
   mumps_data.nz  = matrix->getNbNonZero();
   mumps_data.irn = matrix->getIRN().values;
@@ -262,10 +346,55 @@ void SolverMumps::initialize() {
 
 /* -------------------------------------------------------------------------- */
 void SolverMumps::setRHS(Vector<Real> & rhs) {
+
+#ifdef AKANTU_USE_MPI
+  Vector<Real> local_rhs(0,1) ;
+
+  Real * rhs_val = rhs.values;
+  UInt nb_degre_of_freedom = rhs.getNbComponent();
+  UInt nb_nodes = rhs.getSize();
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    if(nodes_type[n] == -1 || nodes_type[n] == -2) {
+      UInt node = n * nb_degre_of_freedom;
+      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	local_rhs.push_back(rhs_val[node + d]);
+      }
+    }
+  }
+
+  Int nb_proc = communicator->getNbProc();
+  if (communicator->whoAmI() == 0) {
+    for (Int p = 0; p < nb_proc; ++p) {
+      Real * buffer;
+      if(p == 0) buffer = local_rhs.values;
+      else {
+	buffer = new Real[nb_degre_of_freedom * nb_nodes_per_proc_rhs[p]];
+	communicator->receive(buffer, nb_degre_of_freedom * nb_nodes_per_proc_rhs[p], p, 0);
+      }
+
+      Real * buffer_tmp = buffer;
+      std::cout << "AAAAAAAAAAAA " << nb_nodes_per_proc_rhs[p] << std::endl;
+
+      for (UInt n = 0; n < nb_nodes_per_proc_rhs[p]; ++n) {
+	UInt node = n * nb_degre_of_freedom;
+	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	  (*this->rhs)((*rhs_position[p])(node + d)) = *(buffer_tmp++);
+	}
+      }
+      if(p != 0) delete [] buffer;
+    }
+  } else {
+    communicator->send(local_rhs.values, nb_local_nodes, 0, 0);
+  }
+#else
   AKANTU_DEBUG_ASSERT(rhs.getSize()*rhs.getNbComponent() == this->rhs->getSize(),
-		      "Size of rhs (" << rhs.getSize()*rhs.getNbComponent() << ") and this->rhs (" << this->rhs->getSize() << ") do not match.");
+		      "Size of rhs (" << rhs.getSize()*rhs.getNbComponent()
+		      << ") and this->rhs (" << this->rhs->getSize()
+		      << ") do not match.");
 
   memcpy(this->rhs->values, rhs.values, this->rhs->getSize() * sizeof(Real));
+#endif
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -278,10 +407,11 @@ void SolverMumps::solve() {
   mumps_data.a  = matrix->getA().values;
 #endif
 
-
   if(communicator->whoAmI() == 0) {
     mumps_data.rhs = rhs->values;
   }
+
+  /// Default centralized dense second member
   icntl(20) = 0;
   icntl(21) = 0;
 
@@ -289,7 +419,9 @@ void SolverMumps::solve() {
   dmumps_c(&mumps_data);
 
   AKANTU_DEBUG_ASSERT(info(1) != -10, "Singular matrix");
-  AKANTU_DEBUG_ASSERT(info(1) == 0, "Error in mumps suring solve process, check mumps user guide INFO(1) =" << info(0));
+  AKANTU_DEBUG_ASSERT(info(1) == 0,
+		      "Error in mumps suring solve process, check mumps user guide INFO(1) ="
+		      << info(0));
 
   AKANTU_DEBUG_OUT();
 }
@@ -300,10 +432,49 @@ void SolverMumps::solve(Vector<Real> & solution) {
 
   solve();
 
-  /// @todo spread the rhs vector form host to slaves
-  if(communicator->whoAmI() == 0) {
-    memcpy(solution.values, rhs->values, rhs->getSize() * sizeof(Real));
+#ifdef AKANTU_USE_MPI
+  UInt nb_degre_of_freedom = solution.getNbComponent();
+
+  Vector<Real> local_rhs(nb_local_nodes * nb_degre_of_freedom,1);
+
+  if (communicator->whoAmI() == 0) {
+    Int nb_proc = communicator->getNbProc();
+    for (Int p = 0; p < nb_proc; ++p) {
+      Real * buffer;
+      if(p == 0) buffer = local_rhs.values;
+      else buffer = new Real[nb_degre_of_freedom * nb_nodes_per_proc[p]];
+
+      Real * buffer_tmp = buffer;
+      for (UInt n = 0; n < nb_nodes_per_proc[p]; ++n) {
+	UInt node = n * nb_degre_of_freedom;
+	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	  *(buffer_tmp++) = (*rhs)((*solution_position[p])(node + d));
+	}
+      }
+
+      if(p != 0) {
+	communicator->send(buffer, nb_degre_of_freedom * nb_nodes_per_proc[p], p, 0);
+	delete [] buffer;
+      }
+    }
+  } else {
+    communicator->receive(local_rhs.values, nb_degre_of_freedom * nb_local_nodes, 0, 0);
   }
+
+  Real * local_rhs_val = local_rhs.values;
+  for (UInt n = 0; n < nb_local_nodes; ++n) {
+    if(nodes_type[n] == -1 || nodes_type[n] == -2) {
+      UInt node = n * nb_degre_of_freedom;
+      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	solution.values[node + d] = *(local_rhs_val++);
+      }
+    }
+  }
+
+#else
+  memcpy(solution.values, rhs->values, rhs->getSize() * sizeof(Real));
+#endif
+
 
   AKANTU_DEBUG_OUT();
 }

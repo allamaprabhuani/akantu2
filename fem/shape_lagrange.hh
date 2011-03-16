@@ -39,19 +39,19 @@ class ShapeLagrange : public ShapeFunctions{
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   ShapeLagrange(Mesh & mesh,ShapeID id="shapeLagrange");
   virtual ~ShapeLagrange(){};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
   void precomputeShapesOnControlPoints(GhostType ghost_type);
-  
+
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
   void precomputeShapeDerivativesOnControlPoints(GhostType ghost_type);
@@ -63,7 +63,7 @@ public:
 				  UInt nb_degre_of_freedom,
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
-  
+
   /// compute the gradient of u on the control points
   template <ElementType type>
   void gradientOnControlPoints(const Vector<Real> &u,
@@ -101,7 +101,7 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -109,7 +109,7 @@ private:
 
   /// shape functions for all elements
   ByElementTypeReal shapes;
-  
+
   /// shape functions for all elements
   ByElementTypeReal ghost_shapes;
 
@@ -121,7 +121,7 @@ private:
 
   /// shape functions for all elements
   ByElementTypeReal control_points;
-  
+
 };
 
 

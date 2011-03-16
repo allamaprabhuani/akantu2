@@ -36,10 +36,10 @@ class IntegratorGauss : public Integrator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   IntegratorGauss(Mesh & mesh, IntegratorID id="IntegratorGauss");
   virtual ~IntegratorGauss(){};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -58,7 +58,7 @@ public:
 				 UInt nb_degre_of_freedom,
 				 const UInt elem,
 				 GhostType ghost_type) const;
-  
+
   /// integrate f for all elements of type "type"
   template <ElementType type>
   void integrate(const Vector<Real> & in_f,
@@ -67,21 +67,21 @@ public:
 		 GhostType ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
-  /// integrate scalar field in_f 
+  /// integrate scalar field in_f
   template <ElementType type>
   Real integrate(const Vector<Real> & in_f,
 		 GhostType ghost_type,
-		 const Vector<UInt> * filter_elements) const; 
+		 const Vector<UInt> * filter_elements) const;
 
   /// return a vector with quadrature points natural coordinates
   template <ElementType type> Vector<Real> & getQuadraturePoints() const;
 
   /// compute the vector of quadrature points natural coordinates
   template <ElementType type> void computeQuadraturePoints();
-  
+
   // /// function to print the contain of the class
   // virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -90,7 +90,7 @@ public:
   // static inline UInt getNbQuadraturePoints(const ElementType & type);
 
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -99,7 +99,7 @@ private:
   inline void integrate(Real *f, Real *jac, Real * inte,
 			UInt nb_degre_of_freedom,
 			UInt nb_quadrature_points) const;
-    
+
 
   ByElementTypeReal quadrature_points;
 };
@@ -119,4 +119,3 @@ private:
 // }
 
 __END_AKANTU__
-

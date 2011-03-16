@@ -239,6 +239,7 @@ enum SynchronizerOperation {
   _so_null
 };
 
+
 /* -------------------------------------------------------------------------- */
 /* Global defines                                                             */
 /* -------------------------------------------------------------------------- */
@@ -336,5 +337,8 @@ inline void trim(std::string & to_trim) {
 }
 
 __END_AKANTU__
+
+//#include "aka_types.hh"
+
 
 #endif /* __AKANTU_COMMON_HH__ */

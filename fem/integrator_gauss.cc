@@ -1,6 +1,7 @@
 /**
  * @file   integrator_gauss.cc
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author  Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb 10 16:52:07 2011
  *
  * @brief  implementation of gauss integrator class
@@ -236,7 +237,7 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
 						 Vector<Real> &intf,	\
 						 UInt nb_degre_of_freedom, \
 						 GhostType ghost_type,	\
-						 const Vector<UInt> * filter_elements) const;\
+						 const Vector<UInt> * filter_elements) const; \
   template Real IntegratorGauss::integrate<type>(const Vector<Real> & in_f, \
 						 GhostType ghost_type,	\
 						 const Vector<UInt> * filter_elements) const;

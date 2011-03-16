@@ -100,7 +100,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-template<class T> class Vector : public VectorBase {
+template<typename T> class Vector : public VectorBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -164,6 +164,9 @@ public:
 
   inline iterator<Matrix> begin(UInt m, UInt n);
   inline iterator<Matrix> end(UInt m, UInt n);
+
+  inline reference operator()(UInt i, UInt j = 0);
+  inline const_reference operator()(UInt i, UInt j = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -239,7 +242,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Vector<T>                                                 */
 /* -------------------------------------------------------------------------- */
-template <class T>
+template <typename T>
 inline std::ostream & operator<<(std::ostream & stream, const Vector<T> & _this)
 {
   _this.printself(stream);

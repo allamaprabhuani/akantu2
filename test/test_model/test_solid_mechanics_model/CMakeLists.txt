@@ -77,8 +77,9 @@ endif()
 
 if(AKANTU_MUMPS_ON)
   add_mesh(test_implicit_mesh1 square_implicit.geo 2 1 OUTPUT square_implicit1.msh)
+  add_mesh(test_implicit_mesh2 square_implicit.geo 2 2 OUTPUT square_implicit2.msh)
   register_test(test_solid_mechanics_model_implicit_2d test_solid_mechanics_model_implicit_2d.cc)
-  add_dependencies(test_solid_mechanics_model_implicit_2d test_implicit_mesh1)
+  add_dependencies(test_solid_mechanics_model_implicit_2d test_implicit_mesh1 test_implicit_mesh2)
 
   add_mesh(test_solid_mechanics_model_segment_mesh1 segment.geo 1 1 OUTPUT segment1.msh)
   register_test(test_solid_mechanics_model_implicit_1d test_solid_mechanics_model_implicit_1d.cc)

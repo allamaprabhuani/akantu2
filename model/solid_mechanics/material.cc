@@ -314,6 +314,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   AKANTU_DEBUG_IN();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
+  const Vector<Int> & equation_number = model->getEquationNumber();
 
   Vector<Real> * strain_vect;
   Vector<Real> * stress_vect;
@@ -397,7 +398,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   delete bt_d_b;
 
-  model->getFEM().assembleMatrix(*int_bt_d_b, K, spatial_dimension, type, ghost_type, elem_filter);
+  model->getFEM().assembleMatrix(*int_bt_d_b, K, equation_number, spatial_dimension, type, ghost_type, elem_filter);
   delete int_bt_d_b;
 
   AKANTU_DEBUG_OUT();
