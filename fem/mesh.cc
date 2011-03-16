@@ -56,15 +56,13 @@ Mesh::Mesh(UInt spatial_dimension,
   nb_surfaces(0) {
   AKANTU_DEBUG_IN();
 
-  initConnectivities();
-
   std::stringstream sstr;
   sstr << id << ":coordinates";
   this->nodes = &(alloc<Real>(sstr.str(), 0, this->spatial_dimension));
 
   nb_global_nodes = 0;
 
-  computeBoundingBox();
+  init();
 
   AKANTU_DEBUG_OUT();
 
@@ -82,12 +80,10 @@ Mesh::Mesh(UInt spatial_dimension,
   ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
   AKANTU_DEBUG_IN();
 
-  initConnectivities();
-
   this->nodes = &(getVector<Real>(nodes_id));
   nb_global_nodes = nodes->getSize();
 
-  computeBoundingBox();
+  init();
 
   AKANTU_DEBUG_OUT();
 }
@@ -103,29 +99,51 @@ Mesh::Mesh(UInt spatial_dimension,
   ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
   AKANTU_DEBUG_IN();
 
-  initConnectivities();
-
   this->nodes = &(nodes);
   nb_global_nodes = nodes.getSize();
 
-  computeBoundingBox();
+  init();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::initConnectivities() {
+void Mesh::init() {
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     connectivities[t] = NULL;
     ghost_connectivities[t] = NULL;
     surface_id[t] = NULL;
+
+    uint_data[t].clear();
+    ghost_uint_data[t].clear();
   }
+
   this->types_offsets.resize(_max_element_type);
+
+  nodes_type = NULL;
+  computeBoundingBox();
 }
 
 /* -------------------------------------------------------------------------- */
 Mesh::~Mesh() {
   AKANTU_DEBUG_IN();
+
+  for (UInt t = _not_defined;  t < _max_element_type; ++t) {
+    if(uint_data[t].size() > 0) {
+      UIntDataMap::iterator it;
+      for (it = uint_data[t].begin(); it != uint_data[t].end(); ++it) {
+	if(it->second) delete it->second;
+      }
+      uint_data[t].clear();
+    }
+    if(ghost_uint_data[t].size() > 0) {
+      UIntDataMap::iterator it;
+      for (it = ghost_uint_data[t].begin(); it != ghost_uint_data[t].end(); ++it) {
+	if(it->second) delete it->second;
+      }
+      ghost_uint_data[t].clear();
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }

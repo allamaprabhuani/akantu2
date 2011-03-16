@@ -82,6 +82,10 @@ public:
   void registerTag(GhostSynchronizationTag tag);
 
 protected:
+  /// fill the nodes type vector
+  void fillNodesType(Int * nodes_type_tmp, Mesh & mesh);
+
+
   /// fill the communications array of a communicator based on a partition array
   void fillCommunicationScheme(UInt * partition,
 			       UInt nb_local_element,

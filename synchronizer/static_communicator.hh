@@ -72,9 +72,12 @@ public:
   virtual void send(Real * buffer, Int size, Int receiver, Int tag) = 0;
 
   virtual void receive(UInt * buffer, Int size, Int sender, Int tag) = 0;
+  virtual void receive(Int * buffer, Int size, Int sender, Int tag) = 0;
   virtual void receive(Real * buffer, Int size, Int sender, Int tag) = 0;
 
   virtual CommunicationRequest * asyncSend(UInt * buffer, Int size,
+					   Int receiver, Int tag) = 0;
+  virtual CommunicationRequest * asyncSend(Int * buffer, Int size,
 					   Int receiver, Int tag) = 0;
   virtual CommunicationRequest * asyncSend(Real * buffer, Int size,
 					   Int receiver, Int tag) = 0;

@@ -227,6 +227,10 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
     /// read the header
     if(line == "$MeshFormat") {
       std::getline(infile, line); /// the format line
+      std::stringstream sstr(line);
+      std::string version; sstr >> version;
+      Int format; sstr >> format;
+      if(format != 0) AKANTU_DEBUG_ERROR("This reader can only read ASCII files.");
       std::getline(infile, line); /// the end of block line
       current_line += 2;
       file_format = 2;
@@ -311,12 +315,23 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	  sstr_elem >> nb_tags;
 	  for(UInt j = 0; j < nb_tags; ++j) {
 	    Int tag;
-	    sstr_elem >> tag; ///@todo read to get extended information on elements
+	    sstr_elem >> tag;
+	    std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << j;
+	    Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
+	    data->push_back(tag);
 	  }
 	} else if (file_format == 1) {
 	  Int tag;
 	  sstr_elem >> tag; //reg-phys
+	  std::string tag_name = "tag_0";
+	  Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, tag_name);
+	  data->push_back(tag);
+
 	  sstr_elem >> tag; //reg-elem
+	  tag_name = "tag_1";
+	  data = mesh.getUIntDataPointer(akantu_type, tag_name);
+	  data->push_back(tag);
+
 	  sstr_elem >> tag; //number-of-nodes
 	}
 
@@ -397,7 +412,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
     for(UInt i = 0; i < connectivity.getSize(); ++i) {
       UInt offset = i * connectivity.getNbComponent();
-      outfile << element_idx << " " << _akantu_to_msh_element_types[type] << " 3 1 1 0";
+      outfile << element_idx << " " << _akantu_to_msh_element_types[type] << " 3 1 1 0"; /// \todo write the real data in the file
 
       for(UInt j = 0; j < connectivity.getNbComponent(); ++j) {
 	outfile << " " << connectivity.values[offset + j] + 1;

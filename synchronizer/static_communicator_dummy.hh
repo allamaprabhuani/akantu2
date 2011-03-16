@@ -61,6 +61,10 @@ public:
 		       __attribute__ ((unused)) Int size,
 		       __attribute__ ((unused)) Int sender,
 		       __attribute__ ((unused)) Int tag) {};
+  virtual void receive(__attribute__ ((unused)) Int * buffer,
+		       __attribute__ ((unused)) Int size,
+		       __attribute__ ((unused)) Int sender,
+		       __attribute__ ((unused)) Int tag) {};
   virtual void receive(__attribute__ ((unused)) Real * buffer,
 		       __attribute__ ((unused)) Int size,
 		       __attribute__ ((unused)) Int sender,
@@ -72,7 +76,12 @@ public:
 					   __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
-
+  virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) Int * buffer,
+					   __attribute__ ((unused)) Int size,
+					   __attribute__ ((unused)) Int receiver,
+					   __attribute__ ((unused)) Int tag) {
+    return new CommunicationRequest(0, 0);
+  };
   virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) Real * buffer,
 					   __attribute__ ((unused)) Int size,
 					   __attribute__ ((unused)) Int receiver,

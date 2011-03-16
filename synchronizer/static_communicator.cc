@@ -94,7 +94,7 @@ StaticCommunicator * StaticCommunicator::getStaticCommunicator(__attribute__ ((u
 #ifdef AKANTU_USE_MPI
   if(type == _communicator_mpi) {
     if (!static_communicator)
-      static_communicator = dynamic_cast<StaticCommunicator *>(new StaticCommunicatorMPI(argc, argv));
+      static_communicator = new StaticCommunicatorMPI(argc, argv);
   }
 #endif
 

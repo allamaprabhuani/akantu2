@@ -68,6 +68,8 @@ public:
 				ElementType type,
 				Vector<UInt> & old_nodes);
 
+  static void setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type);
+
   /// Detect closed surfaces of the mesh and save the surface id 
   /// of the surface elements in the array surface_id
   static void buildSurfaceID(Mesh & mesh);

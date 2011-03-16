@@ -368,6 +368,45 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
+void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_element = mesh.getNbElement(type);
+  UInt nb_ghost_element = mesh.getNbGhostElement(type);
+
+  char * names = reinterpret_cast<char *>(data + (nb_element + nb_ghost_element) * nb_tags);
+  Mesh::UIntDataMap & uint_data_map = mesh.getUIntDataMap(type);
+  Mesh::UIntDataMap & ghost_uint_data_map = mesh.getGhostUIntDataMap(type);
+
+  for (UInt t = 0; t < nb_tags; ++t) {
+    std::string name(names);
+    std::cout << name << std::endl;
+    names += name.size() + 1;
+
+
+    Mesh::UIntDataMap::iterator it = uint_data_map.find(name);
+    if(it == uint_data_map.end()) {
+      uint_data_map[name] = new Vector<UInt>(0, 1, name);
+      it = uint_data_map.find(name);
+    }
+    it->second->resize(nb_element);
+    memcpy(it->second->values, data, nb_element * sizeof(UInt));
+    data += nb_element;
+
+    it = ghost_uint_data_map.find(name);
+    if(it == ghost_uint_data_map.end()) {
+      ghost_uint_data_map[name] = new Vector<UInt>(0, 1, name);
+      it = ghost_uint_data_map.find(name);
+    }
+    it->second->resize(nb_ghost_element);
+    memcpy(it->second->values, data, nb_ghost_element * sizeof(UInt));
+    data += nb_ghost_element;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void MeshUtils::buildSurfaceID(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 

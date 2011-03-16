@@ -111,19 +111,24 @@ inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(GhostTyp
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getNodesGlobalIdsPointer() {
   AKANTU_DEBUG_IN();
-
   if(nodes_global_ids == NULL) {
-    std::stringstream sstr;
-    sstr << id << ":nodes_global_ids";
-    nodes_global_ids = &(alloc<UInt>(sstr.str(),
-				     nodes->getSize(),
-				     1));
+    std::stringstream sstr; sstr << id << ":nodes_global_ids";
+    nodes_global_ids = &(alloc<UInt>(sstr.str(), nodes->getSize(), 1));
   }
-
   AKANTU_DEBUG_OUT();
   return nodes_global_ids;
 }
 
+/* -------------------------------------------------------------------------- */
+inline Vector<Int> * Mesh::getNodesTypePointer() {
+  AKANTU_DEBUG_IN();
+  if(nodes_type == NULL) {
+    std::stringstream sstr; sstr << id << ":nodes_type";
+    nodes_type = &(alloc<Int>(sstr.str(), nodes->getSize(), 1, -1));
+  }
+  AKANTU_DEBUG_OUT();
+  return nodes_type;
+}
 
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getConnectivityPointer(ElementType type) {
@@ -188,13 +193,13 @@ inline const Mesh & Mesh::getInternalFacetsMesh() const {
 inline Mesh * Mesh::getInternalFacetsMeshPointer() {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_OUT();
   if (!internal_facets_mesh){
     std::stringstream name(this->id);
     name << ":internalfacets";
     internal_facets_mesh = new Mesh(this->spatial_dimension-1,*this->nodes,name.str());
   }
 
+  AKANTU_DEBUG_OUT();
   return internal_facets_mesh;
 }
 
@@ -215,6 +220,24 @@ inline Vector<UInt> * Mesh::getSurfaceIdPointer(ElementType type) {
 
   AKANTU_DEBUG_OUT();
   return surface_id[type];
+}
+
+/* -------------------------------------------------------------------------- */
+inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
+					       const std::string & data_name) {
+  AKANTU_DEBUG_IN();
+
+  Vector<UInt> * data;
+  Mesh::UIntDataMap::iterator it = uint_data[el_type].find(data_name);
+  if(it == uint_data[el_type].end()) {
+    data = new Vector<UInt>(0, 1, data_name);
+    uint_data[el_type][data_name] = data;
+  } else {
+    data = it->second;
+  }
+
+  AKANTU_DEBUG_OUT();
+  return data;
 }
 
 
@@ -276,6 +299,43 @@ inline const Vector<UInt> & Mesh::getSurfaceId(const ElementType & type) const{
 
   AKANTU_DEBUG_OUT();
   return *surface_id[type];
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Mesh::setSurfaceIdsFromIntData(std::string & data_name) {
+  const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
+
+    UIntDataMap::iterator it_data = uint_data[*it].find(data_name);
+    AKANTU_DEBUG_ASSERT(it_data != uint_data[*it].end(),
+			"No data named " << data_name
+			<< " present in the mesh " << id
+			<< " for the element type " << *it);
+    AKANTU_DEBUG_ASSERT(surface_id[*it] == NULL,
+			"Surface id for type " << *it
+			<< " already set to the vector " << surface_id[*it]->getID());
+
+    surface_id[*it] = it_data->second;
+  }
+
+  const Mesh::ConnectivityTypeList & ghost_type_list = getConnectivityTypeList(_ghost);
+  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
+
+    UIntDataMap::iterator it_data = ghost_uint_data[*it].find(data_name);
+    AKANTU_DEBUG_ASSERT(it_data != ghost_uint_data[*it].end(),
+			"No data named " << data_name
+			<< " present in the mesh " << id
+			<< " for the element type " << *it);
+    AKANTU_DEBUG_ASSERT(ghost_surface_id[*it] == NULL,
+			"Surface id for type " << *it
+			<< " already set to the vector " << ghost_surface_id[*it]->getID());
+
+    ghost_surface_id[*it] = it_data->second;
+  }
+
 }
 
 /* -------------------------------------------------------------------------- */

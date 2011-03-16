@@ -127,8 +127,8 @@ public:
   typedef Vector<Real> * NormalsMap[_max_element_type];
 
 private:
-  /// initialize the connectivity to NULL
-  void initConnectivities();
+  /// initialize the connectivity to NULL and other stuff
+  void init();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -201,6 +201,9 @@ public:
   /// get the global number of nodes
   AKANTU_GET_MACRO(NbGlobalNodes, nb_global_nodes, UInt);
 
+  /// get the nodes type Vector
+  AKANTU_GET_MACRO(NodesType, *nodes_type, const Vector<Int> &);
+
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
@@ -234,6 +237,8 @@ public:
   /// get the surface values of facets
   inline const Vector<UInt> & getSurfaceId(const ElementType & type) const;
 
+  /// set the int data to the surface id vectors
+  inline void setSurfaceIdsFromIntData(std::string & data_name);
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -265,17 +270,33 @@ private:
 
   AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
 
+  /// get a pointer to the nodes_global_ids Vector<UInt> and create it if necessary
   inline Vector<UInt> * getNodesGlobalIdsPointer();
 
+  /// get a pointer to the nodes_type Vector<Int> and create it if necessary
+  inline Vector<Int> * getNodesTypePointer();
+
+  /// get a pointer to the connectivity Vector for the given type and create it if necessary
   inline Vector<UInt> * getConnectivityPointer(ElementType type);
 
+  /// get a pointer to the ghost_connectivity Vector for the given type and create it if necessary
   inline Vector<UInt> * getGhostConnectivityPointer(ElementType type);
 
+  /// get a pointer to the internal_facets Mesh and create it if necessary
   inline Mesh * getInternalFacetsMeshPointer();
 
   // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
+  /// get a pointer to the surface_id Vector for the given type and create it if necessary
   inline Vector<UInt> * getSurfaceIdPointer(ElementType type);
+
+  typedef std::map<std::string, Vector<UInt> * > UIntDataMap;
+  typedef UIntDataMap ByElementTypeUIntDataMap[_max_element_type];
+  /// get the IntDataMap for a given ElementType
+  inline UIntDataMap & getUIntDataMap(const ElementType & el_type) { return uint_data[el_type]; };
+  inline UIntDataMap & getGhostUIntDataMap(const ElementType & el_type) { return ghost_uint_data[el_type]; };
+
+  inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type, const std::string & data_name);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -290,6 +311,10 @@ private:
 
   /// global node ids
   Vector<UInt> * nodes_global_ids;
+
+  /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
+  /// [0-N] slave node and master is proc i
+  Vector<Int> * nodes_type;
 
   /// global number of nodes;
   UInt nb_global_nodes;
@@ -329,6 +354,7 @@ private:
 
   /// surface id of the surface elements in this mesh
   ByElementTypeUInt surface_id;
+  ByElementTypeUInt ghost_surface_id;
 
   /// min of coordinates
   Real xmin[3];
@@ -337,6 +363,10 @@ private:
 
   /// list of elements that are reversed due to pbc
   ByElementTypeUInt reversed_elements_pbc;
+
+  /// list of the vectors corresponding to tags in the mesh
+  ByElementTypeUIntDataMap uint_data;
+  ByElementTypeUIntDataMap ghost_uint_data;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -67,19 +67,44 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline void send(UInt * buffer, Int size, Int receiver, Int tag);
-  inline void send(Real * buffer, Int size, Int receiver, Int tag);
+  inline void send(UInt * buffer, Int size, Int receiver, Int tag) {
+    _send(buffer, size, receiver, tag);
+  };
+  inline void send(Int * buffer, Int size, Int receiver, Int tag) {
+    _send(buffer, size, receiver, tag);
+  };
+  inline void send(Real * buffer, Int size, Int receiver, Int tag) {
+    _send(buffer, size, receiver, tag);
+  };
 
-  inline void receive(UInt * buffer, Int size, Int sender, Int tag);
-  inline void receive(Real * buffer, Int size, Int sender, Int tag);
+  inline void receive(UInt * buffer, Int size, Int sender, Int tag) {
+    _receive(buffer, size, sender, tag);
+  };
+  inline void receive(Int * buffer, Int size, Int sender, Int tag) {
+    _receive(buffer, size, sender, tag);
+  };
+  inline void receive(Real * buffer, Int size, Int sender, Int tag) {
+    _receive(buffer, size, sender, tag);
+  };
 
-  inline CommunicationRequest * asyncSend(UInt * buffer, Int size, Int receiver, Int tag);
-  inline CommunicationRequest * asyncSend(Real * buffer, Int size, Int receiver, Int tag);
+  inline CommunicationRequest * asyncSend(UInt * buffer, Int size, Int receiver, Int tag) {
+    return _asyncSend(buffer, size, receiver, tag);
+  };
+  inline CommunicationRequest * asyncSend(Int * buffer, Int size, Int receiver, Int tag) {
+    return _asyncSend(buffer, size, receiver, tag);
+  };
+  inline CommunicationRequest * asyncSend(Real * buffer, Int size, Int receiver, Int tag) {
+    return _asyncSend(buffer, size, receiver, tag);
+  };
 
   inline CommunicationRequest * asyncReceive(UInt * buffer, Int size,
-					      Int sender, Int tag);
+					      Int sender, Int tag) {
+    return _asyncReceive(buffer, size, sender, tag);
+  };
   inline CommunicationRequest * asyncReceive(Real * buffer, Int size,
-					      Int sender, Int tag);
+					      Int sender, Int tag) {
+    return _asyncReceive(buffer, size, sender, tag);
+  };
 
   inline bool testRequest(CommunicationRequest * request);
 
@@ -108,6 +133,18 @@ public:
 private:
   template<typename T>
   inline MPI_Datatype getMPIDatatype();
+
+  template<typename T>
+  inline void _send(T * buffer, Int size, Int receiver, Int tag);
+
+  template<typename T>
+  inline void _receive(T * buffer, Int size, Int sender, Int tag);
+
+  template<typename T>
+  inline CommunicationRequest * _asyncSend(T * buffer, Int size, Int receiver, Int tag);
+
+  template<typename T>
+  inline CommunicationRequest * _asyncReceive(T * buffer, Int size, Int sender, Int tag);
 
   template<typename T>
   inline void _gather(T * values, Int nb_values, Int root);
