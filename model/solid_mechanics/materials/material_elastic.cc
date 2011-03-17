@@ -76,7 +76,7 @@ void MaterialElastic::computeStress(ElementType el_type, GhostType ghost_type) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  //  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
+  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
 
   computeStress(F, sigma);
 

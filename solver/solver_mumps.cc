@@ -213,13 +213,15 @@ void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom)
 
   UInt local_node_val[2];
   for (UInt n = 0; n < nb_local_nodes; ++n) {
-    local_node_val[0] = global_node_id[n];
-    if(nodes_type[n] == -1 || nodes_type[n] == -2) {
-      local_node_val[1] = 0;
-    } else if (nodes_type[n] >= -1) {
-      local_node_val[1] = 1;
+    if(nodes_type[n] != -3) {
+      local_node_val[0] = global_node_id[n];
+      if(nodes_type[n] == -1 || nodes_type[n] == -2) {
+	local_node_val[1] = 0;
+      } else if (nodes_type[n] >= -1) {
+	local_node_val[1] = 1;
+      }
+      local_nodes.push_back(local_node_val);
     }
-    local_nodes.push_back(local_node_val);
   }
 
   nb_local_nodes = local_nodes.getSize();
@@ -463,7 +465,7 @@ void SolverMumps::solve(Vector<Real> & solution) {
 
   Real * local_rhs_val = local_rhs.values;
   for (UInt n = 0; n < nb_local_nodes; ++n) {
-    if(nodes_type[n] == -1 || nodes_type[n] == -2) {
+    if(nodes_type[n] >= -1) {
       UInt node = n * nb_degre_of_freedom;
       for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
 	solution.values[node + d] = *(local_rhs_val++);

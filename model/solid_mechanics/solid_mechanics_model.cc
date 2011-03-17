@@ -214,8 +214,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /// call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    //(*mat_it)->updateResidual(*current_position, _not_ghost);
-    (*mat_it)->updateResidual(*displacement, _not_ghost);
+    (*mat_it)->updateResidual(*current_position, _not_ghost);
+    //(*mat_it)->updateResidual(*displacement, _not_ghost);
   }
 
   /// finalize communications
@@ -223,8 +223,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 
   /// call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    //(*mat_it)->updateResidual(*current_position, _ghost);
-    (*mat_it)->updateResidual(*displacement, _ghost);
+    (*mat_it)->updateResidual(*current_position, _ghost);
+    //(*mat_it)->updateResidual(*displacement, _ghost);
   }
 
   //  current_position;

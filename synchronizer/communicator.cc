@@ -159,6 +159,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       Mesh::UIntDataMap & uint_data_map = mesh.getUIntDataMap(type);
       UInt nb_tags = uint_data_map.size();
 
+      /* -------------------------------------------------------------------- */
       /// constructing the reordering structures
       for (UInt el = 0; el < nb_element; ++el) {
 	nb_local_element[partition_num[el]]++;
@@ -209,7 +210,8 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	names_size += it_data->first.size() + 1;
       }
 
-      /// send all connectivity and ghost information to all processors
+      /* -------->>>>-SIZE + CONNECTIVITY------------------------------------ */
+       /// send all connectivity and ghost information to all processors
       std::vector<CommunicationRequest *> requests;
       for (UInt p = 0; p < nb_proc; ++p) {
 	if(p != root) {
@@ -249,7 +251,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	delete [] buffers[p];
       }
 
-
+      /* -------------------------------------------------------------------- */
       for (UInt p = 0; p < nb_proc; ++p) {
 	buffers[p] = new UInt[nb_ghost_element[p] + nb_element_to_send[p]];
 	buffers_tmp[p] = buffers[p];
@@ -275,6 +277,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	}
       }
 
+      /* -------->>>>-PARTITIONS--------------------------------------------- */
       /// last data to compute the communication scheme
       for (UInt p = 0; p < nb_proc; ++p) {
 	if(p != root) {
@@ -301,6 +304,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	delete [] buffers[p];
       }
 
+      /* -------------------------------------------------------------------- */
       /// send int data assossiated to the mesh
       if(nb_tags) {
 	UInt uint_names_size = names_size / sizeof(UInt) + (names_size % sizeof(UInt) ? 1 : 0);
@@ -340,6 +344,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	  }
 	}
 
+	/* -------->>>>-TAGS------------------------------------------------- */
 	for (UInt p = 0; p < nb_proc; ++p) {
 	  memcpy((char *)buffers_tmp[p], names, names_size);
 	  if(p != root) {
@@ -361,6 +366,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
     }
 
+    /* -------->>>>-SIZE----------------------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
 	UInt size[6];
@@ -374,6 +380,8 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
     }
 
+    /* ---------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
     /**
      * Nodes coordinate construction and synchronization
      */
@@ -383,6 +391,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     Real * local_nodes = NULL;
     UInt nb_nodes_per_proc[nb_proc];
 
+    /* --------<<<<-NB_NODES + NODES----------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
       UInt nb_nodes;
       UInt * buffer;
@@ -409,6 +418,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	nodes_to_send_tmp += spatial_dimension;
       }
 
+      /* -------->>>>-COORDINATES-------------------------------------------- */
       if(p != root) { /// send them for distant processors
 	delete [] buffer;
 	AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
@@ -443,6 +453,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       }
     }
 
+    /* -------->>>>-NODES_TYPE----------------------------------------------- */
     std::vector<CommunicationRequest *> requests;
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
@@ -471,6 +482,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
      */
     ElementType type = _not_defined;
     do {
+      /* --------<<<<-SIZE--------------------------------------------------- */
       UInt size[6];
       comm->receive(size, 6, root, TAG_SIZES);
 
@@ -484,7 +496,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
       if(type != _not_defined) {
 	UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
+	/* --------<<<<-CONNECTIVITY----------------------------------------- */
 	local_connectivity = new UInt[(nb_local_element + nb_ghost_element) *
 				      nb_nodes_per_element];
 	AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
@@ -502,6 +514,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
 	delete [] local_connectivity;
 
+	/* --------<<<<-PARTITIONS--------------------------------------------- */
 	local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
 	AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
 	comm->receive(local_partitions,
@@ -516,6 +529,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
 	delete [] local_partitions;
 
+	/* --------<<<<-TAGS------------------------------------------------- */
 	if(nb_tags) {
 	  AKANTU_DEBUG_INFO("Receiving associated data from proc " << root);
 	  UInt size = (nb_local_element + nb_ghost_element) * nb_tags
@@ -533,16 +547,19 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     /**
      * Nodes coordinate construction and synchronization on distant processors
      */
+    /* -------->>>>-NB_NODES + NODES----------------------------------------- */
     AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
     UInt nb_nodes = old_nodes->getSize();
     comm->send(&nb_nodes, 1, root, TAG_NB_NODES);
     comm->send(old_nodes->values, nb_nodes, root, TAG_NODES);
 
+    /* --------<<<<-COORDINATES---------------------------------------------- */
     nodes->resize(nb_nodes);
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
     comm->receive(nodes->values, nb_nodes * spatial_dimension, root, TAG_COORDINATES);
 
 
+    /* --------<<<<-NODES_TYPE----------------------------------------------- */
     Int * nodes_types = new Int[nb_nodes];
     AKANTU_DEBUG_INFO("Receiving nodes types from proc " << root);
     comm->receive(nodes_types, nb_nodes,
