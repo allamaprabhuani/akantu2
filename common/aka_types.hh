@@ -37,8 +37,9 @@
 #endif //AKANTU_USE_BLAS
 
 /* -------------------------------------------------------------------------- */
+#ifndef __INTEL_COMPILER
 #include <tr1/unordered_map>
-
+#endif
 
 /* -------------------------------------------------------------------------- */
 
@@ -50,11 +51,17 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* maps                                                                       */
 /* -------------------------------------------------------------------------- */
-
+#ifndef __INTEL_COMPILER
 template<class Key, class Ty>
 struct unordered_map {
   typedef typename std::tr1::unordered_map<Key, Ty> type;
 };
+#else
+template<class Key, class Ty>
+struct unordered_map {
+  typedef typename std::map<Key, Ty> type;
+};
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* matrix                                                                     */
