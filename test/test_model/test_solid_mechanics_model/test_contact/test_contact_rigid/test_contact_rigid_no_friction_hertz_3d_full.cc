@@ -241,16 +241,11 @@ int main(int argc, char *argv[])
     }
    
     // find index of master surface in impactors_information 
-    Int master_index = -1;
-    for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
-      if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
-	master_index = i;
-	break;
-      }
-    }
-    
+    ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp;
+    it_imp = my_contact->getImpactorsInformation().find(master);
+
     // find the total contact force and contact area
-    ContactRigid::ImpactorInformationPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+    ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
     UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real * current_position = my_model.getCurrentPosition().values; 
     Real contact_force = 0.;

@@ -36,6 +36,8 @@
 #include "material.hh"
 #include "contact.hh"
 #include "contact_rigid.hh"
+#include "friction_coefficient.hh"
+#include "unique_constant_fric_coef.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -138,6 +140,10 @@ int main(int argc, char *argv[])
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);  
 
+  UniqueConstantFricCoef * fric_coef = new UniqueConstantFricCoef(*my_contact, master);
+  fric_coef->setParam("mu", "0.3");
+  //my_contact->setFrictionCoefficient(fric_coef);
+
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
   my_contact->initSearch(); // does nothing so far
@@ -230,14 +236,10 @@ int main(int argc, char *argv[])
 
     // give initial velocity
     if(s == imposing_steps+damping_steps) {
-      Int master_index = -1;
-      for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
-	if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
-	  master_index = i;
-	  break;
-	}
-      }
-      ContactRigid::ImpactorInformationPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+      ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp;
+      it_imp = my_contact->getImpactorsInformation().find(master);
+      
+      ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
       bool * stick = imp_info->node_is_sticking->values;
       for(UInt i=0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
 	stick[i*2] = false;
@@ -284,16 +286,11 @@ int main(int argc, char *argv[])
     }
    
     // find index of master surface in impactors_information 
-    Int master_index = -1;
-    for (UInt i=0; i < my_contact->getImpactorsInformation().size(); ++i) {
-      if (my_contact->getImpactorsInformation().at(i)->master_id == master) {
-	master_index = i;
-	break;
-      }
-    }
-    
+    ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp;
+    it_imp = my_contact->getImpactorsInformation().find(master);
+
     // find the total contact force and contact area
-    ContactRigid::ImpactorInformationPerMaster * imp_info = my_contact->getImpactorsInformation().at(master_index);
+    ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
     UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
     Real contact_force = 0.;
     Real contact_zone = 0.;
@@ -334,6 +331,7 @@ int main(int argc, char *argv[])
   out_info.close();
   energy.close();
 
+  delete fric_coef;
   delete my_contact;
  
   finalize();

@@ -161,6 +161,10 @@ set(AKANTU_CONTACT_SRC
   model/solid_mechanics/contact/contact_3d_explicit.cc
   model/solid_mechanics/contact/grid_2d_neighbor_structure.cc
   model/solid_mechanics/contact/contact_rigid.cc
+  model/solid_mechanics/contact/friction_coefficient.cc
+  model/solid_mechanics/contact/friction_coefficient/unique_constant_fric_coef.cc
+  model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef.cc
+  model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef/ruina_slowness_fric_coef.cc
   )
 
 if(AKANTU_BUILD_CONTACT)
@@ -202,6 +206,8 @@ set(AKANTU_INCLUDE_DIRS
   model/solid_mechanics
   model/solid_mechanics/materials
   model/solid_mechanics/contact
+  model/solid_mechanics/contact/friction_coefficient
+  model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef
   synchronizer/
   solver/
   )

@@ -35,6 +35,7 @@
 
 #include "aka_common.hh"
 #include "contact.hh"
+#include "friction_coefficient.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -71,14 +72,23 @@ public:
 
     /// list of active impactor nodes
     Vector<UInt> * active_impactor_nodes;  
+
+    /// the offset of the associated master surface elemet
+    Vector<UInt> * master_element_offset;
+
+    /// the element type of the associated master surface element
+    std::vector<ElementType> * master_element_type;
   
     /// the normal to the master surface element for each active impactor node
-    Vector<Int> * master_normals;
+    Vector<Real> * master_normals;
     
     /// show if node is sticking
     Vector<bool> * node_is_sticking;
   };
-  
+
+  typedef std::map<Surface, ImpactorInformationPerMaster *> SurfaceToImpactInfoMap;
+  typedef std::map<Surface, FrictionCoefficient *> SurfaceToFricCoefMap;
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -109,6 +119,12 @@ public:
   virtual void removeImpactorSurfaceFromMasterSurface(const Surface & impactor_surface,
 						      const Surface & master_surface);
 
+  /// set a friction coefficient for a given master surface
+  virtual void setFrictionCoefficient(FrictionCoefficient * fric_coefficient);
+
+  /// remove a friction coefficient for a given master surface
+  virtual void removeFrictionCoefficient(const Surface master);
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -117,8 +133,15 @@ private:
   //void solvePenetration(const PenetrationList & penet_list);
 
   /// solve penetration to the closest facet
-  void solvePenetrationClosestProjection(const UInt master_index, 
+  void solvePenetrationClosestProjection(const Surface master, 
 					 const PenetrationList & penet_list);
+
+  /// find if the penetrated node is not already in list for this master with this normal
+  bool isAlreadyActiveImpactor(const Surface master, 
+			       const PenetrationList & penet_list, 
+			       const UInt impactor_index, 
+			       const ElementType facet_type, 
+			       const UInt facet_offset);
 
   /// projects the impactor to the projected position
   void projectImpactor(const PenetrationList & penet_list, 
@@ -126,7 +149,7 @@ private:
 		       const ElementType facet_type, 
 		       const UInt facet_offset);
 
-  void lockImpactorNode(const UInt master_index,
+  void lockImpactorNode(const Surface master,
 			const PenetrationList & penet_list, 
 			const UInt impactor_index, 
 			const ElementType facet_type, 
@@ -137,13 +160,10 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the vector full of impactor information objects
-  AKANTU_GET_MACRO(ImpactorsInformation, impactors_information, const std::vector<ImpactorInformationPerMaster *> &);
+  AKANTU_GET_MACRO(ImpactorsInformation, impactors_information, const SurfaceToImpactInfoMap &);
 
-/// get the vector containing the active impactor nodes
-  //AKANTU_GET_MACRO(ActiveImpactorNodes, active_impactor_nodes, const Vector<UInt> *);
-  
-  /// get the vector that indicates if an impactor node sticks
-  //AKANTU_GET_MACRO(NodeIsSticking, node_is_sticking, const Vector<bool> *);
+  /// get spatial dimension
+  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -156,8 +176,10 @@ private:
   const Mesh & mesh;
 
   /// list of impactor nodes info for each master surface
-  std::vector<ImpactorInformationPerMaster *> impactors_information;
+  SurfaceToImpactInfoMap impactors_information;
 
+  /// list of friction coefficient objects for each master surface
+  SurfaceToFricCoefMap friction_coefficient;
 };
 
 

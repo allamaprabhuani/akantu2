@@ -208,6 +208,15 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 
   // find impactor_surfaces for given master
   const  ContactRigid & its_contact = dynamic_cast<const ContactRigid &>(contact_search.getContact());
+  const ContactRigid::SurfaceToImpactInfoMap & imp_info = its_contact.getImpactorsInformation();
+  ContactRigid::SurfaceToImpactInfoMap::const_iterator it;
+
+  it = imp_info.find(this->master_surface);
+  AKANTU_DEBUG_ASSERT(it != imp_info.end(), 
+		      "Could not find impactor surfaces for master surface " << master_surface);
+  std::vector<Surface> * impactor_surfaces = it->second->impactor_surfaces;
+
+  /*
   const std::vector<ContactRigid::ImpactorInformationPerMaster *> imp_info = its_contact.getImpactorsInformation();
   std::vector<Surface> * impactor_surfaces = NULL;
   for (UInt m=0; m < imp_info.size(); ++m) {
@@ -220,6 +229,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 
   AKANTU_DEBUG_ASSERT(impactor_surfaces != NULL, 
 		      "Could not find impactor surfaces for master surface " << master_surface);
+  */
 
   /// find surfaces being in the grid space
   UInt nb_grid_surfaces = 0;

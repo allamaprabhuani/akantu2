@@ -1,7 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
 # @author David Kammer <david.kammer@epfl.ch>
-# @date   Fri Dec 03 11:09:59 2010
+# @date   Mon Mar 07 12:37:24 2011
 #
 # @section LICENSE
 #
@@ -24,12 +24,18 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+add_mesh(test_ruina_slowness_mesh sliding_cube_2d.geo 2 1)
+
+register_test(test_ruina_slowness_2d test_ruina_slowness_2d.cc)
+add_dependencies(test_ruina_slowness_2d test_ruina_slowness_mesh)
 
 #===============================================================================
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
+  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
+  COPYONLY
+  )
 
-add_subdirectory("test_neighbor_structure")
-add_subdirectory("test_contact_search")
-add_subdirectory("test_contact_2d")
-add_subdirectory("test_contact_rigid")
-add_subdirectory("test_friction_coefficient")
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/ruina_slowness_2d)
 
