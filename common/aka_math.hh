@@ -99,6 +99,8 @@ public:
 				     const Real * A,
 				     const Real * B,
 				     Real * C);
+  static void matrix33_eigenvalues(Real * A,
+				    Real * Adiag);
 
   /// determinent of a 3x3 matrix
   static inline Real det3(const Real * mat);
