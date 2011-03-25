@@ -99,18 +99,22 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 							      MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
-#define TAG_SIZES 0
-#define TAG_CONNECTIVITY 1
-#define TAG_DATA 2
-#define TAG_PARTITIONS 3
-#define TAG_NB_NODES 4
-#define TAG_NODES 5
-#define TAG_COORDINATES 6
-#define TAG_NODES_TYPE 7
+  const UInt TAG_SIZES        = 0;
+  const UInt TAG_CONNECTIVITY = 1;
+  const UInt TAG_DATA         = 2;
+  const UInt TAG_PARTITIONS   = 3;
+  const UInt TAG_NB_NODES     = 4;
+  const UInt TAG_NODES        = 5;
+  const UInt TAG_COORDINATES  = 6;
+  const UInt TAG_NODES_TYPE   = 7;
 
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
+
+  Communicator * communicator = new Communicator(id, memory_id);
+
+  if(nb_proc == 1) return communicator;
 
   UInt * local_connectivity = NULL;
   UInt * local_partitions = NULL;
@@ -119,10 +123,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
   Vector<Real> * nodes = mesh.getNodesPointer();
 
   UInt spatial_dimension = nodes->getNbComponent();
-
-  Communicator * communicator = new Communicator(id, memory_id);
-
-  if(nb_proc == 1) return communicator;
 
   /* ------------------------------------------------------------------------ */
   /*  Local (rank == root)                                                    */
@@ -569,8 +569,6 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
   }
 
   comm->broadcast(&(mesh.nb_global_nodes), 1, root);
-
-
 
   AKANTU_DEBUG_OUT();
   return communicator;

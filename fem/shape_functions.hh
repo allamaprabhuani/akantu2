@@ -3,7 +3,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Thu Feb 10 11:35:29 2011
  *
- * @brief shape function class  
+ * @brief shape function class
  *
  * @section LICENSE
  *
@@ -37,13 +37,13 @@ class ShapeFunctions : public Memory {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   ShapeFunctions(Mesh & m,ShapeID myid="shape"){
     mesh = &m;
     id = myid;
   };
   virtual ~ShapeFunctions(){};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -54,14 +54,14 @@ public:
   void precomputeShapesOnControlPoints(const Real * natural_coords,
 				       const UInt nb_points,
 				       GhostType ghost_type);
-  
+
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
   void precomputeShapesDerivativesOnControlPoints(const Real * natural_coords,
 						  const UInt nb_points,
 						  const UInt dimension,
 						  GhostType ghost_type);
-  
+
   /// interpolate nodal values on the control points
   template <ElementType type>
   void interpolateOnControlPoints(const Vector<Real> &u,
@@ -69,6 +69,12 @@ public:
 				  UInt nb_degre_of_freedom,
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
+
+
+  /// multiply a field by shape functions
+  template <ElementType type>
+  void fieldTimesShapes(const Vector<Real> & field,
+			Vector<Real> & fieal_times_shapes);
 
   // /// compute the gradient of u on the constrol points
   // template <ElementType type>
@@ -80,20 +86,20 @@ public:
 
 
   /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const {};
-  
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  
+
 protected:
-  Mesh * mesh;  
+  Mesh * mesh;
 
   ShapeID id;
 };
@@ -104,11 +110,11 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const ShapeFunctions & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+inline std::ostream & operator <<(std::ostream & stream, const ShapeFunctions & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__

@@ -76,6 +76,16 @@ public:
   template <ElementType type>
   void setControlPointsByType(Vector<Real> & control_points);
 
+  /// multiply a field by shape functions
+  template <ElementType type>
+  void fieldTimesShapes(const Vector<Real> & field,
+			Vector<Real> & fiedl_times_shapes,
+			GhostType ghost_type);
+
+
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -121,7 +131,6 @@ private:
 
   /// shape functions for all elements
   ByElementTypeReal control_points;
-
 };
 
 
@@ -132,11 +141,11 @@ private:
 #include "shape_lagrange_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const ShapeLagrange & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+inline std::ostream & operator <<(std::ostream & stream, const ShapeLagrange & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__

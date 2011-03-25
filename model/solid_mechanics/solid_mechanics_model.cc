@@ -214,8 +214,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /// call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->updateResidual(*current_position, _not_ghost);
-    //(*mat_it)->updateResidual(*displacement, _not_ghost);
+    //(*mat_it)->updateResidual(*current_position, _not_ghost);
+    (*mat_it)->updateResidual(*displacement, _not_ghost);
   }
 
   /// finalize communications
@@ -223,8 +223,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 
   /// call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->updateResidual(*current_position, _ghost);
-    //(*mat_it)->updateResidual(*displacement, _ghost);
+    //(*mat_it)->updateResidual(*current_position, _ghost);
+    (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
   //  current_position;
@@ -315,38 +315,36 @@ void SolidMechanicsModel::initImplicitSolver() {
   const Mesh & mesh = getFEM().getMesh();
   UInt nb_nodes = mesh.getNbNodes();
 
+  UInt nb_global_node = mesh.getNbGlobalNodes();
+
   std::stringstream sstr; sstr << id << ":stiffness_matrix";
-  stiffness_matrix = new SparseMatrix(mesh.getNbGlobalNodes() * spatial_dimension, _symmetric,
+  stiffness_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
 				      spatial_dimension, sstr.str(), memory_id);
 
   std::stringstream sstr_eq; sstr_eq << id << ":equation_number";
   equation_number = &(alloc<Int>(sstr_eq.str(), nb_nodes, spatial_dimension, 0));
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  UInt nb_proc = comm->getNbProc();
-
   Int * equation_number_val = equation_number->values;
 
-  UInt * global_nodes_ids_val = NULL;
-  if(nb_proc > 1) global_nodes_ids_val = mesh.getGlobalNodesIds().values;
-
   for (UInt n = 0; n < nb_nodes; ++n) {
-    UInt real_n = (nb_proc == 1) ? n : global_nodes_ids_val[n];
+    UInt real_n = mesh.getNodeGlobalId(n);
+    UInt is_local_node = mesh.isLocalNode(n);
     for (UInt d = 0; d < spatial_dimension; ++d) {
-      UInt global_eq_num = real_n * spatial_dimension + d;
+      UInt global_eq_num = (is_local_node ? real_n : nb_global_node + real_n) * spatial_dimension + d;
       *(equation_number_val++) = global_eq_num;
       local_eq_num_to_global[global_eq_num] = n * spatial_dimension + d;
     }
   }
 
   stiffness_matrix->buildProfile(mesh, *equation_number);
-  stiffness_matrix->saveProfile("tata.mtx");
 
 #ifdef AKANTU_USE_MUMPS
-  // std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
-  // solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+  std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
+  solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
 
-  // solver->initialize();
+  dynamic_cast<SolverMumps *>(solver)->initNodesLocation(getFEM().getMesh(), spatial_dimension);
+
+  solver->initialize();
 #else
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
@@ -362,7 +360,7 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
   updateCurrentPosition();
 
   /// start synchronization
-  asynchronousSynchronize(_gst_smm_for_strain);
+  //  asynchronousSynchronize(_gst_smm_for_strain);
 
   stiffness_matrix->clear();
 
@@ -372,25 +370,9 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
     (*mat_it)->assembleStiffnessMatrix(*current_position, _not_ghost);
   }
 
-  // UInt nb_nodes = getFEM().getMesh().getNbNodes();
-  // residual->resize(nb_nodes);
-
-  // /// copy the forces in residual for boundary conditions
-  // memcpy(residual->values, displacement->values, nb_nodes*spatial_dimension*sizeof(Real));
-
-  // *residual *= *stiffness_matrix;
-
-  // Real * residual_val = residual->values;
-  // Real * force_val = force->values;
-
-  // for (UInt n = 0; n < spatial_dimension*nb_nodes; ++n) {
-  //   *residual_val = *force_val - *residual_val;
-  //   force_val++; residual_val++;
-  // }
 
   /// finalize communications
-  waitEndSynchronize(_gst_smm_for_strain);
-
+  //  waitEndSynchronize(_gst_smm_for_strain);
   // /// call compute stiffness matrix on each ghost elements
   // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
   //   (*mat_it)->computeStiffnessMatrix(*current_position, _ghost);
@@ -412,14 +394,14 @@ void SolidMechanicsModel::solve() {
   stiffness_matrix->applyBoundary(*boundary, local_eq_num_to_global);
   //  stiffness_matrix->removeBoundary(*boundary);
 
-#ifdef AKANTU_USE_MUMPS
-  std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
-  solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
-  dynamic_cast<SolverMumps *>(solver)->initNodesLocation(getFEM().getMesh(), nb_degre_of_freedom);
-#else
-  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
-#endif //AKANTU_USE_MUMPS
-  solver->initialize();
+// #ifdef AKANTU_USE_MUMPS
+//   std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
+//   solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+//   dynamic_cast<SolverMumps *>(solver)->initNodesLocation(getFEM().getMesh(), nb_degre_of_freedom);
+// #else
+//   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+// #endif //AKANTU_USE_MUMPS
+//   solver->initialize();
 
   // Vector<Real> * tmp = new Vector<Real>(0, 1);
   // for (UInt i = 0; i < nb_degre_of_freedom * nb_nodes; ++i) {
@@ -430,7 +412,6 @@ void SolidMechanicsModel::solve() {
   //  solver->setRHS(*tmp);
   //  tmp->clear(); // not needed in fact
   //  solver->solve(*tmp);
-
 
   solver->setRHS(*residual);
 
@@ -457,8 +438,8 @@ void SolidMechanicsModel::solve() {
   //stiffness_matrix->restoreProfile();
 
   //  delete tmp;
-  delete solver;
-  solver = NULL;
+  // delete solver;
+  // solver = NULL;
 
   AKANTU_DEBUG_OUT();
 }
@@ -474,13 +455,17 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
   Real norm = 0;
   Real * increment_val     = increment->values;
   bool * boundary_val      = boundary->values;
+  Mesh & mesh = getFEM().getMesh();
 
-  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
-    if(!(*boundary_val)) {
-      norm += *increment_val * *increment_val;
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
+    for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+      if(!(*boundary_val) && is_local_node) {
+	norm += *increment_val * *increment_val;
+      }
+      boundary_val++;
+      increment_val++;
     }
-    boundary_val++;
-    increment_val++;
   }
 
   allReduce(&norm, _so_sum);
@@ -501,13 +486,22 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
   Real norm = 0;
   Real * residual_val = residual->values;
   bool * boundary_val = boundary->values;
+  Mesh & mesh = getFEM().getMesh();
 
-  for (UInt n = 0; n < nb_nodes * spatial_dimension; ++n) {
-    if(!(*boundary_val)) {
-      norm += *residual_val * *residual_val;
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
+    if(is_local_node) {
+      for (UInt d = 0; d < spatial_dimension; ++d) {
+	if(!(*boundary_val)) {
+	  norm += *residual_val * *residual_val;
+	}
+	boundary_val++;
+	residual_val++;
+      }
+    } else {
+      boundary_val += spatial_dimension;
+      residual_val += spatial_dimension;
     }
-    boundary_val++;
-    residual_val++;
   }
 
   allReduce(&norm, _so_sum);
@@ -630,10 +624,15 @@ Real SolidMechanicsModel::getKineticEnergy() {
   Real * vel_val  = velocity->values;
   Real * mass_val = mass->values;
 
+  Mesh & mesh = getFEM().getMesh();
+
   for (UInt n = 0; n < nb_nodes; ++n) {
     Real v2 = 0;
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      v2 += *vel_val * *vel_val;
+      if(is_local_node) {
+	v2 += *vel_val * *vel_val;
+      }
       vel_val++;
     }
     ekin += *mass_val * v2;

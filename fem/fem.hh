@@ -68,7 +68,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
-  /* ------------------------------------------------------------------------ */ 
+  /* ------------------------------------------------------------------------ */
 
   /// integrate f for all elements of type "type"
   virtual void integrate(const Vector<Real> & f,
@@ -87,7 +87,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* compatibility with old FEM fashion */
   /* ------------------------------------------------------------------------ */
-     
+
   /// get the number of quadrature points
   virtual UInt getNbQuadraturePoints(const ElementType & type)=0;
   /// get the precomputed shapes
@@ -105,7 +105,7 @@ public:
   /* Shape method bridges                                                     */
   /* ------------------------------------------------------------------------ */
 
-  virtual 
+  virtual
   void gradientOnQuadraturePoints(const Vector<Real> &u,
 				  Vector<Real> &nablauq,
 				  const UInt nb_degre_of_freedom,
@@ -113,14 +113,14 @@ public:
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL)=0;
 
-  virtual 
+  virtual
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
 				     GhostType ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const =0;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
   /* ------------------------------------------------------------------------ */
@@ -129,7 +129,7 @@ public:
   virtual void computeNormalsOnControlPoints(GhostType ghost_type = _not_ghost)=0;
 
 
-  
+
   /// assemble vectors
   void assembleVector(const Vector<Real> & elementary_vect,
 		      Vector<Real> & nodal_values,
@@ -148,6 +148,14 @@ public:
 		      const ElementType & type,
 		      GhostType ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL) const;
+
+
+  virtual void assembleFieldLumped(const ByElementTypeReal & field_1,
+				   Vector<Real> & lumped,
+				   GhostType ghost_type) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
+
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

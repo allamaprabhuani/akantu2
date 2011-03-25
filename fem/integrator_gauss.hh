@@ -1,6 +1,7 @@
 /**
  * @file   integrator_gauss.hh
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb 10 16:42:34 2011
  *
  * @brief  Gauss integration facilities

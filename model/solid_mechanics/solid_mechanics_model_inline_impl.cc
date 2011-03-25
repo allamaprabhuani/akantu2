@@ -167,7 +167,8 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
   case _gst_smm_for_strain: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-      memcpy(*buffer, current_position->values + offset_conn, spatial_dimension * sizeof(Real));
+      //      memcpy(*buffer, current_position->values + offset_conn, spatial_dimension * sizeof(Real));
+      memcpy(*buffer, displacement->values + offset_conn, spatial_dimension * sizeof(Real));
       *buffer += spatial_dimension;
     }
 
@@ -237,7 +238,8 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
   case _gst_smm_for_strain: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-      memcpy(current_position->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
+      //      memcpy(current_position->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
+      memcpy(displacement->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
       *buffer += spatial_dimension;
     }
 

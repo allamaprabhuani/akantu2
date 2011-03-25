@@ -39,22 +39,22 @@ class Integrator : public Memory {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   Integrator(Mesh & m, IntegratorID myid="integrator"){
     mesh = &m;
     id = myid;
   };
   virtual ~Integrator(){};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  template <ElementType type>  
+  template <ElementType type>
   inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused)) const UInt dimension,
 						    __attribute__ ((unused)) GhostType ghost_type) { }
-  
+
   void integrateOnElement(__attribute__ ((unused)) const Vector<Real> & f,
 			  __attribute__ ((unused)) Real * intf,
 			  __attribute__ ((unused)) UInt nb_degre_of_freedom,
@@ -63,12 +63,12 @@ public:
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const{};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -77,7 +77,7 @@ public:
 protected:
 
   Mesh * mesh;
-  IntegratorID id;  
+  IntegratorID id;
 
 
   /// jacobians for all elements
@@ -106,4 +106,3 @@ protected:
 __END_AKANTU__
 
 #endif /* __AKANTU_INTEGRATOR_HH__ */
-

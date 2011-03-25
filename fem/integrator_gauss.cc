@@ -49,7 +49,7 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const UInt dimension
 							    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * coord = mesh->getNodes().values;
+  //  Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
 
   UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
@@ -79,7 +79,7 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const UInt dimension
   Real local_coord[spatial_dimension * nb_nodes_per_element];
   for (UInt elem = 0; elem < nb_element; ++elem) {
     mesh->extractNodalCoordinatesFromElement(local_coord,
-					     coord,elem_val+elem*nb_nodes_per_element,
+					     elem_val+elem*nb_nodes_per_element,
 					     nb_nodes_per_element);
 
     Real * quad = ElementClass<type>::getQuadraturePoints();

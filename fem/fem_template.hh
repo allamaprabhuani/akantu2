@@ -49,7 +49,7 @@ public:
 	      FEMID id = "fem", MemoryID memory_id = 0);
 
   virtual ~FEMTemplate();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -57,7 +57,7 @@ public:
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(GhostType ghost_type = _not_ghost);
-  
+
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
   /* ------------------------------------------------------------------------ */
@@ -101,7 +101,7 @@ public:
 				  const UInt nb_degre_of_freedom,
 				  const ElementType & type,
 				  GhostType ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL);  
+				  const Vector<UInt> * filter_elements = NULL);
 
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
@@ -109,7 +109,7 @@ public:
 				     const ElementType & type,
 				     GhostType ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
   /* ------------------------------------------------------------------------ */
@@ -119,12 +119,31 @@ public:
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const{};
-  
+
+  void assembleFieldLumped(const ByElementTypeReal & field_1,
+			   Vector<Real> & lumped,
+			   GhostType ghost_type);
+
+private:
+
+  template <ElementType type>
+  void assembleLumpedTemplate(const Vector<Real> & field_1,
+			      Vector<Real> & lumped,
+			      GhostType ghost_type);
+  template <ElementType type>
+  void assembleLumpedRowSum(const Vector<Real> & field_1,
+			    Vector<Real> & lumped,
+			    GhostType ghost_type);
+  template <ElementType type>
+  void assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
+				     Vector<Real> & lumped,
+				     GhostType ghost_type);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -132,7 +151,7 @@ private:
 
   Integ integrator;
   Shape shape_functions;
-  
+
 };
 
 

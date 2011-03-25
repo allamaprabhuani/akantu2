@@ -195,7 +195,7 @@ public:
   void resize(UInt size);
 
   /// change the number of components by interlacing data
-  void extendComponentsInterlaced(UInt multiplicator,UInt stride);
+  void extendComponentsInterlaced(UInt multiplicator, UInt stride);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -208,6 +208,9 @@ public:
 
   /// set a vvector to 0
   inline void clear() { memset(values, 0, size*nb_component*sizeof(T)); };
+
+  /// copy the content of an other vector
+  void copy(const Vector<T> & vect);
 
 protected:
   /// perform the allocation for the constructors

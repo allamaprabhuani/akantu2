@@ -170,8 +170,10 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 
   Real * elementary_mat_val = elementary_mat.values;
   UInt offset_elementary_mat = elementary_mat.getNbComponent();
-  UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
   UInt * connectivity_val = mesh->getConnectivity(type).values;
+
+  UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
+  UInt size = mesh->getNbGlobalNodes() * nb_degre_of_freedom;
 
   Int * eq_nb_val = equation_number.values;
   Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
@@ -189,9 +191,15 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
     }
 
     for (UInt i = 0; i < size_mat; ++i) {
-      UInt j_start = (matrix.getSparseMatrixType() == _symmetric) ? i : 0;
-      for (UInt j = j_start; j < size_mat; ++j) {
-	matrix(local_eq_nb_val[i], local_eq_nb_val[j]) += elementary_mat_val[i * size_mat + j];
+      UInt c_irn = local_eq_nb_val[i];
+      if(c_irn < size) {
+	UInt j_start = (matrix.getSparseMatrixType() == _symmetric) ? i : 0;
+	for (UInt j = j_start; j < size_mat; ++j) {
+	  UInt c_jcn = local_eq_nb_val[j];
+	  if(c_jcn < size) {
+	    matrix(c_irn, c_jcn) += elementary_mat_val[i * size_mat + j];
+	  }
+	}
       }
     }
     elementary_mat_val += offset_elementary_mat;
@@ -201,8 +209,6 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 
   AKANTU_DEBUG_OUT();
 }
-
-
 
 /* -------------------------------------------------------------------------- */
 void FEM::printself(std::ostream & stream, int indent) const {
@@ -217,20 +223,9 @@ void FEM::printself(std::ostream & stream, int indent) const {
   mesh->printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
-  // stream << space << " + connectivity type information [" << std::endl;
-  // const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
-  // Mesh::ConnectivityTypeList::const_iterator it;
-  // for(it = type_list.begin(); it != type_list.end(); ++it) {
-  //   if (mesh->getSpatialDimension(*it) != element_dimension) continue;
-  //   stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
-  //   // if(shapes[*it]) {
-  //   //   shapes            [*it]->printself(stream, indent + 3);
-  //   //   shapes_derivatives[*it]->printself(stream, indent + 3);
-  //   //   jacobians         [*it]->printself(stream, indent + 3);
-  //   // }
-  //   stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
-  // }
-  // stream << space << AKANTU_INDENT << "]" << std::endl;
+  stream << space << " + mesh [" << std::endl;
+  mesh->printself(stream, indent + 2);
+  stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << "]" << std::endl;
 }

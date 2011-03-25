@@ -431,17 +431,37 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
-						     Real * coord,
 						     UInt * connectivity,
 						     UInt n_nodes){
-  for (UInt id = 0; id < n_nodes; ++id) {
-    memcpy(local_coord + id * spatial_dimension,
-	   coord + connectivity[id] * spatial_dimension,
-	   spatial_dimension*sizeof(Real));
+  for (UInt n = 0; n < n_nodes; ++n) {
+    memcpy(local_coord + n * spatial_dimension,
+	   nodes->values + connectivity[n] * spatial_dimension,
+	   spatial_dimension * sizeof(Real));
   }
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::addConnecticityType(const ElementType & type){
   getConnectivityPointer(type);
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool Mesh::isLocalNode(UInt n) const {
+  return nodes_type ? (*nodes_type)(n) >= -2 : true;
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool Mesh::isLocalOrMasterNode(UInt n) const {
+  return nodes_type ? (*nodes_type)(n) == -2 || (*nodes_type)(n) == -1 : true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNodeGlobalId(UInt local_id) const {
+  return nodes_global_ids ? (*nodes_global_ids)(local_id) : local_id;
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNbGlobalNodes() const {
+  return nodes_global_ids ? nb_global_nodes : nodes->getSize();
 }

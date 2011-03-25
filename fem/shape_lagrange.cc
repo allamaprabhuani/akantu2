@@ -30,6 +30,8 @@
 #include "aka_memory.hh"
 #include "mesh.hh"
 #include "shape_lagrange.hh"
+#include "element_class.hh"
+
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
@@ -90,7 +92,7 @@ template <ElementType type>
 void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * coord = mesh->getNodes().values;
+  //  Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
 
   UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
@@ -122,7 +124,6 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
   Real local_coord[spatial_dimension * nb_nodes_per_element];
   for (UInt elem = 0; elem < nb_element; ++elem) {
     mesh->extractNodalCoordinatesFromElement(local_coord,
-					     coord,
 					     elem_val+elem*nb_nodes_per_element,
 					     nb_nodes_per_element);
 
@@ -334,25 +335,87 @@ void ShapeLagrange::setControlPointsByType(Vector<Real> & points){
   control_points[type] = &points;
 }
 
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+void ShapeLagrange::fieldTimesShapes(const Vector<Real> & field,
+				     Vector<Real> & field_times_shapes,
+				     GhostType ghost_type) {
+  field_times_shapes.copy(field);
+  field_times_shapes.extendComponentsInterlaced(ElementClass<type>::getShapeSize(), 1);
+
+  UInt nb_element = field_times_shapes.getSize() * ElementClass<type>::getShapeSize();
+
+  Real * field_times_shapes_val = field_times_shapes.values;
+  Real * shapes_val;
+  if(ghost_type == _not_ghost) {
+    shapes_val = shapes[type]->values;
+  } else {
+    shapes_val = ghost_shapes[type]->values;
+  }
+
+  /// compute @f$ rho * \varphi_i @f$ for each nodes of each element
+  for (UInt el = 0; el < nb_element; ++el) {
+    *field_times_shapes_val++ *= *shapes_val++;
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+void ShapeLagrange::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << space << "Shapes Lagrange [" << std::endl;
+  for(UInt type = _not_defined; type < _max_element_type; ++type) {
+    if(shapes[type])
+      shapes[type]->printself(stream, indent + 1);
+
+    if(ghost_shapes[type])
+      ghost_shapes[type]->printself(stream, indent + 1);
+
+    if(shapes_derivatives[type])
+      shapes_derivatives[type]->printself(stream, indent + 1);
+
+    if(ghost_shapes_derivatives[type])
+      ghost_shapes_derivatives[type]->printself(stream, indent + 1);
+
+    if(control_points[type])
+      control_points[type]->printself(stream, indent + 1);
+  }
+
+  stream << space << "]" << std::endl;
+
+
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* template instanciation */
 /* -------------------------------------------------------------------------- */
 
 #define INSTANCIATE_TEMPLATE_CLASS(type)				\
-  template void ShapeLagrange::precomputeShapesOnControlPoints<type>(GhostType ghost_type); \
-  template void ShapeLagrange::precomputeShapeDerivativesOnControlPoints<type>(GhostType ghost_type); \
-  template void ShapeLagrange::setControlPointsByType<type>(Vector<Real> & control_points); \
-  template void ShapeLagrange::gradientOnControlPoints<type>(const Vector<Real> &in_u, \
-							     Vector<Real> &out_nablauq,	\
-							     UInt nb_degre_of_freedom, \
-							     GhostType ghost_type, \
-							     const Vector<UInt> * filter_elements) const; \
-  template void ShapeLagrange::interpolateOnControlPoints<type>(const Vector<Real> &in_u, \
-								Vector<Real> &out_uq, \
-								UInt nb_degre_of_freedom, \
-								GhostType ghost_type, \
-								const Vector<UInt> * filter_elements) const;
+  template								\
+  void ShapeLagrange::precomputeShapesOnControlPoints<type>(GhostType ghost_type); \
+  template								\
+  void ShapeLagrange::precomputeShapeDerivativesOnControlPoints<type>(GhostType ghost_type); \
+  template								\
+  void ShapeLagrange::setControlPointsByType<type>(Vector<Real> & control_points); \
+  template								\
+  void ShapeLagrange::gradientOnControlPoints<type>(const Vector<Real> &in_u, \
+						    Vector<Real> &out_nablauq, \
+						    UInt nb_degre_of_freedom, \
+						    GhostType ghost_type, \
+						    const Vector<UInt> * filter_elements) const; \
+  template								\
+  void ShapeLagrange::interpolateOnControlPoints<type>(const Vector<Real> &in_u, \
+						       Vector<Real> &out_uq, \
+						       UInt nb_degre_of_freedom, \
+						       GhostType ghost_type, \
+						       const Vector<UInt> * filter_elements) const; \
+  template								\
+  void ShapeLagrange::fieldTimesShapes<type>(const Vector<Real> & field, \
+					     Vector<Real> & field_times_shapes, \
+					     GhostType ghost_type);
 
 AKANTU_BOOST_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
 #undef INSTANCIATE_TEMPLATE_CLASS

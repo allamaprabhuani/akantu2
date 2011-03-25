@@ -157,7 +157,6 @@ public:
 
   /// extract coordinates of nodes from an element
   inline void extractNodalCoordinatesFromElement(Real * local_coords,
-						 Real * coord,
 						 UInt * connectivity,
 						 UInt n_nodes);
 
@@ -195,14 +194,25 @@ public:
   AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
   /// get the number of nodes
   AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
+
   /// get the Vector of global ids of the nodes (only used in parallel)
   AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Vector<UInt> &);
 
+  /// get the global id of a node
+  inline UInt getNodeGlobalId(UInt local_id) const;
+
   /// get the global number of nodes
-  AKANTU_GET_MACRO(NbGlobalNodes, nb_global_nodes, UInt);
+  inline UInt getNbGlobalNodes() const;
 
   /// get the nodes type Vector
   AKANTU_GET_MACRO(NodesType, *nodes_type, const Vector<Int> &);
+
+  /// say if a node is local or not
+  inline bool isLocalNode(UInt n) const;
+
+  /// say if a node is pur local or master node
+  inline bool isLocalOrMasterNode(UInt n) const;
+
 
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);

@@ -298,6 +298,7 @@ protected:
 
 
 
+/* -------------------------------------------------------------------------- */
 inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)
 {
   _this.printself(stream);

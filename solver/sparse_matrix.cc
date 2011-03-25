@@ -161,17 +161,21 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_
 
       for (UInt i = 0; i < size_mat; ++i) {
 	UInt c_irn = local_eq_nb_val[i];
-	UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
-	for (UInt j = j_start; j < size_mat; ++j) {
-	  UInt c_jcn = local_eq_nb_val[j];
-	  UInt irn_jcn = key(c_irn, c_jcn);
-	  irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
+	if(c_irn < size) {
+	  UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
+	  for (UInt j = j_start; j < size_mat; ++j) {
+	    UInt c_jcn = local_eq_nb_val[j];
+	    if(c_jcn < size) {
+	      UInt irn_jcn = key(c_irn, c_jcn);
+	      irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
 
-	  if (irn_jcn_k_it == irn_jcn_k.end()) {
-	    irn_jcn_k[irn_jcn] = nb_non_zero;
-	    irn.push_back(c_irn + 1);
-	    jcn.push_back(c_jcn + 1);
-	    nb_non_zero++;
+	      if (irn_jcn_k_it == irn_jcn_k.end()) {
+		irn_jcn_k[irn_jcn] = nb_non_zero;
+		irn.push_back(c_irn + 1);
+		jcn.push_back(c_jcn + 1);
+		nb_non_zero++;
+	      }
+	    }
 	  }
 	}
       }
@@ -215,7 +219,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::applyBoundary(const Vector<bool> & boundary, 
+void SparseMatrix::applyBoundary(const Vector<bool> & boundary,
 				 const unordered_map<UInt, UInt>::type & local_eq_num_to_global) {
   AKANTU_DEBUG_IN();
 

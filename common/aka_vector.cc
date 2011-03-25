@@ -271,6 +271,21 @@ template <> Int Vector<Real>::find(const Real & elem) const {
 }
 
 /* -------------------------------------------------------------------------- */
+template <class T> void Vector<T>::copy(const Vector<T>& vect) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(vect.nb_component == nb_component,
+		      "The two vectors does not have the same number of components");
+
+  this->id = vect.id;
+  resize(vect.size);
+
+  memcpy(this->values, vect.values, vect.size * nb_component * sizeof(T));
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 template <class T> void Vector<T>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
@@ -313,9 +328,9 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   stream << space << "]" << std::endl;
 }
 
-/* -------------------------------------------------------------------------- */
-class MaterialBase;
 
+
+/* -------------------------------------------------------------------------- */
 template class Vector<Int>;
 template class Vector<UInt>;
 template class Vector<Real>;

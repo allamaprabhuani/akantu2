@@ -75,7 +75,7 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
     UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it);
 
     getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
-						quad_coords, spatial_dimension, (*it));
+						   quad_coords, spatial_dimension, (*it));
 
 
     Real * imposed_val = NULL;

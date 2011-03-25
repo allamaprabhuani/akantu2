@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     mesh_io.read("square_implicit2.msh", mesh);
 
     akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
-    partition->reorder();
+    //   partition->reorder();
     partition->partitionate(psize);
 
     communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
@@ -162,12 +162,12 @@ int main(int argc, char *argv[])
 			  spatial_dimension, "applied_force");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "forces");
-  akantu::Real * nodes_type = new akantu::Real[nb_nodes];
-  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    nodes_type[i] = mesh.getNodesType()(i, 0);
-  }
+  // akantu::Real * nodes_type = new akantu::Real[nb_nodes];
+  // for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+  //   nodes_type[i] = mesh.getNodesType()(i, 0);
+  // }
 
-  dumper.AddNodeDataField(nodes_type, 1, "nodes_type");
+  // dumper.AddNodeDataField(nodes_type, 1, "nodes_type");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
 			  spatial_dimension*spatial_dimension, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
@@ -195,13 +195,19 @@ int main(int argc, char *argv[])
     model->getStiffnessMatrix().saveMatrix(sstr.str());
     model->solve();
 
-    // akantu::debug::setDebugLevel(akantu::dblDump);
-    // std::cout << model->getDisplacement() << std::endl;
-    // akantu::debug::setDebugLevel(akantu::dblInfo);
+    akantu::debug::setDebugLevel(akantu::dblDump);
+    std::cout << boundary << std::endl;
+    std::cout << position << std::endl;
+    akantu::debug::setDebugLevel(akantu::dblInfo);
 
     model->getStiffnessMatrix().saveMatrix("Ktmp.mtx");
 
     model->updateResidual();
+
+    akantu::debug::setDebugLevel(akantu::dblDump);
+    std::cout << model->getResidual() << std::endl;
+    akantu::debug::setDebugLevel(akantu::dblInfo);
+
     //    model->assembleStiffnessMatrix();
 #ifdef AKANTU_USE_IOHELPER
     dumper.Dump();

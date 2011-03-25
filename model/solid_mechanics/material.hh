@@ -161,6 +161,7 @@ public:
 
   Real getPotentialEnergy();
 
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementFilter, element_filter, const Vector<UInt> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Strain, strain, const Vector<Real> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Stress, stress, const Vector<Real> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(PotentialEnergy, potential_energy, const Vector<Real> &);

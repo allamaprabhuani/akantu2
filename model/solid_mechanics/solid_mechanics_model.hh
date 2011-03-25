@@ -265,6 +265,9 @@ public:
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
 
+  /// give the number of materials
+  inline UInt getNbMaterials() { return materials.size(); };
+
   /// compute the stable time step
   Real getStableTimeStep();
 
