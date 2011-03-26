@@ -446,8 +446,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       std::multimap< UInt, std::pair<UInt, UInt> >::iterator > it_range;
     for (UInt i = 0; i < mesh.nb_global_nodes; ++i) {
       it_range = nodes_to_proc.equal_range(i);
-      Int node_type = (it_range.first == it_range.second) ?
-	-1 : (it_range.first)->second.first;
+      Int node_type = (it_range.first == it_range.second) ? -1 : (Int) (it_range.first)->second.first;
       for (it_node = it_range.first; it_node != it_range.second; ++it_node) {
 	nodes_type_per_proc[it_node->second.first]->values[it_node->second.second] = node_type;
       }

@@ -286,9 +286,6 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostTyp
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
-  K.clear();
-
   const Mesh::ConnectivityTypeList & type_list =
     model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;

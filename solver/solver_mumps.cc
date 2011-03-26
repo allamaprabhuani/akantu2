@@ -414,11 +414,11 @@ void SolverMumps::setRHS(Vector<Real> & rhs) {
   }
 #endif
 
-  if(communicator->whoAmI() == 0) {
-    debug::setDebugLevel(dblDump);
-    std::cout << *(this->rhs) << std::endl;
-    debug::setDebugLevel(dblInfo);
-  }
+  // if(communicator->whoAmI() == 0) {
+  //   debug::setDebugLevel(dblDump);
+  //   std::cout << *(this->rhs) << std::endl;
+  //   debug::setDebugLevel(dblInfo);
+  // }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -456,11 +456,11 @@ void SolverMumps::solve(Vector<Real> & solution) {
 
   solve();
 
-  if(communicator->whoAmI() == 0) {
-    debug::setDebugLevel(dblDump);
-    std::cout << *(this->rhs) << std::endl;
-    debug::setDebugLevel(dblInfo);
-  }
+  // if(communicator->whoAmI() == 0) {
+  //   debug::setDebugLevel(dblDump);
+  //   std::cout << *(this->rhs) << std::endl;
+  //   debug::setDebugLevel(dblInfo);
+  // }
 
 
 #ifdef AKANTU_USE_MPI
@@ -513,9 +513,9 @@ void SolverMumps::solve(Vector<Real> & solution) {
  }
 #endif
 
-  debug::setDebugLevel(dblDump);
-  std::cout << solution << std::endl;
-  debug::setDebugLevel(dblInfo);
+  // debug::setDebugLevel(dblDump);
+  // std::cout << solution << std::endl;
+  // debug::setDebugLevel(dblInfo);
 
   AKANTU_DEBUG_OUT();
 }

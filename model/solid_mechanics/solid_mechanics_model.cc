@@ -370,14 +370,12 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
     (*mat_it)->assembleStiffnessMatrix(*current_position, _not_ghost);
   }
 
-
   /// finalize communications
   //  waitEndSynchronize(_gst_smm_for_strain);
   // /// call compute stiffness matrix on each ghost elements
   // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
   //   (*mat_it)->computeStiffnessMatrix(*current_position, _ghost);
   // }
-
 
   AKANTU_DEBUG_OUT();
 }

@@ -39,3 +39,5 @@ endif()
 if(AKANTU_EPSN_ON)
   add_example(epsn "Example of steering akantu with EPSN")
 endif(AKANTU_EPSN_ON)
+
+include(local_test.cmake)
