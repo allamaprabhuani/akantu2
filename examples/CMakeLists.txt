@@ -40,4 +40,6 @@ if(AKANTU_EPSN_ON)
   add_example(epsn "Example of steering akantu with EPSN")
 endif(AKANTU_EPSN_ON)
 
-include(local_test.cmake)
+if(EXISTS "${PROJECT_SOURCE_DIR}/local_examples.cmake")
+  include("local_examples.cmake")
+endif(EXISTS "${PROJECT_SOURCE_DIR}/local_examples.cmake")
