@@ -49,6 +49,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 const MemoryID & memory_id) :
   Model(id, memory_id),
   time_step(NAN), f_m2a(1.0),
+  mass_matrix(NULL),
+  velocity_damping_matrix(NULL),
   stiffness_matrix(NULL),
   integrator(new CentralDifference()),
   increment_flag(false), solver(NULL),
@@ -96,6 +98,8 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   delete integrator;
 
   if(solver) delete solver;
+  if(mass_matrix) delete mass_matrix;
+  if(velocity_damping_matrix) delete velocity_damping_matrix;
   if(stiffness_matrix) delete stiffness_matrix;
 
   AKANTU_DEBUG_OUT();

@@ -140,6 +140,7 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
+#  mesh_utils/mesh_io/mesh_io_diana.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
   solver/sparse_matrix.cc

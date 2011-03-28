@@ -363,21 +363,16 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getQuadraturePoints(const 
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
-void FEMTemplate<Integ,Shape>::assembleFieldLumped(const ByElementTypeReal & field_1,
+void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
 						   Vector<Real> & lumped,
+						   ElementType type,
 						   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
 #define ASSEMBLE_LUMPED(type)					\
-  assembleLumpedTemplate<type>(*field_1[type], lumped, ghost_type)
+  assembleLumpedTemplate<type>(field_1, lumped, ghost_type)
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != element_dimension) continue;
-    ElementType type = *it;
-    AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_LUMPED);
-  }
+  AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_LUMPED);
 
 #undef ASSEMBLE_LUMPED
   AKANTU_DEBUG_OUT();

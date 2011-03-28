@@ -36,17 +36,39 @@
 inline void Math::matrix_vector(UInt m, UInt n,
 				const Real * A,
 				const Real * x,
-				Real * y) {
+				Real * y, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   /// y = alpha*op(A)*x + beta*y
   cblas_dgemv(CblasRowMajor, CblasNoTrans,
-	      m, n, 1, A, n, x, 1, 0, y, 1);
+	      m, n, alpha, A, n, x, 1, 0, y, 1);
 #else
   memset(y, 0, m*sizeof(Real));
   for (UInt i = 0; i < m; ++i) {
     UInt A_i = i * n;
     for (UInt j = 0; j < n; ++j) {
       y[i] += A[A_i + j] * x[j];
+    }
+    y[i] *= alpha;
+  }
+#endif
+}
+
+
+/* -------------------------------------------------------------------------- */
+inline void Math::matrixt_vector(UInt m, UInt n,
+				 const Real * A,
+				 const Real * x,
+				 Real * y, Real alpha) {
+#ifdef AKANTU_USE_BLAS
+  /// y = alpha*op(A)*x + beta*y
+  cblas_dgemv(CblasRowMajor, CblasNoTrans,
+	      m, n, alpha, A, m, x, 1, 0, y, 1);
+#else
+  memset(y, 0, m*sizeof(Real));
+  for (UInt i = 0; i < m; ++i) {
+    Real xt = alpha * x[i];
+    for (UInt j = 0; j < n; ++j) {
+      y[j] += A[i + j * m] * xt;
     }
   }
 #endif
@@ -56,12 +78,12 @@ inline void Math::matrix_vector(UInt m, UInt n,
 inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
 				const Real * A,
 				const Real * B,
-				Real * C) {
+				Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
 	      m, n, k,
-	      1,
+	      alpha,
 	      A, k,
 	      B, n,
 	      0,
@@ -75,6 +97,7 @@ inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
       for (UInt l = 0; l < k; ++l) {
 	C[C_i + j] += A[A_i + l] * B[l * n + j];
       }
+      C[C_i + j] *= alpha;
     }
   }
 #endif
@@ -84,12 +107,12 @@ inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
 inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
 				 const Real * A,
 				 const Real * B,
-				 Real * C) {
+				 Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
 	      m, n, k,
-	      1,
+	      alpha,
 	      A, m,
 	      B, n,
 	      0,
@@ -103,6 +126,7 @@ inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
       for (UInt l = 0; l < k; ++l) {
 	C[C_i + j] += A[l * m + i] * B[l * n + j];
       }
+      C[C_i + j] *= alpha;
     }
   }
 #endif
@@ -112,12 +136,12 @@ inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
 inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 				const Real * A,
 				const Real * B,
-				Real * C) {
+				Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
 	      m, n, k,
-	      1,
+	      alpha,
 	      A, k,
 	      B, k,
 	      0,
@@ -132,6 +156,7 @@ inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
       for (UInt l = 0; l < k; ++l) {
 	C[C_i + j] += A[A_i + l] * B[B_j + l];
       }
+      C[C_i + j] *= alpha;
     }
   }
 #endif
@@ -141,12 +166,12 @@ inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 				  const Real * A,
 				  const Real * B,
-				  Real * C) {
+				  Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   cblas_dgemm(CblasRowMajor, CblasTrans, CblasTrans,
 	      m, n, k,
-	      1,
+	      alpha,
 	      A, m,
 	      B, k,
 	      0,
@@ -160,10 +185,54 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
       for (UInt l = 0; l < k; ++l) {
 	C[C_i + j] += A[l * m + i] * B[B_j + l];
       }
+      C[C_i + j] *= alpha;
     }
   }
 #endif
 }
+
+/* -------------------------------------------------------------------------- */
+template <bool tr_A, bool tr_B>
+inline void Math::matMul(UInt m, UInt n, UInt k,
+			 Real alpha, const Real * A, const Real * B,
+			 Real beta,  Real * C) {
+  // #ifndef AKANTU_USE_BLAS
+  if(tr_A) {
+    if(tr_B) matrixt_matrixt(m, n, k, A, B, C, alpha);
+    else matrixt_matrix(m, n, k, A, B, C, alpha);
+  } else {
+    if(tr_B) matrix_matrixt(m, n, k, A, B, C, alpha);
+    else matrix_matrix(m, n, k, A, B, C, alpha);
+  }
+  // #else
+  //   static CBLAS_TRANSPOSE transpose[2] = {CblasNoTrans, CblasTrans};
+  //   cblas_dgemm(CblasRowMajor, transpose[tr_A], transpose[tr_B],
+  // 	      m, n, k,
+  // 	      alpha, A, m, B, k,
+  // 	      beta, C, n);
+  // #endif
+}
+
+/* -------------------------------------------------------------------------- */
+template <bool tr_A>
+inline void Math::matVectMul(UInt m, UInt n,
+			     Real alpha, const Real * A, const Real * x,
+			     Real beta, Real * y) {
+  //#ifndef AKANTU_USE_BLAS
+  if(tr_A) {
+    matrixt_vector(m, n, A, x, y, alpha);
+  } else {
+    matrix_vector(m, n, A, x, y, alpha);
+  }
+  // #else
+  //   static CBLAS_TRANSPOSE transpose[2] = {CblasNoTrans, CblasTrans};
+  //   cblas_dgemv(CblasRowMajor, transpose[tr_A],
+  // 	      m, n,
+  // 	      alpha, A, m, x, 1,
+  // 	      beta, y, 1);
+  // #endif
+}
+
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::det2(const Real * mat) {

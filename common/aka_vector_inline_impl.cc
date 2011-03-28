@@ -225,12 +225,12 @@ inline bool Vector<T>::iterator<Ret>::operator!=(const iterator & other) {
 /* -------------------------------------------------------------------------- */
 template<>
 template<>
-class Vector<Real>::iterator<Matrix> {
+class Vector<Real>::iterator<types::Matrix> {
 public:
   iterator() : ret(NULL), offset(0) {
   };
 
-  iterator(Real * data, UInt offset, UInt m, UInt n) : ret(new Matrix(data, m, n)), offset(offset) {
+  iterator(Real * data, UInt offset, UInt m, UInt n) : ret(new types::Matrix(data, m, n)), offset(offset) {
     AKANTU_DEBUG_ASSERT(offset == n*m,
 			"The iterator is not compatible with the type Matrix(" << m << "," << n<< ")");
   };
@@ -238,7 +238,7 @@ public:
   iterator(const iterator & it) {
     if(this != &it) {
       offset = it.offset;
-      ret = new Matrix(it.ret->values, it.ret->m, it.ret->n);
+      ret = new types::Matrix(it.ret->values, it.ret->m, it.ret->n);
     }
   };
 
@@ -247,12 +247,12 @@ public:
   inline iterator & operator=(const iterator & it) {
     if(this != &it) {
       offset = it.offset;
-      ret = new Matrix(it.ret->values, it.ret->m, it.ret->n);
+      ret = new types::Matrix(it.ret->values, it.ret->m, it.ret->n);
     }
     return *this;
   };
 
-  inline Matrix & operator*() { return *ret; };
+  inline types::Matrix & operator*() { return *ret; };
   inline iterator & operator++() { ret->values += offset; return *this; };
 
   inline iterator & operator+=(const UInt n) { ret->values += n*offset; return *this; };
@@ -261,19 +261,19 @@ public:
   inline bool operator!=(const iterator & other) { return ret->values != other.ret->values; };
 
 private:
-    Matrix * ret;
-    UInt offset;
+  types::Matrix * ret;
+  UInt offset;
 };
 
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Vector<Real>::iterator<Matrix> Vector<Real>::begin(UInt m, UInt n) {
-  return iterator<Matrix>(values, nb_component, m, n);
+inline Vector<Real>::iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) {
+  return iterator<types::Matrix>(values, nb_component, m, n);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Vector<Real>::iterator<Matrix> Vector<Real>::end(UInt m, UInt n) {
-  return iterator<Matrix>(values + nb_component * size, nb_component, m, n);
+inline Vector<Real>::iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) {
+  return iterator<types::Matrix>(values + nb_component * size, nb_component, m, n);
 }

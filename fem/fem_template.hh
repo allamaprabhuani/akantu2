@@ -120,8 +120,9 @@ public:
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const{};
 
-  void assembleFieldLumped(const ByElementTypeReal & field_1,
+  void assembleFieldLumped(const Vector<Real> & field_1,
 			   Vector<Real> & lumped,
+			   ElementType type,
 			   GhostType ghost_type);
 
 private:

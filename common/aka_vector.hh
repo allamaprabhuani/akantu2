@@ -97,7 +97,9 @@ protected:
   UInt size_of_type;
 };
 
-
+namespace types {
+  class Matrix;
+};
 
 /* -------------------------------------------------------------------------- */
 template<typename T> class Vector : public VectorBase {
@@ -162,8 +164,8 @@ public:
   template<typename Ret> inline iterator<Ret> begin();
   template<typename Ret> inline iterator<Ret> end();
 
-  inline iterator<Matrix> begin(UInt m, UInt n);
-  inline iterator<Matrix> end(UInt m, UInt n);
+  inline iterator<types::Matrix> begin(UInt m, UInt n);
+  inline iterator<types::Matrix> end(UInt m, UInt n);
 
   inline reference operator()(UInt i, UInt j = 0);
   inline const_reference operator()(UInt i, UInt j = 0) const;

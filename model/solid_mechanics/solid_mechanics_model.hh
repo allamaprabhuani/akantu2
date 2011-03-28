@@ -181,15 +181,21 @@ public:
   /// assemble the lumped mass matrix
   void assembleMassLumped();
 
+  /// assemble the mass matrix
+  void assembleMass();
+
+
 private:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
-  /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassLumpedRowSum(GhostType ghost_type, const ElementType type);
+  void assembleMass(GhostType ghost_type);
 
-  /// assemble the lumped mass matrix for local and ghost elements
-  void assembleMassLumpedDiagonalScaling(GhostType ghost_type, const ElementType type);
+  /// fill a vector of rho
+  void computeRho(Vector<Real> & rho,
+		  ElementType type,
+		  GhostType ghost_type);
+
 
   /* ------------------------------------------------------------------------ */
   /* Ghost Synchronizer inherited members                                     */
@@ -333,6 +339,12 @@ private:
 
   /// local equation_number to global
   unordered_map<UInt, UInt>::type local_eq_num_to_global;
+
+  /// mass matrix
+  SparseMatrix * mass_matrix;
+
+  /// velocity damping matrix
+  SparseMatrix * velocity_damping_matrix;
 
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;

@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   akantu::Vector<double> mat_vect(10, 4, 1.);
   memset(mat_vect.values, 0, 10*4*sizeof(double));
 
-  typedef akantu::RealTMatrix<2,2> ItType;
+  typedef akantu::types::RealTMatrix<2,2> ItType;
   typedef akantu::Vector<double> RealVector;
 
   RealVector::iterator<ItType> it;
@@ -82,17 +82,17 @@ int main(int argc, char *argv[]) {
     std::cout << *it << std::endl;
   }
 
-  akantu::Matrix m1(2, 3, 1.);
-  akantu::Matrix m2(3, 5, 2.);
-  akantu::Matrix m3;
+  akantu::types::Matrix m1(2, 3, 1.);
+  akantu::types::Matrix m2(3, 5, 2.);
+  akantu::types::Matrix m3;
   m3 = m1 * m2;
 
   std::cout << m1 << m2 << m3;
 
 
-  RealVector::iterator<akantu::Matrix> itm;
+  RealVector::iterator<akantu::types::Matrix> itm;
   itm = mat_vect.begin(2, 2);
-  RealVector::iterator<akantu::Matrix> endm = mat_vect.end  (2, 2);
+  RealVector::iterator<akantu::types::Matrix> endm = mat_vect.end  (2, 2);
 
   for (; itm != endm; ++itm) {
     std::cout << *itm << std::endl;

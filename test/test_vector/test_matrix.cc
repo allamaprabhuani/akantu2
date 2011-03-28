@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_types.hh"
+#include "aka_types_expression.hh"
 #include "aka_vector.hh"
 #include "aka_math.hh"
 
@@ -76,9 +77,9 @@ int main(int argc, char *argv[]) {
   std::cout << "matrix_matrix : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<Matrix> itA = A.begin(n,n);
-  Vector<Real>::iterator<Matrix> itB = B.begin(n,n);
-  Vector<Real>::iterator<Matrix> itC = C2.begin(n,n);
+  Vector<Real>::iterator<types::Matrix> itA = A.begin(n,n);
+  Vector<Real>::iterator<types::Matrix> itB = B.begin(n,n);
+  Vector<Real>::iterator<types::Matrix> itC = C2.begin(n,n);
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     *itC = *itA * *itB;
@@ -91,9 +92,9 @@ int main(int argc, char *argv[]) {
   std::cout << "it Ma * it Ma : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<RealTMatrix<n,n> > titA = A.begin<RealTMatrix<n,n> >();
-  Vector<Real>::iterator<RealTMatrix<n,n> > titB = B.begin<RealTMatrix<n,n> >();
-  Vector<Real>::iterator<RealTMatrix<n,n> > titC = C3.begin<RealTMatrix<n,n> >();
+  Vector<Real>::iterator<types::RealTMatrix<n,n> > titA = A. begin<types::RealTMatrix<n,n> >();
+  Vector<Real>::iterator<types::RealTMatrix<n,n> > titB = B. begin<types::RealTMatrix<n,n> >();
+  Vector<Real>::iterator<types::RealTMatrix<n,n> > titC = C3.begin<types::RealTMatrix<n,n> >();
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     *titC = *titA * *titB;
@@ -106,9 +107,9 @@ int main(int argc, char *argv[]) {
   std::cout << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<Matrix> muitA = A.begin(n,n);
-  Vector<Real>::iterator<Matrix> muitB = B.begin(n,n);
-  Vector<Real>::iterator<Matrix> muitC = C4.begin(n,n);
+  Vector<Real>::iterator<types::Matrix> muitA = A.begin(n,n);
+  Vector<Real>::iterator<types::Matrix> muitB = B.begin(n,n);
+  Vector<Real>::iterator<types::Matrix> muitC = C4.begin(n,n);
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     (*muitC).mul(*muitA, *muitB);

@@ -150,8 +150,10 @@ public:
 		      const Vector<UInt> * filter_elements = NULL) const;
 
 
-  virtual void assembleFieldLumped(const ByElementTypeReal & field_1,
+  /// assemble a field as a lumped matrix (ex. rho in lumped mass)
+  virtual void assembleFieldLumped(const Vector<Real> & field_1,
 				   Vector<Real> & lumped,
+				   ElementType type,
 				   GhostType ghost_type) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };

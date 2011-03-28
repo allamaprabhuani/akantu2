@@ -51,45 +51,91 @@ void SolidMechanicsModel::assembleMassLumped() {
 void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Material ** mat_val = &(materials.at(0));
+  FEM & fem = getFEM();
 
-  UInt nb_element;
-  UInt * elem_mat_val;
+  Vector<Real> rho_1(0,1);
 
-  ByElementTypeReal rho_1;
-
-  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList(ghost_type);
+  const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     ElementType type = *it;
 
-    if(ghost_type == _not_ghost) {
-      nb_element   = getFEM().getMesh().getNbElement(type);
-      elem_mat_val = element_material[type]->values;
-    } else {
-      nb_element   = getFEM().getMesh().getNbGhostElement(type);
-      elem_mat_val = ghost_element_material[type]->values;
-    }
+    computeRho(rho_1, type, ghost_type);
 
-    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
-    rho_1[type] = new Vector<Real>(nb_element * nb_quadrature_points, 1, "rho_x_1");
-    Real * rho_1_val = rho_1[type]->values;
-
-    /// compute @f$ rho @f$ for each nodes of each element
-    for (UInt el = 0; el < nb_element; ++el) {
-      Real rho = mat_val[elem_mat_val[el]]->getRho(); /// here rho is constant in an element
-      for (UInt n = 0; n < nb_quadrature_points; ++n) {
-	*rho_1_val++ = rho;
-      }
-    }
-  }
-
-  getFEM().assembleFieldLumped(rho_1, *mass, ghost_type);
-
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    delete rho_1[*it];
+    fem.assembleFieldLumped(rho_1, *mass, type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  MyFEMType & fem = getFEMClass<MyFEMType>();
+
+  Vector<Real> rho_1(0,1);
+  UInt nb_element;
+
+  const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList(ghost_type);
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+    ElementType type = *it;
+
+
+    const Vector<Real> * shapes;
+    if(ghost_type == _not_ghost) {
+      nb_element   = fem.getMesh().getNbElement(type);
+      shapes       = &(fem.getShapes(type));
+    } else {
+      nb_element   = fem.getMesh().getNbGhostElement(type);
+      shapes       = &(fem.getGhostShapes(type));
+    }
+
+    computeRho(rho_1, type, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::computeRho(Vector<Real> & rho,
+				     ElementType type,
+				     GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Material ** mat_val = &(materials.at(0));
+  UInt * elem_mat_val;
+
+  UInt nb_element;
+
+  FEM & fem = getFEM();
+
+  if(ghost_type == _not_ghost) {
+    nb_element   = fem.getMesh().getNbElement(type);
+    elem_mat_val = element_material[type]->values;
+  } else {
+    nb_element   = fem.getMesh().getNbGhostElement(type);
+    elem_mat_val = ghost_element_material[type]->values;
+  }
+
+  UInt nb_quadrature_points = fem.getNbQuadraturePoints(type);
+
+  rho.resize(nb_element * nb_quadrature_points);
+  Real * rho_1_val = rho.values;
+
+  /// compute @f$ rho @f$ for each nodes of each element
+  for (UInt el = 0; el < nb_element; ++el) {
+    Real rho = mat_val[elem_mat_val[el]]->getRho(); /// here rho is constant in an element
+    for (UInt n = 0; n < nb_quadrature_points; ++n) {
+      *rho_1_val++ = rho;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
 __END_AKANTU__

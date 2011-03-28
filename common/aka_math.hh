@@ -56,49 +56,66 @@ public:
   static void matrix_vector(UInt m, UInt n,
 			    const Vector<Real> & A,
 			    const Vector<Real> & x,
-			    Vector<Real> & y);
+			    Vector<Real> & y, Real alpha = 1.);
 
   /// @f$ y = A*x @f$
   static inline void matrix_vector(UInt m, UInt n,
 				   const Real * A,
 				   const Real * x,
-				   Real * y);
+				   Real * y, Real alpha = 1.);
+
+  /// @f$ y = A^t*x @f$
+  static inline void matrixt_vector(UInt m, UInt n,
+				    const Real * A,
+				    const Real * x,
+				    Real * y, Real alpha = 1.);
 
   /// @f$ C = A*B @f$
   static void matrix_matrix(UInt m, UInt n, UInt k,
 			   const Vector<Real> & A,
 			   const Vector<Real> & B,
-			   Vector<Real> & C);
+			   Vector<Real> & C, Real alpha = 1.);
 
   /// @f$ C = A*B^t @f$
   static void matrix_matrixt(UInt m, UInt n, UInt k,
 			     const Vector<Real> & A,
 			     const Vector<Real> & B,
-			     Vector<Real> & C);
+			     Vector<Real> & C, Real alpha = 1.);
 
   /// @f$ C = A*B @f$
   static inline void matrix_matrix(UInt m, UInt n, UInt k,
 				   const Real * A,
 				   const Real * B,
-				   Real * C);
+				   Real * C, Real alpha = 1.);
 
   /// @f$ C = A^t*B @f$
   static inline void matrixt_matrix(UInt m, UInt n, UInt k,
 				    const Real * A,
 				    const Real * B,
-				    Real * C);
+				    Real * C, Real alpha = 1.);
 
   /// @f$ C = A*B^t @f$
   static inline void matrix_matrixt(UInt m, UInt n, UInt k,
 				    const Real * A,
 				    const Real * B,
-				    Real * C);
+				    Real * C, Real alpha = 1.);
 
   /// @f$ C = A^t*B^t @f$
   static inline void matrixt_matrixt(UInt m, UInt n, UInt k,
 				     const Real * A,
 				     const Real * B,
-				     Real * C);
+				     Real * C, Real alpha = 1.);
+
+  template <bool tr_A, bool tr_B>
+  static inline void matMul(UInt m, UInt n, UInt k,
+			    Real alpha, const Real * A, const Real * B,
+			    Real beta, Real * C);
+
+  template <bool tr_A>
+  static inline void matVectMul(UInt m, UInt n,
+				Real alpha, const Real * A, const Real * x,
+				Real beta, Real * y);
+
   static void matrix33_eigenvalues(Real * A,
 				    Real * Adiag);
 

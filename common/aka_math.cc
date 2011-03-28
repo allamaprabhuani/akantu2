@@ -36,7 +36,8 @@ __BEGIN_AKANTU__
 void Math::matrix_vector(UInt m, UInt n,
 			 const Vector<Real> & A,
 			 const Vector<Real> & x,
-			 Vector<Real> & y) {
+			 Vector<Real> & y,
+			 Real alpha) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(A.getSize() == x.getSize(),
@@ -68,7 +69,7 @@ void Math::matrix_vector(UInt m, UInt n,
   Real * y_val = y.values;
 
   for (UInt el = 0; el < nb_element; ++el) {
-    matrix_vector(m, n, A_val, x_val, y_val);
+    matrix_vector(m, n, A_val, x_val, y_val, alpha);
 
     A_val += offset_A;
     x_val += offset_x;
@@ -82,7 +83,8 @@ void Math::matrix_vector(UInt m, UInt n,
 void Math::matrix_matrix(UInt m, UInt n, UInt k,
 			 const Vector<Real> & A,
 			 const Vector<Real> & B,
-			 Vector<Real> & C) {
+			 Vector<Real> & C,
+			 Real alpha) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(A.getSize() == B.getSize(),
@@ -114,7 +116,7 @@ void Math::matrix_matrix(UInt m, UInt n, UInt k,
   Real * C_val = C.values;
 
   for (UInt el = 0; el < nb_element; ++el) {
-    matrix_matrix(m, n, k, A_val, B_val, C_val);
+    matrix_matrix(m, n, k, A_val, B_val, C_val, alpha);
 
     A_val += offset_A;
     B_val += offset_B;
@@ -129,7 +131,8 @@ void Math::matrix_matrix(UInt m, UInt n, UInt k,
 void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 			  const Vector<Real> & A,
 			  const Vector<Real> & B,
-			  Vector<Real> & C) {
+			  Vector<Real> & C,
+			  Real alpha) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(A.getSize() == B.getSize(),
@@ -161,7 +164,7 @@ void Math::matrix_matrixt(UInt m, UInt n, UInt k,
   Real * C_val = C.values;
 
   for (UInt el = 0; el < nb_element; ++el) {
-    matrix_matrixt(m, n, k, A_val, B_val, C_val);
+    matrix_matrixt(m, n, k, A_val, B_val, C_val, alpha);
 
     A_val += offset_A;
     B_val += offset_B;
@@ -171,12 +174,13 @@ void Math::matrix_matrixt(UInt m, UInt n, UInt k,
   AKANTU_DEBUG_OUT();
 }
 
-void Math::matrix33_eigenvalues(Real * A, Real *Adiag ){
+/* -------------------------------------------------------------------------- */
+void Math::matrix33_eigenvalues(Real * A, Real *Adiag) {
   ///d = determinant of Matrix A
   Real d = det3(A);
   ///b = trace of Matrix A
   Real b = A[0]+A[4]+A[8];
-  
+
   Real a = -1 ;
   /// c = 0.5*(trace(M^2)-trace(M)^2)
   Real c =  A[3]*A[1] + A[2]*A[6] + A[5]*A[7] - A[0]*A[4] -
@@ -193,16 +197,14 @@ void Math::matrix33_eigenvalues(Real * A, Real *Adiag ){
      k = 0;
      else
      k = acos(-(y/(2*i)));
-  
+
   Real m = cos(k/3);
   Real n = sqrt(3)*sin(k/3);
   Real p = b/(3*a);
 
-
   Adiag[0]=-(2*j*m + p);;
   Adiag[1]=-(-j *(m + n) + p);
   Adiag[2]=-(-j * (m - n) + p);
-  
 }
 
 
