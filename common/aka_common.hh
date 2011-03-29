@@ -67,6 +67,7 @@ __BEGIN_AKANTU__
 
 typedef double Real;
 typedef unsigned int UInt;
+typedef unsigned long long UInt64;
 typedef signed int Int;
 
 typedef std::string ID;

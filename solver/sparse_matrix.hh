@@ -36,6 +36,25 @@
 #include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
+namespace std {
+  namespace tr1 {
+
+    template<typename a, typename b>
+    struct hash< std::pair<a, b> > {
+    private:
+      const hash<a> ah;
+      const hash<b> bh;
+    public:
+      hash() : ah(), bh() {}
+      size_t operator()(const std::pair<a, b> &p) const {
+	size_t seed = ah(p.first);
+	return bh(p.second) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+      }
+    };
+  }
+} // namespaces
+
+
 
 __BEGIN_AKANTU__
 
@@ -60,6 +79,9 @@ public:
   SparseMatrix(const SparseMatrix & matrix);
 
   virtual ~SparseMatrix();
+
+  typedef std::pair<UInt, UInt> KeyCOO;
+  typedef unordered_map<KeyCOO, UInt>::type coordinate_list_map;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -100,12 +122,20 @@ public:
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
-  inline UInt key(UInt i, UInt j) const {
-    if(sparse_matrix_type == _symmetric && (i > j))
-      return j * size + i;
+  // inline UInt64 key(UInt i, UInt j) const {
+  //   if(sparse_matrix_type == _symmetric && (i > j))
+  //     return j * size + i;
 
-    return i * size + j;
+  //   return i * size + j;
+  // }
+
+  inline KeyCOO key(UInt i, UInt j) const {
+    if(sparse_matrix_type == _symmetric && (i > j))
+      return std::make_pair(j, i);
+
+    return std::make_pair(i, j);
   }
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -179,10 +209,9 @@ private:
   /* map for  (i,j) ->  k correspondence \warning std::map are slow
    *  \todo improve  with hash_map (non standard in stl) or unordered_map (boost or C++0x)
    */
-  typedef unordered_map<UInt, UInt>::type coordinate_list_map;
   coordinate_list_map irn_jcn_k;
 
-  std::map<std::pair<UInt, UInt>, UInt> * irn_jcn_to_k;
+  //  std::map<std::pair<UInt, UInt>, UInt> * irn_jcn_to_k;
 };
 
 

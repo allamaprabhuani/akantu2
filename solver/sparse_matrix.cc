@@ -78,8 +78,7 @@ SparseMatrix::SparseMatrix(UInt size,
   nb_degre_of_freedom(nb_degre_of_freedom),
   size(size),
   nb_non_zero(0),
-  irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
-  irn_jcn_to_k(NULL) {
+  irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A") {
   AKANTU_DEBUG_IN();
 
   // for(UInt t = _not_defined; t < _max_element_type; ++t) {
@@ -100,8 +99,7 @@ SparseMatrix::SparseMatrix(const SparseMatrix & matrix) :
   Memory(matrix.getMemoryID()), sparse_matrix_type(matrix.getSparseMatrixType()),
   nb_degre_of_freedom(matrix.getNbDegreOfFreedom()),
   size(matrix.getSize()), nb_non_zero(matrix.getNbNonZero()),
-  irn(matrix.getIRN(), true), jcn(matrix.getJCN(), true), a(matrix.getA(), true),
-  irn_jcn_to_k(NULL) {
+  irn(matrix.getIRN(), true), jcn(matrix.getJCN(), true), a(matrix.getA(), true) {
   AKANTU_DEBUG_IN();
 
   irn_save = NULL;
@@ -115,7 +113,7 @@ SparseMatrix::SparseMatrix(const SparseMatrix & matrix) :
 SparseMatrix::~SparseMatrix() {
   AKANTU_DEBUG_IN();
 
-  if (irn_jcn_to_k) delete irn_jcn_to_k;
+  //  if (irn_jcn_to_k) delete irn_jcn_to_k;
 
   if(irn_save) delete irn_save;
   if(jcn_save) delete jcn_save;
@@ -166,7 +164,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_
 	  for (UInt j = j_start; j < size_mat; ++j) {
 	    UInt c_jcn = local_eq_nb_val[j];
 	    if(c_jcn < size) {
-	      UInt irn_jcn = key(c_irn, c_jcn);
+	      KeyCOO irn_jcn = key(c_irn, c_jcn);
 	      irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
 
 	      if (irn_jcn_k_it == irn_jcn_k.end()) {
@@ -338,7 +336,8 @@ void SparseMatrix::saveProfile(const std::string & filename) {
 
   coordinate_list_map::const_iterator it;
   for (it = irn_jcn_k.begin(); it != irn_jcn_k.end(); ++it) {
-    outfile << it->first / size + 1 << " " << it->first % size + 1 << " 1" << std::endl;
+    //    outfile << it->first / size + 1 << " " << it->first % size + 1 << " 1" << std::endl;
+    outfile << it->first.first + 1 << " " << it->first.second + 1<< " 1" << std::endl;
   }
 
   outfile.close();
@@ -366,7 +365,7 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
 
   coordinate_list_map::const_iterator it;
   for (it = irn_jcn_k.begin(); it != irn_jcn_k.end(); ++it) {
-    outfile << it->first / size + 1 << " " << it->first % size + 1 << " " << a.values[it->second] << std::endl;
+    outfile << it->first.first + 1 << " " << it->first.second + 1 << " " << a.values[it->second] << std::endl;
   }
 
   outfile.close();

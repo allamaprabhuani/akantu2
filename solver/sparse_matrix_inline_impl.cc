@@ -28,7 +28,7 @@
 /* -------------------------------------------------------------------------- */
 inline UInt SparseMatrix::addToProfile(UInt i, UInt j) {
 
-  UInt jcn_irn = key(i, j);
+  KeyCOO jcn_irn = key(i, j);
 
   AKANTU_DEBUG_ASSERT(irn_jcn_k.find(jcn_irn) == irn_jcn_k.end(),
 		      "Couple (i,j) = (" << i << "," << j << ") already in the profile");
@@ -63,7 +63,7 @@ inline void SparseMatrix::clear() {
 
 /* -------------------------------------------------------------------------- */
 inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
-  UInt jcn_irn = key(i, j);
+  KeyCOO jcn_irn = key(i, j);
   coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
 
   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
@@ -74,7 +74,7 @@ inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
 
 /* -------------------------------------------------------------------------- */
 inline Real SparseMatrix::operator()(UInt i, UInt j) const {
-  UInt jcn_irn = key(i, j);
+  KeyCOO jcn_irn = key(i, j);
   coordinate_list_map::const_iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
   if(irn_jcn_k_it == irn_jcn_k.end()) return 0;
   return a.values[irn_jcn_k_it->second];
@@ -82,7 +82,7 @@ inline Real SparseMatrix::operator()(UInt i, UInt j) const {
 
 /* -------------------------------------------------------------------------- */
 inline Real & SparseMatrix::operator()(UInt i, UInt j) {
-  UInt jcn_irn = key(i, j);
+  KeyCOO jcn_irn = key(i, j);
   coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
 		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
