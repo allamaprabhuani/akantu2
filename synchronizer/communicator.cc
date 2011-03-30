@@ -438,7 +438,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 
     Vector<Int> * nodes_type_per_proc[nb_proc];
     for (UInt p = 0; p < nb_proc; ++p) {
-      nodes_type_per_proc[p] = new Vector<Int>(nb_nodes);
+      nodes_type_per_proc[p] = new Vector<Int>(nb_nodes_per_proc[p]);
     }
 
     std::multimap< UInt, std::pair<UInt, UInt> >::iterator it_node;
@@ -448,7 +448,10 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
       it_range = nodes_to_proc.equal_range(i);
       Int node_type = (it_range.first == it_range.second) ? -1 : (Int) (it_range.first)->second.first;
       for (it_node = it_range.first; it_node != it_range.second; ++it_node) {
-	nodes_type_per_proc[it_node->second.first]->values[it_node->second.second] = node_type;
+	UInt proc = it_node->second.first;
+	UInt node = it_node->second.second;
+	if(node >= nb_nodes_per_proc[proc]) std::cout << "AAAAAAAAHHHHH !!!! " << node << " " << nb_nodes_per_proc[proc] << " " << proc << std::endl;
+	nodes_type_per_proc[proc]->values[node] = node_type;
       }
     }
 
