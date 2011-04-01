@@ -31,13 +31,13 @@ inline Real RuinaSlownessFricCoef<compute_analytic_solution>::computeAnalyticThe
   AKANTU_DEBUG_IN();
 
   Real theta;
-  const Real tolerance = std::numeric_limits<Real>::epsilon();
+  const Real tolerance = 10 * std::numeric_limits<Real>::epsilon();
 
-  Real lambda = - sliding_speed / this->d_zero;
+  Real minus_lambda = sliding_speed / this->d_zero;
   
-  if (fabs(lambda) < tolerance) {
-    Real e_term = exp(lambda * delta_t);
-    theta = (e_term - 1) / lambda + previous_theta * e_term;
+  if (minus_lambda > tolerance) {
+    Real e_term = exp((-minus_lambda) * delta_t);
+    theta = (e_term - 1) / (-minus_lambda) + previous_theta * e_term;
   }
   else {
     theta = delta_t + previous_theta;
