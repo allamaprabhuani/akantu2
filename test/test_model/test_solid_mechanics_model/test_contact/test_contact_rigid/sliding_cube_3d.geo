@@ -1,6 +1,6 @@
-h_contact = 0.1; 
-h_top = 0.6; 
-h_plate = 0.6;	 
+h_contact = 0.2; 
+h_top = 0.5; 
+h_plate = 0.8;	 
 
 Point(1) = {0,  0, 0, h_top};
 Point(2) = {0, -1, 0, h_contact};

@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;
 
-  UInt damping_steps = 2000000;
-  UInt damping_interval = 500;
+  UInt damping_steps = 75000;
+  UInt damping_interval = 50;
   Real damping_ratio = 0.99;
 
   UInt max_steps = damping_steps;
@@ -191,11 +191,11 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   std::ofstream hertz;
-  hertz.open("hertz_3d.csv");
+  hertz.open("output_files/hertz_3d.csv");
   hertz << "%id,ftop,fcont,zone" << std::endl;
 
   std::ofstream energy;
-  energy.open("hertz_3d_energy.csv");
+  energy.open("output_files/hertz_3d_energy.csv");
   energy << "%id,kin,pot,tot" << std::endl;
 
 
@@ -262,8 +262,13 @@ int main(int argc, char *argv[])
       contact_force += residual[node*dim + 1];
       contact_zone = std::max(contact_zone, current_position[node*dim]); 
     }
-
     hertz << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
+
+    // test if correct result is found
+    if((s == max_steps) && (std::abs(contact_force + 7.29637e+07) > 1e2)) {
+      std::cout << "contact_force = " << contact_force << " but should be = -7.29637e+07" << std::endl;
+      return EXIT_FAILURE;
+    }
 
     my_model.updateAcceleration();
     my_model.explicitCorr();

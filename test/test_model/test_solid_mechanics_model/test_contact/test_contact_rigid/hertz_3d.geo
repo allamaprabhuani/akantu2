@@ -1,6 +1,6 @@
-h_contact = 0.0005; 
-h_sphere = 0.3;
-h_plate = 0.4;	 
+h_contact = 0.1; 
+h_sphere = 0.5;
+h_plate = 0.8;	 
 
 Point(1) = {0,  0, 0, h_sphere};
 Point(2) = {1,  0, 0, h_sphere};

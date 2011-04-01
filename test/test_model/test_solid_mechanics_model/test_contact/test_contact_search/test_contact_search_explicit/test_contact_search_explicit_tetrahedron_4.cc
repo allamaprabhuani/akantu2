@@ -1,9 +1,9 @@
 /**
- * @file   test_triangle_3.cc
+ * @file   test_contact_search_explicit_tetrahedron_4.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jan 17 11:13:42 2011
+ * @date   Fri Dec 03 12:11:42 2010
  *
- * @brief  test contact search explicit for 2d case with triangle_3 elements
+ * @brief  test contact_search_explicit for 3d case with tetrahedron_4 elements
  *
  * @section LICENSE
  *
@@ -49,13 +49,13 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  UInt dim = 2;
-  const ElementType element_type = _triangle_3;
+  UInt dim = 3;
+  const ElementType element_type = _tetrahedron_4;
 
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("squares.msh", my_mesh);
+  mesh_io.read("cubes.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
@@ -69,9 +69,9 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_nodes_test");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
-   			 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
+  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_test-surface-extraction");
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
+   			 TETRA1, my_mesh.getNbElement(_tetrahedron_4), C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -100,9 +100,9 @@ int main(int argc, char *argv[])
 
    /// contact declaration
   Contact * contact = Contact::newContact(my_model, 
-					     _ct_rigid, 
-					     _cst_expli, 
-					     _cnst_regular_grid);
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
 
   ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
@@ -110,9 +110,9 @@ int main(int argc, char *argv[])
 
   Surface master = 0;
   Surface impactor = 1;
+  
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
-
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
     if(s == 2) {
       Real * coord = my_mesh.getNodes().values;
       for(UInt n = 0; n < nb_nodes; ++n) {
-	if(coord[n*dim + 0] > 1.0) {
-	  displacement[n*dim+0] = -0.02;
+	if(coord[n*dim + 2] > 1.0) {
+	  displacement[n*dim+2] = -0.01;
 	}
       }
       /*
@@ -178,8 +178,8 @@ int main(int argc, char *argv[])
 
     /// central difference predictor
     my_model.explicitPred();
-    
-    /// update current position
+
+    /// update current positions
     my_model.initializeUpdateResidualData();
 
     /// compute the penetration list

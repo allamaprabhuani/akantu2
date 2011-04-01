@@ -215,42 +215,42 @@ int main(int argc, char *argv[])
   Real * strain_val = &strains[check_element*quadrature_point*dim*dim + quadrature_point];
   Real * stress_val = &stresses[check_element*quadrature_point*dim*dim + quadrature_point];
   
-  if(abs(strain_val[0] - 1.004285714) > 1e-9) {
-    std::cout << "strain[0] = " << strain_val[0] << " but should be = 1.004285714" << std::endl;
+  if(std::abs(strain_val[0] - 0.004285714) > 1e-9) {
+    std::cout << "strain[0] = " << strain_val[0] << " but should be = 0.004285714" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(strain_val[1]) > 1e-15) {
+  if(std::abs(strain_val[1]) > 1e-15) {
     std::cout << "strain[1] = " << strain_val[1] << " but should be = 0" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(strain_val[2]) > 1e-15) {
+  if(std::abs(strain_val[2]) > 1e-15) {
     std::cout << "strain[2] = " << strain_val[2] << " but should be = 0" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(strain_val[3] - 0.99) > 1e-9) {
-    std::cout << "strain[3] = " << strain_val[3] << " but should be = 0.99" << std::endl;
+  if(std::abs(strain_val[3] + 0.01) > 1e-9) {
+    std::cout << "strain[3] = " << strain_val[3] << " but should be = -0.01" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(stress_val[0]) > 1e-4) {
+  if(std::abs(stress_val[0]) > 1e-4) {
     std::cout << "stress[0] = " << stress_val[0] << " but should be = 0" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(stress_val[1]) > 1e-4) {
+  if(std::abs(stress_val[1]) > 1e-4) {
     std::cout << "stress[1] = " << stress_val[1] << " but should be = 0" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(stress_val[2]) > 1e-4) {
+  if(std::abs(stress_val[2]) > 1e-4) {
     std::cout << "stress[2] = " << stress_val[2] << " but should be = 0" << std::endl;
     return EXIT_FAILURE;
   }
 
-  if(abs(stress_val[3] + 2.30769e9) > 1e5) {
+  if(std::abs(stress_val[3] + 2.30769e9) > 1e5) {
     std::cout << "stress[3] = " << stress_val[3] << " but should be = -2.30769e9" << std::endl;
     return EXIT_FAILURE;
   }

@@ -28,14 +28,14 @@
 #===============================================================================
 add_mesh(test_mesh_squares squares.geo 2 1)
 
-register_test(test_triangle_3 test_triangle_3.cc)
-add_dependencies(test_triangle_3 test_mesh_squares)
+register_test(test_contact_search_explicit_triangle_3 test_contact_search_explicit_triangle_3.cc)
+add_dependencies(test_contact_search_explicit_triangle_3 test_mesh_squares)
 
 #===============================================================================
 add_mesh(test_mesh_cubes cubes.geo 3 1)
 
-register_test(test_tetrahedron_4 test_tetrahedron_4.cc)
-add_dependencies(test_tetrahedron_4 test_mesh_cubes)
+register_test(test_contact_search_explicit_tetrahedron_4 test_contact_search_explicit_tetrahedron_4.cc)
+add_dependencies(test_contact_search_explicit_tetrahedron_4 test_mesh_cubes)
 
 #===============================================================================
 #add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)

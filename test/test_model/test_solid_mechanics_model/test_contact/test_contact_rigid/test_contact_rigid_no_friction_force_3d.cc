@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;
 
-  UInt damping_steps = 200000;
+  UInt damping_steps = 80000;
   UInt damping_interval = 50;
-  Real damping_ratio = 0.99;
+  Real damping_ratio = 0.985;
 
   UInt max_steps = damping_steps;
 
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   std::ofstream force_out;
-  force_out.open("force_3d.csv");
+  force_out.open("output_files/force_3d.csv");
   force_out << "%id,ftop,fcont,zone" << std::endl;
 
 
@@ -255,6 +255,12 @@ int main(int argc, char *argv[])
     }
 
     force_out << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
+
+    // test if correct result is found
+    if((s == max_steps) && (std::abs(top_force - 2.1e+09) > 1e4)) {
+      std::cout << "top_force = " << top_force << " but should be = 2.1e+09" << std::endl;
+      return EXIT_FAILURE;
+    }
 
     my_model.updateAcceleration();
     my_model.explicitCorr();

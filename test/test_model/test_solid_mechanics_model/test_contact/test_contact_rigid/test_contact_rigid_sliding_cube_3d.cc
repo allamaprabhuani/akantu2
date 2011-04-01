@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   const UInt paraview_type = TETRA1;
   
   //UInt max_steps = 200000;
-  UInt imposing_steps = 100000;
+  UInt imposing_steps = 20000;
   Real max_displacement = -0.01;
 
   UInt damping_steps = 10000;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   Real imposed_velocity = 401.92;
   Real needed_time = 0.005;
 
-  UInt additional_steps = 20000;
+  UInt additional_steps = 2000;
 
   /// load mesh
   Mesh my_mesh(dim);
@@ -196,11 +196,11 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   std::ofstream out_info;
-  out_info.open("sliding_cube_3d.csv");
+  out_info.open("output_files/sliding_cube_3d.csv");
   out_info << "%id,ftop,fcont,zone,stickNode,contNode" << std::endl;
 
   std::ofstream energy;
-  energy.open("sliding_cube_3d_energy.csv");
+  energy.open("output_files/sliding_cube_3d_energy.csv");
   energy << "%id,kin,pot,tot" << std::endl;
 
   Real * current_position = my_model.getCurrentPosition().values; 
@@ -296,6 +296,12 @@ int main(int argc, char *argv[])
     }
 
     out_info << s << "," << top_force << "," << contact_force << "," << contact_zone << ",";
+
+    // test if correct result is found
+    if((s == max_steps) && (std::abs(contact_zone - 1.99367) > 1e-5)) {
+      std::cout << "sliding distance = " << contact_zone << " but should be = 1.99367" << std::endl;
+      return EXIT_FAILURE;
+    }
 
     my_model.updateAcceleration();
 

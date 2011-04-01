@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
    			 TETRA1, my_mesh.getNbElement(_tetrahedron_4), C_MODE);
-  dumper.SetPrefix("paraview/");
+  dumper.SetPrefix("paraview/tetrahedron/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER

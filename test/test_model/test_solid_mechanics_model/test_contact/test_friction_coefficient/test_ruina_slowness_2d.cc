@@ -39,6 +39,7 @@
 #include "friction_coefficient.hh"
 #include "simplified_dieterich_fric_coef.hh"
 #include "ruina_slowness_fric_coef.hh"
+#include "unique_constant_fric_coef.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
@@ -144,14 +145,20 @@ int main(int argc, char *argv[])
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);  
 
+  /*
+  UniqueConstantFricCoef * fric_coef = new UniqueConstantFricCoef(*my_contact, master);
+  fric_coef->setParam("mu", "0.2");
+*/
+
   RuinaSlownessFricCoef<true> * fric_coef = new RuinaSlownessFricCoef<true>(*my_contact, master);
-  fric_coef->setParam("mu_zero", "0.5");
-  fric_coef->setParam("a_factor", "0.005");
-  fric_coef->setParam("b_factor", "0.008");
+  fric_coef->setParam("mu_zero", "0.2");
+  fric_coef->setParam("a_factor", "0.002");
+  fric_coef->setParam("b_factor", "0.08");
   fric_coef->setParam("v_normalizer", "0.0001");
   fric_coef->setParam("theta_normalizer", "0.002");
-  fric_coef->setParam("d_zero", "0.001");
+  fric_coef->setParam("d_zero", "0.00001");
   //my_contact->setFrictionCoefficient(fric_coef);
+  
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);

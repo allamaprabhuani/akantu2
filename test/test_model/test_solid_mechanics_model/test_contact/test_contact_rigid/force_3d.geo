@@ -1,16 +1,16 @@
-h_contact = 0.2; 
-h_sphere = 0.7;
-h_plate = 0.4;	 
+h_contact = 0.5; 
+h_cube = 0.5;
+h_plate = 1.;	 
 
-Point(1) = {0,  0, 0, h_sphere};
+Point(1) = {0,  0, 0, h_cube};
 Point(2) = {0, -1, 0, h_contact};
 Point(3) = {1, -1, 0, h_contact};
-Point(4) = {1,  0, 0, h_sphere};
+Point(4) = {1,  0, 0, h_cube};
 
-Point(5) = {0,  0, 1, h_sphere};
+Point(5) = {0,  0, 1, h_cube};
 Point(6) = {0, -1, 1, h_contact};
 Point(7) = {1, -1, 1, h_contact};
-Point(8) = {1,  0, 1, h_sphere};
+Point(8) = {1,  0, 1, h_cube};
 
 Point(9)  = {-0.25, -1,   -0.25, h_plate};
 Point(10) = {-0.25, -1.2, -0.25, h_plate};

@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;
 
-  UInt damping_steps = 200000;
+  UInt damping_steps = 80000;
   UInt damping_interval = 50;
-  Real damping_ratio = 0.99;
+  Real damping_ratio = 0.985;
 
   UInt max_steps = damping_steps;
 
@@ -95,7 +95,28 @@ int main(int argc, char *argv[])
 
   my_model.assembleMassLumped();
 
-   /// contact declaration
+  Surface impactor = 0;
+  Surface rigid_body_surface = 1;
+  Surface master = 2;
+
+  // modify surface id
+  UInt nb_surfaces = my_mesh.getNbSurfaces();
+  my_mesh.setNbSurfaces(++nb_surfaces); 
+  ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
+  UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
+  UInt * surface_id_val = my_mesh.getSurfaceId(surface_element_type).values;
+  for(UInt i=0; i < nb_surface_element; ++i) {
+    if (surface_id_val[i] == rigid_body_surface) {
+      Real barycenter[dim];
+      Real * barycenter_p = &barycenter[0];
+      my_mesh.getBarycenter(i,surface_element_type,barycenter_p);
+      if(barycenter_p[1] > -1.001) {
+	surface_id_val[i] = master;
+      }
+    }
+  }
+
+  /// contact declaration
   Contact * contact = Contact::newContact(my_model, 
 					  _ct_rigid, 
 					  _cst_expli, 
@@ -105,8 +126,6 @@ int main(int argc, char *argv[])
 
   my_contact->initContact(false);
 
-  Surface master = 1;
-  Surface impactor = 0;
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);  
 
@@ -131,7 +150,7 @@ int main(int argc, char *argv[])
     }
   }
   // ground boundary conditions
-  for(UInt n = surface_to_nodes_offset[master]; n < surface_to_nodes_offset[master+1]; ++n) {
+  for(UInt n = surface_to_nodes_offset[rigid_body_surface]; n < surface_to_nodes_offset[rigid_body_surface+1]; ++n) {
     UInt node = surface_to_nodes[n];
     Real y_coord = coordinates[node*dim + 1];
     if (y_coord < -1.19999) {
@@ -165,7 +184,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   std::ofstream force_out;
-  force_out.open("force_2d.csv");
+  force_out.open("output_files/force_2d.csv");
   force_out << "%id,ftop,fcont,zone" << std::endl;
 
 
@@ -245,6 +264,12 @@ int main(int argc, char *argv[])
     }
 
     force_out << s << "," << top_force << "," << contact_force << "," << contact_zone << std::endl;
+
+    // test if correct result is found
+    if((s == max_steps) && (std::abs(top_force - 2.30769e+09) > 1e4)) {
+      std::cout << "top_force = " << top_force << " but should be = 2.30769e+09" << std::endl;
+      return EXIT_FAILURE;
+    }
 
     my_model.updateAcceleration();
     my_model.explicitCorr();

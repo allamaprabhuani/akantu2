@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_nodes_test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
    			 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
-  dumper.SetPrefix("paraview/");
+  dumper.SetPrefix("paraview/triangle/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
