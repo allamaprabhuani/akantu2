@@ -337,19 +337,27 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 
   UInt * conn = local_connectivities;
 
+  std::map<UInt, UInt> renumbering_map;
+
   /// renumber the nodes
   for (UInt el = 0; el < nb_local_element + nb_ghost_element; ++el) {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Int nn = nodes_numbers.find(*conn);
-      if(nn == -1) {
-	nodes_numbers.push_back(*conn);
+      std::map<UInt, UInt>::iterator it = renumbering_map.find(*conn);
+      //      Int nn = nodes_numbers.find(*conn);
+      if(it == renumbering_map.end()) {
+	UInt old_node = *conn;
+	nodes_numbers.push_back(old_node);
 	*conn = nodes_numbers.getSize() - 1;
+
+	renumbering_map[old_node] = *conn;
       } else {
-	*conn = nn;
+	*conn = it->second;
       }
       *conn++;
     }
   }
+
+  renumbering_map.clear();
 
   /// copy the renumbered connectivity to the right place
   Vector<UInt> * local_conn = mesh.getConnectivityPointer(type);

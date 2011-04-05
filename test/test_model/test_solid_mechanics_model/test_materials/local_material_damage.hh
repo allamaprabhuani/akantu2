@@ -64,9 +64,9 @@ public:
   inline void computeStress(Real * F, Real * sigma,Real & damage);
 
   /// compute tangent stiffness
-  virtual void computeTangentStiffness(const ElementType & el_type,
-				       Vector<Real> & tangent_matrix,
-				       GhostType ghost_type = _not_ghost) {};
+  virtual void computeTangentStiffness(__attribute__ ((unused)) const ElementType & el_type,
+				       __attribute__ ((unused)) Vector<Real> & tangent_matrix,
+				       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {};
 
   /// compute the potential energy for all elements
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);

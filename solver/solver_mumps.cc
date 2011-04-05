@@ -209,10 +209,6 @@ void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom)
     nb_local_nodes = mesh.getNbNodes();
     Vector<UInt> local_nodes(0,2);
 
-    debug::setDebugLevel(dblDump);
-    std::cout << mesh.getGlobalNodesIds() << std::endl;
-    debug::setDebugLevel(dblInfo);
-
     nodes_type = mesh.getNodesType().values;
     UInt * global_node_id = mesh.getGlobalNodesIds().values;
 
@@ -242,7 +238,6 @@ void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom)
 	if(p == 0) buffer = local_nodes.values;
 	else {
 	  buffer = new UInt[nb_nodes_per_proc[p] * 2];
-	  std::cout << "Send nodes " << p << std::endl;
 	  communicator->receive(buffer, 2 * nb_nodes_per_proc[p], p, 0);
 	}
 
@@ -265,7 +260,6 @@ void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom)
       }
     } else {
       communicator->gather(&nb_local_nodes, 1);
-      std::cout << "Recv nodes " << 0 << std::endl;
       communicator->send(local_nodes.values, 2 * nb_local_nodes, 0, 0);
     }
   }
@@ -383,12 +377,10 @@ void SolverMumps::setRHS(Vector<Real> & rhs) {
 	if(p == 0) buffer = local_rhs.values;
 	else {
 	  buffer = new Real[nb_degre_of_freedom * nb_nodes_per_proc_rhs[p]];
-	  std::cout << "Recv rhs " << p << " " << nb_degre_of_freedom << " " << nb_nodes_per_proc_rhs[p] << std::endl;
 	  communicator->receive(buffer, nb_degre_of_freedom * nb_nodes_per_proc_rhs[p], p, 0);
 	}
 
 	Real * buffer_tmp = buffer;
-	std::cout << "AAAAAAAAAAAA " << nb_nodes_per_proc_rhs[p] << std::endl;
 
 	for (UInt n = 0; n < nb_nodes_per_proc_rhs[p]; ++n) {
 	  UInt node = n * nb_degre_of_freedom;
@@ -399,7 +391,6 @@ void SolverMumps::setRHS(Vector<Real> & rhs) {
 	if(p != 0) delete [] buffer;
       }
     } else {
-      std::cout << "Send rhs " << 0 << " " << nb_degre_of_freedom << " " << nb_local_nodes << std::endl;
       communicator->send(local_rhs.values, nb_degre_of_freedom * nb_local_nodes, 0, 0);
     }
   } else {
@@ -486,13 +477,11 @@ void SolverMumps::solve(Vector<Real> & solution) {
 	}
 
 	if(p != 0) {
-	  std::cout << "Send solution " << p << std::endl;
 	  communicator->send(buffer, nb_degre_of_freedom * nb_nodes_per_proc[p], p, 0);
 	  delete [] buffer;
 	}
       }
     } else {
-      std::cout << "Recv solution " << 0 << std::endl;
       communicator->receive(local_rhs.values, nb_degre_of_freedom * nb_local_nodes, 0, 0);
     }
 

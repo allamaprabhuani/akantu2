@@ -36,9 +36,9 @@
 #include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
+#ifndef __INTEL_COMPILER
 namespace std {
   namespace tr1 {
-
     template<typename a, typename b>
     struct hash< std::pair<a, b> > {
     private:
@@ -53,8 +53,7 @@ namespace std {
     };
   }
 } // namespaces
-
-
+#endif
 
 __BEGIN_AKANTU__
 

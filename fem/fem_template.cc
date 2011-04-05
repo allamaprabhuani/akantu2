@@ -479,19 +479,17 @@ void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> 
 
   Real corner_factor = 0;
   Real mid_factor    = 0;
-  switch(type){
-  case _triangle_6 :
+
+  if(type == _triangle_6) {
     corner_factor = 1./12.;
     mid_factor    = 1./4.;
-    break;
-  case _tetrahedron_10:
+  }
+
+  if (type == _tetrahedron_10) {
     corner_factor = 1./32.;
     mid_factor    = 7./48.;
-    break;
-  default:
-    corner_factor = 0;
-    mid_factor    = 0;
   }
+
 
   if (nb_element == 0) {
     AKANTU_DEBUG_OUT();

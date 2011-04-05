@@ -50,6 +50,7 @@ template <typename T> inline const T & Vector<T>::operator()(UInt i, UInt j) con
 }
 
 
+/* -------------------------------------------------------------------------- */
 template <typename T> inline T & Vector<T>::at(UInt i, UInt j) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,
@@ -62,6 +63,7 @@ template <typename T> inline T & Vector<T>::at(UInt i, UInt j) {
   return values[i*nb_component + j];
 }
 
+/* -------------------------------------------------------------------------- */
 template <typename T> inline const T & Vector<T>::get(UInt i, UInt j) const{
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,

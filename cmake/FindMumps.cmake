@@ -26,17 +26,17 @@
 #===============================================================================
 
 #===============================================================================
-find_library(MUMPS_LIBRARY_DMUMPS NAME dmumps_scotch
+find_library(MUMPS_LIBRARY_DMUMPS NAMES dmumps_ptscotch dmumps
    PATHS ${MUMPS_DIR} /usr
    PATH_SUFFIXES lib
    )
 
-find_library(MUMPS_LIBRARY_COMMON NAME mumps_common_scotch
+find_library(MUMPS_LIBRARY_COMMON NAMES mumps_common_ptscotch mumps_common
    PATHS ${MUMPS_DIR}
    PATH_SUFFIXES lib
    )
 
-find_library(MUMPS_LIBRARY_PORD NAME pord_scotch
+find_library(MUMPS_LIBRARY_PORD NAMES pord_ptscotch pord
    PATHS ${MUMPS_DIR}
    PATH_SUFFIXES lib
    )
@@ -47,12 +47,18 @@ find_path(MUMPS_INCLUDE_PATH dmumps_c.h
   PATH_SUFFIXES include
   )
 
-set(MUMPS_LIBRARIES
-  ${MUMPS_LIB_COMMON}
-  ${MUMPS_LIB_DMUMPS}
-  ${MUMPS_LIB_PORD}
-  CACHE INTERNAL "Libraries for mumps" FORCE
-  )
+
+find_library(BLACS_LIBRARY_C NAME blacsC
+   PATHS ${MUMPS_DIR} PATH_SUFFIXES lib)
+find_library(BLACS_LIBRARY_F77 NAME blacsF77
+   PATHS ${MUMPS_DIR} PATH_SUFFIXES lib)
+find_library(BLACS_LIBRARY NAME blacs
+   PATHS ${MUMPS_DIR} PATH_SUFFIXES lib)
+find_library(SCALAPACK_LIBRARY NAME scalapack
+   PATHS ${MUMPS_DIR} PATH_SUFFIXES lib)
+
+enable_language(Fortran)
+find_package(BLAS REQUIRED)
 
 #===============================================================================
 mark_as_advanced(MUMPS_LIBRARY_COMMON)
@@ -60,8 +66,30 @@ mark_as_advanced(MUMPS_LIBRARY_DMUMPS)
 mark_as_advanced(MUMPS_LIBRARY_PORD)
 mark_as_advanced(MUMPS_INCLUDE_PATH)
 
-set(MUMPS_LIBRARIES_ALL ${MUMPS_LIBRARY_DMUMPS} ${MUMPS_LIBRARY_COMMON} ${MUMPS_LIBRARY_PROD})
-set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} CACHE INTERNAL "Libraries for mumps" FORCE)
+mark_as_advanced(BLACS_LIBRARY_C)
+mark_as_advanced(BLACS_LIBRARY_F77)
+mark_as_advanced(BLACS_LIBRARY)
+mark_as_advanced(SCALAPACK_LIBRARY)
+
+set(MUMPS_LIBRARIES_ALL ${MUMPS_LIBRARY_DMUMPS} ${MUMPS_LIBRARY_COMMON} ${MUMPS_LIBRARY_PORD})
+
+if(SCALAPACK_LIBRARY)
+  set(BLACS_LIBRARIES_ALL ${BLACS_LIBRARIES_ALL} ${SCALAPACK_LIBRARY})
+endif()
+if(BLACS_LIBRARY_F77)
+  set(BLACS_LIBRARIES_ALL ${BLACS_LIBRARIES_ALL} ${BLACS_LIBRARY_F77})
+endif()
+if(BLACS_LIBRARY)
+  set(BLACS_LIBRARIES_ALL ${BLACS_LIBRARIES_ALL} ${BLACS_LIBRARY})
+endif()
+if(BLACS_LIBRARY_C)
+  set(BLACS_LIBRARIES_ALL ${BLACS_LIBRARIES_ALL} ${BLACS_LIBRARY_C})
+endif()
+if(BLACS_LIBRARY_F77)
+  set(BLACS_LIBRARIES_ALL ${BLACS_LIBRARIES_ALL} ${BLACS_LIBRARY_F77})
+endif()
+
+set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} ${BLACS_LIBRARIES_ALL} ${BLAS_LIBRARIES} CACHE INTERNAL "Libraries for MUMPS" FORCE)
 
 #===============================================================================
 include(FindPackageHandleStandardArgs)
@@ -70,5 +98,5 @@ find_package_handle_standard_args(MUMPS DEFAULT_MSG
 
 #===============================================================================
 if(NOT MUMPS_FOUND)
-  set(MUMPS_DIR "" CACHE PATH "Prefix of mumps library.")
+  set(MUMPS_DIR "" CACHE PATH "Prefix of MUMPS library.")
 endif(NOT MUMPS_FOUND)

@@ -278,10 +278,6 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 		    velotab, vlbltab, edgenbr,
 		    edgetab, edlotab);
 
-  /// Check the graph
-  AKANTU_DEBUG_ASSERT(SCOTCH_graphCheck(&scotch_graph) == 0,
-		      "Graph to partition is not consistent");
-
 #ifndef AKANTU_NDEBUG
   if (AKANTU_DEBUG_TEST(dblDump)) {
     /// save initial graph
@@ -326,6 +322,10 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
     fgeominit.close();
   }
 #endif
+  /// Check the graph
+  AKANTU_DEBUG_ASSERT(SCOTCH_graphCheck(&scotch_graph) == 0,
+		       "Graph to partition is not consistent");
+
 
   /// Partition the mesh
   SCOTCH_graphPart(&scotch_graph, nb_part, &scotch_strat, parttab);

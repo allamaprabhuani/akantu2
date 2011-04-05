@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
   Real * stresses = my_model.getMaterial(0).getStress(element_type).values;
   Real * strain_val = &strains[check_element*quadrature_point*dim*dim + quadrature_point];
   Real * stress_val = &stresses[check_element*quadrature_point*dim*dim + quadrature_point];
-  
+
   if(std::abs(strain_val[0] - 0.004285714) > 1e-9) {
     std::cout << "strain[0] = " << strain_val[0] << " but should be = 0.004285714" << std::endl;
     return EXIT_FAILURE;

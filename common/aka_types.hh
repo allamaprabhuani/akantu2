@@ -346,7 +346,7 @@ namespace types {
 
 
 
-};
+}
 
 __END_AKANTU__
 

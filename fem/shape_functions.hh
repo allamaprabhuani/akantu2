@@ -86,7 +86,8 @@ public:
 
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  virtual void printself(__attribute__ ((unused)) std::ostream & stream,
+			 __attribute__ ((unused))  int indent = 0) const {};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

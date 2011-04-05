@@ -151,10 +151,10 @@ public:
 
 
   /// assemble a field as a lumped matrix (ex. rho in lumped mass)
-  virtual void assembleFieldLumped(const Vector<Real> & field_1,
-				   Vector<Real> & lumped,
-				   ElementType type,
-				   GhostType ghost_type) {
+  virtual void assembleFieldLumped(__attribute__ ((unused)) const Vector<Real> & field_1,
+				   __attribute__ ((unused)) Vector<Real> & lumped,
+				   __attribute__ ((unused)) ElementType type,
+				   __attribute__ ((unused)) __attribute__ ((unused)) GhostType ghost_type) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 

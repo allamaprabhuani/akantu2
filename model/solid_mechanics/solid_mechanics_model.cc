@@ -321,12 +321,16 @@ void SolidMechanicsModel::initImplicitSolver() {
 
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
+  std::cout << "TOTO 1" << std::endl;
+
   std::stringstream sstr; sstr << id << ":stiffness_matrix";
   stiffness_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
 				      spatial_dimension, sstr.str(), memory_id);
 
   std::stringstream sstr_eq; sstr_eq << id << ":equation_number";
   equation_number = &(alloc<Int>(sstr_eq.str(), nb_nodes, spatial_dimension, 0));
+
+  std::cout << "TOTO 2" << std::endl;
 
   Int * equation_number_val = equation_number->values;
 
@@ -340,19 +344,27 @@ void SolidMechanicsModel::initImplicitSolver() {
     }
   }
 
+  std::cout << "TOTO 3" << std::endl;
+
   stiffness_matrix->buildProfile(mesh, *equation_number);
+
+  std::cout << "TOTO 4" << std::endl;
 
 #ifdef AKANTU_USE_MUMPS
   std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
   solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
 
+  std::cout << "TOTO 5" << std::endl;
+
   dynamic_cast<SolverMumps *>(solver)->initNodesLocation(getFEM().getMesh(), spatial_dimension);
+
+  std::cout << "TOTO 6" << std::endl;
 
   solver->initialize();
 #else
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
-
+  std::cout << "TOTO 7" << std::endl;
 
   AKANTU_DEBUG_OUT();
 }

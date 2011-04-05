@@ -34,14 +34,17 @@
 #include "aka_common.hh"
 #include "mesh_partition.hh"
 
+#if ! defined(AKANTU_USE_PTSCOTCH)
 #ifndef AKANTU_SCOTCH_NO_EXTERN
 extern "C" {
-#endif
-#include <scotch.h>
+#endif //AKANTU_SCOTCH_NO_EXTERN
+#  include <scotch.h>
 #ifndef AKANTU_SCOTCH_NO_EXTERN
 }
-#endif
-
+#endif //AKANTU_SCOTCH_NO_EXTERN
+#else //AKANTU_USE_PTSCOTCH
+#include <ptscotch.h>
+#endif //AKANTU_USE_PTSCOTCH
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__

@@ -195,7 +195,7 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
 			 Real alpha, const Real * A, const Real * B,
-			 Real beta,  Real * C) {
+			 __attribute__ ((unused)) Real beta,  Real * C) {
   // #ifndef AKANTU_USE_BLAS
   if(tr_A) {
     if(tr_B) matrixt_matrixt(m, n, k, A, B, C, alpha);
@@ -217,7 +217,7 @@ inline void Math::matMul(UInt m, UInt n, UInt k,
 template <bool tr_A>
 inline void Math::matVectMul(UInt m, UInt n,
 			     Real alpha, const Real * A, const Real * x,
-			     Real beta, Real * y) {
+			     __attribute__ ((unused)) Real beta, Real * y) {
   //#ifndef AKANTU_USE_BLAS
   if(tr_A) {
     matrixt_vector(m, n, A, x, y, alpha);

@@ -28,6 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "mesh_partition.hh"
 #include "mesh_utils.hh"
+#include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -109,11 +110,8 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   }
 
   dxadj.resize(nb_total_element + 1);
-  dadjncy.resize(nb_total_node_element);
 
   Int * dxadj_val = dxadj.values;
-  Int * dadjncy_val = dadjncy.values;
-
   /// initialize the dxadj array
   for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t)
     for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el)
@@ -125,11 +123,16 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   for (UInt i = nb_total_element; i > 0; --i) dxadj_val[i]  = dxadj_val[i-1];
   dxadj_val[0] = 0;
 
+  dadjncy.resize(2*dxadj_val[nb_total_element]);
+  Int * dadjncy_val = dadjncy.values;
+
   /// weight map to determine adjacency
-  UInt index[200], weight[200];   /// key, value
-  UInt mask = (1 << 11) - 1;      /// hash function
-  Int * mark = new Int[mask + 1]; /// collision detector
-  for (UInt i = 0; i < mask + 1; ++i) mark[i] = -1;
+  unordered_map<UInt, UInt>::type weight_map;
+
+  // UInt index[200], weight[200];   /// key, value
+  // UInt mask = (1 << 11) - 1;      /// hash function
+  // Int * mark = new Int[mask + 1]; /// collision detector
+  // for (UInt i = 0; i < mask + 1; ++i) mark[i] = -1;
 
 
   for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t) {
@@ -137,7 +140,7 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
       UInt el_offset = el*nb_nodes_per_element[t];
 
       /// fill the weight map
-      UInt m = 0;
+      //      UInt m = 0;
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
   	UInt node = conn_val[t][el_offset + n];
 
@@ -147,39 +150,71 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   	  UInt current_el = node_index_val[k];
   	  if(current_el <= linerized_el) break;
 
-  	  UInt mark_offset  = current_el & mask;
-  	  Int current_mark = mark[mark_offset];
-  	  if(current_mark == -1) { /// if element not in map
-  	    index[m] = current_el;
-  	    weight[m] = 1;
-  	    mark[mark_offset] = m++;
-  	  } else if (index[current_mark] == current_el) { /// if element already in map
-  	    weight[current_mark]++;
-  	  } else { /// if element already in map but collision in the keys
-  	    UInt i;
-  	    for (i = 0; i < m; ++i) {
-  	      if(index[i] == current_el) {
-  		weight[i]++;
-  		break;
-  	      }
-  	    }
-  	    if(i == m) {
-  	      index[m] = current_el;
-  	      weight[m++] = 1;
-  	    }
-  	  }
+	  unordered_map<UInt, UInt>::type::iterator it_w;
+	  it_w = weight_map.find(current_el);
+
+	  if(it_w == weight_map.end()) {
+	    weight_map[current_el] = 1;
+	  } else {
+	    it_w->second++;
+	  }
+
+  	  // UInt mark_offset  = current_el & mask;
+  	  // Int current_mark = mark[mark_offset];
+  	  // if(current_mark == -1) { /// if element not in map
+  	  //   index[m] = current_el;
+  	  //   weight[m] = 1;
+  	  //   mark[mark_offset] = m++;
+  	  // } else if (index[current_mark] == current_el) { /// if element already in map
+  	  //   weight[current_mark]++;
+  	  // } else { /// if element already in map but collision in the keys
+  	  //   UInt i;
+  	  //   for (i = 0; i < m; ++i) {
+  	  //     if(index[i] == current_el) {
+  	  // 	weight[i]++;
+  	  // 	break;
+  	  //     }
+  	  //   }
+  	  //   if(i == m) {
+  	  //     index[m] = current_el;
+  	  //     weight[m++] = 1;
+  	  //   }
+  	  // }
   	}
+      }
+      /// each element with a weight of the size of a facet are adjacent
+      unordered_map<UInt, UInt>::type::iterator it_w;
+      for(it_w = weight_map.begin(); it_w != weight_map.end(); ++it_w) {
+	if(it_w->second == magic_number[t]) {
+  	  UInt adjacent_el = it_w->first;
+
+	  if(adjacent_el > nb_total_element) std::cout << "AAAAAAAAAAAAAAHHHHHHH !!!! "
+						       << adjacent_el << " " << nb_total_element << std::endl;
+
+	  UInt index_adj = dxadj_val[adjacent_el ]++;
+	  UInt index_lin = dxadj_val[linerized_el]++;
+
+	  if(index_lin >= dxadj_val[nb_total_element]) std::cout << "AAAAAAAAAAAAAAHHHHHHH !!!! "
+							<< index_lin << " " << dxadj_val[nb_total_element] << std::endl;
+
+	  if(index_adj >= dxadj_val[nb_total_element]) std::cout << "OOOOOOOOOOOOOOHHHHHHH !!!! "
+							<< index_adj << " " << dxadj_val[nb_total_element] << std::endl;
+
+  	  dadjncy_val[index_lin] = adjacent_el;
+  	  dadjncy_val[index_adj] = linerized_el;
+	}
       }
 
-      /// each element with a weight of the size of a facet are adjacent
-      for (UInt n = 0; n < m; ++n) {
-  	if(weight[n] == magic_number[t]) {
-  	  UInt adjacent_el = index[n];
-  	  dadjncy_val[dxadj_val[linerized_el]++] = adjacent_el;
-  	  dadjncy_val[dxadj_val[adjacent_el ]++] = linerized_el;
-  	}
-  	mark[index[n] & mask] = -1;
-      }
+      // for (UInt n = 0; n < m; ++n) {
+      // 	if(weight[n] == magic_number[t]) {
+      // 	  UInt adjacent_el = index[n];
+      // 	  dadjncy_val[dxadj_val[linerized_el]++] = adjacent_el;
+      // 	  dadjncy_val[dxadj_val[adjacent_el ]++] = linerized_el;
+      // 	}
+      // 	mark[index[n] & mask] = -1;
+      // }
+
+      weight_map.clear();
     }
   }
 
@@ -187,7 +222,7 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   for (UInt t = 0, linerized_el = 0, j = 0; t < nb_good_types; ++t)
     for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el) {
       for (Int k = k_start; k < dxadj_val[linerized_el]; ++k, ++j)
-  	dadjncy_val[j] = dadjncy_val[k];
+	dadjncy_val[j] = dadjncy_val[k];
       dxadj_val[linerized_el] = j;
       k_start += nb_nodes_per_element_p1[t];
     }
@@ -195,7 +230,7 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   for (UInt i = nb_total_element; i > 0; --i) dxadj_val[i] = dxadj_val[i-1];
   dxadj_val[0] = 0;
 
-  delete [] mark;
+  //  delete [] mark;
 
   AKANTU_DEBUG_OUT();
 }

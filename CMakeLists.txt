@@ -90,10 +90,21 @@ option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
 # features
 add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
 add_optional_package(MPI "Add MPI support in akantu" OFF)
-add_optional_package(Scotch "Add Scotch support in akantu" OFF)
 add_optional_package(Mumps "Add Mumps support in akantu" OFF)
+add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
+add_optional_package(Scotch "Add Scotch support in akantu" OFF)
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
 add_optional_package(EPSN "Use EPSN streering environment" OFF)
+
+if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
+  set(AKANTU_PARTITIONER_ON ON)
+else()
+  set(AKANTU_PARTITIONER_ON OFF)
+endif()
+
+if(AKANTU_PTSCOTCH_ON)
+  add_definitions(-DAKANTU_USE_${_u_package})
+endif()
 
 # Debug
 if(NOT AKANTU_DEBUG)
@@ -182,7 +193,7 @@ if(AKANTU_MPI_ON)
     )
 endif()
 
-if(AKANTU_SCOTCH_ON)
+if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     mesh_utils/mesh_partition/mesh_partition_scotch.cc

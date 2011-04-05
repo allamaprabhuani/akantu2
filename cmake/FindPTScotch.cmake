@@ -1,9 +1,9 @@
 #===============================================================================
-# @file   FindScotch.cmake
+# @file   FindPTScotch.cmake
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @date   Tue Aug  25 16:53:57 2010
 #
-# @brief  The find_package file for Scotch
+# @brief  The find_package file for PT-Scotch
 #
 # @section LICENSE
 #
@@ -26,59 +26,59 @@
 #===============================================================================
 
 #===============================================================================
-#if(SCOTCH_DIR)
-#  set(SCOTCH_LIBRARY "NOTFOUND" CACHE INTERNAL "Cleared" FORCE)
-#endif(SCOTCH_DIR)
+#if(PTSCOTCH_DIR)
+#  set(PTSCOTCH_LIBRARY "NOTFOUND" CACHE INTERNAL "Cleared" FORCE)
+#endif(PTSCOTCH_DIR)
 
-find_library(SCOTCH_LIBRARY scotch
-  PATHS ${SCOTCH_DIR}
+find_library(PTSCOTCH_LIBRARY ptscotch
+  PATHS ${PTSCOTCH_DIR}
   PATH_SUFFIXES src/libscotch lib
   )
 
-find_library(SCOTCH_LIBRARY_ERR scotcherr
-  PATHS ${SCOTCH_DIR}
+find_library(PTSCOTCH_LIBRARY_ERR ptscotcherr
+  PATHS ${PTSCOTCH_DIR}
   PATH_SUFFIXES src/libscotch lib
   )
 
-find_library(SCOTCH_LIBRARY_ESMUMPS ptesmumps
-  PATHS ${SCOTCH_DIR}
+find_library(PTSCOTCH_LIBRARY_ESMUMPS ptesmumps
+  PATHS ${PTSCOTCH_DIR}
   PATH_SUFFIXES src/libscotch lib
   )
 
-find_path(SCOTCH_INCLUDE_PATH scotch.h
-  PATHS ${SCOTCH_DIR}
+find_path(PTSCOTCH_INCLUDE_PATH ptscotch.h
+  PATHS ${PTSCOTCH_DIR}
   PATH_SUFFIXES include scotch src/libscotch include/scotch
   )
 
 #===============================================================================
-mark_as_advanced(SCOTCH_LIBRARY)
-mark_as_advanced(SCOTCH_LIBRARY_ERR)
-mark_as_advanced(SCOTCH_LIBRARY_ESMUMPS)
-mark_as_advanced(SCOTCH_INCLUDE_PATH)
+mark_as_advanced(PTSCOTCH_LIBRARY)
+mark_as_advanced(PTSCOTCH_LIBRARY_ERR)
+mark_as_advanced(PTSCOTCH_LIBRARY_ESMUMPS)
+mark_as_advanced(PTSCOTCH_INCLUDE_PATH)
 
-set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY_ERR} ${SCOTCH_LIBRARY} )
+set(PTSCOTCH_LIBRARIES_ALL ${PTSCOTCH_LIBRARY} ${PTSCOTCH_LIBRARY_ERR})
 
-if(SCOTCH_LIBRARY_ESMUMPS)
-  set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY_ESMUMPS} ${SCOTCH_LIBRARIES_ALL})
+if(PTSCOTCH_LIBRARY_ESMUMPS)
+  set(PTSCOTCH_LIBRARIES_ALL ${PTSCOTCH_LIBRARY_ESMUMPS} ${PTSCOTCH_LIBRARIES_ALL})
 endif()
 
-set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for scotch" FORCE)
+set(PTSCOTCH_LIBRARIES ${PTSCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for PT-Scotch" FORCE)
 
 #===============================================================================
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(SCOTCH DEFAULT_MSG
-  SCOTCH_LIBRARY SCOTCH_LIBRARY_ERR SCOTCH_INCLUDE_PATH)
+find_package_handle_standard_args(PTSCOTCH DEFAULT_MSG
+  PTSCOTCH_LIBRARY PTSCOTCH_LIBRARY_ERR PTSCOTCH_INCLUDE_PATH)
 
 
-if(SCOTCH_INCLUDE_PATH)
-  file(STRINGS ${SCOTCH_INCLUDE_PATH}/scotch.h SCOTCH_INCLUDE_CONTENT)
-  string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
+if(PTSCOTCH_INCLUDE_PATH)
+  file(STRINGS ${PTSCOTCH_INCLUDE_PATH}/scotch.h PTSCOTCH_INCLUDE_CONTENT)
+  string(REGEX MATCH "_cplusplus" _match ${PTSCOTCH_INCLUDE_CONTENT})
   if(_match)
-    add_definitions(-DAKANTU_SCOTCH_NO_EXTERN)
+    add_definitions(-DAKANTU_PTSCOTCH_NO_EXTERN)
   endif()
 endif()
 
 #===============================================================================
-if(NOT SCOTCH_FOUND)
-  set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
-endif(NOT SCOTCH_FOUND)
+if(NOT PTSCOTCH_FOUND)
+  set(PTSCOTCH_DIR "" CACHE PATH "Location of PT-Scotch library.")
+endif(NOT PTSCOTCH_FOUND)

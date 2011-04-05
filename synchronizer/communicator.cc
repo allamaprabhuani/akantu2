@@ -533,10 +533,10 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 	/* --------<<<<-TAGS------------------------------------------------- */
 	if(nb_tags) {
 	  AKANTU_DEBUG_INFO("Receiving associated data from proc " << root);
-	  UInt size = (nb_local_element + nb_ghost_element) * nb_tags
+	  UInt size_data = (nb_local_element + nb_ghost_element) * nb_tags
 	    + uint_names_size;
-	  local_data = new UInt[size];
-	  comm->receive(local_data, size, root, TAG_DATA);
+	  local_data = new UInt[size_data];
+	  comm->receive(local_data, size_data, root, TAG_DATA);
 
 	  MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
 
@@ -610,6 +610,7 @@ void Communicator::fillNodesType(Int * nodes_type_tmp, Mesh & mesh) {
 
     for (UInt e = 0; e < nb_element; ++e) {
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	if(*conn_val >= nb_nodes) std::cout << "AAAAAAAAAHHHHHHH " << nb_nodes << " " << *conn_val << std::endl;
 	if(!already_seen[*conn_val]) {
 	  nodes_set[*conn_val] += NORMAL_SET;
 	  already_seen[*conn_val] = true;
@@ -827,8 +828,8 @@ void Communicator::registerTag(GhostSynchronizationTag tag) {
 	   ++rit) {
 	sreceive += ghost_synchronizer->getNbDataToUnpack(*rit, tag);
       }
-      AKANTU_DEBUG_INFO("I have " << ssend << " data to send to " << p
-			<< " and " << sreceive << " data to receive for tag " << tag);
+      AKANTU_DEBUG_INFO("I have " << ssend << "(" << ssend / 1024. << "kB) data to send to " << p
+			<< " and " << sreceive << "(" << ssend / 1024. << "kB) data to receive for tag " << tag);
     }
 
     size_to_send   [tag].values[p] = ssend;

@@ -243,11 +243,12 @@ namespace types {
   };
 
   template<class A, class B>
-  typename ResultType<Expression<BinaryOperation<A, B, MultiplyOp> > >::Type operator* (const A & a, const A & b) {
+  inline typename ResultType<Expression<BinaryOperation<A, B, MultiplyOp> > >::Type
+  operator* (const A & a, const A & b) {
     return Expression<BinaryOperation<A,B,MultiplyOp> >(BinaryOperation<A,B,MultiplyOp>(a,b));
   }
 
-}; // namespace types
+} // namespace types
 
 __END_AKANTU__
 

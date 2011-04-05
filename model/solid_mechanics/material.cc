@@ -314,19 +314,19 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   const Vector<Int> & equation_number = model->getEquationNumber();
 
   Vector<Real> * strain_vect;
-  Vector<Real> * stress_vect;
+  //  Vector<Real> * stress_vect;
   Vector<UInt> * elem_filter;
   const Vector<Real> * shapes_derivatives;
 
   if(ghost_type == _not_ghost) {
     elem_filter = element_filter[type];
     strain_vect = strain[type];
-    stress_vect = stress[type];
+    //    stress_vect = stress[type];
     shapes_derivatives = &(model->getFEM().getShapesDerivatives(type));
   } else {
     elem_filter = ghost_element_filter[type];
-    stress_vect = ghost_strain[type];
-    stress_vect = ghost_stress[type];
+    strain_vect = ghost_strain[type];
+    //    stress_vect = ghost_stress[type];
     shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(type));
   }
   UInt * elem_filter_val = elem_filter->values;

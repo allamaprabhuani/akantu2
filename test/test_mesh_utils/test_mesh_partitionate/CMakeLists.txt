@@ -32,3 +32,5 @@ register_test(test_mesh_partitionate_scotch
   test_mesh_partitionate_scotch.cc)
 add_dependencies(test_mesh_partitionate_scotch
   test_mesh_partitionate_mesh)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

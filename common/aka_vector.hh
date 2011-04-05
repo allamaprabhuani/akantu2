@@ -99,7 +99,7 @@ protected:
 
 namespace types {
   class Matrix;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T> class Vector : public VectorBase {

@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     for (unsigned int q = 0; q < nb_quadrature_points; ++q)
       part[i*nb_quadrature_points + q] = part_val[i];
   dumper.AddElemDataField(part, 1, "partitions");
-  dumper.SetPrefix("paraview/");
+  dumper.SetPrefix("paraview");
   dumper.Init();
   dumper.Dump();
 

@@ -105,7 +105,7 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   MyFEMType & fem = getFEMClass<MyFEMType>();
 
   Vector<Real> rho_1(0,1);
-  UInt nb_element;
+  //UInt nb_element;
 
   const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -113,15 +113,14 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     ElementType type = *it;
 
-
-    const Vector<Real> * shapes;
-    if(ghost_type == _not_ghost) {
-      nb_element   = fem.getMesh().getNbElement(type);
-      shapes       = &(fem.getShapes(type));
-    } else {
-      nb_element   = fem.getMesh().getNbGhostElement(type);
-      shapes       = &(fem.getGhostShapes(type));
-    }
+    // const Vector<Real> * shapes;
+    // if(ghost_type == _not_ghost) {
+    //   nb_element   = fem.getMesh().getNbElement(type);
+    //   shapes       = &(fem.getShapes(type));
+    // } else {
+    //   nb_element   = fem.getMesh().getNbGhostElement(type);
+    //   shapes       = &(fem.getGhostShapes(type));
+    // }
 
     computeRho(rho_1, type, ghost_type);
     fem.assembleFieldMatrix(rho_1, spatial_dimension, *equation_number, *mass_matrix, type, ghost_type);
@@ -158,9 +157,9 @@ void SolidMechanicsModel::computeRho(Vector<Real> & rho,
 
   /// compute @f$ rho @f$ for each nodes of each element
   for (UInt el = 0; el < nb_element; ++el) {
-    Real rho = mat_val[elem_mat_val[el]]->getRho(); /// here rho is constant in an element
+    Real mat_rho = mat_val[elem_mat_val[el]]->getRho(); /// here rho is constant in an element
     for (UInt n = 0; n < nb_quadrature_points; ++n) {
-      *rho_1_val++ = rho;
+      *rho_1_val++ = mat_rho;
     }
   }
 

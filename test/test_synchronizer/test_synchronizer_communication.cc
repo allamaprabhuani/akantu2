@@ -149,9 +149,9 @@ int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
 
-  int dim = 2;
+  int dim = 3;
 #ifdef AKANTU_USE_IOHELPER
-  akantu::ElementType type = akantu::_triangle_3;
+  akantu::ElementType type = akantu::_tetrahedron_10;
 #endif //AKANTU_USE_IOHELPER
 
   akantu::Mesh mesh(dim);
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
   akantu::Communicator * communicator;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
-    mesh_io.read("triangle.msh", mesh);
+    mesh_io.read("mesh.msh", mesh);
     akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, dim);
     partition->partitionate(psize);
     communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
