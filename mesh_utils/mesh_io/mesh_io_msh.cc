@@ -212,7 +212,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
   infile.open(filename.c_str());
 
   std::string line;
-  UInt first_node_number = 0, last_node_number = 0,
+  UInt first_node_number = std::numeric_limits<UInt>::max(), last_node_number = 0,
     file_format = 1, current_line = 0;
 
 
@@ -262,8 +262,8 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	sstr_node >> index >> coord[0] >> coord[1] >> coord[2];
 	current_line++;
 
-	first_node_number = first_node_number < index ? first_node_number : index;
-	last_node_number  = last_node_number  > index ? last_node_number  : index;
+	first_node_number = std::min(first_node_number,index);
+	last_node_number  = std::max(last_node_number, index);
 
 	/// read the coordinates
 	for(UInt j = 0; j < spatial_dimension; ++j)
@@ -343,7 +343,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	  AKANTU_DEBUG_ASSERT(node_index <= last_node_number,
 			     "Node number not in range : line " << current_line);
 
-	  node_index -= first_node_number + 1;
+	  node_index -= first_node_number;
 	  local_connect[_read_order[akantu_type][j]] = node_index;
 	}
 	connectivity->push_back(local_connect);

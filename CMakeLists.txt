@@ -137,6 +137,7 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/material.cc
   model/solid_mechanics/materials/material_elastic.cc
   model/solid_mechanics/materials/material_damage.cc
+  model/solid_mechanics/materials/material_mazars.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc

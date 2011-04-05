@@ -44,6 +44,14 @@ void SolidMechanicsModel::assembleMassLumped() {
   assembleMassLumped(_not_ghost);
   assembleMassLumped(_ghost);
 
+  /// for not connected nodes put mass to one in order to avoid
+  /// wrong range in paraview
+  Real * mass_values = mass->values;
+  for (UInt i = 0; i < nb_nodes; ++i) {
+    if (fabs(mass_values[i]) < std::numeric_limits<Real>::epsilon() || Math::isnan(mass_values[i]))
+      mass_values[i] = 1.;
+  }
+
   AKANTU_DEBUG_OUT();
 }
 

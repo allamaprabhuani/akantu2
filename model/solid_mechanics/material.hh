@@ -233,6 +233,7 @@ __END_AKANTU__
 
 #include "materials/material_elastic.hh"
 #include "materials/material_damage.hh"
+#include "materials/material_mazars.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Auto loop                                                                  */
