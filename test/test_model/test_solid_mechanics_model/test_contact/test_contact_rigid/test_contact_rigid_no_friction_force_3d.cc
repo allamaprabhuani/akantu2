@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
   }
   UInt * top_nodes_val = top_nodes->values;
   
+  my_model.updateResidual();
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   DumperParaview dumper;

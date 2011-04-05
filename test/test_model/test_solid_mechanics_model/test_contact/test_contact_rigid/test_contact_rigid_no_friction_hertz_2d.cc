@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
 
   Real * velocity_val = my_model.getVelocity().values;
   
+  my_model.updateResidual();
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   DumperParaview dumper;
