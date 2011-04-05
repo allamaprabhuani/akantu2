@@ -436,41 +436,43 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     memcpy(nodes->values, local_nodes, nb_nodes * spatial_dimension * sizeof(Real));
     delete [] local_nodes;
 
-//     Vector<Int> * nodes_type_per_proc[nb_proc];
-//     for (UInt p = 0; p < nb_proc; ++p) {
-//       nodes_type_per_proc[p] = new Vector<Int>(nb_nodes);
-//     }
+    Vector<Int> * nodes_type_per_proc[nb_proc];
+    for (UInt p = 0; p < nb_proc; ++p) {
+      nodes_type_per_proc[p] = new Vector<Int>(nb_nodes_per_proc[p]);
+    }
 
-//     std::multimap< UInt, std::pair<UInt, UInt> >::iterator it_node;
-//     std::pair< std::multimap< UInt, std::pair<UInt, UInt> >::iterator,
-//       std::multimap< UInt, std::pair<UInt, UInt> >::iterator > it_range;
-//     for (UInt i = 0; i < mesh.nb_global_nodes; ++i) {
-//       it_range = nodes_to_proc.equal_range(i);
-//       Int node_type = (it_range.first == it_range.second) ?
-// 	-1 : (it_range.first)->second.first;
-//       for (it_node = it_range.first; it_node != it_range.second; ++it_node) {
-// 	nodes_type_per_proc[it_node->second.first]->values[it_node->second.second] = node_type;
-//       }
-//     }
+    std::multimap< UInt, std::pair<UInt, UInt> >::iterator it_node;
+    std::pair< std::multimap< UInt, std::pair<UInt, UInt> >::iterator,
+      std::multimap< UInt, std::pair<UInt, UInt> >::iterator > it_range;
+    for (UInt i = 0; i < mesh.nb_global_nodes; ++i) {
+      it_range = nodes_to_proc.equal_range(i);
+      Int node_type = (it_range.first == it_range.second) ? -1 : (Int) (it_range.first)->second.first;
+      for (it_node = it_range.first; it_node != it_range.second; ++it_node) {
+	UInt proc = it_node->second.first;
+	UInt node = it_node->second.second;
+	nodes_type_per_proc[proc]->values[node] = node_type;
+      }
+    }
+
     /* -------->>>>-NODES_TYPE----------------------------------------------- */
-//     std::vector<CommunicationRequest *> requests;
-//     for (UInt p = 0; p < nb_proc; ++p) {
-//       if(p != root) {
-// 	AKANTU_DEBUG_INFO("Sending nodes types to proc " << p);
-// 	requests.push_back(comm->asyncSend(nodes_type_per_proc[p]->values,
-// 					   nb_nodes_per_proc[p], p, TAG_NODES_TYPE));
-//       }
-//     }
+    std::vector<CommunicationRequest *> requests;
+    for (UInt p = 0; p < nb_proc; ++p) {
+      if(p != root) {
+	AKANTU_DEBUG_INFO("Sending nodes types to proc " << p);
+	requests.push_back(comm->asyncSend(nodes_type_per_proc[p]->values,
+					   nb_nodes_per_proc[p], p, TAG_NODES_TYPE));
+      }
+    }
 
-//     communicator->fillNodesType(nodes_type_per_proc[root]->values, mesh);
+    communicator->fillNodesType(nodes_type_per_proc[root]->values, mesh);
 
-//     comm->waitAll(requests);
-//     comm->freeCommunicationRequest(requests);
-//     requests.clear();
+    comm->waitAll(requests);
+    comm->freeCommunicationRequest(requests);
+    requests.clear();
 
-//     for (UInt p = 0; p < nb_proc; ++p) {
-//       delete nodes_type_per_proc[p];
-//     }
+    for (UInt p = 0; p < nb_proc; ++p) {
+      delete nodes_type_per_proc[p];
+    }
 
     /* ---------------------------------------------------------------------- */
     /*  Distant (rank != root)                                                */
@@ -557,13 +559,14 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
     comm->receive(nodes->values, nb_nodes * spatial_dimension, root, TAG_COORDINATES);
 
-    /* --------<<<<-NODES_TYPE----------------------------------------------- */
-//     Int * nodes_types = new Int[nb_nodes];
-//     AKANTU_DEBUG_INFO("Receiving nodes types from proc " << root);
-//     comm->receive(nodes_types, nb_nodes,
-// 		  root, TAG_NODES_TYPE);
 
-//     communicator->fillNodesType(nodes_types, mesh);
+    /* --------<<<<-NODES_TYPE----------------------------------------------- */
+    Int * nodes_types = new Int[nb_nodes];
+    AKANTU_DEBUG_INFO("Receiving nodes types from proc " << root);
+    comm->receive(nodes_types, nb_nodes,
+		  root, TAG_NODES_TYPE);
+
+    communicator->fillNodesType(nodes_types, mesh);
   }
 
   comm->broadcast(&(mesh.nb_global_nodes), 1, root);
