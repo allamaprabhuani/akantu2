@@ -222,6 +222,7 @@ inline bool Vector<T>::iterator<Ret>::operator!=(const iterator & other) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Specialization : iterator of Matrix                                        */
 /* -------------------------------------------------------------------------- */
 template<>
 template<>
@@ -276,4 +277,53 @@ inline Vector<Real>::iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n)
 template<>
 inline Vector<Real>::iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) {
   return iterator<types::Matrix>(values + nb_component * size, nb_component, m, n);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Specialization : iterator of Scalars                                       */
+/* -------------------------------------------------------------------------- */
+template<>
+template<>
+class Vector<Real>::iterator<Real> {
+public:
+  iterator(Real * current) : current(current) {
+  };
+
+  iterator(const iterator & it) {
+    if(this != &it) {
+      current = it.current;
+    }
+  };
+
+  ~iterator() { };
+
+  inline iterator & operator=(const iterator & it) {
+    if(this != &it) {
+      current = it.current;
+    }
+    return *this;
+  };
+
+  inline Real & operator*() { return *current; };
+  inline iterator & operator++() { current++; return *this; };
+  inline iterator & operator+=(const UInt n) { current += n; return *this; };
+  inline bool operator==(const iterator & other) { return current == other.current; };
+  inline bool operator!=(const iterator & other) { return current != other.current; };
+
+private:
+  Real * current;
+};
+
+/* -------------------------------------------------------------------------- */
+template<>
+template<>
+inline Vector<Real>::iterator<Real> Vector<Real>::begin<Real>() {
+  return iterator<Real>(values);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+template<> 
+inline Vector<Real>::iterator<Real> Vector<Real>::end<Real>() {
+  return iterator<Real>(values + nb_component * size);
 }

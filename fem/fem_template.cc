@@ -380,6 +380,31 @@ void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
+void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
+						   UInt nb_degree_of_freedom,
+						   const Vector<Int> & equation_number,
+						   SparseMatrix & matrix,
+						   ElementType type,
+						   GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+#define ASSEMBLE_MATRIX(type)					\
+  assembleFieldMatrix<type>(field_1, nb_degree_of_freedom,	\
+			    equation_number, matrix,		\
+			    ghost_type)
+
+  AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_MATRIX);
+
+#undef ASSEMBLE_MATRIX
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedTemplate(const Vector<Real> & field_1,
 						      Vector<Real> & lumped,
@@ -502,7 +527,51 @@ void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> 
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+/**
+ * @f$ \tilde{M}_{i} = \sum_j M_{ij} = \sum_j \int \rho \varphi_i \varphi_j dV = \int \rho \varphi_i dV @f$
+ */
+template <typename Integ, typename Shape>
+template <ElementType type>
+void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
+						   UInt nb_degree_of_freedom,
+						   const Vector<Int> & equation_number,
+						   SparseMatrix & matrix,
+						   GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
+  UInt vect_size   = field_1.getSize();
+  UInt shapes_size = ElementClass<type>::getShapeSize();
+
+  const Vector<Real> & shapes = shape_functions.getShapes(type);
+  Vector<Real> * modified_shapes = new Vector<Real>(shapes);
+  modified_shapes->extendComponentsInterlaced(nb_degree_of_freedom, shapes_size);
+
+  UInt lmat_size = nb_degree_of_freedom * shapes_size;
+  Vector<Real> * local_mat = new Vector<Real>(vect_size, lmat_size * lmat_size);
+
+  Vector<Real>::iterator<types::Matrix> shape_vect  = modified_shapes->begin(lmat_size, 1);
+  Vector<Real>::iterator<types::Matrix> lmat        = local_mat->begin(lmat_size, lmat_size);
+  Real * field_val = field_1.values;
+
+  for(UInt q = 0; q < vect_size; ++q) {
+    (*lmat).mul<true, false>(*shape_vect, *shape_vect, *field_val);
+    ++lmat; ++shape_vect; ++field_val;
+  }
+
+  delete modified_shapes;
+
+  Vector<Real> * int_field_times_shapes = new Vector<Real>(0, shapes_size,
+							   "inte_rho_x_shapes");
+  integrator.template integrate<type>(*local_mat, *int_field_times_shapes,
+				      lmat_size * lmat_size, ghost_type, NULL);
+  delete local_mat;
+
+  assembleMatrix(*int_field_times_shapes, matrix, equation_number, nb_degree_of_freedom, type, ghost_type);
+  delete int_field_times_shapes;
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 /* template instanciation                                                     */

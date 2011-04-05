@@ -62,6 +62,19 @@ public:
 				     Vector<Real> & u_dot_dot,
 				     Vector<bool> & boundary) = 0;
 
+  virtual void integrationSchemePredImplicit(Real delta_t,
+					     Vector<Real> & u,
+					     Vector<Real> & u_dot,
+					     Vector<Real> & u_dot_dot,
+					     Vector<bool> & boundary) = 0;
+
+  virtual void integrationSchemeCorrImplicit(Real delta_t,
+					     Vector<Real> & delta_u,
+					     Vector<Real> & u,
+					     Vector<Real> & u_dot,
+					     Vector<Real> & u_dot_dot,
+					     Vector<bool> & boundary) = 0;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

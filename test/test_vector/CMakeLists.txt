@@ -26,4 +26,4 @@
 #===============================================================================
 
 REGISTER_TEST(test_vector test_vector.cc)
-REGISTER_TEST(test_matrix test_matrix.cc)
+#REGISTER_TEST(test_matrix test_matrix.cc)

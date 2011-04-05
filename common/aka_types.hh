@@ -26,15 +26,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_math.hh"
 #include "aka_vector.hh"
-
-#ifdef AKANTU_USE_BLAS
-# ifndef AKANTU_USE_CBLAS_MKL
-#  include <cblas.h>
-# else // AKANTU_USE_CBLAS_MKL
-#  include <mkl_cblas.h>
-# endif //AKANTU_USE_CBLAS_MKL
-#endif //AKANTU_USE_BLAS
 
 /* -------------------------------------------------------------------------- */
 #ifndef __INTEL_COMPILER
@@ -86,7 +79,7 @@ namespace types {
 
     UInt rows() const { return m; };
     UInt cols() const { return n; };
-    Real * storage() const { return values; };
+    const Real * storage() const { return values; };
 
     inline Real& operator()(UInt i, UInt j) { return *(values + i*m + j); };
     inline const Real& operator()(UInt i, UInt j) const { return *(values + i*m + j); };
@@ -110,38 +103,16 @@ namespace types {
     };
 
     inline Matrix operator* (const Matrix & B) {
-      // UInt m = this->m, n = B.n, k = this->n;
-      // Matrix C(m,n);
-      // C.clear();
-
-      // UInt A_i = 0, C_i = 0;
-      // for (UInt i = 0; i < m; ++i, A_i += k, C_i += n)
-      //   for (UInt j = 0; j < n; ++j)
-      // 	for (UInt l = 0; l < k; ++l)
-      // 	  C[C_i + j] += (*this)[A_i + l] * B[l * n + j];
       Matrix C(m,n);
-      C.mul(*this, B);
+      C.mul<false, false>(*this, B);
 
       return C;
     };
 
-    inline void mul(const Matrix & A, const Matrix & B) {
+    template<bool tr_A, bool tr_B>
+    inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt m = A.m, n = B.n, k = A.n;
-#ifdef AKANTU_USE_BLAS
-      ///  C := alpha*op(A)*op(B) + beta*C
-      cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-		  m, n, k,
-		  1, A.values, k, B.values, n,
-		  0, this->values, n);
-#else
-      this->clear();
-
-      UInt A_i = 0, C_i = 0;
-      for (UInt i = 0; i < m; ++i, A_i += k, C_i += n)
-	for (UInt j = 0; j < n; ++j)
-	  for (UInt l = 0; l < k; ++l)
-	    (*this)[C_i + j] += A[A_i + l] * B[l * n + j];
-#endif
+      Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     };
 
 

@@ -63,7 +63,7 @@ class NewmarkBeta : public IntegrationScheme2ndOrder {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  NewmarkBeta(Real beta, Real gamma) : beta(beta), gamma(gamma) {};
+  NewmarkBeta(Real beta, Real gamma) : beta(beta), gamma(gamma), h(1) {};
 
   ~NewmarkBeta(){};
   /* ------------------------------------------------------------------------ */
@@ -83,6 +83,19 @@ public:
 			     Vector<Real> & u_dot_dot,
 			     Vector<bool> & boundary);
 
+  void integrationSchemePredImplicit(Real delta_t,
+				     Vector<Real> & u,
+				     Vector<Real> & u_dot,
+				     Vector<Real> & u_dot_dot,
+				     Vector<bool> & boundary);
+
+  void integrationSchemeCorrImplicit(Real delta_t,
+				     Vector<Real> & delta_u,
+				     Vector<Real> & u,
+				     Vector<Real> & u_dot,
+				     Vector<Real> & u_dot_dot,
+				     Vector<bool> & boundary);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -93,6 +106,7 @@ private:
   /// the @f$\gamma@f$ parameter
   Real gamma;
 
+  Real h;
 };
 
 /* -------------------------------------------------------------------------- */

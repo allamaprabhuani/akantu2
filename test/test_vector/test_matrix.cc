@@ -31,10 +31,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_types.hh"
-#include "aka_types_expression.hh"
 #include "aka_vector.hh"
 #include "aka_math.hh"
-
+#include "aka_types_expression.hh"
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
@@ -112,7 +111,7 @@ int main(int argc, char *argv[]) {
   Vector<Real>::iterator<types::Matrix> muitC = C4.begin(n,n);
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
-    (*muitC).mul(*muitA, *muitB);
+    (*muitC).mul<false, false>(*muitA, *muitB);
     ++muitA; ++muitB;++muitC;
   }
   gettimeofday(&end, NULL);

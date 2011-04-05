@@ -158,6 +158,16 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
+  /// assemble a field as a matrix (ex. rho to mass matrix)
+  virtual void assembleFieldMatrix(const Vector<Real> & field_1,
+				   UInt nb_degree_of_freedom,
+				   const Vector<Int> & equation_number,
+				   SparseMatrix & matrix,
+				   ElementType type,
+				   GhostType ghost_type) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

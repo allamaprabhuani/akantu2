@@ -27,8 +27,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_types.hh"
 #include "aka_math.hh"
+#include "aka_types.hh"
 
 #ifndef __AKANTU_AKA_TYPES_EXPRESSION_HH__
 #define __AKANTU_AKA_TYPES_EXPRESSION_HH__

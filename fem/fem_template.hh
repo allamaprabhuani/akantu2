@@ -125,6 +125,14 @@ public:
 			   ElementType type,
 			   GhostType ghost_type);
 
+  void assembleFieldMatrix(const Vector<Real> & field_1,
+			   UInt nb_degree_of_freedom,
+			   const Vector<Int> & equation_number,
+			   SparseMatrix & matrix,
+			   ElementType type,
+			   GhostType ghost_type);
+
+
 private:
 
   template <ElementType type>
@@ -139,6 +147,14 @@ private:
   void assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
 				     Vector<Real> & lumped,
 				     GhostType ghost_type);
+
+  template <ElementType type>
+  void assembleFieldMatrix(const Vector<Real> & field_1,
+			   UInt nb_degree_of_freedom,
+			   const Vector<Int> & equation_number,
+			   SparseMatrix & matrix,
+			   GhostType ghost_type);
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

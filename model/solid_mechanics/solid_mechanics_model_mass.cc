@@ -56,6 +56,26 @@ void SolidMechanicsModel::assembleMassLumped() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::assembleMass() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(equation_number != NULL, "Call first initImplicitSolver()!");
+
+  assembleMass(_not_ghost);
+  //  assembleMass(_ghost);
+
+  UInt nb_global_node = getFEM().getMesh().getNbGlobalNodes();
+
+  std::stringstream sstr; sstr << id << ":mass_matrix";
+  mass_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
+				 spatial_dimension, sstr.str(), memory_id);
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -81,6 +101,7 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+
   MyFEMType & fem = getFEMClass<MyFEMType>();
 
   Vector<Real> rho_1(0,1);
@@ -103,6 +124,7 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
     }
 
     computeRho(rho_1, type, ghost_type);
+    fem.assembleFieldMatrix(rho_1, spatial_dimension, *equation_number, *mass_matrix, type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
