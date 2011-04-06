@@ -84,6 +84,9 @@ public:
     
     /// show if node is sticking
     Vector<bool> * node_is_sticking;
+
+    /// friction force for each
+    Vector<Real> * friction_forces;
   };
 
   typedef std::map<Surface, ImpactorInformationPerMaster *> SurfaceToImpactInfoMap;
