@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
   model->readMaterials("material.dat");
   model->initMaterials();
 
-  model->initImplicitSolver();
+  model->initImplicit();
 
   std::cout << model->getMaterial(0) << std::endl;
 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
     std::cout << "Iter : " << ++count << std::endl;
     model->assembleStiffnessMatrix();
 
-    model->solve();
+    model->solveStatic();
 
     model->getStiffnessMatrix().saveMatrix("Ktmp.mtx");
 

@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
+#include "communication_buffer.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -96,7 +97,7 @@ public:
    * @brief   pack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::GhostSynchronizationTag
    */
-  virtual void packData(Real ** buffer,
+  virtual void packData(CommunicationBuffer & buffer,
 			const Element & element,
 			GhostSynchronizationTag tag) const = 0;
 
@@ -104,7 +105,7 @@ public:
    * @brief   unpack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::GhostSynchronizationTag
    */
-  virtual void unpackData(Real ** buffer,
+  virtual void unpackData(CommunicationBuffer & buffer,
 			  const Element & element,
 			  GhostSynchronizationTag tag) const = 0;
 

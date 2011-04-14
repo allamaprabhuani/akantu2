@@ -32,15 +32,23 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "real_static_communicator.hh"
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class StaticCommunicatorDummy : public StaticCommunicator {
+class StaticCommunicatorDummy : public RealStaticCommunicator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  StaticCommunicatorDummy(__attribute__ ((unused)) int * argc,
+			  __attribute__ ((unused)) char *** argv) : RealStaticCommunicator(argc, argv) {
+    prank = 0;
+    psize = 1;
+  };
   virtual ~StaticCommunicatorDummy() {};
 
   /* ------------------------------------------------------------------------ */
@@ -48,114 +56,67 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void send(__attribute__ ((unused)) UInt * buffer,
-		    __attribute__ ((unused)) Int size,
-		    __attribute__ ((unused)) Int receiver,
-		    __attribute__ ((unused)) Int tag) {};
-  virtual void send(__attribute__ ((unused)) Real * buffer,
-		    __attribute__ ((unused)) Int size,
-		    __attribute__ ((unused)) Int receiver,
-		    __attribute__ ((unused)) Int tag) {};
+  template<typename T>
+  void send(__attribute__ ((unused)) T * buffer,
+	    __attribute__ ((unused)) Int size,
+	    __attribute__ ((unused)) Int receiver,
+	    __attribute__ ((unused)) Int tag) {};
 
-  virtual void receive(__attribute__ ((unused)) UInt * buffer,
-		       __attribute__ ((unused)) Int size,
-		       __attribute__ ((unused)) Int sender,
-		       __attribute__ ((unused)) Int tag) {};
-  virtual void receive(__attribute__ ((unused)) Int * buffer,
-		       __attribute__ ((unused)) Int size,
-		       __attribute__ ((unused)) Int sender,
-		       __attribute__ ((unused)) Int tag) {};
-  virtual void receive(__attribute__ ((unused)) Real * buffer,
-		       __attribute__ ((unused)) Int size,
-		       __attribute__ ((unused)) Int sender,
-		       __attribute__ ((unused)) Int tag) {};
+  template<typename T>
+  void receive(__attribute__ ((unused)) T * buffer,
+	       __attribute__ ((unused)) Int size,
+	       __attribute__ ((unused)) Int sender,
+	       __attribute__ ((unused)) Int tag) {};
 
-  virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) UInt * buffer,
-					   __attribute__ ((unused)) Int size,
-					   __attribute__ ((unused)) Int receiver,
-					   __attribute__ ((unused)) Int tag) {
-    return new CommunicationRequest(0, 0);
-  };
-  virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) Int * buffer,
-					   __attribute__ ((unused)) Int size,
-					   __attribute__ ((unused)) Int receiver,
-					   __attribute__ ((unused)) Int tag) {
-    return new CommunicationRequest(0, 0);
-  };
-  virtual CommunicationRequest * asyncSend(__attribute__ ((unused)) Real * buffer,
-					   __attribute__ ((unused)) Int size,
-					   __attribute__ ((unused)) Int receiver,
-					   __attribute__ ((unused)) Int tag) {
+  template<typename T>
+  CommunicationRequest * asyncSend(__attribute__ ((unused)) T * buffer,
+				   __attribute__ ((unused)) Int size,
+				   __attribute__ ((unused)) Int receiver,
+				   __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
 
-  virtual CommunicationRequest * asyncReceive(__attribute__ ((unused)) UInt * buffer,
-					      __attribute__ ((unused)) Int size,
-					      __attribute__ ((unused)) Int sender,
-					      __attribute__ ((unused)) Int tag) {
+  template<typename T>
+  CommunicationRequest * asyncReceive(__attribute__ ((unused)) T * buffer,
+				      __attribute__ ((unused)) Int size,
+				      __attribute__ ((unused)) Int sender,
+				      __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
   };
 
-  virtual CommunicationRequest * asyncReceive(__attribute__ ((unused)) Real * buffer,
-					      __attribute__ ((unused)) Int size,
-					      __attribute__ ((unused)) Int sender,
-					      __attribute__ ((unused)) Int tag) {
-    return new CommunicationRequest(0, 0);
-  };
-
-  virtual bool testRequest(__attribute__ ((unused)) CommunicationRequest * request) { return true; };
+  bool testRequest(__attribute__ ((unused)) CommunicationRequest * request) { return true; };
 
 
-  virtual void wait(__attribute__ ((unused)) CommunicationRequest * request) {};
+  void wait(__attribute__ ((unused)) CommunicationRequest * request) {};
 
-  virtual void waitAll(__attribute__ ((unused)) std::vector<CommunicationRequest *> & requests) {};
+  void waitAll(__attribute__ ((unused)) std::vector<CommunicationRequest *> & requests) {};
 
-  virtual void barrier() {};
+  void barrier() {};
 
-  virtual void allReduce(__attribute__ ((unused)) Real * values,
-			 __attribute__ ((unused)) Int nb_values,
-			 __attribute__ ((unused)) const SynchronizerOperation & op) {};
-  virtual void allReduce(__attribute__ ((unused)) UInt * values,
-			 __attribute__ ((unused)) Int nb_values,
-			 __attribute__ ((unused)) const SynchronizerOperation & op) {};
+  template<typename T>
+  void allReduce(__attribute__ ((unused)) T * values,
+		 __attribute__ ((unused)) Int nb_values,
+		 __attribute__ ((unused)) const SynchronizerOperation & op) {};
 
-  inline void gather(__attribute__ ((unused)) Real * values,
-		     __attribute__ ((unused)) Int nb_values,
-		     __attribute__ ((unused)) Int root = 0) {};
-  inline void gather(__attribute__ ((unused)) UInt * values,
-		     __attribute__ ((unused)) Int nb_values,
-		     __attribute__ ((unused)) Int root = 0) {};
-  inline void gather(__attribute__ ((unused)) Int * values,
+  template<typename T>
+  inline void gather(__attribute__ ((unused)) T * values,
 		     __attribute__ ((unused)) Int nb_values,
 		     __attribute__ ((unused)) Int root = 0) {};
 
-  inline void gatherv(__attribute__ ((unused)) Real * values,
-		      __attribute__ ((unused)) Int * nb_values,
-		      __attribute__ ((unused)) Int root = 0) {};
-  inline void gatherv(__attribute__ ((unused)) UInt * values,
-		      __attribute__ ((unused)) Int * nb_values,
-		      __attribute__ ((unused)) Int root = 0) {};
-  inline void gatherv(__attribute__ ((unused)) Int * values,
+  template<typename T>
+  inline void gatherv(__attribute__ ((unused)) T * values,
 		      __attribute__ ((unused)) Int * nb_values,
 		      __attribute__ ((unused)) Int root = 0) {};
 
-  inline void broadcast(__attribute__ ((unused)) Real * values,
+  template<typename T>
+  inline void broadcast(__attribute__ ((unused)) T * values,
 			__attribute__ ((unused)) Int nb_values,
 			__attribute__ ((unused)) Int root = 0) {};
-  inline void broadcast(__attribute__ ((unused)) UInt * values,
-			__attribute__ ((unused)) Int nb_values,
-			__attribute__ ((unused)) Int root = 0) {};
-  inline void broadcast(__attribute__ ((unused)) Int * values,
-			__attribute__ ((unused)) Int nb_values,
-			__attribute__ ((unused)) Int root = 0) {};
-
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual Int getNbProc() const { return 1; };
-  virtual Int whoAmI() const { return 0; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

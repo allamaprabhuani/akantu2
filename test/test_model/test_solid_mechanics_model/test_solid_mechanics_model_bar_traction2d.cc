@@ -42,7 +42,6 @@
 #endif //AKANTU_USE_IOHELPER
 
 //#define CHECK_STRESS
-
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_triangle_6;
   akantu::UInt paraview_type = TRIANGLE2;
@@ -58,8 +57,10 @@ akantu::Vector<akantu::Real> * stress;
 akantu::Vector<akantu::Real> * strain;
 akantu::Vector<akantu::Real> * damage;
 
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(Dumper & dumper);
 void paraviewDump(Dumper & dumper);
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -242,7 +243,11 @@ int main(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Dumper vars                                                                */
+/* -------------------------------------------------------------------------- */
 
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(Dumper & dumper) {
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
@@ -302,7 +307,7 @@ void paraviewInit(Dumper & dumper) {
   dumper.Dump();
 }
 
-
+/* -------------------------------------------------------------------------- */
 void paraviewDump(Dumper & dumper) {
   akantu::UInt offset = nb_quadrature_points * spatial_dimension * spatial_dimension;
   akantu::UInt nb_mat = model->getNbMaterials();
@@ -326,3 +331,4 @@ void paraviewDump(Dumper & dumper) {
 
   dumper.Dump();
 }
+#endif

@@ -57,8 +57,8 @@ Communicator::Communicator(SynchronizerID id,
   nb_proc = static_communicator->getNbProc();
   rank    = static_communicator->whoAmI();
 
-  send_buffer = new Vector<Real>[nb_proc];
-  recv_buffer = new Vector<Real>[nb_proc];
+  send_buffer = new CommunicationBuffer[nb_proc];
+  recv_buffer = new CommunicationBuffer[nb_proc];
 
   send_element = new std::vector<Element>[nb_proc];
   recv_element = new std::vector<Element>[nb_proc];
@@ -711,8 +711,8 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
     UInt ssize = (size_to_send[tag]).values[p];
     if(p == rank || ssize == 0) continue;
 
-    send_buffer[p].resize(ssize);
-    Real * buffer = send_buffer[p].values;
+    CommunicationBuffer & buffer = send_buffer[p];
+    buffer.resize(ssize);
 
     Element * elements = &(send_element[p].at(0));
     UInt nb_elements   =  send_element[p].size();
@@ -720,15 +720,15 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
 		      << " (" << ssize << "/" << nb_elements
 		      <<" data to send/elements)");
     for (UInt el = 0; el < nb_elements; ++el) {
-      ghost_synchronizer->packData(&buffer, *elements, tag);
+      ghost_synchronizer->packData(buffer, *elements, tag);
       elements++;
     }
     std::cerr << std::dec;
     AKANTU_DEBUG_INFO("Posting send to proc " << p);
-    send_requests.push_back(static_communicator->asyncSend(send_buffer[p].values,
-						       ssize,
-						       p,
-						       (Int) tag));
+    send_requests.push_back(static_communicator->asyncSend(buffer.storage(),
+							   ssize,
+							   p,
+							   (Int) tag));
   }
 
   AKANTU_DEBUG_ASSERT(recv_requests.size() == 0,
@@ -737,10 +737,11 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
   for (UInt p = 0; p < nb_proc; ++p) {
     UInt rsize = (size_to_receive[tag]).values[p];
     if(p == rank || rsize == 0) continue;
-    recv_buffer[p].resize(rsize);
+    CommunicationBuffer & buffer = recv_buffer[p];
+    buffer.resize(rsize);
 
     AKANTU_DEBUG_INFO("Posting receive from proc " << p << " (" << rsize << " data to receive)");
-    recv_requests.push_back(static_communicator->asyncReceive(recv_buffer[p].values,
+    recv_requests.push_back(static_communicator->asyncReceive(buffer.storage(),
 							      rsize,
 							      p,
 							      (Int) tag));
@@ -765,12 +766,12 @@ void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
       if(static_communicator->testRequest(req)) {
 	UInt proc = req->getSource();
 	AKANTU_DEBUG_INFO("Unpacking data coming from proc " << proc);
-	Real * buffer = recv_buffer[proc].values;
+	CommunicationBuffer & buffer = recv_buffer[proc];
 
 	Element * elements = &recv_element[proc].at(0);
 	UInt nb_elements   =  recv_element[proc].size();
 	for (UInt el = 0; el < nb_elements; ++el) {
-	  ghost_synchronizer->unpackData(&buffer, *elements, tag);
+	  ghost_synchronizer->unpackData(buffer, *elements, tag);
 	  elements++;
 	}
 

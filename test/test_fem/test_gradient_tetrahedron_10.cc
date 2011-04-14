@@ -43,6 +43,7 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
+  debug::setDebugLevel(dblWarning);
   UInt dim = 3;
   ElementType type = _tetrahedron_10;
   MeshIOMSH mesh_io;
@@ -50,10 +51,12 @@ int main(int argc, char *argv[]) {
   mesh_io.read("cube2.msh", my_mesh);
   FEMTemplate<IntegratorGauss,ShapeLagrange> fem(my_mesh, dim, "my_fem");
 
-  debug::setDebugLevel(dblDump);
+
   fem.initShapeFunctions();
 
+  debug::setDebugLevel(dblDump);
   std::cout << fem << std::endl;
+  debug::setDebugLevel(dblWarning);
 
   Vector<Real> const_val(fem.getMesh().getNbNodes(), 2, "const_val");
   Vector<Real> grad_on_quad(0, 2 * dim, "grad_on_quad");

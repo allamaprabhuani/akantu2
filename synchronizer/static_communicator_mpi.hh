@@ -35,8 +35,7 @@
 /* -------------------------------------------------------------------------- */
 #include <mpi.h>
 /* -------------------------------------------------------------------------- */
-#include "static_communicator.hh"
-
+#include "real_static_communicator.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -53,7 +52,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-class StaticCommunicatorMPI : public virtual StaticCommunicator {
+class StaticCommunicatorMPI : public RealStaticCommunicator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -67,44 +66,15 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline void send(UInt * buffer, Int size, Int receiver, Int tag) {
-    _send(buffer, size, receiver, tag);
-  };
-  inline void send(Int * buffer, Int size, Int receiver, Int tag) {
-    _send(buffer, size, receiver, tag);
-  };
-  inline void send(Real * buffer, Int size, Int receiver, Int tag) {
-    _send(buffer, size, receiver, tag);
-  };
+  template<typename T> inline void send(T * buffer, Int size, Int receiver, Int tag);
+  template<typename T> inline void receive(T * buffer, Int size, Int sender, Int tag);
 
-  inline void receive(UInt * buffer, Int size, Int sender, Int tag) {
-    _receive(buffer, size, sender, tag);
-  };
-  inline void receive(Int * buffer, Int size, Int sender, Int tag) {
-    _receive(buffer, size, sender, tag);
-  };
-  inline void receive(Real * buffer, Int size, Int sender, Int tag) {
-    _receive(buffer, size, sender, tag);
-  };
+  template<typename T> inline CommunicationRequest * asyncSend(T * buffer, Int size, Int receiver, Int tag);
+  template<typename T> inline CommunicationRequest * asyncReceive(T * buffer, Int size, Int sender, Int tag);
 
-  inline CommunicationRequest * asyncSend(UInt * buffer, Int size, Int receiver, Int tag) {
-    return _asyncSend(buffer, size, receiver, tag);
-  };
-  inline CommunicationRequest * asyncSend(Int * buffer, Int size, Int receiver, Int tag) {
-    return _asyncSend(buffer, size, receiver, tag);
-  };
-  inline CommunicationRequest * asyncSend(Real * buffer, Int size, Int receiver, Int tag) {
-    return _asyncSend(buffer, size, receiver, tag);
-  };
-
-  inline CommunicationRequest * asyncReceive(UInt * buffer, Int size,
-					      Int sender, Int tag) {
-    return _asyncReceive(buffer, size, sender, tag);
-  };
-  inline CommunicationRequest * asyncReceive(Real * buffer, Int size,
-					      Int sender, Int tag) {
-    return _asyncReceive(buffer, size, sender, tag);
-  };
+  template<typename T> inline void gather(T * values, Int nb_values, Int root);
+  template<typename T> inline void gatherv(T * values, Int * nb_values, Int root);
+  template<typename T> inline void broadcast(T * values, Int nb_values, Int root);
 
   inline bool testRequest(CommunicationRequest * request);
 
@@ -114,46 +84,11 @@ public:
 
   inline void barrier();
 
-  inline void allReduce(Real * values, Int nb_values, const SynchronizerOperation & op);
-  inline void allReduce(UInt * values, Int nb_values, const SynchronizerOperation & op);
-
-  inline void gather(Real * values, Int nb_values, Int root = 0) { _gather(values, nb_values, root); };
-  inline void gather(UInt * values, Int nb_values, Int root = 0) { _gather(values, nb_values, root); };
-  inline void gather(Int  * values, Int nb_values, Int root = 0) { _gather(values, nb_values, root); };
-
-  inline void gatherv(Real * values, Int * nb_values, Int root = 0) { _gatherv(values, nb_values, root); };
-  inline void gatherv(UInt * values, Int * nb_values, Int root = 0) { _gatherv(values, nb_values, root); };
-  inline void gatherv(Int  * values, Int * nb_values, Int root = 0) { _gatherv(values, nb_values, root); };
-
-  inline void broadcast(Real * values, Int nb_values, Int root = 0) { _broadcast(values, nb_values, root); };
-  inline void broadcast(UInt * values, Int nb_values, Int root = 0) { _broadcast(values, nb_values, root); };
-  inline void broadcast(Int  * values, Int nb_values, Int root = 0) { _broadcast(values, nb_values, root); };
-
+  template<typename T> inline void allReduce(T * values, Int nb_values, const SynchronizerOperation & op);
 
 private:
   template<typename T>
   inline MPI_Datatype getMPIDatatype();
-
-  template<typename T>
-  inline void _send(T * buffer, Int size, Int receiver, Int tag);
-
-  template<typename T>
-  inline void _receive(T * buffer, Int size, Int sender, Int tag);
-
-  template<typename T>
-  inline CommunicationRequest * _asyncSend(T * buffer, Int size, Int receiver, Int tag);
-
-  template<typename T>
-  inline CommunicationRequest * _asyncReceive(T * buffer, Int size, Int sender, Int tag);
-
-  template<typename T>
-  inline void _gather(T * values, Int nb_values, Int root);
-
-  template<typename T>
-  inline void _gatherv(T * values, Int * nb_values, Int root);
-
-  template<typename T>
-  inline void _broadcast(T * values, Int nb_values, Int root);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -162,9 +97,6 @@ public:
 
   inline void setMPICommunicator(MPI_Comm comm);
   inline MPI_Comm getMPICommunicator() const;
-
-  inline Int getNbProc() const { return psize; };
-  inline Int whoAmI() const { return prank; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

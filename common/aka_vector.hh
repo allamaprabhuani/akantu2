@@ -99,8 +99,8 @@ protected:
 
 namespace types {
   class Matrix;
+  template<typename T> class Vector;
 }
-
 /* -------------------------------------------------------------------------- */
 template<typename T> class Vector : public VectorBase {
   /* ------------------------------------------------------------------------ */
@@ -134,11 +134,12 @@ public:
   /* Iterator                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  template<typename R>
+  template<typename R, int for_part_spec = 0>
   class iterator {
   public:
     typedef R returned_type;
-    typedef returned_type & ref_returned_type;
+    typedef returned_type & returned_type_ref;
+    typedef returned_type * returned_type_ptr;
 
     iterator();
     iterator(pointer_type data, UInt offset);
@@ -148,21 +149,27 @@ public:
 
     inline iterator & operator=(const iterator & it);
 
-    inline ref_returned_type operator*() { return *ret; };
+    inline returned_type_ref operator*() { return *ret; };
+    inline returned_type_ptr operator->() { return ret; };
     inline iterator & operator++();
 
     inline iterator & operator+=(const UInt n);
+    inline returned_type_ref operator[](const UInt n);
 
     inline bool operator==(const iterator & other);
     inline bool operator!=(const iterator & other);
 
   private:
     UInt offset;
-    returned_type * ret;
+    pointer_type initial;
+    returned_type_ptr ret;
   };
 
   template<typename Ret> inline iterator<Ret> begin();
   template<typename Ret> inline iterator<Ret> end();
+
+  inline iterator<types::Vector<T> > begin(UInt n);
+  inline iterator<types::Vector<T> > end(UInt n);
 
   inline iterator<types::Matrix> begin(UInt m, UInt n);
   inline iterator<types::Matrix> end(UInt m, UInt n);
@@ -217,6 +224,13 @@ public:
 protected:
   /// perform the allocation for the constructors
   void allocate(UInt size, UInt nb_component = 1);
+
+  /* ------------------------------------------------------------------------ */
+  /* Operators                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  Vector<T> & operator-=(const Vector<T> & vect);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

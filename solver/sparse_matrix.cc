@@ -95,13 +95,20 @@ SparseMatrix::SparseMatrix(UInt size,
 }
 
 /* -------------------------------------------------------------------------- */
-SparseMatrix::SparseMatrix(const SparseMatrix & matrix) :
-  Memory(matrix.getMemoryID()), sparse_matrix_type(matrix.getSparseMatrixType()),
-  nb_degre_of_freedom(matrix.getNbDegreOfFreedom()),
-  size(matrix.getSize()), nb_non_zero(matrix.getNbNonZero()),
-  irn(matrix.getIRN(), true), jcn(matrix.getJCN(), true), a(matrix.getA(), true) {
+SparseMatrix::SparseMatrix(const SparseMatrix & matrix,
+			   const SparseMatrixID & id,
+			   const MemoryID & memory_id) :
+  Memory(memory_id), id(id),
+  sparse_matrix_type(matrix.sparse_matrix_type),
+  nb_degre_of_freedom(matrix.nb_degre_of_freedom),
+  size(matrix.size),
+  nb_proc(matrix.nb_proc),
+  nb_non_zero(matrix.nb_non_zero),
+  irn(matrix.irn, true), jcn(matrix.jcn, true), a(matrix.getA(), true),
+  irn_jcn_k(matrix.irn_jcn_k) {
   AKANTU_DEBUG_IN();
 
+  size_save = 0;
   irn_save = NULL;
   jcn_save = NULL;
 
@@ -181,34 +188,6 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_
     }
 
     delete [] local_eq_nb_val;
-    // for (UInt e = 0; e < nb_element; ++e) {                                     // loop on element
-    //   for (UInt j = 0; j < nb_nodes_per_element; ++j) {                         // loop on local column
-    // 	UInt n_j = (nb_proc == 1) ? conn_val[j] : global_nodes_ids_val[conn_val[j]];
-    // 	UInt c_jcn = n_j * nb_degre_of_freedom;
-
-    // 	for (UInt d_j = 0; d_j < nb_degre_of_freedom; ++d_j, ++c_jcn) {         // loop on degre of freedom
-    // 	  for (UInt i = 0; i < nb_nodes_per_element; ++i) {                                    // loop on rows
-    // 	    UInt n_i = (nb_proc == 1) ? conn_val[i] : global_nodes_ids_val[conn_val[i]];
-    // 	    UInt c_irn = n_i * nb_degre_of_freedom;
-
-    // 	    for (UInt d_i = 0; d_i < nb_degre_of_freedom; ++d_i, ++c_irn) {     // loop on degre of freedom
-    // 	      UInt irn_jcn;
-    // 	      irn_jcn = key(c_irn, c_jcn);
-
-    // 	      irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
-
-    // 	      if (irn_jcn_k_it == irn_jcn_k.end()) {
-    // 		irn_jcn_k[irn_jcn] = nb_non_zero;
-    // 		irn.push_back(c_irn + 1);
-    // 		jcn.push_back(c_jcn + 1);
-    // 		nb_non_zero++;
-    // 	      }
-    // 	    }
-    // 	  }
-    // 	}
-    //   }
-    //   conn_val += nb_nodes_per_element;
-    // }
   }
 
   a.resize(nb_non_zero);
@@ -403,6 +382,28 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
   AKANTU_DEBUG_OUT();
 
   return vect;
+}
+
+/* -------------------------------------------------------------------------- */
+void SparseMatrix::copyContent(const SparseMatrix & matrix) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(nb_non_zero == matrix.getNbNonZero(),
+		      "The to matrix don't have the same profiles");
+  memcpy(a.values, matrix.getA().values, nb_non_zero * sizeof(Real));
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SparseMatrix::add(const SparseMatrix & matrix, Real alpha) {
+  AKANTU_DEBUG_ASSERT(nb_non_zero == matrix.getNbNonZero(),
+		      "The to matrix don't have the same profiles");
+
+  Real * a_val = a.values;
+  Real * b_val = matrix.a.values;
+
+  for (UInt n = 0; n < nb_non_zero; ++n) {
+    *a_val++ = alpha * *b_val++;
+  }
 }
 
 __END_AKANTU__

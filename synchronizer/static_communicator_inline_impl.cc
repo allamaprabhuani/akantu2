@@ -37,3 +37,89 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
     delete (*it);
   }
 }
+
+/* -------------------------------------------------------------------------- */
+#define AKANTU_BOOST_REAL_COMMUNICATOR_CALL(r, call, comm_type)		\
+  case BOOST_PP_LIST_AT(comm_type, 0): {				\
+    BOOST_PP_LIST_AT(comm_type, 1) * comm =				\
+      dynamic_cast<BOOST_PP_LIST_AT(comm_type, 1) *>(real_static_communicator); \
+    BOOST_PP_IF(BOOST_PP_LIST_AT(call, 0),				\
+		return comm->BOOST_PP_LIST_AT(call, 1),			\
+		comm->BOOST_PP_LIST_AT(call, 1));			\
+    break;								\
+  }
+
+#define AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(call, ret)		\
+  switch(real_type) {							\
+    BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_REAL_COMMUNICATOR_CALL,		\
+			  (ret, (call, BOST_PP_NIL)),			\
+			  AKANTU_COMMUNICATOR_LIST_ALL)			\
+  }
+
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicator::send(T * buffer, Int size, Int receiver, Int tag) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(send(buffer, size, receiver, tag), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicator::receive(T * buffer, Int size, Int sender, Int tag) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(receive(buffer, size, sender, tag), 0)
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline CommunicationRequest * StaticCommunicator::asyncSend(T * buffer, Int size,
+							    Int receiver, Int tag) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncSend(buffer, size, receiver, tag), 1)
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline CommunicationRequest * StaticCommunicator::asyncReceive(T * buffer, Int size,
+										    Int sender, Int tag) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncReceive(buffer, size, sender, tag), 1)
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::allReduce(T * values, Int nb_values,
+							       const SynchronizerOperation & op) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(allReduce(values, nb_values, op), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::gather(T * values, Int nb_values, Int root) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gather(values, nb_values, root), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::gatherv(T * values, Int * nb_values, Int root) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gatherv(values, nb_values, root), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::broadcast(T * values, Int nb_values, Int root) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(broadcast(values, nb_values, root), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicator::barrier() {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(barrier(), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool StaticCommunicator::testRequest(CommunicationRequest * request) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(testRequest(request), 1)
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicator::wait(CommunicationRequest * request) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(wait(request), 0)
+}
+
+/* -------------------------------------------------------------------------- */
+inline void StaticCommunicator::waitAll(std::vector<CommunicationRequest *> & requests) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(waitAll(requests), 0)
+}

@@ -75,23 +75,24 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
 #ifdef AKANTU_DEBUG
-  size += spatial_dimension; /// position of the barycenter of the element (only for check)
+  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
 #endif
 
   switch(tag) {
   case _gst_smm_mass: {
-    size += nb_nodes_per_element; // mass vector
+    size += nb_nodes_per_element * sizeof(Real); // mass vector
     break;
   }
   case _gst_smm_for_strain: {
-    size += nb_nodes_per_element * spatial_dimension; // displacement
+    size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
     UInt mat = element_material[element.type]->values[element.element];
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
   case _gst_smm_boundary: {
-    size += nb_nodes_per_element * spatial_dimension * 3; // force, displacement, boundary
+    // force, displacement, boundary
+    size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
     break;
   }
   default: {
@@ -112,23 +113,24 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
 #ifdef AKANTU_DEBUG
-  size += spatial_dimension; /// position of the barycenter of the element (only for check)
+  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
 #endif
 
   switch(tag) {
   case _gst_smm_mass: {
-    size += nb_nodes_per_element; // mass vector
+    size += nb_nodes_per_element * sizeof(Real); // mass vector
     break;
   }
   case _gst_smm_for_strain: {
-    size += nb_nodes_per_element * spatial_dimension; // displacement
+    size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
     UInt mat = ghost_element_material[element.type]->values[element.element];
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
   case _gst_smm_boundary: {
-    size += nb_nodes_per_element * spatial_dimension * 3; // force, displacement, boundary
+    // force, displacement, boundary
+    size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
     break;
   }
   default: {
@@ -141,35 +143,34 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::packData(Real ** buffer,
+inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 					  const Element & element,
 					  GhostSynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type).values;
+  UInt * conn  = mesh.getConnectivity(element.type).values;
 
 #ifdef AKANTU_DEBUG
-  getFEM().getMesh().getBarycenter(element.element, element.type, *buffer);
-  (*buffer) += spatial_dimension;
+  types::RVector barycenter(spatial_dimension);
+  mesh.getBarycenter(element.element, element.type, barycenter.storage());
+  buffer << barycenter;
 #endif
 
   switch(tag) {
   case _gst_smm_mass: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
-      (*buffer)[n] = mass->values[offset_conn];
+      buffer << (*mass)(offset_conn);
     }
-    *buffer += nb_nodes_per_element;
     break;
   }
   case _gst_smm_for_strain: {
+    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-      //      memcpy(*buffer, current_position->values + offset_conn, spatial_dimension * sizeof(Real));
-      memcpy(*buffer, displacement->values + offset_conn, spatial_dimension * sizeof(Real));
-      *buffer += spatial_dimension;
+      UInt offset_conn = conn[el_offset + n];
+      buffer << it_disp[offset_conn];
     }
 
     UInt mat = element_material[element.type]->values[element.element];
@@ -177,19 +178,16 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
     break;
   }
   case _gst_smm_boundary: {
+    Vector<Real>::iterator<types::RVector> it_force = force->begin(spatial_dimension);
+    Vector<Real>::iterator<types::RVector> it_velocity = velocity->begin(spatial_dimension);
+    Vector<bool>::iterator<types::Vector<bool> > it_boundary = boundary->begin(spatial_dimension);
+
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
+      UInt offset_conn = conn[el_offset + n];
 
-      memcpy(*buffer, force->values + offset_conn, spatial_dimension * sizeof(Real));
-      *buffer += spatial_dimension;
-
-      memcpy(*buffer, velocity->values + offset_conn, spatial_dimension * sizeof(Real));
-      *buffer += spatial_dimension;
-
-      for (UInt i = 0; i < spatial_dimension; ++i) {
-	(*buffer)[i] = boundary->values[offset_conn + i] ? 1.0 : -1.0;
-      }
-      *buffer += spatial_dimension;
+      buffer << it_force   [offset_conn];
+      buffer << it_velocity[offset_conn];
+      buffer << it_boundary[offset_conn];
     }
     break;
   }
@@ -202,45 +200,44 @@ inline void SolidMechanicsModel::packData(Real ** buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::unpackData(Real ** buffer,
+inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 					    const Element & element,
 					    GhostSynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getGhostConnectivity(element.type).values;
+  UInt * conn  = mesh.getGhostConnectivity(element.type).values;
 
 #ifdef AKANTU_DEBUG
-  Real barycenter[spatial_dimension];
-  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter, _ghost);
+  types::RVector barycenter_loc(spatial_dimension);
+  mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), _ghost);
 
+  types::RVector barycenter(spatial_dimension);
+  buffer >> barycenter;
   Real tolerance = 1e-15;
   for (UInt i = 0; i < spatial_dimension; ++i) {
-    if(!(fabs(barycenter[i] - (*buffer)[i]) <= tolerance))
+    if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
       AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element : "
 			 << element
-			 << "(barycenter[" << i << "] = " << barycenter[i]
-			 << " and (*buffer)[" << i << "] = " << (*buffer)[i] << ")");
+			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			 << " and buffer[" << i << "] = " << barycenter(i) << ")");
   }
-  *buffer += spatial_dimension;
 #endif
 
   switch(tag) {
   case _gst_smm_mass: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
-      mass->values[offset_conn] = (*buffer)[n];
+      buffer >> (*mass)(offset_conn);
     }
-    *buffer += nb_nodes_per_element;
     break;
   }
   case _gst_smm_for_strain: {
+    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-      //      memcpy(current_position->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
-      memcpy(displacement->values + offset_conn, *buffer,  spatial_dimension * sizeof(Real));
-      *buffer += spatial_dimension;
+      UInt offset_conn = conn[el_offset + n];
+      buffer >> it_disp[offset_conn];
     }
 
     UInt mat = ghost_element_material[element.type]->values[element.element];
@@ -248,19 +245,16 @@ inline void SolidMechanicsModel::unpackData(Real ** buffer,
     break;
   }
   case _gst_smm_boundary: {
+    Vector<Real>::iterator<types::RVector> it_force = force->begin(spatial_dimension);
+    Vector<Real>::iterator<types::RVector> it_velocity = velocity->begin(spatial_dimension);
+    Vector<bool>::iterator<types::Vector<bool> > it_boundary = boundary->begin(spatial_dimension);
+
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n] * spatial_dimension;
+      UInt offset_conn = conn[el_offset + n];
 
-      memcpy(force->values + offset_conn, *buffer, spatial_dimension * sizeof(Real));
-      *buffer += spatial_dimension;
-
-      memcpy(velocity->values + offset_conn, *buffer, spatial_dimension * sizeof(Real));
-      *buffer += spatial_dimension;
-
-      for (UInt i = 0; i < spatial_dimension; ++i) {
-	boundary->values[offset_conn + i] = ((*buffer)[i] > 0) ? true : false;
-      }
-      *buffer += spatial_dimension;
+      buffer >> it_force   [offset_conn];
+      buffer >> it_velocity[offset_conn];
+      buffer >> it_boundary[offset_conn];
     }
     break;
   }

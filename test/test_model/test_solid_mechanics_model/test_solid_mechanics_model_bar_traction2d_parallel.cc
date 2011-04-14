@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
   /* ------------------------------------------------------------------------ */
-  akantu::Communicator * communicator;
+  akantu::Communicator * communicator = NULL;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
     mesh_io.read("bar2.msh", mesh);
@@ -83,9 +83,9 @@ int main(int argc, char *argv[])
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+  akantu::UInt nb_element = mesh.getNbElement(type);
 #endif //AKANTU_USE_IOHELPER
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
@@ -111,8 +111,6 @@ int main(int argc, char *argv[])
   model->initMaterials();
   model->registerSynchronizer(*communicator);
 
-
-
   if(prank == 0)
     std::cout << model->getMaterial(0) << std::endl;
 
@@ -124,16 +122,16 @@ int main(int argc, char *argv[])
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     // model->getDisplacement().values[spatial_dimension*i]
-    //   = model->getFEM().getMesh().getNodes().values[spatial_dimension*i] / 100.;
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
+    //   = mesh.getNodes().values[spatial_dimension*i] / 100.;
+    if(mesh.getNodes().values[spatial_dimension*i] >= 9)
       model->getDisplacement().values[spatial_dimension*i]
-     	= (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100.;
+     	= (mesh.getNodes().values[spatial_dimension*i] - 9) / 100.;
 
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
+    if(mesh.getNodes().values[spatial_dimension*i] <= eps)
       model->getBoundary().values[spatial_dimension*i] = true;
 
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] <= eps ||
-       model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
+    if(mesh.getNodes().values[spatial_dimension*i + 1] <= eps ||
+       mesh.getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
       model->getBoundary().values[spatial_dimension*i + 1] = true;
     }
   }
@@ -145,9 +143,9 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(mesh.getNodes().values,
 		   spatial_dimension, nb_nodes, "bar2d_para");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
+  dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
 			 TRIANGLE2, nb_element, C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
@@ -230,6 +228,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   delete model;
+
 
   akantu::finalize();
   return EXIT_SUCCESS;

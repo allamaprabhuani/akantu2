@@ -34,96 +34,100 @@
 #include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+#define AKANTU_COMMUNICATOR_LIST_0 BOOST_PP_SEQ_NIL
+
+#include "static_communicator_dummy.hh"
+#define AKANTU_COMMUNICATOR_LIST_1					\
+  BOOST_PP_SEQ_PUSH_BACK(AKANTU_COMMUNICATOR_LIST_0,			\
+			 (_communicator_dummy,	(StaticCommunicatorDummy, BOOST_PP_NIL)))
+
+#if defined(AKANTU_USE_MPI)
+#  include "static_communicator_mpi.hh"
+#  define AKANTU_COMMUNICATOR_LIST_ALL					\
+  BOOST_PP_SEQ_PUSH_BACK(AKANTU_COMMUNICATOR_LIST_1,			\
+			 (_communicator_mpi, (StaticCommunicatorMPI, BOOST_PP_NIL)))
+#endif // AKANTU_COMMUNICATOR_LIST
+
+#include "real_static_communicator.hh"
+
+/* -------------------------------------------------------------------------- */
+
+
 __BEGIN_AKANTU__
 
-class CommunicationRequest {
-public:
-  CommunicationRequest(UInt source, UInt dest);
-  virtual ~CommunicationRequest();
-
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-
-  AKANTU_GET_MACRO(Source, source, UInt);
-  AKANTU_GET_MACRO(Destination, destination, UInt);
-private:
-  UInt source;
-  UInt destination;
-  UInt id;
-  static UInt counter;
-};
-
+class RealStaticCommunicator;
 
 class StaticCommunicator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 protected:
-  StaticCommunicator() { };
+  StaticCommunicator(int * arc, char *** argv,
+		     CommunicatorType type = _communicator_mpi);
 
 public:
-  virtual ~StaticCommunicator() { };
+  virtual ~StaticCommunicator() { delete real_static_communicator; };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void send(UInt * buffer, Int size, Int receiver, Int tag) = 0;
-  virtual void send(Real * buffer, Int size, Int receiver, Int tag) = 0;
+  /* ------------------------------------------------------------------------ */
+  /* Point to Point                                                           */
+  /* ------------------------------------------------------------------------ */
+  template<typename T> inline void send(T * buffer, Int size,
+					Int receiver, Int tag);
+  template<typename T> inline void receive(T * buffer, Int size,
+					   Int sender, Int tag);
 
-  virtual void receive(UInt * buffer, Int size, Int sender, Int tag) = 0;
-  virtual void receive(Int * buffer, Int size, Int sender, Int tag) = 0;
-  virtual void receive(Real * buffer, Int size, Int sender, Int tag) = 0;
+  template<typename T> inline CommunicationRequest * asyncSend(T * buffer,
+							       Int size,
+							       Int receiver,
+							       Int tag);
+  template<typename T> inline CommunicationRequest * asyncReceive(T * buffer,
+								  Int size,
+								  Int sender,
+								  Int tag);
 
-  virtual CommunicationRequest * asyncSend(UInt * buffer, Int size,
-					   Int receiver, Int tag) = 0;
-  virtual CommunicationRequest * asyncSend(Int * buffer, Int size,
-					   Int receiver, Int tag) = 0;
-  virtual CommunicationRequest * asyncSend(Real * buffer, Int size,
-					   Int receiver, Int tag) = 0;
+  /* ------------------------------------------------------------------------ */
+  /* Collectives                                                              */
+  /* ------------------------------------------------------------------------ */
+  template<typename T> inline void allReduce(T * values, Int nb_values,
+					     const SynchronizerOperation & op);
 
-  virtual CommunicationRequest * asyncReceive(UInt * buffer, Int size,
-					      Int sender, Int tag) = 0;
-  virtual CommunicationRequest * asyncReceive(Real * buffer, Int size,
-					      Int sender, Int tag) = 0;
+  template<typename T> inline void gather(T * values, Int nb_values,
+					  Int root = 0);
+  template<typename T> inline void gatherv(T * values, Int * nb_values,
+					   Int root = 0);
+  template<typename T> inline void broadcast(T * values, Int nb_values,
+					     Int root = 0);
 
-  virtual bool testRequest(CommunicationRequest * request) = 0;
+  inline void barrier();
 
-  virtual void wait(CommunicationRequest * request) = 0;
+  /* ------------------------------------------------------------------------ */
+  /* Request handling                                                         */
+  /* ------------------------------------------------------------------------ */
+  inline bool testRequest(CommunicationRequest * request);
 
-  virtual void waitAll(std::vector<CommunicationRequest *> & requests) = 0;
+  inline void wait(CommunicationRequest * request);
+  inline void waitAll(std::vector<CommunicationRequest *> & requests);
 
-  virtual void freeCommunicationRequest(CommunicationRequest * request);
-  virtual void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
-
-  virtual void barrier() = 0;
-
-  virtual void allReduce(Real * values, Int nb_values, const SynchronizerOperation & op) = 0;
-  virtual void allReduce(UInt * values, Int nb_values, const SynchronizerOperation & op) = 0;
-
-  virtual void gather(Real * values, Int nb_values, Int root = 0) = 0;
-  virtual void gather(UInt * values, Int nb_values, Int root = 0) = 0;
-  virtual void gather(Int  * values, Int nb_values, Int root = 0) = 0;
-
-  virtual void gatherv(Real * values, Int * nb_values, Int root = 0) = 0;
-  virtual void gatherv(UInt * values, Int * nb_values, Int root = 0) = 0;
-  virtual void gatherv(Int  * values, Int * nb_values, Int root = 0) = 0;
-
-  virtual void broadcast(Real * values, Int nb_values, Int root = 0) = 0;
-  virtual void broadcast(UInt * values, Int nb_values, Int root = 0) = 0;
-  virtual void broadcast(Int  * values, Int nb_values, Int root = 0) = 0;
-
+  inline void freeCommunicationRequest(CommunicationRequest * request);
+  inline void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual Int getNbProc() const = 0;
-  virtual Int whoAmI() const = 0;
+  virtual Int getNbProc() const { return real_static_communicator->psize; };
+  virtual Int whoAmI() const { return real_static_communicator->prank; };
 
   static StaticCommunicator * getStaticCommunicator(CommunicatorType type = _communicator_mpi);
 
-  static StaticCommunicator * getStaticCommunicator(int * argc, char *** argv, CommunicatorType type = _communicator_mpi);
+  static StaticCommunicator * getStaticCommunicator(int * argc, char *** argv,
+						    CommunicatorType type = _communicator_mpi);
 
   static bool isInstantiated() { return is_instantiated; };
   /* ------------------------------------------------------------------------ */
@@ -134,12 +138,10 @@ private:
 
   static StaticCommunicator * static_communicator;
 
-protected:
-  Int prank;
+  RealStaticCommunicator * real_static_communicator;
 
-  Int psize;
+  CommunicatorType real_type;
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

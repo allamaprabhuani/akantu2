@@ -121,20 +121,28 @@ public:
 public:
 
   /// initialize the stuff for the implicit solver
-  void initImplicitSolver();
+  void initImplicit(bool dynamic = false);
 
   /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
 
+  /// solve @f[ A\delta u = f_ext - f_int @f]
+  void solveDynamic();
+
   /// solve Ku = f
-  //  void solve(Vector<Real> & solution);
-  void solve();
+  void solveStatic();
 
   /// test the convergence (norm of increment)
   bool testConvergenceIncrement(Real tolerance);
 
   /// test the convergence (norm of residual)
   bool testConvergenceResidual(Real tolerance);
+
+  /// implicit time integration predictor
+  void implicitPred();
+
+  /// implicit time integration corrector
+  void implicitCorr();
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
@@ -208,11 +216,11 @@ public:
   inline virtual UInt getNbDataToUnpack(const Element & element,
 					GhostSynchronizationTag tag) const;
 
-  inline virtual void packData(Real ** buffer,
+  inline virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
 			       GhostSynchronizationTag tag) const;
 
-  inline virtual void unpackData(Real ** buffer,
+  inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
 				 GhostSynchronizationTag tag) const;
 
@@ -349,6 +357,9 @@ private:
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;
 
+  /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Dela t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
+  SparseMatrix * jacobian_matrix;
+
   /// materials of all elements
   ByElementTypeUInt element_material;
 
@@ -376,6 +387,8 @@ private:
   /// the spatial dimension
   UInt spatial_dimension;
 
+  /// Mesh
+  Mesh & mesh;
 };
 
 

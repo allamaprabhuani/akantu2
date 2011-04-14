@@ -331,8 +331,10 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
 
 
 /* -------------------------------------------------------------------------- */
+template class Vector<char>;
 template class Vector<Int>;
 template class Vector<UInt>;
+template class Vector<UInt64>;
 template class Vector<Real>;
 template class Vector<bool>;
 

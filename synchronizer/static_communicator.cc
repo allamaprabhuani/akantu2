@@ -65,38 +65,49 @@ void CommunicationRequest::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
+
+
+/* -------------------------------------------------------------------------- */
+StaticCommunicator::StaticCommunicator(int * argc,
+				       char *** argv,
+				       CommunicatorType type) {
+  real_type = type;
+#ifdef AKANTU_USE_MPI
+    if(type == _communicator_mpi) {
+      real_static_communicator = new StaticCommunicatorMPI(argc, argv);
+    } else {
+#endif
+      real_static_communicator = new StaticCommunicatorDummy(argc, argv);
+#ifdef AKANTU_USE_MPI
+    }
+#endif
+}
+
 /* -------------------------------------------------------------------------- */
 StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType type) {
   AKANTU_DEBUG_IN();
 
+  if (!static_communicator) {
 #ifdef AKANTU_USE_MPI
-  if(type == _communicator_mpi) {
-    if (!static_communicator)
+    if(type == _communicator_mpi) {
       AKANTU_DEBUG_ERROR("You must call getStaticCommunicator(argc, argv) to create a MPI communicator");
-  }
+    }
 #endif
-
-  if (!static_communicator)
-    static_communicator = new StaticCommunicatorDummy();
+    static_communicator = new StaticCommunicator(0, NULL, type);
+  }
 
   is_instantiated = true;
 
   AKANTU_DEBUG_OUT();
   return static_communicator;
-
 }
 
 /* -------------------------------------------------------------------------- */
-StaticCommunicator * StaticCommunicator::getStaticCommunicator(__attribute__ ((unused)) int * argc,
-							       __attribute__ ((unused)) char *** argv,
+StaticCommunicator * StaticCommunicator::getStaticCommunicator(int * argc,
+							       char *** argv,
   							       CommunicatorType type) {
-
-#ifdef AKANTU_USE_MPI
-  if(type == _communicator_mpi) {
-    if (!static_communicator)
-      static_communicator = new StaticCommunicatorMPI(argc, argv);
-  }
-#endif
+  if (!static_communicator)
+    static_communicator = new StaticCommunicator(argc, argv, type);
 
   return getStaticCommunicator(type);
 }

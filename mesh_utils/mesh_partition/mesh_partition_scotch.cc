@@ -433,6 +433,23 @@ void MeshPartitionScotch::reorder() {
     }
   }
 
+  const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
+  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
+    ElementType type = *it;
+    //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
+
+    UInt nb_element = mesh.getNbGhostElement(type);
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+    const Vector<UInt> & connectivity = mesh.getGhostConnectivity(type);
+
+    UInt * conn  = connectivity.values;
+    for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
+      *conn = permtab[*conn];
+    }
+  }
+
+
   /// \todo think of a in-place way to do it
   Real * new_coordinates = new Real[spatial_dimension * nb_nodes];
   Real * old_coordinates = mesh.getNodes().values;

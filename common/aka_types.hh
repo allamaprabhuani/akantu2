@@ -79,7 +79,7 @@ namespace types {
 
     UInt rows() const { return m; };
     UInt cols() const { return n; };
-    const Real * storage() const { return values; };
+    Real * storage() const { return values; };
 
     inline Real& operator()(UInt i, UInt j) { return *(values + i*m + j); };
     inline const Real& operator()(UInt i, UInt j) const { return *(values + i*m + j); };
@@ -103,7 +103,7 @@ namespace types {
     };
 
     inline Matrix operator* (const Matrix & B) {
-      Matrix C(m,n);
+      Matrix C(this->m, B.n);
       C.mul<false, false>(*this, B);
 
       return C;
@@ -111,7 +111,7 @@ namespace types {
 
     template<bool tr_A, bool tr_B>
     inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
-      UInt m = A.m, n = B.n, k = A.n;
+      UInt k = A.n;
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     };
 
@@ -147,15 +147,16 @@ namespace types {
   /* ------------------------------------------------------------------------ */
   /* Vector                                                                   */
   /* ------------------------------------------------------------------------ */
+  template<typename T>
   class Vector {
   public:
     Vector() : n(0), values(NULL), wrapped(true) {};
 
-    Vector(UInt n, Real def = 0) : n(n), values(new Real[n]), wrapped(false) {
+    Vector(UInt n, Real def = 0) : n(n), values(new T[n]), wrapped(false) {
       std::fill_n(values, n, def);
     };
 
-    Vector(Real* data, UInt n) : n(n), values(data), wrapped(true) {};
+    Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {};
 
     Vector(Vector & src) {
       values = src.values;
@@ -167,17 +168,17 @@ namespace types {
 
     UInt size() const { return n; };
 
-    Real * storage() const { return values; };
+    T * storage() const { return values; };
 
-    inline Real& operator()(UInt i) { return *(values + i); };
-    inline const Real& operator()(UInt i) const { return *(values + i); };
-    inline Real& operator[](UInt idx) { return *(values + idx); };
-    inline const Real& operator[](UInt idx) const { return *(values + idx); };
+    inline T& operator()(UInt i) { return *(values + i); };
+    inline const T& operator()(UInt i) const { return *(values + i); };
+    inline T& operator[](UInt idx) { return *(values + idx); };
+    inline const T& operator[](UInt idx) const { return *(values + idx); };
 
     inline Vector & operator=(const Vector & vect) {
       if(this != &vect) {
 	if(values != NULL) {
-	  memcpy(this->values, vect.values, n * sizeof(Real));
+	  memcpy(this->values, vect.values, n * sizeof(T));
 	} else {
 	  this->n = vect.n;
 
@@ -189,7 +190,7 @@ namespace types {
       return *this;
     };
 
-    inline void clear() { memset(values, 0, n * sizeof(Real)); };
+    inline void clear() { memset(values, 0, n * sizeof(T)); };
 
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -204,15 +205,17 @@ namespace types {
       stream << "|" << std::endl;
     };
 
-    // Real* &data() { return values; };
+    // T* &data() { return values; };
     // bool &is_wrapped() { return wrapped; };
-    friend class ::akantu::Vector<Real>;
+    friend class ::akantu::Vector<T>;
 
   protected:
     UInt n;
-    Real* values;
+    T * values;
     bool wrapped;
   };
+
+  typedef Vector<Real> RVector;
 
   /* -------------------------------------------------------------------------- */
   inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)

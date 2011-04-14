@@ -225,7 +225,7 @@ inline Vector<UInt> * Mesh::getSurfaceIdPointer(ElementType type) {
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
 					       const std::string & data_name) {
-  AKANTU_DEBUG_IN();
+  //  AKANTU_DEBUG_IN();
 
   Vector<UInt> * data;
   Mesh::UIntDataMap::iterator it = uint_data[el_type].find(data_name);
@@ -236,7 +236,7 @@ inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
     data = it->second;
   }
 
-  AKANTU_DEBUG_OUT();
+  //  AKANTU_DEBUG_OUT();
   return data;
 }
 

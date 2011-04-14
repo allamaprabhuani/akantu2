@@ -75,7 +75,9 @@ public:
 	       const SparseMatrixID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
 
-  SparseMatrix(const SparseMatrix & matrix);
+  SparseMatrix(const SparseMatrix & matrix,
+	       const SparseMatrixID & id = "sparse_matrix",
+	       const MemoryID & memory_id = 0);
 
   virtual ~SparseMatrix();
 
@@ -116,6 +118,12 @@ public:
 
   /// save the matrix in a file using the MatrixMarket file format
   void saveMatrix(const std::string & filename);
+
+  /// copy assuming the profil are the same
+  void copyContent(const SparseMatrix & matrix);
+
+  /// add matrix assuming the profil are the same
+  void add(const SparseMatrix & matrix, Real alpha);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;

@@ -42,6 +42,8 @@
 
 __BEGIN_AKANTU__
 
+class CommunicationBuffer;
+
 class Communicator : public Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -110,8 +112,8 @@ private:
   /// size of data to receive form each processor by communication tag
   std::map< GhostSynchronizationTag, Vector<UInt> > size_to_receive;
 
-  Vector<Real> * send_buffer;
-  Vector<Real> * recv_buffer;
+  CommunicationBuffer * send_buffer;
+  CommunicationBuffer * recv_buffer;
 
   /// send requests
   std::vector<CommunicationRequest *> send_requests;

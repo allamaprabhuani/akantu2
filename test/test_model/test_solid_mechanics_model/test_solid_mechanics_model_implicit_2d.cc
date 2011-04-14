@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
   model->initMaterials();
   model->registerSynchronizer(*communicator);
 
-  model->initImplicitSolver();
+  model->initImplicit();
 
   std::cout << model->getMaterial(0) << std::endl;
 
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
     std::stringstream sstr; sstr << "K" << prank << ".mtx";
     model->getStiffnessMatrix().saveMatrix(sstr.str());
-    model->solve();
+    model->solveStatic();
 
     akantu::debug::setDebugLevel(akantu::dblDump);
     std::cout << boundary << std::endl;
@@ -215,9 +215,7 @@ int main(int argc, char *argv[])
 
   };
 
-
   delete model;
-
   akantu::finalize();
 
   return EXIT_SUCCESS;

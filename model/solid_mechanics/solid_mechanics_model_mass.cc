@@ -38,7 +38,7 @@ __BEGIN_AKANTU__
 void SolidMechanicsModel::assembleMassLumped() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = mesh.getNbNodes();
   memset(mass->values, 0, nb_nodes*sizeof(Real));
 
   assembleMassLumped(_not_ghost);
@@ -64,7 +64,7 @@ void SolidMechanicsModel::assembleMass() {
   assembleMass(_not_ghost);
   //  assembleMass(_ghost);
 
-  UInt nb_global_node = getFEM().getMesh().getNbGlobalNodes();
+  UInt nb_global_node = mesh.getNbGlobalNodes();
 
   std::stringstream sstr; sstr << id << ":mass_matrix";
   mass_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,

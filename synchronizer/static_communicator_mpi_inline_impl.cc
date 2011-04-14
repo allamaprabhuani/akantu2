@@ -37,7 +37,8 @@ inline CommunicationRequestMPI::~CommunicationRequestMPI() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline StaticCommunicatorMPI::StaticCommunicatorMPI(int * argc, char *** argv) {
+inline StaticCommunicatorMPI::StaticCommunicatorMPI(int * argc, char *** argv) : 
+  RealStaticCommunicator(argc, argv) {
   MPI_Init(argc, argv);
   setMPICommunicator(MPI_COMM_WORLD);
 }
@@ -45,6 +46,7 @@ inline StaticCommunicatorMPI::StaticCommunicatorMPI(int * argc, char *** argv) {
 /* -------------------------------------------------------------------------- */
 inline StaticCommunicatorMPI::~StaticCommunicatorMPI() {
   MPI_Finalize();
+  std::cout << "AAAAAAAHHHH" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -61,8 +63,8 @@ inline MPI_Comm StaticCommunicatorMPI::getMPICommunicator() const {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void StaticCommunicatorMPI::_send(T * buffer, Int size,
-					 Int receiver, Int tag) {
+inline void StaticCommunicatorMPI::send(T * buffer, Int size,
+					Int receiver, Int tag) {
   MPI_Datatype type = getMPIDatatype<T>();
 #if !defined(AKANTU_NDEBUG)
   int ret =
@@ -74,8 +76,8 @@ inline void StaticCommunicatorMPI::_send(T * buffer, Int size,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void StaticCommunicatorMPI::_receive(T * buffer, Int size,
-					    Int sender, Int tag) {
+inline void StaticCommunicatorMPI::receive(T * buffer, Int size,
+					   Int sender, Int tag) {
   MPI_Status status;
   MPI_Datatype type = getMPIDatatype<T>();
 
@@ -89,8 +91,8 @@ inline void StaticCommunicatorMPI::_receive(T * buffer, Int size,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline CommunicationRequest * StaticCommunicatorMPI::_asyncSend(T * buffer, Int size,
-								Int receiver, Int tag) {
+inline CommunicationRequest * StaticCommunicatorMPI::asyncSend(T * buffer, Int size,
+							       Int receiver, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(prank, receiver);
   MPI_Datatype type = getMPIDatatype<T>();
 
@@ -105,8 +107,8 @@ inline CommunicationRequest * StaticCommunicatorMPI::_asyncSend(T * buffer, Int 
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline CommunicationRequest * StaticCommunicatorMPI::_asyncReceive(T * buffer, Int size,
-								   Int sender, Int tag) {
+inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(T * buffer, Int size,
+								  Int sender, Int tag) {
   CommunicationRequestMPI * request = new CommunicationRequestMPI(sender, prank);
   MPI_Datatype type = getMPIDatatype<T>();
 
@@ -172,24 +174,15 @@ inline void StaticCommunicatorMPI::barrier() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::allReduce(UInt * values, Int nb_values,
+template<typename T>
+inline void StaticCommunicatorMPI::allReduce(T * values, Int nb_values,
 					     const SynchronizerOperation & op) {
-#if !defined(AKANTU_NDEBUG)
-  int ret =
-#endif
-    MPI_Allreduce(MPI_IN_PLACE, values, nb_values, MPI_UNSIGNED,
-		  synchronizer_operation_to_mpi_op[op],
-		  communicator);
-  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Allreduce.");
-}
+  MPI_Datatype type = getMPIDatatype<T>();
 
-/* -------------------------------------------------------------------------- */
-inline void StaticCommunicatorMPI::allReduce(Real * values, Int nb_values,
-					     const SynchronizerOperation & op) {
 #if !defined(AKANTU_NDEBUG)
   int ret =
 #endif
-    MPI_Allreduce(MPI_IN_PLACE, values, nb_values, MPI_DOUBLE,
+    MPI_Allreduce(MPI_IN_PLACE, values, nb_values, type,
 		  synchronizer_operation_to_mpi_op[op],
 		  communicator);
   AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Allreduce.");
@@ -197,7 +190,7 @@ inline void StaticCommunicatorMPI::allReduce(Real * values, Int nb_values,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void StaticCommunicatorMPI::_gather(T * values, Int nb_values, Int root) {
+inline void StaticCommunicatorMPI::gather(T * values, Int nb_values, Int root) {
   T * send_buf = NULL, * recv_buf = NULL;
   if(prank == root) {
     send_buf = (T *) MPI_IN_PLACE;
@@ -218,7 +211,7 @@ inline void StaticCommunicatorMPI::_gather(T * values, Int nb_values, Int root) 
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void StaticCommunicatorMPI::_gatherv(T * values, Int * nb_values, Int root) {
+inline void StaticCommunicatorMPI::gatherv(T * values, Int * nb_values, Int root) {
   Int * displs = NULL;
   if(prank == root) {
     displs = new Int[psize];
@@ -249,7 +242,7 @@ inline void StaticCommunicatorMPI::_gatherv(T * values, Int * nb_values, Int roo
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void StaticCommunicatorMPI::_broadcast(T * values, Int nb_values, Int root) {
+inline void StaticCommunicatorMPI::broadcast(T * values, Int nb_values, Int root) {
   MPI_Datatype type = getMPIDatatype<T>();
 
 #if !defined(AKANTU_NDEBUG)
@@ -260,9 +253,14 @@ inline void StaticCommunicatorMPI::_broadcast(T * values, Int nb_values, Int roo
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype() {
-  return MPI_DATATYPE_NULL;
+// template<typename T>
+// inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype() {
+//   return MPI_DATATYPE_NULL;
+// }
+
+template<>
+inline MPI_Datatype StaticCommunicatorMPI::getMPIDatatype<char>() {
+  return MPI_CHAR;
 }
 
 template<>

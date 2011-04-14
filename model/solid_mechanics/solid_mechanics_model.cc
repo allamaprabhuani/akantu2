@@ -51,10 +51,10 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
-  stiffness_matrix(NULL),
+  stiffness_matrix(NULL),jacobian_matrix(NULL),
   integrator(new CentralDifference()),
   increment_flag(false), solver(NULL),
-  spatial_dimension(dim) {
+  spatial_dimension(dim), mesh(mesh) {
   AKANTU_DEBUG_IN();
 
   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
@@ -101,6 +101,7 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   if(mass_matrix) delete mass_matrix;
   if(velocity_damping_matrix) delete velocity_damping_matrix;
   if(stiffness_matrix) delete stiffness_matrix;
+  if(jacobian_matrix) delete stiffness_matrix;
 
   AKANTU_DEBUG_OUT();
 }
@@ -113,7 +114,7 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 void SolidMechanicsModel::initVectors() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = mesh.getNbNodes();
   std::stringstream sstr_disp; sstr_disp << id << ":displacement";
   std::stringstream sstr_mass; sstr_mass << id << ":mass";
   std::stringstream sstr_velo; sstr_velo << id << ":velocity";
@@ -133,10 +134,10 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_curp; sstr_curp << id << ":current_position";
   current_position = &(alloc<Real>(sstr_curp.str(), 0, spatial_dimension, REAL_INIT_VALUE));
 
-  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    UInt nb_element           = getFEM().getMesh().getNbElement(*it);
+    UInt nb_element           = mesh.getNbElement(*it);
 
     if(!element_material[*it]) {
       std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
@@ -145,10 +146,10 @@ void SolidMechanicsModel::initVectors() {
   }
 
   const Mesh::ConnectivityTypeList & ghost_type_list =
-    getFEM().getMesh().getConnectivityTypeList(_ghost);
+    mesh.getConnectivityTypeList(_ghost);
 
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    UInt nb_element           = getFEM().getMesh().getNbGhostElement(*it);
+    UInt nb_element           = mesh.getNbGhostElement(*it);
 
     std::stringstream sstr_elma; sstr_elma << id << ":ghost_element_material:" << *it;
     ghost_element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
@@ -171,12 +172,12 @@ void SolidMechanicsModel::initModel() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateCurrentPosition() {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = mesh.getNbNodes();
 
   current_position->resize(nb_nodes);
   //Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
   Real * current_position_val = current_position->values;
-  Real * position_val         = getFEM().getMesh().getNodes().values;
+  Real * position_val         = mesh.getNodes().values;
   Real * displacement_val     = displacement->values;
 
   /// compute current_position = initial_position + displacement
@@ -190,7 +191,7 @@ void SolidMechanicsModel::updateCurrentPosition() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initializeUpdateResidualData() {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = mesh.getNbNodes();
   residual->resize(nb_nodes);
 
   /// copy the forces in residual for boundary conditions
@@ -313,15 +314,11 @@ void SolidMechanicsModel::explicitCorr() {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initImplicitSolver() {
+void SolidMechanicsModel::initImplicit(bool dynamic) {
   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh = getFEM().getMesh();
   UInt nb_nodes = mesh.getNbNodes();
-
   UInt nb_global_node = mesh.getNbGlobalNodes();
-
-  std::cout << "TOTO 1" << std::endl;
 
   std::stringstream sstr; sstr << id << ":stiffness_matrix";
   stiffness_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
@@ -329,8 +326,6 @@ void SolidMechanicsModel::initImplicitSolver() {
 
   std::stringstream sstr_eq; sstr_eq << id << ":equation_number";
   equation_number = &(alloc<Int>(sstr_eq.str(), nb_nodes, spatial_dimension, 0));
-
-  std::cout << "TOTO 2" << std::endl;
 
   Int * equation_number_val = equation_number->values;
 
@@ -344,27 +339,29 @@ void SolidMechanicsModel::initImplicitSolver() {
     }
   }
 
-  std::cout << "TOTO 3" << std::endl;
-
   stiffness_matrix->buildProfile(mesh, *equation_number);
 
-  std::cout << "TOTO 4" << std::endl;
+  SparseMatrix * matrix = stiffness_matrix;
+
+  if(dynamic) {
+    delete integrator;
+    integrator = new TrapezoidalRule();
+
+    std::stringstream sstr_jac; sstr_jac << id << ":jacobian_matrix";
+    jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_jac.str(), memory_id);
+    matrix = jacobian_matrix;
+  }
 
 #ifdef AKANTU_USE_MUMPS
   std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
-  solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
+  solver = new SolverMumps(*matrix, sstr_solv.str());
 
-  std::cout << "TOTO 5" << std::endl;
-
-  dynamic_cast<SolverMumps *>(solver)->initNodesLocation(getFEM().getMesh(), spatial_dimension);
-
-  std::cout << "TOTO 6" << std::endl;
+  dynamic_cast<SolverMumps *>(solver)->initNodesLocation(mesh, spatial_dimension);
 
   solver->initialize();
 #else
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
-  std::cout << "TOTO 7" << std::endl;
 
   AKANTU_DEBUG_OUT();
 }
@@ -373,7 +370,7 @@ void SolidMechanicsModel::initImplicitSolver() {
 void SolidMechanicsModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_IN();
 
-  updateCurrentPosition();
+  //  updateCurrentPosition();
 
   /// start synchronization
   //  asynchronousSynchronize(_gst_smm_for_strain);
@@ -397,35 +394,58 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::solve() {
+void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_INFO("Solving an implicit step.");
+  AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
+
+  Real beta  = dynamic_cast<NewmarkBeta *>(integrator)->getBeta();
+  Real gamma = dynamic_cast<NewmarkBeta *>(integrator)->getGamma();
+
+  Real c = 1. / (beta * time_step * time_step);
+  Real d = gamma / (beta * time_step);
+
+  // UInt nb_nodes = displacement->getSize();
+  // UInt nb_degre_of_freedom = displacement->getNbComponent();
+
+  jacobian_matrix->copyContent(*stiffness_matrix);
+  jacobian_matrix->add(*mass_matrix, c);
+
+  if(velocity_damping_matrix)
+    jacobian_matrix->add(*velocity_damping_matrix, d);
+
+  jacobian_matrix->applyBoundary(*boundary, local_eq_num_to_global);
+
+  Vector<Real> * Ma = new Vector<Real>(*acceleration);
+  *Ma *= *mass_matrix;
+  *residual -= *Ma;
+  delete Ma;
+
+  if(velocity_damping_matrix) {
+    Vector<Real> * Cv = new Vector<Real>(*velocity);
+    *Cv *= *velocity_damping_matrix;
+    *residual -= *Cv;
+    delete Cv;
+  }
+
+  solver->setRHS(*residual);
+  if(!increment) setIncrementFlagOn();
+
+  solver->solve(*increment);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::solveStatic() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_INFO("Solving Ku = f");
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degre_of_freedom = displacement->getNbComponent();
 
   stiffness_matrix->applyBoundary(*boundary, local_eq_num_to_global);
-  //  stiffness_matrix->removeBoundary(*boundary);
-
-// #ifdef AKANTU_USE_MUMPS
-//   std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
-//   solver = new SolverMumps(*stiffness_matrix, sstr_solv.str());
-//   dynamic_cast<SolverMumps *>(solver)->initNodesLocation(getFEM().getMesh(), nb_degre_of_freedom);
-// #else
-//   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
-// #endif //AKANTU_USE_MUMPS
-//   solver->initialize();
-
-  // Vector<Real> * tmp = new Vector<Real>(0, 1);
-  // for (UInt i = 0; i < nb_degre_of_freedom * nb_nodes; ++i) {
-  //   if(! boundary->values[i]) {
-  //     tmp->push_back(residual->values[i]);
-  //   }
-  // }
-  //  solver->setRHS(*tmp);
-  //  tmp->clear(); // not needed in fact
-  //  solver->solve(*tmp);
 
   solver->setRHS(*residual);
 
@@ -436,11 +456,9 @@ void SolidMechanicsModel::solve() {
   Real * increment_val     = increment->values;
   Real * displacement_val  = displacement->values;
   bool * boundary_val      = boundary->values;
-  //  Real * tmp_val           = tmp->values;
 
   for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
     if(!(*boundary_val)) {
-      //      *increment_val = *(tmp_val++);
       *displacement_val += *increment_val;
     }
 
@@ -448,12 +466,6 @@ void SolidMechanicsModel::solve() {
     boundary_val++;
     increment_val++;
   }
-
-  //stiffness_matrix->restoreProfile();
-
-  //  delete tmp;
-  // delete solver;
-  // solver = NULL;
 
   AKANTU_DEBUG_OUT();
 }
@@ -469,7 +481,6 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
   Real norm = 0;
   Real * increment_val     = increment->values;
   bool * boundary_val      = boundary->values;
-  Mesh & mesh = getFEM().getMesh();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
@@ -500,7 +511,6 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
   Real norm = 0;
   Real * residual_val = residual->values;
   bool * boundary_val = boundary->values;
-  Mesh & mesh = getFEM().getMesh();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
@@ -527,6 +537,33 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
   return (sqrt(norm) < tolerance);
 }
 
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::implicitPred() {
+  AKANTU_DEBUG_IN();
+
+  integrator->integrationSchemePredImplicit(time_step,
+					    *displacement,
+					    *velocity,
+					    *acceleration,
+					    *boundary);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::implicitCorr() {
+  AKANTU_DEBUG_IN();
+
+  integrator->integrationSchemeCorrImplicit(time_step,
+					    *increment,
+					    *displacement,
+					    *velocity,
+					    *acceleration,
+					    *boundary);
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Information                                                                */
@@ -544,7 +581,7 @@ void SolidMechanicsModel::setIncrementFlagOn() {
   AKANTU_DEBUG_IN();
 
   if(!increment) {
-    UInt nb_nodes = getFEM().getMesh().getNbNodes();
+    UInt nb_nodes = mesh.getNbNodes();
     std::stringstream sstr_inc; sstr_inc << id << ":increment";
     increment = &(alloc<Real>(sstr_inc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   }
@@ -561,19 +598,19 @@ Real SolidMechanicsModel::getStableTimeStep() {
   Material ** mat_val = &(materials.at(0));
   Real min_dt = std::numeric_limits<Real>::max();
 
-  Real * coord    = getFEM().getMesh().getNodes().values;
+  Real * coord    = mesh.getNodes().values;
   Real * disp_val = displacement->values;
 
-  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(mesh.getSpatialDimension(*it) != spatial_dimension) continue;
 
 
-    UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(*it);
-    UInt nb_element           = getFEM().getMesh().getNbElement(*it);
+    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
+    UInt nb_element           = mesh.getNbElement(*it);
 
-    UInt * conn         = getFEM().getMesh().getConnectivity(*it).values;
+    UInt * conn         = mesh.getConnectivity(*it).values;
     UInt * elem_mat_val = element_material[*it]->values;
     Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 
@@ -632,13 +669,11 @@ Real SolidMechanicsModel::getKineticEnergy() {
 
   Real ekin = 0.;
 
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = mesh.getNbNodes();
   //  Vector<Real> * v_square = new Vector<Real>(nb_nodes, 1, "v_square");
 
   Real * vel_val  = velocity->values;
   Real * mass_val = mass->values;
-
-  Mesh & mesh = getFEM().getMesh();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     Real v2 = 0;
@@ -652,7 +687,6 @@ Real SolidMechanicsModel::getKineticEnergy() {
     ekin += *mass_val * v2;
     mass_val++;
   }
-
 
   // Real * v_s_val  = v_square->values;
 
@@ -726,7 +760,7 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + connectivity type information [" << std::endl;
-  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;

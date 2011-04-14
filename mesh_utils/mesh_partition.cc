@@ -188,17 +188,8 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 	if(it_w->second == magic_number[t]) {
   	  UInt adjacent_el = it_w->first;
 
-	  if(adjacent_el > nb_total_element) std::cout << "AAAAAAAAAAAAAAHHHHHHH !!!! "
-						       << adjacent_el << " " << nb_total_element << std::endl;
-
 	  UInt index_adj = dxadj_val[adjacent_el ]++;
 	  UInt index_lin = dxadj_val[linerized_el]++;
-
-	  if(index_lin >= dxadj_val[nb_total_element]) std::cout << "AAAAAAAAAAAAAAHHHHHHH !!!! "
-							<< index_lin << " " << dxadj_val[nb_total_element] << std::endl;
-
-	  if(index_adj >= dxadj_val[nb_total_element]) std::cout << "OOOOOOOOOOOOOOHHHHHHH !!!! "
-							<< index_adj << " " << dxadj_val[nb_total_element] << std::endl;
 
   	  dadjncy_val[index_lin] = adjacent_el;
   	  dadjncy_val[index_adj] = linerized_el;
