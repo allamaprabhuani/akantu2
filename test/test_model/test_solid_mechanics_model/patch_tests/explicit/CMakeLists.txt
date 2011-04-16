@@ -24,10 +24,8 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-#add_mesh(test_check_stress_mesh square_check_stress.geo 2 1)
 
 register_test(test_check_stress test_check_stress.cc)
-#add_dependencies(test_solid_mechanics_model_check_force test_solid_mechanics_model_square_mesh)
 
 #===============================================================================
 configure_file(
@@ -35,6 +33,7 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/material_check_stress.dat
   COPYONLY
   )
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/square_check_stress.msh
   ${CMAKE_CURRENT_BINARY_DIR}/square_check_stress.msh
