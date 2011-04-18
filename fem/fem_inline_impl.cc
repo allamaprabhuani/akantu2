@@ -42,7 +42,7 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
 #define GET_INRADIUS(type)						\
   inradius = ElementClass<type>::getInradius(coord);			\
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_INRADIUS)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_INRADIUS);
 #undef GET_INRADIUS
 
   AKANTU_DEBUG_OUT();
@@ -58,7 +58,7 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
 // #define GET_NB_QUAD(type)					
 //   nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
 
-//   AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_QUAD)
+//   AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_QUAD);
 // #undef GET_NB_QUAD
     
 //   AKANTU_DEBUG_OUT();

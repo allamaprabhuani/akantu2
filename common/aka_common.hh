@@ -110,15 +110,17 @@ typedef UInt Surface;
 #define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
   case type : { macro(type); break;}
 
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro)				\
-  switch(type) {							\
-    BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,AKANTU_ELEMENT_TYPE) \
-  case _not_defined:							\
-  case _max_element_type:  {						\
-    AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
-    break;								\
-  }									\
-  }
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro);				\
+  do {									\
+    switch(type) {							\
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,AKANTU_ELEMENT_TYPE) \
+    case _not_defined:							\
+    case _max_element_type:  {						\
+      AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
+      break;								\
+    }									\
+    }									\
+  } while(0)
 
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
   macro(type)

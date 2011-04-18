@@ -114,6 +114,8 @@ private:
   /* ------------------------------------------------------------------------ */
 private:
 
+  bool rhs_is_local;
+
   enum SolverMumpsJob {
     _smj_initialize = -1,
     _smj_analyze = 1,

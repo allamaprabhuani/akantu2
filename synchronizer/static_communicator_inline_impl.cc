@@ -50,23 +50,30 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
   }
 
 #define AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(call, ret)		\
-  switch(real_type) {							\
-    BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_REAL_COMMUNICATOR_CALL,		\
-			  (ret, (call, BOST_PP_NIL)),			\
-			  AKANTU_COMMUNICATOR_LIST_ALL)			\
-  }
+  do {									\
+    switch(real_type)							\
+      {									\
+	BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_REAL_COMMUNICATOR_CALL,	\
+			      (ret, (call, BOST_PP_NIL)),		\
+			      AKANTU_COMMUNICATOR_LIST_ALL)		\
+      default:								\
+	{								\
+	  AKANTU_DEBUG_ERROR("Wrong communicator : " << real_type);	\
+	}								\
+      }									\
+  } while(0)
 
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline void StaticCommunicator::send(T * buffer, Int size, Int receiver, Int tag) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(send(buffer, size, receiver, tag), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(send(buffer, size, receiver, tag), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline void StaticCommunicator::receive(T * buffer, Int size, Int sender, Int tag) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(receive(buffer, size, sender, tag), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(receive(buffer, size, sender, tag), 0);
 }
 
 
@@ -74,52 +81,55 @@ inline void StaticCommunicator::receive(T * buffer, Int size, Int sender, Int ta
 template<typename T>
 inline CommunicationRequest * StaticCommunicator::asyncSend(T * buffer, Int size,
 							    Int receiver, Int tag) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncSend(buffer, size, receiver, tag), 1)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncSend(buffer, size, receiver, tag), 1);
+  return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T> inline CommunicationRequest * StaticCommunicator::asyncReceive(T * buffer, Int size,
 										    Int sender, Int tag) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncReceive(buffer, size, sender, tag), 1)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncReceive(buffer, size, sender, tag), 1);
+  return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::allReduce(T * values, Int nb_values,
 							       const SynchronizerOperation & op) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(allReduce(values, nb_values, op), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(allReduce(values, nb_values, op), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::gather(T * values, Int nb_values, Int root) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gather(values, nb_values, root), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gather(values, nb_values, root), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::gatherv(T * values, Int * nb_values, Int root) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gatherv(values, nb_values, root), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gatherv(values, nb_values, root), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::broadcast(T * values, Int nb_values, Int root) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(broadcast(values, nb_values, root), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(broadcast(values, nb_values, root), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicator::barrier() {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(barrier(), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(barrier(), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 inline bool StaticCommunicator::testRequest(CommunicationRequest * request) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(testRequest(request), 1)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(testRequest(request), 1);
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicator::wait(CommunicationRequest * request) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(wait(request), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(wait(request), 0);
 }
 
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicator::waitAll(std::vector<CommunicationRequest *> & requests) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(waitAll(requests), 0)
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(waitAll(requests), 0);
 }

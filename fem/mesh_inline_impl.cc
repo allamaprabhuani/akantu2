@@ -346,7 +346,7 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
 #define GET_NB_NODES_PER_ELEMENT(type)					\
   nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_NODES_PER_ELEMENT)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_NODES_PER_ELEMENT);
 #undef GET_NB_NODES_PER_ELEMENT
 
   AKANTU_DEBUG_OUT();
@@ -361,7 +361,7 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
 #define GET_ELEMENT_P1(type)				\
   element_p1 = ElementClass<type>::getP1ElementType()
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_ELEMENT_P1)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_ELEMENT_P1);
 #undef GET_NB_NODES_PER_ELEMENT_P1
 
   AKANTU_DEBUG_OUT();
@@ -376,7 +376,7 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
 #define GET_SPATIAL_DIMENSION(type)					\
   spatial_dimension = ElementClass<type>::getSpatialDimension()
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SPATIAL_DIMENSION)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SPATIAL_DIMENSION);
 #undef GET_SPATIAL_DIMENSION
 
   AKANTU_DEBUG_OUT();
@@ -391,7 +391,7 @@ inline ElementType Mesh::getFacetElementType(const ElementType & type) {
 #define GET_FACET_TYPE(type)					\
   surface_type = ElementClass<type>::getFacetElementType()
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_FACET_TYPE)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_FACET_TYPE);
 #undef GET_FACET_TYPE
 
   AKANTU_DEBUG_OUT();
@@ -406,7 +406,7 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
 #define GET_NB_FACET(type)					\
   n_facet = ElementClass<type>::getNbFacetsPerElement()
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_FACET)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_FACET);
 #undef GET_NB_FACET
 
   AKANTU_DEBUG_OUT();
@@ -422,7 +422,7 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
 #define GET_FACET_CON(type)                                      \
   facet_conn = ElementClass<type>::getFacetLocalConnectivityPerElement()
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_FACET_CON)
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_FACET_CON);
 #undef GET_FACET_CON
 
   AKANTU_DEBUG_OUT();

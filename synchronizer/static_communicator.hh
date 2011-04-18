@@ -47,6 +47,8 @@
 #  define AKANTU_COMMUNICATOR_LIST_ALL					\
   BOOST_PP_SEQ_PUSH_BACK(AKANTU_COMMUNICATOR_LIST_1,			\
 			 (_communicator_mpi, (StaticCommunicatorMPI, BOOST_PP_NIL)))
+#else
+#  define AKANTU_COMMUNICATOR_LIST_ALL	AKANTU_COMMUNICATOR_LIST_1
 #endif // AKANTU_COMMUNICATOR_LIST
 
 #include "real_static_communicator.hh"

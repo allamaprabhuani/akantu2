@@ -100,7 +100,7 @@ __BEGIN_AKANTU__
 SolverMumps::SolverMumps(SparseMatrix & matrix,
 			 const SolverID & id,
 			 const MemoryID & memory_id) :
-  Solver(matrix, id, memory_id) {
+  Solver(matrix, id, memory_id), rhs_is_local(true) {
   AKANTU_DEBUG_IN();
 
   UInt size = matrix.getSize();
@@ -200,11 +200,13 @@ SolverMumps::~SolverMumps() {
   AKANTU_DEBUG_OUT();
 }
 
+
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_USE_MPI
+  rhs_is_local = false;
+
   if(communicator->getNbProc() > 1) {
     nb_local_nodes = mesh.getNbNodes();
     Vector<UInt> local_nodes(0,2);
@@ -263,7 +265,6 @@ void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom)
       communicator->send(local_nodes.values, 2 * nb_local_nodes, 0, 0);
     }
   }
-#endif // AKANTU_USE_MPI
 
   AKANTU_DEBUG_OUT();
 }
@@ -351,8 +352,7 @@ void SolverMumps::initialize() {
 /* -------------------------------------------------------------------------- */
 void SolverMumps::setRHS(Vector<Real> & rhs) {
 
-#ifdef AKANTU_USE_MPI
-  if(communicator->getNbProc() > 1) {
+  if(communicator->getNbProc() > 1 && !rhs_is_local) {
     Vector<Real> local_rhs(0,1) ;
 
     Real * rhs_val = rhs.values;
@@ -394,16 +394,15 @@ void SolverMumps::setRHS(Vector<Real> & rhs) {
       communicator->send(local_rhs.values, nb_degre_of_freedom * nb_local_nodes, 0, 0);
     }
   } else {
-#endif
-  AKANTU_DEBUG_ASSERT(rhs.getSize()*rhs.getNbComponent() == this->rhs->getSize(),
-		      "Size of rhs (" << rhs.getSize()*rhs.getNbComponent()
-		      << ") and this->rhs (" << this->rhs->getSize()
-		      << ") do not match.");
-
-  memcpy(this->rhs->values, rhs.values, this->rhs->getSize() * sizeof(Real));
-#ifdef AKANTU_USE_MPI
+    if(communicator->whoAmI() == 0) {
+      AKANTU_DEBUG_ASSERT(rhs.getSize()*rhs.getNbComponent() == this->rhs->getSize(),
+			  "Size of rhs (" << rhs.getSize()*rhs.getNbComponent()
+			  << ") and this->rhs (" << this->rhs->getSize()
+			  << ") do not match.");
+    
+      memcpy(this->rhs->values, rhs.values, this->rhs->getSize() * sizeof(Real));
+    }
   }
-#endif
 
   // if(communicator->whoAmI() == 0) {
   //   debug::setDebugLevel(dblDump);
@@ -453,12 +452,10 @@ void SolverMumps::solve(Vector<Real> & solution) {
   //   debug::setDebugLevel(dblInfo);
   // }
 
-
-#ifdef AKANTU_USE_MPI
-  if(communicator->getNbProc() > 1) {
+  if(communicator->getNbProc() > 1 && !rhs_is_local) {
     solution.clear();
     UInt nb_degre_of_freedom = solution.getNbComponent();
-
+    
     Vector<Real> local_rhs(nb_local_nodes * nb_degre_of_freedom,1);
 
     if (communicator->whoAmI() == 0) {
@@ -496,11 +493,10 @@ void SolverMumps::solve(Vector<Real> & solution) {
       }
     }
   } else {
-#endif
-  memcpy(solution.values, rhs->values, rhs->getSize() * sizeof(Real));
-#ifdef AKANTU_USE_MPI
- }
-#endif
+    if(communicator->whoAmI() == 0) {
+      memcpy(solution.values, rhs->values, rhs->getSize() * sizeof(Real));
+    }
+  }
 
   // debug::setDebugLevel(dblDump);
   // std::cout << solution << std::endl;
