@@ -61,7 +61,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
-					UInt flag_x,UInt flag_y,UInt flag_z){
+					bool flag_x, bool flag_y, bool flag_z){
   std::map<UInt,UInt> pbc_pair;
   mesh.computeBoundingBox();
 

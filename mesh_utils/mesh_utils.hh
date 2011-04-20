@@ -32,6 +32,7 @@
 
 #include "aka_common.hh"
 #include "mesh.hh"
+#include "aka_csr.hh"
 
 
 __BEGIN_AKANTU__
@@ -51,11 +52,13 @@ public:
 public:
 
   /// build map from nodes to elements
-  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem, UInt spatial_dimension = 0);
+  static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = 0);
+  //  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem, UInt spatial_dimension = 0);
   /// build map from nodes to elements for a specific element type
-  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, CSR<UInt> & node_to_elem);
+  //  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
   /// build facets elements : boundary and/or internals
-  static void buildFacets(Mesh & mesh, bool boundary_flag=1, bool internal_flag=0);
+  static void buildFacets(Mesh & mesh, bool boundary_flag = true, bool internal_flag = false);
   /// build normal to some elements
   //  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
 
@@ -70,13 +73,18 @@ public:
 
   static void setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type);
 
-  /// Detect closed surfaces of the mesh and save the surface id 
+  /// Detect closed surfaces of the mesh and save the surface id
   /// of the surface elements in the array surface_id
   static void buildSurfaceID(Mesh & mesh);
 
   /// tweak mesh connectivity to activate pbc
-  static void tweakConnectivityForPBC(Mesh & mesh,UInt flag_x,
-				      UInt flag_y=false,UInt flag_z=false);
+  static void tweakConnectivityForPBC(Mesh & mesh, 
+				      bool flag_x,
+				      bool flag_y = false,
+				      bool flag_z = false);
+
+  /// create a multimap of nodes per surfaces
+  static void buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_surface);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

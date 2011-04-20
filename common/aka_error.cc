@@ -67,32 +67,37 @@ namespace debug {
   }
 
   /* ------------------------------------------------------------------------ */
-  static std::string demangle(const char* symbol) {
-    std::string trace(symbol);
+  std::string demangle(const char* symbol) {
 
-    std::string::size_type begin = trace.find_first_of('(') + 1;
-    std::string::size_type end   = trace.find_last_of('+');
+    // std::string trace(symbol);
 
-    if (begin != std::string::npos && end != std::string::npos) {
-      std::string sub_trace = trace.substr(begin, end - begin);
+    // std::string::size_type begin = trace.find_first_of('(') + 1;
+    // std::string::size_type end   = trace.find_last_of('+');
 
-      int status;
-      size_t size;
+    // if (begin != std::string::npos && end != std::string::npos) {
+    //   std::string sub_trace = trace.substr(begin, end - begin);
+
+    int status;
+    //   size_t size;
       std::string result;
       char * demangled_name;
 
-      if ((demangled_name = abi::__cxa_demangle(sub_trace.c_str(), NULL, &size, &status)) != NULL) {
+      //      if ((demangled_name = abi::__cxa_demangle(sub_trace.c_str(), NULL, &size, &status)) != NULL) {
+      if ((demangled_name = abi::__cxa_demangle(symbol, NULL, 0, &status)) != NULL) {
 	result = demangled_name;
 	free(demangled_name);
+      } else {
+	result = symbol;
       }
 
-      std::stringstream result_sstr;
-      result_sstr << trace.substr(0, begin) <<  result << trace.substr(end);
+      return result;
+    //   std::stringstream result_sstr;
+    //   result_sstr << trace.substr(0, begin) <<  result << trace.substr(end);
 
-      return result_sstr.str();
-    }
+    //   return result_sstr.str();
+    // }
 
-    return trace;
+    // return trace;
   }
 
 

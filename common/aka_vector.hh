@@ -231,6 +231,8 @@ protected:
 public:
 
   Vector<T> & operator-=(const Vector<T> & vect);
+  Vector<T> & operator+=(const Vector<T> & vect);
+  Vector<T> & operator*=(const T & alpha);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

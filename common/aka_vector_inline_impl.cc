@@ -135,6 +135,31 @@ Vector<T> & Vector<T>::operator-=(const Vector<T> & vect) {
   return *this;
 }
 
+/* -------------------------------------------------------------------------- */
+template <typename T>
+Vector<T> & Vector<T>::operator+=(const Vector<T> & vect) {
+  AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
+		      "The too vector don't have the same sizes");
+
+  T * a = values;
+  T * b = vect.values;
+  for (UInt i = 0; i < size*nb_component; ++i) {
+    *a++ += *b++;
+  }
+
+  return *this;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+Vector<T> & Vector<T>::operator*=(const T & alpha) {
+  T * a = values;
+  for (UInt i = 0; i < size*nb_component; ++i) {
+    *a++ *= alpha;
+  }
+
+  return *this;
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

@@ -298,7 +298,7 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   stream.setf (std::ios_base::showbase);
   stream.precision(2);
 
-  stream << space << "Vector<" << typeid(T).name() << "> [" << std::endl;
+  stream << space << "Vector<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
   stream << space << " + id             : " << this->id << std::endl;
   stream << space << " + size           : " << this->size << std::endl;
   stream << space << " + nb_component   : " << this->nb_component << std::endl;

@@ -90,6 +90,7 @@ namespace debug {
   void setParallelContext(int rank, int size);
 
   void initSignalHandler();
+  std::string demangle(const char * symbol);
   void printBacktrace(int sig);
 
 
@@ -192,6 +193,7 @@ namespace debug {
   ((::akantu::debug::_debug_level >= level) &&				\
    (::akantu::debug::_akantu_debug_cout					\
     << ::akantu::debug::_parallel_context				\
+    << "{" << __TIMESTAMP__ << "} "					\
     << info << " "							\
     << AKANTU_LOCATION							\
     << std::endl))

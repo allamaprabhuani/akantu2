@@ -123,14 +123,21 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << typeid(*this).name() << "<" << n << "," << m <<"> :" << std::endl;
+      std::streamsize prec        = stream.precision();
+      std::ios_base::fmtflags ff  = stream.flags();
+
+      stream.setf (std::ios_base::showbase);
+      stream.precision(2);
+      stream << space << debug::demangle(typeid(*this).name()) << "<" << n << "," << m <<"> :" << std::endl;
       for (UInt i = 0; i < m; ++i) {
-	stream << space << indent << "| ";
+	stream << space << AKANTU_INDENT << "| ";
 	for (UInt j = 0; j < n; ++j) {
-	  stream << values[i*n +j] << " ";
+	  stream << std::setw(10) << values[i*n +j] << " ";
 	}
 	stream << "|" << std::endl;
       }
+      stream.precision(prec);
+      stream.flags(ff);
     };
 
     // Real* &data() { return values; };
@@ -197,8 +204,8 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << typeid(*this).name() << "<" << n <<"> :" << std::endl;
-      stream << space << indent << "| ";
+      stream << space << debug::demangle(typeid(*this).name()) << "<" << n <<"> :" << std::endl;
+      stream << space << AKANTU_INDENT << "| ";
       for (UInt i = 0; i < n; ++i) {
 	stream << values[i] << " ";
       }
@@ -271,9 +278,9 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << typeid(*this).name() << "," << n << "," << m <<"> :" << std::endl;
+      stream << space << debug::demangle(typeid(*this).name()) << "," << n << "," << m <<"> :" << std::endl;
       for (UInt i = 0; i < m; ++i) {
-	stream << space << space << "| ";
+	stream << space << AKANTU_INDENT << "| ";
 	for (UInt j = 0; j < n; ++j) {
 	  stream << values[i*n +j] << " ";
 	}

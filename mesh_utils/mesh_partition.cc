@@ -93,13 +93,16 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
   }
 
 
-  Vector<UInt> node_offset;
-  Vector<UInt> node_index;
+  // Vector<UInt> node_offset;
+  // Vector<UInt> node_index;
 
-  MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
+  CSR<UInt> node_to_elem;
 
-  UInt * node_offset_val = node_offset.values;
-  UInt * node_index_val = node_index.values;
+  //  MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
+  MeshUtils::buildNode2Elements(mesh, node_to_elem);
+
+  // UInt * node_offset_val = node_offset.values;
+  // UInt * node_index_val = node_index.values;
 
 
   UInt nb_total_element = 0;
@@ -143,11 +146,12 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
       //      UInt m = 0;
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
   	UInt node = conn_val[t][el_offset + n];
-
-  	for (UInt k = node_offset_val[node + 1] - 1;
-  	     k >= node_offset_val[node];
-  	     --k) {
-  	  UInt current_el = node_index_val[k];
+	CSR<UInt>::iterator k;
+	for (k = node_to_elem.rbegin(node); k != node_to_elem.rend(node); --k) {
+  	// for (UInt k = node_offset_val[node + 1] - 1;
+  	//      k >= node_offset_val[node];
+  	//      --k) {
+  	  UInt current_el = *k;//node_index_val[k];
   	  if(current_el <= linerized_el) break;
 
 	  unordered_map<UInt, UInt>::type::iterator it_w;
@@ -231,13 +235,14 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
 					      const Int * linearized_partitions) {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> node_offset;
-  Vector<UInt> node_index;
+  // Vector<UInt> node_offset;
+  // Vector<UInt> node_index;
+  CSR<UInt> node_to_elem;
 
-  MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
-
-  UInt * node_offset_val = node_offset.values;
-  UInt * node_index_val = node_index.values;
+  // MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
+  MeshUtils::buildNode2Elements(mesh, node_to_elem);
+  // UInt * node_offset_val = node_offset.values;
+  // UInt * node_index_val = node_index.values;
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -266,8 +271,10 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
       std::list<UInt> list_adj_part;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	UInt node = connectivity.values[el * nb_nodes_per_element + n];
-	for (UInt ne = node_offset_val[node]; ne < node_offset_val[node + 1]; ++ne) {
-	  UInt adj_el = node_index_val[ne];
+	CSR<UInt>::iterator ne;
+	//	for (UInt ne = node_offset_val[node]; ne < node_offset_val[node + 1]; ++ne) {
+	for (ne = node_to_elem.begin(node); ne != node_to_elem.end(node); ++ne) {
+	  UInt adj_el = *ne;//node_index_val[ne];
 	  UInt adj_part = linearized_partitions[adj_el];
 	  if(part != adj_part) {
 	    list_adj_part.push_back(adj_part);

@@ -34,8 +34,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2Elements(const Mesh & mesh,
-				   Vector<UInt> & node_offset,
-				   Vector<UInt> & node_to_elem,
+				   CSR<UInt> & node_to_elem,
 				   UInt spatial_dimension) {
   AKANTU_DEBUG_IN();
   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
@@ -72,38 +71,47 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 		      "Some elements must be found in right dimension to compute facets!");
 
   /// array for the node-element list
-  node_offset.resize(nb_nodes + 1);
-  UInt * node_offset_val = node_offset.values;
+  node_to_elem.resizeRows(nb_nodes);
+  node_to_elem.clearRows();
+
+  //  node_offset.resize(nb_nodes + 1);
+  //  UInt * node_offset_val = node_offset.values;
 
   /// count number of occurrence of each node
-  memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
+  //  memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
   for (UInt t = 0; t < nb_good_types; ++t) {
     for (UInt el = 0; el < nb_element[t]; ++el) {
       UInt el_offset = el*nb_nodes_per_element[t];
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
-	node_offset_val[conn_val[t][el_offset + n]]++;
+	++node_to_elem.rowOffset(conn_val[t][el_offset + n]);
+	//	node_offset_val[conn_val[t][el_offset + n]]++;
       }
     }
   }
 
-  /// convert the occurrence array in a csr one
-  for (UInt i = 1; i < nb_nodes; ++i) node_offset_val[i] += node_offset_val[i-1];
-  for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
-  node_offset_val[0] = 0;
+  // /// convert the occurrence array in a csr one
+  // for (UInt i = 1; i < nb_nodes; ++i) node_offset_val[i] += node_offset_val[i-1];
+  // for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
+  // node_offset_val[0] = 0;
 
+  node_to_elem.countToCSR();
+  node_to_elem.resizeCols();
+  node_to_elem.beginInsertions();
   /// rearrange element to get the node-element list
-  node_to_elem.resize(node_offset_val[nb_nodes]);
-  UInt * node_to_elem_val = node_to_elem.values;
+  // node_to_elem.resize(node_offset_val[nb_nodes]);
+  // UInt * node_to_elem_val = node_to_elem.values;
 
   for (UInt t = 0, linearized_el = 0; t < nb_good_types; ++t)
     for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el) {
       UInt el_offset = el*nb_nodes_per_element[t];
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n)
-	node_to_elem_val[node_offset_val[conn_val[t][el_offset + n]]++] = linearized_el;
+	node_to_elem.insertInRow(conn_val[t][el_offset + n], linearized_el);
+      // node_to_elem_val[node_offset_val[conn_val[t][el_offset + n]]++] = linearized_el;
     }
 
-  for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
-  node_offset_val[0] = 0;
+  node_to_elem.endInsertions();
+  // for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
+  // node_offset_val[0] = 0;
 
   AKANTU_DEBUG_OUT();
 }
@@ -111,8 +119,9 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
 						ElementType type,
-						Vector<UInt> & node_offset,
-						Vector<UInt> & node_to_elem) {
+						CSR<UInt> & node_to_elem) {
+						// Vector<UInt> & node_offset,
+						// Vector<UInt> & node_to_elem) {
 
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
@@ -123,33 +132,46 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
   UInt * conn_val = mesh.getConnectivity(type).values;
 
   /// array for the node-element list
-  node_offset.resize(nb_nodes + 1);
-  UInt * node_offset_val = node_offset.values;
-  memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
+  node_to_elem.resizeRows(nb_nodes);
+  node_to_elem.clearRows();
+
+  // node_offset.resize(nb_nodes + 1);
+  // UInt * node_offset_val = node_offset.values;
+  // memset(node_offset_val, 0, (nb_nodes + 1)*sizeof(UInt));
 
   /// count number of occurrence of each node
-  for (UInt el = 0; el < nb_elements; ++el)
+  for (UInt el = 0; el < nb_elements; ++el) {
+    UInt el_offset = el*nb_nodes_per_element;
     for (UInt n = 0; n < nb_nodes_per_element; ++n)
-      node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
-
+      ++node_to_elem.rowOffset(conn_val[el_offset + n]);
+      //      node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
+  }
   /// convert the occurrence array in a csr one
-  for (UInt i = 1; i < nb_nodes; ++i) node_offset_val[i] += node_offset_val[i-1];
-  for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
-  node_offset_val[0] = 0;
+  // for (UInt i = 1; i < nb_nodes; ++i) node_offset_val[i] += node_offset_val[i-1];
+  // for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
+  // node_offset_val[0] = 0;
+
+
+  node_to_elem.countToCSR();
+  node_to_elem.resizeCols();
+  node_to_elem.beginInsertions();
 
   /// save the element index in the node-element list
-  node_to_elem.resize(node_offset_val[nb_nodes]);
-  UInt * node_to_elem_val = node_to_elem.values;
+  // node_to_elem.resize(node_offset_val[nb_nodes]);
+  // UInt * node_to_elem_val = node_to_elem.values;
 
-  for (UInt el = 0; el < nb_elements; ++el)
+  for (UInt el = 0; el < nb_elements; ++el) {
+    UInt el_offset = el*nb_nodes_per_element;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      node_to_elem_val[node_offset_val[conn_val[nb_nodes_per_element*el + n]]] = el;
-      node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
+      node_to_elem.insertInRow(conn_val[el_offset + n], el);
     }
+      // node_to_elem_val[node_offset_val[conn_val[nb_nodes_per_element*el + n]]] = el;
+      // node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
+  }
 
-  ///  rearrange node_offset to start with 0
-  for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
-  node_offset_val[0] = 0;
+  // ///  rearrange node_offset to start with 0
+  // for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
+  // node_offset_val[0] = 0;
 
   AKANTU_DEBUG_OUT();
 }
@@ -158,10 +180,12 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
 void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag){
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> node_offset;
-  Vector<UInt> node_to_elem;
+  CSR<UInt> node_to_elem;
+  // Vector<UInt> node_offset;
+  // Vector<UInt> node_to_elem;
 
-  buildNode2Elements(mesh,node_offset,node_to_elem);
+  //  buildNode2Elements(mesh,node_offset,node_to_elem);
+  buildNode2Elements(mesh, node_to_elem);
 
   //  std::cout << "node offset " << std::endl << node_offset << std::endl;
   // std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
@@ -232,21 +256,23 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	  facet_nodes[n] = conn_val[t][el_offset + node_facet];
 	}
 	//our reference is the first node
-	UInt * first_node_elements = node_to_elem.values+node_offset.values[facet_nodes[0]];
-	UInt first_node_nelements =
-	  node_offset.values[facet_nodes[0]+1]-
-	  node_offset.values[facet_nodes[0]];
+	CSR<UInt>::iterator first_node_elements = node_to_elem.begin(facet_nodes[0]);
+	//UInt * first_node_elements = node_to_elem.values+node_offset.values[facet_nodes[0]];
+	UInt first_node_nelements = node_to_elem.getNbCols(facet_nodes[0]);
+	  // node_offset.values[facet_nodes[0]+1]-
+	  // node_offset.values[facet_nodes[0]];
 	counter.resize(first_node_nelements);
 	memset(counter.values,0,sizeof(UInt)*first_node_nelements);
 	//loop over the other nodes to search intersecting elements
 	for (UInt n = 1; n < nb_nodes_per_facet[t]; ++n) {
-	  UInt * node_elements = node_to_elem.values+node_offset.values[facet_nodes[n]];
-	  UInt node_nelements =
-	    node_offset.values[facet_nodes[n]+1]-
-	    node_offset.values[facet_nodes[n]];
-	  for (UInt el1 = 0; el1 < first_node_nelements; ++el1) {
-	    for (UInt el2 = 0; el2 < node_nelements; ++el2) {
-	      if (first_node_elements[el1] == node_elements[el2]) {
+	  CSR<UInt>::iterator node_elements = node_to_elem.begin(facet_nodes[n]);
+	  //	  UInt * node_elements = node_to_elem.values+node_offset.values[facet_nodes[n]];
+	  UInt node_nelements = node_to_elem.getNbCols(facet_nodes[n]);
+	    // node_offset.values[facet_nodes[n]+1]-
+	    // node_offset.values[facet_nodes[n]];
+	  for (UInt el1 = 0; el1 < first_node_nelements; ++el1, ++first_node_elements) {
+	    for (UInt el2 = 0; el2 < node_nelements; ++el2, ++node_elements) {
+	      if (*first_node_elements == *node_elements) {
 		++counter.values[el1];
 		break;
 	      }
@@ -258,7 +284,8 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	//the connected elements are those for which counter is n_facet
 	//	UInt connected_element = -1;
 	for (UInt el1 = 0; el1 < counter.getSize(); el1++) {
-	  UInt el_index = node_to_elem.values[node_offset.values[facet_nodes[0]]+el1];
+	  UInt el_index = node_to_elem(facet_nodes[0], el1);
+	  // node_to_elem.values[node_offset.values[facet_nodes[0]]+el1];
 	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index > linearized_el){
 	    //	    connected_element = el_index;
 	    AKANTU_DEBUG(dblDump,"connecting elements " << linearized_el << " and " << el_index);
@@ -418,12 +445,13 @@ void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const Elemen
 void MeshUtils::buildSurfaceID(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> node_offset;
-  Vector<UInt> node_to_elem;
-
+  // Vector<UInt> node_offset;
+  // Vector<UInt> node_to_elem;
+  CSR<UInt> node_to_elem;
   /// Get list of surface elements
   UInt spatial_dimension = mesh.getSpatialDimension();
-  buildNode2Elements(mesh, node_offset, node_to_elem, spatial_dimension-1);
+  //  buildNode2Elements(mesh, node_offset, node_to_elem, spatial_dimension-1);
+  buildNode2Elements(mesh, node_to_elem, spatial_dimension-1);
 
 
   /// Find which types of elements have been linearized
@@ -497,12 +525,20 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
       UInt el_offset = ceck_el*nb_nodes_per_element[lin_type_nb];
       for (UInt n = 0; n < nb_nodes_per_element_p1[lin_type_nb]; ++n) {
 	UInt node_id = conn_val[lin_type_nb][el_offset + n];
-	for (UInt i = node_offset.values[node_id]; i < node_offset.values[node_id+1]; ++i)
-	  if(surf_val[node_to_elem.values[i]] == -1) { /* Found new surface element */
-	    surf_val[node_to_elem.values[i]] = nb_surfaces;
-	    elements_to_ceck[nb_elements_to_ceck] = node_to_elem.values[i];
+	CSR<UInt>::iterator it;
+	for (it = node_to_elem.begin(node_id); it != node_to_elem.end(node_id); ++it) {
+	  //	for (UInt i = node_offset.values[node_id]; i < node_offset.values[node_id+1]; ++i) {
+	  if(surf_val[*it] == -1) { /* Found new surface element */
+	    surf_val[*it] = nb_surfaces;
+	    elements_to_ceck[nb_elements_to_ceck] = *it;
 	    nb_elements_to_ceck++;
 	  }
+	  // if(surf_val[node_to_elem.values[i]] == -1) { /* Found new surface element */
+	  //   surf_val[node_to_elem.values[i]] = nb_surfaces;
+	  //   elements_to_ceck[nb_elements_to_ceck] = node_to_elem.values[i];
+	  //   nb_elements_to_ceck++;
+	  // }
+	}
       }
 
       nb_cecked_elements++;
@@ -531,6 +567,70 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_surface) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_surfaces = mesh.getNbSurfaces();
+  UInt nb_nodes    = mesh.getNbNodes();
+  UInt spatial_dimension = mesh.getSpatialDimension(); //surface elements
+
+  UInt  nb_facet_types = 0;
+  ElementType facet_type[_max_element_type];
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(mesh.getSpatialDimension(*it) != spatial_dimension) continue;
+    facet_type[nb_facet_types++] = mesh.getFacetElementType(*it);
+  }
+
+  UInt * surface_nodes_id = new UInt[nb_nodes*nb_surfaces];
+  std::fill_n(surface_nodes_id, nb_surfaces*nb_surfaces, 0);
+
+  for(UInt t = 0; t < nb_facet_types; ++t) {
+    ElementType type = facet_type[t];
+
+    UInt nb_element = mesh.getNbElement(type);
+    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+
+    UInt * connecticity = mesh.getConnectivity(type).values;
+    UInt * surface_id = mesh.getSurfaceId(type).values;;
+
+    for (UInt el = 0; el < nb_element; ++el) {
+      UInt offset = *surface_id * nb_nodes;
+      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	surface_nodes_id[offset + *connecticity] = 1;
+	++connecticity;
+      }
+      ++surface_id;
+    }
+  }
+
+  nodes_per_surface.resizeRows(nb_surfaces);
+  nodes_per_surface.clearRows();
+
+  for (UInt s = 0; s < nb_surfaces; ++s)
+    for (UInt n = 0; n < nb_nodes; ++n)
+      nodes_per_surface.rowOffset(s) += *surface_nodes_id;
+
+  nodes_per_surface.countToCSR();
+
+  nodes_per_surface.resizeCols();
+  nodes_per_surface.beginInsertions();
+  for (UInt s = 0; s < nb_surfaces; ++s)
+    for (UInt n = 0; n < nb_nodes; ++n)
+      if (*surface_nodes_id == 1) nodes_per_surface.insertInRow(s, n);
+  nodes_per_surface.endInsertions();
+
+  delete [] surface_nodes_id;
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+
 __END_AKANTU__
 
 //  LocalWords:  ElementType

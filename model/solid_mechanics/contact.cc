@@ -46,7 +46,7 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactType & type,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model), master_surfaces(NULL), 
+  Memory(memory_id), id(id), model(model), master_surfaces(NULL),
   surface_to_nodes(NULL), surface_to_nodes_offset(NULL), type(type) {
 
   AKANTU_DEBUG_IN();
@@ -97,72 +97,32 @@ void Contact::initContact(bool add_surfaces_flag) {
     nb_facet_types++;
   }
 
-  const UInt nb_surfaces = mesh.getNbSurfaces();
+  CSR<UInt> suface_nodes;
+  MeshUtils::buildNodesPerSurface(mesh, suface_nodes);
+  suface_nodes.copy(surface_to_nodes_offset, surface_to_nodes);
 
-  UInt * surf_nodes_id = new UInt [nb_nodes*nb_surfaces];
-  memset(surf_nodes_id, 0, nb_nodes*nb_surfaces*sizeof(Int));
 
-  /// Fill class members node_to_elements_offset and node_to_element
   for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
-
     ElementType type = facet_type[el_type];
-    const UInt *surf_id_val = mesh.getSurfaceId(type).values;
+
     std::stringstream sstr_name_1; sstr_name_1 << id << ":node_to_elements_offset:" << type;
     this->node_to_elements_offset[type] = &(alloc<UInt>(sstr_name_1.str(),0,1));
+
     std::stringstream sstr_name_2; sstr_name_2 << id << ":node_to_elements:" << type;
     this->node_to_elements[type] = &(alloc<UInt>(sstr_name_2.str(),0,1));
-    MeshUtils::buildNode2ElementsByElementType(mesh, type, *(node_to_elements_offset[type]), *(node_to_elements[type]));
-    UInt * node_off_val = node_to_elements_offset[type]->values;
-    UInt * node_elem_val = node_to_elements[type]->values;
-    for (UInt n = 0; n < nb_nodes; ++n)
-      if(node_off_val[n] != node_off_val[n+1])
-	for (UInt c_el = node_off_val[n]; c_el < node_off_val[n+1]; ++c_el) {
-	  UInt surf_id = surf_id_val[node_elem_val[c_el]];
-	  surf_nodes_id[surf_id*nb_nodes + n] = 1;
-	}
+
+    CSR<UInt> node_to_elem;
+    MeshUtils::buildNode2ElementsByElementType(mesh, type, node_to_elem);
+
+    node_to_elem.copy(*node_to_elements_offset[type], *node_to_elements[type]);
   }
-
-  /// Count nodes per surfaces
-  this->surface_to_nodes_offset.resize(nb_surfaces+1);
-  UInt * surf_nodes_off_val = surface_to_nodes_offset.values;
-  memset(surf_nodes_off_val, 0, (nb_surfaces + 1)*sizeof(UInt));
-
-  for (UInt i = 0; i < nb_surfaces; ++i)
-    for (UInt n = 0; n < nb_nodes; ++n)
-      if(surf_nodes_id[i*nb_nodes+n] == 1)
-	surf_nodes_off_val[i]++;
-
-  /// convert the occurrence array in a csr one
-  for (UInt i = 1; i < nb_surfaces; ++i) surf_nodes_off_val[i] += surf_nodes_off_val[i-1];
-  for (UInt i = nb_surfaces; i > 0; --i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
-  surf_nodes_off_val[0] = 0;
-
-  // std::stringstream stn_name; stn_name << id << ":surface_to_nodes";
-  // this->surface_to_nodes = alloc<UInt>(stn_name.str(),surf_nodes_off_val[nb_surfaces],1);
-
-  /// Fill surface_to_nodes (save node index)
-  surface_to_nodes.resize(surf_nodes_off_val[nb_surfaces]);
-  UInt * surf_nodes_val = surface_to_nodes.values;
-
-  for (UInt i = 0; i < nb_surfaces; ++i)
-    for (UInt n = 0; n < nb_nodes; ++n)
-      if(surf_nodes_id[i*nb_nodes+n] == 1) {
-	surf_nodes_val[surf_nodes_off_val[i]] = n;
-	surf_nodes_off_val[i]++;
-      }
-
-  /// rearrange surface_to_nodes_offset to start with 0
-  for (UInt i = nb_surfaces; i > 0; --i) surf_nodes_off_val[i] = surf_nodes_off_val[i-1];
-  surf_nodes_off_val[0] = 0;
-
-  delete [] surf_nodes_id;
 
   if(add_surfaces_flag) {
     for (UInt i = 0; i < mesh.getNbSurfaces(); ++i) {
       addMasterSurface(i);
       std::cout << "Master surface " << i << " has been added automatically" << std::endl;
-    } 
-  }	
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -188,7 +148,7 @@ void Contact::initNeighborStructure() {
 /* -------------------------------------------------------------------------- */
 void Contact::initNeighborStructure(const Surface & master_surface) {
   AKANTU_DEBUG_IN();
-  
+
   contact_search->initNeighborStructure();
 
   AKANTU_DEBUG_OUT();
@@ -265,8 +225,8 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   ContactSearch * tmp_search = NULL;
 
   switch(contact_type) {
-  case _ct_2d_expli: { 
-    tmp_contact = new Contact2dExplicit(model, contact_type, id, memory_id); 
+  case _ct_2d_expli: {
+    tmp_contact = new Contact2dExplicit(model, contact_type, id, memory_id);
     break;
   }
   case _ct_3d_expli: {
@@ -287,9 +247,9 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   sstr << id << ":contact_search";
 
   switch(contact_search_type) {
-  case _cst_2d_expli: { 
+  case _cst_2d_expli: {
     tmp_search = new ContactSearch2dExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
-    break; 
+    break;
   }
   case _cst_expli: {
     tmp_search = new ContactSearchExplicit(*tmp_contact, contact_neighbor_structure_type, contact_search_type, sstr.str());
