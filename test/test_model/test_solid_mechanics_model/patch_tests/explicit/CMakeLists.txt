@@ -24,21 +24,25 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+set(LIST_TYPES
+  segment_2
+  segment_3
+  triangle_3
+  triangle_6
+  quadrangle_4
+  tetrahedron_4
+  tetrahedron_10
+  hexahedron_8
+  )
 
-register_test(test_check_stress test_check_stress.cc)
+foreach(_type ${LIST_TYPES})
+  register_test(test_check_stress_${_type} test_check_stress.cc)
+  set_target_properties(test_check_stress_${_type}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  file(COPY ${_type}.msh DESTINATION .)
+endforeach()
 
 #===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material_check_stress.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material_check_stress.dat
-  COPYONLY
-  )
+file(COPY material_check_stress.dat DESTINATION .)
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/square_check_stress.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/square_check_stress.msh
-  COPYONLY
-  )
 
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/check_stress_test)

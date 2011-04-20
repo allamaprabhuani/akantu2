@@ -42,42 +42,135 @@
 
 using namespace akantu;
 
-template<ElementType type>
-types::Matrix prescribed_stress();
+Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
+		      { 0.05, 0.06, 0.07, 0.08 },
+		      { 0.09, 0.10, 0.11, 0.12 } };
 
-template<> types::Matrix prescribed_stress<_triangle_3>() {
-  UInt spatial_dimension = ElementClass<_triangle_3>::getSpatialDimension();
+
+/* -------------------------------------------------------------------------- */
+template<ElementType type>
+types::Matrix prescribed_strain() {
+  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
+  types::Matrix strain(spatial_dimension, spatial_dimension);
+
+  for (UInt i = 0; i < spatial_dimension; ++i) {
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      strain(i, j) = alpha[i][j + 1];
+    }
+  }
+  return strain;
+}
+
+template<ElementType type>
+types::Matrix prescribed_stress() {
+  UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix stress(spatial_dimension, spatial_dimension);
-  stress(0,0) = 0.;
-  stress(0,1) = 0.;
-  stress(1,0) = 0.;
-  stress(1,1) = -2.30769e9;
+
+  //plane strain in 2d
+  types::Matrix strain(spatial_dimension, spatial_dimension);
+  types::Matrix pstrain; pstrain = prescribed_strain<type>();
+  Real nu = 0.3;
+  Real E  = 2.1e11;
+  Real trace = 0;
+
+  /// symetric part of the strain tensor
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      strain(i,j) = 0.5 * (pstrain(i, j) + pstrain(j, i));
+
+
+  for (UInt i = 0; i < spatial_dimension; ++i) trace += strain(i,i);
+
+  Real Ep = E / (1 + nu);
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      stress(i, j) = Ep * strain(i,j);
+      if(i == j) stress(i, j) += Ep * (nu / (1 - 2*nu)) * trace;
+    }
 
   return stress;
 }
 
-template<ElementType type>
-types::Matrix prescribed_strain();
 
-template<> types::Matrix prescribed_strain<_triangle_3>() {
-  UInt spatial_dimension = ElementClass<_triangle_3>::getSpatialDimension();
-  types::Matrix strain(spatial_dimension, spatial_dimension);
-  strain(0,0) = 0.004285714;
-  strain(0,1) = 0.;
-  strain(1,0) = 0.;
-  strain(1,1) = -0.01;
+/* -------------------------------------------------------------------------- */
+// template<> types::Matrix prescribed_stress<_triangle_3>() {
+//   UInt spatial_dimension = ElementClass<_triangle_3>::getSpatialDimension();
+//   types::Matrix stress(spatial_dimension, spatial_dimension);
+//   stress(0,0) = 0.;
+//   stress(0,1) = 0.;
+//   stress(1,0) = 0.;
+//   stress(1,1) = -2.30769e9;
 
-  return strain;
-}
+//   return stress;
+// }
+
+// template<> types::Matrix prescribed_strain<_triangle_3>() {
+//   UInt spatial_dimension = ElementClass<_triangle_3>::getSpatialDimension();
+//   types::Matrix strain(spatial_dimension, spatial_dimension);
+//   strain(0,0) = 0.004285714;
+//   strain(0,1) = 0.;
+//   strain(1,0) = 0.;
+//   strain(1,1) = -0.01;
+
+//   return strain;
+// }
+
+// /* -------------------------------------------------------------------------- */
+// template<> types::Matrix prescribed_stress<_triangle_6>() {
+//   UInt spatial_dimension = ElementClass<_triangle_6>::getSpatialDimension();
+//   types::Matrix stress(spatial_dimension, spatial_dimension);
+//   stress(0,0) = 0.;
+//   stress(0,1) = 0.;
+//   stress(1,0) = 0.;
+//   stress(1,1) = -2.30769e9;
+
+//   return stress;
+// }
+
+// template<> types::Matrix prescribed_strain<_triangle_6>() {
+//   UInt spatial_dimension = ElementClass<_triangle_6>::getSpatialDimension();
+//   types::Matrix strain(spatial_dimension, spatial_dimension);
+//   strain(0,0) = 0.004285714;
+//   strain(0,1) = 0.;
+//   strain(1,0) = 0.;
+//   strain(1,1) = -0.01;
+
+//   return strain;
+// }
+
+/* -------------------------------------------------------------------------- */
+// template<> types::Matrix prescribed_stress<_quadrangle_4>() {
+//   UInt spatial_dimension = ElementClass<_quadrangle_4>::getSpatialDimension();
+//   types::Matrix stress(spatial_dimension, spatial_dimension);
+//   stress(0,0) = 0.;
+//   stress(0,1) = 0.;
+//   stress(1,0) = 0.;
+//   stress(1,1) = -2.30769e9;
+
+//   return stress;
+// }
+
+// template<> types::Matrix prescribed_strain<_quadrangle_4>() {
+//   UInt spatial_dimension = ElementClass<_quadrangle_4>::getSpatialDimension();
+//   types::Matrix strain(spatial_dimension, spatial_dimension);
+//   strain(0,0) = 0.004285714;
+//   strain(0,1) = 0.;
+//   strain(1,0) = 0.;
+//   strain(1,1) = -0.01;
+
+//   return strain;
+// }
 
 
+/* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  UInt dim = 2;
-  const ElementType element_type = _triangle_3;
+  debug::setDebugLevel(dblWarning);
+  UInt dim = ElementClass<TYPE>::getSpatialDimension();
+  const ElementType element_type = TYPE;
 
-  UInt imposing_steps = 1000;
-  Real max_displacement = -0.01;
+  // UInt imposing_steps = 1000;
+  // Real max_displacement = -0.01;
 
   UInt damping_steps = 400000;
   UInt damping_interval = 50;
@@ -86,12 +179,12 @@ int main(int argc, char *argv[])
   UInt additional_steps = 20000;
   UInt max_steps = damping_steps + additional_steps;
 
-  std::cout << "The number of time steps is: " << max_steps << std::endl;
-
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("square_check_stress.msh", my_mesh);
+
+  std::stringstream filename; filename << TYPE << ".msh";
+  mesh_io.read(filename.str(), my_mesh);
 
   UInt nb_nodes = my_mesh.getNbNodes();
 
@@ -110,28 +203,46 @@ int main(int argc, char *argv[])
   my_model.initMaterials();
 
 
-  Real time_step = my_model.getStableTimeStep()/10.;
+  Real time_step = my_model.getStableTimeStep()/5.;
   my_model.setTimeStep(time_step);
   my_model.assembleMassLumped();
 
-  // boundary conditions
-  Vector<UInt> top_nodes(0, 1);
-  Vector<UInt> base_nodes(0, 1);
+  std::cout << "The number of time steps is: " << max_steps << " (" << time_step << "s)" << std::endl;
+
+  // // boundary conditions
+  // Vector<UInt> top_nodes(0, 1);
+  // Vector<UInt> base_nodes(0, 1);
 
   const Vector<Real> & coordinates = my_mesh.getNodes();
   Vector<Real> & displacement = my_model.getDisplacement();
   Vector<bool> & boundary = my_model.getBoundary();
 
-  for(UInt n = 0; n < nb_nodes; ++n) {
-    Real y_coord = coordinates(n, 1);
-    if (y_coord > 0.99) {
-      boundary(n, 1) = true;
-      top_nodes.push_back(n);
+  MeshUtils::buildFacets(my_mesh);
+  MeshUtils::buildSurfaceID(my_mesh);
+
+  CSR<UInt> surface_nodes;
+  MeshUtils::buildNodesPerSurface(my_mesh, surface_nodes);
+
+
+  CSR<UInt>::iterator snode = surface_nodes.begin(0);
+
+  for(; snode != surface_nodes.end(0); ++snode) {
+    UInt n = *snode;
+    for (UInt i = 0; i < dim; ++i) {
+      displacement(n, i) = alpha[i][0];
+      for (UInt j = 0; j < dim; ++j) {
+	displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+      }
+      boundary(n, i) = true;
     }
-    else if (y_coord < 0.01) {
-      boundary(n, 1) = true;
-      base_nodes.push_back(n);
-    }
+    // if (coordinates(n, 0) < Math::tolerance) {
+    //   boundary(n, 0) = true;
+    //   displacement(n, 0) = 0.;
+    // }
+    // if (coordinates(n, 1) < Math::tolerance) {
+    //   boundary(n, 1) = true;
+    //   displacement(n, 1) = 0.;
+    // }
   }
 
   Vector<Real> & velocity = my_model.getVelocity();
@@ -144,13 +255,13 @@ int main(int argc, char *argv[])
 				 << " (" << s*time_step << "s)" <<std::endl;
 
     // impose normal displacement
-    if(s <= imposing_steps) {
-      Real current_displacement = max_displacement / (static_cast<Real>(imposing_steps)) * s;
-      for(UInt n = 0; n < top_nodes.getSize(); ++n) {
-	UInt node = top_nodes(n);
-	displacement(node, 1) = current_displacement;
-      }
-    }
+    // if(s <= imposing_steps) {
+    //   Real current_displacement = max_displacement / (static_cast<Real>(imposing_steps)) * s;
+    //   for(UInt n = 0; n < top_nodes.getSize(); ++n) {
+    // 	UInt node = top_nodes(n);
+    // 	displacement(node, 1) = current_displacement;
+    //   }
+    // }
 
     // damp velocity in order to find equilibrium
     if((s < damping_steps) && (s % damping_interval == 0)) {
@@ -163,38 +274,65 @@ int main(int argc, char *argv[])
     my_model.explicitCorr();
   }
 
-  UInt check_element = 0;
-  UInt quadrature_point = 0;
-  UInt nb_quadrature_points = ElementClass<_triangle_3>::getNbQuadraturePoint();
+  // UInt check_element = 0;
+  // UInt quadrature_point = 0;
+  UInt nb_quadrature_points = ElementClass<TYPE>::getNbQuadraturePoint();
 
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
   Vector<Real> & strain_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStrain(element_type));
 
   Vector<Real>::iterator<types::Matrix> stress_it = stress_vect.begin(dim, dim);
   Vector<Real>::iterator<types::Matrix> strain_it = strain_vect.begin(dim, dim);
-  stress_it += check_element * nb_quadrature_points + quadrature_point;
-  strain_it += check_element * nb_quadrature_points + quadrature_point;
 
-  types::Matrix & stress = *stress_it;
-  types::Matrix & strain = *strain_it;
-  types::Matrix presc_stress; presc_stress = prescribed_stress<_triangle_3>();
-  types::Matrix presc_strain; presc_strain = prescribed_strain<_triangle_3>();
+  types::Matrix presc_stress; presc_stress = prescribed_stress<TYPE>();
+  types::Matrix presc_strain; presc_strain = prescribed_strain<TYPE>();
 
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      if(!(std::abs(strain(i, j) - presc_strain(i, j)) < 1e-9)) {
-	std::cout << "strain[" << i << "," << j << "] = " << strain(i, j) << " but should be = " << presc_strain(i, j) << " " << std::abs(strain(i, j) - presc_strain(i, j)) << std::endl;
-	std::cout << strain << presc_strain << std::endl;
-	return EXIT_FAILURE;
+  UInt nb_element = my_mesh.getNbElement(TYPE);
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {
+      types::Matrix & stress = *stress_it;
+      types::Matrix & strain = *strain_it;
+
+      for (UInt i = 0; i < dim; ++i) {
+	for (UInt j = 0; j < dim; ++j) {
+	  if(!(std::abs(strain(i, j) - presc_strain(i, j)) < 1e-15)) {
+	    std::cerr << "strain[" << i << "," << j << "] = " << strain(i, j) << " but should be = " << presc_strain(i, j) << " (-" << std::abs(strain(i, j) - presc_strain(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
+	    std::cerr << strain << presc_strain << std::endl;
+	    return EXIT_FAILURE;
+	  }
+
+	  if(!(std::abs(stress(i, j) - presc_stress(i, j)) < 1e-3)) {
+	    std::cerr << "stress[" << i << "," << j << "] = " << stress(i, j) << " but should be = " << presc_stress(i, j) << " (-" << std::abs(stress(i, j) - presc_stress(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
+	    std::cerr << stress << presc_stress << std::endl;
+	    return EXIT_FAILURE;
+	  }
+	}
       }
 
-      if(!(std::abs(stress(i, j) - presc_stress(i, j)) < 1e4)) {
-	std::cout << "stress[" << i << "," << j << "] = " << stress(i, j) << " but should be = " << presc_stress(i, j) << " " << std::abs(stress(i, j) - presc_stress(i, j)) << std::endl;
-	std::cout << stress << presc_stress << std::endl;
+      ++stress_it;
+      ++strain_it;
+    }
+  }
+
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    for (UInt i = 0; i < dim; ++i) {
+      Real disp = alpha[i][0];
+      for (UInt j = 0; j < dim; ++j) {
+	disp += alpha[i][j + 1] * coordinates(n, j);
+      }
+
+      if(!(std::abs(displacement(n,i) - disp) < 1e-15)) {
+	std::cerr << "displacement(" << n << ", " << i <<")=" << displacement(n,i) << " should be equal to " << disp <<  std::endl;
 	return EXIT_FAILURE;
       }
     }
   }
+
+
+  // std::cout << "Strain : " << strain;
+  // std::cout << "Stress : " << stress;
 
   //  finalize();
 
