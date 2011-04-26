@@ -49,9 +49,9 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam) {
   
   Real Ehat=sqrt(Fdiagp[0]*Fdiagp[0]+Fdiagp[1]*Fdiagp[1]+Fdiagp[2]*Fdiagp[2]);
 
-  sigma[0] = K * trace +2*G*(F[0]-trace/3);
-  sigma[4] = K * trace +2*G*(F[4]-trace/3);
-  sigma[8] = K * trace +2*G*(F[8]-trace/3);
+  sigma[0] = K * trace + 2*G * (F[0] - trace/3);
+  sigma[4] = K * trace + 2*G * (F[4] - trace/3);
+  sigma[8] = K * trace + 2*G * (F[8] - trace/3);
   sigma[1] = sigma[3] =  G * (F[1] + F[3]);
   sigma[2] = sigma[6] =  G * (F[2] + F[6]);
   sigma[5] = sigma[7] =  G * (F[5] + F[7]);
@@ -67,26 +67,27 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam) {
     Cdiag = E*(1-nu)/((1+nu)*(1-2*nu));
     
     Real SigDiag[3];
-    SigDiag[0] = Cdiag*Fdiag[0]+ lambda*(Fdiag[1]+Fdiag[2]);
-    SigDiag[1] = Cdiag*Fdiag[1]+ lambda*(Fdiag[0]+Fdiag[2]);
-    SigDiag[2] = Cdiag*Fdiag[2]+ lambda*(Fdiag[1]+Fdiag[0]);
+    SigDiag[0] = Cdiag*Fdiag[0] + lambda*(Fdiag[1]+Fdiag[2]);
+    SigDiag[1] = Cdiag*Fdiag[1] + lambda*(Fdiag[0]+Fdiag[2]);
+    SigDiag[2] = Cdiag*Fdiag[2] + lambda*(Fdiag[1]+Fdiag[0]);
     Real SigDiagT[3];
-    Real SigDiagC[3];   
+    //Real SigDiagC[3];   
     for (UInt i = 0; i<3;i++){
       if( SigDiag[i]>=0.){
-	 SigDiagT[i]= SigDiag[i];
-	 SigDiagC[i]=0. ;}
-      else{
-	 SigDiagC[i]= SigDiag[i];
-	 SigDiagT[i]=0. ;}	
+	SigDiagT[i]= SigDiag[i];
+	//	SigDiagC[i]=0.;
+      } else {
+	//	SigDiagC[i]= SigDiag[i];
+	SigDiagT[i]=0.;
+      }	
     }
-    Real TraSigT, TraSigC;
+    Real TraSigT;//, TraSigC;
     TraSigT =SigDiagT[0]+ SigDiagT[1]+SigDiagT[2];
-    TraSigC =SigDiagC[0]+ SigDiagC[1]+SigDiagC[2];
+    //    TraSigC =SigDiagC[0]+ SigDiagC[1]+SigDiagC[2];
     Real FDiagT [3];
-       for (UInt i = 0; i<3;i++){
-	 FDiagT [i]=  (SigDiagT[i]*(1+nu)-TraSigT*nu)/E;
-       }
+    for (UInt i = 0; i<3;i++){
+      FDiagT [i]=  (SigDiagT[i]*(1+nu)-TraSigT*nu)/E;
+    }
     Real alphat ;
     Real alphac ;
     Real damtemp;
@@ -94,7 +95,7 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam) {
     alphat=std::min(alphat,1.);
     alphac = 1-alphat;
     damtemp= pow(alphat,beta)*damt+pow(alphac,beta)*damc;
-  dam=std::max(damtemp,dam);
+    dam=std::max(damtemp,dam);
   }
   dam = std::min(dam,1.);
 

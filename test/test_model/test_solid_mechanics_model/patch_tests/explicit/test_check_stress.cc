@@ -47,6 +47,16 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 		      { 0.09, 0.10, 0.11, 0.12 } };
 
 
+#if defined(__INTEL_COMPILER)
+#pragma warning ( disable : 1419 ) // just to avoid a .h file for 2 functions
+#endif
+
+template<ElementType type>
+types::Matrix prescribed_strain();
+
+template<ElementType type>
+types::Matrix prescribed_stress();
+
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 types::Matrix prescribed_strain() {

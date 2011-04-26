@@ -129,7 +129,8 @@ Vector<T> & Vector<T>::operator-=(const Vector<T> & vect) {
   T * a = values;
   T * b = vect.values;
   for (UInt i = 0; i < size*nb_component; ++i) {
-    *a++ -= *b++;
+    *a -= *b;
+    ++a;++b;
   }
 
   return *this;
@@ -258,7 +259,7 @@ template<typename Ret, int fps>
 inline Ret & Vector<T>::iterator<Ret, fps>::operator[](const UInt n) {
  ret->values = initial + n*offset;
  return *ret;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

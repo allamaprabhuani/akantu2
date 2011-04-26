@@ -341,7 +341,9 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
   stiffness_matrix->buildProfile(mesh, *equation_number);
 
+#ifdef AKANTU_USE_MUMPS
   SparseMatrix * matrix = stiffness_matrix;
+#endif
 
   if(dynamic) {
     delete integrator;
@@ -349,7 +351,9 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
     std::stringstream sstr_jac; sstr_jac << id << ":jacobian_matrix";
     jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_jac.str(), memory_id);
+#ifdef AKANTU_USE_MUMPS
     matrix = jacobian_matrix;
+#endif
   }
 
 #ifdef AKANTU_USE_MUMPS

@@ -525,12 +525,12 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
       UInt el_offset = ceck_el*nb_nodes_per_element[lin_type_nb];
       for (UInt n = 0; n < nb_nodes_per_element_p1[lin_type_nb]; ++n) {
 	UInt node_id = conn_val[lin_type_nb][el_offset + n];
-	CSR<UInt>::iterator it;
-	for (it = node_to_elem.begin(node_id); it != node_to_elem.end(node_id); ++it) {
+	CSR<UInt>::iterator it_n;
+	for (it_n = node_to_elem.begin(node_id); it_n != node_to_elem.end(node_id); ++it_n) {
 	  //	for (UInt i = node_offset.values[node_id]; i < node_offset.values[node_id+1]; ++i) {
-	  if(surf_val[*it] == -1) { /* Found new surface element */
-	    surf_val[*it] = nb_surfaces;
-	    elements_to_ceck[nb_elements_to_ceck] = *it;
+	  if(surf_val[*it_n] == -1) { /* Found new surface element */
+	    surf_val[*it_n] = nb_surfaces;
+	    elements_to_ceck[nb_elements_to_ceck] = *it_n;
 	    nb_elements_to_ceck++;
 	  }
 	  // if(surf_val[node_to_elem.values[i]] == -1) { /* Found new surface element */

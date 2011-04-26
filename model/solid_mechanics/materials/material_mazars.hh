@@ -70,9 +70,9 @@ public:
   inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
 
   /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(const ElementType & type,
-			       Vector<double> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost) {
+  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
+			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
+			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
     

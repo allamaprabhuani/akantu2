@@ -113,7 +113,7 @@ namespace types {
     inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
-    };
+    }
 
 
     inline void clear() { memset(values, 0, m * n * sizeof(Real)); };

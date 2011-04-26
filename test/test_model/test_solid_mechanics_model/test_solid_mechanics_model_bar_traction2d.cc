@@ -42,8 +42,8 @@
 #endif //AKANTU_USE_IOHELPER
 
 //#define CHECK_STRESS
+akantu::ElementType type = akantu::_triangle_6;
 #ifdef AKANTU_USE_IOHELPER
-  akantu::ElementType type = akantu::_triangle_6;
   akantu::UInt paraview_type = TRIANGLE2;
 #endif //AKANTU_USE_IOHELPER
 

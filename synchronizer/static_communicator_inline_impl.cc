@@ -38,6 +38,11 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
   }
 }
 
+#if defined(__INTEL_COMPILER)
+#pragma warning ( push )
+#pragma warning ( disable : 111 )
+#endif //defined(__INTEL_COMPILER)
+
 /* -------------------------------------------------------------------------- */
 #define AKANTU_BOOST_REAL_COMMUNICATOR_CALL(r, call, comm_type)		\
   case BOOST_PP_LIST_AT(comm_type, 0): {				\
@@ -56,10 +61,6 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
 	BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_REAL_COMMUNICATOR_CALL,	\
 			      (ret, (call, BOST_PP_NIL)),		\
 			      AKANTU_COMMUNICATOR_LIST_ALL)		\
-      default:								\
-	{								\
-	  AKANTU_DEBUG_ERROR("Wrong communicator : " << real_type);	\
-	}								\
       }									\
   } while(0)
 
@@ -133,3 +134,7 @@ inline void StaticCommunicator::wait(CommunicationRequest * request) {
 inline void StaticCommunicator::waitAll(std::vector<CommunicationRequest *> & requests) {
   AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(waitAll(requests), 0);
 }
+
+#if defined(__INTEL_COMPILER)
+#pragma warning ( pop )
+#endif //defined(__INTEL_COMPILER)

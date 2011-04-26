@@ -60,13 +60,13 @@ public:
   void send(__attribute__ ((unused)) T * buffer,
 	    __attribute__ ((unused)) Int size,
 	    __attribute__ ((unused)) Int receiver,
-	    __attribute__ ((unused)) Int tag) {};
+	    __attribute__ ((unused)) Int tag) {}
 
   template<typename T>
   void receive(__attribute__ ((unused)) T * buffer,
 	       __attribute__ ((unused)) Int size,
 	       __attribute__ ((unused)) Int sender,
-	       __attribute__ ((unused)) Int tag) {};
+	       __attribute__ ((unused)) Int tag) {}
 
   template<typename T>
   CommunicationRequest * asyncSend(__attribute__ ((unused)) T * buffer,
@@ -74,7 +74,7 @@ public:
 				   __attribute__ ((unused)) Int receiver,
 				   __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
-  };
+  }
 
   template<typename T>
   CommunicationRequest * asyncReceive(__attribute__ ((unused)) T * buffer,
@@ -82,7 +82,7 @@ public:
 				      __attribute__ ((unused)) Int sender,
 				      __attribute__ ((unused)) Int tag) {
     return new CommunicationRequest(0, 0);
-  };
+  }
 
   bool testRequest(__attribute__ ((unused)) CommunicationRequest * request) { return true; };
 
@@ -96,22 +96,22 @@ public:
   template<typename T>
   void allReduce(__attribute__ ((unused)) T * values,
 		 __attribute__ ((unused)) Int nb_values,
-		 __attribute__ ((unused)) const SynchronizerOperation & op) {};
+		 __attribute__ ((unused)) const SynchronizerOperation & op) {}
 
   template<typename T>
   inline void gather(__attribute__ ((unused)) T * values,
 		     __attribute__ ((unused)) Int nb_values,
-		     __attribute__ ((unused)) Int root = 0) {};
+		     __attribute__ ((unused)) Int root = 0) {}
 
   template<typename T>
   inline void gatherv(__attribute__ ((unused)) T * values,
 		      __attribute__ ((unused)) Int * nb_values,
-		      __attribute__ ((unused)) Int root = 0) {};
+		      __attribute__ ((unused)) Int root = 0) {}
 
   template<typename T>
   inline void broadcast(__attribute__ ((unused)) T * values,
 			__attribute__ ((unused)) Int nb_values,
-			__attribute__ ((unused)) Int root = 0) {};
+			__attribute__ ((unused)) Int root = 0) {}
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -159,12 +159,12 @@ public:
   };
 
   /// assemble a field as a matrix (ex. rho to mass matrix)
-  virtual void assembleFieldMatrix(const Vector<Real> & field_1,
-				   UInt nb_degree_of_freedom,
-				   const Vector<Int> & equation_number,
-				   SparseMatrix & matrix,
-				   ElementType type,
-				   GhostType ghost_type) {
+  virtual void assembleFieldMatrix(__attribute__ ((unused)) const Vector<Real> & field_1,
+				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
+				   __attribute__ ((unused)) const Vector<Int> & equation_number,
+				   __attribute__ ((unused)) SparseMatrix & matrix,
+				   __attribute__ ((unused)) ElementType type,
+				   __attribute__ ((unused)) GhostType ghost_type) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
