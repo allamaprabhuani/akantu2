@@ -91,23 +91,12 @@ types::Matrix prescribed_stress() {
   return stress;
 }
 
-
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
   debug::setDebugLevel(dblWarning);
   UInt dim = ElementClass<TYPE>::getSpatialDimension();
   const ElementType element_type = TYPE;
-
-  // UInt imposing_steps = 1000;
-  // Real max_displacement = -0.01;
-
-  UInt damping_steps = 400000;
-  UInt damping_interval = 50;
-  Real damping_ratio = 0.99;
-
-  UInt additional_steps = 20000;
-  UInt max_steps = damping_steps + additional_steps;
 
   /// load mesh
   Mesh my_mesh(dim);
@@ -132,16 +121,7 @@ int main(int argc, char *argv[])
   my_model.readMaterials("material_check_stress.dat");
   my_model.initMaterials();
 
-
-  Real time_step = my_model.getStableTimeStep()/5.;
-  my_model.setTimeStep(time_step);
-  my_model.assembleMassLumped();
-
-  std::cout << "The number of time steps is: " << max_steps << " (" << time_step << "s)" << std::endl;
-
-  // // boundary conditions
-  // Vector<UInt> top_nodes(0, 1);
-  // Vector<UInt> base_nodes(0, 1);
+  my_model.initImplicit();
 
   const Vector<Real> & coordinates = my_mesh.getNodes();
   Vector<Real> & displacement = my_model.getDisplacement();
@@ -152,7 +132,6 @@ int main(int argc, char *argv[])
 
   CSR<UInt> surface_nodes;
   MeshUtils::buildNodesPerSurface(my_mesh, surface_nodes);
-
 
   CSR<UInt>::iterator snode = surface_nodes.begin(0);
 
@@ -165,47 +144,21 @@ int main(int argc, char *argv[])
       }
       boundary(n, i) = true;
     }
-    // if (coordinates(n, 0) < Math::tolerance) {
-    //   boundary(n, 0) = true;
-    //   displacement(n, 0) = 0.;
-    // }
-    // if (coordinates(n, 1) < Math::tolerance) {
-    //   boundary(n, 1) = true;
-    //   displacement(n, 1) = 0.;
-    // }
   }
-
-  Vector<Real> & velocity = my_model.getVelocity();
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for(UInt s = 1; s <= max_steps; ++s) {
-    if(s % 10000 == 0) std::cout << "passing step " << s << "/" << max_steps
-				 << " (" << s*time_step << "s)" <<std::endl;
+  akantu::UInt count = 0;
+  my_model.updateResidual();
 
-    // impose normal displacement
-    // if(s <= imposing_steps) {
-    //   Real current_displacement = max_displacement / (static_cast<Real>(imposing_steps)) * s;
-    //   for(UInt n = 0; n < top_nodes.getSize(); ++n) {
-    // 	UInt node = top_nodes(n);
-    // 	displacement(node, 1) = current_displacement;
-    //   }
-    // }
+  while(!my_model.testConvergenceResidual(1e-3) && (count < 100)) {
+    std::cout << "Iter : " << ++count << std::endl;
 
-    // damp velocity in order to find equilibrium
-    if((s < damping_steps) && (s % damping_interval == 0)) {
-      velocity *= damping_ratio;
-    }
-
-    my_model.explicitPred();
+    my_model.assembleStiffnessMatrix();
     my_model.updateResidual();
-    my_model.updateAcceleration();
-    my_model.explicitCorr();
   }
 
-  // UInt check_element = 0;
-  // UInt quadrature_point = 0;
   UInt nb_quadrature_points = ElementClass<TYPE>::getNbQuadraturePoint();
 
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
@@ -218,7 +171,6 @@ int main(int argc, char *argv[])
   types::Matrix presc_strain; presc_strain = prescribed_strain<TYPE>();
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
-
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -260,7 +212,6 @@ int main(int argc, char *argv[])
       }
     }
   }
-
 
   // std::cout << "Strain : " << strain;
   // std::cout << "Stress : " << stress;

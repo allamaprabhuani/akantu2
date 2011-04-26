@@ -36,13 +36,12 @@ set(LIST_TYPES
   )
 
 foreach(_type ${LIST_TYPES})
-  register_test(test_check_stress_${_type} test_check_stress.cc)
-  set_target_properties(test_check_stress_${_type}
+  register_test(patch_tests_implicit_${_type} patch_test_implicit.cc)
+  set_target_properties(patch_tests_implicit_${_type}
     PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
   file(COPY ../data/${_type}.msh DESTINATION .)
 endforeach()
 
 #===============================================================================
 file(COPY ../data/material_check_stress.dat DESTINATION .)
-
 
