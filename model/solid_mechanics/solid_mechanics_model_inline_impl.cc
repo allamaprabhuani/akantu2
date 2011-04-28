@@ -34,6 +34,15 @@ inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
   return *materials[mat_index];
 }
 
+/* -------------------------------------------------------------------------- */
+inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(mat_index < materials.size(),
+		      "The model " << id << " has no material no "<< mat_index);
+  AKANTU_DEBUG_OUT();
+  return *materials[mat_index];
+}
+
 
 
 /* -------------------------------------------------------------------------- */

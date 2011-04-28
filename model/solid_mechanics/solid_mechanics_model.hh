@@ -278,6 +278,7 @@ public:
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
+  inline const Material & getMaterial(UInt mat_index) const;
 
   /// give the number of materials
   inline UInt getNbMaterials() { return materials.size(); };

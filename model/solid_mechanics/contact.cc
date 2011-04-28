@@ -47,7 +47,7 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
   Memory(memory_id), id(id), model(model), master_surfaces(NULL),
-  surface_to_nodes(NULL), surface_to_nodes_offset(NULL), type(type) {
+  type(type), surface_to_nodes_offset(NULL), surface_to_nodes(NULL) {
 
   AKANTU_DEBUG_IN();
 
@@ -73,7 +73,6 @@ void Contact::initContact(bool add_surfaces_flag) {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = model.getFEM().getMesh();
-  const UInt nb_nodes = mesh.getNbNodes();
 
   /// Build surfaces if not done yet
   if(mesh.getNbSurfaces() == 0) { /* initialise nb_surfaces to zero in mesh_io */
@@ -85,7 +84,6 @@ void Contact::initContact(bool add_surfaces_flag) {
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
-  UInt nb_types = type_list.size();
   UInt  nb_facet_types = 0;
   ElementType facet_type[_max_element_type];
   UInt spatial_dimension = mesh.getSpatialDimension();

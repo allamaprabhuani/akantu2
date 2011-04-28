@@ -45,3 +45,4 @@ endforeach()
 #===============================================================================
 file(COPY ../data/material_check_stress.dat DESTINATION .)
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

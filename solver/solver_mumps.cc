@@ -115,7 +115,7 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 
 #ifdef AKANTU_USE_MPI
   mumps_data.par = 1;
-  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI *>(communicator)->getMPICommunicator());
+  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator->getRealStaticCommunicator()).getMPICommunicator());
 #else
   mumps_data.par = 0;
 #endif

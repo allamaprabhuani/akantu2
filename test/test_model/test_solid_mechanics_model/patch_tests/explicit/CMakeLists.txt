@@ -36,8 +36,8 @@ set(LIST_TYPES
   )
 
 foreach(_type ${LIST_TYPES})
-  register_test(test_check_stress_${_type} test_check_stress.cc)
-  set_target_properties(test_check_stress_${_type}
+  register_test(patch_test_explicit_${_type} patch_test_explicit.cc)
+  set_target_properties(patch_test_explicit_${_type}
     PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
   file(COPY ../data/${_type}.msh DESTINATION .)
 endforeach()
@@ -45,4 +45,4 @@ endforeach()
 #===============================================================================
 file(COPY ../data/material_check_stress.dat DESTINATION .)
 
-
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

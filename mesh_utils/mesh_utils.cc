@@ -47,20 +47,20 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   UInt nb_good_types = 0;
 
   UInt nb_nodes_per_element[nb_types];
-  UInt nb_nodes_per_element_p1[nb_types];
+  //  UInt nb_nodes_per_element_p1[nb_types];
 
   UInt * conn_val[nb_types];
   UInt nb_element[nb_types];
 
-  ElementType type_p1;
+  //  ElementType type_p1;
 
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
     nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
-    type_p1 = Mesh::getP1ElementType(type);
-    nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
+    //    type_p1 = Mesh::getP1ElementType(type);
+    //    nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
 
     conn_val[nb_good_types] = mesh.getConnectivity(type).values;
     nb_element[nb_good_types] = mesh.getConnectivity(type).getSize();
@@ -82,7 +82,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   for (UInt t = 0; t < nb_good_types; ++t) {
     for (UInt el = 0; el < nb_element[t]; ++el) {
       UInt el_offset = el*nb_nodes_per_element[t];
-      for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
+      for (UInt n = 0; n < nb_nodes_per_element[t]; ++n) {
 	++node_to_elem.rowOffset(conn_val[t][el_offset + n]);
 	//	node_offset_val[conn_val[t][el_offset + n]]++;
       }
@@ -104,7 +104,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   for (UInt t = 0, linearized_el = 0; t < nb_good_types; ++t)
     for (UInt el = 0; el < nb_element[t]; ++el, ++linearized_el) {
       UInt el_offset = el*nb_nodes_per_element[t];
-      for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n)
+      for (UInt n = 0; n < nb_nodes_per_element[t]; ++n)
 	node_to_elem.insertInRow(conn_val[t][el_offset + n], linearized_el);
       // node_to_elem_val[node_offset_val[conn_val[t][el_offset + n]]++] = linearized_el;
     }
@@ -256,22 +256,25 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	  facet_nodes[n] = conn_val[t][el_offset + node_facet];
 	}
 	//our reference is the first node
-	CSR<UInt>::iterator first_node_elements = node_to_elem.begin(facet_nodes[0]);
+	CSR<UInt>::iterator first_node_elements;
 	//UInt * first_node_elements = node_to_elem.values+node_offset.values[facet_nodes[0]];
 	UInt first_node_nelements = node_to_elem.getNbCols(facet_nodes[0]);
 	  // node_offset.values[facet_nodes[0]+1]-
 	  // node_offset.values[facet_nodes[0]];
 	counter.resize(first_node_nelements);
-	memset(counter.values,0,sizeof(UInt)*first_node_nelements);
+	counter.clear();
 	//loop over the other nodes to search intersecting elements
 	for (UInt n = 1; n < nb_nodes_per_facet[t]; ++n) {
-	  CSR<UInt>::iterator node_elements = node_to_elem.begin(facet_nodes[n]);
+	  first_node_elements = node_to_elem.begin(facet_nodes[0]);
+
+	  CSR<UInt>::iterator node_elements, node_elements_begin, node_elements_end;
+	  node_elements_begin = node_to_elem.begin(facet_nodes[n]);
+	  node_elements_end = node_to_elem.end(facet_nodes[n]);
 	  //	  UInt * node_elements = node_to_elem.values+node_offset.values[facet_nodes[n]];
-	  UInt node_nelements = node_to_elem.getNbCols(facet_nodes[n]);
 	    // node_offset.values[facet_nodes[n]+1]-
 	    // node_offset.values[facet_nodes[n]];
 	  for (UInt el1 = 0; el1 < first_node_nelements; ++el1, ++first_node_elements) {
-	    for (UInt el2 = 0; el2 < node_nelements; ++el2, ++node_elements) {
+	    for (node_elements = node_elements_begin; node_elements != node_elements_end; ++node_elements) {
 	      if (*first_node_elements == *node_elements) {
 		++counter.values[el1];
 		break;
@@ -587,7 +590,7 @@ void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_su
   }
 
   UInt * surface_nodes_id = new UInt[nb_nodes*nb_surfaces];
-  std::fill_n(surface_nodes_id, nb_surfaces*nb_surfaces, 0);
+  std::fill_n(surface_nodes_id, nb_surfaces*nb_nodes, 0);
 
   for(UInt t = 0; t < nb_facet_types; ++t) {
     ElementType type = facet_type[t];
@@ -611,17 +614,21 @@ void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_su
   nodes_per_surface.resizeRows(nb_surfaces);
   nodes_per_surface.clearRows();
 
+  UInt * surface_nodes_id_tmp = surface_nodes_id;
   for (UInt s = 0; s < nb_surfaces; ++s)
     for (UInt n = 0; n < nb_nodes; ++n)
-      nodes_per_surface.rowOffset(s) += *surface_nodes_id;
+      nodes_per_surface.rowOffset(s) += *surface_nodes_id_tmp++;
 
   nodes_per_surface.countToCSR();
 
   nodes_per_surface.resizeCols();
   nodes_per_surface.beginInsertions();
+  surface_nodes_id_tmp = surface_nodes_id;
   for (UInt s = 0; s < nb_surfaces; ++s)
-    for (UInt n = 0; n < nb_nodes; ++n)
-      if (*surface_nodes_id == 1) nodes_per_surface.insertInRow(s, n);
+    for (UInt n = 0; n < nb_nodes; ++n) {
+      if (*surface_nodes_id_tmp == 1) nodes_per_surface.insertInRow(s, n);
+      surface_nodes_id_tmp++;
+    }
   nodes_per_surface.endInsertions();
 
   delete [] surface_nodes_id;

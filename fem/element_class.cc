@@ -186,7 +186,7 @@ template<> UInt ElementClass<_hexahedron_8>::spatial_dimension       = 3;
 template<> UInt ElementClass<_hexahedron_8>::nb_facets               = 6;
 template<> ElementType ElementClass<_hexahedron_8>::facet_type       = _quadrangle_4;
 template<> UInt ElementClass<_hexahedron_8>::vec_facet_connectivity[]= {0, 1, 2, 3,
-									0, 2, 5, 4,
+									0, 1, 5, 4,
 									1, 2, 6, 5,
 									2, 3, 7, 6,
 									3, 0, 4, 7,

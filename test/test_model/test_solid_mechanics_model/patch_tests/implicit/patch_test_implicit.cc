@@ -92,9 +92,16 @@ types::Matrix prescribed_stress() {
 }
 
 /* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER
+void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model);
+void paraviewDump(Dumper & dumper);
+#endif
+
+/* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  debug::setDebugLevel(dblWarning);
+  initialize(&argc, &argv);
+
   UInt dim = ElementClass<TYPE>::getSpatialDimension();
   const ElementType element_type = TYPE;
 
@@ -133,16 +140,18 @@ int main(int argc, char *argv[])
   CSR<UInt> surface_nodes;
   MeshUtils::buildNodesPerSurface(my_mesh, surface_nodes);
 
-  CSR<UInt>::iterator snode = surface_nodes.begin(0);
-
-  for(; snode != surface_nodes.end(0); ++snode) {
-    UInt n = *snode;
-    for (UInt i = 0; i < dim; ++i) {
-      displacement(n, i) = alpha[i][0];
-      for (UInt j = 0; j < dim; ++j) {
-	displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+  for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
+    CSR<UInt>::iterator snode = surface_nodes.begin(s);
+    for(; snode != surface_nodes.end(s); ++snode) {
+      UInt n = *snode;
+      std::cout << "Node " << n << std::endl;
+      for (UInt i = 0; i < dim; ++i) {
+	displacement(n, i) = alpha[i][0];
+	for (UInt j = 0; j < dim; ++j) {
+	  displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+	}
+	boundary(n, i) = true;
       }
-      boundary(n, i) = true;
     }
   }
 
@@ -152,13 +161,32 @@ int main(int argc, char *argv[])
   akantu::UInt count = 0;
   my_model.updateResidual();
 
-  while(!my_model.testConvergenceResidual(1e-3) && (count < 100)) {
+#ifdef AKANTU_USE_IOHELPER
+  DumperParaview dumper;
+  paraviewInit(dumper, my_model);
+#endif
+
+  while(!my_model.testConvergenceResidual(2e-4) && (count < 100)) {
     std::cout << "Iter : " << ++count << std::endl;
 
     my_model.assembleStiffnessMatrix();
+    my_model.solveStatic();
     my_model.updateResidual();
   }
 
+#ifdef AKANTU_USE_IOHELPER
+  paraviewDump(dumper);
+#endif
+
+  if(count > 1) {
+    std::cerr << "The code did not converge in 1 step !" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+
+  /* ------------------------------------------------------------------------ */
+  /* Checks                                                                   */
+  /* ------------------------------------------------------------------------ */
   UInt nb_quadrature_points = ElementClass<TYPE>::getNbQuadraturePoint();
 
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
@@ -181,13 +209,13 @@ int main(int argc, char *argv[])
 	for (UInt j = 0; j < dim; ++j) {
 	  if(!(std::abs(strain(i, j) - presc_strain(i, j)) < 1e-15)) {
 	    std::cerr << "strain[" << i << "," << j << "] = " << strain(i, j) << " but should be = " << presc_strain(i, j) << " (-" << std::abs(strain(i, j) - presc_strain(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
-	    std::cerr << strain << presc_strain << std::endl;
+	    std::cerr << "computed : " << strain << "reference : " << presc_strain << std::endl;
 	    return EXIT_FAILURE;
 	  }
 
 	  if(!(std::abs(stress(i, j) - presc_stress(i, j)) < 1e-3)) {
 	    std::cerr << "stress[" << i << "," << j << "] = " << stress(i, j) << " but should be = " << presc_stress(i, j) << " (-" << std::abs(stress(i, j) - presc_stress(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
-	    std::cerr << stress << presc_stress << std::endl;
+	    std::cerr << "computed : " << stress << "reference : " << presc_stress << std::endl;
 	    return EXIT_FAILURE;
 	  }
 	}
@@ -220,3 +248,60 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Dumper vars                                                                */
+/* -------------------------------------------------------------------------- */
+
+#ifdef AKANTU_USE_IOHELPER
+template <ElementType type>
+UInt paraviewType();
+
+template <> UInt paraviewType<_segment_2>()      { return LINE1; };
+template <> UInt paraviewType<_segment_3>()      { return LINE2; };
+template <> UInt paraviewType<_triangle_3>()     { return TRIANGLE1; };
+template <> UInt paraviewType<_triangle_6>()     { return TRIANGLE2; };
+template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1; };
+template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1; };
+template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2; };
+template <> UInt paraviewType<_hexahedron_8>()   { return HEX1; };
+
+void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {
+  UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
+  UInt nb_nodes   = model.getFEM().getMesh().getNbNodes();
+  UInt nb_element = model.getFEM().getMesh().getNbElement(TYPE);
+
+  std::stringstream filename; filename << "out_" << TYPE;
+
+  dumper.SetMode(TEXT);
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
+		   spatial_dimension, nb_nodes, filename.str().c_str());
+  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
+			 paraviewType<TYPE>(), nb_element, C_MODE);
+  dumper.AddNodeDataField(model.getDisplacement().values,
+			  spatial_dimension, "displacements");
+  dumper.AddNodeDataField(model.getVelocity().values,
+			  spatial_dimension, "velocity");
+  dumper.AddNodeDataField(model.getResidual().values,
+			  spatial_dimension, "force");
+  dumper.AddNodeDataField(model.getMass().values,
+			  1, "mass");
+  dumper.AddNodeDataField(model.getForce().values,
+			  spatial_dimension, "applied_force");
+  dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
+   			  spatial_dimension*spatial_dimension, "strain");
+  dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
+   			  spatial_dimension*spatial_dimension, "stress");
+  dumper.SetEmbeddedValue("displacements", 1);
+  dumper.SetEmbeddedValue("applied_force", 1);
+  dumper.SetPrefix("paraview/");
+  dumper.Init();
+  dumper.Dump();
+}
+
+/* -------------------------------------------------------------------------- */
+void paraviewDump(Dumper & dumper) {
+  dumper.Dump();
+}
+
+#endif
