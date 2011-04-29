@@ -146,13 +146,13 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
       ++node_to_elem.rowOffset(conn_val[el_offset + n]);
       //      node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
   }
+
   /// convert the occurrence array in a csr one
   // for (UInt i = 1; i < nb_nodes; ++i) node_offset_val[i] += node_offset_val[i-1];
   // for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
   // node_offset_val[0] = 0;
-
-
   node_to_elem.countToCSR();
+
   node_to_elem.resizeCols();
   node_to_elem.beginInsertions();
 
@@ -172,6 +172,7 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
   // ///  rearrange node_offset to start with 0
   // for (UInt i = nb_nodes; i > 0; --i) node_offset_val[i]  = node_offset_val[i-1];
   // node_offset_val[0] = 0;
+  node_to_elem.endInsertions();
 
   AKANTU_DEBUG_OUT();
 }

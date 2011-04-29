@@ -170,7 +170,6 @@ void RuinaSlownessFricCoef<compute_analytic_solution>::addImpactorSurface(const 
   // add new impactor nodes to the map
   const Vector<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
   const Vector<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
-  UInt * surface_to_nodes_offset_val = surface_to_nodes_offset.values;
   UInt * surface_to_nodes_val = surface_to_nodes.values;
 
   UInt min_surf_offset = surface_to_nodes_val[impactor_surface];

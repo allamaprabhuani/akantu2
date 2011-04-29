@@ -49,7 +49,11 @@ public:
 
   inline void beginInsertions() {};
 
-  inline UInt insertInRow(UInt row, T & val) { UInt pos = rows_offsets(row)++; rows(pos) = val; return pos; };
+  inline UInt insertInRow(UInt row, T & val) { 
+    UInt pos = rows_offsets(row)++;
+    rows(pos) = val;
+    return pos;
+  }
 
   inline const T & operator()(UInt row, UInt col) const {
     return rows(rows_offsets(row) + col);
@@ -62,7 +66,7 @@ public:
   inline void endInsertions() {
     for (UInt i = nb_rows; i > 0; --i) rows_offsets(i) = rows_offsets(i-1);
     rows_offsets(0) = 0;
-  };
+  }
 
   inline void countToCSR() {
     for (UInt i = 1; i < nb_rows; ++i) rows_offsets(i) += rows_offsets(i-1);
@@ -72,16 +76,18 @@ public:
 
   inline void clearRows() { rows_offsets.clear(); rows.resize(0); };
 
-  inline void resizeRows(UInt nb_rows) { this->nb_rows = nb_rows, rows_offsets.resize(nb_rows + 1); };
-  inline void resizeCols() { rows.resize(rows_offsets(nb_rows)); }
+  inline void resizeRows(UInt nb_rows) { 
+    this->nb_rows = nb_rows;
+    rows_offsets.resize(nb_rows + 1);
+  }
 
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const;
+  inline void resizeCols() { 
+    rows.resize(rows_offsets(nb_rows));
+  }
+
   inline void copy(Vector<UInt> & offsets, Vector<T> & values) {
-    offsets.resize(nb_rows + 1);
-    values.resize(rows_offsets(nb_rows));
-    memcpy(offsets.values, rows_offsets.values, (nb_rows + 1) * sizeof(UInt));
-    memcpy(values.values, rows.values, rows_offsets(nb_rows) * sizeof(UInt));
+    offsets.copy(rows_offsets);
+    values.copy(rows);
   }
 
   /* ------------------------------------------------------------------------ */

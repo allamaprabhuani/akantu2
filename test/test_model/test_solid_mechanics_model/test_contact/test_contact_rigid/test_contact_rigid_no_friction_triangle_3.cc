@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
   dumper.SetMode(TEXT);
   
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_nodes_test-surface-extraction");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
-   			 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).values,
+   			 TRIANGLE1, my_mesh.getNbElement(element_type), C_MODE);
   dumper.SetPrefix("paraview/triangle/");
   dumper.Init();
   dumper.Dump();

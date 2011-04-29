@@ -74,7 +74,6 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
   Mesh::ConnectivityTypeList::const_iterator it;
 
   /// find existing surface element types
-  UInt nb_types = type_list.size();
   UInt nb_facet_types = 0;
   ElementType facet_type[_max_element_type];
 
@@ -361,6 +360,17 @@ void ContactSearchExplicit::computeComponentsOfProjection(const UInt impactor_no
     AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type);
     break;
   }
+  case _segment_3:
+  case _triangle_6:
+  case _tetrahedron_4:
+  case _tetrahedron_10:
+  case _quadrangle_4:
+  case _hexahedron_8:
+  case _point:
+  case _max_element_type: {
+    AKANTU_DEBUG_ERROR("Contact search is not implemented for this surface element type : " << type);
+    break;
+  }
   }
 
   AKANTU_DEBUG_OUT();
@@ -386,6 +396,17 @@ void ContactSearchExplicit::checkPenetrationSituation(const UInt impactor_node,
   }
   case _not_defined: {
     AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type);
+    break;
+  }
+  case _segment_3:
+  case _triangle_6:
+  case _tetrahedron_4:
+  case _tetrahedron_10:
+  case _quadrangle_4:
+  case _hexahedron_8:
+  case _point:
+  case _max_element_type: {
+    AKANTU_DEBUG_ERROR("Contact search is not implemented for this surface element type : " << type);
     break;
   }
   }
@@ -485,7 +506,6 @@ void ContactSearchExplicit::checkPenetrationSituationSegment2(const UInt impacto
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(spatial_dimension == 2, "wrong spatial dimension (=" << spatial_dimension << ") for checkPenetrationSituationSegment2");
-  const UInt dim = spatial_dimension;
   const ElementType type = _segment_2;
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
   const Real tolerance = std::numeric_limits<Real>::epsilon();
@@ -543,7 +563,6 @@ void ContactSearchExplicit::checkPenetrationSituationTriangle3(const UInt impact
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(spatial_dimension == 3, "wrong spatial dimension (=" << spatial_dimension << ") for checkPenetrationSituationTriangle3");
-  const UInt dim = spatial_dimension;
   const ElementType type = _triangle_3;
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
   const Real tolerance = std::numeric_limits<Real>::epsilon();

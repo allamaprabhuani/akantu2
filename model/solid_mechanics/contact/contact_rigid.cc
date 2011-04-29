@@ -40,7 +40,7 @@ ContactRigid::ImpactorInformationPerMaster::ImpactorInformationPerMaster(const S
   this->impactor_surfaces = new std::vector<Surface>(0);
 
   this->active_impactor_nodes = new Vector<UInt>(0,1);
-  this->master_element_offset = new Vector<UInt>(0,1);
+  //this->master_element_offset = new Vector<UInt>(0,1);
   this->master_element_type = new std::vector<ElementType>(0);
   this->master_normals = new Vector<Real>(0, spatial_dimension);
   this->node_is_sticking = new Vector<bool>(0,2);
@@ -57,7 +57,7 @@ ContactRigid::ImpactorInformationPerMaster::~ImpactorInformationPerMaster() {
   delete this->impactor_surfaces;  
 
   delete this->active_impactor_nodes;
-  delete this->master_element_offset;
+  //  delete this->master_element_offset;
   delete this->master_element_type;
   delete this->master_normals;
   delete this->node_is_sticking;
@@ -299,7 +299,6 @@ void ContactRigid::solvePenetrationClosestProjection(const Surface master,
   Mesh::ConnectivityTypeList::const_iterator it;
 
   /// find existing surface element types
-  UInt nb_types = type_list.size();
   UInt nb_facet_types = 0;
   ElementType facet_type[_max_element_type];
   
@@ -452,10 +451,10 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
 		      "The master surface: " << master << "couldn't be found in impactors_information map");
   ImpactorInformationPerMaster * impactor_info = it_imp->second;
   impactor_info->active_impactor_nodes->push_back(impactor_node);
-  impactor_info->master_element_offset->push_back(facet_offset);
+  //  impactor_info->master_element_offset->push_back(facet_offset);
   impactor_info->master_element_type->push_back(facet_type);
   impactor_info->master_normals->push_back(normal);
-  Real init_sticking[2];
+  bool init_sticking[2];
   init_sticking[0] = true; init_sticking[1] = true;
   impactor_info->node_is_sticking->push_back(init_sticking);
   Real init_friction_force[this->spatial_dimension];
@@ -505,7 +504,7 @@ void ContactRigid::avoidAdhesion() {
 	if(force * direction > 0.) {
 	  bound_val[current_node * spatial_dimension + i] = false;
 	  impactor_info->active_impactor_nodes->erase(n);
-	  impactor_info->master_element_offset->erase(n);
+	  //	  impactor_info->master_element_offset->erase(n);
 	  impactor_info->master_element_type->erase(impactor_info->master_element_type->begin()+n);
 	  impactor_info->master_normals->erase(n);
 	  impactor_info->node_is_sticking->erase(n);
@@ -777,5 +776,9 @@ void ContactRigid::removeFrictionCoefficient(const Surface master) {
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void ContactRigid::getRestartInformation(std::map<char*, VectorBase* > ) {
+
+}
 
 __END_AKANTU__

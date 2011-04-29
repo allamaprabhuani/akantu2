@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
   UInt nb_surfaces = my_mesh.getNbSurfaces();
   my_mesh.setNbSurfaces(++nb_surfaces); 
   ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
-  UInt * connectivity = my_mesh.getConnectivity(surface_element_type).values;
+  //UInt * connectivity = my_mesh.getConnectivity(surface_element_type).values;
   //UInt nb_nodes_elem = Mesh::getNbNodesPerElement(surface_element_type);
   UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
   UInt * surface_id_val = my_mesh.getSurfaceId(surface_element_type).values;
@@ -148,9 +148,7 @@ int main(int argc, char *argv[])
   // symetry boundary conditions
   for(UInt n = surface_to_nodes_offset[impactor]; n < surface_to_nodes_offset[impactor+1]; ++n) {
     UInt node = surface_to_nodes[n];
-    Real x_coord = coordinates[node*dim];
     Real y_coord = coordinates[node*dim + 1];
-    Real z_coord = coordinates[node*dim + 2];
     if (y_coord > -0.00001) {
       boundary[node*dim + 1] = true;
       top_nodes->push_back(node);

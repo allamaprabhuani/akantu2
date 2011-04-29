@@ -61,6 +61,8 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
 	BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_REAL_COMMUNICATOR_CALL,	\
 			      (ret, (call, BOST_PP_NIL)),		\
 			      AKANTU_COMMUNICATOR_LIST_ALL)		\
+      default:								\
+	AKANTU_DEBUG_TO_IMPLEMENT();					\
       }									\
   } while(0)
 

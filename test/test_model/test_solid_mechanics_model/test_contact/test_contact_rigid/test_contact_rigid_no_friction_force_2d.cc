@@ -49,7 +49,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  int dim = 2;
+  UInt dim = 2;
   const ElementType element_type = _triangle_3;
   const UInt paraview_type = TRIANGLE1;
   

@@ -107,8 +107,7 @@ int main(int argc, char *argv[])
   //UInt max_steps = static_cast<UInt>(needed_time*10/time_step) + imposing_steps + damping_steps + additional_steps;
   std::cout << "The number of time steps is found to be: " << max_steps << std::endl;
   Real * velocity_val = my_model.getVelocity().values;
-  Real * acceleration_val = my_model.getAcceleration().values;
-
+  
   my_model.assembleMassLumped();
 
   Surface impactor = 0;

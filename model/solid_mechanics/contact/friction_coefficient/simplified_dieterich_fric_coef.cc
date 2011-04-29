@@ -34,7 +34,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 SimplifiedDieterichFricCoef::SimplifiedDieterichFricCoef(ContactRigid & contact,
-							 const Surface & master_surface) : FrictionCoefficient(contact, master_surface), mu_zero(0.), a_factor(0.), b_factor(0.), v_normalizer(1.), theta_normalizer(1.), spatial_dimension(this->contact.getSpatialDimension()) {
+							 const Surface & master_surface) : FrictionCoefficient(contact, master_surface), spatial_dimension(this->contact.getSpatialDimension()), mu_zero(0.), a_factor(0.), b_factor(0.), v_normalizer(1.), theta_normalizer(1.) {
   AKANTU_DEBUG_IN();
 
   this->relative_sliding_velocities = new Vector<Real>(0,1);
@@ -140,26 +140,41 @@ void SimplifiedDieterichFricCoef::computeTangentialMasterVelocity(UInt impactor_
     for (UInt i=0; i<this->spatial_dimension; ++i)
       tangential_master_velocity[i] = 0.;
   }
+  else {
 
-  // compute the tangential master velocity
-  ElementType type = impactor_info->master_element_type->at(impactor_index);
-  switch(type) {
-    /*
-      case _segment_2: {
-      //computeComponentsOfProjectionSegment2(impactor_node, surface_element, normal, gap, projected_position);
+    // compute the tangential master velocity
+    ElementType type = impactor_info->master_element_type->at(impactor_index);
+    switch(type) {
+      /*
+	case _segment_2: {
+	//computeComponentsOfProjectionSegment2(impactor_node, surface_element, normal, gap, projected_position);
+	break;
+	}
+      */
+      /*
+	case _triangle_3: {
+	//computeComponentsOfProjectionTriangle3(impactor_node, surface_element, normal, gap, projected_position);
+	break;
+	}
+      */
+    case _not_defined: {
+      AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type << " for computation of tangential velocity of master element");
       break;
-      }
-    */
-    /*
-  case _triangle_3: {
-    //computeComponentsOfProjectionTriangle3(impactor_node, surface_element, normal, gap, projected_position);
-    break;
-  }
-    */
-  case _not_defined: {
-    AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type << " for computation of tangential velocity of master element");
-    break;
-  }
+    }
+    case _segment_2:
+    case _segment_3:
+    case _triangle_3:
+    case _triangle_6:
+    case _tetrahedron_4:
+    case _tetrahedron_10:
+    case _quadrangle_4:
+    case _hexahedron_8:
+    case _point: 
+    case _max_element_type: {
+      AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type << " for computation of tangential velocity of master element");
+      break;
+    }
+    }
   }
   
   AKANTU_DEBUG_OUT();

@@ -73,8 +73,8 @@ public:
     /// list of active impactor nodes
     Vector<UInt> * active_impactor_nodes;  
 
-    /// the offset of the associated master surface elemet
-    Vector<UInt> * master_element_offset;
+    // the offset of the associated master surface elemet
+    //Vector<UInt> * master_element_offset;
 
     /// the element type of the associated master surface element
     std::vector<ElementType> * master_element_type;
@@ -127,6 +127,9 @@ public:
 
   /// remove a friction coefficient for a given master surface
   virtual void removeFrictionCoefficient(const Surface master);
+
+  /// put contact information into a map which can be used for restart
+  virtual  void getRestartInformation(std::map<char*, VectorBase* > );
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;

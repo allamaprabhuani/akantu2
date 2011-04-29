@@ -88,7 +88,7 @@ private:
   void update(Real * node_position);
 
   /// construct neighbor list 
-  void constructNeighborList(UInt directional_nb_cells[spatial_dimension], 
+  void constructNeighborList(Int directional_nb_cells[spatial_dimension], 
 			     UInt nb_cells, 
 			     Vector<Int> * cell, 
 			     UInt * impactor_nodes_cell_offset, 
@@ -98,7 +98,7 @@ private:
 
 
   /// construct nodes neighbor list 
-  void constructNodesNeighborList(UInt directional_nb_cells[spatial_dimension], 
+  void constructNodesNeighborList(Int directional_nb_cells[spatial_dimension], 
 				  UInt nb_cells, 
 				  Vector<Int> * cell, 
 				  UInt * impactor_nodes_cell_offset, 
@@ -108,10 +108,10 @@ private:
 
 
   /// compute neighbor cells for a given cell and return number of found neighbor cells
-  inline UInt computeNeighborCells(UInt cell, UInt * neighbors, UInt * directional_nb_cells);
+  inline UInt computeNeighborCells(UInt cell, UInt * neighbors, Int * directional_nb_cells);
 
   /// compute global cell number given the directional cell number
-  inline UInt computeCellNb(UInt * directional_nb_cells, Int * directional_cell);
+  inline UInt computeCellNb(Int * directional_nb_cells, Int * directional_cell);
 
   /// initializes the neighbor list
   inline void constructNeighborList();

@@ -181,7 +181,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   /// define grid geometry around the master surface
   Real grid_min[spatial_dimension];
   Real grid_max[spatial_dimension];
-  UInt directional_nb_cells[spatial_dimension];
+  Int directional_nb_cells[spatial_dimension];
   UInt nb_cells = 1;
   
   for(UInt dim = 0; dim < spatial_dimension; ++dim) {
@@ -404,7 +404,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension> 
-void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt directional_nb_cells[spatial_dimension], 
+void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int directional_nb_cells[spatial_dimension], 
 									    UInt nb_cells, 
 									    Vector<Int> * cell, 
 									    UInt * impactor_nodes_cell_offset, 
@@ -437,7 +437,6 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt
   Mesh::ConnectivityTypeList::const_iterator it;
 
   /// find existing surface element types
-  UInt nb_types = type_list.size();
   UInt nb_facet_types = 0;
   ElementType facet_type[_max_element_type];
  
@@ -556,7 +555,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(UInt
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension> 
-void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList(UInt directional_nb_cells[spatial_dimension], 
+void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList(Int directional_nb_cells[spatial_dimension], 
 										 UInt nb_cells, 
 										 Vector<Int> * cell, 
 										 UInt * impactor_nodes_cell_offset, 
@@ -696,7 +695,6 @@ void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
   Mesh::ConnectivityTypeList::const_iterator it;
 
   /// find existing surface element types
-  UInt nb_types = type_list.size();
   UInt nb_facet_types = 0;
   ElementType facet_type[_max_element_type];
  

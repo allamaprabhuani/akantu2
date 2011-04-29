@@ -100,7 +100,7 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getMaxIncrement(UIn
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt * directional_nb_cells, 
+inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(Int * directional_nb_cells, 
 									   Int * directional_cell) {
 
   AKANTU_DEBUG_IN();
@@ -118,15 +118,16 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(UInt 
 template<UInt spatial_dimension> 
 inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCells(UInt cell, 
 										  UInt * neighbors, 
-										  UInt * directional_nb_cells) {
+										  Int * directional_nb_cells) {
   AKANTU_DEBUG_IN();
   UInt nb_neighbors = 0;
   UInt max_spatial_dimension = 3; // to avoid warnings while compiling
-  UInt directional_cell[max_spatial_dimension];
+  Int directional_cell[max_spatial_dimension];
   UInt global_cell_nb = cell;
 
   /// find the directional cell number
-  for(Int dir = spatial_dimension - 1; dir >= 0; --dir) {
+  //for(Int dir = spatial_dimension - 1; dir >= 0; --dir) {
+  for(UInt dir = spatial_dimension - 1; dir != std::numeric_limits<UInt>::max(); --dir) {
     UInt factor = 1;
     for(UInt i = 0; i < dir; ++i) {
       factor *= directional_nb_cells[i];
@@ -136,7 +137,7 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
   }
   
   /// compute neighbor cells
-  UInt neighbor_thickness = 1; // the number of neighbors for a given direction
+  Int neighbor_thickness = 1; // the number of neighbors for a given direction
   
   /// computation for 2D
   if(spatial_dimension == 2) {
