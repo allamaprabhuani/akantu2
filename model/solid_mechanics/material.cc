@@ -384,19 +384,19 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   delete tangent_stiffness_matrix;
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  Vector<Real> * int_bt_d_b = new Vector<Real>(0,
-					   bt_d_b_size * bt_d_b_size,
-					   "int_B^t*D*B");
+  Vector<Real> * K_e = new Vector<Real>(0,
+					bt_d_b_size * bt_d_b_size,
+					"K_e");
 
-  model->getFEM().integrate(*bt_d_b, *int_bt_d_b,
+  model->getFEM().integrate(*bt_d_b, *K_e,
 			    bt_d_b_size * bt_d_b_size,
 			    type, ghost_type,
 			    elem_filter);
 
   delete bt_d_b;
 
-  model->getFEM().assembleMatrix(*int_bt_d_b, K, equation_number, spatial_dimension, type, ghost_type, elem_filter);
-  delete int_bt_d_b;
+  model->getFEM().assembleMatrix(*K_e, K, equation_number, spatial_dimension, type, ghost_type, elem_filter);
+  delete K_e;
 
   AKANTU_DEBUG_OUT();
 }

@@ -28,3 +28,4 @@
 #===============================================================================
 
 add_subdirectory(test_solid_mechanics_model)
+add_subdirectory(test_heat_transfer_model)

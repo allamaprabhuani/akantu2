@@ -86,6 +86,7 @@ option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 
 # compilation switch
 option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
+option(AKANTU_BUILD_HEAT_TRANSFER "Build the heat transfer model" OFF)
 
 # features
 add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
@@ -186,6 +187,16 @@ if(AKANTU_BUILD_CONTACT)
     ${AKANTU_CONTACT_SRC})
 endif()
 
+set(AKANTU_HEAT_TRANSFER_SRC
+  model/heat_transfer/heat_transfer_model.cc
+  ) 
+
+if(AKANTU_BUILD_HEAT_TRANSFER)
+  set(AKANTU_COMMON_SRC
+    ${AKANTU_COMMON_SRC}
+    ${AKANTU_HEAT_TRANSFER_SRC})
+endif()
+
 if(AKANTU_MPI_ON)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
@@ -221,6 +232,7 @@ set(AKANTU_INCLUDE_DIRS
   model/solid_mechanics/contact
   model/solid_mechanics/contact/friction_coefficient
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef
+  model/heat_transfer
   synchronizer/
   solver/
   )
