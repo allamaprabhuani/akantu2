@@ -56,22 +56,22 @@ public:
   virtual void write(const std::string & filename, const Mesh & mesh);
 
 private:
-  void readCoordinates(std::ifstream & infile, 
-		       Mesh & mesh, 
-		       UInt & first_node_number);
+  std::string readCoordinates(std::ifstream & infile, 
+			      Mesh & mesh, 
+			      UInt & first_node_number);
 
-  void readConnectivity(std::ifstream & infile, 
-			Mesh & mesh, 
-			std::vector<Element> & global_to_local_index, 
-			UInt first_node_number);
+  std::string readConnectivity(std::ifstream & infile, 
+			       Mesh & mesh, 
+			       std::vector<Element> & global_to_local_index, 
+			       UInt first_node_number);
 
-  void readMaterialElement(std::ifstream & infile, 
+  std::string readMaterialElement(std::ifstream & infile, 
+				  Mesh & mesh, 
+				  std::vector<Element> & global_to_local_index);
+
+  std::string readMaterial(std::ifstream & infile, 
 			   Mesh & mesh, 
-			   std::vector<Element> & global_to_local_index);
-
-  void readMaterial(std::ifstream & infile, 
-		    Mesh & mesh, 
-		    const std::string & filename);
+			   const std::string & filename);
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 
   /// model initialization
   model->initVectors();
+  model->initModel();
 
   model->readMaterials("material.dat");
   model->initMaterials();

@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <fstream>
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_io_diana.hh"
@@ -61,6 +62,13 @@ MeshIODiana::~MeshIODiana() {
 
 }
 
+inline void my_getline(std::ifstream & infile, std::string & line) {
+  std::getline(infile, line); //read the line
+  size_t pos = line.find("\r"); /// remove the extra \r if needed
+  line = line.substr(0, pos);
+}
+
+
 /* -------------------------------------------------------------------------- */
 void MeshIODiana::read(const std::string & filename, Mesh & mesh) {
   AKANTU_DEBUG_IN();
@@ -77,26 +85,26 @@ void MeshIODiana::read(const std::string & filename, Mesh & mesh) {
   }
 
   while(infile.good()) {
-    std::getline(infile, line);
+    my_getline(infile, line);
     
     /// read all nodes
-    if(line.find("COORDINATES") != std::string::npos) {
-      readCoordinates(infile, mesh, first_node_number);
+    if("'COORDINATES'" == line) {
+      line = readCoordinates(infile, mesh, first_node_number);
     }      
     
     /// read all elements
-    if(line.find("CONNECTIVITY") != std::string::npos) {
-      readConnectivity(infile, mesh, global_to_local_index, first_node_number);
+    if("CONNECTIVITY" == line) {
+      line = readConnectivity(infile, mesh, global_to_local_index, first_node_number);
     }
     
     /// read the line corresponding to the materials
-    if (line.find("MATERIALS") != std::string::npos) {
-      readMaterialElement(infile, mesh, global_to_local_index);
+    if ("MATERIALS" == line) {
+      line = readMaterialElement(infile, mesh, global_to_local_index);
     }
 
     /// read the material properties and write a .dat file
-    if (line.find("'MATERIALS'") != std::string::npos) {
-      readMaterial(infile, mesh, filename);
+    if ("'MATERIALS'" == line) {
+      line = readMaterial(infile, mesh, filename);
     }
   }
   infile.close();
@@ -111,39 +119,52 @@ void MeshIODiana::write(const std::string & filename, const Mesh & mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshIODiana::readCoordinates(std::ifstream & infile, Mesh & mesh, UInt & first_node_number) {
+std::string MeshIODiana::readCoordinates(std::ifstream & infile, Mesh & mesh, UInt & first_node_number) {
   AKANTU_DEBUG_IN();
   
   Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
 
   std::string line;
-
+ 
   UInt index;
   Real coord[3];
   bool end = false;
 
   do {
-    std::getline(infile, line);
-    //    if(line.find("'ELEMENTS'") != std::string::npos) end = true;
+    my_getline(infile, line);
+    if("'ELEMENTS'" == line)
+      break;
+    //end = true;    
     //else {
-      /// for each node, read the coordinates
-      std::stringstream sstr_node(line);
-      sstr_node >> index >> coord[0] >> coord[1] >> coord[2];	  
-      
-      first_node_number = first_node_number < index ? first_node_number : index;
-  
-      nodes.push_back(coord);
-      // }
-  } while(!sstr_node.fail());//!end);
+    /// for each node, read the coordinates
+    
+    std::stringstream sstr_node(line);
+
+    sstr_node >> index >> coord[0] >> coord[1] >> coord[2];	  
+    
+    //if (!sstr_node.fail())
+    //break;
+
+    first_node_number = first_node_number < index ? first_node_number : index;
+    
+    nodes.push_back(coord);
+    // }
+  } while(true);//!end);
   
   AKANTU_DEBUG_OUT();
+  return line;
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh, std::vector<Element> & global_to_local_index, UInt first_node_number) {
+std::string MeshIODiana::readConnectivity(std::ifstream & infile,
+					    Mesh & mesh,
+					    std::vector<Element> & global_to_local_index,
+					    UInt first_node_number) {
   AKANTU_DEBUG_IN();
 
   Int index;
+  std::string lline;
+ 
   std::string diana_type;
   ElementType akantu_type, akantu_type_old = _not_defined;
   Vector<UInt> *connectivity = NULL;
@@ -153,9 +174,9 @@ void MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh, std::vec
    
   bool end = false;
   do {
-    std::getline(infile, line);
-    std::stringstream sstr_elem(line);
-    if(line.find("MATERIALS") != std::string::npos) end = true;
+    my_getline(infile, lline);
+    std::stringstream sstr_elem(lline);
+    if(lline == "MATERIALS") end = true;
     else {
       /// traiter les coordonnees
       sstr_elem >> index;
@@ -192,62 +213,89 @@ void MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh, std::vec
   while(!end);
   
   AKANTU_DEBUG_OUT();
+  return lline;
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshIODiana::readMaterialElement(std::ifstream & infile, Mesh & mesh, std::vector<Element> & global_to_local_index) {
+std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
+					       Mesh & mesh,
+					       std::vector<Element> & global_to_local_index) {
   AKANTU_DEBUG_IN();
+
   
-  Vector<UInt> vector_elements(nb_elements,1);
+  // Vector<UInt> vector_elements(nb_elements,1);
+  ElementType akantu_type;
+  std::string line;
   bool end = false;
   bool end_range = false;
   std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << 0;
-  Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
+  //Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Mesh::ConnectivityTypeList::const_iterator it;
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    UInt nb_element = mesh.getNbElement(*it);
+    mesh.getUIntDataPointer(*it, "material")->resize(nb_element);
+  }
+
   
   do {
-    std::getline(infile, line);
-    if(line.find(" 'MATERIALS' ") != std::string::npos) 
+    my_getline(infile, line);
+    if("'MATERIALS'" == line) 
       end = true;
     else {
-      line.erase(0,0);
-      /// erase the first slash / of the line
-      Vector<UInt> temp_id;
+      line = line.substr(line.find('/') + 1, std::string::npos); // erase the first slash / of the line
+      char tutu[250];
+      strcpy(tutu, line.c_str());
+      Vector<UInt> temp_id(0, 2);
       UInt mat;
       while(true){
 	std::stringstream sstr_intervals_elements(line);
 	UInt id[2];
+	char temp;
 	while(sstr_intervals_elements.good()) {
-	  sstr_intervals_elements >> id[0] >> "-" >> id[1]; // >> "/" >> mat;
-	  temp_id.push_back(id);
+	  sstr_intervals_elements >> id[0] >> temp >> id[1]; // >> "/" >> mat;
+	  if(!sstr_intervals_elements.fail())
+	    temp_id.push_back(id);
 	}
 	if (sstr_intervals_elements.fail()) {
+	  sstr_intervals_elements.clear();
+	  sstr_intervals_elements.ignore();
 	  sstr_intervals_elements >> mat;
 	  break;
 	}
-	std::getline(infile, line);
+	my_getline(infile, line);
       }
-      /// loop over elements
+      // loop over elements
       UInt * temp_id_val = temp_id.values;
-      for (UInt i = 0; i < temp_id.size()/2; ++i)
-	for (UInt j=temp_id_val[i]; j=temp_id_val[i+1];j+=2)
-	  mesh.getUIntDataPointer(global_to_local_index[j - 1].type, "material")->at(global_to_local_index[j - 1].element) = mat;
+      for (UInt i = 0; i < temp_id.getSize(); ++i)
+	for (UInt j=temp_id(i,0); j<=temp_id(i,1); ++j) {
+	  Element & element = global_to_local_index[j - 1];
+	  UInt elem = element.element;
+	  ElementType type = element.type;
+	  Vector<UInt> & data = *(mesh.getUIntDataPointer(type, "material"));
+	  data(elem) = mat;
+	}
     }
   }
   while(!end);
   
   AKANTU_DEBUG_OUT();
+  return line;
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshIODiana::readMaterial(std::ifstream & infile, Mesh & mesh, const std::string & filename) {
+std::string MeshIODiana::readMaterial(std::ifstream & infile,
+					Mesh & mesh,
+					const std::string & filename) {
   AKANTU_DEBUG_IN();
   
   std::stringstream mat_file_name;
   
   mat_file_name << "material_" << filename;
-  
+
   std::ofstream material_file;
-  material_file.open(mat_file_name.str());
+  material_file.open(mat_file_name.str().c_str());//mat_file_name.str());
 
   UInt mat_index;
   std::string line;
@@ -256,9 +304,9 @@ void MeshIODiana::readMaterial(std::ifstream & infile, Mesh & mesh, const std::s
   bool end = false;
   
   do{
-    std::getline(infile, line);
+    my_getline(infile, line);
     std::stringstream sstr_material(line);
-    if(line.find("GROUPS") != std::string::npos) {
+    if("'GROUPS'" == line) {
       material_file << "]" << std::endl;
       end = true;
     }
@@ -287,12 +335,13 @@ void MeshIODiana::readMaterial(std::ifstream & infile, Mesh & mesh, const std::s
 	sstr_material >> value;
 	material_file << "\t" << it->second << " = " << value << std::endl;
       } else {
-	AKANTU_DEBUG_WARNING("In material reader, property " << it->first << "not recognized");
+	//AKANTU_DEBUG_WARNING("In material reader, property " << it->first << "not recognized");
       }
     }
   } while (!end);
   
   AKANTU_DEBUG_OUT();
+  return line;
 }
 
 __END_AKANTU__

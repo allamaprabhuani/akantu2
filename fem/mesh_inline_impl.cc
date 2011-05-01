@@ -240,6 +240,20 @@ inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
   return data;
 }
 
+/* -------------------------------------------------------------------------- */
+inline const Vector<UInt> & Mesh::getUIntData(const ElementType & el_type,
+					      const std::string & data_name) const {
+  AKANTU_DEBUG_IN();
+
+  Vector<UInt> * data;
+  Mesh::UIntDataMap::const_iterator it = uint_data[el_type].find(data_name);
+
+  AKANTU_DEBUG_ASSERT(it != uint_data[el_type].end(), 
+		      "No data named " << data_name << " in the mesh " << id);
+   
+  AKANTU_DEBUG_OUT();
+  return *(it->second);
+}
 
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type) const {
@@ -335,7 +349,6 @@ inline void Mesh::setSurfaceIdsFromIntData(std::string & data_name) {
 
     ghost_surface_id[*it] = it_data->second;
   }
-
 }
 
 /* -------------------------------------------------------------------------- */

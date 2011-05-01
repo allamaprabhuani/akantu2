@@ -213,6 +213,13 @@ public:
   /// say if a node is pur local or master node
   inline bool isLocalOrMasterNode(UInt n) const;
 
+  AKANTU_GET_MACRO(XMin, xmin[0], UInt);
+  AKANTU_GET_MACRO(YMin, xmin[1], UInt);
+  AKANTU_GET_MACRO(ZMin, xmin[2], UInt);
+
+  AKANTU_GET_MACRO(XMax, xmax[0], UInt);
+  AKANTU_GET_MACRO(YMax, xmax[1], UInt);
+  AKANTU_GET_MACRO(ZMax, xmax[2], UInt);
 
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
@@ -250,6 +257,9 @@ public:
   /// set the int data to the surface id vectors
   inline void setSurfaceIdsFromIntData(std::string & data_name);
 
+  inline const Vector<UInt> & getUIntData(const ElementType & el_type,
+					  const std::string & data_name) const;
+
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */
@@ -275,6 +285,7 @@ public:
 
 private:
   friend class MeshIOMSH;
+  friend class MeshIODiana;
   friend class MeshUtils;
   friend class Communicator;
 
