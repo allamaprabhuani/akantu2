@@ -110,13 +110,13 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-  inline virtual void packData(Real ** buffer,
+  inline virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
 			       GhostSynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-  inline virtual void unpackData(Real ** buffer,
+  inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
 				 GhostSynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();

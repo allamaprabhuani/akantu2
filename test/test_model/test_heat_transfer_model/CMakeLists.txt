@@ -28,11 +28,11 @@
 #===============================================================================
 add_mesh(test_heat_cube3d_mesh1 cube.geo 3 1 OUTPUT cube1.msh)
 add_mesh(test_heat_square_mesh1 square.geo 2 1 OUTPUT square1.msh)
-add_mesh(test_heat_bar1_mesh1 bar_structured.geo 2 1 OUTPUT bar1.msh)
+#add_mesh(test_heat_bar1_mesh1 bar_structured.geo 2 1 OUTPUT bar1.msh)
 add_mesh(test_heat_line_mesh line.geo 1 1 OUTPUT line.msh)
 register_test(test_heat_transfer_model_cube3d
   test_heat_transfer_model_cube3d.cc)
-add_dependencies(test_heat_transfer_model_cube3d test_heat_cube3d_mesh1 test_heat_square_mesh1  test_heat_bar1_mesh1 test_heat_line_mesh)
+add_dependencies(test_heat_transfer_model_cube3d test_heat_cube3d_mesh1 test_heat_square_mesh1 test_heat_line_mesh)
 
 register_test(test_heat_transfer_model_cube3d_istropic_conductivity
   test_heat_transfer_model_cube3d_istropic_conductivity.cc)
