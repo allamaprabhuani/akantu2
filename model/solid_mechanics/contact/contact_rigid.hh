@@ -129,7 +129,12 @@ public:
   virtual void removeFrictionCoefficient(const Surface master);
 
   /// put contact information into a map which can be used for restart
-  virtual  void getRestartInformation(std::map<char*, VectorBase* > );
+  virtual  void getRestartInformation(std::map<std::string, VectorBase* > & map_to_fill, 
+				      Surface master);
+
+  /// put contact information into a map which can be used for restart
+  virtual  void setRestartInformation(std::map<std::string, VectorBase* > & restart_map, 
+				      Surface master);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;

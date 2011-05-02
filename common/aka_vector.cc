@@ -328,7 +328,24 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   stream << space << "]" << std::endl;
 }
 
+/* -------------------------------------------------------------------------- */
+template <>
+Vector<ElementType> & Vector<ElementType>::operator*=(const ElementType & alpha) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+  return *this;
+}
 
+template <>
+Vector<ElementType> & Vector<ElementType>::operator-=(const Vector<ElementType> & vect) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+  return *this;
+}
+
+template <>
+Vector<ElementType> & Vector<ElementType>::operator+=(const Vector<ElementType> & vect) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+  return *this;
+}
 
 /* -------------------------------------------------------------------------- */
 template class Vector<char>;
@@ -337,5 +354,6 @@ template class Vector<UInt>;
 template class Vector<UInt64>;
 template class Vector<Real>;
 template class Vector<bool>;
+template class Vector<ElementType>;
 
 __END_AKANTU__

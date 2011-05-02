@@ -31,6 +31,9 @@ add_mesh(test_squares_mesh squares.geo 2 1)
 register_test(test_contact_rigid_no_friction_triangle_3 test_contact_rigid_no_friction_triangle_3.cc)
 add_dependencies(test_contact_rigid_no_friction_triangle_3 test_squares_mesh)
 
+register_test(test_contact_rigid_restart_triangle_3 test_contact_rigid_restart_triangle_3.cc)
+add_dependencies(test_contact_rigid_restart_triangle_3 test_squares_mesh)
+
 #===============================================================================
 add_mesh(test_cubes_mesh cubes.geo 3 1)
 
