@@ -245,7 +245,6 @@ inline const Vector<UInt> & Mesh::getUIntData(const ElementType & el_type,
 					      const std::string & data_name) const {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> * data;
   Mesh::UIntDataMap::const_iterator it = uint_data[el_type].find(data_name);
 
   AKANTU_DEBUG_ASSERT(it != uint_data[el_type].end(), 

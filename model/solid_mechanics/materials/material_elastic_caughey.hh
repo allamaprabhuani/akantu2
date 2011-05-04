@@ -1,9 +1,10 @@
 /**
- * @file   material_elastic.hh
+ * @file   material_elastic_caughey.hh
+ * @author David Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ * @date   Wed May  4 15:16:59 2011
  *
- * @brief  Material isotropic elastic
+ * @brief  Material isotropic viscoelastic (according to the Caughey condition)
  *
  * @section LICENSE
  *
@@ -28,103 +29,79 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
+#include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ELASTIC_HH__
-#define __AKANTU_MATERIAL_ELASTIC_HH__
+#ifndef __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__
+#define __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Material elastic isotropic
+ * Material viscoelastic (caughey condition) isotropic
  *
  * parameters in the material files :
  *   - rho : density (default: 0)
  *   - E   : Young's modulus (default: 0)
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
+ *   - alpha : viscous ratio
  */
-class MaterialElastic : public Material {
+class MaterialElasticCaughey : public MaterialElastic {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElastic(SolidMechanicsModel & model, const MaterialID & id = "");
+  MaterialElasticCaughey(SolidMechanicsModel & model, const MaterialID & id = "");
 
-  virtual ~MaterialElastic() {};
+  virtual ~MaterialElasticCaughey() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void initMaterial();
+  void initMaterial();
 
-  virtual void setParam(const std::string & key, const std::string & value,
+  void setParam(const std::string & key, const std::string & value,
 		const MaterialID & id);
 
   /// constitutive law for all element of a type
-  virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// compute the tangent stiffness matrix for an element type
-  void computeTangentStiffness(const ElementType & el_type,
-			       Vector<Real> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
   virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
-
-
-  /// compute the celerity of wave in the material
-  inline Real celerity();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
-
-  // /// compute the tangent stiffness matrix for an element type
-  template<UInt dim>
-  void computeTangentStiffnessByDim(akantu::ElementType, akantu::Vector<Real>& tangent_matrix, akantu::GhostType);
-
-  // /// compute the tangent stiffness matrix for an element
-  template<UInt dim>
-  void computeTangentStiffness(Real * tangent);
+  //inline void computeStress(Real * F, Real * sigma);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(StressViscosity, stress_viscosity, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(StressElastic, stress_elastic, const Vector<Real> &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// the young modulus
-  Real E;
+  /// stress due to viscosity
+  ByElementTypeReal ghost_stress_viscosity;
+  ByElementTypeReal stress_viscosity;
 
-  /// Poisson coefficient
-  Real nu;
+  /// stress due to elasticity
+  ByElementTypeReal ghost_stress_elastic;  
+  ByElementTypeReal stress_elastic;        
 
-  /// First Lamé coefficient
-  Real lambda;
-
-  /// Second Lamé coefficient (shear modulus)
-  Real mu;
-
-  /// Bulk modulus
-  Real kpa;
-
-  /// Plain stress or plain strain
-  bool plain_stress;
+  /// viscous ratio
+  Real alpha;
 
 };
 
@@ -132,16 +109,17 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_elastic_inline_impl.cc"
+//#include "material_elastic_caughey_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialElastic & _this)
+/*
+inline std::ostream & operator <<(std::ostream & stream, const MaterialElasticCaughey & _this)
 {
   _this.printself(stream);
   return stream;
 }
-
+*/
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_ELASTIC_HH__ */
+#endif /* __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__ */

@@ -27,22 +27,24 @@
 
 add_mesh(test_local_material_square_mesh triangle.geo 2 2)
 add_mesh(test_local_material_circle_mesh circle.geo 2 2)
-add_mesh(test_local_material_bar_mesh bar.geo 2 2)
+add_mesh(test_local_material_bar_mesh bar.geo 2 1)
 add_mesh(test_local_material_barre_trou_mesh barre_trou.geo 2 2)
 
 register_test(test_local_material local_material_damage.cc test_local_material.cc)
 add_dependencies(test_local_material
   test_local_material_square_mesh
   test_local_material_circle_mesh
-  test_local_material_bar_mesh
+
   test_local_material_barre_trou_mesh
   )
 
-#===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
+register_test(test_material_elastic_caughey test_material_elastic_caughey.cc)
+add_dependencies(test_material_elastic_caughey 
+  test_local_material_bar_mesh
   )
+
+#===============================================================================
+file(COPY material.dat DESTINATION .)
+file(COPY material_elastic_caughey.dat DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

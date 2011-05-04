@@ -46,6 +46,7 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     MaterialID mat_id = sstr_mat.str();
     /// read the material properties
     if(mat_type == "elastic") material = parser.readMaterialObject<MaterialElastic>(*this,mat_id);
+    else if(mat_type == "elastic_caughey") material = parser.readMaterialObject<MaterialElasticCaughey>(*this,mat_id);
     else if(mat_type == "damage") material = parser.readMaterialObject<MaterialDamage>(*this,mat_id);
     else if(mat_type == "mazars") material = parser.readMaterialObject<MaterialMazars>(*this,mat_id);
     else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
