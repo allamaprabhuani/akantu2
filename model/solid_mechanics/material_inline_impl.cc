@@ -53,7 +53,7 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
     Real * Btmp = B + i;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       *Bvoigt_tmp = *Btmp;
-      Btmp+= dim;
+      Btmp += dim;
       Bvoigt_tmp += dim;
     }
   }

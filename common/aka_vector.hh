@@ -126,7 +126,7 @@ public:
 	 const_reference value, const VectorID & id = "");
 
   /// Copy constructor (deep copy if deep=true) \todo to implement
-  Vector(const Vector<value_type>& vect, bool deep = true);
+  Vector(const Vector<value_type>& vect, bool deep = true, const VectorID & id = "");
 
   virtual ~Vector();
 

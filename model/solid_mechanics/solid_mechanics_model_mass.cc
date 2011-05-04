@@ -56,26 +56,6 @@ void SolidMechanicsModel::assembleMassLumped() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::assembleMass() {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_ASSERT(equation_number != NULL, "Call first initImplicitSolver()!");
-
-  assembleMass(_not_ghost);
-  //  assembleMass(_ghost);
-
-  UInt nb_global_node = mesh.getNbGlobalNodes();
-
-  std::stringstream sstr; sstr << id << ":mass_matrix";
-  mass_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
-				 spatial_dimension, sstr.str(), memory_id);
-
-
-  AKANTU_DEBUG_OUT();
-}
-
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -98,6 +78,26 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::assembleMass() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(equation_number != NULL, "Call first initImplicit()!");
+
+  UInt nb_global_node = mesh.getNbGlobalNodes();
+
+  std::stringstream sstr; sstr << id << ":mass_matrix";
+  mass_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
+				 spatial_dimension, sstr.str(), memory_id);
+
+
+  mass_matrix->buildProfile(mesh, *equation_number);
+  assembleMass(_not_ghost);
+  //  assembleMass(_ghost);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -106,6 +106,7 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
 
   Vector<Real> rho_1(0,1);
   //UInt nb_element;
+  mass_matrix->clear();
 
   const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList(ghost_type);
   Mesh::ConnectivityTypeList::const_iterator it;

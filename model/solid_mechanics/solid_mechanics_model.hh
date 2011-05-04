@@ -123,6 +123,9 @@ public:
   /// initialize the stuff for the implicit solver
   void initImplicit(bool dynamic = false);
 
+  /// solve Ma = f to get the initial acceleration
+  void initialAcceleration();
+
   /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
 
@@ -305,6 +308,9 @@ public:
 
   /// get the stiffness matrix
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, SparseMatrix &);
+
+  /// get the mass matrix
+  AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
   inline FEM & getFEMBoundary(std::string name = "");
 

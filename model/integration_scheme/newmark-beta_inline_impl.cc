@@ -119,13 +119,16 @@ void NewmarkBeta::integrationSchemePredImplicit(Real delta_t,
   for (UInt d = 0; d < nb_degre_of_freedom; d++) {
     if(!(*boundary_val)) {
       /// @f$ \tilde{u_{n+1}} = u_{n} +  \Delta t \dot{u}_n + (1 - 2 h \beta) \frac{\Delta t^2}{2} \ddot{u}_n @f$
-      *u_val += delta_t * *u_dot_val + delta_t_2_d2 * (1 - 2 * h *  beta)* *u_dot_dot_val;
+      //*u_val += delta_t * *u_dot_val + delta_t_2_d2 * (1 - 2 * h *  beta)* *u_dot_dot_val;
+
+      *u_val += delta_t * *u_dot_val + delta_t_2_d2 * *u_dot_dot_val;
 
       /// @f$ \tilde{\dot{u}_{n+1}} = \dot{u}_{n} +  (1 - h \gamma) \Delta t \ddot{u}_{n} @f$
-      *u_dot_val += (1 - gamma) * delta_t * *u_dot_dot_val;
+      //      *u_dot_val += (1 - h * gamma) * delta_t * *u_dot_dot_val;
+      *u_dot_val += delta_t * *u_dot_dot_val;
 
       /// @f$ \tilde{\ddot{u}_{n+1}} = (1 - h ) \ddot{u}_{n} @f$
-      *u_dot_dot_val *= (1 - h);
+      //      *u_dot_dot_val *= (1 - h);
     }
     u_val++;
     u_dot_val++;
@@ -162,9 +165,10 @@ void NewmarkBeta::integrationSchemeCorrImplicit(Real delta_t,
     if(!(*boundary_val)) {
       *u_val += *delta_u_val;
 
-      *u_dot_val += gamma_inv_beta_delta_t * *delta_u_val;
-
-      *u_dot_dot_val += inv_beta_delta_t_2 * *delta_u_val;
+      //      *u_dot_val += gamma_inv_beta_delta_t * *delta_u_val;
+      *u_dot_val +=  1 / (2./3. * delta_t) * *delta_u_val;
+      //      *u_dot_dot_val += inv_beta_delta_t_2 * *delta_u_val;
+      *u_dot_dot_val += 1 / (2./3. * 1./2. * delta_t * delta_t) * *delta_u_val;
     }
 
     delta_u_val++;

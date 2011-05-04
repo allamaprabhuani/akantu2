@@ -103,9 +103,9 @@ template <class T> Vector<T>::Vector (UInt size,
 
 
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep) {
+template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep, const VectorID & id) {
   AKANTU_DEBUG_IN();
-  this->id = vect.id;
+  this->id = (id == "") ? vect.id : id;
 
   if (deep) {
     allocate(vect.size, vect.nb_component);

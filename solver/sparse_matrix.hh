@@ -125,6 +125,9 @@ public:
   /// add matrix assuming the profil are the same
   void add(const SparseMatrix & matrix, Real alpha);
 
+  /// diagonal lumping
+  void lump(Vector<Real> & lumped);
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 

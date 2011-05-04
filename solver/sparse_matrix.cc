@@ -360,6 +360,8 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
 		      (vect.getNbComponent() == mat.getNbDegreOfFreedom()),
 		      "The size of the matrix and the vector do not match");
 
+  const SparseMatrixType & sparse_matrix_type = mat.getSparseMatrixType();
+
   UInt nb_non_zero = mat.getNbNonZero();
   Real * tmp = new Real [vect.getNbComponent() * vect.getSize()];
   std::fill_n(tmp, vect.getNbComponent() * vect.getSize(), 0);
@@ -375,6 +377,9 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
     UInt j = *(j_val++);
     Real a = *(a_val++);
     tmp[i - 1] += a * vect_val[j - 1];
+    if(sparse_matrix_type == _symmetric && (i != j))
+      tmp[j - 1] += a * vect_val[i - 1];
+
   }
 
   memcpy(vect_val, tmp, vect.getNbComponent() * vect.getSize() * sizeof(Real));
@@ -402,8 +407,37 @@ void SparseMatrix::add(const SparseMatrix & matrix, Real alpha) {
   Real * b_val = matrix.a.values;
 
   for (UInt n = 0; n < nb_non_zero; ++n) {
-    *a_val++ = alpha * *b_val++;
+    *a_val++ += alpha * *b_val++;
   }
+}
+
+
+/* -------------------------------------------------------------------------- */
+void SparseMatrix::lump(Vector<Real> & lumped) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT((lumped.getNbComponent() == nb_degre_of_freedom),
+		      "The size of the matrix and the vector do not match");
+
+  lumped.resize(size / nb_degre_of_freedom);
+  lumped.clear();
+
+  Int * i_val  = irn.values;
+  Int * j_val  = jcn.values;
+  Real * a_val = a.values;
+
+  Real * vect_val = lumped.values;
+
+  for (UInt k = 0; k < nb_non_zero; ++k) {
+    UInt i = *(i_val++);
+    UInt j = *(j_val++);
+    Real a = *(a_val++);
+    vect_val[i - 1] += a;
+    if(sparse_matrix_type == _symmetric && (i != j))
+      vect_val[j - 1] += a;
+  }
+
+  AKANTU_DEBUG_OUT();
 }
 
 __END_AKANTU__

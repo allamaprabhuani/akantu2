@@ -540,15 +540,29 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 
   UInt vect_size   = field_1.getSize();
   UInt shapes_size = ElementClass<type>::getShapeSize();
+  UInt lmat_size   = nb_degree_of_freedom * shapes_size;
 
   const Vector<Real> & shapes = shape_functions.getShapes(type);
-  Vector<Real> * modified_shapes = new Vector<Real>(shapes);
-  modified_shapes->extendComponentsInterlaced(nb_degree_of_freedom, shapes_size);
-
-  UInt lmat_size = nb_degree_of_freedom * shapes_size;
+  Vector<Real> * modified_shapes = new Vector<Real>(vect_size, lmat_size * nb_degree_of_freedom);
+  modified_shapes->clear();
   Vector<Real> * local_mat = new Vector<Real>(vect_size, lmat_size * lmat_size);
 
-  Vector<Real>::iterator<types::Matrix> shape_vect  = modified_shapes->begin(lmat_size, 1);
+  Vector<Real>::iterator<types::Matrix> shape_vect  = modified_shapes->begin(lmat_size, nb_degree_of_freedom);
+  Real * sh  = shapes.values;
+  for(UInt q = 0; q < vect_size; ++q) {
+    Real * msh = shape_vect->storage();
+    for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+      Real * msh_tmp = msh + d * (lmat_size + 1);
+      for (UInt s = 0; s < shapes_size; ++s) {
+	*msh_tmp = sh[s];
+	msh_tmp += nb_degree_of_freedom;
+      }
+    }
+    ++shape_vect;
+    sh += shapes_size;
+  }
+
+  shape_vect  = modified_shapes->begin(lmat_size, nb_degree_of_freedom);
   Vector<Real>::iterator<types::Matrix> lmat        = local_mat->begin(lmat_size, lmat_size);
   Real * field_val = field_1.values;
 
@@ -559,7 +573,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 
   delete modified_shapes;
 
-  Vector<Real> * int_field_times_shapes = new Vector<Real>(0, shapes_size,
+  Vector<Real> * int_field_times_shapes = new Vector<Real>(0, lmat_size * lmat_size,
 							   "inte_rho_x_shapes");
   integrator.template integrate<type>(*local_mat, *int_field_times_shapes,
 				      lmat_size * lmat_size, ghost_type, NULL);

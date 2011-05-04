@@ -141,10 +141,16 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
     nb_nodes_per_proc = NULL;
   }
 
+  if(AKANTU_DEBUG_TEST(dblTrace)) {
+    icntl(1) = 2;
+    icntl(2) = 2;
+    icntl(3) = 2;
+    icntl(4) = 4;
+  }
+
   mumps_data.job = _smj_initialize; //initialize
   dmumps_c(&mumps_data);
 
-  mumps_data.nz_alloc = 0;
 
   /// No outputs
   icntl(1) = 0;
@@ -152,12 +158,7 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   icntl(3) = 0;
   icntl(4) = 0;
 
-  if(AKANTU_DEBUG_TEST(dblTrace)) {
-    icntl(1) = 2;
-    icntl(2) = 2;
-    icntl(3) = 2;
-    icntl(4) = 2;
-  }
+  mumps_data.nz_alloc = 0;
 
   if (AKANTU_DEBUG_TEST(dblDump)) icntl(4) = 4;
   // else if (debug::getDebugLevel() >= dblAccessory)
@@ -399,7 +400,7 @@ void SolverMumps::setRHS(Vector<Real> & rhs) {
 			  "Size of rhs (" << rhs.getSize()*rhs.getNbComponent()
 			  << ") and this->rhs (" << this->rhs->getSize()
 			  << ") do not match.");
-    
+
       memcpy(this->rhs->values, rhs.values, this->rhs->getSize() * sizeof(Real));
     }
   }
@@ -434,8 +435,8 @@ void SolverMumps::solve() {
 
   AKANTU_DEBUG_ASSERT(info(1) != -10, "Singular matrix");
   AKANTU_DEBUG_ASSERT(info(1) == 0,
-		      "Error in mumps suring solve process, check mumps user guide INFO(1) ="
-		      << info(0));
+		      "Error in mumps during solve process, check mumps user guide INFO(1) ="
+		      << info(1));
 
   AKANTU_DEBUG_OUT();
 }
@@ -455,7 +456,7 @@ void SolverMumps::solve(Vector<Real> & solution) {
   if(communicator->getNbProc() > 1 && !rhs_is_local) {
     solution.clear();
     UInt nb_degre_of_freedom = solution.getNbComponent();
-    
+
     Vector<Real> local_rhs(nb_local_nodes * nb_degre_of_freedom,1);
 
     if (communicator->whoAmI() == 0) {

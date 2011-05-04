@@ -288,8 +288,8 @@ void SolidMechanicsModel::explicitPred() {
 
     for (UInt n = 0; n < nb_nodes; ++n) {
       *inc_val = *dis_val - *inc_val;
-      *inc_val++;
-      *dis_val++;
+      inc_val++;
+      dis_val++;
     }
   }
 
@@ -341,9 +341,7 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
   stiffness_matrix->buildProfile(mesh, *equation_number);
 
-#ifdef AKANTU_USE_MUMPS
-  SparseMatrix * matrix = stiffness_matrix;
-#endif
+  SparseMatrix * matrix;
 
   if(dynamic) {
     delete integrator;
@@ -351,9 +349,9 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
     std::stringstream sstr_jac; sstr_jac << id << ":jacobian_matrix";
     jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_jac.str(), memory_id);
-#ifdef AKANTU_USE_MUMPS
     matrix = jacobian_matrix;
-#endif
+  } else {
+    matrix = stiffness_matrix;
   }
 
 #ifdef AKANTU_USE_MUMPS
@@ -369,6 +367,34 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initialAcceleration() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_INFO("Solving Ma = f");
+
+  Solver * acc_solver;
+#ifdef AKANTU_USE_MUMPS
+  std::stringstream sstr; sstr << id << ":solver_mass_matrix";
+  acc_solver = new SolverMumps(*mass_matrix, sstr.str());
+  dynamic_cast<SolverMumps *>(acc_solver)->initNodesLocation(mesh,
+							     spatial_dimension);
+  acc_solver->initialize();
+#else
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#endif //AKANTU_USE_MUMPS
+
+  mass_matrix->applyBoundary(*boundary, local_eq_num_to_global);
+
+  acc_solver->setRHS(*residual);
+  acc_solver->solve(*acceleration);
+
+  delete acc_solver;
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleStiffnessMatrix() {
@@ -402,6 +428,11 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+  AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
+		      "You should first initialize the implicit solver and assemble the mass matrix");
+
 
   Real beta  = dynamic_cast<NewmarkBeta *>(integrator)->getBeta();
   Real gamma = dynamic_cast<NewmarkBeta *>(integrator)->getGamma();
@@ -412,17 +443,32 @@ void SolidMechanicsModel::solveDynamic() {
   // UInt nb_nodes = displacement->getSize();
   // UInt nb_degre_of_freedom = displacement->getNbComponent();
 
+  stiffness_matrix->saveMatrix("K.mtx");
+  mass_matrix->saveMatrix("M.mtx");
+
   jacobian_matrix->copyContent(*stiffness_matrix);
+
+  jacobian_matrix->saveMatrix("A1.mtx");
+
   jacobian_matrix->add(*mass_matrix, c);
 
   if(velocity_damping_matrix)
     jacobian_matrix->add(*velocity_damping_matrix, d);
 
+  jacobian_matrix->saveMatrix("A.mtx");
+
   jacobian_matrix->applyBoundary(*boundary, local_eq_num_to_global);
 
-  Vector<Real> * Ma = new Vector<Real>(*acceleration);
+  jacobian_matrix->saveMatrix("A2.mtx");
+
+  Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
   *Ma *= *mass_matrix;
   *residual -= *Ma;
+
+  // debug::setDebugLevel(dblDump);
+  // std::cout << *Ma << std::endl;
+  // debug::setDebugLevel(dblWarning);
+
   delete Ma;
 
   if(velocity_damping_matrix) {
@@ -445,6 +491,8 @@ void SolidMechanicsModel::solveStatic() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_INFO("Solving Ku = f");
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+		      "You should first initialize the implicit solver and assemble the stiffness matrix");
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degre_of_freedom = displacement->getNbComponent();

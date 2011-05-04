@@ -1,2 +1,5 @@
 add_subdirectory(explicit)
-add_subdirectory(implicit)
+
+if(AKANTU_MUMPS_ON)
+  add_subdirectory(implicit)
+endif()
