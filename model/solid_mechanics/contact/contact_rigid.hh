@@ -87,6 +87,9 @@ public:
 
     /// friction force for each
     Vector<Real> * friction_forces;
+    
+    /// stick position for regularized friction
+    Vector<Real> * stick_position;
   };
 
   typedef std::map<Surface, ImpactorInformationPerMaster *> SurfaceToImpactInfoMap;
@@ -107,6 +110,9 @@ public:
 
   /// find nodes that stick
   virtual void addSticking();
+
+  /// alternative way for addFriction and addSticking
+  virtual void addRegularizedFriction(const Real & regularizer);
 
   /// add a new master surface
   virtual void addMasterSurface(const Surface & master_surface);

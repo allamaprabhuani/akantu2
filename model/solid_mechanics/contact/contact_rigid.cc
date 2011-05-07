@@ -45,6 +45,7 @@ ContactRigid::ImpactorInformationPerMaster::ImpactorInformationPerMaster(const S
   this->master_normals = new Vector<Real>(0, spatial_dimension);
   this->node_is_sticking = new Vector<bool>(0,2);
   this->friction_forces = new Vector<Real>(0,spatial_dimension);
+  this->stick_position = new Vector<Real>(0,spatial_dimension);
   
   
   AKANTU_DEBUG_OUT();
@@ -62,6 +63,7 @@ ContactRigid::ImpactorInformationPerMaster::~ImpactorInformationPerMaster() {
   delete this->master_normals;
   delete this->node_is_sticking;
   delete this->friction_forces;
+  delete this->stick_position;
 
   AKANTU_DEBUG_OUT();
 }
@@ -429,9 +431,10 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
   Real normal[this->spatial_dimension];
   //Int * normal_val = &normal[0];
 
-  bool * bound_val = this->model.getBoundary().values;
-  Real * veloc_val = this->model.getVelocity().values;
-  Real * accel_val = this->model.getAcceleration().values;
+  bool * bound_val    = this->model.getBoundary().values;
+  Real * position_val = this->model.getCurrentPosition().values;
+  Real * veloc_val    = this->model.getVelocity().values;
+  Real * accel_val    = this->model.getAcceleration().values;
 
   for(UInt i = 0; i < this->spatial_dimension; ++i)
     normal[i] = floor(facet_normal[i] + 0.5);
@@ -461,6 +464,7 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
   for(UInt i=0; i<this->spatial_dimension; ++i)
     init_friction_force[i] = 0.;
   impactor_info->friction_forces->push_back(init_friction_force);
+  impactor_info->stick_position->push_back(position_val[impactor_node*this->spatial_dimension]);
 
   AKANTU_DEBUG_OUT();
 }
@@ -481,20 +485,6 @@ void ContactRigid::avoidAdhesion() {
 			"The master surface: " << master << "couldn't be found in impactors_information map");
     ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
-    /*
-    // find index of master surface in impactors_information 
-    Int master_index = -1;
-    for (UInt i=0; i < this->impactors_information.size(); ++i) {
-      if (this->impactors_information.at(i)->master_id == master) {
-	master_index = i;
-	break;
-      }
-    }
-    AKANTU_DEBUG_ASSERT(master_index != -1, "No impactor information object for master" << master << "in impactors_information vector that is ");
-
-    ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(master_index);
-    */
-
     for (UInt n=0; n < impactor_info->active_impactor_nodes->getSize(); ++n) {
       UInt current_node = impactor_info->active_impactor_nodes->at(n);
       
@@ -509,6 +499,7 @@ void ContactRigid::avoidAdhesion() {
 	  impactor_info->master_normals->erase(n);
 	  impactor_info->node_is_sticking->erase(n);
 	  impactor_info->friction_forces->erase(n);
+	  impactor_info->stick_position->erase(n);
 	  n--;
 	  break;
 	}
@@ -516,24 +507,6 @@ void ContactRigid::avoidAdhesion() {
     }
   }
 
-    /*
-  for (UInt n=0; n < this->active_impactor_nodes->getSize(); ++n) {
-    UInt current_node = this->active_impactor_nodes->at(n);
-    
-    for (UInt i=0; i < spatial_dimension; ++i) {
-      Int direction = this->master_normals->at(n,i);
-      Real force = residual_val[current_node * spatial_dimension + i];
-      if(force * direction > 0.) {
-	bound_val[current_node * spatial_dimension + i] = false;
-	this->active_impactor_nodes->erase(n);
-	this->master_normals->erase(n);
-	this->node_is_sticking->erase(n);
-	n--;
-	break;
-      }
-    }
-    }*/
-  
   AKANTU_DEBUG_OUT();
 }
 
@@ -669,20 +642,6 @@ void ContactRigid::addSticking() {
 			"The master surface: " << master << "couldn't be found in impactors_information map");
     ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
-    /*
-    // find index of master surface in impactors_information 
-    Int master_index = -1;
-    for (UInt i=0; i < this->impactors_information.size(); ++i) {
-      if (this->impactors_information.at(i)->master_id == master) {
-	master_index = i;
-	break;
-      }
-    }
-    AKANTU_DEBUG_ASSERT(master_index != -1, "No impactor information object for master" << master << "in impactors_information vector that is ");
-
-    ImpactorInformationPerMaster * impactor_info = this->impactors_information.at(master_index);
-    */
-
     UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
     Real * direction_val = impactor_info->master_normals->values;
     bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
@@ -723,6 +682,99 @@ void ContactRigid::addSticking() {
 }
 
 /* -------------------------------------------------------------------------- */
+void ContactRigid::addRegularizedFriction(const Real & regularizer) {
+  AKANTU_DEBUG_IN();
+  
+  AKANTU_DEBUG_ASSERT(this->spatial_dimension == 2, 
+			"addRegularizedFriction is implemented only for 2D");
+
+  Real * residual_val = this->model.getResidual().values;
+  Real * position_val = this->model.getCurrentPosition().values;
+  
+  for(UInt m=0; m < this->master_surfaces.size(); ++m) {
+    Surface master = this->master_surfaces.at(m);
+
+    // find the impactors information for this master surface
+    ContactRigid::SurfaceToImpactInfoMap::iterator it_imp;
+    it_imp = this->impactors_information.find(master);
+    AKANTU_DEBUG_ASSERT(it_imp != this->impactors_information.end(), 
+			"The master surface: " << master << "couldn't be found in impactors_information map");
+    ImpactorInformationPerMaster * impactor_info = it_imp->second;
+
+    // find the friction coefficient object for this master
+    ContactRigid::SurfaceToFricCoefMap::iterator it_fc;
+    it_fc = this->friction_coefficient.find(master);
+    AKANTU_DEBUG_ASSERT(it_fc != this->friction_coefficient.end(), 
+			"The master surface: " << master << "couldn't be found in friction_coefficient map");
+    FrictionCoefficient * fric_coef = it_fc->second;
+    AKANTU_DEBUG_ASSERT(fric_coef != NULL, "There is no friction coefficient defined for master surface " << master);
+
+    UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
+
+    // compute the friction coefficient for each active impactor node
+    Vector<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
+    Real * friction_coefficient_values_p = friction_coefficient_values.values;
+    fric_coef->computeFrictionCoefficient(friction_coefficient_values);
+    
+    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
+    Real * direction_val = impactor_info->master_normals->values;
+    bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
+    Real * friction_forces_val = impactor_info->friction_forces->values;
+    Real * stick_position_val = impactor_info->stick_position->values;
+    
+    for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
+      UInt current_node = active_impactor_nodes_val[n];
+      Real normal_contact_force = 0.;
+      Real friction_force = 0.;
+      
+      // find friction force mu * normal force
+      for (UInt i=0; i<spatial_dimension; ++i) {
+	if(direction_val[n * this->spatial_dimension + i] != 0) {
+	  normal_contact_force = fabs(residual_val[current_node * this->spatial_dimension + i]);
+	  friction_force = friction_coefficient_values_p[n] * normal_contact_force;
+	}
+      }
+      
+      // compute F_(i+1)trial 
+      Real f_trial = Math::distance_2d(&(position_val[current_node * this->spatial_dimension]),
+				       &(stick_position_val[n * this->spatial_dimension]));
+      f_trial *= regularizer;
+
+      Real delta_s_vector[this->spatial_dimension];
+      for (UInt i=0; i<spatial_dimension; ++i) {
+	delta_s_vector[i] = position_val[current_node * this->spatial_dimension + i] 
+	                  - stick_position_val[n * this->spatial_dimension + i];
+      }
+      Math::normalize2(delta_s_vector);
+
+      // check if node is still sticking
+      if (f_trial <= friction_force) {
+	friction_force = f_trial;
+	// sticking position stays unchanged
+	node_is_sticking_val[n*2] = true; node_is_sticking_val[n*2+1] = true;
+      }
+      else {
+	node_is_sticking_val[n*2] = false; node_is_sticking_val[n*2+1] = false;
+	Real delta_s = std::abs(f_trial - friction_force) / regularizer;
+	// friction force stays unchanged
+	for (UInt i=0; i<spatial_dimension; ++i) {
+	  stick_position_val[n * this->spatial_dimension + i] += delta_s * delta_s_vector[i];
+	}
+      }
+     
+      // add friction force to residual
+      for (UInt i=0; i < this->spatial_dimension; ++i) {
+	Real directional_fric_force = friction_force * delta_s_vector[i];
+	friction_forces_val[n*this->spatial_dimension + i] = directional_fric_force;
+	residual_val[current_node * this->spatial_dimension + i] -= directional_fric_force;
+      }
+    }
+  }
+  
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void ContactRigid::setFrictionCoefficient(FrictionCoefficient * fric_coefficient) {
   AKANTU_DEBUG_IN();
   
@@ -733,19 +785,6 @@ void ContactRigid::setFrictionCoefficient(FrictionCoefficient * fric_coefficient
   AKANTU_DEBUG_ASSERT(it_fc == this->friction_coefficient.end(), 
 		      "There is already a friction coefficient for master surface: " << master);
   this->friction_coefficient[master] = fric_coefficient;
-
-  /*
-  // find index of master surface in master surface list 
-  Int master_indes_fc = -1;
-  for (UInt i=0; i < this->master_surfaces.size(); ++i) {
-    if (this->master_surfaces.at(i) == master) {
-      master_indes_fc = i;
-      break;
-    }
-  }
-  AKANTU_DEBUG_ASSERT(master_indes_fc != -1, "No such master surface (" << master << ") in this contact");
-  this->friction_coefficient.at(master_indes_fc) = fric_coefficient;
-  */
 
   AKANTU_DEBUG_OUT();
 }
@@ -759,19 +798,6 @@ void ContactRigid::removeFrictionCoefficient(const Surface master) {
   AKANTU_DEBUG_ASSERT(it_fc != this->friction_coefficient.end(), 
 		      "There is no friction coefficient for master surface: " << master);
   this->friction_coefficient.erase(it_fc);
-
-  /*
-  // find index of master surface in master surface list 
-  Int master_indes_fc = -1;
-  for (UInt i=0; i < this->master_surfaces.size(); ++i) {
-    if (this->master_surfaces.at(i) == master) {
-      master_indes_fc = i;
-      break;
-    }
-  }
-  AKANTU_DEBUG_ASSERT(master_indes_fc != -1, "No such master surface (" << master << ") in this contact");
-  this->friction_coefficient.at(master_indes_fc) = NULL;
-  */  
 
   AKANTU_DEBUG_OUT();
 }
