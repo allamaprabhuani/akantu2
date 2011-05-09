@@ -45,7 +45,7 @@ ContactRigid::ImpactorInformationPerMaster::ImpactorInformationPerMaster(const S
   this->master_normals = new Vector<Real>(0, spatial_dimension);
   this->node_is_sticking = new Vector<bool>(0,2);
   this->friction_forces = new Vector<Real>(0,spatial_dimension);
-  this->stick_position = new Vector<Real>(0,spatial_dimension);
+  this->stick_positions = new Vector<Real>(0,spatial_dimension);
   
   
   AKANTU_DEBUG_OUT();
@@ -63,7 +63,7 @@ ContactRigid::ImpactorInformationPerMaster::~ImpactorInformationPerMaster() {
   delete this->master_normals;
   delete this->node_is_sticking;
   delete this->friction_forces;
-  delete this->stick_position;
+  delete this->stick_positions;
 
   AKANTU_DEBUG_OUT();
 }
@@ -464,7 +464,7 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
   for(UInt i=0; i<this->spatial_dimension; ++i)
     init_friction_force[i] = 0.;
   impactor_info->friction_forces->push_back(init_friction_force);
-  impactor_info->stick_position->push_back(position_val[impactor_node*this->spatial_dimension]);
+  impactor_info->stick_positions->push_back(&(position_val[impactor_node*this->spatial_dimension]));
 
   AKANTU_DEBUG_OUT();
 }
@@ -499,7 +499,7 @@ void ContactRigid::avoidAdhesion() {
 	  impactor_info->master_normals->erase(n);
 	  impactor_info->node_is_sticking->erase(n);
 	  impactor_info->friction_forces->erase(n);
-	  impactor_info->stick_position->erase(n);
+	  impactor_info->stick_positions->erase(n);
 	  n--;
 	  break;
 	}
@@ -720,7 +720,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
     Real * direction_val = impactor_info->master_normals->values;
     bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
     Real * friction_forces_val = impactor_info->friction_forces->values;
-    Real * stick_position_val = impactor_info->stick_position->values;
+    Real * stick_positions_val = impactor_info->stick_positions->values;
     
     for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
       UInt current_node = active_impactor_nodes_val[n];
@@ -737,13 +737,20 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
       
       // compute F_(i+1)trial 
       Real f_trial = Math::distance_2d(&(position_val[current_node * this->spatial_dimension]),
-				       &(stick_position_val[n * this->spatial_dimension]));
+				       &(stick_positions_val[n * this->spatial_dimension]));
       f_trial *= regularizer;
 
       Real delta_s_vector[this->spatial_dimension];
       for (UInt i=0; i<spatial_dimension; ++i) {
 	delta_s_vector[i] = position_val[current_node * this->spatial_dimension + i] 
-	                  - stick_position_val[n * this->spatial_dimension + i];
+	                  - stick_positions_val[n * this->spatial_dimension + i];
+      }
+
+      // if node is on its own stick position no need to compute friction force
+      // this avoids nan on normalize2
+      if(Math::norm2(delta_s_vector) < Math::tolerance) {
+	node_is_sticking_val[n*2] = true; node_is_sticking_val[n*2+1] = true;
+	continue;
       }
       Math::normalize2(delta_s_vector);
 
@@ -758,7 +765,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
 	Real delta_s = std::abs(f_trial - friction_force) / regularizer;
 	// friction force stays unchanged
 	for (UInt i=0; i<spatial_dimension; ++i) {
-	  stick_position_val[n * this->spatial_dimension + i] += delta_s * delta_s_vector[i];
+	  stick_positions_val[n * this->spatial_dimension + i] += delta_s * delta_s_vector[i];
 	}
       }
      
@@ -768,6 +775,35 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
 	friction_forces_val[n*this->spatial_dimension + i] = directional_fric_force;
 	residual_val[current_node * this->spatial_dimension + i] -= directional_fric_force;
       }
+    }
+  }
+  
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactRigid::setStickPositionsToCurrentPositions(const Surface master) {
+  AKANTU_DEBUG_IN();
+  
+  Real * position_val = this->model.getCurrentPosition().values;
+  
+  // find the impactors information for this master surface
+  ContactRigid::SurfaceToImpactInfoMap::iterator it_imp;
+  it_imp = this->impactors_information.find(master);
+  AKANTU_DEBUG_ASSERT(it_imp != this->impactors_information.end(), 
+		      "The master surface: " << master << "couldn't be found in impactors_information map");
+  ImpactorInformationPerMaster * impactor_info = it_imp->second;
+  
+  UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
+  UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
+  Real * stick_positions_val = impactor_info->stick_positions->values;
+  
+  for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
+    UInt current_node = active_impactor_nodes_val[n];
+    
+    // find friction force mu * normal force
+    for (UInt i=0; i<spatial_dimension; ++i) {
+      stick_positions_val[n*this->spatial_dimension + i] = position_val[current_node*this->spatial_dimension + i];
     }
   }
   
@@ -820,19 +856,22 @@ void ContactRigid::getRestartInformation(std::map<std::string, VectorBase* > & m
   Vector<Real> * normals_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
   Vector<bool> * sticking_of_nodes = new Vector<bool>(this->mesh.getNbNodes(), 2, false);
   Vector<Real> * friction_force_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
+  Vector<Real> * stick_position_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
 
   UInt * active_nodes = impactor_info->active_impactor_nodes->values;
   ElementType * element_type = &(*impactor_info->master_element_type)[0];  
   Real * master_normal = impactor_info->master_normals->values;
   bool * node_stick = impactor_info->node_is_sticking->values;
   Real * friction_force = impactor_info->friction_forces->values;
+  Real * stick_position = impactor_info->stick_positions->values;
 
   for (UInt i=0; i<nb_active_nodes; ++i, ++active_nodes, ++element_type) {
     (*activity_of_nodes)(*active_nodes) = true;
     (*element_type_of_nodes)(*active_nodes) = *element_type;
-    for (UInt d=0; d<this->spatial_dimension; ++d, ++master_normal, ++friction_force) {
+    for (UInt d=0; d<this->spatial_dimension; ++d, ++master_normal, ++friction_force, ++stick_position) {
       (*normals_of_nodes)(*active_nodes,d) = *master_normal;
       (*friction_force_of_nodes)(*active_nodes,d) = *friction_force;
+      (*stick_position_of_nodes)(*active_nodes,d) = *stick_position;
     }
     for (UInt j=0; j<2; ++j, ++node_stick) {
       (*sticking_of_nodes)(*active_nodes,j) = *node_stick;
@@ -844,6 +883,7 @@ void ContactRigid::getRestartInformation(std::map<std::string, VectorBase* > & m
   map_to_fill["master_normals"] = normals_of_nodes;
   map_to_fill["node_is_sticking"] = sticking_of_nodes;
   map_to_fill["friction_forces"] = friction_force_of_nodes;
+  map_to_fill["stick_positions"] = stick_position_of_nodes;
 
   AKANTU_DEBUG_OUT();
 }
@@ -891,6 +931,12 @@ void ContactRigid::setRestartInformation(std::map<std::string, VectorBase* > & r
     std::cout << "could not find map entry friction forces" << std::endl;
   }
 
+  it = restart_map.find("stick_positions");
+  Vector<Real> * sp_nodes = (Vector<Real> *)(it->second);
+  if(it == restart_map.end()) {
+    std::cout << "could not find map entry stick positions" << std::endl;
+  }
+
   UInt nb_nodes = this->mesh.getNbNodes();
   for (UInt i=0; i<nb_nodes; ++i) {
     if ((*ai_nodes)(i)) {
@@ -901,12 +947,15 @@ void ContactRigid::setRestartInformation(std::map<std::string, VectorBase* > & r
       // get master_normals and friction_forces information
       Real normal[this->spatial_dimension];
       Real friction[this->spatial_dimension];
+      Real position[this->spatial_dimension];
       for (UInt d=0; d<this->spatial_dimension; ++d) {
 	normal[d] = (*mn_nodes)(i,d);
 	friction[d] = (*ff_nodes)(i,d);
+	position[d] = (*sp_nodes)(i,d);
       }
       impactor_info->master_normals->push_back(normal);
       impactor_info->friction_forces->push_back(friction);
+      impactor_info->stick_positions->push_back(position);
 
       // get node_is_sticking information
       bool stick[2];
