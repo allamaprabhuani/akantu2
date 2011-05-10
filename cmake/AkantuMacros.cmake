@@ -73,3 +73,19 @@ macro(check_for_isnan result)
     endif()
   endif()
 endmacro()
+
+#===============================================================================
+macro(copy_files target_depend)
+  foreach(_file ${ARGN})
+    set(_target ${CMAKE_CURRENT_BINARY_DIR}/${_file})
+    set(_source ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+    add_custom_command(
+      OUTPUT ${_target}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_source} ${_target}
+      DEPENDS ${_source}
+      )
+    set(_target_name ${target_depend}_${_file})
+    add_custom_target(${_target_name} DEPENDS ${_target})
+    add_dependencies(${target_depend} ${_target_name})
+  endforeach()
+endmacro()
