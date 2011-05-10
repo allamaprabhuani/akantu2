@@ -138,6 +138,7 @@ void MaterialElasticCaughey::computePotentialEnergy(ElementType el_type, GhostTy
 
   MaterialElastic::computePotentialEnergy(strain_val, stress_el_val, epot);
   epot++;
+  stress_el_val++;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
