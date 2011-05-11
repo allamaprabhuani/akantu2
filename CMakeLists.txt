@@ -178,6 +178,7 @@ set(AKANTU_CONTACT_SRC
   model/solid_mechanics/contact/contact_rigid.cc
   model/solid_mechanics/contact/friction_coefficient.cc
   model/solid_mechanics/contact/friction_coefficient/unique_constant_fric_coef.cc
+  model/solid_mechanics/contact/friction_coefficient/velocity_weakening_coulomb.cc
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef.cc
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef/ruina_slowness_fric_coef.cc
   )
