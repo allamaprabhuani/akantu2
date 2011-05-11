@@ -1,6 +1,7 @@
 /**
  * @file   test_mesh_io_diana.cc
  * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Mar 10 16:08:22 2011
  *
  * @brief  test reading mesh diana
@@ -30,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <cstdlib>
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
@@ -53,24 +55,68 @@ int main(int argc, char *argv[]) {
   akantu::MeshIODiana mesh_io;
   akantu::Mesh mesh(3);
 
-  mesh_io.read("./dam.ashx", mesh);
+  mesh_io.read("./dam.dat", mesh);
 
   std::cout << mesh << std::endl;
 
   UInt nb_nodes = mesh.getNbNodes();
-  UInt nb_element = mesh.getNbElement(element_type);
+  UInt nb_elements = mesh.getNbElement(element_type);
+
+  std::vector<std::string> node_groups    = mesh_io.getNodeGroupsNames();
+  std::vector<std::string> element_groups = mesh_io.getElementGroupsNames();
 
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   DumperParaview dumper;
   dumper.SetMode(TEXT);
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "dam_diana");
-  dumper.SetConnectivity((int *)mesh.getConnectivity(element_type).values, paraview_type, nb_element, C_MODE);
-  dumper.SetPrefix("paraview/mesh_io_diana/");
+  dumper.SetConnectivity((int *)mesh.getConnectivity(element_type).values, paraview_type, nb_elements, C_MODE);
+
+  UInt i = 0;
+
+  Real * nodes_grps[node_groups.size()];
+  std::cout << "Nb node groups : " << node_groups.size() << std::endl;
+  std::vector<std::string>::iterator it_nodes;
+  for(it_nodes = node_groups.begin(); it_nodes != node_groups.end(); ++it_nodes) {
+    nodes_grps[i] = new Real[nb_nodes];
+    std::fill_n(nodes_grps[i], 0, nb_nodes);
+    const Vector<UInt> & group = mesh_io.getNodeGroup(*it_nodes);
+    for (UInt n = 0; n < group.getSize(); ++n) {
+      nodes_grps[i][group(n)] = 1.;
+    }
+
+    dumper.AddNodeDataField(nodes_grps[i], 1, (*it_nodes).c_str());
+
+    std::cout << " " << *it_nodes;
+    i++;
+  }
+  std::cout << std::endl;
+
+  i = 0;
+  Real * elements_grps[element_groups.size()];
+  std::cout << "Nb element groups : " << element_groups.size() << std::endl;
+  std::vector<std::string>::iterator it_elements;
+  for(it_elements = element_groups.begin(); it_elements != element_groups.end(); ++it_elements) {
+    elements_grps[i] = new Real[nb_elements];
+    std::fill_n(elements_grps[i], 0, nb_elements);
+    const std::vector<Element> & group = mesh_io.getElementGroup(*it_elements);
+    for (UInt n = 0; n < group.size(); ++n) {
+      elements_grps[i][group[n].element] = 1.;
+    }
+
+    dumper.AddElemDataField(elements_grps[i], 1, (*it_elements).c_str());
+
+    std::cout << " " << *it_elements;
+    i++;
+  }
+  std::cout << std::endl;
+
+
+  dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-
   return EXIT_SUCCESS;
 }
+

@@ -29,16 +29,13 @@ add_mesh(test_mesh_io_mesh cube.geo 3 1)
 
 register_test(test_mesh_io_msh test_mesh_io_msh.cc)
 add_dependencies(test_mesh_io_msh test_mesh_io_mesh)
-#===============================================================================
-register_test(test_mesh_io_diana test_mesh_io_diana.cc)
-
-#configure_file(
-#  ${CMAKE_CURRENT_SOURCE_DIR}/dam.ashx
-#  ${CMAKE_CURRENT_BINARY_DIR}/dam.ashx
-#  COPYONLY
-#  )
 
 #===============================================================================
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/mesh_io_diana)
 
+
+#===============================================================================
+#register_test(test_mesh_io_diana test_mesh_io_diana.cc)
+#copy_files(test_mesh_io_diana dam.dat)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/mesh_io_diana)
+#
