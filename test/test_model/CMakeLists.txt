@@ -28,6 +28,7 @@
 #===============================================================================
 
 add_subdirectory(test_solid_mechanics_model)
+
 if(AKANTU_BUILD_HEAT_TRANSFER)
   add_subdirectory(test_heat_transfer_model)
 endif()

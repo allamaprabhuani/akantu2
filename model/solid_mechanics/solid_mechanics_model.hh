@@ -137,9 +137,11 @@ public:
 
   /// test the convergence (norm of increment)
   bool testConvergenceIncrement(Real tolerance);
+  bool testConvergenceIncrement(Real tolerance, Real & error);
 
   /// test the convergence (norm of residual)
   bool testConvergenceResidual(Real tolerance);
+  bool testConvergenceResidual(Real tolerance, Real & error);
 
   /// implicit time integration predictor
   void implicitPred();
@@ -336,6 +338,9 @@ private:
 
   /// accelerations array
   Vector<Real> * acceleration;
+
+  /// accelerations array
+  Vector<Real> * increment_acceleration;
 
   /// forces array
   Vector<Real> * force;

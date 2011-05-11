@@ -85,10 +85,12 @@ if(AKANTU_MUMPS_ON)
   register_test(test_solid_mechanics_model_implicit_1d test_solid_mechanics_model_implicit_1d.cc)
   add_dependencies(test_solid_mechanics_model_implicit_1d test_solid_mechanics_model_segment_mesh1)
 
-  add_mesh(test_implicit_beam_2d beam_2d.geo 2 1 OUTPUT beam_2d.msh)
+  add_mesh(test_implicit_beam_2d_1 beam_2d.geo 2 1 OUTPUT beam_2d_lin.msh)
+  add_mesh(test_implicit_beam_2d_2 beam_2d.geo 2 2 OUTPUT beam_2d_quad.msh)
+  add_mesh(test_implicit_beam_3d_2 beam_3d.geo 3 2 OUTPUT beam_3d_quad.msh)
   register_test(test_solid_mechanics_model_implicit_dynamic_2d
     test_solid_mechanics_model_implicit_dynamic_2d.cc)
-  add_dependencies(test_solid_mechanics_model_implicit_dynamic_2d test_implicit_beam_2d)
+  add_dependencies(test_solid_mechanics_model_implicit_dynamic_2d test_implicit_beam_2d_1 test_implicit_beam_2d_2 test_implicit_beam_3d_2)
 endif()
 
 #===============================================================================

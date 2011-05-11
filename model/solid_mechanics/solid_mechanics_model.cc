@@ -69,7 +69,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   this->boundary     = NULL;
 
   this->increment    = NULL;
-
+  this->increment_acceleration = NULL;
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     this->element_material[t] = NULL;
@@ -101,7 +101,7 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   if(mass_matrix) delete mass_matrix;
   if(velocity_damping_matrix) delete velocity_damping_matrix;
   if(stiffness_matrix) delete stiffness_matrix;
-  if(jacobian_matrix) delete stiffness_matrix;
+  if(jacobian_matrix) delete jacobian_matrix;
 
   AKANTU_DEBUG_OUT();
 }
@@ -245,19 +245,26 @@ void SolidMechanicsModel::updateAcceleration() {
 
   UInt nb_degre_of_freedom = acceleration->getNbComponent();
 
+  if(!increment_acceleration)
+    increment_acceleration = new Vector<Real>(nb_nodes, nb_degre_of_freedom);
+  increment_acceleration->resize(nb_nodes);
+  increment_acceleration->clear();
+
   Real * mass_val     = mass->values;
   Real * residual_val = residual->values;
   Real * accel_val    = acceleration->values;
   bool * boundary_val = boundary->values;
+  Real * inc = increment_acceleration->values;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt d = 0; d < nb_degre_of_freedom; d++) {
       if(!(*boundary_val)) {
-	*accel_val = f_m2a * *residual_val / *mass_val;
+	*inc = f_m2a * (*residual_val / *mass_val - *accel_val);
       }
       residual_val++;
       accel_val++;
       boundary_val++;
+      inc++;
     }
     mass_val++;
   }
@@ -300,11 +307,15 @@ void SolidMechanicsModel::explicitPred() {
 void SolidMechanicsModel::explicitCorr() {
   AKANTU_DEBUG_IN();
 
-  integrator->integrationSchemeCorr(time_step,
-				    *displacement,
-				    *velocity,
-				    *acceleration,
-				    *boundary);
+  Vector<Real> tmp(acceleration->getSize(), acceleration->getNbComponent());
+  tmp.clear();
+
+  integrator->integrationSchemeCorrAccel(time_step,
+					 *displacement,
+					 *velocity,
+					 *acceleration,
+					 *boundary,
+					 *increment_acceleration);
 
   AKANTU_DEBUG_OUT();
 }
@@ -344,11 +355,12 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
   SparseMatrix * matrix;
 
   if(dynamic) {
-    delete integrator;
+    if(integrator) delete integrator;
     integrator = new TrapezoidalRule();
 
     std::stringstream sstr_jac; sstr_jac << id << ":jacobian_matrix";
     jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_jac.str(), memory_id);
+    jacobian_matrix->buildProfile(mesh, *equation_number);
     matrix = jacobian_matrix;
   } else {
     matrix = stiffness_matrix;
@@ -359,11 +371,11 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
   solver = new SolverMumps(*matrix, sstr_solv.str());
 
   dynamic_cast<SolverMumps *>(solver)->initNodesLocation(mesh, spatial_dimension);
-
-  solver->initialize();
 #else
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
+
+  solver->initialize();
 
   AKANTU_DEBUG_OUT();
 }
@@ -400,11 +412,6 @@ void SolidMechanicsModel::initialAcceleration() {
 void SolidMechanicsModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_IN();
 
-  //  updateCurrentPosition();
-
-  /// start synchronization
-  //  asynchronousSynchronize(_gst_smm_for_strain);
-
   stiffness_matrix->clear();
 
   /// call compute stiffness matrix on each local elements
@@ -412,13 +419,6 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     (*mat_it)->assembleStiffnessMatrix(*current_position, _not_ghost);
   }
-
-  /// finalize communications
-  //  waitEndSynchronize(_gst_smm_for_strain);
-  // /// call compute stiffness matrix on each ghost elements
-  // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-  //   (*mat_it)->computeStiffnessMatrix(*current_position, _ghost);
-  // }
 
   AKANTU_DEBUG_OUT();
 }
@@ -433,42 +433,24 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
 		      "You should first initialize the implicit solver and assemble the mass matrix");
 
+  NewmarkBeta * nmb_int = dynamic_cast<TrapezoidalRule *>(integrator);
+  Real c = nmb_int->getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
+  Real d = nmb_int->getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
+  Real e = nmb_int->getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
 
-  Real beta  = dynamic_cast<NewmarkBeta *>(integrator)->getBeta();
-  Real gamma = dynamic_cast<NewmarkBeta *>(integrator)->getGamma();
-
-  Real c = 1. / (beta * time_step * time_step);
-  Real d = gamma / (beta * time_step);
-
-  // UInt nb_nodes = displacement->getSize();
-  // UInt nb_degre_of_freedom = displacement->getNbComponent();
-
-  stiffness_matrix->saveMatrix("K.mtx");
-  mass_matrix->saveMatrix("M.mtx");
-
-  jacobian_matrix->copyContent(*stiffness_matrix);
-
-  jacobian_matrix->saveMatrix("A1.mtx");
-
+  // A = c M + d C + e K
+  jacobian_matrix->clear();
+  jacobian_matrix->add(*stiffness_matrix, e);
   jacobian_matrix->add(*mass_matrix, c);
-
   if(velocity_damping_matrix)
     jacobian_matrix->add(*velocity_damping_matrix, d);
 
-  jacobian_matrix->saveMatrix("A.mtx");
-
   jacobian_matrix->applyBoundary(*boundary, local_eq_num_to_global);
 
-  jacobian_matrix->saveMatrix("A2.mtx");
-
+  // f = f_ext - f_int - Ma - Cv
   Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
   *Ma *= *mass_matrix;
   *residual -= *Ma;
-
-  // debug::setDebugLevel(dblDump);
-  // std::cout << *Ma << std::endl;
-  // debug::setDebugLevel(dblWarning);
-
   delete Ma;
 
   if(velocity_damping_matrix) {
@@ -481,6 +463,7 @@ void SolidMechanicsModel::solveDynamic() {
   solver->setRHS(*residual);
   if(!increment) setIncrementFlagOn();
 
+  // solve A w = f
   solver->solve(*increment);
 
   AKANTU_DEBUG_OUT();
@@ -525,6 +508,16 @@ void SolidMechanicsModel::solveStatic() {
 
 /* -------------------------------------------------------------------------- */
 bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
+  Real error;
+  bool tmp = testConvergenceIncrement(tolerance, error);
+
+  AKANTU_DEBUG_INFO("Norm of increment : " << error);
+
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = displacement->getSize();
@@ -546,16 +539,26 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
   }
 
   allReduce(&norm, _so_sum);
-  AKANTU_DEBUG_INFO("Norm of increment : " << sqrt(norm));
 
+  error = sqrt(norm);
   AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
-  return (sqrt(norm) < tolerance);
+  return (error < tolerance);
 }
 
 /* -------------------------------------------------------------------------- */
 bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
+  Real error;
+  bool tmp = testConvergenceResidual(tolerance, error);
+
+  AKANTU_DEBUG_INFO("Norm of residual : " << error);
+
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = residual->getSize();
@@ -581,23 +584,24 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
   }
 
   allReduce(&norm, _so_sum);
-  AKANTU_DEBUG_INFO("Norm of residual : " << sqrt(norm));
+
+  error = sqrt(norm);
 
   AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
-  return (sqrt(norm) < tolerance);
+  return (error < tolerance);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::implicitPred() {
   AKANTU_DEBUG_IN();
 
-  integrator->integrationSchemePredImplicit(time_step,
-					    *displacement,
-					    *velocity,
-					    *acceleration,
-					    *boundary);
+  integrator->integrationSchemePred(time_step,
+				    *displacement,
+				    *velocity,
+				    *acceleration,
+				    *boundary);
 
   AKANTU_DEBUG_OUT();
 }
@@ -606,12 +610,12 @@ void SolidMechanicsModel::implicitPred() {
 void SolidMechanicsModel::implicitCorr() {
   AKANTU_DEBUG_IN();
 
-  integrator->integrationSchemeCorrImplicit(time_step,
-					    *increment,
-					    *displacement,
-					    *velocity,
-					    *acceleration,
-					    *boundary);
+  integrator->integrationSchemeCorrDispl(time_step,
+					 *displacement,
+					 *velocity,
+					 *acceleration,
+					 *boundary,
+					 *increment);
 
   AKANTU_DEBUG_OUT();
 }

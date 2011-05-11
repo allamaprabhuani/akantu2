@@ -99,14 +99,14 @@ int main(int argc, char *argv[])
   std::cout << model->getMaterial(0) << std::endl;
   std::cout << model->getMaterial(1) << std::endl;
 
-  akantu::Vector<akantu::UInt> & elem_mat = model->getElementMaterial(type);
-  for (akantu::UInt e = 0; e < nb_element; ++e) {
-    akantu::Real barycenter[spatial_dimension];
-    mesh.getBarycenter(e, type, barycenter, akantu::_not_ghost);
-    if(barycenter[1] <= 0.75 && barycenter[1] >= 0.25)
-      elem_mat(e, 0) = 0;
-    else   elem_mat(e, 0) = 1;
-  }
+  // akantu::Vector<akantu::UInt> & elem_mat = model->getElementMaterial(type);
+  // for (akantu::UInt e = 0; e < nb_element; ++e) {
+  //   akantu::Real barycenter[spatial_dimension];
+  //   mesh.getBarycenter(e, type, barycenter, akantu::_not_ghost);
+  //   if(barycenter[1] <= 0.75 && barycenter[1] >= 0.25)
+  //     elem_mat(e, 0) = 0;
+  //   else   elem_mat(e, 0) = 1;
+  // }
 
   model->initMaterials();
   model->assembleMassLumped();
@@ -258,6 +258,8 @@ void paraviewInit(Dumper & dumper) {
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,
 			  spatial_dimension, "velocity");
+  dumper.AddNodeDataField(model->getAcceleration().values,
+			  spatial_dimension, "acceleration");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
   dumper.AddNodeDataField(model->getMass().values,
@@ -285,11 +287,6 @@ void paraviewInit(Dumper & dumper) {
       memcpy(strain->values + elmat(e, 0) * offset,
 	     material.getStrain(type).values + e * offset,
 	     offset * sizeof(akantu::Real));
-      if(m == 0)
-	memcpy(damage->values + elmat(e, 0) * nb_quadrature_points,
-	       dynamic_cast<akantu::MaterialDamage &>(material).getDamage(type).values + e * nb_quadrature_points,
-	       nb_quadrature_points * sizeof(akantu::Real));
-
     }
   }
 
@@ -321,11 +318,6 @@ void paraviewDump(Dumper & dumper) {
       memcpy(strain->values + elmat(e, 0) * offset,
 	     material.getStrain(type).values + e * offset,
 	     offset * sizeof(akantu::Real));
-      if(m == 0)
-	memcpy(damage->values + elmat(e, 0) * nb_quadrature_points,
-	       dynamic_cast<akantu::MaterialDamage &>(material).getDamage(type).values + e * nb_quadrature_points,
-	       nb_quadrature_points * sizeof(akantu::Real));
-
     }
   }
 

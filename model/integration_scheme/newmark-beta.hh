@@ -58,14 +58,16 @@ __BEGIN_AKANTU__
  * Conditional stability:\n
  * @f$ \omega_{max} \Delta t = \frac{\xi \bar{\gamma} + \left[ \bar{\gamma} + \frac{1}{4} - \beta + \xi^2 \\bar{\gamma}^2 \right]^{\frac{1}{2}}}{\left( \frac{\gamma}{2} - \beta \right)}, \bar{\gamma} \equiv \gamma - \frac{1}{2} \geq 0 @f$
  */
+
 class NewmarkBeta : public IntegrationScheme2ndOrder {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  NewmarkBeta(Real beta, Real gamma) : beta(beta), gamma(gamma), h(1) {};
+  NewmarkBeta(Real beta, Real alpha) : beta(beta), alpha(alpha) {};
 
   ~NewmarkBeta(){};
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -77,43 +79,62 @@ public:
 			     Vector<Real> & u_dot_dot,
 			     Vector<bool> & boundary);
 
+  void integrationSchemeCorrAccel(Real delta_t,
+				  Vector<Real> & u,
+				  Vector<Real> & u_dot,
+				  Vector<Real> & u_dot_dot,
+				  Vector<bool> & boundary,
+				  Vector<Real> & delta);
+
+  void integrationSchemeCorrVeloc(Real delta_t,
+				  Vector<Real> & u,
+				  Vector<Real> & u_dot,
+				  Vector<Real> & u_dot_dot,
+				  Vector<bool> & boundary,
+				  Vector<Real> & delta);
+
+  void integrationSchemeCorrDispl(Real delta_t,
+				  Vector<Real> & u,
+				  Vector<Real> & u_dot,
+				  Vector<Real> & u_dot_dot,
+				  Vector<bool> & boundary,
+				  Vector<Real> & delta);
+
+public:
+  template<IntegrationSchemeCorrectorType type>
+  Real getAccelerationCoefficient(Real delta_t);
+
+  template<IntegrationSchemeCorrectorType type>
+  Real getVelocityCoefficient(Real delta_t);
+
+  template<IntegrationSchemeCorrectorType type>
+  Real getDisplacementCoefficient(Real delta_t);
+
+private:
+  template<IntegrationSchemeCorrectorType type>
   void integrationSchemeCorr(Real delta_t,
 			     Vector<Real> & u,
 			     Vector<Real> & u_dot,
 			     Vector<Real> & u_dot_dot,
-			     Vector<bool> & boundary);
-
-  void integrationSchemePredImplicit(Real delta_t,
-				     Vector<Real> & u,
-				     Vector<Real> & u_dot,
-				     Vector<Real> & u_dot_dot,
-				     Vector<bool> & boundary);
-
-  void integrationSchemeCorrImplicit(Real delta_t,
-				     Vector<Real> & delta_u,
-				     Vector<Real> & u,
-				     Vector<Real> & u_dot,
-				     Vector<Real> & u_dot_dot,
-				     Vector<bool> & boundary);
+			     Vector<bool> & boundary,
+			     Vector<Real> & delta);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO(Beta, beta, Real);
-  AKANTU_GET_MACRO(Gamma, gamma, Real);
+  AKANTU_GET_MACRO(Alpha, alpha, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// the @f$\beta@f$ parameter
   Real beta;
 
-  /// the @f$\gamma@f$ parameter
-  Real gamma;
-
-  Real h;
+  /// the @f$\alpha@f$ parameter
+  Real alpha;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -131,14 +152,14 @@ private:
  */
 class CentralDifference : public NewmarkBeta {
 public:
-  CentralDifference() : NewmarkBeta(0, 0.5) {};
+  CentralDifference() : NewmarkBeta(.5, 0.) {};
 };
 //#include "integration_scheme/central_difference.hh"
 
 /// undamped trapezoidal rule (implicit)
 class TrapezoidalRule : public NewmarkBeta {
 public:
-  TrapezoidalRule() : NewmarkBeta(0.25, 0.5) {};
+  TrapezoidalRule() : NewmarkBeta(.5, .5) { };
 };
 
 

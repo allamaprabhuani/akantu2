@@ -3,7 +3,9 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Sep 30 11:45:20 2010
  *
- * @brief  implementation of the newmark-@f$\beta@f$ integration scheme
+ * @brief  implementation of the  newmark-@f$\beta@f$ integration  scheme.  This
+ * implementation is taken from Méthodes  numériques en mécanique des solides by
+ * Alain Curnier \note{ISBN: 2-88074-247-1}
  *
  * @section LICENSE
  *
@@ -26,6 +28,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+/*
+ * @f$ \tilde{u_{n+1}} = u_{n} +  \Delta t \dot{u}_n + \frac{\Delta t^2}{2} \ddot{u}_n @f$
+ * @f$ \tilde{\dot{u}_{n+1}} = \dot{u}_{n} +  \Delta t \ddot{u}_{n} @f$
+ * @f$ \tilde{\ddot{u}_{n}} = \ddot{u}_{n} @f$
+ */
 void NewmarkBeta::integrationSchemePred(Real delta_t,
 					Vector<Real> & u,
 					Vector<Real> & u_dot,
@@ -36,9 +43,6 @@ void NewmarkBeta::integrationSchemePred(Real delta_t,
   UInt nb_nodes = u.getSize();
   UInt nb_degre_of_freedom = u.getNbComponent() * nb_nodes;
 
-  Real delta_t_2_d2 = delta_t * delta_t / 2.;
-  //  Real delta_t_d2   = delta_t / 2.;
-
   Real * u_val         = u.values;
   Real * u_dot_val     = u_dot.values;
   Real * u_dot_dot_val = u_dot_dot.values;
@@ -46,11 +50,11 @@ void NewmarkBeta::integrationSchemePred(Real delta_t,
 
   for (UInt d = 0; d < nb_degre_of_freedom; d++) {
     if(!(*boundary_val)) {
-      /// @f$ \tilde{u_{n+1}} = u_{n} +  \Delta t \dot{u}_n + (1 - 2 \beta) \frac{\Delta t^2}{2} \ddot{u}_n @f$
-      *u_val += delta_t * *u_dot_val + delta_t_2_d2 * (1 - 2 * beta)* *u_dot_dot_val;
+      Real dt_a_n = delta_t * *u_dot_dot_val;
 
-      /// @f$ \tilde{\dot{u}_{n+1}} = \dot{u}_{n} +  (1 - \gamma) \Delta t \ddot{u}_{n} @f$
-      *u_dot_val += (1 - gamma) * delta_t * *u_dot_dot_val;
+      *u_val += delta_t * *u_dot_val + delta_t / 2. * dt_a_n;
+      *u_dot_val += dt_a_n;
+      // *u_dot_dot_val = *u_dot_dot_val;
     }
     u_val++;
     u_dot_val++;
@@ -62,119 +66,159 @@ void NewmarkBeta::integrationSchemePred(Real delta_t,
 }
 
 /* -------------------------------------------------------------------------- */
+/*
+ * @f$ u_{n+1} = \tilde{u_{n+1}} + \alpha \beta \Delta t^2 \delta \ddot{u}_n @f$
+ * @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} + \beta \Delta t * \delta \ddot{u}_{n+1} @f$
+ * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \delta \ddot{u}_{n+1} @f$
+ */
+void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
+					    Vector<Real> & u,
+					    Vector<Real> & u_dot,
+					    Vector<Real> & u_dot_dot,
+					    Vector<bool> & boundary,
+					    Vector<Real> & delta
+					    ) {
+  AKANTU_DEBUG_IN();
+
+  integrationSchemeCorr<_acceleration_corrector>(delta_t,
+						 u,
+						 u_dot,
+						 u_dot_dot,
+						 boundary,
+						 delta);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+/*
+ * @f$ u_{n+1} = \tilde{u_{n+1}} +  \alpha \Delta t \delta \dot{u}_n @f$
+ * @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} + \delta \dot{u}_{n+1} @f$
+ * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \frac{1}{\beta \Delta t} \delta \dot{u}_{n+1} @f$
+ */
+void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
+					     Vector<Real> & u,
+					     Vector<Real> & u_dot,
+					     Vector<Real> & u_dot_dot,
+					     Vector<bool> & boundary,
+					     Vector<Real> & delta
+					     ) {
+  AKANTU_DEBUG_IN();
+
+  integrationSchemeCorr<_velocity_corrector>(delta_t,
+					     u,
+					     u_dot,
+					     u_dot_dot,
+					     boundary,
+					     delta);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+/*
+ * @f$ u_{n+1} = \tilde{u_{n+1}} + \delta u_n @f$
+ * @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} +  \frac{1}{\alpha \Delta t} \delta u_{n+1} @f$
+ * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \frac{1}{\alpha \beta \Delta t^2} \delta u_{n+1} @f$
+ */
+void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
+					     Vector<Real> & u,
+					     Vector<Real> & u_dot,
+					     Vector<Real> & u_dot_dot,
+					     Vector<bool> & boundary,
+					     Vector<Real> & delta
+					     ) {
+  AKANTU_DEBUG_IN();
+
+  integrationSchemeCorr<_displacement_corrector>(delta_t,
+						 u,
+						 u_dot,
+						 u_dot_dot,
+						 boundary,
+						 delta);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+  return 1.;
+}
+template<>
+Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+  return 1. / (beta * delta_t);
+}
+template<>
+Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+  return 1. / (alpha * beta * delta_t * delta_t);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+  return beta * delta_t;
+}
+template<>
+Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+  return 1.;
+}
+template<>
+Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+  return 1. / (alpha * delta_t);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+  return alpha * beta * delta_t * delta_t;
+}
+template<>
+Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+  return alpha * delta_t;
+}
+template<>
+Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+  return 1.;
+}
+
+
+
+
+/* -------------------------------------------------------------------------- */
+template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void NewmarkBeta::integrationSchemeCorr(Real delta_t,
 					Vector<Real> & u,
 					Vector<Real> & u_dot,
 					Vector<Real> & u_dot_dot,
-					Vector<bool> & boundary) {
+					Vector<bool> & boundary,
+					Vector<Real> & delta
+					) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
   UInt nb_degre_of_freedom = u.getNbComponent() * nb_nodes;
 
-  //  Real delta_t_d2 =  delta_t / 2.;
-  Real delta_t_2_d2 = delta_t * delta_t / 2.;
+  Real c = getAccelerationCoefficient<type>(delta_t);
+  Real d = getVelocityCoefficient<type>(delta_t);
+  Real e = getDisplacementCoefficient<type>(delta_t);
 
   Real * u_val         = u.values;
   Real * u_dot_val     = u_dot.values;
   Real * u_dot_dot_val = u_dot_dot.values;
+  Real * delta_val     = delta.values;
   bool * boundary_val  = boundary.values;
 
-  for (UInt d = 0; d < nb_degre_of_freedom; d++) {
+  for (UInt dof = 0; dof < nb_degre_of_freedom; dof++) {
     if(!(*boundary_val)) {
-      /// @f$ u_{n+1} = \tilde{u_{n+1}} + 2 \beta \frac{\Delta t^2}{2} \ddot{u}_n @f$
-      *u_val += 2 * beta * delta_t_2_d2 * *u_dot_dot_val;
-
-      /// @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} + \gamma \frac{\Delta t}{2} * \ddot{u}_{n+1} @f$
-      *u_dot_val += gamma * delta_t * *u_dot_dot_val;
+      *u_val         += e * *delta_val;
+      *u_dot_val     += d * *delta_val;
+      *u_dot_dot_val += c * *delta_val;
     }
     u_val++;
     u_dot_val++;
     u_dot_dot_val++;
-    boundary_val++;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void NewmarkBeta::integrationSchemePredImplicit(Real delta_t,
-						Vector<Real> & u,
-						Vector<Real> & u_dot,
-						Vector<Real> & u_dot_dot,
-						Vector<bool> & boundary) {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_nodes = u.getSize();
-  UInt nb_degre_of_freedom = u.getNbComponent() * nb_nodes;
-
-  Real delta_t_2_d2 = delta_t * delta_t / 2.;
-  //  Real delta_t_d2   = delta_t / 2.;
-
-  Real * u_val         = u.values;
-  Real * u_dot_val     = u_dot.values;
-  Real * u_dot_dot_val = u_dot_dot.values;
-  bool * boundary_val  = boundary.values;
-
-  for (UInt d = 0; d < nb_degre_of_freedom; d++) {
-    if(!(*boundary_val)) {
-      /// @f$ \tilde{u_{n+1}} = u_{n} +  \Delta t \dot{u}_n + (1 - 2 h \beta) \frac{\Delta t^2}{2} \ddot{u}_n @f$
-      //*u_val += delta_t * *u_dot_val + delta_t_2_d2 * (1 - 2 * h *  beta)* *u_dot_dot_val;
-
-      *u_val += delta_t * *u_dot_val + delta_t_2_d2 * *u_dot_dot_val;
-
-      /// @f$ \tilde{\dot{u}_{n+1}} = \dot{u}_{n} +  (1 - h \gamma) \Delta t \ddot{u}_{n} @f$
-      //      *u_dot_val += (1 - h * gamma) * delta_t * *u_dot_dot_val;
-      *u_dot_val += delta_t * *u_dot_dot_val;
-
-      /// @f$ \tilde{\ddot{u}_{n+1}} = (1 - h ) \ddot{u}_{n} @f$
-      //      *u_dot_dot_val *= (1 - h);
-    }
-    u_val++;
-    u_dot_val++;
-    u_dot_dot_val++;
-    boundary_val++;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void NewmarkBeta::integrationSchemeCorrImplicit(Real delta_t,
-						Vector<Real> & delta_u,
-						Vector<Real> & u,
-						Vector<Real> & u_dot,
-						Vector<Real> & u_dot_dot,
-						Vector<bool> & boundary) {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_nodes = u.getSize();
-  UInt nb_degre_of_freedom = u.getNbComponent() * nb_nodes;
-
-  //  Real delta_t_d2 =  delta_t / 2.;
-  Real inv_beta_delta_t_2 = 1. / (beta * delta_t * delta_t);
-  Real gamma_inv_beta_delta_t   = gamma / (beta * delta_t);
-
-  Real * delta_u_val   = delta_u.values;
-  Real * u_val         = u.values;
-  Real * u_dot_val     = u_dot.values;
-  Real * u_dot_dot_val = u_dot_dot.values;
-  bool * boundary_val  = boundary.values;
-
-  for (UInt d = 0; d < nb_degre_of_freedom; d++) {
-    if(!(*boundary_val)) {
-      *u_val += *delta_u_val;
-
-      //      *u_dot_val += gamma_inv_beta_delta_t * *delta_u_val;
-      *u_dot_val +=  1 / (2./3. * delta_t) * *delta_u_val;
-      //      *u_dot_dot_val += inv_beta_delta_t_2 * *delta_u_val;
-      *u_dot_dot_val += 1 / (2./3. * 1./2. * delta_t * delta_t) * *delta_u_val;
-    }
-
-    delta_u_val++;
-    u_val++;
-    u_dot_val++;
-    u_dot_dot_val++;
+    delta_val++;
     boundary_val++;
   }
 

@@ -103,6 +103,8 @@ protected:
   ByElementTypeUInt ghost_partitions;
 
   ByElementTypeUInt ghost_partitions_offset;
+
+  Vector<UInt> * permutation;
 };
 
 

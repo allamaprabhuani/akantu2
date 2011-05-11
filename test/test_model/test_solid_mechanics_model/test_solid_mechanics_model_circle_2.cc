@@ -72,12 +72,12 @@ int main(int argc, char *argv[])
   model->initMaterials();
 
 
-  Real time_step = model->getStableTimeStep();
-  model->setTimeStep(time_step/10.);
+  Real time_step = model->getStableTimeStep() / 10.;
+  model->setTimeStep(time_step);
+
+  std::cout << "-- Time step : " << time_step << " --" << std::endl;
 
   model->assembleMassLumped();
-
-  std::cout << *model << std::endl;
 
   FEM & fem_boundary = model->getFEMBoundary();
   fem_boundary.initShapeFunctions();
