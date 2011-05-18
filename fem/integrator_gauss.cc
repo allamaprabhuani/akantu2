@@ -55,6 +55,8 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const UInt dimension
   UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
 
+  Real * weights = ElementClass<type>::getGaussIntegrationWeights();
+
   UInt * elem_val;
   UInt nb_element;
   std::string ghost = "";
@@ -92,7 +94,10 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const UInt dimension
     // jacobian
     ElementClass<type>::computeJacobian(dxds, nb_quadrature_points, dimension, jacobians_val);
 
-    jacobians_val += nb_quadrature_points;
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {
+      *jacobians_val++ *= weights[q];
+    }
+    //    jacobians_val += nb_quadrature_points;
   }
   if(ghost_type == _not_ghost) jacobians[type] = jacobians_tmp;
   else ghost_jacobians[type] = jacobians_tmp;

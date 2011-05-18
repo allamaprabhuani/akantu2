@@ -176,10 +176,9 @@ template <> inline void ElementClass<_hexahedron_8>::computeDNDS(const Real * na
 template <> inline void ElementClass<_hexahedron_8>::computeJacobian(const Real * dxds,
 								   const UInt dimension,
 								   Real & jac){
-  Real weight = 1.; 
   if (dimension == spatial_dimension){
     Real det_dxds = Math::det3(dxds);
-    jac = det_dxds * weight;
+    jac = det_dxds;
   } else {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }

@@ -24,17 +24,6 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-set(LIST_TYPES
-  segment_2
-  segment_3
-  triangle_3
-  triangle_6
-  quadrangle_4
-  tetrahedron_4
-  tetrahedron_10
-  hexahedron_8
-  )
-
 foreach(_type ${LIST_TYPES})
   register_test(patch_tests_implicit_${_type} patch_test_implicit.cc)
   set_target_properties(patch_tests_implicit_${_type}

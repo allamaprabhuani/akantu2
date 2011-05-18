@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 
   Real time = 0;
   UInt count = 0;
-  UInt print_freq = 1;
+  //  UInt print_freq = 1;
   Real error;
 
   model->getMassMatrix().saveMatrix("M.mtx");
@@ -234,14 +234,14 @@ int main(int argc, char *argv[])
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type> UInt paraviewType();
-template <> UInt paraviewType<_segment_2>()      { return LINE1; };
-template <> UInt paraviewType<_segment_3>()      { return LINE2; };
+template <> UInt paraviewType<_segment_2>()      { return LINE1;     };
+template <> UInt paraviewType<_segment_3>()      { return LINE2;     };
 template <> UInt paraviewType<_triangle_3>()     { return TRIANGLE1; };
 template <> UInt paraviewType<_triangle_6>()     { return TRIANGLE2; };
-template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1; };
-template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1; };
-template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2; };
-template <> UInt paraviewType<_hexahedron_8>()   { return HEX1; };
+template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1;     };
+template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1;    };
+template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2;    };
+template <> UInt paraviewType<_hexahedron_8>()   { return HEX1;      };
 
 /* -------------------------------------------------------------------------- */
 void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {

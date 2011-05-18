@@ -141,8 +141,12 @@ template<> UInt * ElementClass<_tetrahedron_10>::facet_connectivity[]  = {&vec_f
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_quadrangle_4>::nb_nodes_per_element    = 4;
 template<> ElementType ElementClass<_quadrangle_4>::p1_element_type  = _quadrangle_4;
-template<> UInt ElementClass<_quadrangle_4>::nb_quadrature_points    = 1;
-template<> Real ElementClass<_quadrangle_4>::quad[]                  = {0, 0};
+template<> UInt ElementClass<_quadrangle_4>::nb_quadrature_points    = 4;
+//template<> Real ElementClass<_quadrangle_4>::quad[]                  = {0, 0};
+template<> Real ElementClass<_quadrangle_4>::quad[]                  = {-1./sqrt(3), -1./sqrt(3),
+									 1./sqrt(3), -1./sqrt(3),
+									 1./sqrt(3),  1./sqrt(3),
+									-1./sqrt(3),  1./sqrt(3)};
 template<> UInt ElementClass<_quadrangle_4>::spatial_dimension       = 2;
 template<> UInt ElementClass<_quadrangle_4>::nb_facets               = 4;
 template<> ElementType ElementClass<_quadrangle_4>::facet_type       = _segment_2;
@@ -155,21 +159,29 @@ template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[4],
 									&vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
-// template<> UInt ElementClass<_quadrangle_6>::nb_nodes_per_element    = 6;
-// template<> ElementType ElementClass<_quadrangle_6>::p1_element_type  = _quadrangle_6;
-// template<> UInt ElementClass<_quadrangle_6>::nb_quadrature_points    = 1;
-// template<> Real ElementClass<_quadrangle_4>::quad[]                  = {0, 0};
-// template<> UInt ElementClass<_quadrangle_4>::spatial_dimension       = 2;
-// template<> UInt ElementClass<_quadrangle_4>::nb_facets               = 4;
-// template<> ElementType ElementClass<_quadrangle_4>::facet_type       = _segment_2;
-// template<> UInt ElementClass<_quadrangle_4>::vec_facet_connectivity[]= {0, 1,
-// 									1, 2,
-// 									2, 3,
-//                                                                         3, 0};
-// template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-// 									&vec_facet_connectivity[2],
-// 									&vec_facet_connectivity[4],
-// 									&vec_facet_connectivity[6]};
+template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element    = 6;
+template<> ElementType ElementClass<_quadrangle_8>::p1_element_type  = _quadrangle_8;
+template<> UInt ElementClass<_quadrangle_8>::nb_quadrature_points    = 9;
+template<> Real ElementClass<_quadrangle_8>::quad[]                  = {          0.,           0.,
+									 sqrt(3./5.),  sqrt(3./5.),
+									-sqrt(3./5.),  sqrt(3./5.),
+									-sqrt(3./5.), -sqrt(3./5.),
+									 sqrt(3./5.), -sqrt(3./5.),
+									          0.,  sqrt(3./5.),
+									-sqrt(3./5.),           0.,
+										  0., -sqrt(3./5.),
+									 sqrt(3./5.),           0.};
+template<> UInt ElementClass<_quadrangle_8>::spatial_dimension       = 2;
+template<> UInt ElementClass<_quadrangle_8>::nb_facets               = 4;
+template<> ElementType ElementClass<_quadrangle_8>::facet_type       = _segment_2;
+template<> UInt ElementClass<_quadrangle_8>::vec_facet_connectivity[]= {0, 1, 4,
+ 									1, 2, 5,
+ 									2, 3, 6,
+									3, 0, 7};
+template<> UInt * ElementClass<_quadrangle_8>::facet_connectivity[]  = {vec_facet_connectivity + 0,
+ 									vec_facet_connectivity + 3,
+ 									vec_facet_connectivity + 6,
+ 									vec_facet_connectivity + 9};
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element    = 8;
 template<> ElementType ElementClass<_hexahedron_8>::p1_element_type  = _hexahedron_8;
@@ -198,6 +210,23 @@ template<> UInt * ElementClass<_hexahedron_8>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[16],
 									&vec_facet_connectivity[20]};
 /* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* Gauss integration                                                          */
+/* -------------------------------------------------------------------------- */
+template<> Real ElementClass<_segment_2     >::gauss_integration_weights[] = {2.};
+template<> Real ElementClass<_segment_3     >::gauss_integration_weights[] = {1., 1.};
+template<> Real ElementClass<_triangle_3    >::gauss_integration_weights[] = {1./2.};
+template<> Real ElementClass<_triangle_6    >::gauss_integration_weights[] = {1./6., 1./6., 1./6.};
+template<> Real ElementClass<_tetrahedron_4 >::gauss_integration_weights[] = {1./6.};
+template<> Real ElementClass<_tetrahedron_10>::gauss_integration_weights[] = {1./24., 1./24., 1./24., 1./24.};
+template<> Real ElementClass<_quadrangle_4  >::gauss_integration_weights[] = {1., 1., 1., 1.};
+template<> Real ElementClass<_quadrangle_8  >::gauss_integration_weights[] = {64./80.,
+										25./81., 25./81., 25./81., 25./81.,
+										40./81., 40./81., 40./81., 40./81.};
+template<> Real ElementClass<_hexahedron_8  >::gauss_integration_weights[] = {1., 1., 1., 1.,
+									      1., 1., 1., 1.};
+template<> Real ElementClass<_point         >::gauss_integration_weights[] = {1.};
 
 __END_AKANTU__
 

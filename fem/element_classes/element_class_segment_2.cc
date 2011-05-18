@@ -81,8 +81,6 @@ template <> inline void ElementClass<_segment_2>::computeJacobian(const Real * d
   else {
     jac = Math::norm2(dxds);
   }
-  // multiplication by integration weight 
-  jac *= 2;
 }
  
 /* -------------------------------------------------------------------------- */

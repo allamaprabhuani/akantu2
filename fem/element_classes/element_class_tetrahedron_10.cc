@@ -132,14 +132,14 @@ template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points;
 template<> UInt ElementClass<_tetrahedron_10>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_10>::computeShapes(const Real * natural_coords, 
+template <> inline void ElementClass<_tetrahedron_10>::computeShapes(const Real * natural_coords,
 								   Real * shapes){
   /// Natural coordinates
   Real xi = natural_coords[0];
   Real eta = natural_coords[1];
   Real zeta = natural_coords[2];
   Real sum = xi + eta + zeta;
-  Real c0  = 1 - sum; 
+  Real c0  = 1 - sum;
   Real c1  = 1 - 2*sum;
   Real c2  = 2*xi - 1;
   Real c3  = 2*eta - 1;
@@ -232,19 +232,18 @@ template <> inline void ElementClass<_tetrahedron_10>::computeDNDS(__attribute__
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_tetrahedron_10>::computeJacobian(const Real * dxds,
-								     const UInt dimension, 
+								     const UInt dimension,
 								     Real & jac) {
 
   if (dimension == spatial_dimension){
-    Real weight = 1./24.; 
     Real det_dxds = Math::det3(dxds);
-    jac = det_dxds * weight;    
-  }  
+    jac = det_dxds;
+  }
   else {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
- 
+
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_tetrahedron_10>::getInradius(const Real * coord) {
 

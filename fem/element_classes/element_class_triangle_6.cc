@@ -106,14 +106,14 @@ template<> UInt ElementClass<_triangle_6>::spatial_dimension;
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_6>::computeShapes(const Real * natural_coords, 
+template <> inline void ElementClass<_triangle_6>::computeShapes(const Real * natural_coords,
 								 Real * shapes){
-  
+
   /// Natural coordinates
   Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
   Real c1 = natural_coords[0];                /// @f$ c1 = \xi @f$
   Real c2 = natural_coords[1];                /// @f$ c2 = \eta @f$
-  
+
   shapes[0] = c0 * (2 * c0 - 1.);
   shapes[1] = c1 * (2 * c1 - 1.);
   shapes[2] = c2 * (2 * c2 - 1.);
@@ -142,7 +142,7 @@ template <> inline void ElementClass<_triangle_6>::computeDNDS(const Real * natu
    *     & \frac{\partial N5}{\partial \eta}
    *     & \frac{\partial N6}{\partial \eta}
    *   \end{array}
-   * \right) 
+   * \right)
    * @f]
    */
 
@@ -150,14 +150,14 @@ template <> inline void ElementClass<_triangle_6>::computeDNDS(const Real * natu
   Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
   Real c1 = natural_coords[0];                /// @f$ c1 = \xi @f$
   Real c2 = natural_coords[1];                /// @f$ c2 = \eta @f$
-  
+
   dnds[0]  = 1 - 4 * c0;
   dnds[1]  = 4 * c1 - 1.;
   dnds[2]  = 0.;
   dnds[3]  = 4 * (c0 - c1);
   dnds[4]  = 4 * c2;
   dnds[5]  = - 4 * c2;
-  
+
   dnds[6]  = 1 - 4 * c0;
   dnds[7]  = 0.;
   dnds[8]  = 4 * c2 - 1.;
@@ -170,23 +170,22 @@ template <> inline void ElementClass<_triangle_6>::computeDNDS(const Real * natu
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_triangle_6>::computeJacobian(const Real * dxds,
-								   const UInt dimension, 
+								   const UInt dimension,
 								   Real & jac){
-  
+
   // if element dimension is the same as the space dimension
   // then jacobian factor is the determinent of dxds
   if (dimension == spatial_dimension){
-    Real weight = 1./6.;
-    jac = Math::det2(dxds)*weight;
+    jac = Math::det2(dxds);
     AKANTU_DEBUG_ASSERT(jac > 0,
 			"Negative jacobian computed, possible problem in the element node order.");
-    
+
   }
   else {
     AKANTU_DEBUG_ERROR("to implement");
   }
 }
- 
+
 /* -------------------------------------------------------------------------- */
 template<> inline Real ElementClass<_triangle_6>::getInradius(const Real * coord) {
   UInt triangles[4][3] = {

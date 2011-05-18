@@ -115,11 +115,9 @@ template <> inline void ElementClass<_tetrahedron_4>::computeDNDS(__attribute__ 
 template <> inline void ElementClass<_tetrahedron_4>::computeJacobian(const Real * dxds,
 								     const UInt dimension, 
 								     Real & jac) {
-
   if (dimension == spatial_dimension){
-    Real weight = 1./6.;
     Real det_dxds = Math::det3(dxds);
-    jac = det_dxds * weight;    
+    jac = det_dxds;
   }
   else {
     AKANTU_DEBUG_TO_IMPLEMENT();

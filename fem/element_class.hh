@@ -150,6 +150,8 @@ public:
   /// compute the in-radius
   static inline Real getInradius(const Real * coord);
 
+  static inline Real * getGaussIntegrationWeights();
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -181,6 +183,9 @@ private:
 
   /// quadrature points in natural coordinates
   static Real quad[];
+  
+  /// weights for the Gauss integration
+  static Real gauss_integration_weights[];
 };
 
 

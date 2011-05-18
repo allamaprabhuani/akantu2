@@ -113,10 +113,9 @@ template <> inline void ElementClass<_quadrangle_4>::computeDNDS(const Real * na
 template <> inline void ElementClass<_quadrangle_4>::computeJacobian(const Real * dxds,
 								   const UInt dimension,
 								   Real & jac){
-  Real weight = 4.;
   if (dimension == spatial_dimension){
     Real det_dxds = Math::det2(dxds);
-    jac = det_dxds * weight;
+    jac = det_dxds;
   } else {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }

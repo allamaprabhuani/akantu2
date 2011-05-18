@@ -71,22 +71,23 @@ private:
 
   /// MSH element types
   enum MSHElementType {
-    _msh_not_defined   = 0,
-    _msh_segment_2        = 1,   // 2-node line.
-    _msh_triangle_3    = 2,   // 3-node triangle.
-    _msh_quadrangle_1  = 3,   // 4-node quadrangle.
-    _msh_tetrahedron_4 = 4,   // 4-node tetrahedron.
-    _msh_hexahedron_8  = 5,   // 8-node hexahedron.
-    _msh_prism_1       = 6,   // 6-node prism.
-    _msh_pyramid_1     = 7,   // 5-node pyramid.
-    _msh_segment_3        = 8,   // 3-node second order line
-    _msh_triangle_6    = 9,   // 6-node second order triangle
-    _msh_quadrangle_2  = 10,  // 9-node second order quadrangle
-    _msh_tetrahedron_10 = 11,  // 10-node second order tetrahedron
-    _msh_hexaedron_2   = 12,  // 27-node second order hexahedron
-    _msh_prism_2       = 13,  // 18-node second order prism
-    _msh_pyramid_2     = 14,  // 14-node second order pyramid
-    _msh_point         = 15   // 1-node point.
+    _msh_not_defined    = 0,
+    _msh_segment_2      = 1,   // 2-node line.
+    _msh_triangle_3     = 2,   // 3-node triangle.
+    _msh_quadrangle_4   = 3,   // 4-node quadrangle.
+    _msh_tetrahedron_4  = 4,   // 4-node tetrahedron.
+    _msh_hexahedron_8   = 5,   // 8-node hexahedron.
+    _msh_prism_1        = 6,   // 6-node prism.
+    _msh_pyramid_1      = 7,   // 5-node pyramid.
+    _msh_segment_3      = 8,   // 3-node second order line
+    _msh_triangle_6     = 9,   // 6-node second order triangle
+    _msh_quadrangle_9   = 10,  // 9-node second order quadrangle
+    _msh_tetrahedron_10 = 11, // 10-node second order tetrahedron
+    _msh_hexaedron_2    = 12,  // 27-node second order hexahedron
+    _msh_prism_2        = 13,  // 18-node second order prism
+    _msh_pyramid_2      = 14,  // 14-node second order pyramid
+    _msh_point          = 15,  // 1-node point.
+    _msh_quadrangle_8   = 16   // 7-node second order quadrangle
   };
 
 #define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
@@ -95,11 +96,11 @@ private:
   static UInt _read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT];
 
   /// number of nodes per msh element
-  static UInt _msh_nodes_per_elem[16]; // 16 = number of recognized
-                                               // msh element types +1 (for 0)
+  static UInt _msh_nodes_per_elem[17]; // 17 = number of recognized
+                                       // msh element types +1 (for 0)
 
   /// correspondance between msh element types and akantu element types
-  static ElementType _msh_to_akantu_element_types[16];
+  static ElementType _msh_to_akantu_element_types[17];
 
   /// correspondance between akantu element types and msh element types
   static MSHElementType _akantu_to_msh_element_types[_max_element_type];

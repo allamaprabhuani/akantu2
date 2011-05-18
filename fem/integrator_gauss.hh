@@ -86,7 +86,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-
+private:
   // /// get the number of quadrature points
   // static inline UInt getNbQuadraturePoints(const ElementType & type);
 

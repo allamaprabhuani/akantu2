@@ -158,23 +158,24 @@ UInt MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] =
   { 0, 1, 2, 3, 4, 0, 0, 0, 0, 0 }, // _tetrahedron_4
   { 0, 1, 2, 3, 4, 5, 6, 7, 9, 8 }, // _tetrahedron_10
   { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0 }, // _quadrangle_4
-  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }  // _hexahedron_8  
+  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }, // _quadrangle_6
+  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }  // _hexahedron_8
 };
 
-UInt MeshIOMSH::_msh_nodes_per_elem[16] =
+UInt MeshIOMSH::_msh_nodes_per_elem[17] =
   { 0, // element types began at 1
     2, 3, 4, 4,  8,  6,  5,  // 1st order
     3, 6, 9, 10, 27, 18, 14, // 2st order
-    1
+    1, 8
   };
 
-ElementType MeshIOMSH::_msh_to_akantu_element_types[16] =
+ElementType MeshIOMSH::_msh_to_akantu_element_types[17] =
   { _not_defined, // element types began at 1
     _segment_2,   _triangle_3,  _quadrangle_4, _tetrahedron_4,  // 1st order
     _hexahedron_8, _not_defined, _not_defined,
     _segment_3,   _triangle_6,  _not_defined,  _tetrahedron_10, // 2nd order
     _not_defined, _not_defined, _not_defined,
-    _not_defined
+    _not_defined, _quadrangle_8
   };
 
 MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type] =
@@ -186,7 +187,8 @@ MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_t
     _msh_triangle_6,    // _triangle_6
     _msh_tetrahedron_4, // _tetrahedron_4
     _msh_tetrahedron_10,// _tetrahedron_10
-    _msh_quadrangle_1,  // _quadrangle_4
+    _msh_quadrangle_4,  // _quadrangle_4
+    _msh_quadrangle_8,  // _quadrangle_4
     _msh_hexahedron_8   // _hexahedron_8
   };
 
