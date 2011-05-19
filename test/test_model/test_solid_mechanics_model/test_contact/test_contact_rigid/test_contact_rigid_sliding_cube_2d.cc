@@ -276,7 +276,8 @@ int main(int argc, char *argv[])
 
     my_contact->avoidAdhesion();
 
-    my_contact->addFriction();
+    //    my_contact->addFriction();
+    my_contact->addRegularizedFriction(1e11);
 
     // find the total force applied at the imposed displacement surface (top)
     Real * residual = my_model.getResidual().values; 
@@ -311,7 +312,7 @@ int main(int argc, char *argv[])
 
     my_model.updateAcceleration();
 
-    my_contact->addSticking();
+    //    my_contact->addSticking();
 
     const Vector<bool> * sticking_nodes = imp_info->node_is_sticking;
     bool * sticking_nodes_val = sticking_nodes->values;

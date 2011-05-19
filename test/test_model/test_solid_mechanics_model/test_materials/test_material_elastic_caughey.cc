@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     // model->getDisplacement().values[spatial_dimension*i]
     //   = mesh.getNodes().values[spatial_dimension*i] / 100.;
-    if(mesh.getNodes().values[spatial_dimension*i] >= 9)
+    if(mesh.getNodes().values[spatial_dimension*i] >= 9.9)
       model->getDisplacement().values[spatial_dimension*i]
-     	= (mesh.getNodes().values[spatial_dimension*i] - 9) / 100.;
+     	= (mesh.getNodes().values[spatial_dimension*i] - 9) / 100. / 5.;
 
     if(mesh.getNodes().values[spatial_dimension*i] <= eps)
       model->getBoundary().values[spatial_dimension*i] = true;

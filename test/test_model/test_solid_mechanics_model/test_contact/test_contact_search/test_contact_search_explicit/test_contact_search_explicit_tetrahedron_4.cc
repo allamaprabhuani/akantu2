@@ -50,7 +50,7 @@ using namespace akantu;
 int main(int argc, char *argv[])
 {
   UInt dim = 3;
-  const ElementType element_type = _tetrahedron_4;
+  //const ElementType element_type = _tetrahedron_4;
 
   /// load mesh
   Mesh my_mesh(dim);
