@@ -631,6 +631,7 @@ void ContactRigid::addSticking() {
   
   Real * velocity_val = this->model.getVelocity().values;
   Real * acceleration_val = this->model.getAcceleration().values;
+  Real * increment_val = this->model.getIncrement().values;
   const Real time_step = this->model.getTimeStep();
 
   for(UInt m=0; m < this->master_surfaces.size(); ++m) {
@@ -651,16 +652,16 @@ void ContactRigid::addSticking() {
 	
       if(!node_is_sticking_val[n*2]) {
 	// compute scalar product of projected velocities
-	Real scalar_prod_velocity = 0.;
+	Real scalar_prod_increment = 0.;
 	for (UInt i=0; i < this->spatial_dimension; ++i) {
 	  if(direction_val[n * this->spatial_dimension + i] == 0) {
-	    Real current_velocity = velocity_val[current_node * this->spatial_dimension + i];
-	    Real estimated_velocity = current_velocity + time_step * acceleration_val[current_node * this->spatial_dimension + i];
-	    scalar_prod_velocity += current_velocity * estimated_velocity;
+	    Real current_increment = increment_val[current_node * this->spatial_dimension + i];
+	    Real estimated_increment = time_step*(velocity_val[current_node * this->spatial_dimension + i] + 0.5 * time_step * acceleration_val[current_node * this->spatial_dimension + i]);
+	    scalar_prod_increment += current_increment * estimated_increment;
 	  }
 	}
 	// if scalar product <= 0, it has to be stick
-	if(scalar_prod_velocity <= 0) {
+	if(scalar_prod_increment <= 0) {
 	  for (UInt i=0; i < this->spatial_dimension; ++i) {
 	    if(direction_val[n * this->spatial_dimension + i] == 0) {
 	      velocity_val[current_node * this->spatial_dimension + i]     = 0.;
