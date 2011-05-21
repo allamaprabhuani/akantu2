@@ -423,6 +423,8 @@ void ContactRigid::projectImpactor(const PenetrationList & penet_list, const UIn
 void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList & penet_list, const UInt impactor_index, const ElementType facet_type, const UInt facet_offset) {
   AKANTU_DEBUG_IN();
   
+  bool init_state_stick = true; // node is in sticking when it gets in contact
+
   UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
   UInt impactor_node = penetrating_nodes[impactor_index];
 
@@ -440,11 +442,15 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
     normal[i] = floor(facet_normal[i] + 0.5);
   
   for(UInt i = 0; i < this->spatial_dimension; ++i) {
+    UInt index = impactor_node * spatial_dimension + i;
     if(normal[i] != 0) {
-      UInt index = impactor_node * spatial_dimension + i;
       bound_val[index] = true;
       veloc_val[index] = 0.;
       accel_val[index] = 0.;
+    }
+    // if node is in initial stick its tangential velocity has to be zero
+    if(init_state_stick) {
+      veloc_val[index] = 0.;
     }
   }
 
@@ -457,8 +463,16 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
   //  impactor_info->master_element_offset->push_back(facet_offset);
   impactor_info->master_element_type->push_back(facet_type);
   impactor_info->master_normals->push_back(normal);
+  // initial value for stick state when getting in contact
   bool init_sticking[2];
-  init_sticking[0] = true; init_sticking[1] = true;
+  if (init_state_stick) {
+    init_sticking[0] = true; 
+    init_sticking[1] = true;
+  }
+  else {
+    init_sticking[0] = false; 
+    init_sticking[1] = false;
+  }
   impactor_info->node_is_sticking->push_back(init_sticking);
   Real init_friction_force[this->spatial_dimension];
   for(UInt i=0; i<this->spatial_dimension; ++i)
