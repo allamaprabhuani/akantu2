@@ -871,8 +871,11 @@ void ContactRigid::addFrictionWithoutSticking() {
       
       // if there is a velocity, friction will act against it
       if(projected_velocity_magnitude > tolerance) {
-	given_direction = &velocity_val[0];
-	given_length = projected_velocity_magnitude;
+	//	given_direction = &velocity_val[0];
+	//	given_length = projected_velocity_magnitude;
+
+	given_direction = &residual_val[0];
+	given_length = projected_residual;
 
 	// just for information (no actual use)
 	node_is_sticking_val[n*2]   = false;
