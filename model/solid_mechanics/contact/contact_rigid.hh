@@ -116,6 +116,7 @@ public:
 
   /// add friction without using addSticking
   virtual void addFrictionWithoutSticking();
+  virtual void addFrictionBloed();
 
   /// reset stick positions to current positions
   virtual void setStickPositionsToCurrentPositions(const Surface master);

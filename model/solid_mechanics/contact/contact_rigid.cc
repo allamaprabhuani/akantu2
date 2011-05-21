@@ -525,6 +525,114 @@ void ContactRigid::avoidAdhesion() {
 }
 
 /* -------------------------------------------------------------------------- */
+void ContactRigid::addFrictionBloed() {
+  AKANTU_DEBUG_IN();
+  
+  const Real tolerance = std::numeric_limits<Real>::epsilon();
+  
+  Real * residual_val = this->model.getResidual().values;
+  Real * velocity_val = this->model.getVelocity().values;
+  
+  for(UInt m=0; m < this->master_surfaces.size(); ++m) {
+    Surface master = this->master_surfaces.at(m);
+
+    ContactRigid::SurfaceToImpactInfoMap::iterator it_imp;
+    it_imp = this->impactors_information.find(master);
+    AKANTU_DEBUG_ASSERT(it_imp != this->impactors_information.end(), 
+			"The master surface: " << master << "couldn't be found in impactors_information map");
+    ImpactorInformationPerMaster * impactor_info = it_imp->second;
+
+    ContactRigid::SurfaceToFricCoefMap::iterator it_fc;
+    it_fc = this->friction_coefficient.find(master);
+    AKANTU_DEBUG_ASSERT(it_fc != this->friction_coefficient.end(), 
+			"The master surface: " << master << "couldn't be found in friction_coefficient map");
+    FrictionCoefficient * fric_coef = it_fc->second;
+    AKANTU_DEBUG_ASSERT(fric_coef != NULL, "There is no friction coefficient defined for master surface " << master);
+
+    UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
+
+    // compute the friction coefficient for each active impactor node
+    Vector<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
+    Real * friction_coefficient_values_p = friction_coefficient_values.values;
+    fric_coef->computeFrictionCoefficient(friction_coefficient_values);
+    
+    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
+    Real * direction_val = impactor_info->master_normals->values;
+    bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
+    Real * friction_forces_val = impactor_info->friction_forces->values;
+    
+    for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
+      UInt current_node = active_impactor_nodes_val[n];
+      Real normal_contact_force = 0.;
+      Real friction_force = 0.;
+      
+      // find friction force mu * normal force
+      for (UInt i=0; i < spatial_dimension; ++i) {
+	if(direction_val[n * this->spatial_dimension + i] != 0) {
+	  normal_contact_force = fabs(residual_val[current_node * this->spatial_dimension + i]);
+	  friction_force = friction_coefficient_values_p[n] * normal_contact_force;
+	}
+      }
+      
+      // find length of the residual projected to the frictional plane
+      Real projected_residual = 0.;
+      Real projected_velocity_magnitude = 0.;
+      for (UInt i=0; i < this->spatial_dimension; ++i) {
+	if(direction_val[n * this->spatial_dimension + i] == 0) {
+	  projected_residual += residual_val[current_node * this->spatial_dimension + i] * 
+	                        residual_val[current_node * this->spatial_dimension + i];
+	  projected_velocity_magnitude += velocity_val[current_node * this->spatial_dimension + i] *
+	                                  velocity_val[current_node * this->spatial_dimension + i];
+	}
+      }
+      projected_residual = sqrt(projected_residual);
+      projected_velocity_magnitude = sqrt(projected_velocity_magnitude);
+      
+      // if it is a sticking node, check if it starts moving
+      if(node_is_sticking_val[n*2+1]) {
+	// node starts sliding
+	if(projected_residual > friction_force)
+	  node_is_sticking_val[n*2+1] = false;
+	// node continues to stick and its friction force is equal the resiual
+	else
+	  friction_force = projected_residual;
+      }
+      
+      // compute vector of length one in direction of projected residual
+      Real * given_direction = NULL;
+      Real given_length = 0.;
+      given_direction = &residual_val[0];
+      given_length = projected_residual;
+     
+      // if no tangential direction -> no friction force
+      if(given_length < tolerance) {
+	for(UInt i=0; i<this->spatial_dimension; ++i)
+	  friction_forces_val[n*this->spatial_dimension + i] = 0.;
+	continue;
+      }
+
+      Real friction_direction[3];
+      for (UInt i=0; i < this->spatial_dimension; ++i) {
+	if(direction_val[n * this->spatial_dimension + i] == 0)
+	  friction_direction[i] = given_direction[current_node * this->spatial_dimension + i] / given_length;
+	else
+	  friction_direction[i] = 0.;
+      }
+      
+      // add friction force to residual
+      for (UInt i=0; i < this->spatial_dimension; ++i) {
+	Real directional_fric_force = friction_force * friction_direction[i];
+	friction_forces_val[n*this->spatial_dimension + i] = directional_fric_force;
+	residual_val[current_node * this->spatial_dimension + i] -= directional_fric_force;
+      }
+      
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void ContactRigid::addFriction() {
   AKANTU_DEBUG_IN();
   
