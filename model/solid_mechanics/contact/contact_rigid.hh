@@ -114,6 +114,9 @@ public:
   /// alternative way for addFriction and addSticking
   virtual void addRegularizedFriction(const Real & regularizer);
 
+  /// add friction without using addSticking
+  virtual void addFrictionWithoutSticking();
+
   /// reset stick positions to current positions
   virtual void setStickPositionsToCurrentPositions(const Surface master);
 
