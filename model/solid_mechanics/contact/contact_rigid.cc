@@ -589,7 +589,7 @@ void ContactRigid::addFrictionBloed() {
       projected_velocity_magnitude = sqrt(projected_velocity_magnitude);
       
       // if it is a sticking node, check if it starts moving
-      if(node_is_sticking_val[n*2+1]) {
+      if(projected_velocity_magnitude < 1e-14) { //node_is_sticking_val[n*2+1]) {
 	// node starts sliding
 	if(projected_residual > friction_force)
 	  node_is_sticking_val[n*2+1] = false;
@@ -597,12 +597,60 @@ void ContactRigid::addFrictionBloed() {
 	else
 	  friction_force = projected_residual;
       }
+
+     /* 
+      // node is sticking
+      if((node_is_sticking_val[n*2]) || (projected_velocity_magnitude < 1e-14)) {
+	// the friction force should not be larger than the residual if sticking
+	if(projected_residual < friction_force) {
+	  friction_force = projected_residual;
+	}
+	else {
+	  // just for information (no actual use)
+	  node_is_sticking_val[n*2]   = false;
+	  node_is_sticking_val[n*2+1] = false;
+	}
+	
+	given_direction = &residual_val[0];
+	given_length = projected_residual;
+      }
+      
+      // node is sliding
+      else {
+	if(projected_velocity_magnitude < 1e-14) {
+	  given_direction = &residual_val[0];
+	  given_length = projected_residual;
+
+	  // just for information (no actual use)
+	  node_is_sticking_val[n*2]   = true;
+	  node_is_sticking_val[n*2+1] = true;
+	}
+	else {
+	  given_direction = &velocity_val[0];
+	  given_length = projected_velocity_magnitude;
+	}
+      }
+
+      // if no tangential direction -> no friction force
+      if(given_length < tolerance) {
+	for(UInt i=0; i<this->spatial_dimension; ++i)
+	  friction_forces_val[n*this->spatial_dimension + i] = 0.;
+	continue;
+      }
+      */
+ 
       
       // compute vector of length one in direction of projected residual
       Real * given_direction = NULL;
       Real given_length = 0.;
-      given_direction = &residual_val[0];
-      given_length = projected_residual;
+      if(node_is_sticking_val[n*2+1]) {
+	given_direction = &residual_val[0];
+	given_length = projected_residual;
+      }
+      else {
+	given_direction = &velocity_val[0];
+	given_length = projected_velocity_magnitude;
+      }
      
       // if no tangential direction -> no friction force
       if(given_length < tolerance) {
@@ -806,7 +854,7 @@ void ContactRigid::addSticking() {
 void ContactRigid::addFrictionWithoutSticking() {
   AKANTU_DEBUG_IN();
   
-  const Real tolerance = std::numeric_limits<Real>::epsilon();
+  const Real tolerance = std::numeric_limits<Real>::epsilon() * 10.;
   
   Real * residual_val = this->model.getResidual().values;
   Real * velocity_val = this->model.getVelocity().values;
@@ -868,14 +916,11 @@ void ContactRigid::addFrictionWithoutSticking() {
 
       Real * given_direction = NULL;
       Real given_length = 0.;
-      
+ 
       // if there is a velocity, friction will act against it
       if(projected_velocity_magnitude > tolerance) {
-	//	given_direction = &velocity_val[0];
-	//	given_length = projected_velocity_magnitude;
-
-	given_direction = &residual_val[0];
-	given_length = projected_residual;
+	given_direction = &velocity_val[0];
+	given_length = projected_velocity_magnitude;
 
 	// just for information (no actual use)
 	node_is_sticking_val[n*2]   = false;
