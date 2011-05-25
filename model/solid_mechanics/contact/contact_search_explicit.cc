@@ -365,6 +365,7 @@ void ContactSearchExplicit::computeComponentsOfProjection(const UInt impactor_no
   case _tetrahedron_4:
   case _tetrahedron_10:
   case _quadrangle_4:
+  case _quadrangle_8:
   case _hexahedron_8:
   case _point:
   case _max_element_type: {
@@ -403,6 +404,7 @@ void ContactSearchExplicit::checkPenetrationSituation(const UInt impactor_node,
   case _tetrahedron_4:
   case _tetrahedron_10:
   case _quadrangle_4:
+  case _quadrangle_8:
   case _hexahedron_8:
   case _point:
   case _max_element_type: {

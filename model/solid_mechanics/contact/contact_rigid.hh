@@ -90,6 +90,12 @@ public:
     
     /// stick position for regularized friction
     Vector<Real> * stick_positions;
+
+    /// residual forces without friction force
+    Vector<Real> * residual_forces;
+    
+    /// velocities before predictor computation
+    Vector<Real> * previous_velocities;
   };
 
   typedef std::map<Surface, ImpactorInformationPerMaster *> SurfaceToImpactInfoMap;
@@ -117,6 +123,12 @@ public:
   /// add friction without using addSticking
   virtual void addFrictionWithoutSticking();
   virtual void addFrictionBloed();
+
+  /// friction predictor 
+  virtual void frictionPredictor();
+
+  /// friction corrector
+  virtual void frictionCorrector();
 
   /// reset stick positions to current positions
   virtual void setStickPositionsToCurrentPositions(const Surface master);
