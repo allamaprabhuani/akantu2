@@ -1279,8 +1279,8 @@ void ContactRigid::frictionCorrector() {
 
 	// if residual and velocity in same direction -> stick
 	// or if residual and velocity in opposit direction and friction force >= residual -> stick
-	if (!(dot_prod_vel_res < 0) || 
-	    ((dot_prod_vel_res < 0) && !(proj_friction_mag < proj_residual_mag))) {
+	//if (!(dot_prod_vel_res < 0) || 
+	//  ((dot_prod_vel_res < 0) && !(proj_friction_mag < proj_residual_mag))) {
 	  for (UInt i=0; i < this->spatial_dimension; ++i) {
 	    if(direction_val[n * this->spatial_dimension + i] == 0) {
 	      //friction_forces_val[n*spatial_dimension + i] = residual_forces_val[n*spatial_dimension + i];
@@ -1295,7 +1295,7 @@ void ContactRigid::frictionCorrector() {
 	  }
 	  node_is_sticking_val[n*2]   = true;
 	  node_is_sticking_val[n*2+1] = true;
-	}
+	  //}
       }
     }
 
