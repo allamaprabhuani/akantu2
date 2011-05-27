@@ -111,18 +111,8 @@ public:
   /// avoid adhesion by delocking contact nodes that have tensile contact force
   virtual void avoidAdhesion();
 
-  /// add friction forces
-  virtual void addFriction();
-
-  /// find nodes that stick
-  virtual void addSticking();
-
   /// alternative way for addFriction and addSticking
   virtual void addRegularizedFriction(const Real & regularizer);
-
-  /// add friction without using addSticking
-  virtual void addFrictionWithoutSticking();
-  virtual void addFrictionBloed();
 
   /// friction predictor 
   virtual void frictionPredictor();
