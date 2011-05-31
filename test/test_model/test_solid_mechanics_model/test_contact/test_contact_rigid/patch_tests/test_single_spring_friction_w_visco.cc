@@ -62,7 +62,7 @@ const char* mesh_name = "single_triangle.msh";
 const char* folder_name = "single_spring_friction_w_visco";
 std::string result_name;
 bool viscous_mat = true;
-Real viscous_factor;
+Real viscous_factor = 1e-7;
 const bool vel_weak_coulomb = false;
 Real mu_s = 0.3;
 Real mu_d = 0.2;
@@ -290,7 +290,7 @@ Int main(int argc, char *argv[])
 
   // check patch test
   if(patch_test) {
-    Real correct_final_disp = 0.0200181;
+    Real correct_final_disp = 0.0198331;
     UInt correct_nb_cycle = 2;
     if (!(Math::are_float_equal(final_displacement, correct_final_disp)) | !(count_cycle == correct_nb_cycle)) {
       std::cout << "Final displacement is " << final_displacement << ", which should be " << correct_final_disp << std::endl;
