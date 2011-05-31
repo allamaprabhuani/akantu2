@@ -29,15 +29,26 @@ add_mesh(test_single_spring_mesh single_triangle.geo 2 1)
 register_test(test_single_spring_friction test_single_spring_friction.cc)
 add_dependencies(test_single_spring_friction test_single_spring_mesh)
 
+register_test(test_single_spring_friction_w_visco test_single_spring_friction_w_visco.cc)
+add_dependencies(test_single_spring_friction_w_visco test_single_spring_mesh)
+
+
 #===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
   COPYONLY
   )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/material_elastic_caughey.dat
+  ${CMAKE_CURRENT_BINARY_DIR}/material_elastic_caughey.dat
+  COPYONLY
+  )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction_w_visco)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_w_visco)
 

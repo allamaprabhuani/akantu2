@@ -1,9 +1,9 @@
 /**
- * @file   test_single_spring_friction.cc
+ * @file   test_single_spring_friction_w_visco.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Wed May 25 10:46:40 2011
+ * @date   Mon May 30 15:09:23 2011
  *
- * @brief  test with analytical solution for friction of a single spring
+ * @brief  test for friction of elastic material with viscosity
  *
  * @section LICENSE
  *
@@ -26,8 +26,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <io_helper.h>
@@ -61,25 +59,27 @@ UInt the_node = 0;
 const ElementType element_type = _triangle_3; 
 const UInt paraview_type = TRIANGLE1; 
 const char* mesh_name = "single_triangle.msh";
-const char* folder_name = "single_spring_friction";
+const char* folder_name = "single_spring_friction_w_visco";
 std::string result_name;
-const bool viscous_mat = false;
+bool viscous_mat = true;
+Real viscous_factor;
 const bool vel_weak_coulomb = false;
 Real mu_s = 0.3;
 Real mu_d = 0.2;
-const UInt paraview_dump_int = 1e3;
-const UInt file_dump_int = 1e2;
-const UInt max_steps = 1e6;
-const UInt stick_stop = 3;
+UInt paraview_dump_int = 1;//e3;
+UInt file_dump_int = 1;//e2;
+UInt max_steps = 1e6;
+UInt stick_stop = 3;
 
 Real n_k = 0.15;
+Real m_k = 3.5e-08;
 Real normal_force;
 Real start_displacement = 0.2;
 
 Mesh * mesh;
 SolidMechanicsModel * model;
 UInt spatial_dimension = 2;
-Real time_step_security = 3.;
+Real time_step_security = 10.;//3.;
 Real time_step;
 UInt nb_nodes;
 UInt nb_elements;
@@ -117,11 +117,15 @@ Int main(int argc, char *argv[])
   // 2: initial displacement
   // 3: friction coefficient
   // 4: ratio N/K with N normal force & K stiffness
-  if (argc == 5) {
+  // 5  ratio M/K with M mass & K stiffness
+  // 6: viscous factor alpha
+  if (argc == 7) {
     result_name = argv[1];
     start_displacement = atof(argv[2]);
     mu_s = atof(argv[3]);
     n_k = atof(argv[4]);
+    m_k = atof(argv[5]);
+    viscous_factor = atof(argv[6]);
   }
   else {
     result_name = "patch_test_output";
@@ -156,10 +160,9 @@ Int main(int argc, char *argv[])
   model->initModel();
 
   /// read and initialize material
-  if(viscous_mat)
-    model->readMaterials("material_elastic_caughey.dat");
-  else
-    model->readMaterials("material.dat");
+  model->readMaterials("material_elastic_caughey.dat");
+  MaterialElasticCaughey & my_mat = dynamic_cast<MaterialElasticCaughey & > (model->getMaterial(0));
+  my_mat.setAlpha(viscous_factor);
   model->initMaterials();
 
   Real stable_time_step = model->getStableTimeStep();
@@ -211,11 +214,13 @@ Int main(int argc, char *argv[])
   model->updateResidual();
   Real stiffness = std::abs(residual[the_node * spatial_dimension] / start_displacement);
   normal_force = n_k * stiffness;
+  Real node_mass = m_k * stiffness;
   force[the_node*spatial_dimension+1] = -normal_force;
+  mass[the_node] = node_mass;
 
   if (start_displacement > tolerance) {
     std::cout << "Start displacement = " << start_displacement << " ; Residual = " << residual[the_node*spatial_dimension] << " -> Stiffness K = " << stiffness << std::endl;
-    std::cout << "Mass = " << mass[the_node] << std::endl;
+    std::cout << "Mass = " << node_mass << std::endl;
   }
   else
     std::cout << "No start displacement!! " << std::endl;
@@ -297,8 +302,9 @@ Int main(int argc, char *argv[])
       return EXIT_SUCCESS;
     }
   }
-  else {
-    /// output files
+
+  /// output files
+  if(!patch_test) {
     std::stringstream result_name_path;
     result_name_path << "output_files/" << folder_name << "/" << result_name << ".dat";
     std::ofstream out_result;
