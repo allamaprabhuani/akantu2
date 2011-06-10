@@ -34,7 +34,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialMazars::MaterialMazars(SolidMechanicsModel & model, const MaterialID & id)  :
+MaterialMazars::MaterialMazars(Model & model, const MaterialID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 

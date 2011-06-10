@@ -36,12 +36,18 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Material::Material(SolidMechanicsModel & model, const MaterialID & id) :
-  Memory(model.getMemoryID()), id(id),
-  spatial_dimension(model.getSpatialDimension()), name(""),
-  model(&model), potential_energy_vector(false),
+Material::Material(Model & model, const MaterialID & id) :
+  Memory(model.getMemoryID()),  
+  id(id),
+  name(""),
+  potential_energy_vector(false),
   is_init(false) {
+  
   AKANTU_DEBUG_IN();
+
+  this->model = dynamic_cast<SolidMechanicsModel*>(&model);
+  AKANTU_DEBUG_ASSERT(this->model,"model has wrong type: cannot proceed");
+  spatial_dimension = this->model->getSpatialDimension();
 
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     this->stress                [t] = NULL;

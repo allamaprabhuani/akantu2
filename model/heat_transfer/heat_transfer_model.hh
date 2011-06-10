@@ -39,7 +39,7 @@
 #include "aka_common.hh"
 #include "model.hh"
 #include "material.hh"
-#include "material_parser.hh"
+#include "parser.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "fem.hh"
@@ -79,12 +79,14 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 
-  
-
-
-  
 public:
   
+  /// set the parameters 
+  void setParam(const std::string & key, const std::string & value);
+
+
+  /// read one material file to instantiate all the materials
+  void readMaterials(const std::string & filename);
 
   /// allocate all vectors
   void initVectors();
@@ -132,16 +134,6 @@ public:
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
-  // set the density of the material
-  AKANTU_SET_MACRO(Density, density, Real);
-  
-  
- //set the heat capacity of the material
-  AKANTU_SET_MACRO(Capacity, capacity, Real);
-  // set the conductivity matrix
-  void SetConductivityMatrix(Real a[3][3]);
-
- 
   //* all the implementation of time step ----------------------------------- */
   /// get the current value of the time step
   AKANTU_GET_MACRO(TimeStep, time_step, Real);
@@ -185,8 +177,8 @@ public:
   //put the scheme into iteration
   void integrationScheme1stOrder(Real thelta, UInt N, Vector<Real> * temperature);
 
-  //calculate the mass matrix of heat transfer problem
-  void assembleMassLumped(const ElementType &el_type);
+  //calculate the capacity matrix of heat transfer problem
+  void assembleCapacityLumped(const ElementType &el_type);
 
   
 

@@ -33,12 +33,12 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialElasticCaughey::MaterialElasticCaughey(SolidMechanicsModel & model, const MaterialID & id)  :
+MaterialElasticCaughey::MaterialElasticCaughey(Model & model, const MaterialID & id)  :
   MaterialElastic(model, id) {
   AKANTU_DEBUG_IN();
 
   alpha = 0.;
-  UInt spatial_dimension = model.getSpatialDimension();
+  UInt spatial_dimension = this->model->getSpatialDimension();
   UInt stress_size = spatial_dimension * spatial_dimension;
 
   initInternalVector(this->ghost_stress_viscosity, stress_size, "stress_viscosity", _ghost);

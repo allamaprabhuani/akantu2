@@ -40,7 +40,7 @@
 #include "aka_common.hh"
 #include "model.hh"
 #include "material.hh"
-#include "material_parser.hh"
+#include "../parser.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "aka_types.hh"

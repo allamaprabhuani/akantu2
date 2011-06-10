@@ -43,7 +43,7 @@ class MaterialMazars : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialMazars(SolidMechanicsModel & model, const MaterialID & id = "");
+  MaterialMazars(Model & model, const MaterialID & id = "");
 
   virtual ~MaterialMazars() {};
 

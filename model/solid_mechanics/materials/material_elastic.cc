@@ -32,7 +32,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialElastic::MaterialElastic(SolidMechanicsModel & model, const MaterialID & id)  :
+MaterialElastic::MaterialElastic(Model & model, const MaterialID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 

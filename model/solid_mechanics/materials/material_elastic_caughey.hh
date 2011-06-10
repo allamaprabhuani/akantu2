@@ -53,7 +53,7 @@ class MaterialElasticCaughey : public MaterialElastic {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElasticCaughey(SolidMechanicsModel & model, const MaterialID & id = "");
+  MaterialElasticCaughey(Model & model, const MaterialID & id = "");
 
   virtual ~MaterialElasticCaughey() {};
 

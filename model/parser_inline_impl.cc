@@ -27,13 +27,41 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template <typename Mat>
-inline Material * MaterialParser::readMaterialObject(SolidMechanicsModel & model,MaterialID & mat_id){
+template <typename M>
+inline void Parser::readSection(M & model){
+  std::string keyword;
+  std::string value;
+
+  my_getline();
+
+  while(line[0] != ']') {
+    size_t pos = line.find("=");
+    if(pos == std::string::npos)
+      AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
+			 << current_line);
+
+    keyword = line.substr(0, pos);  trim(keyword);
+    value   = line.substr(pos + 1); trim(value);
+
+    try {
+      model.setParam(keyword, value);
+    } catch (debug::Exception ex) {
+      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
+			 << ex.info() << "\" at line " << current_line);
+    }
+
+    my_getline();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Obj>
+inline Obj * Parser::readSection(Model & model,std::string & obj_name){
   std::string keyword;
   std::string value;
 
   /// instanciate the material object
-  Material * mat = new Mat(model, mat_id);
+  Obj * obj = new Obj(model, obj_name);
   /// read the material properties
   my_getline();
 
@@ -47,7 +75,7 @@ inline Material * MaterialParser::readMaterialObject(SolidMechanicsModel & model
     value   = line.substr(pos + 1); trim(value);
 
     try {
-      mat->setParam(keyword, value, mat_id);
+      obj->setParam(keyword, value, obj_name);
     } catch (debug::Exception ex) {
       AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
 			 << ex.info() << "\" at line " << current_line);
@@ -55,11 +83,12 @@ inline Material * MaterialParser::readMaterialObject(SolidMechanicsModel & model
 
     my_getline();
   }
-  return mat;
+  return obj;
 }
 
+
 /* -------------------------------------------------------------------------- */
-inline std::string MaterialParser::getNextMaterialType(){
+inline std::string Parser::getNextSection(const std::string & section_type){
   while(infile.good()) {
     my_getline();
 
@@ -74,7 +103,7 @@ inline std::string MaterialParser::getNextMaterialType(){
     to_lower(keyword);
     /// if found a material deccription then stop
     /// and prepare the things for further reading
-    if(keyword == "material") {
+    if(keyword == section_type) {
       std::string type; sstr >> type;
       to_lower(type);
       std::string obracket; sstr >> obracket;
@@ -87,7 +116,7 @@ inline std::string MaterialParser::getNextMaterialType(){
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialParser::my_getline() {
+inline void Parser::my_getline() {
   std::getline(infile, line); //read the line
   if (!(infile.flags() & (std::ios::failbit | std::ios::eofbit)))
     ++current_line;
@@ -97,7 +126,7 @@ inline void MaterialParser::my_getline() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialParser::open(const std::string & filename){
+inline void Parser::open(const std::string & filename){
   infile.open(filename.c_str());
   current_line = 0;
 

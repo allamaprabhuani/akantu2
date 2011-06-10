@@ -50,14 +50,14 @@ template <typename M>
 UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					     const std::string & keyword) {
 
-  MaterialParser parser;
+  Parser parser;
   parser.open(filename);
   std::string key = keyword;
   to_lower(key);
-  std::string mat_name = parser.getNextMaterialType();
+  std::string mat_name = parser.getNextSection("material");
   while (mat_name != ""){
     if (mat_name == key) break;
-    mat_name = parser.getNextMaterialType();
+    mat_name = parser.getNextSection("material");
   }
   if (mat_name != key) AKANTU_DEBUG_ERROR("material "
 					  << key
@@ -65,7 +65,7 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 
   std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
   MaterialID mat_id = sstr_mat.str();
-  Material * mat = parser.readMaterialObject<M>(*this,mat_id);
+  Material * mat = parser.readSection<M>(*this,mat_id);
   materials.push_back(mat);
   return materials.size();;
 }

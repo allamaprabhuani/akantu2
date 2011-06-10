@@ -34,7 +34,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialDamage::MaterialDamage(SolidMechanicsModel & model, const MaterialID & id)  :
+MaterialDamage::MaterialDamage(Model & model, const MaterialID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 

@@ -30,16 +30,17 @@
 #ifndef __AKANTU_MATERIAL_PARSER_HH__
 #define __AKANTU_MATERIAL_PARSER_HH__
 
+
 __BEGIN_AKANTU__
 
-class MaterialParser {
+class Parser {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialParser() : current_line(0) {};
-  virtual ~MaterialParser(){ infile.close(); };
+  Parser() : current_line(0) {};
+  virtual ~Parser(){ infile.close(); };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -50,11 +51,14 @@ public:
   void open(const std::string & filename);
 
   /// read the file and return the next material type
-  std::string getNextMaterialType();
+  std::string getNextSection(const std::string & obj_type);
 
   /// read properties and instanciate a given material object
-  template <typename Mat>
-  Material * readMaterialObject(SolidMechanicsModel & model, MaterialID & mat_id);
+  template <typename M>
+  void readSection(M & model);
+  template <typename Obj>
+  Obj * readSection(Model & model, std::string & obj_name);
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -78,7 +82,7 @@ private:
 };
 
 
-#include "material_parser_inline_impl.cc"
+#include "parser_inline_impl.cc"
 
 __END_AKANTU__
 

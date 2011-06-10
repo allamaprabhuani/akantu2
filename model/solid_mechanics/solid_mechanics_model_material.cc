@@ -35,9 +35,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
-  MaterialParser parser;
+  Parser parser;
   parser.open(filename);
-  std::string mat_type = parser.getNextMaterialType();
+  std::string mat_type = parser.getNextSection("material");
   UInt mat_count = 0;
 
   while (mat_type != ""){
@@ -45,14 +45,14 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     Material * material;
     MaterialID mat_id = sstr_mat.str();
     /// read the material properties
-    if(mat_type == "elastic") material = parser.readMaterialObject<MaterialElastic>(*this,mat_id);
-    else if(mat_type == "elastic_caughey") material = parser.readMaterialObject<MaterialElasticCaughey>(*this,mat_id);
-    else if(mat_type == "damage") material = parser.readMaterialObject<MaterialDamage>(*this,mat_id);
-    else if(mat_type == "mazars") material = parser.readMaterialObject<MaterialMazars>(*this,mat_id);
+    if(mat_type == "elastic") material = parser.readSection<MaterialElastic>(*this,mat_id);
+    else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this,mat_id);
+    else if(mat_type == "damage") material = parser.readSection<MaterialDamage>(*this,mat_id);
+    else if(mat_type == "mazars") material = parser.readSection<MaterialMazars>(*this,mat_id);
     else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
 			    << mat_type);
     materials.push_back(material);
-    mat_type = parser.getNextMaterialType();
+    mat_type = parser.getNextSection("material");
   }
 }
 

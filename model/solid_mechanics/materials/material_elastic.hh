@@ -50,7 +50,7 @@ class MaterialElastic : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElastic(SolidMechanicsModel & model, const MaterialID & id = "");
+  MaterialElastic(Model & model, const MaterialID & id = "");
 
   virtual ~MaterialElastic() {};
 

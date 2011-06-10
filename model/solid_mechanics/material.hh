@@ -40,6 +40,7 @@
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
+  class Model;
   class SolidMechanicsModel;
   class CommunicationBuffer;
 }
@@ -52,7 +53,7 @@ class Material : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Material(SolidMechanicsModel & model, const MaterialID & id = "");
+  Material(Model & model, const MaterialID & id = "");
   virtual ~Material();
 
   /* ------------------------------------------------------------------------ */

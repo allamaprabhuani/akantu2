@@ -64,48 +64,6 @@ akantu::UInt nb_nodes;
 akantu::UInt nb_element;
 
 
-akantu::Real density;
-akantu::Real conductivity[3][3];
-akantu::Real capacity;
-
-
-int readMaterial () {
- 
-  string str;
-  ifstream myfile;
- 
-
-  myfile.open("Material.dat");
-  if(!myfile) //Always test the file open.
-  {
-    cout<<"Error opening output file"<<endl;
-    return -1;
-  }
-  
-  getline(myfile, str);
-  density=atof(str.c_str());
-    
-  getline(myfile, str);
-  capacity=atof(str.c_str());
-  
-  getline(myfile, str);
-  char * cstr, *p;
-  char * tmp_cstr;
-  cstr = new char [str.size()+1];
-  strcpy (cstr, str.c_str());
-  tmp_cstr = cstr;
-  for(int i=0;i<3;i++)
-    for(int j=0; j<3;j++)
-      {
-	p=strtok(tmp_cstr, " "); tmp_cstr = NULL;
-	conductivity[i][j]= atof(p);
-	cout<<conductivity[i][j]<<endl;
-      }
- 
-
-   return 0;
-}
-
 
 int main(int argc, char *argv[])
 {
@@ -113,13 +71,10 @@ int main(int argc, char *argv[])
   akantu::MeshIOMSH mesh_io;
 
   mesh_io.read("cube1.msh", mesh);
-  readMaterial();
-
-  cout<<"The density of the material is:"<< density <<endl;
-  cout<<"The capacity of the material is:"<< capacity <<endl;
-
+  
   model = new akantu::HeatTransferModel(mesh);
-  //model initialization
+  model->readMaterials("Material.dat");
+ //model initialization
   model->initModel();
   //initialize the vectors
   model->initVectors();
@@ -139,9 +94,9 @@ int main(int argc, char *argv[])
 
  
 
-  model->setDensity(density);
-  model->setCapacity(capacity);
-  model->SetConductivityMatrix(conductivity);
+  // model->setDensity(density);
+  // model->setCapacity(capacity);
+  // model->SetConductivityMatrix(conductivity);
  
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
@@ -185,7 +140,7 @@ int main(int argc, char *argv[])
 
   DumperParaview dumper;
   paraviewInit(dumper);
-  model->assembleMassLumped(type);
+  model->assembleCapacityLumped(type);
 
 
   // //for testing

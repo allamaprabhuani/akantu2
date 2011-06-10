@@ -116,6 +116,8 @@ void HeatTransferModel::initVectors()
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+
 HeatTransferModel::~HeatTransferModel() 
 {
   AKANTU_DEBUG_IN();
@@ -123,18 +125,7 @@ HeatTransferModel::~HeatTransferModel()
   AKANTU_DEBUG_OUT();
 }
 
-void HeatTransferModel::SetConductivityMatrix(Real a[3][3])
-{
-  conductivity = new Real[spatial_dimension * spatial_dimension];
-
-  for(int i = 0; i < spatial_dimension; ++i)
-    for(int j = 0; j < spatial_dimension; ++j)
-      conductivity[i * spatial_dimension + j] = a[i][j];
-} 
-
-
-
-
+/* -------------------------------------------------------------------------- */
 
 //set boundary condition
 void setBoundaryCondition()
@@ -145,8 +136,9 @@ void setBoundaryCondition()
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
 
-void HeatTransferModel::assembleMassLumped(const ElementType &el_type)
+void HeatTransferModel::assembleCapacityLumped(const ElementType &el_type)
 {
    AKANTU_DEBUG_IN();
    
@@ -161,15 +153,15 @@ void HeatTransferModel::assembleMassLumped(const ElementType &el_type)
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it)
   {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-     
-     fem.assembleFieldLumped(rho_1, *lumped, *it, _not_ghost);
-      
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+    
+    fem.assembleFieldLumped(rho_1, *lumped, *it, _not_ghost);
   }
- 
-   AKANTU_DEBUG_OUT();
+  
+  AKANTU_DEBUG_OUT();
 }
   
+/* -------------------------------------------------------------------------- */
 
 
 // compute the heat flux 
@@ -241,6 +233,7 @@ void HeatTransferModel::assembleMassLumped(const ElementType &el_type)
 }
  
 
+/* -------------------------------------------------------------------------- */
 
 
 
@@ -288,6 +281,7 @@ void HeatTransferModel::updateTemperature()
 
 
 
+/* -------------------------------------------------------------------------- */
 
 
 //choose scheme for temperature iteration
@@ -297,16 +291,16 @@ void HeatTransferModel::integrationScheme1stOrder(Real thelta, UInt N,  Vector<R
   AKANTU_DEBUG_IN();
   
  //remember to use time_step
-  if(thelta=0.0)
+  if(thelta==0.0)
   {
       // temperature->values[i] +=  temperature->values[i] + heat_flux->values[i]/lumped->values[i];
   }
-  else if(thelta=0.5)
+  else if(thelta==0.5)
   {
 
   }
  
-  else if(thelta=1.0)
+  else if(thelta==1.0)
   {
       
   }
@@ -314,7 +308,7 @@ void HeatTransferModel::integrationScheme1stOrder(Real thelta, UInt N,  Vector<R
   AKANTU_DEBUG_OUT();
 }
 
-
+/* -------------------------------------------------------------------------- */
 Real HeatTransferModel::getStableTimeStep()
 {
   AKANTU_DEBUG_IN();
@@ -377,8 +371,43 @@ Real HeatTransferModel::getStableTimeStep()
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
 
+void HeatTransferModel::readMaterials(const std::string & filename) {
+  Parser parser;
+  parser.open(filename);
+  std::string mat_type = parser.getNextSection("heat");
+  UInt mat_count = 0;
 
+  if (mat_type != ""){
+    parser.readSection<HeatTransferModel>(*this);
+  }
+  else
+    AKANTU_DEBUG_ERROR("did not find any section with material info for heat conduction");
+}
+
+/* -------------------------------------------------------------------------- */
+
+void HeatTransferModel::setParam(const std::string & key, const std::string & value) {
+  std::stringstream str(value);
+  if (key == "conductivity"){
+    conductivity = new Real[spatial_dimension * spatial_dimension];
+    for(int i=0;i<spatial_dimension;i++)
+      for(int j=0; j<spatial_dimension;j++)
+	{
+	  str >> conductivity[i*spatial_dimension+j];
+	}
+  }
+  else if (key == "capacity"){
+    str >> capacity;
+    AKANTU_DEBUG_INFO("The capacity of the material is:" << capacity);
+  }
+  else if (key == "density"){
+    str >> density;    
+    AKANTU_DEBUG_INFO("The density of the material is:" << density);
+  }	
+}
+/* -------------------------------------------------------------------------- */
 
 
 __END_AKANTU__

@@ -34,7 +34,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model, const MaterialID & id)  :
+LocalMaterialDamage::LocalMaterialDamage(Model & model, const MaterialID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 

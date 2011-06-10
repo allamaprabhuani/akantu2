@@ -27,14 +27,11 @@
 
 /* -------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "heat_transfer_model.hh"
-//#include "material.hh"
-// basic file operations
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -45,109 +42,29 @@ using namespace std;
 #include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
 
- akantu::UInt spatial_dimension = 3;
- akantu:: ElementType type = akantu::_tetrahedron_4;
- akantu::UInt paraview_type = TETRA1;
-
-
-// akantu::UInt spatial_dimension = 3;
-// akantu:: ElementType type = akantu::_hexahedron_8;
-// akantu::UInt paraview_type = HEX1;
-// //just for checking
-// akantu::UInt spatial_dimension = 2;
-// akantu:: ElementType type = akantu::_triangle_3;
-// akantu::UInt paraview_type = TRIANGLE1;
-
-// akantu::UInt spatial_dimension = 2;
-// akantu:: ElementType type = akantu::_quadrangle_4;
-//  akantu::UInt paraview_type = QUAD1;
-
- // akantu::UInt spatial_dimension = 1;
- // akantu:: ElementType type = akantu::_segment_2;
- // akantu::UInt paraview_type = LINE1;
-
-//just for checking
- 
-
-
-void paraviewInit(Dumper & dumper);
+void paraviewInit(akantu::HeatTransferModel * model,Dumper & dumper);
 void paraviewDump(Dumper & dumper);
 
-akantu::HeatTransferModel * model;
+akantu::UInt spatial_dimension = 3;
+akantu:: ElementType type = akantu::_tetrahedron_4;
+akantu::UInt paraview_type = TETRA1;
 
-akantu::UInt nb_nodes;
-akantu::UInt nb_element;
-
-
-akantu::Real density;
-akantu::Real conductivity[3][3];
-akantu::Real capacity;
-
-
-int readMaterial () {
- 
-  string str;
-  ifstream myfile;
- 
-
-  myfile.open("Material.dat");
-  if(!myfile) //Always test the file open.
-  {
-    cout<<"Error opening output file"<<endl;
-    return -1;
-  }
-  
-  getline(myfile, str);
-  density=atof(str.c_str());
-    
-  getline(myfile, str);
-  capacity=atof(str.c_str());
-  
-  getline(myfile, str);
-  char * cstr, *p;
-  char * tmp_cstr;
-  cstr = new char [str.size()+1];
-  strcpy (cstr, str.c_str());
-  // p=strtok (cstr," ");
-  // conductivity[0][0]= atof(p);
-  // cout<<conductivity[0][0]<<endl;
-  // p=strtok(NULL, " ");
-  // conductivity[0][1]= atof(p);
-  // cout<<conductivity[0][1]<<endl;
-  // p=strtok(NULL, " ");
-  // conductivity[0][2]= atof(p);
-  // cout<<conductivity[0][2]<<endl;
-
-  tmp_cstr = cstr;
-  for(int i=0;i<3;i++)
-    for(int j=0; j<3;j++)
-      {
-	p=strtok(tmp_cstr, " "); tmp_cstr = NULL;
-	conductivity[i][j]= atof(p);
-	cout<<conductivity[i][j]<<endl;
-      }
- 
-
-   return 0;
-}
-
+/* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[])
 {
+
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
 
   mesh_io.read("cube1.msh", mesh);
-  //just for checking
-  // mesh_io.read("square1.msh", mesh);
-  // mesh_io.read("bar1.msh", mesh);
-  // mesh_io.read("line.msh", mesh);
-  readMaterial();
-
-  cout<<"The density of the material is:"<< density <<endl;
-  cout<<"The capacity of the material is:"<< capacity <<endl;
+  
+  akantu::HeatTransferModel * model;
+  akantu::UInt nb_nodes;
+  akantu::UInt nb_element;
 
   model = new akantu::HeatTransferModel(mesh);
+  model->readMaterials("Material.dat");
   //model initialization
   model->initModel();
   //initialize the vectors
@@ -157,21 +74,11 @@ int main(int argc, char *argv[])
   nb_element = model->getFEM().getMesh().getNbElement(type);
 
  
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  nb_nodes = model->getFEM().getMesh().getNbNodes();
   model->getHeatFlux().clear();
   model->getLumped().clear();
   model->getTemperatureGradient(type).clear();
 
-  // akantu::debug::setDebugLevel(akantu::dblDump);
-  // std::cout << model->getTemperatureGradient(type) << std::endl;
-  // akantu::debug::setDebugLevel(akantu::dblWarning);
-
- 
-
-  model->setDensity(density);
-  model->setCapacity(capacity);
-  model->SetConductivityMatrix(conductivity);
- 
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
   
@@ -195,28 +102,29 @@ int main(int argc, char *argv[])
     //temperature(i) = t1 - (t1 - t2) * sin(nodes(i, 0) * M_PI / length);
     temperature(i) = 100.;
 
-    if(nodes(i,0) < eps) {
-      boundary(i) = true;
-      temperature(i) = 100.0;
-    }
+    // if(nodes(i,0) < eps) {
+    //   boundary(i) = true;
+    //   temperature(i) = 100.0;
+    // }
     //set the second boundary condition
-    if(std::abs(nodes(i,0) - length) < eps) {
-      boundary(i) = true;
-      temperature(i) = 100.;
-    }
+    // if(std::abs(nodes(i,0) - length) < eps) {
+    //   boundary(i) = true;
+    //   temperature(i) = 100.;
+    // }
     //to insert a heat source
-     if(std::abs(nodes(i,0) - length/2.) < 0.025 && std::abs(nodes(i,1) - length/2.) < 0.025 && std::abs(nodes(i,2) - length/2.) < 0.025) {
-    // if(std::abs(nodes(i,0) - length/2.) < 0.01 && std::abs(nodes(i,1) - length/2.) < 0.01) {
-       boundary(i) = true;
-     temperature(i) = 300.;
-     }
-
-   
+    akantu::Real dx = nodes(i,0) - length/2.;
+    akantu::Real dy = nodes(i,1) - length/2.;
+    akantu::Real dz = nodes(i,2) - length/2.;
+    akantu::Real d = sqrt(dx*dx + dy*dy + dz*dz);
+    if(d < 0.1){
+      boundary(i) = true;
+      temperature(i) = 300.;
+    }
   }
 
   DumperParaview dumper;
-  paraviewInit(dumper);
-  model->assembleMassLumped(type);
+  paraviewInit(model,dumper);
+  model->assembleCapacityLumped(type);
 
 
   // //for testing
@@ -230,15 +138,20 @@ int main(int argc, char *argv[])
      
       if(i % 100 == 0)
 	paraviewDump(dumper);
-      if(i % 10000 == 0)
+      if(i % 10 == 0)
       std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
   cout<< "\n\n Stable Time Step is : " << time_step << "\n \n" <<endl;
 
   return 0;
 }
+/* -------------------------------------------------------------------------- */
 
-void paraviewInit(Dumper & dumper) {
+void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
+  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+  
+
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
@@ -257,8 +170,10 @@ void paraviewInit(Dumper & dumper) {
   dumper.Dump();
 }
 
+/* -------------------------------------------------------------------------- */
 
 void paraviewDump(Dumper & dumper) {
   dumper.Dump();
 }
 
+/* -------------------------------------------------------------------------- */

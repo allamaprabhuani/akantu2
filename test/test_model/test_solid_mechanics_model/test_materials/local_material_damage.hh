@@ -43,7 +43,7 @@ class LocalMaterialDamage : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  LocalMaterialDamage(SolidMechanicsModel & model, const MaterialID & id = "");
+  LocalMaterialDamage(Model & model, const MaterialID & id = "");
 
   virtual ~LocalMaterialDamage() {};
 

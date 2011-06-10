@@ -43,7 +43,7 @@ class MaterialDamage : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamage(SolidMechanicsModel & model, const MaterialID & id = "");
+  MaterialDamage(Model & model, const MaterialID & id = "");
 
   virtual ~MaterialDamage() {};
 
