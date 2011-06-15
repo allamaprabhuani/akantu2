@@ -134,6 +134,7 @@ public:
 						    CommunicatorType type = _communicator_mpi);
 
   static bool isInstantiated() { return is_instantiated; };
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

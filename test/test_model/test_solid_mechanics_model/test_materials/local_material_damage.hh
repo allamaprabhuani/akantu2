@@ -85,7 +85,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the stable time step
-  inline Real getStableTimeStep(Real h);
+  inline Real getStableTimeStep(Real h, const Element & element);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

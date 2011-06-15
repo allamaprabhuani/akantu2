@@ -36,6 +36,8 @@
 
 __BEGIN_AKANTU__
 
+const Element ElementNull(_not_defined, 0);
+
 /* -------------------------------------------------------------------------- */
 void Element::printself(std::ostream & stream, int indent) const {
   std::string space;

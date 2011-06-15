@@ -104,14 +104,13 @@ int main(int argc, char *argv[])
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
   memset(model->getDisplacement().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-
+ model->initModel();
 
   model->readMaterials("material.dat");
   model->initMaterials();
   model->registerSynchronizer(*communicator);
 
 
-  model->initModel();
 
   std::cout << model->getMaterial(0) << std::endl;
 

@@ -69,6 +69,8 @@ public:
   UInt element;
 };
 
+extern const Element ElementNull;
+
 /* -------------------------------------------------------------------------- */
 
 /**
