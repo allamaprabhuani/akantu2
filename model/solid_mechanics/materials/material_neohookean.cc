@@ -32,7 +32,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialNeohookean::MaterialNeohookean(SolidMechanicsModel & model, const MaterialID & id)  :
+MaterialNeohookean::MaterialNeohookean(Model & model, const MaterialID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 

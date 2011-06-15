@@ -1,5 +1,5 @@
 /**
- * @file   material_elastic.hh
+ * @file   material_neohookean.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
@@ -50,7 +50,7 @@ class MaterialNeohookean : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialNeohookean(SolidMechanicsModel & model, const MaterialID & id = "");
+  MaterialNeohookean(Model & model, const MaterialID & id = "");
 
   virtual ~MaterialNeohookean() {};
 
