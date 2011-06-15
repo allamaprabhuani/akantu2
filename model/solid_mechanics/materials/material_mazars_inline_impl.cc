@@ -125,6 +125,7 @@ inline Real MaterialMazars::celerity() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialMazars::getStableTimeStep(Real h) {
+inline Real MaterialMazars::getStableTimeStep(Real h, 
+					      __attribute__ ((unused)) const Element & element) {
   return (h/celerity());
 }

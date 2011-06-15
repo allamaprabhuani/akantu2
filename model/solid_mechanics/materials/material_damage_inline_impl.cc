@@ -87,6 +87,7 @@ inline Real MaterialDamage::celerity() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialDamage::getStableTimeStep(Real h) {
+inline Real MaterialDamage::getStableTimeStep(Real h, 
+					      __attribute__ ((unused)) const Element & element) {
   return (h/celerity());
 }

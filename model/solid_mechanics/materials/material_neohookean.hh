@@ -1,8 +1,6 @@
 /**
- * @file   material_damage.hh
+ * @file   material_elastic.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
  * @brief  Material isotropic elastic
@@ -32,20 +30,29 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DAMAGE_HH__
-#define __AKANTU_MATERIAL_DAMAGE_HH__
+#ifndef __AKANTU_MATERIAL_NEOHOOKEAN_HH__
+#define __AKANTU_MATERIAL_NEOHOOKEAN_HH__
 
 __BEGIN_AKANTU__
 
-class MaterialDamage : public Material {
+/**
+ * Material elastic isotropic
+ *
+ * parameters in the material files :
+ *   - rho : density (default: 0)
+ *   - E   : Young's modulus (default: 0)
+ *   - nu  : Poisson's ratio (default: 1/2)
+ *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
+ */
+class MaterialNeohookean : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamage(Model & model, const MaterialID & id = "");
+  MaterialNeohookean(SolidMechanicsModel & model, const MaterialID & id = "");
 
-  virtual ~MaterialDamage() {};
+  virtual ~MaterialNeohookean() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -60,27 +67,35 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma,Real & damage);
+  /// compute the tangent stiffness matrix for an element type
+  void computeTangentStiffness(const ElementType & el_type,
+			       Vector<Real> & tangent_matrix,
+			       GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
-
-  /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
-			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-    
-  /// compute the celerity of wave in the material
-  inline Real celerity();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+private:
+  /// compute the celerity of wave in the material
+  Real celerity(const Element & element);
+
+  /// compute the potential energy for on element
+  inline void computePotentialEnergy(Real * F, Real * epot);
+protected:
+  /// constitutive law for a given quadrature point
+  inline void computeStress(Real * F, Real * sigma);
+
+  // /// compute the tangent stiffness matrix for an element type
+  template<UInt dim>
+  void computeTangentStiffnessByDim(akantu::ElementType, akantu::Vector<Real>& tangent_matrix, akantu::GhostType);
+
+  // /// compute the tangent stiffness matrix for an element
+  template<UInt dim>
+  void computeTangentStiffness(Real * tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -88,15 +103,9 @@ public:
 public:
   /// get the stable time step
   inline Real getStableTimeStep(Real h, const Element & element);
-
-  /// return damage value
-  ByElementTypeReal & getDamage(){return damage;};
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Damage, damage, const Vector<Real> &);
 private:
 
   /// the young modulus
@@ -111,29 +120,23 @@ private:
   /// Second Lamé coefficient (shear modulus)
   Real mu;
 
-  /// resistance to damage
-  Real Yd;
-
-  /// damage threshold
-  Real Sd;
-
   /// Bulk modulus
   Real kpa;
 
-  /// damage internal variable
-  ByElementTypeReal damage;
-  ByElementTypeReal ghost_damage;
+  /// Plain stress or plain strain
+  bool plain_stress;
+
 };
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_damage_inline_impl.cc"
+#include "material_neohookean_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamage & _this)
+inline std::ostream & operator <<(std::ostream & stream, const MaterialNeohookean & _this)
 {
   _this.printself(stream);
   return stream;
@@ -141,4 +144,4 @@ inline std::ostream & operator <<(std::ostream & stream, const MaterialDamage & 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_DAMAGE_HH__ */
+#endif /* __AKANTU_MATERIAL_NEOHOOKEAN_HH__ */

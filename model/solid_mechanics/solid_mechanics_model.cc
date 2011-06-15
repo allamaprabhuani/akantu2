@@ -659,10 +659,11 @@ Real SolidMechanicsModel::getStableTimeStep() {
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
+  Element elem;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(mesh.getSpatialDimension(*it) != spatial_dimension) continue;
 
-
+    elem.type = *it;
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
     UInt nb_element           = mesh.getNbElement(*it);
 
@@ -672,7 +673,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
 
     for (UInt el = 0; el < nb_element; ++el) {
       UInt el_offset  = el * nb_nodes_per_element;
-
+      elem.element = el;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	UInt offset_conn = conn[el_offset + n] * spatial_dimension;
 	memcpy(u + n * spatial_dimension,
@@ -685,7 +686,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
       }
 
       Real el_size    = getFEM().getElementInradius(u, *it);
-      Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size);
+      Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size, elem);
       min_dt = min_dt > el_dt ? el_dt : min_dt;
     }
 

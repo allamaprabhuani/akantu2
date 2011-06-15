@@ -1,9 +1,9 @@
 /**
- * @file   material_elastic_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @file   material_neohookean_inline_impl.cc
+ * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 11:57:43 2010
  *
- * @brief  Implementation of the inline functions of the material elastic
+ * @brief  Implementation of the inline functions of the material neohookean
  *
  * @section LICENSE
  *
@@ -27,24 +27,40 @@
 
 /* -------------------------------------------------------------------------- */
 
-
+#include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
-inline void MaterialElastic::computeStress(Real * F, Real * sigma) {
-  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
-
-  /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
-  sigma[0] = lambda * trace + 2*mu*F[0];
-  sigma[4] = lambda * trace + 2*mu*F[4];
-  sigma[8] = lambda * trace + 2*mu*F[8];
-
-  sigma[1] = sigma[3] =  mu * (F[1] + F[3]);
-  sigma[2] = sigma[6] =  mu * (F[2] + F[6]);
-  sigma[5] = sigma[7] =  mu * (F[5] + F[7]);
+inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
+  ///First compute the Left Cauchy-Green deformation tensor : C= F^tF. 
+   Real C[3*3];
+   Real S[3*3];
+   
+  UInt i;
+  Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
+  ///Compute determinant of C
+  Real detC;
+  detC=Math::det3(C);
+  Real defvol ;
+  defvol= 0.5*log(detC);
+  Real p;
+  p = lambda*defvol;
+  Real traceC;
+  traceC = C[0]+C[4]+C[8];
+  Real Cinv[3*3];
+  Math::inv3(C,Cinv);
+  Real coef = p -mu ;
+  for(i=0;i<3*3;i++){
+    S[i]=coef*Cinv[i];
+}
+  
+  S[0] = sigma[0] + mu;
+  S[4] = sigma[4] + mu;
+  S[8] = sigma[8] + mu;
+  Math::matrix_matrix(3, 3,3, F, S, sigma, 1.);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void  MaterialElastic::computeTangentStiffnessByDim(__attribute__((unused)) akantu::ElementType,
+void  MaterialNeohookean::computeTangentStiffnessByDim(__attribute__((unused)) akantu::ElementType,
 						    akantu::Vector<Real>& tangent_matrix,
 						    __attribute__((unused)) akantu::GhostType) {
   AKANTU_DEBUG_IN();
@@ -65,7 +81,7 @@ void  MaterialElastic::computeTangentStiffnessByDim(__attribute__((unused)) akan
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void  MaterialElastic::computeTangentStiffness(Real * tangent) {
+void  MaterialNeohookean::computeTangentStiffness(Real * tangent) {
 
   UInt n = (dim * (dim - 1) / 2 + dim);
 
@@ -98,22 +114,28 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialElastic::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
+inline void MaterialNeohookean::computePotentialEnergy(Real * F, Real * epot) {
   *epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      (*epot) += sigma[t] * F[t] ;
+  Real C[3*3];
+  Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
+  ///Compute determinant of C
+  Real detC;
+  detC=Math::det3(C);
+  Real defvol ;
+  defvol= 0.5*log(detC);
+  Real p;
+  p = lambda*defvol;
+  Real traceC;
+  traceC = C[0]+C[4]+C[8];
+  ///energie potentielle
+ 
+  *epot = (0.5*p-mu)*defvol+0.5*mu*(traceC-3.);  
 
-  *epot *= .5;
+
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialElastic::celerity() {
-  return sqrt(E/rho);
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real MaterialElastic::getStableTimeStep(Real h, 
-					       __attribute__ ((unused)) const Element & element) {
-  return (h/celerity());
+inline Real MaterialNeohookean::getStableTimeStep(Real h, 
+						 const Element & element) {
+  return (h/celerity(element));
 }

@@ -78,7 +78,7 @@ public:
 			       GhostType ghost_type);
 
   /// compute the stable time step for an element of size h
-  virtual Real getStableTimeStep(Real h) = 0;
+  virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
 
   /// add an element to the local mesh filter
   inline void addElement(ElementType type, UInt element);
@@ -312,5 +312,6 @@ __END_AKANTU__
 #include "materials/material_elastic_caughey.hh"
 #include "materials/material_damage.hh"
 #include "materials/material_mazars.hh"
+#include "materials/material_neohookean.hh"
 
 #endif /* __AKANTU_MATERIAL_HH__ */
