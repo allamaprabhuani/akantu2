@@ -30,6 +30,7 @@
 #include <cerrno>
 #include <execinfo.h>
 #include <cxxabi.h>
+#include <fstream>
 
 /* -------------------------------------------------------------------------- */
 #include "aka_error.hh"
@@ -42,19 +43,22 @@ namespace debug {
   void setDebugLevel(const DebugLevel & level) {
     _debug_level = level;
   }
-
   /* ------------------------------------------------------------------------ */
   const DebugLevel & getDebugLevel() {
     return _debug_level;
   }
-
+  /* ------------------------------------------------------------------------ */
+  void setLogFile(const std::string & filename) {
+    std::ofstream * fileout = new std::ofstream(filename.c_str()); 
+    akantu::debug::_akantu_debug_cout = fileout;
+  }
   /* ------------------------------------------------------------------------ */
   void setParallelContext(int rank, int size) {
     std::stringstream sstr;
-    sstr << "[" << std::setfill(' ') << std::right << std::setw(3) << (rank + 1) << "/" << size << "] ";
+    sstr << "[" << std::setfill(' ') << std::right << std::setw(3) 
+	 << (rank + 1) << "/" << size << "] ";
     _parallel_context = sstr.str();
   }
-
   /* ------------------------------------------------------------------------ */
   void initSignalHandler() {
     struct sigaction action;

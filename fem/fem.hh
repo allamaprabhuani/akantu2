@@ -133,12 +133,21 @@ public:
   /// assemble vectors
   void assembleVector(const Vector<Real> & elementary_vect,
 		      Vector<Real> & nodal_values,
+		      const Vector<Int> & equation_number,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
 		      GhostType ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL,
 		      Real scale_factor = 1) const;
 
+  /// assemble vectors
+  void assembleVector(const Vector<Real> & elementary_vect,
+		      Vector<Real> & nodal_values,
+		      UInt nb_degre_of_freedom,
+		      const ElementType & type,
+		      GhostType ghost_type = _not_ghost,
+		      const Vector<UInt> * filter_elements = NULL,
+		      Real scale_factor = 1) const;
 
   /// assemble matrix in the complete sparse matrix
   void assembleMatrix(const Vector<Real> & elementary_mat,
@@ -152,11 +161,13 @@ public:
 
   /// assemble a field as a lumped matrix (ex. rho in lumped mass)
   virtual void assembleFieldLumped(__attribute__ ((unused)) const Vector<Real> & field_1,
-				   __attribute__ ((unused)) Vector<Real> & lumped,
-				   __attribute__ ((unused)) ElementType type,
-				   __attribute__ ((unused)) __attribute__ ((unused)) GhostType ghost_type) {
+  				   __attribute__ ((unused)) Vector<Real> & lumped,
+  				   __attribute__ ((unused)) const Vector<Int> & equation_number,
+  				   __attribute__ ((unused)) ElementType type,
+  				   __attribute__ ((unused)) __attribute__ ((unused)) GhostType ghost_type) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
+
 
   /// assemble a field as a matrix (ex. rho to mass matrix)
   virtual void assembleFieldMatrix(__attribute__ ((unused)) const Vector<Real> & field_1,

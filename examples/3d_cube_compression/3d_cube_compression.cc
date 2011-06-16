@@ -37,7 +37,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "communicator.hh"
+#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -65,27 +65,21 @@ int main(int argc, char *argv[])
   //  akantu::Real epot, ekin;
   akantu::Mesh mesh(spatial_dimension);
 
-  /* ------------------------------------------------------------------------ */
-  /* Parallel initialization                                                  */
-  /* ------------------------------------------------------------------------ */
-  akantu::Communicator * communicator;
+  akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
     mesh_io.read("cube.msh", mesh);
-    akantu::MeshPartition * partition =
-      new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
-    delete partition;
-  } else {
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
+  
 
   // akantu::Mesh mesh(spatial_dimension);
   // akantu::MeshIOMSH mesh_io;
   // mesh_io.read("cube.msh", mesh);
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+  model->initParallel(partition);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
@@ -106,10 +100,9 @@ int main(int argc, char *argv[])
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
  model->initModel();
 
+  model->initExplicit();
   model->readMaterials("material.dat");
   model->initMaterials();
-  model->registerSynchronizer(*communicator);
-
 
 
   std::cout << model->getMaterial(0) << std::endl;

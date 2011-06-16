@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   memset(model->getDisplacement().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
-
+  model->initExplicit();
   model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();

@@ -1,5 +1,5 @@
 /**
- * @file   communicator.cc
+ * @file   distributed_synchronizer.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug 26 16:36:21 2010
  *
@@ -31,8 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "ghost_synchronizer.hh"
-#include "communicator.hh"
+#include "distributed_synchronizer.hh"
 #include "static_communicator.hh"
 #include "mesh_utils.hh"
 
@@ -41,7 +40,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Communicator::Communicator(SynchronizerID id,
+DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
 			   MemoryID memory_id) :
   Synchronizer(id, memory_id),
   static_communicator(StaticCommunicator::getStaticCommunicator()) {
@@ -70,7 +69,7 @@ Communicator::Communicator(SynchronizerID id,
 }
 
 /* -------------------------------------------------------------------------- */
-Communicator::~Communicator() {
+DistributedSynchronizer::~DistributedSynchronizer() {
   AKANTU_DEBUG_IN();
 
   for (UInt p = 0; p < nb_proc; ++p) {
@@ -92,11 +91,12 @@ Communicator::~Communicator() {
 }
 
 /* -------------------------------------------------------------------------- */
-Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
-							      const MeshPartition * partition,
-							      UInt root,
-							      SynchronizerID id,
-							      MemoryID memory_id) {
+DistributedSynchronizer * DistributedSynchronizer::
+createDistributedSynchronizerMesh(Mesh & mesh,
+				  const MeshPartition * partition,
+				  UInt root,
+				  SynchronizerID id,
+				  MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
   const UInt TAG_SIZES        = 0;
@@ -112,7 +112,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
 
-  Communicator * communicator = new Communicator(id, memory_id);
+  DistributedSynchronizer * communicator = new DistributedSynchronizer(id, memory_id);
 
   if(nb_proc == 1) return communicator;
 
@@ -576,7 +576,7 @@ Communicator * Communicator::createCommunicatorDistributeMesh(Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::fillNodesType(Int * nodes_type_tmp, Mesh & mesh) {
+void DistributedSynchronizer::fillNodesType(Int * nodes_type_tmp, Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
@@ -655,7 +655,7 @@ void Communicator::fillNodesType(Int * nodes_type_tmp, Mesh & mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::fillCommunicationScheme(UInt * partition,
+void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
 					   UInt nb_local_element,
 					   UInt nb_ghost_element,
 					   ElementType type) {
@@ -690,22 +690,27 @@ void Communicator::fillCommunicationScheme(UInt * partition,
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::synchronize(GhostSynchronizationTag tag) {
+void DistributedSynchronizer::synchronize(DataAccessor & data_accessor,
+					  SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  asynchronousSynchronize(tag);
+  asynchronousSynchronize(data_accessor,tag);
 
-  waitEndSynchronize(tag);
+  waitEndSynchronize(data_accessor,tag);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
+void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
+						      SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(send_requests.size() == 0,
 		      "There must be some pending sending communications");
+
+  if (size_to_send.count(tag) == 0 ||
+      size_to_receive.count(tag) == 0) computeBufferSize(data_accessor,tag);
 
   for (UInt p = 0; p < nb_proc; ++p) {
     UInt ssize = (size_to_send[tag]).values[p];
@@ -720,7 +725,7 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
 		      << " (" << ssize << "/" << nb_elements
 		      <<" data to send/elements)");
     for (UInt el = 0; el < nb_elements; ++el) {
-      ghost_synchronizer->packData(buffer, *elements, tag);
+      data_accessor.packData(buffer, *elements, tag);
       elements++;
     }
     std::cerr << std::dec;
@@ -751,7 +756,8 @@ void Communicator::asynchronousSynchronize(GhostSynchronizationTag tag) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
+void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
+						 SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   std::vector<CommunicationRequest *> req_not_finished;
@@ -771,7 +777,7 @@ void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
 	Element * elements = &recv_element[proc].at(0);
 	UInt nb_elements   =  recv_element[proc].size();
 	for (UInt el = 0; el < nb_elements; ++el) {
-	  ghost_synchronizer->unpackData(buffer, *elements, tag);
+	  data_accessor.unpackData(buffer, *elements, tag);
 	  elements++;
 	}
 
@@ -797,18 +803,19 @@ void Communicator::waitEndSynchronize(GhostSynchronizationTag tag) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) {
+void DistributedSynchronizer::allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) {
   AKANTU_DEBUG_IN();
   static_communicator->allReduce(values, nb_values, op);
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Communicator::registerTag(GhostSynchronizationTag tag) {
+void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor, 
+						SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(size_to_send.find(tag) == size_to_send.end(),
-		      "The GhostSynchronizationTag " << tag
+		      "The SynchronizationTag< " << tag
 		      << "is already registered in " << id);
 
   size_to_send   [tag].resize(nb_proc);
@@ -821,13 +828,13 @@ void Communicator::registerTag(GhostSynchronizationTag tag) {
       for (std::vector<Element>::const_iterator sit = send_element[p].begin();
 	   sit != send_element[p].end();
 	   ++sit) {
-	ssend += ghost_synchronizer->getNbDataToPack(*sit, tag);
+	ssend += data_accessor.getNbDataToPack(*sit, tag);
       }
 
       for (std::vector<Element>::const_iterator rit = recv_element[p].begin();
 	   rit != recv_element[p].end();
 	   ++rit) {
-	sreceive += ghost_synchronizer->getNbDataToUnpack(*rit, tag);
+	sreceive += data_accessor.getNbDataToUnpack(*rit, tag);
       }
       AKANTU_DEBUG_INFO("I have " << ssend << "(" << ssend / 1024. << "kB) data to send to " << p
 			<< " and " << sreceive << "(" << ssend / 1024. << "kB) data to receive for tag " << tag);

@@ -139,18 +139,18 @@ protected:
 public:
 
   inline virtual UInt getNbDataToPack(const Element & element,
-				      GhostSynchronizationTag tag);
+				      SynchronizationTag tag);
 
   inline virtual UInt getNbDataToUnpack(const Element & element,
-					GhostSynchronizationTag tag);
+					SynchronizationTag tag);
 
   inline virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
-			       GhostSynchronizationTag tag);
+			       SynchronizationTag tag);
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
-				 GhostSynchronizationTag tag);
+				 SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

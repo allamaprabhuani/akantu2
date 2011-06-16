@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
   MeshUtils::tweakConnectivityForPBC(mesh,1,0,0);
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
+
   model->initVectors();
   UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   memset(model->getForce().values,        0, 2*nb_nodes*sizeof(Real));

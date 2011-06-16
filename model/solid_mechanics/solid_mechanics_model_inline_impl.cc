@@ -77,7 +77,7 @@ inline FEM & SolidMechanicsModel::getFEMBoundary(std::string name) {
 
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
-						 GhostSynchronizationTag tag) const {
+						 SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -115,7 +115,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
-						   GhostSynchronizationTag tag) const {
+						   SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -154,7 +154,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 					  const Element & element,
-					  GhostSynchronizationTag tag) const {
+					  SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
@@ -211,7 +211,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 					    const Element & element,
-					    GhostSynchronizationTag tag) const {
+					    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);

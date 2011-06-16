@@ -61,9 +61,14 @@ private:
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
-					bool flag_x, bool flag_y, bool flag_z){
+					bool flag_x, 
+					bool flag_y, 
+					bool flag_z){
   std::map<UInt,UInt> pbc_pair;
   mesh.computeBoundingBox();
+  mesh.pbc_directions[0] = flag_x;
+  mesh.pbc_directions[1] = flag_y;
+  mesh.pbc_directions[2] = flag_z;
 
   if (flag_x) computePBCMap(mesh,0,pbc_pair);
   if (flag_y) computePBCMap(mesh,1,pbc_pair);
@@ -80,10 +85,12 @@ void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
       UInt i2 = (*it).second;
       
       AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
-			<< coords[dim*i1] << "," << coords[dim*i1+1] << "," << coords[dim*i1+2]
+			<< coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+			<< coords[dim*i1+2]
 			<< ") with"
 			<< i2 << "(" 
-			<< coords[dim*i2] << "," << coords[dim*i2+1] << "," << coords[dim*i2+2]
+			<< coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+			<< coords[dim*i2+2]
 			<< ")");	
       ++it;
     }
@@ -98,16 +105,34 @@ void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
     ElementType type = *it;
     UInt nb_elem = mesh.getNbElement(type);
     UInt nb_nodes_per_elem = mesh.getNbNodesPerElement(type);
-    UInt * conn = mesh.getConnectivityPointer(*it)->values;
+    UInt * conn = mesh.getConnectivityPointer(type)->values;
     UInt index = 0;
     Vector<UInt> & list = *(mesh.reversed_elements_pbc[type]);
     for (UInt el = 0; el < nb_elem; el++) {
+      UInt flag_should_register_elem = false;
       for (UInt k = 0; k < nb_nodes_per_elem; ++k,++index){
 	if (pbc_pair.count(conn[index])){
+	  flag_should_register_elem = true;
+	  AKANTU_DEBUG_INFO("elem list size " << list.getSize());
+	  AKANTU_DEBUG_INFO("node " << conn[index] +1
+			    << " switch to " 
+			    << pbc_pair[conn[index]]+1);
+	  // for (UInt toto = 0; toto < 3; ++toto) {
+	  //   AKANTU_DEBUG_INFO("dir " << toto << " coords "
+	  // 		      << mesh.nodes->values[conn[index]*3+toto] 
+	  // 		      << " switch to " 
+	  // 		      << mesh.nodes->values[pbc_pair[conn[index]]*3+toto]);
+	  // }
+	  std::stringstream str_temp;
+	  str_temp << "initial elem(" << el << ") is ";
+	  for (UInt l = 0 ; l < nb_nodes_per_elem ; ++ l){
+	    str_temp << conn[el*nb_nodes_per_elem+l]+1 << " ";
+	  }
+	  AKANTU_DEBUG_INFO(str_temp.str());
 	  conn[index] = pbc_pair[conn[index]];
 	}	
       }
-      list.push_back(el);
+      if (flag_should_register_elem) list.push_back(el);
     }
   }
 }
@@ -168,10 +193,12 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
     UInt i2 = *it_right;
 
     AKANTU_DEBUG_TRACE("do I pair? " << i1 << "(" 
-		      << coords[dim*i1] << "," << coords[dim*i1+1] << "," << coords[dim*i1+2]
+		      << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+		       << coords[dim*i1+2]
 		      << ") with"
 		      << i2 << "(" 
-		      << coords[dim*i2] << "," << coords[dim*i2+1] << "," << coords[dim*i2+2]
+		      << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+		       << coords[dim*i2+2]
 		      << ") in direction " << dir);	
 
     
@@ -187,10 +214,12 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
   	pbc_pair[i1] = i2;
 
 	AKANTU_DEBUG_TRACE("pairing " << i1 << "(" 
-			  << coords[dim*i1] << "," << coords[dim*i1+1] << "," << coords[dim*i1+2]
+			  << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+			   << coords[dim*i1+2]
 			  << ") with"
 			  << i2 << "(" 
-			  << coords[dim*i2] << "," << coords[dim*i2+1] << "," << coords[dim*i2+2]
+			  << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+			   << coords[dim*i2+2]
 			  << ") in direction " << dir);	
   	++it_left;
   	++it_right;

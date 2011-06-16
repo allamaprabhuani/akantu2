@@ -103,24 +103,24 @@ public:
 public:
 
   inline virtual UInt getNbDataToPack(const Element & element,
-				      GhostSynchronizationTag tag) const {
+				      SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
   inline virtual UInt getNbDataToUnpack(const Element & element,
-					GhostSynchronizationTag tag) const {
+					SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
   inline virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
-			       GhostSynchronizationTag tag) const {
+			       SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
-				 GhostSynchronizationTag tag) const {
+				 SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 

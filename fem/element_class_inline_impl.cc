@@ -49,10 +49,10 @@ template<ElementType type> inline UInt ElementClass<type>::getShapeDerivativesSi
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 void ElementClass<type>::preComputeStandards(const Real * coord,
-						    const UInt dimension,
-						    Real * shape,
-						    Real * dshape,
-						    Real * jacobians) {
+					     const UInt dimension,
+					     Real * shape,
+					     Real * dshape,
+					     Real * jacobians) {
   // ask for computation of shapes
   computeShapes(quad, nb_quadrature_points, shape);
 
@@ -134,8 +134,8 @@ inline void ElementClass<type>::computeJacobian(const Real * dxds,
   Real * cjac = jac;
   for (UInt p = 0; p < nb_points; ++p) {
     computeJacobian(cdxds, dimension, *cjac);
-    AKANTU_DEBUG_ASSERT((cjac[0] > 0),
-			"Negative jacobian computed, possible problem in the element node order.");
+    // AKANTU_DEBUG_ASSERT((cjac[0] > 0),
+    // 			"Negative jacobian computed, possible problem in the element node order.");
     cdxds += spatial_dimension * dimension;
     cjac++;
   }

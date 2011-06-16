@@ -219,8 +219,8 @@ enum CommunicatorType {
   _communicator_dummy
 };
 
-/// @enum GhostSynchronizationTag type of synchronizations
-enum GhostSynchronizationTag {
+/// @enum SynchronizationTag type of synchronizations
+enum SynchronizationTag {
   /// SolidMechanicsModel tags
   _gst_smm_mass,      /// synchronization of the SolidMechanicsModel.mass
   _gst_smm_for_strain,  /// synchronization of the SolidMechanicsModel.current_position

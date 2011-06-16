@@ -190,7 +190,11 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
   //do the integration
   getFEMBoundary().integrate(funct, int_funct, spatial_dimension*nb_nodes_per_element, type);
   // assemble the result into force vector
-  getFEMBoundary().assembleVector(int_funct,const_cast<Vector<Real> &>(getForce()), spatial_dimension, type);
+  getFEMBoundary().assembleVector(int_funct,
+				  const_cast<Vector<Real> &>(getForce()),
+				  *equation_number,
+				  spatial_dimension, 
+				  type);
   AKANTU_DEBUG_OUT();
 }
 

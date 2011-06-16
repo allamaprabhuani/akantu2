@@ -97,7 +97,6 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
 
   UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
   UInt size_of_shapesd   = ElementClass<type>::getShapeDerivativesSize();
-  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
   Real * natural_coords = control_points[type]->values;
   UInt nb_points = control_points[type]->getSize();
 
@@ -117,26 +116,23 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
   std::stringstream sstr_shapesd;
   sstr_shapesd << id << ":" << ghost << "shapes_derivatives:" << type;
   Vector<Real> * shapes_derivatives_tmp = &(alloc<Real>(sstr_shapesd.str(),
-							nb_element*nb_quadrature_points,
+							nb_element*nb_points,
 							size_of_shapesd));
 
-  Real * shapesd_val   = shapes_derivatives_tmp->values;
+  Real * shapesd_val = shapes_derivatives_tmp->values;
   Real local_coord[spatial_dimension * nb_nodes_per_element];
+
   for (UInt elem = 0; elem < nb_element; ++elem) {
     mesh->extractNodalCoordinatesFromElement(local_coord,
 					     elem_val+elem*nb_nodes_per_element,
 					     nb_nodes_per_element);
+    
+    computeShapeDerivativesOnCPointsByElement<type>(spatial_dimension,
+						    local_coord,nb_nodes_per_element,
+						    natural_coords,nb_points,
+						    shapesd_val);
 
-    // compute dnds
-    Real dnds[nb_nodes_per_element * spatial_dimension * nb_quadrature_points];
-    ElementClass<type>::computeDNDS(natural_coords, nb_points, dnds);
-    // compute dxds
-    Real dxds[spatial_dimension * spatial_dimension * nb_quadrature_points];
-    ElementClass<type>::computeDXDS(dnds, nb_quadrature_points, local_coord, spatial_dimension, dxds);
-    // compute shape derivatives
-    ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_quadrature_points, spatial_dimension, shapesd_val);
-
-    shapesd_val += size_of_shapesd*nb_quadrature_points;
+    shapesd_val += size_of_shapesd*nb_points;
   }
   if(ghost_type == _not_ghost) {
     shapes_derivatives[type] = shapes_derivatives_tmp;

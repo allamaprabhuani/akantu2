@@ -1,9 +1,9 @@
 /**
- * @file   synchronizer.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Aug 23 13:48:37 2010
+ * @file   synchronizer_registry.hh
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @date   Wed Jun 15 14:59:02 2011
  *
- * @brief  interface for communicator and pbc synchronizers
+ * @brief  Registry of synchronizers
  *
  * @section LICENSE
  *
@@ -27,65 +27,87 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_HH__
-#define __AKANTU_SYNCHRONIZER_HH__
+
+#ifndef __AKANTU_SYNCHRONIZER_REGISTRY_HH__
+#define __AKANTU_SYNCHRONIZER_REGISTRY_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "aka_memory.hh"
+#include "aka_common.hh"
 #include "data_accessor.hh"
+#include "synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
-namespace akantu {
-  class GhostSynchronizer;
-}
 
 __BEGIN_AKANTU__
 
-class Synchronizer : public Memory {
+class SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  Synchronizer(SynchronizerID id = "synchronizer", MemoryID memory_id = 0);
-
-  virtual ~Synchronizer() { };
-
+  
+  SynchronizerRegistry(DataAccessor & data_accessor);
+  virtual ~SynchronizerRegistry();
+  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// synchronize ghosts
-  virtual void synchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  /// synchronize operation
+  void synchronize(SynchronizationTag tag);
 
-  /// asynchronous synchronization of ghosts
-  virtual void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  /// asynchronous synchronization 
+  void asynchronousSynchronize(SynchronizationTag tag);
 
-  /// wait end of asynchronous synchronization of ghosts
-  virtual void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  /// wait end of asynchronous synchronization 
+  void waitEndSynchronize(SynchronizationTag tag);
 
-  virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) = 0;
+  /// reduce a value (essentially for communications synchronizer)
+  void allReduce(Real * values, const SynchronizerOperation & op, UInt nb_values = 1);
 
-
-protected:
+  /// register a new synchronization
+  void registerSynchronizer(Synchronizer & synchronizer,SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
+private:
 
-  /// id of the synchronizer
-  SynchronizerID id;
+  // /// number of tags registered
+  // UInt nb_synchronization_tags;
 
+  
+  typedef std::multimap<SynchronizationTag, Synchronizer *> Tag2Sync;
+  /// list of registered synchronization
+  Tag2Sync synchronizers;  
+
+  /// data accessor that will permit to do the pack/unpack things
+  DataAccessor & data_accessor;
 };
+
+
+/* -------------------------------------------------------------------------- */
+/* inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+
+// #include "synchronizer_registry_inline_impl.cc"
+
+// /// standard output stream operator
+// inline std::ostream & operator <<(std::ostream & stream, const SynchronizerRegistry & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_SYNCHRONIZER_HH__ */
+
+
+#endif /* __AKANTU_SYNCHRONIZER_REGISTRY_HH__ */

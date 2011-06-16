@@ -70,6 +70,74 @@ FEM::~FEM() {
 /* -------------------------------------------------------------------------- */
 void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 Vector<Real> & nodal_values,
+			 const Vector<Int> & equation_number,
+			 UInt nb_degre_of_freedom,
+			 const ElementType & type,
+			 GhostType ghost_type,
+			 const Vector<UInt> * filter_elements,
+			 Real scale_factor) const {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_element;
+  UInt * conn_val;
+
+  if(ghost_type == _not_ghost) {
+    nb_element  = mesh->getNbElement(type);
+    conn_val    = mesh->getConnectivity(type).values;
+  } else {
+    nb_element  = mesh->getNbGhostElement(type);
+    conn_val    = mesh->getGhostConnectivity(type).values;
+  }
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  UInt nb_nodes = mesh->getNbNodes();
+
+  UInt * filter_elem_val = NULL;
+  if(filter_elements != NULL) {
+    nb_element      = filter_elements->getSize();
+    filter_elem_val = filter_elements->values;
+  }
+
+  AKANTU_DEBUG_ASSERT(elementary_vect.getSize() == nb_element,
+		      "The vector elementary_vect(" << elementary_vect.getID()
+		      << ") has not the good size.");
+
+  AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent()
+		      == nb_degre_of_freedom*nb_nodes_per_element,
+		      "The vector elementary_vect(" << elementary_vect.getID()
+		      << ") has not the good number of component.");
+
+  AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degre_of_freedom,
+		      "The vector nodal_values(" << nodal_values.getID()
+		      << ") has not the good number of component.");
+
+  nodal_values.resize(nb_nodes);
+
+  Real * elementary_vect_val = elementary_vect.values;
+  Real * nodal_values_val    = nodal_values.values;
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    UInt el_offset = el * nb_nodes_per_element;
+    if(filter_elements != NULL) {
+      el_offset = filter_elem_val[el] * nb_nodes_per_element;
+    }
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt node = conn_val[el_offset + n];
+      UInt offset_node = node * nb_degre_of_freedom;
+      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	nodal_values_val[equation_number.values[offset_node + d]] 
+	  += scale_factor * elementary_vect_val[d];
+      }
+      elementary_vect_val += nb_degre_of_freedom;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FEM::assembleVector(const Vector<Real> & elementary_vect,
+			 Vector<Real> & nodal_values,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
 			 GhostType ghost_type,
@@ -132,6 +200,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 
   AKANTU_DEBUG_OUT();
 }
+
 
 /* -------------------------------------------------------------------------- */
 void FEM::assembleMatrix(const Vector<Real> & elementary_mat,

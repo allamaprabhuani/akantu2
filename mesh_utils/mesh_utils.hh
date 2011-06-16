@@ -99,7 +99,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// compute pbc pair for on egiven direction
+  /// compute pbc pair for on given direction
   static void computePBCMap(const Mesh & mymesh,const UInt dir,
 		     std::map<UInt,UInt> & pbc_pair);
 

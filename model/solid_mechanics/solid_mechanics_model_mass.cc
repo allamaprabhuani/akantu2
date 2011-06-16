@@ -70,8 +70,8 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
     ElementType type = *it;
 
     computeRho(rho_1, type, ghost_type);
-
-    fem.assembleFieldLumped(rho_1, *mass, type, ghost_type);
+    AKANTU_DEBUG_ASSERT(equation_number,"equation number must not be a NULL pointer");
+    fem.assembleFieldLumped(rho_1, *mass, *equation_number,type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();

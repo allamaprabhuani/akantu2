@@ -30,8 +30,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "static_communicator.hh"
-#include "communicator.hh"
-#include "ghost_synchronizer.hh"
+#include "distributed_synchronizer.hh"
+#include "synchronizer_registry.hh"
 #include "mesh.hh"
 #include "mesh_io_msh.hh"
 #include "mesh_partition_scotch.hh"
@@ -43,13 +43,13 @@
 
 using namespace akantu;
 
-class TestSynchronizer : public GhostSynchronizer {
+class TestAccessor : public DataAccessor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  TestSynchronizer(const Mesh & mesh);
-  ~TestSynchronizer();
+  TestAccessor(const Mesh & mesh);
+  ~TestAccessor();
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostBarycenter, ghost_barycenter, const Vector<Real>);
 
@@ -58,15 +58,15 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   virtual UInt getNbDataToPack(const Element & element,
-				       GhostSynchronizationTag tag) const;
+				       SynchronizationTag tag) const;
   virtual UInt getNbDataToUnpack(const Element & element,
-					 GhostSynchronizationTag tag) const;
+					 SynchronizationTag tag) const;
   virtual void packData(CommunicationBuffer & buffer,
 			const Element & element,
-			GhostSynchronizationTag tag) const;
+			SynchronizationTag tag) const;
   virtual void unpackData(CommunicationBuffer & buffer,
 			  const Element & element,
-			  GhostSynchronizationTag tag) const;
+			  SynchronizationTag tag) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -79,10 +79,11 @@ protected:
   const Mesh & mesh;
 };
 
+
 /* -------------------------------------------------------------------------- */
 /* TestSynchronizer implementation                                            */
 /* -------------------------------------------------------------------------- */
-TestSynchronizer::TestSynchronizer(const Mesh & mesh) : mesh(mesh) {
+TestAccessor::TestAccessor(const Mesh & mesh) : mesh(mesh) {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   id = "test_synchronizer";
@@ -101,7 +102,7 @@ TestSynchronizer::TestSynchronizer(const Mesh & mesh) : mesh(mesh) {
   }
 }
 
-TestSynchronizer::~TestSynchronizer() {
+TestAccessor::~TestAccessor() {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -112,19 +113,19 @@ TestSynchronizer::~TestSynchronizer() {
   }
 }
 
-UInt TestSynchronizer::getNbDataToPack(const Element & element,
-					       __attribute__ ((unused)) GhostSynchronizationTag tag) const {
+UInt TestAccessor::getNbDataToPack(const Element & element,
+					       __attribute__ ((unused)) SynchronizationTag tag) const {
   return Mesh::getSpatialDimension(element.type) * sizeof(Real);
 }
 
-UInt TestSynchronizer::getNbDataToUnpack(const Element & element,
-						 __attribute__ ((unused)) GhostSynchronizationTag tag) const {
+UInt TestAccessor::getNbDataToUnpack(const Element & element,
+						 __attribute__ ((unused)) SynchronizationTag tag) const {
   return Mesh::getSpatialDimension(element.type) * sizeof(Real);
 }
 
-void TestSynchronizer::packData(CommunicationBuffer & buffer,
+void TestAccessor::packData(CommunicationBuffer & buffer,
 				const Element & element,
-				__attribute__ ((unused)) GhostSynchronizationTag tag) const {
+				__attribute__ ((unused)) SynchronizationTag tag) const {
   UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
   types::RVector bary(spatial_dimension);
   mesh.getBarycenter(element.element, element.type, bary.storage());
@@ -132,9 +133,9 @@ void TestSynchronizer::packData(CommunicationBuffer & buffer,
   buffer << bary;
 }
 
-void TestSynchronizer::unpackData(CommunicationBuffer & buffer,
+void TestAccessor::unpackData(CommunicationBuffer & buffer,
 				  const Element & element,
-				  __attribute__ ((unused)) GhostSynchronizationTag tag) const {
+				  __attribute__ ((unused)) SynchronizationTag tag) const {
   UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
   Vector<Real>::iterator<types::RVector> bary = ghost_barycenter[element.type]->begin(spatial_dimension);
   buffer >> bary[element.element];
@@ -156,29 +157,27 @@ int main(int argc, char *argv[])
   Int psize = comm->getNbProc();
   Int prank = comm->whoAmI();
 
-  Communicator * communicator;
+  DistributedSynchronizer * communicator;
   if(prank == 0) {
     MeshIOMSH mesh_io;
     mesh_io.read("triangle.msh", mesh);
     MeshPartition * partition = new MeshPartitionScotch(mesh, dim);
     partition->partitionate(psize);
-    communicator = Communicator::createCommunicatorDistributeMesh(mesh, partition);
+    communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
     delete partition;
   } else {
-    communicator = Communicator::createCommunicatorDistributeMesh(mesh, NULL);
+    communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
   }
 
   comm->barrier();
 
-  AKANTU_DEBUG_INFO("Creating TestSynchronizer");
-  TestSynchronizer test_synchronizer(mesh);
-  test_synchronizer.registerSynchronizer(*communicator);
-
-  AKANTU_DEBUG_INFO("Registering tag");
-  test_synchronizer.registerTag(_gst_test, "barycenter");
+  AKANTU_DEBUG_INFO("Creating TestAccessor");
+  TestAccessor test_accessor(mesh);
+  SynchronizerRegistry synch_registry(test_accessor);
+  synch_registry.registerSynchronizer(*communicator,_gst_test);
 
   AKANTU_DEBUG_INFO("Synchronizing tag");
-  test_synchronizer.synchronize(_gst_test);
+  synch_registry.synchronize(_gst_test);
 
 
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -194,7 +193,7 @@ int main(int argc, char *argv[])
       mesh.getBarycenter(el, *it, barycenter, _ghost);
 
       for (UInt i = 0; i < spatial_dimension; ++i) {
-	if(fabs(barycenter[i] - test_synchronizer.getGhostBarycenter(*it).values[el * spatial_dimension + i])
+	if(fabs(barycenter[i] - test_accessor.getGhostBarycenter(*it).values[el * spatial_dimension + i])
 	   > std::numeric_limits<Real>::epsilon())
 	  AKANTU_DEBUG_ERROR("The barycenter of ghost element " << el
 			     << " on proc " << prank

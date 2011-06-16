@@ -1,10 +1,9 @@
 /**
- * @file   aka_extern.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Jun 14 14:34:14 2010
+ * @file   data_accessor.cc
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @date   Wed Jun 15 22:05:36 2011
  *
- * @brief  initialisation of all global variables
- * to insure the order of creation
+ * @brief  data accessors constructor functions
  *
  * @section LICENSE
  *
@@ -27,40 +26,23 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <ostream>
-
+#include "data_accessor.hh"
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "aka_math.hh"
 
-/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-/** \todo write function to get this
- *   values from the environment or a config file
- */
-
 /* -------------------------------------------------------------------------- */
-/* error.hpp variables                                                        */
-/* -------------------------------------------------------------------------- */
-namespace debug {
-  /// standard output for debug messages
-  std::ostream *_akantu_debug_cout = &std::cerr;
-
-  /// standard output for normal messages
-  std::ostream & _akantu_cout = std::cout;
-
-  /// debug level
-  DebugLevel _debug_level = dblInfo;
-
-  /// parallel context used in debug messages
-  std::string _parallel_context = "";
-
+DataAccessor::DataAccessor(){
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_OUT();
 }
 
-Real Math::tolerance = 1e-8;
+/* -------------------------------------------------------------------------- */
+DataAccessor::~DataAccessor() {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
-
 __END_AKANTU__

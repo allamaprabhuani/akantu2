@@ -95,7 +95,7 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
 
 /* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataToPack(__attribute__ ((unused)) const Element & element,
-				      __attribute__ ((unused)) GhostSynchronizationTag tag) {
+				      __attribute__ ((unused)) SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -104,7 +104,7 @@ inline UInt Material::getNbDataToPack(__attribute__ ((unused)) const Element & e
 
 /* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataToUnpack(__attribute__ ((unused)) const Element & element,
-					__attribute__ ((unused)) GhostSynchronizationTag tag) {
+					__attribute__ ((unused)) SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -114,7 +114,7 @@ inline UInt Material::getNbDataToUnpack(__attribute__ ((unused)) const Element &
 /* -------------------------------------------------------------------------- */
 inline void Material::packData(__attribute__ ((unused)) CommunicationBuffer & buffer,
 			       __attribute__ ((unused)) const Element & element,
-			       __attribute__ ((unused)) GhostSynchronizationTag tag) {
+			       __attribute__ ((unused)) SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -123,7 +123,7 @@ inline void Material::packData(__attribute__ ((unused)) CommunicationBuffer & bu
 /* -------------------------------------------------------------------------- */
 inline void Material::unpackData(__attribute__ ((unused)) CommunicationBuffer & buffer,
 				 __attribute__ ((unused)) const Element & element,
-				 __attribute__ ((unused)) GhostSynchronizationTag tag) {
+				 __attribute__ ((unused)) SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();

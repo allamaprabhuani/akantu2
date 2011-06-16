@@ -39,7 +39,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "communicator.hh"
+#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -76,25 +76,17 @@ int main(int argc, char *argv[])
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
-  /* ------------------------------------------------------------------------ */
-  /* Parallel initialization                                                  */
-  /* ------------------------------------------------------------------------ */
-  akantu::Communicator * communicator;
+  akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
     mesh_io.read("square_implicit2.msh", mesh);
 
-    akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     //   partition->reorder();
     partition->partitionate(psize);
-
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
-    delete partition;
-  } else {
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
-
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+  model->initParallel(partition);
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   /// model initialization
@@ -114,7 +106,6 @@ int main(int argc, char *argv[])
 
   model->readMaterials("material.dat");
   model->initMaterials();
-  model->registerSynchronizer(*communicator);
 
   model->initImplicit();
 

@@ -56,7 +56,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class SolidMechanicsModel : public Model {
+class SolidMechanicsModel : public Model, public DataAccessor {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -65,14 +65,20 @@ public:
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
-  SolidMechanicsModel(UInt spatial_dimension,
-		      const ModelID & id = "solid_mechanics_model",
-		      const MemoryID & memory_id = 0);
+  // SolidMechanicsModel(UInt spatial_dimension,
+  // 		      const ModelID & id = "solid_mechanics_model",
+  // 		      const MemoryID & memory_id = 0);
 
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = 0,
 		      const ModelID & id = "solid_mechanics_model",
 		      const MemoryID & memory_id = 0);
+
+  SolidMechanicsModel(Mesh & mesh,MeshPartition * partition,
+		      UInt spatial_dimension = 0,
+		      const ModelID & id = "solid_mechanics_model",
+		      const MemoryID & memory_id = 0);
+
 
   virtual ~SolidMechanicsModel();
 
@@ -80,6 +86,9 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// register the tags associated with the parallel synchronizer
+  void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
 
   /// allocate all vectors
   void initVectors();
@@ -114,6 +123,10 @@ public:
 
   /// explicit integration corrector
   void explicitCorr();
+
+  /// initialize the stuff for the explicit scheme
+  void initExplicit();
+
 
   /* ------------------------------------------------------------------------ */
   /* Implicit                                                                 */
@@ -216,18 +229,18 @@ private:
 public:
 
   inline virtual UInt getNbDataToPack(const Element & element,
-				      GhostSynchronizationTag tag) const;
+				      SynchronizationTag tag) const;
 
   inline virtual UInt getNbDataToUnpack(const Element & element,
-					GhostSynchronizationTag tag) const;
+					SynchronizationTag tag) const;
 
   inline virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
-			       GhostSynchronizationTag tag) const;
+			       SynchronizationTag tag) const;
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
-				 GhostSynchronizationTag tag) const;
+				 SynchronizationTag tag) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
   memset(model->getResidual().values,     0, 2*nb_nodes*sizeof(Real));
   memset(model->getMass().values,     1, nb_nodes*sizeof(Real));
 
-
+  model->initExplicit();
   model->initModel();
   model->readCustomMaterial<LocalMaterialDamage>("material.dat","LOCAL_DAMAGE");
 

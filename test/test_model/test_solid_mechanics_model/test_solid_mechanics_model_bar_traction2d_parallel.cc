@@ -37,7 +37,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "communicator.hh"
+#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -56,32 +56,29 @@ int main(int argc, char *argv[])
 
   akantu::initialize(&argc, &argv);
 
-  akantu::debug::setDebugLevel(akantu::dblWarning);
-  //  akantu::Real epot, ekin;
-
   akantu::Mesh mesh(spatial_dimension);
 
-  akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::StaticCommunicator * comm = 
+    akantu::StaticCommunicator::getStaticCommunicator();
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
-  /* ------------------------------------------------------------------------ */
-  /* Parallel initialization                                                  */
-  /* ------------------------------------------------------------------------ */
-  akantu::Communicator * communicator = NULL;
+  // std::stringstream filename;
+  // filename << "log-" << prank << ".txt";
+  // akantu::debug::setLogFile(filename.str());
+  akantu::debug::setDebugLevel(akantu::dblWarning);
+
+
+  akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
     mesh_io.read("bar2.msh", mesh);
-    akantu::MeshPartition * partition =
-      new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
-    delete partition;
-  } else {
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
 
-  akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+ akantu::SolidMechanicsModel model(mesh);
+ model.initParallel(partition);
 
   akantu::UInt nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
@@ -91,52 +88,52 @@ int main(int argc, char *argv[])
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
   /// model initialization
-  model->initVectors();
+  model.initVectors();
 
   /// set vectors to 0
-  memset(model->getForce().values,        0,
+  memset(model.getForce().values,        0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getResidual().values,        0,
+  memset(model.getResidual().values,        0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getVelocity().values,     0,
+  memset(model.getVelocity().values,     0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getAcceleration().values, 0,
+  memset(model.getAcceleration().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getDisplacement().values, 0,
+  memset(model.getDisplacement().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
 
-  model->initModel();
-  model->readMaterials("material.dat");
-  model->initMaterials();
-  model->registerSynchronizer(*communicator);
+  model.initExplicit();
+  model.initModel();
+  model.readMaterials("material.dat");
+  model.initMaterials();
 
   if(prank == 0)
-    std::cout << model->getMaterial(0) << std::endl;
+    std::cout << model.getMaterial(0) << std::endl;
 
-  model->assembleMassLumped();
+  model.assembleMassLumped();
 
   /* ------------------------------------------------------------------------ */
   /* Boundary + initial conditions                                            */
   /* ------------------------------------------------------------------------ */
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    // model->getDisplacement().values[spatial_dimension*i]
+    // model.getDisplacement().values[spatial_dimension*i]
     //   = mesh.getNodes().values[spatial_dimension*i] / 100.;
     if(mesh.getNodes().values[spatial_dimension*i] >= 9)
-      model->getDisplacement().values[spatial_dimension*i]
+      model.getDisplacement().values[spatial_dimension*i]
      	= (mesh.getNodes().values[spatial_dimension*i] - 9) / 100.;
 
     if(mesh.getNodes().values[spatial_dimension*i] <= eps)
-      model->getBoundary().values[spatial_dimension*i] = true;
+      model.getBoundary().values[spatial_dimension*i] = true;
 
     if(mesh.getNodes().values[spatial_dimension*i + 1] <= eps ||
        mesh.getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
-      model->getBoundary().values[spatial_dimension*i + 1] = true;
+      model.getBoundary().values[spatial_dimension*i + 1] = true;
     }
   }
 
-  model->synchronizeBoundaries();
+  model.synchronizeBoundaries();
 
 
 #ifdef AKANTU_USE_IOHELPER
@@ -147,21 +144,21 @@ int main(int argc, char *argv[])
 		   spatial_dimension, nb_nodes, "bar2d_para");
   dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
 			 TRIANGLE2, nb_element, C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values,
+  dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model->getMass().values,
+  dumper.AddNodeDataField(model.getMass().values,
 			  1, "mass");
-  dumper.AddNodeDataField(model->getVelocity().values,
+  dumper.AddNodeDataField(model.getVelocity().values,
 			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model->getResidual().values,
+  dumper.AddNodeDataField(model.getResidual().values,
 			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model->getAcceleration().values,
+  dumper.AddNodeDataField(model.getAcceleration().values,
 			  spatial_dimension, "acceleration");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
 			  spatial_dimension*spatial_dimension, "stress");
-  akantu::UInt  nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
+  akantu::UInt  nb_quadrature_points = model.getFEM().getNbQuadraturePoints(type);
   double * part = new double[nb_element*nb_quadrature_points];
   for (unsigned int i = 0; i < nb_element; ++i)
     for (unsigned int q = 0; q < nb_quadrature_points; ++q)
@@ -183,10 +180,10 @@ int main(int argc, char *argv[])
   double total_time = 0.;
 
   /// Setting time step
-  akantu::Real time_step = model->getStableTimeStep() * time_factor;
+  akantu::Real time_step = model.getStableTimeStep() * time_factor;
   if(prank == 0)
     std::cout << "Time Step = " << time_step << "s" << std::endl;
-  model->setTimeStep(time_step);
+  model.setTimeStep(time_step);
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
@@ -195,16 +192,16 @@ int main(int argc, char *argv[])
 
     double start = MPI_Wtime();
 
-    model->explicitPred();
+    model.explicitPred();
 
-    model->updateResidual();
-    model->updateAcceleration();
-    model->explicitCorr();
+    model.updateResidual();
+    model.updateAcceleration();
+    model.explicitCorr();
 
     double end = MPI_Wtime();
 
-    akantu::Real epot = model->getPotentialEnergy();
-    akantu::Real ekin = model->getKineticEnergy();
+    akantu::Real epot = model.getPotentialEnergy();
+    akantu::Real ekin = model.getKineticEnergy();
 
     total_time += end - start;
 
@@ -226,9 +223,6 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   delete [] part;
 #endif //AKANTU_USE_IOHELPER
-
-  delete model;
-
 
   akantu::finalize();
   return EXIT_SUCCESS;

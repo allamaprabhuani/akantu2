@@ -39,7 +39,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "communicator.hh"
+#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 #ifdef AKANTU_USE_SCOTCH
@@ -52,7 +52,6 @@ using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
-
 void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model);
 void paraviewDump(Dumper & dumper);
 #endif
@@ -82,24 +81,19 @@ int main(int argc, char *argv[])
   Int psize = comm->getNbProc();
   Int prank = comm->whoAmI();
 
-  /* ------------------------------------------------------------------------ */
-  /* Parallel initialization                                                  */
-  /* ------------------------------------------------------------------------ */
-  Communicator * communicator;
+  MeshPartition * partition = NULL;
   if(prank == 0) {
     MeshIOMSH mesh_io;
     mesh_io.read("beam_3d_quad.msh", mesh);
-
-    MeshPartition * partition = new MeshPartitionScotch(mesh, spatial_dimension);
+    
+    partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->reorder();
     partition->partitionate(psize);
-    communicator = Communicator::createCommunicatorDistributeMesh(mesh, partition);
-    delete partition;
-  } else {
-    communicator = Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
-
+  
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
+  model->initParallel(partition);
+  
 
   //  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
 
@@ -109,7 +103,6 @@ int main(int argc, char *argv[])
   model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
-  model->registerSynchronizer(*communicator);
 
   model->initImplicit(true);
   model->assembleMass();

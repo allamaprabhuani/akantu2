@@ -64,7 +64,7 @@ void paraviewDump(Dumper & dumper);
 
 int main(int argc, char *argv[])
 {
-  akantu::UInt max_steps = 1000000;
+  akantu::UInt max_steps = 1000;
   akantu::Real time_factor = 0.2;
 
   //  akantu::Real epot, ekin;
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
   memset(model->getDisplacement().values, 0,
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
-
+  model->initExplicit();
   model->initModel();
   model->readMaterials("material.dat");
 

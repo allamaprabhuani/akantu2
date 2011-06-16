@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
 
+  model->initExplicit();
   model->initModel();
   model->readMaterials("material_elastic_caughey.dat");
   model->initMaterials();

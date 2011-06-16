@@ -184,7 +184,7 @@ public:
 
   /// get jth componemt of the ith tuple in read-only
   inline const_reference get(UInt i, UInt j = 0) const;
-  /// get jth componemt of the ith tuple
+  /// get jth component of the ith tuple
   inline reference at(UInt i, UInt j = 0);
 
   /// add an  element at  the and  of the vector  with the  value value  for all

@@ -1,9 +1,9 @@
 /**
- * @file   synchronizer.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Aug 23 13:48:37 2010
+ * @file   pbc_synchronizer.hh
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @date   Wed Jun 15 12:56:28 2011
  *
- * @brief  interface for communicator and pbc synchronizers
+ * @brief  Dofs Synchronizer for periodic boundary condition 
  *
  * @section LICENSE
  *
@@ -27,65 +27,70 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_HH__
-#define __AKANTU_SYNCHRONIZER_HH__
+#ifndef __AKANTU_PBC_SYNCHRONIZER_HH__
+#define __AKANTU_PBC_SYNCHRONIZER_HH__
 
-/* -------------------------------------------------------------------------- */
-#include "aka_memory.hh"
-#include "data_accessor.hh"
-/* -------------------------------------------------------------------------- */
 
-namespace akantu {
-  class GhostSynchronizer;
-}
-
-__BEGIN_AKANTU__
-
-class Synchronizer : public Memory {
+class PBCSynchronizer : public Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  Synchronizer(SynchronizerID id = "synchronizer", MemoryID memory_id = 0);
-
-  virtual ~Synchronizer() { };
-
+  
+  PBCSynchronizer();
+  virtual ~PBCSynchronizer();
+  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
+  /// get a mesh and create the local dof links due to pbc 
+  static PBCSynchronizer * createPBCSynchronizer(Mesh & mesh,
+						 SynchronizerID id = "pbc_synch",
+						 MemoryID memory_id = 0);
+  
+  /* ------------------------------------------------------------------------ */
+  /* Inherited from Synchronizer                                              */
+  /* ------------------------------------------------------------------------ */
+  
   /// synchronize ghosts
-  virtual void synchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  void synchronize(GhostSynchronizationTag tag);
 
   /// asynchronous synchronization of ghosts
-  virtual void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  void asynchronousSynchronize(GhostSynchronizationTag tag){}
 
   /// wait end of asynchronous synchronization of ghosts
-  virtual void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  void waitEndSynchronize(GhostSynchronizationTag tag){}
 
-  virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) = 0;
+  /// do a all reduce operation
+  void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op){};
 
-
-protected:
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-
-  /// id of the synchronizer
-  SynchronizerID id;
-
+private:
+  
 };
 
 
-__END_AKANTU__
+/* -------------------------------------------------------------------------- */
+/* inline functions                                                           */
+/* -------------------------------------------------------------------------- */
 
-#endif /* __AKANTU_SYNCHRONIZER_HH__ */
+//#include "pbc_synchronizer_inline_impl.cc"
+
+// /// standard output stream operator
+// inline std::ostream & operator <<(std::ostream & stream, const PBCSynchronizer & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
+
+
+#endif /* __AKANTU_PBC_SYNCHRONIZER_HH__ */

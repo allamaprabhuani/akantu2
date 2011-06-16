@@ -37,7 +37,7 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "communicator.hh"
+#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -122,23 +122,14 @@ int main(int argc, char *argv[])
 
   MPI_Barrier(MPI_COMM_WORLD);
 
-  /* ------------------------------------------------------------------------ */
-  /* Parallel initialization                                                  */
-  /* ------------------------------------------------------------------------ */
-  akantu::Communicator * communicator;
+  akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
     std::cout << "Partitioning mesh..." << std::endl;
-    akantu::MeshPartition * partition =
-      new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, partition);
-    delete partition;
-  } else {
-    communicator = akantu::Communicator::createCommunicatorDistributeMesh(mesh, NULL);
   }
-
-
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+  model->initParallel(partition);
 
   /// model initialization
   model->initVectors();
@@ -155,12 +146,11 @@ int main(int argc, char *argv[])
 	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
 
 
+  model->initExplicit();
   model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
   model->assembleMassLumped();
-
-  model->registerSynchronizer(*communicator);
 
   //  std::cout << model->getMaterial(0) << std::endl;
 

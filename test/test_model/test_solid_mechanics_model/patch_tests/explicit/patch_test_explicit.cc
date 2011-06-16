@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
   my_model.getAcceleration().clear();
   my_model.getDisplacement().clear();
 
+  my_model.initExplicit();
   my_model.initModel();
   my_model.readMaterials("material_check_stress.dat");
   my_model.initMaterials();

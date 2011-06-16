@@ -36,13 +36,17 @@
 #include "mesh.hh"
 #include "fem.hh"
 #include "mesh_utils.hh"
-#include "ghost_synchronizer.hh"
+#include "synchronizer_registry.hh"
+#include "distributed_synchronizer.hh"
+#include "static_communicator.hh"
+#include "mesh_partition.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class Model : public Memory, public GhostSynchronizer {
+class Model : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -60,6 +64,13 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void initModel() = 0;
+
+  /// create the synchronizer registry object
+  void createSynchronizerRegistry(DataAccessor * data_accessor);
+
+  /// create a parallel synchronizer and distribute the mesh
+  Synchronizer & createParallelSynch(MeshPartition * partition,
+				     DataAccessor * data_accessor);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
@@ -82,6 +93,12 @@ public:
   template <typename FEMClass> inline void registerFEMObject(const std::string & name,
 							     Mesh & mesh,
 							     UInt spatial_dimension);
+  /// unregister a fem object associated with name
+  inline void unRegisterFEMObject(const std::string & name);
+
+  /// return the synchronizer registry 
+  SynchronizerRegistry & getSynchronizerRegistry(){return  *synch_registry;};
+
 protected:
   /// return the fem object associated with a provided name
   template <typename FEMClass>
@@ -90,6 +107,11 @@ protected:
   /// return the fem boundary object associated with a provided name
   template <typename FEMClass>
   inline FEMClass & getFEMClassBoundary(std::string name = "");
+
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
+  
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -106,6 +128,9 @@ protected:
 
   /// default fem object
   std::string default_fem;
+
+  /// synchronizer registry 
+  SynchronizerRegistry * synch_registry;
 };
 
 

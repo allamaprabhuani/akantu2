@@ -25,6 +25,8 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#ifndef __AKANTU_INTEGRATOR_GAUSS_HH__
+#define __AKANTU_INTEGRATOR_GAUSS_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "integrator.hh"
@@ -48,8 +50,7 @@ public:
 
   /// precompute jacobians on elements of type "type"
   template <ElementType type>
-  void precomputeJacobiansOnQuadraturePoints(const UInt dimension,
-					     GhostType ghost_type);
+  void precomputeJacobiansOnQuadraturePoints(GhostType ghost_type);
 
 
   /// integrate f on the element "elem" of type "type"
@@ -80,16 +81,22 @@ public:
   /// compute the vector of quadrature points natural coordinates
   template <ElementType type> void computeQuadraturePoints();
 
-  // /// function to print the contain of the class
-  // virtual void printself(std::ostream & stream, int indent = 0) const;
+  /// check that the jacobians are not negative
+  template <ElementType type> void checkJacobians(GhostType ghost_type);
 
+protected:
+  
+  /// compute the jacobians on quad points for a given element
+  template <ElementType type> 
+  void computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
+					    Real * node_coords,
+					    UInt nb_nodes_per_element,
+					    Real * jacobians);
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 private:
-  // /// get the number of quadrature points
-  // static inline UInt getNbQuadraturePoints(const ElementType & type);
-
 public:
 
   /* ------------------------------------------------------------------------ */
@@ -112,11 +119,7 @@ private:
 
 #include "integrator_gauss_inline_impl.cc"
 
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const IntegratorGauss & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
-
 __END_AKANTU__
+
+#endif /* __AKANTU_INTEGRATOR_GAUSS_HH__ */
+

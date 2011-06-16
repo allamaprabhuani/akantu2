@@ -1,6 +1,7 @@
 /**
- * @file   communicator.hh
+ * @file   distributed_synchronizer.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Thu Aug 19 15:28:35 2010
  *
  * @brief  wrapper to the static communicator
@@ -27,8 +28,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COMMUNICATOR_HH__
-#define __AKANTU_COMMUNICATOR_HH__
+#ifndef __AKANTU_DISTRIBUTED_SYNCHRONIZER_HH__
+#define __AKANTU_DISTRIBUTED_SYNCHRONIZER_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
@@ -44,55 +45,56 @@ __BEGIN_AKANTU__
 
 class CommunicationBuffer;
 
-class Communicator : public Synchronizer {
+class DistributedSynchronizer : public Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  Communicator(SynchronizerID id = "communicator", MemoryID memory_id = 0);
-  virtual ~Communicator();
+  DistributedSynchronizer(SynchronizerID id = "distributedSynchronizer", 
+			  MemoryID memory_id = 0);
+  virtual ~DistributedSynchronizer();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get a mesh and a partition and create the local mesh and the associated communicator
-  static Communicator * createCommunicatorDistributeMesh(Mesh & mesh,
-							 const MeshPartition * partition,
-							 UInt root = 0,
-							 SynchronizerID id = "communicator",
-							 MemoryID memory_id = 0);
-
+  /// get a mesh and a partition and create the local mesh and the associated distributedSynchronizer
+  static DistributedSynchronizer * 
+  createDistributedSynchronizerMesh(Mesh & mesh,
+				    const MeshPartition * partition,
+				    UInt root = 0,
+				    SynchronizerID id = "distributedSynchronizer",
+				    MemoryID memory_id = 0);
+  
   /* ------------------------------------------------------------------------ */
   /* Inherited from Synchronizer                                              */
   /* ------------------------------------------------------------------------ */
   /// synchronize ghosts
-  void synchronize(GhostSynchronizationTag tag);
+  void synchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// asynchronous synchronization of ghosts
-  void asynchronousSynchronize(GhostSynchronizationTag tag);
+  void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// wait end of asynchronous synchronization of ghosts
-  void waitEndSynchronize(GhostSynchronizationTag tag);
+  void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// do a all reduce operation
   void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
-
-  /* ------------------------------------------------------------------------ */
-  /// register a new communication
-  void registerTag(GhostSynchronizationTag tag);
 
 protected:
   /// fill the nodes type vector
   void fillNodesType(Int * nodes_type_tmp, Mesh & mesh);
 
 
-  /// fill the communications array of a communicator based on a partition array
+  /// fill the communications array of a distributedSynchronizer based on a partition array
   void fillCommunicationScheme(UInt * partition,
 			       UInt nb_local_element,
 			       UInt nb_ghost_element,
 			       ElementType type);
+
+  /// compute buffer size for a given tag and data accessor 
+  void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -107,10 +109,10 @@ private:
   StaticCommunicator * static_communicator;
 
   /// size of data to send to each processor by communication tag
-  std::map< GhostSynchronizationTag, Vector<UInt> > size_to_send;
+  std::map< SynchronizationTag, Vector<UInt> > size_to_send;
 
   /// size of data to receive form each processor by communication tag
-  std::map< GhostSynchronizationTag, Vector<UInt> > size_to_receive;
+  std::map< SynchronizationTag, Vector<UInt> > size_to_receive;
 
   CommunicationBuffer * send_buffer;
   CommunicationBuffer * recv_buffer;
@@ -140,8 +142,8 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "communicator_inline_impl.cc"
+//#include "distributedSynchronizer_inline_impl.cc"
 
 __END_AKANTU__
 
-#endif /* __AKANTU_COMMUNICATOR_HH__ */
+#endif /* __AKANTU_DISTRIBUTED_SYNCHRONIZER_HH__ */

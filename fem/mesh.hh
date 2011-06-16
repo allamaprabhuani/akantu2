@@ -162,6 +162,11 @@ public:
 						 UInt * connectivity,
 						 UInt n_nodes);
 
+  /// extract coordinates of nodes from a reversed element
+  inline void extractNodalCoordinatesFromPBCElement(Real * local_coords,
+						    UInt * connectivity,
+						    UInt n_nodes);
+
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem);
 
@@ -249,7 +254,7 @@ public:
   inline const Mesh & getInternalFacetsMesh() const;
 
   /// compute the barycenter of a given element
-  inline void getBarycenter(UInt element, ElementType type, Real * barycenter,
+  inline void getBarycenter(UInt element, const ElementType & type, Real * barycenter,
 			    GhostType ghost_type = _not_ghost) const;
 
   /// get the surface values of facets
@@ -284,11 +289,14 @@ public:
   /// get the type of the surface element associated to a given element
   static inline ElementType getFacetElementType(const ElementType & type);
 
+  /// get the pointer to the list of elements for a given type
+  inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
+
 private:
   friend class MeshIOMSH;
   friend class MeshIODiana;
   friend class MeshUtils;
-  friend class Communicator;
+  friend class DistributedSynchronizer;
 
   AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
 
@@ -299,10 +307,10 @@ private:
   inline Vector<Int> * getNodesTypePointer();
 
   /// get a pointer to the connectivity Vector for the given type and create it if necessary
-  inline Vector<UInt> * getConnectivityPointer(ElementType type);
+  inline Vector<UInt> * getConnectivityPointer(const ElementType & type);
 
   /// get a pointer to the ghost_connectivity Vector for the given type and create it if necessary
-  inline Vector<UInt> * getGhostConnectivityPointer(ElementType type);
+  inline Vector<UInt> * getGhostConnectivityPointer(const ElementType & type);
 
   /// get a pointer to the internal_facets Mesh and create it if necessary
   inline Mesh * getInternalFacetsMeshPointer();
@@ -310,7 +318,7 @@ private:
   // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   /// get a pointer to the surface_id Vector for the given type and create it if necessary
-  inline Vector<UInt> * getSurfaceIdPointer(ElementType type);
+  inline Vector<UInt> * getSurfaceIdPointer(const ElementType & type);
 
   typedef std::map<std::string, Vector<UInt> * > UIntDataMap;
   typedef UIntDataMap ByElementTypeUIntDataMap[_max_element_type];
@@ -382,9 +390,12 @@ private:
   Real xmin[3];
   /// max of coordinates
   Real xmax[3];
-
+  /// size covered by the mesh on each direction
+  Real size[3];
   /// list of elements that are reversed due to pbc
   ByElementTypeUInt reversed_elements_pbc;
+  /// direction in which pbc are to be applied
+  UInt pbc_directions[3];
 
   /// list of the vectors corresponding to tags in the mesh
   ByElementTypeUIntDataMap uint_data;

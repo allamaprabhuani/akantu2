@@ -94,3 +94,30 @@ inline void IntegratorGauss::computeQuadraturePoints() {
     coord_val += dim;
   }
 }
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+inline void IntegratorGauss::
+computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
+				     Real * node_coords,
+				     UInt nb_nodes_per_element,
+				     Real * jacobians) {
+  
+  Real * quad = ElementClass<type>::getQuadraturePoints();
+  const UInt nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
+  // compute dnds
+  Real dnds[nb_nodes_per_element * spatial_dimension * nb_quad_points];
+  ElementClass<type>::computeDNDS(quad, 
+				  nb_quad_points,
+				  dnds);
+  // compute dxds
+  const UInt element_dimension = ElementClass<type>::getSpatialDimension();
+  Real dxds[element_dimension * spatial_dimension * nb_quad_points];
+  ElementClass<type>::computeDXDS(dnds, nb_quad_points, 
+				  node_coords, spatial_dimension, dxds);
+  // jacobian
+  ElementClass<type>::computeJacobian(dxds, nb_quad_points, 
+				      spatial_dimension, jacobians);
+
+}
+/* -------------------------------------------------------------------------- */
+

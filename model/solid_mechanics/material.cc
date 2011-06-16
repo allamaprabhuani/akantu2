@@ -271,6 +271,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     /// assemble
     model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
+				   model->getEquationNumber(),
 				   residual.getNbComponent(),
 				   *it, ghost_type, elem_filter, -1);
     delete int_sigma_dphi_dx;

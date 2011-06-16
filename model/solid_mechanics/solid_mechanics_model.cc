@@ -42,6 +42,7 @@
 
 __BEGIN_AKANTU__
 
+
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt dim,
@@ -52,10 +53,12 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
   stiffness_matrix(NULL),jacobian_matrix(NULL),
-  integrator(new CentralDifference()),
+  integrator(NULL),
   increment_flag(false), solver(NULL),
   spatial_dimension(dim), mesh(mesh) {
   AKANTU_DEBUG_IN();
+
+  createSynchronizerRegistry(this);
 
   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
   registerFEMObject<MyFEMType>("SolidMechanicsFEM", mesh, spatial_dimension);
@@ -67,23 +70,21 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   this->force        = NULL;
   this->residual     = NULL;
   this->boundary     = NULL;
-
+  
   this->increment    = NULL;
   this->increment_acceleration = NULL;
-
+  
   for(UInt t = _not_defined; t < _max_element_type; ++t) {
     this->element_material[t] = NULL;
     this->ghost_element_material[t] = NULL;
   }
-
-  registerTag(_gst_smm_mass, "Mass");
-  registerTag(_gst_smm_for_strain, "Explicit Residual");
-  registerTag(_gst_smm_boundary, "Boundary conditions");
-
+    
   materials.clear();
 
   AKANTU_DEBUG_OUT();
 }
+
+
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModel::~SolidMechanicsModel() {
@@ -109,6 +110,43 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 /* -------------------------------------------------------------------------- */
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initParallel(MeshPartition * partition, 
+				       DataAccessor * data_accessor) {
+  AKANTU_DEBUG_IN();
+
+  if (data_accessor == NULL) data_accessor = this;
+  Synchronizer & synch_parallel = createParallelSynch(partition,data_accessor);
+  
+  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_mass);
+  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_for_strain);
+  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_boundary);
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initExplicit() {
+  AKANTU_DEBUG_IN();
+
+  if (integrator) delete integrator;
+  integrator = new CentralDifference();
+  UInt nb_nodes = mesh.getNbNodes();
+
+  std::stringstream sstr_eq; sstr_eq << id << ":equation_number";
+  equation_number = &(alloc<Int>(sstr_eq.str(), nb_nodes, spatial_dimension, 0));
+
+  Int * equation_number_val = equation_number->values;
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    for (UInt d = 0; d < spatial_dimension; ++d) {
+      UInt eq_num = n * spatial_dimension + d;
+      *(equation_number_val++) = eq_num;
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initVectors() {
@@ -214,7 +252,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   if (need_initialize) initializeUpdateResidualData();
 
   /// start synchronization
-  asynchronousSynchronize(_gst_smm_for_strain);
+  synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
 
   /// call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
@@ -224,7 +262,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   }
 
   /// finalize communications
-  waitEndSynchronize(_gst_smm_for_strain);
+  synch_registry->waitEndSynchronize(_gst_smm_for_strain);
 
   /// call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
@@ -538,7 +576,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
     }
   }
 
-  allReduce(&norm, _so_sum);
+  synch_registry->allReduce(&norm, _so_sum);
 
   error = sqrt(norm);
   AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
@@ -583,7 +621,7 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error) 
     }
   }
 
-  allReduce(&norm, _so_sum);
+  synch_registry->allReduce(&norm, _so_sum);
 
   error = sqrt(norm);
 
@@ -628,7 +666,9 @@ void SolidMechanicsModel::implicitCorr() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::synchronizeBoundaries() {
   AKANTU_DEBUG_IN();
-  synchronize(_gst_smm_boundary);
+  AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
+		      << " Did you call initParallel ?");
+  synch_registry->synchronize(_gst_smm_boundary);
   AKANTU_DEBUG_OUT();
 }
 
@@ -695,7 +735,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
 
 
   /// reduction min over all processors
-  allReduce(&min_dt, _so_min);
+  synch_registry->allReduce(&min_dt, _so_min);
 
 
   AKANTU_DEBUG_OUT();
@@ -714,7 +754,7 @@ Real SolidMechanicsModel::getPotentialEnergy() {
   }
 
   /// reduction sum over all processors
-  allReduce(&epot, _so_sum);
+  synch_registry->allReduce(&epot, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return epot;
@@ -788,7 +828,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
   // delete v_square;
 
   /// reduction sum over all processors
-  allReduce(&ekin, _so_sum);
+  synch_registry->allReduce(&ekin, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return ekin * .5;

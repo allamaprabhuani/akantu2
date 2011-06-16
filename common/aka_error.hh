@@ -78,13 +78,14 @@ enum DebugLevel {
 namespace debug {
   extern std::ostream & _akantu_cout;
 
-  extern std::ostream & _akantu_debug_cout;
+  extern std::ostream *_akantu_debug_cout;
 
   extern DebugLevel _debug_level;
 
   extern std::string _parallel_context;
 
   void setDebugLevel(const DebugLevel & level);
+  void setLogFile(const std::string & filename);
   const DebugLevel & getDebugLevel();
 
   void setParallelContext(int rank, int size);
@@ -193,7 +194,7 @@ namespace debug {
 #else
 #define AKANTU_DEBUG(level,info)					\
   ((::akantu::debug::_debug_level >= level) &&				\
-   (::akantu::debug::_akantu_debug_cout					\
+   (*(::akantu::debug::_akantu_debug_cout)				\
     << ::akantu::debug::_parallel_context				\
     << "{" << __TIMESTAMP__ << "} "					\
     << info << " "							\

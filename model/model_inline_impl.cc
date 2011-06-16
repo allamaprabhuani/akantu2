@@ -28,10 +28,39 @@
 /* -------------------------------------------------------------------------- */
 inline Model::Model(const ModelID & id,
 		    const MemoryID & memory_id) :
-  Memory(memory_id), id(id) {
+  Memory(memory_id), id(id),synch_registry(NULL) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+inline void Model::createSynchronizerRegistry(DataAccessor * data_accessor){
+  synch_registry = new SynchronizerRegistry(*data_accessor);
+}
+
+/* -------------------------------------------------------------------------- */
+inline Synchronizer & Model::createParallelSynch(MeshPartition * partition,
+						 DataAccessor * data_accessor){
+  AKANTU_DEBUG_IN();
+  /* ------------------------------------------------------------------------ */
+  /* Parallel initialization                                                  */
+  /* ------------------------------------------------------------------------ */
+  StaticCommunicator * comm = 
+    StaticCommunicator::getStaticCommunicator();
+  Int prank = comm->whoAmI();
+  
+  DistributedSynchronizer * synch = NULL;
+  if(prank == 0) 
+    synch = 
+      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(), partition);
+  else 
+    synch = 
+      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(), NULL);
+
+  AKANTU_DEBUG_OUT();
+  return *synch;
+}
+
 
 /* -------------------------------------------------------------------------- */
 inline Model::~Model() {
@@ -97,6 +126,20 @@ inline FEMClass & Model::getFEMClass(std::string name) const{
 
   AKANTU_DEBUG_OUT();
   return dynamic_cast<FEMClass &>(*(it->second));
+}
+
+/* -------------------------------------------------------------------------- */
+
+inline void Model::unRegisterFEMObject(const std::string & name){
+  
+  FEMMap::iterator it = fems.find(name);
+  AKANTU_DEBUG_ASSERT(it != fems.end(), "FEM object with name "
+		      << name << " was not found");
+
+  delete((*it).second);
+  fems.erase(it);
+  if (!fems.empty())
+    default_fem = (*fems.begin()).first;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -52,8 +52,8 @@ public:
 public:
 
   template <ElementType type>
-  inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused)) const UInt dimension,
-						    __attribute__ ((unused)) GhostType ghost_type) { }
+  inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused)) 
+						    GhostType ghost_type){}
 
   void integrateOnElement(__attribute__ ((unused)) const Vector<Real> & f,
 			  __attribute__ ((unused)) Real * intf,

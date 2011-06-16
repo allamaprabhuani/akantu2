@@ -86,6 +86,16 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+protected:
+  /// compute the shape derivatives on control points for a given element
+  template <ElementType type>
+  inline void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension, 
+							Real * node_coords,
+							UInt nb_nodes_per_element,
+							Real * natural_coords,
+							UInt nb_points,
+							Real * shapesd);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -115,7 +125,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
   /// shape functions for all elements
   ByElementTypeReal shapes;

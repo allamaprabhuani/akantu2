@@ -54,3 +54,27 @@ inline UInt ShapeLagrange::getShapeDerivativesSize(const ElementType & type) {
   AKANTU_DEBUG_OUT();
   return shape_derivatives_size;
 }
+
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+inline void ShapeLagrange::
+computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension, 
+					  Real * node_coords,
+					  UInt nb_nodes_per_element,
+					  Real * natural_coords,
+					  UInt nb_points,
+					  Real * shapesd) {
+  // compute dnds
+  Real dnds[nb_nodes_per_element * spatial_dimension * nb_points];
+  ElementClass<type>::computeDNDS(natural_coords, nb_points, dnds);
+  // compute dxds
+  Real dxds[spatial_dimension * spatial_dimension * nb_points];
+  ElementClass<type>::computeDXDS(dnds, nb_points, node_coords, 
+				  spatial_dimension, dxds);
+  // compute shape derivatives
+  ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_points, 
+					      spatial_dimension, shapesd);
+}
+/* -------------------------------------------------------------------------- */
+
+

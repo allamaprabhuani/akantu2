@@ -160,9 +160,11 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_utils.cc
   solver/sparse_matrix.cc
   solver/solver.cc
-  synchronizer/ghost_synchronizer.cc
+  synchronizer/synchronizer_registry.cc
   synchronizer/synchronizer.cc
-  synchronizer/communicator.cc
+#  synchronizer/communicator.cc
+  synchronizer/distributed_synchronizer.cc
+  synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
   )
 

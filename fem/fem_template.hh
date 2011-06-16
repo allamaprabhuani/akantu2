@@ -122,6 +122,7 @@ public:
 
   void assembleFieldLumped(const Vector<Real> & field_1,
 			   Vector<Real> & lumped,
+			   const Vector<Int> & equation_number,
 			   ElementType type,
 			   GhostType ghost_type);
 
@@ -138,14 +139,17 @@ private:
   template <ElementType type>
   void assembleLumpedTemplate(const Vector<Real> & field_1,
 			      Vector<Real> & lumped,
+			      const Vector<Int> & equation_number,
 			      GhostType ghost_type);
   template <ElementType type>
   void assembleLumpedRowSum(const Vector<Real> & field_1,
 			    Vector<Real> & lumped,
+			    const Vector<Int> & equation_number,
 			    GhostType ghost_type);
   template <ElementType type>
   void assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
 				     Vector<Real> & lumped,
+				     const Vector<Int> & equation_number,				
 				     GhostType ghost_type);
 
   template <ElementType type>

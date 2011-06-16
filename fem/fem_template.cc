@@ -95,15 +95,23 @@ void FEMTemplate<Integ,Shape>::initShapeFunctions(GhostType ghost_type){
     ElementType type = *it;
 
 #define INIT_SHAPE_FUNCTIONS(type)					\
-    if (element_dimension != ElementClass<type>::getSpatialDimension()) continue; \
+    if (element_dimension != ElementClass<type>::getSpatialDimension()) \
+      continue;								\
     integrator.template computeQuadraturePoints<type>();		\
-    integrator.template precomputeJacobiansOnQuadraturePoints<type>(spatial_dimension,ghost_type); \
-    Vector<Real> & control_points = integrator.template getQuadraturePoints<type>(); \
-    shape_functions.template setControlPointsByType<type>(control_points); \
-    shape_functions.template precomputeShapesOnControlPoints<type>(ghost_type); \
-    if (element_dimension == spatial_dimension)					\
-      shape_functions.template precomputeShapeDerivativesOnControlPoints<type>(ghost_type);
-
+    integrator.								\
+      template precomputeJacobiansOnQuadraturePoints<type>(ghost_type);	\
+    integrator.								\
+      template checkJacobians<type>(ghost_type);			\
+    Vector<Real> & control_points =					\
+      integrator.template getQuadraturePoints<type>();			\
+    shape_functions.							\
+      template setControlPointsByType<type>(control_points);		\
+    shape_functions.							\
+      template precomputeShapesOnControlPoints<type>(ghost_type);	\
+    if (element_dimension == spatial_dimension)				\
+      shape_functions.							\
+	template precomputeShapeDerivativesOnControlPoints<type>(ghost_type);
+    
     AKANTU_BOOST_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 #undef INIT_SHAPE_FUNCTIONS
   }
@@ -365,12 +373,13 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getQuadraturePoints(const 
 template <typename Integ, typename Shape>
 void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
 						   Vector<Real> & lumped,
+						   const Vector<Int> & equation_number,
 						   ElementType type,
 						   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
 #define ASSEMBLE_LUMPED(type)					\
-  assembleLumpedTemplate<type>(field_1, lumped, ghost_type)
+  assembleLumpedTemplate<type>(field_1, lumped, equation_number,ghost_type)
 
   AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_LUMPED);;
 
@@ -408,27 +417,32 @@ template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedTemplate(const Vector<Real> & field_1,
 						      Vector<Real> & lumped,
+						      const Vector<Int> & equation_number,
 						      GhostType ghost_type) {
-  this->template assembleLumpedRowSum<type>(field_1, lumped, ghost_type);
+  this->template assembleLumpedRowSum<type>(field_1, lumped, equation_number,ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 //template <typename Integ, typename Shape>
 template <>
 template <>
-void FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_triangle_6>(const Vector<Real> & field_1,
-										     Vector<Real> & lumped,
-										     GhostType ghost_type) {
-  assembleLumpedDiagonalScaling<_triangle_6>(field_1, lumped, ghost_type);
+void FEMTemplate<IntegratorGauss,ShapeLagrange>::
+assembleLumpedTemplate<_triangle_6>(const Vector<Real> & field_1,
+				    Vector<Real> & lumped,
+				    const Vector<Int> & equation_number,
+				    GhostType ghost_type) {
+  assembleLumpedDiagonalScaling<_triangle_6>(field_1, lumped, equation_number,ghost_type);
 }
 
 // /* -------------------------------------------------------------------------- */
 template <>
 template <>
-void FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_tetrahedron_10>(const Vector<Real> & field_1,
-											 Vector<Real> & lumped,
-											 GhostType ghost_type) {
-  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, lumped, ghost_type);
+void FEMTemplate<IntegratorGauss,ShapeLagrange>::
+assembleLumpedTemplate<_tetrahedron_10>(const Vector<Real> & field_1,
+					Vector<Real> & lumped,
+					const Vector<Int> & equation_number,
+					GhostType ghost_type) {
+  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, lumped, equation_number,ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -439,6 +453,7 @@ template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedRowSum(const Vector<Real> & field_1,
 						    Vector<Real> & lumped,
+						    const Vector<Int> & equation_number,
 						    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -453,7 +468,7 @@ void FEMTemplate<Integ,Shape>::assembleLumpedRowSum(const Vector<Real> & field_1
 				      shapes_size, ghost_type, NULL);
   delete field_times_shapes;
 
-  assembleVector(*int_field_times_shapes, lumped, 1, type, ghost_type);
+  assembleVector(*int_field_times_shapes, lumped, equation_number,1, type, ghost_type);
   delete int_field_times_shapes;
 
   AKANTU_DEBUG_OUT();
@@ -468,6 +483,7 @@ template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
 							     Vector<Real> & lumped,
+							     const Vector<Int> & equation_number,
 							     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -519,7 +535,7 @@ void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> 
   }
   delete int_field_1;
 
-  assembleVector(*lumped_per_node, lumped, 1, type, ghost_type);
+  assembleVector(*lumped_per_node, lumped, equation_number, 1, type, ghost_type);
   delete lumped_per_node;
 
   AKANTU_DEBUG_OUT();

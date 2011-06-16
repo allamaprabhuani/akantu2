@@ -116,7 +116,7 @@ void Mesh::init() {
     connectivities[t] = NULL;
     ghost_connectivities[t] = NULL;
     surface_id[t] = NULL;
-
+    reversed_elements_pbc[t] = NULL;
     uint_data[t].clear();
     ghost_uint_data[t].clear();
   }
@@ -194,6 +194,10 @@ void Mesh::computeBoundingBox(){
       xmax[k] = std::max(xmax[k],coords[dim*i+k]);
     }
   }
+  
+  for (UInt k = 0; k < dim; ++k) 
+    size[k] = xmax[k] - xmin[k];
+
   AKANTU_DEBUG_OUT();
 }
 
