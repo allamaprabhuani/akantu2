@@ -90,17 +90,6 @@ void MaterialNeohookean::computeStress(ElementType el_type, GhostType ghost_type
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialNeohookean::computeTangentStiffness(const ElementType & el_type,
-					      Vector<Real> & tangent_matrix,
-					      GhostType ghost_type) {
-  switch(spatial_dimension) {
-  case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
-  case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
-  case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 void MaterialNeohookean::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -129,7 +118,32 @@ void MaterialNeohookean::setParam(const std::string & key, const std::string & v
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialNeohookean::celerity(const Element & elem ) {
+template<UInt dim>
+void  MaterialNeohookean::computeTangentStiffnessByDim( akantu::ElementType el_type,
+						       akantu::Vector<Real>& tangent_matrix,
+						    akantu::GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  tangent_matrix.clear();
+ Real F[3*3];
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+
+  memset(F, 0, 3 * 3 * sizeof(Real));
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      F[3*i + j] = strain_val[spatial_dimension * i + j];
+      for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] += 1;
+  //F is now the real F !!
+
+    computeTangentStiffness<dim>(tangent_val, F);
+    MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */Real MaterialNeohookean::celerity(const Element & elem ) {
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(elem.type);
   UInt size_strain = spatial_dimension * spatial_dimension;
   
@@ -185,5 +199,28 @@ void MaterialNeohookean::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+template
+void  MaterialNeohookean::computeTangentStiffnessByDim<1>( akantu::ElementType el_type,
+						       akantu::Vector<Real>& tangent_matrix,
+							   akantu::GhostType ghost_type);
+template
+  void  MaterialNeohookean::computeTangentStiffnessByDim<2>( akantu::ElementType el_type,
+						       akantu::Vector<Real>& tangent_matrix,
+							     akantu::GhostType ghost_type);
+template
+  void  MaterialNeohookean::computeTangentStiffnessByDim<3>( akantu::ElementType el_type,
+						       akantu::Vector<Real>& tangent_matrix,
+							     akantu::GhostType ghost_type);
+
+/* -------------------------------------------------------------------------- */
+void MaterialNeohookean::computeTangentStiffness(const ElementType & el_type,
+						 Vector<Real> & tangent_matrix, 
+					      GhostType ghost_type) {
+  switch(spatial_dimension) {
+  case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
+  case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
+  case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
+  }
+}
 
 __END_AKANTU__

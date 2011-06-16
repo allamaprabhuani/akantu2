@@ -59,36 +59,15 @@ inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
 }
 
 /* -------------------------------------------------------------------------- */
+
 template<UInt dim>
-void  MaterialNeohookean::computeTangentStiffnessByDim(__attribute__((unused)) akantu::ElementType,
-						    akantu::Vector<Real>& tangent_matrix,
-						    __attribute__((unused)) akantu::GhostType) {
-  AKANTU_DEBUG_IN();
-
-  Real * tangent_val   = tangent_matrix.values;
-  UInt offset_tangent  = tangent_matrix.getNbComponent();
-  UInt nb_quads        = tangent_matrix.getSize();
-
-  if (nb_quads == 0) return;
-
-  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
-  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
-    computeTangentStiffness<dim>(tangent_val);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt dim>
-void  MaterialNeohookean::computeTangentStiffness(Real * tangent) {
-
+void  MaterialNeohookean::computeTangentStiffness(Real * tangent, Real * F ) {
   UInt n = (dim * (dim - 1) / 2 + dim);
-
-  Real Ep = E/((1+nu)*(1-2*nu));
-  Real Miiii = Ep * (1-nu);
-  Real Miijj = Ep * nu;
-  Real Mijij = Ep * (1-2*nu) * .5;
+  Real J = Math::det3(F);
+  Real alpha = mu-0.5*lambda*(J*J-1);
+  Real Miiii = 2*mu+lambda;
+  Real Miijj = lambda*J*J;
+  Real Mijij = alpha;
 
   tangent[0 * n + 0] = Miiii;
 

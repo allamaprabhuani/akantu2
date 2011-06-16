@@ -95,7 +95,7 @@ protected:
 
   // /// compute the tangent stiffness matrix for an element
   template<UInt dim>
-  void computeTangentStiffness(Real * tangent);
+  void computeTangentStiffness( Real * tangent, Real * F);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

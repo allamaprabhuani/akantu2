@@ -104,7 +104,6 @@ protected:
   virtual void computePotentialEnergy(ElementType el_type,
 				      GhostType ghost_type = _not_ghost) = 0;
 
-private:
   template<UInt dim>
   void assembleStiffnessMatrix(Vector<Real> & current_position,
 			       const ElementType & type,
@@ -271,7 +270,7 @@ __END_AKANTU__
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent)		\
-  UInt nb_quadrature_points = FEM::getNbQuadraturePoints(el_type);	\
+  UInt nb_quadrature_points =  model->getFEM().getNbQuadraturePoints(el_type);	\
   UInt size_strain          = spatial_dimension * spatial_dimension;	\
   									\
   UInt nb_element;							\
@@ -288,7 +287,7 @@ __END_AKANTU__
     strain_val = ghost_strain[el_type]->values;				\
   }									\
   tangent_val = tangent.values;						\
-  size_tangent = getTangentStiffnessVoigtSize();			\
+  UInt size_tangent = getTangentStiffnessVoigtSize(spatial_dimension);	\
   size_tangent *= size_tangent;						\
   									\
   if (nb_element == 0) return;						\
