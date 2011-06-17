@@ -391,7 +391,6 @@ void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
 template <typename Integ, typename Shape>
 void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 						   UInt nb_degree_of_freedom,
-						   const Vector<Int> & equation_number,
 						   SparseMatrix & matrix,
 						   ElementType type,
 						   GhostType ghost_type) {
@@ -399,7 +398,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 
 #define ASSEMBLE_MATRIX(type)					\
   assembleFieldMatrix<type>(field_1, nb_degree_of_freedom,	\
-			    equation_number, matrix,		\
+			    matrix,				\
 			    ghost_type)
 
   AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_MATRIX);;
@@ -434,7 +433,7 @@ assembleLumpedTemplate<_triangle_6>(const Vector<Real> & field_1,
   assembleLumpedDiagonalScaling<_triangle_6>(field_1, lumped, equation_number,ghost_type);
 }
 
-// /* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <>
 template <>
 void FEMTemplate<IntegratorGauss,ShapeLagrange>::
@@ -442,8 +441,19 @@ assembleLumpedTemplate<_tetrahedron_10>(const Vector<Real> & field_1,
 					Vector<Real> & lumped,
 					const Vector<Int> & equation_number,
 					GhostType ghost_type) {
-  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, lumped, equation_number,ghost_type);
+  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, lumped, equation_number, ghost_type);
 }
+
+/* -------------------------------------------------------------------------- */
+template <>
+template <>
+void FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_quadrangle_8>(const Vector<Real> & field_1,
+										       Vector<Real> & lumped,
+										       const Vector<Int> & equation_number,
+										       GhostType ghost_type) {
+  assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, lumped, equation_number, ghost_type);
+}
+
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -506,6 +516,11 @@ void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> 
     mid_factor    = 7./48.;
   }
 
+  if (type == _quadrangle_8) {
+    corner_factor = 1./36.;
+    mid_factor    = 8./36.;
+  }
+
 
   if (nb_element == 0) {
     AKANTU_DEBUG_OUT();
@@ -549,7 +564,6 @@ template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 						   UInt nb_degree_of_freedom,
-						   const Vector<Int> & equation_number,
 						   SparseMatrix & matrix,
 						   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -563,7 +577,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
   modified_shapes->clear();
   Vector<Real> * local_mat = new Vector<Real>(vect_size, lmat_size * lmat_size);
 
-  Vector<Real>::iterator<types::Matrix> shape_vect  = modified_shapes->begin(lmat_size, nb_degree_of_freedom);
+  Vector<Real>::iterator<types::Matrix> shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
   Real * sh  = shapes.values;
   for(UInt q = 0; q < vect_size; ++q) {
     Real * msh = shape_vect->storage();
@@ -578,7 +592,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
     sh += shapes_size;
   }
 
-  shape_vect  = modified_shapes->begin(lmat_size, nb_degree_of_freedom);
+  shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
   Vector<Real>::iterator<types::Matrix> lmat        = local_mat->begin(lmat_size, lmat_size);
   Real * field_val = field_1.values;
 
@@ -595,7 +609,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 				      lmat_size * lmat_size, ghost_type, NULL);
   delete local_mat;
 
-  assembleMatrix(*int_field_times_shapes, matrix, equation_number, nb_degree_of_freedom, type, ghost_type);
+  assembleMatrix(*int_field_times_shapes, matrix, nb_degree_of_freedom, type, ghost_type);
   delete int_field_times_shapes;
 
   AKANTU_DEBUG_OUT();

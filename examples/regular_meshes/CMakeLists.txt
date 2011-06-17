@@ -1,8 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+# @date   Tue Feb 22 09:35:58 2011
 #
 # @section LICENSE
 #
@@ -27,20 +26,6 @@
 #===============================================================================
 
 #===============================================================================
-# List of examples
-#===============================================================================
-add_example(2d_compression "Compression example")
-add_example(regular_meshes "Generate a regular mesh")
 
-if(AKANTU_PARTITIONER_ON AND AKANTU_MPI_ON)
-  add_example(3d_cube_compression "Cube compression example")
-  add_example(scalability_test "Scalability test")
-endif()
-
-if(AKANTU_EPSN_ON)
-  add_example(epsn "Example of steering akantu with EPSN")
-endif(AKANTU_EPSN_ON)
-
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/local_examples.cmake")
-  include("local_examples.cmake")
-endif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/local_examples.cmake")
+register_example(regular_meshes
+  regular_meshes.cc)

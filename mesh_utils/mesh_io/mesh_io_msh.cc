@@ -158,7 +158,7 @@ UInt MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] =
   { 0, 1, 2, 3, 4, 0, 0, 0, 0, 0 }, // _tetrahedron_4
   { 0, 1, 2, 3, 4, 5, 6, 7, 9, 8 }, // _tetrahedron_10
   { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0 }, // _quadrangle_4
-  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }, // _quadrangle_6
+  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }, // _quadrangle_8
   { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }  // _hexahedron_8
 };
 

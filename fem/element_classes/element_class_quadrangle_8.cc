@@ -88,39 +88,43 @@ template<> UInt ElementClass<_quadrangle_8>::spatial_dimension;
 template <> inline void ElementClass<_quadrangle_8>::computeShapes(const Real * natural_coords,
 								   Real * shapes) {
   /// Natural coordinates
-  const Real * c = natural_coords;
+  const Real xi  = natural_coords[0];
+  const Real eta = natural_coords[1];
 
-  shapes[0] = - .25 * (1 - c[0]) * (1 - c[1]) * (1 + c[0] + c[1]);
-  shapes[1] = - .25 * (1 + c[0]) * (1 - c[1]) * (1 - c[0] + c[1]);
-  shapes[2] = - .25 * (1 + c[0]) * (1 + c[1]) * (1 - c[0] - c[1]);
-  shapes[3] = - .25 * (1 - c[0]) * (1 + c[1]) * (1 + c[0] - c[1]);
-  shapes[4] =    .5 * (1 - c[0] * c[0]) * (1 - c[1]       );
-  shapes[5] =    .5 * (1 + c[0]       ) * (1 - c[1] * c[1]);
-  shapes[6] =    .5 * (1 - c[0] * c[0]) * (1 + c[1]       );
-  shapes[7] =    .5 * (1 - c[0]       ) * (1 - c[1] * c[1]);
+  shapes[0] = .25 * (1 - xi) * (1 - eta) * (- 1 - xi - eta);
+  shapes[1] = .25 * (1 + xi) * (1 - eta) * (- 1 + xi - eta);
+  shapes[2] = .25 * (1 + xi) * (1 + eta) * (- 1 + xi + eta);
+  shapes[3] = .25 * (1 - xi) * (1 + eta) * (- 1 - xi + eta);
+  shapes[4] =  .5 * (1 - xi * xi) * (1 - eta      );
+  shapes[5] =  .5 * (1 + xi     ) * (1 - eta * eta);
+  shapes[6] =  .5 * (1 - xi * xi) * (1 + eta      );
+  shapes[7] =  .5 * (1 - xi     ) * (1 - eta * eta);
 }
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_quadrangle_8>::computeDNDS(const Real * natural_coords,
 								 Real * dnds) {
-  const Real * c = natural_coords;
+  const Real xi  = natural_coords[0];
+  const Real eta = natural_coords[1];
 
-  dnds[0]  = .25 * (1 - c[1]) * (2 * c[0] + c[1]);
-  dnds[1]  = .25 * (1 - c[1]) * (2 * c[0] - c[1]);
-  dnds[2]  = .25 * (1 + c[1]) * (2 * c[0] + c[1]);
-  dnds[3]  = .25 * (1 + c[1]) * (2 * c[0] - c[1]);
-  dnds[4]  = - c[0] * (1 - c[1]);
-  dnds[5]  =     .5 * (1 - c[1] * c[1]);
-  dnds[6]  = - c[0] * (1 + c[1]);
-  dnds[7]  = -   .5 * (1 - c[1] * c[1]);
+  /// dN/dxi
+  dnds[0]  = .25 * (1 - eta) * (2 * xi + eta);
+  dnds[1]  = .25 * (1 - eta) * (2 * xi - eta);
+  dnds[2]  = .25 * (1 + eta) * (2 * xi + eta);
+  dnds[3]  = .25 * (1 + eta) * (2 * xi - eta);
+  dnds[4]  = - xi * (1 - eta);
+  dnds[5]  =   .5 * (1 - eta * eta);
+  dnds[6]  = - xi * (1 + eta);
+  dnds[7]  = - .5 * (1 - eta * eta);
 
-  dnds[8]  = .25 * (1 - c[0]) * (2 * c[1] + c[0]);
-  dnds[9]  = .25 * (1 + c[0]) * (2 * c[1] - c[0]);
-  dnds[10] = .25 * (1 + c[0]) * (2 * c[1] + c[0]);
-  dnds[11] = .25 * (1 - c[0]) * (2 * c[1] - c[0]);
-  dnds[12] = -   .5 * (1 - c[0] * c[0]);
-  dnds[13] = - c[1] * (1 + c[0]);
-  dnds[14] =     .5 * (1 - c[0] * c[0]);
-  dnds[15] = - c[1] * (1 - c[0]);
+  /// dN/deta
+  dnds[8]  = .25 * (1 - xi) * (2 * eta + xi);
+  dnds[9]  = .25 * (1 + xi) * (2 * eta - xi);
+  dnds[10] = .25 * (1 + xi) * (2 * eta + xi);
+  dnds[11] = .25 * (1 - xi) * (2 * eta - xi);
+  dnds[12] = -  .5 * (1 - xi * xi);
+  dnds[13] = - eta * (1 + xi);
+  dnds[14] =    .5 * (1 - xi * xi);
+  dnds[15] = - eta * (1 - xi);
 }
 
 
@@ -139,13 +143,25 @@ template <> inline void ElementClass<_quadrangle_8>::computeJacobian(const Real 
 
 
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_quadrangle_4>::getInradius(const Real * coord) {
-  Real a = Math::distance_2d(coord + 0, coord + 2);
-  Real b = Math::distance_2d(coord + 2, coord + 4);
-  Real c = Math::distance_2d(coord + 4, coord + 6);
-  Real d = Math::distance_2d(coord + 6, coord + 0);
+template<> inline Real ElementClass<_quadrangle_8>::getInradius(const Real * coord) {
+  Real a, b, h;
 
-  Real h = std::min(a, std::min(b, std::min(c, d)));
+  a = Math::distance_2d(coord + 0*2, coord + 4*2);
+  b = Math::distance_2d(coord + 4*2, coord + 1*2);
+  h = std::min(a, b);
+
+  a = Math::distance_2d(coord + 1*2, coord + 5*2);
+  b = Math::distance_2d(coord + 5*2, coord + 2*2);
+  h = std::min(h, std::min(a, b));
+
+  a = Math::distance_2d(coord + 2*2, coord + 6*2);
+  b = Math::distance_2d(coord + 6*2, coord + 3*2);
+  h = std::min(h, std::min(a, b));
+
+  a = Math::distance_2d(coord + 3*2, coord + 7*2);
+  b = Math::distance_2d(coord + 7*2, coord + 0*2);
+  h = std::min(h, std::min(a, b));
+
 
   return h;
 }

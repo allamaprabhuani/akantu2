@@ -23,6 +23,12 @@
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
+ * @section DESCRIPTION
+ *
+ * This code is computing the gradient of a linear field and check that it gives
+ * a constant result.  It also compute the gradient the  coordinates of the mesh
+ * and check that it gives the identity
+ *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -42,55 +48,87 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  ElementType type = XXXX;
-  UInt dim = DIM;
+  debug::setDebugLevel(dblTest);
+  const ElementType type = TYPE;
+  UInt dim = ElementClass<type>::getSpatialDimension();
+
+  Real eps = 3e-13;
+  std::cout << "Epsilon : " << eps << std::endl;
 
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
-  mesh_io.read("FILE.msh", my_mesh);
+  std::stringstream meshfilename; meshfilename << type << ".msh";
+  mesh_io.read(meshfilename.str(), my_mesh);
   FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
-  debug::setDebugLevel(dblDump);
+  std::stringstream outfilename; outfilename << "out_" << type << ".txt";
+  std::ofstream my_file(outfilename.str().c_str());
+
   fem->initShapeFunctions();
 
-  std::cout << fem << std::endl;
+  std::cout << *fem << std::endl;
 
   StaticMemory * st_mem = StaticMemory::getStaticMemory();
   std::cout << *st_mem << std::endl;
 
+
+  Real alpha[2][3] = {{13, 23, 31},
+		      {11,  7,  5}};
+
+  /// create the 2 component field
+  const Vector<Real> & position = fem->getMesh().getNodes();
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
   Vector<Real> grad_on_quad(0, 2 * dim, "grad_on_quad");
-
   for (UInt i = 0; i < const_val.getSize(); ++i) {
-    const_val.values[i * 2 + 0] = 1.;
-    const_val.values[i * 2 + 1] = 2.;
+    const_val(i, 0) = 0;
+    const_val(i, 1) = 0;
+
+    for (UInt d = 0; d < dim; ++d) {
+      const_val(i, 0) += alpha[0][d] * position(i, d);
+      const_val(i, 1) += alpha[1][d] * position(i, d);
+    }
   }
 
+  /// compute the gradient
   fem->gradientOnQuadraturePoints(const_val, grad_on_quad, 2, type);
-  std::ofstream my_file("out.txt");
+
   my_file << const_val << std::endl;
   my_file << grad_on_quad << std::endl;
+  std::cout << grad_on_quad << std::endl;
+
+  /// check the results
+  Vector<Real>::iterator<types::Matrix> it = grad_on_quad.begin(2,dim);
+  Vector<Real>::iterator<types::Matrix> it_end = grad_on_quad.end(2,dim);
+  for (;it != it_end; ++it) {
+    for (UInt d = 0; d < dim; ++d) {
+      if(!(std::abs((*it)(0, d) - alpha[0][d]) < eps) ||
+	 !(std::abs((*it)(1, d) - alpha[1][d]) < eps)) {
+	std::cout << "Error gradient is not correct "
+		  << (*it)(0, d) << " " << alpha[0][d] << " (" << std::abs((*it)(0, d) - alpha[0][d]) << ")"
+		  << " - "
+		  << (*it)(1, d) << " " << alpha[1][d] << " (" << std::abs((*it)(1, d) - alpha[1][d]) << ")"
+		  << " - " << d <<  std::endl;
+	std::cout << *it << std::endl;
+	exit(EXIT_FAILURE);
+      }
+    }
+  }
 
   // compute gradient of coordinates
   Vector<Real> grad_coord_on_quad(0, dim * dim, "grad_coord_on_quad");
   fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), type);
+
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
 
-  UInt nb_quads = my_mesh.getNbElement(type) * fem->getNbQuadraturePoints(type);;
-  Real eps = 25 * std::numeric_limits<Real>::epsilon();
-  std::cout << "Epsilon : " << eps << std::endl;
-  for (UInt q = 0; q < nb_quads; ++q) {
+  Vector<Real>::iterator<types::Matrix> itp = grad_coord_on_quad.begin(dim, dim);
+  Vector<Real>::iterator<types::Matrix> itp_end = grad_coord_on_quad.end(dim, dim);
+
+  for (;itp != itp_end; ++itp) {
     for (UInt i = 0; i < dim; ++i) {
       for (UInt j = 0; j < dim; ++j) {
-	if(!(fabs(grad_coord_on_quad.values[q*dim*dim+ i*dim + j] - (i == j)) <= eps)) {
-	  std::cerr << "Error on the quad point " << q << std::endl;
-	  for (UInt oi = 0; oi < dim; ++oi) {
-	    for (UInt oj = 0; oj < dim; ++oj) {
-	      std::cout << fabs(grad_coord_on_quad.values[q*dim*dim + i*dim + j] - (i == j)) << " ";
-	    }
-	    std::cout << std::endl;
-	  }
+	if(!(std::abs((*itp)(i,j) - (i == j)) < eps)) {
+	  std::cout << *itp << std::endl;
 	  exit(EXIT_FAILURE);
 	}
       }

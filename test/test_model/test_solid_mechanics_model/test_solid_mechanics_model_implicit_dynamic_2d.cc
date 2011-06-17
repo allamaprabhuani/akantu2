@@ -57,23 +57,25 @@ void paraviewDump(Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
-
-#define bar_length 10
-#define bar_height 1
-#define TYPE _tetrahedron_10
+const Real F = 0.5e4;
+#define bar_length 10.
+#define bar_height 1.
+#define bar_depth  1.
+const ElementType TYPE = _tetrahedron_10;
 
 UInt spatial_dimension = 3;
 Real time_step = 1e-4;
+
+
+Real analytical_solution(Real time) {
+  return 1./pow(M_PI, 4) * ((1. - cos(M_PI*M_PI*time)) + (1. - cos(3*3*M_PI*M_PI*time))/81. + (1. - cos(5*5*M_PI*M_PI*time))/625.);
+}
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
   debug::setDebugLevel(dblWarning);
   initialize(&argc, &argv);
-
-
-  UInt max_steps = 10000000;
-
 
   Mesh mesh(spatial_dimension);
 
@@ -101,11 +103,10 @@ int main(int argc, char *argv[])
   model->initVectors();
 
   model->initModel();
-  model->readMaterials("material.dat");
+  model->readMaterials("material_implicit_dynamic.dat");
   model->initMaterials();
 
   model->initImplicit(true);
-  model->assembleMass();
 
   // boundary conditions
   const Vector<Real> & position    = mesh.getNodes();
@@ -119,82 +120,110 @@ int main(int argc, char *argv[])
   model->getVelocity().clear();
   model->getAcceleration().clear();
 
-  MeshUtils::buildFacets(mesh);
-  MeshUtils::buildSurfaceID(mesh);
+  // MeshUtils::buildFacets(mesh);
+  // MeshUtils::buildSurfaceID(mesh);
 
-  CSR<UInt> surface_nodes;
-  MeshUtils::buildNodesPerSurface(mesh, surface_nodes);
+  // CSR<UInt> surface_nodes;
+  // MeshUtils::buildNodesPerSurface(mesh, surface_nodes);
 
-  for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
-    CSR<UInt>::iterator snode = surface_nodes.begin(s);
-    for(; snode != surface_nodes.end(s); ++snode) {
-     UInt n = *snode;
-     Real x = position(n, 0);
-     Real y = position(n, 1);
-     Real z = -1;
-     if(spatial_dimension == 3)
-       z = position(n, 2);
+  UInt node_to_print = -1;
+  bool print_node = false;
 
-     if(Math::are_float_equal(x, 0.) &&
-	Math::are_float_equal(y, 0.)) {
-       boundary(n,0) = true;
-       boundary(n,1) = true;
-       if(spatial_dimension == 3)
-	 boundary(n,2) = true;
-     }
+  // for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
+  //   CSR<UInt>::iterator snode = surface_nodes.begin(s);
+  //   for(; snode != surface_nodes.end(s); ++snode) {
+  //    UInt n = *snode;
+  Vector<UInt> node_to_displace;
+  for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+    Real x = position(n, 0);
+    Real y = position(n, 1);
+    Real z = 0;
+    if(spatial_dimension == 3)
+      z = position(n, 2);
 
-     if(Math::are_float_equal(x, bar_length) &&
-	Math::are_float_equal(y, 0.)) {
-       boundary(n,1) = true;
-       if(spatial_dimension == 3)
-	 boundary(n,2) = true;
-     }
+    if(Math::are_float_equal(x, 0.) &&
+       Math::are_float_equal(y, bar_height / 2.)) {
+      boundary(n,0) = true;
+      boundary(n,1) = true;
+      if(spatial_dimension == 3 && Math::are_float_equal(z, bar_depth / 2.))
+	boundary(n,2) = true;
+    }
 
-     if(Math::are_float_equal(x, bar_length / 2.) &&
-	Math::are_float_equal(y, bar_height)) {
-       force(n,1) = 10000;
-     }
+    if(Math::are_float_equal(x, bar_length) &&
+       Math::are_float_equal(y, bar_height / 2.)) {
+      boundary(n,1) = true;
+      if(spatial_dimension == 3 && Math::are_float_equal(z, bar_depth / 2.))
+	boundary(n,2) = true;
+    }
+
+    if(Math::are_float_equal(x, bar_length / 2.) &&
+       Math::are_float_equal(y, bar_height / 2.)) {
+
+      if(spatial_dimension < 3 || (spatial_dimension == 3 && Math::are_float_equal(z, bar_depth / 2.))) {
+	force(n,1) = F;
+	if(mesh.isLocalOrMasterNode(n)) {
+	  print_node = true;
+	  node_to_print = n;
+	  std::cout << "I, proc " << prank +1 << " handle the print of node " << n 
+		    << "(" << x << ", "<< y << ", " << z << ")" << std::endl;
+	}
+      }
     }
   }
+  //  }
 
   model->setTimeStep(time_step);
 
   model->updateResidual();
-  //  model->initialAcceleration();
 
   std::stringstream out;
-  out << "position_" << std::scientific << time_step << ".csv";
+  out << "position-" << TYPE << "_" << std::scientific << time_step << ".csv";
 
   DumperParaview dumper;
   paraviewInit(dumper, *model);
 
   std::ofstream pos;
-  pos.open(out.str().c_str());
-  pos << "id,time,position" << std::endl;
+  if(print_node) {
+    pos.open(out.str().c_str());
+    if(!pos.good()) {
+      std::cerr << "Cannot open file " << out.str() <<std::endl;
+      exit(EXIT_FAILURE);
+    }
+    pos << "id,time,position,solution" << std::endl;
+  }
 
   Real time = 0;
   UInt count = 0;
   //  UInt print_freq = 1;
   Real error;
 
-  model->getMassMatrix().saveMatrix("M.mtx");
   model->assembleStiffnessMatrix();
+  model->assembleMass();
+
+  // model->assembleMassLumped();
+  // Vector<Real> lumped_mass(0,spatial_dimension);
+  // model->getMassMatrix().lump(lumped_mass);
+
+  // debug::setDebugLevel(dblTest);
+  // std::cout << model->getMass() << lumped_mass;
+  // debug::setDebugLevel(dblWarning);
+
+  model->getMassMatrix().saveMatrix("M.mtx");
+  model->getStiffnessMatrix().saveMatrix("K.mtx");
 
   /// time loop
-  for (UInt s = 1; s <= max_steps && time < 0.05; ++s) {
+  for (UInt s = 1; time < 0.62; ++s) {
     model->implicitPred();
-
     /// convergence loop
     do {
-      if(count > 0) 
-	std::cout << "passing step " << s << "/" << max_steps << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
+      if(count > 0 && prank == 0)
+    	std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
       model->updateResidual();
       model->solveDynamic();
       model->implicitCorr();
       count++;
-
-    } while(!model->testConvergenceIncrement(1e-19, error) && (count < 10000));
-    std::cout << "passing step " << s << "/" << max_steps << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << std::endl;
+    } while(!model->testConvergenceIncrement(1e-12, error) && (count < 1000));
+    if(prank == 0) std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << std::endl;
     count = 0;
 
     // if(s % print_freq == 0) {
@@ -202,7 +231,7 @@ int main(int argc, char *argv[])
     //   count = 0;
     // }
 
-    pos << s << "," << s * time_step << "," << displacment(3,1) << std::endl;
+    if(print_node) pos << s << "," << s * time_step << "," << displacment(node_to_print,  1) << "," << analytical_solution(s*time_step) << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 10 == 0) paraviewDump(dumper);
@@ -210,6 +239,8 @@ int main(int argc, char *argv[])
 
     time += time_step;
   }
+
+  if(print_node) pos.close();
 
   delete model;
   finalize();
@@ -245,6 +276,7 @@ void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {
   std::stringstream filename; filename << "dynamic_implicit_beam_" << TYPE;
 
   dumper.SetMode(TEXT);
+  dumper.SetParallelContext(StaticCommunicator::getStaticCommunicator()->whoAmI(), StaticCommunicator::getStaticCommunicator()->getNbProc());
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, filename.str().c_str());
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,

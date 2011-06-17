@@ -46,7 +46,6 @@ inline StaticCommunicatorMPI::StaticCommunicatorMPI(int * argc, char *** argv) :
 /* -------------------------------------------------------------------------- */
 inline StaticCommunicatorMPI::~StaticCommunicatorMPI() {
   MPI_Finalize();
-  std::cout << "AAAAAAAHHHH" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -190,6 +189,39 @@ inline void StaticCommunicatorMPI::allReduce(T * values, Int nb_values,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
+inline void StaticCommunicatorMPI::allGather(T * values, Int nb_values) {
+  MPI_Datatype type = getMPIDatatype<T>();
+
+#if !defined(AKANTU_NDEBUG)
+  int ret =
+#endif
+    MPI_Allgather(MPI_IN_PLACE, nb_values, type, values, nb_values, type, communicator);
+
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Allgather.");
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicatorMPI::allGatherV(T * values, Int * nb_values) {
+  Int * displs = new Int[psize];
+  displs[0] = 0;
+  for (Int i = 1; i < psize; ++i) {
+    displs[i] = displs[i-1] + nb_values[i-1];
+  }
+
+  MPI_Datatype type = getMPIDatatype<T>();
+
+#if !defined(AKANTU_NDEBUG)
+  int ret =
+#endif
+    MPI_Allgatherv(MPI_IN_PLACE, *nb_values, type, values, nb_values, displs, type, communicator);
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Gather.");
+
+  delete [] displs;
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
 inline void StaticCommunicatorMPI::gather(T * values, Int nb_values, Int root) {
   T * send_buf = NULL, * recv_buf = NULL;
   if(prank == root) {
@@ -211,7 +243,7 @@ inline void StaticCommunicatorMPI::gather(T * values, Int nb_values, Int root) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void StaticCommunicatorMPI::gatherv(T * values, Int * nb_values, Int root) {
+inline void StaticCommunicatorMPI::gatherV(T * values, Int * nb_values, Int root) {
   Int * displs = NULL;
   if(prank == root) {
     displs = new Int[psize];

@@ -318,9 +318,6 @@ public:
    */
   void setIncrementFlagOn();
 
-  /// get the equation number Vector<Int>
-  AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
-
   /// get the stiffness matrix
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, SparseMatrix &);
 
@@ -328,6 +325,8 @@ public:
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
   inline FEM & getFEMBoundary(std::string name = "");
+
+  AKANTU_GET_MACRO(DOFSynchronizer, *dof_synchronizer, const DOFSynchronizer &)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -367,11 +366,7 @@ private:
   /// array of current position used during update residual
   Vector<Real> * current_position;
 
-  /// position of a dof in the K matrix
-  Vector<Int> * equation_number;
-
-  /// local equation_number to global
-  unordered_map<UInt, UInt>::type local_eq_num_to_global;
+  DOFSynchronizer * dof_synchronizer;
 
   /// mass matrix
   SparseMatrix * mass_matrix;

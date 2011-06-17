@@ -246,4 +246,5 @@ inline Real * ElementClass<type>::getGaussIntegrationWeights() {
 #include "element_classes/element_class_tetrahedron_4.cc"
 #include "element_classes/element_class_tetrahedron_10.cc"
 #include "element_classes/element_class_quadrangle_4.cc"
+#include "element_classes/element_class_quadrangle_8.cc"
 #include "element_classes/element_class_hexahedron_8.cc"

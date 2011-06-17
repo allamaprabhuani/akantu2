@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include <ostream>
 #include <sstream>
+#include <sys/time.h>
 
 #ifdef AKANTU_USE_MPI
 #include <mpi.h>
@@ -69,6 +70,7 @@ enum DebugLevel {
   dbl9           = 9,
   dblAccessory   = 9,
   dbl10          = 10,
+  dblDebug       = 42,
   dbl100         = 100,
   dblDump        = 100,
   dblTest        = 1337
@@ -182,6 +184,7 @@ namespace debug {
 #define AKANTU_DEBUG_TEST(level)     (false)
 #define AKANTU_DEBUG_LEVEL_IS_TEST() (false)
 #define AKANTU_DEBUG(level,info)
+#define AKANTU_DEBUG_(pref,level,info)
 #define AKANTU_DEBUG_IN()
 #define AKANTU_DEBUG_OUT()
 #define AKANTU_DEBUG_INFO(info)
@@ -192,14 +195,23 @@ namespace debug {
 
 /* -------------------------------------------------------------------------- */
 #else
-#define AKANTU_DEBUG(level,info)					\
-  ((::akantu::debug::_debug_level >= level) &&				\
-   (*(::akantu::debug::_akantu_debug_cout)				\
-    << ::akantu::debug::_parallel_context				\
-    << "{" << __TIMESTAMP__ << "} "					\
-    << info << " "							\
-    << AKANTU_LOCATION							\
-    << std::endl))
+#define AKANTU_DEBUG(level,info)		\
+  AKANTU_DEBUG_("    ",level, info)
+
+#define AKANTU_DEBUG_(pref,level,info)					\
+  do {									\
+    if(::akantu::debug::_debug_level >= level) {			\
+      struct timeval time;						\
+      gettimeofday(&time, NULL);					\
+      long long  timestamp = time.tv_sec*1e6 + time.tv_usec;/*in us*/	\
+      *(::akantu::debug::_akantu_debug_cout)				\
+	<< ::akantu::debug::_parallel_context				\
+	<< "{" << timestamp << "} "					\
+	<< pref << info << " "						\
+	<< AKANTU_LOCATION						\
+	<< std::endl;							\
+    }									\
+  } while(0)
 
 #define AKANTU_DEBUG_TEST(level)		\
   (::akantu::debug::_debug_level >= (level))
@@ -207,33 +219,33 @@ namespace debug {
 #define AKANTU_DEBUG_LEVEL_IS_TEST()				\
   (::akantu::debug::_debug_level == (::akantu::dblTest))
 
-#define AKANTU_DEBUG_IN()						\
-  AKANTU_DEBUG(::akantu::dblIn     , "==> " << __func__ << "()")
+#define AKANTU_DEBUG_IN()					\
+  AKANTU_DEBUG_("==> ", ::akantu::dblIn,      __func__ << "()")
 
-#define AKANTU_DEBUG_OUT()						\
-  AKANTU_DEBUG(::akantu::dblOut    , "<== " << __func__ << "()")
+#define AKANTU_DEBUG_OUT()					\
+  AKANTU_DEBUG_("<== ", ::akantu::dblOut,     __func__ << "()")
 
 #define AKANTU_DEBUG_INFO(info)				\
-  AKANTU_DEBUG(::akantu::dblInfo   , "--- " << info)
+  AKANTU_DEBUG_("--- ", ::akantu::dblInfo,    info)
 
 #define AKANTU_DEBUG_WARNING(info)			\
-  AKANTU_DEBUG(::akantu::dblWarning, "??? " << info)
+  AKANTU_DEBUG_("/!\\ ", ::akantu::dblWarning, info)
 
 #define AKANTU_DEBUG_TRACE(info)			\
-  AKANTU_DEBUG(::akantu::dblTrace  , ">>> " << info)
+  AKANTU_DEBUG_(">>> ", ::akantu::dblTrace,   info)
 
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
     if (!(test)) {							\
-      AKANTU_DEBUG(::akantu::dblAssert, "assert [" << #test << "] "	\
-		   << "!!! " << info);					\
+      AKANTU_DEBUG_("!!! ", ::akantu::dblAssert, "assert [" << #test << "] " \
+		   << info);						\
       AKANTU_EXIT(EXIT_FAILURE);					\
     }									\
   } while(0)
 
 #define AKANTU_DEBUG_ERROR(info)					\
   do {									\
-    AKANTU_DEBUG(::akantu::dblError, "!!! " << info);			\
+    AKANTU_DEBUG_("!!! ", ::akantu::dblError, info);			\
     AKANTU_EXIT(EXIT_FAILURE);						\
   } while(0)
 

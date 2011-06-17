@@ -102,7 +102,8 @@ public:
 
   /// constructor that create nodes coordinates array
   Mesh(UInt spatial_dimension,
-       const MeshID & id = "mesh",
+       const MeshID & id = "mesh"
+,
        const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
@@ -213,12 +214,19 @@ public:
 
   /// get the nodes type Vector
   AKANTU_GET_MACRO(NodesType, *nodes_type, const Vector<Int> &);
+  inline Int getNodeType(UInt local_id) const;
 
-  /// say if a node is local or not
-  inline bool isLocalNode(UInt n) const;
+
+  /// say if a node is a pure ghost node
+  inline bool isPureGhostNode(UInt n) const;
 
   /// say if a node is pur local or master node
   inline bool isLocalOrMasterNode(UInt n) const;
+
+  inline bool isLocalNode(UInt n) const;
+  inline bool isMasterNode(UInt n) const;
+  inline bool isSlaveNode(UInt n) const;
+
 
   AKANTU_GET_MACRO(XMin, xmin[0], Real);
   AKANTU_GET_MACRO(YMin, xmin[1], Real);

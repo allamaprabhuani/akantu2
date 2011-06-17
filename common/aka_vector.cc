@@ -274,13 +274,14 @@ template <> Int Vector<Real>::find(const Real & elem) const {
 template <class T> void Vector<T>::copy(const Vector<T>& vect) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(vect.nb_component == nb_component,
-		      "The two vectors does not have the same number of components");
-
+  if(AKANTU_DEBUG_TEST(dblWarning))
+    if(vect.nb_component != nb_component) {
+      AKANTU_DEBUG(dblWarning, "The two vectors does not have the same number of components");
+    }
   //  this->id = vect.id;
-  resize(vect.size);
+  resize((vect.size * vect.nb_component) / nb_component);
 
-  memcpy(this->values, vect.values, vect.size * nb_component * sizeof(T));
+  memcpy(this->values, vect.values, vect.size * vect.nb_component * sizeof(T));
 
   AKANTU_DEBUG_OUT();
 }
@@ -303,11 +304,11 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
   stream << space << " + size           : " << this->size << std::endl;
   stream << space << " + nb_component   : " << this->nb_component << std::endl;
   stream << space << " + allocated size : " << this->allocated_size << std::endl;
-  if(!AKANTU_DEBUG_LEVEL_IS_TEST())
   stream << space << " + memory size    : "
 	 << real_size << "kB" << std::endl;
-  stream << space << " + address        : " << std::hex << this->values
-	 << std::dec << std::endl;
+  if(!AKANTU_DEBUG_LEVEL_IS_TEST())
+    stream << space << " + address        : " << std::hex << this->values
+	   << std::dec << std::endl;
 
   stream.precision(prec);
   stream.flags(ff);

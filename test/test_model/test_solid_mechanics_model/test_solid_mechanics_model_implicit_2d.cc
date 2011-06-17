@@ -191,7 +191,8 @@ int main(int argc, char *argv[])
     std::cout << position << std::endl;
     akantu::debug::setDebugLevel(akantu::dblInfo);
 
-    model->getStiffnessMatrix().saveMatrix("Ktmp.mtx");
+    std::stringstream sstr_bound; sstr_bound << "Ktmp" << prank << ".mtx";
+    model->getStiffnessMatrix().saveMatrix(sstr_bound.str());
 
     model->updateResidual();
 

@@ -79,15 +79,15 @@ public:
    * on a given point in natural coordinates
    */
   inline static void computeDXDS(const Real * dnds,
-				 const Real * node_coords, 
-				 const UInt dimension, 
+				 const Real * node_coords,
+				 const UInt dimension,
 				 Real * dxds);
   /** compute dxds the variation of real coordinates along with variation of natural coordinates
    * on a given set of points in natural coordinates
    */
-  inline static void computeDXDS(const Real * dnds, 
+  inline static void computeDXDS(const Real * dnds,
 				 const UInt nb_points,
-				 const Real * node_coords, 
+				 const Real * node_coords,
 				 const UInt dimension, Real * dxds);
   /** compute dnds the variation of real shape functions along with variation of natural coordinates
    * on a given point in natural coordinates
@@ -97,35 +97,35 @@ public:
   /** compute dnds the variation of shape functions along with variation of natural coordinates
    * on a given set of points in natural coordinates
    */
-  inline static void computeDNDS(const Real * natural_coords, 
+  inline static void computeDNDS(const Real * natural_coords,
 				 const UInt nb_points,
 				 Real * dnds);
   /// compute jacobian (or integration variable change factor) for a set of points
   inline static void computeJacobian(const Real * dxds,
 				     const UInt nb_points,
-				     const UInt dimension, 
+				     const UInt dimension,
 				     Real * jac);
   /// compute jacobian (or integration variable change factor) for a given point
   inline static void computeJacobian(const Real * dxds,
-				     const UInt dimension, 
+				     const UInt dimension,
 				     Real & jac);
   /// compute shape derivatives (input is dxds) for a set of points
-  inline static void computeShapeDerivatives(const Real * dxds, 
+  inline static void computeShapeDerivatives(const Real * dxds,
 					     const Real * dnds,
 					     const UInt nb_points,
-					     const UInt dimension, 
+					     const UInt dimension,
 					     Real * shape_deriv);
   /// compute shape derivatives (input is dxds) for a given point
-  inline static void computeShapeDerivatives(const Real * dxds, 
-					     const Real * dnds, 
+  inline static void computeShapeDerivatives(const Real * dxds,
+					     const Real * dnds,
 					     Real * shape_deriv);
-  
+
   /// compute normals on quad points
-  inline static void computeNormalsOnQuadPoint(const Real * dxds, 
-					       const UInt dimension, 
+  inline static void computeNormalsOnQuadPoint(const Real * dxds,
+					       const UInt dimension,
 					       Real * normals);
-  
-  
+
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
@@ -146,7 +146,7 @@ public:
   static inline Real * getQuadraturePoints();
   static inline UInt getShapeSize();
   static inline UInt getShapeDerivativesSize();
-  
+
   /// compute the in-radius
   static inline Real getInradius(const Real * coord);
 
@@ -183,7 +183,7 @@ private:
 
   /// quadrature points in natural coordinates
   static Real quad[];
-  
+
   /// weights for the Gauss integration
   static Real gauss_integration_weights[];
 };

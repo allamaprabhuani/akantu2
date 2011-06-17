@@ -128,7 +128,6 @@ public:
 
   void assembleFieldMatrix(const Vector<Real> & field_1,
 			   UInt nb_degree_of_freedom,
-			   const Vector<Int> & equation_number,
 			   SparseMatrix & matrix,
 			   ElementType type,
 			   GhostType ghost_type);
@@ -155,7 +154,6 @@ private:
   template <ElementType type>
   void assembleFieldMatrix(const Vector<Real> & field_1,
 			   UInt nb_degree_of_freedom,
-			   const Vector<Int> & equation_number,
 			   SparseMatrix & matrix,
 			   GhostType ghost_type);
 

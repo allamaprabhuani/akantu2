@@ -25,10 +25,10 @@
 #
 #===============================================================================
 
-add_subdirectory("test_materials")
-add_subdirectory("patch_tests")
+add_akantu_test(test_materials "test_materials")
+add_akantu_test(patch_tests "patch_tests")
 if(AKANTU_BUILD_CONTACT)
-  add_subdirectory("test_contact")
+  add_akantu_test(test_contact "test_contact")
 endif(AKANTU_BUILD_CONTACT)
 
 #===============================================================================
@@ -88,9 +88,11 @@ if(AKANTU_MUMPS_ON)
   add_mesh(test_implicit_beam_2d_1 beam_2d.geo 2 1 OUTPUT beam_2d_lin.msh)
   add_mesh(test_implicit_beam_2d_2 beam_2d.geo 2 2 OUTPUT beam_2d_quad.msh)
   add_mesh(test_implicit_beam_3d_2 beam_3d.geo 3 2 OUTPUT beam_3d_quad.msh)
+  add_mesh(test_implicit_beam_3d_1 beam_3d.geo 3 1 OUTPUT beam_3d_lin.msh)
   register_test(test_solid_mechanics_model_implicit_dynamic_2d
     test_solid_mechanics_model_implicit_dynamic_2d.cc)
-  add_dependencies(test_solid_mechanics_model_implicit_dynamic_2d test_implicit_beam_2d_1 test_implicit_beam_2d_2 test_implicit_beam_3d_2)
+  add_dependencies(test_solid_mechanics_model_implicit_dynamic_2d test_implicit_beam_2d_1 test_implicit_beam_2d_2 test_implicit_beam_3d_2 test_implicit_beam_3d_1)
+  copy_files(test_solid_mechanics_model_implicit_dynamic_2d material_implicit_dynamic.dat)
 endif()
 
 #===============================================================================

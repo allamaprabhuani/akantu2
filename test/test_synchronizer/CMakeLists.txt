@@ -40,3 +40,7 @@ configure_file(
   )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+
+#===============================================================================
+register_test(test_dof_synchronizer test_dof_synchronizer.cc)
+copy_files(test_dof_synchronizer bar.msh)

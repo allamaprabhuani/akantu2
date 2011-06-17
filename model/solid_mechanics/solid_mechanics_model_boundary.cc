@@ -27,6 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
+#include "dof_synchronizer.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -192,8 +193,8 @@ void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tra
   // assemble the result into force vector
   getFEMBoundary().assembleVector(int_funct,
 				  const_cast<Vector<Real> &>(getForce()),
-				  *equation_number,
-				  spatial_dimension, 
+				  dof_synchronizer->getLocalDOFEquationNumbers(),
+				  spatial_dimension,
 				  type);
   AKANTU_DEBUG_OUT();
 }

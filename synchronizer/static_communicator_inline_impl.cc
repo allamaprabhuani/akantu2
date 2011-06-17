@@ -102,13 +102,23 @@ template<typename T> inline void StaticCommunicator::allReduce(T * values, Int n
 }
 
 /* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::allGather(T * values, Int nb_values) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(allGather(values, nb_values), 0);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::allGatherV(T * values, Int * nb_values) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(allGatherV(values, nb_values), 0);
+}
+
+/* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::gather(T * values, Int nb_values, Int root) {
   AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gather(values, nb_values, root), 0);
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T> inline void StaticCommunicator::gatherv(T * values, Int * nb_values, Int root) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gatherv(values, nb_values, root), 0);
+template<typename T> inline void StaticCommunicator::gatherV(T * values, Int * nb_values, Int root) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(gatherV(values, nb_values, root), 0);
 }
 
 /* -------------------------------------------------------------------------- */

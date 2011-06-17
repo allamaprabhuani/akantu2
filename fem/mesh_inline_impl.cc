@@ -519,13 +519,29 @@ inline void Mesh::addConnecticityType(const ElementType & type){
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isLocalNode(UInt n) const {
-  return nodes_type ? (*nodes_type)(n) >= -2 : true;
+inline bool Mesh::isPureGhostNode(UInt n) const {
+  return nodes_type ? (*nodes_type)(n) == -3 : false;
 }
 
 /* -------------------------------------------------------------------------- */
 inline bool Mesh::isLocalOrMasterNode(UInt n) const {
   return nodes_type ? (*nodes_type)(n) == -2 || (*nodes_type)(n) == -1 : true;
+}
+
+
+/* -------------------------------------------------------------------------- */
+inline bool Mesh::isLocalNode(UInt n) const {
+  return nodes_type ? (*nodes_type)(n) == -1 : true;
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool Mesh::isMasterNode(UInt n) const {
+  return nodes_type ? (*nodes_type)(n) == -2 : false;
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool Mesh::isSlaveNode(UInt n) const {
+  return nodes_type ? (*nodes_type)(n) >= 0 : false;
 }
 
 
@@ -537,4 +553,9 @@ inline UInt Mesh::getNodeGlobalId(UInt local_id) const {
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbGlobalNodes() const {
   return nodes_global_ids ? nb_global_nodes : nodes->getSize();
+}
+
+/* -------------------------------------------------------------------------- */
+inline Int Mesh::getNodeType(UInt local_id) const {
+  return nodes_type ? (*nodes_type)(local_id) : -1;
 }

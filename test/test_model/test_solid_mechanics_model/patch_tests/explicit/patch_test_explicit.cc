@@ -99,6 +99,8 @@ types::Matrix prescribed_stress() {
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
+  initialize(&argc, &argv);
+
   debug::setDebugLevel(dblWarning);
   UInt dim = ElementClass<TYPE>::getSpatialDimension();
   const ElementType element_type = TYPE;
@@ -237,7 +239,7 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-    //    if(s % 10000 == 0) paraviewDump(dumper);
+    if(s % 10000 == 0) paraviewDump(dumper);
 #endif
   }
 
@@ -308,7 +310,7 @@ int main(int argc, char *argv[])
   // std::cout << "Strain : " << strain;
   // std::cout << "Stress : " << stress;
 
-  //  finalize();
+  finalize();
 
   return EXIT_SUCCESS;
 }

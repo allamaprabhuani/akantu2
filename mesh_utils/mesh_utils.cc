@@ -384,7 +384,7 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
       } else {
 	*conn = it->second;
       }
-      *conn++;
+      conn++;
     }
   }
 
@@ -419,7 +419,7 @@ void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const Elemen
 
   for (UInt t = 0; t < nb_tags; ++t) {
     std::string name(names);
-    std::cout << name << std::endl;
+    //    std::cout << name << std::endl;
     names += name.size() + 1;
 
 

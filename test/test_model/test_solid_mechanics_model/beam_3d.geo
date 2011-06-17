@@ -1,43 +1,64 @@
-cl1 = 0.3;
-Point(1) = {0, 0, 0, cl1};
-Point(2) = {10, 0, 0, cl1};
-Point(3) = {10, 1, 0, cl1};
-Point(4) = {5, 1, 0, cl1};
-Point(5) = {0, 1, 0, cl1};
-Point(6) = {0, 0, 1, cl1};
-Point(7) = {10, 0, 1, cl1};
-Point(11) = {10, 1, 1, cl1};
-Point(15) = {5, 1, 1, cl1};
-Point(19) = {0, 1, 1, cl1};
-Line(1) = {1, 2};
-Line(2) = {2, 3};
-Line(3) = {3, 4};
-Line(4) = {4, 5};
-Line(5) = {5, 1};
-Line(10) = {6, 7};
-Line(11) = {7, 11};
-Line(12) = {11, 15};
-Line(13) = {15, 19};
-Line(14) = {19, 6};
-Line(16) = {1, 6};
-Line(17) = {2, 7};
-Line(21) = {3, 11};
-Line(25) = {4, 15};
-Line(29) = {5, 19};
-Line Loop(7) = {1, 2, 3, 4, 5};
-Plane Surface(7) = {7};
-Line Loop(18) = {1, 17, -10, -16};
-Ruled Surface(18) = {18};
-Line Loop(22) = {2, 21, -11, -17};
-Ruled Surface(22) = {22};
-Line Loop(26) = {3, 25, -12, -21};
-Ruled Surface(26) = {26};
-Line Loop(30) = {4, 29, -13, -25};
-Ruled Surface(30) = {30};
-Line Loop(34) = {5, 16, -14, -29};
-Ruled Surface(34) = {34};
-Line Loop(35) = {10, 11, 12, 13, 14};
-Plane Surface(35) = {35};
-Surface Loop(37) = {7, 18, 22, 26, 30, 34, 35};
-Volume(37) = {37};
-Physical Volume(1) = {37};
+cl1 = 0.2;
+Point(1)  = {0, 0, 0, cl1};
+Point(2)  = {0, 1, 0, cl1};
+Point(3)  = {0, 1, 1, cl1};
+Point(4)  = {0, 0, 1, cl1};
+Point(5)  = {0, 0.5, 1, cl1};
+Point(6)  = {0, 0.5, 0, cl1};
+Point(7)  = {0, 0.5, 0.5, cl1};
+
+Line(1) = {1, 4};
+Line(2) = {4, 5};
+Line(3) = {5, 3};
+Line(4) = {3, 2};
+Line(5) = {2, 6};
+Line(6) = {6, 1};
+Line(7) = {6, 7};
+Line(8) = {7, 5};
+Line Loop(9) = {6, 1, 2, -8, -7};
+Plane Surface(10) = {9};
+Line Loop(11) = {3, 4, 5, 7, 8};
+Plane Surface(12) = {11};
+Extrude {5, 0, 0} {
+  Surface{12, 10};
+}
+Extrude {5, 0, 0} {
+  Surface{39, 66};
+}
+
+Delete {
+  Volume{3, 4, 1, 2};
+}
+Delete {
+  Surface{38, 34, 88, 92};
+}
+Delete {
+  Line{87, 83, 74, 20, 33, 29};
+}
+
+Surface Loop(121) = {12, 22, 26, 30, 10, 49, 53, 57, 39, 66};
+Volume(122) = {121};
+Surface Loop(123) = {103, 107, 111, 120, 66, 39, 76, 80, 84, 93};
+Volume(124) = {123};
+Delete {
+  Volume{124, 122};
+}
+Delete {
+  Surface{84, 103, 76, 111, 57, 22, 30, 49};
+}
+Delete {
+  Line{83, 74, 20, 29};
+}
+Line Loop(124) = {79, 70, 95, -102, -41, -16};
+Plane Surface(125) = {124};
+Line Loop(126) = {16, 41, -48, -6, -5, 25};
+Plane Surface(127) = {126};
+Line Loop(128) = {21, -14, -43, -52, 2, 3};
+Plane Surface(129) = {128};
+Line Loop(130) = {75, -68, -97, -106, 43, 14};
+Plane Surface(131) = {130};
+Surface Loop(132) = {131, 80, 125, 93, 120, 107, 39, 66};
+Volume(133) = {132};
+Surface Loop(134) = {26, 12, 129, 53, 10, 127, 39, 66};
+Volume(135) = {134};
+Physical Volume(136) = {133, 135};

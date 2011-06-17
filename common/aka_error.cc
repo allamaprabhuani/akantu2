@@ -49,13 +49,13 @@ namespace debug {
   }
   /* ------------------------------------------------------------------------ */
   void setLogFile(const std::string & filename) {
-    std::ofstream * fileout = new std::ofstream(filename.c_str()); 
+    std::ofstream * fileout = new std::ofstream(filename.c_str());
     akantu::debug::_akantu_debug_cout = fileout;
   }
   /* ------------------------------------------------------------------------ */
   void setParallelContext(int rank, int size) {
     std::stringstream sstr;
-    sstr << "[" << std::setfill(' ') << std::right << std::setw(3) 
+    sstr << "[" << std::setfill(' ') << std::right << std::setw(3)
 	 << (rank + 1) << "/" << size << "] ";
     _parallel_context = sstr.str();
   }

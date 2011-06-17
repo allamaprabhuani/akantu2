@@ -1,5 +1,5 @@
 /**
- * @file   test_interpolate_triangle_6.cc
+ * @file   test_interpolate_XXXX.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
@@ -34,28 +34,32 @@
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
-#include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-
+#include "integrator_gauss.hh"
 
 /* -------------------------------------------------------------------------- */
-
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  ElementType type = _triangle_6;
-  UInt dim = 2;
+  debug::setDebugLevel(dblTest);
+  const ElementType type = TYPE;
+  UInt dim = ElementClass<type>::getSpatialDimension();
+
+  Real eps = 3e-13;
+  std::cout << "Epsilon : " << eps << std::endl;
 
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
 
-  mesh_io.read("square2.msh", my_mesh);
+  std::stringstream meshfilename; meshfilename << type << ".msh";
+  mesh_io.read(meshfilename.str(), my_mesh);
 
   FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
   //UInt nb_quadrature_points = FEM::getNbQuadraturePoints(type);
+  std::stringstream outfilename; outfilename << "out_" << type << ".txt";
+  std::ofstream my_file(outfilename.str().c_str());
 
-  debug::setDebugLevel(dblDump);
   fem->initShapeFunctions();
 
   std::cout << *fem << std::endl;
@@ -72,7 +76,7 @@ int main(int argc, char *argv[]) {
   }
 
   fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
-  std::ofstream my_file("out.txt");
+
   my_file << const_val << std::endl;
   my_file << val_on_quad << std::endl;
 

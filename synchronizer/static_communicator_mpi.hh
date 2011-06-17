@@ -72,8 +72,11 @@ public:
   template<typename T> inline CommunicationRequest * asyncSend(T * buffer, Int size, Int receiver, Int tag);
   template<typename T> inline CommunicationRequest * asyncReceive(T * buffer, Int size, Int sender, Int tag);
 
+  template<typename T> inline void allGather(T * values, Int nb_values);
+  template<typename T> inline void allGatherV(T * values, Int * nb_values);
+
   template<typename T> inline void gather(T * values, Int nb_values, Int root);
-  template<typename T> inline void gatherv(T * values, Int * nb_values, Int root);
+  template<typename T> inline void gatherV(T * values, Int * nb_values, Int root);
   template<typename T> inline void broadcast(T * values, Int nb_values, Int root);
 
   inline bool testRequest(CommunicationRequest * request);

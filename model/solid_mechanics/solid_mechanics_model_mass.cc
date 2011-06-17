@@ -28,6 +28,8 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
 #include "material.hh"
+#include "dof_synchronizer.hh"
+
 
 //#include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
@@ -70,8 +72,11 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
     ElementType type = *it;
 
     computeRho(rho_1, type, ghost_type);
-    AKANTU_DEBUG_ASSERT(equation_number,"equation number must not be a NULL pointer");
-    fem.assembleFieldLumped(rho_1, *mass, *equation_number,type, ghost_type);
+    AKANTU_DEBUG_ASSERT(dof_synchronizer,
+			"DOFSynchronizer number must not be a initialized");
+    fem.assembleFieldLumped(rho_1, *mass,
+			    dof_synchronizer->getLocalDOFEquationNumbers(),
+			    type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
@@ -81,7 +86,7 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 void SolidMechanicsModel::assembleMass() {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(equation_number != NULL, "Call first initImplicit()!");
+  if(!dof_synchronizer) dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
 
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
@@ -90,7 +95,7 @@ void SolidMechanicsModel::assembleMass() {
 				 spatial_dimension, sstr.str(), memory_id);
 
 
-  mass_matrix->buildProfile(mesh, *equation_number);
+  mass_matrix->buildProfile(mesh, *dof_synchronizer);
   assembleMass(_not_ghost);
   //  assembleMass(_ghost);
 
@@ -114,17 +119,8 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     ElementType type = *it;
 
-    // const Vector<Real> * shapes;
-    // if(ghost_type == _not_ghost) {
-    //   nb_element   = fem.getMesh().getNbElement(type);
-    //   shapes       = &(fem.getShapes(type));
-    // } else {
-    //   nb_element   = fem.getMesh().getNbGhostElement(type);
-    //   shapes       = &(fem.getGhostShapes(type));
-    // }
-
     computeRho(rho_1, type, ghost_type);
-    fem.assembleFieldMatrix(rho_1, spatial_dimension, *equation_number, *mass_matrix, type, ghost_type);
+    fem.assembleFieldMatrix(rho_1, spatial_dimension, *mass_matrix, type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();

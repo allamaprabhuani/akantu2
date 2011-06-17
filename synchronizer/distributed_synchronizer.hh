@@ -84,7 +84,7 @@ public:
 
 protected:
   /// fill the nodes type vector
-  void fillNodesType(Int * nodes_type_tmp, Mesh & mesh);
+  void fillNodesType(Mesh & mesh);
 
 
   /// fill the communications array of a distributedSynchronizer based on a partition array
@@ -135,6 +135,14 @@ private:
 
   UInt nb_proc;
   UInt rank;
+
+  /// global node ids
+  Vector<UInt> * nodes_global_ids;
+
+  /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
+  /// [0-N] slave node and master is proc i
+  Vector<Int> * nodes_type;
+
 };
 
 

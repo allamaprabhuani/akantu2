@@ -30,42 +30,11 @@
 /* -------------------------------------------------------------------------- */
 #include "sparse_matrix.hh"
 #include "static_communicator.hh"
+#include "dof_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 
 __BEGIN_AKANTU__
-
-// /* -------------------------------------------------------------------------- */
-// SparseMatrix::SparseMatrix(const Mesh & mesh,
-// 			   const SparseMatrixType & sparse_matrix_type,
-// 			   UInt nb_degre_of_freedom,
-// 			   const SparseMatrixID & id,
-// 			   const MemoryID & memory_id) :
-//   Memory(memory_id), id(id),
-//   sparse_matrix_type(sparse_matrix_type),
-//   nb_degre_of_freedom(nb_degre_of_freedom),
-//   mesh(&mesh),
-//   nb_non_zero(0),
-//   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A"),
-//   irn_jcn_to_k(NULL) {
-//   AKANTU_DEBUG_IN();
-
-//   size = mesh.getNbGlobalNodes()*nb_degre_of_freedom;
-
-//   for(UInt t = _not_defined; t < _max_element_type; ++t) {
-//     this->element_to_sparse_profile[t] = NULL;
-//   }
-
-//   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-//   nb_proc = comm->getNbProc();
-
-//   irn_save = NULL;
-//   jcn_save = NULL;
-
-//   irn_jcn_k = new coordinate_list_map;
-
-//   AKANTU_DEBUG_OUT();
-// }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix::SparseMatrix(UInt size,
@@ -81,12 +50,9 @@ SparseMatrix::SparseMatrix(UInt size,
   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A") {
   AKANTU_DEBUG_IN();
 
-  // for(UInt t = _not_defined; t < _max_element_type; ++t) {
-  //   this->element_to_sparse_profile[t] = NULL;
-  // }
-
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   nb_proc = comm->getNbProc();
+  dof_synchronizer = NULL;
 
   irn_save = NULL;
   jcn_save = NULL;
@@ -111,6 +77,7 @@ SparseMatrix::SparseMatrix(const SparseMatrix & matrix,
   size_save = 0;
   irn_save = NULL;
   jcn_save = NULL;
+  dof_synchronizer = matrix.dof_synchronizer;
 
   AKANTU_DEBUG_OUT();
 }
@@ -121,7 +88,6 @@ SparseMatrix::~SparseMatrix() {
   AKANTU_DEBUG_IN();
 
   //  if (irn_jcn_to_k) delete irn_jcn_to_k;
-
   if(irn_save) delete irn_save;
   if(jcn_save) delete jcn_save;
 
@@ -129,19 +95,18 @@ SparseMatrix::~SparseMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_number) {
+void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer) {
   AKANTU_DEBUG_IN();
 
   // if(irn_jcn_to_k) delete irn_jcn_to_k;
   // irn_jcn_to_k = new std::map<std::pair<UInt, UInt>, UInt>;
   clearProfile();
 
+  this->dof_synchronizer = &const_cast<DOFSynchronizer &>(dof_synchronizer);
+
   coordinate_list_map::iterator irn_jcn_k_it;
 
-  // UInt * global_nodes_ids_val = NULL;
-  // if(nb_proc > 1) global_nodes_ids_val = mesh.getGlobalNodesIds().values;
-
-  Int * eq_nb_val = equation_number.values;
+  Int * eq_nb_val = dof_synchronizer.getGlobalDOFEquationNumbers().values;
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -160,8 +125,11 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_
       Int * tmp_local_eq_nb_val = local_eq_nb_val;
       for (UInt i = 0; i < nb_nodes_per_element; ++i) {
 	UInt n = conn_val[i];
-	memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
-	tmp_local_eq_nb_val += nb_degre_of_freedom;
+	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	  *tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degre_of_freedom + d];
+	}
+	// memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
+	// tmp_local_eq_nb_val += nb_degre_of_freedom;
       }
 
       for (UInt i = 0; i < size_mat; ++i) {
@@ -196,10 +164,10 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const Vector<Int> & equation_
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::applyBoundary(const Vector<bool> & boundary,
-				 const unordered_map<UInt, UInt>::type & local_eq_num_to_global) {
+void SparseMatrix::applyBoundary(const Vector<bool> & boundary) {
   AKANTU_DEBUG_IN();
 
+  const DOFSynchronizer::GlobalEquationNumberMap & local_eq_num_to_global = dof_synchronizer->getGlobalEquationNumberToLocal();
   Int * irn_val = irn.values;
   Int * jcn_val = jcn.values;
   Real * a_val   = a.values;
@@ -209,6 +177,10 @@ void SparseMatrix::applyBoundary(const Vector<bool> & boundary,
     UInt nj = local_eq_num_to_global.find(*jcn_val - 1)->second;
     if(boundary.values[ni]  || boundary.values[nj]) {
      if (*irn_val != *jcn_val) *a_val = 0;
+     else {
+       if(dof_synchronizer->getDOFTypes()(ni) >= 0) *a_val = 0;
+       else *a_val = 1;
+     }
     }
     irn_val++; jcn_val++; a_val++;
   }
@@ -235,7 +207,7 @@ void SparseMatrix::removeBoundary(const Vector<bool> & boundary) {
   for (UInt i = 0; i < n; ++i) {
     if(!boundary.values[i]) {
       perm[i] = size;
-      std::cout <<  "perm["<< i <<"] = " << size << std::endl;
+      //      std::cout <<  "perm["<< i <<"] = " << size << std::endl;
       size++;
     }
   }
@@ -300,27 +272,6 @@ void SparseMatrix::saveProfile(const std::string & filename) {
 
   outfile.close();
 
-
-
-
-  outfile.open("toto.mtx");
-
-  outfile << "%%MatrixMarket matrix coordinate pattern";
-
-  if(sparse_matrix_type == _symmetric) outfile << " symmetric";
-  else outfile << " general";
-  outfile << std::endl;
-
-  outfile << m << " " << m << " " << nb_non_zero << std::endl;
-
-  coordinate_list_map::const_iterator it;
-  for (it = irn_jcn_k.begin(); it != irn_jcn_k.end(); ++it) {
-    //    outfile << it->first / size + 1 << " " << it->first % size + 1 << " 1" << std::endl;
-    outfile << it->first.first + 1 << " " << it->first.second + 1<< " 1" << std::endl;
-  }
-
-  outfile.close();
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -342,9 +293,8 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
 
   outfile << size << " " << size << " " << nb_non_zero << std::endl;
 
-  coordinate_list_map::const_iterator it;
-  for (it = irn_jcn_k.begin(); it != irn_jcn_k.end(); ++it) {
-    outfile << it->first.first + 1 << " " << it->first.second + 1 << " " << a.values[it->second] << std::endl;
+  for (UInt i = 0; i < nb_non_zero; ++i) {
+    outfile << irn(i) << " " << jcn(i) << " " << a(i) << std::endl;
   }
 
   outfile.close();
@@ -356,11 +306,12 @@ void SparseMatrix::saveMatrix(const std::string & filename) {
 Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT((vect.getSize()*vect.getNbComponent() == mat.getSize()) &&
-		      (vect.getNbComponent() == mat.getNbDegreOfFreedom()),
-		      "The size of the matrix and the vector do not match");
+  // AKANTU_DEBUG_ASSERT((vect.getSize()*vect.getNbComponent() == mat.getSize()) &&
+  // 		      (vect.getNbComponent() == mat.getNbDegreOfFreedom()),
+  // 		      "The size of the matrix and the vector do not match");
 
   const SparseMatrixType & sparse_matrix_type = mat.getSparseMatrixType();
+  DOFSynchronizer * dof_synchronizer = mat.getDOFSynchronizerPointer();
 
   UInt nb_non_zero = mat.getNbNonZero();
   Real * tmp = new Real [vect.getNbComponent() * vect.getSize()];
@@ -376,13 +327,22 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
     UInt i = *(i_val++);
     UInt j = *(j_val++);
     Real a = *(a_val++);
-    tmp[i - 1] += a * vect_val[j - 1];
-    if(sparse_matrix_type == _symmetric && (i != j))
-      tmp[j - 1] += a * vect_val[i - 1];
 
+    UInt local_i = i - 1;
+    UInt local_j = j - 1;
+    if(dof_synchronizer) {
+      local_i = dof_synchronizer->getDOFLocalID(local_i);
+      local_j = dof_synchronizer->getDOFLocalID(local_j);
+    }
+
+    tmp[local_i] += a * vect_val[local_j];
+    if(sparse_matrix_type == _symmetric && (local_i != local_j))
+      tmp[local_j] += a * vect_val[local_i];
   }
 
   memcpy(vect_val, tmp, vect.getNbComponent() * vect.getSize() * sizeof(Real));
+  if(dof_synchronizer)
+    dof_synchronizer->reduceSynchronize<AddOperation<Real> >(vect);
 
   AKANTU_DEBUG_OUT();
 
@@ -419,7 +379,10 @@ void SparseMatrix::lump(Vector<Real> & lumped) {
   AKANTU_DEBUG_ASSERT((lumped.getNbComponent() == nb_degre_of_freedom),
 		      "The size of the matrix and the vector do not match");
 
-  lumped.resize(size / nb_degre_of_freedom);
+  UInt vect_size = size / nb_degre_of_freedom;
+  if(dof_synchronizer) vect_size = dof_synchronizer->getNbDOFs() / nb_degre_of_freedom;
+
+  lumped.resize(vect_size);
   lumped.clear();
 
   Int * i_val  = irn.values;
@@ -432,10 +395,21 @@ void SparseMatrix::lump(Vector<Real> & lumped) {
     UInt i = *(i_val++);
     UInt j = *(j_val++);
     Real a = *(a_val++);
-    vect_val[i - 1] += a;
+
+    UInt local_i = i - 1;
+    UInt local_j = j - 1;
+    if(dof_synchronizer) {
+      local_i = dof_synchronizer->getDOFLocalID(local_i);
+      local_j = dof_synchronizer->getDOFLocalID(local_j);
+    }
+
+    vect_val[local_i] += a;
     if(sparse_matrix_type == _symmetric && (i != j))
-      vect_val[j - 1] += a;
+      vect_val[local_j] += a;
   }
+
+  if(dof_synchronizer)
+    dof_synchronizer->reduceSynchronize<AddOperation<Real> >(lumped);
 
   AKANTU_DEBUG_OUT();
 }

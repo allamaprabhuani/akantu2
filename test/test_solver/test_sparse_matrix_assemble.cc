@@ -33,6 +33,7 @@
 #include "mesh_io.hh"
 
 #include "sparse_matrix.hh"
+#include "dof_synchronizer.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -47,16 +48,8 @@ int main(int argc, char *argv[]) {
   akantu::UInt nb_nodes = mesh.getNbNodes();
   akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric, spatial_dimension);
 
-  akantu::Vector<akantu::Int> equation_number(nb_nodes*spatial_dimension);
-  akantu::Int * equation_number_val = equation_number.values;
-
-  for (akantu::UInt n = 0; n < nb_nodes; ++n) {
-    for (akantu::UInt d = 0; d < spatial_dimension; ++d) {
-      *(equation_number_val++) = n * spatial_dimension + d;
-    }
-  }
-
-  sparse_matrix.buildProfile(mesh, equation_number);
+  akantu::DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
+  sparse_matrix.buildProfile(mesh, dof_synchronizer);
 
   // const akantu::Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   // akantu::Mesh::ConnectivityTypeList::const_iterator it;

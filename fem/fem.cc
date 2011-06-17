@@ -32,6 +32,8 @@
 #include "element_class.hh"
 #include "static_communicator.hh"
 #include "aka_math.hh"
+#include "dof_synchronizer.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -205,7 +207,6 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 /* -------------------------------------------------------------------------- */
 void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 			 SparseMatrix & matrix,
-			 const Vector<Int> & equation_number,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
 			 GhostType ghost_type,
@@ -244,7 +245,7 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
   UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
   UInt size = mesh->getNbGlobalNodes() * nb_degre_of_freedom;
 
-  Int * eq_nb_val = equation_number.values;
+  Int * eq_nb_val = matrix.getDOFSynchronizer().getGlobalDOFEquationNumbers().values;
   Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
 
   for (UInt e = 0; e < nb_element; ++e) {
@@ -255,8 +256,11 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
     UInt * conn_val = connectivity_val + el * nb_nodes_per_element;
     for (UInt i = 0; i < nb_nodes_per_element; ++i) {
       UInt n = conn_val[i];
-      memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
-      tmp_local_eq_nb_val += nb_degre_of_freedom;
+      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+	*tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degre_of_freedom + d];
+      }
+      // memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
+      // tmp_local_eq_nb_val += nb_degre_of_freedom;
     }
 
     for (UInt i = 0; i < size_mat; ++i) {

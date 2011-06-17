@@ -41,3 +41,7 @@ add_dependencies(test_sparse_matrix_assemble test_solver_mesh)
 if(AKANTU_MUMPS_ON)
   register_test(test_solver_mumps test_solver_mumps.cc)
 endif(AKANTU_MUMPS_ON)
+
+#===============================================================================
+register_test(test_sparse_matrix_product test_sparse_matrix_product.cc)
+copy_files(test_sparse_matrix_product bar.msh)

@@ -81,8 +81,8 @@ namespace types {
     UInt cols() const { return n; };
     Real * storage() const { return values; };
 
-    inline Real& operator()(UInt i, UInt j) { return *(values + i*m + j); };
-    inline const Real& operator()(UInt i, UInt j) const { return *(values + i*m + j); };
+    inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
+    inline const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
     inline Real& operator[](UInt idx) { return *(values + idx); };
     inline const Real& operator[](UInt idx) const { return *(values + idx); };
 
@@ -112,6 +112,7 @@ namespace types {
     template<bool tr_A, bool tr_B>
     inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
+      if(tr_A) k = A.m;
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
 
@@ -258,8 +259,8 @@ namespace types {
     static UInt size() { return n*m; };
 
 
-    inline T & operator()(UInt i, UInt j) { return *(values + i*m + j); };
-    inline const T & operator()(UInt i, UInt j) const { return *(values + i*m + j); };
+    inline T & operator()(UInt i, UInt j) { return *(values + i*n + j); };
+    inline const T & operator()(UInt i, UInt j) const { return *(values + i*n + j); };
     inline T & operator[](UInt idx) { return *(values + idx); };
     inline const T & operator[](UInt idx) const { return *(values + idx); };
 

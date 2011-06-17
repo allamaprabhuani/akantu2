@@ -159,7 +159,7 @@ template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[4],
 									&vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element    = 6;
+template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element    = 8;
 template<> ElementType ElementClass<_quadrangle_8>::p1_element_type  = _quadrangle_8;
 template<> UInt ElementClass<_quadrangle_8>::nb_quadrature_points    = 9;
 template<> Real ElementClass<_quadrangle_8>::quad[]                  = {          0.,           0.,
@@ -173,7 +173,7 @@ template<> Real ElementClass<_quadrangle_8>::quad[]                  = {        
 									 sqrt(3./5.),           0.};
 template<> UInt ElementClass<_quadrangle_8>::spatial_dimension       = 2;
 template<> UInt ElementClass<_quadrangle_8>::nb_facets               = 4;
-template<> ElementType ElementClass<_quadrangle_8>::facet_type       = _segment_2;
+template<> ElementType ElementClass<_quadrangle_8>::facet_type       = _segment_3;
 template<> UInt ElementClass<_quadrangle_8>::vec_facet_connectivity[]= {0, 1, 4,
  									1, 2, 5,
  									2, 3, 6,
@@ -221,9 +221,9 @@ template<> Real ElementClass<_triangle_6    >::gauss_integration_weights[] = {1.
 template<> Real ElementClass<_tetrahedron_4 >::gauss_integration_weights[] = {1./6.};
 template<> Real ElementClass<_tetrahedron_10>::gauss_integration_weights[] = {1./24., 1./24., 1./24., 1./24.};
 template<> Real ElementClass<_quadrangle_4  >::gauss_integration_weights[] = {1., 1., 1., 1.};
-template<> Real ElementClass<_quadrangle_8  >::gauss_integration_weights[] = {64./80.,
-										25./81., 25./81., 25./81., 25./81.,
-										40./81., 40./81., 40./81., 40./81.};
+template<> Real ElementClass<_quadrangle_8  >::gauss_integration_weights[] = {64./81.,
+									      25./81., 25./81., 25./81., 25./81.,
+									      40./81., 40./81., 40./81., 40./81.};
 template<> Real ElementClass<_hexahedron_8  >::gauss_integration_weights[] = {1., 1., 1., 1.,
 									      1., 1., 1., 1.};
 template<> Real ElementClass<_point         >::gauss_integration_weights[] = {1.};

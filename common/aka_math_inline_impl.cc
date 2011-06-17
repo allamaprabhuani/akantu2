@@ -66,10 +66,10 @@ inline void Math::matrixt_vector(UInt m, UInt n,
 #else
   memset(y, 0, m*sizeof(Real));
   for (UInt i = 0; i < m; ++i) {
-    Real xt = alpha * x[i];
     for (UInt j = 0; j < n; ++j) {
-      y[j] += A[i + j * m] * xt;
+      y[i] += A[i + j * m] * x[j];
     }
+    y[i] *= alpha;
   }
 #endif
 }

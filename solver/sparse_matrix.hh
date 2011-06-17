@@ -57,18 +57,13 @@ namespace std {
 
 __BEGIN_AKANTU__
 
+class DOFSynchronizer;
+
 class SparseMatrix : private Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  // SparseMatrix(const Mesh & mesh,
-  // 	       const SparseMatrixType & sparse_matrix_type,
-  // 	       UInt nb_degre_of_freedom,
-  // 	       const SparseMatrixID & id = "sparse_matrix",
-  // 	       const MemoryID & memory_id = 0);
-
   SparseMatrix(UInt size,
 	       const SparseMatrixType & sparse_matrix_type,
 	       UInt nb_degre_of_freedom,
@@ -101,11 +96,10 @@ public:
   inline void addToMatrix(UInt i, UInt j, Real value);
 
   /// fill the profil of the matrix
-  void buildProfile(const Mesh & mesh, const Vector<Int> & equation_number);
+  void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer);
 
   /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(const Vector<bool> & boundary,
-		     const unordered_map<UInt, UInt>::type & local_eq_num_to_global);
+  void applyBoundary(const Vector<bool> & boundary);
 
   /// modify the matrix to "remove" the blocked dof
   void removeBoundary(const Vector<bool> & boundary);
@@ -132,13 +126,6 @@ public:
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
-  // inline UInt64 key(UInt i, UInt j) const {
-  //   if(sparse_matrix_type == _symmetric && (i > j))
-  //     return j * size + i;
-
-  //   return i * size + j;
-  // }
-
   inline KeyCOO key(UInt i, UInt j) const {
     if(sparse_matrix_type == _symmetric && (i > j))
       return std::make_pair(j, i);
@@ -169,6 +156,16 @@ public:
 
   AKANTU_GET_MACRO(SparseMatrixType, sparse_matrix_type, const SparseMatrixType &);
 
+  const DOFSynchronizer & getDOFSynchronizer() const {
+    AKANTU_DEBUG_ASSERT(dof_synchronizer != NULL,
+			"DOFSynchronizer not initialized in the SparseMatrix!");
+    return *dof_synchronizer;
+  }
+
+private:
+  AKANTU_GET_MACRO(DOFSynchronizerPointer, dof_synchronizer, DOFSynchronizer *);
+
+  friend Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -221,6 +218,7 @@ private:
    */
   coordinate_list_map irn_jcn_k;
 
+  DOFSynchronizer * dof_synchronizer;
   //  std::map<std::pair<UInt, UInt>, UInt> * irn_jcn_to_k;
 };
 

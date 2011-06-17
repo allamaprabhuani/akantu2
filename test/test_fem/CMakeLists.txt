@@ -25,118 +25,49 @@
 #
 #===============================================================================
 
-#===============================================================================
-# 1D
-#===============================================================================
-add_mesh(test_fem_line_1_mesh line.geo 1 1 OUTPUT line1.msh)
-add_mesh(test_fem_line_2_mesh line.geo 1 2 OUTPUT line2.msh)
+set(LIST_TYPES
+  segment_2
+  segment_3
+  triangle_3
+  triangle_6
+  quadrangle_4
+  quadrangle_8
+  tetrahedron_4
+  tetrahedron_10
+  hexahedron_8
+  )
 
-#===============================================================================
-# 1st order
-register_test(test_integrate_segment_2 test_integrate_segment_2.cc)
-add_dependencies(test_integrate_segment_2 test_fem_line_1_mesh)
-#===============================================================================
-register_test(test_interpolate_segment_2 test_interpolate_segment_2.cc)
-add_dependencies(test_interpolate_segment_2 test_fem_line_1_mesh)
-#===============================================================================
-register_test(test_gradient_segment_2 test_gradient_segment_2.cc)
-add_dependencies(test_gradient_segment_2 test_fem_line_1_mesh)
-
-#===============================================================================
-# 2nd order
-register_test(test_integrate_segment_3 test_integrate_segment_3.cc)
-add_dependencies(test_integrate_segment_3 test_fem_line_2_mesh)
-#===============================================================================
-register_test(test_interpolate_segment_3 test_interpolate_segment_3.cc)
-add_dependencies(test_interpolate_segment_3 test_fem_line_2_mesh)
-#===============================================================================
-register_test(test_gradient_segment_3 test_gradient_segment_3.cc)
-add_dependencies(test_gradient_segment_3 test_fem_line_2_mesh)
-
-#===============================================================================
-# 2D
-#===============================================================================
-add_mesh(test_fem_square_1_mesh square.geo 2 1 OUTPUT square1.msh)
-add_mesh(test_fem_square_2_mesh square.geo 2 2 OUTPUT square2.msh)
-add_mesh(test_fem_circle_1_mesh circle.geo 2 1 OUTPUT circle1.msh)
-add_mesh(test_fem_circle_2_mesh circle.geo 2 2 OUTPUT circle2.msh)
-add_mesh(test_fem_square_struct_1_mesh square_structured.geo 2 1 OUTPUT square_structured1.msh)
-
-#===============================================================================
-# 1st order unstructured
-register_test(test_integrate_triangle_3 test_integrate_triangle_3.cc)
-add_dependencies(test_integrate_triangle_3
-  test_fem_square_1_mesh
-  test_fem_circle_1_mesh)
-#===============================================================================
-register_test(test_interpolate_triangle_3 test_interpolate_triangle_3.cc)
-add_dependencies(test_interpolate_triangle_3 test_fem_square_1_mesh)
-#===============================================================================
-register_test(test_gradient_triangle_3 test_gradient_triangle_3.cc)
-add_dependencies(test_gradient_triangle_3 test_fem_square_1_mesh)
-#===============================================================================
-# 1st order structured
-register_test(test_integrate_quadrangle_4 test_integrate_quadrangle_4.cc)
-add_dependencies(test_integrate_quadrangle_4
-  test_fem_square_1_mesh
-  test_fem_circle_1_mesh)
-#===============================================================================
-register_test(test_interpolate_quadrangle_4 test_interpolate_quadrangle_4.cc)
-add_dependencies(test_interpolate_quadrangle_4 test_fem_square_struct_1_mesh)
-#===============================================================================
-register_test(test_gradient_quadrangle_4 test_gradient_quadrangle_4.cc)
-add_dependencies(test_gradient_quadrangle_4 test_fem_square_struct_1_mesh)
+add_mesh(test_fem_segment_2_mesh      line.geo              1 1 OUTPUT segment_2.msh)
+add_mesh(test_fem_segment_3_mesh      line.geo              1 2 OUTPUT segment_3.msh)
+add_mesh(test_fem_triangle_3_mesh     square.geo            2 1 OUTPUT triangle_3.msh)
+add_mesh(test_fem_triangle_6_mesh     square.geo            2 2 OUTPUT triangle_6.msh)
+add_mesh(test_fem_quadrangle_4_mesh   square_structured.geo 2 1 OUTPUT quadrangle_4.msh)
+add_mesh(test_fem_quadrangle_8_mesh   square_structured.geo 2 2 OUTPUT quadrangle_8.msh)
+add_mesh(test_fem_tetrahedron_4_mesh  cube.geo              3 1 OUTPUT tetrahedron_4.msh)
+add_mesh(test_fem_tetrahedron_10_mesh cube.geo              3 2 OUTPUT tetrahedron_10.msh)
+add_mesh(test_fem_hexahedron_8_mesh   hexa_structured.geo   3 1 OUTPUT hexahedron_8.msh)
 
 
-#===============================================================================
-# 2nd order
-register_test(test_integrate_triangle_6 test_integrate_triangle_6.cc)
-add_dependencies(test_integrate_triangle_6
-  test_fem_square_2_mesh
-  test_fem_circle_2_mesh)
-#===============================================================================
-register_test(test_interpolate_triangle_6 test_interpolate_triangle_6.cc)
-add_dependencies(test_interpolate_triangle_6 test_fem_square_2_mesh)
-#===============================================================================
-register_test(test_gradient_triangle_6 test_gradient_triangle_6.cc)
-add_dependencies(test_gradient_triangle_6 test_fem_square_2_mesh)
+macro(register_fem_test operation type)
+  set(_target test_${operation}_${_type})
+  register_test(${_target} test_${operation}.cc)
+  set_target_properties(${_target}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  if(NOT EXISTS ${_type}.msh)
+    add_dependencies(${_target} test_fem_${_type}_mesh)
+  endif()
+endmacro()
 
-#===============================================================================
-# 3D
-#===============================================================================
-add_mesh(test_fem_cube_1_mesh cube.geo 3 1 OUTPUT cube1.msh)
-add_mesh(test_fem_cube_2_mesh cube.geo 3 2 OUTPUT cube2.msh)
-add_mesh(test_fem_hexa_struct_1_mesh hexa_structured.geo 3 1 OUTPUT hexa_structured1.msh)
 
-#===============================================================================
-# 1st order structured
-register_test(test_integrate_hexahedron_8 test_integrate_hexahedron_8.cc)
-add_dependencies(test_integrate_hexahedron_8 test_fem_hexa_struct_1_mesh)
-#===============================================================================
-register_test(test_interpolate_hexahedron_8 test_interpolate_hexahedron_8.cc)
-add_dependencies(test_interpolate_hexahedron_8 test_fem_hexa_struct_1_mesh)
-#===============================================================================
-register_test(test_gradient_hexahedron_8 test_gradient_hexahedron_8.cc)
-add_dependencies(test_gradient_hexahedron_8 test_fem_hexa_struct_1_mesh)
+foreach(_type ${LIST_TYPES})
+  register_fem_test(interpolate ${_type})
+  register_fem_test(gradient    ${_type})
+  register_fem_test(integrate   ${_type})
 
-#===============================================================================
-# 1st order
-register_test(test_integrate_tetrahedron_4 test_integrate_tetrahedron_4.cc)
-add_dependencies(test_integrate_tetrahedron_4 test_fem_cube_1_mesh)
-#===============================================================================
-register_test(test_interpolate_tetrahedron_4 test_interpolate_tetrahedron_4.cc)
-add_dependencies(test_interpolate_tetrahedron_4 test_fem_cube_1_mesh)
-#===============================================================================
-register_test(test_gradient_tetrahedron_4 test_gradient_tetrahedron_4.cc)
-add_dependencies(test_gradient_tetrahedron_4 test_fem_cube_1_mesh)
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
+    file(COPY ${_type}.msh DESTINATION .)
+  endif()
+endforeach()
 
-#===============================================================================
-# 2nd order
-register_test(test_integrate_tetrahedron_10 test_integrate_tetrahedron_10.cc)
-add_dependencies(test_integrate_tetrahedron_10 test_fem_cube_2_mesh)
-#===============================================================================
-register_test(test_interpolate_tetrahedron_10 test_interpolate_tetrahedron_10.cc)
-add_dependencies(test_interpolate_tetrahedron_10 test_fem_cube_2_mesh)
-#===============================================================================
-register_test(test_gradient_tetrahedron_10 test_gradient_tetrahedron_10.cc)
-add_dependencies(test_gradient_tetrahedron_10 test_fem_cube_2_mesh)
+#add_mesh(test_fem_circle_1_mesh circle.geo 2 1 OUTPUT circle1.msh)
+#add_mesh(test_fem_circle_2_mesh circle.geo 2 2 OUTPUT circle2.msh)

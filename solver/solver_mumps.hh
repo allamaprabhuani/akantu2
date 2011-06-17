@@ -62,7 +62,7 @@ public:
 
   virtual void setRHS(Vector<Real> & rhs);
 
-  void initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom);
+  // void initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

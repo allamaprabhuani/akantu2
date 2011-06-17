@@ -29,6 +29,7 @@
 #include "material.hh"
 #include "solid_mechanics_model.hh"
 #include "sparse_matrix.hh"
+#include "dof_synchronizer.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -271,7 +272,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     /// assemble
     model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
-				   model->getEquationNumber(),
+				   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
 				   residual.getNbComponent(),
 				   *it, ghost_type, elem_filter, -1);
     delete int_sigma_dphi_dx;
@@ -318,7 +319,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   AKANTU_DEBUG_IN();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
-  const Vector<Int> & equation_number = model->getEquationNumber();
+  //  const Vector<Int> & equation_number = K.getDOFSynchronizer().getDOFEquationNumbers();
 
   Vector<Real> * strain_vect;
   //  Vector<Real> * stress_vect;
@@ -402,7 +403,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   delete bt_d_b;
 
-  model->getFEM().assembleMatrix(*K_e, K, equation_number, spatial_dimension, type, ghost_type, elem_filter);
+  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();
