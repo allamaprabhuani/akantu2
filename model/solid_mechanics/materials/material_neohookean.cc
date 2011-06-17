@@ -119,13 +119,13 @@ void MaterialNeohookean::setParam(const std::string & key, const std::string & v
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void  MaterialNeohookean::computeTangentStiffnessByDim( akantu::ElementType el_type,
-						       akantu::Vector<Real>& tangent_matrix,
-						    akantu::GhostType ghost_type) {
+void  MaterialNeohookean::computeTangentStiffnessByDim(ElementType el_type,
+						       Vector<Real>& tangent_matrix,
+						       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   tangent_matrix.clear();
- Real F[3*3];
+  Real F[3*3];
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 
   memset(F, 0, 3 * 3 * sizeof(Real));

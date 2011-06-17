@@ -455,7 +455,7 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
   /// call compute stiffness matrix on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->assembleStiffnessMatrix(*current_position, _not_ghost);
+    (*mat_it)->assembleStiffnessMatrix(*displacement, _not_ghost);
   }
 
   AKANTU_DEBUG_OUT();
