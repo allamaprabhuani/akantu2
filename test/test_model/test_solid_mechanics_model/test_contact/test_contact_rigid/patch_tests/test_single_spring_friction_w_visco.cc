@@ -117,6 +117,9 @@ void getStickInfo(ContactRigid * contact);
 /* -------------------------------------------------------------------------- */
 Int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
+
   // 1: name
   // 2: initial displacement
   // 3: friction coefficient
@@ -161,6 +164,7 @@ Int main(int argc, char *argv[])
   model->getAcceleration().clear();
   model->getDisplacement().clear();
   
+  model->initExplicit();
   model->initModel();
 
   /// read and initialize material

@@ -55,6 +55,9 @@ int main(int argc, char *argv[])
   const UInt paraview_type = TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
+  akantu::initialize(&argc, &argv);
+
+
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;
 
@@ -86,6 +89,7 @@ int main(int argc, char *argv[])
   memset(my_model.getDisplacement().values, 0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
 
+  my_model.initExplicit();
   my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();

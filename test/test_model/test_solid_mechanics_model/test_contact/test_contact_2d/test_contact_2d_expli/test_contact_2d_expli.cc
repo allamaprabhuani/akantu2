@@ -60,6 +60,8 @@ DumperParaview dumper;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
   UInt spatial_dimension = 2;
   UInt max_steps = 30000;
   Real time_factor = 0.2;

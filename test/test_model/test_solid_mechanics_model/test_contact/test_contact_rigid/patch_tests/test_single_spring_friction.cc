@@ -33,7 +33,7 @@
 #ifdef AKANTU_USE_IOHELPER
 #include <io_helper.h>
 #endif //AKANTU_USE_IOHELPER
-#include <reader_restart.h>
+//#include <reader_restart.h>
 
 #include "aka_common.hh"
 #include "mesh.hh"
@@ -117,6 +117,9 @@ void getStickInfo(ContactRigid * contact);
 /* -------------------------------------------------------------------------- */
 Int main(int argc, char *argv[])
 {
+
+  akantu::initialize(&argc, &argv);
+
   // 1: name
   // 2: initial displacement
   // 3: friction coefficient
@@ -157,6 +160,7 @@ Int main(int argc, char *argv[])
   model->getAcceleration().clear();
   model->getDisplacement().clear();
   
+  model->initExplicit();
   model->initModel();
 
   /// read and initialize material

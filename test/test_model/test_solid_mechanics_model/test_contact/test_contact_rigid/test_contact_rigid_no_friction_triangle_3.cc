@@ -49,6 +49,9 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
+
   UInt dim = 2;
   const ElementType element_type = _triangle_3;
 
@@ -89,6 +92,7 @@ int main(int argc, char *argv[])
 
   Real * displacement = my_model.getDisplacement().values;
 
+  my_model.initExplicit();
   my_model.initModel();  
   my_model.readMaterials("material.dat");
   my_model.initMaterials();

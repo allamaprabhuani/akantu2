@@ -26,7 +26,7 @@
 #===============================================================================
 
 #===============================================================================
-set(IOHELPER_LIBRARY "NOTFOUND" CACHE INTERNAL "Cleared" FORCE)
+#set(IOHELPER_LIBRARY "NOTFOUND" CACHE INTERNAL "Cleared" FORCE)
 find_library(IOHELPER_LIBRARY IOHelper
   PATHS ${IOHELPER_DIR}
   PATH_SUFFIXES src

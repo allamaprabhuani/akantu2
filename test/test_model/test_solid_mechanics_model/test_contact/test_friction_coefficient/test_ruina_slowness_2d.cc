@@ -53,6 +53,8 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
   UInt dim = 2;
   const ElementType element_type = _triangle_3;
 #ifdef AKANTU_USE_IOHELPER
@@ -97,6 +99,7 @@ int main(int argc, char *argv[])
   memset(my_model.getDisplacement().values, 0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
 
+  my_model.initExplicit();
   my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();

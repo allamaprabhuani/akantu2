@@ -54,6 +54,8 @@ DumperParaview dumper_surface;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
   int spatial_dimension = 2;
   Real time_factor = 0.2;
 
@@ -73,6 +75,7 @@ int main(int argc, char *argv[])
   model->readMaterials("materials.dat");
   model->initMaterials();
 
+  model->initExplicit();
   model->initModel();
   std::cout << model->getMaterial(0) << std::endl;
 

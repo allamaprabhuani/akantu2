@@ -49,6 +49,8 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
   int dim = 3;
 
   /// load mesh

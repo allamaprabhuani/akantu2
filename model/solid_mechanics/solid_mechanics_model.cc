@@ -331,6 +331,10 @@ void SolidMechanicsModel::explicitPred() {
 	   displacement->values,
 	   displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
   }
+  
+  AKANTU_DEBUG_ASSERT(integrator,"itegrator should have been allocated: "
+		      << "have called initExplicit ? "
+		      << "or initImplicit ?");
 
   integrator->integrationSchemePred(time_step,
 				    *displacement,

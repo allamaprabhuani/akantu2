@@ -48,6 +48,8 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
   UInt dim = 3;
 
   /// load mesh
