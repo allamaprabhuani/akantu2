@@ -55,7 +55,9 @@ int main(int argc, char *argv[])
 {
   UInt dim = 2;
   const ElementType element_type = _triangle_3;
+#ifdef AKANTU_USE_IOHELPER
   const UInt paraview_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
   
   //UInt max_steps = 200000;
   UInt imposing_steps = 1000;
@@ -282,7 +284,7 @@ int main(int argc, char *argv[])
 
     my_contact->avoidAdhesion();
 
-    my_contact->addFriction();
+    my_contact->frictionPredictor();
 
     // find the total force applied at the imposed displacement surface (top)
     Real * residual = my_model.getResidual().values; 
@@ -311,8 +313,6 @@ int main(int argc, char *argv[])
 
     my_model.updateAcceleration();
 
-    my_contact->addSticking();
-
     const Vector<bool> * sticking_nodes = imp_info->node_is_sticking;
     bool * sticking_nodes_val = sticking_nodes->values;
     UInt nb_sticking_nodes = 0;
@@ -324,6 +324,8 @@ int main(int argc, char *argv[])
     out_info << nb_sticking_nodes << "," << imp_info->active_impactor_nodes->getSize() << std::endl;
 
     my_model.explicitCorr();
+
+    my_contact->frictionCorrector();
 
     Real epot = my_model.getPotentialEnergy();
     Real ekin = my_model.getKineticEnergy();

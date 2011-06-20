@@ -51,7 +51,9 @@ int main(int argc, char *argv[])
 {
   UInt dim = 3;
   const ElementType element_type = _tetrahedron_4;
+#ifdef AKANTU_USE_IOHELPER
   const UInt paraview_type = TETRA1;
+#endif //AKANTU_USE_IOHELPER
 
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;

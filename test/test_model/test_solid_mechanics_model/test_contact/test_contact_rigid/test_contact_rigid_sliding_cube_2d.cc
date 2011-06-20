@@ -53,7 +53,9 @@ int main(int argc, char *argv[])
 {
   UInt dim = 2;
   const ElementType element_type = _triangle_3;
+#ifdef AKANTU_USE_IOHELPER
   const UInt paraview_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
   
   //UInt max_steps = 200000;
   UInt imposing_steps = 20000;
@@ -82,6 +84,7 @@ int main(int argc, char *argv[])
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
+  my_model.initExplicit();
   my_model.initVectors();
   // initialize the vectors
   memset(my_model.getForce().values,        0,     dim*nb_nodes*sizeof(Real));
@@ -91,7 +94,8 @@ int main(int argc, char *argv[])
   memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
 
   my_model.initModel();
-  my_model.readMaterials("material.dat");
+  //my_model.readMaterials("material.dat");
+  my_model.readMaterials("material_elastic_caughey.dat");
   my_model.initMaterials();
 
   UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
@@ -140,8 +144,7 @@ int main(int argc, char *argv[])
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);  
 
-  UniqueConstantFricCoef * fric_coef = new UniqueConstantFricCoef(*my_contact, master);
-  fric_coef->setParam("mu", "0.3");
+  UniqueConstantFricCoef * fric_coef = new UniqueConstantFricCoef(*my_contact, master, 0.3);
   //my_contact->setFrictionCoefficient(fric_coef);
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
@@ -211,7 +214,10 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   for(UInt s = 1; s <= max_steps; ++s) {
 
-    if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
+    if(s % 10 == 0) {
+      std::cout << "passing step " << s << "/" << max_steps << "\r";
+      std::cout.flush();
+    }
 
     if(s % 20000 == 0){
       my_model.updateCurrentPosition();
@@ -242,9 +248,11 @@ int main(int argc, char *argv[])
       
       ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
       bool * stick = imp_info->node_is_sticking->values;
+      Real * p_vel = imp_info->previous_velocities->values;
       for(UInt i=0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
 	stick[i*2] = false;
 	stick[i*2+1] = false;
+	p_vel[i*dim + 0] = imposed_velocity;
       }
       /*for (UInt i=0; i < nb_nodes; ++i) {
 	if(coordinates[i*dim + 1] > -1) {
@@ -276,8 +284,7 @@ int main(int argc, char *argv[])
 
     my_contact->avoidAdhesion();
 
-    //    my_contact->addFriction();
-    my_contact->addRegularizedFriction(1e11);
+    my_contact->frictionPredictor();
 
     // find the total force applied at the imposed displacement surface (top)
     Real * residual = my_model.getResidual().values; 
@@ -312,8 +319,6 @@ int main(int argc, char *argv[])
 
     my_model.updateAcceleration();
 
-    //    my_contact->addSticking();
-
     const Vector<bool> * sticking_nodes = imp_info->node_is_sticking;
     bool * sticking_nodes_val = sticking_nodes->values;
     UInt nb_sticking_nodes = 0;
@@ -325,6 +330,8 @@ int main(int argc, char *argv[])
     out_info << nb_sticking_nodes << "," << imp_info->active_impactor_nodes->getSize() << std::endl;
 
     my_model.explicitCorr();
+
+    my_contact->frictionCorrector();
 
     Real epot = my_model.getPotentialEnergy();
     Real ekin = my_model.getKineticEnergy();

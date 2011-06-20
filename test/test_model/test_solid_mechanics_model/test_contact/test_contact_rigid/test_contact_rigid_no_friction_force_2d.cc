@@ -51,7 +51,9 @@ int main(int argc, char *argv[])
 {
   UInt dim = 2;
   const ElementType element_type = _triangle_3;
+#ifdef AKANTU_USE_IOHELPER
   const UInt paraview_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
   
   UInt imposing_steps = 1000;
   Real max_displacement = -0.01;

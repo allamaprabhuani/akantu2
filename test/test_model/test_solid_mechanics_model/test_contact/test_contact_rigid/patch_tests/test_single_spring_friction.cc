@@ -30,7 +30,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef AKANTU_USE_IOHELPER
 #include <io_helper.h>
+#endif //AKANTU_USE_IOHELPER
 #include <reader_restart.h>
 
 #include "aka_common.hh"
@@ -59,7 +61,9 @@ Surface master = 1;
 UInt the_node = 0;
 
 const ElementType element_type = _triangle_3; 
+#ifdef AKANTU_USE_IOHELPER
 const UInt paraview_type = TRIANGLE1; 
+#endif //AKANTU_USE_IOHELPER
 const char* mesh_name = "single_triangle.msh";
 const char* folder_name = "single_spring_friction";
 std::string result_name;
@@ -221,7 +225,9 @@ Int main(int argc, char *argv[])
     std::cout << "No start displacement!! " << std::endl;
 
   /// initialize the paraview output
+#ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
+#endif //AKANTU_USE_IOHELPER
   std::ofstream out_info;  
   if (!patch_test) {
     model->updateResidual();
@@ -233,6 +239,7 @@ Int main(int argc, char *argv[])
     out_info.open(name_info.str().c_str());
     out_info << "%id time fnorm fres ffric ftot mu disp vel stick ekin epot etot" << std::endl; 
   }
+
 
   UInt step = 0;
   Real previous_vel = 0.;
@@ -276,7 +283,9 @@ Int main(int argc, char *argv[])
     if(step % file_dump_int == 0 && !patch_test)
       printCorrector(step, contact, out_info);
 
+#ifdef AKANTU_USE_IOHELPER
     if(step % paraview_dump_int == 0 && !patch_test) dumper.Dump();
+#endif //AKANTU_USE_IOHELPER
   }
 
   std::cout << "passing step " << step << "/" << max_steps << std::endl;
@@ -328,6 +337,7 @@ void paraviewInit(Dumper & dumper) {
   std::stringstream name;
   name << "paraview/" << folder_name << "/";
 
+#ifdef AKANTU_USE_IOHELPER
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
@@ -354,6 +364,8 @@ void paraviewInit(Dumper & dumper) {
   dumper.SetPrefix(name.str().c_str());
   dumper.Init();
   dumper.Dump();
+#endif //AKANTU_USE_IOHELPER
+
 }
 
 /* -------------------------------------------------------------------------- */
