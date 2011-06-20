@@ -40,7 +40,7 @@
 #include "distributed_synchronizer.hh"
 #include "static_communicator.hh"
 #include "mesh_partition.hh"
-
+#include "dof_synchronizer.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -79,6 +79,9 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// return the object hadling equation numbers
+  AKANTU_GET_MACRO(DOFSynchronizer, *dof_synchronizer, const DOFSynchronizer &)
 
   /// synchronize the boundary in case of parallel run
   virtual void synchronizeBoundaries() {};
@@ -131,6 +134,9 @@ protected:
 
   /// synchronizer registry 
   SynchronizerRegistry * synch_registry;
+
+  /// handle the equation number things
+  DOFSynchronizer * dof_synchronizer;
 };
 
 

@@ -155,7 +155,9 @@ void HeatTransferModel::assembleCapacityLumped(const ElementType &el_type)
   {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     
-    fem.assembleFieldLumped(rho_1, *lumped, *it, _not_ghost);
+    fem.assembleFieldLumped(rho_1,1,*lumped,
+			    dof_synchronizer->getLocalDOFEquationNumbers(),
+			    *it, _not_ghost);
   }
   
   AKANTU_DEBUG_OUT();

@@ -28,8 +28,6 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
 #include "material.hh"
-#include "dof_synchronizer.hh"
-
 
 //#include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */

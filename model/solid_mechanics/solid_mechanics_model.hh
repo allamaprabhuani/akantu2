@@ -346,8 +346,6 @@ public:
 
   inline FEM & getFEMBoundary(std::string name = "");
 
-  AKANTU_GET_MACRO(DOFSynchronizer, *dof_synchronizer, const DOFSynchronizer &)
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -385,8 +383,6 @@ private:
 
   /// array of current position used during update residual
   Vector<Real> * current_position;
-
-  DOFSynchronizer * dof_synchronizer;
 
   /// mass matrix
   SparseMatrix * mass_matrix;
