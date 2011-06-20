@@ -372,6 +372,7 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getQuadraturePoints(const 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
 void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
+						   UInt nb_degree_of_freedom,
 						   Vector<Real> & lumped,
 						   const Vector<Int> & equation_number,
 						   ElementType type,
@@ -379,7 +380,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
   AKANTU_DEBUG_IN();
 
 #define ASSEMBLE_LUMPED(type)					\
-  assembleLumpedTemplate<type>(field_1, lumped, equation_number,ghost_type)
+  assembleLumpedTemplate<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type)
 
   AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_LUMPED);;
 
@@ -415,10 +416,11 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedTemplate(const Vector<Real> & field_1,
+						      UInt nb_degree_of_freedom,
 						      Vector<Real> & lumped,
 						      const Vector<Int> & equation_number,
 						      GhostType ghost_type) {
-  this->template assembleLumpedRowSum<type>(field_1, lumped, equation_number,ghost_type);
+  this->template assembleLumpedRowSum<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -427,10 +429,11 @@ template <>
 template <>
 void FEMTemplate<IntegratorGauss,ShapeLagrange>::
 assembleLumpedTemplate<_triangle_6>(const Vector<Real> & field_1,
+				    UInt nb_degree_of_freedom,
 				    Vector<Real> & lumped,
 				    const Vector<Int> & equation_number,
 				    GhostType ghost_type) {
-  assembleLumpedDiagonalScaling<_triangle_6>(field_1, lumped, equation_number,ghost_type);
+  assembleLumpedDiagonalScaling<_triangle_6>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -438,20 +441,22 @@ template <>
 template <>
 void FEMTemplate<IntegratorGauss,ShapeLagrange>::
 assembleLumpedTemplate<_tetrahedron_10>(const Vector<Real> & field_1,
+					UInt nb_degree_of_freedom,
 					Vector<Real> & lumped,
 					const Vector<Int> & equation_number,
 					GhostType ghost_type) {
-  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, lumped, equation_number, ghost_type);
+  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <>
 void FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_quadrangle_8>(const Vector<Real> & field_1,
+										       UInt nb_degree_of_freedom,
 										       Vector<Real> & lumped,
 										       const Vector<Int> & equation_number,
 										       GhostType ghost_type) {
-  assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, lumped, equation_number, ghost_type);
+  assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, nb_degree_of_freedom,lumped, equation_number, ghost_type);
 }
 
 
@@ -462,8 +467,10 @@ void FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_quadran
 template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedRowSum(const Vector<Real> & field_1,
+						    UInt nb_degree_of_freedom,
 						    Vector<Real> & lumped,
 						    const Vector<Int> & equation_number,
+						    
 						    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -478,7 +485,8 @@ void FEMTemplate<Integ,Shape>::assembleLumpedRowSum(const Vector<Real> & field_1
 				      shapes_size, ghost_type, NULL);
   delete field_times_shapes;
 
-  assembleVector(*int_field_times_shapes, lumped, equation_number,1, type, ghost_type);
+  int_field_times_shapes->extendComponentsInterlaced(nb_degree_of_freedom,1);
+  assembleVector(*int_field_times_shapes, lumped, equation_number,nb_degree_of_freedom, type, ghost_type);
   delete int_field_times_shapes;
 
   AKANTU_DEBUG_OUT();
@@ -492,6 +500,7 @@ void FEMTemplate<Integ,Shape>::assembleLumpedRowSum(const Vector<Real> & field_1
 template <typename Integ, typename Shape>
 template <ElementType type>
 void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
+							     UInt nb_degree_of_freedom,
 							     Vector<Real> & lumped,
 							     const Vector<Int> & equation_number,
 							     GhostType ghost_type) {
@@ -550,7 +559,8 @@ void FEMTemplate<Integ,Shape>::assembleLumpedDiagonalScaling(const Vector<Real> 
   }
   delete int_field_1;
 
-  assembleVector(*lumped_per_node, lumped, equation_number, 1, type, ghost_type);
+  lumped_per_node->extendComponentsInterlaced(nb_degree_of_freedom,1);
+  assembleVector(*lumped_per_node, lumped, equation_number, nb_degree_of_freedom, type, ghost_type);
   delete lumped_per_node;
 
   AKANTU_DEBUG_OUT();

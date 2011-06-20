@@ -29,6 +29,11 @@
 
 #ifndef __AKANTU_PBC_SYNCHRONIZER_HH__
 #define __AKANTU_PBC_SYNCHRONIZER_HH__
+/* -------------------------------------------------------------------------- */
+#include "synchronizer.hh"
+/* -------------------------------------------------------------------------- */
+__BEGIN_AKANTU__
+/* -------------------------------------------------------------------------- */
 
 
 class PBCSynchronizer : public Synchronizer {
@@ -37,34 +42,30 @@ class PBCSynchronizer : public Synchronizer {
   /* ------------------------------------------------------------------------ */
 public:
   
-  PBCSynchronizer();
-  virtual ~PBCSynchronizer();
+  PBCSynchronizer(std::map<UInt,UInt> & pairs,
+		  SynchronizerID id = "pbc_synch",
+		  MemoryID memory_id = 0);
+  virtual ~PBCSynchronizer(){};
   
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
 public:
-  /// get a mesh and create the local dof links due to pbc 
-  static PBCSynchronizer * createPBCSynchronizer(Mesh & mesh,
-						 SynchronizerID id = "pbc_synch",
-						 MemoryID memory_id = 0);
   
   /* ------------------------------------------------------------------------ */
   /* Inherited from Synchronizer                                              */
   /* ------------------------------------------------------------------------ */
   
-  /// synchronize ghosts
-  void synchronize(GhostSynchronizationTag tag);
-
   /// asynchronous synchronization of ghosts
-  void asynchronousSynchronize(GhostSynchronizationTag tag){}
+  void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// wait end of asynchronous synchronization of ghosts
-  void waitEndSynchronize(GhostSynchronizationTag tag){}
+  void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// do a all reduce operation
-  void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op){};
+  void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
 
+private:
+
+  /// compute buffer size for a given tag and data accessor 
+  void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -75,6 +76,15 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+
+  /// pairs of nodes slave -> master node
+  std::map<UInt,UInt> & pbc_pair;
+
+  /// size of packing buffer for each tag
+  std::map<SynchronizationTag, UInt> size_buffer;
+
+  /// buffer to pack and unpack the data
+  CommunicationBuffer buffer;
   
 };
 
@@ -92,5 +102,6 @@ private:
 //   return stream;
 // }
 
+__END_AKANTU__
 
 #endif /* __AKANTU_PBC_SYNCHRONIZER_HH__ */

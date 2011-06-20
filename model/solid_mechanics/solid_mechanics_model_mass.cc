@@ -41,7 +41,7 @@ void SolidMechanicsModel::assembleMassLumped() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = mesh.getNbNodes();
-  memset(mass->values, 0, nb_nodes*sizeof(Real));
+  mass->clear();
 
   assembleMassLumped(_not_ghost);
   assembleMassLumped(_ghost);
@@ -72,9 +72,10 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
     ElementType type = *it;
 
     computeRho(rho_1, type, ghost_type);
+
     AKANTU_DEBUG_ASSERT(dof_synchronizer,
-			"DOFSynchronizer number must not be a initialized");
-    fem.assembleFieldLumped(rho_1, *mass,
+			"DOFSynchronizer number must not be initialized");
+    fem.assembleFieldLumped(rho_1, spatial_dimension,*mass,
 			    dof_synchronizer->getLocalDOFEquationNumbers(),
 			    type, ghost_type);
   }

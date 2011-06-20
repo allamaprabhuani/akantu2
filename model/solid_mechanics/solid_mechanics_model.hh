@@ -103,6 +103,14 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
+  /* PBC                                                                      */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /// change the equation number for proper assembly when using PBC
+  void changeEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair);
+
+  /* ------------------------------------------------------------------------ */
   /* Explicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
@@ -240,6 +248,18 @@ public:
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
+				 SynchronizationTag tag) const;
+
+  inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
+
+  inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
+
+  inline virtual void packData(CommunicationBuffer & buffer,
+			       const UInt index,
+			       SynchronizationTag tag) const;
+
+  inline virtual void unpackData(CommunicationBuffer & buffer,
+				 const UInt index,
 				 SynchronizationTag tag) const;
 
   /* ------------------------------------------------------------------------ */

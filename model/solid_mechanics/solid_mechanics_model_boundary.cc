@@ -144,27 +144,32 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::computeForcesByTractionVector(const Vector<Real> & tractions,
-							const ElementType & type){
+void SolidMechanicsModel::
+computeForcesByTractionVector(const Vector<Real> & tractions,
+			      const ElementType & type){
   AKANTU_DEBUG_IN();
-
+  
   UInt nb_element = getFEMBoundary().getMesh().getNbElement(type);
   UInt nb_nodes_per_element = getFEMBoundary().getMesh().getNbNodesPerElement(type);
   UInt nb_quad = getFEMBoundary().getNbQuadraturePoints(type);
 
   // check dimension match
-  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) == getFEMBoundary().getElementDimension(),
-		      "element type dimension does not match the dimension of boundaries : " <<
+  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(type) 
+		      == getFEMBoundary().getElementDimension(),
+		      "element type dimension does not match "
+		      <<"the dimension of boundaries : " <<
 		      getFEMBoundary().getElementDimension() << " != " <<
 		      Mesh::getSpatialDimension(type));
-
+  
   // check size of the vector
   AKANTU_DEBUG_ASSERT(tractions.getSize() == nb_quad*nb_element,
-		      "the size of the vector should be the total number of quadrature points");
+		      "the size of the vector should be the "
+		      << "total number of quadrature points");
 
   // check number of components
   AKANTU_DEBUG_ASSERT(tractions.getNbComponent() == spatial_dimension,
-		      "the number of components should be the spatial dimension of the problem");
+		      "the number of components should be "
+		      << "the spatial dimension of the problem");
 
 
   // do a complete copy of the vector

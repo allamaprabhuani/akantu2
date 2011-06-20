@@ -68,6 +68,16 @@ protected:
 			  const Element & element,
 			  SynchronizationTag tag) const;
 
+  virtual UInt getNbDataToPack(SynchronizationTag tag) const;
+  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  virtual void packData(CommunicationBuffer & buffer,
+			const UInt index,
+			SynchronizationTag tag) const;
+  virtual void unpackData(CommunicationBuffer & buffer,
+			  const UInt index,
+			  SynchronizationTag tag) const;
+
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -140,6 +150,25 @@ void TestAccessor::unpackData(CommunicationBuffer & buffer,
   Vector<Real>::iterator<types::RVector> bary = ghost_barycenter[element.type]->begin(spatial_dimension);
   buffer >> bary[element.element];
 }
+
+UInt TestAccessor::getNbDataToPack(__attribute__ ((unused)) SynchronizationTag tag) const {
+  return 0;
+}
+
+UInt TestAccessor::getNbDataToUnpack(__attribute__ ((unused)) SynchronizationTag tag) const {
+  return 0;
+}
+
+void TestAccessor::packData(__attribute__ ((unused)) CommunicationBuffer & buffer,
+			    __attribute__ ((unused)) const UInt index,
+			    __attribute__ ((unused)) SynchronizationTag tag) const {
+}
+
+void TestAccessor::unpackData(__attribute__ ((unused)) CommunicationBuffer & buffer,
+			      __attribute__ ((unused)) const UInt index,
+			      __attribute__ ((unused)) SynchronizationTag tag) const {
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Main                                                                       */

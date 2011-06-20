@@ -121,12 +121,13 @@ public:
   //  virtual void printself(std::ostream & stream, int indent = 0) const{};
 
   void assembleFieldLumped(const Vector<Real> & field_1,
+			   UInt nb_degree_of_freedom,
 			   Vector<Real> & lumped,
 			   const Vector<Int> & equation_number,
 			   ElementType type,
 			   GhostType ghost_type);
 
-  void assembleFieldMatrix(const Vector<Real> & field_1,
+  void assembleFieldMatrix(const Vector<Real> & field,
 			   UInt nb_degree_of_freedom,
 			   SparseMatrix & matrix,
 			   ElementType type,
@@ -137,22 +138,25 @@ private:
 
   template <ElementType type>
   void assembleLumpedTemplate(const Vector<Real> & field_1,
+			      UInt nb_degree_of_freedom,
 			      Vector<Real> & lumped,
 			      const Vector<Int> & equation_number,
 			      GhostType ghost_type);
   template <ElementType type>
   void assembleLumpedRowSum(const Vector<Real> & field_1,
+			    UInt nb_degree_of_freedom,
 			    Vector<Real> & lumped,
 			    const Vector<Int> & equation_number,
 			    GhostType ghost_type);
   template <ElementType type>
   void assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
+				     UInt nb_degree_of_freedom,
 				     Vector<Real> & lumped,
 				     const Vector<Int> & equation_number,				
 				     GhostType ghost_type);
 
   template <ElementType type>
-  void assembleFieldMatrix(const Vector<Real> & field_1,
+  void assembleFieldMatrix(const Vector<Real> & field,
 			   UInt nb_degree_of_freedom,
 			   SparseMatrix & matrix,
 			   GhostType ghost_type);

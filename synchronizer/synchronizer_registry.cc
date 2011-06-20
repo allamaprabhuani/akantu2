@@ -95,25 +95,6 @@ void SynchronizerRegistry::waitEndSynchronize(SynchronizationTag tag) {
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-// void SynchronizerRegistry::registerSynchronizer(SynchronizationTag tag,
-// 				       const std::string & name) {
-//   AKANTU_DEBUG_IN();
-
-//   AKANTU_DEBUG_ASSERT(registered_synchronization.find(tag) == registered_synchronization.end(),
-// 		      "Tag " << tag << " (" << name << ") already registered.");
-
-//   registered_synchronization[tag] = name;
-//   for (std::list<Synchronizer *>::iterator it = synchronizers.begin();
-//        it != synchronizers.end();
-//        ++it) {
-//     (*it)->registerTag(tag);
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
-
 /* -------------------------------------------------------------------------- */
 void SynchronizerRegistry::allReduce(Real * values,
 				     const SynchronizerOperation & op,

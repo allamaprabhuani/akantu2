@@ -709,17 +709,6 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::synchronize(DataAccessor & data_accessor,
-					  SynchronizationTag tag) {
-  AKANTU_DEBUG_IN();
-
-  asynchronousSynchronize(data_accessor,tag);
-
-  waitEndSynchronize(data_accessor,tag);
-
-  AKANTU_DEBUG_OUT();
-}
 
 /* -------------------------------------------------------------------------- */
 void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
@@ -866,6 +855,8 @@ void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
 
 
 __END_AKANTU__

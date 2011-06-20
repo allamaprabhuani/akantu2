@@ -164,6 +164,7 @@ set(AKANTU_COMMON_SRC
   synchronizer/synchronizer.cc
 #  synchronizer/communicator.cc
   synchronizer/distributed_synchronizer.cc
+  synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
   synchronizer/dof_synchronizer.cc

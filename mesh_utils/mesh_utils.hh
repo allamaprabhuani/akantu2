@@ -77,11 +77,16 @@ public:
   /// of the surface elements in the array surface_id
   static void buildSurfaceID(Mesh & mesh);
 
-  /// tweak mesh connectivity to activate pbc
-  static void tweakConnectivityForPBC(Mesh & mesh, 
-				      bool flag_x,
-				      bool flag_y = false,
-				      bool flag_z = false);
+  /// compute pbc pair for on given direction
+  static void computePBCMap(const Mesh & mymesh,const UInt dir,
+		     std::map<UInt,UInt> & pbc_pair);
+
+
+  // /// tweak mesh connectivity to activate pbc
+  // static void tweakConnectivityForPBC(Mesh & mesh, 
+  // 				      bool flag_x,
+  // 				      bool flag_y = false,
+  // 				      bool flag_z = false);
 
   /// create a multimap of nodes per surfaces
   static void buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_surface);
@@ -98,10 +103,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-  /// compute pbc pair for on given direction
-  static void computePBCMap(const Mesh & mymesh,const UInt dir,
-		     std::map<UInt,UInt> & pbc_pair);
 
 };
 

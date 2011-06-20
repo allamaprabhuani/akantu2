@@ -225,6 +225,7 @@ enum SynchronizationTag {
   _gst_smm_mass,      /// synchronization of the SolidMechanicsModel.mass
   _gst_smm_for_strain,  /// synchronization of the SolidMechanicsModel.current_position
   _gst_smm_boundary,  /// synchronization of the boundary, forces, velocities and displacement
+  _gst_smm_uv,  /// synchronization of the nodal velocities and displacement
   /// Test tag
   _gst_test
 };

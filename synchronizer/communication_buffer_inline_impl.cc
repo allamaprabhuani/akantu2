@@ -31,9 +31,9 @@
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator<< (const T & to_pack) {
-  T * tmp = reinterpret_cast<T *>(ptr_current);
+  T * tmp = reinterpret_cast<T *>(ptr_pack);
   *tmp = to_pack;
-  ptr_current += sizeof(T);
+  ptr_pack += sizeof(T);
   return *this;
 }
 
@@ -41,9 +41,9 @@ inline CommunicationBuffer & CommunicationBuffer::operator<< (const T & to_pack)
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator>> (T & to_unpack) {
-  T * tmp = reinterpret_cast<T *>(ptr_current);
+  T * tmp = reinterpret_cast<T *>(ptr_unpack);
   to_unpack = *tmp;
-  ptr_current += sizeof(T);
+  ptr_unpack += sizeof(T);
   return *this;
 }
 
@@ -60,8 +60,8 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (T & to_unpack) {
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Vector<T> & to_pack) {
   UInt size = to_pack.size() * sizeof(T);
-  memcpy(ptr_current, to_pack.storage(), size);
-  ptr_current += size;
+  memcpy(ptr_pack, to_pack.storage(), size);
+  ptr_pack += size;
   return *this;
 }
 
@@ -69,8 +69,8 @@ inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Vecto
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Vector<T> & to_unpack) {
   UInt size = to_unpack.size() * sizeof(T);
-  memcpy(to_unpack.storage(), ptr_current, size);
-  ptr_current += size;
+  memcpy(to_unpack.storage(), ptr_unpack, size);
+  ptr_unpack += size;
   return *this;
 }
 
@@ -82,8 +82,8 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Vector<T> &
 template<> inline CommunicationBuffer &
 CommunicationBuffer::operator<< <types::Matrix> (const types::Matrix & to_pack) {
   UInt size = to_pack.size() * sizeof(Real);
-  memcpy(ptr_current, to_pack.storage(), size);
-  ptr_current += size;
+  memcpy(ptr_pack, to_pack.storage(), size);
+  ptr_pack += size;
   return *this;
 }
 
@@ -91,7 +91,7 @@ CommunicationBuffer::operator<< <types::Matrix> (const types::Matrix & to_pack) 
 template<> inline CommunicationBuffer &
 CommunicationBuffer::operator>> <types::Matrix> (types::Matrix & to_unpack) {
   UInt size = to_unpack.size() * sizeof(Real);
-  memcpy(to_unpack.storage(), ptr_current, size);
-  ptr_current += size;
+  memcpy(to_unpack.storage(), ptr_unpack, size);
+  ptr_unpack += size;
   return *this;
 }

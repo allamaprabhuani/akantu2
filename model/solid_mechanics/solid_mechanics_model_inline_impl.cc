@@ -274,3 +274,116 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 
   AKANTU_DEBUG_OUT();
 }
+
+
+/* -------------------------------------------------------------------------- */
+inline UInt SolidMechanicsModel::getNbDataToPack(SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes = mesh.getNbNodes();
+
+  switch(tag) {
+  case _gst_smm_uv: {
+    size += nb_nodes * sizeof(Real) * spatial_dimension * 2;
+    break;
+  }
+  case _gst_smm_mass: {
+    size += nb_nodes * sizeof(Real);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+  
+  AKANTU_DEBUG_OUT();
+  return size;
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt SolidMechanicsModel::getNbDataToUnpack(SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes = mesh.getNbNodes();
+
+  switch(tag) {
+  case _gst_smm_uv: {
+    size += nb_nodes * sizeof(Real) * spatial_dimension * 2;
+    break;
+  }
+  case _gst_smm_mass: {
+    size += nb_nodes * sizeof(Real);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return size;
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
+					  const UInt index,
+					  SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+  switch(tag) {
+  case _gst_smm_uv: {
+    for (UInt d = 0; d < spatial_dimension; ++d) {
+      buffer << (*displacement)(index,d);
+      buffer << (*velocity)(index,d);
+    }
+    break;
+  }
+  case _gst_smm_mass: {
+    AKANTU_DEBUG_INFO("pack mass of node " << index << " which is " << (*mass)(index));
+    buffer << (*mass)(index,0);
+    buffer << (*mass)(index,1);
+    buffer << (*mass)(index,2);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
+					    const UInt index,
+					    SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+  switch(tag) {
+  case _gst_smm_uv: {
+    for (UInt d = 0; d < spatial_dimension; ++d) {
+      buffer >> (*displacement)(index,d);
+      buffer >> (*velocity)(index,d);
+    }
+    break;
+  }
+  case _gst_smm_mass: {
+    AKANTU_DEBUG_INFO("mass of node " << index << " was " << (*mass)(index));
+    buffer >> (*mass)(index,0);
+    buffer >> (*mass)(index,1);
+    buffer >> (*mass)(index,2);
+    AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index));
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+

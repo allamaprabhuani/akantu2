@@ -224,16 +224,16 @@ inline Vector<UInt> * Mesh::getSurfaceIdPointer(const ElementType & type) {
 
 /* -------------------------------------------------------------------------- */
 
-inline Vector<UInt> * Mesh::getReversedElementsPBCPointer(const ElementType & type) {
-  AKANTU_DEBUG_IN();
+// inline Vector<UInt> * Mesh::getReversedElementsPBCPointer(const ElementType & type) {
+//   AKANTU_DEBUG_IN();
   
-  if(reversed_elements_pbc[type] == NULL) {
-    AKANTU_DEBUG_ERROR("There are no reversed elements for the type" << type);
-  }
+//   if(reversed_elements_pbc[type] == NULL) {
+//     AKANTU_DEBUG_ERROR("There are no reversed elements for the type" << type);
+//   }
 
-  AKANTU_DEBUG_OUT();
-  return reversed_elements_pbc[type];
-}
+//   AKANTU_DEBUG_OUT();
+//   return reversed_elements_pbc[type];
+// }
 
 
 /* -------------------------------------------------------------------------- */
@@ -467,51 +467,51 @@ inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
   }
 }
 /* -------------------------------------------------------------------------- */
-inline void Mesh::extractNodalCoordinatesFromPBCElement(Real * local_coord,
-							UInt * connectivity,
-							UInt n_nodes){
+// inline void Mesh::extractNodalCoordinatesFromPBCElement(Real * local_coord,
+// 							UInt * connectivity,
+// 							UInt n_nodes){
   
-  // get the min max of the element coordinates in all directions
-  Real min[3];
-  Real max[3];
+//   // get the min max of the element coordinates in all directions
+//   Real min[3];
+//   Real max[3];
   
-  for (UInt k = 0; k < spatial_dimension; k++) {
-    min[k] = std::numeric_limits<double>::max();
-    max[k] = std::numeric_limits<double>::min();
-  }
+//   for (UInt k = 0; k < spatial_dimension; k++) {
+//     min[k] = std::numeric_limits<double>::max();
+//     max[k] = std::numeric_limits<double>::min();
+//   }
   
-  for (UInt nd = 0; nd < n_nodes; nd++) {
-    Real * coord = nodes->values + connectivity[nd] * spatial_dimension;
-    for (UInt k = 0; k < spatial_dimension; ++k) {
-      min[k] = std::min(min[k],coord[k]);
-      max[k] = std::max(max[k],coord[k]);
-    }
-  }
-  Real center[3];
-  // compute the center of the element
-  for (UInt k = 0; k < spatial_dimension; ++k) {
-    center[k] = (max[k] + min[k])/2;
-  }
-  // reverse the coordinates that needs it
-  Real * lcoord = local_coord;
-  for (UInt n = 0; n < n_nodes; ++n) {
-    Real * coord = nodes->values + connectivity[n] * spatial_dimension;
-    for (UInt k = 0; k < spatial_dimension; ++k, ++coord,++lcoord) {
-      // if not at a border then copy normally the node
-      if (!pbc_directions[k] || fabs(xmax[k] - *coord) > Math::tolerance){
-	*lcoord = *coord;
-      }
-      // else if distance from center is larger than global box size
-      // reverting is needed
-      else if (fabs(min[k] - *coord) > size[k]/2-Math::tolerance){
-	*lcoord = *coord - size[k];
-      }
-      else {
-	*lcoord = *coord;
-      }
-    }
-  }
-}
+//   for (UInt nd = 0; nd < n_nodes; nd++) {
+//     Real * coord = nodes->values + connectivity[nd] * spatial_dimension;
+//     for (UInt k = 0; k < spatial_dimension; ++k) {
+//       min[k] = std::min(min[k],coord[k]);
+//       max[k] = std::max(max[k],coord[k]);
+//     }
+//   }
+//   Real center[3];
+//   // compute the center of the element
+//   for (UInt k = 0; k < spatial_dimension; ++k) {
+//     center[k] = (max[k] + min[k])/2;
+//   }
+//   // reverse the coordinates that needs it
+//   Real * lcoord = local_coord;
+//   for (UInt n = 0; n < n_nodes; ++n) {
+//     Real * coord = nodes->values + connectivity[n] * spatial_dimension;
+//     for (UInt k = 0; k < spatial_dimension; ++k, ++coord,++lcoord) {
+//       // if not at a border then copy normally the node
+//       if (!pbc_directions[k] || fabs(xmax[k] - *coord) > Math::tolerance){
+// 	*lcoord = *coord;
+//       }
+//       // else if distance from center is larger than global box size
+//       // reverting is needed
+//       else if (fabs(min[k] - *coord) > size[k]/2-Math::tolerance){
+// 	*lcoord = *coord - size[k];
+//       }
+//       else {
+// 	*lcoord = *coord;
+//       }
+//     }
+//   }
+// }
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::addConnecticityType(const ElementType & type){

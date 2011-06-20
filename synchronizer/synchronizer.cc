@@ -38,4 +38,15 @@ Synchronizer::Synchronizer(SynchronizerID id, MemoryID memory_id) :
 
 }
 
+/* -------------------------------------------------------------------------- */
+void Synchronizer::synchronize(DataAccessor & data_accessor,
+			       SynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+  asynchronousSynchronize(data_accessor,tag);
+  waitEndSynchronize(data_accessor,tag);
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+
+
 __END_AKANTU__

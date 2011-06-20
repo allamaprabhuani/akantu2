@@ -70,8 +70,6 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Inherited from Synchronizer                                              */
   /* ------------------------------------------------------------------------ */
-  /// synchronize ghosts
-  void synchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// asynchronous synchronization of ghosts
   void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);

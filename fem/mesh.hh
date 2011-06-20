@@ -400,10 +400,10 @@ private:
   Real xmax[3];
   /// size covered by the mesh on each direction
   Real size[3];
-  /// list of elements that are reversed due to pbc
-  ByElementTypeUInt reversed_elements_pbc;
-  /// direction in which pbc are to be applied
-  UInt pbc_directions[3];
+  // /// list of elements that are reversed due to pbc
+  // ByElementTypeUInt reversed_elements_pbc;
+  // /// direction in which pbc are to be applied
+  // UInt pbc_directions[3];
 
   /// list of the vectors corresponding to tags in the mesh
   ByElementTypeUIntDataMap uint_data;

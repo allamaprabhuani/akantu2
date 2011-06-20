@@ -39,7 +39,8 @@ class CommunicationBuffer {
 public:
 
   CommunicationBuffer(UInt size = 0) : buffer(size, 1) {
-    ptr_current = buffer.values;
+    ptr_pack = buffer.values;
+    ptr_unpack = buffer.values;
   };
 
   virtual ~CommunicationBuffer() {};
@@ -50,7 +51,10 @@ public:
 public:
 
   /// reset to "empty"
-  inline void reset() { ptr_current = buffer.values; };
+  inline void reset() { 
+    ptr_pack = buffer.values; 
+    ptr_unpack = buffer.values; 
+  };
 
   inline void resize(UInt size) { buffer.resize(size); reset(); }
 
@@ -87,8 +91,11 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// current position for packing/unpacking
-  char * ptr_current;
+  /// current position for packing
+  char * ptr_pack;
+
+  /// current position for unpacking
+  char * ptr_unpack;
 
   /// storing buffer
   Vector<char> buffer;

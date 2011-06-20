@@ -107,11 +107,16 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
   AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent()
 		      == nb_degre_of_freedom*nb_nodes_per_element,
 		      "The vector elementary_vect(" << elementary_vect.getID()
-		      << ") has not the good number of component.");
+		      << ") has not the good number of component."
+		      << "(" << elementary_vect.getNbComponent() 
+		      << " != " << nb_degre_of_freedom*nb_nodes_per_element << ")");
 
   AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degre_of_freedom,
 		      "The vector nodal_values(" << nodal_values.getID()
-		      << ") has not the good number of component.");
+		      << ") has not the good number of component."
+		      << "(" << nodal_values.getNbComponent()
+		      << " != " << nb_degre_of_freedom << ")");
+
 
   nodal_values.resize(nb_nodes);
 

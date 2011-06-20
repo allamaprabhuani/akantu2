@@ -171,7 +171,7 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_boun; sstr_boun << id << ":boundary";
 
   displacement = &(alloc<Real>(sstr_disp.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
-  mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, 1)); // \todo see if it must not be spatial_dimension
+  mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, spatial_dimension)); // \todo see if it must not be spatial_dimension
   velocity     = &(alloc<Real>(sstr_velo.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   acceleration = &(alloc<Real>(sstr_acce.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   force        = &(alloc<Real>(sstr_forc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
@@ -315,8 +315,8 @@ void SolidMechanicsModel::updateAcceleration() {
       accel_val++;
       boundary_val++;
       inc++;
+      mass_val++;
     }
-    mass_val++;
   }
 
   AKANTU_DEBUG_OUT();
@@ -830,5 +830,18 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::changeEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair){
+  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin(); 
+       it != pbc_pair.end();++it) {
+    Int node_master = (*it).second;
+    Int node_slave = (*it).first;
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      (*dof_synchronizer->getLocalDOFEquationNumbersPointer())(node_slave*spatial_dimension+i) = spatial_dimension*node_master+i;
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 
 __END_AKANTU__

@@ -34,6 +34,7 @@
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
+#include "pbc_synchronizer.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
@@ -46,24 +47,63 @@ int main(int argc, char *argv[])
 {
   int dim = 3;
 
+  akantu::initialize(&argc, &argv);
+  akantu::debug::setDebugLevel(akantu::dblInfo);
+
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
-  
-  MeshUtils::tweakConnectivityForPBC(mesh,1,0,0);
+  mesh.computeBoundingBox();
+  std::map<UInt,UInt> pbc_pair;
+  MeshUtils::computePBCMap(mesh,0,pbc_pair);
+  // if (flag_y)computePBCMap(mesh,1,pbc_pair);
+  // if (flag_z) computePBCMap(mesh,2,pbc_pair);
 
+
+  {
+    std::map<UInt,UInt>::iterator it = pbc_pair.begin();
+    std::map<UInt,UInt>::iterator end = pbc_pair.end();
+    
+    Real * coords = mesh.getNodes().values;
+    UInt dim = mesh.getSpatialDimension();
+    while(it != end){
+      UInt i1 = (*it).first;
+      UInt i2 = (*it).second;
+      
+      AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
+			<< coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+			<< coords[dim*i1+2]
+			<< ") with"
+			<< i2 << "(" 
+			<< coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+			<< coords[dim*i2+2]
+			<< ")");	
+      ++it;
+    }
+  }
+
+  PBCSynchronizer synch(pbc_pair);
+  
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
+  model->getSynchronizerRegistry().registerSynchronizer(synch,_gst_smm_uv);
+  model->getSynchronizerRegistry().registerSynchronizer(synch,_gst_smm_mass);
 
   model->initVectors();
   UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  memset(model->getForce().values,        0, 2*nb_nodes*sizeof(Real));
-  memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
-  memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
-  memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
-
+  
+  model->getForce().clear();
+  model->getVelocity().clear();
+  model->getAcceleration().clear();
+  model->getDisplacement().clear();
+  
+  model->initExplicit();
   model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
+
+  model->changeEquationNumberforPBC(pbc_pair);
+  model->assembleMassLumped();
+  model->getSynchronizerRegistry().synchronize(_gst_smm_mass);
 
  #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
@@ -72,6 +112,8 @@ int main(int argc, char *argv[])
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-pbc-tweak");
   dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
 			 TETRA1, mesh.getNbElement(_tetrahedron_4), C_MODE);
+  dumper.AddNodeDataField(model->getMass().values,
+			  3, "mass");
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();

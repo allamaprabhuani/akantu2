@@ -57,7 +57,7 @@ public:
 public:
 
   /// synchronize ghosts
-  virtual void synchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  void synchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// asynchronous synchronization of ghosts
   virtual void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
@@ -67,6 +67,8 @@ public:
 
   virtual void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) = 0;
 
+  /// compute buffer size for a given tag and data accessor 
+  virtual void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag)=0;
 
 protected:
 
