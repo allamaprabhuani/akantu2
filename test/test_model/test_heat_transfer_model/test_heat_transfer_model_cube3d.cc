@@ -53,6 +53,7 @@ akantu::UInt paraview_type = TETRA1;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
@@ -76,7 +77,7 @@ int main(int argc, char *argv[])
  
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   model->getHeatFlux().clear();
-  model->getLumped().clear();
+  model->getCapacityLumped().clear();
   model->getTemperatureGradient(type).clear();
 
   //get stable time step
@@ -161,8 +162,8 @@ void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
     1, "temperature");
   dumper.AddNodeDataField(model->getHeatFlux().values,
    			  1, "heat_flux");
-  dumper.AddNodeDataField(model->getLumped().values,
-   			  1, "lumped");
+  dumper.AddNodeDataField(model->getCapacityLumped().values,
+   			  1, "capacity_lumped");
   dumper.AddElemDataField(model->getTemperatureGradient(type).values,
     			  spatial_dimension, "temperature_gradient");
   dumper.SetPrefix("paraview/");

@@ -97,21 +97,26 @@ void HeatTransferModel::initVectors()
   std::stringstream sstr_boun; sstr_boun<<id<<":boundary";
   temperature = &(alloc<Real>(sstr_temp.str(), nb_nodes, 1, REAL_INIT_VALUE));
   heat_flux= &(alloc<Real>(sstr_heat_flux.str(), nb_nodes, 1, REAL_INIT_VALUE));
-  lumped= &(alloc<Real>(sstr_lump.str(), nb_nodes, 1, REAL_INIT_VALUE));
+  capacity_lumped= &(alloc<Real>(sstr_lump.str(), nb_nodes, 1, REAL_INIT_VALUE));
   boundary= &(alloc<bool>(sstr_boun.str(), nb_nodes, 1, false));
-  const Mesh::ConnectivityTypeList & type_list = this->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+  const Mesh::ConnectivityTypeList & type_list = 
+    this->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it)
     {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-      std::stringstream sstr_temp_grad; sstr_temp_grad << id << ":temperature gradient:" << *it;
+      std::stringstream sstr_temp_grad; 
+      sstr_temp_grad << id << ":temperature gradient:" << *it;
       UInt nb_element = getFEM().getMesh().getNbElement(*it);
       UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it) * nb_element;
       std::cout << "Allocating " << sstr_temp_grad.str() << std::endl;
-      temperature_gradient[*it] = &(alloc<Real>(sstr_temp_grad.str(), nb_quad_points, spatial_dimension, REAL_INIT_VALUE)); 
+      temperature_gradient[*it] = &(alloc<Real>(sstr_temp_grad.str(), 
+						nb_quad_points, 
+						spatial_dimension, REAL_INIT_VALUE)); 
     }
 
-
+  dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(),1);
+  dof_synchronizer->initLocalDOFEquationNumbers();
 
   AKANTU_DEBUG_OUT();
 }
@@ -155,7 +160,7 @@ void HeatTransferModel::assembleCapacityLumped(const ElementType &el_type)
   {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     
-    fem.assembleFieldLumped(rho_1,1,*lumped,
+    fem.assembleFieldLumped(rho_1,1,*capacity_lumped,
 			    dof_synchronizer->getLocalDOFEquationNumbers(),
 			    *it, _not_ghost);
   }
@@ -266,7 +271,7 @@ void HeatTransferModel::updateTemperature()
     if(!((*boundary)(i)))
     {	
       //if((*temperature)(i)<0) (*temperature)(i)=0.0;
-      (*temperature)(i,0) = (*temperature)(i,0) - (*heat_flux)(i,0) * time_step / (*lumped)(i,0);
+      (*temperature)(i,0) = (*temperature)(i,0) - (*heat_flux)(i,0) * time_step / (*capacity_lumped)(i,0);
       (*temperature)(i,0) = std::max((*temperature)(i,0), 5.0);
       //for testing
       //(*temperature)(i) = std::min((*temperature)(i), 300.0); 

@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
  
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   model->getHeatFlux().clear();
-  model->getLumped().clear();
+  model->getCapacityLumped().clear();
   model->getTemperatureGradient(type).clear();
 
   // akantu::debug::setDebugLevel(akantu::dblDump);
@@ -172,8 +172,8 @@ void paraviewInit(Dumper & dumper) {
     1, "temperature");
   dumper.AddNodeDataField(model->getHeatFlux().values,
    			  1, "heat_flux");
-  dumper.AddNodeDataField(model->getLumped().values,
-   			  1, "lumped");
+  dumper.AddNodeDataField(model->getCapacityLumped().values,
+   			  1, "capacity");
   dumper.AddElemDataField(model->getTemperatureGradient(type).values,
     			  spatial_dimension, "temperature_gradient");
   dumper.SetPrefix("paraview/");

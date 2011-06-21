@@ -142,7 +142,7 @@ public:
  /// set the value of the time step
   AKANTU_GET_MACRO(HeatFlux,* heat_flux, Vector<Real>&);
 /// set the value of the time step
-  AKANTU_GET_MACRO(Lumped, * lumped, Vector<Real>&);
+  AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Vector<Real>&);
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
   /// get the SolidMechanicsModel::velocity vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradient, temperature_gradient, Vector<Real> &);
@@ -219,7 +219,7 @@ private:
   Vector<Int> * equation_number;
 
   //lumped vector
-  Vector<Real> * lumped;
+  Vector<Real> * capacity_lumped;
 
   /// boundary vector
   Vector<bool> * boundary;

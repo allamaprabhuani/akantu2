@@ -224,9 +224,11 @@ template <class T> void Vector<T>::resize(UInt new_size) {
 template <class T> void Vector<T>::extendComponentsInterlaced(UInt multiplicator,
 							      UInt block_size) {
   AKANTU_DEBUG_IN();
+
+  if (multiplicator == 1) return;
+
   AKANTU_DEBUG_ASSERT(multiplicator > 1,
-		      "you can only extend a vector by changing "
-		      << "the number of components");
+  		      "invalid multiplicator");
   AKANTU_DEBUG_ASSERT(nb_component%block_size == 0,
 		      "stride must divide actual number of components");
 
