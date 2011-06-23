@@ -55,9 +55,10 @@ int main(int argc, char *argv[])
   mesh_io.read("cube.msh", mesh);
   mesh.computeBoundingBox();
   std::map<UInt,UInt> pbc_pair;
+  akantu::Math::tolerance = 1e-3;
   MeshUtils::computePBCMap(mesh,0,pbc_pair);
-  // if (flag_y)computePBCMap(mesh,1,pbc_pair);
-  // if (flag_z) computePBCMap(mesh,2,pbc_pair);
+  MeshUtils::computePBCMap(mesh,1,pbc_pair);
+  MeshUtils::computePBCMap(mesh,2,pbc_pair);
 
 
   {
@@ -101,17 +102,16 @@ int main(int argc, char *argv[])
   model->readMaterials("material.dat");
   model->initMaterials();
 
-  model->changeEquationNumberforPBC(pbc_pair);
+  model->changeLocalEquationNumberforPBC(pbc_pair,mesh.getSpatialDimension());
   model->assembleMassLumped();
-  model->getSynchronizerRegistry().synchronize(_gst_smm_mass);
 
  #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-pbc-tweak");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
-			 TETRA1, mesh.getNbElement(_tetrahedron_4), C_MODE);
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_hexahedron_8).values,
+			 HEX1, mesh.getNbElement(_hexahedron_8), C_MODE);
   dumper.AddNodeDataField(model->getMass().values,
 			  3, "mass");
   dumper.SetPrefix("paraview/");

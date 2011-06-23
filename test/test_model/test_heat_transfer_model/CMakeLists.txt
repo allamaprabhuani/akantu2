@@ -34,6 +34,18 @@ register_test(test_heat_transfer_model_cube3d
   test_heat_transfer_model_cube3d.cc)
 add_dependencies(test_heat_transfer_model_cube3d test_heat_cube3d_mesh1 test_heat_square_mesh1 test_heat_line_mesh)
 
+
+add_mesh(test_heat_cube_tet4 cube_tet.geo 3 1 OUTPUT cube_tet4.msh)
+register_test(test_heat_transfer_model_cube3d_pbc
+  test_heat_transfer_model_cube3d_pbc.cc)
+add_dependencies(test_heat_transfer_model_cube3d_pbc test_heat_cube_tet4)
+
+add_mesh(test_heat_square_tri3 square_tri.geo 2 1 OUTPUT square_tri3.msh)
+register_test(test_heat_transfer_model_square2d_pbc
+  test_heat_transfer_model_square2d_pbc.cc)
+add_dependencies(test_heat_transfer_model_cube3d_pbc test_heat_square_tri4)
+
+
 register_test(test_heat_transfer_model_cube3d_istropic_conductivity
   test_heat_transfer_model_cube3d_istropic_conductivity.cc)
 add_dependencies(test_heat_transfer_model_cube3d_istropic_conductivity test_heat_transfer_model_cube3d_istropic_conductivity_mesh1)
@@ -47,4 +59,7 @@ add_dependencies(test_heat_transfer_model_cube3d_istropic_conductivity test_heat
 #add_dependencies(test_heat_transfer_model_cube3d_tetra10 test_heat_cube3d_mesh2)
 
 #===============================================================================
+file(COPY material.dat DESTINATION .)
+
+
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
