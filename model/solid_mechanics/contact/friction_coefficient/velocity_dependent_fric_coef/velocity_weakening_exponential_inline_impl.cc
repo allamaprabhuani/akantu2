@@ -49,7 +49,7 @@ inline void VelocityWeakeningExponential::computeAlpha() {
   const Real tolerance = std::numeric_limits<Real>::epsilon();
   AKANTU_DEBUG_ASSERT(std::abs(power) > tolerance, "Power is equal zero!! Cannot be the case: division by zero");
 
-  this->alpha = (this->static_friction_coefficient - this->dynamic_friction_coefficient) / this->power;
+  this->alpha = std::sqrt((this->static_friction_coefficient - this->dynamic_friction_coefficient) / this->power);
 
   AKANTU_DEBUG_OUT();
 }
