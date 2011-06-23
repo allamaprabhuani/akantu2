@@ -168,7 +168,9 @@ int main(int argc, char *argv[])
     fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
     delete funct;
 
-    fem_boundary.assembleVector(*int_funct,const_cast<Vector<Real> &>(model.getForce()),2, *it);
+    fem_boundary.assembleVector(*int_funct,const_cast<Vector<Real> &>(model.getForce()),
+				model.getDOFSynchronizer().getLocalDOFEquationNumbers(),
+				2, *it);
     delete int_funct;
   }
 
