@@ -42,12 +42,12 @@ public:
   bool operator() (UInt n1, UInt n2){
     Real p1_x = coordinates[dim*n1+dir_x];
     Real p2_x = coordinates[dim*n2+dir_x];
-    Real p1_y = coordinates[dim*n1+dir_y];
-    Real p2_y = coordinates[dim*n2+dir_y];
     Real diff_x = p1_x - p2_x;
-    if (fabs(diff_x) > Math::tolerance)
+    if (dim == 2 || fabs(diff_x) > Math::tolerance)
       return diff_x > 0.0 ? false : true;
-    else {
+    else if (dim > 2){
+      Real p1_y = coordinates[dim*n1+dir_y];
+      Real p2_y = coordinates[dim*n2+dir_y];
       Real diff_y = p1_y - p2_y;
       return diff_y > 0 ? false : true;
     }
@@ -147,6 +147,9 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
   Real * coords = mymesh.nodes->values;
   const UInt nb_nodes = mymesh.nodes->getSize();
   const UInt dim = mymesh.getSpatialDimension();
+
+  if (dim <= dir) return;
+
   AKANTU_DEBUG_INFO("min " << mymesh.xmin[dir]);
   AKANTU_DEBUG_INFO("max " << mymesh.xmax[dir]);
 
@@ -167,16 +170,26 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
 
   UInt dir_x,dir_y;
 
-  if (dir == 0){
-    dir_x = 1;dir_y = 2;
+  if (dim == 3){
+    if (dir == 0){
+      dir_x = 1;dir_y = 2;
+    }
+    else if (dir == 1){
+      dir_x = 0;dir_y = 2;
+    }
+    else if (dir == 2){
+      dir_x = 0;dir_y = 1;
+    }
   }
-  else if (dir == 1){
-    dir_x = 0;dir_y = 2;
+  else if (dim == 2){
+    if (dir == 0){
+      dir_x = 1;
+    }
+    else if (dir == 1){
+      dir_x = 0;
+    }
   }
-  else if (dir == 2){
-    dir_x = 0;dir_y = 1;
-  }
-
+  
   CoordinatesComparison compare_nodes(dim,dir_x,dir_y,coords);
 
   std::sort(selected_left.begin(),selected_left.end(),compare_nodes);
@@ -202,9 +215,11 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
 		      << ") in direction " << dir);	
 
     
-    Real dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
-    Real dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
-
+    Real dx = 0.0;
+    Real dy = 0.0;
+    if (dim == 2) dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
+    if (dim == 3) dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
+    
     if (fabs(dx*dx+dy*dy) < Math::tolerance)
       {
   	//then i match these pairs

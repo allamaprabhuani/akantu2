@@ -341,7 +341,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
     break;
   }
   case _gst_smm_mass: {
-    AKANTU_DEBUG_INFO("pack mass of node " << index << " which is " << (*mass)(index));
+    AKANTU_DEBUG_INFO("pack mass of node " << index << " which is " << (*mass)(index,0));
     buffer << (*mass)(index,0);
     buffer << (*mass)(index,1);
     buffer << (*mass)(index,2);
@@ -370,11 +370,11 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
     break;
   }
   case _gst_smm_mass: {
-    AKANTU_DEBUG_INFO("mass of node " << index << " was " << (*mass)(index));
+    AKANTU_DEBUG_INFO("mass of node " << index << " was " << (*mass)(index,0));
     buffer >> (*mass)(index,0);
     buffer >> (*mass)(index,1);
     buffer >> (*mass)(index,2);
-    AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index));
+    AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index,0));
     break;
   }
   default: {

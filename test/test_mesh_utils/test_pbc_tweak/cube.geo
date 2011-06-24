@@ -1,4 +1,4 @@
-h = 1;
+h = 0.1;
 
 Point(1) = {0.0, 0.0, 0.0, h};
 Point(2) = {1.0, 0.0, 0.0, h};
@@ -35,3 +35,9 @@ Line Loop(23) = {9, -10, 8, 7};
 Plane Surface(24) = {23};
 Surface Loop(25) = {24, 18, 20, 22, 14, 16};
 Volume(26) = {25};
+
+Transfinite Surface "*";
+Recombine Surface "*";
+Transfinite Volume "*";
+
+Physical Volume (100) = {26};

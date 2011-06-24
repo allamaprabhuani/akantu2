@@ -28,8 +28,6 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
 #include "material.hh"
-
-//#include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -52,6 +50,7 @@ void SolidMechanicsModel::assembleMassLumped() {
       mass_values[i] = 1.;
   }
 
+  synch_registry->synchronize(_gst_smm_mass);
   AKANTU_DEBUG_OUT();
 }
 

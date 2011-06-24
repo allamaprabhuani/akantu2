@@ -26,3 +26,90 @@
  */
 
 /* -------------------------------------------------------------------------- */
+inline UInt HeatTransferModel::getNbDataToPack(SynchronizationTag tag) const{
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+
+  switch(tag) {
+  case _gst_htm_temperature: 
+  case _gst_htm_capacity: {
+    size += nb_nodes * sizeof(Real);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+  
+  AKANTU_DEBUG_OUT();
+  return size;  
+};
+/* -------------------------------------------------------------------------- */
+inline UInt HeatTransferModel::getNbDataToUnpack(SynchronizationTag tag) const{
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+
+  switch(tag) {
+  case _gst_htm_capacity: 
+  case _gst_htm_temperature: {
+    size += nb_nodes * sizeof(Real);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+  
+  AKANTU_DEBUG_OUT();
+  return size;  
+};
+/* -------------------------------------------------------------------------- */
+inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
+					const UInt index,
+					SynchronizationTag tag) const{
+  AKANTU_DEBUG_IN();
+
+  switch(tag) {
+  case _gst_htm_capacity: 
+    buffer << (*capacity_lumped)(index);
+    break;
+  case _gst_htm_temperature: {
+    buffer << (*temperature)(index);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+  
+  AKANTU_DEBUG_OUT();
+};
+/* -------------------------------------------------------------------------- */
+inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
+					  const UInt index,
+					  SynchronizationTag tag) const{
+
+  AKANTU_DEBUG_IN();
+
+  switch(tag) {
+  case _gst_htm_capacity: {
+    buffer >> (*capacity_lumped)(index);
+    break;
+  }
+  case _gst_htm_temperature: {
+    buffer >> (*temperature)(index);
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+  
+  AKANTU_DEBUG_OUT();
+};
+/* -------------------------------------------------------------------------- */
+

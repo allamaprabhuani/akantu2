@@ -65,48 +65,7 @@ int main(int argc, char *argv[])
   akantu::UInt nb_nodes;
   akantu::UInt nb_element;
 
-  mesh.computeBoundingBox();
-  std::map<akantu::UInt,akantu::UInt> pbc_pair;
-  akantu::MeshUtils::computePBCMap(mesh,0,pbc_pair);
-  akantu::MeshUtils::computePBCMap(mesh,1,pbc_pair);
-  akantu::MeshUtils::computePBCMap(mesh,2,pbc_pair);
-
-  {
-    std::map<akantu::UInt,akantu::UInt>::iterator it = pbc_pair.begin();
-    std::map<akantu::UInt,akantu::UInt>::iterator end = pbc_pair.end();
-    
-    akantu::Real * coords = mesh.getNodes().values;
-    akantu::UInt dim = mesh.getSpatialDimension();
-    while(it != end){
-      akantu::UInt i1 = (*it).first;
-      akantu::UInt i2 = (*it).second;
-
-      if (dim == 3)
-	AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
-			  << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
-			  << coords[dim*i1+2]
-			  << ") with"
-			  << i2 << "(" 
-			  << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
-			<< coords[dim*i2+2]
-			  << ")");
-      else if (dim == 2)
-	AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
-			  << coords[dim*i1] << "," << coords[dim*i1+1]
-			  << ") with"
-			  << i2 << "(" 
-			  << coords[dim*i2] << "," << coords[dim*i2+1]
-			  << ")");
-      ++it;
-    }
-  }
-
-  akantu::PBCSynchronizer synch(pbc_pair);
-
   model = new akantu::HeatTransferModel(mesh);
-  model->createSynchronizerRegistry(model);
-  model->getSynchronizerRegistry().registerSynchronizer(synch,akantu::_gst_htm_capacity);
-  model->getSynchronizerRegistry().registerSynchronizer(synch,akantu::_gst_htm_temperature);
   /* -------------------------------------------------------------------------- */
   model->readMaterials("material.dat");
   model->initModel();
@@ -115,9 +74,8 @@ int main(int argc, char *argv[])
   model->getCapacityLumped().clear();
   model->getTemperatureGradient(type).clear();
   /* -------------------------------------------------------------------------- */
-  model->changeLocalEquationNumberforPBC(pbc_pair,1);
+  model->initPBC(1,1,1);
   model->assembleCapacityLumped(type);
-  model->getSynchronizerRegistry().synchronize(akantu::_gst_htm_capacity);
   /* -------------------------------------------------------------------------- */
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);
@@ -167,7 +125,6 @@ int main(int argc, char *argv[])
     {
       model->updateHeatFlux();
       model->updateTemperature();
-      model->getSynchronizerRegistry().synchronize(akantu::_gst_htm_temperature);
      
       if(i % 100 == 0)
 	paraviewDump(dumper);

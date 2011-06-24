@@ -32,12 +32,46 @@ inline Model::Model(const ModelID & id,
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_OUT();
 }
-
+/* -------------------------------------------------------------------------- */
+inline SynchronizerRegistry & Model::getSynchronizerRegistry(){
+  AKANTU_DEBUG_ASSERT(synch_registry,"synchronizer registry not initialized:"
+		      << " did you call createSynchronizerRegistry ?");
+  return  *synch_registry;
+}
 /* -------------------------------------------------------------------------- */
 inline void Model::createSynchronizerRegistry(DataAccessor * data_accessor){
   synch_registry = new SynchronizerRegistry(*data_accessor);
 }
 
+/* -------------------------------------------------------------------------- */
+inline void Model::initPBC(UInt x, UInt y, UInt z){
+  Mesh & mesh = getFEM().getMesh();
+  mesh.computeBoundingBox();
+  if (x) MeshUtils::computePBCMap(mesh,0,pbc_pair);
+  if (y) MeshUtils::computePBCMap(mesh,1,pbc_pair);
+  if (z) MeshUtils::computePBCMap(mesh,2,pbc_pair);
+
+  std::map<UInt,UInt>::iterator it = pbc_pair.begin();
+  std::map<UInt,UInt>::iterator end = pbc_pair.end();
+  
+  Real * coords = mesh.getNodes().values;
+  UInt dim = mesh.getSpatialDimension();
+  while(it != end){
+    UInt i1 = (*it).first;
+    UInt i2 = (*it).second;
+    
+    AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
+		      << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+		      << coords[dim*i1+2]
+		      << ") with"
+		      << i2 << "(" 
+		      << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+		      << coords[dim*i2+2]
+		      << ")");	
+    ++it;
+  }
+
+}
 /* -------------------------------------------------------------------------- */
 inline Synchronizer & Model::createParallelSynch(MeshPartition * partition,
 						 DataAccessor * data_accessor){
@@ -192,3 +226,18 @@ inline FEM & Model::getFEMBoundary(std::string name){
   AKANTU_DEBUG_OUT();
   return *(it->second);
 }
+/* -------------------------------------------------------------------------- */
+inline void Model::changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,
+					    UInt dimension){
+  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin(); 
+       it != pbc_pair.end();++it) {
+    Int node_master = (*it).second;
+    Int node_slave = (*it).first;
+    for (UInt i = 0; i < dimension; ++i) {
+      (*dof_synchronizer->getLocalDOFEquationNumbersPointer())
+	(node_slave*dimension+i) = dimension*node_master+i;
+    }
+  }
+}
+/* -------------------------------------------------------------------------- */
+

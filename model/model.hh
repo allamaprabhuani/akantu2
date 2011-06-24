@@ -41,7 +41,7 @@
 #include "static_communicator.hh"
 #include "mesh_partition.hh"
 #include "dof_synchronizer.hh"
-
+#include "pbc_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -72,9 +72,14 @@ public:
   Synchronizer & createParallelSynch(MeshPartition * partition,
 				     DataAccessor * data_accessor);
 
+  /// change local equation number so that PBC is assembled properly 
+  void changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,UInt dimension);
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
+  /// initialize the model for PBC
+  virtual void initPBC(UInt x, UInt y, UInt z);
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
@@ -100,7 +105,7 @@ public:
   inline void unRegisterFEMObject(const std::string & name);
 
   /// return the synchronizer registry 
-  SynchronizerRegistry & getSynchronizerRegistry(){return  *synch_registry;};
+  SynchronizerRegistry & getSynchronizerRegistry();
 
 protected:
   /// return the fem object associated with a provided name
@@ -137,6 +142,9 @@ protected:
 
   /// handle the equation number things
   DOFSynchronizer * dof_synchronizer;
+
+  /// pbc pairs 
+  std::map<UInt,UInt> pbc_pair;
 };
 
 

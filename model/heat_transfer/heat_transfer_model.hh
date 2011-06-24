@@ -57,7 +57,7 @@
 
 __BEGIN_AKANTU__
 
-class HeatTransferModel : public Model {
+class HeatTransferModel : public Model, public DataAccessor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -93,12 +93,15 @@ public:
 
   /// initialize the model
   void initModel();
+
+  /// init PBC synchronizer
+  void initPBC(UInt x,UInt y, UInt z);
   
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
   
   /* ------------------------------------------------------------------------ */
-  /* Ghost Synchronizer inherited members                                     */
+  /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
 
@@ -124,8 +127,15 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-
- 
+  inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
+  inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  inline virtual void packData(CommunicationBuffer & buffer,
+			       const UInt index,
+			       SynchronizationTag tag) const;
+  inline virtual void unpackData(CommunicationBuffer & buffer,
+				 const UInt index,
+				 SynchronizationTag tag) const;
+   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -133,33 +143,31 @@ public:
 
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
-
-  //* all the implementation of time step ----------------------------------- */
   /// get the current value of the time step
   AKANTU_GET_MACRO(TimeStep, time_step, Real);
   /// set the value of the time step
   AKANTU_SET_MACRO(TimeStep, time_step, Real);
- /// set the value of the time step
+  /// get the assembled heat flux
   AKANTU_GET_MACRO(HeatFlux,* heat_flux, Vector<Real>&);
-/// set the value of the time step
+  /// get the lumped capacity
   AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Vector<Real>&);
+  /// get the boundary vector
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
-  /// get the SolidMechanicsModel::velocity vector
+  /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradient, temperature_gradient, Vector<Real> &);
- /// get the SolidMechanicsModel::velocity vector
+ /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
- 
- /// get the equation number Vector<Int>
+  /// get the equation number Vector<Int>
   AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
   
- 
-  // AKANTU_GET_MACRO(HeatFlux, *heat_flux, Vector<Real> &);
-/// compute the stable time step
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /// compute and get the stable time step
   Real getStableTimeStep();
-
-
-
- //initialize the heat flux
+  //initialize the heat flux
   void initializeHeatFlux(Vector<Real> &temp);
   //initialize temperature
   void initializeTemperature(Vector<Real> &temp);
@@ -167,24 +175,14 @@ public:
   void setBoundaryCondition();
   //compute temperature gradient
   void computeTemperatureGradient(const ElementType &el_type);
-
-   //compute the heat flux
+  //compute the heat flux
   void updateHeatFlux();
-
   //compute the temperature 
   void updateTemperature();
-
   //put the scheme into iteration
   void integrationScheme1stOrder(Real thelta, UInt N, Vector<Real> * temperature);
-
   //calculate the capacity matrix of heat transfer problem
   void assembleCapacityLumped(const ElementType &el_type);
-
-  
-
-
-
-
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -235,7 +233,6 @@ private:
   //the biggest parameter of conductivity matrix
   Real conductivitymax;
 
-  
 };
 
 

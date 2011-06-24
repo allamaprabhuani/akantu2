@@ -216,9 +216,14 @@ void SolidMechanicsModel::initModel() {
 
   getFEM().initShapeFunctions(_ghost);
 }
-
-
-
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initPBC(UInt x, UInt y, UInt z){
+  Model::initPBC(x,y,z);
+  PBCSynchronizer * synch = new PBCSynchronizer(pbc_pair);
+  synch_registry->registerSynchronizer(*synch,_gst_smm_uv);
+  synch_registry->registerSynchronizer(*synch,_gst_smm_mass);
+  changeLocalEquationNumberforPBC(pbc_pair,mesh.getSpatialDimension());
+}
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateCurrentPosition() {
   AKANTU_DEBUG_IN();
@@ -831,18 +836,6 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << "]" << std::endl;
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::changeEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair){
-  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin(); 
-       it != pbc_pair.end();++it) {
-    Int node_master = (*it).second;
-    Int node_slave = (*it).first;
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      (*dof_synchronizer->getLocalDOFEquationNumbersPointer())(node_slave*spatial_dimension+i) = spatial_dimension*node_master+i;
-    }
-  }
 }
 
 /* -------------------------------------------------------------------------- */

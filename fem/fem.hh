@@ -140,15 +140,6 @@ public:
 		      const Vector<UInt> * filter_elements = NULL,
 		      Real scale_factor = 1) const;
 
-  /// assemble vectors
-  void assembleVector(const Vector<Real> & elementary_vect,
-		      Vector<Real> & nodal_values,
-		      UInt nb_degre_of_freedom,
-		      const ElementType & type,
-		      GhostType ghost_type = _not_ghost,
-		      const Vector<UInt> * filter_elements = NULL,
-		      Real scale_factor = 1) const;
-
   /// assemble matrix in the complete sparse matrix
   void assembleMatrix(const Vector<Real> & elementary_mat,
 		      SparseMatrix & matrix,

@@ -53,62 +53,30 @@ int main(int argc, char *argv[])
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
-  mesh.computeBoundingBox();
-  std::map<UInt,UInt> pbc_pair;
-  akantu::Math::tolerance = 1e-3;
-  MeshUtils::computePBCMap(mesh,0,pbc_pair);
-  MeshUtils::computePBCMap(mesh,1,pbc_pair);
-  MeshUtils::computePBCMap(mesh,2,pbc_pair);
 
 
-  {
-    std::map<UInt,UInt>::iterator it = pbc_pair.begin();
-    std::map<UInt,UInt>::iterator end = pbc_pair.end();
-    
-    Real * coords = mesh.getNodes().values;
-    UInt dim = mesh.getSpatialDimension();
-    while(it != end){
-      UInt i1 = (*it).first;
-      UInt i2 = (*it).second;
-      
-      AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
-			<< coords[dim*i1] << "," << coords[dim*i1+1] << "," 
-			<< coords[dim*i1+2]
-			<< ") with"
-			<< i2 << "(" 
-			<< coords[dim*i2] << "," << coords[dim*i2+1] << "," 
-			<< coords[dim*i2+2]
-			<< ")");	
-      ++it;
-    }
-  }
-
-  PBCSynchronizer synch(pbc_pair);
-  
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
-  model->getSynchronizerRegistry().registerSynchronizer(synch,_gst_smm_uv);
-  model->getSynchronizerRegistry().registerSynchronizer(synch,_gst_smm_mass);
-
+  /* -------------------------------------------------------------------------- */
   model->initVectors();
-  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  
   model->getForce().clear();
   model->getVelocity().clear();
   model->getAcceleration().clear();
   model->getDisplacement().clear();
-  
+  /* ------------------------------------------------------------------------ */
   model->initExplicit();
   model->initModel();
   model->readMaterials("material.dat");
   model->initMaterials();
-
-  model->changeLocalEquationNumberforPBC(pbc_pair,mesh.getSpatialDimension());
+  /* -------------------------------------------------------------------------- */
+  model->initPBC(1,1,1);
   model->assembleMassLumped();
-
- #ifdef AKANTU_USE_IOHELPER
+  /* -------------------------------------------------------------------------- */
+  
+#ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
 
+  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-pbc-tweak");
   dumper.SetConnectivity((int*)mesh.getConnectivity(_hexahedron_8).values,
 			 HEX1, mesh.getNbElement(_hexahedron_8), C_MODE);

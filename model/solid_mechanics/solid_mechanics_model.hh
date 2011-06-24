@@ -99,6 +99,9 @@ public:
   /// initialize the model
   void initModel();
 
+  /// init PBC synchronizer
+  void initPBC(UInt x,UInt y, UInt z);
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -232,7 +235,7 @@ private:
 
 
   /* ------------------------------------------------------------------------ */
-  /* Ghost Synchronizer inherited members                                     */
+  /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
 
