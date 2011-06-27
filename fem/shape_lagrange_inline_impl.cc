@@ -76,5 +76,18 @@ computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
 					      spatial_dimension, shapesd);
 }
 /* -------------------------------------------------------------------------- */
-
+inline const Vector<Real> & ShapeLagrange::getShapes(const ElementType & type, 
+						     const GhostType & ghost_type){
+  if (ghost_type == _not_ghost)
+    return *shapes[type];
+  
+  return *ghost_shapes[type];
+}
+/* -------------------------------------------------------------------------- */
+inline const Vector<Real> & ShapeLagrange::getShapesDerivatives(const ElementType & type, 
+								const GhostType & ghost_type){
+  if (ghost_type == _not_ghost)
+    return *shapes_derivatives[type];
+  return *ghost_shapes_derivatives[type];
+}
 

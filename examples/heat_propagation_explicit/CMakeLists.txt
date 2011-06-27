@@ -30,6 +30,8 @@ add_mesh(double_cube_tet4 double_cube_tet.geo 3 1 OUTPUT double_cube_tet4.msh)
 register_example(heat_propa_pbc heat_propa_pbc.cc)
 add_dependencies(heat_propa_pbc double_cube_tet4)
 
+register_example(heat_propa_parallel heat_propa_parallel.cc)
+add_dependencies(heat_propa_parallel double_cube_tet4)
 
 #===============================================================================
 configure_file(

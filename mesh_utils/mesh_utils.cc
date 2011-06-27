@@ -397,7 +397,7 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 	 local_connectivities,
 	 nb_local_element * nb_nodes_per_element * sizeof(UInt));
 
-  Vector<UInt> * ghost_conn = mesh.getGhostConnectivityPointer(type);
+  Vector<UInt> * ghost_conn = mesh.getConnectivityPointer(type,_ghost);
   ghost_conn->resize(nb_ghost_element);
   memcpy(ghost_conn->values,
 	 local_connectivities + nb_local_element * nb_nodes_per_element,
@@ -411,11 +411,11 @@ void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const Elemen
   AKANTU_DEBUG_IN();
 
   UInt nb_element = mesh.getNbElement(type);
-  UInt nb_ghost_element = mesh.getNbGhostElement(type);
+  UInt nb_ghost_element = mesh.getNbElement(type,_ghost);
 
   char * names = reinterpret_cast<char *>(data + (nb_element + nb_ghost_element) * nb_tags);
   Mesh::UIntDataMap & uint_data_map = mesh.getUIntDataMap(type);
-  Mesh::UIntDataMap & ghost_uint_data_map = mesh.getGhostUIntDataMap(type);
+  Mesh::UIntDataMap & ghost_uint_data_map = mesh.getUIntDataMap(type,_ghost);
 
   for (UInt t = 0; t < nb_tags; ++t) {
     std::string name(names);

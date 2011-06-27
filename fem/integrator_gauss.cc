@@ -53,14 +53,12 @@ void IntegratorGauss::checkJacobians(GhostType ghost_type) {
   UInt * elem_val;
   UInt nb_element;
   Real * jacobians_val;
+  elem_val   = mesh->getConnectivity(type,ghost_type).values;
+  nb_element = mesh->getConnectivity(type,ghost_type).getSize();
 
   if(ghost_type == _not_ghost) {
-    elem_val   = mesh->getConnectivity(type).values;
-    nb_element = mesh->getConnectivity(type).getSize();
     jacobians_val = jacobians[type]->values;
   } else {
-    elem_val   = mesh->getGhostConnectivity(type).values;
-    nb_element = mesh->getGhostConnectivity(type).getSize();
     jacobians_val = ghost_jacobians[type]->values;
   }
   
@@ -84,17 +82,12 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(GhostType ghost_type
 
   Real * weights = ElementClass<type>::getGaussIntegrationWeights();
 
-  UInt * elem_val;
-  UInt nb_element;
+  UInt * elem_val = mesh->getConnectivity(type,ghost_type).values;;
+  UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();
   std::string ghost = "";
 
-  if(ghost_type == _not_ghost) {
-    elem_val   = mesh->getConnectivity(type).values;
-    nb_element = mesh->getConnectivity(type).getSize();
-  } else {
+  if(ghost_type == _ghost) {
     ghost = "ghost_";
-    elem_val   = mesh->getGhostConnectivity(type).values;
-    nb_element = mesh->getGhostConnectivity(type).getSize();
   }
 
   std::stringstream sstr_jacobians;
@@ -136,14 +129,12 @@ void IntegratorGauss::integrate(const Vector<Real> & in_f,
   AKANTU_DEBUG_IN();
 
   Vector<Real> * jac_loc;
-  UInt nb_element;
+  UInt nb_element = mesh->getNbElement(type,ghost_type);
 
   if(ghost_type == _not_ghost) {
     jac_loc     = jacobians[type];
-    nb_element  = mesh->getNbElement(type);
   } else {
     jac_loc     = ghost_jacobians[type];
-    nb_element  = mesh->getNbGhostElement(type);
   }
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
@@ -201,14 +192,12 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
 				const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
   Vector<Real> * jac_loc;
-  UInt nb_element;
+  UInt nb_element = mesh->getNbElement(type,ghost_type);
 
   if(ghost_type == _not_ghost) {
     jac_loc     = jacobians[type];
-    nb_element  = mesh->getNbElement(type);
   } else {
     jac_loc     = ghost_jacobians[type];
-    nb_element  = mesh->getNbGhostElement(type);
   }
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();

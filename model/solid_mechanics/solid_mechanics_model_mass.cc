@@ -133,15 +133,12 @@ void SolidMechanicsModel::computeRho(Vector<Real> & rho,
   Material ** mat_val = &(materials.at(0));
   UInt * elem_mat_val;
 
-  UInt nb_element;
-
   FEM & fem = getFEM();
+  UInt nb_element = fem.getMesh().getNbElement(type,ghost_type);
 
   if(ghost_type == _not_ghost) {
-    nb_element   = fem.getMesh().getNbElement(type);
     elem_mat_val = element_material[type]->values;
   } else {
-    nb_element   = fem.getMesh().getNbGhostElement(type);
     elem_mat_val = ghost_element_material[type]->values;
   }
 

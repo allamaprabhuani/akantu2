@@ -239,9 +239,11 @@ public:
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
   /// get the connectivity Vector for a given type
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, const Vector<UInt> &);
+  const Vector<UInt> & getConnectivity(const ElementType & type,
+				       const GhostType & ghost_type = _not_ghost) const;
+  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, const Vector<UInt> &);
   /// get the connecticity of ghost elements of a given type
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostConnectivity, ghost_connectivities, const Vector<UInt> &);
+  //AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostConnectivity, ghost_connectivities, const Vector<UInt> &);
 
   //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
 
@@ -250,10 +252,10 @@ public:
   AKANTU_SET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
   /// get the number of element of a type in the mesh
-  inline UInt getNbElement(const ElementType & type) const;
+  inline UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
 
-  /// get the number of ghost element of a type in the mesh
-  inline UInt getNbGhostElement(const ElementType & type) const;
+  // /// get the number of ghost element of a type in the mesh
+  // inline UInt getNbGhostElement(const ElementType & type) const;
 
   /// get the connectivity list either for the elements or the ghost elements
   inline const ConnectivityTypeList & getConnectivityTypeList(GhostType ghost_type = _not_ghost) const;
@@ -315,10 +317,8 @@ private:
   inline Vector<Int> * getNodesTypePointer();
 
   /// get a pointer to the connectivity Vector for the given type and create it if necessary
-  inline Vector<UInt> * getConnectivityPointer(const ElementType & type);
-
-  /// get a pointer to the ghost_connectivity Vector for the given type and create it if necessary
-  inline Vector<UInt> * getGhostConnectivityPointer(const ElementType & type);
+  inline Vector<UInt> * getConnectivityPointer(const ElementType & type,
+					       const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the internal_facets Mesh and create it if necessary
   inline Mesh * getInternalFacetsMeshPointer();
@@ -331,9 +331,10 @@ private:
   typedef std::map<std::string, Vector<UInt> * > UIntDataMap;
   typedef UIntDataMap ByElementTypeUIntDataMap[_max_element_type];
   /// get the IntDataMap for a given ElementType
-  inline UIntDataMap & getUIntDataMap(const ElementType & el_type) { return uint_data[el_type]; };
-  inline UIntDataMap & getGhostUIntDataMap(const ElementType & el_type) { return ghost_uint_data[el_type]; };
+  inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
+				      const GhostType & ghost_type = _not_ghost);
 
+  /// get the IntDataMap pointer (moidifyable) for a given ElementType
   inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type, const std::string & data_name);
 
   /* ------------------------------------------------------------------------ */

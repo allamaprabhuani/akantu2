@@ -89,7 +89,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
 
   switch(tag) {
   case _gst_smm_mass: {
-    size += nb_nodes_per_element * sizeof(Real); // mass vector
+    size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
     break;
   }
   case _gst_smm_for_strain: {
@@ -127,7 +127,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
 
   switch(tag) {
   case _gst_smm_mass: {
-    size += nb_nodes_per_element * sizeof(Real); // mass vector
+    size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
     break;
   }
   case _gst_smm_for_strain: {
@@ -171,7 +171,8 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
   case _gst_smm_mass: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
-      buffer << (*mass)(offset_conn);
+      Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+      buffer << it_mass[offset_conn];
     }
     break;
   }
@@ -216,7 +217,7 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = mesh.getGhostConnectivity(element.type).values;
+  UInt * conn  = mesh.getConnectivity(element.type,_ghost).values;
 
 #ifdef AKANTU_DEBUG
   types::RVector barycenter_loc(spatial_dimension);
@@ -238,7 +239,8 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   case _gst_smm_mass: {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
-      buffer >> (*mass)(offset_conn);
+      Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+      buffer >> it_mass[offset_conn];
     }
     break;
   }
@@ -289,7 +291,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(SynchronizationTag tag) const {
     break;
   }
   case _gst_smm_mass: {
-    size += nb_nodes * sizeof(Real);
+    size += nb_nodes * sizeof(Real) * spatial_dimension;
     break;
   }
   default: {
@@ -314,7 +316,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(SynchronizationTag tag) const
     break;
   }
   case _gst_smm_mass: {
-    size += nb_nodes * sizeof(Real);
+    size += nb_nodes * sizeof(Real) * spatial_dimension;
     break;
   }
   default: {

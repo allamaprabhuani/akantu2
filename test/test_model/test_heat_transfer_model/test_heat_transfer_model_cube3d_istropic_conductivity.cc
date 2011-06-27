@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 
   DumperParaview dumper;
   paraviewInit(dumper);
-  model->assembleCapacityLumped(type);
+  model->assembleCapacityLumped();
 
 
   // //for testing

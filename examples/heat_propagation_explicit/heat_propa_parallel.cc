@@ -36,14 +36,16 @@
 #include <iostream>
 #include <fstream>
 #include <string.h>
+#include "mesh_partition_scotch.hh"
+/* -------------------------------------------------------------------------- */
 using namespace std;
-
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
 
-void paraviewInit(akantu::HeatTransferModel * model,Dumper & dumper);
+void paraviewInit(const string & name,akantu::HeatTransferModel * model,Dumper & dumper,
+		  const akantu::GhostType & ghost_type);
 void paraviewDump(Dumper & dumper);
 
 akantu::UInt spatial_dimension = 3;
@@ -57,16 +59,28 @@ int main(int argc, char *argv[])
   akantu::initialize(&argc,&argv);
 
   akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
+  akantu::StaticCommunicator * comm = 
+    akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm->getNbProc();
+  akantu::Int prank = comm->whoAmI();
 
-  mesh_io.read("double_cube_tet4.msh", mesh);
-  
   akantu::HeatTransferModel * model;
-  akantu::UInt nb_nodes;
-  akantu::UInt nb_element;
+  akantu::MeshPartition * partition = NULL;
 
+  // int a =1;
+  // while (a){};
 
+  if(prank == 0) {
+    akantu::MeshIOMSH mesh_io;
+    mesh_io.read("double_cube_tet4.msh", mesh);
+    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition->partitionate(psize);
+  }
   model = new akantu::HeatTransferModel(mesh);
+  model->initParallel(partition);
+
+
+  mesh.computeBoundingBox();
   /* -------------------------------------------------------------------------- */
   model->readMaterials("material.dat");
   model->initModel();
@@ -75,16 +89,15 @@ int main(int argc, char *argv[])
   model->getCapacityLumped().clear();
   model->getTemperatureGradient(type).clear();
   /* -------------------------------------------------------------------------- */
-  model->initPBC(1,1,0);
   model->assembleCapacityLumped();
   /* -------------------------------------------------------------------------- */
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
-  nb_element = model->getFEM().getMesh().getNbElement(type);
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
   /* ------------------------------------------------------------------------ */
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
-  cout<<"time step is:"<<time_step<<endl;
+
+  AKANTU_DEBUG_INFO("time step is:"<<time_step);
   model->setTimeStep(time_step);
   /* -------------------------------------------------------------------------- */
   /// boundary conditions
@@ -94,10 +107,9 @@ int main(int argc, char *argv[])
   akantu::Vector<akantu::Real> & heat_flux = model->getHeatFlux();
   akantu::Real eps = 1e-15;
 
-  double t1, t2, length;
+  double t1, t2;
   t1 = 300.;
   t2 = 100.;
-  length = 1.;
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
@@ -109,53 +121,78 @@ int main(int argc, char *argv[])
   }
   /* -------------------------------------------------------------------------- */
   DumperParaview dumper;
-  paraviewInit(model,dumper);
+  DumperParaview dumper_ghost;
+  paraviewInit("heat-test",model,dumper,akantu::_not_ghost);
+  //  paraviewInit("heat-test",model,dumper_ghost,akantu::_ghost);
   /* ------------------------------------------------------------------------ */
   // //for testing
-  int max_steps = 1000000;
+  int max_steps = 10000000;
   /* ------------------------------------------------------------------------ */
   for(int i=0; i<max_steps; i++)
     {
      
       model->updateHeatFlux();
       model->updateTemperature();
-     
+
+      if(i % 100 == 0){     
+	if(prank == 0) 
+	  std::cout << "Step " << i << "/" << max_steps << std::endl;
+      }
+
       if(i % 1000 == 0){
-	paraviewDump(dumper);
-	std::cout << "Step " << i << "/" << max_steps << std::endl;
+	dumper.Dump();
+	//	dumper_ghost.Dump();
       }
     }
-  cout<< "\n\n Stable Time Step is : " << time_step << "\n \n" <<endl;
-  
+
+  akantu::finalize();
   return 0;
 }
 /* -------------------------------------------------------------------------- */
-
-void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
+void paraviewInit(const string & name, akantu::HeatTransferModel * model, Dumper & dumper,
+		       const akantu::GhostType & ghost_type) {
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type,ghost_type);
   
+  akantu::StaticCommunicator * comm = 
+    akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm->getNbProc();
+  akantu::Int prank = comm->whoAmI();
+  
+  stringstream str;
+  str << name; 
+  if (ghost_type == akantu::_ghost)
+    str << "_ghost";
 
   dumper.SetMode(TEXT);
+  dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
-   dumper.AddNodeDataField(model->getTemperature().values,
+		   spatial_dimension, nb_nodes, str.str().c_str());
+  
+  if (nb_element)
+    dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type,ghost_type).values,
+			   paraview_type, nb_element, C_MODE);
+  else 
+    dumper.SetConnectivity(NULL,paraview_type, nb_element, C_MODE);
+  dumper.AddNodeDataField(model->getTemperature().values,
     1, "temperature");
   dumper.AddNodeDataField(model->getHeatFlux().values,
    			  1, "heat_flux");
   dumper.AddNodeDataField(model->getCapacityLumped().values,
    			  1, "capacity_lumped");
-  // dumper.AddElemDataField(model->getTemperatureGradient(type).values,
-  //   			  spatial_dimension, "temperature_gradient");
-  // dumper.AddElemDataField(model->getbtkgt().values,
-  //   			  4, "btkgt");
+
+  if (nb_element){ 
+    if (ghost_type == akantu::_ghost)
+      dumper.AddElemDataField(model->getTemperatureGradientGhost(type).values,
+			      spatial_dimension, "temperature_gradient");  
+    else
+      dumper.AddElemDataField(model->getTemperatureGradient(type).values,
+			      spatial_dimension, "temperature_gradient");
+  }
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
 }
-
 /* -------------------------------------------------------------------------- */
 
 void paraviewDump(Dumper & dumper) {

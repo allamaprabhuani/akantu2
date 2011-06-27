@@ -46,8 +46,8 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactType & type,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
-  Memory(memory_id), id(id), model(model), master_surfaces(NULL),
-  type(type), surface_to_nodes_offset(NULL), surface_to_nodes(NULL) {
+  Memory(memory_id), id(id), model(model),
+  type(type) {
 
   AKANTU_DEBUG_IN();
 

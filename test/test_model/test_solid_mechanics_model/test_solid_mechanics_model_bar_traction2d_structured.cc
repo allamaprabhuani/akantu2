@@ -43,6 +43,7 @@
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;

@@ -647,8 +647,8 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
     ElementType type = *it;
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    UInt nb_element = mesh.getNbGhostElement(type);
-    UInt * conn_val = mesh.getGhostConnectivity(type).values;
+    UInt nb_element = mesh.getNbElement(type,_ghost);
+    UInt * conn_val = mesh.getConnectivity(type,_ghost).values;
 
     for (UInt e = 0; e < nb_element; ++e) {
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
@@ -716,7 +716,7 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(send_requests.size() == 0,
-		      "There must be some pending sending communications");
+		      "There must be some pending sending communications. Tag is " << tag);
 
   if (size_to_send.count(tag) == 0 ||
       size_to_receive.count(tag) == 0) computeBufferSize(data_accessor,tag);

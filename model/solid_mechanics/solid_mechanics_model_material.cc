@@ -85,7 +85,7 @@ void SolidMechanicsModel::initMaterials() {
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_element = mesh.getNbGhostElement(*it);
+    UInt nb_element = mesh.getNbElement(*it,_ghost);
     UInt * elem_mat_val = ghost_element_material[*it]->values;
 
     for (UInt el = 0; el < nb_element; ++el) {

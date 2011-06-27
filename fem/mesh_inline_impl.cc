@@ -131,52 +131,65 @@ inline Vector<Int> * Mesh::getNodesTypePointer() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type) {
+inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
+						   const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  if(connectivities[type] == NULL) {
+  Vector<UInt> ** con = NULL;
+  if (ghost_type == _not_ghost) con = &connectivities[type];
+  else con = &ghost_connectivities[type];
+  
+  if(*con == NULL) {
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     std::stringstream sstr;
-    sstr << id << ":connectivity:" << type;
-    connectivities[type] = &(alloc<UInt>(sstr.str(),
-					 0,
-					 nb_nodes_per_element));
-    type_set.insert(type);
+    sstr << id << ":";
+    if (ghost_type == _ghost) sstr << "ghost_";
+    sstr << "connectivity:" << type;
+    *con = &(alloc<UInt>(sstr.str(),
+			0,
+			nb_nodes_per_element));
 
     AKANTU_DEBUG_INFO("The connectivity vector for the type "
 		      << type << " created");
 
-    updateTypesOffsets();
+    if (ghost_type == _not_ghost){
+      type_set.insert(type);
+      updateTypesOffsets();
+    }
+    else {
+      ghost_type_set.insert(type);
+      updateGhostTypesOffsets();
+    }
   }
 
   AKANTU_DEBUG_OUT();
-  return connectivities[type];
+  return *con;
 }
 
-/* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getGhostConnectivityPointer(const ElementType & type) {
-  AKANTU_DEBUG_IN();
+// /* -------------------------------------------------------------------------- */
+// inline Vector<UInt> * Mesh::getGhostConnectivityPointer(const ElementType & type) {
+//   AKANTU_DEBUG_IN();
 
-  if(ghost_connectivities[type] == NULL) {
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+//   if(ghost_connectivities[type] == NULL) {
+//     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    std::stringstream sstr;
-    sstr << id << ":ghost_connectivity:" << type;
-    ghost_connectivities[type] = &(alloc<UInt>(sstr.str(),
-					 0,
-					 nb_nodes_per_element));
-    ghost_type_set.insert(type);
+//     std::stringstream sstr;
+//     sstr << id << ":ghost_connectivity:" << type;
+//     ghost_connectivities[type] = &(alloc<UInt>(sstr.str(),
+// 					 0,
+// 					 nb_nodes_per_element));
+//     ghost_type_set.insert(type);
 
-    AKANTU_DEBUG_INFO("The connectivity vector for the type "
-		      << type << " created");
+//     AKANTU_DEBUG_INFO("The connectivity vector for the type "
+// 		      << type << " created");
 
-    updateGhostTypesOffsets();
-  }
+//     updateGhostTypesOffsets();
+//   }
 
-  AKANTU_DEBUG_OUT();
-  return ghost_connectivities[type];
-}
+//   AKANTU_DEBUG_OUT();
+//   return ghost_connectivities[type];
+// }
 
 /* -------------------------------------------------------------------------- */
 inline const Mesh & Mesh::getInternalFacetsMesh() const {
@@ -269,26 +282,30 @@ inline const Vector<UInt> & Mesh::getUIntData(const ElementType & el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbElement(const ElementType & type) const {
+inline UInt Mesh::getNbElement(const ElementType & type, 
+			       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(connectivities[type] != NULL,
-		      "No element of kind : " << type << " in " << id);
+  Vector<UInt> * con = NULL;
+  if (ghost_type == _not_ghost) con = connectivities[type];
+  else con = ghost_connectivities[type];
+  
+  if (con == NULL) return 0;
 
   AKANTU_DEBUG_OUT();
-  return connectivities[type]->getSize();
+  return con->getSize();
 }
 
-/* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbGhostElement(const ElementType & type) const {
-  AKANTU_DEBUG_IN();
+// /* -------------------------------------------------------------------------- */
+// inline UInt Mesh::getNbGhostElement(const ElementType & type) const {
+//   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(ghost_connectivities[type] != NULL,
-		      "No element of kind : " << type << " in " << id);
+//   AKANTU_DEBUG_ASSERT(ghost_connectivities[type] != NULL,
+// 		      "No element of kind : " << type << " in " << id);
 
-  AKANTU_DEBUG_OUT();
-  return ghost_connectivities[type]->getSize();
-}
+//   AKANTU_DEBUG_OUT();
+//   return ghost_connectivities[type]->getSize();
+// }
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::getBarycenter(UInt element, const ElementType & type, 
@@ -296,12 +313,7 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 				GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt * conn_val;
-  if (ghost_type == _not_ghost) {
-    conn_val = getConnectivity(type).values;
-  } else {
-    conn_val = getGhostConnectivity(type).values;
-  }
+  UInt * conn_val = getConnectivity(type,ghost_type).values;
   UInt nb_nodes_per_element = getNbNodesPerElement(type);
 
   Real local_coord[spatial_dimension * nb_nodes_per_element];
@@ -559,3 +571,22 @@ inline UInt Mesh::getNbGlobalNodes() const {
 inline Int Mesh::getNodeType(UInt local_id) const {
   return nodes_type ? (*nodes_type)(local_id) : -1;
 }
+/* -------------------------------------------------------------------------- */
+inline Mesh::UIntDataMap & Mesh::getUIntDataMap(const ElementType & el_type,
+						const GhostType & ghost_type){ 
+  if (ghost_type == _not_ghost)
+    return uint_data[el_type]; 
+
+  return ghost_uint_data[el_type]; 
+};
+/* -------------------------------------------------------------------------- */
+inline const Vector<UInt> & Mesh::getConnectivity(const ElementType & el_type,
+						  const GhostType & ghost_type) const{ 
+  if (ghost_type == _not_ghost)
+    return *connectivities[el_type]; 
+
+  return *ghost_connectivities[el_type];
+};
+/* -------------------------------------------------------------------------- */
+
+

@@ -31,7 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "mesh.hh"
 #include "element_class.hh"
-
+#include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -195,6 +195,12 @@ void Mesh::computeBoundingBox(){
     }
   }
   
+  StaticCommunicator * comm = 
+    StaticCommunicator::getStaticCommunicator();
+  
+  comm->allReduce(xmin,dim,_so_min);
+  comm->allReduce(xmax,dim,_so_max);
+
   for (UInt k = 0; k < dim; ++k) 
     size[k] = xmax[k] - xmin[k];
 

@@ -80,13 +80,11 @@ public:
   UInt getNbQuadraturePoints(const ElementType & type);
 
   /// get shapes precomputed
-  const Vector<Real> & getShapes(const ElementType & type);
-  /// get the ghost shapes precomputed
-  const Vector<Real> & getGhostShapes(const ElementType & type);
+  const Vector<Real> & getShapes(const ElementType & type, 
+				 const GhostType & ghost_type);
   /// get the derivatives of shapes
-  const Vector<Real> & getShapesDerivatives(const ElementType & type);
-  /// get the ghost derivatives of shapes
-  const Vector<Real> & getGhostShapesDerivatives(const ElementType & type);
+  const Vector<Real> & getShapesDerivatives(const ElementType & type,
+					    const GhostType & ghost_type);
   /// get quadrature points
   const Vector<Real> & getQuadraturePoints(const ElementType & type);
 

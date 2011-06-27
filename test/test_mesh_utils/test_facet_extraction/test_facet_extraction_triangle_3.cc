@@ -44,6 +44,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   const ElementType type = _triangle_3;
   const ElementType surf_type = ElementClass<type>::getFacetElementType();
   int dim = ElementClass<type>::getSpatialDimension();
@@ -83,6 +84,6 @@ int main(int argc, char *argv[])
   dumper_facet.Dump();
 
 #endif //AKANTU_USE_IOHELPER
-
+  akantu::finalize();
   return EXIT_SUCCESS;
 }

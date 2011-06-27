@@ -44,6 +44,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   int dim = 3;
 
   Mesh mesh(dim);
@@ -82,6 +83,6 @@ int main(int argc, char *argv[])
 
 
 #endif //AKANTU_USE_IOHELPER
-
+  akantu::finalize();
   return EXIT_SUCCESS;
 }

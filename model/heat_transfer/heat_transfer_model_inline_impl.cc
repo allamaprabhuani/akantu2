@@ -112,4 +112,108 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 };
 /* -------------------------------------------------------------------------- */
+inline UInt HeatTransferModel::getNbDataToPack(const Element & element,
+					       SynchronizationTag tag) const {
+
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+
+  switch(tag) {
+  case _gst_htm_capacity: {
+    size += nb_nodes_per_element * sizeof(Real); // capacity vector
+    break;
+  }
+  case _gst_htm_temperature: {
+    size += nb_nodes_per_element * sizeof(Real); // temperature
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return size;
+}
+/* -------------------------------------------------------------------------- */
+inline UInt HeatTransferModel::getNbDataToUnpack(const Element & element,
+						 SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+
+  switch(tag) {
+  case _gst_htm_capacity: {
+    size += nb_nodes_per_element * sizeof(Real); // capacity vector
+    break;
+  }
+  case _gst_htm_temperature: {
+    size += nb_nodes_per_element * sizeof(Real); // temperature
+    break;
+  }
+  default: {
+    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return size;
+}
+/* -------------------------------------------------------------------------- */
+inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
+					const Element & element,
+					SynchronizationTag tag) const {
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  UInt el_offset  = element.element * nb_nodes_per_element;
+  UInt * conn  = getFEM().getMesh().getConnectivity(element.type).values;
+  
+  switch (tag){ 
+  case _gst_htm_capacity: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n];
+      buffer << (*capacity_lumped)(offset_conn);
+    }
+    break;
+  }
+  case _gst_htm_temperature: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n];
+      buffer << (*temperature)(offset_conn);
+    }
+    break;
+  }
+  }
+}
+  /* -------------------------------------------------------------------------- */
+inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
+		       const Element & element,
+		       SynchronizationTag tag) const {
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  UInt el_offset  = element.element * nb_nodes_per_element;
+  UInt * conn  = getFEM().getMesh().getConnectivity(element.type,_ghost).values;
+
+  switch (tag){ 
+  case _gst_htm_capacity: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n];
+      buffer >> (*capacity_lumped)(offset_conn);
+    }
+    break;
+  }
+  case _gst_htm_temperature: {
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n];
+      buffer >> (*temperature)(offset_conn);
+    }  
+    break;
+  }
+  }
+}
+/* -------------------------------------------------------------------------- */
+
 

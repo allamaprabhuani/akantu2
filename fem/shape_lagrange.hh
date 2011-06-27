@@ -101,19 +101,22 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
+
   /// get a the shapes vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Shapes, shapes, const Vector<Real> &);
+  const Vector<Real> & getShapes(const ElementType & type, const GhostType & ghost_type);
+  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Shapes, shapes, const Vector<Real> &);
 
   /// get a the shapes derivatives vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
+  const Vector<Real> & getShapesDerivatives(const ElementType & type, const GhostType & ghost_type);
+  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
 
-  /// get a the ghost shapes vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
-  				   const Vector<Real> &);
+  // /// get a the ghost shapes vector
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
+  // 				   const Vector<Real> &);
 
   /// get a the ghost shapes derivatives vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapesDerivatives, ghost_shapes_derivatives,
-  				   const Vector<Real> &);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapesDerivatives, ghost_shapes_derivatives,
+  // 				   const Vector<Real> &);
 
   /// get the size of the shapes returned by the element class
   static inline UInt getShapeSize(const ElementType & type);

@@ -37,6 +37,7 @@
 
 
 int main(int argc, char *argv[]) {
+  akantu::initialize(&argc,&argv);
   akantu::MeshIOMSH mesh_io;
   akantu::Mesh mesh(3);
 
@@ -44,5 +45,6 @@ int main(int argc, char *argv[]) {
 
   std::cout << mesh << std::endl;
 
+  akantu::finalize();
   return EXIT_SUCCESS;
 }

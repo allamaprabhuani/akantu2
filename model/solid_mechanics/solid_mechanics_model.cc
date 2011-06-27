@@ -131,7 +131,6 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
 
   AKANTU_DEBUG_OUT();
 }
-
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initExplicit() {
   AKANTU_DEBUG_IN();
@@ -196,7 +195,7 @@ void SolidMechanicsModel::initVectors() {
     mesh.getConnectivityTypeList(_ghost);
 
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    UInt nb_element           = mesh.getNbGhostElement(*it);
+    UInt nb_element           = mesh.getNbElement(*it,_ghost);
 
     std::stringstream sstr_elma; sstr_elma << id << ":ghost_element_material:" << *it;
     ghost_element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));

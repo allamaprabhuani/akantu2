@@ -103,7 +103,7 @@ TestAccessor::TestAccessor(const Mesh & mesh) : mesh(mesh) {
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    UInt nb_ghost_element = mesh.getNbGhostElement(*it);
+    UInt nb_ghost_element = mesh.getNbElement(*it,_ghost);
     ghost_barycenter[*it] = new Vector<Real>(nb_ghost_element,
 							     spatial_dimension,
 							     std::numeric_limits<Real>::quiet_NaN(),
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
     if(Mesh::getSpatialDimension(*it) != mesh.getSpatialDimension()) continue;
 
     UInt spatial_dimension = Mesh::getSpatialDimension(*it);
-    UInt nb_ghost_element = mesh.getNbGhostElement(*it);
+    UInt nb_ghost_element = mesh.getNbElement(*it,_ghost);
 
     for (UInt el = 0; el < nb_ghost_element; ++el) {
       Real barycenter[spatial_dimension];
@@ -252,12 +252,12 @@ int main(int argc, char *argv[])
 
   delete [] part;
 
-  unsigned int nb_ghost_element = mesh.getNbGhostElement(type);
+  unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
   DumperParaview dumper_ghost;
   dumper_ghost.SetMode(TEXT);
   dumper_ghost.SetParallelContext(prank, psize);
   dumper_ghost.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
-  dumper_ghost.SetConnectivity((int*) mesh.getGhostConnectivity(type).values,
+  dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
    			 TRIANGLE1, nb_ghost_element, C_MODE);
   part = new double[nb_ghost_element];
   for (unsigned int i = 0; i < nb_ghost_element; ++i)

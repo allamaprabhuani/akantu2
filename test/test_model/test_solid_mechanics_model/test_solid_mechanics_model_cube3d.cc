@@ -42,6 +42,7 @@
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   akantu::UInt max_steps = 10000;
   akantu::Real epot, ekin;
 
@@ -137,5 +138,6 @@ int main(int argc, char *argv[])
 
   energy.close();
 
+  akantu::finalize();
   return EXIT_SUCCESS;
 }

@@ -218,22 +218,17 @@ void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(GhostType ghost_typ
 
     UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
     UInt nb_quad_points = getQuadraturePoints(type).getSize();
-    UInt * elem_val;
-    UInt nb_element;
+    UInt * elem_val = mesh->getConnectivity(type,ghost_type).values;
+    UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();
 
     Real * normals_on_quad_val    = NULL;
 
     if(ghost_type == _not_ghost) {
-      elem_val   = mesh->getConnectivity(type).values;
-      nb_element = mesh->getConnectivity(type).getSize();
       normals_on_quad_points[type]->resize(nb_element * nb_quad_points);
       normals_on_quad_val =  normals_on_quad_points[type]->values;
     } else {
-      elem_val   = mesh->getGhostConnectivity(type).values;
-      nb_element = mesh->getGhostConnectivity(type).getSize();
+      //TODO something should be done here ?
     }
-
-
 
     /* ---------------------------------------------------------------------- */
 #define COMPUTE_NORMALS_ON_QUAD(type)					\
@@ -285,12 +280,13 @@ inline UInt FEMTemplate<Integ,Shape>::getNbQuadraturePoints(const ElementType & 
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
-inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementType & type) {
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementType & type,
+								const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
   const Vector<Real> * ret = NULL;
 
 #define GET_SHAPES(type)						\
-  ret = &(shape_functions.getShapes(type));
+  ret = &(shape_functions.getShapes(type,ghost_type));
 
   AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
 #undef GET_SHAPES
@@ -298,15 +294,32 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementTyp
   AKANTU_DEBUG_OUT();
   return *ret;
 }
+
+// /* -------------------------------------------------------------------------- */
+// template <typename Integ, typename Shape>
+// inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapes(const ElementType & type) {
+//   AKANTU_DEBUG_IN();
+//   const Vector<Real> * ret = NULL;
+
+// #define GET_SHAPES(type)						\
+//   ret = &(shape_functions.getGhostShapes(type));
+
+//   AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
+// #undef GET_SHAPES
+
+//   AKANTU_DEBUG_OUT();
+//   return *ret;
+// }
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
-inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapes(const ElementType & type) {
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type,
+									   const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
   const Vector<Real> * ret = NULL;
 
 #define GET_SHAPES(type)						\
-  ret = &(shape_functions.getGhostShapes(type));
+  ret = &(shape_functions.getShapesDerivatives(type,ghost_type));
 
   AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
 #undef GET_SHAPES
@@ -315,37 +328,21 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapes(const Eleme
   return *ret;
 }
 
-/* -------------------------------------------------------------------------- */
-template <typename Integ, typename Shape>
-inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-  const Vector<Real> * ret = NULL;
+// /* -------------------------------------------------------------------------- */
+// template <typename Integ, typename Shape>
+// inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapesDerivatives(const ElementType & type) {
+//   AKANTU_DEBUG_IN();
+//   const Vector<Real> * ret = NULL;
 
-#define GET_SHAPES(type)						\
-  ret = &(shape_functions.getShapesDerivatives(type));
+// #define GET_SHAPES(type)						\
+//   ret = &(shape_functions.getGhostShapesDerivatives(type));
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
-#undef GET_SHAPES
+//   AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
+// #undef GET_SHAPES
 
-  AKANTU_DEBUG_OUT();
-  return *ret;
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename Integ, typename Shape>
-inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapesDerivatives(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-  const Vector<Real> * ret = NULL;
-
-#define GET_SHAPES(type)						\
-  ret = &(shape_functions.getGhostShapesDerivatives(type));
-
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
-#undef GET_SHAPES
-
-  AKANTU_DEBUG_OUT();
-  return *ret;
-}
+//   AKANTU_DEBUG_OUT();
+//   return *ret;
+// }
 
 
 /* -------------------------------------------------------------------------- */
@@ -582,7 +579,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
   UInt shapes_size = ElementClass<type>::getShapeSize();
   UInt lmat_size   = nb_degree_of_freedom * shapes_size;
 
-  const Vector<Real> & shapes = shape_functions.getShapes(type);
+  const Vector<Real> & shapes = shape_functions.getShapes(type,ghost_type);
   Vector<Real> * modified_shapes = new Vector<Real>(vect_size, lmat_size * nb_degree_of_freedom);
   modified_shapes->clear();
   Vector<Real> * local_mat = new Vector<Real>(vect_size, lmat_size * lmat_size);

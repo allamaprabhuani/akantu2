@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   model->getTemperatureGradient(type).clear();
   /* -------------------------------------------------------------------------- */
   model->initPBC(1,1,1);
-  model->assembleCapacityLumped(type);
+  model->assembleCapacityLumped();
   /* -------------------------------------------------------------------------- */
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);

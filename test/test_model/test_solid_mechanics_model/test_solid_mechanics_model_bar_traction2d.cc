@@ -64,6 +64,7 @@ void paraviewDump(Dumper & dumper);
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   akantu::UInt max_steps = 1000;
   akantu::Real time_factor = 0.2;
 

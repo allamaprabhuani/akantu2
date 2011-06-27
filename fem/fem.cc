@@ -80,17 +80,8 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 Real scale_factor) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element;
-  UInt * conn_val;
-
-  if(ghost_type == _not_ghost) {
-    nb_element  = mesh->getNbElement(type);
-    conn_val    = mesh->getConnectivity(type).values;
-  } else {
-    nb_element  = mesh->getNbGhostElement(type);
-    conn_val    = mesh->getGhostConnectivity(type).values;
-  }
-
+  UInt nb_element = mesh->getNbElement(type,ghost_type);
+  UInt * conn_val = mesh->getConnectivity(type,ghost_type).values;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_nodes = mesh->getNbNodes();
 

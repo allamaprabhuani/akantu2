@@ -54,6 +54,7 @@ static void trac(__attribute__ ((unused)) double * position,double * stress){
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   UInt max_steps = 20000;
   Real epot, ekin;
 
@@ -125,8 +126,9 @@ int main(int argc, char *argv[])
   dumper.AddNodeDataField(model->getResidual().values, 2, "residual");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_6).values, 4, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_6).values, 4, "stress");
-  MaterialDamage & mat = dynamic_cast<MaterialDamage&>(model->getMaterial(0));
-  Real * dam = mat.getDamage(_triangle_6).values;
+  LocalMaterialDamage * mat = dynamic_cast<LocalMaterialDamage*>(&(model->getMaterial(0)));
+  AKANTU_DEBUG_ASSERT(mat,"material is not having the right type: something is wrong");
+  Real * dam = mat->getDamage(_triangle_6).values;
   dumper.AddElemDataField(dam, 1, "damage");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("force", 1);
@@ -154,6 +156,6 @@ int main(int argc, char *argv[])
     if(s % 100 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
-
+  akantu::finalize();
   return EXIT_SUCCESS;
 }

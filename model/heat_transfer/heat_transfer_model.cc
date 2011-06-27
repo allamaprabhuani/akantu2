@@ -26,12 +26,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-
-/* -------------------------------------------------------------------------- */
 #include "heat_transfer_model.hh"
 #include "aka_math.hh"
-//#include "integration_scheme_2nd_order.hh"
 #include "aka_common.hh"
 #include <fstream>
 #include <iostream>
@@ -41,18 +37,14 @@
 #include "static_communicator.hh"
 #include "sparse_matrix.hh"
 #include "solver.hh"
-//#include "solid_mechanics_model.hh"
 #include"sparse_matrix.hh"
-// #include "fem_template.cc"
- #include "fem_template.hh"
-using namespace std;
+#include "fem_template.hh"
 #ifdef AKANTU_USE_MUMPS
 #include "solver_mumps.hh"
 #endif
 /* -------------------------------------------------------------------------- */
-
 __BEGIN_AKANTU__
-
+/* -------------------------------------------------------------------------- */
 HeatTransferModel::HeatTransferModel(Mesh & mesh,
  		      UInt dim,
  		      const ModelID & id,
@@ -77,16 +69,24 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
 
  AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-/* Initialisation                                                             */
-/* -------------------------------------------------------------------------- */
-
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::initModel()
 {
   getFEM().initShapeFunctions(_not_ghost);
   getFEM().initShapeFunctions(_ghost);
+}
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::initParallel(MeshPartition * partition,
+				     DataAccessor * data_accessor) {
+  AKANTU_DEBUG_IN();
+
+  if (data_accessor == NULL) data_accessor = this;
+  Synchronizer & synch_parallel = createParallelSynch(partition,data_accessor);
+
+  synch_registry->registerSynchronizer(synch_parallel,_gst_htm_capacity);
+  synch_registry->registerSynchronizer(synch_parallel,_gst_htm_temperature);
+
+  AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::initPBC(UInt x, UInt y, UInt z){
@@ -110,110 +110,157 @@ void HeatTransferModel::initVectors()
   heat_flux= &(alloc<Real>(sstr_heat_flux.str(), nb_nodes, 1, REAL_INIT_VALUE));
   capacity_lumped= &(alloc<Real>(sstr_lump.str(), nb_nodes, 1, REAL_INIT_VALUE));
   boundary= &(alloc<bool>(sstr_boun.str(), nb_nodes, 1, false));
-  const Mesh::ConnectivityTypeList & type_list = 
-    this->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+
   Mesh::ConnectivityTypeList::const_iterator it;
+  /* -------------------------------------------------------------------------- */
+  // not ghost
+  getFEM().getMesh().initByElementTypeRealVector(temperature_gradient,
+						 spatial_dimension,
+						 spatial_dimension,
+						 id,"temperatureGradient",
+						 _not_ghost);
+  
+  const Mesh::ConnectivityTypeList & type_list = 
+    getFEM().getMesh().getConnectivityTypeList(_not_ghost);
+  
   for(it = type_list.begin(); it != type_list.end(); ++it)
     {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-      std::stringstream sstr_temp_grad; 
-      sstr_temp_grad << id << ":temperature gradient:" << *it;
       UInt nb_element = getFEM().getMesh().getNbElement(*it);
       UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it) * nb_element;
-      std::cout << "Allocating " << sstr_temp_grad.str() << std::endl;
-      temperature_gradient[*it] = &(alloc<Real>(sstr_temp_grad.str(), 
-						nb_quad_points, 
-						spatial_dimension, REAL_INIT_VALUE)); 
+      temperature_gradient[*it]->resize(nb_quad_points);
+      temperature_gradient[*it]->clear();
     }
+  /* ------------------------------------------------------------------------ */
+  // ghost
+  getFEM().getMesh().initByElementTypeRealVector(temperature_gradient_ghost,
+						 spatial_dimension,
+						 spatial_dimension,
+						 id,"temperatureGradient",
+						 _ghost);
 
+  const Mesh::ConnectivityTypeList & type_list_ghost = 
+    getFEM().getMesh().getConnectivityTypeList(_ghost);
+  
+  for(it = type_list_ghost.begin(); it != type_list_ghost.end(); ++it)
+    {
+      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+      UInt nb_element = getFEM().getMesh().getNbElement(*it,_ghost);
+      UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it) * nb_element;
+      temperature_gradient_ghost[*it]->resize(nb_quad_points);
+      temperature_gradient_ghost[*it]->clear();
+    }
+  /* -------------------------------------------------------------------------- */
+  
   dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(),1);
   dof_synchronizer->initLocalDOFEquationNumbers();
 
   AKANTU_DEBUG_OUT();
 }
-
 /* -------------------------------------------------------------------------- */
-
 HeatTransferModel::~HeatTransferModel() 
 {
   AKANTU_DEBUG_IN();
  
   AKANTU_DEBUG_OUT();
 }
-
 /* -------------------------------------------------------------------------- */
-
-//set boundary condition
-void setBoundaryCondition()
-{
-  AKANTU_DEBUG_IN();
-  // Mesh::getcomputeBoundingBox();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void HeatTransferModel::assembleCapacityLumped(const ElementType &el_type)
+void HeatTransferModel::assembleCapacityLumped(const GhostType & ghost_type)
 {
    AKANTU_DEBUG_IN();
    
    FEM & fem = getFEM();
   
-  UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(el_type);
-  UInt nb_element = getFEM().getMesh().getNbElement(el_type);
-  //???
-  Vector<Real> rho_1 (nb_element * nb_quadrature_points,1, capacity * density);
+  const Mesh::ConnectivityTypeList & type_list 
+    = fem.getMesh().getConnectivityTypeList(ghost_type);
  
-  const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it)
   {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    
+
+    UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
+    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it);
+
+    Vector<Real> rho_1 (nb_element * nb_quadrature_points,1, capacity * density);
     fem.assembleFieldLumped(rho_1,1,*capacity_lumped,
 			    dof_synchronizer->getLocalDOFEquationNumbers(),
-			    *it, _not_ghost);
+			    *it, ghost_type);
   }
   
-  getSynchronizerRegistry().synchronize(akantu::_gst_htm_capacity);
-
   AKANTU_DEBUG_OUT();
 }
-  
 /* -------------------------------------------------------------------------- */
-
-
-// compute the heat flux 
+void HeatTransferModel::assembleCapacityLumped()
+{
+   AKANTU_DEBUG_IN();
+   assembleCapacityLumped(_not_ghost);
+   assembleCapacityLumped(_ghost);
+   getSynchronizerRegistry().synchronize(akantu::_gst_htm_capacity);
+   AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
  void HeatTransferModel::updateHeatFlux()
  {
    AKANTU_DEBUG_IN();
+
+   /// start synchronization
+   synch_registry->asynchronousSynchronize(_gst_htm_temperature);
+
+   ///clear the array   
    heat_flux->clear();
 
-   const Mesh::ConnectivityTypeList & type_list = this->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
-   Mesh::ConnectivityTypeList::const_iterator it;
+   /// update the not ghost ones
+   updateHeatFlux(_not_ghost);
+      
+   /// finalize communications
+   synch_registry->waitEndSynchronize(_gst_htm_temperature);
+
+   /// update for the received ghosts
+   updateHeatFlux(_ghost);
+   
+   AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::updateHeatFlux(const GhostType & ghost_type){
+  AKANTU_DEBUG_IN();
+
+  const Mesh::ConnectivityTypeList & type_list = 
+    this->getFEM().getMesh().getConnectivityTypeList(ghost_type);
+  Mesh::ConnectivityTypeList::const_iterator it;
  
    for(it = type_list.begin(); it != type_list.end(); ++it)
    {
      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-     const Vector<Real> * shapes_derivatives;
-      shapes_derivatives = &(this->getFEM().getShapesDerivatives(*it));
+     const Vector<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it,ghost_type);
+     UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);     
+     Real * gT_val = NULL;
 
-     UInt nb_element = getFEM().getMesh().getNbElement(*it);     
+     if(ghost_type == _not_ghost){
+       this->getFEM().gradientOnQuadraturePoints(*temperature, 
+						 *temperature_gradient[*it], 
+						 1 ,*it);
+       gT_val = temperature_gradient[*it]->values;
+     }
+     else {
+       this->getFEM().gradientOnQuadraturePoints(*temperature, 
+						 *temperature_gradient_ghost[*it], 
+						 1 ,*it,_ghost);
+       gT_val = temperature_gradient_ghost[*it]->values;
+     }
+     
      UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it);
-     UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
+     UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
-     /*problem is included in computeTemperatureGradient*/
-     //const Vector<Real> *gT = computeTemperatureGradient(*it);
-     computeTemperatureGradient(*it);
 
-     Real * gT_val = temperature_gradient[*it]->values;
+
      Real * k_gT_val = new Real[spatial_dimension];
-     Real * shapes_derivatives_val = shapes_derivatives->values;
+     Real * shapes_derivatives_val = shapes_derivatives.values;
      UInt bt_k_gT_size = nb_nodes_per_element;
-     Vector<Real> * bt_k_gT = new Vector <Real> (nb_quadrature_points*nb_element, bt_k_gT_size);
+     Vector<Real> * bt_k_gT = 
+       new Vector <Real> (nb_quadrature_points*nb_element, bt_k_gT_size);
      Real * bt_k_gT_val = bt_k_gT->values;
      
      for (UInt el = 0; el < nb_element; ++el)
@@ -237,42 +284,18 @@ void HeatTransferModel::assembleCapacityLumped(const ElementType &el_type)
      }     
      
      Vector<Real> * q_e = new Vector<Real>(0,bt_k_gT_size,"q_e");
-     this->getFEM().integrate(*bt_k_gT, *q_e, bt_k_gT_size, *it);
+     this->getFEM().integrate(*bt_k_gT, *q_e, bt_k_gT_size, *it,ghost_type);
      delete bt_k_gT;
      
-     // SparseMatrix & K = new SparseMatrix(this->getFEM().getMesh().getNbNodes());
-     // const Vector<Int> & equation_number = this->getEquationNumber();
-     // this->getFEM().assembleMatrix(*q_e, K, equation_number, spatial_dimension, *it);
-
-     //the previous version of the assemble Vector, it is right, just ignore the external heat flux
      this->getFEM().assembleVector(*q_e, *heat_flux, 
 				   dof_synchronizer->getLocalDOFEquationNumbers(),
-				   1, *it,_not_ghost,NULL,-1);
+				   1, *it,ghost_type,NULL,-1);
      delete q_e;
      
-     AKANTU_DEBUG_OUT();
    }
+     AKANTU_DEBUG_OUT();
 }
- 
-
 /* -------------------------------------------------------------------------- */
-
-
-
- //compute temperature gradient
-
-void HeatTransferModel:: computeTemperatureGradient(const ElementType &el_type )
-{
-  AKANTU_DEBUG_IN();
- this->getFEM().gradientOnQuadraturePoints(*temperature, *temperature_gradient[el_type], 1 ,el_type);
-
-
-
-  AKANTU_DEBUG_OUT();
-}
-
-/*except updateflux, everything is fine*/
-//compute the temperature 
 void HeatTransferModel::updateTemperature()
 {
   AKANTU_DEBUG_IN();
@@ -282,7 +305,8 @@ void HeatTransferModel::updateTemperature()
   {
     if(!((*boundary)(i)))
     {	
-      (*temperature)(i,0) += (*heat_flux)(i,0) * time_step / (*capacity_lumped)(i,0);
+      (*temperature)(i,0) += (*heat_flux)(i,0) 
+	* time_step / (*capacity_lumped)(i,0);
       (*temperature)(i,0) = std::max((*temperature)(i,0), 0.0);
     }      
   }
@@ -290,36 +314,6 @@ void HeatTransferModel::updateTemperature()
   synch_registry->synchronize(akantu::_gst_htm_temperature);
   AKANTU_DEBUG_OUT();
 }
-
-
-
-/* -------------------------------------------------------------------------- */
-
-
-//choose scheme for temperature iteration
-/*a=0.0, the forward Euler; a=0.5, the Crank-Nicolson;a=2.0/3, Galerkin;a=1.0,backward Euler*/
-void HeatTransferModel::integrationScheme1stOrder(Real thelta, UInt N,  Vector<Real> * temperature)
-{
-  AKANTU_DEBUG_IN();
-  
- //remember to use time_step
-  if(thelta==0.0)
-  {
-      // temperature->values[i] +=  temperature->values[i] + heat_flux->values[i]/lumped->values[i];
-  }
-  else if(thelta==0.5)
-  {
-
-  }
- 
-  else if(thelta==1.0)
-  {
-      
-  }
-  
-  AKANTU_DEBUG_OUT();
-}
-
 /* -------------------------------------------------------------------------- */
 Real HeatTransferModel::getStableTimeStep()
 {
@@ -334,11 +328,13 @@ Real HeatTransferModel::getStableTimeStep()
   Real * coord    = getFEM().getMesh().getNodes().values;
  
 
-  const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
+  const Mesh::ConnectivityTypeList & type_list = 
+    getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it)
  {
-    if(getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+    if(getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) 
+      continue;
     
     UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(*it);
     UInt nb_element           = getFEM().getMesh().getNbElement(*it);
@@ -371,20 +367,24 @@ Real HeatTransferModel::getStableTimeStep()
      
 
     }
-    cout<<min_el_size<<endl;
-    cout<<"the minimum size:"<<conductivitymax<<endl;
+    AKANTU_DEBUG_INFO(min_el_size << 
+		      "the minimum size:"
+		      <<conductivitymax);
     delete [] u;
   }
 
-
-  Real min_dt    = 2* min_el_size * min_el_size * density * capacity/conductivitymax ;
+  Real min_dt    = 2* min_el_size * min_el_size * density 
+    * capacity/conductivitymax ;
   time_step = min_dt;
-  return time_step;
+
+  akantu::StaticCommunicator * comm = 
+    akantu::StaticCommunicator::getStaticCommunicator();
+  
+  comm->allReduce(&time_step,1,_so_min);
   AKANTU_DEBUG_OUT();
+  return time_step;
 }
-
 /* -------------------------------------------------------------------------- */
-
 void HeatTransferModel::readMaterials(const std::string & filename) {
   Parser parser;
   parser.open(filename);
@@ -395,12 +395,12 @@ void HeatTransferModel::readMaterials(const std::string & filename) {
     parser.readSection<HeatTransferModel>(*this);
   }
   else
-    AKANTU_DEBUG_ERROR("did not find any section with material info for heat conduction");
+    AKANTU_DEBUG_ERROR("did not find any section with material info " 
+		       <<"for heat conduction");
 }
-
 /* -------------------------------------------------------------------------- */
-
-void HeatTransferModel::setParam(const std::string & key, const std::string & value) {
+void HeatTransferModel::setParam(const std::string & key, 
+				 const std::string & value) {
   std::stringstream str(value);
   if (key == "conductivity"){
     conductivity = new Real[spatial_dimension * spatial_dimension];
@@ -428,6 +428,4 @@ void HeatTransferModel::setParam(const std::string & key, const std::string & va
   }	
 }
 /* -------------------------------------------------------------------------- */
-
-
 __END_AKANTU__

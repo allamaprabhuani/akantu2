@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 
   DumperParaview dumper;
   paraviewInit(model,dumper);
-  model->assembleCapacityLumped(type);
+  model->assembleCapacityLumped();
 
 
   // //for testing

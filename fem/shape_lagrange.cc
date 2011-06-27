@@ -55,14 +55,11 @@ void ShapeLagrange::precomputeShapesOnControlPoints(GhostType ghost_type) {
 
   UInt size_of_shapes    = ElementClass<type>::getShapeSize();
 
-  UInt nb_element;
+  UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();;
   std::string ghost = "";
 
-  if(ghost_type == _not_ghost) {
-    nb_element = mesh->getConnectivity(type).getSize();
-  } else {
+  if(ghost_type == _ghost) {
     ghost = "ghost_";
-    nb_element = mesh->getGhostConnectivity(type).getSize();
   }
 
   std::stringstream sstr_shapes;
@@ -100,17 +97,12 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
   Real * natural_coords = control_points[type]->values;
   UInt nb_points = control_points[type]->getSize();
 
-  UInt * elem_val;
-  UInt nb_element;
+  UInt * elem_val = mesh->getConnectivity(type,ghost_type).values;;
+  UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();
   std::string ghost = "";
 
-  if(ghost_type == _not_ghost) {
-    elem_val   = mesh->getConnectivity(type).values;
-    nb_element = mesh->getConnectivity(type).getSize();
-  } else {
+  if(ghost_type == _ghost) {
     ghost = "ghost_";
-    elem_val   = mesh->getGhostConnectivity(type).values;
-    nb_element = mesh->getGhostConnectivity(type).getSize();
   }
 
   std::stringstream sstr_shapesd;
@@ -154,17 +146,13 @@ void ShapeLagrange::interpolateOnControlPoints(const Vector<Real> &in_u,
   AKANTU_DEBUG_IN();
 
   Vector<Real> * shapes_loc;
-  UInt nb_element;
-  UInt * conn_val;
+  UInt nb_element = mesh->getNbElement(type,ghost_type);
+  UInt * conn_val = mesh->getConnectivity(type,ghost_type).values;
 
   if(ghost_type == _not_ghost) {
     shapes_loc = shapes[type];
-    nb_element = mesh->getNbElement(type);
-    conn_val   = mesh->getConnectivity(type).values;
   } else {
     shapes_loc = ghost_shapes[type];
-    nb_element = mesh->getNbGhostElement(type);
-    conn_val   = mesh->getGhostConnectivity(type).values;
   }
 
   AKANTU_DEBUG_ASSERT(shapes_loc != NULL,
@@ -242,17 +230,13 @@ void ShapeLagrange::gradientOnControlPoints(const Vector<Real> &in_u,
   AKANTU_DEBUG_IN();
 
   Vector<Real> * shapesd_loc;
-  UInt nb_element;
-  UInt * conn_val;
+  UInt nb_element = mesh->getNbElement(type,ghost_type);
+  UInt * conn_val = mesh->getConnectivity(type,ghost_type).values;;
 
   if(ghost_type == _not_ghost) {
     shapesd_loc = shapes_derivatives[type];
-    nb_element  = mesh->getNbElement(type);
-    conn_val    = mesh->getConnectivity(type).values;
   } else {
     shapesd_loc = ghost_shapes_derivatives[type];
-    nb_element  = mesh->getNbGhostElement(type);
-    conn_val    = mesh->getGhostConnectivity(type).values;
   }
 
   AKANTU_DEBUG_ASSERT(shapesd_loc != NULL,

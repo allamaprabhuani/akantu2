@@ -48,6 +48,7 @@ static void trac(__attribute__ ((unused)) double * position,double * stress){
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   UInt max_steps = 10000;
   Real epot, ekin;
 

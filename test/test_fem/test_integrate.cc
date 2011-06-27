@@ -43,6 +43,7 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
+  akantu::initialize(&argc,&argv);
   debug::_debug_level = dblTest;
   const ElementType type = TYPE;
   UInt dim = ElementClass<type>::getSpatialDimension();

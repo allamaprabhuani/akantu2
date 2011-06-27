@@ -84,12 +84,14 @@ public:
   /// set the parameters 
   void setParam(const std::string & key, const std::string & value);
 
-
   /// read one material file to instantiate all the materials
   void readMaterials(const std::string & filename);
 
   /// allocate all vectors
   void initVectors();
+
+  /// register the tags associated with the parallel synchronizer
+  void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
 
   /// initialize the model
   void initModel();
@@ -105,37 +107,26 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataToPack(const Element & element,
-				      SynchronizationTag tag) const {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  inline UInt getNbDataToPack(const Element & element,
+			      SynchronizationTag tag) const;
+  inline UInt getNbDataToUnpack(const Element & element,
+				SynchronizationTag tag) const;
+  inline void packData(CommunicationBuffer & buffer,
+		       const Element & element,
+		       SynchronizationTag tag) const;
+  inline void unpackData(CommunicationBuffer & buffer,
+			 const Element & element,
+			 SynchronizationTag tag) const;
 
-  inline virtual UInt getNbDataToUnpack(const Element & element,
-					SynchronizationTag tag) const {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  inline virtual void packData(CommunicationBuffer & buffer,
-			       const Element & element,
-			       SynchronizationTag tag) const {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  inline virtual void unpackData(CommunicationBuffer & buffer,
-				 const Element & element,
-				 SynchronizationTag tag) const {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
-  inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
-  inline virtual void packData(CommunicationBuffer & buffer,
-			       const UInt index,
-			       SynchronizationTag tag) const;
-  inline virtual void unpackData(CommunicationBuffer & buffer,
-				 const UInt index,
-				 SynchronizationTag tag) const;
-   
+  inline UInt getNbDataToPack(SynchronizationTag tag) const;
+  inline UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  inline void packData(CommunicationBuffer & buffer,
+		       const UInt index,
+		       SynchronizationTag tag) const;
+  inline void unpackData(CommunicationBuffer & buffer,
+			 const UInt index,
+			 SynchronizationTag tag) const;
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -155,6 +146,8 @@ public:
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradient, temperature_gradient, Vector<Real> &);
+ /// get the temperature gradient for ghosts
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradientGhost, temperature_gradient_ghost, Vector<Real> &);
  /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
   /// get the equation number Vector<Int>
@@ -167,22 +160,20 @@ public:
 
   /// compute and get the stable time step
   Real getStableTimeStep();
-  //initialize the heat flux
+  /// initialize the heat flux
   void initializeHeatFlux(Vector<Real> &temp);
-  //initialize temperature
+  /// initialize temperature
   void initializeTemperature(Vector<Real> &temp);
-  //set boundary condition
-  void setBoundaryCondition();
-  //compute temperature gradient
-  void computeTemperatureGradient(const ElementType &el_type);
-  //compute the heat flux
+  /// compute the heat flux
   void updateHeatFlux();
-  //compute the temperature 
+  /// compute the heat flux on ghost types 
+  void updateHeatFlux(const GhostType & ghost_type);
+  /// update the temperature 
   void updateTemperature();
-  //put the scheme into iteration
-  void integrationScheme1stOrder(Real thelta, UInt N, Vector<Real> * temperature);
-  //calculate the capacity matrix of heat transfer problem
-  void assembleCapacityLumped(const ElementType &el_type);
+  /// calculate the lumped capacity vector for heat transfer problem
+  void assembleCapacityLumped();
+  /// calculate the lumped capacity vector for heat transfer problem (w ghosttype)
+  void assembleCapacityLumped(const GhostType & ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -203,6 +194,9 @@ private:
 
   /// the speed of the changing temperature
   ByElementTypeReal temperature_gradient;
+
+  /// the speed of the changing temperature ghost version
+  ByElementTypeReal temperature_gradient_ghost;
 
   /// K*T internal flux vector
   Vector<Real> * heat_flux;

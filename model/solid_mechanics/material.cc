@@ -106,7 +106,6 @@ void Material::setParam(const std::string & key, const std::string & value,
   if(key == "name") name = std::string(value);
   else AKANTU_DEBUG_ERROR("Unknown material property : " << key);
 }
-
 /* -------------------------------------------------------------------------- */
 void Material::initMaterial() {
   AKANTU_DEBUG_IN();
@@ -116,8 +115,6 @@ void Material::initMaterial() {
   resizeInternalVector(ghost_strain,_ghost);
   AKANTU_DEBUG_OUT();
 }
-
-
 /* -------------------------------------------------------------------------- */
 void Material::initInternalVector(ByElementTypeReal & vect,
 				  UInt nb_component,
@@ -127,11 +124,8 @@ void Material::initInternalVector(ByElementTypeReal & vect,
 
   model->getFEM().getMesh().initByElementTypeRealVector(vect, nb_component, spatial_dimension,
 							id, vect_id, ghost_type);
-
   AKANTU_DEBUG_OUT();
 }
-
-
 /* -------------------------------------------------------------------------- */
 void Material::resizeInternalVector(ByElementTypeReal & vect,
 				    GhostType ghost_type) {
@@ -161,9 +155,6 @@ void Material::resizeInternalVector(ByElementTypeReal & vect,
 
   AKANTU_DEBUG_OUT();
 }
-
-
-
 /* -------------------------------------------------------------------------- */
 /**
  * Compute  the  residual  by  assembling  @f$\int_{e}  \sigma_e  \frac{\partial
@@ -189,21 +180,19 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     Vector<Real> * strain_vect;
     Vector<Real> * stress_vect;
     Vector<UInt> * elem_filter;
-    const Vector<Real> * shapes_derivatives;
+    const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(*it,ghost_type);
 
     if(ghost_type == _not_ghost) {
       elem_filter = element_filter[*it];
       strain_vect = strain[*it];
       stress_vect = stress[*it];
-      shapes_derivatives = &(model->getFEM().getShapesDerivatives(*it));
     } else {
       elem_filter = ghost_element_filter[*it];
       strain_vect = ghost_strain[*it];
       stress_vect = ghost_stress[*it];
-      shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(*it));
     }
 
-    UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
+    UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
     UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
     UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it);
 
@@ -221,8 +210,8 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     Vector<Real> * sigma_dphi_dx =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
-    Real * shapesd           = shapes_derivatives->values;
-    UInt size_of_shapesd     = shapes_derivatives->getNbComponent();
+    Real * shapesd           = shapes_derivatives.values;
+    UInt size_of_shapesd     = shapes_derivatives.getNbComponent();
     Real * shapesd_val;
     UInt * elem_filter_val   = elem_filter->values;
 
@@ -324,23 +313,21 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   Vector<Real> * strain_vect;
   //  Vector<Real> * stress_vect;
   Vector<UInt> * elem_filter;
-  const Vector<Real> * shapes_derivatives;
+  const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type,ghost_type);
 
   if(ghost_type == _not_ghost) {
     elem_filter = element_filter[type];
     strain_vect = strain[type];
     //    stress_vect = stress[type];
-    shapes_derivatives = &(model->getFEM().getShapesDerivatives(type));
-  } else {
+    } else {
     elem_filter = ghost_element_filter[type];
     strain_vect = ghost_strain[type];
     //    stress_vect = ghost_stress[type];
-    shapes_derivatives = &(model->getFEM().getGhostShapesDerivatives(type));
   }
   UInt * elem_filter_val = elem_filter->values;
 
   UInt nb_element                 = elem_filter->getSize();
-  UInt size_of_shapes_derivatives = shapes_derivatives->getNbComponent();
+  UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type);
 
@@ -373,7 +360,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   for (UInt e = 0; e < nb_element; ++e) {
     Real * shapes_derivatives_val =
-      shapes_derivatives->values + elem_filter_val[e]*size_of_shapes_derivatives*nb_quadrature_points;
+      shapes_derivatives.values + elem_filter_val[e]*size_of_shapes_derivatives*nb_quadrature_points;
 
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       transferBMatrixToSymVoigtBMatrix<dim>(shapes_derivatives_val, B, nb_nodes_per_element);

@@ -53,6 +53,7 @@ void trac(double * position,double * traction){
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc,&argv);
   UInt max_steps = 1;
   Real epot, ekin;
 

@@ -438,10 +438,10 @@ void MeshPartitionScotch::reorder() {
     ElementType type = *it;
     //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
-    UInt nb_element = mesh.getNbGhostElement(type);
+    UInt nb_element = mesh.getNbElement(type,_ghost);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    const Vector<UInt> & connectivity = mesh.getGhostConnectivity(type);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type,_ghost);
 
     UInt * conn  = connectivity.values;
     for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
