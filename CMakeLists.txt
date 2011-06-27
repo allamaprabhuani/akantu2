@@ -90,6 +90,7 @@ option(AKANTU_BUILD_HEAT_TRANSFER "Build the heat transfer model" OFF)
 
 # features
 add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
+add_optional_package(QVIEW "Add QView support in akantu" OFF)
 add_optional_package(MPI "Add MPI support in akantu" OFF)
 add_optional_package(Mumps "Add Mumps support in akantu" OFF)
 add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)

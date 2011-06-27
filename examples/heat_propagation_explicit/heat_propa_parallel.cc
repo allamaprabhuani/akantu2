@@ -37,6 +37,9 @@
 #include <fstream>
 #include <string.h>
 #include "mesh_partition_scotch.hh"
+#ifdef AKANTU_USE_QVIEW
+#include <libqview.h>
+#endif //AKANTU_USE_QVIEW
 /* -------------------------------------------------------------------------- */
 using namespace std;
 /* -------------------------------------------------------------------------- */
@@ -124,27 +127,39 @@ int main(int argc, char *argv[])
   DumperParaview dumper_ghost;
   paraviewInit("heat-test",model,dumper,akantu::_not_ghost);
   //  paraviewInit("heat-test",model,dumper_ghost,akantu::_ghost);
-  /* ------------------------------------------------------------------------ */
-  // //for testing
+  /* -------------------------------------------------------------------------- */
   int max_steps = 10000000;
+  /* ------------------------------------------------------------------------ */
+#ifdef AKANTU_USE_QVIEW
+  QView qv;
+  qv.setMode(NET_MODE);
+  qv.initLibQview(prank);
+  qv.beginTask("main",max_steps);
+#endif
   /* ------------------------------------------------------------------------ */
   for(int i=0; i<max_steps; i++)
     {
-     
+#ifdef AKANTU_USE_QVIEW
+      qv.setCurrentStep(i);     
+#else
+#error
+      if(i % 100 == 0){     
+       	if(prank == 0) 
+      	  std::cout << "Step " << i << "/" << max_steps << std::endl;
+      }
+#endif
       model->updateHeatFlux();
       model->updateTemperature();
 
-      if(i % 100 == 0){     
-	if(prank == 0) 
-	  std::cout << "Step " << i << "/" << max_steps << std::endl;
-      }
 
       if(i % 1000 == 0){
 	dumper.Dump();
 	//	dumper_ghost.Dump();
       }
     }
-
+#ifdef AKANTU_USE_QVIEW
+  qv.endTask();
+#endif
   akantu::finalize();
   return 0;
 }

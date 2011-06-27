@@ -431,7 +431,7 @@ void SolidMechanicsModel::initialAcceleration() {
 
   AKANTU_DEBUG_INFO("Solving Ma = f");
 
-  Solver * acc_solver;
+  Solver * acc_solver = NULL;
 #ifdef AKANTU_USE_MUMPS
   std::stringstream sstr; sstr << id << ":solver_mass_matrix";
   acc_solver = new SolverMumps(*mass_matrix, sstr.str());

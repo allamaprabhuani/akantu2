@@ -32,7 +32,6 @@
 #include "mesh_partition_scotch.hh"
 #include "distributed_synchronizer.hh"
 #include "sparse_matrix.hh"
-#include "solver_mumps.hh"
 #include "dof_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 

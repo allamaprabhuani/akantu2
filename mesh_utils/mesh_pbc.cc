@@ -51,6 +51,7 @@ public:
       Real diff_y = p1_y - p2_y;
       return diff_y > 0 ? false : true;
     }
+    return true;
   }
 private:
   UInt dim;

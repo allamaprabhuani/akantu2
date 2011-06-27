@@ -161,7 +161,6 @@ public:
   /// assemble a field as a matrix (ex. rho to mass matrix)
   virtual void assembleFieldMatrix(__attribute__ ((unused)) const Vector<Real> & field_1,
 				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
-				   __attribute__ ((unused)) const Vector<Int> & equation_number,
 				   __attribute__ ((unused)) SparseMatrix & matrix,
 				   __attribute__ ((unused)) ElementType type,
 				   __attribute__ ((unused)) GhostType ghost_type) {
