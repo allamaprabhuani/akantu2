@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_QVIEW
       qv.setCurrentStep(i);     
 #else
-#error
       if(i % 100 == 0){     
        	if(prank == 0) 
       	  std::cout << "Step " << i << "/" << max_steps << std::endl;
