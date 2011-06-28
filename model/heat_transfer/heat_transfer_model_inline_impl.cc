@@ -120,6 +120,10 @@ inline UInt HeatTransferModel::getNbDataToPack(const Element & element,
   UInt size = 0;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
+#ifdef AKANTU_DEBUG
+  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
+#endif
+
   switch(tag) {
   case _gst_htm_capacity: {
     size += nb_nodes_per_element * sizeof(Real); // capacity vector
@@ -144,6 +148,10 @@ inline UInt HeatTransferModel::getNbDataToUnpack(const Element & element,
 
   UInt size = 0;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+
+#ifdef AKANTU_DEBUG
+  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
+#endif
 
   switch(tag) {
   case _gst_htm_capacity: {
@@ -170,6 +178,12 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
   UInt * conn  = getFEM().getMesh().getConnectivity(element.type).values;
+
+#ifdef AKANTU_DEBUG
+  types::RVector barycenter(spatial_dimension);
+  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter.storage());
+  buffer << barycenter;
+#endif
   
   switch (tag){ 
   case _gst_htm_capacity: {
@@ -196,6 +210,22 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
   UInt * conn  = getFEM().getMesh().getConnectivity(element.type,_ghost).values;
+
+#ifdef AKANTU_DEBUG
+  types::RVector barycenter_loc(spatial_dimension);
+  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter_loc.storage(), _ghost);
+
+  types::RVector barycenter(spatial_dimension);
+  buffer >> barycenter;
+  Real tolerance = 1e-15;
+  for (UInt i = 0; i < spatial_dimension; ++i) {
+    if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
+      AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element : "
+			 << element
+			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			 << " and buffer[" << i << "] = " << barycenter(i) << ")");
+  }
+#endif
 
   switch (tag){ 
   case _gst_htm_capacity: {

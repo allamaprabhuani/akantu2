@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
+  akantu::debug::setDebugLevel(akantu::dblError);
   akantu::HeatTransferModel * model;
   akantu::MeshPartition * partition = NULL;
 
@@ -99,8 +100,8 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
-
-  AKANTU_DEBUG_INFO("time step is:"<<time_step);
+  if (prank == 0)
+    std::cerr << "time step is:"<<time_step << std::endl;
   model->setTimeStep(time_step);
   /* -------------------------------------------------------------------------- */
   /// boundary conditions
@@ -111,24 +112,29 @@ int main(int argc, char *argv[])
   akantu::Real eps = 1e-15;
 
   double t1, t2;
-  t1 = 300.;
+  t1 = 150.;
   t2 = 100.;
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    temperature(i) = 100.;
+    temperature(i) = t2;
     akantu::Real dz = nodes(i,2) - mesh.getZMin();
+    akantu::Real size = mesh.getZMax() - mesh.getZMin();
     if(fabs(dz) < 0.1){
       boundary(i) = true;
-      temperature(i) = 150.;
+      temperature(i) = t1;
+    }
+    else {
+      temperature(i) = t1-(t1-t2)*dz/size;
     }
   }
   /* -------------------------------------------------------------------------- */
   DumperParaview dumper;
   DumperParaview dumper_ghost;
   paraviewInit("heat-test",model,dumper,akantu::_not_ghost);
-  //  paraviewInit("heat-test",model,dumper_ghost,akantu::_ghost);
+  paraviewInit("heat-test",model,dumper_ghost,akantu::_ghost);
   /* -------------------------------------------------------------------------- */
-  int max_steps = 10000000;
+  //  int max_steps = 10000000;
+  int max_steps = 100000;
   /* ------------------------------------------------------------------------ */
 #ifdef AKANTU_USE_QVIEW
   QView qv;
@@ -153,7 +159,7 @@ int main(int argc, char *argv[])
 
       if(i % 1000 == 0){
 	dumper.Dump();
-	//	dumper_ghost.Dump();
+	dumper_ghost.Dump();
       }
     }
 #ifdef AKANTU_USE_QVIEW
