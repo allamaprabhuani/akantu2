@@ -78,13 +78,16 @@ template<typename T> void DOFSynchronizer::gather(const Vector<T> & to_gather, U
       for (UInt d = 0; d < nb_dofs; ++d) {
 	gathered->values[*remote_dofs++] = *(buffer_tmp++);
       }
+
+      delete [] buffer;
     }
   } else {
     AKANTU_DEBUG_INFO("Sending " << nb_local_dofs << " to " << root);
     communicator->send(buffer, nb_local_dofs, root, 0);
+    delete [] buffer;
   }
 
-  delete [] buffer;
+
 
   AKANTU_DEBUG_OUT();
 }
