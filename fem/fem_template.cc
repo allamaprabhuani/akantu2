@@ -295,22 +295,6 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementTyp
   return *ret;
 }
 
-// /* -------------------------------------------------------------------------- */
-// template <typename Integ, typename Shape>
-// inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapes(const ElementType & type) {
-//   AKANTU_DEBUG_IN();
-//   const Vector<Real> * ret = NULL;
-
-// #define GET_SHAPES(type)						\
-//   ret = &(shape_functions.getGhostShapes(type));
-
-//   AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
-// #undef GET_SHAPES
-
-//   AKANTU_DEBUG_OUT();
-//   return *ret;
-// }
-
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
 inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type,
@@ -327,23 +311,6 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const
   AKANTU_DEBUG_OUT();
   return *ret;
 }
-
-// /* -------------------------------------------------------------------------- */
-// template <typename Integ, typename Shape>
-// inline const Vector<Real> & FEMTemplate<Integ,Shape>::getGhostShapesDerivatives(const ElementType & type) {
-//   AKANTU_DEBUG_IN();
-//   const Vector<Real> * ret = NULL;
-
-// #define GET_SHAPES(type)						\
-//   ret = &(shape_functions.getGhostShapesDerivatives(type));
-
-//   AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
-// #undef GET_SHAPES
-
-//   AKANTU_DEBUG_OUT();
-//   return *ret;
-// }
-
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>

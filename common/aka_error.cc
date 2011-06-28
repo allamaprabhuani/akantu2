@@ -27,7 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <csignal>
-#include <cerrno>
+//#include <cerrno>
 #include <execinfo.h>
 #include <cxxabi.h>
 #include <fstream>

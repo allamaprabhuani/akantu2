@@ -341,6 +341,8 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
   }
 
   memcpy(vect_val, tmp, vect.getNbComponent() * vect.getSize() * sizeof(Real));
+  delete [] tmp;
+
   if(dof_synchronizer)
     dof_synchronizer->reduceSynchronize<AddOperation<Real> >(vect);
 

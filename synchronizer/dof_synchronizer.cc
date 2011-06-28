@@ -219,6 +219,8 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
 
   UInt * buffer = new UInt[2*nb_total_dofs];
   memcpy(buffer + 2 * pos, local_dofs->values, local_dofs->getSize() * 2 * sizeof(UInt));
+  delete local_dofs;
+
   communicator->allGatherV(buffer, nb_values);
 
   UInt * tmp_buffer = buffer;
