@@ -737,6 +737,16 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
       data_accessor.packData(buffer, *elements, tag);
       elements++;
     }
+#ifndef AKANTU_NDEBUG
+    // UInt block_size = data_accessor.getNbDataToPack(send_element[p][0], tag);
+    // AKANTU_DEBUG_WARNING("tag is " << tag << ", packed buffer is " 
+    // 			 << buffer.extractStream<Real>(block_size) 
+    // 			 << std::endl);
+#endif
+    AKANTU_DEBUG_ASSERT(buffer.getPackedSize() == ssize,
+			"a problem have been introduced with "
+			<< "false sent sizes declaration " 
+			<< buffer.getPackedSize() << " != " << ssize);
     std::cerr << std::dec;
     AKANTU_DEBUG_INFO("Posting send to proc " << p);
     send_requests.push_back(static_communicator->asyncSend(buffer.storage(),
@@ -772,6 +782,9 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
   std::vector<CommunicationRequest *> req_not_finished;
   std::vector<CommunicationRequest *> * req_not_finished_tmp = &req_not_finished;
   std::vector<CommunicationRequest *> * recv_requests_tmp = &recv_requests;
+
+  static_communicator->waitAll(recv_requests);
+  
   while(!recv_requests_tmp->empty()) {
 
     for (std::vector<CommunicationRequest *>::iterator req_it = recv_requests_tmp->begin();
@@ -785,11 +798,24 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 
 	Element * elements = &recv_element[proc].at(0);
 	UInt nb_elements   =  recv_element[proc].size();
-	for (UInt el = 0; el < nb_elements; ++el) {
-	  data_accessor.unpackData(buffer, *elements, tag);
-	  elements++;
+	UInt el = 0;
+	try {
+	  for (el = 0; el < nb_elements; ++el) {
+	    data_accessor.unpackData(buffer, *elements, tag);
+	    elements++;
+	  }
 	}
-
+	catch (debug::Exception & e){
+	  UInt block_size = data_accessor.getNbDataToPack(recv_element[proc][0], tag);
+	  AKANTU_DEBUG_ERROR("catched exception during unpack from proc " << proc
+			     << " buffer index is " << el << "/" << nb_elements
+			     << std::endl << e.what() << std::endl
+			     << "buffer size " << buffer.getSize() << std::endl 
+			     << buffer.extractStream<Real>(block_size));
+	}
+	AKANTU_DEBUG_ASSERT(buffer.getLeftToUnpack() == 0,
+			    "all data have not been unpacked: " 
+			    << buffer.getLeftToUnpack() << " bytes left");
 	static_communicator->freeCommunicationRequest(req);
       } else {
 	req_not_finished_tmp->push_back(req);

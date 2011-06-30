@@ -456,10 +456,21 @@ inline void Math::vector_3d(const Real * x, const Real * y, Real * res) {
 
 /* -------------------------------------------------------------------------- */
 inline bool Math::are_float_equal(const Real x, const Real y){
-  return (fabs( x - y) < tolerance);
+  return (std::abs( x - y) < tolerance);
 }
 
 /* -------------------------------------------------------------------------- */
 inline bool Math::isnan(Real x) {
   return ::isnan(x);
+}
+
+
+/* -------------------------------------------------------------------------- */
+inline bool Math::are_vector_equal(UInt n, Real * x, Real * y){
+  bool test = true;
+  for (UInt i = 0; i < n; ++i) {
+    test &= are_float_equal(x[i],y[i]);
+  }
+
+  return test;
 }

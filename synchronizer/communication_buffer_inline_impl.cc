@@ -95,3 +95,39 @@ CommunicationBuffer::operator>> <types::Matrix> (types::Matrix & to_unpack) {
   ptr_unpack += size;
   return *this;
 }
+/* -------------------------------------------------------------------------- */
+template<typename T> inline std::string 
+CommunicationBuffer::extractStream(UInt block_size) {
+  std::stringstream str;
+  T * ptr = reinterpret_cast<T*>(buffer.values);
+  UInt sz = buffer.getSize()/sizeof(T);
+  UInt sz_block = block_size/sizeof(T);
+
+  UInt n_block = 0;
+  for (UInt i = 0; i < sz; ++i) {
+    if (i% sz_block == 0) {
+      str << std::endl << n_block << " ";
+      ++n_block;
+    }
+    str << *ptr << " ";
+    ++ptr;
+  }
+  return str.str();
+}
+/* -------------------------------------------------------------------------- */
+inline void CommunicationBuffer::resize(UInt size) { 
+    buffer.resize(size); 
+    reset();
+#ifndef AKANTU_NDEBUG
+    clear();
+#endif
+}
+/* -------------------------------------------------------------------------- */
+inline void CommunicationBuffer::clear() { 
+  buffer.clear();
+}
+/* -------------------------------------------------------------------------- */
+inline void CommunicationBuffer::reset() { 
+  ptr_pack = buffer.values; 
+  ptr_unpack = buffer.values; 
+};

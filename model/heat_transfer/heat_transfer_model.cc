@@ -59,10 +59,11 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
   registerFEMObject<MyFEMType>("HeatTransferFEM",mesh,spatial_dimension);
 
- this->temperature= NULL;
- for (UInt t = _not_defined; t < _max_element_type; ++t) {
-   this->temperature_gradient[t] = NULL;   
- }
+  this->temperature= NULL;
+  for (UInt t = _not_defined; t < _max_element_type; ++t) {
+    this->temperature_gradient[t] = NULL;   
+    this->temperature_gradient_ghost[t] = NULL;   
+  }
 
  this->heat_flux = NULL;
  this->boundary = NULL;
@@ -85,6 +86,7 @@ void HeatTransferModel::initParallel(MeshPartition * partition,
 
   synch_registry->registerSynchronizer(synch_parallel,_gst_htm_capacity);
   synch_registry->registerSynchronizer(synch_parallel,_gst_htm_temperature);
+  synch_registry->registerSynchronizer(synch_parallel,_gst_htm_gradient_temperature);
 
   AKANTU_DEBUG_OUT();
 }
@@ -206,19 +208,23 @@ void HeatTransferModel::assembleCapacityLumped()
 
    /// start synchronization
    synch_registry->asynchronousSynchronize(_gst_htm_temperature);
+   
+   /// finalize communications
+   synch_registry->waitEndSynchronize(_gst_htm_temperature);
 
    ///clear the array   
    heat_flux->clear();
 
    /// update the not ghost ones
    updateHeatFlux(_not_ghost);
-      
-   /// finalize communications
-   synch_registry->waitEndSynchronize(_gst_htm_temperature);
 
    /// update for the received ghosts
    updateHeatFlux(_ghost);
-   
+
+#ifndef AKANTU_NDEBUG
+   getSynchronizerRegistry().synchronize(akantu::_gst_htm_gradient_temperature);
+#endif
+  
    AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
@@ -238,18 +244,28 @@ void HeatTransferModel::updateHeatFlux(const GhostType & ghost_type){
      Real * gT_val = NULL;
 
      if(ghost_type == _not_ghost){
+       for (UInt i = 0; i < getFEM().getMesh().getNbElement(*it,_not_ghost) ; ++i) {
+       	 for (UInt j = 0; j < spatial_dimension; ++j) {
+       	   temperature_gradient[*it]->values[spatial_dimension*i+j] = 0;	   
+       	 }
+       }
        this->getFEM().gradientOnQuadraturePoints(*temperature, 
-						 *temperature_gradient[*it], 
-						 1 ,*it);
+       						 *temperature_gradient[*it], 
+       						 1 ,*it);
        gT_val = temperature_gradient[*it]->values;
      }
      else {
+       for (UInt i = 0; i < getFEM().getMesh().getNbElement(*it,_ghost) ; ++i) {
+	 for (UInt j = 0; j < spatial_dimension; ++j) {
+	   temperature_gradient_ghost[*it]->values[spatial_dimension*i+j] = 3e9;	   
+	 }
+       }
        this->getFEM().gradientOnQuadraturePoints(*temperature, 
-						 *temperature_gradient_ghost[*it], 
-						 1 ,*it,_ghost);
+       						 *temperature_gradient_ghost[*it], 
+       						 1 ,*it,_ghost);
        gT_val = temperature_gradient_ghost[*it]->values;
      }
-     
+
      UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it);
      UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);

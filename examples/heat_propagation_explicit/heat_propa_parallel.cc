@@ -67,12 +67,12 @@ int main(int argc, char *argv[])
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
-  akantu::debug::setDebugLevel(akantu::dblError);
+  akantu::debug::setDebugLevel(akantu::dblWarning);
+  std::stringstream filename;
+  filename << "log" << prank;
+  akantu::debug::setLogFile(filename.str());
   akantu::HeatTransferModel * model;
   akantu::MeshPartition * partition = NULL;
-
-  // int a =1;
-  // while (a){};
 
   if(prank == 0) {
     akantu::MeshIOMSH mesh_io;
@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
   model->getHeatFlux().clear();
   model->getCapacityLumped().clear();
   model->getTemperatureGradient(type).clear();
+  model->getTemperatureGradientGhost(type).clear();
   /* -------------------------------------------------------------------------- */
   model->assembleCapacityLumped();
   /* -------------------------------------------------------------------------- */
@@ -116,6 +117,8 @@ int main(int argc, char *argv[])
   t2 = 100.;
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    if (mesh.isPureGhostNode(i)) continue;
+
     temperature(i) = t2;
     akantu::Real dz = nodes(i,2) - mesh.getZMin();
     akantu::Real size = mesh.getZMax() - mesh.getZMin();
@@ -123,9 +126,9 @@ int main(int argc, char *argv[])
       boundary(i) = true;
       temperature(i) = t1;
     }
-    else {
-      temperature(i) = t1-(t1-t2)*dz/size;
-    }
+    // else {
+    //   temperature(i) = t1-(t1-t2)*dz/size;
+    // }
   }
   /* -------------------------------------------------------------------------- */
   DumperParaview dumper;
@@ -133,8 +136,8 @@ int main(int argc, char *argv[])
   paraviewInit("heat-test",model,dumper,akantu::_not_ghost);
   paraviewInit("heat-test",model,dumper_ghost,akantu::_ghost);
   /* -------------------------------------------------------------------------- */
-  //  int max_steps = 10000000;
-  int max_steps = 100000;
+  int max_steps = 10000000;
+  //int max_steps = 100000;
   /* ------------------------------------------------------------------------ */
 #ifdef AKANTU_USE_QVIEW
   QView qv;
@@ -211,7 +214,6 @@ void paraviewInit(const string & name, akantu::HeatTransferModel * model, Dumper
   }
   dumper.SetPrefix("paraview/");
   dumper.Init();
-  dumper.Dump();
 }
 /* -------------------------------------------------------------------------- */
 

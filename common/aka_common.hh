@@ -226,8 +226,10 @@ enum SynchronizationTag {
   _gst_smm_for_strain,  /// synchronization of the SolidMechanicsModel.current_position
   _gst_smm_boundary,  /// synchronization of the boundary, forces, velocities and displacement
   _gst_smm_uv,  /// synchronization of the nodal velocities and displacement
+  /// HeatTransfer tags
   _gst_htm_capacity,  /// synchronization of the nodal heat capacity
   _gst_htm_temperature,  /// synchronization of the nodal temperature
+  _gst_htm_gradient_temperature,  /// synchronization of the element gradient temperature 
   /// Test tag
   _gst_test
 };

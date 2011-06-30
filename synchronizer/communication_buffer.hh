@@ -51,12 +51,13 @@ public:
 public:
 
   /// reset to "empty"
-  inline void reset() { 
-    ptr_pack = buffer.values; 
-    ptr_unpack = buffer.values; 
-  };
+  inline void reset();
 
-  inline void resize(UInt size) { buffer.resize(size); reset(); }
+  /// resize the internal buffer
+  inline void resize(UInt size);
+
+  /// clear buffer context
+  inline void clear();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -69,6 +70,9 @@ public:
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// printing tool
+  template <typename T> inline std::string extractStream(UInt packet_size);
 
   /// packing data
   template<typename T>
@@ -85,6 +89,16 @@ public:
   template<typename T>
   inline CommunicationBuffer & operator>> (types::Vector<T> & to_unpack);
 
+  /* ------------------------------------------------------------------------ */
+  /* Accessor                                                                 */
+  /* ------------------------------------------------------------------------ */
+
+  /// return the size in bytes of the stored values
+  inline UInt getPackedSize(){return ptr_pack-buffer.values;}; 
+  /// return the size in bytes of data left to be unpacked
+  inline UInt getLeftToUnpack(){return buffer.getSize()-(ptr_unpack-buffer.values);}; 
+  /// return the global size allocated
+  inline UInt getSize(){return buffer.getSize();}; 
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -124,11 +124,11 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      std::streamsize prec        = stream.precision();
-      std::ios_base::fmtflags ff  = stream.flags();
+      // std::streamsize prec        = stream.precision();
+      // std::ios_base::fmtflags ff  = stream.flags();
 
-      stream.setf (std::ios_base::showbase);
-      stream.precision(2);
+      // stream.setf (std::ios_base::showbase);
+      // stream.precision(2);
       stream << space << debug::demangle(typeid(*this).name()) << "<" << n << "," << m <<"> :" << std::endl;
       for (UInt i = 0; i < m; ++i) {
 	stream << space << AKANTU_INDENT << "| ";
@@ -137,8 +137,8 @@ namespace types {
 	}
 	stream << "|" << std::endl;
       }
-      stream.precision(prec);
-      stream.flags(ff);
+      // stream.precision(prec);
+      // stream.flags(ff);
     };
 
     // Real* &data() { return values; };
@@ -227,6 +227,13 @@ namespace types {
 
   /* -------------------------------------------------------------------------- */
   inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)
+  {
+    _this.printself(stream);
+    return stream;
+  }
+
+  /* -------------------------------------------------------------------------- */
+  inline std::ostream & operator<<(std::ostream & stream, const RVector & _this)
   {
     _this.printself(stream);
     return stream;

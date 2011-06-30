@@ -32,10 +32,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-
 /* -------------------------------------------------------------------------- */
-
 __BEGIN_AKANTU__
+/* -------------------------------------------------------------------------- */
 
 template<typename T>
 class Vector;
@@ -191,6 +190,9 @@ public:
 
   /// test if two scalar are equal within a given tolerance
   static inline bool are_float_equal(Real x, Real y);
+
+  /// test if two vectors are equal within a given tolerance
+  static inline bool are_vector_equal(UInt n, Real * x, Real * y);
 
   /// tolerance for functions that need one
   static Real tolerance;

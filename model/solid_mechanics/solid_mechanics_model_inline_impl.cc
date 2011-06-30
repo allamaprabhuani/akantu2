@@ -83,7 +83,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
   UInt size = 0;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
-#ifdef AKANTU_DEBUG
+#ifndef AKANTU_NDEBUG
   size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
 #endif
 
@@ -121,7 +121,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   UInt size = 0;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
-#ifdef AKANTU_DEBUG
+#ifndef AKANTU_NDEBUG
   size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
 #endif
 
@@ -161,7 +161,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
   UInt el_offset  = element.element * nb_nodes_per_element;
   UInt * conn  = mesh.getConnectivity(element.type).values;
 
-#ifdef AKANTU_DEBUG
+#ifndef AKANTU_NDEBUG
   types::RVector barycenter(spatial_dimension);
   mesh.getBarycenter(element.element, element.type, barycenter.storage());
   buffer << barycenter;
@@ -219,7 +219,7 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   UInt el_offset  = element.element * nb_nodes_per_element;
   UInt * conn  = mesh.getConnectivity(element.type,_ghost).values;
 
-#ifdef AKANTU_DEBUG
+#ifndef AKANTU_NDEBUG
   types::RVector barycenter_loc(spatial_dimension);
   mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), _ghost);
 
