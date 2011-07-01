@@ -65,7 +65,7 @@
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  //  akantu::debug::setDebugLevel(akantu::dblAccessory);
+  akantu::debug::setDebugLevel(akantu::dblWarning);
   akantu::initialize(&argc, &argv);
 
   akantu::UInt spatial_dimension = 2;
@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
   }
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
   model->initParallel(partition);
+  delete partition;
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   /// model initialization
@@ -109,7 +110,8 @@ int main(int argc, char *argv[])
 
   model->initImplicit();
 
-  std::cout << model->getMaterial(0) << std::endl;
+  if (prank == 0)
+    std::cout << model->getMaterial(0) << std::endl;
 
   /// boundary conditions
   const  akantu::Vector<akantu::Real> & position = mesh.getNodes();
@@ -125,12 +127,6 @@ int main(int argc, char *argv[])
       displacment(n,0) = 0.1;
     }
   }
-
-  // akantu::FEM & fem_boundary = model->getFEMBoundary();
-  // fem_boundary.initShapeFunctions();
-  // fem_boundary.computeNormalsOnControlPoints();
-  // model->computeForcesFromFunction(traction, akantu::_bft_stress);
-  // model->initializeUpdateResidualData();
 
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_triangle_6;
@@ -153,12 +149,6 @@ int main(int argc, char *argv[])
 			  spatial_dimension, "applied_force");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "forces");
-  // akantu::Real * nodes_type = new akantu::Real[nb_nodes];
-  // for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-  //   nodes_type[i] = mesh.getNodesType()(i, 0);
-  // }
-
-  // dumper.AddNodeDataField(nodes_type, 1, "nodes_type");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
 			  spatial_dimension*spatial_dimension, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
@@ -168,44 +158,29 @@ int main(int argc, char *argv[])
   dumper.SetEmbeddedValue("forces", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();
-  //  dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
 
-  //  akantu::debug::setDebugLevel(akantu::dblDump);
   akantu::UInt count = 0;
   model->updateResidual();
-#ifdef AKANTU_USE_IOHELPER
-    dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
-  while(!model->testConvergenceResidual(1e-3) && (count < 100)) {
-    std::cout << "Iter : " << ++count << std::endl;
-    model->assembleStiffnessMatrix();
 
-    std::stringstream sstr; sstr << "K" << prank << ".mtx";
-    model->getStiffnessMatrix().saveMatrix(sstr.str());
+#ifdef AKANTU_USE_IOHELPER
+  dumper.Dump();
+#endif //AKANTU_USE_IOHELPER
+
+  akantu::Real norm;
+  model->assembleStiffnessMatrix();
+  while(!model->testConvergenceResidual(1e-3, norm) && (count < 100)) {
+    if (prank == 0)
+      std::cout << "Iter : " << ++count << " - residual norm : " << norm << std::endl;
+
     model->solveStatic();
-
-    akantu::debug::setDebugLevel(akantu::dblDump);
-    std::cout << boundary << std::endl;
-    std::cout << position << std::endl;
-    akantu::debug::setDebugLevel(akantu::dblInfo);
-
-    std::stringstream sstr_bound; sstr_bound << "Ktmp" << prank << ".mtx";
-    model->getStiffnessMatrix().saveMatrix(sstr_bound.str());
-
     model->updateResidual();
-
-    akantu::debug::setDebugLevel(akantu::dblDump);
-    std::cout << model->getResidual() << std::endl;
-    akantu::debug::setDebugLevel(akantu::dblInfo);
-
-    //    model->assembleStiffnessMatrix();
-#ifdef AKANTU_USE_IOHELPER
-    dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
-
   };
+
+#ifdef AKANTU_USE_IOHELPER
+  dumper.Dump();
+#endif //AKANTU_USE_IOHELPER
 
   delete model;
   akantu::finalize();

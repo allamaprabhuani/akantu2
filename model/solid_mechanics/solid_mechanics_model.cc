@@ -567,13 +567,13 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error) {
+bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & norm) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degre_of_freedom = displacement->getNbComponent();
 
-  Real norm = 0;
+  norm = 0;
   Real * increment_val     = increment->values;
   bool * boundary_val      = boundary->values;
 
@@ -588,13 +588,13 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
     }
   }
 
-  synch_registry->allReduce(&norm, _so_sum);
+  StaticCommunicator::getStaticCommunicator()->allReduce(&norm, 1, _so_sum);
 
-  error = sqrt(norm);
+  norm = sqrt(norm);
   AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
-  return (error < tolerance);
+  return (norm < tolerance);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -608,12 +608,12 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error) {
+bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & norm) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = residual->getSize();
 
-  Real norm = 0;
+  norm = 0;
   Real * residual_val = residual->values;
   bool * boundary_val = boundary->values;
 
@@ -633,14 +633,14 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error) 
     }
   }
 
-  synch_registry->allReduce(&norm, _so_sum);
+  StaticCommunicator::getStaticCommunicator()->allReduce(&norm, 1, _so_sum);
 
-  error = sqrt(norm);
+  norm = sqrt(norm);
 
   AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
-  return (error < tolerance);
+  return (norm < tolerance);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -747,7 +747,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
 
 
   /// reduction min over all processors
-  synch_registry->allReduce(&min_dt, _so_min);
+  StaticCommunicator::getStaticCommunicator()->allReduce(&min_dt, 1, _so_sum);
 
 
   AKANTU_DEBUG_OUT();
@@ -766,7 +766,7 @@ Real SolidMechanicsModel::getPotentialEnergy() {
   }
 
   /// reduction sum over all processors
-  synch_registry->allReduce(&epot, _so_sum);
+  StaticCommunicator::getStaticCommunicator()->allReduce(&epot, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return epot;
@@ -796,7 +796,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     mass_val++;
   }
 
-  synch_registry->allReduce(&ekin, _so_sum);
+  StaticCommunicator::getStaticCommunicator()->allReduce(&ekin, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return ekin * .5;

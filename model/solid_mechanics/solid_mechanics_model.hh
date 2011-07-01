@@ -40,7 +40,6 @@
 #include "aka_common.hh"
 #include "model.hh"
 #include "material.hh"
-#include "../parser.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "aka_types.hh"
@@ -430,10 +429,15 @@ private:
   Mesh & mesh;
 };
 
+__END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+
+#include "parser.hh"
+
+__BEGIN_AKANTU__
 
 #include "solid_mechanics_model_inline_impl.cc"
 
