@@ -31,7 +31,9 @@
 #===============================================================================
 add_example(2d_compression "Compression example")
 add_example(regular_meshes "Generate a regular mesh")
-add_example(heat_propagation_explicit "Heat propagation through a bottleneck")
+if(AKANTU_BUILD_HEAT_TRANSFER)
+  add_example(heat_propagation_explicit "Heat propagation through a bottleneck")
+endif(AKANTU_BUILD_HEAT_TRANSFER)
 
 if(AKANTU_PARTITIONER_ON AND AKANTU_MPI_ON)
   add_example(3d_cube_compression "Cube compression example")
