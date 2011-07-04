@@ -74,7 +74,7 @@
  * @f]
  *
  * @subsection quad_points Position of quadrature points
- * @f{equerry*}{
+ * @f{eqnarray*}{
  * \xi_{q0}  &=& 0 \qquad  \eta_{q0} = 0
  * @f}
  */

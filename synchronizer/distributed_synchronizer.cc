@@ -838,13 +838,6 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op) {
-  AKANTU_DEBUG_IN();
-  static_communicator->allReduce(values, nb_values, op);
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor, 
 						SynchronizationTag tag) {
   AKANTU_DEBUG_IN();

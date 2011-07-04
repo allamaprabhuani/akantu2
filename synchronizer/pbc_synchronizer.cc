@@ -27,8 +27,12 @@
 
 /* -------------------------------------------------------------------------- */
 #include "pbc_synchronizer.hh"
+
 /* -------------------------------------------------------------------------- */
+
+
 __BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 PBCSynchronizer::PBCSynchronizer(std::map<UInt,UInt> & pairs,
 				 SynchronizerID id,
@@ -41,7 +45,7 @@ void PBCSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
 
   if (size_buffer.count(tag) == 0) computeBufferSize(data_accessor,tag);
   buffer.resize(size_buffer[tag]);
-  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin(); 
+  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
        it != pbc_pair.end();++it) {
     UInt node_master = (*it).second;
     UInt node_slave = (*it).first;
@@ -51,30 +55,27 @@ void PBCSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
     data_accessor.unpackData(buffer,node_slave,tag);
   }
 }
+
 /* -------------------------------------------------------------------------- */
 void PBCSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 					 SynchronizationTag tag){
 }
+
 /* -------------------------------------------------------------------------- */
-void PBCSynchronizer::allReduce(Real * values, UInt nb_values, 
-				const SynchronizerOperation & op){
-}
-/* -------------------------------------------------------------------------- */
-void PBCSynchronizer::computeBufferSize(DataAccessor & data_accessor, 
+void PBCSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 					SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   UInt & size = size_buffer[tag];
   size = 0;
 
-  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin(); 
+  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
        it != pbc_pair.end();++it) {
     size += data_accessor.getNbDataToPack(tag);
   }
 
   AKANTU_DEBUG_OUT();
 }
-
 
 /* -------------------------------------------------------------------------- */
 

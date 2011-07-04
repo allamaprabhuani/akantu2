@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
   model->getStiffnessMatrix().saveMatrix("K.mtx");
 
   /// time loop
-  for (UInt s = 1; time < 0.62, s< 5; ++s) {
+  for (UInt s = 1; time < 0.62; ++s) {
     model->implicitPred();
     /// convergence loop
     do {

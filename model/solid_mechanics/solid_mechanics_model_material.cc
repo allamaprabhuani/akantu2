@@ -45,11 +45,11 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     Material * material;
     MaterialID mat_id = sstr_mat.str();
     /// read the material properties
-    if(mat_type == "elastic") material = parser.readSection<MaterialElastic>(*this,mat_id);
-    else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this,mat_id);
-    else if(mat_type == "damage") material = parser.readSection<MaterialDamage>(*this,mat_id);
-    else if(mat_type == "mazars") material = parser.readSection<MaterialMazars>(*this,mat_id);
-    else if(mat_type == "neohookean") material = parser.readSection<MaterialNeohookean>(*this,mat_id);
+    if(mat_type == "elastic")              material = parser.readSection<MaterialElastic>       (*this, mat_id);
+    else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this, mat_id);
+    else if(mat_type == "damage")          material = parser.readSection<MaterialDamage>        (*this, mat_id);
+    else if(mat_type == "mazars")          material = parser.readSection<MaterialMazars>        (*this, mat_id);
+    else if(mat_type == "neohookean")      material = parser.readSection<MaterialNeohookean>    (*this, mat_id);
     else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
 			    << mat_type);
     materials.push_back(material);

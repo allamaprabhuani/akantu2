@@ -39,6 +39,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "model.hh"
+#include "data_accessor.hh"
 #include "material.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
@@ -64,20 +65,10 @@ public:
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
-  // SolidMechanicsModel(UInt spatial_dimension,
-  // 		      const ModelID & id = "solid_mechanics_model",
-  // 		      const MemoryID & memory_id = 0);
-
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = 0,
 		      const ModelID & id = "solid_mechanics_model",
 		      const MemoryID & memory_id = 0);
-
-  SolidMechanicsModel(Mesh & mesh,MeshPartition * partition,
-		      UInt spatial_dimension = 0,
-		      const ModelID & id = "solid_mechanics_model",
-		      const MemoryID & memory_id = 0);
-
 
   virtual ~SolidMechanicsModel();
 
@@ -395,7 +386,7 @@ private:
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;
 
-  /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Dela t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
+  /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Delta t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
   SparseMatrix * jacobian_matrix;
 
   /// materials of all elements

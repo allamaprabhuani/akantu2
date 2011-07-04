@@ -39,3 +39,5 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
   COPYONLY
   )
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

@@ -30,30 +30,18 @@
 #ifndef __AKANTU_HEAT_TRANSFER_MODEL_HH__
 #define __AKANTU_HEAT_TRANSFER_MODEL_HH__
 
-
-/* -------------------------------------------------------------------------- */
-#include <fstream>
-/* -------------------------------------------------------------------------- */
-
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_memory.hh"
 #include "model.hh"
-#include "material.hh"
-#include "parser.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-#include "fem.hh"
-#include "mesh.hh"
 
-#include "aka_memory.hh"
-#include "element_class.hh"
-#include "sparse_matrix.hh"
-
-
-// namespace akantu {
-//   class Solver;
-//   class SparseMatrix;
-// }
+namespace akantu {
+  class IntegrationScheme1stOrder;
+//    class Solver;
+//    class SparseMatrix;
+}
 
 __BEGIN_AKANTU__
 
@@ -63,10 +51,10 @@ class HeatTransferModel : public Model, public DataAccessor {
   /* ------------------------------------------------------------------------ */
 public:
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
-  
+
   HeatTransferModel(UInt spatial_dimension,
 		    const ModelID & id = "heat_transfer_model",
-  		    const MemoryID & memory_id = 0) ;  
+  		    const MemoryID & memory_id = 0) ;
 
   HeatTransferModel(Mesh & mesh,
 		    UInt spatial_dimension = 0,
@@ -74,14 +62,14 @@ public:
 		    const MemoryID & memory_id = 0);
 
   virtual ~HeatTransferModel() ;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 
 public:
-  
-  /// set the parameters 
+
+  /// set the parameters
   void setParam(const std::string & key, const std::string & value);
 
   /// read one material file to instantiate all the materials
@@ -98,10 +86,48 @@ public:
 
   /// init PBC synchronizer
   void initPBC(UInt x,UInt y, UInt z);
-  
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
-  
+
+  /* ------------------------------------------------------------------------ */
+  /* Methods for explicit                                                     */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /// compute and get the stable time step
+  Real getStableTimeStep();
+
+  /// compute the heat flux
+  void updateResidual();
+
+  /// solve the system in temperature rate  @f$C\delta \dot T = q_{n+1} - C \dot T_{n}@f$
+  void solveExplicitLumped();
+
+  /// calculate the lumped capacity vector for heat transfer problem
+  void assembleCapacityLumped();
+
+  /// update the temperature from the temperature rate
+  void explicitPred();
+
+  /// update the temperature rate from the increment
+  void explicitCorr();
+
+
+  // /// initialize the heat flux
+  // void initializeResidual(Vector<Real> &temp);
+  // /// initialize temperature
+  // void initializeTemperature(Vector<Real> &temp);
+
+private:
+  /// compute the heat flux on ghost types
+  void updateResidual(const GhostType & ghost_type);
+
+  /// calculate the lumped capacity vector for heat transfer problem (w ghosttype)
+  void assembleCapacityLumped(const GhostType & ghost_type);
+
+
+
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
@@ -126,7 +152,7 @@ public:
   inline void unpackData(CommunicationBuffer & buffer,
 			 const UInt index,
 			 SynchronizationTag tag) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -139,52 +165,39 @@ public:
   /// set the value of the time step
   AKANTU_SET_MACRO(TimeStep, time_step, Real);
   /// get the assembled heat flux
-  AKANTU_GET_MACRO(HeatFlux,* heat_flux, Vector<Real>&);
+  AKANTU_GET_MACRO(Residual, *residual, Vector<Real>&);
   /// get the lumped capacity
   AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Vector<Real>&);
   /// get the boundary vector
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradient, temperature_gradient, Vector<Real> &);
- /// get the temperature gradient for ghosts
+  /// get the temperature gradient for ghosts
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradientGhost, temperature_gradient_ghost, Vector<Real> &);
- /// get the temperature
+  /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
+  /// get the temperature derivative
+  AKANTU_GET_MACRO(TemperatureRate, *temperature_rate, Vector<Real> &);
   /// get the equation number Vector<Int>
   AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
-  
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  /// compute and get the stable time step
-  Real getStableTimeStep();
-  /// initialize the heat flux
-  void initializeHeatFlux(Vector<Real> &temp);
-  /// initialize temperature
-  void initializeTemperature(Vector<Real> &temp);
-  /// compute the heat flux
-  void updateHeatFlux();
-  /// compute the heat flux on ghost types 
-  void updateHeatFlux(const GhostType & ghost_type);
-  /// update the temperature 
-  void updateTemperature();
-  /// calculate the lumped capacity vector for heat transfer problem
-  void assembleCapacityLumped();
-  /// calculate the lumped capacity vector for heat transfer problem (w ghosttype)
-  void assembleCapacityLumped(const GhostType & ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  IntegrationScheme1stOrder * integrator;
 
   /// time step
   Real time_step;
 
   /// temperatures array
-  Vector<Real> * temperature ;
+  Vector<Real> * temperature;
+
+  /// temperatures derivatives array
+  Vector<Real> * temperature_rate;
+
+  /// increment array (@f$\delta \dot T@f$ or @f$\delta T@f$)
+  Vector<Real> * increment;
 
   /// the spatial dimension
   UInt spatial_dimension;
@@ -218,6 +231,7 @@ private:
 
   //realtime
   Real time;
+
   ///capacity
   Real capacity;
 

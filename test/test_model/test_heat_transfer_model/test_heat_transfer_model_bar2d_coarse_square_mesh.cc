@@ -90,7 +90,7 @@ int readMaterial () {
   ifstream myfile;
  
 
-  myfile.open("Material.dat");
+  myfile.open("material.dat");
   if(!myfile) //Always test the file open.
   {
     cout<<"Error opening output file"<<endl;

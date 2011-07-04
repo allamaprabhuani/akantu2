@@ -1,9 +1,9 @@
 /**
- * @file   synchronizer.hh
+ * @file   integration_scheme_1st_order.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Aug 23 13:48:37 2010
+ * @date   Thu Jun 30 16:28:13 2011
  *
- * @brief  interface for communicator and pbc synchronizers
+ * @brief  Interface of the time integrator of first order
  *
  * @section LICENSE
  *
@@ -27,48 +27,47 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_HH__
-#define __AKANTU_SYNCHRONIZER_HH__
-
-/* -------------------------------------------------------------------------- */
-#include "aka_memory.hh"
-#include "data_accessor.hh"
-/* -------------------------------------------------------------------------- */
-
-namespace akantu {
-  class GhostSynchronizer;
-}
+#ifndef __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
+#define __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
 
 __BEGIN_AKANTU__
 
-class Synchronizer : public Memory {
+class IntegrationScheme1stOrder {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  Synchronizer(SynchronizerID id = "synchronizer", MemoryID memory_id = 0);
+  enum IntegrationSchemeCorrectorType {
+    _temperature_corrector,
+    _temperature_rate_corrector
+  };
 
-  virtual ~Synchronizer() { };
+
+  virtual ~IntegrationScheme1stOrder() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// synchronize ghosts
-  void synchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
-  /// asynchronous synchronization of ghosts
-  virtual void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  virtual void integrationSchemePred(Real delta_t,
+				     Vector<Real> & u,
+				     Vector<Real> & u_dot,
+				     Vector<bool> & boundary) = 0;
 
-  /// wait end of asynchronous synchronization of ghosts
-  virtual void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag) = 0;
+  virtual void integrationSchemeCorrTemp(Real delta_t,
+					 Vector<Real> & u,
+					 Vector<Real> & u_dot,
+					 Vector<bool> & boundary,
+					 Vector<Real> & delta) = 0;
 
-  /// compute buffer size for a given tag and data accessor
-  virtual void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag)=0;
-
-protected:
+  virtual void integrationSchemeCorrTempRate(Real delta_t,
+					     Vector<Real> & u,
+					     Vector<Real> & u_dot,
+					     Vector<bool> & boundary,
+					     Vector<Real> & delta) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -78,14 +77,12 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-
-  /// id of the synchronizer
-  SynchronizerID id;
+private:
 
 };
 
-
 __END_AKANTU__
 
-#endif /* __AKANTU_SYNCHRONIZER_HH__ */
+#include "generalized_trapezoidal.hh"
+
+#endif /* __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__ */

@@ -45,10 +45,10 @@ class SynchronizerRegistry {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   SynchronizerRegistry(DataAccessor & data_accessor);
   virtual ~SynchronizerRegistry();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -57,14 +57,11 @@ public:
   /// synchronize operation
   void synchronize(SynchronizationTag tag);
 
-  /// asynchronous synchronization 
+  /// asynchronous synchronization
   void asynchronousSynchronize(SynchronizationTag tag);
 
-  /// wait end of asynchronous synchronization 
+  /// wait end of asynchronous synchronization
   void waitEndSynchronize(SynchronizationTag tag);
-
-  /// reduce a value (essentially for communications synchronizer)
-  void allReduce(Real * values, const SynchronizerOperation & op, UInt nb_values = 1);
 
   /// register a new synchronization
   void registerSynchronizer(Synchronizer & synchronizer,SynchronizationTag tag);
@@ -73,7 +70,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -82,10 +79,10 @@ private:
   // /// number of tags registered
   // UInt nb_synchronization_tags;
 
-  
+
   typedef std::multimap<SynchronizationTag, Synchronizer *> Tag2Sync;
   /// list of registered synchronization
-  Tag2Sync synchronizers;  
+  Tag2Sync synchronizers;
 
   /// data accessor that will permit to do the pack/unpack things
   DataAccessor & data_accessor;

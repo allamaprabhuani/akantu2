@@ -66,7 +66,7 @@ public:
 				    UInt root = 0,
 				    SynchronizerID id = "distributedSynchronizer",
 				    MemoryID memory_id = 0);
-  
+
   /* ------------------------------------------------------------------------ */
   /* Inherited from Synchronizer                                              */
   /* ------------------------------------------------------------------------ */
@@ -76,9 +76,6 @@ public:
 
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
-
-  /// do a all reduce operation
-  void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
 
 protected:
   /// fill the nodes type vector

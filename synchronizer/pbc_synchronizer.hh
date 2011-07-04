@@ -3,7 +3,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Wed Jun 15 12:56:28 2011
  *
- * @brief  Dofs Synchronizer for periodic boundary condition 
+ * @brief  Dofs Synchronizer for periodic boundary condition
  *
  * @section LICENSE
  *
@@ -41,37 +41,34 @@ class PBCSynchronizer : public Synchronizer {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   PBCSynchronizer(std::map<UInt,UInt> & pairs,
 		  SynchronizerID id = "pbc_synch",
 		  MemoryID memory_id = 0);
   virtual ~PBCSynchronizer(){};
-  
+
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Inherited from Synchronizer                                              */
   /* ------------------------------------------------------------------------ */
-  
+
   /// asynchronous synchronization of ghosts
   void asynchronousSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
-  /// do a all reduce operation
-  void allReduce(Real * values, UInt nb_values, const SynchronizerOperation & op);
-
 private:
 
-  /// compute buffer size for a given tag and data accessor 
+  /// compute buffer size for a given tag and data accessor
   void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -85,7 +82,7 @@ private:
 
   /// buffer to pack and unpack the data
   CommunicationBuffer buffer;
-  
+
 };
 
 

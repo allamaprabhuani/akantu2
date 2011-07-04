@@ -434,7 +434,6 @@ void FEMTemplate<Integ,Shape>::assembleLumpedRowSum(const Vector<Real> & field_1
 						    UInt nb_degree_of_freedom,
 						    Vector<Real> & lumped,
 						    const Vector<Int> & equation_number,
-						    
 						    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

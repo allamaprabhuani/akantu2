@@ -28,7 +28,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
-inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {  ///First compute the Left Cauchy-Green deformation tensor : C= F^tF. 
+inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
+  ///First compute the Left Cauchy-Green deformation tensor : C= F^tF. 
    Real C[3*3];
    Real S[3*3];
    

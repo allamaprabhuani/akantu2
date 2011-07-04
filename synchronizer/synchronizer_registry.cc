@@ -95,20 +95,6 @@ void SynchronizerRegistry::waitEndSynchronize(SynchronizationTag tag) {
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
-void SynchronizerRegistry::allReduce(Real * values,
-				     const SynchronizerOperation & op,
-				     UInt nb_values) {
-  AKANTU_DEBUG_IN();
-  
-  for (Tag2Sync::iterator it = synchronizers.begin();
-       it != synchronizers.end();
-       ++it) {
-    (*it).second->allReduce(values, nb_values, op);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
 
 /* -------------------------------------------------------------------------- */
 void SynchronizerRegistry::registerSynchronizer(Synchronizer & synchronizer,

@@ -52,7 +52,7 @@ using namespace std;
 
 
 //just for checking
- 
+
 
 
 void paraviewInit(Dumper & dumper);
@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
   akantu::MeshIOMSH mesh_io;
 
   mesh_io.read("cube1.msh", mesh);
-  
+
   model = new akantu::HeatTransferModel(mesh);
-  model->readMaterials("Material.dat");
+  model->readMaterials("material.dat");
  //model initialization
   model->initModel();
   //initialize the vectors
@@ -82,25 +82,17 @@ int main(int argc, char *argv[])
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);
 
- 
+
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  model->getHeatFlux().clear();
+  model->getResidual().clear();
+  model->getTemperature().clear();
+  model->getTemperatureRate().clear();
   model->getCapacityLumped().clear();
   model->getTemperatureGradient(type).clear();
 
-  // akantu::debug::setDebugLevel(akantu::dblDump);
-  // std::cout << model->getTemperatureGradient(type) << std::endl;
-  // akantu::debug::setDebugLevel(akantu::dblWarning);
-
- 
-
-  // model->setDensity(density);
-  // model->setCapacity(capacity);
-  // model->SetConductivityMatrix(conductivity);
- 
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
-  
+
   cout<<"time step is:"<<time_step<<endl;
   model->setTimeStep(time_step);
 
@@ -108,13 +100,9 @@ int main(int argc, char *argv[])
   const akantu::Vector<akantu::Real> & nodes = model->getFEM().getMesh().getNodes();
   akantu::Vector<bool> & boundary = model->getBoundary();
   akantu::Vector<akantu::Real> & temperature = model->getTemperature();
-  akantu::Vector<akantu::Real> & heat_flux = model->getHeatFlux();
   akantu::Real eps = 1e-15;
- 
-  double t1, t2, length;
 
-
-  length = 1.;
+  double length = 1.;
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     //temperature(i) = t1 - (t1 - t2) * sin(nodes(i, 0) * M_PI / length);
@@ -135,7 +123,7 @@ int main(int argc, char *argv[])
     //  temperature(i) = 300.;
     //  }
 
-   
+
   }
 
   DumperParaview dumper;
@@ -148,10 +136,11 @@ int main(int argc, char *argv[])
 
   for(int i=0; i<max_steps; i++)
     {
-     
-      model->updateHeatFlux();
-      model->updateTemperature();
-     
+      model->explicitPred();
+      model->updateResidual();
+      model->solveExplicitLumped();
+      model->explicitCorr();
+
       if(i % 100 == 0)
 	paraviewDump(dumper);
       if(i % 10000 == 0)
@@ -168,10 +157,12 @@ void paraviewInit(Dumper & dumper) {
 		   spatial_dimension, nb_nodes, "coordinates_cube3d_istropic_conductivity");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
 			 paraview_type, nb_element, C_MODE);
-   dumper.AddNodeDataField(model->getTemperature().values,
-    1, "temperature");
-  dumper.AddNodeDataField(model->getHeatFlux().values,
-   			  1, "heat_flux");
+  dumper.AddNodeDataField(model->getTemperature().values,
+			  1, "temperature");
+  dumper.AddNodeDataField(model->getResidual().values,
+   			  1, "residual");
+  dumper.AddNodeDataField(model->getTemperatureRate().values,
+   			  1, "temperature_rate");
   dumper.AddNodeDataField(model->getCapacityLumped().values,
    			  1, "capacity");
   dumper.AddElemDataField(model->getTemperatureGradient(type).values,
@@ -185,4 +176,3 @@ void paraviewInit(Dumper & dumper) {
 void paraviewDump(Dumper & dumper) {
   dumper.Dump();
 }
-

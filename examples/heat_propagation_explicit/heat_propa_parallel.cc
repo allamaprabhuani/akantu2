@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   akantu::initialize(&argc,&argv);
 
   akantu::Mesh mesh(spatial_dimension);
-  akantu::StaticCommunicator * comm = 
+  akantu::StaticCommunicator * comm =
     akantu::StaticCommunicator::getStaticCommunicator();
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
@@ -85,32 +85,38 @@ int main(int argc, char *argv[])
 
 
   mesh.computeBoundingBox();
+
   /* -------------------------------------------------------------------------- */
   model->readMaterials("material.dat");
   model->initModel();
   model->initVectors();
-  model->getHeatFlux().clear();
-  model->getCapacityLumped().clear();
-  model->getTemperatureGradient(type).clear();
-  model->getTemperatureGradientGhost(type).clear();
+
+  model->getTemperature().clear();
+  model->getTemperatureRate().clear();
+  // model->getResidual().clear();
+  // model->getCapacityLumped().clear();
+  // model->getTemperatureGradient(type).clear();
+  // model->getTemperatureGradientGhost(type).clear();
+
   /* -------------------------------------------------------------------------- */
   model->assembleCapacityLumped();
+
   /* -------------------------------------------------------------------------- */
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+  //  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+
   /* ------------------------------------------------------------------------ */
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
   if (prank == 0)
     std::cerr << "time step is:"<<time_step << std::endl;
   model->setTimeStep(time_step);
+
   /* -------------------------------------------------------------------------- */
   /// boundary conditions
   const akantu::Vector<akantu::Real> & nodes = model->getFEM().getMesh().getNodes();
   akantu::Vector<bool> & boundary = model->getBoundary();
   akantu::Vector<akantu::Real> & temperature = model->getTemperature();
-  akantu::Vector<akantu::Real> & heat_flux = model->getHeatFlux();
-  akantu::Real eps = 1e-15;
 
   double t1, t2;
   t1 = 150.;
@@ -121,7 +127,7 @@ int main(int argc, char *argv[])
 
     temperature(i) = t2;
     akantu::Real dz = nodes(i,2) - mesh.getZMin();
-    akantu::Real size = mesh.getZMax() - mesh.getZMin();
+    //    akantu::Real size = mesh.getZMax() - mesh.getZMin();
     if(fabs(dz) < 0.1){
       boundary(i) = true;
       temperature(i) = t1;
@@ -130,14 +136,19 @@ int main(int argc, char *argv[])
     //   temperature(i) = t1-(t1-t2)*dz/size;
     // }
   }
+
   /* -------------------------------------------------------------------------- */
   DumperParaview dumper;
   DumperParaview dumper_ghost;
+
+  model->updateResidual();
   paraviewInit("heat-test",model,dumper,akantu::_not_ghost);
   paraviewInit("heat-test",model,dumper_ghost,akantu::_ghost);
+
   /* -------------------------------------------------------------------------- */
   int max_steps = 10000000;
   //int max_steps = 100000;
+
   /* ------------------------------------------------------------------------ */
 #ifdef AKANTU_USE_QVIEW
   QView qv;
@@ -145,25 +156,30 @@ int main(int argc, char *argv[])
   qv.initLibQview(prank);
   qv.beginTask("main",max_steps);
 #endif
+
   /* ------------------------------------------------------------------------ */
   for(int i=0; i<max_steps; i++)
     {
 #ifdef AKANTU_USE_QVIEW
-      qv.setCurrentStep(i);     
+      qv.setCurrentStep(i);
 #else
-      if(i % 100 == 0){     
-       	if(prank == 0) 
+      if(i % 100 == 0){
+       	if(prank == 0)
       	  std::cout << "Step " << i << "/" << max_steps << std::endl;
       }
 #endif
-      model->updateHeatFlux();
-      model->updateTemperature();
 
+      model->explicitPred();
+      model->updateResidual();
+      model->solveExplicitLumped();
+      model->explicitCorr();
 
+#ifdef AKANTU_USE_IOHELPER
       if(i % 1000 == 0){
 	dumper.Dump();
 	dumper_ghost.Dump();
       }
+#endif
     }
 #ifdef AKANTU_USE_QVIEW
   qv.endTask();
@@ -171,19 +187,20 @@ int main(int argc, char *argv[])
   akantu::finalize();
   return 0;
 }
+
 /* -------------------------------------------------------------------------- */
 void paraviewInit(const string & name, akantu::HeatTransferModel * model, Dumper & dumper,
 		       const akantu::GhostType & ghost_type) {
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type,ghost_type);
-  
-  akantu::StaticCommunicator * comm = 
+
+  akantu::StaticCommunicator * comm =
     akantu::StaticCommunicator::getStaticCommunicator();
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
-  
+
   stringstream str;
-  str << name; 
+  str << name;
   if (ghost_type == akantu::_ghost)
     str << "_ghost";
 
@@ -191,23 +208,23 @@ void paraviewInit(const string & name, akantu::HeatTransferModel * model, Dumper
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, str.str().c_str());
-  
+
   if (nb_element)
     dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type,ghost_type).values,
 			   paraview_type, nb_element, C_MODE);
-  else 
+  else
     dumper.SetConnectivity(NULL,paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(model->getTemperature().values,
-    1, "temperature");
-  dumper.AddNodeDataField(model->getHeatFlux().values,
-   			  1, "heat_flux");
+			  1, "temperature");
+  dumper.AddNodeDataField(model->getResidual().values,
+   			  1, "residual");
   dumper.AddNodeDataField(model->getCapacityLumped().values,
    			  1, "capacity_lumped");
 
-  if (nb_element){ 
+  if (nb_element){
     if (ghost_type == akantu::_ghost)
       dumper.AddElemDataField(model->getTemperatureGradientGhost(type).values,
-			      spatial_dimension, "temperature_gradient");  
+			      spatial_dimension, "temperature_gradient");
     else
       dumper.AddElemDataField(model->getTemperatureGradient(type).values,
 			      spatial_dimension, "temperature_gradient");

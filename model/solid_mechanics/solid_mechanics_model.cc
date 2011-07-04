@@ -265,8 +265,12 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
 void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_IN();
 
+  // f = f_ext - f_int - Ma - Cv
+
+  // f = f_ext
   if (need_initialize) initializeUpdateResidualData();
 
+  // f -= fint
   /// start synchronization
   synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
 
@@ -286,7 +290,41 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
     (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
-  //  current_position;
+  // f -= Ma
+  if(mass_matrix) {
+    // if full mass_matrix
+    Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
+    *Ma *= *mass_matrix;
+    *residual -= *Ma;
+    delete Ma;
+  } else {
+    // else lumped mass
+    UInt nb_nodes = acceleration->getSize();
+    UInt nb_degre_of_freedom = acceleration->getNbComponent();
+
+    Real * mass_val     = mass->values;
+    Real * accel_val    = acceleration->values;
+    Real * res_val      = residual->values;
+    bool * boundary_val = boundary->values;
+
+    for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+      if(!(*boundary_val)) {
+	*res_val -= *accel_val * *mass_val;
+      }
+    boundary_val++;
+    res_val++;
+    mass_val++;
+    accel_val++;
+    }
+  }
+
+  // f -= Cv
+  if(velocity_damping_matrix) {
+    Vector<Real> * Cv = new Vector<Real>(*velocity);
+    *Cv *= *velocity_damping_matrix;
+    *residual -= *Cv;
+    delete Cv;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -306,17 +344,15 @@ void SolidMechanicsModel::updateAcceleration() {
 
   Real * mass_val     = mass->values;
   Real * residual_val = residual->values;
-  Real * accel_val    = acceleration->values;
   bool * boundary_val = boundary->values;
   Real * inc = increment_acceleration->values;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt d = 0; d < nb_degre_of_freedom; d++) {
       if(!(*boundary_val)) {
-	*inc = f_m2a * (*residual_val / *mass_val) - *accel_val;
+	*inc = f_m2a * (*residual_val / *mass_val);
       }
       residual_val++;
-      accel_val++;
       boundary_val++;
       inc++;
       mass_val++;
@@ -335,7 +371,7 @@ void SolidMechanicsModel::explicitPred() {
 	   displacement->values,
 	   displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
   }
-  
+
   AKANTU_DEBUG_ASSERT(integrator,"itegrator should have been allocated: "
 		      << "have called initExplicit ? "
 		      << "or initImplicit ?");
@@ -364,9 +400,6 @@ void SolidMechanicsModel::explicitPred() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::explicitCorr() {
   AKANTU_DEBUG_IN();
-
-  Vector<Real> tmp(acceleration->getSize(), acceleration->getNbComponent());
-  tmp.clear();
 
   integrator->integrationSchemeCorrAccel(time_step,
 					 *displacement,
@@ -401,7 +434,7 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
   if(dynamic) {
     if(integrator) delete integrator;
-    integrator = new TrapezoidalRule();
+    integrator = new TrapezoidalRule2();
 
     std::stringstream sstr_jac; sstr_jac << id << ":jacobian_matrix";
     jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_jac.str(), memory_id);
@@ -478,7 +511,7 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
 		      "You should first initialize the implicit solver and assemble the mass matrix");
 
-  NewmarkBeta * nmb_int = dynamic_cast<TrapezoidalRule *>(integrator);
+  NewmarkBeta * nmb_int = dynamic_cast<TrapezoidalRule2 *>(integrator);
   Real c = nmb_int->getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
   Real d = nmb_int->getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
   Real e = nmb_int->getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
@@ -496,19 +529,6 @@ void SolidMechanicsModel::solveDynamic() {
   if(AKANTU_DEBUG_TEST(dblDump))
     jacobian_matrix->saveMatrix("J.mtx");
 #endif
-
-  // f = f_ext - f_int - Ma - Cv
-  Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
-  *Ma *= *mass_matrix;
-  *residual -= *Ma;
-  delete Ma;
-
-  if(velocity_damping_matrix) {
-    Vector<Real> * Cv = new Vector<Real>(*velocity);
-    *Cv *= *velocity_damping_matrix;
-    *residual -= *Cv;
-    delete Cv;
-  }
 
   solver->setRHS(*residual);
   if(!increment) setIncrementFlagOn();
