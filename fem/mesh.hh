@@ -39,25 +39,62 @@
 
 __BEGIN_AKANTU__
 
+
 /* -------------------------------------------------------------------------- */
+/* ByElementType                                                              */
+/* -------------------------------------------------------------------------- */
+template<class Stored> class ByElementType {
+private:
+  typedef std::map<ElementType, Stored> DataMap;
+public:
+  ByElementType();
+  ~ByElementType();
+
+  inline static std::string printType(const ElementType & type, const GhostType & ghost_type);
+
+  inline bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
+
+  inline const Stored & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
+  inline Stored & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost);
+
+  void printself(std::ostream & stream, int indent = 0) const;
+
+private:
+  inline DataMap & getData(GhostType ghost_type);
+  inline const DataMap & getData(GhostType ghost_type) const;
+
+/* -------------------------------------------------------------------------- */
+private:
+  DataMap data;
+  DataMap ghost_data;
+};
+
+template <typename T>
+class ByElementTypeVector : public ByElementType<Vector<T> *> {};
+
 /// to store data Vector<Real> by element type
-typedef Vector<Real> * ByElementTypeReal[_max_element_type];
-
+typedef ByElementTypeVector<Real> ByElementTypeReal;
 /// to store data Vector<Int> by element type
-typedef Vector<Int>  * ByElementTypeInt [_max_element_type];
-
+typedef ByElementTypeVector<Int>  ByElementTypeInt;
 /// to store data Vector<UInt> by element type
-typedef Vector<UInt> * ByElementTypeUInt[_max_element_type];
+typedef ByElementTypeVector<UInt> ByElementTypeUInt;
 
+/// Map of data of type UInt stored in a mesh
+typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
+typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
+
+/* -------------------------------------------------------------------------- */
+/* Element                                                                    */
 /* -------------------------------------------------------------------------- */
 class Element {
 public:
-  Element(ElementType type = _not_defined, UInt element = 0) :
-    type(type), element(element) {};
+  Element(ElementType type = _not_defined, UInt element = 0, GhostType ghost_type = _not_ghost) :
+    type(type), element(element), ghost_type(ghost_type) {};
 
   Element(const Element & element) {
     this->type    = element.type;
     this->element = element.element;
+    this->ghost_type = element.ghost_type;
   }
 
   ~Element() {};
@@ -67,11 +104,11 @@ public:
 public:
   ElementType type;
   UInt element;
+  GhostType ghost_type;
 };
 
 extern const Element ElementNull;
 
-/* -------------------------------------------------------------------------- */
 
 /**
  * @class Mesh this contain the coordinates of the nodes in the Mesh.nodes Vector,
@@ -127,7 +164,7 @@ public:
   /// @typedef ConnectivityTypeList list of the types present in a Mesh
   typedef std::set<ElementType> ConnectivityTypeList;
 
-  typedef Vector<Real> * NormalsMap[_max_element_type];
+  //  typedef Vector<Real> * NormalsMap[_max_element_type];
 
 private:
   /// initialize the connectivity to NULL and other stuff
@@ -145,18 +182,11 @@ public:
   void computeBoundingBox();
 
   /// init a by-element-type real vector with provided ids
-  void initByElementTypeRealVector(ByElementTypeReal & v, UInt nb_component,
-				   UInt dimension,
-				   const std::string & obj_id,
-				   const std::string & vec_id,
-				   GhostType ghost_type);
-
-  /// init a by-element-type real vector with provided ids
-  void initByElementTypeUIntVector(ByElementTypeUInt & v,UInt nb_component,
-				   UInt dimension,
-				   const std::string & obj_id,
-				   const std::string & vec_id,
-				   GhostType ghost_type=_not_ghost);
+  template<typename T>
+  void initByElementTypeVector(ByElementTypeVector<T> & v,
+			       UInt nb_component, UInt size,
+			       const std::string & obj_id,
+			       const std::string & vec_id);
 
   /// extract coordinates of nodes from an element
   inline void extractNodalCoordinatesFromElement(Real * local_coords,
@@ -175,16 +205,16 @@ public:
   inline Element linearizedToElement (UInt linearized_element);
 
   /// update the types offsets array for the conversions
-  inline void updateTypesOffsets();
+  inline void updateTypesOffsets(GhostType ghost_type);
 
-  /// convert a element to a linearized element
-  inline UInt ghostElementToLinearized(const Element & elem);
+  // /// convert a element to a linearized element
+  // inline UInt ghostElementToLinearized(const Element & elem);
 
-  /// convert a linearized element to an element
-  inline Element ghostLinearizedToElement (UInt linearized_element);
+  // /// convert a linearized element to an element
+  // inline Element ghostLinearizedToElement (UInt linearized_element);
 
   /// update the types offsets array for the conversions
-  inline void updateGhostTypesOffsets();
+  // inline void updateGhostTypesOffsets();
 
   /// add a Vector of connectivity for the type <type>.
   inline void addConnecticityType(const ElementType & type);
@@ -239,13 +269,7 @@ public:
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
   /// get the connectivity Vector for a given type
-  const Vector<UInt> & getConnectivity(const ElementType & type,
-				       const GhostType & ghost_type = _not_ghost) const;
-  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, const Vector<UInt> &);
-  /// get the connecticity of ghost elements of a given type
-  //AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostConnectivity, ghost_connectivities, const Vector<UInt> &);
-
-  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
 
   /// @todo take out this set, if mesh can read surface id
   /// set the number of surfaces
@@ -268,13 +292,14 @@ public:
 			    GhostType ghost_type = _not_ghost) const;
 
   /// get the surface values of facets
-  inline const Vector<UInt> & getSurfaceId(const ElementType & type) const;
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SurfaceID, surface_id, UInt);
 
   /// set the int data to the surface id vectors
-  inline void setSurfaceIdsFromIntData(std::string & data_name);
+  inline void setSurfaceIDsFromIntData(std::string & data_name);
 
   inline const Vector<UInt> & getUIntData(const ElementType & el_type,
-					  const std::string & data_name) const;
+					  const std::string & data_name,
+					  const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -302,6 +327,9 @@ public:
   /// get the pointer to the list of elements for a given type
   inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
 
+  /* ------------------------------------------------------------------------ */
+  /* Private methods for friends                                              */
+  /* ------------------------------------------------------------------------ */
 private:
   friend class MeshIOMSH;
   friend class MeshIODiana;
@@ -326,16 +354,16 @@ private:
   // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   /// get a pointer to the surface_id Vector for the given type and create it if necessary
-  inline Vector<UInt> * getSurfaceIdPointer(const ElementType & type);
+  inline Vector<UInt> * getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
-  typedef std::map<std::string, Vector<UInt> * > UIntDataMap;
-  typedef UIntDataMap ByElementTypeUIntDataMap[_max_element_type];
-  /// get the IntDataMap for a given ElementType
+  /// get the UIntDataMap for a given ElementType
   inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
 				      const GhostType & ghost_type = _not_ghost);
 
   /// get the IntDataMap pointer (moidifyable) for a given ElementType
-  inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type, const std::string & data_name);
+  inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type,
+					   const std::string & data_name,
+					   const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -379,12 +407,8 @@ private:
   /// types offsets
   Vector<UInt> types_offsets;
 
-  /// all class of elements present in this mesh (for heterogenous meshes)
-  ByElementTypeUInt ghost_connectivities;
-
   /// list of all existing types in the mesh
   ConnectivityTypeList ghost_type_set;
-
   /// ghost types offsets
   Vector<UInt> ghost_types_offsets;
 
@@ -393,7 +417,6 @@ private:
 
   /// surface id of the surface elements in this mesh
   ByElementTypeUInt surface_id;
-  ByElementTypeUInt ghost_surface_id;
 
   /// min of coordinates
   Real xmin[3];
@@ -408,7 +431,6 @@ private:
 
   /// list of the vectors corresponding to tags in the mesh
   ByElementTypeUIntDataMap uint_data;
-  ByElementTypeUIntDataMap ghost_uint_data;
 };
 
 /* -------------------------------------------------------------------------- */

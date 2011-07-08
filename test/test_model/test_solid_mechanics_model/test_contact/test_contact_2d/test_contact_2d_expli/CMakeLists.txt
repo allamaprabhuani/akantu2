@@ -30,3 +30,6 @@ add_mesh(test_contact_2d_expli_mesh squares.geo 2 1)
 
 register_test(test_contact_2d_expli test_contact_2d_expli.cc)
 add_dependencies(test_contact_2d_expli test_contact_2d_expli_mesh)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+file(COPY materials.dat DESTINATION .)

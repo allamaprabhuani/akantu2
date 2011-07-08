@@ -73,11 +73,9 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Partition, partitions, const Vector<UInt> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostPartition,
-				   ghost_partitions, const Vector<UInt> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostPartitionOffset,
-				   ghost_partitions_offset, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartition, ghost_partitions, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);
 
   AKANTU_GET_MACRO(NbPartition, nb_partitions, UInt);
 
@@ -101,7 +99,6 @@ protected:
   ByElementTypeUInt partitions;
 
   ByElementTypeUInt ghost_partitions;
-
   ByElementTypeUInt ghost_partitions_offset;
 
   Vector<UInt> * permutation;

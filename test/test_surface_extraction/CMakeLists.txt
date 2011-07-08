@@ -36,3 +36,5 @@ add_mesh(test_surface_extraction_3d_mesh cubes.geo 3 1)
 
 register_test(test_surface_extraction_tetrahedron_4 test_surface_extraction_tetrahedron_4.cc)
 add_dependencies(test_surface_extraction_tetrahedron_4 test_surface_extraction_3d_mesh)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

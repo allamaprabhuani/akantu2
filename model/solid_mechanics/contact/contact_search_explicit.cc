@@ -88,23 +88,23 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
       /// initialization of penetration list
       std::stringstream sstr_facets_offset;
       sstr_facets_offset << id << ":penetrated_facets_offset:" << current_facet_type;
-      penetration_list.penetrated_facets_offset[current_facet_type] = new Vector<UInt>(0, 1, sstr_facets_offset.str());
+      penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost) = new Vector<UInt>(0, 1, sstr_facets_offset.str());
 
       std::stringstream sstr_facets;
       sstr_facets << id << ":penetrated_facets:" << current_facet_type;
-      penetration_list.penetrated_facets[current_facet_type] = new Vector<UInt>(0, 1, sstr_facets.str());
+      penetration_list.penetrated_facets(current_facet_type, _not_ghost) = new Vector<UInt>(0, 1, sstr_facets.str());
 
       std::stringstream sstr_normals;
       sstr_normals << id << ":facets_normals:" << current_facet_type;
-      penetration_list.facets_normals[current_facet_type] = new Vector<Real>(0, spatial_dimension, sstr_normals.str());
+      penetration_list.facets_normals(current_facet_type, _not_ghost) = new Vector<Real>(0, spatial_dimension, sstr_normals.str());
 
       std::stringstream sstr_gaps;
       sstr_gaps << id << ":gaps:" << current_facet_type;
-      penetration_list.gaps[current_facet_type] = new Vector<Real>(0, 1, sstr_gaps.str());
+      penetration_list.gaps(current_facet_type, _not_ghost) = new Vector<Real>(0, 1, sstr_gaps.str());
 
       std::stringstream sstr_projected_positions;
       sstr_projected_positions << id << ":projected_positions:" << current_facet_type;
-      penetration_list.projected_positions[current_facet_type] = new Vector<Real>(0, spatial_dimension, sstr_projected_positions.str());
+      penetration_list.projected_positions(current_facet_type, _not_ghost) = new Vector<Real>(0, spatial_dimension, sstr_projected_positions.str());
     }
   }
 
@@ -125,10 +125,10 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
     for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
       ElementType type = facet_type[el_type];
 
-      UInt * surface_id_val = mesh.getSurfaceId(type).values;
+      UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).values;
 
-      const Vector<UInt> & node_to_elements_offset = contact.getNodeToElementsOffset(type);
-      const Vector<UInt> & node_to_elements = contact.getNodeToElements(type);
+      const Vector<UInt> & node_to_elements_offset = contact.getNodeToElementsOffset(type, _not_ghost);
+      const Vector<UInt> & node_to_elements = contact.getNodeToElements(type, _not_ghost);
       UInt * node_to_elements_offset_val = node_to_elements_offset.values;
       UInt * node_to_elements_val        = node_to_elements.values;
 
@@ -172,7 +172,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 
 	ElementType current_type = surface_elements.at(el).type;
 	UInt current_element = surface_elements.at(el).element;
-	penetration_list.penetrated_facets[current_type]->push_back(current_element);
+	penetration_list.penetrated_facets(current_type, _not_ghost)->push_back(current_element);
 
 	Real normal[3];
 	Real projected_position[3];
@@ -184,9 +184,9 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 				      gap,
 				      projected_position);
 
-	penetration_list.facets_normals[current_type]->push_back(normal);
-	penetration_list.projected_positions[current_type]->push_back(projected_position);
-	penetration_list.gaps[current_type]->push_back(gap);
+	penetration_list.facets_normals(current_type, _not_ghost)->push_back(normal);
+	penetration_list.projected_positions(current_type, _not_ghost)->push_back(projected_position);
+	penetration_list.gaps(current_type, _not_ghost)->push_back(gap);
 
 	nb_penetrated_elements++;
 	nb_elements_type[current_type]++;
@@ -198,7 +198,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 	if(mesh.getSpatialDimension(type) == spatial_dimension) {
 	  penetration_list.penetrating_nodes.push_back(current_impactor_node);
 	  ElementType current_facet_type = mesh.getFacetElementType(type);
-	  penetration_list.penetrated_facets_offset[current_facet_type]->push_back(nb_elements_type[current_facet_type]);
+	  penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost)->push_back(nb_elements_type[current_facet_type]);
 	}
       }
     }
@@ -220,7 +220,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 
 	    ElementType current_type = surface_elements.at(el).type;
 	    UInt current_element = surface_elements.at(el).element;
-	    penetration_list.penetrated_facets[current_type]->push_back(current_element);
+	    penetration_list.penetrated_facets(current_type, _not_ghost)->push_back(current_element);
 
 	    Real normal[3];
 	    Real projected_position[3];
@@ -232,9 +232,9 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 					  gap,
 					  projected_position);
 
-	    penetration_list.facets_normals[current_type]->push_back(normal);
-	    penetration_list.projected_positions[current_type]->push_back(projected_position);
-	    penetration_list.gaps[current_type]->push_back(gap);
+	    penetration_list.facets_normals(current_type, _not_ghost)->push_back(normal);
+	    penetration_list.projected_positions(current_type, _not_ghost)->push_back(projected_position);
+	    penetration_list.gaps(current_type, _not_ghost)->push_back(gap);
 
 	    nb_penetrated_elements++;
 	    nb_elements_type[current_type]++;
@@ -247,7 +247,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 	    if(mesh.getSpatialDimension(type) == spatial_dimension) {
 	      penetration_list.penetrating_nodes.push_back(current_impactor_node);
 	      ElementType current_facet_type = mesh.getFacetElementType(type);
-	      penetration_list.penetrated_facets_offset[current_facet_type]->push_back(nb_elements_type[current_facet_type]);
+	      penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost)->push_back(nb_elements_type[current_facet_type]);
 	    }
 	  }
 	}
@@ -265,10 +265,10 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
     if(mesh.getSpatialDimension(type) == spatial_dimension) {
       ElementType current_facet_type = mesh.getFacetElementType(type);
 
-      UInt tmp_nb_facets = penetration_list.penetrated_facets_offset[current_facet_type]->getSize();
-      penetration_list.penetrated_facets_offset[current_facet_type]->resize(tmp_nb_facets+1);
+      UInt tmp_nb_facets = penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost)->getSize();
+      penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost)->resize(tmp_nb_facets+1);
 
-      Vector<UInt> & tmp_penetrated_facets_offset = *(penetration_list.penetrated_facets_offset[current_facet_type]);
+      Vector<UInt> & tmp_penetrated_facets_offset = *(penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost));
       UInt * tmp_penetrated_facets_offset_val = tmp_penetrated_facets_offset.values;
 
       for (UInt i = 1; i < tmp_nb_facets; ++i)
@@ -429,7 +429,7 @@ void ContactSearchExplicit::computeComponentsOfProjectionSegment2(const UInt imp
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
 
   Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type).values;
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
 
   UInt node_1 = surface_element * nb_nodes_element;
   Real * position_node_1 = &(current_position[connectivity[node_1 + 0] * spatial_dimension]);
@@ -469,7 +469,7 @@ void ContactSearchExplicit::computeComponentsOfProjectionTriangle3(const UInt im
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
 
   Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type).values;
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
 
   UInt node_1 = surface_element * nb_nodes_element;
   Real * position_node_1 = &(current_position[connectivity[node_1 + 0] * spatial_dimension]);
@@ -513,7 +513,7 @@ void ContactSearchExplicit::checkPenetrationSituationSegment2(const UInt impacto
   const Real tolerance = std::numeric_limits<Real>::epsilon();
 
   Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type).values;
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
 
   Real gap;
   Real normal[2];
@@ -570,7 +570,7 @@ void ContactSearchExplicit::checkPenetrationSituationTriangle3(const UInt impact
   const Real tolerance = std::numeric_limits<Real>::epsilon();
 
   Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type).values;
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
 
   Real gap;
   Real normal[3];

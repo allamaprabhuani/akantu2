@@ -44,7 +44,7 @@ __BEGIN_AKANTU__
  *   - rho : density (default: 0)
  *   - E   : Young's modulus (default: 0)
  *   - nu  : Poisson's ratio (default: 1/2)
- *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
+ *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  *   - alpha : viscous ratio
  */
 class MaterialElasticCaughey : public MaterialElastic {
@@ -84,8 +84,8 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(StressViscosity, stress_viscosity, const Vector<Real> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(StressElastic, stress_elastic, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressViscosity, stress_viscosity, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressElastic,   stress_elastic, Real);
 
   AKANTU_GET_MACRO(Alpha, alpha, const Real&);
   AKANTU_SET_MACRO(Alpha, alpha, Real &);
@@ -96,12 +96,10 @@ public:
 private:
 
   /// stress due to viscosity
-  ByElementTypeReal ghost_stress_viscosity;
   ByElementTypeReal stress_viscosity;
 
   /// stress due to elasticity
-  ByElementTypeReal ghost_stress_elastic;  
-  ByElementTypeReal stress_elastic;        
+  ByElementTypeReal stress_elastic;
 
   /// viscous ratio
   Real alpha;

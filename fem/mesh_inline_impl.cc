@@ -49,56 +49,58 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::updateTypesOffsets() {
-  UInt count = 0;
-  for (UInt t = _not_defined;  t <= _max_element_type; ++t) {
-    types_offsets.values[t] = count;
-    count += (t == _max_element_type || connectivities[t] == NULL) ?
-      0 : connectivities[t]->getSize();
-  }
+inline void Mesh::updateTypesOffsets(GhostType ghost_type) {
+  types_offsets.clear();
+  ConnectivityTypeList::const_iterator it;
+  for (it = type_set.begin(); it != type_set.end(); ++it)
+    types_offsets(*it) = connectivities(*it, ghost_type)->getSize();
+
+  for (UInt t = _not_defined + 1;  t <= _max_element_type; ++t)
+    types_offsets(t) += types_offsets(t - 1);
 }
 
-/* -------------------------------------------------------------------------- */
-inline UInt Mesh::ghostElementToLinearized(const Element & elem) {
-  AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
-		      elem.element < ghost_types_offsets.values[elem.type+1],
-		      "The ghost element " << elem
-		      << "does not exists in the mesh " << id);
+// /* -------------------------------------------------------------------------- */
+// inline UInt Mesh::ghostElementToLinearized(const Element & elem) {
+//   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
+// 		      elem.element < ghost_types_offsets.values[elem.type+1],
+// 		      "The ghost element " << elem
+// 		      << "does not exists in the mesh " << id);
 
-  return ghost_types_offsets.values[elem.type] +
-    elem.element +
-    types_offsets.values[_max_element_type];
-}
+//   return ghost_types_offsets.values[elem.type] +
+//     elem.element +
+//     types_offsets.values[_max_element_type];
+// }
 
-/* -------------------------------------------------------------------------- */
-inline Element Mesh::ghostLinearizedToElement (UInt linearized_element) {
-  AKANTU_DEBUG_ASSERT(linearized_element >= types_offsets.values[_max_element_type],
-		      "The linearized element " << linearized_element
-		      << "is not a ghost element in the mesh " << id);
+// /* -------------------------------------------------------------------------- */
+// inline Element Mesh::ghostLinearizedToElement (UInt linearized_element) {
+//   AKANTU_DEBUG_ASSERT(linearized_element >= types_offsets.values[_max_element_type],
+// 		      "The linearized element " << linearized_element
+// 		      << "is not a ghost element in the mesh " << id);
 
 
-  linearized_element -= types_offsets.values[_max_element_type];
-  UInt t;
-  for (t = _not_defined + 1;
-       linearized_element > ghost_types_offsets.values[t] && t <= _max_element_type; ++t);
+//   linearized_element -= types_offsets.values[_max_element_type];
+//   UInt t;
+//   for (t = _not_defined + 1;
+//        linearized_element > ghost_types_offsets.values[t] && t <= _max_element_type; ++t);
 
-  AKANTU_DEBUG_ASSERT(t < _max_element_type,
-		      "The ghost linearized element " << linearized_element
-		      << "does not exists in the mesh " << id);
+//   AKANTU_DEBUG_ASSERT(t < _max_element_type,
+// 		      "The ghost linearized element " << linearized_element
+// 		      << "does not exists in the mesh " << id);
 
-  t--;
-  return Element((ElementType) t, linearized_element - ghost_types_offsets.values[t]);
-}
+//   t--;
+//   return Element((ElementType) t, linearized_element - ghost_types_offsets.values[t]);
+// }
 
-/* -------------------------------------------------------------------------- */
-inline void Mesh::updateGhostTypesOffsets() {
-  UInt count = 0;
-  for (UInt t = _not_defined;  t <= _max_element_type; ++t) {
-    ghost_types_offsets.values[t] = count;
-    count += (t == _max_element_type || ghost_connectivities[t] == NULL) ?
-      0 : ghost_connectivities[t]->getSize();
-  }
-}
+// /* -------------------------------------------------------------------------- */
+// inline void Mesh::updateGhostTypesOffsets() {
+//   ghost_types_offsets.clear();
+//   ByElementTypeUInt::const_iterator it;
+//   for (it = ghost_connectivities.begin(); it != ghost_connectivities.end(); ++it)
+//     ghost_types_offsets(it->first) = it->second->getSize();
+
+//   for (UInt t = _not_defined + 1;  t <= _max_element_type; ++t)
+//     ghost_types_offsets(t) += ghost_types_offsets(t - 1);
+// }
 
 /* -------------------------------------------------------------------------- */
 inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(GhostType ghost_type) const {
@@ -135,36 +137,28 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 						   const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> ** con = NULL;
-  if (ghost_type == _not_ghost) con = &connectivities[type];
-  else con = &ghost_connectivities[type];
-  
-  if(*con == NULL) {
+  if(!connectivities.exists(type, ghost_type)) {
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     std::stringstream sstr;
     sstr << id << ":";
     if (ghost_type == _ghost) sstr << "ghost_";
     sstr << "connectivity:" << type;
-    *con = &(alloc<UInt>(sstr.str(),
-			0,
-			nb_nodes_per_element));
+    connectivities(type, ghost_type) = &(alloc<UInt>(sstr.str(),
+						     0,
+						     nb_nodes_per_element));
 
     AKANTU_DEBUG_INFO("The connectivity vector for the type "
 		      << type << " created");
 
-    if (ghost_type == _not_ghost){
-      type_set.insert(type);
-      updateTypesOffsets();
-    }
-    else {
-      ghost_type_set.insert(type);
-      updateGhostTypesOffsets();
-    }
+    if (ghost_type == _not_ghost) type_set.insert(type);
+    else ghost_type_set.insert(type);
+
+    updateTypesOffsets(ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
-  return *con;
+  return connectivities(type, ghost_type);
 }
 
 // /* -------------------------------------------------------------------------- */
@@ -217,29 +211,29 @@ inline Mesh * Mesh::getInternalFacetsMeshPointer() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getSurfaceIdPointer(const ElementType & type) {
+inline Vector<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  if(surface_id[type] == NULL) {
+  if(!surface_id.exists(type, ghost_type)) {
     std::stringstream sstr;
     sstr << id << ":surface_id:" << type;
-    surface_id[type] = &(alloc<UInt>(sstr.str(),
-				     0,
-				     1));
+    surface_id(type, ghost_type) = &(alloc<UInt>(sstr.str(),
+						 0,
+						 1));
 
     AKANTU_DEBUG_INFO("The surface id vector for the type "
 		      << type << " created");
   }
 
   AKANTU_DEBUG_OUT();
-  return surface_id[type];
+  return surface_id(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 
 // inline Vector<UInt> * Mesh::getReversedElementsPBCPointer(const ElementType & type) {
 //   AKANTU_DEBUG_IN();
-  
+
 //   if(reversed_elements_pbc[type] == NULL) {
 //     AKANTU_DEBUG_ERROR("There are no reversed elements for the type" << type);
 //   }
@@ -251,14 +245,16 @@ inline Vector<UInt> * Mesh::getSurfaceIdPointer(const ElementType & type) {
 
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
-					       const std::string & data_name) {
+					       const std::string & data_name,
+					       const GhostType & ghost_type) {
   //  AKANTU_DEBUG_IN();
 
   Vector<UInt> * data;
-  Mesh::UIntDataMap::iterator it = uint_data[el_type].find(data_name);
-  if(it == uint_data[el_type].end()) {
+  UIntDataMap & map = uint_data(el_type, ghost_type);
+  UIntDataMap::iterator it = map.find(data_name);
+  if(it == map.end()) {
     data = new Vector<UInt>(0, 1, data_name);
-    uint_data[el_type][data_name] = data;
+    map[data_name] = data;
   } else {
     data = it->second;
   }
@@ -269,51 +265,46 @@ inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
 
 /* -------------------------------------------------------------------------- */
 inline const Vector<UInt> & Mesh::getUIntData(const ElementType & el_type,
-					      const std::string & data_name) const {
+					      const std::string & data_name,
+					      const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  Mesh::UIntDataMap::const_iterator it = uint_data[el_type].find(data_name);
+  const UIntDataMap & map = uint_data(el_type, ghost_type);
+  UIntDataMap::const_iterator it = map.find(data_name);
 
-  AKANTU_DEBUG_ASSERT(it != uint_data[el_type].end(), 
+  AKANTU_DEBUG_ASSERT(it != map.end(),
 		      "No data named " << data_name << " in the mesh " << id);
-   
+
   AKANTU_DEBUG_OUT();
   return *(it->second);
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbElement(const ElementType & type, 
+inline UIntDataMap & Mesh::getUIntDataMap(const ElementType & el_type,
+					  const GhostType & ghost_type) {
+  // AKANTU_DEBUG_ASSERT(uint_data.exists(el_type, ghost_type),
+  // 		      "No UIntDataMap for the type (" << ghost_type << ":" << el_type << ")");
+  return uint_data(el_type, ghost_type);
+};
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNbElement(const ElementType & type,
 			       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> * con = NULL;
-  if (ghost_type == _not_ghost) con = connectivities[type];
-  else con = ghost_connectivities[type];
-  
-  if (con == NULL) return 0;
+  const ByElementTypeUInt & const_conn = connectivities;
 
   AKANTU_DEBUG_OUT();
-  return con->getSize();
+  return const_conn(type, ghost_type)->getSize();
 }
 
-// /* -------------------------------------------------------------------------- */
-// inline UInt Mesh::getNbGhostElement(const ElementType & type) const {
-//   AKANTU_DEBUG_IN();
-
-//   AKANTU_DEBUG_ASSERT(ghost_connectivities[type] != NULL,
-// 		      "No element of kind : " << type << " in " << id);
-
-//   AKANTU_DEBUG_OUT();
-//   return ghost_connectivities[type]->getSize();
-// }
-
 /* -------------------------------------------------------------------------- */
-inline void Mesh::getBarycenter(UInt element, const ElementType & type, 
+inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 				Real * barycenter,
 				GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt * conn_val = getConnectivity(type,ghost_type).values;
+  UInt * conn_val = getConnectivity(type, ghost_type).values;
   UInt nb_nodes_per_element = getNbNodesPerElement(type);
 
   Real local_coord[spatial_dimension * nb_nodes_per_element];
@@ -331,49 +322,27 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Vector<UInt> & Mesh::getSurfaceId(const ElementType & type) const{
-  AKANTU_DEBUG_IN();
+inline void Mesh::setSurfaceIDsFromIntData(std::string & data_name) {
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
 
-  AKANTU_DEBUG_ASSERT(surface_id[type] != NULL,
-		      "No element of kind : " << type << " in " << id);
+    const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
 
-  AKANTU_DEBUG_OUT();
-  return *surface_id[type];
-}
+      UIntDataMap & map = uint_data(*it, gt);
+      UIntDataMap::iterator it_data = map.find(data_name);
+      AKANTU_DEBUG_ASSERT(it_data != map.end(),
+			  "No data named " << data_name
+			  << " present in the mesh " << id
+			  << " for the element type " << *it);
+      AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
+			  "Surface id for type (" << gt << ":" << *it
+			  << ") already set to the vector " << surface_id(*it, gt)->getID());
 
-/* -------------------------------------------------------------------------- */
-inline void Mesh::setSurfaceIdsFromIntData(std::string & data_name) {
-  const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
-
-    UIntDataMap::iterator it_data = uint_data[*it].find(data_name);
-    AKANTU_DEBUG_ASSERT(it_data != uint_data[*it].end(),
-			"No data named " << data_name
-			<< " present in the mesh " << id
-			<< " for the element type " << *it);
-    AKANTU_DEBUG_ASSERT(surface_id[*it] == NULL,
-			"Surface id for type " << *it
-			<< " already set to the vector " << surface_id[*it]->getID());
-
-    surface_id[*it] = it_data->second;
-  }
-
-  const Mesh::ConnectivityTypeList & ghost_type_list = getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
-
-    UIntDataMap::iterator it_data = ghost_uint_data[*it].find(data_name);
-    AKANTU_DEBUG_ASSERT(it_data != ghost_uint_data[*it].end(),
-			"No data named " << data_name
-			<< " present in the mesh " << id
-			<< " for the element type " << *it);
-    AKANTU_DEBUG_ASSERT(ghost_surface_id[*it] == NULL,
-			"Surface id for type " << *it
-			<< " already set to the vector " << ghost_surface_id[*it]->getID());
-
-    ghost_surface_id[*it] = it_data->second;
+      surface_id(*it, gt) = it_data->second;
+    }
   }
 }
 
@@ -482,16 +451,16 @@ inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
 // inline void Mesh::extractNodalCoordinatesFromPBCElement(Real * local_coord,
 // 							UInt * connectivity,
 // 							UInt n_nodes){
-  
+
 //   // get the min max of the element coordinates in all directions
 //   Real min[3];
 //   Real max[3];
-  
+
 //   for (UInt k = 0; k < spatial_dimension; k++) {
 //     min[k] = std::numeric_limits<double>::max();
 //     max[k] = std::numeric_limits<double>::min();
 //   }
-  
+
 //   for (UInt nd = 0; nd < n_nodes; nd++) {
 //     Real * coord = nodes->values + connectivity[nd] * spatial_dimension;
 //     for (UInt k = 0; k < spatial_dimension; ++k) {
@@ -571,22 +540,102 @@ inline UInt Mesh::getNbGlobalNodes() const {
 inline Int Mesh::getNodeType(UInt local_id) const {
   return nodes_type ? (*nodes_type)(local_id) : -1;
 }
-/* -------------------------------------------------------------------------- */
-inline Mesh::UIntDataMap & Mesh::getUIntDataMap(const ElementType & el_type,
-						const GhostType & ghost_type){ 
-  if (ghost_type == _not_ghost)
-    return uint_data[el_type]; 
 
-  return ghost_uint_data[el_type]; 
-};
 /* -------------------------------------------------------------------------- */
-inline const Vector<UInt> & Mesh::getConnectivity(const ElementType & el_type,
-						  const GhostType & ghost_type) const{ 
-  if (ghost_type == _not_ghost)
-    return *connectivities[el_type]; 
-
-  return *ghost_connectivities[el_type];
-};
+/* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+inline std::string ByElementType<Stored>::printType(const ElementType & type,
+						    const GhostType & ghost_type) {
+  std::stringstream sstr; sstr << "(" << ghost_type << ":" << type << ")";
+  return sstr.str();
+}
 
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+inline bool ByElementType<Stored>::exists(ElementType type, GhostType ghost_type) const {
+  return this->getData(ghost_type).find(type) != this->getData(ghost_type).end();
+}
+
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+inline const Stored & ByElementType<Stored>::operator()(const ElementType & type,
+						const GhostType & ghost_type) const {
+  typename ByElementType<Stored>::DataMap::const_iterator it =
+    this->getData(ghost_type).find(type);
+
+  AKANTU_DEBUG_ASSERT(it != this->getData(ghost_type).end(),
+		      "No element of type "
+		      << ByElementType<Stored>::printType(type, ghost_type)
+		      << " in this ByElementType<"
+		      << debug::demangle(typeid(Stored).name()) << "> class");
+  return it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+inline Stored & ByElementType<Stored>::operator()(const ElementType & type,
+					  const GhostType & ghost_type) {
+  typename ByElementType<Stored>::DataMap::iterator it =
+    this->getData(ghost_type).find(type);
+
+  if(it == this->getData(ghost_type).end()) {
+    ByElementType<Stored>::DataMap & data = this->getData(ghost_type);
+    const std::pair<typename DataMap::iterator, bool> & res =
+      data.insert(std::pair<ElementType, Stored>(type, Stored()));
+    it = res.first;
+  }
+
+  return it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+inline typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) {
+  if(ghost_type == _not_ghost) return data;
+  else if (ghost_type == _ghost) return ghost_data;
+}
+
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+inline const typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) const {
+  if(ghost_type == _not_ghost) return data;
+  else if (ghost_type == _ghost) return ghost_data;
+}
+
+/* -------------------------------------------------------------------------- */
+/// Works only if stored is a pointer to a class with a printself method
+template<class Stored>
+void ByElementType<Stored>::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << "ByElementType<" << debug::demangle(typeid(Stored).name()) << "> [" << std::endl;
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+
+    const ByElementType<Stored>::DataMap & data = getData(gt);
+    typename ByElementType<Stored>::DataMap::const_iterator it;
+    for(it = data.begin(); it != data.end(); ++it) {
+      stream << space << debug::demangle(typeid(Stored).name())
+	     << ByElementType<Stored>::printType(it->first, gt) << " [" << std::endl;
+      it->second->printself(stream, indent + 2);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+ByElementType<Stored>::ByElementType() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<class Stored>
+ByElementType<Stored>::~ByElementType() {
+
+}

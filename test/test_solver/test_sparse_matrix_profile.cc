@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
   akantu::UInt nb_nodes = mesh.getNbNodes();
   akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric, spatial_dimension, "mesh");
   akantu::DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
+  dof_synchronizer.initGlobalDOFEquationNumbers();
 
   sparse_matrix.buildProfile(mesh, dof_synchronizer);
   sparse_matrix.saveProfile("profile.mtx");
@@ -83,6 +84,8 @@ int main(int argc, char *argv[]) {
   delete partition;
 
   akantu::DOFSynchronizer dof_synchronizer_re(mesh, spatial_dimension);
+  dof_synchronizer_re.initGlobalDOFEquationNumbers();
+
   sparse_matrix.buildProfile(mesh, dof_synchronizer_re);
   sparse_matrix.saveProfile("profile_reorder.mtx");
   mesh_io.write("triangle_reorder.msh", mesh);

@@ -70,13 +70,13 @@ int main(int argc, char *argv[])
   UInt nb_elements = model->getFEM().getMesh().getNbElement(_triangle_3);
 
   /// model initialization
+  model->initModel();
   model->initVectors();
 
   model->readMaterials("materials.dat");
   model->initMaterials();
 
   model->initExplicit();
-  model->initModel();
   std::cout << model->getMaterial(0) << std::endl;
 
   model->assembleMassLumped();
@@ -155,8 +155,8 @@ int main(int argc, char *argv[])
     UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
     UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
   
-    UInt * node_facet_off_val = my_neighbor_list.facets_offset[_segment_2]->values;
-    UInt * node_facet_val = my_neighbor_list.facets[_segment_2]->values;
+    UInt * node_facet_off_val = my_neighbor_list.facets_offset(_segment_2)->values;
+    UInt * node_facet_val = my_neighbor_list.facets(_segment_2)->values;
 
     /// print impactor nodes
     std::cout << "Master surface " << s << " has " <<  nb_impactors << " impactor nodes:" << std::endl;
@@ -238,8 +238,8 @@ static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_l
   UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
   UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
   
-  UInt nb_facets = my_neighbor_list.facets[_segment_2]->getSize();
-  UInt * node_facet_val = my_neighbor_list.facets[_segment_2]->values;
+  UInt nb_facets = my_neighbor_list.facets(_segment_2)->getSize();
+  UInt * node_facet_val = my_neighbor_list.facets(_segment_2)->values;
 
   // double * node_id = new double [mesh.getNbNodes()];
   memset(node_id, 0, mesh.getNbNodes()*sizeof(double));

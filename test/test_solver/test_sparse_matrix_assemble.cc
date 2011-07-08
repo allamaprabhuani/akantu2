@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
   akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric, spatial_dimension);
 
   akantu::DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
+  dof_synchronizer.initGlobalDOFEquationNumbers();
   sparse_matrix.buildProfile(mesh, dof_synchronizer);
 
   // const akantu::Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();

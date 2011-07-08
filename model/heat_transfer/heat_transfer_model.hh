@@ -171,9 +171,7 @@ public:
   /// get the boundary vector
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
   /// get the temperature gradient
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradient, temperature_gradient, Vector<Real> &);
-  /// get the temperature gradient for ghosts
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(TemperatureGradientGhost, temperature_gradient_ghost, Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient, temperature_gradient, Real);
   /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
   /// get the temperature derivative
@@ -208,15 +206,9 @@ private:
   /// the speed of the changing temperature
   ByElementTypeReal temperature_gradient;
 
-  /// the speed of the changing temperature ghost version
-  ByElementTypeReal temperature_gradient_ghost;
-
-  /// K*T internal flux vector
-  Vector<Real> * heat_flux;
-
   //external flux vector
+  Vector<Real> * external_flux;
 
-  Vector<Real> * externalFlux;
   /// residuals array
   Vector<Real> * residual;
 

@@ -42,7 +42,7 @@ __BEGIN_AKANTU__
  *   - rho : density (default: 0)
  *   - E   : Young's modulus (default: 0)
  *   - nu  : Poisson's ratio (default: 1/2)
- *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
+ *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 class MaterialElastic : public Material {
   /* ------------------------------------------------------------------------ */
@@ -72,13 +72,6 @@ public:
 			       Vector<Real> & tangent_matrix,
 			       GhostType ghost_type = _not_ghost);
 
-  /// compute the potential energy for all elements
-  virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
-
-
   /// compute the celerity of wave in the material
   inline Real celerity();
 
@@ -107,7 +100,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
   /// the young modulus
   Real E;
@@ -124,8 +117,8 @@ private:
   /// Bulk modulus
   Real kpa;
 
-  /// Plain stress or plain strain
-  bool plain_stress;
+  /// Plane stress or plane strain
+  bool plane_stress;
 
 };
 

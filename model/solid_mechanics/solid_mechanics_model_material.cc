@@ -63,33 +63,23 @@ void SolidMechanicsModel::initMaterials() {
 
   Material ** mat_val = &(materials.at(0));
 
-  /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(_not_ghost);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-    UInt nb_element = mesh.getNbElement(*it);
-    UInt * elem_mat_val = element_material[*it]->values;
-
-    for (UInt el = 0; el < nb_element; ++el) {
-      mat_val[elem_mat_val[el]]->addElement(*it, el);
-    }
-  }
-
   /// @todo synchronize element material
 
-  /// fill the element filters of the materials using the element_material arrays
-  const Mesh::ConnectivityTypeList & ghost_type_list =
-    mesh.getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
 
-    UInt nb_element = mesh.getNbElement(*it,_ghost);
-    UInt * elem_mat_val = ghost_element_material[*it]->values;
+    /// fill the element filters of the materials using the element_material arrays
+    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    for (UInt el = 0; el < nb_element; ++el) {
-      mat_val[elem_mat_val[el]]->addGhostElement(*it, el);
+      UInt nb_element = mesh.getNbElement(*it, gt);
+      UInt * elem_mat_val = element_material(*it, gt)->values;
+
+      for (UInt el = 0; el < nb_element; ++el) {
+	mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
+      }
     }
   }
 

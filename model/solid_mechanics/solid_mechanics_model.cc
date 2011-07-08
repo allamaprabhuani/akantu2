@@ -77,11 +77,6 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   this->increment    = NULL;
   this->increment_acceleration = NULL;
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->element_material[t] = NULL;
-    this->ghost_element_material[t] = NULL;
-  }
-
   this->dof_synchronizer = NULL;
 
   materials.clear();
@@ -170,7 +165,7 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_boun; sstr_boun << id << ":boundary";
 
   displacement = &(alloc<Real>(sstr_disp.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
-  mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, spatial_dimension)); // \todo see if it must not be spatial_dimension
+  mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, spatial_dimension, 0)); // \todo see if it must not be spatial_dimension
   velocity     = &(alloc<Real>(sstr_velo.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   acceleration = &(alloc<Real>(sstr_acce.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   force        = &(alloc<Real>(sstr_forc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
@@ -180,25 +175,22 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_curp; sstr_curp << id << ":current_position";
   current_position = &(alloc<Real>(sstr_curp.str(), 0, spatial_dimension, REAL_INIT_VALUE));
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    UInt nb_element           = mesh.getNbElement(*it);
-
-    if(!element_material[*it]) {
-      std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
-      element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+    std::string ghost_id = "";
+    if (gt == _ghost) {
+      ghost_id = "ghost_";
     }
-  }
 
-  const Mesh::ConnectivityTypeList & ghost_type_list =
-    mesh.getConnectivityTypeList(_ghost);
-
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    UInt nb_element           = mesh.getNbElement(*it,_ghost);
-
-    std::stringstream sstr_elma; sstr_elma << id << ":ghost_element_material:" << *it;
-    ghost_element_material[*it] = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
+    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      UInt nb_element = mesh.getNbElement(*it, gt);
+      if(!element_material.exists(*it, gt)) {
+	std::stringstream sstr_elma; sstr_elma << id << ":" << ghost_id << "element_material:" << *it;
+	element_material(*it, gt) = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
+      }
+    }
   }
 
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
@@ -212,17 +204,18 @@ void SolidMechanicsModel::initModel() {
   /// \todo add  the current position  as a parameter to  initShapeFunctions for
   /// large deformation
   getFEM().initShapeFunctions(_not_ghost);
-
   getFEM().initShapeFunctions(_ghost);
 }
+
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initPBC(UInt x, UInt y, UInt z){
   Model::initPBC(x,y,z);
   PBCSynchronizer * synch = new PBCSynchronizer(pbc_pair);
-  synch_registry->registerSynchronizer(*synch,_gst_smm_uv);
-  synch_registry->registerSynchronizer(*synch,_gst_smm_mass);
-  changeLocalEquationNumberforPBC(pbc_pair,mesh.getSpatialDimension());
+  synch_registry->registerSynchronizer(*synch, _gst_smm_uv);
+  synch_registry->registerSynchronizer(*synch, _gst_smm_mass);
+  changeLocalEquationNumberforPBC(pbc_pair, mesh.getSpatialDimension());
 }
+
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateCurrentPosition() {
   AKANTU_DEBUG_IN();
@@ -290,41 +283,41 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
     (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
-  // f -= Ma
-  if(mass_matrix) {
-    // if full mass_matrix
-    Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
-    *Ma *= *mass_matrix;
-    *residual -= *Ma;
-    delete Ma;
-  } else {
-    // else lumped mass
-    UInt nb_nodes = acceleration->getSize();
-    UInt nb_degre_of_freedom = acceleration->getNbComponent();
+  // // f -= Ma
+  // if(mass_matrix) {
+  //   // if full mass_matrix
+  //   Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
+  //   *Ma *= *mass_matrix;
+  //   *residual -= *Ma;
+  //   delete Ma;
+  // } else {
+  //   // else lumped mass
+  //   UInt nb_nodes = acceleration->getSize();
+  //   UInt nb_degre_of_freedom = acceleration->getNbComponent();
 
-    Real * mass_val     = mass->values;
-    Real * accel_val    = acceleration->values;
-    Real * res_val      = residual->values;
-    bool * boundary_val = boundary->values;
+  //   Real * mass_val     = mass->values;
+  //   Real * accel_val    = acceleration->values;
+  //   Real * res_val      = residual->values;
+  //   bool * boundary_val = boundary->values;
 
-    for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
-      if(!(*boundary_val)) {
-	*res_val -= *accel_val * *mass_val;
-      }
-    boundary_val++;
-    res_val++;
-    mass_val++;
-    accel_val++;
-    }
-  }
+  //   for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+  //     if(!(*boundary_val)) {
+  // 	*res_val -= *accel_val * *mass_val;
+  //     }
+  //   boundary_val++;
+  //   res_val++;
+  //   mass_val++;
+  //   accel_val++;
+  //   }
+  // }
 
-  // f -= Cv
-  if(velocity_damping_matrix) {
-    Vector<Real> * Cv = new Vector<Real>(*velocity);
-    *Cv *= *velocity_damping_matrix;
-    *residual -= *Cv;
-    delete Cv;
-  }
+  // // f -= Cv
+  // if(velocity_damping_matrix) {
+  //   Vector<Real> * Cv = new Vector<Real>(*velocity);
+  //   *Cv *= *velocity_damping_matrix;
+  //   *residual -= *Cv;
+  //   delete Cv;
+  // }
 
   AKANTU_DEBUG_OUT();
 }
@@ -346,16 +339,18 @@ void SolidMechanicsModel::updateAcceleration() {
   Real * residual_val = residual->values;
   bool * boundary_val = boundary->values;
   Real * inc = increment_acceleration->values;
+  Real * accel_val    = acceleration->values;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt d = 0; d < nb_degre_of_freedom; d++) {
       if(!(*boundary_val)) {
-	*inc = f_m2a * (*residual_val / *mass_val);
+	*inc = f_m2a * (*residual_val / *mass_val) - *accel_val;
       }
       residual_val++;
       boundary_val++;
       inc++;
       mass_val++;
+      accel_val++;
     }
   }
 
@@ -719,8 +714,23 @@ void SolidMechanicsModel::setIncrementFlagOn() {
   AKANTU_DEBUG_OUT();
 }
 
+
+
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getStableTimeStep() {
+  AKANTU_DEBUG_IN();
+
+  Real min_dt = getStableTimeStep(_not_ghost);
+
+  /// reduction min over all processors
+  StaticCommunicator::getStaticCommunicator()->allReduce(&min_dt, 1, _so_min);
+
+  AKANTU_DEBUG_OUT();
+  return min_dt;
+}
+
+/* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   Material ** mat_val = &(materials.at(0));
@@ -729,9 +739,11 @@ Real SolidMechanicsModel::getStableTimeStep() {
   Real * coord    = mesh.getNodes().values;
   Real * disp_val = displacement->values;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
   Element elem;
+  elem.ghost_type = ghost_type;
+
+  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(ghost_type);
+  Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(mesh.getSpatialDimension(*it) != spatial_dimension) continue;
 
@@ -739,8 +751,9 @@ Real SolidMechanicsModel::getStableTimeStep() {
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
     UInt nb_element           = mesh.getNbElement(*it);
 
-    UInt * conn         = mesh.getConnectivity(*it).values;
-    UInt * elem_mat_val = element_material[*it]->values;
+    UInt * conn         = mesh.getConnectivity(*it, ghost_type).values;
+    UInt * elem_mat_val = element_material(*it, ghost_type)->values;
+
     Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 
     for (UInt el = 0; el < nb_element; ++el) {
@@ -764,11 +777,6 @@ Real SolidMechanicsModel::getStableTimeStep() {
 
     delete [] u;
   }
-
-
-  /// reduction min over all processors
-  StaticCommunicator::getStaticCommunicator()->allReduce(&min_dt, 1, _so_sum);
-
 
   AKANTU_DEBUG_OUT();
   return min_dt;
@@ -804,16 +812,16 @@ Real SolidMechanicsModel::getKineticEnergy() {
   Real * mass_val = mass->values;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
-    Real v2 = 0;
+    Real mv2 = 0;
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if(is_local_node) {
-	v2 += *vel_val * *vel_val;
-      }
+      //      if(is_local_node) {
+      mv2 += is_local_node * *vel_val * *vel_val * *mass_val;
+      //      }
       vel_val++;
+      mass_val++;
     }
-    ekin += *mass_val * v2;
-    mass_val++;
+    ekin += mv2;
   }
 
   StaticCommunicator::getStaticCommunicator()->allReduce(&ekin, 1, _so_sum);
@@ -845,13 +853,7 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + connectivity type information [" << std::endl;
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    stream << space << AKANTU_INDENT << AKANTU_INDENT << " + " << *it <<" [" << std::endl;
-    element_material[*it]->printself(stream, indent + 3);
-    stream << space << AKANTU_INDENT << AKANTU_INDENT << "]" << std::endl;
-  }
+  element_material.printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << "]" << std::endl;

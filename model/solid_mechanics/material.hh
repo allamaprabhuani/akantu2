@@ -81,10 +81,9 @@ public:
   virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
 
   /// add an element to the local mesh filter
-  inline void addElement(ElementType type, UInt element);
-
-  /// add an element to the local mesh filter for ghost element
-  inline void addGhostElement(ElementType type, UInt element);
+  inline void addElement(const ElementType & type,
+			 UInt element,
+			 const GhostType & ghost_type);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
@@ -102,7 +101,7 @@ protected:
 
   /// compute the potential energy
   virtual void computePotentialEnergy(ElementType el_type,
-				      GhostType ghost_type = _not_ghost) = 0;
+				      GhostType ghost_type = _not_ghost);
 
   template<UInt dim>
   void assembleStiffnessMatrix(Vector<Real> & current_position,
@@ -123,15 +122,18 @@ protected:
   /* Function for all materials                                               */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// compute the potential energy for on element
+  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
+
   /// allocate an internal vector
-  void initInternalVector(ByElementTypeReal & vect,
+  template<typename T>
+  void initInternalVector(ByElementTypeVector<T> & vect,
 			  UInt nb_component,
-			  const std::string & id,
-			  GhostType ghost_type = _not_ghost);
+			  const ID & id);
 
   /// resize an internal vector
-  void resizeInternalVector(ByElementTypeReal & vect,
-			    GhostType ghost_type = _not_ghost);
+  template<typename T>
+  void resizeInternalVector(ByElementTypeVector<T> & vect);
 
   /* ------------------------------------------------------------------------ */
   /* Ghost Synchronizer inherited members                                     */
@@ -162,10 +164,10 @@ public:
 
   Real getPotentialEnergy();
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementFilter, element_filter, const Vector<UInt> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Strain, strain, const Vector<Real> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Stress, stress, const Vector<Real> &);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(PotentialEnergy, potential_energy, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -195,23 +197,11 @@ protected:
   /// list of element handled by the material
   ByElementTypeUInt element_filter;
 
-  /// stresses arrays ordered by element types
-  ByElementTypeReal ghost_stress;
-
-  /// strains arrays ordered by element types
-  ByElementTypeReal ghost_strain;
-
-  /// list of element handled by the material
-  ByElementTypeUInt ghost_element_filter;
-
   /// is the vector for potential energy initialized
   bool potential_energy_vector;
 
   /// potential energy by element
   ByElementTypeReal potential_energy;
-
-  /// potential energy by element
-  ByElementTypeReal ghost_potential_energy;
 
   /// boolean to know if the material has been initialized
   bool is_init;
@@ -237,26 +227,20 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN			\
-  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type); \
+  UInt nb_quadrature_points =						\
+     model->getFEM().getNbQuadraturePoints(el_type, ghost_type);        \
   UInt size_strain          = spatial_dimension * spatial_dimension;	\
-									\
-  UInt nb_element;							\
-  Real * strain_val;							\
-  Real * stress_val;							\
   									\
-  if(ghost_type == _not_ghost) {					\
-    nb_element   = element_filter[el_type]->getSize();			\
-    stress[el_type]->resize(nb_element*nb_quadrature_points);		\
-    strain_val = strain[el_type]->values;				\
-    stress_val = stress[el_type]->values;				\
-  } else {								\
-    nb_element = ghost_element_filter[el_type]->getSize();		\
-    ghost_stress[el_type]->resize(nb_element*nb_quadrature_points);	\
-    strain_val = ghost_strain[el_type]->values;				\
-    stress_val = ghost_stress[el_type]->values;				\
-  }									\
-  									\
+  UInt nb_element   = element_filter(el_type, ghost_type)->getSize();	\
   if (nb_element == 0) return;						\
+									\
+  Vector<Real> * stress_tmp = stress(el_type, ghost_type);		\
+  stress_tmp->resize(nb_element*nb_quadrature_points);			\
+  Vector<Real> * strain_tmp = strain(el_type, ghost_type);		\
+  									\
+  Real * strain_val = strain_tmp->values;				\
+  Real * stress_val = stress_tmp->values;				\
+  									\
   									\
   for (UInt el = 0; el < nb_element; ++el) {				\
     for (UInt q = 0; q < nb_quadrature_points; ++q) {			\
@@ -266,31 +250,28 @@ __END_AKANTU__
       strain_val += size_strain;					\
       stress_val += size_strain;					\
     }									\
-  }                                                                     \
+  }									\
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent)		\
-  UInt nb_quadrature_points =  model->getFEM().getNbQuadraturePoints(el_type);	\
-  UInt size_strain          = spatial_dimension * spatial_dimension;	\
+  UInt nb_quadrature_points =						\
+    model->getFEM().getNbQuadraturePoints(el_type, ghost_type);		\
+  UInt size_strain = spatial_dimension * spatial_dimension;		\
+									\
+  UInt nb_element   = element_filter(el_type, ghost_type)->getSize();	\
+  if (nb_element == 0) return;						\
+									\
+  Vector<Real> * stress_tmp = stress(el_type, ghost_type);		\
+  stress_tmp->resize(nb_element*nb_quadrature_points);			\
+  Vector<Real> * strain_tmp = strain(el_type, ghost_type);		\
   									\
-  UInt nb_element;							\
-  Real * strain_val;							\
-  Real * tangent_val;							\
-  									\
-  if(ghost_type == _not_ghost) {					\
-    nb_element   = element_filter[el_type]->getSize();			\
-    stress[el_type]->resize(nb_element*nb_quadrature_points);		\
-    strain_val = strain[el_type]->values;				\
-  } else {								\
-    nb_element = ghost_element_filter[el_type]->getSize();		\
-    ghost_stress[el_type]->resize(nb_element*nb_quadrature_points);	\
-    strain_val = ghost_strain[el_type]->values;				\
-  }									\
-  tangent_val = tangent.values;						\
+  Real * strain_val = strain_tmp->values;				\
+  Real * stress_val = stress_tmp->values;				\
+									\
+  Real * tangent_val = tangent.values;					\
   UInt size_tangent = getTangentStiffnessVoigtSize(spatial_dimension);	\
   size_tangent *= size_tangent;						\
   									\
-  if (nb_element == 0) return;						\
   									\
   for (UInt el = 0; el < nb_element; ++el) {				\
     for (UInt q = 0; q < nb_quadrature_points; ++q) {			\

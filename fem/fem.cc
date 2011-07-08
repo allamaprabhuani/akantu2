@@ -55,9 +55,7 @@ FEM::FEM(Mesh & mesh, UInt element_dimension, FEMID id, MemoryID memory_id) :
 
 /* -------------------------------------------------------------------------- */
 void FEM::init() {
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->normals_on_quad_points[t] = NULL;
-  }
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -75,7 +73,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 const Vector<Int> & equation_number,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
-			 GhostType ghost_type,
+			 const GhostType & ghost_type,
 			 const Vector<UInt> * filter_elements,
 			 Real scale_factor) const {
   AKANTU_DEBUG_IN();
@@ -138,7 +136,7 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 			 SparseMatrix & matrix,
 			 UInt nb_degre_of_freedom,
 			 const ElementType & type,
-			 GhostType ghost_type,
+			 const GhostType & ghost_type,
 			 const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -169,7 +167,7 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 
   Real * elementary_mat_val = elementary_mat.values;
   UInt offset_elementary_mat = elementary_mat.getNbComponent();
-  UInt * connectivity_val = mesh->getConnectivity(type).values;
+  UInt * connectivity_val = mesh->getConnectivity(type, ghost_type).values;
 
   UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
   UInt size = mesh->getNbGlobalNodes() * nb_degre_of_freedom;

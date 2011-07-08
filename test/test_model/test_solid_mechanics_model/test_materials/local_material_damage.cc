@@ -44,9 +44,6 @@ LocalMaterialDamage::LocalMaterialDamage(Model & model, const MaterialID & id)  
   Yd  = 50;
   Sd  = 5000;
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t)
-    this->damage[t] = NULL;
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -61,7 +58,7 @@ void LocalMaterialDamage::initMaterial() {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
     std::stringstream sstr_damage; sstr_damage << id << ":damage:" << *it;
-    damage[*it] = &(alloc<Real>(sstr_damage.str(), 0,
+    damage(*it) = &(alloc<Real>(sstr_damage.str(), 0,
 				1, REAL_INIT_VALUE));
   }
 
@@ -79,8 +76,8 @@ void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_typ
 
   Real F[3*3];
   Real sigma[3*3];
-  damage[el_type]->resize(model->getFEM().getNbQuadraturePoints(el_type)*element_filter[el_type]->getSize());
-  Real * dam = damage[el_type]->values;
+  damage(el_type, ghost_type)->resize(model->getFEM().getNbQuadraturePoints(el_type, ghost_type)*element_filter(el_type, ghost_type)->getSize());
+  Real * dam = damage(el_type, ghost_type)->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -108,7 +105,7 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy[el_type]->values;
+  Real * epot = potential_energy(el_type)->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 

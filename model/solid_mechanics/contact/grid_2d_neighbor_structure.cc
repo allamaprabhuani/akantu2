@@ -3,7 +3,7 @@
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @date   Tue Dec  7 13:04:58 2010
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -38,8 +38,8 @@ __BEGIN_AKANTU__
 Grid2dNeighborStructure::Grid2dNeighborStructure(const ContactSearch & contact_search,
 						 const Surface & master_surface,
 						 const ContactNeighborStructureType & type,
-						 const ContactNeighborStructureID & id) : 
-  ContactNeighborStructure(contact_search, master_surface, type, id), 
+						 const ContactNeighborStructureID & id) :
+  ContactNeighborStructure(contact_search, master_surface, type, id),
   mesh(contact_search.getContact().getModel().getFEM().getMesh()) {
   AKANTU_DEBUG_IN();
 
@@ -93,14 +93,14 @@ bool Grid2dNeighborStructure::check() {
   for (UInt s = 0; s < nb_surfaces; ++s)
     for (UInt n = surf_nodes_off[s]; n < surf_nodes_off[n+1]; ++n) {
       UInt i_node = surf_nodes[n];
-      for (UInt i = 0; i < 2; ++i) 
+      for (UInt i = 0; i < 2; ++i)
 	max[i] = std::max(max[i], fabs(inc_val[2*i_node+i]));
     }
 
   for (UInt i = 0; i < 2; ++i) {
     max_increment[i] += max[i];
     if(max_increment[i] > spacing)
-      return true;    
+      return true;
   }
 
   return false;
@@ -116,7 +116,7 @@ void Grid2dNeighborStructure::update() {
   delete[] this->neighbor_list;
   neighbor_list = new NeighborList();
   createGrid(false);
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -132,7 +132,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
     coord = contact_search.getContact().getModel().getCurrentPosition().values;
 
   UInt nb_surfaces = mesh.getNbSurfaces();
-  
+
 
   /// get the size of the grid
   spacing = getMinSize(coord);
@@ -141,7 +141,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   Real * x_bounds = new Real[2*nb_surfaces];
   Real * y_bounds = new Real[2*nb_surfaces];
   getBounds(coord, x_bounds, y_bounds);
-  
+
 
   /// find intersections between mastersurface and the other ones
   Real x_intersection[2];
@@ -189,13 +189,13 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   UInt * cell_seg_val   = cell_to_segments.values;
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
-  UInt * conn_val = contact_search.getContact().getModel().getFEM().getMesh().getConnectivity(el_type).values;
+  UInt * conn_val = contact_search.getContact().getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   std::stringstream sstr_fo; sstr_fo << id << ":facets_offset:" << el_type;
-  neighbor_list->facets_offset[el_type] = new Vector<UInt>(0, 1, sstr_fo.str());
+  neighbor_list->facets_offset(el_type, _not_ghost) = new Vector<UInt>(0, 1, sstr_fo.str());
   std::stringstream sstr_f; sstr_f << id << ":facets:" << el_type;
-  neighbor_list->facets[el_type] = new Vector<UInt>(0, 1, sstr_f.str());
-  neighbor_list->facets_offset[el_type]->push_back((UInt)0);  
+  neighbor_list->facets(el_type, _not_ghost) = new Vector<UInt>(0, 1, sstr_f.str());
+  neighbor_list->facets_offset(el_type, _not_ghost)->push_back((UInt)0);
 
   const Int cell_index[9][2] = {{0,-1},{-1,-1},{-1,0},{-1,1},{0,1},{1,1},{1,0},{1,-1},{0,-1}};
   Int nb_x = nb_cells[0];
@@ -220,7 +220,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
       UInt i_node = surf_nodes[n];
       Real x_node = (coord[2*i_node] - origin[0])/spacing;
       Real y_node = (coord[2*i_node+1] - origin[1])/spacing;
-      
+
       Int ii = (int)(x_node);
       Int jj = (int)(y_node);
 
@@ -239,7 +239,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
       bool stored = false;
       /// look at actual cell and 3 adjacent cells
       for (Int k = -1; k < 3; ++k) {
-	
+
 	Int x_index = ii;
 	Int y_index = jj;
 	if ( k >= 0) {
@@ -251,7 +251,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 	}
 
 	UInt i_cell = (UInt)(x_index+y_index*nb_x);
-	
+
 	/// loop over segments related to the considered cell
 	for (UInt el = cell_to_segments_offset[i_cell]; el < cell_to_segments_offset[i_cell+1]; ++el) {
 
@@ -289,10 +289,10 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 		if (stored == false) {
 		  stored = true;
 		  neighbor_list->impactor_nodes.push_back(i_node);
-		  neighbor_list->facets_offset[el_type]->push_back((UInt)0);
+		  neighbor_list->facets_offset(el_type, _not_ghost)->push_back((UInt)0);
 		}
-		neighbor_list->facets_offset[el_type]->values[neighbor_list->impactor_nodes.getSize()]++;
-		neighbor_list->facets[el_type]->push_back(i_segment);
+		neighbor_list->facets_offset(el_type, _not_ghost)->values[neighbor_list->impactor_nodes.getSize()]++;
+		neighbor_list->facets(el_type, _not_ghost)->push_back(i_segment);
 	      }
 	    }
 
@@ -305,23 +305,23 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 		if (stored == false) {
 		  stored = true;
 		  neighbor_list->impactor_nodes.push_back(i_node);
-		  neighbor_list->facets_offset[el_type]->push_back((UInt)0);
+		  neighbor_list->facets_offset(el_type, _not_ghost)->push_back((UInt)0);
 		}
-		neighbor_list->facets_offset[el_type]->values[neighbor_list->impactor_nodes.getSize()]++;
-		neighbor_list->facets[el_type]->push_back(i_segment);
+		neighbor_list->facets_offset(el_type, _not_ghost)->values[neighbor_list->impactor_nodes.getSize()]++;
+		neighbor_list->facets(el_type, _not_ghost)->push_back(i_segment);
 	      }
 	    }
 	  }
 	} /* end loop segments */
       } /* end loop over cells */
-	
+
     } /* end loop over slave nodes */
   } /* end loop over surfaces */
 
   /// convert occurence array in a csv one
-  UInt * facet_off = neighbor_list->facets_offset[el_type]->values;
-  for (UInt i = 1; i < neighbor_list->facets_offset[el_type]->getSize(); ++i) facet_off[i] += facet_off[i-1];
-  
+  UInt * facet_off = neighbor_list->facets_offset(el_type, _not_ghost)->values;
+  for (UInt i = 1; i < neighbor_list->facets_offset(el_type, _not_ghost)->getSize(); ++i) facet_off[i] += facet_off[i-1];
+
   /// free temporary vectors
   delete[] x_bounds;
   delete[] y_bounds;
@@ -336,10 +336,10 @@ Real Grid2dNeighborStructure::getMinSize(Real * coord) {
   AKANTU_DEBUG_IN();
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
-  UInt * conn_val = mesh.getConnectivity(el_type).values;
-  
-  UInt nb_elements = mesh.getConnectivity(el_type).getSize();
-  UInt * surface_id_val = mesh.getSurfaceId(el_type).values;
+  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).values;
+
+  UInt nb_elements = mesh.getConnectivity(el_type, _not_ghost).getSize();
+  UInt * surface_id_val = mesh.getSurfaceID(el_type, _not_ghost).values;
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   Real min_size = std::numeric_limits<Real>::max();
 
@@ -350,7 +350,7 @@ Real Grid2dNeighborStructure::getMinSize(Real * coord) {
       Real * x2 = &coord[2*conn_val[el*elem_nodes+1]];
       Real length = (x1[0]-x2[0])*(x1[0]-x2[0])+(x1[1]-x2[1])*(x1[1]-x2[1]);
       if (length < min_size)
-	min_size = length;	
+	min_size = length;
     }
 
   return sqrt(min_size);
@@ -383,10 +383,10 @@ void Grid2dNeighborStructure::getBounds(Real * coord, Real * x_bounds, Real * y_
 
       if(coord[i_node*2] < x_bounds[s*2])
 	x_bounds[s*2] = coord[i_node*2];
-    
+
       if(coord[i_node*2] > x_bounds[2*s+1])
 	x_bounds[2*s+1] = coord[i_node*2];
-    
+
       if(coord[i_node*2+1] < y_bounds[2*s])
 	y_bounds[2*s] = coord[i_node*2+1];
 
@@ -495,7 +495,7 @@ bool Grid2dNeighborStructure::getBoundsIntersection(Real * x_bounds, Real * y_bo
 }
 
 /* -------------------------------------------------------------------------- */
-void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin, 
+void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin,
 					    UInt * nb_cells, UInt * cell_to_seg_off, Vector<UInt> & cell_to_segments) {
 
   AKANTU_DEBUG_IN();
@@ -504,9 +504,9 @@ void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin,
   UInt index[2] = {0, 0};
   ElementType el_type = _segment_2; /* Only linear element at the moment */
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
-  UInt * surface_id_val = mesh.getSurfaceId(el_type).values;
-  UInt * conn_val = mesh.getConnectivity(el_type).values;
-  UInt nb_segments = mesh.getConnectivity(el_type).getSize();
+  UInt * surface_id_val = mesh.getSurfaceID(el_type, _not_ghost).values;
+  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).values;
+  UInt nb_segments = mesh.getConnectivity(el_type, _not_ghost).getSize();
 
   Int nb_x = nb_cells[0];
   Int nb_y = nb_cells[1];
@@ -580,7 +580,7 @@ void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin,
 	  cell_to_seg_off[index[0]]++;
 	  temp.push_back(index);
 	}
-	
+
 	if(n==0)
 	  break;
 

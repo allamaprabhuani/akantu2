@@ -43,14 +43,6 @@ __BEGIN_AKANTU__
 PenetrationList::PenetrationList() : penetrating_nodes(Vector<UInt>(0, 1, "penetrating_nodes")) {
   AKANTU_DEBUG_IN();
 
-  for (UInt i = 0; i < _max_element_type; ++i) {
-    penetrated_facets_offset[i] = NULL;
-    penetrated_facets       [i] = NULL;
-    facets_normals          [i] = NULL;
-    gaps                    [i] = NULL;
-    projected_positions     [i] = NULL;
-  }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -58,13 +50,13 @@ PenetrationList::PenetrationList() : penetrating_nodes(Vector<UInt>(0, 1, "penet
 PenetrationList::~PenetrationList() {
   AKANTU_DEBUG_IN();
 
-  for (UInt i = 0; i < _max_element_type; ++i) {
-    if(penetrated_facets_offset[i]) delete penetrated_facets_offset[i];
-    if(penetrated_facets       [i]) delete penetrated_facets       [i];
-    if(facets_normals          [i]) delete facets_normals          [i];
-    if(gaps                    [i]) delete gaps                    [i];
-    if(projected_positions     [i]) delete projected_positions     [i];
-  }
+  // for (UInt i = 0; i < _max_element_type; ++i) {
+  //   if(penetrated_facets_offset[i]) delete penetrated_facets_offset[i];
+  //   if(penetrated_facets       [i]) delete penetrated_facets       [i];
+  //   if(facets_normals          [i]) delete facets_normals          [i];
+  //   if(gaps                    [i]) delete gaps                    [i];
+  //   if(projected_positions     [i]) delete projected_positions     [i];
+  // }
 
   AKANTU_DEBUG_OUT();
 }
@@ -100,7 +92,7 @@ ContactSearch::~ContactSearch() {
 /* -------------------------------------------------------------------------- */
 void ContactSearch::initSearch() {
   AKANTU_DEBUG_IN();
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -119,13 +111,13 @@ void ContactSearch::initNeighborStructure() {
 /* -------------------------------------------------------------------------- */
 void ContactSearch::initNeighborStructure(const Surface & master_surface) {
   AKANTU_DEBUG_IN();
-  
+
   std::map<Surface, ContactNeighborStructure *>::iterator it;
   for (it = neighbors_structure.begin(); it != neighbors_structure.end(); ++it) {
     if(it->first == master_surface)
       it->second->initNeighborStructure();
   }
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -150,8 +142,8 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
     else if(mesh.getSpatialDimension() == 3) {
       tmp_neighbors_structure = new RegularGridNeighborStructure<3>(*this, master_surface, neighbors_structure_type, sstr.str());
     }
-    else 
-      AKANTU_DEBUG_ERROR("RegularGridNeighborStructure does not exist for dimension: " 
+    else
+      AKANTU_DEBUG_ERROR("RegularGridNeighborStructure does not exist for dimension: "
 			 << mesh.getSpatialDimension());
     break;
   }
@@ -220,7 +212,7 @@ const ContactNeighborStructure & ContactSearch::getContactNeighborStructure(cons
 /* -------------------------------------------------------------------------- */
 void ContactSearch::computeMaxIncrement(Real * max_increment) {
   AKANTU_DEBUG_IN();
-  
+
   UInt spatial_dimension = contact.getModel().getFEM().getMesh().getSpatialDimension();
   UInt nb_surfaces = contact.getModel().getFEM().getMesh().getNbSurfaces();
   Real * current_increment = contact.getModel().getIncrement().values;
@@ -243,7 +235,7 @@ void ContactSearch::computeMaxIncrement(Real * max_increment) {
   	Real cur_increment = current_increment[cur_node * spatial_dimension + dim];
   	max_increment[dim] = std::max(max_increment[dim], fabs(cur_increment));
       }
-    } 
+    }
   }
 
   AKANTU_DEBUG_OUT();

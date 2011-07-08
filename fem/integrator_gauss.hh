@@ -76,23 +76,23 @@ public:
 		 const Vector<UInt> * filter_elements) const;
 
   /// return a vector with quadrature points natural coordinates
-  template <ElementType type> Vector<Real> & getQuadraturePoints() const;
+  template <ElementType type> Vector<Real> & getQuadraturePoints(const GhostType & ghost_type) const;
 
   /// compute the vector of quadrature points natural coordinates
-  template <ElementType type> void computeQuadraturePoints();
+  template <ElementType type> void computeQuadraturePoints(const GhostType & ghost_type);
 
   /// check that the jacobians are not negative
-  template <ElementType type> void checkJacobians(GhostType ghost_type);
+  template <ElementType type> void checkJacobians(GhostType ghost_type) const;
 
 protected:
-  
+
   /// compute the jacobians on quad points for a given element
-  template <ElementType type> 
+  template <ElementType type>
   void computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
 					    Real * node_coords,
 					    UInt nb_nodes_per_element,
 					    Real * jacobians);
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -122,4 +122,3 @@ private:
 __END_AKANTU__
 
 #endif /* __AKANTU_INTEGRATOR_GAUSS_HH__ */
-

@@ -50,6 +50,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
+  try {
   akantu::debug::setDebugLevel(akantu::dblWarning);
   initialize(&argc, &argv);
   StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
@@ -94,6 +95,7 @@ int main(int argc, char *argv[])
     nodes.resize(nnx * nny);
 
     mesh.addConnecticityType(type);
+    std::cout << mesh <<std::endl;
     Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type));
     connectivity.resize(nex * ney);
 
@@ -260,7 +262,9 @@ int main(int argc, char *argv[])
   // energy.close();
 
   finalize();
-
+  } catch(std::exception & e) {
+    std::cout << e.what() << std::endl;
+  }
 
   return EXIT_SUCCESS;
 }

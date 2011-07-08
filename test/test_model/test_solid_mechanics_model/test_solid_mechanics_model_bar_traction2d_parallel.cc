@@ -91,17 +91,10 @@ int main(int argc, char *argv[])
   model.initVectors();
 
   /// set vectors to 0
-  memset(model.getForce().values,        0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model.getResidual().values,        0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model.getVelocity().values,     0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model.getAcceleration().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model.getDisplacement().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-
+  model.getForce().clear();
+  model.getVelocity().clear();
+  model.getAcceleration().clear();
+  model.getDisplacement().clear();
 
   model.initExplicit();
   model.initModel();
@@ -117,24 +110,17 @@ int main(int argc, char *argv[])
   /* Boundary + initial conditions                                            */
   /* ------------------------------------------------------------------------ */
   akantu::Real eps = 1e-16;
+  const akantu::Vector<akantu::Real> & pos = mesh.getNodes();
+  akantu::Vector<akantu::Real> & disp = model.getDisplacement();
+  akantu::Vector<bool> & boun = model.getBoundary();
+
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    // model.getDisplacement().values[spatial_dimension*i]
-    //   = mesh.getNodes().values[spatial_dimension*i] / 100.;
-    if(mesh.getNodes().values[spatial_dimension*i] >= 9)
-      model.getDisplacement().values[spatial_dimension*i]
-     	= (mesh.getNodes().values[spatial_dimension*i] - 9) / 100.;
-
-    if(mesh.getNodes().values[spatial_dimension*i] <= eps)
-      model.getBoundary().values[spatial_dimension*i] = true;
-
-    if(mesh.getNodes().values[spatial_dimension*i + 1] <= eps ||
-       mesh.getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
-      model.getBoundary().values[spatial_dimension*i + 1] = true;
-    }
+    if(pos(i, 0) >= 9.) disp(i, 0) = (pos(i, 0) - 9) / 100.;
+    if(pos(i) <= eps)   boun(i, 0) = true;
+    if(pos(i, 1) <= eps || pos(i, 1) >= 1 - eps ) boun(i, 1) = true;
   }
 
   model.synchronizeBoundaries();
-
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
@@ -173,8 +159,8 @@ int main(int argc, char *argv[])
 
   std::ofstream energy;
   if(prank == 0) {
-    energy.open("energy.csv");
-    energy << "id,epot,ekin,tot" << std::endl;
+    energy.open("energy_bar_2d_para.csv");
+    energy << "id,rtime,epot,ekin,tot" << std::endl;
   }
 
   double total_time = 0.;
@@ -205,14 +191,14 @@ int main(int argc, char *argv[])
 
     total_time += end - start;
 
-    if(prank == 0 && (s % 10 == 0)) {
-       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
-       energy << s << "," << epot << "," << ekin << "," << epot + ekin
-	      << std::endl;
+    if(prank == 0 && (s % 100 == 0)) {
+      std::cerr << "passing step " << s << "/" << max_steps << std::endl;
     }
+    energy << s << "," << (s-1)*time_step << "," << epot << "," << ekin << "," << epot + ekin
+	     << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 10 == 0) {
+    if(s % 100 == 0) {
       dumper.Dump();
     }
 #endif //AKANTU_USE_IOHELPER

@@ -71,11 +71,8 @@ int main(int argc, char *argv[])
   model->initModel();
   model->initVectors();
 
-  model->getResidual().clear();
   model->getTemperature().clear();
   model->getTemperatureRate().clear();
-  model->getCapacityLumped().clear();
-  model->getTemperatureGradient(type).clear();
 
   /* -------------------------------------------------------------------------- */
   model->initPBC(1,1,1);
@@ -123,7 +120,7 @@ int main(int argc, char *argv[])
 
   /* ------------------------------------------------------------------------ */
   // //for testing
-  int max_steps = 3000;
+  int max_steps = 1000;
   /* ------------------------------------------------------------------------ */
   for(int i=0; i<max_steps; i++)
     {

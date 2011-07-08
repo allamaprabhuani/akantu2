@@ -117,7 +117,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
 
-    UInt * conn_val = mesh.getConnectivity(*it).values;
+    UInt * conn_val = mesh.getConnectivity(*it, _not_ghost).values;
     Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
 
 

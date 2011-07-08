@@ -51,7 +51,7 @@ public:
   TestAccessor(const Mesh & mesh);
   ~TestAccessor();
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostBarycenter, ghost_barycenter, const Vector<Real>);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostBarycenter, ghost_barycenter, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Ghost Synchronizer inherited members                                     */
@@ -104,7 +104,7 @@ TestAccessor::TestAccessor(const Mesh & mesh) : mesh(mesh) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     UInt nb_ghost_element = mesh.getNbElement(*it,_ghost);
-    ghost_barycenter[*it] = new Vector<Real>(nb_ghost_element,
+    ghost_barycenter(*it) = new Vector<Real>(nb_ghost_element,
 							     spatial_dimension,
 							     std::numeric_limits<Real>::quiet_NaN(),
 							     "ghost_barycenter");
@@ -119,7 +119,7 @@ TestAccessor::~TestAccessor() {
   const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
   for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    delete ghost_barycenter[*it];
+    delete ghost_barycenter(*it);
   }
 }
 
@@ -147,7 +147,7 @@ void TestAccessor::unpackData(CommunicationBuffer & buffer,
 				  const Element & element,
 				  __attribute__ ((unused)) SynchronizationTag tag) const {
   UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  Vector<Real>::iterator<types::RVector> bary = ghost_barycenter[element.type]->begin(spatial_dimension);
+  Vector<Real>::iterator<types::RVector> bary = ghost_barycenter(element.type)->begin(spatial_dimension);
   buffer >> bary[element.element];
 }
 

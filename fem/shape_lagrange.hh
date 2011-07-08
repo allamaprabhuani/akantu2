@@ -74,7 +74,7 @@ public:
 
   /// set the control points for a given element
   template <ElementType type>
-  void setControlPointsByType(Vector<Real> & control_points);
+  void setControlPointsByType(Vector<Real> & control_points, GhostType ghost_type);
 
   /// multiply a field by shape functions
   template <ElementType type>
@@ -103,20 +103,10 @@ public:
 
 
   /// get a the shapes vector
-  const Vector<Real> & getShapes(const ElementType & type, const GhostType & ghost_type);
-  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Shapes, shapes, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Shapes, shapes, Real);
 
   /// get a the shapes derivatives vector
-  const Vector<Real> & getShapesDerivatives(const ElementType & type, const GhostType & ghost_type);
-  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ShapesDerivatives, shapes_derivatives, const Vector<Real> &);
-
-  // /// get a the ghost shapes vector
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapes, ghost_shapes,
-  // 				   const Vector<Real> &);
-
-  /// get a the ghost shapes derivatives vector
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(GhostShapesDerivatives, ghost_shapes_derivatives,
-  // 				   const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ShapesDerivatives, shapes_derivatives, Real);
 
   /// get the size of the shapes returned by the element class
   static inline UInt getShapeSize(const ElementType & type);
@@ -133,14 +123,8 @@ protected:
   /// shape functions for all elements
   ByElementTypeReal shapes;
 
-  /// shape functions for all elements
-  ByElementTypeReal ghost_shapes;
-
   /// shape derivatives for all elements
   ByElementTypeReal shapes_derivatives;
-
-  /// shape derivatives for all elements
-  ByElementTypeReal ghost_shapes_derivatives;
 
   /// shape functions for all elements
   ByElementTypeReal control_points;

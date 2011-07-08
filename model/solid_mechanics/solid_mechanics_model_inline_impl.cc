@@ -95,7 +95,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
   case _gst_smm_for_strain: {
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
-    UInt mat = element_material[element.type]->values[element.element];
+    UInt mat = element_material(element.type, _not_ghost)->values[element.element];
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
@@ -133,7 +133,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   case _gst_smm_for_strain: {
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
-    UInt mat = ghost_element_material[element.type]->values[element.element];
+    UInt mat = element_material(element.type, _ghost)->values[element.element];
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
@@ -157,13 +157,15 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 					  SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
+  GhostType ghost_type = _not_ghost;
+
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = mesh.getConnectivity(element.type).values;
+  UInt * conn  = mesh.getConnectivity(element.type, ghost_type).values;
 
 #ifndef AKANTU_NDEBUG
   types::RVector barycenter(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, barycenter.storage());
+  mesh.getBarycenter(element.element, element.type, barycenter.storage(), ghost_type);
   buffer << barycenter;
 #endif
 
@@ -183,7 +185,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
       buffer << it_disp[offset_conn];
     }
 
-    UInt mat = element_material[element.type]->values[element.element];
+    UInt mat = element_material(element.type, ghost_type)->values[element.element];
     materials[mat]->packData(buffer, element, tag);
     break;
   }
@@ -215,13 +217,15 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 					    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
+  GhostType ghost_type = _ghost;
+
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = mesh.getConnectivity(element.type,_ghost).values;
+  UInt * conn  = mesh.getConnectivity(element.type, ghost_type).values;
 
 #ifndef AKANTU_NDEBUG
   types::RVector barycenter_loc(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), _ghost);
+  mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), ghost_type);
 
   types::RVector barycenter(spatial_dimension);
   buffer >> barycenter;
@@ -251,7 +255,7 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
       buffer >> it_disp[offset_conn];
     }
 
-    UInt mat = ghost_element_material[element.type]->values[element.element];
+    UInt mat = element_material(element.type, ghost_type)->values[element.element];
     materials[mat]->unpackData(buffer, element, tag);
     break;
   }

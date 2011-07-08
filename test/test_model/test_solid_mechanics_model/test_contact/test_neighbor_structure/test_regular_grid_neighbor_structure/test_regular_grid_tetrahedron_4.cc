@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
   Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
 
-  UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset[_triangle_3]->values;
-  UInt * node_to_elem_val = my_neighbor_list.facets[_triangle_3]->values;
+  UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_triangle_3)->values;
+  UInt * node_to_elem_val = my_neighbor_list.facets(_triangle_3)->values;
 
   /// print impactor nodes
   std::cout << "we have " << nb_nodes_neigh << " impactor nodes:" << std::endl;

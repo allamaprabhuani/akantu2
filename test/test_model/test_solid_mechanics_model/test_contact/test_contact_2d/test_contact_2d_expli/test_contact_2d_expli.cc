@@ -79,12 +79,12 @@ int main(int argc, char *argv[])
   UInt nb_elements = model->getFEM().getMesh().getNbElement(_triangle_3);
 
   /// model initialization
+  model->initModel();
   model->initVectors();
 
   model->readMaterials("materials.dat");
   model->initMaterials();
-
-  model->initModel();
+  model->initExplicit();
   std::cout << model->getMaterial(0) << std::endl;
 
   model->assembleMassLumped();

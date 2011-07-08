@@ -67,6 +67,8 @@ akantu::UInt nb_element;
 
 int main(int argc, char *argv[])
 {
+  akantu::initialize(&argc, &argv);
+
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
 
@@ -84,11 +86,11 @@ int main(int argc, char *argv[])
 
 
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  model->getResidual().clear();
+
   model->getTemperature().clear();
   model->getTemperatureRate().clear();
-  model->getCapacityLumped().clear();
-  model->getTemperatureGradient(type).clear();
+
+
 
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
@@ -132,7 +134,7 @@ int main(int argc, char *argv[])
 
 
   // //for testing
-  int max_steps = 100000;
+  int max_steps = 1000;
 
   for(int i=0; i<max_steps; i++)
     {

@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
   my_mesh.setNbSurfaces(++nb_surfaces); 
   ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
   UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
-  UInt * surface_id_val = my_mesh.getSurfaceId(surface_element_type).values;
+  UInt * surface_id_val = my_mesh.getSurfaceID(surface_element_type).values;
   for(UInt i=0; i < nb_surface_element; ++i) {
     if (surface_id_val[i] == rigid_body_surface) {
       Real barycenter[dim];

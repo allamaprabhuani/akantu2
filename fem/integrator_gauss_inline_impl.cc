@@ -34,10 +34,7 @@ inline void IntegratorGauss::integrateOnElement(const Vector<Real> & f,
 						const UInt elem,
 						GhostType ghost_type) const {
 
-  Vector<Real> * jac_loc;
-
-  if(ghost_type == _not_ghost) jac_loc     = jacobians[type];
-  else jac_loc     = ghost_jacobians[type];
+  Vector<Real> * jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom ,
@@ -68,29 +65,35 @@ inline void IntegratorGauss::integrate(Real *f, Real *jac, Real * inte,
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-inline Vector<Real> & IntegratorGauss::getQuadraturePoints() const {
-  AKANTU_DEBUG_ASSERT(quadrature_points[type] != NULL,
-		      "quadrature points for type " << type
-		      << " have not been initialized."
+inline Vector<Real> & IntegratorGauss::getQuadraturePoints(const GhostType & ghost_type) const {
+  AKANTU_DEBUG_ASSERT(quadrature_points.exists(type, ghost_type),
+		      "Quadrature points for type "
+		      << quadrature_points.printType(type, ghost_type)
+ 		      << " have not been initialized."
 		      << " Did you use 'computeQuadraturePoints' function ?");
-  return *quadrature_points[type];
+  return *quadrature_points(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-inline void IntegratorGauss::computeQuadraturePoints() {
+inline void IntegratorGauss::computeQuadraturePoints(const GhostType & ghost_type) {
   UInt n_coords = ElementClass<type>::getNbQuadraturePoints();
   UInt dim = ElementClass<type>::getSpatialDimension();
 
-  if (quadrature_points[type] == NULL){
-    std::stringstream sstr; sstr << id << ":quadrature_points:" << type;
-    quadrature_points[type] =  &(alloc<Real>(sstr.str(), 0, dim, REAL_INIT_VALUE));
+  std::string ghost = "";
+  if(ghost_type == _ghost) {
+    ghost = "ghost_";
   }
-  else quadrature_points[type]->resize(0);
+
+  if (!quadrature_points.exists(type, ghost_type)){
+    std::stringstream sstr; sstr << id << ":" << ghost << "quadrature_points:" << type;
+    quadrature_points(type, ghost_type) =  &(alloc<Real>(sstr.str(), 0, dim, REAL_INIT_VALUE));
+  }
+  else quadrature_points(type, ghost_type)->resize(0);
 
   Real * coord_val = ElementClass<type>::getQuadraturePoints();
   for (UInt i = 0; i < n_coords; ++i) {
-    quadrature_points[type]->push_back(coord_val);
+    quadrature_points(type, ghost_type)->push_back(coord_val);
     coord_val += dim;
   }
 }
@@ -101,23 +104,22 @@ computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
 				     Real * node_coords,
 				     UInt nb_nodes_per_element,
 				     Real * jacobians) {
-  
+
   Real * quad = ElementClass<type>::getQuadraturePoints();
   const UInt nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
   // compute dnds
   Real dnds[nb_nodes_per_element * spatial_dimension * nb_quad_points];
-  ElementClass<type>::computeDNDS(quad, 
+  ElementClass<type>::computeDNDS(quad,
 				  nb_quad_points,
 				  dnds);
   // compute dxds
   const UInt element_dimension = ElementClass<type>::getSpatialDimension();
   Real dxds[element_dimension * spatial_dimension * nb_quad_points];
-  ElementClass<type>::computeDXDS(dnds, nb_quad_points, 
+  ElementClass<type>::computeDXDS(dnds, nb_quad_points,
 				  node_coords, spatial_dimension, dxds);
   // jacobian
-  ElementClass<type>::computeJacobian(dxds, nb_quad_points, 
+  ElementClass<type>::computeJacobian(dxds, nb_quad_points,
 				      spatial_dimension, jacobians);
 
 }
 /* -------------------------------------------------------------------------- */
-

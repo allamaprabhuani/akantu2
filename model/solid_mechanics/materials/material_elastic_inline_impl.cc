@@ -98,16 +98,6 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialElastic::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
-  *epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      (*epot) += sigma[t] * F[t] ;
-
-  *epot *= .5;
-}
-
-/* -------------------------------------------------------------------------- */
 inline Real MaterialElastic::celerity() {
   return sqrt(E/rho);
 }

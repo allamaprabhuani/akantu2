@@ -56,7 +56,7 @@ public:
 public:
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
-  void initShapeFunctions(GhostType ghost_type = _not_ghost);
+  void initShapeFunctions(const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
@@ -67,26 +67,28 @@ public:
 		 Vector<Real> &intf,
 		 UInt nb_degre_of_freedom,
    		 const ElementType & type,
-   		 GhostType ghost_type = _not_ghost,
+   		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const;
 
   /// integrate a scalar value on all elements of type "type"
   Real integrate(const Vector<Real> & f,
    		 const ElementType & type,
-   		 GhostType ghost_type = _not_ghost,
+   		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const;
 
   /// get the number of quadrature points
-  UInt getNbQuadraturePoints(const ElementType & type);
+  UInt getNbQuadraturePoints(const ElementType & type,
+			     const GhostType & ghost_type = _not_ghost);
 
   /// get shapes precomputed
-  const Vector<Real> & getShapes(const ElementType & type, 
-				 const GhostType & ghost_type);
+  const Vector<Real> & getShapes(const ElementType & type,
+				 const GhostType & ghost_type = _not_ghost);
   /// get the derivatives of shapes
   const Vector<Real> & getShapesDerivatives(const ElementType & type,
-					    const GhostType & ghost_type);
+					    const GhostType & ghost_type = _not_ghost);
   /// get quadrature points
-  const Vector<Real> & getQuadraturePoints(const ElementType & type);
+  const Vector<Real> & getQuadraturePoints(const ElementType & type,
+					   const GhostType & ghost_type = _not_ghost);
 
 
   /* ------------------------------------------------------------------------ */
@@ -98,14 +100,14 @@ public:
 				  Vector<Real> &nablauq,
 				  const UInt nb_degre_of_freedom,
 				  const ElementType & type,
-				  GhostType ghost_type = _not_ghost,
+				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL);
 
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
-				     GhostType ghost_type = _not_ghost,
+				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const;
 
   /* ------------------------------------------------------------------------ */
@@ -113,7 +115,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// pre-compute normals on control points
-  void computeNormalsOnControlPoints(GhostType ghost_type = _not_ghost);
+  void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const{};
@@ -123,13 +125,13 @@ public:
 			   Vector<Real> & lumped,
 			   const Vector<Int> & equation_number,
 			   ElementType type,
-			   GhostType ghost_type);
+			   const GhostType & ghost_type = _not_ghost);
 
   void assembleFieldMatrix(const Vector<Real> & field,
 			   UInt nb_degree_of_freedom,
 			   SparseMatrix & matrix,
 			   ElementType type,
-			   GhostType ghost_type);
+			   const GhostType & ghost_type = _not_ghost);
 
 
 private:
@@ -139,25 +141,25 @@ private:
 			      UInt nb_degree_of_freedom,
 			      Vector<Real> & lumped,
 			      const Vector<Int> & equation_number,
-			      GhostType ghost_type);
+			      const GhostType & ghost_type);
   template <ElementType type>
   void assembleLumpedRowSum(const Vector<Real> & field_1,
 			    UInt nb_degree_of_freedom,
 			    Vector<Real> & lumped,
 			    const Vector<Int> & equation_number,
-			    GhostType ghost_type);
+			    const GhostType & ghost_type);
   template <ElementType type>
   void assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
 				     UInt nb_degree_of_freedom,
 				     Vector<Real> & lumped,
-				     const Vector<Int> & equation_number,				
-				     GhostType ghost_type);
+				     const Vector<Int> & equation_number,
+				     const GhostType & ghost_type);
 
   template <ElementType type>
   void assembleFieldMatrix(const Vector<Real> & field,
 			   UInt nb_degree_of_freedom,
 			   SparseMatrix & matrix,
-			   GhostType ghost_type);
+			   const GhostType & ghost_type);
 
 
   /* ------------------------------------------------------------------------ */

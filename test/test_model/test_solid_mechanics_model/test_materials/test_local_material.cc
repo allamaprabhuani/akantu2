@@ -55,7 +55,7 @@ static void trac(__attribute__ ((unused)) double * position,double * stress){
 int main(int argc, char *argv[])
 {
   akantu::initialize(&argc,&argv);
-  UInt max_steps = 20000;
+  UInt max_steps = 2000;
   Real epot, ekin;
 
   Real bar_height = 4.;
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
     epot = model->getPotentialEnergy();
     ekin = model->getKineticEnergy();
 
-    std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
-	      << std::endl;
+    if(s % 100 == 0) std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
+			       << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 100 == 0) dumper.Dump();

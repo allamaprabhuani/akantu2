@@ -3,7 +3,7 @@
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @date   Mon Oct 25 09:47:15 2010
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -45,11 +45,13 @@ int main(int argc, char *argv[])
 {
   int dim = 2;
 
+  akantu::initialize(&argc, &argv);
+
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("squares.msh", mesh);
-  
-  MeshUtils::buildFacets(mesh,1,0);
+
+  MeshUtils::buildFacets(mesh, 1, 0);
   MeshUtils::buildSurfaceID(mesh);
 
   unsigned int nb_nodes = mesh.getNbNodes();
@@ -68,18 +70,18 @@ int main(int argc, char *argv[])
   dumper_surface.SetMode(TEXT);
 
   dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
-  
+
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
 			       LINE1, mesh.getNbElement(_segment_2), C_MODE);
-  double * surf_id = new double [mesh.getSurfaceId(_segment_2).getSize()];
-  for (UInt i = 0; i < mesh.getSurfaceId(_segment_2).getSize(); ++i)
-    surf_id[i] = (double)mesh.getSurfaceId(_segment_2).values[i];
+  double * surf_id = new double [mesh.getSurfaceID(_segment_2).getSize()];
+  for (UInt i = 0; i < mesh.getSurfaceID(_segment_2).getSize(); ++i)
+    surf_id[i] = (double)mesh.getSurfaceID(_segment_2).values[i];
   dumper_surface.AddElemDataField(surf_id, 1, "surface_id");
-  delete [] surf_id;
   dumper_surface.SetPrefix("paraview/");
   dumper_surface.Init();
   dumper_surface.Dump();
 
+  delete [] surf_id;
 #endif //AKANTU_USE_IOHELPER
 
   finalize();

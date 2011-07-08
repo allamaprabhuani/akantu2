@@ -36,32 +36,26 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 IntegratorGauss::IntegratorGauss(Mesh & mesh, IntegratorID id)
   : Integrator(mesh,id){
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->jacobians[t] = NULL;
-    this->ghost_jacobians[t] = NULL;
-    quadrature_points[t] = NULL;
-  }
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void IntegratorGauss::checkJacobians(GhostType ghost_type) {
+void IntegratorGauss::checkJacobians(GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
 
   UInt * elem_val;
   UInt nb_element;
-  Real * jacobians_val;
+
   elem_val   = mesh->getConnectivity(type,ghost_type).values;
   nb_element = mesh->getConnectivity(type,ghost_type).getSize();
 
-  if(ghost_type == _not_ghost) {
-    jacobians_val = jacobians[type]->values;
-  } else {
-    jacobians_val = ghost_jacobians[type]->values;
-  }
-  
+  Real * jacobians_val = jacobians(type, ghost_type)->values;
+
   for (UInt i = 0; i < nb_element*nb_quadrature_points; ++i,++jacobians_val){
     AKANTU_DEBUG_ASSERT(*jacobians_val >0,
 			"Negative jacobian computed,"
@@ -84,8 +78,8 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(GhostType ghost_type
 
   UInt * elem_val = mesh->getConnectivity(type,ghost_type).values;;
   UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();
-  std::string ghost = "";
 
+  std::string ghost = "";
   if(ghost_type == _ghost) {
     ghost = "ghost_";
   }
@@ -113,8 +107,8 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(GhostType ghost_type
     }
     //    jacobians_val += nb_quadrature_points;
   }
-  if(ghost_type == _not_ghost) jacobians[type] = jacobians_tmp;
-  else ghost_jacobians[type] = jacobians_tmp;
+  
+  jacobians(type, ghost_type) = jacobians_tmp;
 
   AKANTU_DEBUG_OUT();
 }
@@ -128,14 +122,8 @@ void IntegratorGauss::integrate(const Vector<Real> & in_f,
 				const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  Vector<Real> * jac_loc;
   UInt nb_element = mesh->getNbElement(type,ghost_type);
-
-  if(ghost_type == _not_ghost) {
-    jac_loc     = jacobians[type];
-  } else {
-    jac_loc     = ghost_jacobians[type];
-  }
+  Vector<Real> * jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
 
@@ -191,14 +179,9 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
 				GhostType ghost_type,
 				const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
-  Vector<Real> * jac_loc;
-  UInt nb_element = mesh->getNbElement(type,ghost_type);
 
-  if(ghost_type == _not_ghost) {
-    jac_loc     = jacobians[type];
-  } else {
-    jac_loc     = ghost_jacobians[type];
-  }
+  UInt nb_element = mesh->getNbElement(type, ghost_type);
+  Vector<Real> * jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
 
@@ -249,7 +232,7 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
   template void IntegratorGauss::					\
   precomputeJacobiansOnQuadraturePoints<type>(GhostType ghost_type);	\
   template void IntegratorGauss::					\
-  checkJacobians<type>(GhostType ghost_type);				\
+  checkJacobians<type>(GhostType ghost_type) const;			\
   template void IntegratorGauss::					\
   integrate<type>(const Vector<Real> & in_f,				\
 		  Vector<Real> &intf,					\

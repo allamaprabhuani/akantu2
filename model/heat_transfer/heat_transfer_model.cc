@@ -28,6 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "heat_transfer_model.hh"
 #include "aka_math.hh"
 #include "aka_common.hh"
@@ -51,33 +52,29 @@ __BEGIN_AKANTU__
 HeatTransferModel::HeatTransferModel(Mesh & mesh,
  		      UInt dim,
  		      const ModelID & id,
-		      const MemoryID & memory_id):
+		      const MemoryID & memory_id) :
   Model(id, memory_id),
   integrator(new ForwardEuler()),
-  spatial_dimension(dim)
-{
+  spatial_dimension(dim) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
 
   if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
-  registerFEMObject<MyFEMType>("HeatTransferFEM",mesh,spatial_dimension);
+
+  std::stringstream sstr; sstr << id << ":fem";
+  registerFEMObject<MyFEMType>(sstr.str(), mesh,spatial_dimension);
 
   this->temperature= NULL;
-  for (UInt t = _not_defined; t < _max_element_type; ++t) {
-    this->temperature_gradient[t] = NULL;
-    this->temperature_gradient_ghost[t] = NULL;
-  }
 
- this->heat_flux = NULL;
- this->boundary = NULL;
+  this->residual = NULL;
+  this->boundary = NULL;
 
- AKANTU_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::initModel()
-{
+void HeatTransferModel::initModel() {
   getFEM().initShapeFunctions(_not_ghost);
   getFEM().initShapeFunctions(_ghost);
 }
@@ -135,45 +132,28 @@ void HeatTransferModel::initVectors() {
 
   /* -------------------------------------------------------------------------- */
   // not ghost
-  getFEM().getMesh().initByElementTypeRealVector(temperature_gradient,
-						 spatial_dimension,
-						 spatial_dimension,
-						 id,"temperatureGradient",
-						 _not_ghost);
+  getFEM().getMesh().initByElementTypeVector(temperature_gradient,
+					     spatial_dimension,
+					     spatial_dimension,
+					     id,"temperature_gradient");
 
-  const Mesh::ConnectivityTypeList & type_list =
-    getFEM().getMesh().getConnectivityTypeList(_not_ghost);
 
-  for(it = type_list.begin(); it != type_list.end(); ++it)
-    {
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+
+    const Mesh::ConnectivityTypeList & type_list =
+      getFEM().getMesh().getConnectivityTypeList(gt);
+
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-      UInt nb_element = getFEM().getMesh().getNbElement(*it);
-      UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it) * nb_element;
-      temperature_gradient[*it]->resize(nb_quad_points);
-      temperature_gradient[*it]->clear();
+      UInt nb_element = getFEM().getMesh().getNbElement(*it, gt);
+      UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it, gt) * nb_element;
+      temperature_gradient(*it, gt)->resize(nb_quad_points);
+      temperature_gradient(*it, gt)->clear();
     }
+  }
 
-  /* ------------------------------------------------------------------------ */
-  // ghost
-  getFEM().getMesh().initByElementTypeRealVector(temperature_gradient_ghost,
-						 spatial_dimension,
-						 spatial_dimension,
-						 id,"temperatureGradient",
-						 _ghost);
-
-  const Mesh::ConnectivityTypeList & type_list_ghost =
-    getFEM().getMesh().getConnectivityTypeList(_ghost);
-
-  for(it = type_list_ghost.begin(); it != type_list_ghost.end(); ++it)
-    {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-      UInt nb_element = getFEM().getMesh().getNbElement(*it,_ghost);
-      UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it) * nb_element;
-      temperature_gradient_ghost[*it]->resize(nb_quad_points);
-      temperature_gradient_ghost[*it]->clear();
-    }
   /* -------------------------------------------------------------------------- */
-
   dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(),1);
   dof_synchronizer->initLocalDOFEquationNumbers();
 
@@ -207,7 +187,7 @@ void HeatTransferModel::assembleCapacityLumped(const GhostType & ghost_type) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
-    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it);
+    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
 
     Vector<Real> rho_1 (nb_element * nb_quadrature_points,1, capacity * density);
     fem.assembleFieldLumped(rho_1,1,*capacity_lumped,
@@ -294,32 +274,14 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 
     const Vector<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it,ghost_type);
     UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
-    Real * gT_val = NULL;
 
-    if(ghost_type == _not_ghost) {
-      for (UInt i = 0; i < getFEM().getMesh().getNbElement(*it,_not_ghost) ; ++i) {
-	for (UInt j = 0; j < spatial_dimension; ++j) {
-	  temperature_gradient[*it]->values[spatial_dimension*i+j] = 0;
-	}
-      }
-      this->getFEM().gradientOnQuadraturePoints(*temperature,
-						*temperature_gradient[*it],
-						1 ,*it);
-      gT_val = temperature_gradient[*it]->values;
-    }
-    else {
-      for (UInt i = 0; i < getFEM().getMesh().getNbElement(*it,_ghost) ; ++i) {
-	for (UInt j = 0; j < spatial_dimension; ++j) {
-	  temperature_gradient_ghost[*it]->values[spatial_dimension*i+j] = 3e9;
-	}
-      }
-      this->getFEM().gradientOnQuadraturePoints(*temperature,
-						*temperature_gradient_ghost[*it],
-						1 ,*it,_ghost);
-      gT_val = temperature_gradient_ghost[*it]->values;
-    }
+    this->getFEM().gradientOnQuadraturePoints(*temperature,
+					      *temperature_gradient(*it, ghost_type),
+					      1 ,*it);
+    Real * gT_val = temperature_gradient(*it, ghost_type)->values;
 
-    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it);
+
+    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
     Real * k_gT_val = new Real[spatial_dimension];
@@ -436,7 +398,7 @@ Real HeatTransferModel::getStableTimeStep()
     UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(*it);
     UInt nb_element           = getFEM().getMesh().getNbElement(*it);
 
-    UInt * conn         = getFEM().getMesh().getConnectivity(*it).values;
+    UInt * conn = getFEM().getMesh().getConnectivity(*it, _not_ghost).values;
     Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 
     for (UInt el = 0; el < nb_element; ++el) {

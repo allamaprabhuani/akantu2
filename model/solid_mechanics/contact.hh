@@ -113,9 +113,9 @@ public:
 
   AKANTU_GET_MACRO(MasterSurfaces, master_surfaces, const std::vector<Surface> &);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NodeToElementsOffset, node_to_elements_offset, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NodeToElementsOffset, node_to_elements_offset, UInt);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NodeToElements, node_to_elements, const Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NodeToElements, node_to_elements, UInt);
 
   AKANTU_GET_MACRO(Type, type, const ContactType &);
 

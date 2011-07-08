@@ -71,23 +71,3 @@ inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam) {
   sigma[5] *= 1-dam;
   sigma[7] *= 1-dam;
 }
-
-/* -------------------------------------------------------------------------- */
-inline void MaterialDamage::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
-  *epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      *epot += sigma[t] * F[t];
-  *epot *= .5;
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real MaterialDamage::celerity() {
-  return sqrt(E/rho);
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real MaterialDamage::getStableTimeStep(Real h, 
-					      __attribute__ ((unused)) const Element & element) {
-  return (h/celerity());
-}

@@ -62,8 +62,8 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
     //    type_p1 = Mesh::getP1ElementType(type);
     //    nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
 
-    conn_val[nb_good_types] = mesh.getConnectivity(type).values;
-    nb_element[nb_good_types] = mesh.getConnectivity(type).getSize();
+    conn_val[nb_good_types] = mesh.getConnectivity(type, _not_ghost).values;
+    nb_element[nb_good_types] = mesh.getConnectivity(type, _not_ghost).getSize();
     nb_good_types++;
   }
 
@@ -127,9 +127,9 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
   UInt nb_nodes = mesh.getNbNodes();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_elements = mesh.getConnectivity(type).getSize();
+  UInt nb_elements = mesh.getConnectivity(type, _not_ghost).getSize();
 
-  UInt * conn_val = mesh.getConnectivity(type).values;
+  UInt * conn_val = mesh.getConnectivity(type, _not_ghost).values;
 
   /// array for the node-element list
   node_to_elem.resizeRows(nb_nodes);
@@ -238,8 +238,8 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
       connectivity_internal_facets[nb_good_types]->resize(0);
     }
 
-    conn_val[nb_good_types] = mesh.getConnectivity(type).values;
-    nb_element[nb_good_types] = mesh.getConnectivity(type).getSize();
+    conn_val[nb_good_types] = mesh.getConnectivity(type, _not_ghost).values;
+    nb_element[nb_good_types] = mesh.getConnectivity(type, _not_ghost).getSize();
     nb_good_types++;
   }
 
@@ -410,20 +410,19 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element = mesh.getNbElement(type);
-  UInt nb_ghost_element = mesh.getNbElement(type,_ghost);
+  UInt nb_element = mesh.getNbElement(type, _not_ghost);
+  UInt nb_ghost_element = mesh.getNbElement(type, _ghost);
 
   char * names = reinterpret_cast<char *>(data + (nb_element + nb_ghost_element) * nb_tags);
-  Mesh::UIntDataMap & uint_data_map = mesh.getUIntDataMap(type);
-  Mesh::UIntDataMap & ghost_uint_data_map = mesh.getUIntDataMap(type,_ghost);
+  UIntDataMap & uint_data_map = mesh.getUIntDataMap(type, _not_ghost);
+  UIntDataMap & ghost_uint_data_map = mesh.getUIntDataMap(type, _ghost);
 
   for (UInt t = 0; t < nb_tags; ++t) {
     std::string name(names);
     //    std::cout << name << std::endl;
     names += name.size() + 1;
 
-
-    Mesh::UIntDataMap::iterator it = uint_data_map.find(name);
+    UIntDataMap::iterator it = uint_data_map.find(name);
     if(it == uint_data_map.end()) {
       uint_data_map[name] = new Vector<UInt>(0, 1, name);
       it = uint_data_map.find(name);
@@ -451,12 +450,14 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
 
   // Vector<UInt> node_offset;
   // Vector<UInt> node_to_elem;
+
   CSR<UInt> node_to_elem;
+
   /// Get list of surface elements
   UInt spatial_dimension = mesh.getSpatialDimension();
+
   //  buildNode2Elements(mesh, node_offset, node_to_elem, spatial_dimension-1);
   buildNode2Elements(mesh, node_to_elem, spatial_dimension-1);
-
 
   /// Find which types of elements have been linearized
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -470,7 +471,7 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
   UInt nb_nodes_per_element_p1[nb_types];
 
   UInt * conn_val[nb_types];
-  UInt nb_element[nb_types];
+  UInt nb_element[nb_types+1];
 
   ElementType type_p1;
 
@@ -484,8 +485,8 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
     type_p1 = Mesh::getP1ElementType(facet_type);
     nb_nodes_per_element_p1[nb_lin_types] = Mesh::getNbNodesPerElement(type_p1);
 
-    conn_val[nb_lin_types] = mesh.getConnectivity(facet_type).values;
-    nb_element[nb_lin_types] = mesh.getConnectivity(facet_type).getSize();
+    conn_val[nb_lin_types] = mesh.getConnectivity(facet_type, _not_ghost).values;
+    nb_element[nb_lin_types] = mesh.getNbElement(facet_type, _not_ghost);
     nb_lin_types++;
   }
 
@@ -559,8 +560,9 @@ void MeshUtils::buildSurfaceID(Mesh & mesh) {
 
   for (UInt type_it = 0; type_it < nb_lin_types; ++type_it) {
     ElementType type = lin_element_type[type_it];
-    Vector<UInt> * surf_id_type = mesh.getSurfaceIdPointer(type);
+    Vector<UInt> * surf_id_type = mesh.getSurfaceIDPointer(type, _not_ghost);
     surf_id_type->resize(nb_element[type_it]);
+    surf_id_type->clear();
     for (UInt el = 0; el < nb_element[type_it]; ++el)
       surf_id_type->values[el] = surf_val[el+el_offset];
     el_offset += nb_element[type_it];
@@ -599,8 +601,8 @@ void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_su
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
-    UInt * connecticity = mesh.getConnectivity(type).values;
-    UInt * surface_id = mesh.getSurfaceId(type).values;;
+    UInt * connecticity = mesh.getConnectivity(type, _not_ghost).values;
+    UInt * surface_id = mesh.getSurfaceID(type, _not_ghost).values;;
 
     for (UInt el = 0; el < nb_element; ++el) {
       UInt offset = *surface_id * nb_nodes;

@@ -75,17 +75,11 @@ public:
 
 
 protected:
-
   Mesh * mesh;
   IntegratorID id;
 
-
   /// jacobians for all elements
   ByElementTypeReal jacobians;
-
-  /// jacobians for all elements
-  ByElementTypeReal ghost_jacobians;
-
 };
 
 

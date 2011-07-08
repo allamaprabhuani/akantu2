@@ -64,7 +64,7 @@ public:
 
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
-  virtual void initShapeFunctions(GhostType ghost_type = _not_ghost)=0;
+  virtual void initShapeFunctions(const GhostType & ghost_type = _not_ghost) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
@@ -75,13 +75,13 @@ public:
 		 Vector<Real> &intf,
 		 UInt nb_degre_of_freedom,
    		 const ElementType & type,
-   		 GhostType ghost_type = _not_ghost,
+   		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const = 0;
 
   /// integrate a scalar value on all elements of type "type"
   virtual Real integrate(const Vector<Real> & f,
    		 const ElementType & type,
-   		 GhostType ghost_type = _not_ghost,
+   		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const = 0;
 
   /* ------------------------------------------------------------------------ */
@@ -89,15 +89,17 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// get the number of quadrature points
-  virtual UInt getNbQuadraturePoints(const ElementType & type)=0;
+  virtual UInt getNbQuadraturePoints(const ElementType & type,
+				     const GhostType & ghost_type = _not_ghost) = 0;
   /// get the precomputed shapes
   const virtual Vector<Real> & getShapes(const ElementType & type,
-					 const GhostType & ghost_type = _not_ghost)=0;
+					 const GhostType & ghost_type = _not_ghost) = 0;
   /// get the derivatives of shapes
   const virtual Vector<Real> & getShapesDerivatives(const ElementType & type,
-						    const GhostType & ghost_type = _not_ghost)=0;
+						    const GhostType & ghost_type = _not_ghost) = 0;
   /// get quadrature points
-  const virtual Vector<Real> & getQuadraturePoints(const ElementType & type)=0;
+  const virtual Vector<Real> & getQuadraturePoints(const ElementType & type,
+						   const GhostType & ghost_type = _not_ghost) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
@@ -108,7 +110,7 @@ public:
 				  Vector<Real> &nablauq,
 				  const UInt nb_degre_of_freedom,
 				  const ElementType & type,
-				  GhostType ghost_type = _not_ghost,
+				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL)=0;
 
   virtual
@@ -116,7 +118,7 @@ public:
 				     Vector<Real> &uq,
 				     UInt nb_degre_of_freedom,
 				     const ElementType & type,
-				     GhostType ghost_type = _not_ghost,
+				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const =0;
 
   /* ------------------------------------------------------------------------ */
@@ -124,7 +126,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// pre-compute normals on control points
-  virtual void computeNormalsOnControlPoints(GhostType ghost_type = _not_ghost)=0;
+  virtual void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost)=0;
 
 
 
@@ -134,7 +136,7 @@ public:
 		      const Vector<Int> & equation_number,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
-		      GhostType ghost_type = _not_ghost,
+		      const GhostType & ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL,
 		      Real scale_factor = 1) const;
 
@@ -143,7 +145,7 @@ public:
 		      SparseMatrix & matrix,
 		      UInt nb_degre_of_freedom,
 		      const ElementType & type,
-		      GhostType ghost_type = _not_ghost,
+		      const GhostType & ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL) const;
 
 
@@ -153,7 +155,7 @@ public:
   				   __attribute__ ((unused)) Vector<Real> & lumped,
   				   __attribute__ ((unused)) const Vector<Int> & equation_number,
   				   __attribute__ ((unused)) ElementType type,
-  				   __attribute__ ((unused)) __attribute__ ((unused)) GhostType ghost_type) {
+  				   __attribute__ ((unused)) __attribute__ ((unused)) const GhostType & ghost_type) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
@@ -163,7 +165,7 @@ public:
 				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
 				   __attribute__ ((unused)) SparseMatrix & matrix,
 				   __attribute__ ((unused)) ElementType type,
-				   __attribute__ ((unused)) GhostType ghost_type) {
+				   __attribute__ ((unused)) const GhostType & ghost_type) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -189,7 +191,7 @@ public:
   static inline Real getElementInradius(Real * coord, const ElementType & type);
 
   /// get the normals on quadrature points
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NormalsOnQuadPoints, normals_on_quad_points, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);
 
 
   /* ------------------------------------------------------------------------ */

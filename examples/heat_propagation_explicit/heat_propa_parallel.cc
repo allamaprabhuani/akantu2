@@ -223,7 +223,7 @@ void paraviewInit(const string & name, akantu::HeatTransferModel * model, Dumper
 
   if (nb_element){
     if (ghost_type == akantu::_ghost)
-      dumper.AddElemDataField(model->getTemperatureGradientGhost(type).values,
+      dumper.AddElemDataField(model->getTemperatureGradient(type, akantu::_ghost).values,
 			      spatial_dimension, "temperature_gradient");
     else
       dumper.AddElemDataField(model->getTemperatureGradient(type).values,

@@ -38,10 +38,10 @@ __BEGIN_AKANTU__
 NeighborList::NeighborList() : impactor_nodes(Vector<UInt>(0, 1, "impactors")) {
   AKANTU_DEBUG_IN();
 
-  for (UInt i = 0; i < _max_element_type; ++i) {
-    facets_offset[i] = NULL;
-    facets       [i] = NULL;
-  }
+  // for (UInt i = 0; i < _max_element_type; ++i) {
+  //   facets_offset[i] = NULL;
+  //   facets       [i] = NULL;
+  // }
 
   AKANTU_DEBUG_OUT();
 }
@@ -50,10 +50,10 @@ NeighborList::NeighborList() : impactor_nodes(Vector<UInt>(0, 1, "impactors")) {
 NeighborList::~NeighborList() {
   AKANTU_DEBUG_IN();
 
-  for (UInt i = 0; i < _max_element_type; ++i) {
-    if(facets_offset[i]) delete facets_offset[i];
-    if(facets       [i]) delete facets       [i];
-  }
+  // for (UInt i = 0; i < _max_element_type; ++i) {
+  //   if(facets_offset[i]) delete facets_offset[i];
+  //   if(facets       [i]) delete facets       [i];
+  // }
 
   AKANTU_DEBUG_OUT();
 }

@@ -35,16 +35,13 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialDamage::MaterialDamage(Model & model, const MaterialID & id)  :
-  Material(model, id) {
+  MaterialElastic(model, id) {
   AKANTU_DEBUG_IN();
 
-  rho = 0;
-  E   = 0;
-  nu  = 1./2.;
   Yd  = 50;
   Sd  = 5000;
-  initInternalVector(this->ghost_damage,1,"damage",_ghost);
-  initInternalVector(this->damage,1,"damage");
+
+  initInternalVector(this->damage, 1, "damage");
 
   AKANTU_DEBUG_OUT();
 }
@@ -52,14 +49,12 @@ MaterialDamage::MaterialDamage(Model & model, const MaterialID & id)  :
 /* -------------------------------------------------------------------------- */
 void MaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
-  Material::initMaterial();
+  MaterialElastic::initMaterial();
 
-  lambda = nu * E / ((1 + nu) * (1 - 2*nu));
-  mu     = E / (2 * (1 + nu));
-  kpa    = lambda + 2./3. * mu;
   resizeInternalVector(this->damage);
-  resizeInternalVector(this->ghost_damage,_ghost);  
+
   is_init = true;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -70,10 +65,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
   Real F[3*3];
   Real sigma[3*3];
   Real * dam ;
-  if(ghost_type==_ghost)
-    dam=ghost_damage[el_type]->values;
-  else
-    dam= damage[el_type]->values;
+  dam = damage(el_type, ghost_type)->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -82,9 +74,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  //  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
-
-  computeStress(F, sigma,*dam);
+  computeStress(F, sigma, *dam);
   ++dam;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -97,33 +87,12 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy[el_type]->values;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-
-  computePotentialEnergy(strain_val, stress_val, epot);
-  epot++;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-
-/* -------------------------------------------------------------------------- */
 void MaterialDamage::setParam(const std::string & key, const std::string & value,
 			       const MaterialID & id) {
   std::stringstream sstr(value);
-  if(key == "rho") { sstr >> rho; }
-  else if(key == "E") { sstr >> E; }
-  else if(key == "nu") { sstr >> nu; }
-  else if(key == "Yd") { sstr >> Yd; }
+  if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
-  else { Material::setParam(key, value, id); }
+  else { MaterialElastic::setParam(key, value, id); }
 }
 
 
@@ -133,18 +102,9 @@ void MaterialDamage::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_damage> [" << std::endl;
-  stream << space << " + id                      : " << id << std::endl;
-  stream << space << " + name                    : " << name << std::endl;
-  stream << space << " + density                 : " << rho << std::endl;
-  stream << space << " + Young's modulus         : " << E << std::endl;
-  stream << space << " + Poisson's ratio         : " << nu << std::endl;
   stream << space << " + Yd                      : " << Yd << std::endl;
   stream << space << " + Sd                      : " << Sd << std::endl;
-  if(is_init) {
-    stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
-    stream << space << " + Second Lamé coefficient : " << mu << std::endl;
-    stream << space << " + Bulk coefficient        : " << kpa << std::endl;
-  }
+  MaterialElastic::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */

@@ -53,8 +53,8 @@ Mesh::Mesh(UInt spatial_dimension,
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(true), spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
-  types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
+  ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
   nb_surfaces(0) {
   AKANTU_DEBUG_IN();
 
@@ -78,8 +78,8 @@ Mesh::Mesh(UInt spatial_dimension,
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false), spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
-  types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
+  types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
+  ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(getVector<Real>(nodes_id));
@@ -112,16 +112,7 @@ Mesh::Mesh(UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::init() {
-  for(UInt t = _not_defined; t < _max_element_type; ++t) {
-    connectivities[t] = NULL;
-    ghost_connectivities[t] = NULL;
-    surface_id[t] = NULL;
-    //reversed_elements_pbc[t] = NULL;
-    uint_data[t].clear();
-    ghost_uint_data[t].clear();
-  }
-
-  this->types_offsets.resize(_max_element_type);
+  //  this->types_offsets.resize(_max_element_type);
 
   nodes_type = NULL;
   computeBoundingBox();
@@ -131,20 +122,18 @@ void Mesh::init() {
 Mesh::~Mesh() {
   AKANTU_DEBUG_IN();
 
-  for (UInt t = _not_defined;  t < _max_element_type; ++t) {
-    if(uint_data[t].size() > 0) {
-      UIntDataMap::iterator it;
-      for (it = uint_data[t].begin(); it != uint_data[t].end(); ++it) {
-	if(it->second) delete it->second;
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+
+    const ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
+    ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      UIntDataMap & map = uint_data(*it, gt);
+      UIntDataMap::iterator dit;
+      for (dit = map.begin(); dit != map.end(); ++dit) {
+	if(dit->second) delete dit->second;
       }
-      uint_data[t].clear();
-    }
-    if(ghost_uint_data[t].size() > 0) {
-      UIntDataMap::iterator it;
-      for (it = ghost_uint_data[t].begin(); it != ghost_uint_data[t].end(); ++it) {
-	if(it->second) delete it->second;
-      }
-      ghost_uint_data[t].clear();
+      map.clear();
     }
   }
 
@@ -163,17 +152,8 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   nodes->printself(stream, indent+2);
   stream << space << " ]" << std::endl;
 
-  ConnectivityTypeList::const_iterator it;
-  for(it = type_set.begin(); it != type_set.end(); ++it) {
-    stream << space << " + connectivities ("<< *it <<") [" << std::endl;
-    (connectivities[*it])->printself(stream, indent+2);
-    stream << space << " ]" << std::endl;
-  }
-  for(it = ghost_type_set.begin(); it != ghost_type_set.end(); ++it) {
-    stream << space << " + ghost_connectivities ("<< *it <<") [" << std::endl;
-    (ghost_connectivities[*it])->printself(stream, indent+2);
-    stream << space << " ]" << std::endl;
-  }
+  stream << space << " + connectivities [" << std::endl;
+  connectivities.printself(stream, indent+2);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
@@ -194,45 +174,45 @@ void Mesh::computeBoundingBox(){
       xmax[k] = std::max(xmax[k],coords[dim*i+k]);
     }
   }
-  
-  StaticCommunicator * comm = 
+
+  StaticCommunicator * comm =
     StaticCommunicator::getStaticCommunicator();
-  
+
   comm->allReduce(xmin,dim,_so_min);
   comm->allReduce(xmax,dim,_so_max);
 
-  for (UInt k = 0; k < dim; ++k) 
+  for (UInt k = 0; k < dim; ++k)
     size[k] = xmax[k] - xmin[k];
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::initByElementTypeRealVector(ByElementTypeReal & vect,
-				       UInt nb_component,
-				       UInt dim,
-				       const std::string & obj_id,
-				       const std::string & vect_id,
-				       GhostType ghost_type) {
+template<typename T>
+void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
+				   UInt nb_component,
+				   UInt dim,
+				   const std::string & obj_id,
+				   const std::string & vect_id) {
   AKANTU_DEBUG_IN();
 
-  for(UInt t = _not_defined; t < _max_element_type; ++t)
-    vect[t] = NULL;
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
 
-  std::string ghost_id = "";
+    std::string ghost_id = "";
+    if (gt == _ghost) ghost_id = "ghost_";
 
-  if (ghost_type == _ghost) {
-    ghost_id = "ghost_";
-  }
+    const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      if(dim > 0 && Mesh::getSpatialDimension(*it) != dim) continue;
 
-  const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(dim > 0 && Mesh::getSpatialDimension(*it) != dim) continue;
-    std::stringstream sstr; sstr << obj_id << ":" << ghost_id << vect_id << ":" << *it;
-    if (vect[*it] == NULL){
-      vect[*it] = &(alloc<Real>(sstr.str(), 0,
-				nb_component, REAL_INIT_VALUE));
+      std::stringstream sstr; sstr << obj_id << ":" << ghost_id << vect_id << ":" << *it;
+
+      AKANTU_DEBUG_ASSERT(!vect.exists(*it, gt), "Error initializing the ByElementType object, "
+			  << obj_id << " " << vect.printType(*it, gt) << " already exists.");
+      vect(*it, gt) = &(alloc<T>(sstr.str(), 0,
+				 nb_component, REAL_INIT_VALUE));
     }
   }
 
@@ -240,38 +220,20 @@ void Mesh::initByElementTypeRealVector(ByElementTypeReal & vect,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::initByElementTypeUIntVector(ByElementTypeUInt & vect,
-				       UInt nb_component,
-				       UInt dim,
-				       const std::string & obj_id,
-				       const std::string & vect_id,
-				       GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  for(UInt t = _not_defined; t < _max_element_type; ++t)
-    vect[t] = NULL;
-
-  std::string ghost_id = "";
-
-  if (ghost_type == _ghost) {
-    ghost_id = "ghost_";
-  }
-
-  const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(dim > 0 && Mesh::getSpatialDimension(*it) != dim) continue;
-    std::stringstream sstr; sstr << obj_id << ":" << ghost_id << vect_id << ":" << *it;
-    if (vect[*it] == NULL){
-      vect[*it] = &(alloc<UInt>(sstr.str(), 0,
-				nb_component, UINT_INIT_VALUE));
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-
-
+template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & vect,
+						  UInt nb_component,
+						  UInt dim,
+						  const std::string & obj_id,
+						  const std::string & vect_id);
+template void Mesh::initByElementTypeVector<Int>(ByElementTypeVector<Int> & vect,
+						  UInt nb_component,
+						  UInt dim,
+						  const std::string & obj_id,
+						  const std::string & vect_id);
+template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & vect,
+						  UInt nb_component,
+						  UInt dim,
+						  const std::string & obj_id,
+						  const std::string & vect_id);
 
 __END_AKANTU__

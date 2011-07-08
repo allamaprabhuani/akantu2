@@ -27,9 +27,9 @@
 
 #===============================================================================
 
-add_subdirectory("test_neighbor_structure")
-add_subdirectory("test_contact_search")
-add_subdirectory("test_contact_2d")
-add_subdirectory("test_contact_rigid")
-add_subdirectory("test_friction_coefficient")
+add_akantu_test(test_neighbor_structure   "test_neighbor_structure")
+add_akantu_test(test_contact_search	  "test_contact_search")
+add_akantu_test(test_contact_2d	          "test_contact_2d")
+add_akantu_test(test_contact_rigid	  "test_contact_rigid")
+add_akantu_test(test_friction_coefficient "test_friction_coefficient")
 

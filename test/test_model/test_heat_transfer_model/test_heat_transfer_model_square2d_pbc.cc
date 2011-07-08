@@ -73,11 +73,8 @@ int main(int argc, char *argv[])
   model->initModel();
   model->initVectors();
 
-  model->getResidual().clear();
   model->getTemperature().clear();
   model->getTemperatureRate().clear();
-  model->getCapacityLumped().clear();
-  model->getTemperatureGradient(type).clear();
 
   /* -------------------------------------------------------------------------- */
   model->initPBC(1,1,1);

@@ -46,13 +46,6 @@ DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
   static_communicator(StaticCommunicator::getStaticCommunicator()) {
   AKANTU_DEBUG_IN();
 
-  for (UInt t = _not_defined; t < _max_element_type; ++t) {
-    element_to_send_offset   [t] = NULL;
-    element_to_send	     [t] = NULL;
-    element_to_receive_offset[t] = NULL;
-    element_to_receive       [t] = NULL;
-  }
-
   nb_proc = static_communicator->getNbProc();
   rank    = static_communicator->whoAmI();
 
@@ -151,12 +144,12 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       memset(nb_ghost_element, 0, nb_proc*sizeof(UInt));
       memset(nb_element_to_send, 0, nb_proc*sizeof(UInt));
 
-      UInt * partition_num = partition->getPartition(type).values;
+      UInt * partition_num = partition->getPartition(type, _not_ghost).values;
 
-      UInt * ghost_partition = partition->getGhostPartition(type).values;
-      UInt * ghost_partition_offset = partition->getGhostPartitionOffset(type).values;
+      UInt * ghost_partition = partition->getGhostPartition(type, _ghost).values;
+      UInt * ghost_partition_offset = partition->getGhostPartitionOffset(type, _ghost).values;
 
-      Mesh::UIntDataMap & uint_data_map = mesh.getUIntDataMap(type);
+      UIntDataMap & uint_data_map = mesh.getUIntDataMap(type, _not_ghost);
       UInt nb_tags = uint_data_map.size();
 
       /* -------------------------------------------------------------------- */
@@ -183,7 +176,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       }
 
       /// copying the local connectivity
-      UInt * conn_val = mesh.getConnectivity(type).values;
+      UInt * conn_val = mesh.getConnectivity(type, _not_ghost).values;
       for (UInt el = 0; el < nb_element; ++el) {
 	memcpy(buffers_tmp[partition_num[el]],
 	       conn_val + el * nb_nodes_per_element,
@@ -205,7 +198,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       }
 
       UInt names_size = 0;
-      Mesh::UIntDataMap::iterator it_data;
+      UIntDataMap::iterator it_data;
       for(it_data = uint_data_map.begin(); it_data != uint_data_map.end(); ++it_data) {
 	names_size += it_data->first.size() + 1;
       }
@@ -621,42 +614,30 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
   const UInt GHOST_SET  = 2;
 
   bool * already_seen = new bool[nb_nodes];
-  std::fill_n(already_seen, nb_nodes, false);
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(_not_ghost);
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    ElementType type = *it;
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    UInt nb_element = mesh.getNbElement(type);
-    UInt * conn_val = mesh.getConnectivity(type).values;
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+    UInt set = NORMAL_SET;
+    if (gt == _ghost) set = GHOST_SET;
 
-    for (UInt e = 0; e < nb_element; ++e) {
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val << " bigger than number of nodes " << nb_nodes);
-	if(!already_seen[*conn_val]) {
-	  nodes_set[*conn_val] += NORMAL_SET;
-	  already_seen[*conn_val] = true;
+    std::fill_n(already_seen, nb_nodes, false);
+    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      ElementType type = *it;
+
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+      UInt nb_element = mesh.getNbElement(type, gt);
+      UInt * conn_val = mesh.getConnectivity(type, gt).values;
+
+      for (UInt e = 0; e < nb_element; ++e) {
+	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	  AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val << " bigger than number of nodes " << nb_nodes);
+	  if(!already_seen[*conn_val]) {
+	    nodes_set[*conn_val] += set;
+	    already_seen[*conn_val] = true;
+	  }
+	  conn_val++;
 	}
-	conn_val++;
-      }
-    }
-  }
-
-  std::fill_n(already_seen, nb_nodes, false);
-  const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    ElementType type = *it;
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    UInt nb_element = mesh.getNbElement(type,_ghost);
-    UInt * conn_val = mesh.getConnectivity(type,_ghost).values;
-
-    for (UInt e = 0; e < nb_element; ++e) {
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	if(!already_seen[*conn_val]) {
-	  nodes_set[*conn_val] += GHOST_SET;
-	  already_seen[*conn_val] = true;
-	}
-	conn_val++;
       }
     }
   }

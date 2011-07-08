@@ -392,7 +392,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     UInt nb_element = mesh.getNbElement(*it);
-    mesh.getUIntDataPointer(*it, "material")->resize(nb_element);
+    mesh.getUIntDataPointer(*it, "material", _not_ghost)->resize(nb_element);
   }
 
   my_getline(infile, line);
@@ -427,7 +427,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
 	Element & element = global_to_local_index[j - 1];
 	UInt elem = element.element;
 	ElementType type = element.type;
-	Vector<UInt> & data = *(mesh.getUIntDataPointer(type, "material"));
+	Vector<UInt> & data = *(mesh.getUIntDataPointer(type, "material", _not_ghost));
 	data(elem) = mat;
       }
 

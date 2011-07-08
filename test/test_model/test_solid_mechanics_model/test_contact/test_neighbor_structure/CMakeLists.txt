@@ -27,5 +27,5 @@
 
 #===============================================================================
 
-add_subdirectory("test_regular_grid_neighbor_structure")
-add_subdirectory("test_contact_2d_neighbor_structure")
+add_akantu_test(test_regular_grid_neighbor_structure "Regular grid neighbor structure tests")
+add_akantu_test(test_contact_2d_neighbor_structure "Contact 2D neighbor structure tests")

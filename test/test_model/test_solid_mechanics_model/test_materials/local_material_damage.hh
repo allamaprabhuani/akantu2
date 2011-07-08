@@ -91,7 +91,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Damage, damage, const Vector<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 private:
 
   /// the young modulus

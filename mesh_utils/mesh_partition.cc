@@ -40,12 +40,6 @@ MeshPartition::MeshPartition(const Mesh & mesh, UInt spatial_dimension,
   mesh(mesh), spatial_dimension(spatial_dimension) {
   AKANTU_DEBUG_IN();
 
-  for(UInt type = _not_defined; type < _max_element_type; ++type) {
-    partitions[type]              = NULL;
-    ghost_partitions[type]        = NULL;
-    ghost_partitions_offset[type] = NULL;
-  }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -85,8 +79,8 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 
     nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
     nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
-    conn_val[nb_good_types]                = mesh.getConnectivity(type).values;
-    nb_element[nb_good_types]              = mesh.getConnectivity(type).getSize();
+    conn_val[nb_good_types]                = mesh.getConnectivity(type, _not_ghost).values;
+    nb_element[nb_good_types]              = mesh.getConnectivity(type, _not_ghost).getSize();
     magic_number[nb_good_types]            =
       Mesh::getNbNodesPerElement(Mesh::getFacetElementType(type_p1));
     nb_good_types++;
@@ -258,16 +252,16 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
     std::stringstream sstr_gi; sstr_gi << mesh.getID() << ":ghost_partition_offset:" << type;
     std::stringstream sstr_g;  sstr_g  << mesh.getID() << ":ghost_partition:" << type;
 
-    partitions             [type] = &(alloc<UInt>(sstr.str(), nb_element, 1, 0));
-    ghost_partitions_offset[type] = &(alloc<UInt>(sstr_gi.str(), nb_element + 1, 1, 0));
-    ghost_partitions       [type] = &(alloc<UInt>(sstr_g.str(), 0, 1, 0));
+    partitions             (type, _not_ghost) = &(alloc<UInt>(sstr.str(), nb_element, 1, 0));
+    ghost_partitions_offset(type, _ghost) = &(alloc<UInt>(sstr_gi.str(), nb_element + 1, 1, 0));
+    ghost_partitions       (type, _ghost) = &(alloc<UInt>(sstr_g.str(), 0, 1, 0));
 
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
       UInt part = linearized_partitions[linearized_el];
 
-      partitions[type]->values[el] = part;
+      partitions(type, _not_ghost)->values[el] = part;
       std::list<UInt> list_adj_part;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	UInt node = connectivity.values[el * nb_nodes_per_element + n];
@@ -288,17 +282,18 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
       for(std::list<UInt>::iterator adj_it = list_adj_part.begin();
 	  adj_it != list_adj_part.end();
 	  ++adj_it) {
-	ghost_partitions[type]->push_back(*adj_it);
-	ghost_partitions_offset[type]->values[el]++;
+	ghost_partitions(type, _ghost)->push_back(*adj_it);
+	ghost_partitions_offset(type, _ghost)->values[el]++;
       }
     }
 
     /// convert the ghost_partitions_offset array in an offset array
+    Vector<UInt> & ghost_partitions_offset_ptr = *ghost_partitions_offset(type, _ghost);
     for (UInt i = 1; i < nb_element; ++i)
-      ghost_partitions_offset[type]->values[i] += ghost_partitions_offset[type]->values[i-1];
+      ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i-1);
     for (UInt i = nb_element; i > 0; --i)
-      ghost_partitions_offset[type]->values[i]  = ghost_partitions_offset[type]->values[i-1];
-    ghost_partitions_offset[type]->values[0] = 0;
+      ghost_partitions_offset_ptr(i)  = ghost_partitions_offset_ptr(i-1);
+    ghost_partitions_offset_ptr(0) = 0;
   }
 
   AKANTU_DEBUG_OUT();

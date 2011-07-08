@@ -47,8 +47,8 @@ MaterialMazars::MaterialMazars(Model & model, const MaterialID & id)  :
   Bc= 1900;
   Bt = 12000;
   beta = 1.06;
-  initInternalVector(this->ghost_damage,1,"damage",_ghost);
-  initInternalVector(this->damage,1,"damage");
+
+  initInternalVector(this->damage, 1, "damage");
 
   AKANTU_DEBUG_OUT();
 }
@@ -58,11 +58,8 @@ void MaterialMazars::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  lambda = nu * E / ((1 + nu) * (1 - 2*nu));
-  mu     = E / (2 * (1 + nu));
-  kpa    = lambda + 2./3. * mu;
   resizeInternalVector(this->damage);
-  resizeInternalVector(this->ghost_damage,_ghost);  
+
   is_init = true;
   AKANTU_DEBUG_OUT();
 }
@@ -73,11 +70,7 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam ;
-  if(ghost_type==_ghost)
-    dam=ghost_damage[el_type]->values;
-  else
-    dam= damage[el_type]->values;
+  Real * dam = damage(el_type, ghost_type)->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -86,9 +79,7 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  //  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
-
-  computeStress(F, sigma,*dam);
+  computeStress(F, sigma, *dam);
   ++dam;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -101,24 +92,6 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy[el_type]->values;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-
-  computePotentialEnergy(strain_val, stress_val, epot);
-  epot++;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-
-/* -------------------------------------------------------------------------- */
 void MaterialMazars::setParam(const std::string & key, const std::string & value,
 			       const MaterialID & id) {
   std::stringstream sstr(value);
@@ -126,7 +99,7 @@ void MaterialMazars::setParam(const std::string & key, const std::string & value
   else if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
   else if(key == "K0") { sstr >> K0; }
-  else if(key == "At") { sstr >> At; } 
+  else if(key == "At") { sstr >> At; }
   else if(key == "Bt") { sstr >> Bt; }
   else if(key == "Ac") { sstr >> Ac; }
   else if(key == "Bc") { sstr >> Bc; }
@@ -151,12 +124,7 @@ void MaterialMazars::printself(std::ostream & stream, int indent) const {
   stream << space << " + Bt                      : " << Bt << std::endl;
   stream << space << " + Ac                      : " << Ac << std::endl;
   stream << space << " + Bc                      : " << Bc << std::endl;
-  stream << space << " + beta                      : " << beta << std::endl;
-  if(is_init) {
-    stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
-    stream << space << " + Second Lamé coefficient : " << mu << std::endl;
-    stream << space << " + Bulk coefficient        : " << kpa << std::endl;
-  }
+  stream << space << " + beta                    : " << beta << std::endl;
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */

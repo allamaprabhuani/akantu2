@@ -39,7 +39,7 @@ MaterialElastic::MaterialElastic(Model & model, const MaterialID & id)  :
   rho = 0;
   E   = 0;
   nu  = 1./2.;
-  plain_stress = false;
+  plane_stress = false;
 
   AKANTU_DEBUG_OUT();
 }
@@ -52,7 +52,7 @@ void MaterialElastic::initMaterial() {
   lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
   mu       = E / (2 * (1 + nu));
 
-  if(plain_stress)
+  if(plane_stress)
     lambda = 2 * lambda * mu / (lambda + 2 * mu);
 
   kpa      = lambda + 2./3. * mu;
@@ -101,30 +101,13 @@ void MaterialElastic::computeTangentStiffness(const ElementType & el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy[el_type]->values;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-
-  computePotentialEnergy(strain_val, stress_val, epot);
-  epot++;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void MaterialElastic::setParam(const std::string & key, const std::string & value,
 			       const MaterialID & id) {
   std::stringstream sstr(value);
   if(key == "rho") { sstr >> rho; }
   else if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
-  else if(key == "Plain_Stress") { sstr >> plain_stress; }
+  else if(key == "Plane_Stress") { sstr >> plane_stress; }
   else { Material::setParam(key, value, id); }
 }
 
@@ -135,10 +118,10 @@ void MaterialElastic::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_elastic> [" << std::endl;
-  if(!plain_stress)
-    stream << space << " + Plain strain" << std::endl;
+  if(!plane_stress)
+    stream << space << " + Plane strain" << std::endl;
   else
-    stream << space << " + Plain stress" << std::endl;
+    stream << space << " + Plane stress" << std::endl;
   stream << space << " + id                      : " << id << std::endl;
   stream << space << " + name                    : " << name << std::endl;
   stream << space << " + density                 : " << rho << std::endl;

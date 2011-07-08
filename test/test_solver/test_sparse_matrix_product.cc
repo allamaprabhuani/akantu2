@@ -71,22 +71,23 @@ int main(int argc, char *argv[])
 
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_global_node = mesh.getNbGlobalNodes();
-  Vector<Int>  equation_number(nb_nodes, nb_dof);
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    UInt real_n = mesh.getNodeGlobalId(n);
-    bool is_local_node = !(mesh.isPureGhostNode(n));
-    for (UInt d = 0; d < nb_dof; ++d) {
-      UInt global_eq_num = (is_local_node ? real_n : nb_global_node + real_n) * nb_dof + d;
-      equation_number(n, d) = global_eq_num;
-    }
-  }
+  // Vector<Int>  equation_number(nb_nodes, nb_dof);
+  // for (UInt n = 0; n < nb_nodes; ++n) {
+  //   UInt real_n = mesh.getNodeGlobalId(n);
+  //   bool is_local_node = !(mesh.isPureGhostNode(n));
+  //   for (UInt d = 0; d < nb_dof; ++d) {
+  //     UInt global_eq_num = (is_local_node ? real_n : nb_global_node + real_n) * nb_dof + d;
+  //     equation_number(n, d) = global_eq_num;
+  //   }
+  // }
 
   if (prank == 0) std::cout << "Creating a SparseMatrix" << std::endl;
   SparseMatrix sparse_matrix(nb_global_node * nb_dof, _symmetric, nb_dof, "matrix");
 
 
   DOFSynchronizer dof_synchronizer(mesh, nb_dof);
+  dof_synchronizer.initGlobalDOFEquationNumbers();
   sparse_matrix.buildProfile(mesh, dof_synchronizer);
 
   Vector<Real> dof_vector(nb_nodes, nb_dof, "vector");

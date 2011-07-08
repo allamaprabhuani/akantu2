@@ -27,42 +27,49 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_math.hh"
+
 /* -------------------------------------------------------------------------- */
 inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
-  ///First compute the Left Cauchy-Green deformation tensor : C= F^tF. 
-   Real C[3*3];
-   Real S[3*3];
-   
-  UInt i;
+  ///First compute the Left Cauchy-Green deformation tensor : C= F^tF.
+  Real C[3*3];
   Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
+
   ///Compute determinant of C
   Real detC;
   detC=Math::det3(C);
+
   Real defvol ;
   defvol= 0.5*log(detC);
+
   Real p;
   p = lambda*defvol;
+
   Real traceC;
   traceC = C[0]+C[4]+C[8];
+
   Real Cinv[3*3];
-  Math::inv3(C,Cinv);
-  Real coef = p -mu ;
-  for(i=0;i<3*3;i++){
-    S[i]=coef*Cinv[i];
-}
-  
+  Math::inv3(C, Cinv);
+
+  Real coef = p - mu;
+
+  Real S[3*3];
+  for(UInt i=0; i < 3*3; i++){
+    S[i] = coef*Cinv[i];
+  }
+
   S[0] = S[0] + mu;
   S[4] = S[4] + mu;
   S[8] = S[8] + mu;
-  Math::matrix_matrix(3, 3,3, F, S, sigma, 1.);}
+
+  Math::matrix_matrix(3, 3,3, F, S, sigma, 1.);
+}
 
 /* -------------------------------------------------------------------------- */
-
 template<UInt dim>
 void  MaterialNeohookean::computeTangentStiffness(Real * tangent, Real * F ) {
   UInt n = (dim * (dim - 1) / 2 + dim);
   Real J = Math::det3(F);
-  Real alpha = mu-0.5*lambda*(J*J-1);
+  Real alpha = mu - 0.5*lambda*(J*J - 1);
   Real Miiii = 2*mu+lambda;
   Real Miijj = lambda*J*J;
   Real Mijij = alpha;
@@ -95,24 +102,26 @@ inline void MaterialNeohookean::computePotentialEnergy(Real * F, Real * epot) {
   *epot = 0.;
   Real C[3*3];
   Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
+
   ///Compute determinant of C
   Real detC;
-  detC=Math::det3(C);
+  detC = Math::det3(C);
+
   Real defvol ;
-  defvol= 0.5*log(detC);
+  defvol = 0.5*log(detC);
+
   Real p;
   p = lambda*defvol;
+
   Real traceC;
-  traceC = C[0]+C[4]+C[8];
+  traceC = C[0] + C[4] + C[8];
+
   ///energie potentielle
- 
-  *epot = (0.5*p-mu)*defvol+0.5*mu*(traceC-3.);  
-
-
+  *epot = (0.5*p - mu)*defvol + 0.5*mu*(traceC - 3.);
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialNeohookean::getStableTimeStep(Real h, 
+inline Real MaterialNeohookean::getStableTimeStep(Real h,
 						 const Element & element) {
   return (h/celerity(element));
 }

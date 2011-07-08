@@ -131,18 +131,13 @@ void SolidMechanicsModel::computeRho(Vector<Real> & rho,
   AKANTU_DEBUG_IN();
 
   Material ** mat_val = &(materials.at(0));
-  UInt * elem_mat_val;
 
   FEM & fem = getFEM();
   UInt nb_element = fem.getMesh().getNbElement(type,ghost_type);
 
-  if(ghost_type == _not_ghost) {
-    elem_mat_val = element_material[type]->values;
-  } else {
-    elem_mat_val = ghost_element_material[type]->values;
-  }
+  UInt * elem_mat_val = element_material(type, ghost_type)->values;
 
-  UInt nb_quadrature_points = fem.getNbQuadraturePoints(type);
+  UInt nb_quadrature_points = fem.getNbQuadraturePoints(type, ghost_type);
 
   rho.resize(nb_element * nb_quadrature_points);
   Real * rho_1_val = rho.values;

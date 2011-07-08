@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
- * @brief  Material isotropic elastic
+ * @brief  Material Neo Hookean
  *
  * @section LICENSE
  *
@@ -73,8 +73,7 @@ public:
 			       GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
-  void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
-
+  virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -95,7 +94,7 @@ protected:
 
   // /// compute the tangent stiffness matrix for an element
   template<UInt dim>
-  void computeTangentStiffness( Real * tangent, Real * F);
+  void computeTangentStiffness(Real * tangent, Real * F);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -124,7 +123,7 @@ private:
   Real kpa;
 
   /// Plain stress or plain strain
-  bool plain_stress;
+  bool plane_stress;
 
 };
 

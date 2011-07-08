@@ -45,6 +45,8 @@ int main(int argc, char *argv[])
 {
   int dim = 3;
 
+  akantu::initialize(&argc, &argv);
+
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cubes.msh", mesh);
@@ -71,15 +73,15 @@ int main(int argc, char *argv[])
   
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_triangle_3).values,
   			       TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
-  double * surf_id = new double [mesh.getSurfaceId(_triangle_3).getSize()];
-  for (UInt i = 0; i < mesh.getSurfaceId(_triangle_3).getSize(); ++i)
-    surf_id[i] = (double)mesh.getSurfaceId(_triangle_3).values[i];
+  double * surf_id = new double [mesh.getSurfaceID(_triangle_3).getSize()];
+  for (UInt i = 0; i < mesh.getSurfaceID(_triangle_3).getSize(); ++i)
+    surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).values[i];
   dumper_surface.AddElemDataField(surf_id, 1, "surface_id");
-  delete [] surf_id;
   dumper_surface.SetPrefix("paraview/");
   dumper_surface.Init();
   dumper_surface.Dump();
 
+  delete [] surf_id;
 #endif //AKANTU_USE_IOHELPER
 
   finalize();

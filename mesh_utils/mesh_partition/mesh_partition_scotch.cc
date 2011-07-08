@@ -92,7 +92,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     /// count number of occurrence of each node
     for (UInt el = 0; el < nb_element; ++el) {
@@ -119,7 +119,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
       UInt * conn_val = connectivity.values + el * nb_nodes_per_element;
@@ -141,7 +141,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el) {
       *verttab_tmp = *(verttab_tmp - 1) + nb_nodes_per_element;
@@ -415,40 +415,26 @@ void MeshPartitionScotch::reorder() {
   /// Renumbering
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    ElementType type = *it;
-    //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
+    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
+    Mesh::ConnectivityTypeList::const_iterator it;
 
-    UInt nb_element = mesh.getNbElement(type);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      ElementType type = *it;
 
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+      UInt nb_element = mesh.getNbElement(type, gt);
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    UInt * conn  = connectivity.values;
-    for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
-      *conn = permtab[*conn];
+      const Vector<UInt> & connectivity = mesh.getConnectivity(type, gt);
+
+      UInt * conn  = connectivity.values;
+      for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
+	*conn = permtab[*conn];
+      }
     }
   }
-
-  const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    ElementType type = *it;
-    //    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
-
-    UInt nb_element = mesh.getNbElement(type,_ghost);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type,_ghost);
-
-    UInt * conn  = connectivity.values;
-    for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
-      *conn = permtab[*conn];
-    }
-  }
-
 
   /// \todo think of a in-place way to do it
   Real * new_coordinates = new Real[spatial_dimension * nb_nodes];

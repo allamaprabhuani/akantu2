@@ -167,17 +167,19 @@ public:
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
   /* ------------------------------------------------------------------------ */
 public:
-  /// integrate a force on the boundary by providing a stress tensor
-  void computeForcesByStressTensor(const Vector<Real> & stresses,
-				   const ElementType & type);
-
-  /// integrate a force on the boundary by providing a traction vector
-  void computeForcesByTractionVector(const Vector<Real> & tractions,
-				     const ElementType & type);
-
   /// compute force vector from a function(x,y,z) that describe stresses
   void computeForcesFromFunction(BoundaryFunction in_function,
 				 BoundaryFunctionType function_type);
+
+  /// integrate a force on the boundary by providing a stress tensor
+  void computeForcesByStressTensor(const Vector<Real> & stresses,
+				   const ElementType & type,
+				   const GhostType & ghost_type);
+
+  /// integrate a force on the boundary by providing a traction vector
+  void computeForcesByTractionVector(const Vector<Real> & tractions,
+				     const ElementType & type,
+				     const GhostType & ghost_type);
 
   /// synchronize the ghost element boundaries values
   void synchronizeBoundaries();
@@ -275,11 +277,13 @@ public:
 
   /// get the SolidMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement,    *displacement,           Vector<Real> &);
+
   /**
    * @brief  get  the  SolidMechanicsModel::current_position vector  \warn  only
    * consistent after a call to SolidMechanicsModel::updateCurrentPosition
    */
   AKANTU_GET_MACRO(CurrentPosition, *current_position, const Vector<Real> &);
+
   /**
    * @brief get the  SolidMechanicsModel::increment vector \warn only consistent
    * if SolidMechanicsModel::setIncrementFlagOn has been called before
@@ -289,15 +293,19 @@ public:
   AKANTU_GET_MACRO(Mass,            *mass,             const Vector<Real> &);
   /// get the SolidMechanicsModel::velocity vector
   AKANTU_GET_MACRO(Velocity,        *velocity,               Vector<Real> &);
+
   /**
    * @brief get    the    SolidMechanicsModel::acceleration    vector,   updated    by
    * SolidMechanicsModel::updateAcceleration
    */
   AKANTU_GET_MACRO(Acceleration,   *acceleration,           Vector<Real> &);
+
   /// get the SolidMechanicsModel::force vector (boundary forces)
   AKANTU_GET_MACRO(Force,           *force,                  Vector<Real> &);
+
   /// get the SolidMechanicsModel::residual vector, computed by SolidMechanicsModel::updateResidual
   AKANTU_GET_MACRO(Residual,        *residual,         const Vector<Real> &);
+
   /// get the SolidMechanicsModel::boundary vector
   AKANTU_GET_MACRO(Boundary,        *boundary,               Vector<bool> &);
 
@@ -305,7 +313,7 @@ public:
   AKANTU_GET_MACRO(IncrementFlag, increment_flag, bool);
 
   /// get the SolidMechanicsModel::element_material vector corresponding to a given akantu::ElementType
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, Vector<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
@@ -338,6 +346,10 @@ public:
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
   inline FEM & getFEMBoundary(std::string name = "");
+
+private:
+  /// compute the stable time step
+  Real getStableTimeStep(const GhostType & ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -391,9 +403,6 @@ private:
 
   /// materials of all elements
   ByElementTypeUInt element_material;
-
-  /// materials of all ghost elements
-  ByElementTypeUInt ghost_element_material;
 
   /// list of used materials
   std::vector<Material *> materials;

@@ -154,7 +154,7 @@ inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
     for (UInt j = 0; j < n; ++j) {
       UInt B_j = j * k;
       for (UInt l = 0; l < k; ++l) {
-	C[C_i + j] += A[A_i + l] * B[B_j + l];
+ 	C[C_i + j] += A[A_i + l] * B[B_j + l];
       }
       C[C_i + j] *= alpha;
     }

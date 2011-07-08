@@ -158,8 +158,10 @@ enum ElementType {
   _quadrangle_8,        /// second order quadrangle
   _hexahedron_8,        /// first  order hexahedron
   _point,               /// point only for some algorithm to be generic like mesh partitioning
-  _max_element_type
+  _max_element_type = 11
 };
+
+
 
 /// @enum MaterialType different materials implemented
 enum MaterialType {
@@ -275,14 +277,24 @@ enum SynchronizerOperation {
     return variable;						\
   }
 
-#define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)	\
-  inline type get##name (const ::akantu::ElementType & el_type) const {	\
+#define AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(name, variable, type)	\
+  inline const Vector<type> &						\
+  get##name (const ::akantu::ElementType & el_type,			\
+	     const GhostType & ghost_type = _not_ghost) const {		\
     AKANTU_DEBUG_IN();							\
-    AKANTU_DEBUG_ASSERT(variable[el_type] != NULL,			\
-			"No " << #variable << " of type "		\
-			<< el_type << " in " << id);			\
+    const ByElementTypeVector<type> & const_var = variable;		\
     AKANTU_DEBUG_OUT();							\
-    return *variable[el_type];						\
+    return *(const_var(el_type, ghost_type));				\
+  }
+
+#define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)		\
+  inline Vector<type> &							\
+  get##name (const ::akantu::ElementType & el_type,			\
+	     const GhostType & ghost_type = _not_ghost) const {		\
+    AKANTU_DEBUG_IN();							\
+    const ByElementTypeVector<type> & const_var = variable;		\
+    AKANTU_DEBUG_OUT();							\
+    return *(const_var(el_type, ghost_type));				\
   }
 
 
@@ -306,6 +318,18 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _not_defined      : stream << "undefined"     ; break;
     case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
     case _point            : stream << "point"; break;
+    }
+  return stream;
+}
+
+/// standard output stream operator for GhostType
+inline std::ostream & operator <<(std::ostream & stream, GhostType type)
+{
+  switch(type)
+    {
+    case _not_ghost : stream << "not_ghost"; break;
+    case _ghost     : stream << "ghost"    ; break;
+    case _casper    : stream << "Casper the friendly ghost"; break;
     }
   return stream;
 }

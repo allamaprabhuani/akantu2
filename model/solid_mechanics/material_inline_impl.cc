@@ -27,13 +27,10 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void Material::addElement(ElementType type, UInt element) {
-  element_filter[type]->push_back(element);
-}
-
-/* -------------------------------------------------------------------------- */
-inline void Material::addGhostElement(ElementType type, UInt element) {
-  ghost_element_filter[type]->push_back(element);
+inline void Material::addElement(const ElementType & type,
+				 UInt element,
+				 const GhostType & ghost_type) {
+  element_filter(type, ghost_type)->push_back(element);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -41,6 +38,15 @@ inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
   return (dim * (dim - 1) / 2 + dim);
 }
 
+/* -------------------------------------------------------------------------- */
+inline void Material::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
+  *epot = 0.;
+  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
+      (*epot) += sigma[t] * F[t] ;
+
+  *epot *= .5;
+}
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>

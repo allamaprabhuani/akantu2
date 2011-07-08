@@ -41,10 +41,8 @@ MaterialElasticCaughey::MaterialElasticCaughey(Model & model, const MaterialID &
   UInt spatial_dimension = this->model->getSpatialDimension();
   UInt stress_size = spatial_dimension * spatial_dimension;
 
-  initInternalVector(this->ghost_stress_viscosity, stress_size, "stress_viscosity", _ghost);
-  initInternalVector(this->stress_viscosity      , stress_size, "stress_viscosity");
-  initInternalVector(this->ghost_stress_elastic  , stress_size, "stress_elastic", _ghost);
-  initInternalVector(this->stress_elastic        , stress_size, "stress_elastic");
+  initInternalVector(this->stress_viscosity, stress_size, "stress_viscosity");
+  initInternalVector(this->stress_elastic  , stress_size, "stress_elastic");
 
 
   AKANTU_DEBUG_OUT();
@@ -55,10 +53,8 @@ void MaterialElasticCaughey::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic::initMaterial();
 
-  resizeInternalVector(this->ghost_stress_viscosity);
-  resizeInternalVector(this->stress_viscosity      );  
-  resizeInternalVector(this->ghost_stress_elastic  );
-  resizeInternalVector(this->stress_elastic        );  
+  resizeInternalVector(this->stress_viscosity);
+  resizeInternalVector(this->stress_elastic  );
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,24 +63,15 @@ void MaterialElasticCaughey::initMaterial() {
 void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   UInt spatial_dimension = model->getSpatialDimension();
-  Vector<UInt> * elem_filter;
-  Vector<Real> * stress_visc;
-  Vector<Real> * stress_el  ;
-  if(ghost_type == _not_ghost) {
-    elem_filter = element_filter[el_type];
-    stress_visc = stress_viscosity[el_type];
-    stress_el   = stress_elastic  [el_type];
-  } else {
-    elem_filter = ghost_element_filter[el_type];
-    stress_visc = ghost_stress_viscosity[el_type];
-    stress_el   = ghost_stress_elastic  [el_type];      
-  }
 
+  Vector<UInt> * elem_filter = element_filter  (el_type, ghost_type);
+  Vector<Real> * stress_visc = stress_viscosity(el_type, ghost_type);
+  Vector<Real> * stress_el   = stress_elastic  (el_type, ghost_type);
 
   MaterialElastic::computeStress(el_type, ghost_type);
 
   Vector<Real> & velocity = model->getVelocity();
-  Vector<Real> strain_rate(0, spatial_dimension * spatial_dimension);
+  Vector<Real> strain_rate(0, spatial_dimension * spatial_dimension, "strain_rate");
   model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
    					     spatial_dimension,
    					     el_type, ghost_type, elem_filter);
@@ -106,10 +93,11 @@ void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {
-      stress_visc_val[spatial_dimension*i + j]  = alpha * sigma[3 * i + j];
-      stress_el_val  [spatial_dimension*i + j]  = stress_val[spatial_dimension*i + j];
-      stress_val     [spatial_dimension*i + j] += stress_visc_val[spatial_dimension*i + j];
+      stress_visc_val[spatial_dimension * i + j]  = alpha * sigma[3 * i + j];
+      stress_el_val  [spatial_dimension * i + j]  = stress_val[spatial_dimension*i + j];
+      stress_val     [spatial_dimension * i + j] += stress_visc_val[spatial_dimension*i + j];
     }
+
   strain_rate_val += spatial_dimension * spatial_dimension;
   stress_visc_val += spatial_dimension * spatial_dimension;
   stress_el_val   += spatial_dimension * spatial_dimension;
@@ -123,16 +111,12 @@ void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_
 void MaterialElasticCaughey::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<Real> * stress_el;
-  if(ghost_type == _not_ghost) {
-    stress_el = stress_elastic[el_type];
-  } else {
-    stress_el = ghost_stress_elastic[el_type];      
-  }
+  if(ghost_type != _not_ghost) return;
+
+  Vector<Real> * stress_el = stress_elastic(el_type, ghost_type);
   Real * stress_el_val = stress_el->values;
 
-  if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy[el_type]->values;
+  Real * epot = potential_energy(el_type, ghost_type)->values;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 

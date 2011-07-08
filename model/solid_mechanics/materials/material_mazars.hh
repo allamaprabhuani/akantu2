@@ -37,6 +37,20 @@
 
 __BEGIN_AKANTU__
 
+/**
+ * Material Mazars
+ *
+ * parameters in the material files :
+ *   - rho  : density (default: 0)
+ *   - E    : Young's modulus (default: 0)
+ *   - nu   : Poisson's ratio (default: 1/2)
+ *   - K0   : Damage threshold
+ *   - At   : Parameter damage traction 1
+ *   - Bt   : Parameter damage traction 2
+ *   - Ac   : Parameter damage compression 1
+ *   - Bc   : Parameter damage compression 2
+ *   - beta : Parameter for shear
+ */
 class MaterialMazars : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -63,21 +77,17 @@ public:
   /// constitutive law for a given quadrature point
   inline void computeStress(Real * F, Real * sigma,Real & damage);
 
-  /// compute the potential energy for all elements
-  void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
-
   /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
 			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
 			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
-    
+
   /// compute the celerity of wave in the material
   inline Real celerity();
+
+  inline Real getStableTimeStep(Real h, const Element & element);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -86,52 +96,32 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
-
-  /// return damage value
-  ByElementTypeReal & getDamage(){return damage;};
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Damage, damage, const Vector<Real> &);
 private:
-
   /// the young modulus
   Real E;
-
   /// Poisson coefficient
   Real nu;
 
-  /// First Lamé coefficient
-  Real lambda;
-
-  /// Second Lamé coefficient (shear modulus)
-  Real mu;
-
-
-  /// damage threshold 
+  /// damage threshold
   Real K0;
-  ///parameter damage traction 1 
+  ///parameter damage traction 1
   Real At ;
-  ///parameter damage traction 2 
-  Real Bt ;  
-  ///parameter damage compression 1 
+  ///parameter damage traction 2
+  Real Bt ;
+  ///parameter damage compression 1
   Real Ac ;
-  ///parameter damage compression 2 
-  Real Bc ;  
+  ///parameter damage compression 2
+  Real Bc ;
   ///parameter for shear
   Real beta ;
 
-
-  /// Bulk modulus
-  Real kpa;
-
   /// damage internal variable
   ByElementTypeReal damage;
-  ByElementTypeReal ghost_damage;
 };
 
 /* -------------------------------------------------------------------------- */

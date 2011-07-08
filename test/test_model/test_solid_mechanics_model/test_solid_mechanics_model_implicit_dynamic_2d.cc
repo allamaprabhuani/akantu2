@@ -61,9 +61,9 @@ const Real F = 0.5e4;
 #define bar_length 10.
 #define bar_height 1.
 #define bar_depth  1.
-const ElementType TYPE = _tetrahedron_10;
+const ElementType TYPE = _triangle_3;
 
-UInt spatial_dimension = 3;
+UInt spatial_dimension = 2;
 Real time_step = 1e-4;
 
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
   MeshPartition * partition = NULL;
   if(prank == 0) {
     MeshIOMSH mesh_io;
-    mesh_io.read("beam_3d_quad.msh", mesh);
+    mesh_io.read("beam_2d_lin.msh", mesh);
     
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->reorder();

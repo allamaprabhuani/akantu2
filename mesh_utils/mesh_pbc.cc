@@ -25,8 +25,13 @@
  *
  */
 
-#include "mesh_utils.hh"
+/* -------------------------------------------------------------------------- */
 #include <map>
+/* -------------------------------------------------------------------------- */
+#include "mesh_utils.hh"
+/* -------------------------------------------------------------------------- */
+
+
 
 __BEGIN_AKANTU__
 
@@ -34,11 +39,11 @@ __BEGIN_AKANTU__
 /// class that sorts a set of nodes of same coordinates in 'dir' direction
 class CoordinatesComparison {
 public:
-  CoordinatesComparison (const UInt dimension, 
-			 const UInt dirx, const UInt diry, 
+  CoordinatesComparison (const UInt dimension,
+			 const UInt dirx, const UInt diry,
 			 Real * coords):
     dim(dimension),dir_x(dirx),dir_y(diry),coordinates(coords){}
-  
+
   bool operator() (UInt n1, UInt n2){
     Real p1_x = coordinates[dim*n1+dir_x];
     Real p2_x = coordinates[dim*n2+dir_x];
@@ -62,8 +67,8 @@ private:
 
 /* -------------------------------------------------------------------------- */
 // void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
-// 					bool flag_x, 
-// 					bool flag_y, 
+// 					bool flag_x,
+// 					bool flag_y,
 // 					bool flag_z){
 //   std::map<UInt,UInt> pbc_pair;
 //   mesh.computeBoundingBox();
@@ -78,21 +83,21 @@ private:
 //   {
 //     std::map<UInt,UInt>::iterator it = pbc_pair.begin();
 //     std::map<UInt,UInt>::iterator end = pbc_pair.end();
-    
+
 //     Real * coords = mesh.nodes->values;
 //     UInt dim = mesh.getSpatialDimension();
 //     while(it != end){
 //       UInt i1 = (*it).first;
 //       UInt i2 = (*it).second;
-      
-//       AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
-// 			<< coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+
+//       AKANTU_DEBUG_INFO("pairing " << i1 << "("
+// 			<< coords[dim*i1] << "," << coords[dim*i1+1] << ","
 // 			<< coords[dim*i1+2]
 // 			<< ") with"
-// 			<< i2 << "(" 
-// 			<< coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+// 			<< i2 << "("
+// 			<< coords[dim*i2] << "," << coords[dim*i2+1] << ","
 // 			<< coords[dim*i2+2]
-// 			<< ")");	
+// 			<< ")");
 //       ++it;
 //     }
 //   }
@@ -116,12 +121,12 @@ private:
 // 	  flag_should_register_elem = true;
 // 	  AKANTU_DEBUG_INFO("elem list size " << list.getSize());
 // 	  AKANTU_DEBUG_INFO("node " << conn[index] +1
-// 			    << " switch to " 
+// 			    << " switch to "
 // 			    << pbc_pair[conn[index]]+1);
 // 	  // for (UInt toto = 0; toto < 3; ++toto) {
 // 	  //   AKANTU_DEBUG_INFO("dir " << toto << " coords "
-// 	  // 		      << mesh.nodes->values[conn[index]*3+toto] 
-// 	  // 		      << " switch to " 
+// 	  // 		      << mesh.nodes->values[conn[index]*3+toto]
+// 	  // 		      << " switch to "
 // 	  // 		      << mesh.nodes->values[pbc_pair[conn[index]]*3+toto]);
 // 	  // }
 // 	  std::stringstream str_temp;
@@ -131,7 +136,7 @@ private:
 // 	  }
 // 	  AKANTU_DEBUG_INFO(str_temp.str());
 // 	  conn[index] = pbc_pair[conn[index]];
-// 	}	
+// 	}
 //       }
 //       if (flag_should_register_elem) list.push_back(el);
 //     }
@@ -166,7 +171,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
     }
   }
 
-  AKANTU_DEBUG_INFO("found " << selected_left.size() << " and " << selected_right.size() 
+  AKANTU_DEBUG_INFO("found " << selected_left.size() << " and " << selected_right.size()
 	       << " nodes at each boundary for direction " << dir);
 
   UInt dir_x,dir_y;
@@ -190,12 +195,12 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
       dir_x = 0;
     }
   }
-  
+
   CoordinatesComparison compare_nodes(dim,dir_x,dir_y,coords);
 
   std::sort(selected_left.begin(),selected_left.end(),compare_nodes);
   std::sort(selected_right.begin(),selected_right.end(),compare_nodes);
-  
+
   std::vector<UInt>::iterator it_left = selected_left.begin();
   std::vector<UInt>::iterator end_left = selected_left.end();
 
@@ -206,21 +211,21 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
     UInt i1 = *it_left;
     UInt i2 = *it_right;
 
-    AKANTU_DEBUG_TRACE("do I pair? " << i1 << "(" 
-		      << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+    AKANTU_DEBUG_TRACE("do I pair? " << i1 << "("
+		      << coords[dim*i1] << "," << coords[dim*i1+1] << ","
 		       << coords[dim*i1+2]
 		      << ") with"
-		      << i2 << "(" 
-		      << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+		      << i2 << "("
+		      << coords[dim*i2] << "," << coords[dim*i2+1] << ","
 		       << coords[dim*i2+2]
-		      << ") in direction " << dir);	
+		      << ") in direction " << dir);
 
-    
+
     Real dx = 0.0;
     Real dy = 0.0;
     if (dim == 2) dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
     if (dim == 3) dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
-    
+
     if (fabs(dx*dx+dy*dy) < Math::tolerance)
       {
   	//then i match these pairs
@@ -229,14 +234,14 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
 	}
   	pbc_pair[i1] = i2;
 
-	AKANTU_DEBUG_TRACE("pairing " << i1 << "(" 
-			  << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
+	AKANTU_DEBUG_TRACE("pairing " << i1 << "("
+			  << coords[dim*i1] << "," << coords[dim*i1+1] << ","
 			   << coords[dim*i1+2]
 			  << ") with"
-			  << i2 << "(" 
-			  << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
+			  << i2 << "("
+			  << coords[dim*i2] << "," << coords[dim*i2+1] << ","
 			   << coords[dim*i2+2]
-			  << ") in direction " << dir);	
+			  << ") in direction " << dir);
   	++it_left;
   	++it_right;
       }
@@ -245,7 +250,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
     else if (dy > 0) ++it_right;
     else if (dy < 0) ++it_left;
     else {
-      AKANTU_DEBUG_ERROR("this should not append");	
+      AKANTU_DEBUG_ERROR("this should not append");
     }
   }
   AKANTU_DEBUG_INFO("found " <<  pbc_pair.size() << " pairs for direction " << dir);

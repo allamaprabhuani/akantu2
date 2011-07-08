@@ -78,11 +78,8 @@ int main(int argc, char *argv[])
 
   nb_nodes = mesh.getNbNodes();
 
-  model->getResidual().clear();
   model->getTemperature().clear();
   model->getTemperatureRate().clear();
-  model->getCapacityLumped().clear();
-  model->getTemperatureGradient(type).clear();
 
   //get stable time step
   Real time_step = model->getStableTimeStep()*0.8;
@@ -129,7 +126,7 @@ int main(int argc, char *argv[])
   model->assembleCapacityLumped();
 
   // //for testing
-  int max_steps = 100000;
+  int max_steps = 1000;
 
   for(int i=0; i<max_steps; i++)
     {
