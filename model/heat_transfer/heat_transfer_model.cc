@@ -223,13 +223,13 @@ void HeatTransferModel::updateResidual() {
   // finalize communications
   synch_registry->waitEndSynchronize(_gst_htm_temperature);
 
-
   //clear the array
   /// first @f$ r = q_{ext} @f$
   residual->clear();
 
   /// then @f$ r -= q_{int} @f$
   // update the not ghost ones
+
   updateResidual(_not_ghost);
   // update for the received ghosts
   updateResidual(_ghost);
@@ -277,8 +277,12 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 
     this->getFEM().gradientOnQuadraturePoints(*temperature,
 					      *temperature_gradient(*it, ghost_type),
-					      1 ,*it);
+					      1 ,*it,ghost_type);
     Real * gT_val = temperature_gradient(*it, ghost_type)->values;
+
+    AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension]);
+    AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+1]);
+    AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+2]);
 
 
     UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
