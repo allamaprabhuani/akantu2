@@ -200,75 +200,6 @@ SolverMumps::~SolverMumps() {
   AKANTU_DEBUG_OUT();
 }
 
-
-// /* -------------------------------------------------------------------------- */
-// void SolverMumps::initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom) {
-//   AKANTU_DEBUG_IN();
-
-//   rhs_is_local = false;
-
-//   if(communicator->getNbProc() > 1) {
-//     nb_local_nodes = mesh.getNbNodes();
-//     Vector<UInt> local_nodes(0,2);
-
-//     nodes_type = mesh.getNodesType().values;
-//     UInt * global_node_id = mesh.getGlobalNodesIds().values;
-
-//     UInt local_node_val[2];
-//     for (UInt n = 0; n < nb_local_nodes; ++n) {
-//       if(nodes_type[n] != -3) {
-// 	local_node_val[0] = global_node_id[n];
-// 	if(nodes_type[n] == -1 || nodes_type[n] == -2) {
-// 	  local_node_val[1] = 0;
-// 	} else if (nodes_type[n] >= -1) {
-// 	  local_node_val[1] = 1;
-// 	}
-// 	local_nodes.push_back(local_node_val);
-//       }
-//     }
-
-//     nb_local_nodes = local_nodes.getSize();
-
-//     UInt nb_proc = communicator->getNbProc();
-//     if(communicator->whoAmI() == 0) {
-//       nb_nodes_per_proc[0] = nb_local_nodes;
-
-//       communicator->gather(nb_nodes_per_proc, 1);
-
-//       for (UInt p = 0; p < nb_proc; ++p) {
-// 	UInt * buffer;
-// 	if(p == 0) buffer = local_nodes.values;
-// 	else {
-// 	  buffer = new UInt[nb_nodes_per_proc[p] * 2];
-// 	  communicator->receive(buffer, 2 * nb_nodes_per_proc[p], p, 0);
-// 	}
-
-// 	solution_position[p]->resize(0);
-// 	nb_nodes_per_proc_rhs[p] = 0;
-// 	for (UInt n = 0; n < nb_nodes_per_proc[p]; ++n) {
-// 	  UInt node = buffer[2 * n] * nb_degre_of_freedom;
-// 	  if(buffer[2*n + 1] == 0) {
-// 	    nb_nodes_per_proc_rhs[p]++;
-// 	    for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-// 	      rhs_position[p]->push_back(node + d);
-// 	    }
-// 	  }
-// 	  for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-// 	    solution_position[p]->push_back(node + d);
-// 	  }
-// 	}
-
-// 	if(p != 0) delete [] buffer;
-//       }
-//     } else {
-//       communicator->gather(&nb_local_nodes, 1);
-//       communicator->send(local_nodes.values, 2 * nb_local_nodes, 0, 0);
-//     }
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
-
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initialize() {
   AKANTU_DEBUG_IN();
@@ -351,68 +282,11 @@ void SolverMumps::initialize() {
 
 /* -------------------------------------------------------------------------- */
 void SolverMumps::setRHS(Vector<Real> & rhs) {
-
-  // if(communicator->getNbProc() > 1 && !rhs_is_local) {
-  //   Vector<Real> local_rhs(0,1) ;
-
-  //   Real * rhs_val = rhs.values;
-  //   UInt nb_degre_of_freedom = rhs.getNbComponent();
-  //   UInt nb_nodes = rhs.getSize();
-  //   UInt nb_local_nodes = 0;
-  //   for (UInt n = 0; n < nb_nodes; ++n) {
-  //     if(nodes_type[n] == -1 || nodes_type[n] == -2) {
-  // 	nb_local_nodes++;
-  // 	UInt node = n * nb_degre_of_freedom;
-  // 	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-  // 	  local_rhs.push_back(rhs_val[node + d]);
-  // 	}
-  //     }
-  //   }
-
-  //   Int nb_proc = communicator->getNbProc();
-  //   if (communicator->whoAmI() == 0) {
-  //     this->rhs->clear();
-  //     for (Int p = 0; p < nb_proc; ++p) {
-  // 	Real * buffer;
-  // 	if(p == 0) buffer = local_rhs.values;
-  // 	else {
-  // 	  buffer = new Real[nb_degre_of_freedom * nb_nodes_per_proc_rhs[p]];
-  // 	  communicator->receive(buffer, nb_degre_of_freedom * nb_nodes_per_proc_rhs[p], p, 0);
-  // 	}
-
-  // 	Real * buffer_tmp = buffer;
-
-  // 	for (UInt n = 0; n < nb_nodes_per_proc_rhs[p]; ++n) {
-  // 	  UInt node = n * nb_degre_of_freedom;
-  // 	  for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-  // 	    (*this->rhs)((*rhs_position[p])(node + d)) = *(buffer_tmp++);
-  // 	  }
-  // 	}
-  // 	if(p != 0) delete [] buffer;
-  //     }
-  //   } else {
-  //     communicator->send(local_rhs.values, nb_degre_of_freedom * nb_local_nodes, 0, 0);
-  //   }
-  // } else {
-  //   if(communicator->whoAmI() == 0) {
-  //     AKANTU_DEBUG_ASSERT(rhs.getSize()*rhs.getNbComponent() == this->rhs->getSize(),
-  // 			  "Size of rhs (" << rhs.getSize()*rhs.getNbComponent()
-  // 			  << ") and this->rhs (" << this->rhs->getSize()
-  // 			  << ") do not match.");
-
-  //     memcpy(this->rhs->values, rhs.values, this->rhs->getSize() * sizeof(Real));
-  //   }
-  // }
   if(communicator->whoAmI() == 0) {
     matrix->getDOFSynchronizer().gather(rhs, 0, this->rhs);
   } else {
     matrix->getDOFSynchronizer().gather(rhs, 0);
   }
-  // if(communicator->whoAmI() == 0) {
-  //   debug::setDebugLevel(dblDump);
-  //   std::cout << *(this->rhs) << std::endl;
-  //   debug::setDebugLevel(dblInfo);
-  // }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -455,55 +329,6 @@ void SolverMumps::solve(Vector<Real> & solution) {
   } else {
     matrix->getDOFSynchronizer().scatter(solution, 0);
   }
-  // if(communicator->getNbProc() > 1 && !rhs_is_local) {
-  //   solution.clear();
-  //   UInt nb_degre_of_freedom = solution.getNbComponent();
-
-  //   Vector<Real> local_rhs(nb_local_nodes * nb_degre_of_freedom,1);
-
-  //   if (communicator->whoAmI() == 0) {
-  //     Int nb_proc = communicator->getNbProc();
-  //     for (Int p = 0; p < nb_proc; ++p) {
-  // 	Real * buffer;
-  // 	if(p == 0) buffer = local_rhs.values;
-  // 	else buffer = new Real[nb_degre_of_freedom * nb_nodes_per_proc[p]];
-
-  // 	Real * buffer_tmp = buffer;
-  // 	for (UInt n = 0; n < nb_nodes_per_proc[p]; ++n) {
-  // 	  UInt node = n * nb_degre_of_freedom;
-  // 	  for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-  // 	    *(buffer_tmp++) = (*rhs)((*solution_position[p])(node + d));
-  // 	  }
-  // 	}
-
-  // 	if(p != 0) {
-  // 	  communicator->send(buffer, nb_degre_of_freedom * nb_nodes_per_proc[p], p, 0);
-  // 	  delete [] buffer;
-  // 	}
-  //     }
-  //   } else {
-  //     communicator->receive(local_rhs.values, nb_degre_of_freedom * nb_local_nodes, 0, 0);
-  //   }
-
-  //   UInt nb_local_nodes = solution.getSize();
-  //   Real * local_rhs_val = local_rhs.values;
-  //   for (UInt n = 0; n < nb_local_nodes; ++n) {
-  //     if(nodes_type[n] >= -2) {
-  // 	UInt node = n * nb_degre_of_freedom;
-  // 	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-  // 	  solution.values[node + d] = *(local_rhs_val++);
-  // 	}
-  //     }
-  //   }
-  // } else {
-  //   if(communicator->whoAmI() == 0) {
-  //     memcpy(solution.values, rhs->values, rhs->getSize() * sizeof(Real));
-  //   }
-  // }
-
-  // debug::setDebugLevel(dblDump);
-  // std::cout << solution << std::endl;
-  // debug::setDebugLevel(dblInfo);
 
   AKANTU_DEBUG_OUT();
 }

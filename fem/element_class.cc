@@ -37,9 +37,10 @@ template<ElementType type> ElementType ElementClass<type>::p1_element_type  = _n
 template<ElementType type> UInt ElementClass<type>::nb_quadrature_points    = 0;
 template<ElementType type> UInt ElementClass<type>::spatial_dimension       = 0;
 template<ElementType type> ElementType ElementClass<type>::facet_type       = _not_defined;
-
+template<ElementType type> UInt ElementClass<type>::nb_shape_functions      = 1;
 
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_point>::nb_shape_functions = 1;
 template<> UInt ElementClass<_point>::nb_nodes_per_element     = 1;
 template<> ElementType ElementClass<_point>::p1_element_type   = _point;
 template<> UInt ElementClass<_point>::nb_quadrature_points     = 1;
@@ -50,6 +51,7 @@ template<> UInt ElementClass<_point>::nb_facets                = 0;
 template<> UInt * ElementClass<_point>::facet_connectivity[]   = {};
 
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_segment_2>::nb_shape_functions = 1;
 template<> UInt ElementClass<_segment_2>::nb_nodes_per_element    = 2;
 template<> ElementType ElementClass<_segment_2>::p1_element_type  = _segment_2;
 template<> UInt ElementClass<_segment_2>::nb_quadrature_points    = 1;
@@ -61,7 +63,9 @@ template<> UInt ElementClass<_segment_2>::vec_facet_connectivity[]= {0,
 								     1};
 template<> UInt * ElementClass<_segment_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],
 								     &vec_facet_connectivity[1]};
+
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_segment_3>::nb_shape_functions = 1;
 template<> UInt ElementClass<_segment_3>::nb_nodes_per_element    = 3;
 template<> ElementType ElementClass<_segment_3>::p1_element_type  = _segment_2;
 template<> UInt ElementClass<_segment_3>::nb_quadrature_points    = 2;
@@ -74,6 +78,7 @@ template<> UInt ElementClass<_segment_3>::vec_facet_connectivity[]= {0,
 template<> UInt * ElementClass<_segment_3>::facet_connectivity[]  = {&vec_facet_connectivity[0],
 								     &vec_facet_connectivity[1]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_triangle_3>::nb_shape_functions = 1;
 template<> UInt ElementClass<_triangle_3>::nb_nodes_per_element    = 3;
 template<> ElementType ElementClass<_triangle_3>::p1_element_type  = _triangle_3;
 template<> UInt ElementClass<_triangle_3>::nb_quadrature_points    = 1;
@@ -88,6 +93,7 @@ template<> UInt * ElementClass<_triangle_3>::facet_connectivity[]  = {&vec_facet
 								      &vec_facet_connectivity[2],
 								      &vec_facet_connectivity[4]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_triangle_6>::nb_shape_functions = 1;
 template<> UInt ElementClass<_triangle_6>::nb_nodes_per_element    = 6;
 template<> ElementType ElementClass<_triangle_6>::p1_element_type  = _triangle_3;
 template<> UInt ElementClass<_triangle_6>::nb_quadrature_points    = 3;
@@ -104,6 +110,7 @@ template<> UInt * ElementClass<_triangle_6>::facet_connectivity[]  = {&vec_facet
 								      &vec_facet_connectivity[3],
 								      &vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_tetrahedron_4>::nb_shape_functions = 1;
 template<> UInt ElementClass<_tetrahedron_4>::nb_nodes_per_element    = 4;
 template<> ElementType ElementClass<_tetrahedron_4>::p1_element_type  = _tetrahedron_4;
 template<> UInt ElementClass<_tetrahedron_4>::nb_quadrature_points    = 1;
@@ -120,6 +127,7 @@ template<> UInt * ElementClass<_tetrahedron_4>::facet_connectivity[]  = {&vec_fa
 									 &vec_facet_connectivity[6],
 									 &vec_facet_connectivity[9]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_tetrahedron_10>::nb_shape_functions = 1;
 template<> UInt ElementClass<_tetrahedron_10>::nb_nodes_per_element    = 10;
 template<> ElementType ElementClass<_tetrahedron_10>::p1_element_type  = _tetrahedron_4;
 template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points    = 4;
@@ -139,6 +147,7 @@ template<> UInt * ElementClass<_tetrahedron_10>::facet_connectivity[]  = {&vec_f
 									  &vec_facet_connectivity[12],
 									  &vec_facet_connectivity[18]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_quadrangle_4>::nb_shape_functions = 1;
 template<> UInt ElementClass<_quadrangle_4>::nb_nodes_per_element    = 4;
 template<> ElementType ElementClass<_quadrangle_4>::p1_element_type  = _quadrangle_4;
 template<> UInt ElementClass<_quadrangle_4>::nb_quadrature_points    = 4;
@@ -159,6 +168,7 @@ template<> UInt * ElementClass<_quadrangle_4>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[4],
 									&vec_facet_connectivity[6]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_quadrangle_8>::nb_shape_functions      = 1;
 template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element    = 8;
 template<> ElementType ElementClass<_quadrangle_8>::p1_element_type  = _quadrangle_8;
 template<> UInt ElementClass<_quadrangle_8>::nb_quadrature_points    = 9;
@@ -183,6 +193,7 @@ template<> UInt * ElementClass<_quadrangle_8>::facet_connectivity[]  = {vec_face
  									vec_facet_connectivity + 6,
  									vec_facet_connectivity + 9};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_hexahedron_8>::nb_shape_functions = 1;
 template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element    = 8;
 template<> ElementType ElementClass<_hexahedron_8>::p1_element_type  = _hexahedron_8;
 template<> UInt ElementClass<_hexahedron_8>::nb_quadrature_points    = 8;
@@ -210,23 +221,39 @@ template<> UInt * ElementClass<_hexahedron_8>::facet_connectivity[]  = {&vec_fac
 									&vec_facet_connectivity[16],
 									&vec_facet_connectivity[20]};
 /* -------------------------------------------------------------------------- */
+template<> UInt ElementClass<_bernoulli_beam_2>::nb_nodes_per_element    = 2;
+template<> ElementType ElementClass<_bernoulli_beam_2>::p1_element_type  = _bernoulli_beam_2;
+template<> UInt ElementClass<_bernoulli_beam_2>::nb_quadrature_points    = 2;
+template<> Real ElementClass<_bernoulli_beam_2>::quad[]                  = {-1/sqrt(3), 0,
+									     1/sqrt(3), 0};
+template<> UInt ElementClass<_bernoulli_beam_2>::spatial_dimension       = 2;
+template<> UInt ElementClass<_bernoulli_beam_2>::nb_facets               = 2;
+template<> ElementType ElementClass<_bernoulli_beam_2>::facet_type       = _point;
+template<> UInt ElementClass<_bernoulli_beam_2>::vec_facet_connectivity[]= {0,
+									    1};
+template<> UInt * ElementClass<_bernoulli_beam_2>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+									    &vec_facet_connectivity[1]};
+template<> UInt ElementClass<_bernoulli_beam_2>::nb_shape_functions      = 5;
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /* Gauss integration                                                          */
 /* -------------------------------------------------------------------------- */
-template<> Real ElementClass<_segment_2     >::gauss_integration_weights[] = {2.};
-template<> Real ElementClass<_segment_3     >::gauss_integration_weights[] = {1., 1.};
-template<> Real ElementClass<_triangle_3    >::gauss_integration_weights[] = {1./2.};
-template<> Real ElementClass<_triangle_6    >::gauss_integration_weights[] = {1./6., 1./6., 1./6.};
-template<> Real ElementClass<_tetrahedron_4 >::gauss_integration_weights[] = {1./6.};
-template<> Real ElementClass<_tetrahedron_10>::gauss_integration_weights[] = {1./24., 1./24., 1./24., 1./24.};
-template<> Real ElementClass<_quadrangle_4  >::gauss_integration_weights[] = {1., 1., 1., 1.};
-template<> Real ElementClass<_quadrangle_8  >::gauss_integration_weights[] = {64./81.,
-									      25./81., 25./81., 25./81., 25./81.,
-									      40./81., 40./81., 40./81., 40./81.};
-template<> Real ElementClass<_hexahedron_8  >::gauss_integration_weights[] = {1., 1., 1., 1.,
-									      1., 1., 1., 1.};
-template<> Real ElementClass<_point         >::gauss_integration_weights[] = {1.};
+template<> Real ElementClass<_segment_2       >::gauss_integration_weights[] = {2.};
+template<> Real ElementClass<_segment_3       >::gauss_integration_weights[] = {1., 1.};
+template<> Real ElementClass<_triangle_3      >::gauss_integration_weights[] = {1./2.};
+template<> Real ElementClass<_triangle_6      >::gauss_integration_weights[] = {1./6., 1./6., 1./6.};
+template<> Real ElementClass<_tetrahedron_4   >::gauss_integration_weights[] = {1./6.};
+template<> Real ElementClass<_tetrahedron_10  >::gauss_integration_weights[] = {1./24., 1./24., 1./24., 1./24.};
+template<> Real ElementClass<_quadrangle_4    >::gauss_integration_weights[] = {1., 1., 1., 1.};
+template<> Real ElementClass<_quadrangle_8    >::gauss_integration_weights[] = {64./81.,
+										25./81., 25./81., 25./81., 25./81.,
+										40./81., 40./81., 40./81., 40./81.};
+template<> Real ElementClass<_hexahedron_8    >::gauss_integration_weights[] = {1., 1., 1., 1.,
+					      				      1., 1., 1., 1.};
+template<> Real ElementClass<_point           >::gauss_integration_weights[] = {1.};
+template<> Real ElementClass<_bernoulli_beam_2>::gauss_integration_weights[] = {1., 1.};
+
 
 __END_AKANTU__
 

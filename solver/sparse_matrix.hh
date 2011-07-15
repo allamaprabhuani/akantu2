@@ -108,10 +108,10 @@ public:
   void restoreProfile();
 
   /// save the profil in a file using the MatrixMarket file format
-  void saveProfile(const std::string & filename);
+  void saveProfile(const std::string & filename) const;
 
   /// save the matrix in a file using the MatrixMarket file format
-  void saveMatrix(const std::string & filename);
+  void saveMatrix(const std::string & filename) const;
 
   /// copy assuming the profil are the same
   void copyContent(const SparseMatrix & matrix);

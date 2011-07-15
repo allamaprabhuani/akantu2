@@ -85,6 +85,11 @@ public:
 
 
   /// function to print the contain of the class
+  //  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  /// set the control points for a given element
+  template <ElementType type>
+  void setControlPointsByType(Vector<Real> & control_points, const GhostType & ghost_type);
+  
   virtual void printself(__attribute__ ((unused)) std::ostream & stream,
 			 __attribute__ ((unused))  int indent = 0) const {};
 
@@ -92,6 +97,12 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get the size of the shapes returned by the element class
+  static inline UInt getShapeSize(const ElementType & type);
+
+  /// get the size of the shapes derivatives returned by the element class
+  static inline UInt getShapeDerivativesSize(const ElementType & type);
+ 
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -102,7 +113,13 @@ protected:
   Mesh * mesh;
 
   ShapeID id;
+
+  /// shape functions for all elements
+  ByElementTypeReal control_points;
 };
+
+
+#include "shape_functions_inline_impl.cc"
 
 
 /* -------------------------------------------------------------------------- */

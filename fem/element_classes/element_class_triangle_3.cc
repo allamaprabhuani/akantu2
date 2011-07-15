@@ -27,14 +27,14 @@
  *
  * @verbatim
        \eta
-         ^
-         |
-         x (0,0,1)
-         |`
-         |  `
-         |  q `
-         |  °   `
-         x--------x----->  \xi
+	 ^
+	 |
+	 x (0,0,1)
+	 |`
+	 |  `
+	 |  q `
+	 |  °   `
+	 x--------x----->  \xi
     (1,0,0)      (0,1,0)
  @endverbatim
  *
@@ -63,7 +63,7 @@ template<> UInt ElementClass<_triangle_3>::nb_quadrature_points;
 template<> UInt ElementClass<_triangle_3>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_3>::computeShapes(const Real * natural_coords, 
+template <> inline void ElementClass<_triangle_3>::computeShapes(const Real * natural_coords,
 							    Real * shapes){
 
   /// Natural coordinates
@@ -97,21 +97,19 @@ template <> inline void ElementClass<_triangle_3>::computeDNDS(__attribute__ ((u
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_triangle_3>::computeJacobian(const Real * dxds,
-								   const UInt dimension, 
+								   const UInt dimension,
 								   Real & jac){
-
   if (dimension == spatial_dimension){
-
     Real det_dxds = Math::det2(dxds);
     jac = det_dxds;
-  }  
+  }
   else {
-    Real vprod[dimension]; 
+    Real vprod[dimension];
     Math::vectorProduct3(dxds,dxds+3,vprod);
     jac = Math::norm3(vprod);
   }
 }
- 
+
 
 
 /* -------------------------------------------------------------------------- */

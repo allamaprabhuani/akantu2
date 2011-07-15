@@ -75,9 +75,11 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
     UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
     UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
 
+    const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
+    const Vector<UInt> & element_mat = *(element_material(*it, ghost_type));
+
     getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
 						   quad_coords, spatial_dimension, *it, ghost_type);
-
 
     Real * imposed_val = NULL;
     switch(function_type) {
@@ -91,15 +93,30 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
       break;
     }
 
-    /// sigma/tractions on each quadrature points
+    Real * normals_on_quad_val = normals_on_quad.values;
     Real * qcoord = quad_coords.values;
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quad; ++q) {
-	myf(qcoord, imposed_val);
-	imposed_val += offset;
-	qcoord += spatial_dimension;
+    try {
+      const Vector<UInt> & surface_id = mesh.getSurfaceID(*it, ghost_type);
+      /// sigma/tractions on each quadrature points
+      for (UInt el = 0; el < nb_element; ++el) {
+	for (UInt q = 0; q < nb_quad; ++q) {
+	  myf(qcoord, imposed_val, normals_on_quad_val, surface_id(el));
+	  imposed_val += offset;
+	  qcoord += spatial_dimension;
+	  normals_on_quad_val += spatial_dimension;
+	}
+      }
+    } catch (akantu::debug::Exception & e) {
+      for (UInt el = 0; el < nb_element; ++el) {
+	for (UInt q = 0; q < nb_quad; ++q) {
+	  myf(qcoord, imposed_val, normals_on_quad_val, 0);
+	  imposed_val += offset;
+	  qcoord += spatial_dimension;
+	  normals_on_quad_val += spatial_dimension;
+	}
       }
     }
+
 
     switch(function_type) {
     case _bft_stress:

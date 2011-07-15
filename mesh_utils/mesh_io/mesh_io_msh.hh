@@ -67,7 +67,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
   /// MSH element types
   enum MSHElementType {
@@ -82,28 +82,27 @@ private:
     _msh_segment_3      = 8,   // 3-node second order line
     _msh_triangle_6     = 9,   // 6-node second order triangle
     _msh_quadrangle_9   = 10,  // 9-node second order quadrangle
-    _msh_tetrahedron_10 = 11, // 10-node second order tetrahedron
-    _msh_hexaedron_2    = 12,  // 27-node second order hexahedron
-    _msh_prism_2        = 13,  // 18-node second order prism
-    _msh_pyramid_2      = 14,  // 14-node second order pyramid
+    _msh_tetrahedron_10 = 11,  // 10-node second order tetrahedron
+    _msh_hexahedron_27  = 12,  // 27-node second order hexahedron
+    _msh_prism_18       = 13,  // 18-node second order prism
+    _msh_pyramid_14     = 14,  // 14-node second order pyramid
     _msh_point          = 15,  // 1-node point.
-    _msh_quadrangle_8   = 16   // 7-node second order quadrangle
+    _msh_quadrangle_8   = 16   // 8-node second order quadrangle
   };
 
 #define MAX_NUMBER_OF_NODE_PER_ELEMENT 10 // tetrahedron of second order
 
   /// order in witch element as to be read
-  static UInt _read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT];
+  std::map<ElementType, UInt*> _read_order;
 
   /// number of nodes per msh element
-  static UInt _msh_nodes_per_elem[17]; // 17 = number of recognized
-                                       // msh element types +1 (for 0)
+  std::map<MSHElementType, UInt> _msh_nodes_per_elem;
 
-  /// correspondance between msh element types and akantu element types
-  static ElementType _msh_to_akantu_element_types[17];
+  /// correspondence between msh element types and akantu element types
+  std::map<MSHElementType, ElementType> _msh_to_akantu_element_types;
 
-  /// correspondance between akantu element types and msh element types
-  static MSHElementType _akantu_to_msh_element_types[_max_element_type];
+  /// correspondence between akantu element types and msh element types
+  std::map<ElementType, MSHElementType> _akantu_to_msh_element_types;
 };
 
 

@@ -35,6 +35,15 @@ if(AKANTU_BUILD_HEAT_TRANSFER)
   add_example(heat_propagation_explicit "Heat propagation through a bottleneck")
 endif(AKANTU_BUILD_HEAT_TRANSFER)
 
+#===============================================================================
+#add_example(dam "Dam")
+#add_example(dam_hydro "Dam pression hydrostatic")
+#add_example(dam_impl_weight_hydro "Dam pression hydrostatic with weight")
+#add_example(dam_impl_weight "Dam with weight")
+#add_example(dam_impl_dynamic "Dam with seisme")
+#add_example(dam_static "Dam static")
+#add_example(dam_static_history "Dam static with weight history")
+
 if(AKANTU_PARTITIONER_ON AND AKANTU_MPI_ON)
   add_example(3d_cube_compression "Cube compression example")
   add_example(scalability_test "Scalability test")

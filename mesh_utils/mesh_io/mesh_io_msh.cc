@@ -147,64 +147,91 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/*   Constant arrays initialisation                                           */
-/* -------------------------------------------------------------------------- */
-UInt MeshIOMSH::_read_order[_max_element_type][MAX_NUMBER_OF_NODE_PER_ELEMENT] = {
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // _not_defined
-  { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 }, // _line1
-  { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // _line2
-  { 0, 1, 2, 0, 0, 0, 0, 0, 0, 0 }, // _triangle_3
-  { 0, 1, 2, 3, 4, 5, 6, 0, 0, 0 }, // _triangle_6
-  { 0, 1, 2, 3, 4, 0, 0, 0, 0, 0 }, // _tetrahedron_4
-  { 0, 1, 2, 3, 4, 5, 6, 7, 9, 8 }, // _tetrahedron_10
-  { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0 }, // _quadrangle_4
-  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }, // _quadrangle_8
-  { 0, 1, 2, 3, 4, 5, 6, 7, 0, 0 }  // _hexahedron_8
-};
-
-UInt MeshIOMSH::_msh_nodes_per_elem[17] =
-  { 0, // element types began at 1
-    2, 3, 4, 4,  8,  6,  5,  // 1st order
-    3, 6, 9, 10, 27, 18, 14, // 2st order
-    1, 8
-  };
-
-ElementType MeshIOMSH::_msh_to_akantu_element_types[17] =
-  { _not_defined, // element types began at 1
-    _segment_2,   _triangle_3,  _quadrangle_4, _tetrahedron_4,  // 1st order
-    _hexahedron_8, _not_defined, _not_defined,
-    _segment_3,   _triangle_6,  _not_defined,  _tetrahedron_10, // 2nd order
-    _not_defined, _not_defined, _not_defined,
-    _not_defined, _quadrangle_8
-  };
-
-MeshIOMSH::MSHElementType MeshIOMSH::_akantu_to_msh_element_types[_max_element_type] =
-  {
-    _msh_not_defined,   // _not_defined
-    _msh_segment_2,     // _segment_2
-    _msh_segment_3,     // _segment_3
-    _msh_triangle_3,    // _triangle_3
-    _msh_triangle_6,    // _triangle_6
-    _msh_tetrahedron_4, // _tetrahedron_4
-    _msh_tetrahedron_10,// _tetrahedron_10
-    _msh_quadrangle_4,  // _quadrangle_4
-    _msh_quadrangle_8,  // _quadrangle_4
-    _msh_hexahedron_8   // _hexahedron_8
-  };
-
-
-/* -------------------------------------------------------------------------- */
 /*   Methods Implentations                                                    */
 /* -------------------------------------------------------------------------- */
 
 MeshIOMSH::MeshIOMSH() {
-  canReadSurface      = false;
-  canReadExtendedData = false;
+  canReadSurface      = true;
+  canReadExtendedData = true;
+
+  _msh_nodes_per_elem[_msh_not_defined   ] = 0;
+  _msh_nodes_per_elem[_msh_segment_2     ] = 2;
+  _msh_nodes_per_elem[_msh_triangle_3    ] = 3;
+  _msh_nodes_per_elem[_msh_quadrangle_4  ] = 4;
+  _msh_nodes_per_elem[_msh_tetrahedron_4 ] = 4;
+  _msh_nodes_per_elem[_msh_hexahedron_8  ] = 8;
+  _msh_nodes_per_elem[_msh_prism_1       ] = 1;
+  _msh_nodes_per_elem[_msh_pyramid_1     ] = 1;
+  _msh_nodes_per_elem[_msh_segment_3     ] = 3;
+  _msh_nodes_per_elem[_msh_triangle_6    ] = 6;
+  _msh_nodes_per_elem[_msh_quadrangle_9  ] = 9;
+  _msh_nodes_per_elem[_msh_tetrahedron_10] = 10;
+  _msh_nodes_per_elem[_msh_hexahedron_27 ] = 27;
+  _msh_nodes_per_elem[_msh_prism_18      ] = 18;
+  _msh_nodes_per_elem[_msh_pyramid_14    ] = 14;
+  _msh_nodes_per_elem[_msh_point         ] = 1;
+  _msh_nodes_per_elem[_msh_quadrangle_8  ] = 8;
+
+  _msh_to_akantu_element_types[_msh_not_defined   ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_segment_2     ] = _segment_2;
+  _msh_to_akantu_element_types[_msh_triangle_3    ] = _triangle_3;
+  _msh_to_akantu_element_types[_msh_quadrangle_4  ] = _quadrangle_4;
+  _msh_to_akantu_element_types[_msh_tetrahedron_4 ] = _tetrahedron_4;
+  _msh_to_akantu_element_types[_msh_hexahedron_8  ] = _hexahedron_8;
+  _msh_to_akantu_element_types[_msh_prism_1       ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_pyramid_1     ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_segment_3     ] = _segment_3;
+  _msh_to_akantu_element_types[_msh_triangle_6    ] = _triangle_6;
+  _msh_to_akantu_element_types[_msh_quadrangle_9  ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_tetrahedron_10] = _tetrahedron_10;
+  _msh_to_akantu_element_types[_msh_hexahedron_27 ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_prism_18      ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_pyramid_14    ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_point         ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_quadrangle_8  ] = _quadrangle_8;
+
+  _akantu_to_msh_element_types[_not_defined     ] = _msh_not_defined;
+  _akantu_to_msh_element_types[_segment_2       ] = _msh_segment_2;
+  _akantu_to_msh_element_types[_segment_3       ] = _msh_segment_3;
+  _akantu_to_msh_element_types[_triangle_3      ] = _msh_triangle_3;
+  _akantu_to_msh_element_types[_triangle_6      ] = _msh_triangle_6;
+  _akantu_to_msh_element_types[_tetrahedron_4   ] = _msh_tetrahedron_4;
+  _akantu_to_msh_element_types[_tetrahedron_10  ] = _msh_tetrahedron_10;
+  _akantu_to_msh_element_types[_quadrangle_4    ] = _msh_quadrangle_4;
+  _akantu_to_msh_element_types[_quadrangle_8    ] = _msh_quadrangle_8;
+  _akantu_to_msh_element_types[_hexahedron_8    ] = _msh_hexahedron_8;
+  _akantu_to_msh_element_types[_point           ] = _msh_point;
+  _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
+
+  std::map<ElementType, MSHElementType>::iterator it;
+  for(it = _akantu_to_msh_element_types.begin();
+      it != _akantu_to_msh_element_types.end(); ++it) {
+    UInt nb_nodes = _msh_nodes_per_elem[it->second];
+
+    UInt * tmp = new UInt[nb_nodes];
+    for (UInt i = 0; i < nb_nodes; ++i) {
+      tmp[i] = i;
+    }
+
+    switch(it->first) {
+    case _tetrahedron_10:
+      tmp[8] = 9;
+      tmp[9] = 8;
+      break;
+      //    default:
+      //nothing to change
+    }
+    _read_order[it->first] = tmp;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 MeshIOMSH::~MeshIOMSH() {
-
+  std::map<ElementType, MSHElementType>::iterator it;
+  for(it = _akantu_to_msh_element_types.begin();
+      it != _akantu_to_msh_element_types.end(); ++it) {
+    delete [] _read_order[it->first];
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -279,6 +306,8 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
     if(line == "$Elements" || line == "$ELM") {
       UInt nb_elements;
 
+      UInt * read_order = NULL;
+
       std::getline(infile, line);
       std::stringstream sstr(line);
       sstr >> nb_elements;
@@ -299,9 +328,13 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	sstr_elem >> msh_type;
 
 	/// get the connectivity vector depending on the element type
-	akantu_type = _msh_to_akantu_element_types[msh_type];
+	akantu_type = _msh_to_akantu_element_types[(MSHElementType) msh_type];
 
-	if(akantu_type == _not_defined) continue;
+	if(akantu_type == _not_defined) { 
+	  AKANTU_DEBUG_WARNING("Unsuported element kind " << msh_type
+			       << " at line " << current_line);
+	  continue;
+	}
 
 	if(akantu_type != akantu_type_old) {
 	  connectivity = mesh.getConnectivityPointer(akantu_type);
@@ -309,6 +342,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 
 	  node_per_element = connectivity->getNbComponent();
 	  akantu_type_old = akantu_type;
+	  read_order = _read_order[akantu_type];
 	}
 
 	/// read tags informations
@@ -346,7 +380,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 			     "Node number not in range : line " << current_line);
 
 	  node_index -= first_node_number;
-	  local_connect[_read_order[akantu_type][j]] = node_index;
+	  local_connect[read_order[j]] = node_index;
 	}
 	connectivity->push_back(local_connect);
       }
@@ -432,4 +466,3 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__
-

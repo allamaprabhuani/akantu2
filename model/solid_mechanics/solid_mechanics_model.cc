@@ -58,7 +58,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   stiffness_matrix(NULL),jacobian_matrix(NULL),
   integrator(NULL),
   increment_flag(false), solver(NULL),
-  spatial_dimension(dim), mesh(mesh) {
+  spatial_dimension(dim), mesh(mesh), dynamic(false) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
@@ -133,19 +133,7 @@ void SolidMechanicsModel::initExplicit() {
   if (integrator) delete integrator;
   integrator = new CentralDifference();
 
-  // UInt nb_nodes = mesh.getNbNodes();
-
-  // std::stringstream sstr_eq; sstr_eq << id << ":equation_number";
-  // equation_number = &(alloc<Int>(sstr_eq.str(), nb_nodes, spatial_dimension, 0));
-
-  // Int * equation_number_val = equation_number->values;
-
-  // for (UInt n = 0; n < nb_nodes; ++n) {
-  //   for (UInt d = 0; d < spatial_dimension; ++d) {
-  //     UInt eq_num = n * spatial_dimension + d;
-  //     *(equation_number_val++) = eq_num;
-  //   }
-  // }
+  dynamic = true;
 
   AKANTU_DEBUG_OUT();
 }
@@ -165,7 +153,7 @@ void SolidMechanicsModel::initVectors() {
   std::stringstream sstr_boun; sstr_boun << id << ":boundary";
 
   displacement = &(alloc<Real>(sstr_disp.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
-  mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, spatial_dimension, 0)); // \todo see if it must not be spatial_dimension
+  mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, spatial_dimension, 0));
   velocity     = &(alloc<Real>(sstr_velo.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   acceleration = &(alloc<Real>(sstr_acce.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
   force        = &(alloc<Real>(sstr_forc.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
@@ -283,41 +271,43 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
     (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
-  // // f -= Ma
-  // if(mass_matrix) {
-  //   // if full mass_matrix
-  //   Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
-  //   *Ma *= *mass_matrix;
-  //   *residual -= *Ma;
-  //   delete Ma;
-  // } else {
-  //   // else lumped mass
-  //   UInt nb_nodes = acceleration->getSize();
-  //   UInt nb_degre_of_freedom = acceleration->getNbComponent();
+  if(dynamic) {
+    // f -= Ma
+    if(mass_matrix) {
+      // if full mass_matrix
+      Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
+      *Ma *= *mass_matrix;
+      *residual -= *Ma;
+      delete Ma;
+    } else {
+      // else lumped mass
+      UInt nb_nodes = acceleration->getSize();
+      UInt nb_degre_of_freedom = acceleration->getNbComponent();
 
-  //   Real * mass_val     = mass->values;
-  //   Real * accel_val    = acceleration->values;
-  //   Real * res_val      = residual->values;
-  //   bool * boundary_val = boundary->values;
+      Real * mass_val     = mass->values;
+      Real * accel_val    = acceleration->values;
+      Real * res_val      = residual->values;
+      bool * boundary_val = boundary->values;
 
-  //   for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
-  //     if(!(*boundary_val)) {
-  // 	*res_val -= *accel_val * *mass_val;
-  //     }
-  //   boundary_val++;
-  //   res_val++;
-  //   mass_val++;
-  //   accel_val++;
-  //   }
-  // }
+      for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+	if(!(*boundary_val)) {
+	  *res_val -= *accel_val * *mass_val;
+	}
+	boundary_val++;
+	res_val++;
+	mass_val++;
+	accel_val++;
+      }
+    }
 
-  // // f -= Cv
-  // if(velocity_damping_matrix) {
-  //   Vector<Real> * Cv = new Vector<Real>(*velocity);
-  //   *Cv *= *velocity_damping_matrix;
-  //   *residual -= *Cv;
-  //   delete Cv;
-  // }
+    // f -= Cv
+    if(velocity_damping_matrix) {
+      Vector<Real> * Cv = new Vector<Real>(*velocity);
+      *Cv *= *velocity_damping_matrix;
+      *residual -= *Cv;
+      delete Cv;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -344,7 +334,7 @@ void SolidMechanicsModel::updateAcceleration() {
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt d = 0; d < nb_degre_of_freedom; d++) {
       if(!(*boundary_val)) {
-	*inc = f_m2a * (*residual_val / *mass_val) - *accel_val;
+	*inc = f_m2a * (*residual_val / *mass_val);
       }
       residual_val++;
       boundary_val++;
@@ -413,6 +403,8 @@ void SolidMechanicsModel::explicitCorr() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initImplicit(bool dynamic) {
   AKANTU_DEBUG_IN();
+
+  this->dynamic = true;
 
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
@@ -547,6 +539,9 @@ void SolidMechanicsModel::solveStatic() {
 
   stiffness_matrix->applyBoundary(*boundary);
 
+  if(jacobian_matrix)
+    jacobian_matrix->copyContent(*stiffness_matrix);
+
   solver->setRHS(*residual);
 
   if(!increment) setIncrementFlagOn();
@@ -569,7 +564,6 @@ void SolidMechanicsModel::solveStatic() {
 
   AKANTU_DEBUG_OUT();
 }
-
 
 /* -------------------------------------------------------------------------- */
 bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {

@@ -67,7 +67,7 @@ template<> UInt ElementClass<_segment_3>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_segment_3>::computeShapes(const Real * natural_coords, 
-							    Real * shapes){
+								Real * shapes){
   Real c = natural_coords[0];
   shapes[0] = (c - 1) * c / 2;
   shapes[1] = (c + 1) * c / 2;
@@ -75,7 +75,7 @@ template <> inline void ElementClass<_segment_3>::computeShapes(const Real * nat
 }
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_segment_3>::computeDNDS(const Real * natural_coords,
-							  Real * dnds){
+							      Real * dnds){
 
   Real c = natural_coords[0];
   dnds[0]  = c - .5;

@@ -32,20 +32,20 @@
 /* -------------------------------------------------------------------------- */
 template <typename T> inline T & Vector<T>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(size > 0,
-		      "The vector is empty");
+		      "The vector \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
 		      "The value at position [" << i << "," << j
-		      << "] is out of range");
+		      << "] is out of range in vector \"" << id << "\"");
   return values[i*nb_component + j];
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T> inline const T & Vector<T>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(size > 0,
-		      "The vector is empty");
+		      "The vector \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
 		      "The value at position [" << i << "," << j
-		      << "] is out of range");
+		      << "] is out of range in vector \"" << id << "\"");
   return values[i*nb_component + j];
 }
 

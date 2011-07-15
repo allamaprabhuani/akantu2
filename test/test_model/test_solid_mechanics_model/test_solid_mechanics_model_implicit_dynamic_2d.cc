@@ -179,8 +179,10 @@ int main(int argc, char *argv[])
   std::stringstream out;
   out << "position-" << TYPE << "_" << std::scientific << time_step << ".csv";
 
+#ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   paraviewInit(dumper, *model);
+#endif
 
   std::ofstream pos;
   if(print_node) {

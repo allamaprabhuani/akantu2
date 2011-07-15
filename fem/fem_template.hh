@@ -83,9 +83,12 @@ public:
   /// get shapes precomputed
   const Vector<Real> & getShapes(const ElementType & type,
 				 const GhostType & ghost_type = _not_ghost);
+
   /// get the derivatives of shapes
   const Vector<Real> & getShapesDerivatives(const ElementType & type,
-					    const GhostType & ghost_type = _not_ghost);
+					    const GhostType & ghost_type = _not_ghost,
+					    UInt id=0);
+
   /// get quadrature points
   const Vector<Real> & getQuadraturePoints(const ElementType & type,
 					   const GhostType & ghost_type = _not_ghost);
@@ -167,6 +170,8 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
+  const Shape & getShapeFunctions() const { return shape_functions; };
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

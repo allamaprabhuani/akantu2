@@ -44,7 +44,10 @@ using namespace akantu;
 
 akantu::Real eps = 1e-10;
 
-static void trac(__attribute__ ((unused)) double * position,double * stress){
+static void trac(__attribute__ ((unused)) Real * position,
+		 double * stress,
+		 __attribute__ ((unused)) Real * normal,
+		 __attribute__ ((unused)) UInt surface_id){
   memset(stress, 0, sizeof(Real)*4);
   if (fabs(position[0] - 10) < eps){
     stress[0] = 3e6;

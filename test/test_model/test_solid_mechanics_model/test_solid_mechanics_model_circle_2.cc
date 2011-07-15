@@ -40,7 +40,10 @@
 
 using namespace akantu;
 
-static void trac(__attribute__ ((unused)) double * position,double * stress){
+static void trac(__attribute__ ((unused)) Real * position,
+		 double * stress,
+		 __attribute__ ((unused)) Real * normal,
+		 __attribute__ ((unused)) UInt surface_id){
   memset(stress,0,sizeof(Real)*4);
   stress[0] = 1000;
   stress[3] = 1000;

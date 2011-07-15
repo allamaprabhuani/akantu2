@@ -94,9 +94,12 @@ public:
   /// get the precomputed shapes
   const virtual Vector<Real> & getShapes(const ElementType & type,
 					 const GhostType & ghost_type = _not_ghost) = 0;
+
   /// get the derivatives of shapes
   const virtual Vector<Real> & getShapesDerivatives(const ElementType & type,
-						    const GhostType & ghost_type = _not_ghost) = 0;
+						    const GhostType & ghost_type = _not_ghost,
+						    UInt id = 0) = 0;
+
   /// get quadrature points
   const virtual Vector<Real> & getQuadraturePoints(const ElementType & type,
 						   const GhostType & ghost_type = _not_ghost) = 0;

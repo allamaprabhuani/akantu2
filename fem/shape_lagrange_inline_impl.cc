@@ -25,40 +25,11 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
-inline UInt ShapeLagrange::getShapeSize(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt shape_size = 0;
-#define GET_SHAPE_SIZE(type)				\
-  shape_size = ElementClass<type>::getShapeSize()
-
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_SIZE);
-#undef GET_SHAPE_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return shape_size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt ShapeLagrange::getShapeDerivativesSize(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt shape_derivatives_size = 0;
-#define GET_SHAPE_DERIVATIVES_SIZE(type)				\
-  shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
-
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_SIZE);
-#undef GET_SHAPE_DERIVATIVES_SIZE
-
-  AKANTU_DEBUG_OUT();
-  return shape_derivatives_size;
-}
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ShapeLagrange::
-computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension, 
+computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
 					  Real * node_coords,
 					  UInt nb_nodes_per_element,
 					  Real * natural_coords,
@@ -69,9 +40,9 @@ computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
   ElementClass<type>::computeDNDS(natural_coords, nb_points, dnds);
   // compute dxds
   Real dxds[spatial_dimension * spatial_dimension * nb_points];
-  ElementClass<type>::computeDXDS(dnds, nb_points, node_coords, 
+  ElementClass<type>::computeDXDS(dnds, nb_points, node_coords,
 				  spatial_dimension, dxds);
   // compute shape derivatives
-  ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_points, 
+  ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_points,
 					      spatial_dimension, shapesd);
 }

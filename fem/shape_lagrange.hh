@@ -72,10 +72,6 @@ public:
 			       GhostType ghost_type = _not_ghost,
 			       const Vector<UInt> * filter_elements = NULL) const;
 
-  /// set the control points for a given element
-  template <ElementType type>
-  void setControlPointsByType(Vector<Real> & control_points, GhostType ghost_type);
-
   /// multiply a field by shape functions
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
@@ -89,7 +85,7 @@ public:
 protected:
   /// compute the shape derivatives on control points for a given element
   template <ElementType type>
-  inline void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension, 
+  inline void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
 							Real * node_coords,
 							UInt nb_nodes_per_element,
 							Real * natural_coords,
@@ -108,13 +104,6 @@ public:
   /// get a the shapes derivatives vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ShapesDerivatives, shapes_derivatives, Real);
 
-  /// get the size of the shapes returned by the element class
-  static inline UInt getShapeSize(const ElementType & type);
-
-  /// get the size of the shapes derivatives returned by the element class
-  static inline UInt getShapeDerivativesSize(const ElementType & type);
-
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -123,11 +112,9 @@ protected:
   /// shape functions for all elements
   ByElementTypeReal shapes;
 
-  /// shape derivatives for all elements
+  /// shape functions derivatives for all elements
   ByElementTypeReal shapes_derivatives;
 
-  /// shape functions for all elements
-  ByElementTypeReal control_points;
 };
 
 

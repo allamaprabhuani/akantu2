@@ -33,11 +33,11 @@
  * @f$ \tilde{\dot{u}_{n+1}} = \dot{u}_{n} +  \Delta t \ddot{u}_{n} @f$
  * @f$ \tilde{\ddot{u}_{n}} = \ddot{u}_{n} @f$
  */
-void NewmarkBeta::integrationSchemePred(Real delta_t,
-					Vector<Real> & u,
-					Vector<Real> & u_dot,
-					Vector<Real> & u_dot_dot,
-					Vector<bool> & boundary) {
+inline void NewmarkBeta::integrationSchemePred(Real delta_t,
+					       Vector<Real> & u,
+					       Vector<Real> & u_dot,
+					       Vector<Real> & u_dot_dot,
+					       Vector<bool> & boundary) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -71,13 +71,13 @@ void NewmarkBeta::integrationSchemePred(Real delta_t,
  * @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} + \beta \Delta t * \delta \ddot{u}_{n+1} @f$
  * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \delta \ddot{u}_{n+1} @f$
  */
-void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
-					    Vector<Real> & u,
-					    Vector<Real> & u_dot,
-					    Vector<Real> & u_dot_dot,
-					    Vector<bool> & boundary,
-					    Vector<Real> & delta
-					    ) {
+inline void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
+						    Vector<Real> & u,
+						    Vector<Real> & u_dot,
+						    Vector<Real> & u_dot_dot,
+						    Vector<bool> & boundary,
+						    Vector<Real> & delta
+						    ) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<_acceleration_corrector>(delta_t,
@@ -96,13 +96,13 @@ void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
  * @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} + \delta \dot{u}_{n+1} @f$
  * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \frac{1}{\beta \Delta t} \delta \dot{u}_{n+1} @f$
  */
-void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
-					     Vector<Real> & u,
-					     Vector<Real> & u_dot,
-					     Vector<Real> & u_dot_dot,
-					     Vector<bool> & boundary,
-					     Vector<Real> & delta
-					     ) {
+inline void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
+						    Vector<Real> & u,
+						    Vector<Real> & u_dot,
+						    Vector<Real> & u_dot_dot,
+						    Vector<bool> & boundary,
+						    Vector<Real> & delta
+						    ) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<_velocity_corrector>(delta_t,
@@ -121,13 +121,13 @@ void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
  * @f$ \dot{u}_{n+1} = \tilde{\dot{u}_{n+1}} +  \frac{1}{\alpha \Delta t} \delta u_{n+1} @f$
  * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \frac{1}{\alpha \beta \Delta t^2} \delta u_{n+1} @f$
  */
-void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
-					     Vector<Real> & u,
-					     Vector<Real> & u_dot,
-					     Vector<Real> & u_dot_dot,
-					     Vector<bool> & boundary,
-					     Vector<Real> & delta
-					     ) {
+inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
+						    Vector<Real> & u,
+						    Vector<Real> & u_dot,
+						    Vector<Real> & u_dot_dot,
+						    Vector<bool> & boundary,
+						    Vector<Real> & delta
+						    ) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<_displacement_corrector>(delta_t,
@@ -142,43 +142,43 @@ void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 template<>
-Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
   return 1.;
 }
 template<>
-Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
   return 1. / (beta * delta_t);
 }
 template<>
-Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
   return 1. / (alpha * beta * delta_t * delta_t);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
   return beta * delta_t;
 }
 template<>
-Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
   return 1.;
 }
 template<>
-Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
   return 1. / (alpha * delta_t);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
   return alpha * beta * delta_t * delta_t;
 }
 template<>
-Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
   return alpha * delta_t;
 }
 template<>
-Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
   return 1.;
 }
 

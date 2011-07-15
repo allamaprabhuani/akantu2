@@ -142,7 +142,8 @@ typedef UInt Surface;
   (_quadrangle_4)				\
   (_quadrangle_8)				\
   (_hexahedron_8)                               \
-  (_point)
+  (_point)					\
+  (_bernoulli_beam_2)				\
 
 
 /// @enum ElementType type of element potentially contained in a Mesh
@@ -158,7 +159,8 @@ enum ElementType {
   _quadrangle_8,        /// second order quadrangle
   _hexahedron_8,        /// first  order hexahedron
   _point,               /// point only for some algorithm to be generic like mesh partitioning
-  _max_element_type = 11
+  _bernoulli_beam_2,    /// bernoulli beam 2D
+  _max_element_type 
 };
 
 
@@ -169,8 +171,8 @@ enum MaterialType {
   _max_material_type
 };
 
-
-typedef void (*BoundaryFunction)(double *,double *);
+/// myfunction(double * position, double * stress/force, double * normal, unsigned int material_id)
+typedef void (*BoundaryFunction)(double *,double *, double*, unsigned int);
 
 /// @enum BoundaryFunctionType type of function passed for boundary conditions
 enum BoundaryFunctionType {
@@ -232,7 +234,7 @@ enum SynchronizationTag {
   /// HeatTransfer tags
   _gst_htm_capacity,  /// synchronization of the nodal heat capacity
   _gst_htm_temperature,  /// synchronization of the nodal temperature
-  _gst_htm_gradient_temperature,  /// synchronization of the element gradient temperature 
+  _gst_htm_gradient_temperature,  /// synchronization of the element gradient temperature
   /// Test tag
   _gst_test
 };

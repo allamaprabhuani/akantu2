@@ -160,6 +160,8 @@ namespace debug {
 #else
 #define AKANTU_EXIT(status)			\
   do {						\
+    int * a = NULL;				\
+    *a = 1;					\
     if (status != EXIT_SUCCESS)                 \
       akantu::debug::printBacktrace(15);	\
     MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);	\

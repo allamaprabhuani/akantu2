@@ -32,7 +32,7 @@ inline void IntegratorGauss::integrateOnElement(const Vector<Real> & f,
 						Real * intf,
 						UInt nb_degre_of_freedom,
 						const UInt elem,
-						GhostType ghost_type) const {
+						const GhostType & ghost_type) const {
 
   Vector<Real> * jac_loc = jacobians(type, ghost_type);
 
@@ -108,18 +108,22 @@ computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
   Real * quad = ElementClass<type>::getQuadraturePoints();
   const UInt nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
   // compute dnds
-  Real dnds[nb_nodes_per_element * spatial_dimension * nb_quad_points];
+  Real * dnds = new Real[nb_nodes_per_element * spatial_dimension * nb_quad_points];
   ElementClass<type>::computeDNDS(quad,
 				  nb_quad_points,
 				  dnds);
   // compute dxds
   const UInt element_dimension = ElementClass<type>::getSpatialDimension();
-  Real dxds[element_dimension * spatial_dimension * nb_quad_points];
+  Real * dxds = new Real[element_dimension * spatial_dimension * nb_quad_points];
   ElementClass<type>::computeDXDS(dnds, nb_quad_points,
 				  node_coords, spatial_dimension, dxds);
+
+  delete [] dnds;
+
   // jacobian
   ElementClass<type>::computeJacobian(dxds, nb_quad_points,
 				      spatial_dimension, jacobians);
 
+  delete [] dxds;
 }
 /* -------------------------------------------------------------------------- */

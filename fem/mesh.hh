@@ -332,6 +332,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   friend class MeshIOMSH;
+  friend class MeshIOMSHStruct;
   friend class MeshIODiana;
   friend class MeshUtils;
   friend class DistributedSynchronizer;

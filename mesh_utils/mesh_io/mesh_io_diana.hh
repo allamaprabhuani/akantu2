@@ -90,13 +90,13 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  const Vector<UInt> & getNodeGroup(std::string & group_name) const {
+  const Vector<UInt> & getNodeGroup(const std::string & group_name) const {
     std::map<std::string, Vector<UInt> *>::const_iterator it = node_groups.find(group_name);
     AKANTU_DEBUG_ASSERT(it != node_groups.end(), "There is no nodes group named : " << group_name);
     return *it->second;
   }
 
-  const std::vector<Element> & getElementGroup(std::string & group_name) const {
+  const std::vector<Element> & getElementGroup(const std::string & group_name) const {
     std::map<std::string, std::vector<Element> *>::const_iterator it = element_groups.find(group_name);
     AKANTU_DEBUG_ASSERT(it != element_groups.end(), "There is no elements group named : " << group_name);
     return *it->second;

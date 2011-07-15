@@ -279,7 +279,6 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   AKANTU_DEBUG_IN();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
-  //  const Vector<Int> & equation_number = K.getDOFSynchronizer().getDOFEquationNumbers();
 
   const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type,ghost_type);
 

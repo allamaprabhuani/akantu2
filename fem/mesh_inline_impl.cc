@@ -566,11 +566,11 @@ inline const Stored & ByElementType<Stored>::operator()(const ElementType & type
   typename ByElementType<Stored>::DataMap::const_iterator it =
     this->getData(ghost_type).find(type);
 
-  AKANTU_DEBUG_ASSERT(it != this->getData(ghost_type).end(),
-		      "No element of type "
-		      << ByElementType<Stored>::printType(type, ghost_type)
-		      << " in this ByElementType<"
-		      << debug::demangle(typeid(Stored).name()) << "> class");
+  if(it == this->getData(ghost_type).end())
+    AKANTU_EXCEPTION("No element of type "
+		     << ByElementType<Stored>::printType(type, ghost_type)
+		     << " in this ByElementType<"
+		     << debug::demangle(typeid(Stored).name()) << "> class");
   return it->second;
 }
 
@@ -612,18 +612,18 @@ void ByElementType<Stored>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << "ByElementType<" << debug::demangle(typeid(Stored).name()) << "> [" << std::endl;
+  stream << space << "ByElementType<" << debug::demangle(typeid(Stored).name()) << "> [" << std::endl;
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
     const ByElementType<Stored>::DataMap & data = getData(gt);
     typename ByElementType<Stored>::DataMap::const_iterator it;
     for(it = data.begin(); it != data.end(); ++it) {
-      stream << space << debug::demangle(typeid(Stored).name())
-	     << ByElementType<Stored>::printType(it->first, gt) << " [" << std::endl;
-      it->second->printself(stream, indent + 2);
+      stream << space << space << ByElementType<Stored>::printType(it->first, gt) << " [" << std::endl;
+      it->second->printself(stream, indent + 3);
     }
   }
+  stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

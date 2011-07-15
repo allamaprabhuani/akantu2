@@ -84,33 +84,32 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  inline void integrationSchemePred(Real delta_t,
+				    Vector<Real> & u,
+				    Vector<Real> & u_dot,
+				    Vector<Real> & u_dot_dot,
+				    Vector<bool> & boundary);
 
-  void integrationSchemePred(Real delta_t,
-			     Vector<Real> & u,
-			     Vector<Real> & u_dot,
-			     Vector<Real> & u_dot_dot,
-			     Vector<bool> & boundary);
+  inline void integrationSchemeCorrAccel(Real delta_t,
+					 Vector<Real> & u,
+					 Vector<Real> & u_dot,
+					 Vector<Real> & u_dot_dot,
+					 Vector<bool> & boundary,
+					 Vector<Real> & delta);
 
-  void integrationSchemeCorrAccel(Real delta_t,
-				  Vector<Real> & u,
-				  Vector<Real> & u_dot,
-				  Vector<Real> & u_dot_dot,
-				  Vector<bool> & boundary,
-				  Vector<Real> & delta);
+  inline void integrationSchemeCorrVeloc(Real delta_t,
+					 Vector<Real> & u,
+					 Vector<Real> & u_dot,
+					 Vector<Real> & u_dot_dot,
+					 Vector<bool> & boundary,
+					 Vector<Real> & delta);
 
-  void integrationSchemeCorrVeloc(Real delta_t,
-				  Vector<Real> & u,
-				  Vector<Real> & u_dot,
-				  Vector<Real> & u_dot_dot,
-				  Vector<bool> & boundary,
-				  Vector<Real> & delta);
-
-  void integrationSchemeCorrDispl(Real delta_t,
-				  Vector<Real> & u,
-				  Vector<Real> & u_dot,
-				  Vector<Real> & u_dot_dot,
-				  Vector<bool> & boundary,
-				  Vector<Real> & delta);
+  inline void integrationSchemeCorrDispl(Real delta_t,
+					 Vector<Real> & u,
+					 Vector<Real> & u_dot,
+					 Vector<Real> & u_dot_dot,
+					 Vector<bool> & boundary,
+					 Vector<Real> & delta);
 
 public:
   template<IntegrationSchemeCorrectorType type>

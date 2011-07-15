@@ -113,9 +113,9 @@ namespace types {
     inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
       if(tr_A) k = A.m;
+
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
-
 
     inline void clear() { memset(values, 0, m * n * sizeof(Real)); };
 
@@ -200,6 +200,12 @@ namespace types {
 
     inline void clear() { memset(values, 0, n * sizeof(T)); };
 
+    template<bool tr_A>
+    inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
+      UInt n = x.n; 
+      Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
+    }
+
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
       std::string space;
@@ -243,7 +249,6 @@ namespace types {
   /* -------------------------------------------------------------------------- */
   /* templated matrix                                                           */
   /* -------------------------------------------------------------------------- */
-
   template<typename T, UInt m, UInt n>
   class TMatrix {
   public:
@@ -361,9 +366,6 @@ namespace types {
     _this.printself(stream);
     return stream;
   }
-
-
-
 }
 
 __END_AKANTU__

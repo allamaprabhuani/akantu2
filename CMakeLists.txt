@@ -87,6 +87,7 @@ option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 # compilation switch
 option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
 option(AKANTU_BUILD_HEAT_TRANSFER "Build the heat transfer model" OFF)
+option(AKANTU_BUILD_STRUCTURAL_MECHANICS "Build the structural mechanics model" OFF)
 
 # features
 add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
@@ -138,6 +139,7 @@ set(AKANTU_COMMON_SRC
   common/aka_vector.cc
   common/aka_math.cc
   fem/shape_lagrange.cc
+  fem/shape_linked.cc
   fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
@@ -156,6 +158,7 @@ set(AKANTU_COMMON_SRC
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
+  mesh_utils/mesh_io/mesh_io_msh_struct.cc
   mesh_utils/mesh_io/mesh_io_diana.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
@@ -195,6 +198,17 @@ if(AKANTU_BUILD_CONTACT)
   set(AKANTU_COMMON_SRC
     ${AKANTU_COMMON_SRC}
     ${AKANTU_CONTACT_SRC})
+endif()
+
+set(AKANTU_STRUCTURAL_MECHANICS_SRC
+  model/structural_mechanics/structural_mechanics_model.cc
+  model/structural_mechanics/structural_mechanics_model_boundary.cc
+  )
+
+if(AKANTU_BUILD_STRUCTURAL_MECHANICS)
+  set(AKANTU_COMMON_SRC
+    ${AKANTU_COMMON_SRC}
+    ${AKANTU_STRUCTURAL_MECHANICS_SRC})
 endif()
 
 set(AKANTU_HEAT_TRANSFER_SRC
@@ -244,6 +258,7 @@ set(AKANTU_INCLUDE_DIRS
   model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef
   model/heat_transfer
+  model/structural_mechanics
   synchronizer/
   solver/
   )

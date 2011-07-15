@@ -115,8 +115,10 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
 					     nb_nodes_per_element);
 
     computeShapeDerivativesOnCPointsByElement<type>(spatial_dimension,
-						    local_coord,nb_nodes_per_element,
-						    natural_coords,nb_points,
+						    local_coord,
+						    nb_nodes_per_element,
+						    natural_coords,
+						    nb_points,
 						    shapesd_val);
 
     shapesd_val += size_of_shapesd*nb_points;
@@ -294,11 +296,11 @@ void ShapeLagrange::gradientOnControlPoints(const Vector<Real> &in_u,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template <ElementType type>
-void ShapeLagrange::setControlPointsByType(Vector<Real> & points, GhostType ghost_type){
-  control_points(type, ghost_type) = &points;
-}
+// /* -------------------------------------------------------------------------- */
+// template <ElementType type>
+// void ShapeLagrange::setControlPointsByType(Vector<Real> & points, GhostType ghost_type){
+//   control_points(type, ghost_type) = &points;
+// }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
@@ -347,8 +349,6 @@ void ShapeLagrange::printself(std::ostream & stream, int indent) const {
   void ShapeLagrange::precomputeShapesOnControlPoints<type>(GhostType ghost_type); \
   template								\
   void ShapeLagrange::precomputeShapeDerivativesOnControlPoints<type>(GhostType ghost_type); \
-  template								\
-  void ShapeLagrange::setControlPointsByType<type>(Vector<Real> & control_points, GhostType ghost_type); \
   template								\
   void ShapeLagrange::gradientOnControlPoints<type>(const Vector<Real> &in_u, \
 						    Vector<Real> &out_nablauq, \

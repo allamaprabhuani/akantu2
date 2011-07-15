@@ -51,7 +51,7 @@ using namespace akantu;
 
 static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap);
 static void setBoundaryConditions(SolidMechanicsModel & model);
-void my_force(double * coord, double *T);
+void my_force(Real * coord, Real * T, Real * normal, UInt surface_id);
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio);
 static void initParaview(SolidMechanicsModel & model);
 
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
   memset(model->getMaterial(0).getStress(_triangle_3).values, 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
-  
+
   /// Paraview Helper
   #ifdef AKANTU_USE_IOHELPER
   initParaview(*model);
@@ -118,12 +118,12 @@ int main(int argc, char *argv[])
   setBoundaryConditions(*model);
 
   /// define and initialize contact
-  Contact * contact = Contact::newContact(*model, 
-					  _ct_2d_expli, 
-					  _cst_2d_expli, 
+  Contact * contact = Contact::newContact(*model,
+					  _ct_2d_expli,
+					  _cst_2d_expli,
 					  _cnst_2d_grid);
 
-  Contact2dExplicit * my_contact = dynamic_cast<Contact2dExplicit *>(contact);  
+  Contact2dExplicit * my_contact = dynamic_cast<Contact2dExplicit *>(contact);
 
   my_contact->initContact(true);
   my_contact->setFrictionCoefficient(0.);
@@ -142,13 +142,13 @@ int main(int argc, char *argv[])
 
     model->updateAcceleration();
     model->explicitCorr();
-    
+
     if(s % 200 == 0)
       dumper.Dump();
 
     if(s%100 == 0 && s>499)
       reduceVelocities(*model, 0.95);
-    
+
     if(s % 500 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 
@@ -195,7 +195,7 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
     if (coord[2*n+1] > y_max)
       y_max = coord[2*n+1];
     if (coord[2*n+1] < y_min)
-      y_min = coord[2*n+1];    
+      y_min = coord[2*n+1];
   }
 
   FEM & b_fem = model.getFEMBoundary();
@@ -207,7 +207,7 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
   for (UInt i = 0; i < nb_nodes; ++i) {
     if (coord[2*i+1] < y_min + 1.e-5) {
       id[2*i+1] = true;
-      std::cout << " " << i << " "; 
+      std::cout << " " << i << " ";
     }
   }
   std::cout << "are blocked" << std::endl;
@@ -216,7 +216,9 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
 }
 
 /* -------------------------------------------------------------------------- */
-void my_force(double * coord, double *T) {
+void my_force(Real * coord, Real * T,
+	      __attribute__ ((unused)) Real * normal,
+	      __attribute__ ((unused)) UInt surface_id) {
 
   memset(T, 0, 4*sizeof(double));
   if(*(coord+1) > y_max-1.e-5)
@@ -229,12 +231,12 @@ static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio
 {
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   Real * velocities = model.getVelocity().values;
-  
+
   if(ratio>1.) {
     fprintf(stderr,"**error** in Reduce_Velocities ratio bigger than 1!\n");
     exit(-1);
   }
-    
+
   for(UInt i =0; i<nb_nodes; i++) {
     velocities[2*i] *= ratio;
     velocities[2*i+1] *= ratio;

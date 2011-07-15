@@ -28,9 +28,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "integrator_gauss.hh"
-#include "shape_lagrange.hh"
 #include "fem.hh"
 #include "aka_common.hh"
+#include "shape_lagrange.hh"
+#include "shape_linked.hh"
 /* -------------------------------------------------------------------------- */
 
 
@@ -290,7 +291,8 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementTyp
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
 inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type,
-									   const GhostType & ghost_type) {
+									   const GhostType & ghost_type,
+									   UInt id) {
   AKANTU_DEBUG_IN();
   const Vector<Real> * ret = NULL;
 
@@ -343,6 +345,24 @@ void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
 
 #undef ASSEMBLE_LUMPED
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const Vector<Real> & FEMTemplate<IntegratorGauss, ShapeLinked>::getShapesDerivatives(const ElementType & type,
+											    const GhostType & ghost_type,
+											    UInt id) {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -586,5 +606,6 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 /* -------------------------------------------------------------------------- */
 
 template class FEMTemplate<IntegratorGauss,ShapeLagrange>;
+template class FEMTemplate<IntegratorGauss,ShapeLinked>;
 
 __END_AKANTU__

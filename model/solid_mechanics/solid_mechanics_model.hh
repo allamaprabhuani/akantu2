@@ -427,6 +427,8 @@ private:
 
   /// Mesh
   Mesh & mesh;
+
+  bool dynamic;
 };
 
 __END_AKANTU__

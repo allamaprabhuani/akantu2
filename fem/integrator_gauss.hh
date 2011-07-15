@@ -50,7 +50,7 @@ public:
 
   /// precompute jacobians on elements of type "type"
   template <ElementType type>
-  void precomputeJacobiansOnQuadraturePoints(GhostType ghost_type);
+  void precomputeJacobiansOnQuadraturePoints(const GhostType & ghost_type);
 
 
   /// integrate f on the element "elem" of type "type"
@@ -59,20 +59,20 @@ public:
 				 Real * intf,
 				 UInt nb_degre_of_freedom,
 				 const UInt elem,
-				 GhostType ghost_type) const;
+				 const GhostType & ghost_type) const;
 
   /// integrate f for all elements of type "type"
   template <ElementType type>
   void integrate(const Vector<Real> & in_f,
 		 Vector<Real> &intf,
 		 UInt nb_degre_of_freedom,
-		 GhostType ghost_type,
+		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
   /// integrate scalar field in_f
   template <ElementType type>
   Real integrate(const Vector<Real> & in_f,
-		 GhostType ghost_type,
+		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
   /// return a vector with quadrature points natural coordinates
@@ -82,7 +82,7 @@ public:
   template <ElementType type> void computeQuadraturePoints(const GhostType & ghost_type);
 
   /// check that the jacobians are not negative
-  template <ElementType type> void checkJacobians(GhostType ghost_type) const;
+  template <ElementType type> void checkJacobians(const GhostType & ghost_type) const;
 
 protected:
 

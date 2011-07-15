@@ -251,7 +251,7 @@ void SparseMatrix::restoreProfile() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::saveProfile(const std::string & filename) {
+void SparseMatrix::saveProfile(const std::string & filename) const {
   AKANTU_DEBUG_IN();
 
   std::ofstream outfile;
@@ -277,7 +277,7 @@ void SparseMatrix::saveProfile(const std::string & filename) {
 
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::saveMatrix(const std::string & filename) {
+void SparseMatrix::saveMatrix(const std::string & filename) const {
   AKANTU_DEBUG_IN();
 
   std::ofstream outfile;

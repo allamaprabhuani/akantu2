@@ -43,7 +43,7 @@ IntegratorGauss::IntegratorGauss(Mesh & mesh, IntegratorID id)
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void IntegratorGauss::checkJacobians(GhostType ghost_type) const {
+void IntegratorGauss::checkJacobians(const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
@@ -66,7 +66,7 @@ void IntegratorGauss::checkJacobians(GhostType ghost_type) const {
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(GhostType ghost_type) {
+void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh->getSpatialDimension();
@@ -102,12 +102,13 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(GhostType ghost_type
 					       local_coord,
 					       nb_nodes_per_element,
 					       jacobians_val);
+
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       *jacobians_val++ *= weights[q];
     }
     //    jacobians_val += nb_quadrature_points;
   }
-  
+
   jacobians(type, ghost_type) = jacobians_tmp;
 
   AKANTU_DEBUG_OUT();
@@ -118,7 +119,7 @@ template <ElementType type>
 void IntegratorGauss::integrate(const Vector<Real> & in_f,
 				Vector<Real> &intf,
 				UInt nb_degre_of_freedom,
-				GhostType ghost_type,
+				const GhostType & ghost_type,
 				const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -176,7 +177,7 @@ void IntegratorGauss::integrate(const Vector<Real> & in_f,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 Real IntegratorGauss::integrate(const Vector<Real> & in_f,
-				GhostType ghost_type,
+				const GhostType & ghost_type,
 				const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
@@ -224,24 +225,72 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
 }
 
 
+
+/* -------------------------------------------------------------------------- */
+template <>
+void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(const GhostType & ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Real * coord = mesh->getNodes().values;
+  UInt spatial_dimension = mesh->getSpatialDimension();
+
+  UInt nb_quadrature_points = ElementClass<_bernoulli_beam_2>::getNbQuadraturePoints();
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_bernoulli_beam_2);
+
+  UInt * elem_val;
+  UInt nb_element;
+  std::string ghost = "";
+
+
+  if(ghost_type == _ghost) {
+    ghost = "ghost_";
+  }
+
+  elem_val   = mesh->getConnectivity(_bernoulli_beam_2, ghost_type).values;
+  nb_element = mesh->getConnectivity(_bernoulli_beam_2, ghost_type).getSize();
+
+
+  std::stringstream sstr_jacobians;
+  sstr_jacobians << id << ":" << ghost << "jacobians:" << _bernoulli_beam_2;
+  Vector<Real> * jacobians_tmp = &(alloc<Real>(sstr_jacobians.str(),
+					       nb_element*nb_quadrature_points,
+					       1));
+
+  Real local_coord[spatial_dimension * nb_nodes_per_element];
+  Real * jacobians_val = jacobians_tmp->values;
+  for (UInt elem = 0; elem < nb_element; ++elem) {
+    mesh->extractNodalCoordinatesFromElement(local_coord,
+					     elem_val+elem*nb_nodes_per_element,
+					     nb_nodes_per_element);
+
+    ElementClass<_bernoulli_beam_2>::computeJacobian(local_coord,nb_quadrature_points, spatial_dimension, jacobians_val);
+    jacobians_val += nb_quadrature_points;
+  }
+
+  jacobians(_bernoulli_beam_2, ghost_type) = jacobians_tmp;
+
+  AKANTU_DEBUG_OUT();
+}
+
+
 /* -------------------------------------------------------------------------- */
 /* template instanciation */
 /* -------------------------------------------------------------------------- */
 
 #define INSTANCIATE_TEMPLATE_CLASS(type)				\
   template void IntegratorGauss::					\
-  precomputeJacobiansOnQuadraturePoints<type>(GhostType ghost_type);	\
+  precomputeJacobiansOnQuadraturePoints<type>(const GhostType & ghost_type); \
   template void IntegratorGauss::					\
-  checkJacobians<type>(GhostType ghost_type) const;			\
+  checkJacobians<type>(const GhostType & ghost_type) const;		\
   template void IntegratorGauss::					\
   integrate<type>(const Vector<Real> & in_f,				\
 		  Vector<Real> &intf,					\
 		  UInt nb_degre_of_freedom,				\
-		  GhostType ghost_type,					\
+		  const GhostType & ghost_type,				\
 		  const Vector<UInt> * filter_elements) const;		\
   template Real IntegratorGauss::					\
   integrate<type>(const Vector<Real> & in_f,				\
-		  GhostType ghost_type,					\
+		  const GhostType & ghost_type,				\
 		  const Vector<UInt> * filter_elements) const;
 
 
