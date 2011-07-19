@@ -67,25 +67,28 @@ namespace types {
 
     Matrix(Real* data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
 
-    Matrix(Matrix & src) {
+    Matrix(const Matrix & src) {
+      m = src.m;
+      n = src.n;
       values = src.values;
       wrapped = src.wrapped;
-      src.wrapped = true;
+      const_cast<Matrix &>(src).wrapped = true;
     };
 
     virtual ~Matrix() { if(!wrapped) delete [] values; };
 
+    /* ---------------------------------------------------------------------- */
     UInt size() const { return n*m; };
 
     UInt rows() const { return m; };
     UInt cols() const { return n; };
     Real * storage() const { return values; };
 
+    /* ---------------------------------------------------------------------- */
     inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
     inline const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
     inline Real& operator[](UInt idx) { return *(values + idx); };
     inline const Real& operator[](UInt idx) const { return *(values + idx); };
-
     inline Matrix & operator=(const Matrix & mat) {
       if(this != &mat) {
 	if(values != NULL) {
@@ -102,6 +105,7 @@ namespace types {
       return *this;
     };
 
+    /* ---------------------------------------------------------------------- */
     inline Matrix operator* (const Matrix & B) {
       Matrix C(this->m, B.n);
       C.mul<false, false>(*this, B);
@@ -124,11 +128,6 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      // std::streamsize prec        = stream.precision();
-      // std::ios_base::fmtflags ff  = stream.flags();
-
-      // stream.setf (std::ios_base::showbase);
-      // stream.precision(2);
       stream << space << debug::demangle(typeid(*this).name()) << "<" << n << "," << m <<"> :" << std::endl;
       for (UInt i = 0; i < m; ++i) {
 	stream << space << AKANTU_INDENT << "| ";
@@ -137,19 +136,17 @@ namespace types {
 	}
 	stream << "|" << std::endl;
       }
-      // stream.precision(prec);
-      // stream.flags(ff);
     };
 
-    // Real* &data() { return values; };
-    // bool &is_wrapped() { return wrapped; };
     friend class ::akantu::Vector<Real>;
-
   protected:
     UInt m;
     UInt n;
     Real* values;
     bool wrapped;
+  };
+
+  class Tensor2 : public Matrix {
   };
 
   /* ------------------------------------------------------------------------ */
@@ -166,23 +163,27 @@ namespace types {
 
     Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {};
 
-    Vector(Vector & src) {
+    Vector(const Vector & src) {
+      n = src.n;
       values = src.values;
       wrapped = src.wrapped;
-      src.wrapped = true;
+      const_cast<Vector &>(src).wrapped = true;
     };
 
     virtual ~Vector() { if(!wrapped) delete [] values; };
 
+    /* ---------------------------------------------------------------------- */
     UInt size() const { return n; };
 
     T * storage() const { return values; };
 
+    /* ---------------------------------------------------------------------- */
     inline T& operator()(UInt i) { return *(values + i); };
     inline const T& operator()(UInt i) const { return *(values + i); };
     inline T& operator[](UInt idx) { return *(values + idx); };
     inline const T& operator[](UInt idx) const { return *(values + idx); };
 
+    /* ---------------------------------------------------------------------- */
     inline Vector & operator=(const Vector & vect) {
       if(this != &vect) {
 	if(values != NULL) {
@@ -202,10 +203,11 @@ namespace types {
 
     template<bool tr_A>
     inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
-      UInt n = x.n; 
+      UInt n = x.n;
       Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
     }
 
+    /* ---------------------------------------------------------------------- */
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
       std::string space;
@@ -219,10 +221,7 @@ namespace types {
       stream << "|" << std::endl;
     };
 
-    // T* &data() { return values; };
-    // bool &is_wrapped() { return wrapped; };
     friend class ::akantu::Vector<T>;
-
   protected:
     UInt n;
     T * values;
@@ -230,6 +229,7 @@ namespace types {
   };
 
   typedef Vector<Real> RVector;
+
 
   /* -------------------------------------------------------------------------- */
   inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)
@@ -291,18 +291,17 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << debug::demangle(typeid(*this).name()) << "," << n << "," << m <<"> :" << std::endl;
+      stream << space << debug::demangle(typeid(*this).name())<< ":" << std::endl;
       for (UInt i = 0; i < m; ++i) {
 	stream << space << AKANTU_INDENT << "| ";
 	for (UInt j = 0; j < n; ++j) {
-	  stream << values[i*n +j] << " ";
+	  stream << std::setw(10) << values[i*n +j] << " ";
 	}
 	stream << "|" << std::endl;
       }
     };
 
     // T* &data() { return values; };
-
     friend class ::akantu::Vector<T>;
 
   protected:

@@ -51,11 +51,12 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 HeatTransferModel::HeatTransferModel(Mesh & mesh,
  		      UInt dim,
- 		      const ModelID & id,
+ 		      const ID & id,
 		      const MemoryID & memory_id) :
   Model(id, memory_id),
   integrator(new ForwardEuler()),
-  spatial_dimension(dim) {
+  spatial_dimension(dim),
+  temperature_gradient("temperature_gradient", id) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
@@ -134,8 +135,7 @@ void HeatTransferModel::initVectors() {
   // not ghost
   getFEM().getMesh().initByElementTypeVector(temperature_gradient,
 					     spatial_dimension,
-					     spatial_dimension,
-					     id,"temperature_gradient");
+					     spatial_dimension);
 
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -148,8 +148,8 @@ void HeatTransferModel::initVectors() {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
       UInt nb_element = getFEM().getMesh().getNbElement(*it, gt);
       UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it, gt) * nb_element;
-      temperature_gradient(*it, gt)->resize(nb_quad_points);
-      temperature_gradient(*it, gt)->clear();
+      temperature_gradient(*it, gt).resize(nb_quad_points);
+      temperature_gradient(*it, gt).clear();
     }
   }
 
@@ -276,9 +276,9 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
     UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
 
     this->getFEM().gradientOnQuadraturePoints(*temperature,
-					      *temperature_gradient(*it, ghost_type),
+					      temperature_gradient(*it, ghost_type),
 					      1 ,*it,ghost_type);
-    Real * gT_val = temperature_gradient(*it, ghost_type)->values;
+    Real * gT_val = temperature_gradient(*it, ghost_type).storage();
 
     AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension]);
     AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+1]);

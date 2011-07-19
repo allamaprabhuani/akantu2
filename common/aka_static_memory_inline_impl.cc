@@ -41,7 +41,7 @@ inline const VectorMap & StaticMemory::getMemory(const MemoryID & memory_id) con
 
 /* -------------------------------------------------------------------------- */
 inline const VectorBase & StaticMemory::getVector(const MemoryID & memory_id,
-						  const VectorID & name) const {
+						  const ID & name) const {
   AKANTU_DEBUG_IN();
 
   const VectorMap & vectors = getMemory(memory_id);
@@ -59,7 +59,7 @@ inline const VectorBase & StaticMemory::getVector(const MemoryID & memory_id,
 
 /* -------------------------------------------------------------------------- */
 template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_id,
-						       const VectorID & name,
+						       const ID & name,
 						       UInt size,
 						       UInt nb_component) {
   AKANTU_DEBUG_IN();
@@ -85,7 +85,7 @@ template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_i
 
 /* -------------------------------------------------------------------------- */
 template<typename T> Vector<T> & StaticMemory::smalloc(const MemoryID & memory_id,
-						       const VectorID & name,
+						       const ID & name,
 						       UInt size,
 						       UInt nb_component,
 						       const T & init_value) {

@@ -43,7 +43,7 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
   while (mat_type != ""){
     std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count++ << ":" << mat_type;
     Material * material;
-    MaterialID mat_id = sstr_mat.str();
+    ID mat_id = sstr_mat.str();
     /// read the material properties
     if(mat_type == "elastic")              material = parser.readSection<MaterialElastic>       (*this, mat_id);
     else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this, mat_id);
@@ -75,7 +75,7 @@ void SolidMechanicsModel::initMaterials() {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
       UInt nb_element = mesh.getNbElement(*it, gt);
-      UInt * elem_mat_val = element_material(*it, gt)->values;
+      UInt * elem_mat_val = element_material(*it, gt).storage();
 
       for (UInt el = 0; el < nb_element; ++el) {
 	mat_val[elem_mat_val[el]]->addElement(*it, el, gt);

@@ -37,7 +37,10 @@ __BEGIN_AKANTU__
 MeshPartition::MeshPartition(const Mesh & mesh, UInt spatial_dimension,
 			     const MemoryID & memory_id) :
   Memory(memory_id), id("MeshPartitioner"),
-  mesh(mesh), spatial_dimension(spatial_dimension) {
+  mesh(mesh), spatial_dimension(spatial_dimension),
+  partitions             ("partition"             , id),
+  ghost_partitions       ("ghost_partition"       , id),
+  ghost_partitions_offset("ghost_partition_offset", id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -248,20 +251,16 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    std::stringstream sstr;    sstr    << mesh.getID() << ":partition:" << type;
-    std::stringstream sstr_gi; sstr_gi << mesh.getID() << ":ghost_partition_offset:" << type;
-    std::stringstream sstr_g;  sstr_g  << mesh.getID() << ":ghost_partition:" << type;
-
-    partitions             (type, _not_ghost) = &(alloc<UInt>(sstr.str(), nb_element, 1, 0));
-    ghost_partitions_offset(type, _ghost) = &(alloc<UInt>(sstr_gi.str(), nb_element + 1, 1, 0));
-    ghost_partitions       (type, _ghost) = &(alloc<UInt>(sstr_g.str(), 0, 1, 0));
+    partitions             .alloc(nb_element,     1, type, _not_ghost);
+    ghost_partitions_offset.alloc(nb_element + 1, 1, type, _ghost);
+    ghost_partitions       .alloc(0,              1, type, _ghost);
 
     const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
       UInt part = linearized_partitions[linearized_el];
 
-      partitions(type, _not_ghost)->values[el] = part;
+      partitions(type, _not_ghost)(el) = part;
       std::list<UInt> list_adj_part;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	UInt node = connectivity.values[el * nb_nodes_per_element + n];
@@ -282,13 +281,13 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
       for(std::list<UInt>::iterator adj_it = list_adj_part.begin();
 	  adj_it != list_adj_part.end();
 	  ++adj_it) {
-	ghost_partitions(type, _ghost)->push_back(*adj_it);
-	ghost_partitions_offset(type, _ghost)->values[el]++;
+	ghost_partitions(type, _ghost).push_back(*adj_it);
+	ghost_partitions_offset(type, _ghost)(el)++;
       }
     }
 
     /// convert the ghost_partitions_offset array in an offset array
-    Vector<UInt> & ghost_partitions_offset_ptr = *ghost_partitions_offset(type, _ghost);
+    Vector<UInt> & ghost_partitions_offset_ptr = ghost_partitions_offset(type, _ghost);
     for (UInt i = 1; i < nb_element; ++i)
       ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i-1);
     for (UInt i = nb_element; i > 0; --i)

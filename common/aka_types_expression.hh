@@ -35,7 +35,7 @@
 
 __BEGIN_AKANTU__
 
-namespace types {
+//namespace types {
 
   /* ------------------------------------------------------------------------ */
   template <class E> struct ResultType;
@@ -109,12 +109,12 @@ namespace types {
   class MultiplyOp;
   class TransposeOp;
 
-  typedef Matrix Mat;
-  typedef Vector Vect;
-  typedef Expression<BinaryOperation<Matrix, Matrix, MultiplyOp> > MatxMat;
-  typedef Expression<BinaryOperation<Real, Matrix, MultiplyOp> > SxMat;
-  typedef Expression<UnaryOperation<Matrix, TransposeOp> > TrMat;
-  typedef Expression<UnaryOperation<Vector, TransposeOp> > TrVect;
+typedef types::Matrix Mat;
+typedef types::Vector<Real> Vect;
+  typedef Expression<BinaryOperation<Mat, Mat, MultiplyOp> > MatxMat;
+  typedef Expression<BinaryOperation<Real, Mat, MultiplyOp> > SxMat;
+  typedef Expression<UnaryOperation<Mat,  TransposeOp> > TrMat;
+  typedef Expression<UnaryOperation<Vect, TransposeOp> > TrVect;
 
   template <> struct ResultType<Expression<BinaryOperation<Mat,    Mat,   MultiplyOp> > > { typedef Matrix Type; };
 
@@ -128,14 +128,14 @@ namespace types {
 
   template <> struct ResultType<Expression<BinaryOperation<Vect,   TrVect,MultiplyOp> > > { typedef Matrix Type; };
   template <> struct ResultType<Expression<BinaryOperation<TrVect, Vect,  MultiplyOp> > > { typedef Matrix Type; };
-  template <> struct ResultType<Expression<BinaryOperation<Mat,    Vect,  MultiplyOp> > > { typedef Vector Type; };
+  template <> struct ResultType<Expression<BinaryOperation<Mat,    Vect,  MultiplyOp> > > { typedef Vect   Type; };
 
   template <> struct ResultType<Expression<BinaryOperation<Real,   Mat,   MultiplyOp> > > { typedef Matrix Type; };
 
-  template <> struct ResultType<Expression<UnaryOperation<Vect,  TransposeOp> > > { typedef Vector Type; };
-  template <> struct ResultType<Expression<UnaryOperation<Mat,   TransposeOp> > > { typedef Matrix Type; };
-  template <> struct ResultType<Expression<UnaryOperation<TrMat, TransposeOp> > > { typedef Matrix Type; };
-  template <> struct ResultType<Expression<UnaryOperation<SxMat, TransposeOp> > > { typedef Matrix Type; };
+  template <> struct ResultType<Expression<UnaryOperation<Vect,  TransposeOp> > > { typedef Vect Type; };
+  template <> struct ResultType<Expression<UnaryOperation<Mat,   TransposeOp> > > { typedef Mat Type; };
+  template <> struct ResultType<Expression<UnaryOperation<TrMat, TransposeOp> > > { typedef Mat Type; };
+  template <> struct ResultType<Expression<UnaryOperation<SxMat, TransposeOp> > > { typedef Mat Type; };
 
 
   /* ------------------------------------------------------------------------ */
@@ -159,8 +159,8 @@ namespace types {
     /* Blas 2                                                                 */
     /* ---------------------------------------------------------------------- */
     /// @f[ y = A * x @f]
-    static inline Vector apply(const Mat & a, const Vect & x) {
-      Vector y(x.size());
+    static inline Vect apply(const Mat & a, const Vect & x) {
+      Vect y(x.size());
       Math::matVectMul<false>(a.rows(), a.cols(),
 			1., a.storage(), x.storage(),
 			0., y.storage());
@@ -168,9 +168,9 @@ namespace types {
     }
 
     /// @f[ y = A^t * x @f]
-    static inline Vector apply(const TrMat & at, const Vect & x) {
+    static inline Vect apply(const TrMat & at, const Vect & x) {
       const Mat & a = at.right();
-      Vector y(x.size());
+      Vect y(x.size());
       Math::matVectMul<false>(a.rows(), a.cols(),
 			      1., a.storage(), x.storage(),
 			      0., y.storage());
@@ -248,7 +248,7 @@ namespace types {
     return Expression<BinaryOperation<A,B,MultiplyOp> >(BinaryOperation<A,B,MultiplyOp>(a,b));
   }
 
-} // namespace types
+//} // namespace types
 
 __END_AKANTU__
 

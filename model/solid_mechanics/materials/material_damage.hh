@@ -50,7 +50,7 @@ class MaterialDamage : public MaterialElastic {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamage(Model & model, const MaterialID & id = "");
+  MaterialDamage(Model & model, const ID & id = "");
 
   virtual ~MaterialDamage() {};
 
@@ -62,13 +62,13 @@ public:
   void initMaterial();
 
   void setParam(const std::string & key, const std::string & value,
-		const MaterialID & id);
+		const ID & id);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma,Real & damage);
+  inline void computeStress(Real * F, Real * sigma, Real & damage);
 
   /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,

@@ -46,7 +46,7 @@ class FEMTemplate : public FEM{
 public:
 
   FEMTemplate(Mesh & mesh, UInt spatial_dimension = 0,
-	      FEMID id = "fem", MemoryID memory_id = 0);
+	      ID id = "fem", MemoryID memory_id = 0);
 
   virtual ~FEMTemplate();
 

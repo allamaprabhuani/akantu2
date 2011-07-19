@@ -53,12 +53,12 @@ public:
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
   HeatTransferModel(UInt spatial_dimension,
-		    const ModelID & id = "heat_transfer_model",
+		    const ID & id = "heat_transfer_model",
   		    const MemoryID & memory_id = 0) ;
 
   HeatTransferModel(Mesh & mesh,
 		    UInt spatial_dimension = 0,
-		    const ModelID & id = "heat_transfer_model",
+		    const ID & id = "heat_transfer_model",
 		    const MemoryID & memory_id = 0);
 
   virtual ~HeatTransferModel() ;
@@ -142,7 +142,7 @@ public:
 		       SynchronizationTag tag) const;
   inline void unpackData(CommunicationBuffer & buffer,
 			 const Element & element,
-			 SynchronizationTag tag) const;
+			 SynchronizationTag tag);
 
   inline UInt getNbDataToPack(SynchronizationTag tag) const;
   inline UInt getNbDataToUnpack(SynchronizationTag tag) const;
@@ -151,7 +151,7 @@ public:
 		       SynchronizationTag tag) const;
   inline void unpackData(CommunicationBuffer & buffer,
 			 const UInt index,
-			 SynchronizationTag tag) const;
+			 SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

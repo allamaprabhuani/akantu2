@@ -34,16 +34,24 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-class Integrator : public Memory {
+class Integrator : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  Integrator(Mesh & m, IntegratorID myid="integrator"){
-    mesh = &m;
-    id = myid;
+  Integrator(Mesh & mesh,
+	     const ID & id="integrator",
+	     const MemoryID & memory_id = 0) :
+    Memory(memory_id),
+    mesh(&mesh),
+    id(id),
+    jacobians("jacobians", id) {
+    AKANTU_DEBUG_IN();
+
+    AKANTU_DEBUG_OUT();
   };
+
   virtual ~Integrator(){};
 
   /* ------------------------------------------------------------------------ */
@@ -52,7 +60,7 @@ public:
 public:
 
   template <ElementType type>
-  inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused)) 
+  inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused))
 						    GhostType ghost_type){}
 
   void integrateOnElement(__attribute__ ((unused)) const Vector<Real> & f,
@@ -62,7 +70,13 @@ public:
 			  __attribute__ ((unused)) GhostType ghost_type) const {};
 
   /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const{};
+  virtual void printself(std::ostream & stream, int indent = 0) const {
+    std::string space;
+    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+    stream << space << "Integrator [" << std::endl;
+    jacobians.printself(stream, indent + 1);
+    stream << space << "]" << std::endl;
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -76,7 +90,8 @@ public:
 
 protected:
   Mesh * mesh;
-  IntegratorID id;
+
+  ID id;
 
   /// jacobians for all elements
   ByElementTypeReal jacobians;
@@ -90,11 +105,11 @@ protected:
 //#include "integrator_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const Integrator & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+inline std::ostream & operator <<(std::ostream & stream, const Integrator & _this)
+ {
+   _this.printself(stream);
+   return stream;
+ }
 
 
 __END_AKANTU__

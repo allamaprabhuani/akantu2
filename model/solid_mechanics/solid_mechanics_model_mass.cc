@@ -135,7 +135,7 @@ void SolidMechanicsModel::computeRho(Vector<Real> & rho,
   FEM & fem = getFEM();
   UInt nb_element = fem.getMesh().getNbElement(type,ghost_type);
 
-  UInt * elem_mat_val = element_material(type, ghost_type)->values;
+  UInt * elem_mat_val = element_material(type, ghost_type).storage();
 
   UInt nb_quadrature_points = fem.getNbQuadraturePoints(type, ghost_type);
 

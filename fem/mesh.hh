@@ -44,33 +44,71 @@ __BEGIN_AKANTU__
 /* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
 template<class Stored> class ByElementType {
-private:
+protected:
   typedef std::map<ElementType, Stored> DataMap;
 public:
-  ByElementType();
+  ByElementType(const ID & id = "by_element_type",
+		const ID & parent_id = "");
   ~ByElementType();
 
   inline static std::string printType(const ElementType & type, const GhostType & ghost_type);
 
   inline bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
 
-  inline const Stored & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
-  inline Stored & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost);
+  inline const Stored & operator()(const ElementType & type,
+				   const GhostType & ghost_type = _not_ghost) const;
+  inline Stored & operator()(const ElementType & type,
+			     const GhostType & ghost_type = _not_ghost);
 
   void printself(std::ostream & stream, int indent = 0) const;
 
-private:
+protected:
   inline DataMap & getData(GhostType ghost_type);
   inline const DataMap & getData(GhostType ghost_type) const;
 
 /* -------------------------------------------------------------------------- */
-private:
+protected:
+  ID id;
+
   DataMap data;
   DataMap ghost_data;
 };
 
+
+/* -------------------------------------------------------------------------- */
+/* Some typedefs                                                              */
+/* -------------------------------------------------------------------------- */
+
 template <typename T>
-class ByElementTypeVector : public ByElementType<Vector<T> *> {};
+class ByElementTypeVector : public ByElementType<Vector<T> *>, protected Memory {
+public:
+  // ByElementTypeVector(const ID & id = "by_element_type_vector",
+  // 		      const MemoryID & memory_id = 0) :
+  //   ByElementType<Vector<T> *>(id, memory_id) {};
+  ByElementTypeVector(const ID & id, const ID & parent_id,
+		      const MemoryID & memory_id = 0) :
+    ByElementType<Vector<T> *>(id, parent_id), Memory(memory_id) {};
+
+  inline Vector<T> & alloc(UInt size,
+			   UInt nb_component,
+			   const ElementType & type,
+			   const GhostType & ghost_type);
+
+  inline void alloc(UInt size,
+		    UInt nb_component,
+		    const ElementType & type);
+
+  inline const Vector<T> & operator()(const ElementType & type,
+				      const GhostType & ghost_type = _not_ghost) const;
+
+  inline Vector<T> & operator()(const ElementType & type,
+				const GhostType & ghost_type = _not_ghost);
+
+  inline void setVector(const ElementType & type,
+			const GhostType & ghost_type,
+			const Vector<T> & vect);
+
+};
 
 /// to store data Vector<Real> by element type
 typedef ByElementTypeVector<Real> ByElementTypeReal;
@@ -82,6 +120,9 @@ typedef ByElementTypeVector<UInt> ByElementTypeUInt;
 /// Map of data of type UInt stored in a mesh
 typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
 typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
+
+
+
 
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
@@ -110,11 +151,18 @@ public:
 extern const Element ElementNull;
 
 
+
+/* -------------------------------------------------------------------------- */
+/* Mesh                                                                       */
+/* -------------------------------------------------------------------------- */
+
 /**
- * @class Mesh this contain the coordinates of the nodes in the Mesh.nodes Vector,
- * and the connectivity. The connectivity are stored in by element types.
+ * @class  Mesh this  contain the  coordinates of  the nodes  in  the Mesh.nodes
+ * Vector,  and the  connectivity. The  connectivity  are stored  in by  element
+ * types.
  *
- * To know all the element types present in a mesh you can get the Mesh::ConnectivityTypeList
+ * To  know  all  the  element  types   present  in  a  mesh  you  can  get  the
+ * Mesh::ConnectivityTypeList
  *
  * In order to loop on all element you have to loop on all types like this :
  * @code
@@ -139,14 +187,14 @@ public:
 
   /// constructor that create nodes coordinates array
   Mesh(UInt spatial_dimension,
-       const MeshID & id = "mesh"
+       const ID & id = "mesh"
 ,
        const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
   Mesh(UInt spatial_dimension,
-       const VectorID & nodes_id,
-       const MeshID & id = "mesh",
+       const ID & nodes_id,
+       const ID & id = "mesh",
        const MemoryID & memory_id = 0);
 
   /**
@@ -155,7 +203,7 @@ public:
    */
   Mesh(UInt spatial_dimension,
        Vector<Real> & nodes,
-       const MeshID & id = "mesh",
+       const ID & id = "mesh",
        const MemoryID & memory_id = 0);
 
 
@@ -184,9 +232,7 @@ public:
   /// init a by-element-type real vector with provided ids
   template<typename T>
   void initByElementTypeVector(ByElementTypeVector<T> & v,
-			       UInt nb_component, UInt size,
-			       const std::string & obj_id,
-			       const std::string & vec_id);
+			       UInt nb_component, UInt size);
 
   /// extract coordinates of nodes from an element
   inline void extractNodalCoordinatesFromElement(Real * local_coords,
@@ -205,16 +251,7 @@ public:
   inline Element linearizedToElement (UInt linearized_element);
 
   /// update the types offsets array for the conversions
-  inline void updateTypesOffsets(GhostType ghost_type);
-
-  // /// convert a element to a linearized element
-  // inline UInt ghostElementToLinearized(const Element & elem);
-
-  // /// convert a linearized element to an element
-  // inline Element ghostLinearizedToElement (UInt linearized_element);
-
-  /// update the types offsets array for the conversions
-  // inline void updateGhostTypesOffsets();
+  inline void updateTypesOffsets(const GhostType & ghost_type);
 
   /// add a Vector of connectivity for the type <type>.
   inline void addConnecticityType(const ElementType & type);
@@ -223,7 +260,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(ID, id, const MeshID &);
+  AKANTU_GET_MACRO(ID, id, const ID &);
 
   /// get the spatial dimension of the mesh = number of component of the coordinates
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
@@ -282,7 +319,7 @@ public:
   // inline UInt getNbGhostElement(const ElementType & type) const;
 
   /// get the connectivity list either for the elements or the ghost elements
-  inline const ConnectivityTypeList & getConnectivityTypeList(GhostType ghost_type = _not_ghost) const;
+  inline const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
 
   /// get the mesh of the internal facets
   inline const Mesh & getInternalFacetsMesh() const;
@@ -372,7 +409,7 @@ private:
 private:
 
   /// id of the mesh
-  MeshID id;
+  ID id;
 
   /// array of the nodes coordinates
   Vector<Real> * nodes;

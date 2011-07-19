@@ -70,9 +70,6 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
     test_solid_mechanics_model_segment_parallel.cc)
   add_dependencies(test_solid_mechanics_model_segment_parallel
     test_solid_mechanics_model_segment_mesh)
-
-  file(COPY test_solid_mechanics_model_bar_traction2d_parallel.sh DESTINATION .)
-  file(COPY test_solid_mechanics_model_segment_parallel.sh DESTINATION .)
 endif()
 
 if(AKANTU_MUMPS_ON)
@@ -109,5 +106,6 @@ add_dependencies(test_solid_mechanics_model_cube3d_tetra10 test_cube3d_mesh2)
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)
+file(COPY test_cst_energy.pl DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

@@ -64,8 +64,8 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					  << " not found in file " << filename);
 
   std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
-  MaterialID mat_id = sstr_mat.str();
-  Material * mat = parser.readSection<M>(*this,mat_id);
+  ID mat_id = sstr_mat.str();
+  Material * mat = parser.readSection<M>(*this, mat_id);
   materials.push_back(mat);
   return materials.size();;
 }
@@ -95,7 +95,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
   case _gst_smm_for_strain: {
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
-    UInt mat = element_material(element.type, _not_ghost)->values[element.element];
+    UInt mat = element_material(element.type, _not_ghost)(element.element);
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
@@ -133,7 +133,7 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   case _gst_smm_for_strain: {
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
-    UInt mat = element_material(element.type, _ghost)->values[element.element];
+    UInt mat = element_material(element.type, _ghost)(element.element);
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
@@ -185,7 +185,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
       buffer << it_disp[offset_conn];
     }
 
-    UInt mat = element_material(element.type, ghost_type)->values[element.element];
+    UInt mat = element_material(element.type, ghost_type)(element.element);
     materials[mat]->packData(buffer, element, tag);
     break;
   }
@@ -214,7 +214,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 					    const Element & element,
-					    SynchronizationTag tag) const {
+					    SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   GhostType ghost_type = _ghost;
@@ -255,7 +255,7 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
       buffer >> it_disp[offset_conn];
     }
 
-    UInt mat = element_material(element.type, ghost_type)->values[element.element];
+    UInt mat = element_material(element.type, ghost_type)(element.element);
     materials[mat]->unpackData(buffer, element, tag);
     break;
   }
@@ -364,7 +364,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 					    const UInt index,
-					    SynchronizationTag tag) const {
+					    SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   switch(tag) {

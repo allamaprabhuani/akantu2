@@ -67,11 +67,11 @@ public:
   SparseMatrix(UInt size,
 	       const SparseMatrixType & sparse_matrix_type,
 	       UInt nb_degre_of_freedom,
-	       const SparseMatrixID & id = "sparse_matrix",
+	       const ID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
 
   SparseMatrix(const SparseMatrix & matrix,
-	       const SparseMatrixID & id = "sparse_matrix",
+	       const ID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
 
   virtual ~SparseMatrix();
@@ -171,7 +171,7 @@ private:
   /* ------------------------------------------------------------------------ */
 private:
   /// id  of the SparseMatrix
-  SparseMatrixID id;
+  ID id;
 
   /// sparce matrix type
   SparseMatrixType sparse_matrix_type;

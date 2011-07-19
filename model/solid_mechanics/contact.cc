@@ -47,8 +47,9 @@ Contact::Contact(const SolidMechanicsModel & model,
 		 const ContactID & id,
 		 const MemoryID & memory_id) :
   Memory(memory_id), id(id), model(model),
-  type(type) {
-
+  type(type),
+  node_to_elements_offset("node_to_elements_offset", id, memory_id),
+  node_to_elements("node_to_elements", id, memory_id) {
   AKANTU_DEBUG_IN();
 
 
@@ -99,16 +100,13 @@ void Contact::initContact(bool add_surfaces_flag) {
   for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
     ElementType type = facet_type[el_type];
 
-    std::stringstream sstr_name_1; sstr_name_1 << id << ":node_to_elements_offset:" << type;
-    this->node_to_elements_offset(type, _not_ghost) = &(alloc<UInt>(sstr_name_1.str(),0,1));
-
-    std::stringstream sstr_name_2; sstr_name_2 << id << ":node_to_elements:" << type;
-    this->node_to_elements(type, _not_ghost) = &(alloc<UInt>(sstr_name_2.str(),0,1));
+    this->node_to_elements_offset.alloc(0, 1, type, _not_ghost);
+    this->node_to_elements.alloc(0, 1, type, _not_ghost);
 
     CSR<UInt> node_to_elem;
     MeshUtils::buildNode2ElementsByElementType(mesh, type, node_to_elem);
 
-    node_to_elem.copy(*node_to_elements_offset(type, _not_ghost), *node_to_elements(type, _not_ghost));
+    node_to_elem.copy(node_to_elements_offset(type, _not_ghost), node_to_elements(type, _not_ghost));
   }
 
   if(add_surfaces_flag) {

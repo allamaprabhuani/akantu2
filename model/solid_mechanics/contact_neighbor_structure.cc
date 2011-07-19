@@ -35,7 +35,10 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-NeighborList::NeighborList() : impactor_nodes(Vector<UInt>(0, 1, "impactors")) {
+NeighborList::NeighborList(const ID & id) : id(id),
+					    impactor_nodes(Vector<UInt>(0, 1, "impactors")),
+					    facets_offset("facets_offset", id),
+					    facets("facets", id) {
   AKANTU_DEBUG_IN();
 
   // for (UInt i = 0; i < _max_element_type; ++i) {
@@ -62,7 +65,7 @@ NeighborList::~NeighborList() {
 ContactNeighborStructure::ContactNeighborStructure(const ContactSearch & contact_search,
 						   const Surface & master_surface,
 						   const ContactNeighborStructureType & type,
-						   const ContactNeighborStructureID & id) :
+						   const ID & id) :
   id(id), contact_search(contact_search), master_surface(master_surface),
   type(type) {
   AKANTU_DEBUG_IN();

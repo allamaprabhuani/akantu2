@@ -188,7 +188,6 @@ int main(int argc, char *argv[]) {
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  double total_time = 0.;
   akantu::Vector<Real> & velocity = model->getVelocity();
 
   std::ofstream energy;

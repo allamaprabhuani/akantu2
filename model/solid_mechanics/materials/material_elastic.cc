@@ -32,11 +32,10 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialElastic::MaterialElastic(Model & model, const MaterialID & id)  :
+MaterialElastic::MaterialElastic(Model & model, const ID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
-  rho = 0;
   E   = 0;
   nu  = 1./2.;
   plane_stress = false;
@@ -102,10 +101,9 @@ void MaterialElastic::computeTangentStiffness(const ElementType & el_type,
 
 /* -------------------------------------------------------------------------- */
 void MaterialElastic::setParam(const std::string & key, const std::string & value,
-			       const MaterialID & id) {
+			       const ID & id) {
   std::stringstream sstr(value);
-  if(key == "rho") { sstr >> rho; }
-  else if(key == "E") { sstr >> E; }
+  if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
   else if(key == "Plane_Stress") { sstr >> plane_stress; }
   else { Material::setParam(key, value, id); }

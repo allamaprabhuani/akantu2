@@ -30,8 +30,8 @@
 template<UInt spatial_dimension>
 inline void RegularGridNeighborStructure<spatial_dimension>::setGridSpacing(Real spacing, UInt component) {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
-		      component << " is out of range (spatial dimension = " << 
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " <<
+		      component << " is out of range (spatial dimension = " <<
 		      spatial_dimension << ")");
 
   grid_spacing[component] = spacing;
@@ -42,10 +42,10 @@ inline void RegularGridNeighborStructure<spatial_dimension>::setGridSpacing(Real
 template<UInt spatial_dimension>
 inline Real RegularGridNeighborStructure<spatial_dimension>::getGridSpacing(UInt component) const {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
-		      component << " is out of range (spatial dimension = " << 
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " <<
+		      component << " is out of range (spatial dimension = " <<
 		      spatial_dimension << ")");
-  
+
   AKANTU_DEBUG_OUT();
   return grid_spacing[component];
 }
@@ -54,8 +54,8 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getGridSpacing(UInt
 template<UInt spatial_dimension>
 inline void RegularGridNeighborStructure<spatial_dimension>::setSecurityFactor(Real factor, UInt component) {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
-		      component << " is out of range (spatial dimension = " << 
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " <<
+		      component << " is out of range (spatial dimension = " <<
 		      spatial_dimension << ")");
 
   security_factor[component] = factor;
@@ -66,10 +66,10 @@ inline void RegularGridNeighborStructure<spatial_dimension>::setSecurityFactor(R
 template<UInt spatial_dimension>
 inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(UInt component) const {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
-		      component << " is out of range (spatial dimension = " << 
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " <<
+		      component << " is out of range (spatial dimension = " <<
 		      spatial_dimension << ")");
-  
+
   AKANTU_DEBUG_OUT();
   return security_factor[component];
 }
@@ -78,8 +78,8 @@ inline Real RegularGridNeighborStructure<spatial_dimension>::getSecurityFactor(U
 template<UInt spatial_dimension>
 inline void RegularGridNeighborStructure<spatial_dimension>::setMaxIncrement(Real increment, UInt component) {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
-		      component << " is out of range (spatial dimension = " << 
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " <<
+		      component << " is out of range (spatial dimension = " <<
 		      spatial_dimension << ")");
 
   max_increment[component] = increment;
@@ -90,17 +90,17 @@ inline void RegularGridNeighborStructure<spatial_dimension>::setMaxIncrement(Rea
 template<UInt spatial_dimension>
 inline Real RegularGridNeighborStructure<spatial_dimension>::getMaxIncrement(UInt component) const {
   AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " << 
-		      component << " is out of range (spatial dimension = " << 
+  AKANTU_DEBUG_ASSERT(component < spatial_dimension, "The component " <<
+		      component << " is out of range (spatial dimension = " <<
 		      spatial_dimension << ")");
-  
+
   AKANTU_DEBUG_OUT();
   return max_increment[component];
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(Int * directional_nb_cells, 
+inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(Int * directional_nb_cells,
 									   Int * directional_cell) {
 
   AKANTU_DEBUG_IN();
@@ -109,15 +109,15 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeCellNb(Int *
     cell_number *= directional_nb_cells[dim];
     cell_number += directional_cell[dim];
   }
-  
-  AKANTU_DEBUG_OUT();  
+
+  AKANTU_DEBUG_OUT();
   return cell_number;
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension> 
-inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCells(UInt cell, 
-										  UInt * neighbors, 
+template<UInt spatial_dimension>
+inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCells(UInt cell,
+										  UInt * neighbors,
 										  Int * directional_nb_cells) {
   AKANTU_DEBUG_IN();
   UInt nb_neighbors = 0;
@@ -135,16 +135,16 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
     directional_cell[dir] = std::floor(global_cell_nb / factor); // integer division !
     global_cell_nb -= directional_cell[dir] * factor;
   }
-  
+
   /// compute neighbor cells
   Int neighbor_thickness = 1; // the number of neighbors for a given direction
-  
+
   /// computation for 2D
   if(spatial_dimension == 2) {
-    
+
     for(Int x = directional_cell[0] - neighbor_thickness; x <= directional_cell[0] + neighbor_thickness; ++x) {
       if(x < 0 || x >= directional_nb_cells[0]) continue; // border cell?
-      
+
       for(Int y = directional_cell[1] - neighbor_thickness; y <= directional_cell[1] + neighbor_thickness; ++y) {
 	if(y < 0 || y >= directional_nb_cells[1]) continue; // border cell?
 	if(x == directional_cell[0] && y == directional_cell[1]) continue; // do only return neighbors not itself!
@@ -155,7 +155,7 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 
 	/// compute global cell index
 	UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
-	
+
 	/// add the neighbor cell to the list
 	neighbors[nb_neighbors++] = neighbor_cell;
       }
@@ -163,13 +163,13 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
   }
   /// computation for 3D
   else if(spatial_dimension == 3) {
-        
+
     for(Int x = directional_cell[0] - neighbor_thickness; x <= directional_cell[0] + neighbor_thickness; ++x) {
       if(x < 0 || x >= directional_nb_cells[0]) continue; // border cell?
-      
+
       for(Int y = directional_cell[1] - neighbor_thickness; y <= directional_cell[1] + neighbor_thickness; ++y) {
 	if(y < 0 || y >= directional_nb_cells[1]) continue; // border cell?
-	
+
 	for(Int z = directional_cell[2] - neighbor_thickness; z <= directional_cell[2] + neighbor_thickness; ++z) {
 	  if(z < 0 || z >= directional_nb_cells[2]) continue; // border cell?
 	  if(x == directional_cell[0] && y == directional_cell[1] && z == directional_cell[2]) continue; // do only return neighbors not itself!
@@ -182,7 +182,7 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
 
 	  /// compute global cell index
 	  UInt neighbor_cell = computeCellNb(directional_nb_cells, neighbor_directional_cell);
-	  
+
 	  /// add the neighbor cell to the list
 	  neighbors[nb_neighbors++] = neighbor_cell;
 	}
@@ -199,15 +199,16 @@ template<UInt spatial_dimension>
 inline void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList() {
 
   AKANTU_DEBUG_IN();
+  std::stringstream sstr; sstr << id << ":neighbor_list";
+
   if (contact_search.getType() == _cst_expli) {
-    neighbor_list = new NodesNeighborList();
+    neighbor_list = new NodesNeighborList(sstr.str());
     nodes_neighbor_list = true;
   }
   else {
-    neighbor_list = new NeighborList();
+    neighbor_list = new NeighborList(sstr.str());
     nodes_neighbor_list = false;
   }
-   
-  AKANTU_DEBUG_OUT();  
-}
 
+  AKANTU_DEBUG_OUT();
+}

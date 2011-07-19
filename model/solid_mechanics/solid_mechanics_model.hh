@@ -67,7 +67,7 @@ public:
 
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = 0,
-		      const ModelID & id = "solid_mechanics_model",
+		      const ID & id = "solid_mechanics_model",
 		      const MemoryID & memory_id = 0);
 
   virtual ~SolidMechanicsModel();
@@ -199,7 +199,7 @@ private:
   /// read properties part of a material file and create the material
   template <typename M>
   Material * readMaterialProperties(std::ifstream & infile,
-				    MaterialID mat_id,
+				    ID mat_id,
 				    UInt &current_line);
 
   /* ------------------------------------------------------------------------ */
@@ -243,7 +243,7 @@ public:
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
-				 SynchronizationTag tag) const;
+				 SynchronizationTag tag);
 
   inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
 
@@ -255,7 +255,7 @@ public:
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const UInt index,
-				 SynchronizationTag tag) const;
+				 SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

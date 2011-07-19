@@ -66,7 +66,7 @@ protected:
 			SynchronizationTag tag) const;
   virtual void unpackData(CommunicationBuffer & buffer,
 			  const Element & element,
-			  SynchronizationTag tag) const;
+			  SynchronizationTag tag);
 
   virtual UInt getNbDataToPack(SynchronizationTag tag) const;
   virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
@@ -75,7 +75,7 @@ protected:
 			SynchronizationTag tag) const;
   virtual void unpackData(CommunicationBuffer & buffer,
 			  const UInt index,
-			  SynchronizationTag tag) const;
+			  SynchronizationTag tag);
 
 
   /* ------------------------------------------------------------------------ */
@@ -93,7 +93,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* TestSynchronizer implementation                                            */
 /* -------------------------------------------------------------------------- */
-TestAccessor::TestAccessor(const Mesh & mesh) : mesh(mesh) {
+TestAccessor::TestAccessor(const Mesh & mesh) : ghost_barycenter("ghost_barycenter", id), mesh(mesh) {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   id = "test_synchronizer";
@@ -104,23 +104,13 @@ TestAccessor::TestAccessor(const Mesh & mesh) : mesh(mesh) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     UInt nb_ghost_element = mesh.getNbElement(*it,_ghost);
-    ghost_barycenter(*it) = new Vector<Real>(nb_ghost_element,
-							     spatial_dimension,
-							     std::numeric_limits<Real>::quiet_NaN(),
-							     "ghost_barycenter");
+    ghost_barycenter.alloc(nb_ghost_element, spatial_dimension, *it);
 
   }
 }
 
 TestAccessor::~TestAccessor() {
-  UInt spatial_dimension = mesh.getSpatialDimension();
 
-  Mesh::ConnectivityTypeList::const_iterator it;
-  const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    delete ghost_barycenter(*it);
-  }
 }
 
 UInt TestAccessor::getNbDataToPack(const Element & element,
@@ -145,9 +135,10 @@ void TestAccessor::packData(CommunicationBuffer & buffer,
 
 void TestAccessor::unpackData(CommunicationBuffer & buffer,
 				  const Element & element,
-				  __attribute__ ((unused)) SynchronizationTag tag) const {
+				  __attribute__ ((unused)) SynchronizationTag tag) {
   UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  Vector<Real>::iterator<types::RVector> bary = ghost_barycenter(element.type)->begin(spatial_dimension);
+  Vector<Real>::iterator<types::RVector> bary =
+    ghost_barycenter(element.type).begin(spatial_dimension);
   buffer >> bary[element.element];
 }
 
@@ -166,7 +157,7 @@ void TestAccessor::packData(__attribute__ ((unused)) CommunicationBuffer & buffe
 
 void TestAccessor::unpackData(__attribute__ ((unused)) CommunicationBuffer & buffer,
 			      __attribute__ ((unused)) const UInt index,
-			      __attribute__ ((unused)) SynchronizationTag tag) const {
+			      __attribute__ ((unused)) SynchronizationTag tag) {
 }
 
 

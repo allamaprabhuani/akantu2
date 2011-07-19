@@ -40,7 +40,10 @@ class IntegratorGauss : public Integrator {
   /* ------------------------------------------------------------------------ */
 public:
 
-  IntegratorGauss(Mesh & mesh, IntegratorID id="IntegratorGauss");
+  IntegratorGauss(Mesh & mesh,
+		  const ID & id = "integrator_gauss",
+		  const MemoryID & memory_id = 0);
+
   virtual ~IntegratorGauss(){};
 
   /* ------------------------------------------------------------------------ */
@@ -76,7 +79,8 @@ public:
 		 const Vector<UInt> * filter_elements) const;
 
   /// return a vector with quadrature points natural coordinates
-  template <ElementType type> Vector<Real> & getQuadraturePoints(const GhostType & ghost_type) const;
+  template <ElementType type>
+  const Vector<Real> & getQuadraturePoints(const GhostType & ghost_type) const;
 
   /// compute the vector of quadrature points natural coordinates
   template <ElementType type> void computeQuadraturePoints(const GhostType & ghost_type);

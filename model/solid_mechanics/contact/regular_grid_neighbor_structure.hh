@@ -43,9 +43,10 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class NodesNeighborList : public NeighborList {
 public:
-  NodesNeighborList();
+  NodesNeighborList(const ID & id);
   virtual ~NodesNeighborList() {};
 public:
+  ID id;
   /// neighbor master nodes
   Vector<UInt> master_nodes_offset;
   Vector<UInt> master_nodes;

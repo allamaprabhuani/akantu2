@@ -30,6 +30,7 @@
 template<ElementType type>
 inline UInt StructuralMechanicsModel::getTangentStiffnessVoigtSize() {
   AKANTU_DEBUG_TO_IMPLEMENT();
+  return 0;
 }
 
 template<>
@@ -127,7 +128,7 @@ template<ElementType type>
 void StructuralMechanicsModel::computeStressOnQuad() {
  AKANTU_DEBUG_IN();
 
- Vector<Real> & sigma  = *stress(type, _not_ghost);
+ Vector<Real> & sigma  = stress(type, _not_ghost);
 
  sigma.clear();
 

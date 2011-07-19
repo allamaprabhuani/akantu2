@@ -34,7 +34,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Functions VectorBase                                                       */
 /* -------------------------------------------------------------------------- */
-VectorBase::VectorBase(const VectorID & id) :
+VectorBase::VectorBase(const ID & id) :
   id(id), allocated_size(0), size(0), nb_component(1), size_of_type(0) {
 }
 
@@ -61,7 +61,7 @@ void VectorBase::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
-				      const VectorID & id) :
+				      const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -72,7 +72,7 @@ template <class T> Vector<T>::Vector (UInt size,
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
 				      const T def_values[],
-				      const VectorID & id) :
+				      const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -89,7 +89,7 @@ template <class T> Vector<T>::Vector (UInt size,
 template <class T> Vector<T>::Vector (UInt size,
 				      UInt nb_component,
 				      const T & value,
-				      const VectorID & id) :
+				      const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -103,7 +103,7 @@ template <class T> Vector<T>::Vector (UInt size,
 
 
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep, const VectorID & id) {
+template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep, const ID & id) {
   AKANTU_DEBUG_IN();
   this->id = (id == "") ? vect.id : id;
 

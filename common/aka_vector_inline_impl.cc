@@ -163,21 +163,6 @@ Vector<T> & Vector<T>::operator*=(const T & alpha) {
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret>
-inline Vector<T>::iterator<Ret> Vector<T>::begin() {
-  return iterator<Ret>(values, nb_component);
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret>
-inline Vector<T>::iterator<Ret> Vector<T>::end() {
-  return iterator<Ret>(values + nb_component * size, nb_component);
-}
-
-
-/* -------------------------------------------------------------------------- */
 /* Inline Functions VectorBase                                                */
 /* -------------------------------------------------------------------------- */
 
@@ -193,259 +178,284 @@ inline void VectorBase::empty() {
 /* -------------------------------------------------------------------------- */
 /* Iterators                                                                  */
 /* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-Vector<T>::iterator<Ret, fps>::iterator() : offset(0), initial(NULL), ret(NULL) {
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-Vector<T>::iterator<Ret, fps>::iterator(pointer_type data, UInt offset) : offset(offset),
-								     initial(data),
-								     ret(new returned_type(data)) {
-  AKANTU_DEBUG_ASSERT(offset == ret->size(),
-		      "The iterator is not compatible with the type "
-		      << typeid(returned_type).name());
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-Vector<T>::iterator<Ret, fps>::iterator(const Vector<T>::iterator<Ret, fps> & it) {
-  if(this != &it) {
-    this->offset = it.offset;
-    this->ret = new returned_type(it.ret->values);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-Vector<T>::iterator<Ret, fps>::~iterator() {
-  delete ret;
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-inline Vector<T>::iterator<Ret, fps> & Vector<T>::iterator<Ret, fps>::operator++() {
-  ret->values += offset;
-  return *this;
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-inline Vector<T>::iterator<Ret, fps> & Vector<T>::iterator<Ret, fps>::operator=(const Vector<T>::iterator<Ret, fps> & it) {
-  if(this != &it) {
-    this->offset = it.offset;
-    this->ret = new returned_type(it.ret->values);
-  }
-  return *this;
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-inline Vector<T>::iterator<Ret, fps> & Vector<T>::iterator<Ret, fps>::operator+=(const UInt n) {
-  ret->values += offset * n;
-  return *this;
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-inline Ret & Vector<T>::iterator<Ret, fps>::operator[](const UInt n) {
- ret->values = initial + n*offset;
- return *ret;
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-inline bool Vector<T>::iterator<Ret, fps>::operator==(const iterator & other) {
-  return (*this).ret->values == other.ret->values;
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret, int fps>
-inline bool Vector<T>::iterator<Ret, fps>::operator!=(const iterator & other) {
-  return (*this).ret->values != other.ret->values;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Specialization : iterator of Matrix                                        */
-/* -------------------------------------------------------------------------- */
-template<>
-template<>
-class Vector<Real>::iterator<types::Matrix, 0> {
+template<class T>
+template<class R, class IR, class Pointer, class Reference>
+class Vector<T>::iterator_internal {
 public:
-  iterator() : ret(NULL), initial(NULL), offset(0) {
+  typedef R         value_type;
+  typedef Pointer   pointer;
+  typedef Reference reference;
+  typedef IR        internal_value_type;
+  typedef IR*       internal_pointer;
+protected:
+  iterator_internal(UInt offset, pointer_type data, pointer ret) : offset(offset),
+								   initial(data),
+								   ret(ret) {
+  }
+
+public:
+  iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
+
+  iterator_internal(pointer_type data, UInt offset)  :
+    offset(offset),
+    initial(data),
+    ret(new value_type(data)) {
+    AKANTU_DEBUG_ASSERT(offset == ret->size(),
+			"The iterator_internal is not compatible with the type "
+			<< typeid(value_type).name());
   };
 
-  iterator(Real * data, UInt offset, UInt m, UInt n) : ret(new types::Matrix(data, m, n)), initial(data), offset(offset) {
-    AKANTU_DEBUG_ASSERT(offset == n*m,
-			"The iterator is not compatible with the type Matrix(" << m << "," << n<< ")");
+  iterator_internal(pointer warped)  : offset(warped->size()),
+				       initial(warped->storage()),
+				       ret(const_cast<internal_pointer>(warped)) {
   };
 
-  iterator(const iterator & it) {
+  iterator_internal(const iterator_internal & it) {
     if(this != &it) {
-      offset = it.offset;
-      ret = new types::Matrix(it.ret->values, it.ret->m, it.ret->n);
+      this->offset = it.offset;
+      this->initial = it.initial;
+      this->ret = new internal_value_type(*it.ret);
     }
-  };
+  }
 
-  ~iterator() { delete ret; };
+  virtual ~iterator_internal() { delete ret; };
 
-  inline iterator & operator=(const iterator & it) {
+  inline iterator_internal & operator=(const iterator_internal & it) {
     if(this != &it) {
-      offset = it.offset;
-      ret = new types::Matrix(it.ret->values, it.ret->m, it.ret->n);
+      this->offset = it.offset;
+      this->initial = it.initial;
+      this->ret = new internal_value_type(*it.ret);
     }
     return *this;
-  };
+  }
 
-  inline types::Matrix & operator*() { return *ret; };
-  inline types::Matrix * operator->() { return ret; };
-  inline iterator & operator++() { ret->values += offset; return *this; };
-  inline iterator & operator+=(const UInt n) { ret->values += n*offset; return *this; };
-  inline types::Matrix & operator[](const UInt n) { ret->values = initial + n*offset; return *ret; };
-  inline bool operator==(const iterator & other) { return ret->values == other.ret->values; };
-  inline bool operator!=(const iterator & other) { return ret->values != other.ret->values; };
+  inline reference operator*() { return *ret; };
+  inline pointer operator->() { return ret; };
+  inline iterator_internal & operator++() { ret->values += offset; return *this; };
 
-private:
-  types::Matrix * ret;
-  Real * initial;
+  inline iterator_internal & operator+=(const UInt n) {
+    ret->values += offset * n;
+    return *this;
+  }
+
+  inline reference operator[](const UInt n) {
+    ret->values = initial + n*offset;
+    return *ret;
+  }
+
+  inline bool operator==(const iterator_internal & other) {
+    return (*this).ret->values == other.ret->values;
+  }
+  inline bool operator!=(const iterator_internal & other) {
+    return (*this).ret->values != other.ret->values;
+  }
+
+protected:
   UInt offset;
+  pointer_type initial;
+  internal_pointer ret;
 };
 
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) {
-  return iterator<types::Matrix>(values, nb_component, m, n);
+template<typename T>
+template<typename Ret>
+inline Vector<T>::iterator<Ret> Vector<T>::begin() {
+  return iterator<Ret>(values, nb_component);
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) {
-  return iterator<types::Matrix>(values + nb_component * size, nb_component, m, n);
+template<typename T>
+template<typename Ret>
+inline Vector<T>::iterator<Ret> Vector<T>::end() {
+  return iterator<Ret>(values + nb_component * size, nb_component);
 }
+
+
+// /* -------------------------------------------------------------------------- */
+// /* Specialization : iterator of Matrix                                        */
+// /* -------------------------------------------------------------------------- */
+// template<>
+// template<>
+// class Vector<Real>::iterator<types::Matrix, 0> {
+// public:
+//   iterator() : ret(NULL), initial(NULL), offset(0) {
+//   };
+
+//   iterator(Real * data, UInt offset, UInt m, UInt n) : ret(new types::Matrix(data, m, n)), initial(data), offset(offset) {
+//     AKANTU_DEBUG_ASSERT(offset == n*m,
+// 			"The iterator is not compatible with the type Matrix(" << m << "," << n<< ")");
+//   };
+
+//   iterator(const iterator & it) {
+//     if(this != &it) {
+//       offset = it.offset;
+//       ret = new types::Matrix(it.ret->values, it.ret->m, it.ret->n);
+//     }
+//   };
+
+//   ~iterator() { delete ret; };
+
+//   inline iterator & operator=(const iterator & it) {
+//     if(this != &it) {
+//       offset = it.offset;
+//       ret = new types::Matrix(it.ret->values, it.ret->m, it.ret->n);
+//     }
+//     return *this;
+//   };
+
+//   inline types::Matrix & operator*() { return *ret; };
+//   inline types::Matrix * operator->() { return ret; };
+//   inline iterator & operator++() { ret->values += offset; return *this; };
+//   inline iterator & operator+=(const UInt n) { ret->values += n*offset; return *this; };
+//   inline types::Matrix & operator[](const UInt n) { ret->values = initial + n*offset; return *ret; };
+//   inline bool operator==(const iterator & other) { return ret->values == other.ret->values; };
+//   inline bool operator!=(const iterator & other) { return ret->values != other.ret->values; };
+
+// private:
+//   types::Matrix * ret;
+//   Real * initial;
+//   UInt offset;
+// };
 
 /* -------------------------------------------------------------------------- */
 /* Specialization : iterator of Vector                                        */
 /* -------------------------------------------------------------------------- */
-template<typename T>
-template<int fps>
-class Vector<T>::iterator<types::Vector<T>, fps> {
-public:
-  typedef types::Vector<T> return_type;
-  typedef types::Vector<T> & return_type_ref;
-  typedef types::Vector<T> * return_type_ptr;
+// template<typename T>
+// template<int fps>
+// class Vector<T>::iterator<types::Vector<T>, fps> {
+// public:
+//   typedef types::Vector<T> return_type;
+//   typedef types::Vector<T> & return_type_ref;
+//   typedef types::Vector<T> * return_type_ptr;
 
-  iterator() : ret(NULL), initial(NULL), offset(0) {
-  };
+//   iterator() : ret(NULL), initial(NULL), offset(0) {
+//   };
 
-  iterator(T * data, UInt offset, UInt n) : ret(new types::Vector<T>(data, n)), initial(data), offset(offset) {
-    AKANTU_DEBUG_ASSERT(offset == n,
-			"The iterator is not compatible with the type Vector(" << n<< ")");
-  };
+//   iterator(T * data, UInt offset, UInt n) : ret(new types::Vector<T>(data, n)), initial(data), offset(offset) {
+//     AKANTU_DEBUG_ASSERT(offset == n,
+// 			"The iterator is not compatible with the type Vector(" << n<< ")");
+//   };
 
-  iterator(const iterator & it) {
-    if(this != &it) {
-      offset = it.offset;
-      ret = new return_type(it.ret->values, it.ret->n);
-    }
-  };
+//   iterator(const iterator & it) {
+//     if(this != &it) {
+//       offset = it.offset;
+//       ret = new return_type(it.ret->values, it.ret->n);
+//     }
+//   };
 
-  ~iterator() { delete ret; };
+//   ~iterator() { delete ret; };
 
-  inline iterator & operator=(const iterator & it) {
-    if(this != &it) {
-      offset = it.offset;
-      ret = new return_type(it.ret->values, it.ret->n);
-    }
-    return *this;
-  };
+//   inline iterator & operator=(const iterator & it) {
+//     if(this != &it) {
+//       offset = it.offset;
+//       ret = new return_type(it.ret->values, it.ret->n);
+//     }
+//     return *this;
+//   };
 
-  inline return_type_ref operator*() { return *ret; };
-  inline return_type_ptr operator->() { return ret; };
-  inline return_type_ref operator[](const UInt n) { ret->values = initial + n*offset; return *ret; };
+//   inline return_type_ref operator*() { return *ret; };
+//   inline return_type_ptr operator->() { return ret; };
+//   inline return_type_ref operator[](const UInt n) { ret->values = initial + n*offset; return *ret; };
 
-  inline iterator & operator++() { ret->values += offset; return *this; };
-  inline iterator & operator+=(const UInt n) { ret->values += n*offset; return *this; };
+//   inline iterator & operator++() { ret->values += offset; return *this; };
+//   inline iterator & operator+=(const UInt n) { ret->values += n*offset; return *this; };
 
-  inline bool operator==(const iterator & other) { return ret->values == other.ret->values; };
-  inline bool operator!=(const iterator & other) { return ret->values != other.ret->values; };
+//   inline bool operator==(const iterator & other) { return ret->values == other.ret->values; };
+//   inline bool operator!=(const iterator & other) { return ret->values != other.ret->values; };
 
-private:
-  return_type_ptr ret;
-  T * initial;
-  UInt offset;
-};
+// private:
+//   return_type_ptr ret;
+//   T * initial;
+//   UInt offset;
+// };
 
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline Vector<T>::iterator< types::Vector<T> > Vector<T>::begin(UInt n) {
-  return iterator< types::Vector<T> >(values, nb_component, n);
+  AKANTU_DEBUG_ASSERT(nb_component == n,
+		      "The iterator is not compatible with the type Vector("
+		      << n<< ")");
+  return iterator< types::Vector<T> >(new types::Vector<T>(values, n));
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline Vector<T>::iterator< types::Vector<T> > Vector<T>::end(UInt n) {
-  return iterator< types::Vector<T> >(values + nb_component * size, nb_component, n);
+  AKANTU_DEBUG_ASSERT(nb_component == n,
+		      "The iterator is not compatible with the type Vector("
+		      << n<< ")");
+  return iterator< types::Vector<T> >(new types::Vector<T>(values + nb_component * size,
+							   n));
 }
 
 /* -------------------------------------------------------------------------- */
-/* Specialization : iterator of Scalars                                       */
-/* -------------------------------------------------------------------------- */
-template<>
-template<>
-class Vector<Real>::iterator<Real> {
-public:
-  iterator(Real * current) : current(current), initial(current) {
-  };
-
-  iterator(const iterator & it) {
-    if(this != &it) {
-      current = it.current;
-    }
-  };
-
-  ~iterator() { };
-
-  inline iterator & operator=(const iterator & it) {
-    if(this != &it) {
-      current = it.current;
-    }
-    return *this;
-  };
-
-  inline Real & operator*() { return *current; };
-  inline iterator & operator++() { current++; return *this; };
-  inline iterator & operator+=(const UInt n) { current += n; return *this; };
-  inline Real & operator[](const UInt n) { return *(initial + n); };
-  inline bool operator==(const iterator & other) { return current == other.current; };
-  inline bool operator!=(const iterator & other) { return current != other.current; };
-
-private:
-  Real * current;
-  Real * initial;
-};
+template<typename T>
+inline Vector<T>::const_iterator< types::Vector<T> > Vector<T>::begin(UInt n) const {
+  AKANTU_DEBUG_ASSERT(nb_component == n,
+		      "The iterator is not compatible with the type Vector("
+		      << n<< ")");
+  return const_iterator< types::Vector<T> >(new types::Vector<T>(values, n));
+}
 
 /* -------------------------------------------------------------------------- */
-template<>
-template<>
-inline Vector<Real>::iterator<Real> Vector<Real>::begin<Real>() {
-  return iterator<Real>(values);
+template<typename T>
+inline Vector<T>::const_iterator< types::Vector<T> > Vector<T>::end(UInt n) const {
+  AKANTU_DEBUG_ASSERT(nb_component == n,
+		      "The iterator is not compatible with the type Vector("
+		      << n<< ")");
+  return const_iterator< types::Vector<T> >(new types::Vector<T>(values + nb_component * size,
+							   n));
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-template<> 
-inline Vector<Real>::iterator<Real> Vector<Real>::end<Real>() {
-  return iterator<Real>(values + nb_component * size);
+inline Vector<Real>::iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) {
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+  return iterator< types::Matrix >(new types::Matrix(values, m, n));
 }
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) {
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+  return iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) const {
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+  return const_iterator< types::Matrix >(new types::Matrix(values, m, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) const {
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+  return const_iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+}
+
+
+// /* -------------------------------------------------------------------------- */
+// template<>
+// template<>
+// inline Vector<Real>::iterator<Real> Vector<Real>::begin<Real>() {
+//   return iterator<Real>(values);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// template<>
+// template<>
+// inline Vector<Real>::iterator<Real> Vector<Real>::end<Real>() {
+//   return iterator<Real>(values + nb_component * size);
+// }

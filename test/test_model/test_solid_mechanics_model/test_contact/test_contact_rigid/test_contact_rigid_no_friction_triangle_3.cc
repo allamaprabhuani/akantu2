@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
     /// compute the penetration list
     std::cout << "Before solveContact" << std::endl;
-    PenetrationList * my_penetration_list = new PenetrationList();
+    PenetrationList * my_penetration_list = new PenetrationList("penetration_list_1");
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
@@ -204,7 +204,7 @@ int main(int argc, char *argv[])
 
     /// compute the penetration list
     std::cout << "After solveContact" << std::endl;
-    PenetrationList * my_penetration_list_2 = new PenetrationList();
+    PenetrationList * my_penetration_list_2 = new PenetrationList("penetration_list_2");
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list_2);
 
     UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();

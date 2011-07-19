@@ -50,7 +50,7 @@ class MaterialNeohookean : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialNeohookean(Model & model, const MaterialID & id = "");
+  MaterialNeohookean(Model & model, const ID & id = "");
 
   virtual ~MaterialNeohookean() {};
 
@@ -62,7 +62,7 @@ public:
   void initMaterial();
 
   void setParam(const std::string & key, const std::string & value,
-		const MaterialID & id);
+		const ID & id);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);

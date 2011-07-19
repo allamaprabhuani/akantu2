@@ -26,7 +26,7 @@
  * @section DESCRIPTION
  *
  * @verbatim
-              
+
    --x-----q1----|----q2-----x---> x
     -a          0            a
  @endverbatim
@@ -119,25 +119,20 @@ template<> UInt ElementClass<_bernoulli_beam_2>::nb_quadrature_points;
 template<> UInt ElementClass<_bernoulli_beam_2>::spatial_dimension;
 
 /* -------------------------------------------------------------------------- */
-template <> 
+template <>
 inline void ElementClass<_bernoulli_beam_2>::computeShapes(const Real * natural_coords,
 							   Real * shapes,
-							   const Real * local_coord, 
+							   const Real * local_coord,
 							   UInt id) {
   /// Compute the dimension of the beam
-  Real a=0.5*Math::distance_2d(local_coord,local_coord+2);
-  Real x1=*local_coord;
-  Real y1=*(local_coord+1); 
-  Real x2=*(local_coord+2); 
-  Real y2=*(local_coord+3);
-  Real tetha=std::atan((y2-y1)/(x2-x1));
+  Real a=.5 * Math::distance_2d(local_coord, local_coord+2);
 
   /// natural coordinate
   Real c =(*natural_coords)*a;
 
 
   switch (id) {
-  
+
   case 0:
     shapes[0]=0.5*(1-c/a);
     shapes[1]=0.5*(1+c/a);
@@ -166,18 +161,18 @@ inline void ElementClass<_bernoulli_beam_2>::computeShapes(const Real * natural_
  }
 
 /* -------------------------------------------------------------------------- */
-template <> 
-inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real * natural_coords, 
+template <>
+inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real * natural_coords,
 								     Real * shape_deriv,
 								     const Real * local_coord,
-								     UInt id) { 
+								     UInt id) {
 
 
  /// Compute the dimension of the beam
   Real a=0.5*Math::distance_2d(local_coord,local_coord+2);
   Real x1=*local_coord;
-  Real y1=*(local_coord+1); 
-  Real x2=*(local_coord+2); 
+  Real y1=*(local_coord+1);
+  Real x2=*(local_coord+2);
   Real y2=*(local_coord+3);
   Real tetha=std::atan((y2-y1)/(x2-x1));
   Real pi = std::atan(1.0)*4;
@@ -185,11 +180,11 @@ inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real 
   if ((x2-x1) < 0) {
     tetha += pi;
   }
- 
+
   /// natural coordinate
   Real c = (*natural_coords)*a;
 
-  /// Definition of the rotation matrix 
+  /// Definition of the rotation matrix
   Real T[4];
   T[0]= cos(tetha);
   T[1]= sin(tetha);
@@ -199,7 +194,7 @@ inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real 
   // B archetype
   Real shape_deriv_arch[4];
   switch (id) {
-  
+
   case 0:
     shape_deriv_arch[0]=-0.5/a;
     shape_deriv_arch[1]= 0;
@@ -217,7 +212,7 @@ inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real 
     shape_deriv_arch[3]= 3.*c/(2.*pow(a,3));
 
     Math::matrix_matrix(2,2,2,shape_deriv_arch,T,shape_deriv);
-  
+
     break;
 
   case 2:

@@ -74,21 +74,21 @@ int main(int argc, char *argv[]){
 
     beams.addConnecticityType(_bernoulli_beam_2);
     Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
-    connectivity.resize(nb_element); 
+    connectivity.resize(nb_element);
 
     for(UInt i=0; i<nb_nodes_h; ++i) {
-      
+
       nodes(i,0)=2./((Real)nb_nodes_h)*i;
       nodes(i,1)=0;
     }
     for(UInt i=nb_nodes_h; i<nb_nodes; ++i) {
-      
+
       nodes(i,0)=2;
       nodes(i,1)=2./((Real)nb_nodes_v)*(i-nb_nodes_h);
     }
-    
+
     for(UInt i=0; i<nb_element; ++i) {
-      
+
       connectivity(i,0)=i;
       connectivity(i,1)=i+1;
     }
@@ -99,20 +99,20 @@ int main(int argc, char *argv[]){
     // Defining the forces
 
 
-  akantu::ElementType type = akantu::_bernoulli_beam_2;
+    //  akantu::ElementType type = akantu::_bernoulli_beam_2;
 
   akantu::StructuralMechanicsModel * model;
- 
+
   model = new akantu::StructuralMechanicsModel(beams);
 
   model->initModel();
   model->initVectors();
- 
+
   Vector<Real> & forces = model->getForce();
 
   forces.clear();
-  
+
   model->computeForcesFromFunction(lin_load, akantu::_bft_forces);
 
- 
+
 }

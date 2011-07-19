@@ -34,15 +34,17 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-LocalMaterialDamage::LocalMaterialDamage(Model & model, const MaterialID & id)  :
-  Material(model, id) {
+LocalMaterialDamage::LocalMaterialDamage(Model & model, const ID & id)  :
+  Material(model, id),
+  damage("damage", id) {
   AKANTU_DEBUG_IN();
 
-  rho = 0;
   E   = 0;
   nu  = 1./2.;
   Yd  = 50;
   Sd  = 5000;
+
+  initInternalVector(this->damage, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -52,15 +54,7 @@ void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  const Mesh::ConnectivityTypeList & type_list =
-    model->getFEM().getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-    std::stringstream sstr_damage; sstr_damage << id << ":damage:" << *it;
-    damage(*it) = &(alloc<Real>(sstr_damage.str(), 0,
-				1, REAL_INIT_VALUE));
-  }
+  resizeInternalVector(this->damage);
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));
@@ -76,8 +70,10 @@ void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_typ
 
   Real F[3*3];
   Real sigma[3*3];
-  damage(el_type, ghost_type)->resize(model->getFEM().getNbQuadraturePoints(el_type, ghost_type)*element_filter(el_type, ghost_type)->getSize());
-  Real * dam = damage(el_type, ghost_type)->values;
+
+  resizeInternalVector(this->damage);
+
+  Real * dam = damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -105,7 +101,7 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy(el_type)->values;
+  Real * epot = potential_energy(el_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
@@ -120,10 +116,10 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
 
 /* -------------------------------------------------------------------------- */
 void LocalMaterialDamage::setParam(const std::string & key, const std::string & value,
-			       const MaterialID & id) {
+			       const ID & id) {
   std::stringstream sstr(value);
-  if(key == "rho") { sstr >> rho; }
-  else if(key == "E") { sstr >> E; }
+
+  if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
   else if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }

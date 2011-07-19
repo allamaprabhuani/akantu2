@@ -49,61 +49,18 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::updateTypesOffsets(GhostType ghost_type) {
+inline void Mesh::updateTypesOffsets(const GhostType & ghost_type) {
   types_offsets.clear();
   ConnectivityTypeList::const_iterator it;
   for (it = type_set.begin(); it != type_set.end(); ++it)
-    types_offsets(*it) = connectivities(*it, ghost_type)->getSize();
+    types_offsets(*it) = connectivities(*it, ghost_type).getSize();
 
   for (UInt t = _not_defined + 1;  t <= _max_element_type; ++t)
     types_offsets(t) += types_offsets(t - 1);
 }
 
-// /* -------------------------------------------------------------------------- */
-// inline UInt Mesh::ghostElementToLinearized(const Element & elem) {
-//   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
-// 		      elem.element < ghost_types_offsets.values[elem.type+1],
-// 		      "The ghost element " << elem
-// 		      << "does not exists in the mesh " << id);
-
-//   return ghost_types_offsets.values[elem.type] +
-//     elem.element +
-//     types_offsets.values[_max_element_type];
-// }
-
-// /* -------------------------------------------------------------------------- */
-// inline Element Mesh::ghostLinearizedToElement (UInt linearized_element) {
-//   AKANTU_DEBUG_ASSERT(linearized_element >= types_offsets.values[_max_element_type],
-// 		      "The linearized element " << linearized_element
-// 		      << "is not a ghost element in the mesh " << id);
-
-
-//   linearized_element -= types_offsets.values[_max_element_type];
-//   UInt t;
-//   for (t = _not_defined + 1;
-//        linearized_element > ghost_types_offsets.values[t] && t <= _max_element_type; ++t);
-
-//   AKANTU_DEBUG_ASSERT(t < _max_element_type,
-// 		      "The ghost linearized element " << linearized_element
-// 		      << "does not exists in the mesh " << id);
-
-//   t--;
-//   return Element((ElementType) t, linearized_element - ghost_types_offsets.values[t]);
-// }
-
-// /* -------------------------------------------------------------------------- */
-// inline void Mesh::updateGhostTypesOffsets() {
-//   ghost_types_offsets.clear();
-//   ByElementTypeUInt::const_iterator it;
-//   for (it = ghost_connectivities.begin(); it != ghost_connectivities.end(); ++it)
-//     ghost_types_offsets(it->first) = it->second->getSize();
-
-//   for (UInt t = _not_defined + 1;  t <= _max_element_type; ++t)
-//     ghost_types_offsets(t) += ghost_types_offsets(t - 1);
-// }
-
 /* -------------------------------------------------------------------------- */
-inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(GhostType ghost_type) const {
+inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(const GhostType & ghost_type) const {
   if(ghost_type == _not_ghost)
     return type_set;
   else
@@ -137,16 +94,12 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 						   const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
+  Vector<UInt> * tmp;
   if(!connectivities.exists(type, ghost_type)) {
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    std::stringstream sstr;
-    sstr << id << ":";
-    if (ghost_type == _ghost) sstr << "ghost_";
-    sstr << "connectivity:" << type;
-    connectivities(type, ghost_type) = &(alloc<UInt>(sstr.str(),
-						     0,
-						     nb_nodes_per_element));
+    tmp = &(connectivities.alloc(0, nb_nodes_per_element,
+				 type, ghost_type));
 
     AKANTU_DEBUG_INFO("The connectivity vector for the type "
 		      << type << " created");
@@ -155,35 +108,13 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
     else ghost_type_set.insert(type);
 
     updateTypesOffsets(ghost_type);
+  } else {
+    tmp = &connectivities(type, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
-  return connectivities(type, ghost_type);
+  return tmp;
 }
-
-// /* -------------------------------------------------------------------------- */
-// inline Vector<UInt> * Mesh::getGhostConnectivityPointer(const ElementType & type) {
-//   AKANTU_DEBUG_IN();
-
-//   if(ghost_connectivities[type] == NULL) {
-//     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-//     std::stringstream sstr;
-//     sstr << id << ":ghost_connectivity:" << type;
-//     ghost_connectivities[type] = &(alloc<UInt>(sstr.str(),
-// 					 0,
-// 					 nb_nodes_per_element));
-//     ghost_type_set.insert(type);
-
-//     AKANTU_DEBUG_INFO("The connectivity vector for the type "
-// 		      << type << " created");
-
-//     updateGhostTypesOffsets();
-//   }
-
-//   AKANTU_DEBUG_OUT();
-//   return ghost_connectivities[type];
-// }
 
 /* -------------------------------------------------------------------------- */
 inline const Mesh & Mesh::getInternalFacetsMesh() const {
@@ -214,34 +145,18 @@ inline Mesh * Mesh::getInternalFacetsMeshPointer() {
 inline Vector<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
+  Vector<UInt> * tmp;
   if(!surface_id.exists(type, ghost_type)) {
-    std::stringstream sstr;
-    sstr << id << ":surface_id:" << type;
-    surface_id(type, ghost_type) = &(alloc<UInt>(sstr.str(),
-						 0,
-						 1));
-
+    tmp = &(surface_id.alloc(0, 1, type, ghost_type));
     AKANTU_DEBUG_INFO("The surface id vector for the type "
 		      << type << " created");
+  } else {
+    tmp = &(surface_id(type, ghost_type));
   }
 
   AKANTU_DEBUG_OUT();
-  return surface_id(type, ghost_type);
+  return tmp;
 }
-
-/* -------------------------------------------------------------------------- */
-
-// inline Vector<UInt> * Mesh::getReversedElementsPBCPointer(const ElementType & type) {
-//   AKANTU_DEBUG_IN();
-
-//   if(reversed_elements_pbc[type] == NULL) {
-//     AKANTU_DEBUG_ERROR("There are no reversed elements for the type" << type);
-//   }
-
-//   AKANTU_DEBUG_OUT();
-//   return reversed_elements_pbc[type];
-// }
-
 
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
@@ -295,7 +210,7 @@ inline UInt Mesh::getNbElement(const ElementType & type,
   const ByElementTypeUInt & const_conn = connectivities;
 
   AKANTU_DEBUG_OUT();
-  return const_conn(type, ghost_type)->getSize();
+  return const_conn(type, ghost_type).getSize();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -339,9 +254,9 @@ inline void Mesh::setSurfaceIDsFromIntData(std::string & data_name) {
 			  << " for the element type " << *it);
       AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
 			  "Surface id for type (" << gt << ":" << *it
-			  << ") already set to the vector " << surface_id(*it, gt)->getID());
+			  << ") already set to the vector " << surface_id(*it, gt).getID());
 
-      surface_id(*it, gt) = it_data->second;
+      surface_id.setVector(*it, gt, *it_data->second);
     }
   }
 }
@@ -541,6 +456,9 @@ inline Int Mesh::getNodeType(UInt local_id) const {
   return nodes_type ? (*nodes_type)(local_id) : -1;
 }
 
+
+
+
 /* -------------------------------------------------------------------------- */
 /* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
@@ -562,7 +480,7 @@ inline bool ByElementType<Stored>::exists(ElementType type, GhostType ghost_type
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 inline const Stored & ByElementType<Stored>::operator()(const ElementType & type,
-						const GhostType & ghost_type) const {
+							const GhostType & ghost_type) const {
   typename ByElementType<Stored>::DataMap::const_iterator it =
     this->getData(ghost_type).find(type);
 
@@ -581,6 +499,12 @@ inline Stored & ByElementType<Stored>::operator()(const ElementType & type,
   typename ByElementType<Stored>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
+  // if(it == this->getData(ghost_type).end())
+  //   AKANTU_EXCEPTION("No element of type "
+  // 		     << ByElementType<Stored>::printType(type, ghost_type)
+  // 		     << " in this ByElementType<"
+  // 		     << debug::demangle(typeid(Stored).name()) << "> class");
+
   if(it == this->getData(ghost_type).end()) {
     ByElementType<Stored>::DataMap & data = this->getData(ghost_type);
     const std::pair<typename DataMap::iterator, bool> & res =
@@ -595,14 +519,14 @@ inline Stored & ByElementType<Stored>::operator()(const ElementType & type,
 template<class Stored>
 inline typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) {
   if(ghost_type == _not_ghost) return data;
-  else if (ghost_type == _ghost) return ghost_data;
+  else return ghost_data;
 }
 
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 inline const typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) const {
   if(ghost_type == _not_ghost) return data;
-  else if (ghost_type == _ghost) return ghost_data;
+  else return ghost_data;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -628,8 +552,15 @@ void ByElementType<Stored>::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template<class Stored>
-ByElementType<Stored>::ByElementType() {
+ByElementType<Stored>::ByElementType(const ID & id,
+				     const ID & parent_id) {
   AKANTU_DEBUG_IN();
+
+  std::stringstream sstr;
+  if(parent_id != "") sstr << parent_id << ":";
+  sstr << id;
+
+  this->id = sstr.str();
 
   AKANTU_DEBUG_OUT();
 }
@@ -639,3 +570,92 @@ template<class Stored>
 ByElementType<Stored>::~ByElementType() {
 
 }
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
+						 UInt nb_component,
+						 const ElementType & type,
+						 const GhostType & ghost_type) {
+  std::string ghost_id = "";
+  if (ghost_type == _ghost) ghost_id = ":ghost";
+
+  Vector<T> * tmp;
+
+  typename ByElementTypeVector<T>::DataMap::iterator it =
+    this->getData(ghost_type).find(type);
+
+  if(it == this->getData(ghost_type).end()) {
+    std::stringstream sstr; sstr << this->id << ":" << type << ghost_id;
+    tmp = &(Memory::alloc<T>(sstr.str(), size,
+			    nb_component, 0));
+    std::stringstream sstrg; sstrg << ghost_type;
+    tmp->setTag(sstrg.str());
+    this->getData(ghost_type)[type] = tmp;
+  } else {
+    AKANTU_DEBUG_WARNING("The vector " << this->id << this->printType(type, ghost_type)
+			 << " already exists, it is resized instead of allocated.");
+    tmp = it->second;
+    it->second->resize(size);
+  }
+
+  return *tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline void ByElementTypeVector<T>::alloc(UInt size,
+					  UInt nb_component,
+					  const ElementType & type) {
+  this->alloc(size, nb_component, type, _not_ghost);
+  this->alloc(size, nb_component, type, _ghost);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline const Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & type,
+							    const GhostType & ghost_type) const {
+  typename ByElementTypeVector<T>::DataMap::const_iterator it =
+    this->getData(ghost_type).find(type);
+
+  if(it == this->getData(ghost_type).end())
+    AKANTU_EXCEPTION("No element of type "
+		     << ByElementTypeVector<T>::printType(type, ghost_type)
+		     << " in this ByElementTypeVector<"
+		     << debug::demangle(typeid(T).name()) << "> class");
+
+  return *(it->second);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & type,
+						      const GhostType & ghost_type) {
+  typename ByElementTypeVector<T>::DataMap::iterator it =
+    this->getData(ghost_type).find(type);
+
+  if(it == this->getData(ghost_type).end())
+    AKANTU_EXCEPTION("No element of type "
+		     << ByElementTypeVector<T>::printType(type, ghost_type)
+		     << " in this ByElementTypeVector<"
+		     << debug::demangle(typeid(T).name()) << "> class");
+
+  return *(it->second);
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline void ByElementTypeVector<T>::setVector(const ElementType & type,
+					      const GhostType & ghost_type,
+					      const Vector<T> & vect) {
+  typename ByElementTypeVector<T>::DataMap::iterator it =
+    this->getData(ghost_type).find(type);
+
+  if(AKANTU_DEBUG_TEST(dblWarning) && it != this->getData(ghost_type).end()) {
+    AKANTU_DEBUG_WARNING("The Vector " << this->printType(type, ghost_type)
+			 << " is already registred, this call can lead to a memory leek.");
+  }
+
+  this->getData(ghost_type)[type] = &(const_cast<Vector<T> &>(vect));
+}
+

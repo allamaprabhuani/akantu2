@@ -44,9 +44,11 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 						   UInt dim,
-						   const ModelID & id,
+						   const ID & id,
 						   const MemoryID & memory_id) :
   Model(id, memory_id),
+  stress("stress", id, memory_id),
+  element_material("element_material", id, memory_id),
   stiffness_matrix(NULL),
   solver(NULL),
   spatial_dimension(dim) {
@@ -107,15 +109,10 @@ void StructuralMechanicsModel::initVectors() {
     UInt nb_element = getFEM().getMesh().getNbElement(*it);
     UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(*it);
 
-    if(!element_material.exists(*it, _not_ghost)) {
-      std::stringstream sstr_elma; sstr_elma << id << ":element_material:" << *it;
-      element_material(*it, _not_ghost) = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
-    }
-    if(!stress.exists(*it, _not_ghost)) {
-      UInt size = getTangentStiffnessVoigtSize(*it);
-      std::stringstream sstr_stress; sstr_stress << id << ":stress:" << *it;
-      stress(*it, _not_ghost) = &(alloc<Real>(sstr_stress.str(), nb_element * nb_quadrature_points, size , 0));
-    }
+    element_material.alloc(nb_element, 1, *it, _not_ghost);
+
+    UInt size = getTangentStiffnessVoigtSize(*it);
+    stress.alloc(nb_element * nb_quadrature_points, size , *it, _not_ghost);
   }
 
   dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(), nb_degre_of_freedom);
@@ -134,7 +131,6 @@ void StructuralMechanicsModel::initImplicitSolver() {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = getFEM().getMesh();
-  UInt nb_nodes = mesh.getNbNodes();
 
   std::stringstream sstr; sstr << id << ":stiffness_matrix";
   stiffness_matrix = new SparseMatrix(mesh.getNbGlobalNodes() * nb_degre_of_freedom, _symmetric,
@@ -298,9 +294,7 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & e
 template<>
 void StructuralMechanicsModel::computeTangentStiffness<_bernoulli_beam_2>(Vector<Real> & tangent_stiffness_matrix) {
   UInt nb_element                 = getFEM().getMesh().getNbElement(_bernoulli_beam_2);
-  UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(_bernoulli_beam_2);
   UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_2);
-
 
   UInt tangent_size = 2;
 
@@ -308,7 +302,7 @@ void StructuralMechanicsModel::computeTangentStiffness<_bernoulli_beam_2>(Vector
   Vector<Real>::iterator<types::Matrix> D = tangent_stiffness_matrix.begin(tangent_size, tangent_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
-    UInt mat = (*element_material(_bernoulli_beam_2, _not_ghost))(e);
+    UInt mat = element_material(_bernoulli_beam_2, _not_ghost)(e);
     Real E = materials[mat].E;
     Real A = materials[mat].A;
     Real I = materials[mat].I;

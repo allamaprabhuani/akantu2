@@ -49,7 +49,7 @@ class Solver : protected Memory {
 public:
 
   Solver(SparseMatrix & matrix,
-	 const SolverID & id = "solver",
+	 const ID & id = "solver",
 	 const MemoryID & memory_id = 0);
 
   virtual ~Solver();
@@ -84,7 +84,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// id of thr Solver
-  SolverID id;
+  ID id;
 
   /// the matrix
   SparseMatrix * matrix;

@@ -37,9 +37,11 @@ class ShapeFunctions : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  ShapeFunctions(Mesh & m,ShapeID myid="shape"){
-    mesh = &m;
-    id = myid;
+  ShapeFunctions(Mesh & mesh,
+		 const ID & id = "shape",
+		 const MemoryID & memory_id = 0) :
+    Memory(memory_id), mesh(&mesh),
+    control_points("control_points", id, memory_id) {
   };
   virtual ~ShapeFunctions(){};
 
@@ -85,13 +87,18 @@ public:
 
 
   /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  virtual void printself(std::ostream & stream, int indent = 0) const {
+    std::string space;
+    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+    stream << space << "Shapes [" << std::endl;
+    control_points.printself(stream, indent + 1);
+    stream << space << "]" << std::endl;
+  };
+
   /// set the control points for a given element
   template <ElementType type>
-  void setControlPointsByType(Vector<Real> & control_points, const GhostType & ghost_type);
-  
-  virtual void printself(__attribute__ ((unused)) std::ostream & stream,
-			 __attribute__ ((unused))  int indent = 0) const {};
+  void setControlPointsByType(const Vector<Real> & control_points,
+			      const GhostType & ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -102,7 +109,7 @@ public:
 
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
- 
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -112,7 +119,7 @@ private:
 protected:
   Mesh * mesh;
 
-  ShapeID id;
+  ID id;
 
   /// shape functions for all elements
   ByElementTypeReal control_points;

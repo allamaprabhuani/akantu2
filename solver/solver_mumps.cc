@@ -97,7 +97,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 SolverMumps::SolverMumps(SparseMatrix & matrix,
-			 const SolverID & id,
+			 const ID & id,
 			 const MemoryID & memory_id) :
   Solver(matrix, id, memory_id), rhs_is_local(true) {
   AKANTU_DEBUG_IN();

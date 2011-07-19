@@ -105,7 +105,7 @@ int main(int argc, char *argv[]){
     // Defining the forces
 
 
-  akantu::ElementType type = akantu::_bernoulli_beam_2;
+    //  akantu::ElementType type = akantu::_bernoulli_beam_2;
 
   akantu::StructuralMechanicsModel * model;
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]){
   model->initVectors();
   model->initImplicitSolver();
 
-  const Real M = 3600; // Momentum at 3
+  //  const Real M = 3600; // Momentum at 3
 
   Vector<Real> & forces = model->getForce();
   Vector<Real> & displacement = model->getDisplacement();

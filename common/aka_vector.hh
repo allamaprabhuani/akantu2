@@ -48,7 +48,7 @@ class VectorBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  VectorBase(const VectorID & id = "");
+  VectorBase(const ID & id = "");
 
   virtual ~VectorBase();
 
@@ -76,13 +76,17 @@ public:
 
   AKANTU_GET_MACRO(NbComponent, nb_component, UInt);
 
-  AKANTU_GET_MACRO(ID, id, const VectorID &);
+  AKANTU_GET_MACRO(ID, id, const ID &);
+
+  AKANTU_GET_MACRO(Tag, tag, const std::string &);
+  AKANTU_SET_MACRO(Tag, tag, const std::string &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// id of the vector
-  VectorID id;
+  ID id;
 
   /// the size allocated
   UInt allocated_size;
@@ -95,7 +99,11 @@ protected:
 
   /// size of the stored type
   UInt size_of_type;
+
+  /// User defined tag
+  std::string tag;
 };
+
 
 namespace types {
   class Matrix;
@@ -115,64 +123,71 @@ public:
 
   /// Allocation of a new vector
   Vector(UInt size = 0, UInt nb_component = 1,
-	 const VectorID & id = "");
+	 const ID & id = "");
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,
-  	 const value_type def_values[], const VectorID & id = "");
+  	 const value_type def_values[], const ID & id = "");
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,
-	 const_reference value, const VectorID & id = "");
+	 const_reference value, const ID & id = "");
 
   /// Copy constructor (deep copy if deep=true) \todo to implement
-  Vector(const Vector<value_type>& vect, bool deep = true, const VectorID & id = "");
+  Vector(const Vector<value_type>& vect, bool deep = true, const ID & id = "");
 
   virtual ~Vector();
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
   /* ------------------------------------------------------------------------ */
+protected:
+  template <class R, class IR = R, class Pointer = R*, class Reference = R&>
+  class iterator_internal;
+
 public:
-  template<typename R, int for_part_spec = 0>
-  class iterator {
+  /* ------------------------------------------------------------------------ */
+  // template<typename R, int fps = 0> class iterator : public iterator_internal<R> {};
+  // template<typename R, int fps = 0> class const_iterator : public iterator_internal<const R> {};
+  /* ------------------------------------------------------------------------ */
+  template<typename R>
+  class iterator : public iterator_internal<R> {
   public:
-    typedef R returned_type;
-    typedef returned_type & returned_type_ref;
-    typedef returned_type * returned_type_ptr;
-
-    iterator();
-    iterator(pointer_type data, UInt offset);
-    iterator(const iterator & it);
-
-    ~iterator();
-
-    inline iterator & operator=(const iterator & it);
-
-    inline returned_type_ref operator*() { return *ret; };
-    inline returned_type_ptr operator->() { return ret; };
-    inline iterator & operator++();
-
-    inline iterator & operator+=(const UInt n);
-    inline returned_type_ref operator[](const UInt n);
-
-    inline bool operator==(const iterator & other);
-    inline bool operator!=(const iterator & other);
-
-  private:
-    UInt offset;
-    pointer_type initial;
-    returned_type_ptr ret;
+    typedef typename iterator_internal<R>::pointer pointer;
+  public:
+    iterator() : iterator_internal<R>() {};
+    iterator(pointer_type data, UInt offset) : iterator_internal<R>(data, offset) {};
+    iterator(pointer warped) : iterator_internal<R>(warped) {};
+    iterator(const iterator & it) : iterator_internal<R>(it) {};
   };
 
+  /* ------------------------------------------------------------------------ */
+  template<typename R>
+  class const_iterator : public iterator_internal<const R, R> {
+  public:
+    typedef typename iterator_internal<const R, R>::pointer pointer;
+  public:
+    const_iterator() : iterator_internal<const R, R>() {};
+    const_iterator(pointer_type data, UInt offset) : iterator_internal<const R, R>(data, offset) {};
+    const_iterator(pointer warped) : iterator_internal<const R, R>(warped) {};
+    const_iterator(const const_iterator & it) : iterator_internal<const R, R>(it) {};
+  };
+
+  /* ------------------------------------------------------------------------ */
   template<typename Ret> inline iterator<Ret> begin();
   template<typename Ret> inline iterator<Ret> end();
+  template<typename Ret> inline const_iterator<Ret> begin() const;
+  template<typename Ret> inline const_iterator<Ret> end() const;
 
-  inline iterator<types::Vector<T> > begin(UInt n);
-  inline iterator<types::Vector<T> > end(UInt n);
+  inline iterator< types::Vector<T> > begin(UInt n);
+  inline iterator< types::Vector<T> > end(UInt n);
+  inline const_iterator< types::Vector<T> > begin(UInt n) const;
+  inline const_iterator< types::Vector<T> > end(UInt n) const;
 
-  inline iterator<types::Matrix> begin(UInt m, UInt n);
-  inline iterator<types::Matrix> end(UInt m, UInt n);
+  inline iterator< types::Matrix > begin(UInt m, UInt n);
+  inline iterator< types::Matrix > end(UInt m, UInt n);
+  inline const_iterator< types::Matrix > begin(UInt m, UInt n) const;
+  inline const_iterator< types::Matrix > end(UInt m, UInt n) const;
 
   inline reference operator()(UInt i, UInt j = 0);
   inline const_reference operator()(UInt i, UInt j = 0) const;
@@ -221,6 +236,9 @@ public:
   /// copy the content of an other vector
   void copy(const Vector<T> & vect);
 
+  /// give the address of the memory allocated for this vector
+  T * storage() const { return values; };
+
 protected:
   /// perform the allocation for the constructors
   void allocate(UInt size, UInt nb_component = 1);
@@ -245,12 +263,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// array of values
-  T *values; // /!\ very dangerous
+  T * values; // /!\ very dangerous
 
 };
-
-
-
 
 __END_AKANTU__
 

@@ -49,13 +49,15 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt dim,
-					 const ModelID & id,
+					 const ID & id,
 					 const MemoryID & memory_id) :
   Model(id, memory_id),
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
-  stiffness_matrix(NULL),jacobian_matrix(NULL),
+  stiffness_matrix(NULL),
+  jacobian_matrix(NULL),
+  element_material("element_material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
   spatial_dimension(dim), mesh(mesh), dynamic(false) {
@@ -165,19 +167,11 @@ void SolidMechanicsModel::initVectors() {
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    std::string ghost_id = "";
-    if (gt == _ghost) {
-      ghost_id = "ghost_";
-    }
-
     const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
     Mesh::ConnectivityTypeList::const_iterator it;
     for(it = type_list.begin(); it != type_list.end(); ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      if(!element_material.exists(*it, gt)) {
-	std::stringstream sstr_elma; sstr_elma << id << ":" << ghost_id << "element_material:" << *it;
-	element_material(*it, gt) = &(alloc<UInt>(sstr_elma.str(), nb_element, 1, 0));
-      }
+      element_material.alloc(nb_element, 1, *it, gt);
     }
   }
 
@@ -745,8 +739,8 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
     UInt nb_element           = mesh.getNbElement(*it);
 
-    UInt * conn         = mesh.getConnectivity(*it, ghost_type).values;
-    UInt * elem_mat_val = element_material(*it, ghost_type)->values;
+    UInt * conn         = mesh.getConnectivity(*it, ghost_type).storage();
+    UInt * elem_mat_val = element_material(*it, ghost_type).storage();
 
     Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 

@@ -40,7 +40,14 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-PenetrationList::PenetrationList() : penetrating_nodes(Vector<UInt>(0, 1, "penetrating_nodes")) {
+PenetrationList::PenetrationList(const ID & id) :
+  id(id),
+  penetrating_nodes(Vector<UInt>(0, 1, "penetrating_nodes")),
+  penetrated_facets_offset("penetrated_facets_offset", id),
+  penetrated_facets("penetrated_facets", id),
+  facets_normals("facets_normals", id),
+  gaps("gaps", id),
+  projected_positions("projected_positions", id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();

@@ -1,3 +1,13 @@
 #!/bin/bash
 
+
+rm energy_bar_2d_para.csv
+
 mpirun -np 2 ./test_solid_mechanics_model_bar_traction2d_parallel
+
+if [ $? -eq 0 ]
+then
+    ./test_cst_energy.pl energy_bar_2d_para.csv
+else
+    return $?
+fi

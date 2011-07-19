@@ -53,7 +53,7 @@ class MaterialElasticCaughey : public MaterialElastic {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElasticCaughey(Model & model, const MaterialID & id = "");
+  MaterialElasticCaughey(Model & model, const ID & id = "");
 
   virtual ~MaterialElasticCaughey() {};
 
@@ -65,7 +65,7 @@ public:
   void initMaterial();
 
   void setParam(const std::string & key, const std::string & value,
-		const MaterialID & id);
+		const ID & id);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);

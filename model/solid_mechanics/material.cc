@@ -37,37 +37,30 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Material::Material(Model & model, const MaterialID & id) : Memory(model.getMemoryID()),
-							   id(id),
-							   name(""),
-							   potential_energy_vector(false),
-							   is_init(false) {
+Material::Material(Model & model, const ID & id) : 
+  Memory(model.getMemoryID()),
+  id(id),
+  name(""),
+  stress("stress", id),
+  strain("stain", id),
+  element_filter("element_filter", id),
+  //  potential_energy_vector(false),
+  potential_energy("potential_energy", id),
+  is_init(false) {
   AKANTU_DEBUG_IN();
+
+  rho = 0;
 
   this->model = dynamic_cast<SolidMechanicsModel*>(&model);
   AKANTU_DEBUG_ASSERT(this->model,"model has wrong type: cannot proceed");
   spatial_dimension = this->model->getSpatialDimension();
 
   /// allocate strain stress for local elements
-  initInternalVector(strain, spatial_dimension*spatial_dimension, "strain");
-  initInternalVector(stress, spatial_dimension*spatial_dimension, "stress");
+  initInternalVector(strain, spatial_dimension * spatial_dimension);
+  initInternalVector(stress, spatial_dimension * spatial_dimension);
 
   /// for each connectivity types allocate the element filer array of the material
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-
-    std::string ghost_id = "";
-    if (gt == _ghost) ghost_id = "ghost_";
-
-    const Mesh::ConnectivityTypeList & type_list =
-      model.getFEM().getMesh().getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-      std::stringstream sstr; sstr << id << ":" << ghost_id << "element_filer:"<< *it;
-      element_filter(*it, gt) = &(alloc<UInt> (sstr.str(), 0, 1));
-    }
-  }
+  initInternalVector(element_filter, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -81,8 +74,11 @@ Material::~Material() {
 
 /* -------------------------------------------------------------------------- */
 void Material::setParam(const std::string & key, const std::string & value,
-			__attribute__ ((unused)) const MaterialID & id) {
+			__attribute__ ((unused)) const ID & id) {
+  std::stringstream sstr(value);
+
   if(key == "name") name = std::string(value);
+  else if(key == "rho") { sstr >> rho; }
   else AKANTU_DEBUG_ERROR("Unknown material property : " << key);
 }
 /* -------------------------------------------------------------------------- */
@@ -95,12 +91,10 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalVector(ByElementTypeVector<T> & vect,
-				  UInt nb_component,
-				  const ID & vect_id) {
+				  UInt nb_component) {
   AKANTU_DEBUG_IN();
 
-  model->getFEM().getMesh().initByElementTypeVector(vect, nb_component, spatial_dimension,
-						    id, vect_id);
+  model->getFEM().getMesh().initByElementTypeVector(vect, nb_component, spatial_dimension);
 
   AKANTU_DEBUG_OUT();
 }
@@ -118,18 +112,18 @@ void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) {
     for(it = type_list.begin(); it != type_list.end(); ++it) {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-      Vector<UInt> * elem_filter = element_filter(*it, gt);
+      Vector<UInt> & elem_filter = element_filter(*it, gt);
 
-      UInt nb_element           = elem_filter->getSize();
+      UInt nb_element           = elem_filter.getSize();
       UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, gt);
-      UInt new_size = nb_element*nb_quadrature_points;
+      UInt new_size = nb_element * nb_quadrature_points;
 
-      Vector<T> * vect = by_el_type_vect(*it, gt);
-      UInt size = vect->getSize();
-      UInt nb_component = vect->getNbComponent();
+      Vector<T> & vect = by_el_type_vect(*it, gt);
+      UInt size = vect.getSize();
+      UInt nb_component = vect.getNbComponent();
 
-      vect->resize(new_size);
-      memset(vect->values + size * nb_component, 0, (new_size - size) * nb_component * sizeof(T));
+      vect.resize(new_size);
+      memset(vect.storage() + size * nb_component, 0, (new_size - size) * nb_component * sizeof(T));
     }
   }
 
@@ -158,21 +152,21 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
     const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(*it, ghost_type);
-    Vector<UInt> * elem_filter = element_filter(*it, ghost_type);
-    Vector<Real> * strain_vect = strain(*it, ghost_type);
-    Vector<Real> * stress_vect = stress(*it, ghost_type);
+    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Vector<Real> & strain_vect = strain(*it, ghost_type);
+    Vector<Real> & stress_vect = stress(*it, ghost_type);
 
 
     UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
     UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
     UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it, ghost_type);
 
-    UInt nb_element = elem_filter->getSize();
+    UInt nb_element = elem_filter.getSize();
 
     /// compute @f$\nabla u@f$
-    model->getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
+    model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
 					      spatial_dimension,
-					      *it, ghost_type, elem_filter);
+					      *it, ghost_type, &elem_filter);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
@@ -184,7 +178,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     Real * shapesd           = shapes_derivatives.values;
     UInt size_of_shapesd     = shapes_derivatives.getNbComponent();
     Real * shapesd_val;
-    UInt * elem_filter_val   = elem_filter->values;
+    UInt * elem_filter_val   = elem_filter.storage();
 
     Vector<Real> * shapesd_filtered =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "filtered shapesd");
@@ -200,7 +194,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
 			 *shapesd_filtered,
-			 *stress_vect,
+			 stress_vect,
 			 *sigma_dphi_dx);
 
     delete shapesd_filtered;
@@ -227,14 +221,14 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
 			      size_of_shapes_derivatives,
 			      *it, ghost_type,
-			      elem_filter);
+			      &elem_filter);
     delete sigma_dphi_dx;
 
     /// assemble
     model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
 				   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
 				   residual.getNbComponent(),
-				   *it, ghost_type, elem_filter, -1);
+				   *it, ghost_type, &elem_filter, -1);
     delete int_sigma_dphi_dx;
   }
 
@@ -282,18 +276,18 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type,ghost_type);
 
-  Vector<UInt> * elem_filter = element_filter(type, ghost_type);
-  Vector<Real> * strain_vect = strain(type, ghost_type);
+  Vector<UInt> & elem_filter = element_filter(type, ghost_type);
+  Vector<Real> & strain_vect = strain(type, ghost_type);
 
-  UInt * elem_filter_val = elem_filter->values;
+  UInt * elem_filter_val = elem_filter.storage();
 
-  UInt nb_element                 = elem_filter->getSize();
+  UInt nb_element                 = elem_filter.getSize();
   UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type, ghost_type);
 
-  model->getFEM().gradientOnQuadraturePoints(current_position, *strain_vect,
-					     dim, type, ghost_type, elem_filter);
+  model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
+					     dim, type, ghost_type, &elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 
@@ -313,8 +307,8 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   UInt size_of_b = tangent_size * bt_d_b_size;
   Real * B = new Real[size_of_b];
   Real * Bt_D = new Real[size_of_b];
-  Real * Bt_D_B = bt_d_b->values;
-  Real * D = tangent_stiffness_matrix->values;
+  Real * Bt_D_B = bt_d_b->storage();
+  Real * D = tangent_stiffness_matrix->storage();
 
   UInt offset_bt_d_b = bt_d_b_size * bt_d_b_size;
   UInt offset_d      = tangent_size * tangent_size;
@@ -347,11 +341,11 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   model->getFEM().integrate(*bt_d_b, *K_e,
 			    bt_d_b_size * bt_d_b_size,
 			    type, ghost_type,
-			    elem_filter);
+			    &elem_filter);
 
   delete bt_d_b;
 
-  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, elem_filter);
+  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();
@@ -363,7 +357,7 @@ void Material::computePotentialEnergy(ElementType el_type, GhostType ghost_type)
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy(el_type, ghost_type)->values;
+  Real * epot = potential_energy(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
@@ -385,13 +379,11 @@ void Material::computePotentialEnergyByElement() {
     if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
 
     if(!potential_energy.exists(*it, _not_ghost)) {
-      UInt nb_element = element_filter(*it, _not_ghost)->getSize();
+      UInt nb_element = element_filter(*it, _not_ghost).getSize();
       UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, _not_ghost);
 
-      std::stringstream sstr; sstr << id << ":potential_energy:"<< *it;
-      potential_energy(*it, _not_ghost) = &(alloc<Real> (sstr.str(), nb_element * nb_quadrature_points,
-							 1,
-							 REAL_INIT_VALUE));
+      potential_energy.alloc(nb_element * nb_quadrature_points, 1,
+			     *it, _not_ghost);
     }
 
     computePotentialEnergy(*it);
@@ -413,8 +405,8 @@ Real Material::getPotentialEnergy() {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
 
-    epot += model->getFEM().integrate(*potential_energy(*it, _not_ghost), *it,
-				      _not_ghost, element_filter(*it, _not_ghost));
+    epot += model->getFEM().integrate(potential_energy(*it, _not_ghost), *it,
+				      _not_ghost, &element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -423,14 +415,11 @@ Real Material::getPotentialEnergy() {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalVector<Real>(ByElementTypeVector<Real> & vect,
-						 UInt nb_component,
-						 const ID & id);
+						 UInt nb_component);
 template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
-						 UInt nb_component,
-						 const ID & id);
+						 UInt nb_component);
 template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
-						UInt nb_component,
-						const ID & id);
+						UInt nb_component);
 
 template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect);
 template void Material::resizeInternalVector<UInt>(ByElementTypeVector<UInt> & vect);

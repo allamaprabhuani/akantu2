@@ -60,14 +60,14 @@ int main(int argc, char *argv[])
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
   MeshUtils::buildSurfaceID(my_mesh);
- 
+
   unsigned int nb_nodes = my_mesh.getNbNodes();
-  
+
   /// dump facet information to paraview
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  
+
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
    			 TETRA1, my_mesh.getNbElement(_tetrahedron_4), C_MODE);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
   memset(my_model.getAcceleration().values, 0, 3*nb_nodes*sizeof(Real));
   memset(my_model.getDisplacement().values, 0, 3*nb_nodes*sizeof(Real));
 
-  my_model.initModel();  
+  my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
 
@@ -96,9 +96,9 @@ int main(int argc, char *argv[])
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * contact = Contact::newContact(my_model, 
-					  _ct_rigid, 
-					  _cst_2d_expli, 
+  Contact * contact = Contact::newContact(my_model,
+					  _ct_rigid,
+					  _cst_2d_expli,
 					  _cnst_regular_grid);
 
   ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
@@ -114,15 +114,15 @@ int main(int argc, char *argv[])
 
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
-  
+
   const NeighborList & my_neighbor_list = my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList();
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
 
-  UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_triangle_3)->values;
-  UInt * node_to_elem_val = my_neighbor_list.facets(_triangle_3)->values;
+  UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_triangle_3).storage();
+  UInt * node_to_elem_val = my_neighbor_list.facets(_triangle_3).storage();
 
   /// print impactor nodes
   std::cout << "we have " << nb_nodes_neigh << " impactor nodes:" << std::endl;
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
   }
   std::cout << std::endl;
-  
+
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper_neighbor;
   dumper_neighbor.SetMode(TEXT);
@@ -143,8 +143,8 @@ int main(int argc, char *argv[])
 
   double * neigh_elem = new double [my_mesh.getNbElement(_triangle_3)];
   for (UInt i = 0; i < my_mesh.getNbElement(_triangle_3); ++i)
-    neigh_elem[i] = 0.0; 
-  
+    neigh_elem[i] = 0.0;
+
   UInt visualize_node = 7;
   UInt n = impact_nodes_val[visualize_node];
   std::cout << "plot for node: " << n << std::endl;
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     neigh_elem[node_to_elem_val[i]] = 1.;
 
   dumper_neighbor.AddElemDataField(neigh_elem, 1, "neighbor id");
- 
+
   dumper_neighbor.SetPrefix("paraview/");
   dumper_neighbor.Init();
   dumper_neighbor.Dump();
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   delete my_contact;
-  
+
   finalize();
 
   return EXIT_SUCCESS;

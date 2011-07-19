@@ -34,14 +34,15 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialDamage::MaterialDamage(Model & model, const MaterialID & id)  :
-  MaterialElastic(model, id) {
+MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
+  MaterialElastic(model, id),
+  damage("damage", id) {
   AKANTU_DEBUG_IN();
 
   Yd  = 50;
   Sd  = 5000;
 
-  initInternalVector(this->damage, 1, "damage");
+  initInternalVector(this->damage, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -64,8 +65,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam ;
-  dam = damage(el_type, ghost_type)->values;
+  Real * dam = damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -88,7 +88,7 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 void MaterialDamage::setParam(const std::string & key, const std::string & value,
-			       const MaterialID & id) {
+			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }

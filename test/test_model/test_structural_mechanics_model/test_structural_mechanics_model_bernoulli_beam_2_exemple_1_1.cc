@@ -105,7 +105,7 @@ int main(int argc, char *argv[]){
   // Defining the materials
 
 
-  akantu::ElementType type = akantu::_bernoulli_beam_2;
+  //  akantu::ElementType type = akantu::_bernoulli_beam_2;
 
   akantu::StructuralMechanicsModel * model;
 

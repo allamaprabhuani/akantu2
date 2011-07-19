@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
     my_model.initializeUpdateResidualData();
 
     /// compute the penetration list
-    PenetrationList * my_penetration_list = new PenetrationList();
+    PenetrationList * my_penetration_list = new PenetrationList("penetration_list");
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();

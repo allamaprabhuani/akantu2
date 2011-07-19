@@ -79,7 +79,7 @@ StaticMemory::~StaticMemory() {
 }
 /* -------------------------------------------------------------------------- */
 void StaticMemory::sfree(const MemoryID & memory_id,
-			 const VectorID & name) {
+			 const ID & name) {
   AKANTU_DEBUG_IN();
 
   try {

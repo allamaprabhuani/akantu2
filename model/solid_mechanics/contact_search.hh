@@ -46,9 +46,11 @@ __BEGIN_AKANTU__
 
 class PenetrationList {
 public:
-  PenetrationList();
+  PenetrationList(const ID & id);
   virtual ~PenetrationList();
 public:
+  ID id;
+
   /// nodes who have penetrated the master surface
   Vector<UInt> penetrating_nodes;
 
@@ -61,7 +63,7 @@ public:
   /// gap between the penetrated facets and the node
   ByElementTypeReal gaps;
   /// position of the node projected on the penetrated facets
-  ByElementTypeReal projected_positions;
+  ByElementTypeReal projected_positions;    
 };
 
 /* -------------------------------------------------------------------------- */

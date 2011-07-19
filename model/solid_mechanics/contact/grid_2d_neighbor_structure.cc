@@ -72,7 +72,8 @@ void Grid2dNeighborStructure::initNeighborStructure() {
 
   AKANTU_DEBUG_IN();
 
-  neighbor_list = new NeighborList();
+  std::stringstream sstr; sstr << id << ":neighbor_list";
+  neighbor_list = new NeighborList(sstr.str());
   createGrid(true);
 
   AKANTU_DEBUG_OUT();
@@ -114,7 +115,8 @@ void Grid2dNeighborStructure::update() {
   AKANTU_DEBUG_IN();
 
   delete[] this->neighbor_list;
-  neighbor_list = new NeighborList();
+  std::stringstream sstr; sstr << id << ":neighbor_list";
+  neighbor_list = new NeighborList(sstr.str());
   createGrid(false);
 
   AKANTU_DEBUG_OUT();
@@ -185,17 +187,17 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   /// loop over slave nodes to find out impactor ones
   UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().values;
   UInt * surf_nodes     = contact_search.getContact().getSurfaceToNodes().values;
-  UInt * impactors      = neighbor_list->impactor_nodes.values;
+  //  UInt * impactors      = neighbor_list->impactor_nodes.values;
   UInt * cell_seg_val   = cell_to_segments.values;
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
   UInt * conn_val = contact_search.getContact().getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
-  std::stringstream sstr_fo; sstr_fo << id << ":facets_offset:" << el_type;
-  neighbor_list->facets_offset(el_type, _not_ghost) = new Vector<UInt>(0, 1, sstr_fo.str());
-  std::stringstream sstr_f; sstr_f << id << ":facets:" << el_type;
-  neighbor_list->facets(el_type, _not_ghost) = new Vector<UInt>(0, 1, sstr_f.str());
-  neighbor_list->facets_offset(el_type, _not_ghost)->push_back((UInt)0);
+  //  std::stringstream sstr_fo; sstr_fo << id << ":facets_offset:" << el_type;
+  neighbor_list->facets_offset.alloc(0, 1, el_type, _not_ghost);
+  //  std::stringstream sstr_f; sstr_f << id << ":facets:" << el_type;
+  neighbor_list->facets.alloc(0, 1, el_type, _not_ghost);
+  neighbor_list->facets_offset(el_type, _not_ghost).push_back((UInt)0);
 
   const Int cell_index[9][2] = {{0,-1},{-1,-1},{-1,0},{-1,1},{0,1},{1,1},{1,0},{1,-1},{0,-1}};
   Int nb_x = nb_cells[0];
@@ -289,10 +291,10 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 		if (stored == false) {
 		  stored = true;
 		  neighbor_list->impactor_nodes.push_back(i_node);
-		  neighbor_list->facets_offset(el_type, _not_ghost)->push_back((UInt)0);
+		  neighbor_list->facets_offset(el_type, _not_ghost).push_back((UInt)0);
 		}
-		neighbor_list->facets_offset(el_type, _not_ghost)->values[neighbor_list->impactor_nodes.getSize()]++;
-		neighbor_list->facets(el_type, _not_ghost)->push_back(i_segment);
+		neighbor_list->facets_offset(el_type, _not_ghost)(neighbor_list->impactor_nodes.getSize())++;
+		neighbor_list->facets(el_type, _not_ghost).push_back(i_segment);
 	      }
 	    }
 
@@ -305,10 +307,10 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 		if (stored == false) {
 		  stored = true;
 		  neighbor_list->impactor_nodes.push_back(i_node);
-		  neighbor_list->facets_offset(el_type, _not_ghost)->push_back((UInt)0);
+		  neighbor_list->facets_offset(el_type, _not_ghost).push_back((UInt)0);
 		}
-		neighbor_list->facets_offset(el_type, _not_ghost)->values[neighbor_list->impactor_nodes.getSize()]++;
-		neighbor_list->facets(el_type, _not_ghost)->push_back(i_segment);
+		neighbor_list->facets_offset(el_type, _not_ghost)(neighbor_list->impactor_nodes.getSize())++;
+		neighbor_list->facets(el_type, _not_ghost).push_back(i_segment);
 	      }
 	    }
 	  }
@@ -319,8 +321,8 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   } /* end loop over surfaces */
 
   /// convert occurence array in a csv one
-  UInt * facet_off = neighbor_list->facets_offset(el_type, _not_ghost)->values;
-  for (UInt i = 1; i < neighbor_list->facets_offset(el_type, _not_ghost)->getSize(); ++i) facet_off[i] += facet_off[i-1];
+  UInt * facet_off = neighbor_list->facets_offset(el_type, _not_ghost).storage();
+  for (UInt i = 1; i < neighbor_list->facets_offset(el_type, _not_ghost).getSize(); ++i) facet_off[i] += facet_off[i-1];
 
   /// free temporary vectors
   delete[] x_bounds;

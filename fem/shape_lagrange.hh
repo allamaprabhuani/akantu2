@@ -40,7 +40,9 @@ class ShapeLagrange : public ShapeFunctions{
   /* ------------------------------------------------------------------------ */
 public:
 
-  ShapeLagrange(Mesh & mesh,ShapeID id="shapeLagrange");
+  ShapeLagrange(Mesh & mesh,
+		const ID & id = "shape_lagrange",
+		const MemoryID & memory_id = 0);
   virtual ~ShapeLagrange(){};
 
   /* ------------------------------------------------------------------------ */

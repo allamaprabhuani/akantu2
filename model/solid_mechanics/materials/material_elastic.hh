@@ -50,7 +50,7 @@ class MaterialElastic : public Material {
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElastic(Model & model, const MaterialID & id = "");
+  MaterialElastic(Model & model, const ID & id = "");
 
   virtual ~MaterialElastic() {};
 
@@ -62,7 +62,7 @@ public:
   virtual void initMaterial();
 
   virtual void setParam(const std::string & key, const std::string & value,
-		const MaterialID & id);
+		const ID & id);
 
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);

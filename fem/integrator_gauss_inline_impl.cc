@@ -65,13 +65,13 @@ inline void IntegratorGauss::integrate(Real *f, Real *jac, Real * inte,
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-inline Vector<Real> & IntegratorGauss::getQuadraturePoints(const GhostType & ghost_type) const {
+inline const Vector<Real> & IntegratorGauss::getQuadraturePoints(const GhostType & ghost_type) const {
   AKANTU_DEBUG_ASSERT(quadrature_points.exists(type, ghost_type),
 		      "Quadrature points for type "
 		      << quadrature_points.printType(type, ghost_type)
  		      << " have not been initialized."
 		      << " Did you use 'computeQuadraturePoints' function ?");
-  return *quadrature_points(type, ghost_type);
+  return quadrature_points(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,20 +80,12 @@ inline void IntegratorGauss::computeQuadraturePoints(const GhostType & ghost_typ
   UInt n_coords = ElementClass<type>::getNbQuadraturePoints();
   UInt dim = ElementClass<type>::getSpatialDimension();
 
-  std::string ghost = "";
-  if(ghost_type == _ghost) {
-    ghost = "ghost_";
-  }
-
-  if (!quadrature_points.exists(type, ghost_type)){
-    std::stringstream sstr; sstr << id << ":" << ghost << "quadrature_points:" << type;
-    quadrature_points(type, ghost_type) =  &(alloc<Real>(sstr.str(), 0, dim, REAL_INIT_VALUE));
-  }
-  else quadrature_points(type, ghost_type)->resize(0);
+  quadrature_points.alloc(0, dim, type, ghost_type);
+  Vector<Real> & quad_points = quadrature_points(type, ghost_type);
 
   Real * coord_val = ElementClass<type>::getQuadraturePoints();
   for (UInt i = 0; i < n_coords; ++i) {
-    quadrature_points(type, ghost_type)->push_back(coord_val);
+    quad_points.push_back(coord_val);
     coord_val += dim;
   }
 }

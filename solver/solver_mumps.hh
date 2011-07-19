@@ -43,7 +43,7 @@ class SolverMumps : public Solver {
 public:
 
   SolverMumps(SparseMatrix & sparse_matrix,
-	      const SolverID & id = "solver_mumps",
+	      const ID & id = "solver_mumps",
 	      const MemoryID & memory_id = 0);
 
   virtual ~SolverMumps();

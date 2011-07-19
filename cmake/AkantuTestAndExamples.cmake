@@ -69,6 +69,10 @@ macro(register_test test_name)
   add_executable(${test_name} ${ARGN})
   target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
+    file(COPY ${test_name}.sh DESTINATION .)
+  endif()
+
   if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
     add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
   else(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)

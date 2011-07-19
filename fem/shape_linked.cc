@@ -35,7 +35,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-ShapeLinked::ShapeLinked(Mesh & mesh, const ShapeID & id):ShapeFunctions(mesh,id){
+ShapeLinked::ShapeLinked(Mesh & mesh, const ID & id):ShapeFunctions(mesh,id){
 
 }
 
@@ -48,8 +48,8 @@ void ShapeLinked::precomputeShapesOnControlPoints(const GhostType & ghost_type) 
   UInt spatial_dimension = mesh->getSpatialDimension();
   UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
 
-  Real * natural_coords = control_points(type, ghost_type)->values;
-  UInt nb_points = control_points(type, ghost_type)->getSize();
+  Real * natural_coords = control_points(type, ghost_type).storage();
+  UInt nb_points = control_points(type, ghost_type).getSize();
 
   UInt size_of_shapes    = ElementClass<type>::getShapeSize();
 
@@ -61,7 +61,7 @@ void ShapeLinked::precomputeShapesOnControlPoints(const GhostType & ghost_type) 
     ghost = "ghost_";
   }
 
-  elem_val   = mesh->getConnectivity(type, ghost_type).values;
+  elem_val   = mesh->getConnectivity(type, ghost_type).storage();
   nb_element = mesh->getConnectivity(type, ghost_type).getSize();
 
   UInt nb_shape_functions = ElementClass<type>::getNbShapeFunctions();
@@ -99,14 +99,14 @@ template <ElementType type>
 void ShapeLinked::precomputeShapeDerivativesOnControlPoints(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * coord = mesh->getNodes().values;
+  // Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
 
   UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
   UInt size_of_shapesd   = ElementClass<type>::getShapeDerivativesSize();
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
-  Real * natural_coords = control_points(type, ghost_type)->values;
-  UInt nb_points = control_points(type, ghost_type)->getSize();
+  Real * natural_coords = control_points(type, ghost_type).storage();
+  // UInt nb_points = control_points(type, ghost_type)->getSize();
 
   UInt * elem_val;
   UInt nb_element;
@@ -176,7 +176,7 @@ void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
 		      "No shapes for the type " << type);
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_points = control_points(type, ghost_type)->getSize();
+  UInt nb_points = control_points(type, ghost_type).getSize();
   UInt size_of_shapes = ElementClass<type>::getShapeSize();
 
   AKANTU_DEBUG_ASSERT(in_u.getSize() == mesh->getNbNodes(),
@@ -272,7 +272,7 @@ void ShapeLinked::gradientOnControlPoints(const Vector<Real> &in_u,
 
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt size_of_shapes_derivatives = ElementClass<type>::getShapeDerivativesSize();
-  UInt nb_points       = control_points(type, ghost_type)->getSize();
+  UInt nb_points       = control_points(type, ghost_type).getSize();
   UInt element_dimension = ElementClass<type>::getSpatialDimension();
 
   UInt * filter_elem_val = NULL;

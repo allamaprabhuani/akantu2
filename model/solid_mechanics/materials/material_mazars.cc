@@ -34,11 +34,11 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialMazars::MaterialMazars(Model & model, const MaterialID & id)  :
-  Material(model, id) {
+MaterialMazars::MaterialMazars(Model & model, const ID & id)  :
+  Material(model, id),
+  damage("damage", id) {
   AKANTU_DEBUG_IN();
 
-  rho = 0;
   E   = 0;
   nu  = 1./2.;
   K0  = 1e-4;
@@ -48,7 +48,7 @@ MaterialMazars::MaterialMazars(Model & model, const MaterialID & id)  :
   Bt = 12000;
   beta = 1.06;
 
-  initInternalVector(this->damage, 1, "damage");
+  initInternalVector(this->damage, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -70,7 +70,7 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage(el_type, ghost_type)->values;
+  Real * dam = damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -93,10 +93,9 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 void MaterialMazars::setParam(const std::string & key, const std::string & value,
-			       const MaterialID & id) {
+			      const ID & id) {
   std::stringstream sstr(value);
-  if(key == "rho") { sstr >> rho; }
-  else if(key == "E") { sstr >> E; }
+  if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
   else if(key == "K0") { sstr >> K0; }
   else if(key == "At") { sstr >> At; }

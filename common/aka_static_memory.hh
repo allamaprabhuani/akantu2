@@ -41,7 +41,7 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-typedef std::map<VectorID, VectorBase *> VectorMap;
+typedef std::map<ID, VectorBase *> VectorMap;
 typedef std::map<MemoryID, VectorMap> MemoryMap;
 
 /**
@@ -78,7 +78,7 @@ public:
 
   /// access to an Vector
   inline const VectorBase & getVector(const MemoryID & memory_id,
-				      const VectorID & name) const;
+				      const ID & name) const;
 
   /// get all vectors of a memory
   inline const VectorMap & getMemory(const MemoryID & memory_id) const;
@@ -99,12 +99,12 @@ public:
    * @return pointer to an array of size nb_tupes * nb_component * sizeof(T)
    */
   template<typename T>
-  Vector<T> & smalloc(const MemoryID & memory_id, const VectorID & name,
+  Vector<T> & smalloc(const MemoryID & memory_id, const ID & name,
 		      UInt size, UInt nb_component);
 
   template<typename T>
   Vector<T> & smalloc(const MemoryID & memory_id,
-		      const VectorID & name,
+		      const ID & name,
 		      UInt size,
 		      UInt nb_component,
 		      const T & init_value);
@@ -114,7 +114,7 @@ public:
    * @param memory_id the id of the memory accessing to the static memory
    * @param name the name of an existing array
    */
-  void sfree(const MemoryID & memory_id, const VectorID & name);
+  void sfree(const MemoryID & memory_id, const ID & name);
 
 
   /// function to print the containt of the class

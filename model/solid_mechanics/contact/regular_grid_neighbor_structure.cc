@@ -36,9 +36,10 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-NodesNeighborList::NodesNeighborList() : NeighborList(),
-					 master_nodes_offset(Vector<UInt>(0, 1, "master_nodes_offset")),
-					 master_nodes       (Vector<UInt>(0, 1, "master_nodes")) {
+NodesNeighborList::NodesNeighborList(const ID & id) : 
+  NeighborList(id),
+  master_nodes_offset(Vector<UInt>(0, 1, "master_nodes_offset")),
+  master_nodes       (Vector<UInt>(0, 1, "master_nodes")) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -463,15 +464,15 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
     bool * visited_node_val = visited_node->values;
     UInt neighbor_cells[max_nb_neighbor_cells];
 
-    std::stringstream sstr_name_offset;
-    sstr_name_offset << id << ":facets_offset:" << type;
-    neighbor_list->facets_offset(type, _not_ghost) = new Vector<UInt>(0, 1, sstr_name_offset.str());
-    Vector<UInt> & tmp_facets_offset = *(neighbor_list->facets_offset(type, _not_ghost));
+    //    std::stringstream sstr_name_offset;
+    //    sstr_name_offset << id << ":facets_offset:" << type;
+    neighbor_list->facets_offset.alloc(0, 1, type, _not_ghost);
+    Vector<UInt> & tmp_facets_offset = (neighbor_list->facets_offset(type, _not_ghost));
 
-    std::stringstream sstr_name;
-    sstr_name << id << ":facets:" << type;
-    neighbor_list->facets(type, _not_ghost) = new Vector<UInt>(0, 1, sstr_name.str());// declare vector that is ??
-    Vector<UInt> & tmp_facets = *(neighbor_list->facets(type, _not_ghost));
+    //    std::stringstream sstr_name;
+    //    sstr_name << id << ":facets:" << type;
+    neighbor_list->facets.alloc(0, 1, type, _not_ghost);// declare vector that is ??
+    Vector<UInt> & tmp_facets = (neighbor_list->facets(type, _not_ghost));
 
     for(UInt in = 0; in < nb_impactor_nodes; ++in) {
       UInt current_impactor_node = impactor_nodes_cell[in];

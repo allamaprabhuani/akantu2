@@ -117,16 +117,16 @@ private:
   /// receive requests
   std::vector<CommunicationRequest *> recv_requests;
 
-  /// list of real element to send ordered by type then by receiver processors
-  ByElementTypeUInt element_to_send_offset;
-  ByElementTypeUInt element_to_send;
+  // /// list of real element to send ordered by type then by receiver processors
+  // ByElementTypeUInt element_to_send_offset;
+  // ByElementTypeUInt element_to_send;
 
   std::vector<Element> * send_element;
   std::vector<Element> * recv_element;
 
-  /// list of ghost element to receive ordered by type then by sender processors
-  ByElementTypeUInt element_to_receive_offset;
-  ByElementTypeUInt element_to_receive;
+  // /// list of ghost element to receive ordered by type then by sender processors
+  // ByElementTypeUInt element_to_receive_offset;
+  // ByElementTypeUInt element_to_receive;
 
   UInt nb_proc;
   UInt rank;

@@ -86,20 +86,10 @@ static const Real UINT_INIT_VALUE = 0;
 /* -------------------------------------------------------------------------- */
 
 typedef UInt MemoryID;
-typedef ID VectorID;
 
 /* -------------------------------------------------------------------------- */
 /* Mesh/FEM/Model types                                                       */
 /* -------------------------------------------------------------------------- */
-
-typedef ID MeshID;
-typedef ID FEMID;
-typedef ID ModelID;
-typedef ID MaterialID;
-typedef ID SparseMatrixID;
-typedef ID SolverID;
-typedef ID ShapeID;
-typedef ID IntegratorID;
 
 typedef UInt Surface;
 
@@ -160,7 +150,7 @@ enum ElementType {
   _hexahedron_8,        /// first  order hexahedron
   _point,               /// point only for some algorithm to be generic like mesh partitioning
   _bernoulli_beam_2,    /// bernoulli beam 2D
-  _max_element_type 
+  _max_element_type
 };
 
 
@@ -284,19 +274,19 @@ enum SynchronizerOperation {
   get##name (const ::akantu::ElementType & el_type,			\
 	     const GhostType & ghost_type = _not_ghost) const {		\
     AKANTU_DEBUG_IN();							\
-    const ByElementTypeVector<type> & const_var = variable;		\
+									\
     AKANTU_DEBUG_OUT();							\
-    return *(const_var(el_type, ghost_type));				\
+    return variable(el_type, ghost_type);				\
   }
 
 #define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)		\
   inline Vector<type> &							\
   get##name (const ::akantu::ElementType & el_type,			\
-	     const GhostType & ghost_type = _not_ghost) const {		\
+	     const GhostType & ghost_type = _not_ghost) {		\
     AKANTU_DEBUG_IN();							\
-    const ByElementTypeVector<type> & const_var = variable;		\
+									\
     AKANTU_DEBUG_OUT();							\
-    return *(const_var(el_type, ghost_type));				\
+    return variable(el_type, ghost_type);				\
   }
 
 
@@ -317,6 +307,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _quadrangle_4     : stream << "quadrangle_4"  ; break;
     case _quadrangle_8     : stream << "quadrangle_8"  ; break;
     case _hexahedron_8     : stream << "hexahedron_8"  ; break;
+    case _bernoulli_beam_2 : stream << "bernoulli_beam_2"; break;
     case _not_defined      : stream << "undefined"     ; break;
     case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
     case _point            : stream << "point"; break;

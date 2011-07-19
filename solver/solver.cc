@@ -34,7 +34,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Solver::Solver(SparseMatrix & matrix,
-	       const SolverID & id,
+	       const ID & id,
 	       const MemoryID & memory_id) :
   Memory(memory_id), id(id), matrix(&matrix), is_matrix_allocated(false), mesh(NULL) {
   AKANTU_DEBUG_IN();

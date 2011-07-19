@@ -52,7 +52,7 @@ class Model : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline Model(const ModelID & id = "model",
+  inline Model(const ID & id = "model",
 	       const MemoryID & memory_id = 0);
 
   inline virtual ~Model();
@@ -126,7 +126,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// id
-  ModelID id;
+  ID id;
 
   /// the main fem object present in all  models
   FEMMap fems;

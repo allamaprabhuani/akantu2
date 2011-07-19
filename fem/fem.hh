@@ -50,7 +50,7 @@ class FEM : public Memory {
 public:
 
   FEM(Mesh & mesh, UInt spatial_dimension = 0,
-      FEMID id = "fem", MemoryID memory_id = 0);
+      ID id = "fem", MemoryID memory_id = 0);
 
   virtual ~FEM();
 
@@ -203,7 +203,7 @@ public:
 protected:
 
   /// id of the fem object
-  FEMID id;
+  ID id;
 
   /// spatial dimension of the problem
   UInt element_dimension;

@@ -43,7 +43,12 @@ __BEGIN_AKANTU__
 DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
 			   MemoryID memory_id) :
   Synchronizer(id, memory_id),
-  static_communicator(StaticCommunicator::getStaticCommunicator()) {
+  static_communicator(StaticCommunicator::getStaticCommunicator())
+  // element_to_send_offset   ("element_to_send_offset"   , id),
+  // element_to_send	   ("element_to_send"          , id),
+  // element_to_receive_offset("element_to_receive_offset", id),
+  // element_to_receive       ("element_to_receive"       , id)
+{
   AKANTU_DEBUG_IN();
 
   nb_proc = static_communicator->getNbProc();

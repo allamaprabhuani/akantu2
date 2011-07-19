@@ -63,14 +63,14 @@ int main(int argc, char *argv[])
   MeshUtils::buildFacets(my_mesh,1,0);
   MeshUtils::buildSurfaceID(my_mesh);
 
-  UInt max_steps = 2; 
+  UInt max_steps = 2;
   unsigned int nb_nodes = my_mesh.getNbNodes();
 
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  
+
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_nodes_test");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).values,
    			 TRIANGLE1, my_mesh.getNbElement(element_type), C_MODE);
@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
 
   Real * displacement = my_model.getDisplacement().values;
 
-  my_model.initExplicit();  
-  my_model.initModel();  
+  my_model.initExplicit();
+  my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
 
@@ -102,9 +102,9 @@ int main(int argc, char *argv[])
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * contact = Contact::newContact(my_model, 
-					     _ct_rigid, 
-					     _cst_expli, 
+  Contact * contact = Contact::newContact(my_model,
+					     _ct_rigid,
+					     _cst_expli,
 					     _cnst_regular_grid);
 
   ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 
   UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
   UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
-  
+
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
     std::cout << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
     for(UInt mn = master_nodes_offset_val[i]; mn < master_nodes_offset_val[i+1]; ++mn) {
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
   }
 
   my_contact->initSearch(); // does nothing so far
-  
+
   std::cout << std::endl << "epsilon = " << std::numeric_limits<Real>::epsilon() << std::endl;
 
   /* ------------------------------------------------------------------------ */
@@ -181,12 +181,12 @@ int main(int argc, char *argv[])
 
     /// central difference predictor
     my_model.explicitPred();
-    
+
     /// update current position
     my_model.initializeUpdateResidualData();
 
     /// compute the penetration list
-    PenetrationList * my_penetration_list = new PenetrationList();
+    PenetrationList * my_penetration_list = new PenetrationList("penetration_list");
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
     /// compute the residual
     my_model.updateResidual(false);
-    
+
     /// compute the acceleration
     my_model.updateAcceleration();
 
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
   }
 
   delete my_contact;
-  
+
   finalize();
 
   return EXIT_SUCCESS;

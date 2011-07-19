@@ -119,8 +119,8 @@ void Contact2dExplicit::solveContact() {
   for (it = master_surfaces.begin(); it != master_surfaces.end(); ++it) {
 
     /// Get penetration list (find node to segment penetration)
-
-    PenetrationList pen_list;
+    std::stringstream sstr; sstr << id << ":penetration_list";
+    PenetrationList pen_list(sstr.str());
     contact_search->findPenetration(*it, pen_list);
 
     if(pen_list.penetrating_nodes.getSize() > 0) {
@@ -158,11 +158,11 @@ void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Vecto
   Real * pos_val = model.getCurrentPosition().values;
 
   Vector<UInt> & pen_nodes = pen_list.penetrating_nodes;
-  Vector<UInt> & pen_facets_off = *pen_list.penetrated_facets_offset(el_type, _not_ghost);
-  Vector<UInt> & pen_facets = *pen_list.penetrated_facets(el_type, _not_ghost);
-  Vector<Real> & projected_positions = *pen_list.projected_positions(el_type, _not_ghost);
-  Vector<Real> & gaps = *pen_list.gaps(el_type, _not_ghost);
-  Vector<Real> & facets_normals = *pen_list.facets_normals(el_type, _not_ghost);
+  Vector<UInt> & pen_facets_off = pen_list.penetrated_facets_offset(el_type, _not_ghost);
+  Vector<UInt> & pen_facets = pen_list.penetrated_facets(el_type, _not_ghost);
+  Vector<Real> & projected_positions = pen_list.projected_positions(el_type, _not_ghost);
+  Vector<Real> & gaps = pen_list.gaps(el_type, _not_ghost);
+  Vector<Real> & facets_normals = pen_list.facets_normals(el_type, _not_ghost);
 
   Real * delta = new Real[dim*pen_nodes.getSize()];
 
@@ -216,7 +216,7 @@ void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Vecto
 
   /// Update displacement and increment of the projected nodes
   for (UInt n = 0; n < pen_nodes.getSize(); ++n) {
-    UInt i_node = pen_nodes.values[n];
+    //    UInt i_node = pen_nodes.values[n];
 
     pos_val[dim*index[n*3+2]]    += delta[2*n];
     pos_val[dim*index[n*3+2]+1]  += delta[2*n+1];
@@ -239,11 +239,11 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
   const UInt dim = 2;
   const SolidMechanicsModel & model = getModel();
   const ElementType el_type = _segment_2;
-  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
-  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
+  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+  //  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
-  Vector<Real> & projected_positions = *pen_list.projected_positions(el_type, _not_ghost);
-  Vector<Real> & facets_normals = *pen_list.facets_normals(el_type, _not_ghost);
+  Vector<Real> & projected_positions = pen_list.projected_positions(el_type, _not_ghost);
+  Vector<Real> & facets_normals = pen_list.facets_normals(el_type, _not_ghost);
 
   Real * vel_val = model.getVelocity().values;
   Real * mass_val = model.getMass().values;
@@ -322,11 +322,11 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
   const ElementType el_type = _segment_2;
   const SolidMechanicsModel & model = getModel();
-  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
-  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
+  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+  //  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   const UInt dim = 2;
 
-  Vector<Real> & projected_positions = *pen_list.projected_positions(el_type, _not_ghost);
+  Vector<Real> & projected_positions = pen_list.projected_positions(el_type, _not_ghost);
 
   Real * vel_val = model.getVelocity().values;
   Real * mass_val = model.getMass().values;

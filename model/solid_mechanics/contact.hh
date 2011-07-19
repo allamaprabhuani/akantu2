@@ -149,6 +149,7 @@ private:
   /// list of surface nodes @warning Node can occur multiple time
   Vector<UInt> surface_to_nodes;
 
+  /// \todo change the too vector by a csr
   /// offset of surface elements per surface node
   ByElementTypeUInt node_to_elements_offset;
 

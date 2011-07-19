@@ -218,8 +218,9 @@ MeshIOMSH::MeshIOMSH() {
       tmp[8] = 9;
       tmp[9] = 8;
       break;
-      //    default:
+    default:
       //nothing to change
+      break;
     }
     _read_order[it->first] = tmp;
   }

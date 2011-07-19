@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
   def_value[1] = 20;
   def_value[2] = 30;
 
+  std::cout << "Creating a vector" << std::endl;
   akantu::Vector<int> int_vect(10, 3, def_value, "test1");
 
   for (unsigned int i = 5; i < int_vect.getSize(); ++i) {
@@ -55,6 +56,7 @@ int main(int argc, char *argv[]) {
   new_elem[0] = 1;
   new_elem[1] = 2;
   new_elem[2] = 3;
+  std::cout << "Testing push_back" << std::endl;
   int_vect.push_back(new_elem);
 
   int_vect.push_back(200);
@@ -67,15 +69,16 @@ int main(int argc, char *argv[]) {
   int_vect0.push_back(new_elem);
   std::cerr << int_vect0;
 
+  std::cout << "Creating a vector of matrices (2,2)" << std::endl;
   akantu::Vector<double> mat_vect(10, 4, 1.);
   memset(mat_vect.values, 0, 10*4*sizeof(double));
 
   typedef akantu::types::RealTMatrix<2,2> ItType;
   typedef akantu::Vector<double> RealVector;
 
+  std::cout << "Iterating on a Matrix<2,2>" << std::endl;
   RealVector::iterator<ItType> it;
   it = mat_vect.begin<ItType>();
-
   RealVector::iterator<ItType> end = mat_vect.end<ItType>();
 
   for (; it != end; ++it) {
@@ -86,13 +89,12 @@ int main(int argc, char *argv[]) {
   akantu::types::Matrix m2(3, 5, 2.);
   akantu::types::Matrix m3;
   m3 = m1 * m2;
-
   std::cout << m1 << m2 << m3;
 
-
+  std::cout << "Iterating on a Matrix(2,2)" << std::endl;
   RealVector::iterator<akantu::types::Matrix> itm;
   itm = mat_vect.begin(2, 2);
-  RealVector::iterator<akantu::types::Matrix> endm = mat_vect.end  (2, 2);
+  RealVector::iterator<akantu::types::Matrix> endm = mat_vect.end(2, 2);
 
   for (; itm != endm; ++itm) {
     std::cout << *itm << std::endl;

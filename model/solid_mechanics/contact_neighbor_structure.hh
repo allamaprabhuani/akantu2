@@ -43,16 +43,17 @@ __BEGIN_AKANTU__
 
 class NeighborList {
 public:
-  NeighborList();
+  NeighborList(const ID & id);
   virtual ~NeighborList();
 public:
+  ID id;
   /// number of impactor nodes
   //UInt nb_nodes;
 
   /// list of nodes of slave surfaces near the master one
   Vector<UInt> impactor_nodes;
 
-  /// neighbor facets (sparse storage)
+  /// neighbor facets (sparse storage) \todo replace by a csr
   ByElementTypeUInt facets_offset;
   ByElementTypeUInt facets;
 };
@@ -69,7 +70,7 @@ public:
   ContactNeighborStructure(const ContactSearch & contact_search,
 			   const Surface & master_surface,
 			   const ContactNeighborStructureType & type,
-			   const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
+			   const ID & id = "contact_neighbor_structure_id");
 
   virtual ~ContactNeighborStructure();
   

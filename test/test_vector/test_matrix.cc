@@ -40,7 +40,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[]) {
 
-#define n 2
+#define n 4
   UInt nbm = 10000;
 
   Real time;
@@ -68,8 +68,9 @@ int main(int argc, char *argv[]) {
   gettimeofday(&begin, NULL);
   Math::matrix_matrix(n,n,n,A,B,C1);
   gettimeofday(&end, NULL);
-  // Vector<Real>::iterator<RealTMatrix<n,n> > mitC = C1.begin<RealTMatrix<n,n> >();
-  // std::cout << *mitC << std::endl;
+
+  Vector<Real>::iterator<types::RealTMatrix<n,n> > mitC = C1.begin<types::RealTMatrix<n,n> >();
+  std::cerr << *mitC << std::endl;
 
   //time =  (end.tv_sec * 1e3 + end.tv_usec * 1e-3) - (begin.tv_sec * 1e3 + begin.tv_usec * 1e-3);
   time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
@@ -85,10 +86,11 @@ int main(int argc, char *argv[]) {
     ++itA; ++itB;++itC;
   }
   gettimeofday(&end, NULL);
-  // itC = C2.begin(n,n);
-  // std::cout << *itC << std::endl;
+
+  itC = C2.begin(n,n);
+  std::cerr << *itC << std::endl;
   time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
-  std::cout << "it Ma * it Ma : " << std::fixed << time/nbm << "us" << std::endl;
+  std::cout << "it Mc() = it Ma() * it Mb() : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
   Vector<Real>::iterator<types::RealTMatrix<n,n> > titA = A. begin<types::RealTMatrix<n,n> >();
@@ -100,10 +102,11 @@ int main(int argc, char *argv[]) {
     ++titA; ++titB;++titC;
   }
   gettimeofday(&end, NULL);
-  // titC = C3.begin<RealTMatrix<n,n> >();
-  // std::cout << *titC << std::endl;
+
+  titC = C3.begin<types::RealTMatrix<n,n> >();
+  std::cerr << *titC << std::endl;
   time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
-  std::cout << time/nbm << "us" << std::endl;
+  std::cout << "it Mc<> = it Ma<> * it Mb<> : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
   Vector<Real>::iterator<types::Matrix> muitA = A.begin(n,n);
@@ -115,10 +118,12 @@ int main(int argc, char *argv[]) {
     ++muitA; ++muitB;++muitC;
   }
   gettimeofday(&end, NULL);
-  // muitC = C4.begin(n,n);
-  // std::cout << *muitC << std::endl;
+
+  muitC = C4.begin(n,n);
+  std::cerr << *muitC << std::endl;
+
   time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
-  std::cout << time/nbm << "us" << std::endl;
+  std::cout << "it Mc.mul( it Ma(),  it Mb()) : " << std::fixed << time/nbm << "us" << std::endl;
 
   return 0;
 }

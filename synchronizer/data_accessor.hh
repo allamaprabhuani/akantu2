@@ -102,7 +102,7 @@ public:
    */
   virtual void unpackData(CommunicationBuffer & buffer,
 			  const Element & element,
-			  SynchronizationTag tag) const = 0;
+			  SynchronizationTag tag) = 0;
 
   /**
    * @brief   unpack  the   data  for   a  given  index  and   a  given
@@ -110,7 +110,7 @@ public:
    */
   virtual void unpackData(CommunicationBuffer & buffer,
 			  const UInt index,
-			  SynchronizationTag tag) const = 0;
+			  SynchronizationTag tag) = 0;
 
 
   /* ------------------------------------------------------------------------ */

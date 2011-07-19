@@ -61,12 +61,12 @@ public:
   typedef FEMTemplate<IntegratorGauss,ShapeLinked> MyFEMType;
 
   StructuralMechanicsModel(UInt spatial_dimension,
-		      const ModelID & id = "structural_mechanics_model",
+		      const ID & id = "structural_mechanics_model",
 		      const MemoryID & memory_id = 0);
 
   StructuralMechanicsModel(Mesh & mesh,
 			   UInt spatial_dimension = 0,
-			   const ModelID & id = "structural_mechanics_model",
+			   const ID & id = "structural_mechanics_model",
 			   const MemoryID & memory_id = 0);
 
   virtual ~StructuralMechanicsModel();

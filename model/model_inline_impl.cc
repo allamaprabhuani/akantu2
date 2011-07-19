@@ -26,7 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Model::Model(const ModelID & id,
+inline Model::Model(const ID & id,
 		    const MemoryID & memory_id) :
   Memory(memory_id), id(id),synch_registry(NULL) {
   AKANTU_DEBUG_IN();

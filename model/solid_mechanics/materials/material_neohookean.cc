@@ -32,7 +32,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialNeohookean::MaterialNeohookean(Model & model, const MaterialID & id)  :
+MaterialNeohookean::MaterialNeohookean(Model & model, const ID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
@@ -91,7 +91,7 @@ void MaterialNeohookean::computePotentialEnergy(ElementType el_type, GhostType g
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy(el_type, ghost_type)->values;
+  Real * epot = potential_energy(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
@@ -136,7 +136,7 @@ Real MaterialNeohookean::celerity(const Element & elem) {
 
   UInt size_strain = spatial_dimension * spatial_dimension;
 
-  Real *strain_val = strain(elem.type, elem.ghost_type)->values
+  Real * strain_val = strain(elem.type, elem.ghost_type).storage()
     + elem.element * nb_quadrature_points * size_strain;
 
   Real F[3*3];
@@ -177,10 +177,9 @@ Real MaterialNeohookean::celerity(const Element & elem) {
 
 /* -------------------------------------------------------------------------- */
 void MaterialNeohookean::setParam(const std::string & key, const std::string & value,
-			       const MaterialID & id) {
+				  const ID & id) {
   std::stringstream sstr(value);
-  if(key == "rho") { sstr >> rho; }
-  else if(key == "E") { sstr >> E; }
+  if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
   else if(key == "Plane_Stress") { sstr >> plane_stress; }
   else { Material::setParam(key, value, id); }

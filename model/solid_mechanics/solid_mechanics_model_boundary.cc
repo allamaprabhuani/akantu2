@@ -76,7 +76,6 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
     UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
 
     const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
-    const Vector<UInt> & element_mat = *(element_material(*it, ghost_type));
 
     getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
 						   quad_coords, spatial_dimension, *it, ghost_type);

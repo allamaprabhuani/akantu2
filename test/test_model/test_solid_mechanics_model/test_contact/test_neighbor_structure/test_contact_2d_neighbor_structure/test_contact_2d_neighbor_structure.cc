@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
   my_contact->initNeighborStructure();
 
   /// get master surfaces with associated neighbor list
-  const std::vector<Surface> & master_surfaces = my_contact->getMasterSurfaces();
+  //  const std::vector<Surface> & master_surfaces = my_contact->getMasterSurfaces();
   std::vector<Surface>::iterator it;
   // for (it = master_surfaces.begin(); it != master_surfaces.end(); ++it) {
 
@@ -155,8 +155,8 @@ int main(int argc, char *argv[])
     UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
     UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
   
-    UInt * node_facet_off_val = my_neighbor_list.facets_offset(_segment_2)->values;
-    UInt * node_facet_val = my_neighbor_list.facets(_segment_2)->values;
+    UInt * node_facet_off_val = my_neighbor_list.facets_offset(_segment_2).storage();
+    UInt * node_facet_val = my_neighbor_list.facets(_segment_2).storage();
 
     /// print impactor nodes
     std::cout << "Master surface " << s << " has " <<  nb_impactors << " impactor nodes:" << std::endl;
@@ -238,8 +238,8 @@ static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_l
   UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
   UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
   
-  UInt nb_facets = my_neighbor_list.facets(_segment_2)->getSize();
-  UInt * node_facet_val = my_neighbor_list.facets(_segment_2)->values;
+  UInt nb_facets = my_neighbor_list.facets(_segment_2).getSize();
+  UInt * node_facet_val = my_neighbor_list.facets(_segment_2).storage();
 
   // double * node_id = new double [mesh.getNbNodes()];
   memset(node_id, 0, mesh.getNbNodes()*sizeof(double));

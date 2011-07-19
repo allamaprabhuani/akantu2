@@ -48,14 +48,19 @@ void Element::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   const MeshID & id,
+	   const ID & id,
 	   const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
-  created_nodes(true), spatial_dimension(spatial_dimension),
+  created_nodes(true),
+  connectivities("connectivities", id),
+  normals("normals", id),
+  spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
-  nb_surfaces(0) {
+  nb_surfaces(0),
+  surface_id("surface_id", id),
+  uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
   std::stringstream sstr;
@@ -72,14 +77,20 @@ Mesh::Mesh(UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   const VectorID & nodes_id,
-	   const MeshID & id,
+	   const ID & nodes_id,
+	   const ID & id,
 	   const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
-  created_nodes(false), spatial_dimension(spatial_dimension),
+  created_nodes(false),
+  connectivities("connectivities", id),
+  normals("normals", id),
+  spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)) {
+  ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
+  nb_surfaces(0),
+  surface_id("surface_id", id),
+  uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(getVector<Real>(nodes_id));
@@ -93,13 +104,19 @@ Mesh::Mesh(UInt spatial_dimension,
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
 	   Vector<Real> & nodes,
-	   const MeshID & id,
+	   const ID & id,
 	   const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
-  created_nodes(false), spatial_dimension(spatial_dimension),
+  created_nodes(false),
+  connectivities("connectivities", id),
+  normals("normals", id),
+  spatial_dimension(spatial_dimension),
   internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)) {
+  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  nb_surfaces(0),
+  surface_id("surface_id", id),
+  uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(nodes);
@@ -191,28 +208,18 @@ void Mesh::computeBoundingBox(){
 template<typename T>
 void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 				   UInt nb_component,
-				   UInt dim,
-				   const std::string & obj_id,
-				   const std::string & vect_id) {
+				   UInt dim) {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    std::string ghost_id = "";
-    if (gt == _ghost) ghost_id = "ghost_";
-
     const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
     Mesh::ConnectivityTypeList::const_iterator it;
     for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(dim > 0 && Mesh::getSpatialDimension(*it) != dim) continue;
-
-      std::stringstream sstr; sstr << obj_id << ":" << ghost_id << vect_id << ":" << *it;
-
-      AKANTU_DEBUG_ASSERT(!vect.exists(*it, gt), "Error initializing the ByElementType object, "
-			  << obj_id << " " << vect.printType(*it, gt) << " already exists.");
-      vect(*it, gt) = &(alloc<T>(sstr.str(), 0,
-				 nb_component, REAL_INIT_VALUE));
+      ElementType type = *it;
+      if(dim > 0 && Mesh::getSpatialDimension(type) != dim) continue;
+      vect.alloc(0, nb_component, type);
     }
   }
 
@@ -222,18 +229,12 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 /* -------------------------------------------------------------------------- */
 template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & vect,
 						  UInt nb_component,
-						  UInt dim,
-						  const std::string & obj_id,
-						  const std::string & vect_id);
+						  UInt dim);
 template void Mesh::initByElementTypeVector<Int>(ByElementTypeVector<Int> & vect,
 						  UInt nb_component,
-						  UInt dim,
-						  const std::string & obj_id,
-						  const std::string & vect_id);
+						  UInt dim);
 template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & vect,
 						  UInt nb_component,
-						  UInt dim,
-						  const std::string & obj_id,
-						  const std::string & vect_id);
+						  UInt dim);
 
 __END_AKANTU__

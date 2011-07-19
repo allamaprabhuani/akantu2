@@ -40,7 +40,7 @@ __BEGIN_AKANTU__
 SparseMatrix::SparseMatrix(UInt size,
 			   const SparseMatrixType & sparse_matrix_type,
 			   UInt nb_degre_of_freedom,
-			   const SparseMatrixID & id,
+			   const ID & id,
 			   const MemoryID & memory_id) :
   Memory(memory_id), id(id),
   sparse_matrix_type(sparse_matrix_type),
@@ -62,7 +62,7 @@ SparseMatrix::SparseMatrix(UInt size,
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix::SparseMatrix(const SparseMatrix & matrix,
-			   const SparseMatrixID & id,
+			   const ID & id,
 			   const MemoryID & memory_id) :
   Memory(memory_id), id(id),
   sparse_matrix_type(matrix.sparse_matrix_type),

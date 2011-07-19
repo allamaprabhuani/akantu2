@@ -40,7 +40,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
 FEMTemplate<Integ,Shape>::FEMTemplate(Mesh & mesh, UInt spatial_dimension,
-				    FEMID id,MemoryID memory_id)
+				      ID id,MemoryID memory_id)
   :FEM(mesh,spatial_dimension,id,memory_id),
    integrator(mesh),
    shape_functions(mesh)
@@ -63,6 +63,13 @@ void FEMTemplate<Integ,Shape>::gradientOnQuadraturePoints(const Vector<Real> &u,
 							  const Vector<UInt> * filter_elements){
   AKANTU_DEBUG_IN();
 
+// #ifndef AKANTU_NDEBUG
+//   std::stringstream sstr; sstr << ghost_type;
+//   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
+// 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+// #endif
+
+
 #define COMPUTE_GRADIENT(type)						\
     if (element_dimension == ElementClass<type>::getSpatialDimension()) \
       shape_functions.template gradientOnControlPoints<type>(u,		\
@@ -78,7 +85,7 @@ void FEMTemplate<Integ,Shape>::gradientOnQuadraturePoints(const Vector<Real> &u,
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
-void FEMTemplate<Integ,Shape>::initShapeFunctions(const GhostType & ghost_type){
+void FEMTemplate<Integ,Shape>::initShapeFunctions(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh->getSpatialDimension();
@@ -99,7 +106,7 @@ void FEMTemplate<Integ,Shape>::initShapeFunctions(const GhostType & ghost_type){
       template precomputeJacobiansOnQuadraturePoints<type>(ghost_type);	\
     integrator.								\
       template checkJacobians<type>(ghost_type);			\
-    Vector<Real> & control_points =					\
+    const Vector<Real> & control_points =				\
       integrator.template getQuadraturePoints<type>(ghost_type);	\
     shape_functions.							\
       template setControlPointsByType<type>(control_points, ghost_type); \
@@ -125,8 +132,8 @@ void FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 				       const GhostType & ghost_type,
 				       const Vector<UInt> * filter_elements) const{
 
-#define INTEGRATE(type)			 \
-  integrator.template integrate<type>(f,    \
+#define INTEGRATE(type)					    \
+  integrator.template integrate<type>(f,		    \
 				      intf,		    \
 				      nb_degree_of_freedom, \
 				      ghost_type,	    \
@@ -148,7 +155,7 @@ Real FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 
   Real integral = 0.;
 
-#define INTEGRATE(type)						\
+#define INTEGRATE(type)							\
   integral = integrator.template integrate<type>(f,			\
 						 ghost_type,		\
 						 filter_elements);
@@ -194,8 +201,7 @@ void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const GhostType & g
   UInt spatial_dimension = mesh->getSpatialDimension();
 
   //allocate the normal arrays
-  mesh->initByElementTypeVector(normals_on_quad_points,spatial_dimension,element_dimension,
-				id,"normals_onquad");
+  mesh->initByElementTypeVector(normals_on_quad_points, spatial_dimension, element_dimension);
 
   //loop over the type to build the normals
   const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
@@ -216,14 +222,14 @@ void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const GhostType & g
     UInt * elem_val = mesh->getConnectivity(type, ghost_type).values;
     UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();
 
-    Vector<Real> * normals_on_quad = normals_on_quad_points(type, ghost_type);
-    normals_on_quad->resize(nb_element * nb_quad_points);
-    Real * normals_on_quad_val  =  normals_on_quad->values;
+    Vector<Real> & normals_on_quad = normals_on_quad_points(type, ghost_type);
+    normals_on_quad.resize(nb_element * nb_quad_points);
+    Real * normals_on_quad_val  =  normals_on_quad.storage();
 
     /* ---------------------------------------------------------------------- */
 #define COMPUTE_NORMALS_ON_QUAD(type)					\
     do {								\
-      Vector<Real> & quads =						\
+      const Vector<Real> & quads =					\
 	integrator. template getQuadraturePoints<type>(ghost_type);	\
       UInt nb_points = quads.getSize();					\
       Real local_coord[spatial_dimension * nb_nodes_per_element];	\

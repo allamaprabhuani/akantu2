@@ -210,7 +210,8 @@ void ContactRigid::solveContact() {
   for(UInt m=0; m < master_surfaces.size(); ++m) {
     Surface master = this->master_surfaces.at(m);
 
-    PenetrationList * penet_list = new PenetrationList();
+    std::stringstream sstr; sstr << id << ":penetration_list";
+    PenetrationList * penet_list = new PenetrationList(sstr.str());
     contact_search->findPenetration(master, *penet_list);
 
     solvePenetrationClosestProjection(master, *penet_list);
@@ -312,9 +313,9 @@ void ContactRigid::solvePenetrationClosestProjection(const Surface master,
     UInt penetrated_facet_offset;
     for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
       ElementType type = facet_type[el_type];
-      Real * gaps = penet_list.gaps(type, _not_ghost)->values;
-      UInt offset_min = penet_list.penetrated_facets_offset(type, _not_ghost)->get(n);
-      UInt offset_max = penet_list.penetrated_facets_offset(type, _not_ghost)->get(n+1);
+      Real * gaps = penet_list.gaps(type, _not_ghost).storage();
+      UInt offset_min = penet_list.penetrated_facets_offset(type, _not_ghost)(n);
+      UInt offset_max = penet_list.penetrated_facets_offset(type, _not_ghost)(n+1);
       for (UInt f = offset_min; f < offset_max; ++f) {
 	if(gaps[f] < min_gap) {
 	  min_gap = gaps[f];
@@ -349,7 +350,7 @@ bool ContactRigid::isAlreadyActiveImpactor(const Surface master,
   UInt impactor_node = penetrating_nodes[impactor_index];
 
   // find facet normal
-  Real * facets_normals = penet_list.facets_normals(facet_type, _not_ghost)->values;
+  Real * facets_normals = penet_list.facets_normals(facet_type, _not_ghost).storage();
   Real * facet_normal = &facets_normals[facet_offset*spatial_dimension];
   Int normal[this->spatial_dimension];
   for(UInt i = 0; i < this->spatial_dimension; ++i)
@@ -388,9 +389,9 @@ void ContactRigid::projectImpactor(const PenetrationList & penet_list, const UIn
   const bool increment_flag = model.getIncrementFlag();
 
   UInt * penetrating_nodes   = penet_list.penetrating_nodes.values;
-  Real * facets_normals      = penet_list.facets_normals(facet_type, _not_ghost)->values;
-  Real * gaps                = penet_list.gaps(facet_type, _not_ghost)->values;
-  Real * projected_positions = penet_list.projected_positions(facet_type, _not_ghost)->values;
+  Real * facets_normals      = penet_list.facets_normals(facet_type, _not_ghost).storage();
+  Real * gaps                = penet_list.gaps(facet_type, _not_ghost).storage();
+  Real * projected_positions = penet_list.projected_positions(facet_type, _not_ghost).storage();
 
   Real * current_position = model.getCurrentPosition().values;
   Real * displacement     = model.getDisplacement().values;
@@ -420,7 +421,7 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
   UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
   UInt impactor_node = penetrating_nodes[impactor_index];
 
-  Real * facets_normals = penet_list.facets_normals(facet_type, _not_ghost)->values;
+  Real * facets_normals = penet_list.facets_normals(facet_type, _not_ghost).storage();
   Real * facet_normal = &facets_normals[facet_offset*spatial_dimension];
   Real normal[this->spatial_dimension];
   //Int * normal_val = &normal[0];
@@ -556,12 +557,12 @@ void ContactRigid::frictionPredictor() {
     Real * friction_coefficient_values_p = friction_coefficient_values.values;
     fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
-    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
-    Real * direction_val = impactor_info->master_normals->values;
-    bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
-    Real * friction_forces_val = impactor_info->friction_forces->values;
-    Real * residual_forces_val = impactor_info->residual_forces->values;
-    Real * previous_velocities_val = impactor_info->previous_velocities->values;
+    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->storage();
+    Real * direction_val = impactor_info->master_normals->storage();
+    bool * node_is_sticking_val = impactor_info->node_is_sticking->storage();
+    Real * friction_forces_val = impactor_info->friction_forces->storage();
+    Real * residual_forces_val = impactor_info->residual_forces->storage();
+    Real * previous_velocities_val = impactor_info->previous_velocities->storage();
 
     for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
       UInt current_node = active_impactor_nodes_val[n];
@@ -734,12 +735,12 @@ void ContactRigid::frictionCorrector() {
 
     UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
 
-    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
-    Real * direction_val = impactor_info->master_normals->values;
-    bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
-    Real * friction_forces_val = impactor_info->friction_forces->values;
-    Real * residual_forces_val = impactor_info->residual_forces->values;
-    Real * previous_velocities_val = impactor_info->previous_velocities->values;
+    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->storage();
+    Real * direction_val = impactor_info->master_normals->storage();
+    bool * node_is_sticking_val = impactor_info->node_is_sticking->storage();
+    Real * friction_forces_val = impactor_info->friction_forces->storage();
+    Real * residual_forces_val = impactor_info->residual_forces->storage();
+    Real * previous_velocities_val = impactor_info->previous_velocities->storage();
 
     for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
       UInt current_node = active_impactor_nodes_val[n];
@@ -844,11 +845,11 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
     Real * friction_coefficient_values_p = friction_coefficient_values.values;
     fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
-    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
-    Real * direction_val = impactor_info->master_normals->values;
-    bool * node_is_sticking_val = impactor_info->node_is_sticking->values;
-    Real * friction_forces_val = impactor_info->friction_forces->values;
-    Real * stick_positions_val = impactor_info->stick_positions->values;
+    UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->storage();
+    Real * direction_val = impactor_info->master_normals->storage();
+    bool * node_is_sticking_val = impactor_info->node_is_sticking->storage();
+    Real * friction_forces_val = impactor_info->friction_forces->storage();
+    Real * stick_positions_val = impactor_info->stick_positions->storage();
 
     for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
       UInt current_node = active_impactor_nodes_val[n];
@@ -924,8 +925,8 @@ void ContactRigid::setStickPositionsToCurrentPositions(const Surface master) {
   ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
   UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
-  UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->values;
-  Real * stick_positions_val = impactor_info->stick_positions->values;
+  UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->storage();
+  Real * stick_positions_val = impactor_info->stick_positions->storage();
 
   for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
     UInt current_node = active_impactor_nodes_val[n];
@@ -989,14 +990,14 @@ void ContactRigid::getRestartInformation(std::map<std::string, VectorBase* > & m
   Vector<Real> * residual_force_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
   Vector<Real> * previous_velocity_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
 
-  UInt * active_nodes = impactor_info->active_impactor_nodes->values;
+  UInt * active_nodes = impactor_info->active_impactor_nodes->storage();
   ElementType * element_type = &(*impactor_info->master_element_type)[0];
-  Real * master_normal = impactor_info->master_normals->values;
-  bool * node_stick = impactor_info->node_is_sticking->values;
-  Real * friction_force = impactor_info->friction_forces->values;
-  Real * stick_position = impactor_info->stick_positions->values;
-  Real * residual_force = impactor_info->residual_forces->values;
-  Real * previous_velocity = impactor_info->previous_velocities->values;
+  Real * master_normal = impactor_info->master_normals->storage();
+  bool * node_stick = impactor_info->node_is_sticking->storage();
+  Real * friction_force = impactor_info->friction_forces->storage();
+  Real * stick_position = impactor_info->stick_positions->storage();
+  Real * residual_force = impactor_info->residual_forces->storage();
+  Real * previous_velocity = impactor_info->previous_velocities->storage();
 
   for (UInt i=0; i<nb_active_nodes; ++i, ++active_nodes, ++element_type) {
     (*activity_of_nodes)(*active_nodes) = true;
