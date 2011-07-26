@@ -88,7 +88,7 @@ public:
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
 			Vector<Real> & fiedl_times_shapes,
-			const GhostType & ghost_type) {
+			const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
   /* ------------------------------------------------------------------------ */

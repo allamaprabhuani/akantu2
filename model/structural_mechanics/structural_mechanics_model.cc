@@ -99,9 +99,9 @@ void StructuralMechanicsModel::initVectors() {
 
   displacement_rotation = &(alloc<Real>(sstr_disp.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
   force_momentum        = &(alloc<Real>(sstr_forc.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
-  residual     = &(alloc<Real>(sstr_resi.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
-  boundary     = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degre_of_freedom, false));
-  increment     = &(alloc<Real>(sstr_incr.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
+  residual              = &(alloc<Real>(sstr_resi.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
+  boundary              = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degre_of_freedom, false));
+  increment             = &(alloc<Real>(sstr_incr.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
 
   const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;

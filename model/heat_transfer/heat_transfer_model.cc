@@ -274,18 +274,21 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 
     const Vector<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it,ghost_type);
     UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
+    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
+
+
+    Vector<Real> & gradient = temperature_gradient(*it, ghost_type);
+    gradient.resize(nb_element * nb_quadrature_points);
 
     this->getFEM().gradientOnQuadraturePoints(*temperature,
-					      temperature_gradient(*it, ghost_type),
+					      gradient,
 					      1 ,*it,ghost_type);
-    Real * gT_val = temperature_gradient(*it, ghost_type).storage();
+    Real * gT_val = gradient.storage();
 
     AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension]);
     AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+1]);
     AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+2]);
 
-
-    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
     Real * k_gT_val = new Real[spatial_dimension];
@@ -313,7 +316,7 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
       }
     }
 
-    Vector<Real> * q_e = new Vector<Real>(0,bt_k_gT_size,"q_e");
+    Vector<Real> * q_e = new Vector<Real>(nb_element, bt_k_gT_size, "q_e");
     this->getFEM().integrate(*bt_k_gT, *q_e, bt_k_gT_size, *it,ghost_type);
     delete bt_k_gT;
 

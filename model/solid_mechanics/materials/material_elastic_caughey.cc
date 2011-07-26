@@ -73,7 +73,15 @@ void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_
   MaterialElastic::computeStress(el_type, ghost_type);
 
   Vector<Real> & velocity = model->getVelocity();
-  Vector<Real> strain_rate(0, spatial_dimension * spatial_dimension, "strain_rate");
+  UInt nb_elem = element_filter(el_type, ghost_type).getSize();
+  UInt nb_quad_points_per_elem =
+    model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
+  UInt nb_quad_points = nb_quad_points_per_elem * nb_elem;
+
+  Vector<Real> strain_rate(nb_quad_points,
+			   spatial_dimension * spatial_dimension,
+			   "strain_rate");
+
   model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
    					     spatial_dimension,
    					     el_type, ghost_type, &elem_filter);

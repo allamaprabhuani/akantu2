@@ -50,9 +50,6 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
   name.clear();
   name << id << ":structuralmechanics:imposed_stresses";
   Vector<Real> stress_funct(0, nb_degre_of_freedom*nb_degre_of_freedom,name.str());
-  name.clear();
-  name << id << ":structuralmechanics:quad_coords";
-  Vector<Real> quad_coords(0,spatial_dimension,"quad_coords");
 
   UInt offset = 0;
   switch(function_type) {
@@ -64,8 +61,14 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 
   //prepare the loop over element types
   const ElementType type = _bernoulli_beam_2;
-  UInt nb_quad              = getFEM().getNbQuadraturePoints(type);
-  UInt nb_element = getFEM().getMesh().getNbElement(type);
+  UInt nb_quad           = getFEM().getNbQuadraturePoints(type);
+  UInt nb_element        = getFEM().getMesh().getNbElement(type);
+
+  name.clear();
+  name << id << ":structuralmechanics:quad_coords";
+  Vector<Real> quad_coords(nb_element * nb_quad, spatial_dimension, "quad_coords");
+
+
   getFEMClass<MyFEMType>().getShapeFunctions().interpolateOnControlPoints<type>(getFEM().getMesh().getNodes(),
 										quad_coords,
 										spatial_dimension);

@@ -70,7 +70,11 @@ int main(int argc, char *argv[]) {
   std::cout << *st_mem << std::endl;
 
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2, "val_on_quad");
+
+  UInt nb_element = my_mesh.getNbElement(type);
+  UInt nb_quadrature_points = fem->getNbQuadraturePoints(type) * nb_element;
+
+  Vector<Real> val_on_quad(nb_quadrature_points, 2, "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
@@ -83,7 +87,7 @@ int main(int argc, char *argv[]) {
   my_file << val_on_quad << std::endl;
 
   // interpolate coordinates
-  Vector<Real> coord_on_quad(0, my_mesh.getSpatialDimension(), "coord_on_quad");
+  Vector<Real> coord_on_quad(nb_quadrature_points, my_mesh.getSpatialDimension(), "coord_on_quad");
 
   fem->interpolateOnQuadraturePoints(my_mesh.getNodes(),
 				     coord_on_quad,

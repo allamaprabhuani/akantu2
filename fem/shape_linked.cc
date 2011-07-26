@@ -171,7 +171,6 @@ void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
   nb_element = mesh->getNbElement(type, ghost_type);
   conn_val   = mesh->getConnectivity(type, ghost_type).values;
 
-
   AKANTU_DEBUG_ASSERT(shapes_loc != NULL,
 		      "No shapes for the type " << type);
 
@@ -179,24 +178,12 @@ void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
   UInt nb_points = control_points(type, ghost_type).getSize();
   UInt size_of_shapes = ElementClass<type>::getShapeSize();
 
-  AKANTU_DEBUG_ASSERT(in_u.getSize() == mesh->getNbNodes(),
-		      "The vector in_u(" << in_u.getID()
-		      << ") has not the good size.");
-  AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom,
-		      "The vector in_u(" << in_u.getID()
-		      << ") has not the good number of component.");
-
-  AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_degre_of_freedom ,
-		      "The vector out_uq(" << out_uq.getID()
-		      << ") has not the good number of component.");
-
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
     nb_element = filter_elements->getSize();
     filter_elem_val = filter_elements->values;
   }
 
-  out_uq.resize(nb_element * nb_points);
   if(!accumulate)
     out_uq.clear();
 
@@ -281,19 +268,6 @@ void ShapeLinked::gradientOnControlPoints(const Vector<Real> &in_u,
     filter_elem_val = filter_elements->values;
   }
 
-  AKANTU_DEBUG_ASSERT(in_u.getSize() == mesh->getNbNodes(),
-		      "The vector in_u(" << in_u.getID()
-		      << ") has not the good size.");
-  AKANTU_DEBUG_ASSERT(in_u.getNbComponent() == nb_degre_of_freedom ,
-		      "The vector in_u(" << in_u.getID()
-		      << ") has not the good number of component.");
-
-  AKANTU_DEBUG_ASSERT(out_nablauq.getNbComponent()
-		      == nb_degre_of_freedom * element_dimension,
-		      "The vector out_nablauq(" << out_nablauq.getID()
-		      << ") has not the good number of component.");
-
-  out_nablauq.resize(nb_element * nb_points);
   if(!accumulate)
     out_nablauq.clear();
 

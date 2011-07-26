@@ -398,7 +398,7 @@ void SolidMechanicsModel::explicitCorr() {
 void SolidMechanicsModel::initImplicit(bool dynamic) {
   AKANTU_DEBUG_IN();
 
-  this->dynamic = true;
+  this->dynamic = dynamic;
 
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
@@ -492,7 +492,7 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
 		      "You should first initialize the implicit solver and assemble the mass matrix");
 
-  NewmarkBeta * nmb_int = dynamic_cast<TrapezoidalRule2 *>(integrator);
+  NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
   Real c = nmb_int->getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
   Real d = nmb_int->getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
   Real e = nmb_int->getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(time_step);

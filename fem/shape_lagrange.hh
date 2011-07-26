@@ -78,7 +78,7 @@ public:
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
 			Vector<Real> & fiedl_times_shapes,
-			GhostType ghost_type);
+			GhostType ghost_type) const;
 
 
   /// function to print the containt of the class

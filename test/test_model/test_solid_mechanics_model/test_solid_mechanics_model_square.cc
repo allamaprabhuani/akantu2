@@ -40,7 +40,10 @@
 
 using namespace akantu;
 
-static void trac(__attribute__ ((unused)) double * position,double * traction){
+static void trac(__attribute__ ((unused)) double * position,
+		 double * traction,
+		 __attribute__ ((unused)) Real * normal,
+		 __attribute__ ((unused)) UInt surface_id){
   memset(traction,0,sizeof(Real)*4);
   traction[0] = 1000;
   traction[3] = 1000;
@@ -58,7 +61,6 @@ int main(int argc, char *argv[])
   Real epot, ekin;
 
   ElementType type  = _triangle_3;
-  ElementType ftype = Mesh::getFacetElementType(type);
 #ifdef AKANTU_USE_IOHELPER
   UInt para_type = TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
@@ -112,71 +114,7 @@ int main(int argc, char *argv[])
   FEM & fem_boundary = model.getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
-
-  const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != fem_boundary.getElementDimension()) continue;
-
-    //    ElementType facet_type = Mesh::getFacetElementType(*it);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    const Vector<Real> & quads = fem_boundary.getQuadraturePoints(*it);
-    UInt nb_quad              = quads.getSize();
-
-    UInt nb_element;
-    const Vector<Real> * shapes;
-    Vector<Real> quad_coords(0,2,"quad_coords");
-    const Vector<Real> * normals_on_quad;
-
-    nb_element   = fem_boundary.getMesh().getNbElement(*it);
-    fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, ftype);
-    normals_on_quad = &(fem_boundary.getNormalsOnQuadPoints(*it));
-
-    shapes       = &(fem_boundary.getShapes(*it));
-
-    Vector<Real> * sigma_funct = new Vector<Real>(nb_element, 4*nb_quad, "myfunction");
-    Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad, "myfunction");
-
-    Real * sigma_funct_val = sigma_funct->values;
-    Real * shapes_val = shapes->values;
-
-    /// compute t * \phi_i for each nodes of each element
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quad; ++q) {
-	trac(quad_coords.values+el*nb_quad*2+q,sigma_funct_val);
-	sigma_funct_val += 4;
-      }
-    }
-
-    Math::matrix_vector(2,2,*sigma_funct,*normals_on_quad,*funct);
-    funct->extendComponentsInterlaced(nb_nodes_per_element,2);
-
-    delete sigma_funct;
-
-    Real * funct_val = funct->values;
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quad; ++q) {
-	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  *funct_val++ *= *shapes_val;
-	  *funct_val++ *= *shapes_val++;
-	}
-      }
-    }
-
-
-    Vector<Real> * int_funct = new Vector<Real>(nb_element, 2*nb_nodes_per_element,
-						    "inte_funct");
-    fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
-    delete funct;
-
-    fem_boundary.assembleVector(*int_funct,const_cast<Vector<Real> &>(model.getForce()),
-				model.getDOFSynchronizer().getLocalDOFEquationNumbers(),
-				2, *it);
-    delete int_funct;
-  }
-
-
-  //  model.getDisplacement().values[1] = 0.1;
+  model.computeForcesFromFunction(trac, akantu::_bft_stress);
 
 
 #ifdef AKANTU_USE_IOHELPER

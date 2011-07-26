@@ -32,6 +32,11 @@
 
 __BEGIN_AKANTU__
 
+/**
+ * This class can be used to 
+ *
+ * @param nb_rows
+ */
 template <typename T>
 class CSR {
   /* ------------------------------------------------------------------------ */
@@ -49,7 +54,7 @@ public:
 
   inline void beginInsertions() {};
 
-  inline UInt insertInRow(UInt row, T & val) { 
+  inline UInt insertInRow(UInt row, T & val) {
     UInt pos = rows_offsets(row)++;
     rows(pos) = val;
     return pos;
@@ -76,12 +81,12 @@ public:
 
   inline void clearRows() { rows_offsets.clear(); rows.resize(0); };
 
-  inline void resizeRows(UInt nb_rows) { 
+  inline void resizeRows(UInt nb_rows) {
     this->nb_rows = nb_rows;
     rows_offsets.resize(nb_rows + 1);
   }
 
-  inline void resizeCols() { 
+  inline void resizeCols() {
     rows.resize(rows_offsets(nb_rows));
   }
 
@@ -103,9 +108,10 @@ public:
   /// iterator on a row
   class iterator : public std::iterator<std::bidirectional_iterator_tag, T> {
   public:
-    typedef std::iterator<std::input_iterator_tag, T> _parent;
-    typedef typename _parent::pointer pointer;
+    typedef std::iterator<std::bidirectional_iterator_tag, T> _parent;
+    typedef typename _parent::pointer   pointer;
     typedef typename _parent::reference reference;
+
     iterator(pointer x = NULL) : pos(x) {};
     iterator(const iterator & it) : pos(it.pos) {};
 
@@ -135,7 +141,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   UInt nb_rows;
 
   /// array of size nb_rows containing the offset where the values are stored in
@@ -144,6 +150,19 @@ private:
   /// compressed row values, values of row[i] are stored between rows_offsets[i]
   /// and rows_offsets[i+1]
   Vector<T> rows;
+};
+
+
+/* -------------------------------------------------------------------------- */
+/* Data CSR                                                                   */
+/* -------------------------------------------------------------------------- */
+
+template<class T>
+class DataCSR : public CSR<UInt> {
+public:
+  inline const Vector<T> & getData() const { return data; };
+private:
+  Vector<T> data;
 };
 
 

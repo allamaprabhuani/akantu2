@@ -49,22 +49,14 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
    */
   GhostType ghost_type = _not_ghost;
 
-  std::stringstream name; name << id << ":imposed_traction";
-  Vector<Real> traction_funct(0, spatial_dimension, name.str());
-
-  name.clear(); name << id << ":imposed_stresses";
-  Vector<Real> stress_funct(0, spatial_dimension*spatial_dimension, name.str());
-
-  name.clear(); name << id << ":quad_coords";
-  Vector<Real> quad_coords(0, spatial_dimension, name.str());
-
-  UInt offset = 0;
+  UInt nb_component = 0;
   switch(function_type) {
-  case _bft_stress:
-    offset = spatial_dimension * spatial_dimension; break;
-  case _bft_forces:
-    offset = spatial_dimension; break;
+  case _bft_stress: nb_component = spatial_dimension * spatial_dimension; break;
+  case _bft_forces: nb_component = spatial_dimension; break;
   }
+
+  Vector<Real> funct(0, nb_component, "traction_stress");
+  Vector<Real> quad_coords(0, spatial_dimension, "quad_coords");
 
   //prepare the loop over element types
   const Mesh::ConnectivityTypeList & type_list = getFEMBoundary().getMesh().getConnectivityTypeList(ghost_type);
@@ -75,32 +67,25 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
     UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
     UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
 
+    funct.resize(nb_element * nb_quad);
+    quad_coords.resize(nb_element * nb_quad);
+
     const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
 
     getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
 						   quad_coords, spatial_dimension, *it, ghost_type);
 
-    Real * imposed_val = NULL;
-    switch(function_type) {
-    case _bft_stress:
-      stress_funct.resize(nb_element*nb_quad);
-      imposed_val = stress_funct.values;
-      break;
-    case _bft_forces:
-      traction_funct.resize(nb_element*nb_quad);
-      imposed_val = traction_funct.values;
-      break;
-    }
+    Real * imposed_val = funct.storage();
+    Real * normals_on_quad_val = normals_on_quad.storage();
+    Real * qcoord = quad_coords.storage();
 
-    Real * normals_on_quad_val = normals_on_quad.values;
-    Real * qcoord = quad_coords.values;
     try {
       const Vector<UInt> & surface_id = mesh.getSurfaceID(*it, ghost_type);
       /// sigma/tractions on each quadrature points
       for (UInt el = 0; el < nb_element; ++el) {
 	for (UInt q = 0; q < nb_quad; ++q) {
 	  myf(qcoord, imposed_val, normals_on_quad_val, surface_id(el));
-	  imposed_val += offset;
+	  imposed_val += nb_component;
 	  qcoord += spatial_dimension;
 	  normals_on_quad_val += spatial_dimension;
 	}
@@ -109,7 +94,7 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
       for (UInt el = 0; el < nb_element; ++el) {
 	for (UInt q = 0; q < nb_quad; ++q) {
 	  myf(qcoord, imposed_val, normals_on_quad_val, 0);
-	  imposed_val += offset;
+	  imposed_val += nb_component;
 	  qcoord += spatial_dimension;
 	  normals_on_quad_val += spatial_dimension;
 	}
@@ -119,9 +104,9 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 
     switch(function_type) {
     case _bft_stress:
-      computeForcesByStressTensor(stress_funct, *it, ghost_type); break;
+      computeForcesByStressTensor(funct, *it, ghost_type); break;
     case _bft_forces:
-      computeForcesByTractionVector(traction_funct, *it, ghost_type); break;
+      computeForcesByTractionVector(funct, *it, ghost_type); break;
     }
   }
 }

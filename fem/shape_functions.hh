@@ -75,7 +75,7 @@ public:
   /// multiply a field by shape functions
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
-			Vector<Real> & fieal_times_shapes);
+			Vector<Real> & fieal_times_shapes) const;
 
   // /// compute the gradient of u on the constrol points
   // template <ElementType type>
@@ -110,6 +110,7 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ControlPoints, control_points, Real)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -58,6 +58,6 @@ inline UInt ShapeFunctions::getShapeDerivativesSize(const ElementType & type) {
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeFunctions::setControlPointsByType(const Vector<Real> & points,
-					    const GhostType & ghost_type){
+					    const GhostType & ghost_type) {
   control_points.setVector(type, ghost_type, points);
 }

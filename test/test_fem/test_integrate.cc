@@ -69,8 +69,11 @@ int main(int argc, char *argv[]) {
   StaticMemory * st_mem = StaticMemory::getStaticMemory();
   std::cout << *st_mem << std::endl;
 
+  UInt nb_element = my_mesh.getNbElement(type);
+  UInt nb_quadrature_points = fem->getNbQuadraturePoints(type) * nb_element;
+
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2 , "val_on_quad");
+  Vector<Real> val_on_quad(nb_quadrature_points, 2 , "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
@@ -79,8 +82,9 @@ int main(int argc, char *argv[]) {
 
   //interpolate function on quadrature points
   fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);
+
   //integrate function on elements
-  akantu::Vector<akantu::Real> int_val_on_elem(0, 2, "int_val_on_elem");
+  akantu::Vector<akantu::Real> int_val_on_elem(nb_element, 2, "int_val_on_elem");
   fem->integrate(val_on_quad, int_val_on_elem, 2, type);
 
   // get global integration value

@@ -54,7 +54,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
   UInt tangent_size = getTangentStiffnessVoigtSize<type>();
 
   Vector<Real> * tangent_stiffness_matrix =
-    new Vector<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
+    new Vector<Real>(nb_element * nb_quadrature_points, tangent_size * tangent_size,
 		     "tangent_stiffness_matrix");
 
   computeTangentStiffness<type>(*tangent_stiffness_matrix);
@@ -93,7 +93,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
   delete tangent_stiffness_matrix;
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  Vector<Real> * int_bt_d_b = new Vector<Real>(0,
+  Vector<Real> * int_bt_d_b = new Vector<Real>(nb_element,
 					   bt_d_b_size * bt_d_b_size,
 					   "int_B^t*D*B");
 

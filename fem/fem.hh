@@ -90,19 +90,19 @@ public:
 
   /// get the number of quadrature points
   virtual UInt getNbQuadraturePoints(const ElementType & type,
-				     const GhostType & ghost_type = _not_ghost) = 0;
+				     const GhostType & ghost_type = _not_ghost) const = 0;
   /// get the precomputed shapes
   const virtual Vector<Real> & getShapes(const ElementType & type,
-					 const GhostType & ghost_type = _not_ghost) = 0;
+					 const GhostType & ghost_type = _not_ghost) const = 0;
 
   /// get the derivatives of shapes
   const virtual Vector<Real> & getShapesDerivatives(const ElementType & type,
 						    const GhostType & ghost_type = _not_ghost,
-						    UInt id = 0) = 0;
+						    UInt id = 0) const = 0;
 
   /// get quadrature points
   const virtual Vector<Real> & getQuadraturePoints(const ElementType & type,
-						   const GhostType & ghost_type = _not_ghost) = 0;
+						   const GhostType & ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
@@ -114,7 +114,7 @@ public:
 				  const UInt nb_degre_of_freedom,
 				  const ElementType & type,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL)=0;
+				  const Vector<UInt> * filter_elements = NULL) const = 0;
 
   virtual
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
@@ -158,7 +158,7 @@ public:
   				   __attribute__ ((unused)) Vector<Real> & lumped,
   				   __attribute__ ((unused)) const Vector<Int> & equation_number,
   				   __attribute__ ((unused)) ElementType type,
-  				   __attribute__ ((unused)) __attribute__ ((unused)) const GhostType & ghost_type) {
+  				   __attribute__ ((unused)) const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
@@ -168,7 +168,7 @@ public:
 				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
 				   __attribute__ ((unused)) SparseMatrix & matrix,
 				   __attribute__ ((unused)) ElementType type,
-				   __attribute__ ((unused)) const GhostType & ghost_type) {
+				   __attribute__ ((unused)) const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

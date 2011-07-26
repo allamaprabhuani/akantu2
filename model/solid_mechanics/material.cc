@@ -163,6 +163,8 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     UInt nb_element = elem_filter.getSize();
 
+    strain_vect.resize(nb_quadrature_points * nb_element);
+
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
 					      spatial_dimension,
@@ -215,7 +217,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
 
-    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(0, nb_nodes_per_element * spatial_dimension,
+    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element, nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
 
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
@@ -286,6 +288,8 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type, ghost_type);
 
+  strain_vect.resize(nb_quadrature_points * nb_element);
+
   model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
 					     dim, type, ghost_type, &elem_filter);
 
@@ -300,7 +304,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   UInt bt_d_b_size = dim * nb_nodes_per_element;
 
-  Vector<Real> * bt_d_b = new Vector<Real>(nb_element*nb_quadrature_points,
+  Vector<Real> * bt_d_b = new Vector<Real>(nb_element * nb_quadrature_points,
 					   bt_d_b_size * bt_d_b_size,
 					   "B^t*D*B");
 
@@ -334,7 +338,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   delete tangent_stiffness_matrix;
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  Vector<Real> * K_e = new Vector<Real>(0,
+  Vector<Real> * K_e = new Vector<Real>(nb_element,
 					bt_d_b_size * bt_d_b_size,
 					"K_e");
 

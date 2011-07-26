@@ -79,7 +79,11 @@ int main(int argc, char *argv[]) {
   /// create the 2 component field
   const Vector<Real> & position = fem->getMesh().getNodes();
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> grad_on_quad(0, 2 * dim, "grad_on_quad");
+
+  UInt nb_element = my_mesh.getNbElement(type);
+  UInt nb_quadrature_points = fem->getNbQuadraturePoints(type) * nb_element;
+
+  Vector<Real> grad_on_quad(nb_quadrature_points, 2 * dim, "grad_on_quad");
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val(i, 0) = 0;
     const_val(i, 1) = 0;
@@ -116,7 +120,7 @@ int main(int argc, char *argv[]) {
   }
 
   // compute gradient of coordinates
-  Vector<Real> grad_coord_on_quad(0, dim * dim, "grad_coord_on_quad");
+  Vector<Real> grad_coord_on_quad(nb_quadrature_points, dim * dim, "grad_coord_on_quad");
   fem->gradientOnQuadraturePoints(my_mesh.getNodes(), grad_coord_on_quad, my_mesh.getSpatialDimension(), type);
 
   my_file << my_mesh.getNodes() << std::endl;
