@@ -128,7 +128,7 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degre_of_freedom) :
 /* -------------------------------------------------------------------------- */
 DOFSynchronizer::~DOFSynchronizer() {
 
-};
+}
 
 
 /* -------------------------------------------------------------------------- */

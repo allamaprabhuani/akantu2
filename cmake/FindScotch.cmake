@@ -40,6 +40,11 @@ find_library(SCOTCH_LIBRARY_ERR scotcherr
   PATH_SUFFIXES src/libscotch lib
   )
 
+find_library(SCOTCH_LIBRARY_ERREXIT scotcherrexit
+  PATHS ${SCOTCH_DIR}
+  PATH_SUFFIXES src/libscotch lib
+  )
+
 find_library(SCOTCH_LIBRARY_ESMUMPS ptesmumps
   PATHS ${SCOTCH_DIR}
   PATH_SUFFIXES src/libscotch lib
@@ -53,10 +58,11 @@ find_path(SCOTCH_INCLUDE_PATH scotch.h
 #===============================================================================
 mark_as_advanced(SCOTCH_LIBRARY)
 mark_as_advanced(SCOTCH_LIBRARY_ERR)
+mark_as_advanced(SCOTCH_LIBRARY_ERREXIT)
 mark_as_advanced(SCOTCH_LIBRARY_ESMUMPS)
 mark_as_advanced(SCOTCH_INCLUDE_PATH)
 
-set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY_ERR} ${SCOTCH_LIBRARY} )
+set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY} ${SCOTCH_LIBRARY_ERR})
 
 if(SCOTCH_LIBRARY_ESMUMPS)
   set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY_ESMUMPS} ${SCOTCH_LIBRARIES_ALL})

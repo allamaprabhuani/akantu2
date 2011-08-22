@@ -95,6 +95,7 @@ CommunicationBuffer::operator>> <types::Matrix> (types::Matrix & to_unpack) {
   ptr_unpack += size;
   return *this;
 }
+
 /* -------------------------------------------------------------------------- */
 template<typename T> inline std::string 
 CommunicationBuffer::extractStream(UInt block_size) {
@@ -114,6 +115,7 @@ CommunicationBuffer::extractStream(UInt block_size) {
   }
   return str.str();
 }
+
 /* -------------------------------------------------------------------------- */
 inline void CommunicationBuffer::resize(UInt size) { 
     buffer.resize(size); 
@@ -122,12 +124,14 @@ inline void CommunicationBuffer::resize(UInt size) {
     clear();
 #endif
 }
+
 /* -------------------------------------------------------------------------- */
 inline void CommunicationBuffer::clear() { 
   buffer.clear();
 }
+
 /* -------------------------------------------------------------------------- */
 inline void CommunicationBuffer::reset() { 
   ptr_pack = buffer.values; 
   ptr_unpack = buffer.values; 
-};
+}

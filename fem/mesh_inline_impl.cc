@@ -200,7 +200,7 @@ inline UIntDataMap & Mesh::getUIntDataMap(const ElementType & el_type,
   // AKANTU_DEBUG_ASSERT(uint_data.exists(el_type, ghost_type),
   // 		      "No UIntDataMap for the type (" << ghost_type << ":" << el_type << ")");
   return uint_data(el_type, ghost_type);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type,

@@ -43,5 +43,7 @@ if(AKANTU_MUMPS_ON)
 endif(AKANTU_MUMPS_ON)
 
 #===============================================================================
-register_test(test_sparse_matrix_product test_sparse_matrix_product.cc)
-copy_files(test_sparse_matrix_product bar.msh)
+if(AKANTU_MPI_ON)
+  register_test(test_sparse_matrix_product test_sparse_matrix_product.cc)
+  copy_files(test_sparse_matrix_product bar.msh)
+endif(AKANTU_MPI_ON)

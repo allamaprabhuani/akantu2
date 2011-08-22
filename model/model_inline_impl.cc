@@ -74,7 +74,7 @@ inline void Model::initPBC(UInt x, UInt y, UInt z){
 }
 /* -------------------------------------------------------------------------- */
 inline Synchronizer & Model::createParallelSynch(MeshPartition * partition,
-						 DataAccessor * data_accessor){
+						 __attribute__((unused)) DataAccessor * data_accessor){
   AKANTU_DEBUG_IN();
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
@@ -86,10 +86,12 @@ inline Synchronizer & Model::createParallelSynch(MeshPartition * partition,
   DistributedSynchronizer * synch = NULL;
   if(prank == 0) 
     synch = 
-      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(), partition);
+      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(),
+								 partition);
   else 
     synch = 
-      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(), NULL);
+      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(),
+								 NULL);
 
   AKANTU_DEBUG_OUT();
   return *synch;

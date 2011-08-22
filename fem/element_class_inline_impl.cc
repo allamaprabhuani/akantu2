@@ -265,8 +265,8 @@ inline void ElementClass<type>::computeShapes(__attribute__ ((unused)) const Rea
 }
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-inline void ElementClass<type>::computeDNDS(const Real * natural_coords,
- 					    Real * dnds){
+inline void ElementClass<type>::computeDNDS(__attribute__((unused)) const Real * natural_coords,
+ 					    __attribute__((unused)) Real * dnds){
   //  computeDNDS(natural_coords, dnds);
   AKANTU_DEBUG_TO_IMPLEMENT();
 }

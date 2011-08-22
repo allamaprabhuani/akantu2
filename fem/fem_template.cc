@@ -385,7 +385,7 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementTyp
 template <typename Integ, typename Shape>
 inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type,
 									   const GhostType & ghost_type,
-									   UInt id) const {
+									   __attribute__((unused)) UInt id) const {
   AKANTU_DEBUG_IN();
   const Vector<Real> * ret = NULL;
 

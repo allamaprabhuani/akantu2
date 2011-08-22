@@ -110,12 +110,12 @@ void MeshIODiana::read(const std::string & filename, Mesh & mesh) {
 
     /// read the material properties and write a .dat file
     if (line == "'MATERIALS'") {
-      line = readMaterial(infile, mesh, filename);
+      line = readMaterial(infile, filename);
     }
 
     /// read the material properties and write a .dat file
     if (line == "'GROUPS'") {
-      line = readGroups(infile, mesh, global_to_local_index, first_node_number);
+      line = readGroups(infile, global_to_local_index, first_node_number);
     }
 
   }
@@ -125,9 +125,9 @@ void MeshIODiana::read(const std::string & filename, Mesh & mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshIODiana::write(const std::string & filename, const Mesh & mesh) {
-
-
+void MeshIODiana::write(__attribute__((unused)) const std::string & filename,
+			__attribute__((unused)) const Mesh & mesh) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -175,7 +175,7 @@ UInt MeshIODiana::readInterval(std::stringstream & line,
   interval.insert(first);
 
   UInt second;
-  char dash;
+  int dash;
   dash = line.get();
   if(dash == '-') {
     line >> second;
@@ -190,7 +190,7 @@ UInt MeshIODiana::readInterval(std::stringstream & line,
 }
 
 /* -------------------------------------------------------------------------- */
-std::string MeshIODiana::readGroups(std::ifstream & infile, Mesh & mesh,
+std::string MeshIODiana::readGroups(std::ifstream & infile,
 				      std::vector<Element> & global_to_local_index,
 				      UInt first_node_number) {
   AKANTU_DEBUG_IN();
@@ -358,20 +358,20 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt readInterval(std::stringstream & line,
-		  std::set<UInt> & interval) {
-  UInt first;
-  line >> first;
-  if(line.fail()) { return 0; }
-  interval.insert(first);
+// UInt MeshIODiana::readInterval(std::stringstream & line,
+// 			       std::set<UInt> & interval) {
+//   UInt first;
+//   line >> first;
+//   if(line.fail()) { return 0; }
+//   interval.insert(first);
 
-  UInt second;
-  char ignored;
-  line >> ignored >> second;
-  if(line.fail()) { line.clear(); return 1; }
-  interval.insert(second);
-  return 2;
-}
+//   UInt second;
+//   char ignored;
+//   line >> ignored >> second;
+//   if(line.fail()) { line.clear(); return 1; }
+//   interval.insert(second);
+//   return 2;
+// }
 
 /* -------------------------------------------------------------------------- */
 std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
@@ -440,8 +440,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
 
 /* -------------------------------------------------------------------------- */
 std::string MeshIODiana::readMaterial(std::ifstream & infile,
-					Mesh & mesh,
-					const std::string & filename) {
+				      const std::string & filename) {
   AKANTU_DEBUG_IN();
 
   std::stringstream mat_file_name;

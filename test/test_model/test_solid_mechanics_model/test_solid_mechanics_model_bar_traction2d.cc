@@ -58,8 +58,8 @@ akantu::Vector<akantu::Real> * strain;
 akantu::Vector<akantu::Real> * damage;
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper);
-void paraviewDump(Dumper & dumper);
+static void paraviewInit(Dumper & dumper);
+static void paraviewDump(Dumper & dumper);
 #endif
 
 int main(int argc, char *argv[])

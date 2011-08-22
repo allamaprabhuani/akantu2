@@ -400,6 +400,9 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
 
   this->dynamic = dynamic;
 
+#if !defined(AKANTU_USE_MUMPS) // or other solver in the future
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#else
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
   std::stringstream sstr; sstr << id << ":stiffness_matrix";
@@ -430,10 +433,9 @@ void SolidMechanicsModel::initImplicit(bool dynamic) {
   solver = new SolverMumps(*matrix, sstr_solv.str());
 
   dof_synchronizer->initScatterGatherCommunicationScheme();
-#else
-  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
 
+#endif
   solver->initialize();
 
   AKANTU_DEBUG_OUT();

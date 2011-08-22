@@ -65,7 +65,7 @@ private:
 			   std::vector<Element> & global_to_local_index,
 			   UInt first_node_number);
 
-  std::string readGroups(std::ifstream & infile, Mesh & mesh,
+  std::string readGroups(std::ifstream & infile,
 			 std::vector<Element> & global_to_local_index,
 			 UInt first_node_number);
 
@@ -79,7 +79,6 @@ private:
 				  std::vector<Element> & global_to_local_index);
 
   std::string readMaterial(std::ifstream & infile,
-			   Mesh & mesh,
 			   const std::string & filename);
 
   UInt readInterval(std::stringstream & line,

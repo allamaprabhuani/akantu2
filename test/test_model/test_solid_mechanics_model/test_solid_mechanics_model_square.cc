@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
   UInt max_steps = 1000;
   Real epot, ekin;
 
-  ElementType type  = _triangle_3;
 #ifdef AKANTU_USE_IOHELPER
+  ElementType type  = _triangle_3;
   UInt para_type = TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 

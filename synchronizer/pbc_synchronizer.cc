@@ -57,8 +57,8 @@ void PBCSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
 }
 
 /* -------------------------------------------------------------------------- */
-void PBCSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
-					 SynchronizationTag tag){
+void PBCSynchronizer::waitEndSynchronize(__attribute__((unused)) DataAccessor & data_accessor,
+					 __attribute__((unused)) SynchronizationTag tag){
 }
 
 /* -------------------------------------------------------------------------- */

@@ -334,22 +334,41 @@ template <class T> void Vector<T>::printself(std::ostream & stream, int indent) 
 
 /* -------------------------------------------------------------------------- */
 template <>
-Vector<ElementType> & Vector<ElementType>::operator*=(const ElementType & alpha) {
+Vector<ElementType> & Vector<ElementType>::operator*=(__attribute__((unused)) const ElementType & alpha) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<ElementType> & Vector<ElementType>::operator-=(const Vector<ElementType> & vect) {
+Vector<ElementType> & Vector<ElementType>::operator-=(__attribute__((unused)) const Vector<ElementType> & vect) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<ElementType> & Vector<ElementType>::operator+=(const Vector<ElementType> & vect) {
+Vector<ElementType> & Vector<ElementType>::operator+=(__attribute__((unused)) const Vector<ElementType> & vect) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
+
+template <>
+Vector<char> & Vector<char>::operator*=(__attribute__((unused)) const char & alpha) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+  return *this;
+}
+
+template <>
+Vector<char> & Vector<char>::operator-=(__attribute__((unused)) const Vector<char> & vect) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+  return *this;
+}
+
+template <>
+Vector<char> & Vector<char>::operator+=(__attribute__((unused)) const Vector<char> & vect) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+  return *this;
+}
+
 
 /* -------------------------------------------------------------------------- */
 template class Vector<char>;

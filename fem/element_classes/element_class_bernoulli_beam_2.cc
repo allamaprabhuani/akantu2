@@ -228,7 +228,7 @@ inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real 
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_bernoulli_beam_2>::computeJacobian(const Real * coord,
 									 const UInt nb_points,
-									 const UInt dimension,
+									 __attribute__((unused)) const UInt dimension,
 									 Real * jac){
   Real a=0.5*Math::distance_2d(coord,coord+2);
 

@@ -142,7 +142,7 @@ inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(__attribute__((unused)) Real delta_t) {
   return 1.;
 }
 template<>
@@ -160,7 +160,7 @@ inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_acceleration_corre
   return beta * delta_t;
 }
 template<>
-inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(__attribute__((unused)) Real delta_t) {
   return 1.;
 }
 template<>
@@ -178,7 +178,7 @@ inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_velocity_corre
   return alpha * delta_t;
 }
 template<>
-inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(__attribute__((unused)) Real delta_t) {
   return 1.;
 }
 

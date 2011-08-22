@@ -86,9 +86,9 @@ public:
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void fieldTimesShapes(const Vector<Real> & field,
-			Vector<Real> & fiedl_times_shapes,
-			const GhostType & ghost_type) const {
+  void fieldTimesShapes(__attribute__((unused)) const Vector<Real> & field,
+			__attribute__((unused)) Vector<Real> & fiedl_times_shapes,
+			__attribute__((unused)) const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
   /* ------------------------------------------------------------------------ */

@@ -46,7 +46,6 @@ int main(int argc, char *argv[])
 {
   akantu::initialize(&argc,&argv);
   const ElementType type = _triangle_3;
-  const ElementType surf_type = ElementClass<type>::getFacetElementType();
   int dim = ElementClass<type>::getSpatialDimension();
 
   Mesh mesh(dim);
@@ -56,6 +55,8 @@ int main(int argc, char *argv[])
   MeshUtils::buildFacets(mesh,1,1);
 
 #ifdef AKANTU_USE_IOHELPER
+  const ElementType surf_type = ElementClass<type>::getFacetElementType();
+
   unsigned int nb_nodes = mesh.getNbNodes();
   DumperParaview dumper;
   dumper.SetMode(TEXT);

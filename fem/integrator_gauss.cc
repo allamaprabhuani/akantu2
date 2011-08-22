@@ -51,10 +51,8 @@ void IntegratorGauss::checkJacobians(const GhostType & ghost_type) const {
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
 
-  UInt * elem_val;
   UInt nb_element;
 
-  elem_val   = mesh->getConnectivity(type,ghost_type).values;
   nb_element = mesh->getConnectivity(type,ghost_type).getSize();
 
   Real * jacobians_val = jacobians(type, ghost_type).storage();

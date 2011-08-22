@@ -90,7 +90,7 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 	  normals_on_quad_val += spatial_dimension;
 	}
       }
-    } catch (akantu::debug::Exception & e) {
+    } catch (...) {
       for (UInt el = 0; el < nb_element; ++el) {
 	for (UInt q = 0; q < nb_quad; ++q) {
 	  myf(qcoord, imposed_val, normals_on_quad_val, 0);

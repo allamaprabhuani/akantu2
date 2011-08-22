@@ -44,8 +44,8 @@ inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
   Real p;
   p = lambda*defvol;
 
-  Real traceC;
-  traceC = C[0]+C[4]+C[8];
+  // Real traceC;
+  // traceC = C[0]+C[4]+C[8];
 
   Real Cinv[3*3];
   Math::inv3(C, Cinv);

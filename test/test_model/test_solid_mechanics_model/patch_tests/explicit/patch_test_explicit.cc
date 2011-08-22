@@ -47,13 +47,13 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 		      { 0.09, 0.10, 0.11, 0.12 } };
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model);
-void paraviewDump(Dumper & dumper);
+static void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model);
+static void paraviewDump(Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-types::Matrix prescribed_strain() {
+static types::Matrix prescribed_strain() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix strain(spatial_dimension, spatial_dimension);
 
@@ -66,7 +66,7 @@ types::Matrix prescribed_strain() {
 }
 
 template<ElementType type>
-types::Matrix prescribed_stress() {
+static types::Matrix prescribed_stress() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix stress(spatial_dimension, spatial_dimension);
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
   MeshUtils::buildNodesPerSurface(my_mesh, surface_nodes);
 
 
-  CSR<UInt>::iterator snode = surface_nodes.begin(0);
+  //CSR<UInt>::iterator snode = surface_nodes.begin(0);
 
   for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
     CSR<UInt>::iterator snode = surface_nodes.begin(s);
@@ -321,17 +321,17 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
 template <ElementType type>
-UInt paraviewType();
+static UInt paraviewType();
 
-template <> UInt paraviewType<_segment_2>()      { return LINE1; };
-template <> UInt paraviewType<_segment_3>()      { return LINE2; };
-template <> UInt paraviewType<_triangle_3>()     { return TRIANGLE1; };
-template <> UInt paraviewType<_triangle_6>()     { return TRIANGLE2; };
-template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1; };
-template <> UInt paraviewType<_quadrangle_8>()   { return QUAD2; };
-template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1; };
-template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2; };
-template <> UInt paraviewType<_hexahedron_8>()   { return HEX1; };
+template <> UInt paraviewType<_segment_2>()      { return LINE1; }
+template <> UInt paraviewType<_segment_3>()      { return LINE2; }
+template <> UInt paraviewType<_triangle_3>()     { return TRIANGLE1; }
+template <> UInt paraviewType<_triangle_6>()     { return TRIANGLE2; }
+template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1; }
+template <> UInt paraviewType<_quadrangle_8>()   { return QUAD2; }
+template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1; }
+template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2; }
+template <> UInt paraviewType<_hexahedron_8>()   { return HEX1; }
 
 void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
