@@ -35,9 +35,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void MaterialNonLocal::accumulateNeighbours(const ByElementTypeVector<T> & to_accumulate,
-					    ByElementTypeVector<T> & accumulated,
-					    UInt nb_degree_of_freedom) const {
+void MaterialNonLocal::accumulateOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+					      ByElementTypeVector<T> & accumulated,
+					      UInt nb_degree_of_freedom) const {
   std::set< std::pair<ElementType, ElementType> >::const_iterator first_pair_types = existing_pairs.begin();
   std::set< std::pair<ElementType, ElementType> >::const_iterator last_pair_types = existing_pairs.end();
 
@@ -63,6 +63,46 @@ void MaterialNonLocal::accumulateNeighbours(const ByElementTypeVector<T> & to_ac
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
       acc_it[q1] += to_acc_it[q2];
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+void MaterialNonLocal::weigthedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+						    ByElementTypeVector<T> & accumulated,
+						    UInt nb_degree_of_freedom) const {
+  std::set< std::pair<ElementType, ElementType> >::const_iterator first_pair_types = existing_pairs.begin();
+  std::set< std::pair<ElementType, ElementType> >::const_iterator last_pair_types = existing_pairs.end();
+
+  GhostType ghost_type1, ghost_type2;
+  ghost_type1 = ghost_type2 = _not_ghost;
+
+  for (; first_pair_types != last_pair_types; ++first_pair_types) {
+    const Vector<UInt> & pairs =
+      pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+    const Vector<Real> & weights =
+      pair_weigth(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+
+
+    const Vector<T> & to_acc = to_accumulate(first_pair_types->second, ghost_type2);
+    Vector<T> & acc = accumulated(first_pair_types->first, ghost_type1);
+
+    acc.copy(to_acc);
+
+    Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
+    Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+
+    pair_w = weigths.storage();
+
+    typename Vector<T>::template const_iterator< types::Vector<T> > to_acc_it = to_acc.begin(nb_degree_of_freedom);
+    typename Vector<T>::template iterator< typename types::Vector<T> > acc_it = acc.begin(nb_degree_of_freedom);
+
+    for(;first_pair != last_pair; ++first_pair, ++pair_w) {
+      UInt q1 = (*first_pair)(0);
+      UInt q2 = (*first_pair)(1);
+      for(UInt d = 0; d < nb_degree_of_freedom; ++d)
+	acc_it[q1](d) += *pair_w * to_acc_it[q2](d);
     }
   }
 }

@@ -44,6 +44,8 @@ MaterialNonLocal::MaterialNonLocal(Model & model, const ID & id)  :
   this->model->getFEM().getMesh().initByElementTypeVector(quadrature_points_coordinates,
 							  spatial_dimension, 0);
 
+  is_non_local = true;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -257,7 +259,7 @@ void MaterialNonLocal::computeQuadraturePointsNeighborhoudVolumes(ByElementTypeR
 						1, *it, ghost_type, &elem_filter);
   }
 
-  accumulateNeighbours(per_quadrature_points_volumes, volumes, 1);
+  accumulateOnNeighbours(per_quadrature_points_volumes, volumes, 1);
 }
 
 /* -------------------------------------------------------------------------- */

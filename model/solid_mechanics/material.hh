@@ -111,6 +111,12 @@ protected:
   virtual void computeStress(ElementType el_type,
 			     GhostType ghost_type = _not_ghost) = 0;
 
+  /// constitutive law
+  virtual void computeNonLocalStress(ElementType el_type,
+				     GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
+
   /// compute the tangent stiffness matrix
   virtual void computeTangentStiffness(const ElementType & el_type,
 				       Vector<Real> & tangent_matrix,
@@ -221,6 +227,10 @@ protected:
 
   /// boolean to know if the material has been initialized
   bool is_init;
+
+  /// tell if using in non local mode or not
+  bool is_non_local;
+
 };
 
 /* -------------------------------------------------------------------------- */

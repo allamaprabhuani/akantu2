@@ -82,10 +82,11 @@ public:
       }
     };
 
-    iterator& operator++() { nextCell(); return *this; };
-    iterator operator++(int) { neighbor_cells_iterator tmp(*this); operator++(); return tmp; };
+    neighbor_cells_iterator& operator++() { nextCell(); return *this; };
+    neighbor_cells_iterator operator++(int) { neighbor_cells_iterator tmp(*this); operator++(); return tmp; };
     bool operator==(const neighbor_cells_iterator& rhs) { return cell == rhs.cell && it = rhs.it; };
     bool operator!=(const neighbor_cells_iterator& rhs) { return cell != rhs.cell || it != rhs.it; };
+
     UInt operator*() { return cur_cell; };
 
   private:

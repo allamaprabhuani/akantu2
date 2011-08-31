@@ -69,10 +69,14 @@ public:
   void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
 
   template<typename T>
-  void accumulateNeighbours(const ByElementTypeVector<T> & to_accumulate,
-			    ByElementTypeVector<T> & accumulated,
-			    UInt nb_degree_of_freedom) const;
+  void accumulateOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+			      ByElementTypeVector<T> & accumulated,
+			      UInt nb_degree_of_freedom) const;
 
+  template<typename T>
+  void weigthedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+				    ByElementTypeVector<T> & accumulated,
+				    UInt nb_degree_of_freedom) const;
 
   Real getStableTimeStep(Real h, const Element & element = ElementNull) { return 0.; };
 

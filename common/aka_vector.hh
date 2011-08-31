@@ -141,7 +141,8 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
   /* ------------------------------------------------------------------------ */
-protected:
+  /// \todo protected: does not compile with intel  check why 
+public:
   template <class R, class IR = R, int fps = 0>
   class iterator_internal;
 

@@ -46,7 +46,8 @@ Material::Material(Model & model, const ID & id) :
   element_filter("element_filter", id),
   //  potential_energy_vector(false),
   potential_energy("potential_energy", id),
-  is_init(false) {
+  is_init(false),
+  is_non_local(false) {
   AKANTU_DEBUG_IN();
 
   rho = 0;
@@ -174,6 +175,9 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
+
+    /// \todo change for multi types
+    if(is_non_local) computeNonLocalStress(*it, ghost_type);
 
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
