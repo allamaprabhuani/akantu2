@@ -92,7 +92,7 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::setParam(const std::string & key, const std::string & value,
+bool MaterialMazars::setParam(const std::string & key, const std::string & value,
 			      const ID & id) {
   std::stringstream sstr(value);
   if(key == "E") { sstr >> E; }
@@ -103,7 +103,8 @@ void MaterialMazars::setParam(const std::string & key, const std::string & value
   else if(key == "Ac") { sstr >> Ac; }
   else if(key == "Bc") { sstr >> Bc; }
   else if(key == "beta") { sstr >> beta; }
-  else { Material::setParam(key, value, id); }
+  else { return Material::setParam(key, value, id); }
+  return true;
 }
 
 

@@ -42,16 +42,16 @@ class UniqueConstantFricCoef : public FrictionCoefficient {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   UniqueConstantFricCoef(ContactRigid & contact,
 			 const Surface & master_surface);
 
   UniqueConstantFricCoef(ContactRigid & contact,
 			 const Surface & master_surface,
 			 const Real friction_coefficient);
-  
+
   virtual ~UniqueConstantFricCoef();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -64,10 +64,10 @@ public:
 
   /// fill table with friction coefficient
   inline virtual Real computeFricCoef(UInt impactor_node_index);
-  
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -150,6 +150,7 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
+  model/solid_mechanics/materials/material_non_local.cc
   model/solid_mechanics/materials/material_elastic.cc
   model/solid_mechanics/materials/material_elastic_caughey.cc
   model/solid_mechanics/materials/material_damage.cc
@@ -166,7 +167,6 @@ set(AKANTU_COMMON_SRC
   solver/solver.cc
   synchronizer/synchronizer_registry.cc
   synchronizer/synchronizer.cc
-#  synchronizer/communicator.cc
   synchronizer/distributed_synchronizer.cc
   synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
@@ -213,7 +213,7 @@ endif()
 
 set(AKANTU_HEAT_TRANSFER_SRC
   model/heat_transfer/heat_transfer_model.cc
-  ) 
+  )
 
 if(AKANTU_BUILD_HEAT_TRANSFER)
   set(AKANTU_COMMON_SRC
@@ -263,13 +263,43 @@ set(AKANTU_INCLUDE_DIRS
   solver/
   )
 
+
+set(AKANTU_COMMON_HDR_TO_PRECOMPILE
+  common/aka_vector.hh
+  common/aka_math.hh
+  common/aka_types.hh
+  fem/by_element_type.hh
+  fem/element_class.hh
+  )
+
+set(AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS
+  ${CMAKE_BINARY_DIR}/common/
+  ${CMAKE_BINARY_DIR}/fem/
+  )
+
 include_directories(
   ${AKANTU_INCLUDE_DIRS}
+  ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS}
   ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
   )
 
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  include(cmake/PCHgcc.cmake)
+  foreach(_header ${AKANTU_COMMON_HDR_TO_PRECOMPILE})
+    add_pch_rule(${_header} AKANTU_COMMON_SRC)
+  endforeach()
+endif()
+
 add_library(akantu ${AKANTU_COMMON_SRC})
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
+
+#include(cmake/PCHSupport.cmake)
+#if(PCHSupport_FOUND)
+#  foreach(_header ${AKANTU_COMMON_HDR_TO_PRECOMPILE})
+#    add_precompiled_header(akantu ${_header})
+#  endforeach()
+#endif()
 
 
 #===========================================================================

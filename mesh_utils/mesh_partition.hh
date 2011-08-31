@@ -38,7 +38,7 @@
 
 __BEGIN_AKANTU__
 
-class MeshPartition : public Memory {
+class MeshPartition : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

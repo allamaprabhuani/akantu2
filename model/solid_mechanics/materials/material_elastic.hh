@@ -61,7 +61,7 @@ public:
 
   virtual void initMaterial();
 
-  virtual void setParam(const std::string & key, const std::string & value,
+  virtual bool setParam(const std::string & key, const std::string & value,
 		const ID & id);
 
   /// constitutive law for all element of a type

@@ -49,7 +49,7 @@
 
 using namespace akantu;
 
-static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap);
+//static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap);
 static void setBoundaryConditions(SolidMechanicsModel & model);
 void my_force(Real * coord, Real * T, Real * normal, UInt surface_id);
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio);
@@ -160,31 +160,31 @@ int main(int argc, char *argv[])
 
 
 
-/* -------------------------------------------------------------------------- */
-static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap) {
+// /* -------------------------------------------------------------------------- */
+// static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap) {
 
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  Real * coord = model.getFEM().getMesh().getNodes().values;
-  Real y_top = HUGE_VAL, y_bot = -HUGE_VAL;
+//   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+//   Real * coord = model.getFEM().getMesh().getNodes().values;
+//   Real y_top = HUGE_VAL, y_bot = -HUGE_VAL;
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    if (coord[2*n+1] > threshold) {
-      if(coord[2*n+1] < y_top)
-	y_top = coord[2*n+1];
-    }
-    else {
-      if (coord[2*n+1] > y_bot)
-	y_bot = coord[2*n+1];
-    }
-  }
+//   for (UInt n = 0; n < nb_nodes; ++n) {
+//     if (coord[2*n+1] > threshold) {
+//       if(coord[2*n+1] < y_top)
+// 	y_top = coord[2*n+1];
+//     }
+//     else {
+//       if (coord[2*n+1] > y_bot)
+// 	y_bot = coord[2*n+1];
+//     }
+//   }
 
-  Real delta = y_top - y_bot - gap;
-  /// move all nodes belonging to the top cube
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    if (coord[2*n+1] > threshold)
-      coord[2*n+1] -= delta;
-  }
-}
+//   Real delta = y_top - y_bot - gap;
+//   /// move all nodes belonging to the top cube
+//   for (UInt n = 0; n < nb_nodes; ++n) {
+//     if (coord[2*n+1] > threshold)
+//       coord[2*n+1] -= delta;
+//   }
+// }
 
 /* -------------------------------------------------------------------------- */
 static void setBoundaryConditions(SolidMechanicsModel & model) {

@@ -46,7 +46,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class Contact : public Memory {
+class Contact : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

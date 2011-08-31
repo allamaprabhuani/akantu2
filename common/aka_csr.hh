@@ -33,9 +33,10 @@
 __BEGIN_AKANTU__
 
 /**
- * This class can be used to 
+ * This class  can be  used to  store the structure  of a  sparse matrix  or for
+ * vectors with variable number of component per element
  *
- * @param nb_rows
+ * @param nb_rows number of rows of a matrix or size of a vector.
  */
 template <typename T>
 class CSR {
@@ -44,7 +45,12 @@ class CSR {
   /* ------------------------------------------------------------------------ */
 public:
 
-  CSR(UInt nb_rows = 0) : nb_rows(nb_rows), rows_offsets(nb_rows + 1, 1), rows(0,1) { rows_offsets.clear(); };
+  CSR(UInt nb_rows = 0) : nb_rows(nb_rows),
+			  rows_offsets(nb_rows + 1, 1, "rows_offsets"),
+			  rows(0, 1, "rows") {
+    rows_offsets.clear();
+  };
+
   virtual ~CSR() {};
 
   /* ------------------------------------------------------------------------ */
@@ -54,7 +60,7 @@ public:
 
   inline void beginInsertions() {};
 
-  inline UInt insertInRow(UInt row, T & val) {
+  inline UInt insertInRow(UInt row, const T & val) {
     UInt pos = rows_offsets(row)++;
     rows(pos) = val;
     return pos;
@@ -157,9 +163,23 @@ protected:
 /* Data CSR                                                                   */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Inherits from  CSR<UInt> and  can contain information  such as  matrix values
+ * where the mother class would be a CSR structure for row and cols
+ *
+ * @return nb_rows
+ */
 template<class T>
 class DataCSR : public CSR<UInt> {
 public:
+  DataCSR(UInt nb_rows = 0) : CSR<UInt>(nb_rows), data(0,1) { };
+
+  inline void resizeCols() {
+    CSR<UInt>::resizeCols();
+    data.resize(rows_offsets(nb_rows));
+  }
+
+
   inline const Vector<T> & getData() const { return data; };
 private:
   Vector<T> data;

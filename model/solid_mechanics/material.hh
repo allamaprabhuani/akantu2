@@ -47,7 +47,24 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class Material : public Memory {
+/** 
+ * Interface of all materials
+ * Prerequisites for a new material
+ * - inherit from this class
+ * - implement the following methods:
+ * \code
+ *  virtual Real getStableTimeStep(Real h, const Element & element = ElementNull);
+ *
+ *  virtual void computeStress(ElementType el_type,
+ *                             GhostType ghost_type = _not_ghost);
+ *
+ *  virtual void computeTangentStiffness(const ElementType & el_type,
+ *                                       Vector<Real> & tangent_matrix,
+ *                                       GhostType ghost_type = _not_ghost);
+ * \endcode
+ *
+ */
+class Material : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -62,7 +79,7 @@ public:
 public:
 
   /// read properties
-  virtual void setParam(const std::string & key, const std::string & value,
+  virtual bool setParam(const std::string & key, const std::string & value,
 			const ID & id);
 
   /// initialize the material computed parameter
@@ -86,7 +103,7 @@ public:
 			 const GhostType & ghost_type);
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const = 0;
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
 protected:
 
@@ -287,10 +304,19 @@ __END_AKANTU__
 /* Material list                                                              */
 /* -------------------------------------------------------------------------- */
 
+#define AKANTU_MATERIAL_LIST						\
+  ((elastic        , MaterialElastic       ))				\
+  ((elastic_caughey, MaterialElasticCaughey))				\
+  ((damage         , MaterialDamage        ))				\
+  ((mazars         , MaterialMazars        ))				\
+  ((neohookean     , MaterialNeohookean    ))				\
+  ((non_local      , MaterialNonLocal      ))
+
 #include "materials/material_elastic.hh"
 #include "materials/material_elastic_caughey.hh"
 #include "materials/material_damage.hh"
 #include "materials/material_mazars.hh"
 #include "materials/material_neohookean.hh"
+#include "materials/material_non_local.hh"
 
 #endif /* __AKANTU_MATERIAL_HH__ */

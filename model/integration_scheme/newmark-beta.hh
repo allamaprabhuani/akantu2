@@ -76,7 +76,7 @@ class NewmarkBeta : public IntegrationScheme2ndOrder {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  NewmarkBeta(Real beta, Real alpha) : beta(beta), alpha(alpha) {};
+  NewmarkBeta(Real alpha, Real beta) : beta(beta), alpha(alpha), k(0.), h(0.) {};
 
   ~NewmarkBeta(){};
 
@@ -146,6 +146,9 @@ protected:
 
   /// the @f$\alpha@f$ parameter
   const Real alpha;
+
+  const Real k;
+  const Real h;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -163,7 +166,7 @@ protected:
  */
 class CentralDifference : public NewmarkBeta {
 public:
-  CentralDifference() : NewmarkBeta(.5, 0.) {};
+  CentralDifference() : NewmarkBeta(0., .5) {};
 };
 //#include "integration_scheme/central_difference.hh"
 

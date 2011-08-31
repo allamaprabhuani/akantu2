@@ -52,9 +52,9 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
     if(!(*boundary_val)) {
       Real dt_a_n = delta_t * *u_dot_dot_val;
 
-      *u_val += delta_t * *u_dot_val + delta_t / 2. * dt_a_n;
-      *u_dot_val += dt_a_n;
-      // *u_dot_dot_val = *u_dot_dot_val;
+      *u_val        += (1 - k*alpha) * delta_t * *u_dot_val + (.5 - h*alpha*beta) * delta_t * dt_a_n;
+      *u_dot_val     = (1 - k) * *u_dot_val + (1 - h*beta) * dt_a_n;
+      *u_dot_dot_val = (1 - h) * *u_dot_dot_val;
     }
     u_val++;
     u_dot_val++;

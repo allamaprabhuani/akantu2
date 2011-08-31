@@ -100,13 +100,14 @@ void MaterialElastic::computeTangentStiffness(const ElementType & el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::setParam(const std::string & key, const std::string & value,
+bool MaterialElastic::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "E") { sstr >> E; }
   else if(key == "nu") { sstr >> nu; }
   else if(key == "Plane_Stress") { sstr >> plane_stress; }
-  else { Material::setParam(key, value, id); }
+  else { return Material::setParam(key, value, id); }
+  return true;
 }
 
 

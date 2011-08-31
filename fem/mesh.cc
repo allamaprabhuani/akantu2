@@ -208,7 +208,7 @@ void Mesh::computeBoundingBox(){
 template<typename T>
 void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 				   UInt nb_component,
-				   UInt dim) {
+				   UInt dim) const {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -229,12 +229,12 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 /* -------------------------------------------------------------------------- */
 template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & vect,
 						  UInt nb_component,
-						  UInt dim);
+						  UInt dim) const;
 template void Mesh::initByElementTypeVector<Int>(ByElementTypeVector<Int> & vect,
 						  UInt nb_component,
-						  UInt dim);
+						  UInt dim) const;
 template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & vect,
 						  UInt nb_component,
-						  UInt dim);
+						  UInt dim) const;
 
 __END_AKANTU__

@@ -42,8 +42,25 @@
 
 __BEGIN_AKANTU__
 
+class QuadraturePoint : public Element {
+public:
+  QuadraturePoint(ElementType type = _not_defined, UInt element = 0,
+		  UInt num_point = 0, GhostType ghost_type = _not_ghost) :
+    Element(type, element, ghost_type), num_point(num_point) { };
 
-class FEM : public Memory {
+  QuadraturePoint(const QuadraturePoint & quad) :
+    Element(quad), num_point(quad.num_point) { };
+
+  virtual ~QuadraturePoint() {};
+public:
+  UInt num_point;
+};
+
+/**
+ * The  generic  FEM class  derived  in  a  FEMTemplate class  containing  the
+ * shape functions and the integration method
+ */
+class FEM : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -83,6 +100,14 @@ public:
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const = 0;
+
+  /// integrate f for all quadrature points of type "type"
+  virtual void integrateOnQuadraturePoints(const Vector<Real> & f,
+					   Vector<Real> &intf,
+					   UInt nb_degre_of_freedom,
+					   const ElementType & type,
+					   const GhostType & ghost_type = _not_ghost,
+					   const Vector<UInt> * filter_elements = NULL) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* compatibility with old FEM fashion */

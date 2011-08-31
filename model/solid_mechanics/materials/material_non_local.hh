@@ -1,11 +1,9 @@
 /**
- * @file   material_damage.hh
+ * @file   material_non_local.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ * @date   Thu Jul 28 11:17:41 2011
  *
- * @brief  Material isotropic elastic
+ * @brief  Material class that handle the non locality of a law for example damage.
  *
  * @section LICENSE
  *
@@ -30,91 +28,103 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
+
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DAMAGE_HH__
-#define __AKANTU_MATERIAL_DAMAGE_HH__
+#ifndef __AKANTU_MATERIAL_NON_LOCAL_HH__
+#define __AKANTU_MATERIAL_NON_LOCAL_HH__
 
 __BEGIN_AKANTU__
 
-/**
- * Material damage
- *
- * parameters in the material files :
- *   - Yd  : (default: 50)
- *   - Sd  : (default: 5000)
- */
-class MaterialDamage : public MaterialElastic {
+class MaterialNonLocal : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamage(Model & model, const ID & id = "");
+  MaterialNonLocal(Model & model, const ID & id = "");
+  virtual ~MaterialNonLocal();
 
-  virtual ~MaterialDamage() {};
-
+  template<typename T>
+  class PairList : public ByElementType<ByElementTypeVector<T> > {};
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  void initMaterial();
+  /// read properties
+  virtual bool setParam(const std::string & key, const std::string & value,
+			const ID & id);
 
-  bool setParam(const std::string & key, const std::string & value,
-		const ID & id);
+  /// initialize the material computed parameter
+  virtual void initMaterial();
 
-  /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void updatePairList();
 
-  /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma, Real & damage);
+  /// function to print the contain of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
-  /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
-			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  virtual void computeWeights();
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
+
+  template<typename T>
+  void accumulateNeighbours(const ByElementTypeVector<T> & to_accumulate,
+			    ByElementTypeVector<T> & accumulated,
+			    UInt nb_degree_of_freedom) const;
+
+
+  Real getStableTimeStep(Real h, const Element & element = ElementNull) { return 0.; };
+
+  void computeStress(ElementType el_type,
+		     GhostType ghost_type = _not_ghost) {};
+
+  void computeTangentStiffness(const ElementType & el_type,
+			       Vector<Real> & tangent_matrix,
+			       GhostType ghost_type = _not_ghost) {};
+
+
+  void savePairs(const std::string & filename) const;
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
+
+  AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
+
+  AKANTU_GET_MACRO(Radius, radius, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
+private:
+  PairList<UInt> pair_list;
+  PairList<Real> pair_weigth;
 
-  /// resistance to damage
-  Real Yd;
+  Real radius;
 
-  /// damage threshold
-  Real Sd;
+  ByElementTypeReal quadrature_points_coordinates;
 
-  /// damage internal variable
-  ByElementTypeReal damage;
+  std::set< std::pair<ElementType, ElementType> > existing_pairs;
 };
+
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_damage_inline_impl.cc"
+#include "material_non_local_inline_impl.cc"
 
-/* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamage & _this)
+inline std::ostream & operator <<(std::ostream & stream, const MaterialNonLocal & _this)
 {
   _this.printself(stream);
   return stream;
 }
 
+
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_DAMAGE_HH__ */
+#endif /* __AKANTU_MATERIAL_NON_LOCAL_HH__ */

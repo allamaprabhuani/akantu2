@@ -143,7 +143,6 @@ void FEMTemplate<Integ,Shape>::initShapeFunctions(const GhostType & ghost_type) 
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <typename Integ, typename Shape>
 void FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 				       Vector<Real> &intf,
@@ -226,6 +225,50 @@ Real FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
   AKANTU_DEBUG_OUT();
   return integral;
 }
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+void FEMTemplate<Integ,Shape>::integrateOnQuadraturePoints(const Vector<Real> & f,
+							   Vector<Real> &intf,
+							   UInt nb_degree_of_freedom,
+							   const ElementType & type,
+							   const GhostType & ghost_type,
+							   const Vector<UInt> * filter_elements) const{
+
+#ifndef AKANTU_NDEBUG
+//   std::stringstream sstr; sstr << ghost_type;
+//   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
+// 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  UInt nb_element = mesh->getNbElement(type, ghost_type);
+  if(filter_elements != NULL) nb_element = filter_elements->getSize();
+
+  UInt nb_quadrature_points  = getNbQuadraturePoints(type);
+
+  AKANTU_DEBUG_ASSERT(f.getSize() == nb_element * nb_quadrature_points,
+		      "The vector f(" << f.getID() << " size " << f.getSize()
+		      << ") has not the good size (" << nb_element << ").");
+  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom ,
+		      "The vector f(" << f.getID()
+		      << ") has not the good number of component.");
+  AKANTU_DEBUG_ASSERT(intf.getNbComponent() == nb_degree_of_freedom,
+		      "The vector intf(" << intf.getID()
+		      << ") has not the good number of component.");
+  AKANTU_DEBUG_ASSERT(intf.getSize() == nb_element * nb_quadrature_points,
+		      "The vector intf(" << intf.getID()
+		      << ") has not the good size.");
+#endif
+
+#define INTEGRATE(type)							\
+  integrator.template integrateOnQuadraturePoints<type>(f,		\
+							intf,		\
+							nb_degree_of_freedom, \
+							ghost_type,	\
+							filter_elements);
+
+    AKANTU_BOOST_ELEMENT_SWITCH(INTEGRATE);
+#undef INTEGRATE
+}
+
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>

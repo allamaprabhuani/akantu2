@@ -146,9 +146,6 @@ namespace types {
     bool wrapped;
   };
 
-  class Tensor2 : public Matrix {
-  };
-
   /* ------------------------------------------------------------------------ */
   /* Vector                                                                   */
   /* ------------------------------------------------------------------------ */
@@ -199,12 +196,29 @@ namespace types {
       return *this;
     };
 
+    inline Vector & operator+=(const Vector & vect) {
+      T * a = this->values;
+      T * b = vect.values;
+      for (UInt i = 0; i < n; ++i) *(a++) += *(b++);
+      return *this;
+    };
+
+
     inline void clear() { memset(values, 0, n * sizeof(T)); };
 
     template<bool tr_A>
     inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
       UInt n = x.n;
       Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
+    }
+
+
+    /// norm of (*this - x)
+    inline Real distance(const Vector & y) {
+      Real * vx = values; Real * vy = y.storage();
+      Real sum_2 = 0;
+      for (UInt i = 0; i < n; ++i, ++vx, ++vy) sum_2 += (*vx - *vy)*(*vx - *vy);
+      return sqrt(sum_2);
     }
 
     /* ---------------------------------------------------------------------- */
@@ -309,8 +323,26 @@ namespace types {
     bool wrapped;
   };
 
-  /* -------------------------------------------------------------------------- */
+  /* ------------------------------------------------------------------------ */
+  /* Tensors                                                                  */
+  /* ------------------------------------------------------------------------ */
+  class Tensor2 : public Matrix {
+    Tensor2() : Matrix(){};
+    Tensor2(UInt dim, Real def = 0) : Matrix(dim, dim, def) { };
+    Tensor2(Real* data, UInt dim) : Matrix(data, dim, dim) {};
+    Tensor2(const Tensor2 & t) : Matrix(t) {};
+  };
 
+  class Tensor1 : public RVector {
+    Tensor1() : RVector(){};
+    Tensor1(UInt dim, Real def = 0) : RVector(dim,  def) { };
+    Tensor1(Real* data, UInt dim) : RVector(data, dim) {};
+    Tensor1(const Tensor1 & t) : RVector(t) {};
+  };
+
+
+
+  /* -------------------------------------------------------------------------- */
   template <UInt m, UInt n>
   class RealTMatrix : public TMatrix<Real, m, n> {
   public:

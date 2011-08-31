@@ -34,6 +34,39 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+#define AKANTU_INTANTIATE_OTHER_MATERIAL(r, data, elem)			\
+  else if (BOOST_PP_TUPLE_ELEM(4, 0, data) ==				\
+	   BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem)))		\
+    BOOST_PP_TUPLE_ELEM(4, 1, data) =					\
+      BOOST_PP_TUPLE_ELEM(4, 3, data).					\
+      readSection<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(*this,		\
+						   BOOST_PP_TUPLE_ELEM(4, 2, data));
+
+#define AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, mat_lst) \
+  BOOST_PP_SEQ_FOR_EACH(AKANTU_INTANTIATE_OTHER_MATERIAL,		\
+			(mat_type, material, mat_id, parser),		\
+			mat_lst)
+
+#define AKANTU_INTANTIATE_MATERIALS(mat_type, material, mat_id, parser)	\
+  do {									\
+    if(mat_type ==							\
+       BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2,			\
+					      0,			\
+					      BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST)))) \
+      material =							\
+	parser.readSection<BOOST_PP_TUPLE_ELEM(2,			\
+					       1,			\
+					       BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST))> \
+	(*this, mat_id);						\
+    AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, \
+				      BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST)) \
+    else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \
+			    << mat_type);				\
+  } while(0)
+/* -------------------------------------------------------------------------- */
+
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
   Parser parser;
   parser.open(filename);
@@ -45,13 +78,20 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     Material * material;
     ID mat_id = sstr_mat.str();
     /// read the material properties
-    if(mat_type == "elastic")              material = parser.readSection<MaterialElastic>       (*this, mat_id);
-    else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this, mat_id);
-    else if(mat_type == "damage")          material = parser.readSection<MaterialDamage>        (*this, mat_id);
-    else if(mat_type == "mazars")          material = parser.readSection<MaterialMazars>        (*this, mat_id);
-    else if(mat_type == "neohookean")      material = parser.readSection<MaterialNeohookean>    (*this, mat_id);
-    else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
-			    << mat_type);
+
+    // if(mat_type == "elastic")              material = parser.readSection<MaterialElastic>       (*this, mat_id);
+    // else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this, mat_id);
+    // else if(mat_type == "damage")          material = parser.readSection<MaterialDamage>        (*this, mat_id);
+    // else if(mat_type == "mazars")          material = parser.readSection<MaterialMazars>        (*this, mat_id);
+    // else if(mat_type == "neohookean")      material = parser.readSection<MaterialNeohookean>    (*this, mat_id);
+    // else if(mat_type == "non_local")       material = parser.readSection<MaterialNonLocal>      (*this, mat_id);
+    // else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
+    // 			    << mat_type);
+
+
+    // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
+    AKANTU_INTANTIATE_MATERIALS(mat_type, material, mat_id, parser);
+
     materials.push_back(material);
     mat_type = parser.getNextSection("material");
   }

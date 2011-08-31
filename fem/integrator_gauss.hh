@@ -78,6 +78,14 @@ public:
 		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
+  /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
+  template <ElementType type>
+  void integrateOnQuadraturePoints(const Vector<Real> & in_f,
+				   Vector<Real> &intf,
+				   UInt nb_degre_of_freedom,
+				   const GhostType & ghost_type,
+				   const Vector<UInt> * filter_elements) const;
+
   /// return a vector with quadrature points natural coordinates
   template <ElementType type>
   const Vector<Real> & getQuadraturePoints(const GhostType & ghost_type) const;

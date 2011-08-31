@@ -43,11 +43,9 @@ inline void Parser::readSection(M & model){
     keyword = line.substr(0, pos);  trim(keyword);
     value   = line.substr(pos + 1); trim(value);
 
-    try {
-      model.setParam(keyword, value);
-    } catch (debug::Exception ex) {
-      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
-			 << ex.info() << "\" at line " << current_line);
+    if(!model.setParam(keyword, value)) {
+      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam at line "
+			 << current_line);
     }
 
     my_getline();

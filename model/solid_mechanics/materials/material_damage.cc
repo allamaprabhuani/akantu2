@@ -87,12 +87,13 @@ void MaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::setParam(const std::string & key, const std::string & value,
+bool MaterialDamage::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
-  else { MaterialElastic::setParam(key, value, id); }
+  else { return MaterialElastic::setParam(key, value, id); }
+  return true;
 }
 
 

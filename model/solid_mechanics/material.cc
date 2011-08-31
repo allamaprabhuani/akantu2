@@ -73,13 +73,15 @@ Material::~Material() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::setParam(const std::string & key, const std::string & value,
+bool Material::setParam(const std::string & key, const std::string & value,
 			__attribute__ ((unused)) const ID & id) {
   std::stringstream sstr(value);
 
   if(key == "name") name = std::string(value);
   else if(key == "rho") { sstr >> rho; }
-  else AKANTU_DEBUG_ERROR("Unknown material property : " << key);
+  else return false;
+
+  return true;
 }
 /* -------------------------------------------------------------------------- */
 void Material::initMaterial() {

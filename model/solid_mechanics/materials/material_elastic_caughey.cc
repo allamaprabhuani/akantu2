@@ -140,11 +140,12 @@ void MaterialElasticCaughey::computePotentialEnergy(ElementType el_type, GhostTy
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticCaughey::setParam(const std::string & key, const std::string & value,
+bool MaterialElasticCaughey::setParam(const std::string & key, const std::string & value,
 				      const ID & id) {
   std::stringstream sstr(value);
   if(key == "alpha") { sstr >> alpha; }
-  else { MaterialElastic::setParam(key, value, id); }
+  else { return MaterialElastic::setParam(key, value, id); }
+  return true;
 }
 
 

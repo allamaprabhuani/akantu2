@@ -43,12 +43,12 @@ class RuinaSlownessFricCoef : public SimplifiedDieterichFricCoef {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   RuinaSlownessFricCoef(ContactRigid & contact,
 			const Surface & master_surface);
 
   virtual ~RuinaSlownessFricCoef();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -63,7 +63,7 @@ public:
 
   /// remove an impactor surface of this master surface
   virtual void removeImpactorSurface(const Surface & impactor_surface);
-  
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -73,12 +73,12 @@ private:
 
   /// compute the state variable by the implicit solution
   inline Real computeImplicitTheta(Real previous_theta, Real sliding_speed, Real delta_t);
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

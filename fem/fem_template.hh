@@ -76,6 +76,15 @@ public:
    		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const;
 
+  /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
+  void integrateOnQuadraturePoints(const Vector<Real> & f,
+				   Vector<Real> &intf,
+				   UInt nb_degre_of_freedom,
+				   const ElementType & type,
+				   const GhostType & ghost_type = _not_ghost,
+				   const Vector<UInt> * filter_elements = NULL) const;
+
+
   /// get the number of quadrature points
   UInt getNbQuadraturePoints(const ElementType & type,
 			     const GhostType & ghost_type = _not_ghost) const;

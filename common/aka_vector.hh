@@ -142,7 +142,7 @@ public:
   /* Iterator                                                                 */
   /* ------------------------------------------------------------------------ */
 protected:
-  template <class R, class IR = R, class Pointer = R*, class Reference = R&>
+  template <class R, class IR = R, int fps = 0>
   class iterator_internal;
 
 public:
@@ -242,6 +242,9 @@ public:
 protected:
   /// perform the allocation for the constructors
   void allocate(UInt size, UInt nb_component = 1);
+
+  /// resize without initializing the memory
+  void resizeUnitialized(UInt new_size);
 
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */

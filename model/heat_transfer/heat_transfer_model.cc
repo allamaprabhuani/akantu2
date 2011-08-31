@@ -457,7 +457,7 @@ void HeatTransferModel::readMaterials(const std::string & filename) {
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::setParam(const std::string & key,
+bool HeatTransferModel::setParam(const std::string & key,
 				 const std::string & value) {
   std::stringstream str(value);
   if (key == "conductivity") {
@@ -481,7 +481,11 @@ void HeatTransferModel::setParam(const std::string & key,
   else if (key == "density"){
     str >> density;
     AKANTU_DEBUG_INFO("The density of the material is:" << density);
+  } else {
+    return false;
   }
+
+  return true;
 }
 
 /* -------------------------------------------------------------------------- */

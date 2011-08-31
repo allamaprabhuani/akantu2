@@ -41,7 +41,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class Synchronizer : public Memory {
+class Synchronizer : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

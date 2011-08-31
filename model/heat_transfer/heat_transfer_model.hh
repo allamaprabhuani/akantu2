@@ -70,7 +70,7 @@ public:
 public:
 
   /// set the parameters
-  void setParam(const std::string & key, const std::string & value);
+  bool setParam(const std::string & key, const std::string & value);
 
   /// read one material file to instantiate all the materials
   void readMaterials(const std::string & filename);

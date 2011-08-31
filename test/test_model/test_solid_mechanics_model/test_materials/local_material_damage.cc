@@ -115,7 +115,7 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
 
 
 /* -------------------------------------------------------------------------- */
-void LocalMaterialDamage::setParam(const std::string & key, const std::string & value,
+bool LocalMaterialDamage::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
 
@@ -123,7 +123,8 @@ void LocalMaterialDamage::setParam(const std::string & key, const std::string & 
   else if(key == "nu") { sstr >> nu; }
   else if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
-  else { Material::setParam(key, value, id); }
+  else { return Material::setParam(key, value, id); }
+  return true;
 }
 
 

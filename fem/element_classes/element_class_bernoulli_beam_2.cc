@@ -34,7 +34,7 @@
  * @subsection coords Nodes coordinates
  *
  * @f[
- * \begin{array}{lll}
+ * \begin{array}{ll}
  *  x_{1}  = -a   &  x_{2} = a
  * \end{array}
  * @f]
@@ -42,64 +42,49 @@
  * @subsection shapes Shape functions
 
  * @f[
- * \begin{description}
- * \item[id=0]
+ *   \begin{array}{ll}
+ *     N_1(x) &= \frac{1-x}{2a}\\
+ *     N_2(x) &= \frac{1+x}{2a}
+ *   \end{array}
  *
- * \begin{array}{ll}
- * N_1(x) = 1/2(1-x/a)\\
- * N_2(x) = 1/2(1+x/a)\\
- * \end{array}
+ *   \begin{array}{ll}
+ *     M_1(x) &= 1/4(x^{3}/a^{3}-3x/a+2)\\
+ *     M_2(x) &= -1/4(x^{3}/a^{3}-3x/a-2)
+ *   \end{array}
  *
- * \item[id=1]
+ *   \begin{array}{ll}
+ *     L_1(x) &= a/4(x^{3}/a^{3}-x^{2}/a^{2}-x/a+1)\\
+ *     L_2(x) &= a/4(x^{3}/a^{3}+x^{2}/a^{2}-x/a-1)
+ *   \end{array}
  *
- * \begin{array}{ll}
- * M_1(x) = 1/4(x^{3}/a^{3}-3x/a+2)\\
- * M_2(x) = -1/4(x^{3}/a^{3}-3x/a-2)\\
- * \end{array}
+ *   \begin{array}{ll}
+ *     M'_1(x) &= 3/4a(x^{2}/a^{2}-1)\\
+ *     M'_2(x) &= -3/4a(x^{2}/a^{2}-1)
+ *   \end{array}
  *
- * \item[id=2]
- *
- * \begin{array}{ll}
- * L_1(x) = a/4(x^{3}/a^{3}-x^{2}/a^{2}-x/a+1)\\
- * L_2(x) = a/4(x^{3}/a^{3}+x^{2}/a^{2}-x/a-1)\\
- * \end{array}
- *
- * \item[id=3]
- *
- * \begin{array}{ll}
- * M'_1(x) = 3/4a(x^{2}/a^{2}-1)\\
- * M'_2(x) = -3/4a(x^{2}/a^{2}-1)\\
- * \end{array}
- *
- *\item[id=4]
- *
- *\begin{array}{ll}
- * L'_1(x) = 1/4(3x^{2}/a^{2}-2x/a-1)\\
- * L'_2(x) = 1/4(3x^{2}/a^{2}+2x/a-1)\\
- *\end{array}
- *\end{description}
+ *   \begin{array}{ll}
+ *     L'_1(x) &= 1/4(3x^{2}/a^{2}-2x/a-1)\\
+ *     L'_2(x) &= 1/4(3x^{2}/a^{2}+2x/a-1)
+ *   \end{array}
  *@f]
  *
  * @subsection dnds Shape derivatives
  *
  *@f[
- *\begin{description}
- *\item[id=0]
- *\begin{array}{ll}
- *N'_1(x) = -1/2a\\
- *N'_2(x) = 1/2a\\
- *\end{array}]
- *\item[id=1]
- *\begin{array}{ll}
- *-M''_1(x) = -3x/(2a^{3})\\
- *-M''_2(x) = 3x/(2a^{3})\\
- *\end{array}
- *\item[id=2]
- *\begin{array}{ll}
- *-L''_1(x) = -1/2a(3x/a-1)\\
- *-L''_2(x) = -1/2a(3x/a+1)\\
- *\end{array}
- *\end{description}
+ * \begin{array}{ll}
+ *   N'_1(x) &= -1/2a\\
+ *   N'_2(x) &= 1/2a
+ * \end{array}]
+ *
+ * \begin{array}{ll}
+ *   -M''_1(x) &= -3x/(2a^{3})\\
+ *   -M''_2(x) &= 3x/(2a^{3})\\
+ * \end{array}
+ *
+ * \begin{array}{ll}
+ *   -L''_1(x) &= -1/2a(3x/a-1)\\
+ *   -L''_2(x) &= -1/2a(3x/a+1)
+ * \end{array}
  *@f]
  *
  * @subsection quad_points Position of quadrature points

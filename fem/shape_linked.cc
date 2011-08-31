@@ -35,7 +35,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-ShapeLinked::ShapeLinked(Mesh & mesh, const ID & id):ShapeFunctions(mesh,id){
+ShapeLinked::ShapeLinked(Mesh & mesh, const ID & id) : ShapeFunctions(mesh, id){
 
 }
 

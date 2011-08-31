@@ -34,95 +34,11 @@
 #include "aka_memory.hh"
 #include "aka_vector.hh"
 #include "element_class.hh"
+#include "by_element_type.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
-
-
-/* -------------------------------------------------------------------------- */
-/* ByElementType                                                              */
-/* -------------------------------------------------------------------------- */
-template<class Stored> class ByElementType {
-protected:
-  typedef std::map<ElementType, Stored> DataMap;
-public:
-  ByElementType(const ID & id = "by_element_type",
-		const ID & parent_id = "");
-  ~ByElementType();
-
-  inline static std::string printType(const ElementType & type, const GhostType & ghost_type);
-
-  inline bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
-
-  inline const Stored & operator()(const ElementType & type,
-				   const GhostType & ghost_type = _not_ghost) const;
-  inline Stored & operator()(const ElementType & type,
-			     const GhostType & ghost_type = _not_ghost);
-
-  void printself(std::ostream & stream, int indent = 0) const;
-
-protected:
-  inline DataMap & getData(GhostType ghost_type);
-  inline const DataMap & getData(GhostType ghost_type) const;
-
-/* -------------------------------------------------------------------------- */
-protected:
-  ID id;
-
-  DataMap data;
-  DataMap ghost_data;
-};
-
-
-/* -------------------------------------------------------------------------- */
-/* Some typedefs                                                              */
-/* -------------------------------------------------------------------------- */
-
-template <typename T>
-class ByElementTypeVector : public ByElementType<Vector<T> *>, protected Memory {
-public:
-  // ByElementTypeVector(const ID & id = "by_element_type_vector",
-  // 		      const MemoryID & memory_id = 0) :
-  //   ByElementType<Vector<T> *>(id, memory_id) {};
-  ByElementTypeVector(const ID & id, const ID & parent_id,
-		      const MemoryID & memory_id = 0) :
-    ByElementType<Vector<T> *>(id, parent_id), Memory(memory_id) {};
-
-  inline Vector<T> & alloc(UInt size,
-			   UInt nb_component,
-			   const ElementType & type,
-			   const GhostType & ghost_type);
-
-  inline void alloc(UInt size,
-		    UInt nb_component,
-		    const ElementType & type);
-
-  inline const Vector<T> & operator()(const ElementType & type,
-				      const GhostType & ghost_type = _not_ghost) const;
-
-  inline Vector<T> & operator()(const ElementType & type,
-				const GhostType & ghost_type = _not_ghost);
-
-  inline void setVector(const ElementType & type,
-			const GhostType & ghost_type,
-			const Vector<T> & vect);
-
-};
-
-/// to store data Vector<Real> by element type
-typedef ByElementTypeVector<Real> ByElementTypeReal;
-/// to store data Vector<Int> by element type
-typedef ByElementTypeVector<Int>  ByElementTypeInt;
-/// to store data Vector<UInt> by element type
-typedef ByElementTypeVector<UInt> ByElementTypeUInt;
-
-/// Map of data of type UInt stored in a mesh
-typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
-typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
-
-
-
 
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
@@ -138,7 +54,7 @@ public:
     this->ghost_type = element.ghost_type;
   }
 
-  ~Element() {};
+  virtual ~Element() {};
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -232,7 +148,7 @@ public:
   /// init a by-element-type real vector with provided ids
   template<typename T>
   void initByElementTypeVector(ByElementTypeVector<T> & v,
-			       UInt nb_component, UInt size);
+			       UInt nb_component, UInt size) const;
 
   /// extract coordinates of nodes from an element
   inline void extractNodalCoordinatesFromElement(Real * local_coords,
@@ -301,6 +217,9 @@ public:
   AKANTU_GET_MACRO(XMax, xmax[0], Real);
   AKANTU_GET_MACRO(YMax, xmax[1], Real);
   AKANTU_GET_MACRO(ZMax, xmax[2], Real);
+
+  inline void getLowerBounds(Real * lower) const;
+  inline void getUpperBounds(Real * upper) const;
 
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
