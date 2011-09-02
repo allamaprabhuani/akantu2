@@ -36,7 +36,7 @@
 
 __BEGIN_AKANTU__
 
-class MaterialNonLocal : public Material {
+class MaterialNonLocal : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -78,14 +78,27 @@ public:
 				    ByElementTypeVector<T> & accumulated,
 				    UInt nb_degree_of_freedom) const;
 
-  Real getStableTimeStep(Real h, const Element & element = ElementNull) { return 0.; };
+  Real getStableTimeStep(Real h, const Element & element = ElementNull) { 
+    AKANTU_DEBUG_TO_IMPLEMENT();
+    return 0.;
+  };
 
   void computeStress(ElementType el_type,
-		     GhostType ghost_type = _not_ghost) {};
+		     GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
+
+  /// constitutive law
+  virtual void computeNonLocalStress(ElementType el_type,
+				     GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
 
   void computeTangentStiffness(const ElementType & el_type,
 			       Vector<Real> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost) {};
+			       GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
 
 
   void savePairs(const std::string & filename) const;

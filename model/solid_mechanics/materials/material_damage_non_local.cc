@@ -28,14 +28,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_damage.hh"
+#include "material_damage_non_local.hh"
 #include "solid_mechanics_model.hh"
+
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialDamageNonLocal::MaterialDamageNonLocal(Model & model, const ID & id)  :
-  MaterialDamage(model, id), MaterialNonLocal(model, id),
+  MaterialDamage(model, id), MaterialNonLocal(model, id), Material(model, id),
   Y("Y", id) {
   AKANTU_DEBUG_IN();
 
@@ -66,7 +67,7 @@ void MaterialDamageNonLocal::computeStress(ElementType el_type, GhostType ghost_
   Real F[3*3];
   Real sigma[3*3];
   Real * dam = damage(el_type, ghost_type).storage();
-  Real * Y = Y(el_type, ghost_type).storage();
+  Real * Yt = Y(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -75,9 +76,9 @@ void MaterialDamageNonLocal::computeStress(ElementType el_type, GhostType ghost_
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  computeStress(F, sigma, *dam, *Y);
+  MaterialDamage::computeStress(F, sigma, *dam, *Yt);
   ++dam;
-  ++Y;
+  ++Yt;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -104,13 +105,13 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
 			
   Vector<Real>::iterator<types::Matrix> stress_it = stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);				
   Real * dam = damage(el_type, ghost_type).storage();
-  Real * Ynl = Ynl(el_type, ghost_type).storage();
+  Real * Ynlt = Ynl(el_type, ghost_type).storage();
 
   Real sigma[3*3];
   
   for (UInt el = 0; el < nb_element; ++el) {				
     for (UInt q = 0; q < nb_quadrature_points; ++q) {			
-      computeDamageAndStress(sigma, *dam, *Ynl);
+      computeDamageAndStress(sigma, *dam, *Ynlt);
 
       for (UInt i = 0; i < spatial_dimension; ++i)
 	for (UInt j = 0; j < spatial_dimension; ++j)
@@ -118,7 +119,7 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
 
       ++stress_it;
       ++dam;
-      ++Y;
+      ++Ynlt;
     }									
   }									
 

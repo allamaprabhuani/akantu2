@@ -34,7 +34,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialElasticCaughey::MaterialElasticCaughey(Model & model, const ID & id)  :
-  MaterialElastic(model, id),
+  MaterialElastic(model, id), Material(model, id),
   stress_viscosity("stress_viscosity", id),
   stress_elastic("stress_elastic", id) {
   AKANTU_DEBUG_IN();

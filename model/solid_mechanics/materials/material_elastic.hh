@@ -44,7 +44,7 @@ __BEGIN_AKANTU__
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-class MaterialElastic : public Material {
+class MaterialElastic : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

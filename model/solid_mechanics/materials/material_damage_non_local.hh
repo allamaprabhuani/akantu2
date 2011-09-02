@@ -63,6 +63,11 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
+  /// constitutive law
+  virtual void computeNonLocalStress(ElementType el_type,
+				     GhostType ghost_type = _not_ghost);
+
+
   /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
 			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
@@ -73,7 +78,9 @@ public:
   /// compute the celerity of wave in the material
   inline Real celerity();
 
-  inline Real getStableTimeStep(Real h, const Element & element);
+  inline Real getStableTimeStep(Real h, const Element & element) {
+    MaterialDamage::getStableTimeStep(h, element);
+  };
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
