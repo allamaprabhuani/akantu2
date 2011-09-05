@@ -79,7 +79,7 @@ public:
   inline Real celerity();
 
   inline Real getStableTimeStep(Real h, const Element & element) {
-    MaterialDamage::getStableTimeStep(h, element);
+    return MaterialDamage::getStableTimeStep(h, element);
   };
 
   /// function to print the containt of the class

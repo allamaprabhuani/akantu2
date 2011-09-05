@@ -80,7 +80,6 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -89,6 +88,10 @@ protected:
   inline void computeStress(Real * F, Real * sigma, Real & damage, Real & Y);
 
   inline void computeDamageAndStress(Real * sigma, Real & dam, Real & Y);
+
+  virtual inline Real getStableTimeStep(Real h, const Element & element) {
+    return MaterialElastic::getStableTimeStep(h, element);
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
