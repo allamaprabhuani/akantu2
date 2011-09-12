@@ -35,7 +35,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
-  MaterialElastic(model, id), Material(model, id),
+  Material(model, id), MaterialElastic(model, id),
   damage("damage", id) {
   AKANTU_DEBUG_IN();
 

@@ -36,7 +36,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialDamageNonLocal::MaterialDamageNonLocal(Model & model, const ID & id)  :
-  MaterialDamage(model, id), MaterialNonLocal(model, id), Material(model, id),
+  Material(model, id), MaterialDamage(model, id), MaterialNonLocal(model, id),
   Y("Y", id) {
   AKANTU_DEBUG_IN();
 
@@ -95,22 +95,28 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
-  UInt nb_element = element_filter(el_type, ghost_type).getSize();	
-  if (nb_element == 0) return;						
+  UInt nb_element = element_filter(el_type, ghost_type).getSize();
+  if (nb_element == 0) return;
 
   ByElementTypeReal Ynl("Y non local", id);
-  model->getFEM().getMesh().initByElementTypeVector(Ynl, 1, 0);
+  initInternalVector(Ynl, 1);
+  resizeInternalVector(Ynl);
 
   weigthedAvergageOnNeighbours(Y, Ynl, 1);
-			
-  Vector<Real>::iterator<types::Matrix> stress_it = stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);				
+
+  Vector<Real>::iterator<types::Matrix> stress_it = stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Ynlt = Ynl(el_type, ghost_type).storage();
 
   Real sigma[3*3];
-  
-  for (UInt el = 0; el < nb_element; ++el) {				
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {			
+
+  for (UInt el = 0; el < nb_element; ++el) {
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {
+      for (UInt i = 0; i < spatial_dimension; ++i)
+	for (UInt j = 0; j < spatial_dimension; ++j)
+	  sigma[3 * i + j] = (*stress_it)(i, j);
+
+
       computeDamageAndStress(sigma, *dam, *Ynlt);
 
       for (UInt i = 0; i < spatial_dimension; ++i)
@@ -120,8 +126,8 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
       ++stress_it;
       ++dam;
       ++Ynlt;
-    }									
-  }									
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -132,8 +138,8 @@ bool MaterialDamageNonLocal::setParam(const std::string & key, const std::string
   std::stringstream sstr(value);
   if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
-  else { 
-    return MaterialNonLocal::setParam(key, value, id) || 
+  else {
+    return MaterialNonLocal::setParam(key, value, id) ||
       MaterialDamage::setParam(key, value, id);
   }
   return true;

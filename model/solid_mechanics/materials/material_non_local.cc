@@ -140,6 +140,7 @@ void MaterialNonLocal::updatePairList() {
       q.element = *elem;
       for (UInt nq = 0; nq < nb_quad; ++nq) {
 	q.num_point = nq;
+	q.setPosition(*quad);
 	cell_list.insert(q, *quad);
 	++quad;
       }
@@ -194,7 +195,7 @@ void MaterialNonLocal::updatePairList() {
 	  UInt neigh_num_quad = quad.element * nb_quad_per_elem + quad.num_point;
 
 	  // store only the pair of type (q1, q2) with q1 < q2
-	  if(my_num_quad != neigh_num_quad) {
+	  //	  if(my_num_quad != neigh_num_quad) {
 
 	    // little optimization to not search in the map at each quad points
 	    if(quad.type != current_element_type || quad.ghost_type != current_ghost_type) {
@@ -213,15 +214,17 @@ void MaterialNonLocal::updatePairList() {
 	      existing_pairs.insert(std::pair<ElementType, ElementType>(*it, current_element_type));
 	    }
 
-	    types::RVector neigh_quad(neigh_quad_positions + neigh_num_quad * spatial_dimension,
-				      spatial_dimension);
+	    // types::RVector neigh_quad(neigh_quad_positions + neigh_num_quad * spatial_dimension,
+	    // 			      spatial_dimension);
+	    const types::RVector & neigh_quad = quad.getPosition();
+
 	    Real distance = first_quad->distance(neigh_quad);
 	    if(distance <= radius) {
 	      UInt pair[2];
 	      pair[0] = my_num_quad; pair[1] = neigh_num_quad;
 	      neighbors->push_back(pair);
 	    }
-	  }
+	    //	  }
 	}
       }
     }
@@ -273,10 +276,9 @@ void MaterialNonLocal::computeWeights() {
   ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
   model->getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
 
-  computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
+  //  computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
 
   Real R_2 = 1. / (radius * radius);
-
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
     Vector<UInt> & pairs =
       pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
@@ -299,7 +301,7 @@ void MaterialNonLocal::computeWeights() {
       quadrature_points_coordinates(first_pair_types->first, ghost_type1).begin(spatial_dimension);
     Vector<Real>::iterator<types::RVector> iquads2 =
       quadrature_points_coordinates(first_pair_types->second, ghost_type2).begin(spatial_dimension);
-    Vector<Real> & ivolumes = quadrature_points_volumes(first_pair_types->first, ghost_type1);
+    //    Vector<Real> & ivolumes = quadrature_points_volumes(first_pair_types->first, ghost_type1);
 
     Vector<UInt>::iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
@@ -311,11 +313,58 @@ void MaterialNonLocal::computeWeights() {
       UInt q2 = (*first_pair)(1);
       Real r = iquads1[q1].distance(iquads2[q2]);
       Real alpha = (1. - r*r * R_2);
-      alpha = alpha * alpha;
-      *weight = alpha / ivolumes(q1);
+      // alpha = alpha * alpha;
+      *weight = alpha * alpha;
     }
   }
 
+  first_pair_types = existing_pairs.begin();
+  for (; first_pair_types != last_pair_types; ++first_pair_types) {
+    const Vector<UInt> & pairs =
+      pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+    const Vector<Real> & weigths =
+      pair_weigth(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+
+    const Vector<UInt> & elem_filter = element_filter(first_pair_types->first, ghost_type1);
+    UInt nb_element  = elem_filter.getSize();
+    UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(first_pair_types->first, ghost_type1) * nb_element;
+
+    Vector<Real> & quads_volumes = quadrature_points_volumes(first_pair_types->first, ghost_type1);
+    quads_volumes.resize(nb_tot_quad);
+    quads_volumes.clear();
+
+    Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
+    Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+
+    Real * pair_w = weigths.storage();
+
+    for(;first_pair != last_pair; ++first_pair, ++pair_w) {
+      UInt q1 = (*first_pair)(0);
+      //      UInt q2 = (*first_pair)(1);
+      quads_volumes(q1)  += *pair_w;
+    }
+  }
+
+  first_pair_types = existing_pairs.begin();
+  for (; first_pair_types != last_pair_types; ++first_pair_types) {
+    const Vector<UInt> & pairs =
+      pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+    const Vector<Real> & weigths =
+      pair_weigth(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+
+    Vector<Real> & quads_volumes = quadrature_points_volumes(first_pair_types->first, ghost_type1);
+
+    Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
+    Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+
+    Real * pair_w = weigths.storage();
+
+    for(;first_pair != last_pair; ++first_pair, ++pair_w) {
+      UInt q1 = (*first_pair)(0);
+      //      UInt q2 = (*first_pair)(1);
+      *pair_w *= 1. / quads_volumes(q1);
+    }
+  }
 }
 
 
@@ -342,16 +391,19 @@ void MaterialNonLocal::savePairs(const std::string & filename) const {
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
     const Vector<UInt> & pairs =
       pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+    const Vector<Real> & weigths =
+      pair_weigth(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
 
     pout << "Types : " << first_pair_types->first << " " << first_pair_types->second << std::endl;
 
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+    Real * pair_w = weigths.storage();
 
-    for(;first_pair != last_pair; ++first_pair) {
+    for(;first_pair != last_pair; ++first_pair, ++pair_w) {
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
-      pout << q1 << " " << q2 << std::endl;
+      pout << q1 << " " << q2 << " "<< *pair_w << std::endl;
     }
   }
 }

@@ -46,14 +46,25 @@ class QuadraturePoint : public Element {
 public:
   QuadraturePoint(ElementType type = _not_defined, UInt element = 0,
 		  UInt num_point = 0, GhostType ghost_type = _not_ghost) :
-    Element(type, element, ghost_type), num_point(num_point) { };
+    Element(type, element, ghost_type), num_point(num_point),
+    position() { };
 
   QuadraturePoint(const QuadraturePoint & quad) :
     Element(quad), num_point(quad.num_point) { };
 
   virtual ~QuadraturePoint() {};
+
+  AKANTU_GET_MACRO(Position, position, const types::RVector &);
+  void setPosition(const types::RVector & position) {
+    this->position.setSize(position.size());
+    this->position.setStorage(position.storage());
+  }
+
 public:
   UInt num_point;
+
+private:
+  types::RVector position;
 };
 
 /**

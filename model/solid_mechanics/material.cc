@@ -179,6 +179,7 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     /// \todo change for multi types
     if(is_non_local) computeNonLocalStress(*it, ghost_type);
 
+
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");

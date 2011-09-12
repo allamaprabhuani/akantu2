@@ -174,6 +174,21 @@ namespace types {
 
     T * storage() const { return values; };
 
+    void setStorage(T * values) {
+      AKANTU_DEBUG_ASSERT(wrapped == true,
+			  "You should not change the pointed values "
+			  << "of this kind of vector.");
+      this->values = values;
+    };
+
+    void setSize(UInt size) {
+      AKANTU_DEBUG_ASSERT(wrapped == true,
+			  "You should not change the pointed values "
+			  << "of this kind of vector.");
+      this->n = size;
+    };
+
+
     /* ---------------------------------------------------------------------- */
     inline T& operator()(UInt i) { return *(values + i); };
     inline const T& operator()(UInt i) const { return *(values + i); };
