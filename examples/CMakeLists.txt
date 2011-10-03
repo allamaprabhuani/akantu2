@@ -48,6 +48,10 @@ if(AKANTU_PARTITIONER_ON AND AKANTU_MPI_ON)
   add_example(3d_cube_compression "Cube compression example")
   add_example(scalability_test "Scalability test")
   add_example(restart_parallel "Restart in parallel")
+
+  if(AKANTU_IOHELPER_ON)
+    add_example(damage_non_local "damage non local")
+  endif()
 endif()
 
 if(AKANTU_EPSN_ON)
