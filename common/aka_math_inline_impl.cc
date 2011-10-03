@@ -32,6 +32,8 @@
 # endif //AKANTU_USE_BLAS_MKL
 #endif //AKANTU_USE_BLAS
 
+#include <math.h>
+
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt m, UInt n,
 				const Real * A,
@@ -458,10 +460,14 @@ inline void Math::vector_3d(const Real * x, const Real * y, Real * res) {
 inline bool Math::are_float_equal(const Real x, const Real y){
   return (std::abs( x - y) < tolerance);
 }
-
 /* -------------------------------------------------------------------------- */
 inline bool Math::isnan(Real x) {
-  return ::isnan(x);
+
+#ifdef __APPLE__
+    return isnan(x);
+#else
+    return ::isnan(x);
+#endif
 }
 
 /* -------------------------------------------------------------------------- */

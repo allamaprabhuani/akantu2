@@ -586,7 +586,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & norm) 
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
       if(!(*boundary_val) && is_local_node) {
-	norm += *increment_val * *increment_val;
+        norm += *increment_val * *increment_val;
       }
       boundary_val++;
       increment_val++;
@@ -596,7 +596,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & norm) 
   StaticCommunicator::getStaticCommunicator()->allReduce(&norm, 1, _so_sum);
 
   norm = sqrt(norm);
-  AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
   return (norm < tolerance);
@@ -642,7 +642,7 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & norm) {
 
   norm = sqrt(norm);
 
-  AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
   return (norm < tolerance);

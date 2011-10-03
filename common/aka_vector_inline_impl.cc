@@ -476,6 +476,15 @@ inline void VectorBase::empty() {
   size = 0;
 }
 
+/** \todo change definition of iterators
+template<class T>
+template<class R, class IR, bool value >
+
+template<class T>
+template<class R, class IR, bool = TypeTraits<R>::isScalar >
+class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
+  */
+  
 
 /* -------------------------------------------------------------------------- */
 /* Iterators                                                                  */
@@ -668,15 +677,15 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
 /**
  * Specialization for scalar types
  */
-template<typename T>
-template<int fps>
-class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T> {
+template <>
+template <>
+class Vector<Real>::iterator_internal<Real,Real,0> : public std::iterator<std::random_access_iterator_tag, Real> {
 public:
-  typedef T   value_type;
-  typedef T*  pointer;
-  typedef T&  reference;
-  typedef T   internal_value_type;
-  typedef T*  internal_pointer;
+  typedef Real   value_type;
+  typedef Real*  pointer;
+  typedef Real&  reference;
+  typedef Real   internal_value_type;
+  typedef Real*  internal_pointer;
 protected:
   iterator_internal(UInt offset, pointer data, pointer ret) : offset(offset),
 							      initial(data),
@@ -709,7 +718,7 @@ public:
     if(this != &it) {
       this->offset = it.offset;
       this->initial = it.initial;
-      this->ret = *it.ret;
+      this->ret = it.ret;
     }
     return *this;
   }
