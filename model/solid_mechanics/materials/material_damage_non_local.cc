@@ -68,6 +68,7 @@ void MaterialDamageNonLocal::computeStress(ElementType el_type, GhostType ghost_
   Real sigma[3*3];
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Yt = Y(el_type, ghost_type).storage();
+  Real * Ydq = Yd_rand(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -76,9 +77,10 @@ void MaterialDamageNonLocal::computeStress(ElementType el_type, GhostType ghost_
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  MaterialDamage::computeStress(F, sigma, *dam, *Yt);
+  MaterialDamage::computeStress(F, sigma, *dam, *Yt, *Ydq);
   ++dam;
   ++Yt;
+  ++Ydq;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -107,6 +109,7 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
   Vector<Real>::iterator<types::Matrix> stress_it = stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Ynlt = Ynl(el_type, ghost_type).storage();
+  Real * Ydq = Yd_rand(el_type, ghost_type).storage();
 
   Real sigma[3*3];
 
@@ -117,7 +120,7 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
 	  sigma[3 * i + j] = (*stress_it)(i, j);
 
 
-      computeDamageAndStress(sigma, *dam, *Ynlt);
+      computeDamageAndStress(sigma, *dam, *Ynlt, *Ydq);
 
       for (UInt i = 0; i < spatial_dimension; ++i)
 	for (UInt j = 0; j < spatial_dimension; ++j)
@@ -125,7 +128,8 @@ void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
 
       ++stress_it;
       ++dam;
-      ++Ynlt;
+      ++Ynlt;  
+      ++Ydq;
     }
   }
 

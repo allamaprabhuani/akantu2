@@ -89,9 +89,9 @@ int main(int argc, char *argv[]) {
   model.initModel();
   model.initVectors();
   model.initExplicit();
-
   model.readMaterials("material.dat");
   model.initMaterials();
+
 
   /// set vectors to 0
   model.getForce().clear();
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 template <ElementType type>
-static UInt getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return -1; };
+static UInt getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return 0; };
 
 template <> UInt getIOHelperType<_segment_2>()      { return LINE1; }
 template <> UInt getIOHelperType<_segment_3>()      { return LINE2; }
@@ -176,7 +176,7 @@ template <> UInt getIOHelperType<_tetrahedron_10>() { return TETRA2; }
 template <> UInt getIOHelperType<_hexahedron_8>()   { return HEX1; }
 
 static UInt getIOHelperType(ElementType type) {
-  UInt ioh_type = -1;
+  UInt ioh_type = 0;
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = getIOHelperType<type>();
 

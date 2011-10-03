@@ -59,10 +59,12 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+
   void updatePairList();
 
-  /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
+
 
   virtual void computeWeights();
 

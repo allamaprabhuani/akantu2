@@ -31,7 +31,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam, Real & Y) {
+inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam, Real & Y, Real &Ydq) {
 
   Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
   /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
@@ -56,15 +56,15 @@ inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam, Re
   Y *= 0.5;
 
   if(!is_non_local) {
-    computeDamageAndStress(sigma, dam, Y);
+    computeDamageAndStress(sigma, dam, Y, Ydq);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialDamage::computeDamageAndStress(Real * sigma, Real & dam, Real & Y) {
-  Real Fd = Y - Yd - Sd*dam;
+inline void MaterialDamage::computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real &Ydq) {
+  Real Fd = Y - Ydq - Sd*dam;
 
-  if (Fd > 0) dam = (Y - Yd) / Sd;
+  if (Fd > 0) dam = (Y - Ydq) / Sd;
   dam = std::min(dam,1.);
 
   sigma[0] *= 1-dam;

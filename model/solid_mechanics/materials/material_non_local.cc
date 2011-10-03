@@ -59,7 +59,7 @@ MaterialNonLocal::~MaterialNonLocal() {
 /* -------------------------------------------------------------------------- */
 void MaterialNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
-  Material::initMaterial();
+  //  Material::initMaterial();
 
   updatePairList();
   computeWeights();
@@ -112,8 +112,9 @@ void MaterialNonLocal::updatePairList() {
 
     Vector<Real>::iterator<types::RVector> first_quad = quads.begin(spatial_dimension);
     Vector<Real>::iterator<types::RVector> last_quad = quads.end(spatial_dimension);
-    for(;first_quad != last_quad; ++first_quad)
+    for(;first_quad != last_quad; ++first_quad) {
       cell_list.count(*first_quad);
+    }
   }
 
 
@@ -408,5 +409,16 @@ void MaterialNonLocal::savePairs(const std::string & filename) const {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+void MaterialNonLocal::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
+  stream << space << "Material<_non_local> [" << std::endl;
+  stream << space << " + Radius                      : " << radius << std::endl;
+
+  stream << space << "]" << std::endl;
+}
+
+/* -------------------------------------------------------------------------- */
 __END_AKANTU__

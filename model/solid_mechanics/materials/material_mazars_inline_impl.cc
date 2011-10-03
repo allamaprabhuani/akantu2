@@ -1,7 +1,6 @@
 /**
  * @file   material_mazars_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 11:57:43 2010
  *
@@ -31,7 +30,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam) {
+inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam, Real &Ehat) {
 
   Real trace = F[0] + F[4] + F[8];
   Real K = 1./3. * (E/(1. - 2.*nu));
@@ -47,7 +46,7 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam) {
   Fdiagp[1] = std::max(0., Fdiag[1]);
   Fdiagp[2] = std::max(0., Fdiag[2]);
 
-  Real Ehat=sqrt(Fdiagp[0]*Fdiagp[0]+Fdiagp[1]*Fdiagp[1]+Fdiagp[2]*Fdiagp[2]);
+  Ehat=sqrt(Fdiagp[0]*Fdiagp[0]+Fdiagp[1]*Fdiagp[1]+Fdiagp[2]*Fdiagp[2]);
 
   sigma[0] = K * trace + 2*G * (F[0] - trace/3);
   sigma[4] = K * trace + 2*G * (F[4] - trace/3);
@@ -56,6 +55,20 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam) {
   sigma[2] = sigma[6] =  G * (F[2] + F[6]);
   sigma[5] = sigma[7] =  G * (F[5] + F[7]);
 
+  if(!is_non_local) {
+    computeDamageAndStress(F,sigma, dam, Ehat);
+  }
+}
+inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real & dam, Real & Ehat) {
+   Real lambda = nu * E / ((1 + nu) * (1 - 2*nu));
+  Real Fdiag[3];
+  Real Fdiagp[3];
+
+  Math::matrix33_eigenvalues(F, Fdiag);
+
+  Fdiagp[0] = std::max(0., Fdiag[0]);
+  Fdiagp[1] = std::max(0., Fdiag[1]);
+  Fdiagp[2] = std::max(0., Fdiag[2]);
   Real Fs = Ehat - K0;
   if (Fs > 0.) {
     Real damt;

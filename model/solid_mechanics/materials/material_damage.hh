@@ -43,6 +43,8 @@ __BEGIN_AKANTU__
  * parameters in the material files :
  *   - Yd  : (default: 50)
  *   - Sd  : (default: 5000)
+ *   - Ydrandomness  : (default:0)
+
  */
 class MaterialDamage : public MaterialElastic {
   /* ------------------------------------------------------------------------ */
@@ -85,9 +87,9 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma, Real & damage, Real & Y);
+  inline void computeStress(Real * F, Real * sigma, Real & damage, Real & Y, Real & Ydq);
 
-  inline void computeDamageAndStress(Real * sigma, Real & dam, Real & Y);
+  inline void computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real & Ydq );
 
   virtual inline Real getStableTimeStep(Real h, const Element & element) {
     return MaterialElastic::getStableTimeStep(h, element);
@@ -109,9 +111,13 @@ protected:
 
   /// damage threshold
   Real Sd;
-
+  /// randomness on Yd
+  Real Yd_randomness ;
   /// damage internal variable
   ByElementTypeReal damage;
+  /// Yd random internal variable
+  ByElementTypeReal Yd_rand;
+
 };
 
 /* -------------------------------------------------------------------------- */

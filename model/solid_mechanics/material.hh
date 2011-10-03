@@ -322,6 +322,8 @@ __END_AKANTU__
   ((neohookean     , MaterialNeohookean    ))				\
   ((non_local      , MaterialNonLocal      ))                           \
   ((damage_non_local , MaterialDamageNonLocal))                         \
+  ((mazars_non_local , MaterialMazarsNonLocal))                         \
+  ((damage_linear   , MaterialDamageLinear))                         
 
 
 #include "materials/material_elastic.hh"
@@ -331,6 +333,7 @@ __END_AKANTU__
 #include "materials/material_neohookean.hh"
 #include "materials/material_non_local.hh"
 #include "materials/material_damage_non_local.hh"
-
+#include "materials/material_mazars_non_local.hh"
+#include "materials/material_damage_linear.hh"
 
 #endif /* __AKANTU_MATERIAL_HH__ */

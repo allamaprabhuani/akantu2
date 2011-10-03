@@ -157,6 +157,8 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/materials/material_mazars.cc
   model/solid_mechanics/materials/material_neohookean.cc  
   model/solid_mechanics/materials/material_damage_non_local.cc
+  model/solid_mechanics/materials/material_mazars_non_local.cc
+  model/solid_mechanics/materials/material_damage_linear.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc

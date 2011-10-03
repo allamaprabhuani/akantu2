@@ -78,8 +78,8 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-  computeStress(F, sigma, *dam);
+  Real Ehat ;
+  computeStress(F, sigma, *dam, Ehat);
   ++dam;
 
   for (UInt i = 0; i < spatial_dimension; ++i)

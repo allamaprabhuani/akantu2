@@ -21,7 +21,8 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
- *
+ *  if(key == "Yd") { sstr >> Yd; }
+  else if(key == "Sd") { sstr >> Sd; }
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -51,7 +52,7 @@ __BEGIN_AKANTU__
  *   - Bc   : Parameter damage compression 2
  *   - beta : Parameter for shear
  */
-class MaterialMazars : public Material {
+class MaterialMazars : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -74,8 +75,7 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma,Real & damage);
+
 
   /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
@@ -91,6 +91,12 @@ public:
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
+  
+protected:
+  /// constitutive law for a given quadrature point
+  inline void computeStress(Real * F, Real * sigma,Real & damage, Real & Ehat);
+  
+  inline void computeDamageAndStress( Real *F, Real * sigma,Real & damage, Real & Ehat);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -101,7 +107,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// the young modulus
   Real E;
   /// Poisson coefficient
