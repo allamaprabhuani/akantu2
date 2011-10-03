@@ -60,17 +60,20 @@ public:
   virtual bool setParam(const std::string & key, const std::string & value,
 			const ID & id);
 
-  /// constitutive law for all element of a type
+
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law
-  virtual void computeNonLocalStress(ElementType el_type,
+  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost);
+
+  virtual void computeNonLocalStress(Vector<Real> & damage,
+				     ElementType el_type,
 				     GhostType ghost_type = _not_ghost);
 
 
   /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
+			       __attribute__ ((unused)) Vector<Real> & tangent_matrix,
 			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };

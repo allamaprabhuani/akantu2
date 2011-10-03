@@ -1,9 +1,9 @@
 /**
- * @file   material_mazars_non_local.hh
- * @author  <chambart@lsmscluster1.epfl.ch>
- * @date   Wed Aug 31 17:08:23 2011
- * 
- * @brief  
+ * @file   grid_synchronizer.hh
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @date   Fri Sep 16 15:05:52 2011
+ *
+ * @brief  synchronizer based in RegularGrid
  *
  * @section LICENSE
  *
@@ -22,70 +22,40 @@
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "material.hh"
-/* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH__
-#define __AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH__
+#ifndef __AKANTU_GRID_SYNCHRONIZER_HH__
+#define __AKANTU_GRID_SYNCHRONIZER_HH__
 
 __BEGIN_AKANTU__
 
-/**
- * Material Mazars Non local
- *
- * parameters in the material files :
- */
-class MaterialMazarsNonLocal : public MaterialMazars, public MaterialNonLocal {
+class GridSynchronizer : protected Synchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialMazarsNonLocal(Model & model, const ID & id = "");
+  GridSynchronizer(ID & id = "grid_synchronizer", MemoryID memory_id = 0);
 
-  virtual ~MaterialMazarsNonLocal() {};
+  virtual ~GridSynchronizer();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  void initMaterial();
+  static GridSynchronizer *
+  createGridSynchronizer(Mesh & mesh,
+			 const RegularGrid * grid,
+			 UInt root = 0,
+			 SynchronizerID id = "grid_synchronizer",
+			 MemoryID memory_id = 0);
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
-
-  /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// constitutive law
-  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost);
-  virtual void computeNonLocalStress(Vector<Real> & Ehatnl,
-				     ElementType el_type,
-				     GhostType ghost_type = _not_ghost);
-
-
-  /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
-			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  /// compute the celerity of wave in the material
-  inline Real celerity();
-
-  inline Real getStableTimeStep(Real h, const Element & element) {
-    return MaterialMazars::getStableTimeStep(h, element);
-  };
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  /// function to print the contain of the class
+  // virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -97,23 +67,23 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  ByElementTypeReal Ehat;
 };
+
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "material_mazars_non_local_inline_impl.cc"
+#include "grid_synchronizer_inline_impl.cc"
 
-/* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialMazarsNonLocal & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+// inline std::ostream & operator <<(std::ostream & stream, const GridSynchronizer & _this)
+// {
+//   _this.printself(stream);
+//   return stream;
+// }
+
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH__ */
+#endif /* __AKANTU_GRID_SYNCHRONIZER_HH__ */

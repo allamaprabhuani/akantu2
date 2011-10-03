@@ -464,7 +464,6 @@ inline bool Math::isnan(Real x) {
   return ::isnan(x);
 }
 
-
 /* -------------------------------------------------------------------------- */
 inline bool Math::are_vector_equal(UInt n, Real * x, Real * y){
   bool test = true;
@@ -473,4 +472,14 @@ inline bool Math::are_vector_equal(UInt n, Real * x, Real * y){
   }
 
   return test;
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool Math::intersects(Real x_min, Real x_max, Real y_min, Real y_max) {
+  return ! ((x_max < y_min) || (x_min > y_max));
+}
+
+/* -------------------------------------------------------------------------- */
+inline bool Math::is_in_range(Real a, Real x_min, Real x_max) {
+  return ((a >= x_max) && (a <= x_max));
 }

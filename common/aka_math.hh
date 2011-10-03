@@ -199,6 +199,13 @@ public:
 
   /// test if a real is a NaN
   static inline bool isnan(Real x);
+
+  /// test if the line x and y intersects each other
+  inline bool intersects(Real x_min, Real x_max, Real y_min, Real y_max);
+
+  /// test if a is in the range [x_min, x_max]
+  inline bool is_in_range(Real a, Real x_min, Real x_max);
+
 };
 
 

@@ -88,19 +88,33 @@ void MaterialMazarsNonLocal::computeStress(ElementType el_type, GhostType ghost_
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
-void MaterialMazarsNonLocal::computeNonLocalStress(ElementType el_type, GhostType ghost_type) {
+void MaterialMazarsNonLocal::computeNonLocalStress(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
- 
-  ByElementTypeReal Ehatnl("Y non local", id);
-  model->getFEM().getMesh().initByElementTypeVector(Ehatnl, 1, 0);
+  ByElementTypeReal Ehatnl("Ehat non local", id);
+  initInternalVector(Ehatnl, 1);
+  resizeInternalVector(Ehatnl);
 
   weigthedAvergageOnNeighbours(Ehat, Ehatnl, 1);
-			
+
+  UInt spatial_dimension = model->getSpatialDimension();
+
+  Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+
+  for(; it != last_type; ++it) {
+    computeNonLocalStress(Ehatnl(*it, ghost_type), *it, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & Ehatnl, ElementType el_type, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
   Real * dam = damage(el_type, ghost_type).storage();
-  Real * Ehatnlt = Ehatnl(el_type, ghost_type).storage();
+  Real * Ehatnlt = Ehatnl.storage();
 
   Real sigma[3*3];
   Real F[3*3] ;
@@ -113,7 +127,7 @@ void MaterialMazarsNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
       F[3*i + j] = strain_val[spatial_dimension * i + j];
       sigma[3 * i + j] = stress_val[spatial_dimension*i + j];
     }
-      
+
   computeDamageAndStress(F, sigma, *dam, *Ehatnlt);
 
   ++dam;
@@ -125,9 +139,6 @@ void MaterialMazarsNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-    									
-  									
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -135,10 +146,10 @@ void MaterialMazarsNonLocal::computeNonLocalStress(ElementType el_type, GhostTyp
 bool MaterialMazarsNonLocal::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
 
-   
-    return MaterialNonLocal::setParam(key, value, id) || 
+
+    return MaterialNonLocal::setParam(key, value, id) ||
       MaterialMazars::setParam(key, value, id);
-  
+
 }
 
 

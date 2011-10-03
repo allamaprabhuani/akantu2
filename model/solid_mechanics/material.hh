@@ -47,7 +47,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-/** 
+/**
  * Interface of all materials
  * Prerequisites for a new material
  * - inherit from this class
@@ -86,9 +86,14 @@ public:
   virtual void initMaterial();
 
   /// compute the residual for this material
-  void updateResidual(Vector<Real> & current_position,
-		      GhostType ghost_type = _not_ghost);
+  virtual void updateResidual(Vector<Real> & current_position,
+			      GhostType ghost_type = _not_ghost);
 
+  void assembleResidual(GhostType ghost_type);
+
+  /// compute the residual for this material
+  virtual void computeStress(Vector<Real> & current_position,
+			     GhostType ghost_type = _not_ghost);
 
   /// compute the stiffness matrix
   void assembleStiffnessMatrix(Vector<Real> & current_position,
@@ -111,11 +116,11 @@ protected:
   virtual void computeStress(ElementType el_type,
 			     GhostType ghost_type = _not_ghost) = 0;
 
-  /// constitutive law
-  virtual void computeNonLocalStress(ElementType el_type,
-				     GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  // /// constitutive law
+  // virtual void computeNonLocalStress(ElementType el_type,
+  // 				     GhostType ghost_type = _not_ghost) {
+  //   AKANTU_DEBUG_TO_IMPLEMENT();
+  // };
 
   /// compute the tangent stiffness matrix
   virtual void computeTangentStiffness(const ElementType & el_type,
@@ -315,15 +320,14 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define AKANTU_MATERIAL_LIST						\
-  ((elastic        , MaterialElastic       ))				\
-  ((elastic_caughey, MaterialElasticCaughey))				\
-  ((damage         , MaterialDamage        ))				\
-  ((mazars         , MaterialMazars        ))				\
-  ((neohookean     , MaterialNeohookean    ))				\
-  ((non_local      , MaterialNonLocal      ))                           \
-  ((damage_non_local , MaterialDamageNonLocal))                         \
-  ((mazars_non_local , MaterialMazarsNonLocal))                         \
-  ((damage_linear   , MaterialDamageLinear))                         
+  ((elastic         , MaterialElastic       ))				\
+  ((elastic_caughey , MaterialElasticCaughey))				\
+  ((damage          , MaterialDamage        ))				\
+  ((mazars          , MaterialMazars        ))				\
+  ((neohookean      , MaterialNeohookean    ))				\
+  ((damage_non_local, MaterialDamageNonLocal))				\
+  ((mazars_non_local, MaterialMazarsNonLocal))				\
+  ((damage_linear   , MaterialDamageLinear))
 
 
 #include "materials/material_elastic.hh"

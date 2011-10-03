@@ -552,6 +552,10 @@ public:
     return (*this).ret->values != other.ret->values;
   }
 
+  inline const pointer_type getCurrentStorage() const {
+    return ret->storage();
+  }
+
 protected:
   UInt offset;
   pointer_type initial;
@@ -660,6 +664,10 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
 //   return *this;
 // }
 
+/* -------------------------------------------------------------------------- */
+/**
+ * Specialization for scalar types
+ */
 template<typename T>
 template<int fps>
 class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T> {
@@ -727,11 +735,25 @@ public:
     return (*this).ret != other.ret;
   }
 
+  inline const pointer getCurrentStorage() const {
+    return ret;
+  }
+
 protected:
   UInt offset;
   pointer initial;
   pointer ret;
 };
+
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+template<typename R>
+inline void Vector<T>::erase(const iterator<R> & it) {
+  T * curr = it.getCurrentStorage();
+  UInt pos = (curr - values) / nb_component;
+  erase(pos);
+}
 
 // inline reference operator[](const UInt n) {
 //   ret->values = initial + n*offset;

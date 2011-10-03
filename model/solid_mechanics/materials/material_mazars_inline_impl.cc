@@ -35,7 +35,7 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam, Re
   Real trace = F[0] + F[4] + F[8];
   Real K = 1./3. * (E/(1. - 2.*nu));
   Real G = E / (2*(1 + nu));
-  Real lambda = nu * E / ((1 + nu) * (1 - 2*nu));
+  //  Real lambda = nu * E / ((1 + nu) * (1 - 2*nu));
 
   Real Fdiag[3];
   Real Fdiagp[3];

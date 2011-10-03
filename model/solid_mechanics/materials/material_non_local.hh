@@ -59,14 +59,9 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
 
-  void updatePairList();
-
-
-
-  virtual void computeWeights();
+  virtual void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
 
   void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
 
@@ -80,27 +75,35 @@ public:
 				    ByElementTypeVector<T> & accumulated,
 				    UInt nb_degree_of_freedom) const;
 
-  Real getStableTimeStep(Real h, const Element & element = ElementNull) { 
-    AKANTU_DEBUG_TO_IMPLEMENT();
-    return 0.;
-  };
+  /// function to print the contain of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  void computeStress(ElementType el_type,
-		     GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  // Real getStableTimeStep(Real h, const Element & element = ElementNull) {
+  //   AKANTU_DEBUG_TO_IMPLEMENT();
+  //   return 0.;
+  // };
+
+  // void computeStress(ElementType el_type,
+  // 		     GhostType ghost_type = _not_ghost) {
+  //   AKANTU_DEBUG_TO_IMPLEMENT();
+  // };
+
+  virtual void updateResidual(Vector<Real> & displacement, GhostType ghost_type);
 
   /// constitutive law
-  virtual void computeNonLocalStress(ElementType el_type,
-				     GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  virtual void computeNonLocalStress(Vector<Real> & averaged_field,
+				     ElementType el_type,
+				     GhostType ghost_type = _not_ghost) = 0;
 
-  void computeTangentStiffness(const ElementType & el_type,
-			       Vector<Real> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;
+
+  void removeDamaged(const ByElementTypeReal & damage, Real thresold);
+
+  // void computeTangentStiffness(const ElementType & el_type,
+  // 			       Vector<Real> & tangent_matrix,
+  // 			       GhostType ghost_type = _not_ghost) {
+  //   AKANTU_DEBUG_TO_IMPLEMENT();
+  // };
 
 
   void savePairs(const std::string & filename) const;
@@ -124,7 +127,7 @@ private:
 
   Real radius;
 
-  ByElementTypeReal quadrature_points_coordinates;
+  //  ByElementTypeReal quadrature_points_coordinates;
 
   std::set< std::pair<ElementType, ElementType> > existing_pairs;
 };

@@ -51,7 +51,7 @@ class DistributedSynchronizer : public Synchronizer {
   /* ------------------------------------------------------------------------ */
 public:
 
-  DistributedSynchronizer(SynchronizerID id = "distributedSynchronizer", 
+  DistributedSynchronizer(SynchronizerID id = "distributed_synchronizer",
 			  MemoryID memory_id = 0);
   virtual ~DistributedSynchronizer();
 
@@ -59,12 +59,13 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get a mesh and a partition and create the local mesh and the associated distributedSynchronizer
-  static DistributedSynchronizer * 
+  /// get a  mesh and a partition and  create the local mesh  and the associated
+  /// DistributedSynchronizer
+  static DistributedSynchronizer *
   createDistributedSynchronizerMesh(Mesh & mesh,
 				    const MeshPartition * partition,
 				    UInt root = 0,
-				    SynchronizerID id = "distributedSynchronizer",
+				    SynchronizerID id = "distributed_synchronizer",
 				    MemoryID memory_id = 0);
 
   /* ------------------------------------------------------------------------ */
@@ -88,7 +89,7 @@ protected:
 			       UInt nb_ghost_element,
 			       ElementType type);
 
-  /// compute buffer size for a given tag and data accessor 
+  /// compute buffer size for a given tag and data accessor
   void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */

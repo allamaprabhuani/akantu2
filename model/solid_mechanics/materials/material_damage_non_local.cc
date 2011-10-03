@@ -91,24 +91,82 @@ void MaterialDamageNonLocal::computeStress(ElementType el_type, GhostType ghost_
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void MaterialDamageNonLocal::computeNonLocalStress(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  const Mesh & mesh = model->getFEM().getMesh();
+
+  ByElementTypeReal Ynl("Y non local", id);
+  initInternalVector(Ynl, 1);
+  resizeInternalVector(Ynl);
+
+
+  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+  mesh.initByElementTypeVector(quadrature_points_coordinates,
+			       spatial_dimension, 0);
+
+  Vector<Real> coordinates(mesh.getNodes(), true);
+  coordinates += model->getDisplacement();
+
+  for(UInt gt =  (UInt) _not_ghost; gt < (UInt) _casper; ++gt) {
+    GhostType ghost_type = (GhostType) gt;
+    Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
+    Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+    for(; it != last_type; ++it) {
+      Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+
+      UInt nb_element  = elem_filter.getSize();
+      UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(*it, ghost_type) * nb_element;
+
+      Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
+      quads.resize(nb_tot_quad);
+
+      model->getFEM().interpolateOnQuadraturePoints(coordinates,
+						    quads, spatial_dimension,
+						    *it, ghost_type, &elem_filter);
+    }
+  }
+
+
+  // static UInt count = 0;
+  // count ++;
+  // if(count % 2000 == 0) {
+
+  //  removeDamaged(damage, 1.);
+  computeWeights(quadrature_points_coordinates);
+
+  // }
+
+  weigthedAvergageOnNeighbours(Y, Ynl, 1);
+
+  UInt spatial_dimension = model->getSpatialDimension();
+
+  Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+
+  for(; it != last_type; ++it) {
+    computeNonLocalStress(Ynl(*it, ghost_type), *it, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamageNonLocal::computeNonLocalStress(ElementType el_type, GhostType ghost_type) {
+void MaterialDamageNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
+						   ElementType el_type,
+						   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
   UInt nb_element = element_filter(el_type, ghost_type).getSize();
   if (nb_element == 0) return;
 
-  ByElementTypeReal Ynl("Y non local", id);
-  initInternalVector(Ynl, 1);
-  resizeInternalVector(Ynl);
+  Vector<Real>::iterator<types::Matrix> stress_it =
+    stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
-  weigthedAvergageOnNeighbours(Y, Ynl, 1);
-
-  Vector<Real>::iterator<types::Matrix> stress_it = stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
   Real * dam = damage(el_type, ghost_type).storage();
-  Real * Ynlt = Ynl(el_type, ghost_type).storage();
+  Real * Ynlt = Ynl.storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
 
   Real sigma[3*3];
@@ -163,3 +221,4 @@ void MaterialDamageNonLocal::printself(std::ostream & stream, int indent) const 
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__
+

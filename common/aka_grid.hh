@@ -55,8 +55,8 @@ public:
   void insert(const T & d, const types::RVector & position);
 
   inline void count(const types::RVector & position);
-  inline UInt getCell(const types::RVector & position) const;
-
+  inline UInt getNumCell(const types::RVector & position) const;
+  inline UInt getCell(Real position, UInt direction) const;
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};

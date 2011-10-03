@@ -216,6 +216,10 @@ public:
    */
   inline void erase(UInt i);
 
+  template<typename R>
+  inline void erase(const iterator<R> & it);
+
+
   /// change the size of the vector and allocate more memory if needed
   void resize(UInt size);
 

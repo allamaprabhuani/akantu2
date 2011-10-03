@@ -52,10 +52,10 @@ class Model : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline Model(const ID & id = "model",
-	       const MemoryID & memory_id = 0);
+  Model(const ID & id = "model",
+	const MemoryID & memory_id = 0);
 
-  inline virtual ~Model();
+  virtual ~Model();
 
   typedef std::map<std::string, FEM *> FEMMap;
 

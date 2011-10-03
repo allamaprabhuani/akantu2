@@ -59,23 +59,23 @@ RegularGrid<T>::RegularGrid(UInt dimension, Real * lower_bounds,
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void RegularGrid<T>::insert(const T & d, const types::RVector & position) {
-  UInt num_cell = getCell(position);
+  UInt num_cell = getNumCell(position);
   data.insertInRow(num_cell, d);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void RegularGrid<T>::count(const types::RVector & position) {
-  UInt num_cell = getCell(position);
+  UInt num_cell = getNumCell(position);
   data.rowOffset(num_cell)++;
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline UInt RegularGrid<T>::getCell(const types::RVector & position) const {
+inline UInt RegularGrid<T>::getNumCell(const types::RVector & position) const {
   UInt cell[dimension];
   for (UInt i = 0; i < dimension; ++i) {
-    cell[i] = std::floor((position(i) - this->lower_bounds[i]) / spacing[i]) + 1;
+    cell[i] = getCell(position(i), i);
   }
 
   UInt num_cell = 0;
@@ -88,46 +88,8 @@ inline UInt RegularGrid<T>::getCell(const types::RVector & position) const {
   return num_cell;
 }
 
-// /* -------------------------------------------------------------------------- */
-// __END_AKANTU__
-// #include "mesh.hh"
-// #include "mesh_io.hh"
-// __BEGIN_AKANTU__
-
-// template<typename T>
-// inline UInt RegularGrid<T>::saveAsMesh() const {
-//   Mesh mesh(spatial_dimension);
-
-//   Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
-
-//   ElementType type;
-//   switch(spatial_dimension) {
-//   case 1: type = _segment_2; break;
-//   case 2: type = _quadrangle_4; break;
-//   case 3: type = _hexahedron_8; break;
-//   }
-
-//   mesh.addConnecticityType(type);
-//   Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type));
-
-//   connectivity.resize(data.getNbRows());
-
-//   UInt nb_nodes = 1;
-//   for (UInt i = 0; i < spatial_dimension; ++i) nb_nodes *= nb_cells[i] + 1;
-//   nodes.resize(nb_nodes);
-
-//   UInt n = 0;
-//   for (UInt i = 0; i < nb_cells[0]; ++i) {
-//     nodes(n, 0) = lower_bounds[0] + (i - 1) * spacing[0];
-//     if(spatial_dimension >= 2) {
-//       for (UInt j = 0; j < nb_cells[1]; ++j) {
-// 	nodes(n, 1) = lower_bounds[1] + (j - 1) * spacing[1];
-// 	if(spatial_dimension >= 3) {
-// 	  for (UInt k = 0; k < nb_cells[2]; ++k, ++n)
-// 	    nodes(n, 2) = lower_bounds[2] + (k - 1) * spacing[2];
-// 	} else ++n;
-//       }
-//     } else ++n;
-//   }
-//  /// need the connectivity
-// }
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline UInt RegularGrid<T>::getCell(Real position, UInt direction) const {
+  return std::floor((position - lower_bounds[direction]) / spacing[direction]) + 1;
+}

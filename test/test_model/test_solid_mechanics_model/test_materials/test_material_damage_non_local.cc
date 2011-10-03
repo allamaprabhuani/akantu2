@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
   debug::setDebugLevel(dblWarning);
 
   akantu::initialize(&argc,&argv);
-  UInt max_steps = 20000;
+  UInt max_steps = 40000;
 
   Real bar_height = 4.;
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
   fem_boundary.computeNormalsOnControlPoints();
   model.computeForcesFromFunction(trac, akantu::_bft_stress);
 
-  MaterialDamageNonLocal & mat = dynamic_cast<MaterialDamageNonLocal &>((model.getMaterial(0)));
+  MaterialDamage & mat = dynamic_cast<MaterialDamage &>((model.getMaterial(0)));
 
 #ifdef AKANTU_USE_IOHELPER
   model.updateResidual();
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
   DumperParaview dumper;
   dumper.SetMode(BASE64);
 
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates_damage_nl");
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_6).values,
 			 TRIANGLE2, model.getFEM().getMesh().getNbElement(_triangle_6), C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
 
-  mat.savePairs("cl_pairs");
+  //  mat.savePairs("cl_pairs");
 
   for(UInt s = 0; s < max_steps; ++s) {
     model.explicitPred();
@@ -155,6 +155,8 @@ int main(int argc, char *argv[])
     model.updateResidual();
     model.updateAcceleration();
     model.explicitCorr();
+
+    if(s % 100 == 0) std::cout << "Step " << s+1 << "/" << max_steps <<std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
     if(s % 100 == 0) dumper.Dump();

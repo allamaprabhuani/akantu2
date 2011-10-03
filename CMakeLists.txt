@@ -145,6 +145,7 @@ set(AKANTU_COMMON_SRC
   fem/fem.cc
   fem/element_class.cc
   fem/fem_template.cc
+  model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_boundary.cc

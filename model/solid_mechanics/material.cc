@@ -87,8 +87,10 @@ bool Material::setParam(const std::string & key, const std::string & value,
 /* -------------------------------------------------------------------------- */
 void Material::initMaterial() {
   AKANTU_DEBUG_IN();
+
   resizeInternalVector(stress);
   resizeInternalVector(strain);
+
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
@@ -132,32 +134,42 @@ void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) {
 
   AKANTU_DEBUG_OUT();
 }
+
 /* -------------------------------------------------------------------------- */
 /**
  * Compute  the  residual  by  assembling  @f$\int_{e}  \sigma_e  \frac{\partial
  * \varphi}{\partial X} dX @f$
  *
- * @param[in] current_position nodes postition + displacements
+ * @param[in] displacements nodes displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_type) {
+void Material::updateResidual(Vector<Real> & displacement, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  computeStress(displacement, ghost_type);
+
+  assembleResidual(ghost_type);
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void Material::assembleResidual(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model->getSpatialDimension();
 
   Vector<Real> & residual = const_cast<Vector<Real> &>(model->getResidual());
 
-  const Mesh::ConnectivityTypeList & type_list =
-    model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
+  Mesh & mesh = model->getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != last_type; ++it) {
     const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(*it, ghost_type);
+
     Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
-    Vector<Real> & strain_vect = strain(*it, ghost_type);
-    Vector<Real> & stress_vect = stress(*it, ghost_type);
+
 
 
     UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
@@ -166,26 +178,11 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     UInt nb_element = elem_filter.getSize();
 
-    strain_vect.resize(nb_quadrature_points * nb_element);
-
-    /// compute @f$\nabla u@f$
-    model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
-					      spatial_dimension,
-					      *it, ghost_type, &elem_filter);
-
-    /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
-    computeStress(*it, ghost_type);
-
-    /// \todo change for multi types
-    if(is_non_local) computeNonLocalStress(*it, ghost_type);
-
-
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
-    Real * shapesd           = shapes_derivatives.values;
-    UInt size_of_shapesd     = shapes_derivatives.getNbComponent();
+    Real * shapesd           = shapes_derivatives.storage();
     Real * shapesd_val;
     UInt * elem_filter_val   = elem_filter.storage();
 
@@ -194,13 +191,13 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
     Real * shapesd_filtered_val = shapesd_filtered->values;
 
     for (UInt el = 0; el < nb_element; ++el) {
-      shapesd_val = shapesd + elem_filter_val[el] * size_of_shapesd * nb_quadrature_points;
-      memcpy(shapesd_filtered_val,
-	     shapesd_val,
-	     size_of_shapesd * nb_quadrature_points * sizeof(Real));
-      shapesd_filtered_val += size_of_shapesd * nb_quadrature_points;
+      shapesd_val = shapesd + elem_filter_val[el] * size_of_shapes_derivatives * nb_quadrature_points;
+      memcpy(shapesd_filtered_val, shapesd_val,
+	     size_of_shapes_derivatives * nb_quadrature_points * sizeof(Real));
+      shapesd_filtered_val += size_of_shapes_derivatives * nb_quadrature_points;
     }
 
+    Vector<Real> & stress_vect = stress(*it, ghost_type);
     Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
 			 *shapesd_filtered,
 			 stress_vect,
@@ -208,22 +205,10 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
     delete shapesd_filtered;
 
-    // for (UInt el = 0; el < nb_element; ++el) {
-    //   shapesd_val = shapesd + elem_filter_val[el]*size_of_shapesd*nb_quadrature_points;
-    //   for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    // 	Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-    // 			     shapesd_val, stress_val, sigma_dphi_dx_val);
-    // 	shapesd_val       += offset_shapesd_val;
-    // 	stress_val        += offset_stress_val;
-    // 	sigma_dphi_dx_val += offset_sigma_dphi_dx_val;
-    //   }
-    // }
-
     /**
      * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
-
     Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element, nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
 
@@ -243,6 +228,43 @@ void Material::updateResidual(Vector<Real> & current_position, GhostType ghost_t
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+/**
+ * Compute  the  stress from the strain
+ *
+ * @param[in] current_position nodes postition + displacements
+ * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
+ */
+void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = model->getSpatialDimension();
+
+  Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+
+  for(; it != last_type; ++it) {
+    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Vector<Real> & strain_vect = strain(*it, ghost_type);
+
+    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it, ghost_type);
+    UInt nb_element = elem_filter.getSize();
+
+    strain_vect.resize(nb_quadrature_points * nb_element);
+
+    /// compute @f$\nabla u@f$
+    model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
+					      spatial_dimension,
+					      *it, ghost_type, &elem_filter);
+
+    /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
+    computeStress(*it, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 /**

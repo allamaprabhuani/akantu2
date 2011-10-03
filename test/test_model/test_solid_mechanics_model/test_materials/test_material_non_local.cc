@@ -53,27 +53,27 @@ int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   mesh_io.read("mesh.msh", mesh);
 
-  SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
-  model->initModel();
-  model->initVectors();
-  model->readMaterials("material_non_local.dat");
-  model->initMaterials();
+  SolidMechanicsModel model(mesh);
+  model.initModel();
+  model.initVectors();
+  model.readMaterials("material_non_local.dat");
+  model.initMaterials();
 
-  model->getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
-  const MaterialNonLocal & mat = dynamic_cast<const MaterialNonLocal &>(model->getMaterial(0));
+  model.getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
+  const MaterialNonLocal & mat = dynamic_cast<const MaterialNonLocal &>(model.getMaterial(0));
   mat.computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
 
   Real radius = mat.getRadius();
 
   UInt nb_element  = mesh.getNbElement(TYPE);
-  UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(TYPE) * nb_element;
+  UInt nb_tot_quad = model.getFEM().getNbQuadraturePoints(TYPE) * nb_element;
 
   Vector<Real> quads(0, spatial_dimension);
   quads.resize(nb_tot_quad);
 
-  model->getFEM().interpolateOnQuadraturePoints(mesh.getNodes(),
-						quads, spatial_dimension,
-						TYPE);
+  model.getFEM().interpolateOnQuadraturePoints(mesh.getNodes(),
+					       quads, spatial_dimension,
+					       TYPE);
 
   Vector<Real>::iterator<types::RVector> first_quad_1 = quads.begin(spatial_dimension);
   Vector<Real>::iterator<types::RVector> last_quad_1 = quads.end(spatial_dimension);
@@ -94,9 +94,33 @@ int main(int argc, char *argv[]) {
 
   mat.savePairs("cl_pairs");
 
+  ByElementTypeReal constant("constant_value", "test");
+  mesh.initByElementTypeVector(constant, 1, 0);
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  for(; it != last_type; ++it) {
+    UInt nb_quadrature_points = model.getFEM().getNbQuadraturePoints(*it);
+    UInt nb_element = mesh.getNbElement(*it);
+
+    Vector<Real> & constant_vect = constant(*it);
+    constant_vect.resize(nb_element * nb_quadrature_points);
+
+    std::fill_n(constant_vect.storage(), nb_quadrature_points * nb_element, 1.);
+  }
+
+  ByElementTypeReal constant_avg("constant_value_avg", "test");
+  mesh.initByElementTypeVector(constant_avg, 1, 0);
+
+  mat.weigthedAvergageOnNeighbours(constant, constant_avg, 1);
+
+  debug::setDebugLevel(akantu::dblTest);
+  std::cout << constant(TYPE) << std::endl;
+  std::cout << constant_avg(TYPE) << std::endl;
+  debug::setDebugLevel(akantu::dblWarning);
+
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
-  paraviewInit(dumper, *model);
+  paraviewInit(dumper, model);
 #endif
 
   akantu::finalize();

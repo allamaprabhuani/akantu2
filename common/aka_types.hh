@@ -229,7 +229,7 @@ namespace types {
 
 
     /// norm of (*this - x)
-    inline Real distance(const Vector & y) {
+    inline Real distance(const Vector & y) const {
       Real * vx = values; Real * vy = y.storage();
       Real sum_2 = 0;
       for (UInt i = 0; i < n; ++i, ++vx, ++vy) sum_2 += (*vx - *vy)*(*vx - *vy);

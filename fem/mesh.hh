@@ -283,6 +283,74 @@ public:
   /// get the pointer to the list of elements for a given type
   inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
 
+
+  /* ------------------------------------------------------------------------ */
+  /* Element type Iterator                                                    */
+  /* ------------------------------------------------------------------------ */
+  class type_iterator : std::iterator<std::forward_iterator_tag, const ElementType> {
+  public:
+    typedef const ElementType   value_type;
+    typedef const ElementType*  pointer;
+    typedef const ElementType&  reference;
+
+    type_iterator(ConnectivityTypeList::const_iterator & list_begin,
+		  ConnectivityTypeList::const_iterator & list_end,
+		  UInt dim) :
+      list_begin(list_begin), list_end(list_end), dim(dim) {}
+
+    type_iterator(const type_iterator & it) :
+      list_begin(it.list_begin), list_end(it.list_end), dim(it.dim) {}
+
+    inline reference operator*() { return *list_begin; };
+    inline type_iterator & operator++() {
+      ++list_begin;
+      if(dim != 0)
+	while((list_begin != list_end) && dim != Mesh::getSpatialDimension(*list_begin))
+	  ++list_begin;
+      return *this;
+    };
+    type_iterator operator++(int) { type_iterator tmp(*this); operator++(); return tmp; };
+
+    inline bool operator==(const type_iterator & other) {
+      return this->list_begin == other.list_begin;
+    }
+    inline bool operator!=(const type_iterator & other) {
+      return this->list_begin != other.list_begin;
+    }
+
+  private:
+    ConnectivityTypeList::const_iterator list_begin;
+    ConnectivityTypeList::const_iterator list_end;
+    UInt dim;
+  };
+
+  inline type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
+    ConnectivityTypeList::const_iterator b,e;
+    if(ghost_type == _not_ghost) {
+      b = type_set.begin();
+      e = type_set.end();
+    } else {
+      b = ghost_type_set.begin();
+      e = ghost_type_set.end();
+    }
+
+    if(dim != 0) while((b != e) && dim != Mesh::getSpatialDimension(*b)) ++b;
+    return Mesh::type_iterator(b, e, dim);
+  }
+
+  inline type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
+    ConnectivityTypeList::const_iterator b,e;
+    if(ghost_type == _not_ghost) {
+      b = type_set.end();
+      e = type_set.end();
+    } else {
+      b = ghost_type_set.end();
+      e = ghost_type_set.end();
+    }
+    return Mesh::type_iterator(b, e, dim);
+  }
+
+
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
   /* ------------------------------------------------------------------------ */

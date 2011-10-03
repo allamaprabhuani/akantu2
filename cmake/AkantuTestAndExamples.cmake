@@ -95,8 +95,8 @@ if(AKANTU_EXAMPLES)
 endif(AKANTU_EXAMPLES)
 
 #===============================================================================
-macro(register_example example_name source_list)
-  add_executable(${example_name} ${source_list})
+macro(register_example example_name)
+  add_executable(${example_name} ${ARGN})
   target_link_libraries(${example_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 endmacro()
 

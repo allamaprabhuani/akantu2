@@ -26,93 +26,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Model::Model(const ID & id,
-		    const MemoryID & memory_id) :
-  Memory(memory_id), id(id),synch_registry(NULL) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_OUT();
-}
-/* -------------------------------------------------------------------------- */
 inline SynchronizerRegistry & Model::getSynchronizerRegistry(){
   AKANTU_DEBUG_ASSERT(synch_registry,"synchronizer registry not initialized:"
 		      << " did you call createSynchronizerRegistry ?");
   return  *synch_registry;
 }
-/* -------------------------------------------------------------------------- */
-inline void Model::createSynchronizerRegistry(DataAccessor * data_accessor){
-  synch_registry = new SynchronizerRegistry(*data_accessor);
-}
 
-/* -------------------------------------------------------------------------- */
-inline void Model::initPBC(UInt x, UInt y, UInt z){
-  Mesh & mesh = getFEM().getMesh();
-  mesh.computeBoundingBox();
-  if (x) MeshUtils::computePBCMap(mesh,0,pbc_pair);
-  if (y) MeshUtils::computePBCMap(mesh,1,pbc_pair);
-  if (z) MeshUtils::computePBCMap(mesh,2,pbc_pair);
-
-  std::map<UInt,UInt>::iterator it = pbc_pair.begin();
-  std::map<UInt,UInt>::iterator end = pbc_pair.end();
-  
-  Real * coords = mesh.getNodes().values;
-  UInt dim = mesh.getSpatialDimension();
-  while(it != end){
-    UInt i1 = (*it).first;
-    UInt i2 = (*it).second;
-    
-    AKANTU_DEBUG_INFO("pairing " << i1 << "(" 
-		      << coords[dim*i1] << "," << coords[dim*i1+1] << "," 
-		      << coords[dim*i1+2]
-		      << ") with"
-		      << i2 << "(" 
-		      << coords[dim*i2] << "," << coords[dim*i2+1] << "," 
-		      << coords[dim*i2+2]
-		      << ")");	
-    ++it;
-  }
-
-}
-/* -------------------------------------------------------------------------- */
-inline Synchronizer & Model::createParallelSynch(MeshPartition * partition,
-						 __attribute__((unused)) DataAccessor * data_accessor){
-  AKANTU_DEBUG_IN();
-  /* ------------------------------------------------------------------------ */
-  /* Parallel initialization                                                  */
-  /* ------------------------------------------------------------------------ */
-  StaticCommunicator * comm = 
-    StaticCommunicator::getStaticCommunicator();
-  Int prank = comm->whoAmI();
-  
-  DistributedSynchronizer * synch = NULL;
-  if(prank == 0) 
-    synch = 
-      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(),
-								 partition);
-  else 
-    synch = 
-      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(),
-								 NULL);
-
-  AKANTU_DEBUG_OUT();
-  return *synch;
-}
-
-
-/* -------------------------------------------------------------------------- */
-inline Model::~Model() {
-  AKANTU_DEBUG_IN();
-
-  FEMMap::iterator it;
-  for (it = fems.begin(); it != fems.end(); ++it) {
-    if(it->second) delete it->second;
-  }
-
-  for (it = fems_boundary.begin(); it != fems_boundary.end(); ++it) {
-    if(it->second) delete it->second;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
 /* -------------------------------------------------------------------------- */
 template <typename FEMClass>
 inline FEMClass & Model::getFEMClassBoundary(std::string name){
@@ -167,7 +86,7 @@ inline FEMClass & Model::getFEMClass(std::string name) const{
 /* -------------------------------------------------------------------------- */
 
 inline void Model::unRegisterFEMObject(const std::string & name){
-  
+
   FEMMap::iterator it = fems.find(name);
   AKANTU_DEBUG_ASSERT(it != fems.end(), "FEM object with name "
 		      << name << " was not found");
@@ -231,7 +150,7 @@ inline FEM & Model::getFEMBoundary(std::string name){
 /* -------------------------------------------------------------------------- */
 inline void Model::changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,
 					    UInt dimension){
-  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin(); 
+  for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
        it != pbc_pair.end();++it) {
     Int node_master = (*it).second;
     Int node_slave = (*it).first;
@@ -242,4 +161,3 @@ inline void Model::changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pai
   }
 }
 /* -------------------------------------------------------------------------- */
-

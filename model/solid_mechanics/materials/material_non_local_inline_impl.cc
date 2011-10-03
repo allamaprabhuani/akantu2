@@ -88,7 +88,8 @@ void MaterialNonLocal::weigthedAvergageOnNeighbours(const ByElementTypeVector<T>
     const Vector<T> & to_acc = to_accumulate(first_pair_types->second, ghost_type2);
     Vector<T> & acc = accumulated(first_pair_types->first, ghost_type1);
 
-    acc.copy(to_acc);
+    acc.resize(to_acc.getSize());
+    acc.clear();
 
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);

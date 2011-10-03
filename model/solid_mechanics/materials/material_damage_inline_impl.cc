@@ -53,7 +53,7 @@ inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam, Re
     sigma[7]*F[7] +
     sigma[8]*F[8];
 
-  Y *= 0.5;
+  Y *= 0.5 * (1 - dam);
 
   if(!is_non_local) {
     computeDamageAndStress(sigma, dam, Y, Ydq);

@@ -46,11 +46,11 @@ Memory::~Memory() {
       AKANTU_DEBUG(dblAccessory, "Deleting the vector " << *it);
       static_memory->sfree(memory_id, *it);
     }
+    static_memory->destroy();
   }
 
-  handeld_vectors_id.clear();
-  static_memory->destroy();
   static_memory = NULL;
+  handeld_vectors_id.clear();
 }
 
 /* -------------------------------------------------------------------------- */
