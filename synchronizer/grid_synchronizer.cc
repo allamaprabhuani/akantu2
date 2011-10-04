@@ -56,9 +56,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
 
-  GridSynchronizer * synchronizer = new GridSynchronizer(id, memory_id);
+  DistributedSynchronizer * communicator = new DistributedSynchronizer(id, memory_id);
+  if(nb_proc == 1) return communicator;
 
-  if(nb_proc == 1) return synchronizer;
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   Real * bounding_boxes = new Real[spatial_dimension * nb_proc];
@@ -75,6 +75,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
   UInt first_cells = new UInt[spatial_dimension * nb_proc];
   UInt last_cells = new UInt[spatial_dimension * nb_proc];
+
+  send_element = new ;
 
   for (UInt p = 0; p < nb_proc; ++p) {
     if(p == my_rank) continue;
@@ -135,10 +137,12 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 	first_cell[s] = grid.getCell(start);
 	last_cell [s] = grid.getCell(end);
       }
+
+      std::set<Element> to_send;
+
+      if(intersects_proc[p])
+
     }
-
-    
-
   }
 
   AKANTU_DEBUG_OUT();

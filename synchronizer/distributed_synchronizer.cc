@@ -44,10 +44,6 @@ DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
 			   MemoryID memory_id) :
   Synchronizer(id, memory_id),
   static_communicator(StaticCommunicator::getStaticCommunicator())
-  // element_to_send_offset   ("element_to_send_offset"   , id),
-  // element_to_send	   ("element_to_send"          , id),
-  // element_to_receive_offset("element_to_receive_offset", id),
-  // element_to_receive       ("element_to_receive"       , id)
 {
   AKANTU_DEBUG_IN();
 
@@ -636,7 +632,8 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
 
       for (UInt e = 0; e < nb_element; ++e) {
 	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val << " bigger than number of nodes " << nb_nodes);
+	  AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val
+			      << " bigger than number of nodes " << nb_nodes);
 	  if(!already_seen[*conn_val]) {
 	    nodes_set[*conn_val] += set;
 	    already_seen[*conn_val] = true;
@@ -719,19 +716,22 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
     AKANTU_DEBUG_INFO("Packing data for proc " << p
 		      << " (" << ssize << "/" << nb_elements
 		      <<" data to send/elements)");
+
     for (UInt el = 0; el < nb_elements; ++el) {
       data_accessor.packData(buffer, *elements, tag);
       elements++;
     }
+
 #ifndef AKANTU_NDEBUG
     // UInt block_size = data_accessor.getNbDataToPack(send_element[p][0], tag);
-    // AKANTU_DEBUG_WARNING("tag is " << tag << ", packed buffer is " 
-    // 			 << buffer.extractStream<Real>(block_size) 
+    // AKANTU_DEBUG_WARNING("tag is " << tag << ", packed buffer is "
+    // 			 << buffer.extractStream<Real>(block_size)
     // 			 << std::endl);
 #endif
+
     AKANTU_DEBUG_ASSERT(buffer.getPackedSize() == ssize,
 			"a problem have been introduced with "
-			<< "false sent sizes declaration " 
+			<< "false sent sizes declaration "
 			<< buffer.getPackedSize() << " != " << ssize);
     std::cerr << std::dec;
     AKANTU_DEBUG_INFO("Posting send to proc " << p);
@@ -770,7 +770,7 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
   std::vector<CommunicationRequest *> * recv_requests_tmp = &recv_requests;
 
   static_communicator->waitAll(recv_requests);
-  
+
   while(!recv_requests_tmp->empty()) {
 
     for (std::vector<CommunicationRequest *>::iterator req_it = recv_requests_tmp->begin();
@@ -796,11 +796,11 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 	  AKANTU_DEBUG_ERROR("catched exception during unpack from proc " << proc
 			     << " buffer index is " << el << "/" << nb_elements
 			     << std::endl << e.what() << std::endl
-			     << "buffer size " << buffer.getSize() << std::endl 
+			     << "buffer size " << buffer.getSize() << std::endl
 			     << buffer.extractStream<Real>(block_size));
 	}
 	AKANTU_DEBUG_ASSERT(buffer.getLeftToUnpack() == 0,
-			    "all data have not been unpacked: " 
+			    "all data have not been unpacked: "
 			    << buffer.getLeftToUnpack() << " bytes left");
 	static_communicator->freeCommunicationRequest(req);
       } else {
@@ -824,7 +824,7 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor, 
+void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 						SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
@@ -850,8 +850,11 @@ void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 	   ++rit) {
 	sreceive += data_accessor.getNbDataToUnpack(*rit, tag);
       }
-      AKANTU_DEBUG_INFO("I have " << ssend << "(" << ssend / 1024. << "kB) data to send to " << p
-			<< " and " << sreceive << "(" << ssend / 1024. << "kB) data to receive for tag " << tag);
+
+      AKANTU_DEBUG_INFO("I have " << ssend << "(" << ssend / 1024.
+			<< "kB) data to send to " << p
+			<< " and " << sreceive << "(" << sreceive / 1024.
+			<< "kB) data to receive for tag " << tag);
     }
 
     size_to_send   [tag].values[p] = ssend;

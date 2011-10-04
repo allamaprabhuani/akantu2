@@ -122,7 +122,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  UInt getNbCells(UInt dim) { return nb_cells[dim]; };
+  inline UInt getNbCells(UInt dim) const { return nb_cells[dim]; };
+
+  inline UInt getCell(UInt num_cells_by_direction[]) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

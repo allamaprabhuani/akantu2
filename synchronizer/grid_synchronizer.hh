@@ -32,7 +32,7 @@
 
 __BEGIN_AKANTU__
 
-class GridSynchronizer : protected Synchronizer {
+class GridSynchronizer : protected DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

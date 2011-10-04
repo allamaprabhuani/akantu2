@@ -78,12 +78,7 @@ inline UInt RegularGrid<T>::getNumCell(const types::RVector & position) const {
     cell[i] = getCell(position(i), i);
   }
 
-  UInt num_cell = 0;
-  for (UInt i = dimension - 1; i > 0; --i) {
-    num_cell += cell[i];
-    num_cell *= nb_cells[i - 1];
-  }
-  num_cell += cell[0];
+  UInt num_cell = getCell(cell);
 
   return num_cell;
 }
@@ -92,4 +87,17 @@ inline UInt RegularGrid<T>::getNumCell(const types::RVector & position) const {
 template<typename T>
 inline UInt RegularGrid<T>::getCell(Real position, UInt direction) const {
   return std::floor((position - lower_bounds[direction]) / spacing[direction]) + 1;
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline UInt RegularGrid<T>::getCell(UInt cell[]) const {
+  UInt num_cell = 0;
+  for (UInt i = dimension - 1; i > 0; --i) {
+    num_cell += cell[i];
+    num_cell *= nb_cells[i - 1];
+  }
+  num_cell += cell[0];
+
+  return num_cell;
 }

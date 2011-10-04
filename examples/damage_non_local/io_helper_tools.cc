@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Sep 30 11:13:01 2011
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -56,7 +56,7 @@ static UInt getIOHelperType(ElementType type) {
   UInt ioh_type = -1;
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = getIOHelperType<type>();
-  
+
   AKANTU_BOOST_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
 #undef GET_IOHELPER_TYPE
   return ioh_type;
@@ -71,7 +71,7 @@ void paraviewInit(Dumper & dumper,
   UInt spatial_dimension = mesh.getSpatialDimension(type);
   UInt nb_nodes   = mesh.getNbNodes();
   UInt nb_element = mesh.getNbElement(type);
-  
+
   std::stringstream filename_sstr; filename_sstr << filename << "_" << type;
 
   UInt whoami = StaticCommunicator::getStaticCommunicator()->whoAmI();
@@ -292,5 +292,3 @@ void restart(const SolidMechanicsModel & model,
   }
 }
 /* ------------------------------------------------------------------------ */
-
-
