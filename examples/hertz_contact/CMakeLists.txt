@@ -24,19 +24,20 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+add_mesh(mesh_hertz_2d hertz_2d.geo 2 1)
 
-#add_mesh(double_cube_tet4 double_cube_tet.geo 3 1 OUTPUT double_cube_tet4.msh)
-#register_example(heat_propa_pbc heat_propa_pbc.cc)
-#add_dependencies(heat_propa_pbc double_cube_tet4)
-
-#register_example(heat_propa_parallel heat_propa_parallel.cc)
-#add_dependencies(heat_propa_parallel double_cube_tet4)
+register_example(hertz_2d_no_friction hertz_2d_no_friction.cc)
+add_dependencies(hertz_2d_no_friction mesh_hertz_2d )
 
 #===============================================================================
-#configure_file(
-#  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-#  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-#  COPYONLY
-#  )
+add_mesh(mesh_hertz_3d hertz_3d.geo 3 1)
 
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+register_example(hertz_3d_no_friction hertz_3d_no_friction.cc)
+add_dependencies(hertz_3d_no_friction mesh_hertz_3d )
+
+#===============================================================================
+file(COPY material.dat DESTINATION .)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_2d_no_friction)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_3d_no_friction)
