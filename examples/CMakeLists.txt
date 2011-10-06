@@ -59,7 +59,8 @@ if(AKANTU_EPSN_ON)
 endif(AKANTU_EPSN_ON)
 
 if(AKANTU_BUILD_CONTACT)
-  add_example(hertz_contact "hertz_contact")
+  add_example(hertz_contact "hertz contact")
+  add_example(sliding_cube "sliding cube")
 endif(AKANTU_BUILD_CONTACT)
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/local_examples.cmake")
