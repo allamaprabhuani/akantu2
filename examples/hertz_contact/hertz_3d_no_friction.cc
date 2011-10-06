@@ -211,7 +211,10 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   for(UInt s = 1; s <= max_steps; ++s) {
 
-    if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << "\r";
+    if(s % 10 == 0) {
+      std::cout << "passing step " << s << "/" << max_steps << "\r";
+      std::cout.flush();
+    }
 
     if(s % 10000 == 0){
       my_model.updateCurrentPosition();

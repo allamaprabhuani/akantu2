@@ -24,20 +24,22 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-add_mesh(mesh_hertz_2d hertz_2d.geo 2 1)
+add_mesh(mesh_sliding_2d sliding_cube_2d.geo 2 1)
 
-register_example(hertz_2d_no_friction hertz_2d_no_friction.cc)
-add_dependencies(hertz_2d_no_friction mesh_hertz_2d )
+register_example(sliding_cube_2d sliding_cube_2d.cc)
+add_dependencies(sliding_cube_2d mesh_sliding_2d )
 
 #===============================================================================
-add_mesh(mesh_hertz_3d hertz_3d.geo 3 1)
+add_mesh(mesh_sliding_3d sliding_cube_3d.geo 3 1)
 
-register_example(hertz_3d_no_friction hertz_3d_no_friction.cc)
-add_dependencies(hertz_3d_no_friction mesh_hertz_3d )
+register_example(sliding_cube_3d sliding_cube_3d.cc)
+add_dependencies(sliding_cube_3d mesh_sliding_3d )
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)
+file(COPY material_elastic_caughey.dat DESTINATION .)
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_2d_no_friction)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_3d_no_friction)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_2d)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_3d)
