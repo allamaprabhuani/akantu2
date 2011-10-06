@@ -54,9 +54,9 @@ int main(int argc, char *argv[])
   akantu::initialize(&argc, &argv);
 
   UInt dim = 2;
-  const ElementType element_type = _triangle_3;
+  const ElementType element_type = _quadrangle_4; //_triangle_3;
 #ifdef AKANTU_USE_IOHELPER
-  const UInt paraview_type = TRIANGLE1;
+  const UInt paraview_type = QUAD1; //TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
   
   //UInt max_steps = 200000;

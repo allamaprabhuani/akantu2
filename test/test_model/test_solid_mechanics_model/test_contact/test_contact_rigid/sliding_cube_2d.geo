@@ -1,5 +1,5 @@
-h_contact = 0.25;
-h_topcube = 0.25;
+h_contact = 0.00625;
+h_topcube = 0.00625;
 h_plate = 0.8;	 
 
 Point(1) = {0, 0, 0, h_topcube};
@@ -27,3 +27,6 @@ Plane Surface(9) = {9};
 
 Line Loop(11) = {8, 5, 6, 7};
 Plane Surface(11) = {11};
+
+Transfinite Surface "*";
+Recombine Surface "*";

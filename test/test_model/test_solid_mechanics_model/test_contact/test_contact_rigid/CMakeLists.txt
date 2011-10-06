@@ -27,71 +27,88 @@
 add_subdirectory("patch_tests")
 
 #===============================================================================
-add_mesh(test_squares_mesh squares.geo 2 1)
-
-register_test(test_contact_rigid_no_friction_triangle_3 test_contact_rigid_no_friction_triangle_3.cc)
-add_dependencies(test_contact_rigid_no_friction_triangle_3 test_squares_mesh)
-
-register_test(test_contact_rigid_restart_triangle_3 test_contact_rigid_restart_triangle_3.cc)
-add_dependencies(test_contact_rigid_restart_triangle_3 test_squares_mesh)
-
-#===============================================================================
-add_mesh(test_cubes_mesh cubes.geo 3 1)
-
-register_test(test_contact_rigid_no_friction_tetrahedron_4 test_contact_rigid_no_friction_tetrahedron_4.cc)
-add_dependencies(test_contact_rigid_no_friction_tetrahedron_4 test_cubes_mesh)
-
-#===============================================================================
-add_mesh(test_hertz_2d_mesh hertz_2d.geo 2 1)
-
-register_test(test_contact_rigid_no_friction_hertz_2d test_contact_rigid_no_friction_hertz_2d.cc)
-add_dependencies(test_contact_rigid_no_friction_hertz_2d test_hertz_2d_mesh)
-
-#===============================================================================
-add_mesh(test_hertz_3d_mesh hertz_3d.geo 3 1)
-
-register_test(test_contact_rigid_no_friction_hertz_3d test_contact_rigid_no_friction_hertz_3d.cc)
-add_dependencies(test_contact_rigid_no_friction_hertz_3d test_hertz_3d_mesh)
-
-#===============================================================================
-add_mesh(test_force_2d_mesh force_2d.geo 2 1)
-
-register_test(test_contact_rigid_no_friction_force_2d test_contact_rigid_no_friction_force_2d.cc)
-add_dependencies(test_contact_rigid_no_friction_force_2d test_force_2d_mesh)
-
-#===============================================================================
-add_mesh(test_force_3d_mesh force_3d.geo 3 1)
-
-register_test(test_contact_rigid_no_friction_force_3d test_contact_rigid_no_friction_force_3d.cc)
-add_dependencies(test_contact_rigid_no_friction_force_3d test_force_3d_mesh)
-
-#===============================================================================
-add_mesh(test_sliding_cube_2d_mesh sliding_cube_2d.geo 2 1)
-
-register_test(test_contact_rigid_sliding_cube_2d test_contact_rigid_sliding_cube_2d.cc)
-add_dependencies(test_contact_rigid_sliding_cube_2d test_sliding_cube_2d_mesh)
-
-#===============================================================================
-add_mesh(test_sliding_cube_3d_mesh sliding_cube_3d.geo 3 1)
-
-register_test(test_contact_rigid_sliding_cube_3d test_contact_rigid_sliding_cube_3d.cc)
-add_dependencies(test_contact_rigid_sliding_cube_3d test_sliding_cube_3d_mesh)
-
-#===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
+set(LIST_TYPES
+  triangle_3
+  quadrangle_4
+  tetrahedron_4
+  #hexahedron_8
   )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_2d)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_3d)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/force_2d)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/force_3d)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_2d)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_3d)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/triangle)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/tetrahedron)
+#===============================================================================
+foreach(_type ${LIST_TYPES})
+  register_test(test_contact_rigid_no_friction_${_type} test_contact_rigid_no_friction.cc io_helper_tools.cc)
+  set_target_properties(test_contact_rigid_no_friction_${_type}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  file(COPY ./data/${_type}.msh DESTINATION .)
+endforeach()
 
+#===============================================================================
+file(COPY material.dat DESTINATION .)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+
+
+
+##===============================================================================
+#add_mesh(test_squares_mesh squares.geo 2 1)
+#
+#register_test(test_contact_rigid_no_friction_triangle_3 test_contact_rigid_no_friction_triangle_3.cc)
+#add_dependencies(test_contact_rigid_no_friction_triangle_3 test_squares_mesh)
+#
+#register_test(test_contact_rigid_restart_triangle_3 test_contact_rigid_restart_triangle_3.cc)
+#add_dependencies(test_contact_rigid_restart_triangle_3 test_squares_mesh)
+#
+##===============================================================================
+#add_mesh(test_cubes_mesh cubes.geo 3 1)
+#
+#register_test(test_contact_rigid_no_friction_tetrahedron_4 test_contact_rigid_no_friction_tetrahedron_4.cc)
+#add_dependencies(test_contact_rigid_no_friction_tetrahedron_4 test_cubes_mesh)
+#
+##===============================================================================
+#add_mesh(test_hertz_2d_mesh hertz_2d.geo 2 1)
+#
+#register_test(test_contact_rigid_no_friction_hertz_2d test_contact_rigid_no_friction_hertz_2d.cc)
+#add_dependencies(test_contact_rigid_no_friction_hertz_2d test_hertz_2d_mesh)
+#
+##===============================================================================
+#add_mesh(test_hertz_3d_mesh hertz_3d.geo 3 1)
+#
+#register_test(test_contact_rigid_no_friction_hertz_3d test_contact_rigid_no_friction_hertz_3d.cc)
+#add_dependencies(test_contact_rigid_no_friction_hertz_3d test_hertz_3d_mesh)
+#
+##===============================================================================
+#add_mesh(test_force_2d_mesh force_2d.geo 2 1)
+#
+#register_test(test_contact_rigid_no_friction_force_2d test_contact_rigid_no_friction_force_2d.cc)
+#add_dependencies(test_contact_rigid_no_friction_force_2d test_force_2d_mesh)
+#
+##===============================================================================
+#add_mesh(test_force_3d_mesh force_3d.geo 3 1)
+#
+#register_test(test_contact_rigid_no_friction_force_3d test_contact_rigid_no_friction_force_3d.cc)
+#add_dependencies(test_contact_rigid_no_friction_force_3d test_force_3d_mesh)
+#
+##===============================================================================
+#add_mesh(test_sliding_cube_2d_mesh sliding_cube_2d.geo 2 1)
+#
+#register_test(test_contact_rigid_sliding_cube_2d test_contact_rigid_sliding_cube_2d.cc)
+#add_dependencies(test_contact_rigid_sliding_cube_2d test_sliding_cube_2d_mesh)
+#
+##===============================================================================
+#add_mesh(test_sliding_cube_3d_mesh sliding_cube_3d.geo 3 1)
+#
+#register_test(test_contact_rigid_sliding_cube_3d test_contact_rigid_sliding_cube_3d.cc)
+#add_dependencies(test_contact_rigid_sliding_cube_3d test_sliding_cube_3d_mesh)
+#
+##===============================================================================
+#
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files)
+##file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_2d)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_3d)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/force_2d)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/force_3d)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_2d)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_3d)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/triangle)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/tetrahedron)
+#
