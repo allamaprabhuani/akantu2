@@ -46,21 +46,3 @@ endforeach()
 file(COPY material.dat DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 
-##===============================================================================
-#add_mesh(test_sliding_cube_2d_mesh sliding_cube_2d.geo 2 1)
-#
-#register_test(test_contact_rigid_sliding_cube_2d test_contact_rigid_sliding_cube_2d.cc)
-#add_dependencies(test_contact_rigid_sliding_cube_2d test_sliding_cube_2d_mesh)
-#
-##===============================================================================
-#add_mesh(test_sliding_cube_3d_mesh sliding_cube_3d.geo 3 1)
-#
-#register_test(test_contact_rigid_sliding_cube_3d test_contact_rigid_sliding_cube_3d.cc)
-#add_dependencies(test_contact_rigid_sliding_cube_3d test_sliding_cube_3d_mesh)
-#
-##===============================================================================
-#
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files)
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_2d)
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/sliding_cube_3d)
-
