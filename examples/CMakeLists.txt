@@ -58,6 +58,10 @@ if(AKANTU_EPSN_ON)
   add_example(epsn "Example of steering akantu with EPSN")
 endif(AKANTU_EPSN_ON)
 
+if(AKANTU_BUILD_CONTACT)
+  add_example(hertz_contact "hertz_contact")
+endif(AKANTU_BUILD_CONTACT)
+
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/local_examples.cmake")
   include("local_examples.cmake")
 endif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/local_examples.cmake")
