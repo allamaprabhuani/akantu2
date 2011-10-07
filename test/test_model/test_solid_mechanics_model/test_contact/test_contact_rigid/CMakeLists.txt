@@ -40,10 +40,12 @@ foreach(_type ${LIST_TYPES})
   set_target_properties(test_contact_rigid_no_friction_${_type}
     PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
   file(COPY ./data/${_type}.msh DESTINATION .)
+  file(COPY ./ref_files/test_contact_rigid_no_friction_${_type}.ref DESTINATION .)
 endforeach()
 
 #===============================================================================
-register_test(test_contact_rigid_restart_triangle_3 test_contact_rigid_restart_triangle_3.cc)
+register_test(test_contact_rigid_restart test_contact_rigid_restart.cc)
+file(COPY ./ref_files/test_contact_rigid_restart.ref DESTINATION .)
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)

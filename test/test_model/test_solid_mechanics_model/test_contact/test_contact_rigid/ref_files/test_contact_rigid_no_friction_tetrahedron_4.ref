@@ -1,0 +1,60 @@
+
+passing step 1/3
+Before solveContact
+we have 0 penetrating nodes:
+
+After solveContact
+we have 0 penetrating nodes:
+we have 0 active impactor nodes:
+
+passing step 2/3
+Before solveContact
+we have 12 penetrating nodes:
+node 8 with disp: -0.02 0 0
+node 11 with disp: -0.02 0 0
+node 12 with disp: -0.02 0 0
+node 15 with disp: -0.02 0 0
+node 44 with disp: -0.02 0 0
+node 51 with disp: -0.02 0 0
+node 52 with disp: -0.02 0 0
+node 55 with disp: -0.02 0 0
+node 126 with disp: -0.02 0 0
+node 127 with disp: -0.02 0 0
+node 128 with disp: -0.02 0 0
+node 129 with disp: -0.02 0 0
+
+After solveContact
+we have 0 penetrating nodes:
+we have 12 active impactor nodes:
+node 8 with disp: -0.005 0 0 and force: -237061729.3 -96454326.92 56790865.38
+node 11 with disp: -0.005 0 0 and force: -198497596.2 96454326.92 56790865.38
+node 12 with disp: -0.005 0 0 and force: -178410836.5 -83247862.81 -61736575.66
+node 15 with disp: -0.005 0 0 and force: -223669327.9 85740916.47 -59102833.53
+node 44 with disp: -0.005 0 0 and force: -301826674.9 694629.7749 122952820.2
+node 51 with disp: -0.005 0 0 and force: -259624073.6 3773540.109 -106576393.5
+node 52 with disp: -0.005 0 0 and force: -150361356 -135784899.9 5854896.109
+node 55 with disp: -0.005 0 0 and force: -161149085.5 137604093.9 8680563.982
+node 126 with disp: -0.005 0 0 and force: -345952305.3 -29886873.34 27566584.21
+node 127 with disp: -0.005 0 0 and force: -339103405.6 6801584.431 -36123541.65
+node 128 with disp: -0.005 0 0 and force: -287336292.2 29109532.75 31886839.75
+node 129 with disp: -0.005 0 0 and force: -356695350.7 -8455718.438 -37684537.28
+
+passing step 3/3
+Before solveContact
+we have 0 penetrating nodes:
+
+After solveContact
+we have 0 penetrating nodes:
+we have 12 active impactor nodes:
+node 8 with disp: -0.005 -5.252148627e-06 3.092386575e-06 and force: -236906752.3 129012.8535 -69846.0467
+node 11 with disp: -0.005 5.645512477e-06 3.323993328e-06 and force: -198361709.3 -137713.7039 -78940.8853
+node 12 with disp: -0.005 -5.266916173e-06 -3.905942542e-06 and force: -178287070.3 118602.6904 79920.40268
+node 15 with disp: -0.005 4.551947184e-06 -3.137743188e-06 and force: -223524083.3 -108325.5697 60182.96939
+node 44 with disp: -0.005 2.57596845e-08 4.559588391e-06 and force: -301656046.8 24098.50197 -187317.2234
+node 51 with disp: -0.005 1.135979314e-07 -3.208355412e-06 and force: -259487112.5 -15987.83741 100522.7372
+node 52 with disp: -0.005 -3.195806575e-06 1.37799678e-07 and force: -150326656.1 112318.9415 4945.56448
+node 55 with disp: -0.005 3.296970855e-06 2.079848472e-07 and force: -161114758 -107967.1748 499.8248915
+node 126 with disp: -0.005 -4.113827814e-07 3.794447802e-07 and force: -345878463.4 114639.8229 -116519.9735
+node 127 with disp: -0.005 1.336221257e-07 -7.096735285e-07 and force: -339013371.3 -73880.43674 159358.0287
+node 128 with disp: -0.005 6.226939363e-07 6.821044476e-07 and force: -287251508.1 -130220.7594 -110290.0135
+node 129 with disp: -0.005 -2.989869283e-07 -1.332492813e-06 and force: -356549334.8 65161.27992 110922.0719

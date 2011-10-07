@@ -1,0 +1,204 @@
+CONTACT
+Active impactor nodes (contact):
+
+node: 4, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = 3.47523e+08
+  stick position = 0.375
+  residual force = -3.41916e+08
+  previous velocity = -48.4752
+stick 0: 0
+stick 1: 0
+
+node: 7, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -3.47523e+08
+  stick position = 0.625
+  residual force = 3.41916e+08
+  previous velocity = 48.4752
+stick 0: 0
+stick 1: 0
+
+node: 16, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -6.95341e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -0
+  stick position = 0.5
+  residual force = 0
+  previous velocity = 0
+stick 0: 1
+stick 1: 1
+
+MAP
+Active impactor nodes (map):
+
+node: 4, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = 3.47523e+08
+  stick position = 0.375
+  residual force = -3.41916e+08
+  previous velocity = -48.4752
+stick 0: 0
+stick 1: 0
+
+node: 7, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -3.47523e+08
+  stick position = 0.625
+  residual force = 3.41916e+08
+  previous velocity = 48.4752
+stick 0: 0
+stick 1: 0
+
+node: 16, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -6.95341e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -0
+  stick position = 0.5
+  residual force = 0
+  previous velocity = 0
+stick 0: 1
+stick 1: 1
+
+RESTART MAP
+Active impactor nodes (map):
+
+node: 4, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = 3.47523e+08
+  stick position = 0.375
+  residual force = -3.41916e+08
+  previous velocity = -48.4752
+stick 0: 0
+stick 1: 0
+
+node: 7, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -3.47523e+08
+  stick position = 0.625
+  residual force = 3.41916e+08
+  previous velocity = 48.4752
+stick 0: 0
+stick 1: 0
+
+node: 16, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -6.95341e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -0
+  stick position = 0.5
+  residual force = 0
+  previous velocity = 0
+stick 0: 1
+stick 1: 1
+
+RESTART CONTACT
+Active impactor nodes (contact):
+
+node: 4, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = 3.47523e+08
+  stick position = 0.375
+  residual force = -3.41916e+08
+  previous velocity = -48.4752
+stick 0: 0
+stick 1: 0
+
+node: 7, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -3.47523e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -3.47523e+08
+  stick position = 0.625
+  residual force = 3.41916e+08
+  previous velocity = 48.4752
+stick 0: 0
+stick 1: 0
+
+node: 16, master element type: segment_2
+Direction 0
+  master normal = 1
+  friction force = -0
+  stick position = 0.5
+  residual force = -6.95341e+09
+  previous velocity = 0
+Direction 1
+  master normal = 0
+  friction force = -0
+  stick position = 0.5
+  residual force = 0
+  previous velocity = 0
+stick 0: 1
+stick 1: 1
+
