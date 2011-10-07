@@ -39,8 +39,6 @@
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 
-
-
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
@@ -64,7 +62,6 @@ int main(int argc, char *argv[])
  
   unsigned int nb_nodes = my_mesh.getNbNodes();
 
-  
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
@@ -122,22 +119,26 @@ int main(int argc, char *argv[])
   Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
 
+  /// define output file for testing
+  std::ofstream test_output;
+  test_output.open("test_regular_grid_tetrahedron_4_nodes.out");
+
   /// print impactor nodes
-  std::cout << "we have " << nb_nodes_neigh << " impactor nodes:";
+  test_output << "we have " << nb_nodes_neigh << " impactor nodes:";
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " " << impact_nodes_val[i];
+    test_output << " " << impact_nodes_val[i];
   }
-  std::cout << std::endl;
+  test_output << std::endl;
 
   UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
   UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
   
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
+    test_output << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
     for(UInt mn = master_nodes_offset_val[i]; mn < master_nodes_offset_val[i+1]; ++mn) {
-      std::cout << " " << master_nodes_val[mn];
+      test_output << " " << master_nodes_val[mn];
     }
-    std::cout << std::endl;
+    test_output << std::endl;
   }  
 
   delete my_contact;

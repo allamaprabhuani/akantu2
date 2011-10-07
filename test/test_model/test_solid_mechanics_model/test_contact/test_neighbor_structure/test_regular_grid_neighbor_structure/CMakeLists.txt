@@ -24,24 +24,25 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-
-#===============================================================================
 add_mesh(test_regular_grid_2d_mesh squares.geo 2 1)
 
 register_test(test_regular_grid_triangle_3 test_regular_grid_triangle_3.cc)
 add_dependencies(test_regular_grid_triangle_3 test_regular_grid_2d_mesh)
+file(COPY ./ref_files/test_regular_grid_triangle_3.ref DESTINATION .)
 
 #===============================================================================
 add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
 
 register_test(test_regular_grid_tetrahedron_4 test_regular_grid_tetrahedron_4.cc)
 add_dependencies(test_regular_grid_tetrahedron_4 test_regular_grid_3d_mesh)
+file(COPY ./ref_files/test_regular_grid_tetrahedron_4.ref DESTINATION .)
 
 #===============================================================================
 #add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
 
 register_test(test_regular_grid_tetrahedron_4_nodes test_regular_grid_tetrahedron_4_nodes.cc)
 add_dependencies(test_regular_grid_tetrahedron_4_nodes test_regular_grid_3d_mesh)
+file(COPY ./ref_files/test_regular_grid_tetrahedron_4_nodes.ref DESTINATION .)
 
 #===============================================================================
 add_mesh(test_regular_grid_3d_mesh_no_neighbors cube.geo 3 1)
@@ -50,10 +51,5 @@ register_test(test_regular_grid_tetrahedron_4_nodes_no_neighbors test_regular_gr
 add_dependencies(test_regular_grid_tetrahedron_4_nodes_no_neighbors test_regular_grid_3d_mesh_no_neighbors)
 
 #===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-
+file(COPY material.dat DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

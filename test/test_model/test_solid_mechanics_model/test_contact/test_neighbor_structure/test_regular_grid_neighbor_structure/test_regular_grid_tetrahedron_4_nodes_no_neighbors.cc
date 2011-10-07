@@ -40,8 +40,6 @@
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 
-
-
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.h"
 #endif //AKANTU_USE_IOHELPER
@@ -64,7 +62,6 @@ int main(int argc, char *argv[])
   MeshUtils::buildSurfaceID(my_mesh);
  
   unsigned int nb_nodes = my_mesh.getNbNodes();
-
   
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
@@ -138,6 +135,11 @@ int main(int argc, char *argv[])
     }
     std::cout << std::endl;
   }  
+
+  if(nb_nodes_neigh != 0) {
+    std::cout << "This is not correct. It should be: nb_impactor_nodes = 0" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   delete my_contact;
   

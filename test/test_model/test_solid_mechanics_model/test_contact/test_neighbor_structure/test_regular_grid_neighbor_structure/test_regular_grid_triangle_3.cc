@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
    			 TRIANGLE1, my_mesh.getNbElement(_triangle_3), C_MODE);
@@ -122,15 +121,19 @@ int main(int argc, char *argv[])
   UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_segment_2).storage();
   UInt * node_to_elem_val = my_neighbor_list.facets(_segment_2).storage();
 
+  /// define output file for testing
+  std::ofstream test_output;
+  test_output.open("test_regular_grid_triangle_3.out");
+
   /// print impactor nodes
-  std::cout << "we have " << nb_nodes_neigh << " impactor nodes:" << std::endl;
+  test_output << "we have " << nb_nodes_neigh << " impactor nodes:" << std::endl;
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " node " << impact_nodes_val[i] << " : ";
+    test_output << " node " << impact_nodes_val[i] << " : ";
     for (UInt j = node_to_elem_offset_val[i]; j < node_to_elem_offset_val[i+1]; ++j)
-      std::cout << node_to_elem_val[j] << " ";
-    std::cout << std::endl;
+      test_output << node_to_elem_val[j] << " ";
+    test_output << std::endl;
   }
-  std::cout << std::endl;
+  test_output << std::endl;
 
 
 #ifdef AKANTU_USE_IOHELPER
@@ -146,7 +149,7 @@ int main(int argc, char *argv[])
   
   UInt visualize_node = 1;
   UInt n = impact_nodes_val[visualize_node];
-  std::cout << "plot for node: " << n << std::endl;
+  test_output << "plot for node: " << n << std::endl;
   for (UInt i = node_to_elem_offset_val[visualize_node]; i < node_to_elem_offset_val[visualize_node+1]; ++i)
     neigh_elem[node_to_elem_val[i]] = 1.;
 
@@ -157,6 +160,8 @@ int main(int argc, char *argv[])
 
   delete [] neigh_elem;
 #endif //AKANTU_USE_IOHELPER
+
+  delete my_contact;
   
   finalize();
 

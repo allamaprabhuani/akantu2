@@ -124,15 +124,19 @@ int main(int argc, char *argv[])
   UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_triangle_3).storage();
   UInt * node_to_elem_val = my_neighbor_list.facets(_triangle_3).storage();
 
+  /// define output file for testing
+  std::ofstream test_output;
+  test_output.open("test_regular_grid_tetrahedron_4.out");
+
   /// print impactor nodes
-  std::cout << "we have " << nb_nodes_neigh << " impactor nodes:" << std::endl;
+  test_output << "we have " << nb_nodes_neigh << " impactor nodes:" << std::endl;
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " node " << impact_nodes_val[i] << " : ";
+    test_output << " node " << impact_nodes_val[i] << " : ";
     for (UInt j = node_to_elem_offset_val[i]; j < node_to_elem_offset_val[i+1]; ++j)
-      std::cout << node_to_elem_val[j] << " ";
-    std::cout << std::endl;
+      test_output << node_to_elem_val[j] << " ";
+    test_output << std::endl;
   }
-  std::cout << std::endl;
+  test_output << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper_neighbor;
@@ -147,7 +151,7 @@ int main(int argc, char *argv[])
 
   UInt visualize_node = 7;
   UInt n = impact_nodes_val[visualize_node];
-  std::cout << "plot for node: " << n << std::endl;
+  test_output << "plot for node: " << n << std::endl;
   for (UInt i = node_to_elem_offset_val[visualize_node]; i < node_to_elem_offset_val[visualize_node+1]; ++i)
     neigh_elem[node_to_elem_val[i]] = 1.;
 
