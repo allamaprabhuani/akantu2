@@ -126,22 +126,26 @@ int main(int argc, char *argv[])
   Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
 
+  /// define output file for testing
+  std::ofstream test_output;
+  test_output.open("test_contact_search_explicit_tetrahedron_4.out");
+
   /// print impactor nodes
-  std::cout << "we have " << nb_nodes_neigh << " impactor nodes:";
+  test_output << "we have " << nb_nodes_neigh << " impactor nodes:";
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " " << impact_nodes_val[i];
+    test_output << " " << impact_nodes_val[i];
   }
-  std::cout << std::endl;
+  test_output << std::endl;
 
   UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
   UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
   
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
+    test_output << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
     for(UInt mn = master_nodes_offset_val[i]; mn < master_nodes_offset_val[i+1]; ++mn) {
-      std::cout << " " << master_nodes_val[mn];
+      test_output << " " << master_nodes_val[mn];
     }
-    std::cout << std::endl;
+    test_output << std::endl;
   }
 
   my_contact->initSearch(); // does nothing so far
@@ -153,7 +157,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   for(UInt s = 1; s <= max_steps; ++s) {
 
-    std::cout << std::endl << "passing step " << s << "/" << max_steps << std::endl;
+    test_output << std::endl << "passing step " << s << "/" << max_steps << std::endl;
 
     /// apply a displacement to the slave body
     if(s == 2) {
@@ -163,25 +167,10 @@ int main(int argc, char *argv[])
 	  displacement[n*dim+2] = -0.01;
 	}
       }
-      /*
-      UInt nb_elements = my_mesh.getNbElement(element_type);
-      UInt nb_nodes_element = my_mesh.getNbNodesPerElement(element_type);
-      Vector<UInt> element_mat = my_model.getElementMaterial(element_type);
-      UInt * element_mat_val = element_mat.values;
-      UInt * connectivity = my_mesh.getConnectivity(element_type).values;
-      for(UInt el = 0; el < nb_elements; ++el) {
-	std::cout << "element: " << el << " with mat: " <<  element_mat_val[el] << std::endl;
-	if(element_mat_val[el] == impactor) {
-	  for(UInt n = 0; n < nb_nodes_element; ++n) {
-	    displacement[connectivity[el * nb_nodes_element + n]+2] = -0.2;
-	  }
-	}
-	}*/
     }
 
     /// central difference predictor
     my_model.explicitPred();
-
     /// update current positions
     my_model.initializeUpdateResidualData();
 
@@ -192,18 +181,16 @@ int main(int argc, char *argv[])
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
     Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
     UInt * pen_nodes_val = pen_nodes.values;
-    std::cout << "we have " << nb_nodes_pen << " penetrating nodes:";
+    test_output << "we have " << nb_nodes_pen << " penetrating nodes:";
     for (UInt i = 0; i < nb_nodes_pen; ++i)
-      std::cout << " " << pen_nodes_val[i];
-    std::cout << std::endl;
+      test_output << " " << pen_nodes_val[i];
+    test_output << std::endl;
     delete my_penetration_list;
 
     /// compute the residual
     my_model.updateResidual(false);
-    
     /// compute the acceleration
     my_model.updateAcceleration();
-
     /// central difference corrector
     my_model.explicitCorr();
   }

@@ -25,17 +25,38 @@
 #
 #===============================================================================
 
+set(LIST_TYPES
+  triangle_3
+  quadrangle_4
+  tetrahedron_4
+  #hexahedron_8
+  )
+
 #===============================================================================
-add_mesh(test_mesh_squares squares.geo 2 1)
+foreach(_type ${LIST_TYPES})
+  if(AKANTU_IOHELPER_ON)
+    register_test(test_contact_search_explicit_${_type} test_contact_search_explicit.cc io_helper_tools.cc)
+  else()
+    register_test(test_contact_search_explicit_${_type} test_contact_search_explicit.cc)
+  endif()
+  set_target_properties(test_contact_search_explicit_${_type}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  file(COPY ./data/${_type}.msh DESTINATION .)
+#  file(COPY ./ref_files/test_contact_rigid_no_friction_${_type}.ref DESTINATION .)
+endforeach()
 
-register_test(test_contact_search_explicit_triangle_3 test_contact_search_explicit_triangle_3.cc)
-add_dependencies(test_contact_search_explicit_triangle_3 test_mesh_squares)
 
 #===============================================================================
-add_mesh(test_mesh_cubes cubes.geo 3 1)
+#add_mesh(test_mesh_squares squares.geo 2 1)
 
-register_test(test_contact_search_explicit_tetrahedron_4 test_contact_search_explicit_tetrahedron_4.cc)
-add_dependencies(test_contact_search_explicit_tetrahedron_4 test_mesh_cubes)
+#register_test(test_contact_search_explicit_triangle_3 test_contact_search_explicit_triangle_3.cc)
+#add_dependencies(test_contact_search_explicit_triangle_3 test_mesh_squares)
+
+#===============================================================================
+#add_mesh(test_mesh_cubes cubes.geo 3 1)
+
+#register_test(test_contact_search_explicit_tetrahedron_4 test_contact_search_explicit_tetrahedron_4.cc)
+#add_dependencies(test_contact_search_explicit_tetrahedron_4 test_mesh_cubes)
 
 #===============================================================================
 #add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
@@ -44,10 +65,5 @@ add_dependencies(test_contact_search_explicit_tetrahedron_4 test_mesh_cubes)
 #add_dependencies(test_regular_grid_tetrahedron_4_nodes test_regular_grid_3d_mesh)
 
 #===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-
+file(COPY material.dat DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

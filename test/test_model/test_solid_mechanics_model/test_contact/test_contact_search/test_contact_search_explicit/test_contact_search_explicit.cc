@@ -1,9 +1,9 @@
 /**
- * @file   test_contact_search_explicit_triangle_3.cc
+ * @file   test_contact_search_explicit.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jan 17 11:13:42 2011
+ * @date   Fri Oct  7 16:15:48 2011
  *
- * @brief  test contact search explicit for 2d case with triangle_3 elements
+ * @brief  test contact search for all types
  *
  * @section LICENSE
  *
@@ -42,7 +42,7 @@
 #include "contact_search_explicit.hh"
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper_tools.hh"
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -50,62 +50,56 @@ using namespace akantu;
 int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
+  debug::setDebugLevel(dblWarning);
 
-  UInt dim = 2;
-  const ElementType element_type = _triangle_3;
+  const ElementType element_type = TYPE;
+  UInt dim = Mesh::getSpatialDimension(element_type);
 
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("squares.msh", my_mesh);
+  std::stringstream meshname_sstr; 
+  meshname_sstr << element_type << ".msh";
+  mesh_io.read(meshname_sstr.str().c_str(), my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
   MeshUtils::buildSurfaceID(my_mesh);
 
-  UInt max_steps = 2;
+  UInt max_steps = 3; 
   unsigned int nb_nodes = my_mesh.getNbNodes();
-
-  /// dump facet and surface information to paraview
-#ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
-
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_nodes_test");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).values,
-   			 TRIANGLE1, my_mesh.getNbElement(element_type), C_MODE);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
 
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
   my_model.initVectors();
-  // initialize the vectors
-  memset(my_model.getForce().values,        0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getVelocity().values,     0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getAcceleration().values, 0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getDisplacement().values, 0, dim*nb_nodes*sizeof(Real));
+  my_model.getForce().clear();
+  my_model.getVelocity().clear();
+  my_model.getAcceleration().clear();
+  my_model.getDisplacement().clear();
 
   Real * displacement = my_model.getDisplacement().values;
 
   my_model.initExplicit();
-  my_model.initModel();
+  my_model.initModel();  
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
 
+  /// dump facet and surface information to paraview
+#ifdef AKANTU_USE_IOHELPER
+  DumperParaview dumper;
+  paraviewInit(dumper, my_model, element_type, "para");
+#endif //AKANTU_USE_IOHELPER
+
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);
-
   my_model.assembleMassLumped();
 
    /// contact declaration
-  Contact * contact = Contact::newContact(my_model,
-					     _ct_rigid,
-					     _cst_expli,
-					     _cnst_regular_grid);
+  Contact * contact = Contact::newContact(my_model, 
+					  _ct_rigid, 
+					  _cst_expli, 
+					  _cnst_regular_grid);
 
   ContactRigid * my_contact = dynamic_cast<ContactRigid *>(contact);
 
@@ -115,19 +109,24 @@ int main(int argc, char *argv[])
   Surface impactor = 1;
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
-
+  
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
 
+  /// define output file for testing
+  std::stringstream filename_sstr; 
+  filename_sstr << "test_contact_search_explicit_" << element_type << ".out";
+  std::ofstream test_output;
+  test_output.open(filename_sstr.str().c_str());
+
+  /*
   const NodesNeighborList & my_neighbor_list = dynamic_cast<const NodesNeighborList &>(my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList());
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
-
-  /// define output file for testing
-  std::ofstream test_output;
-  test_output.open("test_contact_search_explicit_triangle_3.out");
+  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
+  UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
 
   /// print impactor nodes
   test_output << "we have " << nb_nodes_neigh << " impactor nodes:";
@@ -135,10 +134,7 @@ int main(int argc, char *argv[])
     test_output << " " << impact_nodes_val[i];
   }
   test_output << std::endl;
-
-  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
-  UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
-
+  
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
     test_output << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
     for(UInt mn = master_nodes_offset_val[i]; mn < master_nodes_offset_val[i+1]; ++mn) {
@@ -146,11 +142,10 @@ int main(int argc, char *argv[])
     }
     test_output << std::endl;
   }
+  */
 
   my_contact->initSearch(); // does nothing so far
-
-  std::cout << std::endl << "epsilon = " << std::numeric_limits<Real>::epsilon() << std::endl;
-
+  
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
@@ -162,41 +157,63 @@ int main(int argc, char *argv[])
     if(s == 2) {
       Real * coord = my_mesh.getNodes().values;
       for(UInt n = 0; n < nb_nodes; ++n) {
-	if(coord[n*dim + 0] > 1.0) {
+	if(coord[n*dim + 0] > 0.5) {
 	  displacement[n*dim+0] = -0.02;
 	}
       }
     }
 
-    /// central difference predictor
+    /// integration
     my_model.explicitPred();
-    /// update current position
     my_model.initializeUpdateResidualData();
 
     /// compute the penetration list
-    PenetrationList * my_penetration_list = new PenetrationList("penetration_list");
+    test_output << "Before solveContact" << std::endl;
+    PenetrationList * my_penetration_list = new PenetrationList("penetration_list_1");
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
     Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
     UInt * pen_nodes_val = pen_nodes.values;
-    test_output << "we have " << nb_nodes_pen << " penetrating nodes:";
-    for (UInt i = 0; i < nb_nodes_pen; ++i)
-      test_output << " " << pen_nodes_val[i];
+    test_output << "we have " << nb_nodes_pen << " penetrating nodes:" << std::endl;
+    for (UInt i = 0; i < nb_nodes_pen; ++i) {
+      test_output << "node " << pen_nodes_val[i] << " with disp:";
+      for (UInt j=0; j<dim; ++j)
+	test_output << " " << std::setprecision(10) << displacement[pen_nodes_val[i]*dim+j];
+      test_output << std::endl;
+    }
     test_output << std::endl;
     delete my_penetration_list;
 
-    /// compute the residual
+    /// solve contact
+    my_contact->solveContact();
+
+    /// compute the penetration list
+    test_output << "After solveContact" << std::endl;
+    PenetrationList * my_penetration_list_2 = new PenetrationList("penetration_list_2");
+    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list_2);
+
+    UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();
+    Vector<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
+    UInt * pen_nodes_2_val = pen_nodes_2.values;
+    test_output << "we have " << nb_nodes_pen_2 << " penetrating nodes:";
+    for (UInt i = 0; i < nb_nodes_pen_2; ++i)
+      test_output << " " << pen_nodes_2_val[i];
+    test_output << std::endl;
+    delete my_penetration_list_2;
+
+    /// further integration
     my_model.updateResidual(false);
-    /// compute the acceleration
+    my_contact->avoidAdhesion();
     my_model.updateAcceleration();
-    /// central difference corrector
     my_model.explicitCorr();
+
+#ifdef AKANTU_USE_IOHELPER
+    paraviewDump(dumper);
+#endif //AKANTU_USE_IOHELPER
   }
 
   delete my_contact;
-
   finalize();
-
   return EXIT_SUCCESS;
 }
