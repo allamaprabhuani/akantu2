@@ -1,32 +1,14 @@
 
 passing step 1/3
-Before solveContact
-we have 0 penetrating nodes:
-
-After solveContact
-we have 0 penetrating nodes:
 we have 0 active impactor nodes:
 
 passing step 2/3
-Before solveContact
-we have 3 penetrating nodes:
-node 4 with disp: -0.02 0
-node 7 with disp: -0.02 0
-node 16 with disp: -0.02 0
-
-After solveContact
-we have 0 penetrating nodes:
 we have 3 active impactor nodes:
 node 4 with disp: -0.005 0 and force: -2120192308 -908653846.2
 node 7 with disp: -0.005 0 and force: -2120192308 908653846.2
 node 16 with disp: -0.005 0 and force: -4240384615 1.192092896e-07
 
 passing step 3/3
-Before solveContact
-we have 0 penetrating nodes:
-
-After solveContact
-we have 0 penetrating nodes:
 we have 3 active impactor nodes:
 node 4 with disp: -0.005 -0.0001730769231 and force: -2082040496 34948224.85
 node 7 with disp: -0.005 0.0001730769231 and force: -2082040496 -34948224.85

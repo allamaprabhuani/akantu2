@@ -165,11 +165,11 @@ int main(int argc, char *argv[])
       }
     }
 
-    /// central difference predictor
+    /// integration
     my_model.explicitPred();
-    /// update current position
     my_model.initializeUpdateResidualData();
 
+    /*
     /// compute the penetration list
     test_output << "Before solveContact" << std::endl;
     PenetrationList * my_penetration_list = new PenetrationList("penetration_list_1");
@@ -187,10 +187,12 @@ int main(int argc, char *argv[])
     }
     test_output << std::endl;
     delete my_penetration_list;
+    */
 
     /// solve contact
     my_contact->solveContact();
 
+    /*
     /// compute the penetration list
     test_output << "After solveContact" << std::endl;
     PenetrationList * my_penetration_list_2 = new PenetrationList("penetration_list_2");
@@ -204,6 +206,7 @@ int main(int argc, char *argv[])
       test_output << " " << pen_nodes_2_val[i];
     test_output << std::endl;
     delete my_penetration_list_2;
+    */
 
     /// compute the residual
     my_model.updateResidual(false);
@@ -224,11 +227,9 @@ int main(int argc, char *argv[])
       test_output << std::endl;
     }
 
+    // further integration
     my_contact->avoidAdhesion();
-    
-    /// compute the acceleration
     my_model.updateAcceleration();
-    /// central difference corrector
     my_model.explicitCorr();
 
 #ifdef AKANTU_USE_IOHELPER
