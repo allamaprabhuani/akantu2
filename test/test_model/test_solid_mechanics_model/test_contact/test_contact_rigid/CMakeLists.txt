@@ -36,7 +36,11 @@ set(LIST_TYPES
 
 #===============================================================================
 foreach(_type ${LIST_TYPES})
-  register_test(test_contact_rigid_no_friction_${_type} test_contact_rigid_no_friction.cc io_helper_tools.cc)
+  if(AKANTU_IOHELPER_ON)
+    register_test(test_contact_rigid_no_friction_${_type} test_contact_rigid_no_friction.cc io_helper_tools.cc)
+  else()
+    register_test(test_contact_rigid_no_friction_${_type} test_contact_rigid_no_friction.cc)
+  endif()
   set_target_properties(test_contact_rigid_no_friction_${_type}
     PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
   file(COPY ./data/${_type}.msh DESTINATION .)
@@ -44,8 +48,10 @@ foreach(_type ${LIST_TYPES})
 endforeach()
 
 #===============================================================================
-register_test(test_contact_rigid_restart test_contact_rigid_restart.cc)
-file(COPY ./ref_files/test_contact_rigid_restart.ref DESTINATION .)
+if(AKANTU_IOHELPER_ON)
+  register_test(test_contact_rigid_restart test_contact_rigid_restart.cc)
+  file(COPY ./ref_files/test_contact_rigid_restart.ref DESTINATION .)
+endif()
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)

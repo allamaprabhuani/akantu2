@@ -31,7 +31,6 @@
 #ifdef AKANTU_USE_IOHELPER
 #include <io_helper.h>
 #endif //AKANTU_USE_IOHELPER
-#include <reader_restart.h>
 
 #include "aka_common.hh"
 #include "mesh.hh"
@@ -105,7 +104,10 @@ Real * mass;
 
 std::map < std::string, VectorBase* > restart_map;
 
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(Dumper & dumper);
+#endif //AKANTU_USE_IOHELPER
+
 void loadRestartInformation(ContactRigid * contact);
 void printPredictor(UInt step, 
 		    std::ofstream & out_stream);
@@ -113,12 +115,13 @@ void printCorrector(UInt step,
 		    ContactRigid * contact, 
 		    std::ofstream & out_stream);
 void getStickInfo(ContactRigid * contact);
+bool testFloat(Real a, Real b, Real adm_error);
 
 /* -------------------------------------------------------------------------- */
 Int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
-
+  debug::setDebugLevel(dblWarning);
 
   // 1: name
   // 2: initial displacement
@@ -240,7 +243,9 @@ Int main(int argc, char *argv[])
   std::ofstream out_info;  
   if (!patch_test) {
     model->updateResidual();
+#ifdef AKANTU_USE_IOHELPER
     paraviewInit(dumper);
+#endif //AKANTU_USE_IOHELPER
       
     /// output files
     std::stringstream name_info;
@@ -303,8 +308,10 @@ Int main(int argc, char *argv[])
   // check patch test
   if(patch_test) {
     Real correct_final_disp = 0.0198331;
+    Real admissible_error = 1e-07;
     UInt correct_nb_cycle = 2;
-    if (!(Math::are_float_equal(final_displacement, correct_final_disp)) | !(count_cycle == correct_nb_cycle)) {
+    //if (!(Math::are_float_equal(final_displacement, correct_final_disp)) | !(count_cycle == correct_nb_cycle)) {
+    if (!(testFloat(final_displacement, correct_final_disp, admissible_error)) | !(count_cycle == correct_nb_cycle)) {
       std::cout << "Final displacement is " << final_displacement << ", which should be " << correct_final_disp << std::endl;
       std::cout << "Final number of cycles is " << count_cycle << ", which should be " << correct_nb_cycle << std::endl;
       return EXIT_FAILURE;
@@ -342,11 +349,11 @@ Int main(int argc, char *argv[])
 }
 
 /* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(Dumper & dumper) {
   std::stringstream name;
   name << "paraview/" << folder_name << "/";
 
-#ifdef AKANTU_USE_IOHELPER
   dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
@@ -373,8 +380,8 @@ void paraviewInit(Dumper & dumper) {
   dumper.SetPrefix(name.str().c_str());
   dumper.Init();
   dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
 }
+#endif //AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
 void loadRestartInformation(ContactRigid * contact) {
@@ -499,4 +506,13 @@ void getStickInfo(ContactRigid * contact) {
     stick_counter++;
   else 
     stick_counter = 0;
+}
+
+/* -------------------------------------------------------------------------- */
+bool testFloat(Real a, Real b, Real adm_error) {
+  
+  if (fabs(a-b) < adm_error)
+    return true;
+  else 
+    return false;
 }

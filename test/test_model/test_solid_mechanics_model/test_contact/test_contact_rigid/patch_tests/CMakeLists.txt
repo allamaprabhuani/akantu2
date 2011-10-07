@@ -32,28 +32,20 @@ add_dependencies(test_single_spring_friction test_single_spring_mesh)
 register_test(test_single_spring_friction_w_visco test_single_spring_friction_w_visco.cc)
 add_dependencies(test_single_spring_friction_w_visco test_single_spring_mesh)
 
-register_test(test_single_spring_friction_vel_weak_exp test_single_spring_friction_vel_weak_exp.cc)
-add_dependencies(test_single_spring_friction_vel_weak_exp test_single_spring_mesh)
-
+#register_test(test_single_spring_friction_vel_weak_exp test_single_spring_friction_vel_weak_exp.cc)
+#add_dependencies(test_single_spring_friction_vel_weak_exp test_single_spring_mesh)
 
 #===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material_elastic_caughey.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material_elastic_caughey.dat
-  COPYONLY
-  )
+file(COPY material.dat DESTINATION .)
+file(COPY material_elastic_caughey.dat DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction_w_visco)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction_vel_weak_exp)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_w_visco)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_vel_weak_exp)
-
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction_vel_weak_exp)
+if(AKANTU_IOHELPER_ON)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_w_visco)
+  #file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_vel_weak_exp)
+endif()
