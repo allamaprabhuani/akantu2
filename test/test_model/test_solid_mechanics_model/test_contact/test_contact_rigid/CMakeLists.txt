@@ -43,6 +43,10 @@ foreach(_type ${LIST_TYPES})
 endforeach()
 
 #===============================================================================
+register_test(test_contact_rigid_restart_triangle_3 test_contact_rigid_restart_triangle_3.cc)
+
+#===============================================================================
 file(COPY material.dat DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/restart)
 

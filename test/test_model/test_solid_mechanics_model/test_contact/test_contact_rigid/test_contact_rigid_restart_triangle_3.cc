@@ -27,6 +27,11 @@
 
 /* -------------------------------------------------------------------------- */
 
+#ifdef AKANTU_USE_IOHELPER
+#include <io_helper.h>
+#include <reader_restart.h>
+#endif //AKANTU_USE_IOHELPER
+
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
@@ -36,45 +41,73 @@
 #include "material.hh"
 #include "contact.hh"
 #include "contact_rigid.hh"
+#include "friction_coefficient.hh"
+#include "unique_constant_fric_coef.hh"
 #include "contact_neighbor_structure.hh"
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
 #include "contact_search_explicit.hh"
 
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
-#endif //AKANTU_USE_IOHELPER
-
 using namespace akantu;
+
+void restartReaderInit(ReaderRestart & reader);
+void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map);
+void DumpRestart(SolidMechanicsModel  & my_model, std::map < std::string, VectorBase* > & map);
+void printRestartMap(std::map < std::string, VectorBase* > & map);
+void printContact(ContactRigid * contact);
+void freeMap(std::map < std::string, VectorBase* > & map);
+
+UInt dim = 2;
+const ElementType element_type = _triangle_3;
+const UInt paraview_type = TRIANGLE1;
+
+Surface master;
+UInt nb_nodes;
+UInt nb_elements;
+UInt nb_components;
+Real * displacement;
+bool * boundary;
+
+std::ofstream test_output;
 
 int main(int argc, char *argv[])
 {
-  UInt dim = 2;
-  const ElementType element_type = _triangle_3;
+  /// define output file for testing
+  std::stringstream filename_sstr; 
+  filename_sstr << "test_contact_rigid_restart.out";
+  test_output.open(filename_sstr.str().c_str());
 
+#ifdef AKANTU_USE_IOHELPER
+  // without iohelper, this restart does not work and therefore the test is useless.
+#else
+  test_output << "Test does not make sense without iohelper" << std::endl;
+  return EXIT_FAILURE;
+#endif //AKANTU_USE_IOHELPER
+
+  debug::setDebugLevel(dblWarning);
   akantu::initialize(&argc, &argv);
-
+ 
   /// load mesh
   Mesh my_mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("squares.msh", my_mesh);
+  mesh_io.read("triangle_3.msh", my_mesh);
 
   /// build facet connectivity and surface id
   MeshUtils::buildFacets(my_mesh,1,0);
   MeshUtils::buildSurfaceID(my_mesh);
 
   UInt max_steps = 3; 
-  unsigned int nb_nodes = my_mesh.getNbNodes();
+  nb_nodes = my_mesh.getNbNodes();
+  nb_elements = my_mesh.getNbElement(element_type);
 
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   dumper.SetMode(TEXT);
-  
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_restart_test");
+  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "restart_triangle_3");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).values,
    			 TRIANGLE1, my_mesh.getNbElement(element_type), C_MODE);
-  dumper.SetPrefix("paraview/triangle/");
+  dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
@@ -83,13 +116,13 @@ int main(int argc, char *argv[])
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
   my_model.initVectors();
-  // initialize the vectors
-  memset(my_model.getForce().values,        0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getVelocity().values,     0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getAcceleration().values, 0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getDisplacement().values, 0, dim*nb_nodes*sizeof(Real));
+  my_model.getForce().clear();
+  my_model.getVelocity().clear();
+  my_model.getAcceleration().clear();
+  my_model.getDisplacement().clear();
 
-  Real * displacement = my_model.getDisplacement().values;
+  displacement = my_model.getDisplacement().values;
+  boundary = my_model.getBoundary().values;
 
   my_model.initExplicit();
   my_model.initModel();  
@@ -98,7 +131,6 @@ int main(int argc, char *argv[])
 
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);
-
   my_model.assembleMassLumped();
 
    /// contact declaration
@@ -111,173 +143,69 @@ int main(int argc, char *argv[])
 
   my_contact->initContact(false);
 
-  Surface master = 0;
+  master = 0;
   Surface impactor = 1;
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
   
+  FrictionCoefficient *fric_coef;
+  fric_coef = new UniqueConstantFricCoef(*my_contact, master, 0.1);
+
+  // contact information
+  ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp_1;
+  it_imp_1 = my_contact->getImpactorsInformation().find(master);
+  ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp_1->second;
+  nb_components = imp_info->node_is_sticking->getNbComponent();
+  
   my_model.updateCurrentPosition(); // neighbor structure uses current position for init
   my_contact->initNeighborStructure(master);
-
-  const NodesNeighborList & my_neighbor_list = dynamic_cast<const NodesNeighborList &>(my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList());
-
-  UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
-  Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
-  UInt * impact_nodes_val = impact_nodes.values;
-
-  /// print impactor nodes
-  std::cout << "we have " << nb_nodes_neigh << " impactor nodes:";
-  for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " " << impact_nodes_val[i];
-  }
-  std::cout << std::endl;
-
-  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
-  UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
-  
-  for (UInt i = 0; i < nb_nodes_neigh; ++i) {
-    std::cout << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";
-    for(UInt mn = master_nodes_offset_val[i]; mn < master_nodes_offset_val[i+1]; ++mn) {
-      std::cout << " " << master_nodes_val[mn];
-    }
-    std::cout << std::endl;
-  }
-
   my_contact->initSearch(); // does nothing so far
   
-  std::cout << std::endl << "epsilon = " << std::numeric_limits<Real>::epsilon() << std::endl;
-
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   for(UInt s = 1; s <= max_steps; ++s) {
 
-    std::cout << std::endl << "passing step " << s << "/" << max_steps << std::endl;
+    std::cout << "passing step " << s << "/" << max_steps << "\r";
+    std::cout.flush();
 
     /// apply a displacement to the slave body
     if(s == 2) {
       Real * coord = my_mesh.getNodes().values;
       for(UInt n = 0; n < nb_nodes; ++n) {
-	if(coord[n*dim + 0] > 1.0) {
+	if(coord[n*dim + 0] > 0.5) {
 	  displacement[n*dim+0] = -0.02;
 	}
       }
-      /*
-      UInt nb_elements = my_mesh.getNbElement(element_type);
-      UInt nb_nodes_element = my_mesh.getNbNodesPerElement(element_type);
-      Vector<UInt> element_mat = my_model.getElementMaterial(element_type);
-      UInt * element_mat_val = element_mat.values;
-      UInt * connectivity = my_mesh.getConnectivity(element_type).values;
-      for(UInt el = 0; el < nb_elements; ++el) {
-	std::cout << "element: " << el << " with mat: " <<  element_mat_val[el] << std::endl;
-	if(element_mat_val[el] == impactor) {
-	  for(UInt n = 0; n < nb_nodes_element; ++n) {
-	    displacement[connectivity[el * nb_nodes_element + n]+2] = -0.2;
-	  }
-	}
-	}*/
     }
-
-    /// central difference predictor
+    
+    /// integration with contact and friction
     my_model.explicitPred();
-    
-    /// update current position
     my_model.initializeUpdateResidualData();
-
-    /// compute the penetration list
-    std::cout << "Before solveContact" << std::endl;
-    PenetrationList * my_penetration_list = new PenetrationList("penetration_list_1");
-    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
-
-    UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
-    UInt * pen_nodes_val = pen_nodes.values;
-    std::cout << "we have " << nb_nodes_pen << " penetrating nodes:";
-    for (UInt i = 0; i < nb_nodes_pen; ++i)
-      std::cout << " " << pen_nodes_val[i];
-    std::cout << std::endl;
-    delete my_penetration_list;
-
-    /// solve contact
     my_contact->solveContact();
-
-    /// compute the penetration list
-    std::cout << "After solveContact" << std::endl;
-    PenetrationList * my_penetration_list_2 = new PenetrationList("penetration_list_2");
-    const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list_2);
-
-    UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
-    UInt * pen_nodes_2_val = pen_nodes_2.values;
-    std::cout << "we have " << nb_nodes_pen_2 << " penetrating nodes:";
-    for (UInt i = 0; i < nb_nodes_pen_2; ++i)
-      std::cout << " " << pen_nodes_2_val[i];
-    std::cout << std::endl;
-    delete my_penetration_list_2;
-
-    /// compute the residual
     my_model.updateResidual(false);
-
     my_contact->avoidAdhesion();
-    
-    /// compute the acceleration
+    my_contact->frictionPredictor();
     my_model.updateAcceleration();
-
-    /// central difference corrector
     my_model.explicitCorr();
+    my_contact->frictionCorrector();
   }
+  std::cout << std::endl;
 
-  std::map < std::string, VectorBase* > restart_map;
-  my_contact->getRestartInformation(restart_map, master);
-  
-  std::map < std::string, VectorBase* >::iterator it;
-  
-  it = restart_map.find("active_impactor_nodes");
-  Vector<bool> * ai_nodes = (Vector<bool> *)(it->second);
-  if(it == restart_map.end()) {
-    std::cout << "could not find map entry for active impactor nodes" << std::endl;
-  }
+  /// print contact info
+  test_output << "CONTACT" << std::endl;
+  printContact(my_contact);
 
-  it = restart_map.find("master_element_type");
-  Vector<ElementType> * et_nodes = (Vector<ElementType> *)(it->second);
-  if(it == restart_map.end()) {
-    std::cout << "could not find map entry master element type" << std::endl;
-  }
+  /// put restart information into a map
+  std::map < std::string, VectorBase* > output_map;
+  my_contact->getRestartInformation(output_map, master);
+  DumpRestart(my_model, output_map);
 
-  it = restart_map.find("master_normals");
-  Vector<Real> * mn_nodes = (Vector<Real> *)(it->second);
-  if(it == restart_map.end()) {
-    std::cout << "could not find map entry for master normals" << std::endl;
-  }
+  test_output << "MAP" << std::endl;
+  printRestartMap(output_map);
+  //  freeMap(output_map);
 
-  it = restart_map.find("node_is_sticking");
-  Vector<bool> * is_nodes = (Vector<bool> *)(it->second);
-  if(it == restart_map.end()) {
-    std::cout << "could not find map entry node is sticking" << std::endl;
-  }
-
-  it = restart_map.find("friction_forces");
-  Vector<Real> * ff_nodes = (Vector<Real> *)(it->second);
-  if(it == restart_map.end()) {
-    std::cout << "could not find map entry friction forces" << std::endl;
-  }
-
-
-  std::cout << "Active impactor nodes in the restart map:" << std::endl;
-  for (UInt i=0; i<nb_nodes; ++i) {
-    if ((*ai_nodes)(i)) {
-      std::cout << "node: " << i << ", master element type: " << (*et_nodes)(i) << std::endl;
-      for (UInt d=0; d<dim; ++d) {
-	std::cout << "master normal direction = " << d << ": " << (*mn_nodes)(i,d);
-	std::cout << "friction force direction = " << d << ": " << (*ff_nodes)(i,d) << std::endl;
-      }
-      for (UInt j=0; j<2; ++j) {
-	std::cout << "stick " << j << ": " << (*is_nodes)(i,j);
-      }
-      std::cout << std::endl;
-    }
-  }
-
+  // ---------------- Reload contact from restart files ---------------------
   Contact * contact_restart = Contact::newContact(my_model, 
 						  _ct_rigid, 
 						  _cst_expli, 
@@ -285,14 +213,336 @@ int main(int argc, char *argv[])
 						  "contact_restart");
 
   ContactRigid * my_contact_restart = dynamic_cast<ContactRigid *>(contact_restart);
-  
   my_contact_restart->initContact(false);
   my_contact_restart->addMasterSurface(master);
   my_contact_restart->addImpactorSurfaceToMasterSurface(impactor, master);
-  my_contact_restart->setRestartInformation(restart_map, master);
+  std::map < std::string, VectorBase* > input_map;
+  loadRestartInformation(my_contact_restart, input_map);
 
+  test_output << "RESTART MAP" << std::endl;
+  printRestartMap(input_map);
+  freeMap(input_map);
+
+  test_output << "RESTART CONTACT" << std::endl;
+  printContact(my_contact_restart);
+
+  // finalize
+  delete my_contact;
+  delete my_contact_restart;
+  finalize();
+  return EXIT_SUCCESS;
+}
+
+/* -------------------------------------------------------------------------- */
+void restartReaderInit(ReaderRestart & reader) {
+
+#ifdef AKANTU_USE_IOHELPER 
+  reader.SetPoints("restart_test");
+  reader.SetConnectivity(paraview_type);
+  reader.AddNodeDataField("displacements");
+  reader.AddNodeDataField("velocities");
+  reader.AddNodeDataField("accelerations");
+  reader.AddNodeDataField("forces");
+  reader.AddNodeDataField("boundaries");
+  reader.AddNodeDataField("active_impactor_nodes");
+  reader.AddNodeDataField("master_element_type");
+  reader.AddNodeDataField("master_normals");
+  reader.AddNodeDataField("node_is_sticking");
+  reader.AddNodeDataField("friction_forces");
+  reader.AddNodeDataField("stick_positions");
+  reader.AddNodeDataField("residual_forces");
+  reader.AddNodeDataField("previous_velocities");
+  reader.SetMode(COMPRESSED);
+  reader.SetPrefix("restart");
+  reader.Init();
+  reader.Read();
+ 
+  // test if good number of node (-> good mesh)
+  UInt reader_nb_nodes = reader.GetNumberNodes();
+  if (reader_nb_nodes != nb_nodes)
+    test_output << "WRONG MESH LOADED !!" << std::endl;
+
+#endif //AKANTU_USE_IOHELPER
+}
+
+/* -------------------------------------------------------------------------- */
+void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map) {
+
+#ifdef AKANTU_USE_IOHELPER
+  // get the equilibrium state from the restart files
+  ReaderRestart * restart_reader = new ReaderRestart();
+  restartReaderInit(*restart_reader);
+  memcpy(displacement,restart_reader->GetNodeDataField("displacements"),dim*nb_nodes*sizeof(Real));
+ 
+  Real * tmp_r = restart_reader->GetNodeDataField("boundaries");
+  Vector<bool> * boundary_r = new Vector<bool>(nb_nodes, dim, false);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    for (UInt j=0; j<dim; ++j) {
+      if(tmp_r[i*dim+j] > 0.01) {
+        (*boundary_r)(i,j) = true;
+      }
+    }
+  }
+  memcpy(boundary, boundary_r->values, dim*nb_nodes*sizeof(bool));
+
+  tmp_r = restart_reader->GetNodeDataField("active_impactor_nodes");
+  Vector<bool> * ai_nodes = new Vector<bool>(nb_nodes, 1, false, "a_imp_nodes");
+  for (UInt i=0; i<nb_nodes; ++i) {
+    if(tmp_r[i] > 0.01)
+      (*ai_nodes)(i) = true;
+  }
+  map["active_impactor_nodes"] = ai_nodes;
+
+  tmp_r = restart_reader->GetNodeDataField("master_element_type");
+  Vector<ElementType> * et_nodes = new Vector<ElementType>(nb_nodes, 1, _not_defined);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    (*et_nodes)(i) = (ElementType)(tmp_r[i]);
+  }
+  map["master_element_type"] = et_nodes;
+
+  tmp_r = restart_reader->GetNodeDataField("master_normals");
+  Vector<Real> * mn_nodes = new Vector<Real>(0, dim);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    Real normal[dim];
+    for (UInt j=0; j<dim; ++j) {
+      normal[j] = tmp_r[i*dim+j];
+    }
+    mn_nodes->push_back(normal);
+  }
+  map["master_normals"] = mn_nodes;
+ 
+  tmp_r = restart_reader->GetNodeDataField("node_is_sticking");
+  Vector<bool> * is_nodes = new Vector<bool>(nb_nodes, nb_components, false);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    for (UInt j=0; j<nb_components; ++j) {
+      if(tmp_r[i*nb_components+j] > 0.01)
+        (*is_nodes)(i,j) = true;
+    }
+  }
+  map["node_is_sticking"] = is_nodes;
+
+  tmp_r = restart_reader->GetNodeDataField("friction_forces");
+  Vector<Real> * ff_nodes = new Vector<Real>(0, dim);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    Real normal[dim];
+    for (UInt j=0; j<dim; ++j) {
+      normal[j] = tmp_r[i*dim+j];
+    }
+    ff_nodes->push_back(normal);
+  }
+  map["friction_forces"] = ff_nodes;
+
+  tmp_r = restart_reader->GetNodeDataField("stick_positions");
+  Vector<Real> * sp_nodes = new Vector<Real>(0, dim);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    Real position[dim];
+    for (UInt j=0; j<dim; ++j) {
+      position[j] = tmp_r[i*dim+j];
+    }
+    sp_nodes->push_back(position);
+  }
+  map["stick_positions"] = sp_nodes;
+
+  tmp_r = restart_reader->GetNodeDataField("residual_forces");
+  Vector<Real> * rf_nodes = new Vector<Real>(0, dim);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    Real resid[dim];
+    for (UInt j=0; j<dim; ++j) {
+      resid[j] = tmp_r[i*dim+j];
+    }
+    rf_nodes->push_back(resid);
+  }
+  map["residual_forces"] = rf_nodes;
+
+  tmp_r = restart_reader->GetNodeDataField("previous_velocities");
+  Vector<Real> * pv_nodes = new Vector<Real>(0, dim);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    Real pr_vel[dim];
+    for (UInt j=0; j<dim; ++j) {
+      pr_vel[j] = tmp_r[i*dim+j];
+    }
+    pv_nodes->push_back(pr_vel);
+  }
+  map["previous_velocities"] = pv_nodes;
+
+  contact->setRestartInformation(map, master);
+  delete boundary_r;
+  // delete ai_nodes;
+  // delete et_nodes;
+  // delete mn_nodes;
+  // delete is_nodes;
+  // delete ff_nodes;
+  // delete sp_nodes;
+  // delete rf_nodes;
+  // delete pv_nodes;
+  delete restart_reader;
+#endif //AKANTU_USE_IOHELPER
+}
+
+/* -------------------------------------------------------------------------- */
+void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorBase* > & map) {
+#ifdef AKANTU_USE_IOHELPER
+  DumperRestart dumper;
+
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values,
+                   dim,nb_nodes,"restart_test");
+  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
+                         paraview_type, nb_elements, C_MODE);
+  dumper.AddNodeDataField(my_model.getDisplacement().values,
+                          dim, "displacements");
+  dumper.AddNodeDataField(my_model.getVelocity().values,
+                          dim, "velocities");
+  dumper.AddNodeDataField(my_model.getAcceleration().values
+                          ,dim, "accelerations");
+  dumper.AddNodeDataField(my_model.getResidual().values,
+                          dim, "forces");
+ 
+  Vector<Real> * boundary_r = new Vector<Real>(nb_nodes, dim, 0.);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    for (UInt j=0; j<dim; ++j) {
+      if (boundary[i*dim+j]) {
+        (*boundary_r)(i,j) = 1.;
+      }
+    }
+  }
+  dumper.AddNodeDataField(boundary_r->values, dim, "boundaries");
+
+  // contact information
+  std::map < std::string, VectorBase* >::iterator it;
+
+  it = map.find("active_impactor_nodes");
+  Vector<bool> * tmp_vec_b = (Vector<bool> *)(it->second);
+  Vector<Real> * active_impactor_nodes = new Vector<Real>(nb_nodes, 1, 0.);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    if((*tmp_vec_b)(i))
+      (*active_impactor_nodes)(i) = 1.;
+  }
+  dumper.AddNodeDataField(active_impactor_nodes->values, 1, "active_impactor_nodes");
+
+  it = map.find("master_element_type");
+  Vector<ElementType> * tmp_vec_t = (Vector<ElementType> *)(it->second);
+  Vector<Real> * master_element_type = new Vector<Real>(nb_nodes, 1, (Real)_not_defined);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    (*master_element_type)(i) = (Real)((*tmp_vec_t)(i));
+  }
+  dumper.AddNodeDataField(master_element_type->values, 1, "master_element_type");
+
+  it = map.find("master_normals");
+  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "master_normals");
+
+  it = map.find("node_is_sticking");
+  tmp_vec_b = (Vector<bool> *)(it->second);
+  Vector<Real> * node_is_sticking = new Vector<Real>(nb_nodes, 2, 0.);
+  for (UInt i=0; i<nb_nodes; ++i) {
+    for (UInt j=0; j<2; ++j) {
+      if((*tmp_vec_b)(i,j))
+        (*node_is_sticking)(i,j) = 1.;
+    }
+  }
+  dumper.AddNodeDataField(node_is_sticking->values, 2, "node_is_sticking");
+
+  it = map.find("friction_forces");
+  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "friction_forces");
+
+  it = map.find("stick_positions");
+  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "stick_positions");
+
+  it = map.find("residual_forces");
+  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "residual_forces");
+  it = map.find("previous_velocities");
+  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "previous_velocities");
+
+  dumper.SetMode(COMPRESSED);
+  dumper.SetPrefix("restart");
+  dumper.Init();
+
+  dumper.Dump();
+
+  delete boundary_r;
+  delete active_impactor_nodes;
+  delete master_element_type;
+  delete node_is_sticking;
+#endif //AKANTU_USE_IOHELPER
+}
+
+/* -------------------------------------------------------------------------- */
+void printRestartMap(std::map < std::string, VectorBase* > & map) {
+  /// access all vectors in the map
+  std::map < std::string, VectorBase* >::iterator it;
+  
+  it = map.find("active_impactor_nodes");
+  Vector<bool> * ai_nodes = dynamic_cast<Vector<bool> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry for active impactor nodes" << std::endl;
+  }
+
+  it = map.find("master_element_type");
+  Vector<ElementType> * et_nodes = dynamic_cast<Vector<ElementType> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry master element type" << std::endl;
+  }
+
+  it = map.find("master_normals");
+  Vector<Real> * mn_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry for master normals" << std::endl;
+  }
+
+  it = map.find("node_is_sticking");
+  Vector<bool> * is_nodes = dynamic_cast<Vector<bool> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry node is sticking" << std::endl;
+  }
+
+  it = map.find("friction_forces");
+  Vector<Real> * ff_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry friction forces" << std::endl;
+  }
+
+  it = map.find("stick_positions");
+  Vector<Real> * sp_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry stick positions" << std::endl;
+  }
+
+  it = map.find("residual_forces");
+  Vector<Real> * rf_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry residual forces" << std::endl;
+  }
+
+  it = map.find("previous_velocities");
+  Vector<Real> * pv_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  if(it == map.end()) {
+    test_output << "could not find map entry previous velocities" << std::endl;
+  }
+
+  /// print all information in restart map
+  test_output << "Active impactor nodes (map):" << std::endl << std::endl;
+  for (UInt i=0; i<nb_nodes; ++i) {
+    if ((*ai_nodes)(i)) {
+      test_output << "node: " << i << ", master element type: " << (*et_nodes)(i) << std::endl;
+      for (UInt d=0; d<dim; ++d) {
+	test_output << "Direction " << d << std::endl;
+	test_output << "  master normal = " << (*mn_nodes)(i,d) << std::endl;
+	test_output << "  friction force = " << (*ff_nodes)(i,d) << std::endl;
+	test_output << "  stick position = " << (*sp_nodes)(i,d) << std::endl;
+	test_output << "  residual force = " << (*rf_nodes)(i,d) << std::endl;
+	test_output << "  previous velocity = " << (*pv_nodes)(i,d) << std::endl;
+      }
+      for (UInt j=0; j<2; ++j) {
+	test_output << "stick " << j << ": " << (*is_nodes)(i,j) << std::endl;
+      }
+      test_output << std::endl;
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void printContact(ContactRigid * contact) {
   ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp;
-  it_imp = my_contact_restart->getImpactorsInformation().find(master);
+  it_imp = contact->getImpactorsInformation().find(master);
   ContactRigid::ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
   UInt * active_nodes = impactor_info->active_impactor_nodes->values;
@@ -300,25 +550,41 @@ int main(int argc, char *argv[])
   Real * master_normal = impactor_info->master_normals->values;
   bool * node_stick = impactor_info->node_is_sticking->values;
   Real * friction_force = impactor_info->friction_forces->values;
+  Real * stick_position = impactor_info->stick_positions->values;
+  Real * residual_force = impactor_info->residual_forces->values;
+  Real * previous_velocity = impactor_info->previous_velocities->values;
 
   UInt nb_active_nodes = impactor_info->active_impactor_nodes->getSize();
-  std::cout << std::endl << "Active impactor nodes in restart contact:" << std::endl;
+  test_output << "Active impactor nodes (contact):" << std::endl << std::endl;
   for (UInt i=0; i<nb_active_nodes; ++i, ++active_nodes, ++element_type_imp) {
-    std::cout << "node: " <<  (*active_nodes) << ", master element type: " << *element_type_imp << std::endl;
-    for (UInt d=0; d<dim; ++d, ++master_normal, ++friction_force) {
-	std::cout << "master normal direction = " << d << ": " << *master_normal;
-	std::cout << "friction force direction = " << d << ": " << *friction_force << std::endl;
-      }
-    for (UInt j=0; j<2; ++j, ++node_stick) {
-      std::cout << "stick " << j << ": " << *node_stick;
+    test_output << "node: " <<  (*active_nodes) 
+		<< ", master element type: " << *element_type_imp << std::endl;
+    for (UInt d=0; d<dim; ++d, ++master_normal, 
+	   ++friction_force, 
+	   ++stick_position, 
+	   ++residual_force, 
+	   ++previous_velocity) {
+      test_output << "Direction " << d << std::endl;
+      test_output << "  master normal = " << *master_normal << std::endl;
+      test_output << "  friction force = " << *friction_force << std::endl;
+      test_output << "  stick position = " << *stick_position << std::endl;
+      test_output << "  residual force = " << *residual_force << std::endl;
+      test_output << "  previous velocity = " << *previous_velocity << std::endl;
     }
-	   std::cout << std::endl;
+    for (UInt j=0; j<2; ++j, ++node_stick) {
+      test_output << "stick " << j << ": " << *node_stick << std::endl;
+    }
+    test_output << std::endl;
   }
+}
 
-  delete my_contact;
-  delete my_contact_restart;
-  
-  finalize();
 
-  return EXIT_SUCCESS;
+/* -------------------------------------------------------------------------- */
+void freeMap(std::map < std::string, VectorBase* > & map) {
+  std::map < std::string, VectorBase* >::iterator it = map.begin();
+  std::map < std::string, VectorBase* >::iterator end = map.end();
+
+  for (; it != end; ++it) {
+    delete it->second;    
+  }
 }
