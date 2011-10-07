@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
   akantu::initialize(&argc, &argv);
 
   ElementType type = _triangle_6;
-  UInt max_steps = 7000;
+  UInt max_steps = 15000;
 
   Mesh mesh(spatial_dimension);
 
@@ -102,11 +102,11 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   DumperParaview dumper;
-  paraviewInit(dumper, model, type, "damage_nl");
+  paraviewInit(dumper, model, type, "damage_nl_fine");
   //  paraviewInit(dumper, model, type, "damage");
 
   std::ofstream energy;
-  energy.open("energy_damage_nl.csv");
+  energy.open("energy_damage_nl_fine.csv");
   //  energy.open("energy_damage.csv");
 
   energy << "id,rtime,epot,ekin,tot" << std::endl;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
-    Real apply_disp = std::min(4e-4, (s-1) * 1e-6);
+    Real apply_disp = std::min(10e-4, (s-1)*time_step * 1e-6*1e6);
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
       if(std::abs(pos(i, 0) - bar_length) <= eps) disp(i, 0) = apply_disp;
       if(std::abs(pos(i, 0) - 0.) <= eps) disp(i, 0) = -apply_disp;
