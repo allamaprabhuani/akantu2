@@ -42,27 +42,8 @@ foreach(_type ${LIST_TYPES})
   set_target_properties(test_contact_search_explicit_${_type}
     PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
   file(COPY ./data/${_type}.msh DESTINATION .)
-#  file(COPY ./ref_files/test_contact_rigid_no_friction_${_type}.ref DESTINATION .)
+  file(COPY ./ref_files/test_contact_search_explicit_${_type}.ref DESTINATION .)
 endforeach()
-
-
-#===============================================================================
-#add_mesh(test_mesh_squares squares.geo 2 1)
-
-#register_test(test_contact_search_explicit_triangle_3 test_contact_search_explicit_triangle_3.cc)
-#add_dependencies(test_contact_search_explicit_triangle_3 test_mesh_squares)
-
-#===============================================================================
-#add_mesh(test_mesh_cubes cubes.geo 3 1)
-
-#register_test(test_contact_search_explicit_tetrahedron_4 test_contact_search_explicit_tetrahedron_4.cc)
-#add_dependencies(test_contact_search_explicit_tetrahedron_4 test_mesh_cubes)
-
-#===============================================================================
-#add_mesh(test_regular_grid_3d_mesh cubes.geo 3 1)
-
-#register_test(test_regular_grid_tetrahedron_4_nodes test_regular_grid_tetrahedron_4_nodes.cc)
-#add_dependencies(test_regular_grid_tetrahedron_4_nodes test_regular_grid_3d_mesh)
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)

@@ -1,0 +1,33 @@
+
+passing step 1/3
+Before solveContact
+we have 0 penetrating nodes:
+
+After solveContact
+we have 0 penetrating nodes:
+
+passing step 2/3
+Before solveContact
+we have 12 penetrating nodes:
+node 8 with disp: -0.02 0 0
+node 11 with disp: -0.02 0 0
+node 12 with disp: -0.02 0 0
+node 15 with disp: -0.02 0 0
+node 44 with disp: -0.02 0 0
+node 51 with disp: -0.02 0 0
+node 52 with disp: -0.02 0 0
+node 55 with disp: -0.02 0 0
+node 126 with disp: -0.02 0 0
+node 127 with disp: -0.02 0 0
+node 128 with disp: -0.02 0 0
+node 129 with disp: -0.02 0 0
+
+After solveContact
+we have 0 penetrating nodes:
+
+passing step 3/3
+Before solveContact
+we have 0 penetrating nodes:
+
+After solveContact
+we have 0 penetrating nodes:
