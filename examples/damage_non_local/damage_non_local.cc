@@ -45,6 +45,7 @@ const Real bar_length = 10.;
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
   debug::setDebugLevel(akantu::dblWarning);
+
   akantu::initialize(&argc, &argv);
 
   ElementType type = _triangle_6;
@@ -52,20 +53,10 @@ int main(int argc, char *argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm->getNbProc();
-  Int prank = comm->whoAmI();
+  MeshIOMSH mesh_io;
+  mesh_io.read("bar.msh", mesh);
 
-  akantu::MeshPartition * partition = NULL;
-  if(prank == 0) {
-    MeshIOMSH mesh_io;
-    mesh_io.read("bar.msh", mesh);
-    partition = new MeshPartitionScotch(mesh, spatial_dimension);
-    partition->partitionate(psize);
-  }
-
-  akantu::SolidMechanicsModel model(mesh);
-  model.initParallel(partition);
+  SolidMechanicsModel model(mesh);
 
   model.initModel();
   model.initVectors();
@@ -82,9 +73,9 @@ int main(int argc, char *argv[]) {
 
   /// boundary conditions
   Real eps = 1e-16;
-  const akantu::Vector<akantu::Real> & pos = mesh.getNodes();
-  akantu::Vector<akantu::Real> & disp = model.getDisplacement();
-  akantu::Vector<bool> & boun = model.getBoundary();
+  const Vector<Real> & pos = mesh.getNodes();
+  Vector<Real> & disp = model.getDisplacement();
+  Vector<bool> & boun = model.getBoundary();
 
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
     //    disp(i, 0) = pos(i,0) * 0.1;
@@ -95,8 +86,8 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
   Real time_step = model.getStableTimeStep() * .8;
-  if(prank == 0)
-    std::cout << "Time Step = " << time_step << "s" << std::endl;
+
+  std::cout << "Time Step = " << time_step << "s" << std::endl;
   model.setTimeStep(time_step);
 
   model.updateResidual();
@@ -114,12 +105,15 @@ int main(int argc, char *argv[]) {
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for(akantu::UInt s = 1; s <= max_steps; ++s) {
-    Real apply_disp = std::min(10e-4, (s-1)*time_step * 1e-6*1e6);
+  for(UInt s = 1; s <= max_steps; ++s) {
+
+    Real apply_disp = std::min(10e-4, (s-1) * time_step * 1.);
+
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if(std::abs(pos(i, 0) - bar_length) <= eps) disp(i, 0) = apply_disp;
-      if(std::abs(pos(i, 0) - 0.) <= eps) disp(i, 0) = -apply_disp;
+      if(std::abs(pos(i, 0) - bar_length) <= eps) disp(i, 0) =  apply_disp;
+      if(std::abs(pos(i, 0) - 0.) <= eps)         disp(i, 0) = -apply_disp;
     }
+
     model.explicitPred();
     model.updateResidual();
     model.updateAcceleration();
@@ -136,6 +130,7 @@ int main(int argc, char *argv[]) {
       paraviewDump(dumper);
     }
   }
+
   std::cout << std::endl;
   energy.close();
 
