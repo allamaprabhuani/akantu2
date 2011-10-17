@@ -54,7 +54,17 @@ if(AKANTU_IOHELPER_ON)
 endif()
 
 #===============================================================================
+add_mesh(test_single_spring_mesh_1 single_triangle.geo 2 1)
+register_test(test_single_spring_friction_vel_weak_exp test_single_spring_friction_vel_weak_exp.cc)
+add_dependencies(test_single_spring_friction_vel_weak_exp test_single_spring_mesh_1)
+
+#===============================================================================
 file(COPY material.dat DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/restart)
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction_vel_weak_exp)
+if(AKANTU_IOHELPER_ON)
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_vel_weak_exp)
+endif()
 
