@@ -112,31 +112,38 @@ public:
   inline UInt & rowOffset(UInt row) { return rows_offsets(row); };
 
   /// iterator on a row
-  class iterator : public std::iterator<std::bidirectional_iterator_tag, T> {
+  template <class R>
+  class iterator_internal : public std::iterator<std::bidirectional_iterator_tag, R> {
   public:
-    typedef std::iterator<std::bidirectional_iterator_tag, T> _parent;
+    typedef std::iterator<std::bidirectional_iterator_tag, R> _parent;
     typedef typename _parent::pointer   pointer;
     typedef typename _parent::reference reference;
 
-    iterator(pointer x = NULL) : pos(x) {};
-    iterator(const iterator & it) : pos(it.pos) {};
+    iterator_internal(pointer x = NULL) : pos(x) {};
+    iterator_internal(const iterator_internal & it) : pos(it.pos) {};
 
-    iterator& operator++() { ++pos; return *this; };
-    iterator operator++(int) { iterator tmp(*this); operator++(); return tmp; };
+    iterator_internal& operator++() { ++pos; return *this; };
+    iterator_internal operator++(int) { iterator tmp(*this); operator++(); return tmp; };
 
-    iterator& operator--() { --pos; return *this; };
-    iterator operator--(int) { iterator tmp(*this); operator--(); return tmp; };
+    iterator_internal& operator--() { --pos; return *this; };
+    iterator_internal operator--(int) { iterator_internal tmp(*this); operator--(); return tmp; };
 
-    bool operator==(const iterator& rhs) { return pos == rhs.pos; };
-    bool operator!=(const iterator& rhs) { return pos != rhs.pos; };
+    bool operator==(const iterator_internal& rhs) { return pos == rhs.pos; };
+    bool operator!=(const iterator_internal& rhs) { return pos != rhs.pos; };
     reference operator*() { return *pos; };
     pointer operator->() const { return pos; };
   private:
     pointer pos;
   };
 
+  typedef iterator_internal<T> iterator;
+  typedef iterator_internal<const T> const_iterator;
+
   inline iterator begin(UInt row) { return iterator(rows.values + rows_offsets(row)); };
   inline iterator end(UInt row) { return iterator(rows.values + rows_offsets(row+1)); };
+
+  inline const_iterator begin(UInt row) const { return const_iterator(rows.values + rows_offsets(row)); };
+  inline const_iterator end(UInt row) const { return const_iterator(rows.values + rows_offsets(row+1)); };
 
   inline iterator rbegin(UInt row) { return iterator(rows.values + rows_offsets(row+1) - 1); };
   inline iterator rend(UInt row) { return iterator(rows.values + rows_offsets(row) - 1); };

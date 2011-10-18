@@ -119,10 +119,10 @@ int main(int argc, char *argv[])
   akantu::Vector<akantu::Real> & displacment = model->getDisplacement();
 
   for (akantu::UInt n = 0; n < nb_nodes; ++n) {
-    if(position(n,0) < akantu::Math::tolerance) boundary(n,0) = true;
-    if(position(n,1) < akantu::Math::tolerance) boundary(n,1) = true;
+    if(position(n,0) < akantu::Math::getTolerance()) boundary(n,0) = true;
+    if(position(n,1) < akantu::Math::getTolerance()) boundary(n,1) = true;
 
-    if(std::abs(position(n,0) - bar_length) < akantu::Math::tolerance) {
+    if(std::abs(position(n,0) - bar_length) < akantu::Math::getTolerance()) {
       boundary(n,0) = true;
       displacment(n,0) = 0.1;
     }

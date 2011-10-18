@@ -878,7 +878,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
 
       // if node is on its own stick position no need to compute friction force
       // this avoids nan on normalize2
-      if(Math::norm2(delta_s_vector) < Math::tolerance) {
+      if(Math::norm2(delta_s_vector) < Math::getTolerance()) {
 	node_is_sticking_val[n*2] = true; node_is_sticking_val[n*2+1] = true;
 	continue;
       }

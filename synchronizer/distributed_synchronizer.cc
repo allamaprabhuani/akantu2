@@ -41,7 +41,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
-			   MemoryID memory_id) :
+                           MemoryID memory_id) :
   Synchronizer(id, memory_id),
   static_communicator(StaticCommunicator::getStaticCommunicator())
 {
@@ -87,10 +87,10 @@ DistributedSynchronizer::~DistributedSynchronizer() {
 /* -------------------------------------------------------------------------- */
 DistributedSynchronizer * DistributedSynchronizer::
 createDistributedSynchronizerMesh(Mesh & mesh,
-				  const MeshPartition * partition,
-				  UInt root,
-				  SynchronizerID id,
-				  MemoryID memory_id) {
+                                  const MeshPartition * partition,
+                                  UInt root,
+                                  SynchronizerID id,
+                                  MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
   const UInt TAG_SIZES        = 0;
@@ -123,7 +123,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   /* ------------------------------------------------------------------------ */
   if(my_rank == root) {
     AKANTU_DEBUG_ASSERT(partition->getNbPartition() == nb_proc,
-			"The number of partition does not match the number of processors");
+                        "The number of partition does not match the number of processors");
 
     /**
      * connectivity and communications scheme construction
@@ -156,222 +156,222 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       /* -------------------------------------------------------------------- */
       /// constructing the reordering structures
       for (UInt el = 0; el < nb_element; ++el) {
-	nb_local_element[partition_num[el]]++;
-	for (UInt part = ghost_partition_offset[el];
-	     part < ghost_partition_offset[el + 1];
-	     ++part) {
-	  nb_ghost_element[ghost_partition[part]]++;
-	}
-	nb_element_to_send[partition_num[el]] +=
-	  ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1;
+        nb_local_element[partition_num[el]]++;
+        for (UInt part = ghost_partition_offset[el];
+             part < ghost_partition_offset[el + 1];
+             ++part) {
+          nb_ghost_element[ghost_partition[part]]++;
+        }
+        nb_element_to_send[partition_num[el]] +=
+          ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1;
       }
 
       /// allocating buffers
       UInt * buffers[nb_proc];
       UInt * buffers_tmp[nb_proc];
       for (UInt p = 0; p < nb_proc; ++p) {
-	UInt size = nb_nodes_per_element * (nb_local_element[p] +
-					    nb_ghost_element[p]);
-	buffers[p] = new UInt[size];
-	buffers_tmp[p] = buffers[p];
+        UInt size = nb_nodes_per_element * (nb_local_element[p] +
+                                            nb_ghost_element[p]);
+        buffers[p] = new UInt[size];
+        buffers_tmp[p] = buffers[p];
       }
 
       /// copying the local connectivity
       UInt * conn_val = mesh.getConnectivity(type, _not_ghost).values;
       for (UInt el = 0; el < nb_element; ++el) {
-	memcpy(buffers_tmp[partition_num[el]],
-	       conn_val + el * nb_nodes_per_element,
-	       nb_nodes_per_element * sizeof(UInt));
-	buffers_tmp[partition_num[el]] += nb_nodes_per_element;
+        memcpy(buffers_tmp[partition_num[el]],
+               conn_val + el * nb_nodes_per_element,
+               nb_nodes_per_element * sizeof(UInt));
+        buffers_tmp[partition_num[el]] += nb_nodes_per_element;
       }
 
       /// copying the connectivity of ghost element
       for (UInt el = 0; el < nb_element; ++el) {
-	for (UInt part = ghost_partition_offset[el];
-	     part < ghost_partition_offset[el + 1];
-	     ++part) {
-	  UInt proc = ghost_partition[part];
-	  memcpy(buffers_tmp[proc],
-		 conn_val + el * nb_nodes_per_element,
-		 nb_nodes_per_element * sizeof(UInt));
-	  buffers_tmp[proc] += nb_nodes_per_element;
-	}
+        for (UInt part = ghost_partition_offset[el];
+             part < ghost_partition_offset[el + 1];
+             ++part) {
+          UInt proc = ghost_partition[part];
+          memcpy(buffers_tmp[proc],
+                 conn_val + el * nb_nodes_per_element,
+                 nb_nodes_per_element * sizeof(UInt));
+          buffers_tmp[proc] += nb_nodes_per_element;
+        }
       }
 
       UInt names_size = 0;
       UIntDataMap::iterator it_data;
       for(it_data = uint_data_map.begin(); it_data != uint_data_map.end(); ++it_data) {
-	names_size += it_data->first.size() + 1;
+        names_size += it_data->first.size() + 1;
       }
 
       /* -------->>>>-SIZE + CONNECTIVITY------------------------------------ */
        /// send all connectivity and ghost information to all processors
       std::vector<CommunicationRequest *> requests;
       for (UInt p = 0; p < nb_proc; ++p) {
-	if(p != root) {
-	  UInt size[6];
-	  size[0] = (UInt) type;
-	  size[1] = nb_local_element[p];
-	  size[2] = nb_ghost_element[p];
-	  size[3] = nb_element_to_send[p];
-	  size[4] = nb_tags;
-	  size[5] = names_size;
-	  comm->send(size, 6, p, TAG_SIZES);
+        if(p != root) {
+          UInt size[6];
+          size[0] = (UInt) type;
+          size[1] = nb_local_element[p];
+          size[2] = nb_ghost_element[p];
+          size[3] = nb_element_to_send[p];
+          size[4] = nb_tags;
+          size[5] = names_size;
+          comm->send(size, 6, p, TAG_SIZES);
 
-	  AKANTU_DEBUG_INFO("Sending connectivities to proc " << p);
-	  requests.push_back(comm->asyncSend(buffers[p],
-					    nb_nodes_per_element * (nb_local_element[p] +
-								    nb_ghost_element[p]),
-					    p, TAG_CONNECTIVITY));
-	} else {
-	  local_connectivity = buffers[p];
-	}
+          AKANTU_DEBUG_INFO("Sending connectivities to proc " << p);
+          requests.push_back(comm->asyncSend(buffers[p],
+                                            nb_nodes_per_element * (nb_local_element[p] +
+                                                                    nb_ghost_element[p]),
+                                            p, TAG_CONNECTIVITY));
+        } else {
+          local_connectivity = buffers[p];
+        }
       }
 
       /// create the renumbered connectivity
       AKANTU_DEBUG_INFO("Renumbering local connectivities");
       MeshUtils::renumberMeshNodes(mesh,
-				   local_connectivity,
-				   nb_local_element[root],
-				   nb_ghost_element[root],
-				   type,
-				   *old_nodes);
+                                   local_connectivity,
+                                   nb_local_element[root],
+                                   nb_ghost_element[root],
+                                   type,
+                                   *old_nodes);
 
       comm->waitAll(requests);
       comm->freeCommunicationRequest(requests);
       requests.clear();
 
       for (UInt p = 0; p < nb_proc; ++p) {
-	delete [] buffers[p];
+        delete [] buffers[p];
       }
 
       /* -------------------------------------------------------------------- */
       for (UInt p = 0; p < nb_proc; ++p) {
-	buffers[p] = new UInt[nb_ghost_element[p] + nb_element_to_send[p]];
-	buffers_tmp[p] = buffers[p];
+        buffers[p] = new UInt[nb_ghost_element[p] + nb_element_to_send[p]];
+        buffers_tmp[p] = buffers[p];
       }
 
       /// splitting the partition information to send them to processors
       UInt count_by_proc[nb_proc];
       memset(count_by_proc, 0, nb_proc*sizeof(UInt));
       for (UInt el = 0; el < nb_element; ++el) {
-	*(buffers_tmp[partition_num[el]]++) = ghost_partition_offset[el + 1] - ghost_partition_offset[el];
-	for (UInt part = ghost_partition_offset[el], i = 0;
-	     part < ghost_partition_offset[el + 1];
-	     ++part, ++i) {
-	  *(buffers_tmp[partition_num[el]]++) = ghost_partition[part];
-	}
+        *(buffers_tmp[partition_num[el]]++) = ghost_partition_offset[el + 1] - ghost_partition_offset[el];
+        for (UInt part = ghost_partition_offset[el], i = 0;
+             part < ghost_partition_offset[el + 1];
+             ++part, ++i) {
+          *(buffers_tmp[partition_num[el]]++) = ghost_partition[part];
+        }
       }
 
       for (UInt el = 0; el < nb_element; ++el) {
-	for (UInt part = ghost_partition_offset[el], i = 0;
-	     part < ghost_partition_offset[el + 1];
-	     ++part, ++i) {
-	  *(buffers_tmp[ghost_partition[part]]++) = partition_num[el];
-	}
+        for (UInt part = ghost_partition_offset[el], i = 0;
+             part < ghost_partition_offset[el + 1];
+             ++part, ++i) {
+          *(buffers_tmp[ghost_partition[part]]++) = partition_num[el];
+        }
       }
 
       /* -------->>>>-PARTITIONS--------------------------------------------- */
       /// last data to compute the communication scheme
       for (UInt p = 0; p < nb_proc; ++p) {
-	if(p != root) {
-	  AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
-	  requests.push_back(comm->asyncSend(buffers[p],
-					     nb_element_to_send[p] + nb_ghost_element[p],
-					     p, TAG_PARTITIONS));
-	} else {
-	  local_partitions = buffers[p];
-	}
+        if(p != root) {
+          AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
+          requests.push_back(comm->asyncSend(buffers[p],
+                                             nb_element_to_send[p] + nb_ghost_element[p],
+                                             p, TAG_PARTITIONS));
+        } else {
+          local_partitions = buffers[p];
+        }
       }
 
       AKANTU_DEBUG_INFO("Creating communications scheme");
       communicator->fillCommunicationScheme(local_partitions,
-					    nb_local_element[root],
-					    nb_ghost_element[root],
-					    type);
+                                            nb_local_element[root],
+                                            nb_ghost_element[root],
+                                            type);
 
       comm->waitAll(requests);
       comm->freeCommunicationRequest(requests);
       requests.clear();
 
       for (UInt p = 0; p < nb_proc; ++p) {
-	delete [] buffers[p];
+        delete [] buffers[p];
       }
 
       /* -------------------------------------------------------------------- */
       /// send int data assossiated to the mesh
       if(nb_tags) {
-	UInt uint_names_size = names_size / sizeof(UInt) + (names_size % sizeof(UInt) ? 1 : 0);
-	for (UInt p = 0; p < nb_proc; ++p) {
-	  UInt size = nb_tags * (nb_local_element[p] + nb_ghost_element[p])
-	    + uint_names_size;
-	  buffers[p] = new UInt[size];
-	  std::fill_n(buffers[p], size, 0);
-	  buffers_tmp[p] = buffers[p];
-	}
+        UInt uint_names_size = names_size / sizeof(UInt) + (names_size % sizeof(UInt) ? 1 : 0);
+        for (UInt p = 0; p < nb_proc; ++p) {
+          UInt size = nb_tags * (nb_local_element[p] + nb_ghost_element[p])
+            + uint_names_size;
+          buffers[p] = new UInt[size];
+          std::fill_n(buffers[p], size, 0);
+          buffers_tmp[p] = buffers[p];
+        }
 
-	char * names = new char[names_size];
-	char * names_tmp = names;
-	memset(names, 0, names_size);
-	for(it_data = uint_data_map.begin(); it_data != uint_data_map.end(); ++it_data) {
-	  UInt * data = it_data->second->values;
+        char * names = new char[names_size];
+        char * names_tmp = names;
+        memset(names, 0, names_size);
+        for(it_data = uint_data_map.begin(); it_data != uint_data_map.end(); ++it_data) {
+          UInt * data = it_data->second->values;
 
-	  memcpy(names_tmp, it_data->first.data(), it_data->first.size());
-	  names_tmp += it_data->first.size() + 1;
+          memcpy(names_tmp, it_data->first.data(), it_data->first.size());
+          names_tmp += it_data->first.size() + 1;
 
-	  /// copying data for the local element
-	  for (UInt el = 0; el < nb_element; ++el) {
-	    UInt proc = partition_num[el];
-	    *(buffers_tmp[proc]) = data[el];
-	    buffers_tmp[proc]++;
-	  }
+          /// copying data for the local element
+          for (UInt el = 0; el < nb_element; ++el) {
+            UInt proc = partition_num[el];
+            *(buffers_tmp[proc]) = data[el];
+            buffers_tmp[proc]++;
+          }
 
-	  /// copying the data for the ghost element
-	  for (UInt el = 0; el < nb_element; ++el) {
-	    for (UInt part = ghost_partition_offset[el];
-		 part < ghost_partition_offset[el + 1];
-		 ++part) {
-	      UInt proc = ghost_partition[part];
-	      *(buffers_tmp[proc]) = data[el];
-	      buffers_tmp[proc]++;
-	    }
-	  }
-	}
+          /// copying the data for the ghost element
+          for (UInt el = 0; el < nb_element; ++el) {
+            for (UInt part = ghost_partition_offset[el];
+                 part < ghost_partition_offset[el + 1];
+                 ++part) {
+              UInt proc = ghost_partition[part];
+              *(buffers_tmp[proc]) = data[el];
+              buffers_tmp[proc]++;
+            }
+          }
+        }
 
-	/* -------->>>>-TAGS------------------------------------------------- */
-	for (UInt p = 0; p < nb_proc; ++p) {
-	  memcpy((char *)buffers_tmp[p], names, names_size);
-	  if(p != root) {
-	    UInt size = nb_tags * (nb_local_element[p] + nb_ghost_element[p])
-	      + uint_names_size;
-	    AKANTU_DEBUG_INFO("Sending associated data to proc " << p);
-	    requests.push_back(comm->asyncSend(buffers[p], size, p, TAG_DATA));
-	  } else {
-	    local_data = buffers[p];
-	  }
-	}
-	MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
+        /* -------->>>>-TAGS------------------------------------------------- */
+        for (UInt p = 0; p < nb_proc; ++p) {
+          memcpy((char *)buffers_tmp[p], names, names_size);
+          if(p != root) {
+            UInt size = nb_tags * (nb_local_element[p] + nb_ghost_element[p])
+              + uint_names_size;
+            AKANTU_DEBUG_INFO("Sending associated data to proc " << p);
+            requests.push_back(comm->asyncSend(buffers[p], size, p, TAG_DATA));
+          } else {
+            local_data = buffers[p];
+          }
+        }
+        MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
 
-	comm->waitAll(requests);
-	comm->freeCommunicationRequest(requests);
-	requests.clear();
+        comm->waitAll(requests);
+        comm->freeCommunicationRequest(requests);
+        requests.clear();
 
-	for (UInt p = 0; p < nb_proc; ++p) delete [] buffers[p];
-	delete [] names;
+        for (UInt p = 0; p < nb_proc; ++p) delete [] buffers[p];
+        delete [] names;
       }
     }
 
     /* -------->>>>-SIZE----------------------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
-	UInt size[6];
-	size[0] = (UInt) _not_defined;
-	size[1] = 0;
-	size[2] = 0;
-	size[3] = 0;
-	size[4] = 0;
-	size[5] = 0;
-	comm->send(size, 6, p, TAG_SIZES);
+        UInt size[6];
+        size[0] = (UInt) _not_defined;
+        size[1] = 0;
+        size[2] = 0;
+        size[3] = 0;
+        size[4] = 0;
+        size[5] = 0;
+        comm->send(size, 6, p, TAG_SIZES);
       }
     }
 
@@ -391,35 +391,35 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       UInt nb_nodes;
       //      UInt * buffer;
       if(p != root) {
-	AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
-	comm->receive(&nb_nodes, 1, p, TAG_NB_NODES);
-	nodes_per_proc[p] = new UInt[nb_nodes];
-	nb_nodes_per_proc[p] = nb_nodes;
-	comm->receive(nodes_per_proc[p], nb_nodes, p, TAG_NODES);
+        AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
+        comm->receive(&nb_nodes, 1, p, TAG_NB_NODES);
+        nodes_per_proc[p] = new UInt[nb_nodes];
+        nb_nodes_per_proc[p] = nb_nodes;
+        comm->receive(nodes_per_proc[p], nb_nodes, p, TAG_NODES);
       } else {
-	nb_nodes = old_nodes->getSize();
-	nb_nodes_per_proc[p] = nb_nodes;
-	nodes_per_proc[p] = old_nodes->values;
+        nb_nodes = old_nodes->getSize();
+        nb_nodes_per_proc[p] = nb_nodes;
+        nodes_per_proc[p] = old_nodes->values;
       }
 
       /// get the coordinates for the selected nodes
       Real * nodes_to_send = new Real[nb_nodes * spatial_dimension];
       Real * nodes_to_send_tmp = nodes_to_send;
       for (UInt n = 0; n < nb_nodes; ++n) {
-	memcpy(nodes_to_send_tmp,
-	       nodes->values + spatial_dimension * nodes_per_proc[p][n],
-	       spatial_dimension * sizeof(Real));
-	// nodes_to_proc.insert(std::make_pair(buffer[n], std::make_pair(p, n)));
-	nodes_to_send_tmp += spatial_dimension;
+        memcpy(nodes_to_send_tmp,
+               nodes->values + spatial_dimension * nodes_per_proc[p][n],
+               spatial_dimension * sizeof(Real));
+        // nodes_to_proc.insert(std::make_pair(buffer[n], std::make_pair(p, n)));
+        nodes_to_send_tmp += spatial_dimension;
       }
 
       /* -------->>>>-COORDINATES-------------------------------------------- */
       if(p != root) { /// send them for distant processors
-	AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
-	comm->send(nodes_to_send, nb_nodes * spatial_dimension, p, TAG_COORDINATES);
-	delete [] nodes_to_send;
+        AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
+        comm->send(nodes_to_send, nb_nodes * spatial_dimension, p, TAG_COORDINATES);
+        delete [] nodes_to_send;
       } else { /// save them for local processor
-	local_nodes = nodes_to_send;
+        local_nodes = nodes_to_send;
       }
     }
 
@@ -440,15 +440,15 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /* --------<<<<-NODES_TYPE-1--------------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
-	AKANTU_DEBUG_INFO("Receiving first nodes types from proc " << p);
-	comm->receive(nodes_type_per_proc[p]->values,
-		      nb_nodes_per_proc[p], p, TAG_NODES_TYPE);
+        AKANTU_DEBUG_INFO("Receiving first nodes types from proc " << p);
+        comm->receive(nodes_type_per_proc[p]->values,
+                      nb_nodes_per_proc[p], p, TAG_NODES_TYPE);
       } else {
-	nodes_type_per_proc[p]->copy(mesh.getNodesType());
+        nodes_type_per_proc[p]->copy(mesh.getNodesType());
       }
       for (UInt n = 0; n < nb_nodes_per_proc[p]; ++n) {
-	if((*nodes_type_per_proc[p])(n) == -2)
-	  nodes_to_proc.insert(std::make_pair(nodes_per_proc[p][n], std::make_pair(p, n)));
+        if((*nodes_type_per_proc[p])(n) == -2)
+          nodes_to_proc.insert(std::make_pair(nodes_per_proc[p][n], std::make_pair(p, n)));
       }
     }
 
@@ -461,10 +461,10 @@ createDistributedSynchronizerMesh(Mesh & mesh,
 
       UInt node_type = (it_range.first)->second.first;
       for (it_node = it_range.first; it_node != it_range.second; ++it_node) {
-	UInt proc = it_node->second.first;
-	UInt node = it_node->second.second;
-	if(proc != node_type)
-	  nodes_type_per_proc[proc]->values[node] = node_type;
+        UInt proc = it_node->second.first;
+        UInt node = it_node->second.second;
+        if(proc != node_type)
+          nodes_type_per_proc[proc]->values[node] = node_type;
       }
     }
 
@@ -472,11 +472,11 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     std::vector<CommunicationRequest *> requests;
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
-	AKANTU_DEBUG_INFO("Sending nodes types to proc " << p);
-	requests.push_back(comm->asyncSend(nodes_type_per_proc[p]->values,
-					   nb_nodes_per_proc[p], p, TAG_NODES_TYPE));
+        AKANTU_DEBUG_INFO("Sending nodes types to proc " << p);
+        requests.push_back(comm->asyncSend(nodes_type_per_proc[p]->values,
+                                           nb_nodes_per_proc[p], p, TAG_NODES_TYPE));
       } else {
-	mesh.getNodesTypePointer()->copy(*nodes_type_per_proc[p]);
+        mesh.getNodesTypePointer()->copy(*nodes_type_per_proc[p]);
       }
     }
 
@@ -511,52 +511,52 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       UInt uint_names_size = names_size / sizeof(UInt) + (names_size % sizeof(UInt) ? 1 : 0);
 
       if(type != _not_defined) {
-	UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-	/* --------<<<<-CONNECTIVITY----------------------------------------- */
-	local_connectivity = new UInt[(nb_local_element + nb_ghost_element) *
-				      nb_nodes_per_element];
-	AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
-	comm->receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
-								  nb_ghost_element),
-			   root, TAG_CONNECTIVITY);
+        UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+        /* --------<<<<-CONNECTIVITY----------------------------------------- */
+        local_connectivity = new UInt[(nb_local_element + nb_ghost_element) *
+                                      nb_nodes_per_element];
+        AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
+        comm->receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
+                                                                  nb_ghost_element),
+                           root, TAG_CONNECTIVITY);
 
-	AKANTU_DEBUG_INFO("Renumbering local connectivities");
-	MeshUtils::renumberMeshNodes(mesh,
-				     local_connectivity,
-				     nb_local_element,
-				     nb_ghost_element,
-				     type,
-				     *old_nodes);
+        AKANTU_DEBUG_INFO("Renumbering local connectivities");
+        MeshUtils::renumberMeshNodes(mesh,
+                                     local_connectivity,
+                                     nb_local_element,
+                                     nb_ghost_element,
+                                     type,
+                                     *old_nodes);
 
-	delete [] local_connectivity;
+        delete [] local_connectivity;
 
-	/* --------<<<<-PARTITIONS--------------------------------------------- */
-	local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
-	AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
-	comm->receive(local_partitions,
-			   nb_element_to_send + nb_ghost_element * 2,
-			   root, TAG_PARTITIONS);
+        /* --------<<<<-PARTITIONS--------------------------------------------- */
+        local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
+        AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
+        comm->receive(local_partitions,
+                           nb_element_to_send + nb_ghost_element * 2,
+                           root, TAG_PARTITIONS);
 
-	AKANTU_DEBUG_INFO("Creating communications scheme");
-	communicator->fillCommunicationScheme(local_partitions,
-					     nb_local_element,
-					     nb_ghost_element,
-					     type);
+        AKANTU_DEBUG_INFO("Creating communications scheme");
+        communicator->fillCommunicationScheme(local_partitions,
+                                             nb_local_element,
+                                             nb_ghost_element,
+                                             type);
 
-	delete [] local_partitions;
+        delete [] local_partitions;
 
-	/* --------<<<<-TAGS------------------------------------------------- */
-	if(nb_tags) {
-	  AKANTU_DEBUG_INFO("Receiving associated data from proc " << root);
-	  UInt size_data = (nb_local_element + nb_ghost_element) * nb_tags
-	    + uint_names_size;
-	  local_data = new UInt[size_data];
-	  comm->receive(local_data, size_data, root, TAG_DATA);
+        /* --------<<<<-TAGS------------------------------------------------- */
+        if(nb_tags) {
+          AKANTU_DEBUG_INFO("Receiving associated data from proc " << root);
+          UInt size_data = (nb_local_element + nb_ghost_element) * nb_tags
+            + uint_names_size;
+          local_data = new UInt[size_data];
+          comm->receive(local_data, size_data, root, TAG_DATA);
 
-	  MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
+          MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
 
-	  delete [] local_data;
-	}
+          delete [] local_data;
+        }
       }
     } while(type != _not_defined);
 
@@ -579,12 +579,12 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     Int * nodes_types = mesh.getNodesTypePointer()->values;
     AKANTU_DEBUG_INFO("Sending first nodes types to proc " << root);
     comm->send(nodes_types, nb_nodes,
-	       root, TAG_NODES_TYPE);
+               root, TAG_NODES_TYPE);
 
     /* --------<<<<-NODES_TYPE-2--------------------------------------------- */
     AKANTU_DEBUG_INFO("Receiving nodes types from proc " << root);
     comm->receive(nodes_types, nb_nodes,
-		  root, TAG_NODES_TYPE);
+                  root, TAG_NODES_TYPE);
   }
 
   comm->broadcast(&(mesh.nb_global_nodes), 1, root);
@@ -631,15 +631,15 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
       UInt * conn_val = mesh.getConnectivity(type, gt).values;
 
       for (UInt e = 0; e < nb_element; ++e) {
-	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val
-			      << " bigger than number of nodes " << nb_nodes);
-	  if(!already_seen[*conn_val]) {
-	    nodes_set[*conn_val] += set;
-	    already_seen[*conn_val] = true;
-	  }
-	  conn_val++;
-	}
+        for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+          AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val
+                              << " bigger than number of nodes " << nb_nodes);
+          if(!already_seen[*conn_val]) {
+            nodes_set[*conn_val] += set;
+            already_seen[*conn_val] = true;
+          }
+          conn_val++;
+        }
       }
     }
   }
@@ -659,9 +659,9 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
 
 /* -------------------------------------------------------------------------- */
 void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
-					   UInt nb_local_element,
-					   UInt nb_ghost_element,
-					   ElementType type) {
+                                                      UInt nb_local_element,
+                                                      UInt nb_ghost_element,
+                                                      ElementType type) {
   AKANTU_DEBUG_IN();
 
   Element element;
@@ -695,7 +695,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
 
 /* -------------------------------------------------------------------------- */
 void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
-						      SynchronizationTag tag) {
+                                		      SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(send_requests.size() == 0,

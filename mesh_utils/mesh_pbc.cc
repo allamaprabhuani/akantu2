@@ -48,7 +48,7 @@ public:
     Real p1_x = coordinates[dim*n1+dir_x];
     Real p2_x = coordinates[dim*n2+dir_x];
     Real diff_x = p1_x - p2_x;
-    if (dim == 2 || fabs(diff_x) > Math::tolerance)
+    if (dim == 2 || fabs(diff_x) > Math::getTolerance())
       return diff_x > 0.0 ? false : true;
     else if (dim > 2){
       Real p1_y = coordinates[dim*n1+dir_y];
@@ -226,7 +226,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
     if (dim == 2) dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
     if (dim == 3) dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
 
-    if (fabs(dx*dx+dy*dy) < Math::tolerance)
+    if (fabs(dx*dx+dy*dy) < Math::getTolerance())
       {
   	//then i match these pairs
 	if (pbc_pair.count(i2)){
@@ -245,8 +245,8 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
   	++it_left;
   	++it_right;
       }
-    else if (fabs(dy) < Math::tolerance && dx > 0) ++it_right;
-    else if (fabs(dy) < Math::tolerance && dx < 0) ++it_left;
+    else if (fabs(dy) < Math::getTolerance() && dx > 0) ++it_right;
+    else if (fabs(dy) < Math::getTolerance() && dx < 0) ++it_left;
     else if (dy > 0) ++it_right;
     else if (dy < 0) ++it_left;
     else {

@@ -29,11 +29,11 @@
 #            _    ,-,    _
 #     ,--, /: :\/': :`\/: :\
 #    |`;  ' `,'   `.;    `: |                  _               _
-#    |    |     |  '  |     |.		      | |             | |
-#    | :  | F E | A S | T++ ||		  __ _| | ____ _ _ __ | |_ _   _
-#    | :. |  :  |  :  |  :  | \		 / _` | |/ / _` | '_ \| __| | | |
+#    |    |     |  '  |     |.                | |             | |
+#    | :  | F E | A S | T++ ||            __ _| | ____ _ _ __ | |_ _   _
+#    | :. |  :  |  :  |  :  | \          / _` | |/ / _` | '_ \| __| | | |
 #     \__/: :.. : :.. | :.. |  )        | (_| |   < (_| | | | | |_| |_| |
-#          `---',\___/,\___/ /'		 \__,_|_|\_\__,_|_| |_|\__|\__,_|
+#          `---',\___/,\___/ /'          \__,_|_|\_\__,_|_| |_|\__|\__,_|
 #               `==._ .. . /'
 #                    `-::-'
 #===============================================================================
@@ -156,7 +156,7 @@ set(AKANTU_COMMON_SRC
   model/solid_mechanics/materials/material_elastic_caughey.cc
   model/solid_mechanics/materials/material_damage.cc
   model/solid_mechanics/materials/material_mazars.cc
-  model/solid_mechanics/materials/material_neohookean.cc  
+  model/solid_mechanics/materials/material_neohookean.cc
   model/solid_mechanics/materials/material_damage_non_local.cc
   model/solid_mechanics/materials/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage_linear.cc
@@ -175,6 +175,7 @@ set(AKANTU_COMMON_SRC
   synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
+#  synchronizer/grid_synchronizer.cc
   synchronizer/dof_synchronizer.cc
   )
 

@@ -197,11 +197,21 @@ void Material::assembleResidual(GhostType ghost_type) {
       shapesd_filtered_val += size_of_shapes_derivatives * nb_quadrature_points;
     }
 
+
     Vector<Real> & stress_vect = stress(*it, ghost_type);
+    // Vector<Real>::iterator<types::Matrix> sigma = stress_vect.begin(spatial_dimension, spatial_dimension);
+    // Vector<Real>::iterator<types::Matrix> sigma_end = stress_vect.end(spatial_dimension, spatial_dimension);
+    // Vector<Real>::iterator<types::Matrix> nabla_B = shapesd_filtered->begin(nb_nodes_per_element, spatial_dimension);
+    // Vector<Real>::iterator<types::Matrix> sigma_dphi_dx_it = sigma_dphi_dx->begin(nb_nodes_per_element, spatial_dimension);
+
+    // for (; sigma != sigma_end; ++sigma, ++nabla_B, ++sigma_dphi_dx_it) {
+    //   sigma_dphi_dx_it->mul<true,false>(*nabla_B, *sigma);
+    // }
+
     Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			 *shapesd_filtered,
-			 stress_vect,
-			 *sigma_dphi_dx);
+                         *shapesd_filtered,
+                         stress_vect,
+                         *sigma_dphi_dx);
 
     delete shapesd_filtered;
 

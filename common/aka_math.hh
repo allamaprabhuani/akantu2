@@ -194,18 +194,21 @@ public:
   /// test if two vectors are equal within a given tolerance
   static inline bool are_vector_equal(UInt n, Real * x, Real * y);
 
-  /// tolerance for functions that need one
-  static Real tolerance;
-
   /// test if a real is a NaN
   static inline bool isnan(Real x);
 
   /// test if the line x and y intersects each other
-  inline bool intersects(Real x_min, Real x_max, Real y_min, Real y_max);
+  static inline bool intersects(Real x_min, Real x_max, Real y_min, Real y_max);
 
   /// test if a is in the range [x_min, x_max]
-  inline bool is_in_range(Real a, Real x_min, Real x_max);
+  static inline bool is_in_range(Real a, Real x_min, Real x_max);
 
+  static inline Real getTolerance() { return tolerance; };
+  static inline void setTolerance(Real tol) { tolerance = tol; };
+
+private:
+  /// tolerance for functions that need one
+  static Real tolerance;
 };
 
 

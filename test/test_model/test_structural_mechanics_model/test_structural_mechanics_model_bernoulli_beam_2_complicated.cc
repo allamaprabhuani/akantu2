@@ -51,9 +51,10 @@ void paraviewDump(Dumper & dumper);
 
 //Linear load function
 static void lin_load(double * position, double * load,
-		     __attribute__ ((unused)) Real * normal, __attribute__ ((unused)) UInt surface_id){
+		     __attribute__ ((unused)) Real * normal,
+                     __attribute__ ((unused)) UInt surface_id){
   memset(load,0,sizeof(Real)*3);
-  if(position[1]>=0.-Math::tolerance) {
+  if(position[1]>=0.-Math::getTolerance()) {
     if ((position[0]<=10.)){
       load[1]= -100;
     } else if (position[0]<=20.){

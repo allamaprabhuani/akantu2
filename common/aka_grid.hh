@@ -26,6 +26,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "aka_csr.hh"
+
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_AKA_GRID_HH__
 #define __AKANTU_AKA_GRID_HH__
@@ -62,8 +66,12 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   typedef typename CSR<T>::iterator iterator;
+  typedef typename CSR<T>::const_iterator const_iterator;
   inline iterator beginCell(UInt cell) { return data.begin(cell); };
   inline iterator endCell(UInt cell) { return data.end(cell); };
+
+  inline const_iterator beginCell(UInt cell) const { return data.begin(cell); };
+  inline const_iterator endCell(UInt cell) const { return data.end(cell); };
 
   struct neighbor_cells_iterator : std::iterator<std::forward_iterator_tag, UInt> {
     neighbor_cells_iterator(const RegularGrid & grid,

@@ -487,5 +487,5 @@ inline bool Math::intersects(Real x_min, Real x_max, Real y_min, Real y_max) {
 
 /* -------------------------------------------------------------------------- */
 inline bool Math::is_in_range(Real a, Real x_min, Real x_max) {
-  return ((a >= x_max) && (a <= x_max));
+  return ((a >= x_min) && (a <= x_max));
 }

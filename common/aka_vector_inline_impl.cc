@@ -504,6 +504,8 @@ protected:
 								   ret(ret) {
   }
 
+  virtual ~iterator_internal() { delete ret; };
+
 public:
   iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
 
@@ -528,8 +530,6 @@ public:
       this->ret = new internal_value_type(*it.ret);
     }
   }
-
-  virtual ~iterator_internal() { delete ret; };
 
   inline iterator_internal & operator=(const iterator_internal & it) {
     if(this != &it) {
@@ -561,7 +561,7 @@ public:
     return (*this).ret->values != other.ret->values;
   }
 
-  inline const pointer_type getCurrentStorage() const {
+  inline pointer_type getCurrentStorage() const {
     return ret->storage();
   }
 

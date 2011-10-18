@@ -54,6 +54,10 @@ if(AKANTU_PARTITIONER_ON AND AKANTU_MPI_ON)
   endif()
 endif()
 
+if(AKANTU_MUMPS_ON)
+  add_example(dam_earthquake "Dam earthquake test")
+endif()
+
 if(AKANTU_EPSN_ON)
   add_example(epsn "Example of steering akantu with EPSN")
 endif(AKANTU_EPSN_ON)

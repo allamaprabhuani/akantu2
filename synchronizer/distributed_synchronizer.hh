@@ -100,7 +100,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// the static memory instance
   StaticCommunicator * static_communicator;
 

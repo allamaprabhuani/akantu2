@@ -64,6 +64,17 @@ public:
   GhostType ghost_type;
 };
 
+struct CompElementLess {
+  bool operator() (const Element& lhs, const Element& rhs) const {
+    bool res = ((lhs.ghost_type < rhs.ghost_type) ||
+                ((lhs.ghost_type == rhs.ghost_type) &&
+                 ((lhs.type < rhs.type) ||
+                  ((lhs.type == rhs.type) &&
+                   (lhs.element < rhs.element)))));
+    return res;
+  }
+};
+
 extern const Element ElementNull;
 
 

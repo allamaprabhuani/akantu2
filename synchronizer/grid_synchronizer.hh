@@ -26,11 +26,20 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "distributed_synchronizer.hh"
+
+/* -------------------------------------------------------------------------- */
+
 
 #ifndef __AKANTU_GRID_SYNCHRONIZER_HH__
 #define __AKANTU_GRID_SYNCHRONIZER_HH__
 
 __BEGIN_AKANTU__
+
+class Mesh;
+template<class T>
+class RegularGrid;
 
 class GridSynchronizer : protected DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
@@ -38,19 +47,18 @@ class GridSynchronizer : protected DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
 public:
 
-  GridSynchronizer(ID & id = "grid_synchronizer", MemoryID memory_id = 0);
+  GridSynchronizer(const ID & id = "grid_synchronizer", MemoryID memory_id = 0);
 
-  virtual ~GridSynchronizer();
+  virtual ~GridSynchronizer() { };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
+  template <class E>
   static GridSynchronizer *
   createGridSynchronizer(Mesh & mesh,
-			 const RegularGrid * grid,
-			 UInt root = 0,
+			 const RegularGrid<E> & grid,
 			 SynchronizerID id = "grid_synchronizer",
 			 MemoryID memory_id = 0);
 
@@ -74,7 +82,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "grid_synchronizer_inline_impl.cc"
+//#include "grid_synchronizer_inline_impl.cc"
 
 /// standard output stream operator
 // inline std::ostream & operator <<(std::ostream & stream, const GridSynchronizer & _this)

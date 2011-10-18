@@ -118,7 +118,10 @@ protected:
 //   return stream;
 // }
 
-
 __END_AKANTU__
+
+#ifdef AKANTU_USE_SCOTCH
+#include "mesh_partition_scotch.hh"
+#endif
 
 #endif /* __AKANTU_MESH_PARTITION_HH__ */
