@@ -151,7 +151,7 @@ void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
 
-  dumper.SetMode(TEXT);
+  //  dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
@@ -166,9 +166,13 @@ void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
    			  1, "capacity_lumped");
   dumper.AddElemDataField(model->getTemperatureGradient(type).values,
     			  spatial_dimension, "temperature_gradient");
+
+  dumper.AddElemDataField(model->getConductivityOnQpoints(type).values,
+    			  spatial_dimension*spatial_dimension, "conductivity_qpoints");
+
+
   dumper.SetPrefix("paraview/");
   dumper.Init();
-  dumper.Dump();
 }
 
 /* -------------------------------------------------------------------------- */
