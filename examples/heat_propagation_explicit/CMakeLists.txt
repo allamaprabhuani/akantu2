@@ -27,11 +27,12 @@
 
 #===============================================================================
 add_mesh(double_cube_tet4 double_cube_tet.geo 3 1 OUTPUT double_cube_tet4.msh)
+add_mesh(cube_tet4 cube_tet.geo 3 1 OUTPUT cube_tet4.msh)
 register_example(heat_propa_pbc heat_propa_pbc.cc)
-add_dependencies(heat_propa_pbc double_cube_tet4)
+add_dependencies(heat_propa_pbc double_cube_tet4 cube_tet4)
 
 register_example(heat_propa_parallel heat_propa_parallel.cc)
-add_dependencies(heat_propa_parallel double_cube_tet4)
+add_dependencies(heat_propa_parallel double_cube_tet4 cube_tet4)
 
 #===============================================================================
 configure_file(
@@ -40,4 +41,27 @@ configure_file(
   COPYONLY
   )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/double_cube_tet.geo
+  ${CMAKE_CURRENT_BINARY_DIR}/double_cube_tet.geo
+  COPYONLY
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cube_tet.geo
+  ${CMAKE_CURRENT_BINARY_DIR}/cube_tet.geo
+  COPYONLY
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/heat_propa_parallel.sub
+  ${CMAKE_CURRENT_BINARY_DIR}/heat_propa_parallel.sub
+  COPYONLY
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/generate-meshes.sh
+  ${CMAKE_CURRENT_BINARY_DIR}/generate-meshes.sh
+  COPYONLY
+  )
+
