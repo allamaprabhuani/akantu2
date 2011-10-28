@@ -347,3 +347,18 @@ if(AKANTU_EXAMPLES)
   find_package(GMSH REQUIRED)
   add_subdirectory(examples)
 endif(AKANTU_EXAMPLES)
+
+
+#===============================================================================
+# Install rules
+#===============================================================================
+
+install(TARGETS akantu 
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
+
+
+file(GLOB_RECURSE include_file_list "${CMAKE_SOURCE_DIR}/*.hh")
+install(FILES ${include_file_list} DESTINATION include
+  )
+
