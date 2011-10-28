@@ -359,6 +359,12 @@ install(TARGETS akantu
 
 
 file(GLOB_RECURSE include_file_list "${CMAKE_SOURCE_DIR}/*.hh")
-install(FILES ${include_file_list} DESTINATION include
-  )
+file(GLOB_RECURSE inline_include_file_list "${CMAKE_SOURCE_DIR}/*inline*.cc")
+file(GLOB_RECURSE element_class_include_file_list "${CMAKE_SOURCE_DIR}/*element_class_*.cc")
+install(FILES 
+  ${include_file_list} 
+  ${inline_include_file_list} 
+  ${element_class_include_file_list}
+DESTINATION include
+)
 
