@@ -70,6 +70,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
 
   this->residual = NULL;
   this->boundary = NULL;
+  this->conductivity_variation = 0.0;
+  this->t_ref = 0;
 
   AKANTU_DEBUG_OUT();
 }
@@ -132,10 +134,31 @@ void HeatTransferModel::initVectors() {
   Mesh::ConnectivityTypeList::const_iterator it;
 
   /* -------------------------------------------------------------------------- */
-  // not ghost
+  // byelementtype vectors
+
+  getFEM().getMesh().initByElementTypeVector(temperature_on_qpoints,
+					     1,
+					     spatial_dimension);
+
   getFEM().getMesh().initByElementTypeVector(temperature_gradient,
 					     spatial_dimension,
 					     spatial_dimension);
+
+  getFEM().getMesh().initByElementTypeVector(conductivity_on_qpoints,
+					     spatial_dimension*spatial_dimension,
+					     spatial_dimension);
+
+  getFEM().getMesh().initByElementTypeVector(k_gradt_on_qpoints,
+					     spatial_dimension,
+					     spatial_dimension);
+
+  getFEM().getMesh().initByElementTypeVector(bt_k_gT,
+					     1,
+					     spatial_dimension,true);
+
+  getFEM().getMesh().initByElementTypeVector(int_bt_k_gT,
+					     1,
+					     spatial_dimension,true);
 
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -148,8 +171,20 @@ void HeatTransferModel::initVectors() {
       if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
       UInt nb_element = getFEM().getMesh().getNbElement(*it, gt);
       UInt nb_quad_points = this->getFEM().getNbQuadraturePoints(*it, gt) * nb_element;
+
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+      temperature_on_qpoints(*it, gt).resize(nb_quad_points);
+      temperature_on_qpoints(*it, gt).clear();
       temperature_gradient(*it, gt).resize(nb_quad_points);
       temperature_gradient(*it, gt).clear();
+      conductivity_on_qpoints(*it, gt).resize(nb_quad_points);
+      conductivity_on_qpoints(*it, gt).clear();
+      k_gradt_on_qpoints(*it, gt).resize(nb_quad_points);
+      k_gradt_on_qpoints(*it, gt).clear();
+      bt_k_gT(*it, gt).resize(nb_quad_points);
+      bt_k_gT(*it, gt).clear();
+      int_bt_k_gT(*it, gt).resize(nb_element);
+      bt_k_gT(*it, gt).clear();
     }
   }
 
@@ -261,6 +296,95 @@ void HeatTransferModel::updateResidual() {
   AKANTU_DEBUG_OUT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::computeConductivityOnQuadPoints(const GhostType & ghost_type) {
+  const Mesh::ConnectivityTypeList & type_list =
+    this->getFEM().getMesh().getConnectivityTypeList(ghost_type);
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+    
+    //compute the temperature on quadrature points
+    this->getFEM().interpolateOnQuadraturePoints(*temperature,
+						 temperature_on_qpoints(*it, ghost_type),
+						 1 ,*it,ghost_type);
+
+    Vector<Real>::iterator<types::Matrix> c_iterator = 
+      conductivity_on_qpoints(*it,ghost_type).begin(spatial_dimension,spatial_dimension);
+
+    Real * T_val = temperature_on_qpoints(*it, ghost_type).values;
+
+    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
+    UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
+    for (UInt el = 0; el < nb_element; ++el) {
+      for (UInt q = 0; q < nb_quadrature_points; ++q) {
+	Real * c_onquad_val = c_iterator->storage();
+	for (UInt i = 0; i < spatial_dimension*spatial_dimension; ++i) {
+	  //	  if (i == 0 && *T_val - t_ref > 0)
+	  // AKANTU_DEBUG_INFO("conductivity is " << conductivity[i]
+	  // 		    << " variation is " << conductivity_variation
+	  // 		    << " temp increase is " << *T_val - t_ref
+	  // 		    << " new conductivity is " << conductivity[i] + conductivity_variation* (*T_val - t_ref));
+	  c_onquad_val[i] = conductivity[i] + conductivity_variation* (*T_val - t_ref); 
+	}
+	++T_val;
+	++c_iterator;
+      }
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::computeKgradT(const GhostType & ghost_type) {
+
+  computeConductivityOnQuadPoints(ghost_type);
+
+  const Mesh::ConnectivityTypeList & type_list =
+    this->getFEM().getMesh().getConnectivityTypeList(ghost_type);
+  Mesh::ConnectivityTypeList::const_iterator it;
+
+  for(it = type_list.begin(); it != type_list.end(); ++it) {
+    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+
+    UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
+    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
+
+
+    Vector<Real> & gradient = temperature_gradient(*it, ghost_type);
+    gradient.resize(nb_element * nb_quadrature_points);
+
+    this->getFEM().gradientOnQuadraturePoints(*temperature,
+					      gradient,
+					      1 ,*it,ghost_type);
+
+    Vector<Real>::iterator<types::Matrix> c_iterator = 
+      conductivity_on_qpoints(*it,ghost_type).begin(spatial_dimension,spatial_dimension);
+
+    Vector<Real>::iterator<types::RVector> gT_iterator = 
+      temperature_gradient(*it,ghost_type).begin(spatial_dimension);
+
+    Vector<Real>::iterator<types::RVector> k_gT_iterator = 
+      k_gradt_on_qpoints(*it,ghost_type).begin(spatial_dimension);
+
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+
+    for (UInt el = 0; el < nb_element; ++el) {
+      for (UInt i = 0; i < nb_quadrature_points; ++i){
+	Math::matrixt_vector(spatial_dimension, spatial_dimension,
+			     c_iterator->storage(),
+			     gT_iterator->storage(),
+			     k_gT_iterator->storage());
+	++c_iterator;
+	++gT_iterator;
+	++k_gT_iterator;
+      }
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
@@ -272,58 +396,53 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    const Vector<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it,ghost_type);
-    UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
+    Vector<Real> & shapes_derivatives = 
+      const_cast<Vector<Real> &>(getFEM().getShapesDerivatives(*it,ghost_type));
+
     UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
-
-
-    Vector<Real> & gradient = temperature_gradient(*it, ghost_type);
-    gradient.resize(nb_element * nb_quadrature_points);
-
-    this->getFEM().gradientOnQuadraturePoints(*temperature,
-					      gradient,
-					      1 ,*it,ghost_type);
-    Real * gT_val = gradient.storage();
-
-    AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension]);
-    AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+1]);
-    AKANTU_DEBUG_INFO(gT_val[11*spatial_dimension+2]);
-
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+    UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
 
-    Real * k_gT_val = new Real[spatial_dimension];
-    Real * shapes_derivatives_val = shapes_derivatives.values;
-    UInt bt_k_gT_size = nb_nodes_per_element;
-    Vector<Real> * bt_k_gT =
-      new Vector <Real> (nb_quadrature_points*nb_element, bt_k_gT_size);
-    Real * bt_k_gT_val = bt_k_gT->values;
+    // compute k \grad T
+    computeKgradT(ghost_type);
+
+    Vector<Real>::iterator<types::RVector> k_gT_iterator = 
+      k_gradt_on_qpoints(*it,ghost_type).begin(spatial_dimension);
+    
+    Vector<Real>::iterator<types::Matrix> shapesd_iterator = 
+      shapes_derivatives.begin(nb_nodes_per_element,spatial_dimension);
+
+    Vector<Real>::iterator<types::RVector> bt_k_gT_iterator = 
+      bt_k_gT(*it,ghost_type).begin(nb_nodes_per_element);
+    
+
+    // UInt bt_k_gT_size = nb_nodes_per_element;
+    // Vector<Real> * bt_k_gT =
+    //   new Vector <Real> (nb_quadrature_points*nb_element, bt_k_gT_size);
+    // Real * bt_k_gT_val = bt_k_gT->values;
 
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt i = 0; i < nb_quadrature_points; ++i) {
-	Math::matrixt_vector(spatial_dimension, spatial_dimension,
-			     conductivity,
-			     gT_val,
-			     k_gT_val);
-	gT_val += spatial_dimension;
-
 	Math::matrix_vector(nb_nodes_per_element, spatial_dimension,
-			    shapes_derivatives_val,
-			    k_gT_val,
-			    bt_k_gT_val);
+			    shapesd_iterator->storage(),
+			    k_gT_iterator->storage(),
+			    bt_k_gT_iterator->storage());
 
-	shapes_derivatives_val += nb_nodes_per_element * spatial_dimension;
-	bt_k_gT_val += bt_k_gT_size;
+	
+	++shapesd_iterator;
+	++k_gT_iterator;
+	++bt_k_gT_iterator;
       }
     }
 
-    Vector<Real> * q_e = new Vector<Real>(nb_element, bt_k_gT_size, "q_e");
-    this->getFEM().integrate(*bt_k_gT, *q_e, bt_k_gT_size, *it,ghost_type);
-    delete bt_k_gT;
+    this->getFEM().integrate(bt_k_gT(*it,ghost_type), 
+			     int_bt_k_gT(*it,ghost_type),
+			     nb_nodes_per_element, *it,ghost_type);
 
-    this->getFEM().assembleVector(*q_e, *residual,
+    this->getFEM().assembleVector(int_bt_k_gT(*it,ghost_type), *residual,
 				  dof_synchronizer->getLocalDOFEquationNumbers(),
 				  1, *it,ghost_type,NULL,-1);
-    delete q_e;
+    //delete q_e;
 
   }
   AKANTU_DEBUG_OUT();
@@ -473,6 +592,12 @@ bool HeatTransferModel::setParam(const std::string & key,
 	  str >> tmp;
 	}
       }
+  }
+  else if (key == "conductivity_variation") {
+    str >> conductivity_variation;
+  }
+  else if (key == "temperature_reference") {
+    str >> t_ref;
   }
   else if (key == "capacity"){
     str >> capacity;

@@ -159,7 +159,8 @@ public:
   /// init a by-element-type real vector with provided ids
   template<typename T>
   void initByElementTypeVector(ByElementTypeVector<T> & v,
-			       UInt nb_component, UInt size) const;
+ 			       UInt nb_component, UInt size,
+			       const bool & flag_nb_node_per_elem_multiply=false) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
   inline void extractNodalCoordinatesFromElement(Real * local_coords,

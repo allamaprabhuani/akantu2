@@ -125,7 +125,12 @@ private:
 
   /// calculate the lumped capacity vector for heat transfer problem (w ghosttype)
   void assembleCapacityLumped(const GhostType & ghost_type);
+  
+  /// compute the conductivity tensor for each quadrature point in an array
+  void computeConductivityOnQuadPoints(const GhostType & ghost_type);
 
+  /// compute vector k \grad T for each quadrature point 
+  void computeKgradT(const GhostType & ghost_type);
 
 
   /* ------------------------------------------------------------------------ */
@@ -172,6 +177,10 @@ public:
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient, temperature_gradient, Real);
+  /// get the conductivity on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ConductivityOnQpoints, conductivity_on_qpoints, Real);
+  /// get the conductivity on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureOnQpoints, temperature_on_qpoints, Real);
   /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
   /// get the temperature derivative
@@ -206,6 +215,21 @@ private:
   /// the speed of the changing temperature
   ByElementTypeReal temperature_gradient;
 
+  /// temperature field on quadrature points
+  ByElementTypeReal temperature_on_qpoints;
+
+  /// conductivity tensor on quadrature points
+  ByElementTypeReal conductivity_on_qpoints;
+
+  /// vector k \grad T on quad points
+  ByElementTypeReal k_gradt_on_qpoints;
+
+  /// vector \int \grad N k \grad T
+  ByElementTypeReal int_bt_k_gT;
+
+  /// vector \grad N k \grad T
+  ByElementTypeReal bt_k_gT;
+
   //external flux vector
   Vector<Real> * external_flux;
 
@@ -229,6 +253,12 @@ private:
 
   //conductivity matrix
   Real* conductivity;
+
+  //linear variation of the conductivity (for temperature dependent conductivity)
+  Real conductivity_variation;
+
+  // reference temperature for the interpretation of temperature variation
+  Real t_ref;
 
   //the biggest parameter of conductivity matrix
   Real conductivitymax;

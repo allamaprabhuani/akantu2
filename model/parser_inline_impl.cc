@@ -35,17 +35,23 @@ inline void Parser::readSection(M & model){
   my_getline();
 
   while(line[0] != ']') {
+    if (line.empty()){
+      my_getline();
+      continue;
+    }
     size_t pos = line.find("=");
     if(pos == std::string::npos)
-      AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
+      AKANTU_DEBUG_ERROR("Malformed config file : line must be \"key = value\" at line"
 			 << current_line);
 
     keyword = line.substr(0, pos);  trim(keyword);
     value   = line.substr(pos + 1); trim(value);
 
-    if(!model.setParam(keyword, value)) {
-      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam at line "
-			 << current_line);
+    try {
+      model.setParam(keyword, value);
+    } catch (debug::Exception ex) {
+      AKANTU_DEBUG_ERROR("Malformed config file : error in setParam \""
+			 << ex.info() << "\" at line " << current_line);
     }
 
     my_getline();
@@ -66,7 +72,7 @@ inline Obj * Parser::readSection(Model & model,std::string & obj_name){
   while(line[0] != ']') {
     size_t pos = line.find("=");
     if(pos == std::string::npos)
-      AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
+      AKANTU_DEBUG_ERROR("Malformed config file : line must be \"key = value\" at line"
 			 << current_line);
 
     keyword = line.substr(0, pos);  trim(keyword);
@@ -75,7 +81,7 @@ inline Obj * Parser::readSection(Model & model,std::string & obj_name){
     try {
       obj->setParam(keyword, value, obj_name);
     } catch (debug::Exception ex) {
-      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
+      AKANTU_DEBUG_ERROR("Malformed config file : error in setParam \""
 			 << ex.info() << "\" at line " << current_line);
     }
 
@@ -106,7 +112,7 @@ inline std::string Parser::getNextSection(const std::string & section_type){
       to_lower(type);
       std::string obracket; sstr >> obracket;
       if(obracket != "[")
-	AKANTU_DEBUG_ERROR("Malformed material file : missing [ at line " << current_line);
+	AKANTU_DEBUG_ERROR("Malformed config file : missing [ at line " << current_line);
       return type;
     }
   }
