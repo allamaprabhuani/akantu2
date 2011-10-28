@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -l walltime=72:00:00
+#PBS -l nodes=2:ppn=8
+#PBS -m abe -M guillaume.anciaux@epfl.ch
+#$ -S /bin/sh
+#$ -cwd
+#$ -j y
+#$ -m eas -M guillaume.anciaux@epfl.ch
+#$ -pe orte* 32-36
+#$ -l walltime=200:00:00
+
+module load intel
+CONTACT=$1
+MESH_FILE=double_cube_tet4_$1.msh
+mpirun -np $NSLOTS ./heat_propa_parallel 100000 5 $MESH_FILE $CONTACT
