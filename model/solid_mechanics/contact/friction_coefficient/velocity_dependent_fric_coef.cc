@@ -34,7 +34,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 VelocityDependentFricCoef::VelocityDependentFricCoef(ContactRigid & contact,
-						     const Surface & master_surface) : FrictionCoefficient(contact, master_surface), spatial_dimension(this->contact.getSpatialDimension()) {
+						     const Surface & master_surface) : 
+  FrictionCoefficient(contact, master_surface), 
+  spatial_dimension(this->contact.getSpatialDimension()) {
   AKANTU_DEBUG_IN();
 
   this->relative_sliding_velocities = new Vector<Real>(0,1);

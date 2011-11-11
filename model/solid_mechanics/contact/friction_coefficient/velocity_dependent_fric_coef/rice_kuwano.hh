@@ -1,9 +1,10 @@
 /**
- * @file   velocity_dependent_fric_coef.hh
+ * @file   rice_kuwano.hh
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jun 20 15:19:49 2011
+ * @date   Fri Nov  4 13:18:56 2011
  *
- * @brief  implementation of velocity dependence for friction coefficient
+ * @brief  implementation of a modified rice-kuwano friction law (velocity
+ * weakening-strenghening friction coefficient)
  *
  * @section LICENSE
  *
@@ -25,49 +26,51 @@
  *
  */
 
+
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_VELOCITY_DEPENDENT_FRIC_COEF_HH__
-#define __AKANTU_VELOCITY_DEPENDENT_FRIC_COEF_HH__
+#ifndef __AKANTU_RICE_KUWANO_HH__
+#define __AKANTU_RICE_KUWANO_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "contact_rigid.hh"
-#include "friction_coefficient.hh"
+#include "velocity_dependent_fric_coef.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class VelocityDependentFricCoef : public virtual FrictionCoefficient {
+
+class RiceKuwano : public VelocityDependentFricCoef {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  VelocityDependentFricCoef(ContactRigid & contact,
-			    const Surface & master_surface);
 
-  virtual ~VelocityDependentFricCoef();
+  RiceKuwano(ContactRigid & contact,
+	     const Surface & master_surface,
+	     const Real static_friction_coefficient,
+	     const Real dynamic_friction_coefficient,
+	     const Real reference_velocity,
+	     const Real alpha);
+  
+  virtual ~RiceKuwano();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// compute the relative sliding velocity
+  /// no initialization of variables for friction coefficient computation
   virtual void initializeComputeFricCoef();
 
-  /// implementation of the friction coefficient formula
-  virtual Real computeFricCoef(UInt impactor_node_index) = 0;
+  /// fill table with friction coefficient
+  inline Real computeFricCoef(UInt impactor_node_index);
+
+  /// compute the alpha parameter
+  inline void computeAlpha();
 
   /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const;
+  //  virtual void printself(std::ostream & stream, int indent = 0) const;
   
-private:
-  // computes the tangential velocity of the master element
-  void computeTangentialMasterVelocity(UInt impactor_index, 
-				       ContactRigid::ImpactorInformationPerMaster * impactor_info, 
-				       Real * tangential_master_velocity);
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -77,30 +80,40 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// spatial dimension of contact
-  Real spatial_dimension;
+  /// static friction coefficient
+  Real static_friction_coefficient;
 
-  /// relative sliding velocities for each active impactor node
-  Vector<Real> * relative_sliding_velocities;
+  /// dynamic friction coefficient
+  Real dynamic_friction_coefficient;
+
+  /// reference velocity Vw
+  Real reference_velocity;
+
+  /// linear parameter
+  Real alpha;
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+__END_AKANTU__
 
-//#include "velocity_dependent_fric_coef_inline_impl.cc"
+#include "contact_rigid.hh"
+
+__BEGIN_AKANTU__
+
+#include "rice_kuwano_inline_impl.cc"
 
 /*
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const VelocityDependentFricCoef & _this)
+inline std::ostream & operator <<(std::ostream & stream, const RiceKuwano & _this)
 {
   _this.printself(stream);
   return stream;
 }
 */
 
-
 __END_AKANTU__
 
-#endif /* __AKANTU_VELOCITY_DEPENDENT_FRIC_COEF_HH__ */
+
+#endif /* __AKANTU_RICE_KUWANO_HH__ */

@@ -1,9 +1,9 @@
 /**
- * @file   velocity_dependent_fric_coef.hh
+ * @file   historic_velocity_fric_coef.hh
  * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jun 20 15:19:49 2011
+ * @date   Tue Nov  1 10:48:22 2011
  *
- * @brief  implementation of velocity dependence for friction coefficient
+ * @brief  friction coefficient that depends on the historic of velocity
  *
  * @section LICENSE
  *
@@ -27,61 +27,92 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_VELOCITY_DEPENDENT_FRIC_COEF_HH__
-#define __AKANTU_VELOCITY_DEPENDENT_FRIC_COEF_HH__
+#ifndef __AKANTU_HISTORIC_VELOCITY_FRIC_COEF_HH__
+#define __AKANTU_HISTORIC_VELOCITY_FRIC_COEF_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_circular_vector.hh"
 #include "contact_rigid.hh"
 #include "friction_coefficient.hh"
-/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class VelocityDependentFricCoef : public virtual FrictionCoefficient {
+class HistoricVelocityFricCoef : public virtual FrictionCoefficient {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  VelocityDependentFricCoef(ContactRigid & contact,
-			    const Surface & master_surface);
 
-  virtual ~VelocityDependentFricCoef();
+  /// \warning DO NOT USE THIS CLASS !!!
+
+  HistoricVelocityFricCoef(ContactRigid & contact,
+			   const Surface & master_surface,
+			   const Real beta);
+
+  // constructur when this class is not used
+  HistoricVelocityFricCoef(ContactRigid & contact,
+			   const Surface & master_surface);
+  
+  virtual ~HistoricVelocityFricCoef();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// compute the relative sliding velocity
+  /// compute the history of relative sliding velocity
   virtual void initializeComputeFricCoef();
 
   /// implementation of the friction coefficient formula
   virtual Real computeFricCoef(UInt impactor_node_index) = 0;
-
+  //  virtual Real computeFricCoef(UInt impactor_node_index) { return 0.;}; // for testing
+  
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
 private:
   // computes the tangential velocity of the master element
   void computeTangentialMasterVelocity(UInt impactor_index, 
 				       ContactRigid::ImpactorInformationPerMaster * impactor_info, 
 				       Real * tangential_master_velocity);
-
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+    
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
+private:
   /// spatial dimension of contact
   Real spatial_dimension;
 
+protected:
+  /// weight parameter
+  Real beta;
+  
+  /// weights
+  Vector<Real> * weights;
+
+  /// history of sliding velocities
+  CircularVector< Vector<Real> * > * historic_velocities;
+  
+  /// order of information
+  Vector<UInt> nodes;
+
+  /// if node is active in this time step
+  Vector<bool> active;
+
+  /// time since node came in contact
+  Vector<Real> contact_time;
+
+  /// keep information about stick status of active impactor node
+  Vector<bool> * node_stick_status;
+  
+  //public: // for testing
   /// relative sliding velocities for each active impactor node
-  Vector<Real> * relative_sliding_velocities;
+  Vector<Real> * generalized_sliding_velocities;
 };
 
 
@@ -89,18 +120,18 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "velocity_dependent_fric_coef_inline_impl.cc"
+//#include "historic_velocity_fric_coef_inline_impl.cc"
 
 /*
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const VelocityDependentFricCoef & _this)
+inline std::ostream & operator <<(std::ostream & stream, const HistoricVelocityFricCoef & _this)
 {
   _this.printself(stream);
   return stream;
 }
 */
 
-
 __END_AKANTU__
 
-#endif /* __AKANTU_VELOCITY_DEPENDENT_FRIC_COEF_HH__ */
+
+#endif /* __AKANTU_HISTORIC_VELOCITY_FRIC_COEF_HH__ */

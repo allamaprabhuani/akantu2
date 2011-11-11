@@ -32,11 +32,20 @@ inline Real VelocityWeakeningExponential::computeFricCoef(UInt impactor_node_ind
   
   Real friction_coefficient = 0.;
 
-  Real * relative_sliding_velocities_val = this->relative_sliding_velocities->values;
-  Real velocity_term = 1 - exp((-1.) * this->alpha * relative_sliding_velocities_val[impactor_node_index]);
+  Real * relative_sliding_velocities_val;
+  if (instant_velocity)
+    relative_sliding_velocities_val = this->relative_sliding_velocities->values;
+  else
+    relative_sliding_velocities_val = this->generalized_sliding_velocities->values;
+
+  if (!instant_velocity && (*node_stick_status)(impactor_node_index))
+    friction_coefficient = this->static_friction_coefficient;
+  else {
+    Real velocity_term = 1 - exp((-1.) * this->alpha * relative_sliding_velocities_val[impactor_node_index]);
   
-  friction_coefficient = this->static_friction_coefficient;
-  friction_coefficient += (this->dynamic_friction_coefficient - this->static_friction_coefficient) * velocity_term;
+    friction_coefficient = this->static_friction_coefficient;
+    friction_coefficient += (this->dynamic_friction_coefficient - this->static_friction_coefficient) * velocity_term;
+  }
 
   AKANTU_DEBUG_OUT();
   return friction_coefficient;

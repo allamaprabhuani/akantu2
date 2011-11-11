@@ -38,6 +38,7 @@ RiceKuwanoModified::RiceKuwanoModified(ContactRigid & contact,
 				       const Real dynamic_friction_coefficient,
 				       const Real reference_velocity,
 				       const Real alpha) :
+  FrictionCoefficient(contact, master_surface),
   VelocityDependentFricCoef(contact, master_surface), 
   static_friction_coefficient(static_friction_coefficient),
   dynamic_friction_coefficient(dynamic_friction_coefficient),

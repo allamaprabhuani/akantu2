@@ -33,18 +33,16 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "velocity_dependent_fric_coef.hh"
+#include "historic_velocity_fric_coef.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class VelocityWeakeningExponential : public VelocityDependentFricCoef {
+class VelocityWeakeningExponential : public VelocityDependentFricCoef, HistoricVelocityFricCoef {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  VelocityWeakeningExponential(ContactRigid & contact,
-			       const Surface & master_surface);
   
   VelocityWeakeningExponential(ContactRigid & contact,
 			       const Surface & master_surface,
@@ -52,6 +50,13 @@ public:
 			       const Real dynamic_friction_coefficient,
 			       const Real power);
   
+  VelocityWeakeningExponential(ContactRigid & contact,
+			       const Surface & master_surface,
+			       const Real static_friction_coefficient,
+			       const Real dynamic_friction_coefficient,
+			       const Real power,
+			       const Real beta);
+
   virtual ~VelocityWeakeningExponential();
   
   /* ------------------------------------------------------------------------ */
@@ -62,10 +67,10 @@ public:
   virtual void initializeComputeFricCoef();
 
   /// fill table with friction coefficient
-  inline virtual Real computeFricCoef(UInt impactor_node_index);
+  inline Real computeFricCoef(UInt impactor_node_index);
 
   /// compute the alpha parameter
-  inline virtual void computeAlpha();
+  inline void computeAlpha();
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -78,6 +83,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+private:
+  // use instant_velocity
+  bool instant_velocity;
+
 protected:
   /// static friction coefficient
   Real static_friction_coefficient;

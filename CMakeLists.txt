@@ -195,10 +195,11 @@ set(AKANTU_CONTACT_SRC
   model/solid_mechanics/contact/friction_coefficient/velocity_weakening_coulomb.cc
   model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef.cc
   model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef/velocity_weakening_exponential.cc
+  model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef/rice_kuwano.cc
   model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef/rice_kuwano_modified.cc
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef.cc
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef/ruina_slowness_fric_coef.cc
-  #model/solid_mechanics/contact/friction_coefficient/historic_velocity_fric_coef.cc
+  model/solid_mechanics/contact/friction_coefficient/historic_velocity_fric_coef.cc
   )
 
 if(AKANTU_BUILD_CONTACT)
