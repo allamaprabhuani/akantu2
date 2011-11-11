@@ -190,9 +190,6 @@ public:
   inline const_iterator< types::Matrix > begin(UInt m, UInt n) const;
   inline const_iterator< types::Matrix > end(UInt m, UInt n) const;
 
-  inline reference operator()(UInt i, UInt j = 0);
-  inline const_reference operator()(UInt i, UInt j = 0) const;
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -203,11 +200,11 @@ public:
   /// get jth component of the ith tuple
   inline reference at(UInt i, UInt j = 0);
 
-  /// add an  element at  the and  of the vector  with the  value value  for all
+  /// add an  element at  the end  of the vector  with the  value value  for all
   /// component
   inline void push_back(const_reference value);
 
-  /// add an element at the and of the vector
+  /// add an element at the end of the vector
   inline void push_back(const value_type new_elem[]);
 
   /**
@@ -259,6 +256,9 @@ public:
   Vector<T> & operator-=(const Vector<T> & vect);
   Vector<T> & operator+=(const Vector<T> & vect);
   Vector<T> & operator*=(const T & alpha);
+
+  inline reference operator()(UInt i, UInt j = 0);
+  inline const_reference operator()(UInt i, UInt j = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
