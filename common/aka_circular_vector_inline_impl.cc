@@ -1,0 +1,80 @@
+/**
+ * @file   aka_circular_vector_inline_impl.cc
+ * @author David Kammer <david.kammer@epfl.ch>
+ * @date   Mon Oct 17 14:45:40 2011
+ *
+ * @brief  implementation of circular vector
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Inline Functions Vector<T>                                                 */
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+template<class T>
+inline  typename CircularVector<T>::reference CircularVector<T>::operator()(UInt i, UInt j) {
+  AKANTU_DEBUG_ASSERT(end_position != start_position,
+		      "The vector \"" << this->id << "\" is empty");
+  AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1) 
+		      && (j < this->nb_component),
+		      "The value at position [" << i << "," << j
+		      << "] is out of range in vector \"" << this->id << "\"");
+  return this->values[((i+start_position)%this->allocated_size)*this->nb_component + j];
+}
+ 
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline typename CircularVector<T>::const_reference CircularVector<T>::operator()(UInt i, UInt j) const {
+  AKANTU_DEBUG_ASSERT(end_position != start_position,
+		      "The vector \"" << this->id << "\" is empty");
+  AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1) 
+		      && (j < this->nb_component),
+		      "The value at position [" << i << "," << j
+		      << "] is out of range in vector \"" << this->id << "\"");
+  return this->values[((i+start_position)%this->allocated_size)*this->nb_component + j];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T>
+inline void CircularVector<T>::makeStep() {
+  AKANTU_DEBUG_IN();
+ 
+  start_position = (start_position+1) % this->allocated_size;
+  end_position = (end_position+1) % this->allocated_size;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T>
+void CircularVector<T>::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << space << "CircularVector<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
+  stream << space << " + start_position : " << this->start_position << std::endl;
+  stream << space << " + end_position   : " << this->end_position << std::endl;
+  Vector<T>::printself(stream, indent+1);
+
+  stream << space << "]" << std::endl;
+}
+
