@@ -764,23 +764,6 @@ void ContactRigid::frictionCorrector() {
 
       // if velocity has changed sign or has become very small we get into stick
       if ((dot_prod_velocities < 0.) || (current_proj_vel_mag < tolerance)) {
-	// compute scalar product of residual and current velocity
-	Real dot_prod_vel_res = 0.;
-	Real proj_friction_mag = 0.;
-	Real proj_residual_mag = 0.;
-	for (UInt i=0; i < this->spatial_dimension; ++i) {
-	  if(direction_val[n * this->spatial_dimension + i] == 0) {
-	    dot_prod_vel_res += residual_forces_val[n * this->spatial_dimension + i] *
-				previous_velocities_val[n * this->spatial_dimension + i];
-	    proj_friction_mag += friction_forces_val[n * this->spatial_dimension + i] *
-				 friction_forces_val[n * this->spatial_dimension + i];
-	    proj_residual_mag += residual_forces_val[n * this->spatial_dimension + i] *
-				 residual_forces_val[n * this->spatial_dimension + i];
-	  }
-	}
-	proj_friction_mag = sqrt(proj_friction_mag);
-	proj_residual_mag = sqrt(proj_residual_mag);
-
 	for (UInt i=0; i < this->spatial_dimension; ++i) {
 	  if(direction_val[n * this->spatial_dimension + i] == 0) {
 	    //friction_forces_val[n*spatial_dimension + i] = residual_forces_val[n*spatial_dimension + i];
