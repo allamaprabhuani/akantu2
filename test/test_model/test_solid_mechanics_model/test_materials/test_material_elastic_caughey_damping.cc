@@ -1,10 +1,9 @@
 /**
- * @file   test_material_elastic_caughey.cc
+ * @file   test_material_elastic_caughey_damping.cc
  * @author David Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed May  4 16:22:17 2011
+ * @date   Fri May 27 14:36:55 2011
  *
- * @brief  test of the material elastic caughey
+ * @brief  test of the material elastic caughey - physical aspecte
  *
  * @section LICENSE
  *
@@ -45,27 +44,29 @@
 
 using namespace akantu;
 
+bool testFloat(Real a, Real b, Real adm_error);
+
 int main(int argc, char *argv[])
 {
   akantu::initialize(&argc, &argv);
   akantu::debug::setDebugLevel(akantu::dblWarning);
-
+  
   const ElementType element_type = TYPE;
   UInt dim = Mesh::getSpatialDimension(element_type);
-
+  
   /// load mesh
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   std::stringstream meshname_sstr; 
-  meshname_sstr << "test_material_elastic_caughey_" << element_type << ".msh";
+  meshname_sstr << "single_" << element_type << ".msh";
   mesh_io.read(meshname_sstr.str().c_str(), mesh);
-
-  UInt max_steps = 2000;
-  Real time_factor = 0.8;
+  
+  UInt max_steps = 1000;
+  Real time_factor = 0.1;
   UInt nb_nodes = mesh.getNbNodes();
-
+    
   SolidMechanicsModel model(mesh);
-
+  
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
@@ -75,45 +76,43 @@ int main(int argc, char *argv[])
   model.getAcceleration().clear();
   model.getDisplacement().clear();
   model.updateResidual();
-
+  
   model.initExplicit();
   model.initModel();
-  model.readMaterials("material_elastic_caughey.dat");
+  model.readMaterials("material_elastic_caughey_damping.dat");
+  MaterialElasticCaughey & my_mat = dynamic_cast<MaterialElasticCaughey & >(model.getMaterial(0));
+  Real a_value = 1e-6;//3.836e-06;
+  my_mat.setAlpha(a_value);
   model.initMaterials();
-
+  
   std::cout << model.getMaterial(0) << std::endl;
-
+  
   model.assembleMassLumped();
-
+  
   /* ------------------------------------------------------------------------ */
   /* Boundary + initial conditions                                            */
   /* ------------------------------------------------------------------------ */
-  Real eps = 1e-16;
+  Vector<UInt> the_nodes(0,1);
+  Real imposed_disp = 0.1;
   for (UInt i = 0; i < nb_nodes; ++i) {
-    if(mesh.getNodes().values[dim*i] >= 9)
-      model.getDisplacement().values[dim*i]
-     	= (mesh.getNodes().values[dim*i] - 9) / 100.;
-
-    if(mesh.getNodes().values[dim*i] <= eps)
-      model.getBoundary().values[dim*i] = true;
-
-    if(mesh.getNodes().values[dim*i + 1] <= eps ||
-       mesh.getNodes().values[dim*i + 1] >= 1 - eps ) {
-      model.getBoundary().values[dim*i + 1] = true;
+    // block lower nodes
+    if(mesh.getNodes().values[i*dim+1] < 0.5) {
+      for (UInt j=0; j<dim; ++j) 
+	model.getBoundary().values[dim*i + j] = true;
+    }
+    // impose displacement
+    else {
+      model.getBoundary().values[dim*i + 0] = true;
+      model.getDisplacement().values[dim*i + 1] = imposed_disp;
+      the_nodes.push_back(i);
     }
   }
+  model.updateResidual();
 
-  /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
-  paraviewInit(dumper, model, element_type, "test_mat_el_caughey");
+  paraviewInit(dumper, model, element_type, "test_mat_el_cau_dump");
 #endif //AKANTU_USE_IOHELPER
-
-  std::stringstream filename_sstr;
-  filename_sstr << "test_material_elastic_caughey_" << element_type << ".out";
-  std::ofstream energy;
-  energy.open(filename_sstr.str().c_str());
-  energy << "id epot ekin tot" << std::endl;
 
   /// Setting time step
   Real time_step = model.getStableTimeStep() * time_factor;
@@ -125,25 +124,74 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   for(UInt s = 1; s <= max_steps; ++s) {
 
+    if (s%100 == 0)
+      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+
     model.explicitPred();
     model.updateResidual();
     model.updateAcceleration();
     model.explicitCorr();
 
-    Real epot = model.getPotentialEnergy();
-    Real ekin = model.getKineticEnergy();
-
-    if(s % 10 == 0) {
-       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
-       energy << s << " " << epot << " " << ekin << " " << epot + ekin
-	      << std::endl;
-    }
-
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 10 == 0) paraviewDump(dumper);
+    if(s % 100 == 0) dumper.Dump();
 #endif //AKANTU_USE_IOHELPER
   }
 
+  /*
+  for (UInt i=0; i<the_nodes.getSize(); ++i) {
+    std::cout << "disp " <<  model.getDisplacement().values[the_nodes(i)*dim+1] << "; vel " << model.getVelocity().values[the_nodes(i)*dim+1] << std::endl;
+  }
+  */
+
+  /* ------------------------------------------------------------------------ */
+  /* Test solution                                                            */
+  /* ------------------------------------------------------------------------ */
+  Real disp_tol = 1e-07;
+  Real velo_tol = 1e-03;
+  // solution triangle_3
+  Vector<Real> disp_triangle_3(0,1); disp_triangle_3.push_back(-0.0344941);
+  Vector<Real> velo_triangle_3(0,1); velo_triangle_3.push_back(-433.9);
+  // solution quadrangle_4
+  Vector<Real> disp_quadrangle_4(0,1); 
+  disp_quadrangle_4.push_back(0.0338388);
+  disp_quadrangle_4.push_back(0.0338388);
+  Vector<Real> velo_quadrangle_4(0,1); 
+  velo_quadrangle_4.push_back(-307.221);
+  velo_quadrangle_4.push_back(-307.221);
+
+  // pointer to solution
+  Vector<Real> * disp = NULL;
+  Vector<Real> * velo = NULL;
+  if (element_type == _triangle_3) {
+    disp = &disp_triangle_3;
+    velo = &velo_triangle_3;
+  }
+  else if (element_type == _quadrangle_4) {
+    disp = &disp_quadrangle_4;
+    velo = &velo_quadrangle_4;
+  }
+
+  for (UInt i=0; i<the_nodes.getSize(); ++i) {
+    UInt node = the_nodes.values[i];
+    if (!testFloat(model.getDisplacement().values[node*dim+1], disp->values[i], disp_tol)) {
+      std::cout << "Node " << node << " has wrong disp. Computed = " << model.getDisplacement().values[node*dim+1] << " Solution = " << disp->values[i] << std::endl;
+      return EXIT_FAILURE;
+    }
+    if (!testFloat(model.getVelocity().values[node*dim+1], velo->values[i], velo_tol)) {
+      std::cout << "Node " << node << " has wrong velo. Computed = " << model.getVelocity().values[node*dim+1] << " Solution = " << velo->values[i] << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
   finalize();
+  std::cout << "Patch test successful!" << std::endl;
   return EXIT_SUCCESS;
+}
+
+/* -------------------------------------------------------------------------- */
+bool testFloat(Real a, Real b, Real adm_error) {                                      
+  if (fabs(a-b) < adm_error)
+    return true;
+  else
+    return false;
 }

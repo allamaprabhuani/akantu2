@@ -29,6 +29,8 @@ add_mesh(test_local_material_square_mesh triangle.geo 2 2)
 add_mesh(test_local_material_circle_mesh circle.geo 2 2)
 add_mesh(test_local_material_bar_mesh bar.geo 2 1)
 add_mesh(test_local_material_barre_trou_mesh barre_trou.geo 2 2)
+#add_mesh(test_square_structured_mesh square_structured.geo 2 1)
+#add_mesh(test_single_triangle_mesh single_triangle.geo 2 1)
 
 register_test(test_local_material local_material_damage.cc test_local_material.cc)
 add_dependencies(test_local_material
@@ -37,12 +39,6 @@ add_dependencies(test_local_material
 
   test_local_material_barre_trou_mesh
   )
-
-register_test(test_material_elastic_caughey test_material_elastic_caughey.cc)
-add_dependencies(test_material_elastic_caughey
-  test_local_material_bar_mesh
-  )
-
 
 add_mesh(test_material_non_local_mesh mesh.geo 2 2 OUTPUT mesh.msh)
 register_test(test_material_non_local test_material_non_local.cc)
@@ -57,8 +53,42 @@ add_dependencies(test_material_damage_non_local
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)
-file(COPY material_elastic_caughey.dat DESTINATION .)
 file(COPY material_non_local.dat DESTINATION .)
 file(COPY material_damage_non_local.dat DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+
+#===============================================================================
+set(LIST_TYPES
+  triangle_3
+  quadrangle_4
+  )
+
+#===============================================================================
+foreach(_type ${LIST_TYPES})
+  if(AKANTU_IOHELPER_ON)
+    register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc io_helper_tools.cc)
+  else()
+    register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc)
+  endif()
+  set_target_properties(test_material_elastic_caughey_${_type}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  file(COPY ./data/test_material_elastic_caughey_${_type}.msh DESTINATION .)
+  file(COPY ./ref_files/test_material_elastic_caughey_${_type}.ref DESTINATION .)
+endforeach()
+
+#===============================================================================
+foreach(_type ${LIST_TYPES})
+  if(AKANTU_IOHELPER_ON)
+    register_test(test_material_elastic_caughey_damping_${_type} test_material_elastic_caughey_damping.cc io_helper_tools.cc)
+  else()
+    register_test(test_material_elastic_caughey_damping_${_type} test_material_elastic_caughey_damping.cc)
+  endif()
+  set_target_properties(test_material_elastic_caughey_damping_${_type}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  file(COPY ./data/single_${_type}.msh DESTINATION .)
+endforeach()
+
+#===============================================================================
+file(COPY material_elastic_caughey.dat DESTINATION .)
+file(COPY material_elastic_caughey_damping.dat DESTINATION .)
