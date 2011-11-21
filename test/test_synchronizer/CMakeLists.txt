@@ -25,6 +25,8 @@
 #
 #===============================================================================
 
+if (AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON) 
+
 add_mesh(test_synchronizer_communication_mesh
   triangle.geo 2 1)
 
@@ -42,5 +44,6 @@ configure_file(
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 
 #===============================================================================
-register_test(test_dof_synchronizer test_dof_synchronizer.cc)
-copy_files(test_dof_synchronizer bar.msh)
+  register_test(test_dof_synchronizer test_dof_synchronizer.cc)
+  copy_files(test_dof_synchronizer bar.msh)
+endif()

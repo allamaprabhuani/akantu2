@@ -46,10 +46,10 @@ macro(add_optional_package PACKAGE DESC DEFAULT)
       set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
 	${${_u_package}_LIBRARIES}
 	)
-      set(AKANTU_${_u_package}_ON ON)
+      set(AKANTU_${_u_package} ON)
     endif(${_u_package}_FOUND)
   else()
-    set(AKANTU_${_u_package}_ON OFF)
+    set(AKANTU_${_u_package} OFF)
   endif(${option_name})
 endmacro()
 

@@ -84,30 +84,12 @@ endif(NOT AKANTU_NO_LIBRARY_VERSION)
 option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
 option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 
-# compilation switch
-option(AKANTU_BUILD_CONTACT "Build the contact algorithm" OFF)
-option(AKANTU_BUILD_HEAT_TRANSFER "Build the heat transfer model" OFF)
-option(AKANTU_BUILD_STRUCTURAL_MECHANICS "Build the structural mechanics model" OFF)
-
 # features
 add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
 add_optional_package(QVIEW "Add QView support in akantu" OFF)
-add_optional_package(MPI "Add MPI support in akantu" OFF)
-add_optional_package(Mumps "Add Mumps support in akantu" OFF)
-add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
-add_optional_package(Scotch "Add Scotch support in akantu" OFF)
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
 add_optional_package(EPSN "Use EPSN streering environment" OFF)
 
-if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
-  set(AKANTU_PARTITIONER_ON ON)
-else()
-  set(AKANTU_PARTITIONER_ON OFF)
-endif()
-
-if(AKANTU_PTSCOTCH_ON)
-  add_definitions(-DAKANTU_USE_${_u_package})
-endif()
 
 # Debug
 if(NOT AKANTU_DEBUG)
@@ -127,150 +109,73 @@ endif()
 #message("ISNAN = "${AKANTU_ISNAN})
 
 #===============================================================================
-# Library
+# File package section
 #===============================================================================
 
-set(AKANTU_COMMON_SRC
-  common/aka_common.cc
-  common/aka_error.cc
-  common/aka_extern.cc
-  common/aka_static_memory.cc
-  common/aka_memory.cc
-  common/aka_vector.cc
-  common/aka_math.cc
-  fem/shape_lagrange.cc
-  fem/shape_linked.cc
-  fem/integrator_gauss.cc
-  fem/mesh.cc
-  fem/fem.cc
-  fem/element_class.cc
-  fem/fem_template.cc
-  model/model.cc
-  model/solid_mechanics/solid_mechanics_model.cc
-  model/solid_mechanics/solid_mechanics_model_mass.cc
-  model/solid_mechanics/solid_mechanics_model_boundary.cc
-  model/solid_mechanics/solid_mechanics_model_material.cc
-  model/solid_mechanics/material.cc
-  model/solid_mechanics/materials/material_non_local.cc
-  model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_elastic_caughey.cc
-  model/solid_mechanics/materials/material_damage.cc
-  model/solid_mechanics/materials/material_mazars.cc
-  model/solid_mechanics/materials/material_neohookean.cc
-  model/solid_mechanics/materials/material_damage_non_local.cc
-  model/solid_mechanics/materials/material_mazars_non_local.cc
-  model/solid_mechanics/materials/material_damage_linear.cc
-  mesh_utils/mesh_io.cc
-  mesh_utils/mesh_pbc.cc
-  mesh_utils/mesh_io/mesh_io_msh.cc
-  mesh_utils/mesh_io/mesh_io_msh_struct.cc
-  mesh_utils/mesh_io/mesh_io_diana.cc
-  mesh_utils/mesh_partition.cc
-  mesh_utils/mesh_utils.cc
-  solver/sparse_matrix.cc
-  solver/solver.cc
-  synchronizer/synchronizer_registry.cc
-  synchronizer/synchronizer.cc
-  synchronizer/distributed_synchronizer.cc
-  synchronizer/pbc_synchronizer.cc
-  synchronizer/data_accessor.cc
-  synchronizer/static_communicator.cc
-#  synchronizer/grid_synchronizer.cc
-  synchronizer/dof_synchronizer.cc
-  )
+file(GLOB pkg_files RELATIVE ${AKANTU_SOURCE_DIR} "packages/*.cmake")
 
-set(AKANTU_CONTACT_SRC
-  model/solid_mechanics/contact.cc
-  model/solid_mechanics/contact_search.cc
-  model/solid_mechanics/contact_neighbor_structure.cc
-  model/solid_mechanics/contact/contact_2d_explicit.cc
-  model/solid_mechanics/contact/contact_search_2d_explicit.cc
-  model/solid_mechanics/contact/regular_grid_neighbor_structure.cc
-  model/solid_mechanics/contact/contact_search_explicit.cc
-  model/solid_mechanics/contact/contact_3d_explicit.cc
-  model/solid_mechanics/contact/grid_2d_neighbor_structure.cc
-  model/solid_mechanics/contact/contact_rigid.cc
-  model/solid_mechanics/contact/friction_coefficient.cc
-  model/solid_mechanics/contact/friction_coefficient/unique_constant_fric_coef.cc
-  model/solid_mechanics/contact/friction_coefficient/velocity_weakening_coulomb.cc
-  model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef.cc
-  model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef/velocity_weakening_exponential.cc
-  model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef/rice_kuwano.cc
-  model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef/rice_kuwano_modified.cc
-  model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef.cc
-  model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef/ruina_slowness_fric_coef.cc
-  model/solid_mechanics/contact/friction_coefficient/historic_velocity_fric_coef.cc
-  )
-
-if(AKANTU_BUILD_CONTACT)
-  set(AKANTU_COMMON_SRC
-    ${AKANTU_COMMON_SRC}
-    ${AKANTU_CONTACT_SRC})
-endif()
-
-set(AKANTU_STRUCTURAL_MECHANICS_SRC
-  model/structural_mechanics/structural_mechanics_model.cc
-  model/structural_mechanics/structural_mechanics_model_boundary.cc
-  )
-
-if(AKANTU_BUILD_STRUCTURAL_MECHANICS)
-  set(AKANTU_COMMON_SRC
-    ${AKANTU_COMMON_SRC}
-    ${AKANTU_STRUCTURAL_MECHANICS_SRC})
-endif()
-
-set(AKANTU_HEAT_TRANSFER_SRC
-  model/heat_transfer/heat_transfer_model.cc
-  )
-
-if(AKANTU_BUILD_HEAT_TRANSFER)
-  set(AKANTU_COMMON_SRC
-    ${AKANTU_COMMON_SRC}
-    ${AKANTU_HEAT_TRANSFER_SRC})
-endif()
-
-if(AKANTU_MPI_ON)
-  set(AKANTU_COMMON_SRC
-    ${AKANTU_COMMON_SRC}
-    synchronizer/static_communicator_mpi.cc
-    )
-endif()
-
-if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
-  set(AKANTU_COMMON_SRC
-    ${AKANTU_COMMON_SRC}
-    mesh_utils/mesh_partition/mesh_partition_scotch.cc
-    )
-endif()
+foreach(pkg ${pkg_files})
+  get_filename_component(basename ${pkg} NAME)
+  string(REGEX REPLACE "\\.cmake" "" OPTION_NAME ${basename})
+  string(TOUPPER "${OPTION_NAME}" OPTION_NAME)
+  include(${pkg})
 
 
-if(AKANTU_MUMPS_ON)
-  set(AKANTU_COMMON_SRC
-    ${AKANTU_COMMON_SRC}
-    solver/solver_mumps.cc
-    )
-endif()
+  # differentiate the file types
+  foreach(file ${${OPTION_NAME}_FILES})
+    set(RELEASE_ALL_FILE ${RELEASE_ALL_FILE} ${file})  
+    if (AKANTU_${OPTION_NAME})
+      if    (${file} MATCHES ".*inline.*\\.cc")
+	set(${OPTION_NAME}_INLINE ${${OPTION_NAME}_INLINE} ${file})
+      elseif(${file} MATCHES ".*\\.hh")
+	set(${OPTION_NAME}_HEADERS ${${OPTION_NAME}_HEADERS} ${file})
+      else  ()
+	set(${OPTION_NAME}_SRC ${${OPTION_NAME}_SRC} ${file})
+      endif()
+    endif()
+  endforeach()
 
-set(AKANTU_INCLUDE_DIRS
-  common
-  fem/
-  mesh_utils/
-  mesh_utils/mesh_io/
-  mesh_utils/mesh_partition/
-  model/
-  model/integration_scheme
-  model/solid_mechanics
-  model/solid_mechanics/materials
-  model/solid_mechanics/contact
-  model/solid_mechanics/contact/friction_coefficient
-  model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef
-  model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef
-  model/heat_transfer
-  model/structural_mechanics
-  synchronizer/
-  solver/
-  )
 
+  # generates the include directory variable
+  foreach(inc ${${OPTION_NAME}_HEADERS})
+    get_filename_component(INC_DIR ${inc} PATH)    
+    set(${OPTION_NAME}_INCLUDE_DIRS ${${OPTION_NAME}_INCLUDE_DIRS} ${INC_DIR})
+    list(REMOVE_DUPLICATES ${OPTION_NAME}_INCLUDE_DIRS)
+  endforeach()
+
+  # generate global lists for akantu to know what to build
+  if(AKANTU_${OPTION_NAME})
+    set(AKANTU_COMMON_SRC
+      ${AKANTU_COMMON_SRC}
+      ${${OPTION_NAME}_SRC}
+      )
+    set(AKANTU_INCLUDE_DIRS
+      ${AKANTU_INCLUDE_DIRS}
+      ${${OPTION_NAME}_INCLUDE_DIRS})
+  endif()
+ 
+endforeach()
+
+#MESSAGE(${RELEASE_ALL_FILE})
+#MESSAGE(${AKANTU_COMMON_SRC})
+
+#check if there are some file in the release that are not registered in a package
+file(GLOB_RECURSE all_files RELATIVE ${AKANTU_SOURCE_DIR} "*.cc" "*.hh")
+foreach(file ${all_files})
+ if(NOT ${file} MATCHES "test.*" AND NOT ${file} MATCHES "example.*")
+   list(FIND RELEASE_ALL_FILE ${file} index)
+   if (index EQUAL -1)
+     MESSAGE("file ${file} is not registered in any package.")
+     MESSAGE("Please append the file in one of the files within directory ${AKANTU_SOURCE_DIR}/packages")
+   endif()
+ endif()
+endforeach()
+
+
+
+#===========================================================================
+# header precompilation
+#===========================================================================
 
 set(AKANTU_COMMON_HDR_TO_PRECOMPILE
   common/aka_vector.hh
@@ -363,7 +268,6 @@ install(TARGETS akantu
 
 file(GLOB_RECURSE include_file_list "${CMAKE_SOURCE_DIR}/*.hh")
 file(GLOB_RECURSE inline_include_file_list "${CMAKE_SOURCE_DIR}/*inline*.cc")
-file(GLOB_RECURSE element_class_include_file_list "${CMAKE_SOURCE_DIR}/*element_class_*.cc")
 install(FILES 
   ${include_file_list} 
   ${inline_include_file_list} 

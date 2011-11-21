@@ -294,13 +294,13 @@ inline Real * ElementClass<type>::getGaussIntegrationWeights() {
   return gauss_integration_weights;
 }
 
-#include "element_classes/element_class_segment_2.cc"
-#include "element_classes/element_class_segment_3.cc"
-#include "element_classes/element_class_triangle_3.cc"
-#include "element_classes/element_class_triangle_6.cc"
-#include "element_classes/element_class_tetrahedron_4.cc"
-#include "element_classes/element_class_tetrahedron_10.cc"
-#include "element_classes/element_class_quadrangle_4.cc"
-#include "element_classes/element_class_quadrangle_8.cc"
-#include "element_classes/element_class_hexahedron_8.cc"
-#include "element_classes/element_class_bernoulli_beam_2.cc"
+#include "element_classes/element_class_segment_2_inline_impl.cc"
+#include "element_classes/element_class_segment_3_inline_impl.cc"
+#include "element_classes/element_class_triangle_3_inline_impl.cc"
+#include "element_classes/element_class_triangle_6_inline_impl.cc"
+#include "element_classes/element_class_tetrahedron_4_inline_impl.cc"
+#include "element_classes/element_class_tetrahedron_10_inline_impl.cc"
+#include "element_classes/element_class_quadrangle_4_inline_impl.cc"
+#include "element_classes/element_class_quadrangle_8_inline_impl.cc"
+#include "element_classes/element_class_hexahedron_8_inline_impl.cc"
+#include "element_classes/element_class_bernoulli_beam_2_inline_impl.cc"

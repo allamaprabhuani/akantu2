@@ -43,7 +43,7 @@ if(AKANTU_MUMPS_ON)
 endif(AKANTU_MUMPS_ON)
 
 #===============================================================================
-if(AKANTU_MPI_ON)
+if(AKANTU_MPI_ON AND (AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON) )
   register_test(test_sparse_matrix_product test_sparse_matrix_product.cc)
   copy_files(test_sparse_matrix_product bar.msh)
-endif(AKANTU_MPI_ON)
+endif()
