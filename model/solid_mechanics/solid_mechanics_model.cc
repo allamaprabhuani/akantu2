@@ -114,6 +114,34 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 /* -------------------------------------------------------------------------- */
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initFull(std::string material_file,
+                                   bool explicit_scheme,
+                                   bool implicit_scheme,
+                                   bool implicit_dynamic) {
+  // initialize the model
+  initModel();
+
+  // initialize the vectors
+  initVectors();
+  getForce().clear();
+  getVelocity().clear();
+  getAcceleration().clear();
+  getDisplacement().clear();
+
+  // initialize the time integration schemes
+  if(explicit_scheme)
+    initExplicit();
+
+  if(implicit_scheme)
+    initImplicit(implicit_dynamic);
+
+  // initialize the materials
+  if(material_file != "") {
+    readMaterials(material_file);
+    initMaterials();
+  }
+}
+
 void SolidMechanicsModel::initParallel(MeshPartition * partition,
 				       DataAccessor * data_accessor) {
   AKANTU_DEBUG_IN();
@@ -572,34 +600,40 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & norm) {
+bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degre_of_freedom = displacement->getNbComponent();
 
-  norm = 0;
-  Real * increment_val     = increment->values;
-  bool * boundary_val      = boundary->values;
+  error = 0;
+  Real norm[2] = {0., 0.};
+  Real * increment_val    = increment->storage();
+  bool * boundary_val     = boundary->storage();
+  Real * displacement_val = displacement->storage();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
       if(!(*boundary_val) && is_local_node) {
-        norm += *increment_val * *increment_val;
+        norm[0] += *increment_val * *increment_val;
+        norm[1] += *displacement_val * *displacement_val;
       }
       boundary_val++;
       increment_val++;
+      displacement_val++;
     }
   }
 
-  StaticCommunicator::getStaticCommunicator()->allReduce(&norm, 1, _so_sum);
+  StaticCommunicator::getStaticCommunicator()->allReduce(norm, 2, _so_sum);
 
-  norm = sqrt(norm);
-  AKANTU_DEBUG_ASSERT(!Math::isnan(norm), "Something goes wrong in the solve phase");
+  norm[0] = sqrt(norm[0]);
+  norm[1] = sqrt(norm[1]);
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm[0]), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
-  return (norm < tolerance);
+  error = norm[0] / norm[1];
+  return (error < tolerance);
 }
 
 /* -------------------------------------------------------------------------- */

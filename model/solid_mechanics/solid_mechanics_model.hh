@@ -77,6 +77,12 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// initialize completely the model
+  void initFull(std::string material_file = "",
+                bool explicit_scheme = true,
+                bool implicit_scheme = false, bool implicit_dynamic = false);
+
+
   /// register the tags associated with the parallel synchronizer
   void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
 
@@ -231,29 +237,29 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataToPack(const Element & element,
+  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
 				      SynchronizationTag tag) const;
 
-  inline virtual UInt getNbDataToUnpack(const Element & element,
+  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
 					SynchronizationTag tag) const;
 
-  inline virtual void packData(CommunicationBuffer & buffer,
+  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
 			       SynchronizationTag tag) const;
 
-  inline virtual void unpackData(CommunicationBuffer & buffer,
+  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
 				 SynchronizationTag tag);
 
-  inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
+  __aka_inline__ virtual UInt getNbDataToPack(SynchronizationTag tag) const;
 
-  inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  __aka_inline__ virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
 
-  inline virtual void packData(CommunicationBuffer & buffer,
+  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
 			       const UInt index,
 			       SynchronizationTag tag) const;
 
-  inline virtual void unpackData(CommunicationBuffer & buffer,
+  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
 				 const UInt index,
 				 SynchronizationTag tag);
 
@@ -316,11 +322,11 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
 
   /// get a particular material
-  inline Material & getMaterial(UInt mat_index);
-  inline const Material & getMaterial(UInt mat_index) const;
+  __aka_inline__ Material & getMaterial(UInt mat_index);
+  __aka_inline__ const Material & getMaterial(UInt mat_index) const;
 
   /// give the number of materials
-  inline UInt getNbMaterials() { return materials.size(); };
+  __aka_inline__ UInt getNbMaterials() { return materials.size(); };
 
   /// compute the stable time step
   Real getStableTimeStep();
@@ -345,7 +351,7 @@ public:
   /// get the mass matrix
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
-  inline FEM & getFEMBoundary(std::string name = "");
+  __aka_inline__ FEM & getFEMBoundary(std::string name = "");
 
 private:
   /// compute the stable time step
@@ -434,14 +440,16 @@ private:
 __END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #include "parser.hh"
 
 __BEGIN_AKANTU__
 
-#include "solid_mechanics_model_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "solid_mechanics_model_inline_impl.cc"
+#endif
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsModel & _this)

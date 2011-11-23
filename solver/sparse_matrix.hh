@@ -84,16 +84,16 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// remove the existing profile
-  inline void clearProfile();
+  __aka_inline__ void clearProfile();
 
   /// add a non-zero element
   UInt addToProfile(UInt i, UInt j);
 
   /// set the matrix to 0
-  inline void clear();
+  __aka_inline__ void clear();
 
   /// assemble a local matrix in the sparse one
-  inline void addToMatrix(UInt i, UInt j, Real value);
+  __aka_inline__ void addToMatrix(UInt i, UInt j, Real value);
 
   /// fill the profil of the matrix
   void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer);
@@ -126,7 +126,7 @@ public:
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
-  inline KeyCOO key(UInt i, UInt j) const {
+  __aka_inline__ KeyCOO key(UInt i, UInt j) const {
     if(sparse_matrix_type == _symmetric && (i > j))
       return std::make_pair(j, i);
 
@@ -139,8 +139,8 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// return the values at potition i, j
-  inline Real operator()(UInt i, UInt j) const;
-  inline Real & operator()(UInt i, UInt j);
+  __aka_inline__ Real operator()(UInt i, UInt j) const;
+  __aka_inline__ Real & operator()(UInt i, UInt j);
 
   AKANTU_GET_MACRO(IRN, irn, const Vector<Int> &);
 
@@ -224,13 +224,15 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "sparse_matrix_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "sparse_matrix_inline_impl.cc"
+#endif
 
 // /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const SparseMatrix & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const SparseMatrix & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -106,13 +106,13 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "mesh_partition_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshPartition & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const MeshPartition & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

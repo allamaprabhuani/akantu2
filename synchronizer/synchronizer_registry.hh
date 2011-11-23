@@ -90,13 +90,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 // #include "synchronizer_registry_inline_impl.cc"
 
 // /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const SynchronizerRegistry & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const SynchronizerRegistry & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

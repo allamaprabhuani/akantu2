@@ -76,13 +76,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "contact_3d_explicit_inline_impl.cc"
 
 /// standard output stream operator
-//inline std::ostream & operator <<(std::ostream & stream, const Contact3dExplicit & _this)
+//__aka_inline__ std::ostream & operator <<(std::ostream & stream, const Contact3dExplicit & _this)
 //{
 //  _this.printself(stream);
 //  return stream;

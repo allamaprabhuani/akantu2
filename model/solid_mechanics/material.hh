@@ -103,7 +103,7 @@ public:
   virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
 
   /// add an element to the local mesh filter
-  inline void addElement(const ElementType & type,
+  __aka_inline__ void addElement(const ElementType & type,
 			 UInt element,
 			 const GhostType & ghost_type);
 
@@ -138,9 +138,9 @@ protected:
 
   /// transfer the B matrix to a Voigt notation B matrix
   template<UInt dim>
-  inline void transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const;
+  __aka_inline__ void transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const;
 
-  inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
+  __aka_inline__ UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
 
 
   /// compute the potential energy by element
@@ -151,7 +151,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
+  __aka_inline__ void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
 
   /// allocate an internal vector
   template<typename T>
@@ -167,17 +167,17 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataToPack(const Element & element,
+  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
 				      SynchronizationTag tag);
 
-  inline virtual UInt getNbDataToUnpack(const Element & element,
+  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
 					SynchronizationTag tag);
 
-  inline virtual void packData(CommunicationBuffer & buffer,
+  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
 			       SynchronizationTag tag);
 
-  inline virtual void unpackData(CommunicationBuffer & buffer,
+  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
 				 SynchronizationTag tag);
 
@@ -239,10 +239,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "material_inline_impl.cc"
+#endif
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Material & _this)

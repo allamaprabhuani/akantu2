@@ -138,23 +138,23 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline UInt getNbDataToPack(const Element & element,
+  __aka_inline__ UInt getNbDataToPack(const Element & element,
 			      SynchronizationTag tag) const;
-  inline UInt getNbDataToUnpack(const Element & element,
+  __aka_inline__ UInt getNbDataToUnpack(const Element & element,
 				SynchronizationTag tag) const;
-  inline void packData(CommunicationBuffer & buffer,
+  __aka_inline__ void packData(CommunicationBuffer & buffer,
 		       const Element & element,
 		       SynchronizationTag tag) const;
-  inline void unpackData(CommunicationBuffer & buffer,
+  __aka_inline__ void unpackData(CommunicationBuffer & buffer,
 			 const Element & element,
 			 SynchronizationTag tag);
 
-  inline UInt getNbDataToPack(SynchronizationTag tag) const;
-  inline UInt getNbDataToUnpack(SynchronizationTag tag) const;
-  inline void packData(CommunicationBuffer & buffer,
+  __aka_inline__ UInt getNbDataToPack(SynchronizationTag tag) const;
+  __aka_inline__ UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  __aka_inline__ void packData(CommunicationBuffer & buffer,
 		       const UInt index,
 		       SynchronizationTag tag) const;
-  inline void unpackData(CommunicationBuffer & buffer,
+  __aka_inline__ void unpackData(CommunicationBuffer & buffer,
 			 const UInt index,
 			 SynchronizationTag tag);
 
@@ -267,10 +267,12 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "heat_transfer_model_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "heat_transfer_model_inline_impl.cc"
+#endif
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const HeatTransferModel & _this)

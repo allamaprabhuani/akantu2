@@ -44,7 +44,7 @@ class Mesh;
 template<typename T>
 class AddOperation {
 public:
-  inline T operator()(T & b, T & a) { return a + b; };
+  __aka_inline__ T operator()(T & b, T & a) { return a + b; };
 };
 
 
@@ -114,10 +114,10 @@ public:
   AKANTU_GET_MACRO(DOFGlobalIDs, dof_global_ids, const Vector<UInt> &);
 
   /// get the global id of a dof
-  inline UInt getDOFGlobalID(UInt local_id) const { return dof_global_ids(local_id); }
+  __aka_inline__ UInt getDOFGlobalID(UInt local_id) const { return dof_global_ids(local_id); }
 
   /// get the local id of a global dof
-  inline UInt getDOFLocalID(UInt global_id) const { return global_dof_to_local.find(global_id)->second; }
+  __aka_inline__ UInt getDOFLocalID(UInt global_id) const { return global_dof_to_local.find(global_id)->second; }
 
   /// get the DOF type Vector
   AKANTU_GET_MACRO(DOFTypes, dof_types, const Vector<Int> &);
@@ -181,13 +181,15 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "dof_synchronizer_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "dof_synchronizer_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const DOFSynchronizer & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const DOFSynchronizer & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -87,13 +87,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "pbc_synchronizer_inline_impl.cc"
 
 // /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const PBCSynchronizer & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const PBCSynchronizer & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

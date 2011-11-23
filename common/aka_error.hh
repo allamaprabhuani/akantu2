@@ -116,7 +116,6 @@ namespace debug {
     /*  Methods                                                                 */
     /* ------------------------------------------------------------------------ */
   public:
-
     virtual const char* what() const throw() {
       std::stringstream stream;
       stream << "akantu::Exception"

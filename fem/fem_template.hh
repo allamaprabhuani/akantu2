@@ -193,14 +193,14 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "fem_template_inline_impl.cc"
 
 /// standard output stream operator
 
-// inline std::ostream & operator <<(std::ostream & stream, const FEMTemplate & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const FEMTemplate & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

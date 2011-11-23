@@ -224,10 +224,10 @@ public:
   AKANTU_GET_MACRO(ElementDimension, element_dimension, UInt);
 
   /// get the mesh contained in the fem object
-  inline Mesh & getMesh() const;
+  __aka_inline__ Mesh & getMesh() const;
 
   /// get the in-radius of an element
-  static inline Real getElementInradius(Real * coord, const ElementType & type);
+  static __aka_inline__ Real getElementInradius(Real * coord, const ElementType & type);
 
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);
@@ -253,10 +253,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "fem_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "fem_inline_impl.cc"
+#endif
 
 
 /// standard output stream operator

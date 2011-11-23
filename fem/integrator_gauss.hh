@@ -58,7 +58,7 @@ public:
 
   /// integrate f on the element "elem" of type "type"
   template <ElementType type>
-  inline void integrateOnElement(const Vector<Real> & f,
+  __aka_inline__ void integrateOnElement(const Vector<Real> & f,
 				 Real * intf,
 				 UInt nb_degre_of_freedom,
 				 const UInt elem,
@@ -116,7 +116,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  inline void integrate(Real *f, Real *jac, Real * inte,
+  __aka_inline__ void integrate(Real *f, Real *jac, Real * inte,
 			UInt nb_degre_of_freedom,
 			UInt nb_quadrature_points) const;
 
@@ -126,10 +126,12 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "integrator_gauss_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "integrator_gauss_inline_impl.cc"
+#endif
 
 __END_AKANTU__
 

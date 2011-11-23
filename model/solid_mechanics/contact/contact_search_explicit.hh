@@ -73,7 +73,7 @@ private:
 			      Vector<bool> * has_closest_master_node);
 
   /// compute the square of the distance between two nodes
-  inline Real computeSquareDistanceBetweenNodes(const UInt node_1, const UInt node_2);
+  __aka_inline__ Real computeSquareDistanceBetweenNodes(const UInt node_1, const UInt node_2);
 
   /// test if impactor node is inside and in the projection area
   void checkPenetrationSituation(const UInt impactor_node, 
@@ -135,13 +135,15 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "contact_search_explicit_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "contact_search_explicit_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const ContactSearchExplicit & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const ContactSearchExplicit & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -87,7 +87,7 @@ public:
 protected:
   /// compute the shape derivatives on control points for a given element
   template <ElementType type>
-  inline void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
+  __aka_inline__ void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
 							Real * node_coords,
 							UInt nb_nodes_per_element,
 							Real * natural_coords,
@@ -121,10 +121,12 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "shape_lagrange_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "shape_lagrange_inline_impl.cc"
+#endif
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const ShapeLagrange & _this)

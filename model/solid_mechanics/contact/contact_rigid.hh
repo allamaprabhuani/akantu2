@@ -210,13 +210,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "contact_rigid_inline_impl.cc"
 
 /// standard output stream operator
-//inline std::ostream & operator <<(std::ostream & stream, const ContactRigid & _this)
+//__aka_inline__ std::ostream & operator <<(std::ostream & stream, const ContactRigid & _this)
 //{
 //  _this.printself(stream);
 //  return stream;

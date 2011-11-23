@@ -253,6 +253,13 @@ enum SynchronizerOperation {
 
 #define AKANTU_INDENT " "
 
+#if !defined(__aka_inline__)
+#  define __aka_inline__
+#else
+#  define AKANTU_INCLUDE_INLINE_IMPL
+#endif
+
+
 /* -------------------------------------------------------------------------- */
 #define AKANTU_SET_MACRO(name, variable, type)	\
   inline void set##name (type variable) {	\

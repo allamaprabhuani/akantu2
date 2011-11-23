@@ -73,14 +73,14 @@ public:
 			       GhostType ghost_type = _not_ghost);
 
   /// compute the celerity of wave in the material
-  inline Real celerity();
+  __aka_inline__ Real celerity();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
+  __aka_inline__ void computeStress(Real * F, Real * sigma);
 
   // /// compute the tangent stiffness matrix for an element type
   template<UInt dim>
@@ -95,7 +95,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
+  __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -123,10 +123,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_elastic_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "material_elastic_inline_impl.cc"
+#endif
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator

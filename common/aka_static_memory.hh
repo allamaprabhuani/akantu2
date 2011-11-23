@@ -77,11 +77,11 @@ public:
   void destroy();
 
   /// access to an Vector
-  inline const VectorBase & getVector(const MemoryID & memory_id,
+  __aka_inline__ const VectorBase & getVector(const MemoryID & memory_id,
 				      const ID & name) const;
 
   /// get all vectors of a memory
-  inline const VectorMap & getMemory(const MemoryID & memory_id) const;
+  __aka_inline__ const VectorMap & getMemory(const MemoryID & memory_id) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Methods                                                            */
@@ -139,10 +139,12 @@ private:
   static UInt nb_reference;
 };
 
-#include "aka_static_memory_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "aka_static_memory_inline_impl.cc"
+#endif
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator

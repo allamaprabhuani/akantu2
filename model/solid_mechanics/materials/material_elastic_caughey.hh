@@ -78,7 +78,7 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  //inline void computeStress(Real * F, Real * sigma);
+  //__aka_inline__ void computeStress(Real * F, Real * sigma);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -107,7 +107,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "material_elastic_caughey_inline_impl.cc"

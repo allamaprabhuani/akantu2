@@ -97,12 +97,12 @@ public:
 public:
 
   /// get a the shapes vector
-  inline const Vector<Real> & getShapes(const ElementType & type,
+  __aka_inline__ const Vector<Real> & getShapes(const ElementType & type,
 					const GhostType & ghost_type,
 					UInt id = 0) const;
 
   /// get a the shapes derivatives vector
-  inline const Vector<Real> & getShapesDerivatives(const ElementType & type,
+  __aka_inline__ const Vector<Real> & getShapesDerivatives(const ElementType & type,
 						   const GhostType & ghost_type,
 						   UInt id = 0) const;
 
@@ -119,13 +119,15 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "shape_linked_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "shape_linked_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const ShapeLinked & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const ShapeLinked & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

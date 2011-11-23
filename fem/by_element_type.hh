@@ -48,24 +48,24 @@ public:
 		const ID & parent_id = "");
   ~ByElementType();
 
-  inline static std::string printType(const ElementType & type, const GhostType & ghost_type);
+  __aka_inline__ static std::string printType(const ElementType & type, const GhostType & ghost_type);
 
-  inline bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
+  __aka_inline__ bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
 
-  inline const Stored & operator()(const ElementType & type,
+  __aka_inline__ const Stored & operator()(const ElementType & type,
 				   const GhostType & ghost_type = _not_ghost) const;
-  inline Stored & operator()(const ElementType & type,
+  __aka_inline__ Stored & operator()(const ElementType & type,
 			     const GhostType & ghost_type = _not_ghost);
 
-  inline Stored & operator()(const Stored & insert,
+  __aka_inline__ Stored & operator()(const Stored & insert,
 			     const ElementType & type,
 			     const GhostType & ghost_type = _not_ghost);
 
   void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
-  inline DataMap & getData(GhostType ghost_type);
-  inline const DataMap & getData(GhostType ghost_type) const;
+  __aka_inline__ DataMap & getData(GhostType ghost_type);
+  __aka_inline__ const DataMap & getData(GhostType ghost_type) const;
 
 /* -------------------------------------------------------------------------- */
 protected:
@@ -93,26 +93,26 @@ public:
 		      const MemoryID & memory_id = 0) :
     ByElementType<Vector<T> *>(id, parent_id), Memory(memory_id) {};
 
-  inline Vector<T> & alloc(UInt size,
+  __aka_inline__ Vector<T> & alloc(UInt size,
 			   UInt nb_component,
 			   const ElementType & type,
 			   const GhostType & ghost_type);
 
-  inline void alloc(UInt size,
+  __aka_inline__ void alloc(UInt size,
 		    UInt nb_component,
 		    const ElementType & type);
 
-  inline const Vector<T> & operator()(const ElementType & type,
+  __aka_inline__ const Vector<T> & operator()(const ElementType & type,
 				      const GhostType & ghost_type = _not_ghost) const;
 
-  inline Vector<T> & operator()(const ElementType & type,
+  __aka_inline__ Vector<T> & operator()(const ElementType & type,
 				const GhostType & ghost_type = _not_ghost);
 
-  inline void setVector(const ElementType & type,
+  __aka_inline__ void setVector(const ElementType & type,
 			const GhostType & ghost_type,
 			const Vector<T> & vect);
 
-  inline void free();
+  __aka_inline__ void free();
 };
 
 /// to store data Vector<Real> by element type
@@ -127,10 +127,12 @@ typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
 typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "by_element_type_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "by_element_type_inline_impl.cc"
+#endif
 
 
 __END_AKANTU__

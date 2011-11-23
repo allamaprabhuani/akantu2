@@ -85,18 +85,18 @@ public:
   };
 
   /// compute the celerity of wave in the material
-  inline Real celerity();
+  __aka_inline__ Real celerity();
 
-  inline Real getStableTimeStep(Real h, const Element & element);
+  __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
   
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma,Real & damage, Real & Ehat);
+  __aka_inline__ void computeStress(Real * F, Real * sigma,Real & damage, Real & Ehat);
   
-  inline void computeDamageAndStress( Real *F, Real * sigma,Real & damage, Real & Ehat);
+  __aka_inline__ void computeDamageAndStress( Real *F, Real * sigma,Real & damage, Real & Ehat);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -131,10 +131,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_mazars_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "material_mazars_inline_impl.cc"
+#endif
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator

@@ -67,10 +67,10 @@ public:
   virtual void initializeComputeFricCoef();
 
   /// fill table with friction coefficient
-  inline Real computeFricCoef(UInt impactor_node_index);
+  __aka_inline__ Real computeFricCoef(UInt impactor_node_index);
 
   /// compute the alpha parameter
-  inline void computeAlpha();
+  __aka_inline__ void computeAlpha();
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -103,7 +103,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 __END_AKANTU__
 
@@ -111,7 +111,9 @@ __END_AKANTU__
 
 __BEGIN_AKANTU__
 
-#include "velocity_weakening_exponential_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "velocity_weakening_exponential_inline_impl.cc"
+#endif
 /*
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const VelocityWeakeningExponential & _this)

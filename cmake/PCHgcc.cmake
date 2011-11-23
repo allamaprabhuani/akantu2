@@ -26,7 +26,7 @@ macro(ADD_PCH_RULE _header_filename _src_list)
 
   list(APPEND ${_src_list} ${_gch_filename})
 
-  set(_args ${CMAKE_CXX_FLAGS})
+  set(_args ${CMAKE_CXX_FLAGS} -D__aka_inline__=inline)
 
   get_filename_component(_gch_filename_path ${_gch_filename} PATH)
   file(MAKE_DIRECTORY ${_gch_filename_path})

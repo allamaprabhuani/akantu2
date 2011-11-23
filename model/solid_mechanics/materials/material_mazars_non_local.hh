@@ -78,9 +78,9 @@ public:
   };
 
   /// compute the celerity of wave in the material
-  inline Real celerity();
+  __aka_inline__ Real celerity();
 
-  inline Real getStableTimeStep(Real h, const Element & element) {
+  __aka_inline__ Real getStableTimeStep(Real h, const Element & element) {
     return MaterialMazars::getStableTimeStep(h, element);
   };
 
@@ -101,7 +101,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "material_mazars_non_local_inline_impl.cc"

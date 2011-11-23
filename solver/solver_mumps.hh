@@ -69,11 +69,11 @@ public:
 
 private:
 
-  inline Int & icntl(UInt i) {
+  __aka_inline__ Int & icntl(UInt i) {
     return mumps_data.icntl[i - 1];
   }
 
-  inline Int & info(UInt i) {
+  __aka_inline__ Int & info(UInt i) {
     return mumps_data.info[i - 1];
   }
 
@@ -130,13 +130,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "solver_mumps_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const SolverMumps & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const SolverMumps & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

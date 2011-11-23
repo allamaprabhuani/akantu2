@@ -104,13 +104,15 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "solver_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "solver_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const Solver & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const Solver & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -111,13 +111,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "2d_grid_neighbor_structure_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const Grid2dNeighborStructure & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const Grid2dNeighborStructure & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -105,10 +105,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the size of the shapes returned by the element class
-  static inline UInt getShapeSize(const ElementType & type);
+  static __aka_inline__ UInt getShapeSize(const ElementType & type);
 
   /// get the size of the shapes derivatives returned by the element class
-  static inline UInt getShapeDerivativesSize(const ElementType & type);
+  static __aka_inline__ UInt getShapeDerivativesSize(const ElementType & type);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ControlPoints, control_points, Real)
 
@@ -127,11 +127,13 @@ protected:
 };
 
 
-#include "shape_functions_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "shape_functions_inline_impl.cc"
+#endif
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator

@@ -108,13 +108,15 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "mesh_utils_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "mesh_utils_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshUtils & _this)
+// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const MeshUtils & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

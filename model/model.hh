@@ -92,17 +92,17 @@ public:
   virtual void synchronizeBoundaries() {};
 
   /// return the fem object associated with a provided name
-  inline FEM & getFEM(std::string name = "") const;
+  __aka_inline__ FEM & getFEM(std::string name = "") const;
 
   /// return the fem boundary object associated with a provided name
   virtual FEM & getFEMBoundary(std::string name = "");
 
   /// register a fem object associated with name
-  template <typename FEMClass> inline void registerFEMObject(const std::string & name,
+  template <typename FEMClass> __aka_inline__ void registerFEMObject(const std::string & name,
 							     Mesh & mesh,
 							     UInt spatial_dimension);
   /// unregister a fem object associated with name
-  inline void unRegisterFEMObject(const std::string & name);
+  __aka_inline__ void unRegisterFEMObject(const std::string & name);
 
   /// return the synchronizer registry 
   SynchronizerRegistry & getSynchronizerRegistry();
@@ -110,11 +110,11 @@ public:
 protected:
   /// return the fem object associated with a provided name
   template <typename FEMClass>
-  inline FEMClass & getFEMClass(std::string name = "") const;
+  __aka_inline__ FEMClass & getFEMClass(std::string name = "") const;
 
   /// return the fem boundary object associated with a provided name
   template <typename FEMClass>
-  inline FEMClass & getFEMClassBoundary(std::string name = "");
+  __aka_inline__ FEMClass & getFEMClassBoundary(std::string name = "");
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -149,10 +149,12 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "model_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "model_inline_impl.cc"
+#endif
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Model & _this)

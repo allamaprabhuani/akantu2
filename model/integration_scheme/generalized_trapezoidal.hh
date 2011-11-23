@@ -125,10 +125,12 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "generalized_trapezoidal_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "generalized_trapezoidal_inline_impl.cc"
+#endif
 
 
 /**

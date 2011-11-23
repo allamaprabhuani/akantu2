@@ -84,27 +84,27 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline void integrationSchemePred(Real delta_t,
+  __aka_inline__ void integrationSchemePred(Real delta_t,
 				    Vector<Real> & u,
 				    Vector<Real> & u_dot,
 				    Vector<Real> & u_dot_dot,
 				    Vector<bool> & boundary);
 
-  inline void integrationSchemeCorrAccel(Real delta_t,
+  __aka_inline__ void integrationSchemeCorrAccel(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
 					 Vector<Real> & delta);
 
-  inline void integrationSchemeCorrVeloc(Real delta_t,
+  __aka_inline__ void integrationSchemeCorrVeloc(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
 					 Vector<Real> & delta);
 
-  inline void integrationSchemeCorrDispl(Real delta_t,
+  __aka_inline__ void integrationSchemeCorrDispl(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
@@ -152,10 +152,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "newmark-beta_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "newmark-beta_inline_impl.cc"
+#endif
 
 
 /**

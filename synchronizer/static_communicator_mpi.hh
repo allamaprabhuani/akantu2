@@ -43,9 +43,9 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class CommunicationRequestMPI : public CommunicationRequest {
 public:
-  inline CommunicationRequestMPI(UInt source, UInt dest);
-  inline ~CommunicationRequestMPI();
-  inline MPI_Request * getMPIRequest() { return request; };
+  __aka_inline__ CommunicationRequestMPI(UInt source, UInt dest);
+  __aka_inline__ ~CommunicationRequestMPI();
+  __aka_inline__ MPI_Request * getMPIRequest() { return request; };
 private:
   MPI_Request * request;
 };
@@ -57,49 +57,49 @@ class StaticCommunicatorMPI : public RealStaticCommunicator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline StaticCommunicatorMPI(int * argc, char *** argv);
+  __aka_inline__ StaticCommunicatorMPI(int * argc, char *** argv);
 
-  inline virtual ~StaticCommunicatorMPI();
+  __aka_inline__ virtual ~StaticCommunicatorMPI();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  template<typename T> inline void send(T * buffer, Int size, Int receiver, Int tag);
-  template<typename T> inline void receive(T * buffer, Int size, Int sender, Int tag);
+  template<typename T> __aka_inline__ void send(T * buffer, Int size, Int receiver, Int tag);
+  template<typename T> __aka_inline__ void receive(T * buffer, Int size, Int sender, Int tag);
 
-  template<typename T> inline CommunicationRequest * asyncSend(T * buffer, Int size, Int receiver, Int tag);
-  template<typename T> inline CommunicationRequest * asyncReceive(T * buffer, Int size, Int sender, Int tag);
+  template<typename T> __aka_inline__ CommunicationRequest * asyncSend(T * buffer, Int size, Int receiver, Int tag);
+  template<typename T> __aka_inline__ CommunicationRequest * asyncReceive(T * buffer, Int size, Int sender, Int tag);
 
-  template<typename T> inline void allGather(T * values, Int nb_values);
-  template<typename T> inline void allGatherV(T * values, Int * nb_values);
+  template<typename T> __aka_inline__ void allGather(T * values, Int nb_values);
+  template<typename T> __aka_inline__ void allGatherV(T * values, Int * nb_values);
 
-  template<typename T> inline void gather(T * values, Int nb_values, Int root);
-  template<typename T> inline void gatherV(T * values, Int * nb_values, Int root);
-  template<typename T> inline void broadcast(T * values, Int nb_values, Int root);
+  template<typename T> __aka_inline__ void gather(T * values, Int nb_values, Int root);
+  template<typename T> __aka_inline__ void gatherV(T * values, Int * nb_values, Int root);
+  template<typename T> __aka_inline__ void broadcast(T * values, Int nb_values, Int root);
 
-  inline bool testRequest(CommunicationRequest * request);
+  __aka_inline__ bool testRequest(CommunicationRequest * request);
 
-  inline void wait(CommunicationRequest * request);
+  __aka_inline__ void wait(CommunicationRequest * request);
 
-  inline void waitAll(std::vector<CommunicationRequest *> & requests);
+  __aka_inline__ void waitAll(std::vector<CommunicationRequest *> & requests);
 
-  inline void barrier();
+  __aka_inline__ void barrier();
 
-  template<typename T> inline void allReduce(T * values, Int nb_values, const SynchronizerOperation & op);
+  template<typename T> __aka_inline__ void allReduce(T * values, Int nb_values, const SynchronizerOperation & op);
 
 private:
   template<typename T>
-  inline MPI_Datatype getMPIDatatype();
+  __aka_inline__ MPI_Datatype getMPIDatatype();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline void setMPICommunicator(MPI_Comm comm);
-  inline MPI_Comm getMPICommunicator() const;
+  __aka_inline__ void setMPICommunicator(MPI_Comm comm);
+  __aka_inline__ MPI_Comm getMPICommunicator() const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -112,10 +112,12 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "static_communicator_mpi_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "static_communicator_mpi_inline_impl.cc"
+#endif
 
 
 __END_AKANTU__

@@ -73,7 +73,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  inline void my_getline();
+  __aka_inline__ void my_getline();
 
   /// number of the current line
   UInt current_line;
@@ -86,7 +86,9 @@ private:
 };
 
 
-#include "parser_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "parser_inline_impl.cc"
+#endif
 
 __END_AKANTU__
 

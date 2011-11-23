@@ -83,10 +83,10 @@ private:
   Real celerity(const Element & element);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * epot);
+  __aka_inline__ void computePotentialEnergy(Real * F, Real * epot);
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
+  __aka_inline__ void computeStress(Real * F, Real * sigma);
 
   // /// compute the tangent stiffness matrix for an element type
   template<UInt dim>
@@ -101,7 +101,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
+  __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -128,10 +128,12 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_neohookean_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "material_neohookean_inline_impl.cc"
+#endif
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator

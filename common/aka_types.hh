@@ -85,11 +85,11 @@ namespace types {
     Real * storage() const { return values; };
 
     /* ---------------------------------------------------------------------- */
-    inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
-    inline const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
-    inline Real& operator[](UInt idx) { return *(values + idx); };
-    inline const Real& operator[](UInt idx) const { return *(values + idx); };
-    inline Matrix & operator=(const Matrix & mat) {
+    __aka_inline__ Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
+    __aka_inline__ const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
+    __aka_inline__ Real& operator[](UInt idx) { return *(values + idx); };
+    __aka_inline__ const Real& operator[](UInt idx) const { return *(values + idx); };
+    __aka_inline__ Matrix & operator=(const Matrix & mat) {
       if(this != &mat) {
 	if(values != NULL) {
 	  memcpy(this->values, mat.values, m*n*sizeof(Real));
@@ -106,7 +106,7 @@ namespace types {
     };
 
     /* ---------------------------------------------------------------------- */
-    inline Matrix operator* (const Matrix & B) {
+    __aka_inline__ Matrix operator* (const Matrix & B) {
       Matrix C(this->m, B.n);
       C.mul<true, false>(*this, B);
 
@@ -114,14 +114,14 @@ namespace types {
     };
 
     template<bool tr_A, bool tr_B>
-    inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
+    __aka_inline__ void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
       if(tr_A) k = A.m;
 
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
 
-    inline void clear() { memset(values, 0, m * n * sizeof(Real)); };
+    __aka_inline__ void clear() { memset(values, 0, m * n * sizeof(Real)); };
 
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -190,13 +190,13 @@ namespace types {
 
 
     /* ---------------------------------------------------------------------- */
-    inline T& operator()(UInt i) { return *(values + i); };
-    inline const T& operator()(UInt i) const { return *(values + i); };
-    inline T& operator[](UInt idx) { return *(values + idx); };
-    inline const T& operator[](UInt idx) const { return *(values + idx); };
+    __aka_inline__ T& operator()(UInt i) { return *(values + i); };
+    __aka_inline__ const T& operator()(UInt i) const { return *(values + i); };
+    __aka_inline__ T& operator[](UInt idx) { return *(values + idx); };
+    __aka_inline__ const T& operator[](UInt idx) const { return *(values + idx); };
 
     /* ---------------------------------------------------------------------- */
-    inline Vector & operator=(const Vector & vect) {
+    __aka_inline__ Vector & operator=(const Vector & vect) {
       if(this != &vect) {
 	if(values != NULL) {
 	  memcpy(this->values, vect.values, n * sizeof(T));
@@ -211,7 +211,7 @@ namespace types {
       return *this;
     };
 
-    inline Vector & operator+=(const Vector & vect) {
+    __aka_inline__ Vector & operator+=(const Vector & vect) {
       T * a = this->values;
       T * b = vect.values;
       for (UInt i = 0; i < n; ++i) *(a++) += *(b++);
@@ -219,17 +219,17 @@ namespace types {
     };
 
 
-    inline void clear() { memset(values, 0, n * sizeof(T)); };
+    __aka_inline__ void clear() { memset(values, 0, n * sizeof(T)); };
 
     template<bool tr_A>
-    inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
+    __aka_inline__ void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
       UInt n = x.n;
       Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
     }
 
 
     /// norm of (*this - x)
-    inline Real distance(const Vector & y) const {
+    __aka_inline__ Real distance(const Vector & y) const {
       Real * vx = values; Real * vy = y.storage();
       Real sum_2 = 0;
       for (UInt i = 0; i < n; ++i, ++vx, ++vy) sum_2 += (*vx - *vy)*(*vx - *vy);
@@ -300,12 +300,12 @@ namespace types {
     static UInt size() { return n*m; };
 
 
-    inline T & operator()(UInt i, UInt j) { return *(values + i*n + j); };
-    inline const T & operator()(UInt i, UInt j) const { return *(values + i*n + j); };
-    inline T & operator[](UInt idx) { return *(values + idx); };
-    inline const T & operator[](UInt idx) const { return *(values + idx); };
+    __aka_inline__ T & operator()(UInt i, UInt j) { return *(values + i*n + j); };
+    __aka_inline__ const T & operator()(UInt i, UInt j) const { return *(values + i*n + j); };
+    __aka_inline__ T & operator[](UInt idx) { return *(values + idx); };
+    __aka_inline__ const T & operator[](UInt idx) const { return *(values + idx); };
 
-    inline TMatrix & operator=(const TMatrix & mat) {
+    __aka_inline__ TMatrix & operator=(const TMatrix & mat) {
       if(this != &mat) {
 	if(values == NULL) { this->values = new T[n * m]; this->wrapped = false; }
 	memcpy(this->values, &mat[0], size()*sizeof(T));
@@ -313,7 +313,7 @@ namespace types {
       return *this;
     };
 
-    inline void clear() { memset(values, 0, m * n * sizeof(T)); };
+    __aka_inline__ void clear() { memset(values, 0, m * n * sizeof(T)); };
 
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -369,7 +369,7 @@ namespace types {
 
 
   template <UInt m, UInt n, UInt k>
-  inline RealTMatrix<m,n> operator* (const RealTMatrix<m,k> & A, const RealTMatrix<k,n> & B) {
+  __aka_inline__ RealTMatrix<m,n> operator* (const RealTMatrix<m,k> & A, const RealTMatrix<k,n> & B) {
     RealTMatrix<m,n> C;
     C.clear();
     for (UInt i = 0; i < m; ++i) {

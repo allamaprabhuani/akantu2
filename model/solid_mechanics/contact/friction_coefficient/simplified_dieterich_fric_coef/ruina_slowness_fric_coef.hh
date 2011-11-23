@@ -69,10 +69,10 @@ public:
 
 private:
   /// compute the state variable by the analytical solution
-  inline Real computeAnalyticTheta(Real previous_theta, Real sliding_speed, Real delta_t);
+  __aka_inline__ Real computeAnalyticTheta(Real previous_theta, Real sliding_speed, Real delta_t);
 
   /// compute the state variable by the implicit solution
-  inline Real computeImplicitTheta(Real previous_theta, Real sliding_speed, Real delta_t);
+  __aka_inline__ Real computeImplicitTheta(Real previous_theta, Real sliding_speed, Real delta_t);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -101,10 +101,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "ruina_slowness_fric_coef_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "ruina_slowness_fric_coef_inline_impl.cc"
+#endif
 /*
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const RuinaSlownessFricCoef & _this)

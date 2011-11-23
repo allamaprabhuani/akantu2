@@ -57,20 +57,20 @@ public:
 
   /// malloc
   template<class T>
-  inline Vector<T> & alloc(const ID & name,
+  __aka_inline__ Vector<T> & alloc(const ID & name,
 			   UInt size,
 			   UInt nb_component);
 
   /// malloc
   template<class T>
-  inline Vector<T> & alloc(const ID & name,
+  __aka_inline__ Vector<T> & alloc(const ID & name,
 			   UInt size,
 			   UInt nb_component,
 			   const T & init_value);
 
   /* ------------------------------------------------------------------------ */
   /// free an array
-  inline void dealloc(const ID & name);
+  __aka_inline__ void dealloc(const ID & name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -80,7 +80,7 @@ public:
   AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
 
   template<class T>
-  inline Vector<T> & getVector(const ID & name);
+  __aka_inline__ Vector<T> & getVector(const ID & name);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -103,7 +103,9 @@ protected:
 /* Inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "aka_memory_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "aka_memory_inline_impl.cc"
+#endif
 
 __END_AKANTU__
 

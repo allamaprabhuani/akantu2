@@ -120,6 +120,7 @@ endif()
 #check_for_isnan(AKANTU_ISNAN)
 #message("ISNAN = "${AKANTU_ISNAN})
 
+
 #===============================================================================
 # File package section
 #===============================================================================
@@ -246,7 +247,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 add_library(akantu ${AKANTU_COMMON_SRC})
+
+add_definitions(-fkeep-inline-functions)
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
+set_target_properties(akantu
+  PROPERTIES COMPILE_DEFINITIONS __aka_inline__=inline)
 
 #include(cmake/PCHSupport.cmake)
 #if(PCHSupport_FOUND)

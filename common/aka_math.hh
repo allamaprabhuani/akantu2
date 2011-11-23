@@ -60,13 +60,13 @@ public:
 			    Vector<Real> & y, Real alpha = 1.);
 
   /// @f$ y = A*x @f$
-  static inline void matrix_vector(UInt m, UInt n,
+  static __aka_inline__ void matrix_vector(UInt m, UInt n,
 				   const Real * A,
 				   const Real * x,
 				   Real * y, Real alpha = 1.);
 
   /// @f$ y = A^t*x @f$
-  static inline void matrixt_vector(UInt m, UInt n,
+  static __aka_inline__ void matrixt_vector(UInt m, UInt n,
 				    const Real * A,
 				    const Real * x,
 				    Real * y, Real alpha = 1.);
@@ -84,36 +84,36 @@ public:
 			     Vector<Real> & C, Real alpha = 1.);
 
   /// @f$ C = A*B @f$
-  static inline void matrix_matrix(UInt m, UInt n, UInt k,
+  static __aka_inline__ void matrix_matrix(UInt m, UInt n, UInt k,
 				   const Real * A,
 				   const Real * B,
 				   Real * C, Real alpha = 1.);
 
   /// @f$ C = A^t*B @f$
-  static inline void matrixt_matrix(UInt m, UInt n, UInt k,
+  static __aka_inline__ void matrixt_matrix(UInt m, UInt n, UInt k,
 				    const Real * A,
 				    const Real * B,
 				    Real * C, Real alpha = 1.);
 
   /// @f$ C = A*B^t @f$
-  static inline void matrix_matrixt(UInt m, UInt n, UInt k,
+  static __aka_inline__ void matrix_matrixt(UInt m, UInt n, UInt k,
 				    const Real * A,
 				    const Real * B,
 				    Real * C, Real alpha = 1.);
 
   /// @f$ C = A^t*B^t @f$
-  static inline void matrixt_matrixt(UInt m, UInt n, UInt k,
+  static __aka_inline__ void matrixt_matrixt(UInt m, UInt n, UInt k,
 				     const Real * A,
 				     const Real * B,
 				     Real * C, Real alpha = 1.);
 
   template <bool tr_A, bool tr_B>
-  static inline void matMul(UInt m, UInt n, UInt k,
+  static __aka_inline__ void matMul(UInt m, UInt n, UInt k,
 			    Real alpha, const Real * A, const Real * B,
 			    Real beta, Real * C);
 
   template <bool tr_A>
-  static inline void matVectMul(UInt m, UInt n,
+  static __aka_inline__ void matVectMul(UInt m, UInt n,
 				Real alpha, const Real * A, const Real * x,
 				Real beta, Real * y);
 
@@ -121,90 +121,90 @@ public:
 				    Real * Adiag);
 
   /// determinent of a 3x3 matrix
-  static inline Real det3(const Real * mat);
+  static __aka_inline__ Real det3(const Real * mat);
 
   /// determinent of a 2x2 matrix
-  static inline Real det2(const Real * mat);
+  static __aka_inline__ Real det2(const Real * mat);
 
   /// inverse a 3x3 matrix
-  static inline void inv3(const Real * mat, Real * inv);
+  static __aka_inline__ void inv3(const Real * mat, Real * inv);
 
   /// inverse a 2x2 matrix
-  static inline void inv2(const Real * mat, Real * inv);
+  static __aka_inline__ void inv2(const Real * mat, Real * inv);
 
   /// vector cross product
-  static inline void vectorProduct3(const Real * v1, const Real * v2, Real * res);
+  static __aka_inline__ void vectorProduct3(const Real * v1, const Real * v2, Real * res);
 
   /// compute normal a normal to a vector
-  static inline void normal2(const Real * v1, Real * res);
+  static __aka_inline__ void normal2(const Real * v1, Real * res);
 
   /// compute normal a normal to a vector
-  static inline void normal3(const Real * v1,const Real * v2, Real * res);
+  static __aka_inline__ void normal3(const Real * v1,const Real * v2, Real * res);
 
   /// normalize a vector
-  static inline void normalize2(Real * v);
+  static __aka_inline__ void normalize2(Real * v);
 
   /// normalize a vector
-  static inline void normalize3(Real * v);
+  static __aka_inline__ void normalize3(Real * v);
 
   /// return norm of a 2-vector
-  static inline Real norm2(const Real * v);
+  static __aka_inline__ Real norm2(const Real * v);
 
   /// return norm of a 3-vector
-  static inline Real norm3(const Real * v);
+  static __aka_inline__ Real norm3(const Real * v);
 
   /// return the dot product between 2 vectors in 2d
-  static inline Real vectorDot2(const Real * v1, const Real * v2);
+  static __aka_inline__ Real vectorDot2(const Real * v1, const Real * v2);
 
   /// return the dot product between 2 vectors in 3d
-  static inline Real vectorDot3(const Real * v1, const Real * v2);
+  static __aka_inline__ Real vectorDot3(const Real * v1, const Real * v2);
 
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */
   /// distance in 2D between x and y
-  static inline Real distance_2d(const Real * x, const Real * y);
+  static __aka_inline__ Real distance_2d(const Real * x, const Real * y);
 
   /// distance in 3D between x and y
-  static inline Real distance_3d(const Real * x, const Real * y);
+  static __aka_inline__ Real distance_3d(const Real * x, const Real * y);
 
   /// radius of the in-circle of a triangle
-  static inline Real triangle_inradius(const Real * coord1, const Real * coord2, const Real * coord3);
+  static __aka_inline__ Real triangle_inradius(const Real * coord1, const Real * coord2, const Real * coord3);
 
   /// radius of the in-circle of a tetrahedron
-  static inline Real tetrahedron_inradius(const Real * coord1, const Real * coord2, const Real * coord3, const Real * coord4);
+  static __aka_inline__ Real tetrahedron_inradius(const Real * coord1, const Real * coord2, const Real * coord3, const Real * coord4);
 
   /// volume of a tetrahedron
-  static inline Real tetrahedron_volume(const Real * coord1, const Real * coord2, const Real * coord3, const Real * coord4);
+  static __aka_inline__ Real tetrahedron_volume(const Real * coord1, const Real * coord2, const Real * coord3, const Real * coord4);
 
   /// compute the barycenter of n points
-  static inline void barycenter(const Real * coord,
+  static __aka_inline__ void barycenter(const Real * coord,
 				UInt nb_points, UInt spatial_dimension,
 				Real * barycenter);
 
   /// vector between x and y
-  static inline void vector_2d(const Real * x, const Real * y, Real * vec);
+  static __aka_inline__ void vector_2d(const Real * x, const Real * y, Real * vec);
 
   /// vector pointing from x to y in 3 spatial dimension
-  static inline void vector_3d(const Real * x, const Real * y, Real * vec);
+  static __aka_inline__ void vector_3d(const Real * x, const Real * y, Real * vec);
 
   /// test if two scalar are equal within a given tolerance
-  static inline bool are_float_equal(Real x, Real y);
+  static __aka_inline__ bool are_float_equal(Real x, Real y);
 
   /// test if two vectors are equal within a given tolerance
-  static inline bool are_vector_equal(UInt n, Real * x, Real * y);
+  static __aka_inline__ bool are_vector_equal(UInt n, Real * x, Real * y);
 
   /// test if a real is a NaN
-  static inline bool isnan(Real x);
+  static __aka_inline__ bool isnan(Real x);
 
   /// test if the line x and y intersects each other
-  static inline bool intersects(Real x_min, Real x_max, Real y_min, Real y_max);
+  static __aka_inline__ bool intersects(Real x_min, Real x_max, Real y_min, Real y_max);
 
   /// test if a is in the range [x_min, x_max]
-  static inline bool is_in_range(Real a, Real x_min, Real x_max);
+  static __aka_inline__ bool is_in_range(Real a, Real x_min, Real x_max);
 
-  static inline Real getTolerance() { return tolerance; };
-  static inline void setTolerance(Real tol) { tolerance = tol; };
+  static __aka_inline__ Real getTolerance() { return tolerance; };
+  static __aka_inline__ void setTolerance(Real tol) { tolerance = tol; };
 
 private:
   /// tolerance for functions that need one
@@ -213,10 +213,12 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "aka_math_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "aka_math_inline_impl.cc"
+#endif
 
 
 __END_AKANTU__

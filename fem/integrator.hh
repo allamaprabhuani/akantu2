@@ -60,7 +60,7 @@ public:
 public:
 
   template <ElementType type>
-  inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused))
+  __aka_inline__ void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused))
 						    GhostType ghost_type){}
 
   void integrateOnElement(__attribute__ ((unused)) const Vector<Real> & f,
@@ -99,7 +99,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "integrator_inline_impl.cc"

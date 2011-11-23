@@ -99,26 +99,26 @@ public:
 		 __attribute__ ((unused)) const SynchronizerOperation & op) {}
 
   template<typename T>
-  inline void allGather(__attribute__ ((unused)) T * values,
+  __aka_inline__ void allGather(__attribute__ ((unused)) T * values,
 			__attribute__ ((unused)) Int nb_values) {}
 
   template<typename T>
-  inline void allGatherV(__attribute__ ((unused)) T * values,
+  __aka_inline__ void allGatherV(__attribute__ ((unused)) T * values,
 			 __attribute__ ((unused)) Int * nb_values) {}
 
 
   template<typename T>
-  inline void gather(__attribute__ ((unused)) T * values,
+  __aka_inline__ void gather(__attribute__ ((unused)) T * values,
 		     __attribute__ ((unused)) Int nb_values,
 		     __attribute__ ((unused)) Int root = 0) {}
 
   template<typename T>
-  inline void gatherV(__attribute__ ((unused)) T * values,
+  __aka_inline__ void gatherV(__attribute__ ((unused)) T * values,
 		      __attribute__ ((unused)) Int * nb_values,
 		      __attribute__ ((unused)) Int root = 0) {}
 
   template<typename T>
-  inline void broadcast(__attribute__ ((unused)) T * values,
+  __aka_inline__ void broadcast(__attribute__ ((unused)) T * values,
 			__attribute__ ((unused)) Int nb_values,
 			__attribute__ ((unused)) Int root = 0) {}
 

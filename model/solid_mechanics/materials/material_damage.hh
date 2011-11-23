@@ -87,11 +87,11 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma, Real & damage, Real & Y, Real & Ydq);
+  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & damage, Real & Y, Real & Ydq);
 
-  inline void computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real & Ydq );
+  __aka_inline__ void computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real & Ydq );
 
-  virtual inline Real getStableTimeStep(Real h, const Element & element) {
+  virtual __aka_inline__ Real getStableTimeStep(Real h, const Element & element) {
     return MaterialElastic::getStableTimeStep(h, element);
   };
 
@@ -121,10 +121,12 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_damage_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "material_damage_inline_impl.cc"
+#endif
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator

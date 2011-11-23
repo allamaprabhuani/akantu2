@@ -59,7 +59,7 @@ public:
   virtual void initializeComputeFricCoef();
 
   /// implementation of the friction coefficient formula
-  inline Real computeFricCoef(UInt impactor_node_index);
+  __aka_inline__ Real computeFricCoef(UInt impactor_node_index);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -106,10 +106,12 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "simplified_dieterich_fric_coef_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "simplified_dieterich_fric_coef_inline_impl.cc"
+#endif
 
 /*
 /// standard output stream operator

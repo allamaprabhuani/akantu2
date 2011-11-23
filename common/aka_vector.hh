@@ -58,10 +58,10 @@ public:
 public:
 
   /// get the amount of space allocated in bytes
-  inline UInt getMemorySize() const;
+  __aka_inline__ UInt getMemorySize() const;
 
   /// set the size to zero without freeing the allocated space
-  inline void empty();
+  __aka_inline__ void empty();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -281,7 +281,9 @@ __END_AKANTU__
 
 __BEGIN_AKANTU__
 
-#include "aka_vector_inline_impl.cc"
+//#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#include "aka_vector_inline_impl.hh"
+//#endif
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Vector<T>                                                 */

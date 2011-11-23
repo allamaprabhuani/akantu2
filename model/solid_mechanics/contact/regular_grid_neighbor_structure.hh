@@ -109,13 +109,13 @@ private:
 
 
   /// compute neighbor cells for a given cell and return number of found neighbor cells
-  inline UInt computeNeighborCells(UInt cell, UInt * neighbors, Int * directional_nb_cells);
+  __aka_inline__ UInt computeNeighborCells(UInt cell, UInt * neighbors, Int * directional_nb_cells);
 
   /// compute global cell number given the directional cell number
-  inline UInt computeCellNb(Int * directional_nb_cells, Int * directional_cell);
+  __aka_inline__ UInt computeCellNb(Int * directional_nb_cells, Int * directional_cell);
 
   /// initializes the neighbor list
-  inline void constructNeighborList();
+  __aka_inline__ void constructNeighborList();
 
   /// compute minimal grid size and set it
   void setMinimalGridSpacing();
@@ -125,22 +125,22 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// set grid spacing
-  inline void setGridSpacing(Real spacing, UInt component);
+  __aka_inline__ void setGridSpacing(Real spacing, UInt component);
 
   /// get grid spacing
-  inline Real getGridSpacing(UInt component) const;
+  __aka_inline__ Real getGridSpacing(UInt component) const;
 
   /// set security factor
-  inline void setSecurityFactor(Real factor, UInt component);
+  __aka_inline__ void setSecurityFactor(Real factor, UInt component);
 
   /// get security factor
-  inline Real getSecurityFactor(UInt component) const;
+  __aka_inline__ Real getSecurityFactor(UInt component) const;
 
   /// set max increment
-  inline void setMaxIncrement(Real increment, UInt component);
+  __aka_inline__ void setMaxIncrement(Real increment, UInt component);
 
   /// get max increment
-  inline Real getMaxIncrement(UInt component) const;
+  __aka_inline__ Real getMaxIncrement(UInt component) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -164,13 +164,15 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
+/* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "regular_grid_neighbor_structure_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "regular_grid_neighbor_structure_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-/*inline std::ostream & operator <<(std::ostream & stream, const RegularGridNeighborStructure & _this)
+/*__aka_inline__ std::ostream & operator <<(std::ostream & stream, const RegularGridNeighborStructure & _this)
 {
   _this.printself(stream);
   return stream;
