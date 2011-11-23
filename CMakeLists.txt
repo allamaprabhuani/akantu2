@@ -64,11 +64,12 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 # AKANTU version number.  An even minor number corresponds to releases.
 set(AKANTU_MAJOR_VERSION 0)
 set(AKANTU_MINOR_VERSION 1)
-set(AKANTU_BUILD_VERSION 0)
+execute_process(COMMAND svn info WORKING_DIRECTORY ${AKANTU_SOURCE_DIR} OUTPUT_VARIABLE CMD)
+string(REGEX MATCH "Revision: [0-9]+" svnversion ${CMD} )
+string(REGEX MATCH "[0-9]+" AKANTU_BUILD_VERSION ${svnversion} )
 set(AKANTU_VERSION
   "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_BUILD_VERSION}"
   )
-
 # Append the library version information to the library target properties
 if(NOT AKANTU_NO_LIBRARY_VERSION)
   set(AKANTU_LIBRARY_PROPERTIES ${AKANTU_LIBRARY_PROPERTIES}
@@ -80,6 +81,13 @@ endif(NOT AKANTU_NO_LIBRARY_VERSION)
 #===============================================================================
 # Package builder target module of CPack
 #===============================================================================
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Guillaume Anciaux") 
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6")
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
+SET(CPACK_PACKAGE_VENDOR "LSMS")
+SET(CPACK_PACKAGE_VERSION ${AKANTU_VERSION})
 INCLUDE(CPack)
 
 #===============================================================================
@@ -116,9 +124,9 @@ endif()
 # File package section
 #===============================================================================
 
-file(GLOB pkg_files RELATIVE ${AKANTU_SOURCE_DIR} "packages/*.cmake")
+file(GLOB AKANTU_PACKAGE_LIST RELATIVE ${AKANTU_SOURCE_DIR} "packages/*.cmake")
 
-foreach(pkg ${pkg_files})
+foreach(pkg ${AKANTU_PACKAGE_LIST})
   get_filename_component(basename ${pkg} NAME)
   string(REGEX REPLACE "\\.cmake" "" OPTION_NAME ${basename})
   string(TOUPPER "${OPTION_NAME}" OPTION_NAME)
@@ -190,6 +198,20 @@ foreach(file ${RELEASE_ALL_FILE})
  endif()
 endforeach()
 
+#check dependencies
+foreach(pkg ${AKANTU_PACKAGE_LIST})
+  get_filename_component(basename ${pkg} NAME)
+  string(REGEX REPLACE "\\.cmake" "" OPTION_NAME ${basename})
+  string(TOUPPER "${OPTION_NAME}" OPTION_NAME)
+  # differentiate the file types
+  if (AKANTU_${OPTION_NAME})
+    foreach(dep ${${OPTION_NAME}_DEPENDS})
+      if (NOT AKANTU_${dep})
+	MESSAGE(FATAL_ERROR "Package ${pkg} depends on package ${dep}. You need to activate it to make it work")
+      endif()
+    endforeach()
+  endif()
+endforeach()
 
 
 #===========================================================================

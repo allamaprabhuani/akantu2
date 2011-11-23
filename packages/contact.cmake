@@ -62,3 +62,5 @@ set(CONTACT_FILES
   model/solid_mechanics/contact/contact_search_2d_explicit_inline_impl.cc
   model/solid_mechanics/contact/regular_grid_neighbor_structure_inline_impl.cc
   )
+
+
