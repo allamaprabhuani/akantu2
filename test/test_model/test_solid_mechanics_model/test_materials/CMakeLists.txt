@@ -66,7 +66,7 @@ set(LIST_TYPES
 
 #===============================================================================
 foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER_ON)
+  if(AKANTU_IOHELPER)
     register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc io_helper_tools.cc)
   else()
     register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc)
@@ -79,7 +79,7 @@ endforeach()
 
 #===============================================================================
 foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER_ON)
+  if(AKANTU_IOHELPER)
     register_test(test_material_elastic_caughey_damping_${_type} test_material_elastic_caughey_damping.cc io_helper_tools.cc)
   else()
     register_test(test_material_elastic_caughey_damping_${_type} test_material_elastic_caughey_damping.cc)

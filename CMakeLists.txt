@@ -77,6 +77,10 @@ if(NOT AKANTU_NO_LIBRARY_VERSION)
 
     )
 endif(NOT AKANTU_NO_LIBRARY_VERSION)
+#===============================================================================
+# Package builder target module of CPack
+#===============================================================================
+INCLUDE(CPack)
 
 #===============================================================================
 # Options
@@ -149,6 +153,10 @@ foreach(pkg ${pkg_files})
       ${AKANTU_COMMON_SRC}
       ${${OPTION_NAME}_SRC}
       )
+    set(AKANTU_COMMON_HEADERS
+      ${AKANTU_COMMON_HEADERS}
+      ${${OPTION_NAME}_HEADERS}
+      )
     set(AKANTU_INCLUDE_DIRS
       ${AKANTU_INCLUDE_DIRS}
       ${${OPTION_NAME}_INCLUDE_DIRS})
@@ -167,6 +175,17 @@ foreach(file ${all_files})
    if (index EQUAL -1)
      MESSAGE("file ${file} is not registered in any package.")
      MESSAGE("Please append the file in one of the files within directory ${AKANTU_SOURCE_DIR}/packages")
+   endif()
+ endif()
+endforeach()
+
+#check if there are some file in the package list that are not in the release file
+file(GLOB_RECURSE all_files RELATIVE ${AKANTU_SOURCE_DIR} "*.cc" "*.hh")
+foreach(file ${RELEASE_ALL_FILE})
+ if(NOT ${file} MATCHES "test.*" AND NOT ${file} MATCHES "example.*")
+   list(FIND  all_files ${file} index)
+   if (index EQUAL -1)
+     MESSAGE("file ${file} is registered in packages but not existing in the release.")
    endif()
  endif()
 endforeach()
@@ -266,12 +285,8 @@ install(TARGETS akantu
   ARCHIVE DESTINATION lib)
 
 
-file(GLOB_RECURSE include_file_list "${CMAKE_SOURCE_DIR}/*.hh")
-file(GLOB_RECURSE inline_include_file_list "${CMAKE_SOURCE_DIR}/*inline*.cc")
 install(FILES 
-  ${include_file_list} 
-  ${inline_include_file_list} 
-  ${element_class_include_file_list}
-DESTINATION include
+  ${AKANTU_COMMON_HEADERS}
+  DESTINATION include/akantu/
 )
 

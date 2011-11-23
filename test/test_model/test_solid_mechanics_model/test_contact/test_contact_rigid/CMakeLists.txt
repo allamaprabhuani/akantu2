@@ -36,7 +36,7 @@ set(LIST_TYPES
 
 #===============================================================================
 foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER_ON)
+  if(AKANTU_IOHELPER)
     register_test(test_contact_rigid_no_friction_${_type} test_contact_rigid_no_friction.cc io_helper_tools.cc)
   else()
     register_test(test_contact_rigid_no_friction_${_type} test_contact_rigid_no_friction.cc)
@@ -48,7 +48,7 @@ foreach(_type ${LIST_TYPES})
 endforeach()
 
 #===============================================================================
-if(AKANTU_IOHELPER_ON)
+if(AKANTU_IOHELPER)
   register_test(test_contact_rigid_restart test_contact_rigid_restart.cc)
   file(COPY ./ref_files/test_contact_rigid_restart.ref DESTINATION .)
 endif()
@@ -64,7 +64,7 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/restart)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output_files/single_spring_friction_vel_weak_exp)
-if(AKANTU_IOHELPER_ON)
+if(AKANTU_IOHELPER)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/single_spring_friction_vel_weak_exp)
 endif()
 

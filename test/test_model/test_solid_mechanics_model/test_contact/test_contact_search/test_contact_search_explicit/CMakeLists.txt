@@ -34,7 +34,7 @@ set(LIST_TYPES
 
 #===============================================================================
 foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER_ON)
+  if(AKANTU_IOHELPER)
     register_test(test_contact_search_explicit_${_type} test_contact_search_explicit.cc io_helper_tools.cc)
   else()
     register_test(test_contact_search_explicit_${_type} test_contact_search_explicit.cc)

@@ -98,7 +98,6 @@ set(CORE_FILES
   model/structural_mechanics/structural_mechanics_model.hh
   model/integration_scheme/integration_scheme_2nd_order.hh
   model/integration_scheme/generalized_trapezoidal.hh
-  model/integration_scheme/central_difference.hh
   model/integration_scheme/newmark-beta.hh
   model/integration_scheme/integration_scheme_1st_order.hh
   model/solid_mechanics/materials/material_damage.hh
