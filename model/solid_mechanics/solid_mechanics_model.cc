@@ -156,6 +156,19 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initFEMBoundary(bool create_surface) {
+
+  if(create_surface)
+    MeshUtils::buildFacets(mesh, true, false);
+
+  FEM & fem_boundary = getFEMBoundary();
+  fem_boundary.initShapeFunctions();
+  fem_boundary.computeNormalsOnControlPoints();
+}
+
+
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initExplicit() {
   AKANTU_DEBUG_IN();
@@ -630,6 +643,8 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
   norm[0] = sqrt(norm[0]);
   norm[1] = sqrt(norm[1]);
   AKANTU_DEBUG_ASSERT(!Math::isnan(norm[0]), "Something goes wrong in the solve phase");
+
+  std::cout << norm[0] << " " << norm[1] << std::endl;
 
   AKANTU_DEBUG_OUT();
   error = norm[0] / norm[1];

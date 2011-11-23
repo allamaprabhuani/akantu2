@@ -1,6 +1,6 @@
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
 set(CORE_FILES
-  # source files 
+  # source files
 
   common/aka_common.cc
   common/aka_error.cc
@@ -50,7 +50,6 @@ set(CORE_FILES
   synchronizer/dof_synchronizer.cc
 
   #header files
-
   mesh_utils/mesh_io/mesh_io_msh.hh
   mesh_utils/mesh_io/mesh_io_msh_struct.hh
   mesh_utils/mesh_io/mesh_io_diana.hh
@@ -81,6 +80,7 @@ set(CORE_FILES
   common/aka_error.hh
   common/aka_common.hh
   common/aka_vector.hh
+  common/aka_vector_inline_impl.hh
   common/aka_types_expression.hh
   common/aka_circular_vector.hh
   fem/mesh.hh
@@ -114,16 +114,14 @@ set(CORE_FILES
   model/heat_transfer/heat_transfer_model.hh
 
   #inline implementation files
-
   mesh_utils/mesh_utils_inline_impl.cc
   solver/sparse_matrix_inline_impl.cc
-  solver/solver_inline_impl.cc	
+  solver/solver_inline_impl.cc
   synchronizer/static_communicator_inline_impl.cc
   synchronizer/dof_synchronizer_inline_impl.cc
   synchronizer/communication_buffer_inline_impl.cc
-  common/aka_memory_inline_impl.cc  
+  common/aka_memory_inline_impl.cc
   common/aka_grid_inline_impl.cc
-  common/aka_vector_inline_impl.cc
   common/aka_static_memory_inline_impl.cc
   common/aka_math_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc

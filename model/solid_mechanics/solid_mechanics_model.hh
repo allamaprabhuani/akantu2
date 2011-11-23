@@ -82,6 +82,8 @@ public:
                 bool explicit_scheme = true,
                 bool implicit_scheme = false, bool implicit_dynamic = false);
 
+  /// initialize the fem object needed for boundary conditions
+  void initFEMBoundary(bool create_surface = true);
 
   /// register the tags associated with the parallel synchronizer
   void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
@@ -458,6 +460,30 @@ inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsMod
   return stream;
 }
 
+/* -------------------------------------------------------------------------- */
+template <typename M>
+UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
+					     const std::string & keyword) {
+
+  Parser parser;
+  parser.open(filename);
+  std::string key = keyword;
+  to_lower(key);
+  std::string mat_name = parser.getNextSection("material");
+  while (mat_name != ""){
+    if (mat_name == key) break;
+    mat_name = parser.getNextSection("material");
+  }
+  if (mat_name != key) AKANTU_DEBUG_ERROR("material "
+					  << key
+					  << " not found in file " << filename);
+
+  std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
+  ID mat_id = sstr_mat.str();
+  Material * mat = parser.readSection<M>(*this, mat_id);
+  materials.push_back(mat);
+  return materials.size();;
+}
 
 __END_AKANTU__
 

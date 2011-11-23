@@ -332,14 +332,14 @@ __END_AKANTU__
   ((damage_linear   , MaterialDamageLinear))
 
 
-#include "materials/material_elastic.hh"
-#include "materials/material_elastic_caughey.hh"
-#include "materials/material_damage.hh"
-#include "materials/material_mazars.hh"
-#include "materials/material_neohookean.hh"
-#include "materials/material_non_local.hh"
-#include "materials/material_damage_non_local.hh"
-#include "materials/material_mazars_non_local.hh"
-#include "materials/material_damage_linear.hh"
+#include "material_elastic.hh"
+#include "material_elastic_caughey.hh"
+#include "material_damage.hh"
+#include "material_mazars.hh"
+#include "material_neohookean.hh"
+#include "material_non_local.hh"
+#include "material_damage_non_local.hh"
+#include "material_mazars_non_local.hh"
+#include "material_damage_linear.hh"
 
 #endif /* __AKANTU_MATERIAL_HH__ */
