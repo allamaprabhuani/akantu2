@@ -95,6 +95,7 @@ set(CORE_FILES
   fem/shape_linked.hh
   model/model.hh
   model/parser.hh
+  model/parser_tmpl.hh
   model/structural_mechanics/structural_mechanics_model.hh
   model/integration_scheme/integration_scheme_2nd_order.hh
   model/integration_scheme/generalized_trapezoidal.hh
@@ -110,6 +111,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_damage_linear.hh
   model/solid_mechanics/materials/material_neohookean.hh
   model/solid_mechanics/solid_mechanics_model.hh
+  model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/material.hh
   model/heat_transfer/heat_transfer_model.hh
 

@@ -449,6 +449,8 @@ __END_AKANTU__
 
 __BEGIN_AKANTU__
 
+#include "solid_mechanics_model_tmpl.hh"
+
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
 #  include "solid_mechanics_model_inline_impl.cc"
 #endif
@@ -458,31 +460,6 @@ inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsMod
 {
   _this.printself(stream);
   return stream;
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename M>
-UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
-					     const std::string & keyword) {
-
-  Parser parser;
-  parser.open(filename);
-  std::string key = keyword;
-  to_lower(key);
-  std::string mat_name = parser.getNextSection("material");
-  while (mat_name != ""){
-    if (mat_name == key) break;
-    mat_name = parser.getNextSection("material");
-  }
-  if (mat_name != key) AKANTU_DEBUG_ERROR("material "
-					  << key
-					  << " not found in file " << filename);
-
-  std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
-  ID mat_id = sstr_mat.str();
-  Material * mat = parser.readSection<M>(*this, mat_id);
-  materials.push_back(mat);
-  return materials.size();;
 }
 
 __END_AKANTU__

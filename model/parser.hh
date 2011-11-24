@@ -85,6 +85,7 @@ private:
   std::string line;
 };
 
+#include "parser_tmpl.hh"
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
 #  include "parser_inline_impl.cc"
