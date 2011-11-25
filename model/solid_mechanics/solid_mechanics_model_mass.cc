@@ -84,16 +84,15 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 void SolidMechanicsModel::assembleMass() {
   AKANTU_DEBUG_IN();
 
-  if(!dof_synchronizer) dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
-
-  UInt nb_global_node = mesh.getNbGlobalNodes();
+  //  if(!dof_synchronizer) dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
+  //  UInt nb_global_node = mesh.getNbGlobalNodes();
 
   std::stringstream sstr; sstr << id << ":mass_matrix";
-  mass_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
-				 spatial_dimension, sstr.str(), memory_id);
+  //    mass_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
+  //                                   spatial_dimension, sstr.str(), memory_id);
+  //    mass_matrix->buildProfile(mesh, *dof_synchronizer);
+  mass_matrix = new SparseMatrix(*jacobian_matrix, sstr.str(), memory_id);
 
-
-  mass_matrix->buildProfile(mesh, *dof_synchronizer);
   assembleMass(_not_ghost);
   //  assembleMass(_ghost);
 
@@ -103,7 +102,6 @@ void SolidMechanicsModel::assembleMass() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
 
   MyFEMType & fem = getFEMClass<MyFEMType>();
 

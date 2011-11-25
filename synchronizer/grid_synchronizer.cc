@@ -29,6 +29,7 @@
 #include "grid_synchronizer.hh"
 #include "aka_grid.hh"
 #include "mesh.hh"
+#include "fem.hh"
 #include "static_communicator.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -53,6 +54,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                                                             MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
+  int pouet = 0;
+
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
@@ -62,17 +65,19 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  Real * bounding_boxes = new Real[spatial_dimension * nb_proc];
-  Real * my_bounding_box = bounding_boxes + spatial_dimension * my_rank;
+  Real * bounding_boxes = new Real[2 * spatial_dimension * nb_proc];
+  Real * my_bounding_box = bounding_boxes + 2 * spatial_dimension * my_rank;
 
   mesh.getLowerBounds(my_bounding_box);
   mesh.getUpperBounds(my_bounding_box + spatial_dimension);
 
-  comm->allGather(bounding_boxes, 3);
+  AKANTU_DEBUG_INFO("Exchange of bounding box to detect the overlapping regions.");
+
+  comm->allGather(bounding_boxes, spatial_dimension * 2);
 
 
   bool * intersects_proc = new bool[nb_proc];
-  std::fill_n(intersects_proc, nb_proc, false);
+  std::fill_n(intersects_proc, nb_proc, true);
 
   UInt * first_cells = new UInt[3 * nb_proc];
   UInt * last_cells = new UInt[3 * nb_proc];
@@ -80,12 +85,12 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   std::fill_n(first_cells, 3 * nb_proc, 0);
 
   ByElementTypeUInt ** element_per_proc = new ByElementTypeUInt* [nb_proc];
-
+  for (UInt p = 0; p < nb_proc; ++p) element_per_proc[p] = NULL;
 
   for (UInt p = 0; p < nb_proc; ++p) {
     if(p == my_rank) continue;
 
-    Real * proc_bounding_box = bounding_boxes + spatial_dimension * p;
+    Real * proc_bounding_box = bounding_boxes + 2 * spatial_dimension * p;
 
     bool intersects = false;
     UInt * first_cell = first_cells + p * spatial_dimension;
@@ -99,6 +104,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       intersects_proc[p] &= intersects;
 
       if(intersects) {
+        AKANTU_DEBUG_INFO("I intersects with processor " << p << " in direction " << s);
+
         // is point 1 of proc p in the dimension s in the range ?
         bool point1 = Math::is_in_range(proc_bounding_box[s],
                                         my_bounding_box[s],
@@ -138,6 +145,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
           end   = proc_bounding_box[s+spatial_dimension];
         }
 
+
+        std::cout << my_rank << " pouet " << ++pouet << " " << s << " start : " << start << " end : " << end << std::endl;
         first_cell[s] = grid.getCell(start, s);
         last_cell [s] = grid.getCell(end, s);
       }
@@ -146,25 +155,33 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     std::vector<UInt> * cells = new std::vector<UInt>();
 
     if(intersects_proc[p]) {
-      UInt cell[3] = { 0 };
-      if(first_cell[0] != 0) --first_cell[0];
-      if(last_cell[0] != 0) ++last_cell[0];
+      AKANTU_DEBUG_INFO("I intersects with processor " << p);
+
+
+      std::cout << my_rank << " pouet " << ++pouet << std::endl;
+
+      UInt cell[3] = { 0, 0, 0 };
+
+      std::cout << my_rank << " pouet " << ++pouet << " " << first_cell[0] << " " << last_cell[0] << std::endl;
+      for (UInt i = 0; i < 3; ++i) {
+        if(first_cell[i] != 0) --first_cell[i];
+        if(last_cell[i] != 0) ++last_cell[i];
+      }
+
+      std::cout << my_rank << " pouet " << ++pouet << " " << first_cell[0] << " " << last_cell[0] << std::endl;
+
       for (UInt fd = first_cell[0]; fd <= last_cell[0]; ++fd) {
         cell[0] = fd;
-
-        if(first_cell[1] != 0) --first_cell[1];
-        if(last_cell[1] != 0) ++last_cell[1];
         for (UInt sd = first_cell[1]; sd <= last_cell[1] ; ++sd) {
           cell[1] = sd;
-
-          if(first_cell[2] != 0) --first_cell[2];
-          if(last_cell[2] != 0) ++last_cell[2];
           for (UInt ld = first_cell[2]; fd <= last_cell[2] ; ++ld) {
             cell[2] = ld;
             cells->push_back(grid.getCell(cell));
           }
         }
       }
+
+      std::cout << my_rank << " pouet " << ++pouet << std::endl;
 
       std::vector<UInt>::iterator cur_cell = cells->begin();
       std::vector<UInt>::iterator last_cell = cells->end();
@@ -179,6 +196,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         }
       }
 
+      AKANTU_DEBUG_INFO("I have prepared " << to_send->size() << " elements to send to processor " << p);
+
       delete cells;
 
       std::stringstream sstr; sstr << "element_per_proc_" << p;
@@ -191,7 +210,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         ElementType type = elem->type;
         UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
-        // /!\ this part is slow due to the access in the ByElementTypeUInt
+        // /!\ this part must be slow due to the access in the ByElementTypeUInt
         if(!elempproc.exists(type))
           elempproc.alloc(0, nb_nodes_per_element, type, _not_ghost);
 
@@ -209,29 +228,197 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     }
   }
 
+  AKANTU_DEBUG_INFO("I have finished to compute intersection,"
+                    << " no it's time to communicate with my neighbors");
 
+
+
+#define SIZE_TAG       0
+#define DATA_TAG       1
+#define ASK_NODES_TAG  2
+#define SEND_NODES_TAG 3
+  /* tag = |__________21_________|___8____|_3_|
+   *       |          proc       | num mes| ct|
+   */
+#define GEN_TAG(proc, msg_count, tag) (((proc & 0x1FFFFF) << 11) + ((msg_count & 0xFF)<< 3) + (tag & 0x7))
+
+  /**
+   * Sending loop, sends the connectivity asynchronously to all concerned proc
+   */
   std::vector<CommunicationRequest *> isend_requests;
   for (UInt p = 0; p < nb_proc; ++p) {
+    if(p == my_rank) continue;
     if(intersects_proc[p]) {
-      for (UInt i = 0; i < N; ++i) {
-        
+      ByElementTypeUInt & elempproc = *(element_per_proc[p]);
+
+      ByElementTypeUInt::type_iterator it_type   = elempproc.firstType(0, _not_ghost);
+      ByElementTypeUInt::type_iterator last_type = elempproc.lastType(0, _not_ghost);
+
+      UInt count = 0;
+      for (; it_type != last_type; ++it_type) {
+        Vector<UInt> & conn = elempproc(*it_type, _not_ghost);
+        UInt info[2];
+        info[0] = (UInt) *it_type;
+        info[1] = conn.getSize() * conn.getNbComponent();
+
+        AKANTU_DEBUG_INFO("I have " << info[1] << " elements of type " << *it_type
+                          << " to send to processor " << p
+                          << "(communication tag : " << GEN_TAG(my_rank, count, DATA_TAG) << ")");
+
+        isend_requests.push_back(comm->asyncSend(info, 2, p, GEN_TAG(my_rank, count, SIZE_TAG)));
+        isend_requests.push_back(comm->asyncSend(conn.storage(),
+                                                conn.getSize() * conn.getNbComponent(),
+                                                p, GEN_TAG(my_rank, count, DATA_TAG)));
+
+        ++count;
       }
 
       UInt info[2];
-      info[0] = (UInt) 
-      isend_requests.push_back(static_communicator->asyncSend(info,
-                                                              ssize,
-                                                              p,
-                                                              (Int) tag));
-
-      isend_requests.push_back(static_communicator->asyncSend(buffer.storage(),
-                                                              ssize,
-                                                              p,
-                                                              (Int) tag));
-
+      info[0] = (UInt) _not_defined;
+      info[1] = 0;
+      isend_requests.push_back(comm->asyncSend(info, 2, p, GEN_TAG(my_rank, count, SIZE_TAG)));
     }
   }
 
+  /**
+   * Receives the connectivity and store them in the ghosts elements
+   */
+  Vector<UInt> global_nodes_ids = mesh.getGlobalNodesIds();
+  std::vector<CommunicationRequest *> isend_nodes_requests;
+  UInt nb_nodes_to_recv[nb_proc];
+  UInt nb_total_nodes_to_recv = 0;
+  UInt nb_current_nodes = global_nodes_ids.getSize();
+
+  for (UInt p = 0; p < nb_proc; ++p) {
+    nb_nodes_to_recv[p] = 0;
+    if(p == my_rank) continue;
+
+    Vector<UInt> ask_nodes;
+    UInt count = 0;
+    if(intersects_proc[p]) {
+      ElementType type = _not_defined;
+      do {
+        UInt info[2];
+        comm->receive(info, 2, p, GEN_TAG(p, count, SIZE_TAG));
+
+        type = (ElementType) info[0];
+        if(type != _not_defined) {
+          UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);;
+          UInt nb_element = info[1] / nb_nodes_per_element;
+
+          Vector<UInt> tmp_conn(nb_element, nb_nodes_per_element);
+
+          comm->receive(tmp_conn.storage(), info[1], p, GEN_TAG(p, count, DATA_TAG));
+
+          AKANTU_DEBUG_INFO("I will receive " << info[1] << " elements of type " << ElementType(info[0])
+                          << " from processor " << p
+                          << "(communication tag : " << GEN_TAG(p, count, DATA_TAG) << ")");
+
+
+          Vector<UInt> & ghost_connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _ghost));
+          UInt nb_ghost_element = ghost_connectivity.getSize();
+          Element element(type, 0, _ghost);
+
+          UInt conn[nb_nodes_per_element];
+          for (UInt el = 0; el < nb_element; ++el) {
+            UInt nb_node_to_ask_for_elem = 0;
+
+            for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+              UInt gn = tmp_conn(el, n);
+              UInt ln = global_nodes_ids.find(gn);
+              if(ln == UInt(-1)) {
+                global_nodes_ids.push_back(gn);
+                ln = nb_current_nodes;
+                ++nb_current_nodes;
+                ask_nodes.push_back(gn);
+                ++nb_node_to_ask_for_elem;
+              }
+
+              conn[n] = ln;
+            }
+
+            // all the nodes are already known locally, the element should already exists
+            UInt c;
+            if(nb_node_to_ask_for_elem != 0) {
+              c = ghost_connectivity.find(conn);
+            }
+
+            if(c == UInt(-1)) {
+              element.element = nb_ghost_element;
+              ++nb_ghost_element;
+              ghost_connectivity.push_back(conn);
+            }
+            communicator->recv_element[p].push_back(element);
+          }
+        }
+        count++;
+      } while(type != _not_defined);
+
+      AKANTU_DEBUG_INFO("I have " << ask_nodes.getSize()
+                        << " missing nodes for elements coming from processor " << p
+                        << "(communication tag : " << GEN_TAG(my_rank, 0, ASK_NODES_TAG) << ")");
+
+
+      isend_nodes_requests.push_back(comm->asyncSend(ask_nodes.storage(), ask_nodes.getSize(),
+                                                     p, GEN_TAG(my_rank, 0, ASK_NODES_TAG)));
+      nb_nodes_to_recv[p] = ask_nodes.getSize();
+      nb_total_nodes_to_recv += ask_nodes.getSize();
+    }
+  }
+
+
+  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  UInt nb_nodes = nodes.getSize();
+  std::vector<CommunicationRequest *> irecv_nodes_requests;
+  nodes.resize(nb_total_nodes_to_recv + nb_nodes);
+  for (UInt p = 0; p < nb_proc; ++p) {
+    if((p != my_rank) && (nb_nodes_to_recv[p] > 0)) {
+      irecv_nodes_requests.push_back(comm->asyncReceive(nodes.storage() + nb_nodes,
+                                                        nb_nodes_to_recv[p] * spatial_dimension,
+                                                        p, GEN_TAG(p, 0, SEND_NODES_TAG)));
+      nb_nodes += nb_nodes_to_recv[p];
+    }
+  }
+
+
+  comm->waitAll(isend_requests);
+  comm->freeCommunicationRequest(isend_requests);
+
+  for (UInt p = 0; p < nb_proc; ++p) {
+    if(element_per_proc[p]) delete element_per_proc[p];
+  }
+  delete [] element_per_proc;
+
+  /**
+   * Sends requested nodes to proc
+   */
+  for (UInt p = 0; p < nb_proc; ++p) {
+    if(p == my_rank) continue;
+
+    Vector<UInt> asked_nodes;
+    CommunicationStatus status;
+    comm->probe<UInt>(p, GEN_TAG(p, 0, ASK_NODES_TAG), status);
+    UInt nb_nodes_to_send = status.getSize();
+    asked_nodes.resize(nb_nodes_to_send);
+
+    AKANTU_DEBUG_INFO("I have " << nb_nodes_to_send
+                      << " to send to processor " << p
+                      << "(communication tag : " << GEN_TAG(p, 0, ASK_NODES_TAG) << ")");
+
+    comm->receive(asked_nodes.storage(), nb_nodes_to_send, p, GEN_TAG(p, 0, ASK_NODES_TAG));
+    Vector<Real> nodes_to_send(0, spatial_dimension);
+    for (UInt n = 0; n < nb_nodes_to_send; ++n) {
+      UInt ln = nodes.find(asked_nodes(n));
+      nodes_to_send.push_back(nodes.storage()+ln);
+    }
+    comm->send(nodes_to_send.storage(), nb_nodes_to_send * spatial_dimension, p, GEN_TAG(my_rank, 0, SEND_NODES_TAG));
+  }
+
+  comm->waitAll(isend_nodes_requests);
+  comm->freeCommunicationRequest(isend_nodes_requests);
+
+  comm->waitAll(irecv_nodes_requests);
+  comm->freeCommunicationRequest(irecv_nodes_requests);
 
 
   AKANTU_DEBUG_OUT();
@@ -240,5 +427,15 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 
 
+template GridSynchronizer *
+GridSynchronizer::createGridSynchronizer<QuadraturePoint>(Mesh & mesh,
+                                                          const RegularGrid<QuadraturePoint> & grid,
+                                                          SynchronizerID id,
+                                                          MemoryID memory_id);
+template GridSynchronizer *
+GridSynchronizer::createGridSynchronizer<Element>(Mesh & mesh,
+                                                  const RegularGrid<Element> & grid,
+                                                  SynchronizerID id,
+                                                  MemoryID memory_id);
 
 __END_AKANTU__

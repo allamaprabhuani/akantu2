@@ -231,6 +231,7 @@ public:
   /// search elem in the vector, return  the position of the first occurrence or
   /// -1 if not found
   Int find(const_reference elem) const;
+  Int find(T elem[]) const;
 
   /// set a vvector to 0
   inline void clear() { memset(values, 0, size*nb_component*sizeof(T)); };

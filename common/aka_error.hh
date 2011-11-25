@@ -78,19 +78,7 @@ enum DebugLevel {
 
 /* -------------------------------------------------------------------------- */
 namespace debug {
-  extern std::ostream & _akantu_cout;
-
-  extern std::ostream *_akantu_debug_cout;
-
-  extern DebugLevel _debug_level;
-
-  extern std::string _parallel_context;
-
   void setDebugLevel(const DebugLevel & level);
-  void setLogFile(const std::string & filename);
-  const DebugLevel & getDebugLevel();
-
-  void setParallelContext(int rank, int size);
 
   void initSignalHandler();
   std::string demangle(const char * symbol);
@@ -119,8 +107,8 @@ namespace debug {
     virtual const char* what() const throw() {
       std::stringstream stream;
       stream << "akantu::Exception"
-	     << " : " << _info
-	     << " ["  << _file << ":" << _line << "]";
+             << " : " << _info
+             << " ["  << _file << ":" << _line << "]";
       return stream.str().c_str();
     }
 
@@ -142,39 +130,70 @@ namespace debug {
     /// ligne it is thrown from
     unsigned int  _line;
   };
+
+  /* -------------------------------------------------------------------------- */
+#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
+
+  class Debugger {
+  public:
+    Debugger();
+    virtual ~Debugger();
+
+    void exit(int status) __attribute__ ((noreturn));
+    void throwException(const std::string & info);
+
+    inline void printMessage(const std::string & prefix,
+                             const DebugLevel & level,
+                             const std::string & info) const {
+      if(this->level >= level) {
+        struct timeval time;
+        gettimeofday(&time, NULL);
+        long long  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
+        *(cout) << parallel_context
+                << "{" << timestamp << "} "
+                << prefix << info << " "
+                << AKANTU_LOCATION
+                << std::endl;
+      }
+    }
+
+  public:
+    void setParallelContext(int rank, int size);
+
+    void setDebugLevel(const DebugLevel & level);
+    const DebugLevel & getDebugLevel() const;
+
+    void setLogFile(const std::string & filename);
+    std::ostream & getOutputStream();
+
+    inline bool testLevel(const DebugLevel & level) const {
+      return (this->level >= (level));
+    }
+
+  private:
+    std::string parallel_context;
+    std::ostream * cout;
+    bool file_open;
+    DebugLevel level;
+  };
+
+  extern Debugger debugger;
 }
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
-#ifndef AKANTU_USE_MPI
-#define AKANTU_EXIT(status)			\
-  do {						\
-    int * a = NULL;				\
-    *a = 1;					\
-    if (status != EXIT_SUCCESS)                 \
-      akantu::debug::printBacktrace(15);	\
-    exit(status);				\
+#define AKANTU_STRINGSTREAM_IN(str, sstr);                              \
+  do {                                                                  \
+    std::stringstream s_info;						\
+    s_info << sstr;                                                     \
+    str = s_info.str();                                                 \
   } while(0)
-#else
-#define AKANTU_EXIT(status)			\
-  do {						\
-    int * a = NULL;				\
-    *a = 1;					\
-    if (status != EXIT_SUCCESS)                 \
-      akantu::debug::printBacktrace(15);	\
-    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);	\
-  } while(0)
-#endif
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_EXCEPTION(info)						\
+#define AKANTU_EXCEPTION(info)                                          \
   do {									\
-    AKANTU_DEBUG(akantu::dblError, "!!! " << info);			\
-    std::stringstream s_info;						\
-    s_info << info ;							\
-    ::akantu::debug::Exception ex(s_info.str(), __FILE__, __LINE__ );	\
-    throw ex;								\
+    std::string str;                                                    \
+    AKANTU_STRINGSTREAM_IN(str, info);                                  \
+    ::akantu::debug::debugger.throwException(str);                      \
   } while(0)
 
 #define AKANTU_DEBUG_TO_IMPLEMENT()				\
@@ -196,29 +215,21 @@ namespace debug {
 
 /* -------------------------------------------------------------------------- */
 #else
-#define AKANTU_DEBUG(level,info)		\
+#define AKANTU_DEBUG(level, info)		\
   AKANTU_DEBUG_("    ",level, info)
 
-#define AKANTU_DEBUG_(pref,level,info)					\
+#define AKANTU_DEBUG_(pref, level, info)                                \
   do {									\
-    if(::akantu::debug::_debug_level >= level) {			\
-      struct timeval time;						\
-      gettimeofday(&time, NULL);					\
-      long long  timestamp = time.tv_sec*1e6 + time.tv_usec;/*in us*/	\
-      *(::akantu::debug::_akantu_debug_cout)				\
-	<< ::akantu::debug::_parallel_context				\
-	<< "{" << timestamp << "} "					\
-	<< pref << info << " "						\
-	<< AKANTU_LOCATION						\
-	<< std::endl;							\
-    }									\
+    std::string str;                                                    \
+    AKANTU_STRINGSTREAM_IN(str, info);                                  \
+    ::akantu::debug::debugger.printMessage(pref, level, str);           \
   } while(0)
 
 #define AKANTU_DEBUG_TEST(level)		\
-  (::akantu::debug::_debug_level >= (level))
+  (::akantu::debug::debugger.testLevel(level))
 
 #define AKANTU_DEBUG_LEVEL_IS_TEST()				\
-  (::akantu::debug::_debug_level == (::akantu::dblTest))
+  (::akantu::debug::debugger.testLevel(dblTest))
 
 #define AKANTU_DEBUG_IN()					\
   AKANTU_DEBUG_("==> ", ::akantu::dblIn,      __func__ << "()")
@@ -239,15 +250,15 @@ namespace debug {
   do {									\
     if (!(test)) {							\
       AKANTU_DEBUG_("!!! ", ::akantu::dblAssert, "assert [" << #test << "] " \
-		   << info);						\
-      AKANTU_EXIT(EXIT_FAILURE);					\
+                    << info);						\
+      ::akantu::debug::debugger.exit(EXIT_FAILURE);                     \
     }									\
   } while(0)
 
 #define AKANTU_DEBUG_ERROR(info)					\
   do {									\
     AKANTU_DEBUG_("!!! ", ::akantu::dblError, info);			\
-    AKANTU_EXIT(EXIT_FAILURE);						\
+    ::akantu::debug::debugger.exit(EXIT_FAILURE);                       \
   } while(0)
 
 #endif // AKANTU_NDEBUG

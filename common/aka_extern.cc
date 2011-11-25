@@ -57,6 +57,8 @@ namespace debug {
   /// parallel context used in debug messages
   std::string _parallel_context = "";
 
+  Debugger debugger;
+
 }
 
 Real Math::tolerance = 1e-8;

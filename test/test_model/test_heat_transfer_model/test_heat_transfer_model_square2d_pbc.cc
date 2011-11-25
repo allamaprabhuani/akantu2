@@ -41,14 +41,15 @@ using namespace std;
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #include "io_helper.h"
-#endif //AKANTU_USE_IOHELPER
 
 void paraviewInit(akantu::HeatTransferModel * model,Dumper & dumper);
 void paraviewDump(Dumper & dumper);
+akantu::UInt paraview_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
 
 akantu::UInt spatial_dimension = 2;
 akantu:: ElementType type = akantu::_triangle_3;
-akantu::UInt paraview_type = TRIANGLE1;
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -120,9 +121,10 @@ int main(int argc, char *argv[])
   }
 
   /* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   paraviewInit(model,dumper);
-
+#endif
   /* ------------------------------------------------------------------------ */
   // //for testing
   int max_steps = 100000;
@@ -135,8 +137,10 @@ int main(int argc, char *argv[])
       model->solveExplicitLumped();
       model->explicitCorr();
 
+#ifdef AKANTU_USE_IOHELPER
       if(i % 100 == 0)
 	paraviewDump(dumper);
+#endif
       if(i % 10 == 0)
       std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
@@ -145,7 +149,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 /* -------------------------------------------------------------------------- */
-
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
@@ -180,5 +184,5 @@ void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
 void paraviewDump(Dumper & dumper) {
   dumper.Dump();
 }
-
+#endif
 /* -------------------------------------------------------------------------- */

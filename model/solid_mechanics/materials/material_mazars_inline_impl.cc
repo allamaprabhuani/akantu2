@@ -60,7 +60,7 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam, Re
   }
 }
 inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real & dam, Real & Ehat) {
-   Real lambda = nu * E / ((1 + nu) * (1 - 2*nu));
+  Real lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   Real Fdiag[3];
   Real Fdiagp[3];
 

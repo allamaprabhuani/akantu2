@@ -80,7 +80,6 @@ inline void StaticCommunicator::receive(T * buffer, Int size, Int sender, Int ta
   AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(receive(buffer, size, sender, tag), 0);
 }
 
-
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline CommunicationRequest * StaticCommunicator::asyncSend(T * buffer, Int size,
@@ -89,10 +88,18 @@ inline CommunicationRequest * StaticCommunicator::asyncSend(T * buffer, Int size
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T> inline CommunicationRequest * StaticCommunicator::asyncReceive(T * buffer, Int size,
-										    Int sender, Int tag) {
+template<typename T>
+inline CommunicationRequest * StaticCommunicator::asyncReceive(T * buffer, Int size,
+                                                               Int sender, Int tag) {
   AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(asyncReceive(buffer, size, sender, tag), 1);
 }
+
+/* -------------------------------------------------------------------------- */
+template<typename T> inline void StaticCommunicator::probe(Int sender, Int tag,
+                                                           CommunicationStatus & status) {
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(probe<T>(sender, tag, status), 0);
+}
+
 
 /* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::allReduce(T * values, Int nb_values,

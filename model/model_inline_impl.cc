@@ -52,9 +52,6 @@ inline FEMClass & Model::getFEMClassBoundary(std::string name){
     UInt spatial_dimension = it->second->getElementDimension();
     std::stringstream sstr; sstr << id << ":fem_boundary:" << name;
 
-
-    MeshUtils::buildFacets(it->second->getMesh());
-
     tmp_fem_boundary = new FEMClass(it->second->getMesh(),
 				    spatial_dimension-1,
 				    sstr.str(),

@@ -36,6 +36,7 @@
 
 __BEGIN_AKANTU__
 
+/* -------------------------------------------------------------------------- */
 class CommunicationRequest {
 public:
   CommunicationRequest(UInt source, UInt dest);
@@ -52,8 +53,25 @@ private:
   static UInt counter;
 };
 
+/* -------------------------------------------------------------------------- */
+class CommunicationStatus {
+public:
+  AKANTU_GET_MACRO(Source, source, Int);
+  AKANTU_GET_MACRO(Size,   size, UInt);
+  AKANTU_GET_MACRO(Tag,    tag, Int);
+
+  AKANTU_SET_MACRO(Source, source, Int);
+  AKANTU_SET_MACRO(Size,   size, UInt);
+  AKANTU_SET_MACRO(Tag,    tag, Int);
+private:
+  Int source;
+  UInt size;
+  Int tag;
+};
+
 class StaticCommunicator;
 
+/* -------------------------------------------------------------------------- */
 class RealStaticCommunicator {
 public:
   RealStaticCommunicator(__attribute__ ((unused)) int * argc,

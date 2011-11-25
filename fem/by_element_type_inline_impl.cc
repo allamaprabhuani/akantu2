@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug  4 14:41:29 2011
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -34,7 +34,7 @@
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 inline std::string ByElementType<Stored>::printType(const ElementType & type,
-						    const GhostType & ghost_type) {
+                                                    const GhostType & ghost_type) {
   std::stringstream sstr; sstr << "(" << ghost_type << ":" << type << ")";
   return sstr.str();
 }
@@ -48,30 +48,30 @@ inline bool ByElementType<Stored>::exists(ElementType type, GhostType ghost_type
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 inline const Stored & ByElementType<Stored>::operator()(const ElementType & type,
-							const GhostType & ghost_type) const {
+                                                        const GhostType & ghost_type) const {
   typename DataMap::const_iterator it =
     this->getData(ghost_type).find(type);
 
   if(it == this->getData(ghost_type).end())
     AKANTU_EXCEPTION("No element of type "
-		     << ByElementType<Stored>::printType(type, ghost_type)
-		     << " in this ByElementType<"
-		     << debug::demangle(typeid(Stored).name()) << "> class");
+                     << ByElementType<Stored>::printType(type, ghost_type)
+                     << " in this ByElementType<"
+                     << debug::demangle(typeid(Stored).name()) << "> class");
   return it->second;
 }
 
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 inline Stored & ByElementType<Stored>::operator()(const ElementType & type,
-						  const GhostType & ghost_type) {
+                                                  const GhostType & ghost_type) {
   typename DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   // if(it == this->getData(ghost_type).end())
   //   AKANTU_EXCEPTION("No element of type "
-  // 		     << ByElementType<Stored>::printType(type, ghost_type)
-  // 		     << " in this ByElementType<"
-  // 		     << debug::demangle(typeid(Stored).name()) << "> class");
+  //                 << ByElementType<Stored>::printType(type, ghost_type)
+  //                 << " in this ByElementType<"
+  //                 << debug::demangle(typeid(Stored).name()) << "> class");
 
   if(it == this->getData(ghost_type).end()) {
     DataMap & data = this->getData(ghost_type);
@@ -85,16 +85,16 @@ inline Stored & ByElementType<Stored>::operator()(const ElementType & type,
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 inline Stored & ByElementType<Stored>::operator()(const Stored & insert,
-						  const ElementType & type,
-						  const GhostType & ghost_type) {
+                                                  const ElementType & type,
+                                                  const GhostType & ghost_type) {
   typename DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   if(it != this->getData(ghost_type).end()) {
     AKANTU_EXCEPTION("Element of type "
-  		     << ByElementType<Stored>::printType(type, ghost_type)
-   		     << " already in this ByElementType<"
-   		     << debug::demangle(typeid(Stored).name()) << "> class");
+                     << ByElementType<Stored>::printType(type, ghost_type)
+                     << " already in this ByElementType<"
+                     << debug::demangle(typeid(Stored).name()) << "> class");
   } else {
     DataMap & data = this->getData(ghost_type);
     const std::pair<typename DataMap::iterator, bool> & res =
@@ -108,14 +108,16 @@ inline Stored & ByElementType<Stored>::operator()(const Stored & insert,
 
 /* -------------------------------------------------------------------------- */
 template<class Stored>
-inline typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) {
+inline typename ByElementType<Stored>::DataMap &
+ByElementType<Stored>::getData(GhostType ghost_type) {
   if(ghost_type == _not_ghost) return data;
   else return ghost_data;
 }
 
 /* -------------------------------------------------------------------------- */
 template<class Stored>
-inline const typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) const {
+inline const typename ByElementType<Stored>::DataMap &
+ByElementType<Stored>::getData(GhostType ghost_type) const {
   if(ghost_type == _not_ghost) return data;
   else return ghost_data;
 }
@@ -144,7 +146,7 @@ void ByElementType<Stored>::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 template<class Stored>
 ByElementType<Stored>::ByElementType(const ID & id,
-				     const ID & parent_id) {
+                                     const ID & parent_id) {
   AKANTU_DEBUG_IN();
 
   std::stringstream sstr;
@@ -165,9 +167,9 @@ ByElementType<Stored>::~ByElementType() {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
-						 UInt nb_component,
-						 const ElementType & type,
-						 const GhostType & ghost_type) {
+                                                 UInt nb_component,
+                                                 const ElementType & type,
+                                                 const GhostType & ghost_type) {
   std::string ghost_id = "";
   if (ghost_type == _ghost) ghost_id = ":ghost";
 
@@ -179,13 +181,13 @@ inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
   if(it == this->getData(ghost_type).end()) {
     std::stringstream sstr; sstr << this->id << ":" << type << ghost_id;
     tmp = &(Memory::alloc<T>(sstr.str(), size,
-			    nb_component, 0));
+                            nb_component, 0));
     std::stringstream sstrg; sstrg << ghost_type;
     tmp->setTag(sstrg.str());
     this->getData(ghost_type)[type] = tmp;
   } else {
     AKANTU_DEBUG_WARNING("The vector " << this->id << this->printType(type, ghost_type)
-			 << " already exists, it is resized instead of allocated.");
+                         << " already exists, it is resized instead of allocated.");
     tmp = it->second;
     it->second->resize(size);
   }
@@ -196,8 +198,8 @@ inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline void ByElementTypeVector<T>::alloc(UInt size,
-					  UInt nb_component,
-					  const ElementType & type) {
+                                          UInt nb_component,
+                                          const ElementType & type) {
   this->alloc(size, nb_component, type, _not_ghost);
   this->alloc(size, nb_component, type, _ghost);
 }
@@ -223,15 +225,15 @@ inline void ByElementTypeVector<T>::free() {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline const Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & type,
-							    const GhostType & ghost_type) const {
+                                                            const GhostType & ghost_type) const {
   typename ByElementTypeVector<T>::DataMap::const_iterator it =
     this->getData(ghost_type).find(type);
 
   if(it == this->getData(ghost_type).end())
     AKANTU_EXCEPTION("No element of type "
-		     << ByElementTypeVector<T>::printType(type, ghost_type)
-		     << " in this ByElementTypeVector<"
-		     << debug::demangle(typeid(T).name()) << "> class");
+                     << ByElementTypeVector<T>::printType(type, ghost_type)
+                     << " in this ByElementTypeVector<"
+                     << debug::demangle(typeid(T).name()) << "> class");
 
   return *(it->second);
 }
@@ -239,16 +241,16 @@ inline const Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & 
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & type,
-						      const GhostType & ghost_type) {
+                                                      const GhostType & ghost_type) {
   typename ByElementTypeVector<T>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   if(it == this->getData(ghost_type).end())
     AKANTU_EXCEPTION("No element of type "
-		     << ByElementTypeVector<T>::printType(type, ghost_type)
-		     << " in this ByElementTypeVector<"
-		     << debug::demangle(typeid(T).name()) << "> class (\""
-		     << this->id << "\")");
+                     << ByElementTypeVector<T>::printType(type, ghost_type)
+                     << " in this ByElementTypeVector<"
+                     << debug::demangle(typeid(T).name()) << "> class (\""
+                     << this->id << "\")");
 
   return *(it->second);
 }
@@ -256,16 +258,104 @@ inline Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & type,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline void ByElementTypeVector<T>::setVector(const ElementType & type,
-					      const GhostType & ghost_type,
-					      const Vector<T> & vect) {
+                                              const GhostType & ghost_type,
+                                              const Vector<T> & vect) {
   typename ByElementTypeVector<T>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   if(AKANTU_DEBUG_TEST(dblWarning) && it != this->getData(ghost_type).end()) {
     AKANTU_DEBUG_WARNING("The Vector " << this->printType(type, ghost_type)
-			 << " is already registred, this call can lead to a memory leek.");
+                         << " is already registred, this call can lead to a memory leek.");
   }
 
   this->getData(ghost_type)[type] = &(const_cast<Vector<T> &>(vect));
 }
+
+
+/* -------------------------------------------------------------------------- */
+/* ElementType Iterator                                                       */
+/* -------------------------------------------------------------------------- */
+
+template <class Stored>
+ByElementType<Stored>::type_iterator::type_iterator(DataMapIterator & list_begin,
+                                                    DataMapIterator & list_end,
+                                                    UInt dim) :
+  list_begin(list_begin), list_end(list_end), dim(dim) {
+}
+
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+ByElementType<Stored>::type_iterator::type_iterator(const type_iterator & it) :
+  list_begin(it.list_begin), list_end(it.list_end), dim(it.dim) {
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+inline typename ByElementType<Stored>::type_iterator::reference
+ByElementType<Stored>::type_iterator::operator*() {
+  return list_begin->first;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+inline typename ByElementType<Stored>::type_iterator &
+ByElementType<Stored>::type_iterator::operator++() {
+  ++list_begin;
+  if(dim != 0)
+    while((list_begin != list_end) && dim != Mesh::getSpatialDimension(list_begin->first))
+      ++list_begin;
+  return *this;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+typename ByElementType<Stored>::type_iterator ByElementType<Stored>::type_iterator::operator++(int) {
+  type_iterator tmp(*this);
+  operator++();
+  return tmp;
+};
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+inline bool ByElementType<Stored>::type_iterator::operator==(const type_iterator & other) {
+  return this->list_begin == other.list_begin;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+inline bool ByElementType<Stored>::type_iterator::operator!=(const type_iterator & other) {
+  return this->list_begin != other.list_begin;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+inline typename ByElementType<Stored>::type_iterator
+ByElementType<Stored>::firstType(UInt dim, GhostType ghost_type) const {
+  typename DataMap::const_iterator b,e;
+  if(ghost_type == _not_ghost) {
+    b = data.begin();
+    e = data.end();
+  } else {
+    b = ghost_data.begin();
+    e = ghost_data.end();
+  }
+
+  if(dim != 0) while((b != e) && dim != Mesh::getSpatialDimension(b->first)) ++b;
+  return ByElementType<Stored>::type_iterator(b, e, dim);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
+inline typename ByElementType<Stored>::type_iterator
+ByElementType<Stored>::lastType(UInt dim, GhostType ghost_type) const {
+  typename DataMap::const_iterator e;
+  if(ghost_type == _not_ghost) {
+    e = data.end();
+  } else {
+    e = ghost_data.end();
+  }
+  return ByElementType<Stored>::type_iterator(e, e, dim);
+}
+
 

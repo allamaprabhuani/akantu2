@@ -31,8 +31,6 @@
 #include "integration_scheme_2nd_order.hh"
 
 #include "static_communicator.hh"
-#include "sparse_matrix.hh"
-#include "solver.hh"
 
 #include "dof_synchronizer.hh"
 
@@ -60,7 +58,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   element_material("element_material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
-  spatial_dimension(dim), mesh(mesh), dynamic(false) {
+  spatial_dimension(dim), mesh(mesh), dynamic(false), implicit(false) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
@@ -103,7 +101,10 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   if(solver) delete solver;
   if(mass_matrix) delete mass_matrix;
   if(velocity_damping_matrix) delete velocity_damping_matrix;
-  if(stiffness_matrix) delete stiffness_matrix;
+
+  if(stiffness_matrix && stiffness_matrix != jacobian_matrix)
+    delete stiffness_matrix;
+
   if(jacobian_matrix) delete jacobian_matrix;
 
   if(dof_synchronizer) delete dof_synchronizer;
@@ -153,7 +154,6 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_for_strain);
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_boundary);
 
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -177,6 +177,7 @@ void SolidMechanicsModel::initExplicit() {
   integrator = new CentralDifference();
 
   dynamic = true;
+  implicit = false;
 
   AKANTU_DEBUG_OUT();
 }
@@ -306,6 +307,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
     (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
+
   if(dynamic) {
     // f -= Ma
     if(mass_matrix) {
@@ -314,6 +316,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
       *Ma *= *mass_matrix;
       *residual -= *Ma;
       delete Ma;
+
+      std::cout << "A-Hoy !" << std::endl;
     } else {
       // else lumped mass
       UInt nb_nodes = acceleration->getSize();
@@ -352,7 +356,6 @@ void SolidMechanicsModel::updateAcceleration() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = acceleration->getSize();
-
   UInt nb_degre_of_freedom = acceleration->getNbComponent();
 
   if(!increment_acceleration)
@@ -360,23 +363,29 @@ void SolidMechanicsModel::updateAcceleration() {
   increment_acceleration->resize(nb_nodes);
   increment_acceleration->clear();
 
-  Real * mass_val     = mass->values;
-  Real * residual_val = residual->values;
-  bool * boundary_val = boundary->values;
-  Real * inc = increment_acceleration->values;
-  Real * accel_val    = acceleration->values;
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    for (UInt d = 0; d < nb_degre_of_freedom; d++) {
-      if(!(*boundary_val)) {
-	*inc = f_m2a * (*residual_val / *mass_val);
+  if(!implicit && !mass_matrix) {
+
+    Real * mass_val     = mass->values;
+    Real * residual_val = residual->values;
+    bool * boundary_val = boundary->values;
+    Real * inc = increment_acceleration->values;
+    Real * accel_val    = acceleration->values;
+
+    for (UInt n = 0; n < nb_nodes; ++n) {
+      for (UInt d = 0; d < nb_degre_of_freedom; d++) {
+        if(!(*boundary_val)) {
+          *inc = f_m2a * (*residual_val / *mass_val);
+        }
+        residual_val++;
+        boundary_val++;
+        inc++;
+        mass_val++;
+        accel_val++;
       }
-      residual_val++;
-      boundary_val++;
-      inc++;
-      mass_val++;
-      accel_val++;
     }
+  } else {
+    solveDynamic<NewmarkBeta::_acceleration_corrector>(*increment_acceleration);
   }
 
   AKANTU_DEBUG_OUT();
@@ -436,48 +445,50 @@ void SolidMechanicsModel::explicitCorr() {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initImplicit(bool dynamic) {
-  AKANTU_DEBUG_IN();
-
-  this->dynamic = dynamic;
-
-#if !defined(AKANTU_USE_MUMPS) // or other solver in the future
+void SolidMechanicsModel::initSolver() {
+#if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #else
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
-  std::stringstream sstr; sstr << id << ":stiffness_matrix";
-  stiffness_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
-				      spatial_dimension, sstr.str(), memory_id);
-
-  // if(!dof_synchronizer) dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
+  std::stringstream sstr; sstr << id << ":jacobian_matrix";
+  jacobian_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
+                                         spatial_dimension, sstr.str(), memory_id);
   dof_synchronizer->initGlobalDOFEquationNumbers();
+  jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
-  stiffness_matrix->buildProfile(mesh, *dof_synchronizer);
+#ifdef AKANTU_USE_MUMPS
+  std::stringstream sstr_solv; sstr_solv << id << ":solver";
+  solver = new SolverMumps(*jacobian_matrix, sstr_solv.str());
 
-  SparseMatrix * matrix;
+  dof_synchronizer->initScatterGatherCommunicationScheme();
+#else
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#endif //AKANTU_USE_MUMPS
+
+  solver->initialize();
+#endif //AKANTU_HAS_SOLVER
+}
+
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initImplicit(bool dynamic) {
+  AKANTU_DEBUG_IN();
+
+  this->dynamic = dynamic;
+  implicit = true;
+
+  initSolver();
 
   if(dynamic) {
     if(integrator) delete integrator;
     integrator = new TrapezoidalRule2();
 
-    std::stringstream sstr_jac; sstr_jac << id << ":jacobian_matrix";
-    jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_jac.str(), memory_id);
-    //    jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
-    matrix = jacobian_matrix;
+    std::stringstream sstr; sstr << id << ":stiffness_matrix";
+    stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr.str(), memory_id);
   } else {
-    matrix = stiffness_matrix;
+    stiffness_matrix = jacobian_matrix;
   }
-
-#ifdef AKANTU_USE_MUMPS
-  std::stringstream sstr_solv; sstr_solv << id << ":solver_stiffness_matrix";
-  solver = new SolverMumps(*matrix, sstr_solv.str());
-
-  dof_synchronizer->initScatterGatherCommunicationScheme();
-#endif //AKANTU_USE_MUMPS
-
-#endif
-  solver->initialize();
 
   AKANTU_DEBUG_OUT();
 }
@@ -529,36 +540,14 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
 void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
 		      "You should first initialize the implicit solver and assemble the stiffness matrix");
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
 		      "You should first initialize the implicit solver and assemble the mass matrix");
 
-  NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
-  Real c = nmb_int->getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
-  Real d = nmb_int->getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
-  Real e = nmb_int->getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(time_step);
-
-  // A = c M + d C + e K
-  jacobian_matrix->clear();
-  jacobian_matrix->add(*stiffness_matrix, e);
-  jacobian_matrix->add(*mass_matrix, c);
-  if(velocity_damping_matrix)
-    jacobian_matrix->add(*velocity_damping_matrix, d);
-
-  jacobian_matrix->applyBoundary(*boundary);
-
-#ifndef AKANTU_NDEBUG
-  if(AKANTU_DEBUG_TEST(dblDump))
-    jacobian_matrix->saveMatrix("J.mtx");
-#endif
-
-  solver->setRHS(*residual);
   if(!increment) setIncrementFlagOn();
 
-  // solve A w = f
-  solver->solve(*increment);
+  solveDynamic<NewmarkBeta::_displacement_corrector>(*increment);
 
   AKANTU_DEBUG_OUT();
 }
@@ -576,7 +565,7 @@ void SolidMechanicsModel::solveStatic() {
 
   stiffness_matrix->applyBoundary(*boundary);
 
-  if(jacobian_matrix)
+  if(dynamic)
     jacobian_matrix->copyContent(*stiffness_matrix);
 
   solver->setRHS(*residual);

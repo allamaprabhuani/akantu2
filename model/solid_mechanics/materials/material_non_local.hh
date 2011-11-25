@@ -36,6 +36,41 @@
 
 __BEGIN_AKANTU__
 
+
+/* -------------------------------------------------------------------------- */
+class BaseWeightFonction {
+public:
+  BaseWeightFonction(Real radius,
+                 __attribute__((unused)) ElementType type1,
+                 __attribute__((unused)) GhostType ghost_type1,
+                 __attribute__((unused)) ElementType type2,
+                 __attribute__((unused)) GhostType ghost_type2) :
+    radius(radius), r2(radius*radius) {
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline Real operator()(Real r,
+                         __attribute__((unused)) UInt q1,
+                         __attribute__((unused)) UInt q2) {
+    Real weight = 0;
+    if(r <= radius) {
+      Real alpha = (1. - r*r * r2);
+      weight = alpha * alpha;
+      //	*weight = 1 - sqrt(r / radius);
+    }
+    return weight;
+  }
+
+protected:
+  Real radius;
+  Real r2;
+};
+
+
+
+/* -------------------------------------------------------------------------- */
+
+
 class MaterialNonLocal : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -61,7 +96,8 @@ public:
 
   void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
 
-  virtual void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
+  template<class WeightFonction>
+  void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
 
   void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
 

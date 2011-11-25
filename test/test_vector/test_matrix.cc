@@ -33,7 +33,6 @@
 #include "aka_types.hh"
 #include "aka_vector.hh"
 #include "aka_math.hh"
-#include "aka_types_expression.hh"
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 

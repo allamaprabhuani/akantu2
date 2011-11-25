@@ -402,6 +402,24 @@ template <class T> Int Vector<T>::find(const T & elem) const {
 }
 
 /* -------------------------------------------------------------------------- */
+template <class T> Int Vector<T>::find(T elem[]) const {
+  AKANTU_DEBUG_IN();
+  T * it = values;
+  UInt i = 0;
+  UInt c = 0;
+  for (;i < size && (c != nb_component); ++i) {
+    c = 0;
+    T * cit = it;
+    T * celem = elem;
+    for(; (c < nb_component) && (*cit == *celem); ++c, ++cit, ++celem);
+    it += nb_component;
+  }
+  AKANTU_DEBUG_OUT();
+  return (i == size) ? -1 : (Int) i;
+}
+
+
+/* -------------------------------------------------------------------------- */
 template <class T> void Vector<T>::copy(const Vector<T>& vect) {
   AKANTU_DEBUG_IN();
 

@@ -73,6 +73,10 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
 endif()
 
 if(AKANTU_MUMPS_ON)
+  register_test(test_solid_mechanics_model_bar_traction2d_mass_not_lumped
+    test_solid_mechanics_model_bar_traction2d_mass_not_lumped.cc)
+  add_dependencies(test_solid_mechanics_model_bar_traction2d_mass_not_lumped test_bar_traction_2d_mesh1 test_bar_traction_2d_mesh2)
+
   add_mesh(test_implicit_mesh1 square_implicit.geo 2 1 OUTPUT square_implicit1.msh)
   add_mesh(test_implicit_mesh2 square_implicit.geo 2 2 OUTPUT square_implicit2.msh)
   register_test(test_solid_mechanics_model_implicit_2d test_solid_mechanics_model_implicit_2d.cc)

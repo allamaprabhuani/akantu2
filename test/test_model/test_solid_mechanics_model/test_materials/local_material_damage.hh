@@ -45,7 +45,7 @@ public:
 
   LocalMaterialDamage(Model & model, const ID & id = "");
 
-  virtual ~LocalMaterialDamage() {};
+  //  virtual ~LocalMaterialDamage() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -61,7 +61,7 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma,Real & damage);
+  inline void computeStress(Real * F, Real * sigma,Real & damage);
 
   /// compute tangent stiffness
   virtual void computeTangentStiffness(__attribute__ ((unused)) const ElementType & el_type,
@@ -72,10 +72,10 @@ public:
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for on element
-  __aka_inline__ void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
+  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
 
   /// compute the celerity of wave in the material
-  __aka_inline__ Real celerity();
+  inline Real celerity();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -85,7 +85,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the stable time step
-  __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
+  inline Real getStableTimeStep(Real h, const Element & element);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -121,12 +121,10 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "local_material_damage_inline_impl.cc"
-#endif
+#include "local_material_damage_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator

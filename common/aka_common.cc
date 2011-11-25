@@ -40,7 +40,7 @@ void initialize(int * argc, char *** argv) {
 
   StaticMemory::getStaticMemory();
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator(argc, argv);
-  debug::setParallelContext(comm->whoAmI(), comm->getNbProc());
+  debug::debugger.setParallelContext(comm->whoAmI(), comm->getNbProc());
   debug::initSignalHandler();
 
   AKANTU_DEBUG_OUT();

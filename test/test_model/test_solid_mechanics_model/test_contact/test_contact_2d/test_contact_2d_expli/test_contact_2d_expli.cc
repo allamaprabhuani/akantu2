@@ -38,7 +38,6 @@
 #include "material.hh"
 #include "contact.hh"
 #include "contact_2d_explicit.hh"
-#include "io_helper.h"
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
@@ -56,7 +55,10 @@ static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio
 static void initParaview(SolidMechanicsModel & model);
 
 Real y_min, y_max;
+
+#ifdef AKANTU_USE_IOHELPER
 DumperParaview dumper;
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -143,8 +145,10 @@ int main(int argc, char *argv[])
     model->updateAcceleration();
     model->explicitCorr();
 
+#ifdef AKANTU_USE_IOHELPER
     if(s % 200 == 0)
       dumper.Dump();
+#endif
 
     if(s%100 == 0 && s>499)
       reduceVelocities(*model, 0.95);
@@ -244,6 +248,7 @@ static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio
 }
 
 /* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER
 static void initParaview(SolidMechanicsModel & model)
 {
   UInt spatial_dimension = model.getSpatialDimension();
@@ -270,3 +275,4 @@ static void initParaview(SolidMechanicsModel & model)
   dumper.Init();
   dumper.Dump();
 }
+#endif

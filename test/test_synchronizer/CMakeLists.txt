@@ -35,6 +35,14 @@ register_test(test_synchronizer_communication
 add_dependencies(test_synchronizer_communication
   test_synchronizer_communication_mesh)
 
+
+register_test(test_grid_synchronizer
+  test_grid_synchronizer.cc)
+add_dependencies(test_grid_synchronizer
+  test_synchronizer_communication_mesh)
+
+
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/test_synchronizer_communication.sh
   ${CMAKE_CURRENT_BINARY_DIR}/test_synchronizer_communication.sh

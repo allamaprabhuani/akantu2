@@ -156,16 +156,16 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
 
   if (dim <= dir) return;
 
-  AKANTU_DEBUG_INFO("min " << mymesh.xmin[dir]);
-  AKANTU_DEBUG_INFO("max " << mymesh.xmax[dir]);
+  AKANTU_DEBUG_INFO("min " << mymesh.lower_bounds[dir]);
+  AKANTU_DEBUG_INFO("max " << mymesh.upper_bounds[dir]);
 
   for (UInt i = 0; i < nb_nodes; ++i) {
     AKANTU_DEBUG_TRACE("treating " << coords[dim*i+dir]);
-    if(Math::are_float_equal(coords[dim*i+dir],mymesh.xmin[dir])){
+    if(Math::are_float_equal(coords[dim*i+dir], mymesh.lower_bounds[dir])){
       AKANTU_DEBUG_TRACE("pushing node " << i << " on the left side");
       selected_left.push_back(i);
     }
-    else if(Math::are_float_equal(coords[dim*i+dir],mymesh.xmax[dir])){
+    else if(Math::are_float_equal(coords[dim*i+dir], mymesh.upper_bounds[dir])){
       selected_right.push_back(i);
       AKANTU_DEBUG_TRACE("pushing node " << i << " on the right side");
     }

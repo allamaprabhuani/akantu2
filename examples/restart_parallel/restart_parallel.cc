@@ -45,6 +45,7 @@
 
 using namespace akantu;
 
+#ifdef AKANTU_USE_IOHELPER
 static void paraviewInit(Dumper & dumper,
 			 const SolidMechanicsModel & model,
 			 const ElementType & type,
@@ -59,6 +60,7 @@ static void checkpoint(Dumper & dumper,
 static void restart(const SolidMechanicsModel & model,
 	     const ElementType & type,
 	     const std::string & filename);
+#endif
 
 const UInt spatial_dimension = 3;
 

@@ -26,17 +26,17 @@
 #===============================================================================
 
 #===============================================================================
-find_library(MUMPS_LIBRARY_DMUMPS NAMES dmumps_ptscotch dmumps
+find_library(MUMPS_LIBRARY_DMUMPS NAMES dmumps_seq dmumps_ptscotch dmumps
    PATHS ${MUMPS_DIR} /usr
    PATH_SUFFIXES lib
    )
 
-find_library(MUMPS_LIBRARY_COMMON NAMES mumps_common_ptscotch mumps_common
+find_library(MUMPS_LIBRARY_COMMON NAMES mumps_seq mumps_common_ptscotch mumps_common
    PATHS ${MUMPS_DIR}
    PATH_SUFFIXES lib
    )
 
-find_library(MUMPS_LIBRARY_PORD NAMES pord_ptscotch pord
+find_library(MUMPS_LIBRARY_PORD NAMES pord_seq pord_ptscotch pord
    PATHS ${MUMPS_DIR}
    PATH_SUFFIXES lib
    )
@@ -96,7 +96,6 @@ set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} ${BLACS_LIBRARIES_ALL} ${BLAS_LIBRARI
 if(NOT Mumps_FOUND)
   set(MUMPS_DIR "" CACHE PATH "Prefix of MUMPS library.")
 endif(NOT Mumps_FOUND)
-
 #===============================================================================
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Mumps DEFAULT_MSG

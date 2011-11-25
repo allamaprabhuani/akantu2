@@ -79,48 +79,51 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Point to Point                                                           */
   /* ------------------------------------------------------------------------ */
-  template<typename T> __aka_inline__ void send(T * buffer, Int size,
+  template<typename T> inline void send(T * buffer, Int size,
 					Int receiver, Int tag);
-  template<typename T> __aka_inline__ void receive(T * buffer, Int size,
+  template<typename T> inline void receive(T * buffer, Int size,
 					   Int sender, Int tag);
 
-  template<typename T> __aka_inline__ CommunicationRequest * asyncSend(T * buffer,
+  template<typename T> inline CommunicationRequest * asyncSend(T * buffer,
 							       Int size,
 							       Int receiver,
 							       Int tag);
-  template<typename T> __aka_inline__ CommunicationRequest * asyncReceive(T * buffer,
+  template<typename T> inline CommunicationRequest * asyncReceive(T * buffer,
 								  Int size,
 								  Int sender,
 								  Int tag);
 
+  template<typename T> inline void probe(Int sender, Int tag,
+                                         CommunicationStatus & status);
+
   /* ------------------------------------------------------------------------ */
   /* Collectives                                                              */
   /* ------------------------------------------------------------------------ */
-  template<typename T> __aka_inline__ void allReduce(T * values, Int nb_values,
+  template<typename T> inline void allReduce(T * values, Int nb_values,
 					     const SynchronizerOperation & op);
 
-  template<typename T> __aka_inline__ void allGather(T * values, Int nb_values);
-  template<typename T> __aka_inline__ void allGatherV(T * values, Int * nb_values);
+  template<typename T> inline void allGather(T * values, Int nb_values);
+  template<typename T> inline void allGatherV(T * values, Int * nb_values);
 
-  template<typename T> __aka_inline__ void gather(T * values, Int nb_values,
+  template<typename T> inline void gather(T * values, Int nb_values,
 					  Int root = 0);
-  template<typename T> __aka_inline__ void gatherV(T * values, Int * nb_values,
+  template<typename T> inline void gatherV(T * values, Int * nb_values,
 					   Int root = 0);
-  template<typename T> __aka_inline__ void broadcast(T * values, Int nb_values,
+  template<typename T> inline void broadcast(T * values, Int nb_values,
 					     Int root = 0);
 
-  __aka_inline__ void barrier();
+  inline void barrier();
 
   /* ------------------------------------------------------------------------ */
   /* Request handling                                                         */
   /* ------------------------------------------------------------------------ */
-  __aka_inline__ bool testRequest(CommunicationRequest * request);
+  inline bool testRequest(CommunicationRequest * request);
 
-  __aka_inline__ void wait(CommunicationRequest * request);
-  __aka_inline__ void waitAll(std::vector<CommunicationRequest *> & requests);
+  inline void wait(CommunicationRequest * request);
+  inline void waitAll(std::vector<CommunicationRequest *> & requests);
 
-  __aka_inline__ void freeCommunicationRequest(CommunicationRequest * request);
-  __aka_inline__ void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
+  inline void freeCommunicationRequest(CommunicationRequest * request);
+  inline void freeCommunicationRequest(std::vector<CommunicationRequest *> & requests);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -152,12 +155,10 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "static_communicator_inline_impl.cc"
-#endif
+#include "static_communicator_inline_impl.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions VectorBase                                                */

@@ -84,6 +84,10 @@ public:
     return new CommunicationRequest(0, 0);
   }
 
+  template<typename T>
+  inline void probe(Int sender, Int tag, CommunicationStatus & status) {
+  }
+
   bool testRequest(__attribute__ ((unused)) CommunicationRequest * request) { return true; };
 
 

@@ -46,10 +46,10 @@ class DataAccessor {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   DataAccessor();
   virtual ~DataAccessor();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -59,70 +59,85 @@ public:
    * given akantu::SynchronizationTag
    */
   virtual UInt getNbDataToPack(const Element & element,
-			       SynchronizationTag tag) const = 0;
+                               SynchronizationTag tag) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
-   * @brief get  the number of  data to send  for a given 
+   * @brief get  the number of  data to send  for a given
    * akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToPack(SynchronizationTag tag) const = 0;
+  virtual UInt getNbDataToPack(SynchronizationTag tag) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
    * @brief get the number of data  to receive for a given akantu::Element and a
    * given akantu::SynchronizationTag
    */
   virtual UInt getNbDataToUnpack(const Element & element,
-			 SynchronizationTag tag) const = 0;
+                         SynchronizationTag tag) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
-   * @brief get the number of data  to receive for a given 
+   * @brief get the number of data  to receive for a given
    * akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const = 0;
-
+  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
    * @brief   pack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::SynchronizationTag
    */
   virtual void packData(CommunicationBuffer & buffer,
-			const Element & element,
-			SynchronizationTag tag) const = 0;
+                        const Element & element,
+                        SynchronizationTag tag) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
    * @brief   pack  the   data  for   a  given  index  and   a  given
    * akantu::SynchronizationTag
    */
   virtual void packData(CommunicationBuffer & buffer,const UInt index,
-			SynchronizationTag tag) const = 0;
+                        SynchronizationTag tag) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
    * @brief   unpack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::SynchronizationTag
    */
   virtual void unpackData(CommunicationBuffer & buffer,
-			  const Element & element,
-			  SynchronizationTag tag) = 0;
+                          const Element & element,
+                          SynchronizationTag tag) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /**
    * @brief   unpack  the   data  for   a  given  index  and   a  given
    * akantu::SynchronizationTag
    */
   virtual void unpackData(CommunicationBuffer & buffer,
-			  const UInt index,
-			  SynchronizationTag tag) = 0;
+                          const UInt index,
+                          SynchronizationTag tag) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  
+
 };
 
 

@@ -223,7 +223,6 @@ set(AKANTU_COMMON_HDR_TO_PRECOMPILE
   common/aka_vector.hh
   common/aka_math.hh
   common/aka_types.hh
-  fem/by_element_type.hh
   fem/element_class.hh
   )
 

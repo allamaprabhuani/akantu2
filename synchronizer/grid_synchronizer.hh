@@ -41,7 +41,7 @@ class Mesh;
 template<class T>
 class RegularGrid;
 
-class GridSynchronizer : protected DistributedSynchronizer {
+class GridSynchronizer : public DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

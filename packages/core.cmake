@@ -46,10 +46,12 @@ set(CORE_FILES
   synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
-  #  synchronizer/grid_synchronizer.cc
+  synchronizer/grid_synchronizer.cc
   synchronizer/dof_synchronizer.cc
 
+
   #header files
+
   mesh_utils/mesh_io/mesh_io_msh.hh
   mesh_utils/mesh_io/mesh_io_msh_struct.hh
   mesh_utils/mesh_io/mesh_io_diana.hh
@@ -63,6 +65,7 @@ set(CORE_FILES
   synchronizer/synchronizer.hh
   synchronizer/synchronizer_registry.hh
   synchronizer/static_communicator_dummy.hh
+  synchronizer/static_communicator_inline_impl.hh
   synchronizer/distributed_synchronizer.hh
   synchronizer/pbc_synchronizer.hh
   synchronizer/static_communicator.hh
@@ -70,10 +73,11 @@ set(CORE_FILES
   synchronizer/real_static_communicator.hh
   synchronizer/data_accessor.hh
   synchronizer/communication_buffer.hh
-#  synchronizer/grid_synchronizer.hh
+  synchronizer/grid_synchronizer.hh
   common/aka_grid.hh
   common/aka_types.hh
   common/aka_static_memory.hh
+  common/aka_static_memory_tmpl.hh
   common/aka_memory.hh
   common/aka_math.hh
   common/aka_csr.hh
@@ -119,7 +123,6 @@ set(CORE_FILES
   mesh_utils/mesh_utils_inline_impl.cc
   solver/sparse_matrix_inline_impl.cc
   solver/solver_inline_impl.cc
-  synchronizer/static_communicator_inline_impl.cc
   synchronizer/dof_synchronizer_inline_impl.cc
   synchronizer/communication_buffer_inline_impl.cc
   common/aka_memory_inline_impl.cc

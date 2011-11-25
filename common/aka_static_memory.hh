@@ -139,6 +139,7 @@ private:
   static UInt nb_reference;
 };
 
+#include "aka_static_memory_tmpl.hh"
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
 #  include "aka_static_memory_inline_impl.cc"
 #endif

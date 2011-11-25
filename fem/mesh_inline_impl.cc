@@ -365,66 +365,22 @@ inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
 	   spatial_dimension * sizeof(Real));
   }
 }
-/* -------------------------------------------------------------------------- */
-// inline void Mesh::extractNodalCoordinatesFromPBCElement(Real * local_coord,
-// 							UInt * connectivity,
-// 							UInt n_nodes){
-
-//   // get the min max of the element coordinates in all directions
-//   Real min[3];
-//   Real max[3];
-
-//   for (UInt k = 0; k < spatial_dimension; k++) {
-//     min[k] = std::numeric_limits<double>::max();
-//     max[k] = std::numeric_limits<double>::min();
-//   }
-
-//   for (UInt nd = 0; nd < n_nodes; nd++) {
-//     Real * coord = nodes->values + connectivity[nd] * spatial_dimension;
-//     for (UInt k = 0; k < spatial_dimension; ++k) {
-//       min[k] = std::min(min[k],coord[k]);
-//       max[k] = std::max(max[k],coord[k]);
-//     }
-//   }
-//   Real center[3];
-//   // compute the center of the element
-//   for (UInt k = 0; k < spatial_dimension; ++k) {
-//     center[k] = (max[k] + min[k])/2;
-//   }
-//   // reverse the coordinates that needs it
-//   Real * lcoord = local_coord;
-//   for (UInt n = 0; n < n_nodes; ++n) {
-//     Real * coord = nodes->values + connectivity[n] * spatial_dimension;
-//     for (UInt k = 0; k < spatial_dimension; ++k, ++coord,++lcoord) {
-//       // if not at a border then copy normally the node
-//       if (!pbc_directions[k] || fabs(xmax[k] - *coord) > Math::tolerance){
-// 	*lcoord = *coord;
-//       }
-//       // else if distance from center is larger than global box size
-//       // reverting is needed
-//       else if (fabs(min[k] - *coord) > size[k]/2-Math::tolerance){
-// 	*lcoord = *coord - size[k];
-//       }
-//       else {
-// 	*lcoord = *coord;
-//       }
-//     }
-//   }
-// }
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::getLowerBounds(Real * lower) const {
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    lower[i] = xmin[i];
-  }
-}
+#define DECLARE_GET_BOUND(Var, var)                               \
+  inline void Mesh::get##Var##Bounds(Real * var) const {          \
+    for (UInt i = 0; i < spatial_dimension; ++i) {                \
+      var[i] = var##_bounds[i];                                   \
+    }                                                             \
+  }                                                               \
 
-/* -------------------------------------------------------------------------- */
-inline void Mesh::getUpperBounds(Real * upper) const {
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    upper[i] = xmax[i];
-  }
-}
+DECLARE_GET_BOUND(Lower, lower)
+DECLARE_GET_BOUND(Upper, upper)
+
+DECLARE_GET_BOUND(LocalLower, local_lower)
+DECLARE_GET_BOUND(LocalUpper, local_upper)
+
+#undef DECLARE_GET_BOUND
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::addConnecticityType(const ElementType & type){

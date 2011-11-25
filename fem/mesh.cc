@@ -71,6 +71,14 @@ Mesh::Mesh(UInt spatial_dimension,
 
   init();
 
+  std::fill_n(lower_bounds, 3, 0.);
+  std::fill_n(upper_bounds, 3, 0.);
+
+  std::fill_n(size, 3, 0.);
+
+  std::fill_n(local_lower_bounds, 3, 0.);
+  std::fill_n(local_upper_bounds, 3, 0.);
+
   AKANTU_DEBUG_OUT();
 
 }
@@ -180,26 +188,31 @@ void Mesh::computeBoundingBox(){
   UInt dim = spatial_dimension;
 
   for (UInt k = 0; k < dim; ++k) {
-    xmin[k] = std::numeric_limits<double>::max();
-    xmax[k] = std::numeric_limits<double>::min();
+    local_lower_bounds[k] =   std::numeric_limits<double>::max();
+    local_upper_bounds[k] = - std::numeric_limits<double>::max();
   }
 
-  Real * coords = nodes->values;
+  Real * coords = nodes->storage();
   for (UInt i = 0; i < nodes->getSize(); ++i) {
     for (UInt k = 0; k < dim; ++k) {
-      xmin[k] = std::min(xmin[k],coords[dim*i+k]);
-      xmax[k] = std::max(xmax[k],coords[dim*i+k]);
+      local_lower_bounds[k] = std::min(local_lower_bounds[k], coords[dim*i+k]);
+      local_upper_bounds[k] = std::max(local_upper_bounds[k], coords[dim*i+k]);
     }
   }
 
-  StaticCommunicator * comm =
-    StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
 
-  comm->allReduce(xmin,dim,_so_min);
-  comm->allReduce(xmax,dim,_so_max);
+
+  for (UInt k = 0; k < dim; ++k) {
+    lower_bounds[k] = local_lower_bounds[k];
+    upper_bounds[k] = local_upper_bounds[k];
+  }
+
+  comm->allReduce(lower_bounds, dim, _so_min);
+  comm->allReduce(upper_bounds, dim, _so_max);
 
   for (UInt k = 0; k < dim; ++k)
-    size[k] = xmax[k] - xmin[k];
+    size[k] = upper_bounds[k] - lower_bounds[k];
 
   AKANTU_DEBUG_OUT();
 }

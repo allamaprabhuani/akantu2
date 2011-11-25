@@ -26,6 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_error.hh"
 #include "aka_math.hh"
 #include "aka_vector.hh"
 

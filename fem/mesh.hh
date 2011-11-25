@@ -34,7 +34,6 @@
 #include "aka_memory.hh"
 #include "aka_vector.hh"
 #include "element_class.hh"
-#include "by_element_type.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -77,6 +76,128 @@ struct CompElementLess {
 
 extern const Element ElementNull;
 
+/* -------------------------------------------------------------------------- */
+/* ByElementType                                                              */
+/* -------------------------------------------------------------------------- */
+
+template<class Stored> class ByElementType {
+protected:
+  typedef std::map<ElementType, Stored> DataMap;
+public:
+  ByElementType(const ID & id = "by_element_type",
+		const ID & parent_id = "");
+  ~ByElementType();
+
+  inline static std::string printType(const ElementType & type, const GhostType & ghost_type);
+
+  inline bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
+
+  inline const Stored & operator()(const ElementType & type,
+				   const GhostType & ghost_type = _not_ghost) const;
+  inline Stored & operator()(const ElementType & type,
+			     const GhostType & ghost_type = _not_ghost);
+
+  inline Stored & operator()(const Stored & insert,
+			     const ElementType & type,
+			     const GhostType & ghost_type = _not_ghost);
+
+  void printself(std::ostream & stream, int indent = 0) const;
+
+  /* ------------------------------------------------------------------------ */
+  /* Element type Iterator                                                    */
+  /* ------------------------------------------------------------------------ */
+  class type_iterator : std::iterator<std::forward_iterator_tag, const ElementType> {
+  public:
+    typedef const ElementType   value_type;
+    typedef const ElementType*  pointer;
+    typedef const ElementType&  reference;
+  protected:
+    typedef typename ByElementType<Stored>::DataMap::const_iterator DataMapIterator;
+  public:
+    type_iterator(DataMapIterator & list_begin,
+		  DataMapIterator & list_end,
+		  UInt dim);
+
+    type_iterator(const type_iterator & it);
+
+    inline reference operator*();
+    inline type_iterator & operator++();
+    type_iterator operator++(int);
+    inline bool operator==(const type_iterator & other);
+    inline bool operator!=(const type_iterator & other);
+
+  private:
+    DataMapIterator list_begin;
+    DataMapIterator list_end;
+    UInt dim;
+  };
+
+  inline type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const;
+  inline type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const;
+
+
+protected:
+  inline DataMap & getData(GhostType ghost_type);
+  inline const DataMap & getData(GhostType ghost_type) const;
+
+/* -------------------------------------------------------------------------- */
+protected:
+  ID id;
+
+  DataMap data;
+  DataMap ghost_data;
+};
+
+
+/* -------------------------------------------------------------------------- */
+/* Some typedefs                                                              */
+/* -------------------------------------------------------------------------- */
+
+template <typename T>
+class ByElementTypeVector : public ByElementType<Vector<T> *>, protected Memory {
+protected:
+  typedef typename ByElementType<Vector<T> *>::DataMap DataMap;
+public:
+  ByElementTypeVector() {};
+  // ByElementTypeVector(const ID & id = "by_element_type_vector",
+  // 		      const MemoryID & memory_id = 0) :
+  //   ByElementType<Vector<T> *>(id, memory_id) {};
+  ByElementTypeVector(const ID & id, const ID & parent_id,
+		      const MemoryID & memory_id = 0) :
+    ByElementType<Vector<T> *>(id, parent_id), Memory(memory_id) {};
+
+  inline Vector<T> & alloc(UInt size,
+			   UInt nb_component,
+			   const ElementType & type,
+			   const GhostType & ghost_type);
+
+  inline void alloc(UInt size,
+		    UInt nb_component,
+		    const ElementType & type);
+
+  inline const Vector<T> & operator()(const ElementType & type,
+				      const GhostType & ghost_type = _not_ghost) const;
+
+  inline Vector<T> & operator()(const ElementType & type,
+				const GhostType & ghost_type = _not_ghost);
+
+  inline void setVector(const ElementType & type,
+			const GhostType & ghost_type,
+			const Vector<T> & vect);
+
+  inline void free();
+};
+
+/// to store data Vector<Real> by element type
+typedef ByElementTypeVector<Real> ByElementTypeReal;
+/// to store data Vector<Int> by element type
+typedef ByElementTypeVector<Int>  ByElementTypeInt;
+/// to store data Vector<UInt> by element type
+typedef ByElementTypeVector<UInt> ByElementTypeUInt;
+
+/// Map of data of type UInt stored in a mesh
+typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
+typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
 
 
 /* -------------------------------------------------------------------------- */
@@ -223,15 +344,18 @@ public:
   __aka_inline__ bool isSlaveNode(UInt n) const;
 
 
-  AKANTU_GET_MACRO(XMin, xmin[0], Real);
-  AKANTU_GET_MACRO(YMin, xmin[1], Real);
-  AKANTU_GET_MACRO(ZMin, xmin[2], Real);
-  AKANTU_GET_MACRO(XMax, xmax[0], Real);
-  AKANTU_GET_MACRO(YMax, xmax[1], Real);
-  AKANTU_GET_MACRO(ZMax, xmax[2], Real);
+  AKANTU_GET_MACRO(XMin, lower_bounds[0], Real);
+  AKANTU_GET_MACRO(YMin, lower_bounds[1], Real);
+  AKANTU_GET_MACRO(ZMin, lower_bounds[2], Real);
+  AKANTU_GET_MACRO(XMax, upper_bounds[0], Real);
+  AKANTU_GET_MACRO(YMax, upper_bounds[1], Real);
+  AKANTU_GET_MACRO(ZMax, upper_bounds[2], Real);
 
   __aka_inline__ void getLowerBounds(Real * lower) const;
   __aka_inline__ void getUpperBounds(Real * upper) const;
+
+  inline void getLocalLowerBounds(Real * lower) const;
+  inline void getLocalUpperBounds(Real * upper) const;
 
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
@@ -299,69 +423,15 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  class type_iterator : std::iterator<std::forward_iterator_tag, const ElementType> {
-  public:
-    typedef const ElementType   value_type;
-    typedef const ElementType*  pointer;
-    typedef const ElementType&  reference;
-
-    type_iterator(ConnectivityTypeList::const_iterator & list_begin,
-		  ConnectivityTypeList::const_iterator & list_end,
-		  UInt dim) :
-      list_begin(list_begin), list_end(list_end), dim(dim) {}
-
-    type_iterator(const type_iterator & it) :
-      list_begin(it.list_begin), list_end(it.list_end), dim(it.dim) {}
-
-    __aka_inline__ reference operator*() { return *list_begin; };
-    __aka_inline__ type_iterator & operator++() {
-      ++list_begin;
-      if(dim != 0)
-	while((list_begin != list_end) && dim != Mesh::getSpatialDimension(*list_begin))
-	  ++list_begin;
-      return *this;
-    };
-    type_iterator operator++(int) { type_iterator tmp(*this); operator++(); return tmp; };
-
-    __aka_inline__ bool operator==(const type_iterator & other) {
-      return this->list_begin == other.list_begin;
-    }
-    __aka_inline__ bool operator!=(const type_iterator & other) {
-      return this->list_begin != other.list_begin;
-    }
-
-  private:
-    ConnectivityTypeList::const_iterator list_begin;
-    ConnectivityTypeList::const_iterator list_end;
-    UInt dim;
-  };
+  typedef ByElementTypeUInt::type_iterator type_iterator;
 
   __aka_inline__ type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
-    ConnectivityTypeList::const_iterator b,e;
-    if(ghost_type == _not_ghost) {
-      b = type_set.begin();
-      e = type_set.end();
-    } else {
-      b = ghost_type_set.begin();
-      e = ghost_type_set.end();
-    }
-
-    if(dim != 0) while((b != e) && dim != Mesh::getSpatialDimension(*b)) ++b;
-    return Mesh::type_iterator(b, e, dim);
+    return connectivities.firstType(dim, ghost_type);
   }
 
   __aka_inline__ type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
-    ConnectivityTypeList::const_iterator b,e;
-    if(ghost_type == _not_ghost) {
-      b = type_set.end();
-      e = type_set.end();
-    } else {
-      b = ghost_type_set.end();
-      e = ghost_type_set.end();
-    }
-    return Mesh::type_iterator(b, e, dim);
+    return connectivities.lastType(dim, ghost_type);
   }
-
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
@@ -456,11 +526,19 @@ private:
   ByElementTypeUInt surface_id;
 
   /// min of coordinates
-  Real xmin[3];
+  Real lower_bounds[3];
   /// max of coordinates
-  Real xmax[3];
+  Real upper_bounds[3];
   /// size covered by the mesh on each direction
   Real size[3];
+
+  /// local min of coordinates
+  Real local_lower_bounds[3];
+  /// local max of coordinates
+  Real local_upper_bounds[3];
+
+
+
   // /// list of elements that are reversed due to pbc
   // ByElementTypeUInt reversed_elements_pbc;
   // /// direction in which pbc are to be applied
@@ -484,6 +562,8 @@ inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
 #  include "mesh_inline_impl.cc"
 #endif
+
+#include "by_element_type_inline_impl.cc"
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Mesh & _this)

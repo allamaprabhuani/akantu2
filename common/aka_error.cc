@@ -40,26 +40,6 @@ __BEGIN_AKANTU__
 
 namespace debug {
   /* ------------------------------------------------------------------------ */
-  void setDebugLevel(const DebugLevel & level) {
-    _debug_level = level;
-  }
-  /* ------------------------------------------------------------------------ */
-  const DebugLevel & getDebugLevel() {
-    return _debug_level;
-  }
-  /* ------------------------------------------------------------------------ */
-  void setLogFile(const std::string & filename) {
-    std::ofstream * fileout = new std::ofstream(filename.c_str());
-    akantu::debug::_akantu_debug_cout = fileout;
-  }
-  /* ------------------------------------------------------------------------ */
-  void setParallelContext(int rank, int size) {
-    std::stringstream sstr;
-    sstr << "[" << std::setfill(' ') << std::right << std::setw(3)
-	 << (rank + 1) << "/" << size << "] ";
-    _parallel_context = sstr.str();
-  }
-  /* ------------------------------------------------------------------------ */
   void initSignalHandler() {
     struct sigaction action;
 
@@ -111,6 +91,79 @@ namespace debug {
 
     // int * segfault = NULL;
     // *segfault = 0;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------ */
+
+  Debugger::Debugger() {
+    cout = &std::cerr;
+    level = dblInfo;
+    parallel_context = "";
+    file_open = false;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  Debugger::~Debugger() {
+    if(file_open) {
+      dynamic_cast<std::ofstream *>(cout)->close();
+      delete cout;
+    }
+  }
+
+  /* ------------------------------------------------------------------------ */
+  void Debugger::throwException(const std::string & info) {
+    AKANTU_DEBUG(akantu::dblError, "!!! " << info);
+    ::akantu::debug::Exception ex(info, __FILE__, __LINE__ );
+    throw ex;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  void Debugger::exit(int status) {
+    int * a = NULL;
+    *a = 1;
+    if (status != EXIT_SUCCESS)
+      akantu::debug::printBacktrace(15);
+#ifndef AKANTU_USE_MPI
+    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);
+#endif
+    exit(status); // not  called when compiled  with MPI  due to  MPI_Abort, but
+                  // MPI_Abort does not have the noreturn attribute
+  }
+
+  /* ------------------------------------------------------------------------ */
+  void Debugger::setDebugLevel(const DebugLevel & level) {
+    this->level = level;
+  }
+  /* ------------------------------------------------------------------------ */
+  const DebugLevel & Debugger::getDebugLevel() const {
+    return level;
+  }
+  /* ------------------------------------------------------------------------ */
+  void Debugger::setLogFile(const std::string & filename) {
+    if(file_open) {
+      dynamic_cast<std::ofstream *>(cout)->close();
+      delete cout;
+    }
+    std::ofstream * fileout = new std::ofstream(filename.c_str());
+    file_open = true;
+    cout = fileout;
+  }
+
+  std::ostream & Debugger::getOutputStream() {
+    return *cout;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  void Debugger::setParallelContext(int rank, int size) {
+    std::stringstream sstr;
+    sstr << "[" << std::setfill(' ') << std::right << std::setw(3)
+         << (rank + 1) << "/" << size << "] ";
+    parallel_context = sstr.str();
+  }
+
+  void setDebugLevel(const DebugLevel & level) {
+    debugger.setDebugLevel(level);
   }
 
 }

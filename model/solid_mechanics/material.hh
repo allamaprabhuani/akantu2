@@ -33,10 +33,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
-#include "fem.hh"
-#include "mesh.hh"
-//#include "solid_mechanics_model.hh"
-#include "static_communicator.hh"
+//#include "fem.hh"
+//#include "mesh.hh"
+#include "data_accessor.hh"
+//#include "static_communicator.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -64,7 +64,7 @@ __BEGIN_AKANTU__
  * \endcode
  *
  */
-class Material : protected Memory {
+class Material : protected Memory, public DataAccessor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -146,6 +146,10 @@ protected:
   /// compute the potential energy by element
   void computePotentialEnergyByElement();
 
+
+  void computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coordinates,
+                                          ByElementTypeReal & quadrature_points_coordinates);
+
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */
   /* ------------------------------------------------------------------------ */
@@ -163,23 +167,23 @@ protected:
   void resizeInternalVector(ByElementTypeVector<T> & vect);
 
   /* ------------------------------------------------------------------------ */
-  /* Ghost Synchronizer inherited members                                     */
+  /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
 
   __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
-				      SynchronizationTag tag);
+ 				      SynchronizationTag tag);
 
   __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
-					SynchronizationTag tag);
+ 					SynchronizationTag tag);
 
   __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
-			       const Element & element,
-			       SynchronizationTag tag);
+ 			       const Element & element,
+ 			       SynchronizationTag tag);
 
   __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
-				 const Element & element,
-				 SynchronizationTag tag);
+                                 const Element & element,
+                                 SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

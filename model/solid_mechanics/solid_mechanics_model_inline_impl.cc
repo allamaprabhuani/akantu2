@@ -365,5 +365,46 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
 
+__END_AKANTU__
+#include "sparse_matrix.hh"
+#include "solver.hh"
+__BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
+template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+void SolidMechanicsModel::solveDynamic(Vector<Real> & increment) {
+  AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
+
+  NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
+  Real c = nmb_int->getAccelerationCoefficient<type>(time_step);
+  Real d = nmb_int->getVelocityCoefficient<type>(time_step);
+  Real e = nmb_int->getDisplacementCoefficient<type>(time_step);
+
+  // A = c M + d C + e K
+  jacobian_matrix->clear();
+
+  if(type != NewmarkBeta::_acceleration_corrector)
+    jacobian_matrix->add(*stiffness_matrix, e);
+
+  jacobian_matrix->add(*mass_matrix, c);
+
+  mass_matrix->saveMatrix("M.mtx");
+  if(velocity_damping_matrix)
+    jacobian_matrix->add(*velocity_damping_matrix, d);
+
+  jacobian_matrix->applyBoundary(*boundary);
+
+#ifndef AKANTU_NDEBUG
+  if(AKANTU_DEBUG_TEST(dblDump))
+    jacobian_matrix->saveMatrix("J.mtx");
+#endif
+
+  jacobian_matrix->saveMatrix("J.mtx");
+
+  solver->setRHS(*residual);
+
+  // solve A w = f
+  solver->solve(increment);
+}
+/* -------------------------------------------------------------------------- */

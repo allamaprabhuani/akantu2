@@ -44,6 +44,7 @@
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "aka_types.hh"
+#include "integration_scheme_2nd_order.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -115,6 +116,9 @@ public:
   /* Explicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  /// initialize the stuff for the explicit scheme
+  void initExplicit();
+
   /// initialize the array needed by updateResidual (residual, current_position)
   void initializeUpdateResidualData();
 
@@ -124,7 +128,12 @@ public:
   /// assemble the residual for the explicit scheme
   void updateResidual(bool need_initialize = true);
 
-  /// compute the acceleration from the residual
+  /**
+   * \brief compute the acceleration from the residual
+   * this function is the explicit equivalent to solveDynamic in implicit
+   * In the case of lumped mass just divide the residual by the mass
+   * In the case of not lumped mass call solveDynamic<_acceleration_corrector>
+   */
   void updateAcceleration();
 
   /// explicit integration predictor
@@ -133,14 +142,13 @@ public:
   /// explicit integration corrector
   void explicitCorr();
 
-  /// initialize the stuff for the explicit scheme
-  void initExplicit();
-
-
   /* ------------------------------------------------------------------------ */
   /* Implicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// initialize the solver and the jacobian_matrix (called by initImplicit)
+  void initSolver();
 
   /// initialize the stuff for the implicit solver
   void initImplicit(bool dynamic = false);
@@ -151,7 +159,7 @@ public:
   /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
 
-  /// solve @f[ A\delta u = f_ext - f_int @f]
+  /// solve @f[ A\delta u = f_ext - f_int @f] in displacement
   void solveDynamic();
 
   /// solve Ku = f
@@ -170,6 +178,12 @@ public:
 
   /// implicit time integration corrector
   void implicitCorr();
+
+private:
+  /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
+  template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+  void solveDynamic(Vector<Real> & increment);
+
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
@@ -437,6 +451,8 @@ private:
   Mesh & mesh;
 
   bool dynamic;
+
+  bool implicit;
 };
 
 __END_AKANTU__

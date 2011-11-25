@@ -43,13 +43,14 @@
 
 using namespace akantu;
 /* -------------------------------------------------------------------------- */
-
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(HeatTransferModel * model,Dumper & dumper);
 void paraviewDump(Dumper & dumper);
+UInt paraview_type = TETRA1;
+#endif
 
 UInt spatial_dimension = 3;
 ElementType type = _tetrahedron_4;
-UInt paraview_type = TETRA1;
 
 /* -------------------------------------------------------------------------- */
 
@@ -121,9 +122,11 @@ int main(int argc, char *argv[])
     }
   }
 
+#ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper;
   paraviewInit(model,dumper);
   model->assembleCapacityLumped();
+#endif
 
   // //for testing
   int max_steps = 1000;
@@ -135,7 +138,10 @@ int main(int argc, char *argv[])
       model->solveExplicitLumped();
       model->explicitCorr();
 
+#ifdef AKANTU_USE_IOHELPER
       if(i % 100 == 0) paraviewDump(dumper);
+#endif
+
       if(i % 10 == 0)  std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
 
@@ -144,7 +150,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 /* -------------------------------------------------------------------------- */
-
+#ifdef AKANTU_USE_IOHELPER
 void paraviewInit(HeatTransferModel * model, Dumper & dumper) {
   Mesh & mesh = model->getFEM().getMesh();
   UInt nb_nodes = mesh.getNbNodes();
@@ -176,5 +182,5 @@ void paraviewInit(HeatTransferModel * model, Dumper & dumper) {
 void paraviewDump(Dumper & dumper) {
   dumper.Dump();
 }
-
+#endif
 /* -------------------------------------------------------------------------- */

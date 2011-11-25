@@ -79,16 +79,6 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     ID mat_id = sstr_mat.str();
     /// read the material properties
 
-    // if(mat_type == "elastic")              material = parser.readSection<MaterialElastic>       (*this, mat_id);
-    // else if(mat_type == "elastic_caughey") material = parser.readSection<MaterialElasticCaughey>(*this, mat_id);
-    // else if(mat_type == "damage")          material = parser.readSection<MaterialDamage>        (*this, mat_id);
-    // else if(mat_type == "mazars")          material = parser.readSection<MaterialMazars>        (*this, mat_id);
-    // else if(mat_type == "neohookean")      material = parser.readSection<MaterialNeohookean>    (*this, mat_id);
-    // else if(mat_type == "non_local")       material = parser.readSection<MaterialNonLocal>      (*this, mat_id);
-    // else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type "
-    // 			    << mat_type);
-
-
     // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
     AKANTU_INTANTIATE_MATERIALS(mat_type, material, mat_id, parser);
 

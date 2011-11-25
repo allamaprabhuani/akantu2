@@ -27,7 +27,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
 template <typename M>
 inline void Parser::readSection(M & model){
   std::string keyword;
@@ -36,23 +35,18 @@ inline void Parser::readSection(M & model){
   my_getline();
 
   while(line[0] != ']') {
-    if (line.empty()){
-      my_getline();
-      continue;
-    }
     size_t pos = line.find("=");
     if(pos == std::string::npos)
-      AKANTU_DEBUG_ERROR("Malformed config file : line must be \"key = value\" at line"
+      AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
 			 << current_line);
 
     keyword = line.substr(0, pos);  trim(keyword);
     value   = line.substr(pos + 1); trim(value);
 
-    try {
-      model.setParam(keyword, value);
-    } catch (debug::Exception ex) {
-      AKANTU_DEBUG_ERROR("Malformed config file : error in setParam \""
-			 << ex.info() << "\" at line " << current_line);
+    if(!model.setParam(keyword, value)) {
+      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam at line "
+			 << current_line <<"."
+                         << " Parameter (" << keyword << ") is not recognized!");
     }
 
     my_getline();
@@ -73,7 +67,7 @@ inline Obj * Parser::readSection(Model & model,std::string & obj_name){
   while(line[0] != ']') {
     size_t pos = line.find("=");
     if(pos == std::string::npos)
-      AKANTU_DEBUG_ERROR("Malformed config file : line must be \"key = value\" at line"
+      AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
 			 << current_line);
 
     keyword = line.substr(0, pos);  trim(keyword);
@@ -82,7 +76,7 @@ inline Obj * Parser::readSection(Model & model,std::string & obj_name){
     try {
       obj->setParam(keyword, value, obj_name);
     } catch (debug::Exception ex) {
-      AKANTU_DEBUG_ERROR("Malformed config file : error in setParam \""
+      AKANTU_DEBUG_ERROR("Malformed material file : error in setParam \""
 			 << ex.info() << "\" at line " << current_line);
     }
 

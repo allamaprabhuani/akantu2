@@ -92,6 +92,7 @@ void MaterialElastic::computeStress(ElementType el_type, GhostType ghost_type) {
 void MaterialElastic::computeTangentStiffness(const ElementType & el_type,
 					      Vector<Real> & tangent_matrix,
 					      GhostType ghost_type) {
+
   switch(spatial_dimension) {
   case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
   case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }

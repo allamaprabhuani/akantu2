@@ -325,7 +325,7 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
     //    Real tolerance = 1e-15;
     if (!Math::are_vector_equal(spatial_dimension,gtemp.storage(),it_gtemp[element.element].storage())){
       Real dist = Math::distance_3d(gtemp.storage(), it_gtemp[element.element].storage());
-      debug::_akantu_debug_cout->precision(20);
+      debug::debugger.getOutputStream().precision(20);
       std::stringstream temperatures_str;
       temperatures_str.precision(20);
       temperatures_str << std::scientific << "temperatures are ";

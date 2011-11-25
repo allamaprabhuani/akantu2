@@ -121,6 +121,26 @@ inline CommunicationRequest * StaticCommunicatorMPI::asyncReceive(T * buffer, In
 }
 
 /* -------------------------------------------------------------------------- */
+template<typename T>
+inline void StaticCommunicatorMPI::probe(Int sender, Int tag,
+                                         CommunicationStatus & status) {
+  MPI_Status mpi_status;
+#if !defined(AKANTU_NDEBUG)
+  int ret =
+#endif
+    MPI_Probe(sender, tag, communicator, &mpi_status);
+  AKANTU_DEBUG_ASSERT(ret == MPI_SUCCESS, "Error in MPI_Probe.");
+
+  MPI_Datatype type = getMPIDatatype<T>();
+  int count;
+  MPI_Get_count(&mpi_status, type, &count);
+
+  status.setSource(mpi_status.MPI_SOURCE);
+  status.setTag(mpi_status.MPI_TAG);
+  status.setSize(count);
+}
+
+/* -------------------------------------------------------------------------- */
 inline bool StaticCommunicatorMPI::testRequest(CommunicationRequest * request) {
   MPI_Status status;
   int flag;

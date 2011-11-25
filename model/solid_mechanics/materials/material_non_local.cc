@@ -30,6 +30,8 @@
 #include "solid_mechanics_model.hh"
 #include "fem.hh"
 #include "aka_grid.hh"
+#include "grid_synchronizer.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -37,7 +39,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialNonLocal::MaterialNonLocal(Model & model, const ID & id)  :
-Material(model, id) {
+  Material(model, id) {
   //  quadrature_points_coordinates("quadrature_points_coordinates", id, memory_id) {
   AKANTU_DEBUG_IN();
 
@@ -86,7 +88,7 @@ void MaterialNonLocal::initMaterial() {
   }
 
   updatePairList(quadrature_points_coordinates);
-  computeWeights(quadrature_points_coordinates);
+  computeWeights<BaseWeightFonction>(quadrature_points_coordinates);
 
   AKANTU_DEBUG_OUT();
 }
@@ -96,8 +98,8 @@ void MaterialNonLocal::updatePairList(const ByElementTypeReal & quadrature_point
   AKANTU_DEBUG_IN();
 
   const Real safety_factor = 1.2; // for the cell grid spacing
-  const Mesh & mesh = model->getFEM().getMesh();
-  const_cast<Mesh &>(mesh).computeBoundingBox();
+  Mesh & mesh = model->getFEM().getMesh();
+  mesh.computeBoundingBox();
 
   Real lower_bounds[spatial_dimension];
   Real upper_bounds[spatial_dimension];
@@ -110,6 +112,12 @@ void MaterialNonLocal::updatePairList(const ByElementTypeReal & quadrature_point
   }
 
   RegularGrid<QuadraturePoint> cell_list(spatial_dimension, lower_bounds, upper_bounds, spacing);
+
+  SynchronizerRegistry & synch_registry = model->getSynchronizerRegistry();
+  std::stringstream sstr; sstr << id << ":grid_synchronizer";
+  GridSynchronizer * synch = GridSynchronizer::createGridSynchronizer<QuadraturePoint>(mesh, cell_list, sstr.str());
+
+  synch_registry.registerSynchronizer(*synch, _gst_mnl_damage);
 
   GhostType ghost_type = _not_ghost;
 
@@ -243,6 +251,7 @@ void MaterialNonLocal::updatePairList(const ByElementTypeReal & quadrature_point
   AKANTU_DEBUG_OUT();
 }
 
+
 /* -------------------------------------------------------------------------- */
 void MaterialNonLocal::computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const {
   AKANTU_DEBUG_IN();
@@ -277,7 +286,9 @@ void MaterialNonLocal::computeQuadraturePointsNeighborhoudVolumes(ByElementTypeR
   AKANTU_DEBUG_OUT();
 }
 
+
 /* -------------------------------------------------------------------------- */
+template<class WeightFonction>
 void MaterialNonLocal::computeWeights(const ByElementTypeReal & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
   std::set< std::pair<ElementType, ElementType> >::iterator first_pair_types = existing_pairs.begin();
@@ -288,8 +299,6 @@ void MaterialNonLocal::computeWeights(const ByElementTypeReal & quadrature_point
 
   ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
   model->getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
-
-  Real R_2 = 1. / (radius * radius);
 
   // Compute the weights
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
@@ -303,6 +312,8 @@ void MaterialNonLocal::computeWeights(const ByElementTypeReal & quadrature_point
     } else {
       tmp_weight = &(weights_type_1(first_pair_types->second, ghost_type2));
     }
+
+    WeightFonction weight_func(radius, first_pair_types->first, ghost_type1, first_pair_types->second, ghost_type2);
 
     Vector<Real> & weights = *tmp_weight;
 
@@ -325,13 +336,7 @@ void MaterialNonLocal::computeWeights(const ByElementTypeReal & quadrature_point
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
       Real r = iquads1[q1].distance(iquads2[q2]);
-
-      if(r > radius) *weight = 0;
-      else {
-        Real alpha = (1. - r*r * R_2);
-        *weight = alpha * alpha;
-        //	*weight = 1 - sqrt(r / radius);
-      }
+      *weight = weight_func(r, q1, q2);
     }
   }
 
@@ -358,7 +363,6 @@ void MaterialNonLocal::computeWeights(const ByElementTypeReal & quadrature_point
 
     for(;first_pair != last_pair; ++first_pair, ++pair_w) {
       UInt q1 = (*first_pair)(0);
-      //      UInt q2 = (*first_pair)(1);
       quads_volumes(q1)  += *pair_w;
     }
   }
@@ -381,7 +385,6 @@ void MaterialNonLocal::computeWeights(const ByElementTypeReal & quadrature_point
 
     for(;first_pair != last_pair; ++first_pair, ++pair_w) {
       UInt q1 = (*first_pair)(0);
-      //      UInt q2 = (*first_pair)(1);
       *pair_w *= 1. / quads_volumes(q1);
     }
   }
