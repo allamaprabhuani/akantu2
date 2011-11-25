@@ -91,12 +91,13 @@ endif()
 
 set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} ${BLACS_LIBRARIES_ALL} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}  CACHE INTERNAL "Libraries for MUMPS" FORCE)
 
-#===============================================================================
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(MUMPS DEFAULT_MSG
-  MUMPS_LIBRARIES MUMPS_INCLUDE_PATH)
 
 #===============================================================================
-if(NOT MUMPS_FOUND)
+if(NOT Mumps_FOUND)
   set(MUMPS_DIR "" CACHE PATH "Prefix of MUMPS library.")
-endif(NOT MUMPS_FOUND)
+endif(NOT Mumps_FOUND)
+
+#===============================================================================
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Mumps DEFAULT_MSG
+  MUMPS_LIBRARIES MUMPS_INCLUDE_PATH)

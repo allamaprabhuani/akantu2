@@ -71,8 +71,13 @@ endif()
 set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for scotch" FORCE)
 
 #===============================================================================
+if(NOT Scotch_FOUND)
+  set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
+endif(NOT Scotch_FOUND)
+
+#===============================================================================
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(SCOTCH DEFAULT_MSG
+find_package_handle_standard_args(Scotch DEFAULT_MSG
   SCOTCH_LIBRARY SCOTCH_LIBRARY_ERR SCOTCH_INCLUDE_PATH)
 
 
@@ -83,8 +88,3 @@ if(SCOTCH_INCLUDE_PATH)
     add_definitions(-DAKANTU_SCOTCH_NO_EXTERN)
   endif()
 endif()
-
-#===============================================================================
-if(NOT SCOTCH_FOUND)
-  set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
-endif(NOT SCOTCH_FOUND)
