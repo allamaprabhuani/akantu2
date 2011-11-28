@@ -157,7 +157,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "aka_grid_inline_tmpl.cc"
+#include "aka_grid_tmpl.hh"
 
 
 /// standard output stream operator
