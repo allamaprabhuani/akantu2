@@ -282,9 +282,8 @@ __END_AKANTU__
 
 __BEGIN_AKANTU__
 
-//#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#include "aka_vector_inline_impl.hh"
-//#endif
+#include "aka_vector_tmpl.hh"
+
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Vector<T>                                                 */

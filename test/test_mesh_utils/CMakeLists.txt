@@ -32,8 +32,8 @@ add_akantu_test(test_mesh_io "Test mesh io object")
 add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
 add_akantu_test(test_pbc_tweak "Test pbc facilities")
 
-if(AKANTU_SCOTCH_ON)
+if(AKANTU_SCOTCH)
   add_akantu_test(test_mesh_partitionate "Test mesh partition creation")
-endif(AKANTU_SCOTCH_ON)
+endif(AKANTU_SCOTCH)
 
 

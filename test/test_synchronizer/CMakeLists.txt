@@ -25,33 +25,32 @@
 #
 #===============================================================================
 
-if (AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON) 
+if (AKANTU_SCOTCH OR AKANTU_PTSCOTCH)
+  add_mesh(test_synchronizer_communication_mesh
+    triangle.geo 2 1)
 
-add_mesh(test_synchronizer_communication_mesh
-  triangle.geo 2 1)
-
-register_test(test_synchronizer_communication
-  test_synchronizer_communication.cc)
-add_dependencies(test_synchronizer_communication
-  test_synchronizer_communication_mesh)
-
-
-register_test(test_grid_synchronizer
-  test_grid_synchronizer.cc)
-add_dependencies(test_grid_synchronizer
-  test_synchronizer_communication_mesh)
+  register_test(test_synchronizer_communication
+    test_synchronizer_communication.cc)
+  add_dependencies(test_synchronizer_communication
+    test_synchronizer_communication_mesh)
 
 
+  register_test(test_grid_synchronizer
+    test_grid_synchronizer.cc)
+  add_dependencies(test_grid_synchronizer
+    test_synchronizer_communication_mesh)
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/test_synchronizer_communication.sh
-  ${CMAKE_CURRENT_BINARY_DIR}/test_synchronizer_communication.sh
-  COPYONLY
-  )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 
-#===============================================================================
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_synchronizer_communication.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/test_synchronizer_communication.sh
+    COPYONLY
+    )
+
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+
+  #===============================================================================
   register_test(test_dof_synchronizer test_dof_synchronizer.cc)
   copy_files(test_dof_synchronizer bar.msh)
 endif()

@@ -38,12 +38,12 @@ add_akantu_test(test_mesh_utils "Test mesh utils")
 add_akantu_test(test_model "Test model objects")
 add_akantu_test(test_solver "Test solver function")
 
-if(AKANTU_BUILD_CONTACT)
+if(AKANTU_CONTACT)
   #add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
   add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
-endif(AKANTU_BUILD_CONTACT)
+endif(AKANTU_CONTACT)
 
-if(AKANTU_MPI_ON)
+if(AKANTU_MPI)
   add_akantu_test(test_synchronizer "Test synchronizers")
-endif(AKANTU_MPI_ON)
+endif(AKANTU_MPI)
 

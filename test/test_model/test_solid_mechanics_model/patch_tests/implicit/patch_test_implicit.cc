@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
   /* ------------------------------------------------------------------------ */
-  UInt nb_quadrature_points = ElementClass<TYPE>::getNbQuadraturePoint();
+  UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(element_type);
 
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
   Vector<Real> & strain_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStrain(element_type));

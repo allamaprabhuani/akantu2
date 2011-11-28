@@ -75,6 +75,7 @@ set(CORE_FILES
   synchronizer/communication_buffer.hh
   synchronizer/grid_synchronizer.hh
   common/aka_grid.hh
+  common/aka_grid_tmpl.hh
   common/aka_types.hh
   common/aka_static_memory.hh
   common/aka_static_memory_tmpl.hh
@@ -84,7 +85,7 @@ set(CORE_FILES
   common/aka_error.hh
   common/aka_common.hh
   common/aka_vector.hh
-  common/aka_vector_inline_impl.hh
+  common/aka_vector_tmpl.hh
   common/aka_types_expression.hh
   common/aka_circular_vector.hh
   fem/mesh.hh

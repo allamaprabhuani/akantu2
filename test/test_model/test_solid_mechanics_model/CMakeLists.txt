@@ -27,9 +27,9 @@
 
 add_akantu_test(test_materials "test_materials")
 add_akantu_test(patch_tests "patch_tests")
-if(AKANTU_BUILD_CONTACT)
+if(AKANTU_CONTACT)
   add_akantu_test(test_contact "test_contact")
-endif(AKANTU_BUILD_CONTACT)
+endif(AKANTU_CONTACT)
 
 #===============================================================================
 add_mesh(test_solid_mechanics_model_square_mesh square.geo 2 1)
@@ -58,7 +58,7 @@ register_test(test_solid_mechanics_model_bar_traction2d_structured
   test_solid_mechanics_model_bar_traction2d_structured.cc)
 add_dependencies(test_solid_mechanics_model_bar_traction2d_structured test_bar_traction_2d_mesh_structured1)
 
-if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
+if(AKANTU_SCOTCH AND AKANTU_MPI)
   register_test(test_solid_mechanics_model_bar_traction2d_parallel
     test_solid_mechanics_model_bar_traction2d_parallel.cc)
   add_dependencies(test_solid_mechanics_model_bar_traction2d_parallel
@@ -72,7 +72,7 @@ if(AKANTU_SCOTCH_ON AND AKANTU_MPI_ON)
     test_solid_mechanics_model_segment_mesh)
 endif()
 
-if(AKANTU_MUMPS_ON)
+if(AKANTU_MUMPS)
   register_test(test_solid_mechanics_model_bar_traction2d_mass_not_lumped
     test_solid_mechanics_model_bar_traction2d_mass_not_lumped.cc)
   add_dependencies(test_solid_mechanics_model_bar_traction2d_mass_not_lumped test_bar_traction_2d_mesh1 test_bar_traction_2d_mesh2)

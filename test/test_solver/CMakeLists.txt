@@ -33,17 +33,17 @@ add_dependencies(test_sparse_matrix_profile test_solver_mesh)
 register_test(test_sparse_matrix_assemble test_sparse_matrix_assemble.cc)
 add_dependencies(test_sparse_matrix_assemble test_solver_mesh)
 
-#if(AKANTU_MPI_ON)
+#if(AKANTU_MPI)
 #  register_test(test_sparse_matrix_profile_parallel test_sparse_matrix_profile_parallel.cc)
 #  add_dependencies(test_sparse_matrix_profile_parallel test_solver_mesh)
-#endif(AKANTU_MPI_ON)
+#endif(AKANTU_MPI)
 
-if(AKANTU_MUMPS_ON)
+if(AKANTU_MUMPS)
   register_test(test_solver_mumps test_solver_mumps.cc)
-endif(AKANTU_MUMPS_ON)
+endif(AKANTU_MUMPS)
 
 #===============================================================================
-if(AKANTU_MPI_ON AND (AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON) )
+if(AKANTU_MPI AND (AKANTU_SCOTCH OR AKANTU_PTSCOTCH) )
   register_test(test_sparse_matrix_product test_sparse_matrix_product.cc)
   copy_files(test_sparse_matrix_product bar.msh)
 endif()

@@ -117,148 +117,13 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-#check_for_isnan(AKANTU_ISNAN)
-#message("ISNAN = "${AKANTU_ISNAN})
-
-
-#===============================================================================
-# File package section
-#===============================================================================
-
-file(GLOB AKANTU_PACKAGE_LIST RELATIVE ${AKANTU_SOURCE_DIR} "packages/*.cmake")
-
-foreach(pkg ${AKANTU_PACKAGE_LIST})
-  get_filename_component(basename ${pkg} NAME)
-  string(REGEX REPLACE "\\.cmake" "" OPTION_NAME ${basename})
-  string(TOUPPER "${OPTION_NAME}" OPTION_NAME)
-  include(${pkg})
-
-
-  # differentiate the file types
-  foreach(file ${${OPTION_NAME}_FILES})
-    set(RELEASE_ALL_FILE ${RELEASE_ALL_FILE} ${file})  
-    if (AKANTU_${OPTION_NAME})
-      if    (${file} MATCHES ".*inline.*\\.cc")
-	set(${OPTION_NAME}_INLINE ${${OPTION_NAME}_INLINE} ${file})
-      elseif(${file} MATCHES ".*\\.hh")
-	set(${OPTION_NAME}_HEADERS ${${OPTION_NAME}_HEADERS} ${file})
-      else  ()
-	set(${OPTION_NAME}_SRC ${${OPTION_NAME}_SRC} ${file})
-      endif()
-    endif()
-  endforeach()
-
-
-  # generates the include directory variable
-  foreach(inc ${${OPTION_NAME}_HEADERS})
-    get_filename_component(INC_DIR ${inc} PATH)    
-    set(${OPTION_NAME}_INCLUDE_DIRS ${${OPTION_NAME}_INCLUDE_DIRS} ${INC_DIR})
-    list(REMOVE_DUPLICATES ${OPTION_NAME}_INCLUDE_DIRS)
-  endforeach()
-
-  # generate global lists for akantu to know what to build
-  if(AKANTU_${OPTION_NAME})
-    set(AKANTU_COMMON_SRC
-      ${AKANTU_COMMON_SRC}
-      ${${OPTION_NAME}_SRC}
-      )
-    set(AKANTU_COMMON_HEADERS
-      ${AKANTU_COMMON_HEADERS}
-      ${${OPTION_NAME}_HEADERS}
-      )
-    set(AKANTU_INCLUDE_DIRS
-      ${AKANTU_INCLUDE_DIRS}
-      ${${OPTION_NAME}_INCLUDE_DIRS})
-  endif()
- 
-endforeach()
-
-#MESSAGE(${RELEASE_ALL_FILE})
-#MESSAGE(${AKANTU_COMMON_SRC})
-
-#check if there are some file in the release that are not registered in a package
-file(GLOB_RECURSE all_files RELATIVE ${AKANTU_SOURCE_DIR} "*.cc" "*.hh")
-foreach(file ${all_files})
- if(NOT ${file} MATCHES "test.*" AND NOT ${file} MATCHES "example.*")
-   list(FIND RELEASE_ALL_FILE ${file} index)
-   if (index EQUAL -1)
-     MESSAGE("file ${file} is not registered in any package.")
-     MESSAGE("Please append the file in one of the files within directory ${AKANTU_SOURCE_DIR}/packages")
-   endif()
- endif()
-endforeach()
-
-#check if there are some file in the package list that are not in the release file
-file(GLOB_RECURSE all_files RELATIVE ${AKANTU_SOURCE_DIR} "*.cc" "*.hh")
-foreach(file ${RELEASE_ALL_FILE})
- if(NOT ${file} MATCHES "test.*" AND NOT ${file} MATCHES "example.*")
-   list(FIND  all_files ${file} index)
-   if (index EQUAL -1)
-     MESSAGE("file ${file} is registered in packages but not existing in the release.")
-   endif()
- endif()
-endforeach()
-
-#check dependencies
-foreach(pkg ${AKANTU_PACKAGE_LIST})
-  get_filename_component(basename ${pkg} NAME)
-  string(REGEX REPLACE "\\.cmake" "" OPTION_NAME ${basename})
-  string(TOUPPER "${OPTION_NAME}" OPTION_NAME)
-  # differentiate the file types
-  if (AKANTU_${OPTION_NAME})
-    foreach(dep ${${OPTION_NAME}_DEPENDS})
-      if (NOT AKANTU_${dep})
-	MESSAGE(FATAL_ERROR "Package ${pkg} depends on package ${dep}. You need to activate it to make it work")
-      endif()
-    endforeach()
-  endif()
-endforeach()
-
+add_all_packages(${CMAKE_SOURCE_DIR}/packages)
 
 #===========================================================================
-# header precompilation
+# Library
 #===========================================================================
 
-set(AKANTU_COMMON_HDR_TO_PRECOMPILE
-  common/aka_vector.hh
-  common/aka_math.hh
-  common/aka_types.hh
-  fem/element_class.hh
-  )
-
-set(AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS
-  ${CMAKE_BINARY_DIR}/common/
-  ${CMAKE_BINARY_DIR}/fem/
-  )
-
-include_directories(
-  ${AKANTU_INCLUDE_DIRS}
-  ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS}
-  ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-  )
-
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-  include(cmake/PCHgcc.cmake)
-  foreach(_header ${AKANTU_COMMON_HDR_TO_PRECOMPILE})
-    add_pch_rule(${_header} AKANTU_COMMON_SRC)
-  endforeach()
-endif()
-
-add_library(akantu ${AKANTU_COMMON_SRC})
-
-add_definitions(-fkeep-inline-functions)
-set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
-set_target_properties(akantu
-  PROPERTIES COMPILE_DEFINITIONS __aka_inline__=inline)
-
-#include(cmake/PCHSupport.cmake)
-#if(PCHSupport_FOUND)
-#  foreach(_header ${AKANTU_COMMON_HDR_TO_PRECOMPILE})
-#    add_precompiled_header(akantu ${_header})
-#  endforeach()
-#endif()
-
+add_subdirectory(src)
 
 #===========================================================================
 # Documentation
@@ -288,6 +153,7 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 
 option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
+  include_directories(${AKANTU_INCLUDE_DIRS})
   find_package(GMSH REQUIRED)
   add_subdirectory(test)
 endif(AKANTU_TESTS)
@@ -300,19 +166,3 @@ if(AKANTU_EXAMPLES)
   find_package(GMSH REQUIRED)
   add_subdirectory(examples)
 endif(AKANTU_EXAMPLES)
-
-
-#===============================================================================
-# Install rules
-#===============================================================================
-
-install(TARGETS akantu 
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-
-
-install(FILES 
-  ${AKANTU_COMMON_HEADERS}
-  DESTINATION include/akantu/
-)
-

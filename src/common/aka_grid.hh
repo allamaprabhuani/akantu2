@@ -58,20 +58,20 @@ public:
   void endInsertions() { data.endInsertions(); }
   void insert(const T & d, const types::RVector & position);
 
-  __aka_inline__ void count(const types::RVector & position);
-  __aka_inline__ UInt getNumCell(const types::RVector & position) const;
-  __aka_inline__ UInt getCell(Real position, UInt direction) const;
+  inline void count(const types::RVector & position);
+  inline UInt getNumCell(const types::RVector & position) const;
+  inline UInt getCell(Real position, UInt direction) const;
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   typedef typename CSR<T>::iterator iterator;
   typedef typename CSR<T>::const_iterator const_iterator;
-  __aka_inline__ iterator beginCell(UInt cell) { return data.begin(cell); };
-  __aka_inline__ iterator endCell(UInt cell) { return data.end(cell); };
+  inline iterator beginCell(UInt cell) { return data.begin(cell); };
+  inline iterator endCell(UInt cell) { return data.end(cell); };
 
-  __aka_inline__ const_iterator beginCell(UInt cell) const { return data.begin(cell); };
-  __aka_inline__ const_iterator endCell(UInt cell) const { return data.end(cell); };
+  inline const_iterator beginCell(UInt cell) const { return data.begin(cell); };
+  inline const_iterator endCell(UInt cell) const { return data.end(cell); };
 
   struct neighbor_cells_iterator : std::iterator<std::forward_iterator_tag, UInt> {
     neighbor_cells_iterator(const RegularGrid & grid,
@@ -117,11 +117,11 @@ public:
     const RegularGrid & grid;
   };
 
-  __aka_inline__ neighbor_cells_iterator beginNeighborCells(UInt cell) {
+  inline neighbor_cells_iterator beginNeighborCells(UInt cell) {
     return neighbor_cells_iterator(*this, cell, false);
   }
 
-  __aka_inline__ neighbor_cells_iterator endNeighborCells(UInt cell) {
+  inline neighbor_cells_iterator endNeighborCells(UInt cell) {
     return neighbor_cells_iterator(*this, cell, true);
   }
 
@@ -130,9 +130,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ UInt getNbCells(UInt dim) const { return nb_cells[dim]; };
+  inline UInt getNbCells(UInt dim) const { return nb_cells[dim]; };
 
-  __aka_inline__ UInt getCell(UInt num_cells_by_direction[]) const;
+  inline UInt getCell(UInt num_cells_by_direction[]) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -154,12 +154,11 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "aka_grid_inline_impl.cc"
-#endif
+#include "aka_grid_inline_tmpl.cc"
+
 
 /// standard output stream operator
 template<typename T>

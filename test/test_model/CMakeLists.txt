@@ -29,10 +29,10 @@
 
 add_akantu_test(test_solid_mechanics_model "Test for the solid mechanics model")
 
-if(AKANTU_BUILD_HEAT_TRANSFER)
+if(AKANTU_HEAT_TRANSFER)
   add_akantu_test(test_heat_transfer_model "Test for the heat transfer model")
 endif()
 
-if(AKANTU_BUILD_STRUCTURAL_MECHANICS)
+if(AKANTU_STRUCTURAL_MECHANICS)
 add_subdirectory(test_structural_mechanics_model)
 endif()

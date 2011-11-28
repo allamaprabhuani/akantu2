@@ -55,6 +55,6 @@ set(LIST_TYPES
 
 add_subdirectory(explicit)
 
-if(AKANTU_MUMPS_ON)
+if(AKANTU_MUMPS)
   add_subdirectory(implicit)
 endif()
