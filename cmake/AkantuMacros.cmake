@@ -47,9 +47,11 @@ macro(add_optional_package PACKAGE DESC DEFAULT)
         ${${_u_package}_LIBRARIES}
         )
       set(AKANTU_${_u_package} ON)
+#      MESSAGE("found ${_u_package} by setting AKANTU_${_u_package}" )
+    else(${_u_package}_FOUND)
+ #     MESSAGE("not found ${_u_package}" )
+      set(AKANTU_${_u_package} OFF)
     endif(${_u_package}_FOUND)
-  else()
-    set(AKANTU_${_u_package} OFF)
   endif(${_option_name})
 endmacro()
 
@@ -103,11 +105,9 @@ macro(add_all_packages package_dir)
 
   foreach(_pkg ${_akantu_package_list})
     include(${_pkg})
-
     get_filename_component(_basename ${_pkg} NAME)
     string(REGEX REPLACE "\\.cmake" "" _option_name ${_basename})
     string(TOUPPER "${_option_name}" _option_name)
-
     list(APPEND AKANTU_PACKAGE_NAMES_LIST_ALL ${_option_name})
     if (AKANTU_${_option_name})
       list(APPEND AKANTU_PACKAGE_NAMES_LIST_ON ${_option_name})
@@ -143,6 +143,8 @@ endmacro()
 
 #===============================================================================
 macro(generate_source_list_from_packages source_dir source_files headers_files include_dirs)
+  set(deb_depend "libc6")
+  
 #  message("SRC DIR : ${source_dir}")
   foreach(_option_name ${AKANTU_PACKAGE_NAMES_LIST_ON})
     # differentiate the file types
@@ -168,6 +170,9 @@ macro(generate_source_list_from_packages source_dir source_files headers_files i
     list(APPEND ${source_files} ${${_option_name}_srcs})
     list(APPEND ${headers_files} ${${_option_name}_headers})
     list(APPEND ${include_dirs}  ${${_option_name}_include_dirs})
+    if (NOT "${${_option_name}_DEB_DEPEND}" STREQUAL "")
+      set(deb_depend "${deb_depend}, ${${_option_name}_DEB_DEPEND}")
+    endif()
 
 #    message("PKG ${_option_name} SRCS : ${${_option_name}_srcs}")
 #    message("PKG ${_option_name} HRDS : ${${_option_name}_headers}")
@@ -177,4 +182,6 @@ macro(generate_source_list_from_packages source_dir source_files headers_files i
 #  message("SRCS : ${${source_files}}")
 #  message("HRDS : ${${headers_files}}")
 #  message("INCS : ${${include_dirs}}")
+
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "${deb_depend}" PARENT_SCOPE)
 endmacro()

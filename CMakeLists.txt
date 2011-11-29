@@ -78,17 +78,6 @@ if(NOT AKANTU_NO_LIBRARY_VERSION)
 
     )
 endif(NOT AKANTU_NO_LIBRARY_VERSION)
-#===============================================================================
-# Package builder target module of CPack
-#===============================================================================
-SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Guillaume Anciaux") 
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6")
-SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
-SET(CPACK_PACKAGE_VENDOR "LSMS")
-SET(CPACK_PACKAGE_VERSION ${AKANTU_VERSION})
-INCLUDE(CPack)
 
 #===============================================================================
 # Options
@@ -97,8 +86,7 @@ option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
 option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 
 # features
-add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
-add_optional_package(QVIEW "Add QView support in akantu" OFF)
+
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
 add_optional_package(EPSN "Use EPSN streering environment" OFF)
 
@@ -166,3 +154,16 @@ if(AKANTU_EXAMPLES)
   find_package(GMSH REQUIRED)
   add_subdirectory(examples)
 endif(AKANTU_EXAMPLES)
+
+#===============================================================================
+# Package builder target module of CPack
+#===============================================================================
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch") 
+MESSAGE(${CPACK_DEBIAN_PACKAGE_DEPENDS})
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+SET(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
+SET(CPACK_PACKAGE_VENDOR "LSMS")
+SET(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
+SET(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}")
+INCLUDE(CPack)

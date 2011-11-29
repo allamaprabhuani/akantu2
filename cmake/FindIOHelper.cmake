@@ -54,4 +54,4 @@ endif(NOT IOHelper_FOUND)
 
 #===============================================================================
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(IOHepler DEFAULT_MSG IOHELPER_LIBRARY IOHELPER_INCLUDE_PATH)
+find_package_handle_standard_args(IOHelper DEFAULT_MSG IOHELPER_LIBRARY IOHELPER_INCLUDE_PATH)
