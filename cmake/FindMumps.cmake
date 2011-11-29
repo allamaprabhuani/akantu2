@@ -57,10 +57,10 @@ find_library(BLACS_LIBRARY NAME blacs
 find_library(SCALAPACK_LIBRARY NAME scalapack
    PATHS ${MUMPS_DIR} PATH_SUFFIXES lib)
 
-enable_language(Fortran)
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
-#===============================================================================
+#enable_language(Fortran)
+#find_package(BLAS REQUIRED)
+#find_package(LAPACK REQUIRED)
+##===============================================================================
 mark_as_advanced(MUMPS_LIBRARY_COMMON)
 mark_as_advanced(MUMPS_LIBRARY_DMUMPS)
 mark_as_advanced(MUMPS_LIBRARY_PORD)
