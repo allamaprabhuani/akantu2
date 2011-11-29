@@ -44,7 +44,7 @@
 
 cmake_minimum_required(VERSION 2.6)
 
-project(AKANTU)
+project(akantu)
 
 enable_language(CXX)
 
@@ -52,7 +52,7 @@ enable_language(CXX)
 # Misc.
 #===============================================================================
 
-set(AKANTU_CMAKE_DIR "${AKANTU_SOURCE_DIR}/cmake")
+set(AKANTU_CMAKE_DIR "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
@@ -64,9 +64,9 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 # AKANTU version number.  An even minor number corresponds to releases.
 set(AKANTU_MAJOR_VERSION 0)
 set(AKANTU_MINOR_VERSION 1)
-execute_process(COMMAND ./get_revision.sh WORKING_DIRECTORY ${AKANTU_SOURCE_DIR} OUTPUT_VARIABLE AKANTU_BUILD_VERSION)
+execute_process(COMMAND ./get_revision.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE AKANTU_BUILD_VERSION)
 string(STRIP ${AKANTU_BUILD_VERSION} AKANTU_BUILD_VERSION)
-MESSAGE(${AKANTU_BUILD_VERSION})
+#MESSAGE(${AKANTU_BUILD_VERSION})
 set(AKANTU_VERSION
   "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_BUILD_VERSION}"
   )

@@ -124,7 +124,7 @@ namespace debug {
     *a = 1;
     if (status != EXIT_SUCCESS)
       akantu::debug::printBacktrace(15);
-#ifndef AKANTU_USE_MPI
+#ifdef AKANTU_USE_MPI
     MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);
 #endif
     exit(status); // not  called when compiled  with MPI  due to  MPI_Abort, but
