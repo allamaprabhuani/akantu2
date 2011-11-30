@@ -563,7 +563,8 @@ inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
 #  include "mesh_inline_impl.cc"
 #endif
 
-#include "by_element_type_inline_impl.cc"
+#include "by_element_type_tmpl.hh"
+
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Mesh & _this)

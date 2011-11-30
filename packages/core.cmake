@@ -145,7 +145,7 @@ set(CORE_FILES
   fem/shape_functions_inline_impl.cc
   fem/mesh_inline_impl.cc
   fem/element_class_inline_impl.cc
-  fem/by_element_type_inline_impl.cc
+  fem/by_element_type_tmpl.hh
   fem/fem_inline_impl.cc
   fem/shape_linked_inline_impl.cc
   fem/shape_lagrange_inline_impl.cc
