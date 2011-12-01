@@ -95,31 +95,6 @@ typedef UInt Surface;
 
 
 /* -------------------------------------------------------------------------- */
-// BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
-#include <boost/preprocessor.hpp>
-
-#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
-  case type : { macro(type); break;}
-
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro);				\
-  do {									\
-    switch(type) {							\
-      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,AKANTU_ELEMENT_TYPE) \
-    case _not_defined:							\
-    case _max_element_type:  {						\
-      AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
-      break;								\
-    }									\
-    }									\
-  } while(0)
-
-#define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
-  macro(type)
-
-#define AKANTU_BOOST_ELEMENT_LIST(macro)				\
-  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,AKANTU_ELEMENT_TYPE)
-
-/* -------------------------------------------------------------------------- */
 
 /// @boost sequence of element to loop on in global tasks
 #define AKANTU_ELEMENT_TYPE			\
@@ -378,5 +353,8 @@ __END_AKANTU__
 
 //#include "aka_types.hh"
 
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "aka_common_inline_impl.cc"
+#endif
 
 #endif /* __AKANTU_COMMON_HH__ */
