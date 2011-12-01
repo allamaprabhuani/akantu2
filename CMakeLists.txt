@@ -158,7 +158,7 @@ endif(AKANTU_EXAMPLES)
 #===============================================================================
 # Package builder target module of CPack
 #===============================================================================
-set(CPACK_GENERATOR "DEB")
+set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch") 
 #message(${CPACK_DEBIAN_PACKAGE_DEPENDS})
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "i.86")
