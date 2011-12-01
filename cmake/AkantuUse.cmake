@@ -1,7 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Thu Oct 06 16:26:30 2011
+# @file   AkantuUse.cmake
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @date   Mon Nov 28 15:11:51 2011
+#
+# @brief  CMake file for the library
 #
 # @section LICENSE
 #
@@ -21,23 +23,31 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-# @section DESCRIPTION
-#
 #===============================================================================
-add_mesh(mesh_hertz_2d hertz_2d.geo 2 1)
 
-register_example(hertz_2d_no_friction hertz_2d_no_friction.cc)
-add_dependencies(hertz_2d_no_friction mesh_hertz_2d )
+macro(include_package_if_needed PACKAGE)
+  string(TOUPPER ${PACKAGE} _package)
+  if(AKANTU_USE_${_package})
+    if(${PACKAGE} MATCHES BLAS)
+      enable_language(Fortran)
+    endif()
+    find_package(${PACKAGE} REQUIRED)
+    if(${_package}_FOUND)
+      if(DEFINED ${_package}_INCLUDE_DIR)
+        list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${${_package}_INCLUDE_DIR})
+      else()
+        list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${${_package}_INCLUDE_PATH})
+      endif()
+      list(APPEND AKANTU_EXTRA_LIBRARIES ${${_package}_LIBRARIES})
+    endif()
+  endif()
+endmacro()
 
-#===============================================================================
-add_mesh(mesh_hertz_3d hertz_3d.geo 3 1)
-
-register_example(hertz_3d_no_friction hertz_3d_no_friction.cc)
-add_dependencies(hertz_3d_no_friction mesh_hertz_3d )
-
-#===============================================================================
-file(COPY material.dat DESTINATION .)
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_2d_no_friction)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/hertz_3d_no_friction)
+macro(find_akantu_dependencies)
+  include_package_if_needed(MPI)
+  include_package_if_needed(IOHelper)
+  include_package_if_needed(Mumps)
+  include_package_if_needed(Scotch)
+  include_package_if_needed(BLAS)
+  message("AKANTU_EXTRA_LIBRARIES ${AKANTU_EXTRA_LIBRARIES}")
+endmacro()

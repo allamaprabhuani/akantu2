@@ -50,11 +50,11 @@ set(AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS
 
 list(APPEND AKANTU_INCLUDE_DIRS
   ${AKANTU_LIBRARY_INCLUDE_DIRS}
-  ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS}
-  ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH})
+  ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS})
+
 set(AKANTU_INCLUDE_DIRS ${AKANTU_INCLUDE_DIRS} PARENT_SCOPE)
 
-include_directories(${AKANTU_INCLUDE_DIRS})
+include_directories(${AKANTU_INCLUDE_DIRS} ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR})
 
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -73,16 +73,14 @@ add_library(akantu ${AKANTU_LIBRARY_SRCS})
 add_definitions(-fkeep-inline-functions)
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 set_target_properties(akantu PROPERTIES COMPILE_DEFINITIONS __aka_inline__=inline)
-
+set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")
 #===============================================================================
 # Install rules
 #===============================================================================
 
 install(TARGETS akantu
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-
-install(FILES
-  ${AKANTU_LIBRARY_HDRS}
-  DESTINATION include/akantu/
-)
+  EXPORT AkantuLibraryDepends
+  RUNTIME DESTINATION bin COMPONENT bin
+  LIBRARY DESTINATION lib COMPONENT shlib
+  PUBLIC_HEADER DESTINATION include/akantu/ COMPONENT dev
+  )

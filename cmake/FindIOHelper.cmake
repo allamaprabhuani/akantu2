@@ -48,10 +48,10 @@ set(IOHELPER_LIBRARIES_ALL ${IOHELPER_LIBRARY} ${ZLIB_LIBRARIES})
 set(IOHELPER_LIBRARIES ${IOHELPER_LIBRARIES_ALL} CACHE INTERNAL "Libraries for IOHelper" FORCE)
 
 #===============================================================================
-if(NOT IOHelper_FOUND)
-  set(IOHELPER_DIR "" CACHE PATH "Location of IOHelper source directory.")
-endif(NOT IOHelper_FOUND)
-
-#===============================================================================
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(IOHelper DEFAULT_MSG IOHELPER_LIBRARY IOHELPER_INCLUDE_PATH)
+
+#===============================================================================
+if(NOT IOHELPER_FOUND)
+  set(IOHELPER_DIR "" CACHE PATH "Location of IOHelper source directory.")
+endif()

@@ -50,7 +50,7 @@ find_library(SCOTCH_LIBRARY_ESMUMPS ptesmumps
   PATH_SUFFIXES src/libscotch lib
   )
 
-find_path(SCOTCH_INCLUDE_PATH scotch.h
+find_path(SCOTCH_INCLUDE_DIR scotch.h
   PATHS ${SCOTCH_DIR}
   PATH_SUFFIXES include scotch src/libscotch include/scotch
   )
@@ -60,7 +60,7 @@ mark_as_advanced(SCOTCH_LIBRARY)
 mark_as_advanced(SCOTCH_LIBRARY_ERR)
 mark_as_advanced(SCOTCH_LIBRARY_ERREXIT)
 mark_as_advanced(SCOTCH_LIBRARY_ESMUMPS)
-mark_as_advanced(SCOTCH_INCLUDE_PATH)
+mark_as_advanced(SCOTCH_INCLUDE_DIR)
 
 set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY} ${SCOTCH_LIBRARY_ERR})
 
@@ -71,17 +71,17 @@ endif()
 set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for scotch" FORCE)
 
 #===============================================================================
-if(NOT Scotch_FOUND)
-  set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
-endif(NOT Scotch_FOUND)
-
-#===============================================================================
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Scotch DEFAULT_MSG
-  SCOTCH_LIBRARY SCOTCH_LIBRARY_ERR SCOTCH_INCLUDE_PATH)
+  SCOTCH_LIBRARY SCOTCH_LIBRARY_ERR SCOTCH_INCLUDE_DIR)
 
 
-if(SCOTCH_INCLUDE_PATH)
+#===============================================================================
+if(NOT SCOTCH_FOUND)
+  set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
+endif()
+
+if(SCOTCH_INCLUDE_DIR)
   file(STRINGS ${SCOTCH_INCLUDE_PATH}/scotch.h SCOTCH_INCLUDE_CONTENT)
   string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
   if(_match)

@@ -40,12 +40,12 @@ macro(add_optional_package PACKAGE DESC DEFAULT)
     find_package(${PACKAGE} REQUIRED)
     if(${_u_package}_FOUND)
       add_definitions(-DAKANTU_USE_${_u_package})
-      set(AKANTU_EXTERNAL_LIB_INCLUDE_PATH ${AKANTU_EXTERNAL_LIB_INCLUDE_PATH}
-        ${${_u_package}_INCLUDE_PATH}
-        )
-      set(AKANTU_EXTERNAL_LIBRARIES ${AKANTU_EXTERNAL_LIBRARIES}
-        ${${_u_package}_LIBRARIES}
-        )
+      if(DEFINED ${_u_package}_INCLUDE_DIR)
+        list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${${_u_package}_INCLUDE_DIR})
+      else()
+        list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${${_u_package}_INCLUDE_PATH})
+      endif()
+      list(APPEND AKANTU_EXTERNAL_LIBRARIES ${${_u_package}_LIBRARIES})
       set(AKANTU_${_u_package} ON)
 #      MESSAGE("found ${_u_package} by setting AKANTU_${_u_package}" )
     else(${_u_package}_FOUND)
