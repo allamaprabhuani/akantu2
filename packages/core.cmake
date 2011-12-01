@@ -162,3 +162,7 @@ set(CORE_FILES
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
   )
+
+set(CORE_DEB_DEPEND
+  libboost-dev
+  )
