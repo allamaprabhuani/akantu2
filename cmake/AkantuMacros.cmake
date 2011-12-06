@@ -133,7 +133,10 @@ macro(add_all_packages package_dir)
   #check dependencies
   foreach(_pkg ${AKANTU_PACKAGE_NAMES_LIST_ON})
     # differentiate the file types
-    foreach(_dep ${${_option_name}_DEPENDS})
+#    message("DEPENDS PKG : ${_pkg}")
+#    message("DEPENDS LST : ${${_pkg}_DEPENDS}")
+    foreach(_dep ${${_pkg}_DEPENDS})
+#      message("DEPENDS DEP : ${_dep}")
       if (NOT AKANTU_${dep})
         message(FATAL_ERROR "Package ${_pkg} depends on package ${_dep}. You need to activate it to make it work")
       endif()

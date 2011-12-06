@@ -127,7 +127,6 @@ set(CORE_FILES
   synchronizer/dof_synchronizer_inline_impl.cc
   synchronizer/communication_buffer_inline_impl.cc
   common/aka_memory_inline_impl.cc
-  common/aka_grid_inline_impl.cc
   common/aka_static_memory_inline_impl.cc
   common/aka_math_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc

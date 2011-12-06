@@ -322,6 +322,9 @@ public:
    */
   AKANTU_GET_MACRO(Acceleration,   *acceleration,           Vector<Real> &);
 
+  /// get the SolidMechnicsModel::incrementAcceleration vector
+  AKANTU_GET_MACRO(IncrementAcceleration,   *increment_acceleration,           Vector<Real> &);
+
   /// get the SolidMechanicsModel::force vector (boundary forces)
   AKANTU_GET_MACRO(Force,           *force,                  Vector<Real> &);
 
