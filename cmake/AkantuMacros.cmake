@@ -111,6 +111,9 @@ macro(add_all_packages package_dir)
     list(APPEND AKANTU_PACKAGE_NAMES_LIST_ALL ${_option_name})
     if (AKANTU_${_option_name})
       list(APPEND AKANTU_PACKAGE_NAMES_LIST_ON ${_option_name})
+    else (AKANTU_${_option_name})
+      list(APPEND AKANTU_PACKAGE_NAMES_LIST_OFF ${_option_name})
+      list(APPEND _unactivated_package_file ${_pkg})
     endif()
 
     foreach(_file ${${_option_name}_FILES})
@@ -123,18 +126,43 @@ macro(add_all_packages package_dir)
 
   #check if there are some file in the package list that are not on the current directory
   file(GLOB_RECURSE _all_files RELATIVE ${CMAKE_SOURCE_DIR}/src "*.cc" "*.hh")
+
+  foreach(file ${all_files})
+    list(FIND RELEASE_ALL_FILE ${file} index)
+    if (index EQUAL -1)
+      MESSAGE("file ${file} is not registered in any package.")
+      MESSAGE("Please append the file in one of the files within directory ${AKANTU_SOURCE_DIR}/packages")
+    endif()
+  endforeach()
+
   foreach(_file ${_release_all_file})
     list(FIND _all_files ${_file} _index)
     if (_index EQUAL -1)
-      message("The file ${_file} is registered in packages a package but is not present in the source directory.")
+      message("The file ${_file} is registered in packages but is not present in the source directory.")
     endif()
   endforeach()
+
+  #construct list of files for unactivated packages
+  foreach(_pkg ${AKANTU_PACKAGE_NAMES_LIST_OFF})
+    foreach(_file ${${_pkg}_FILES})
+#      string(REGEX REPLACE "\\/" "\\\\\\\\/" __file ${_file})
+#      MESSAGE(${_file} " " ${__file})
+#      list(APPEND _exclude_source_file "/${__file}/")
+      list(APPEND _exclude_source_file ${_file})
+    endforeach()
+  endforeach()
+
 
   #check dependencies
   foreach(_pkg ${AKANTU_PACKAGE_NAMES_LIST_ON})
     # differentiate the file types
-#    message("DEPENDS PKG : ${_pkg}")
-#    message("DEPENDS LST : ${${_pkg}_DEPENDS}")
+    #    message("DEPENDS PKG : ${_pkg}")
+    #    message("DEPENDS LST : ${${_pkg}_DEPENDS}")
+    
+    if (NOT "${${_pkg}_DEB_DEPEND}" STREQUAL "")
+      set(deb_depend "${deb_depend}, ${${_pkg}_DEB_DEPEND}")
+    endif()
+    
     foreach(_dep ${${_pkg}_DEPENDS})
 #      message("DEPENDS DEP : ${_dep}")
       if (NOT AKANTU_${dep})
@@ -142,6 +170,7 @@ macro(add_all_packages package_dir)
       endif()
     endforeach()
   endforeach()
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${deb_depend}")
 endmacro()
 
 #===============================================================================
@@ -173,9 +202,6 @@ macro(generate_source_list_from_packages source_dir source_files headers_files i
     list(APPEND ${source_files} ${${_option_name}_srcs})
     list(APPEND ${headers_files} ${${_option_name}_headers})
     list(APPEND ${include_dirs}  ${${_option_name}_include_dirs})
-    if (NOT "${${_option_name}_DEB_DEPEND}" STREQUAL "")
-      set(deb_depend "${deb_depend}, ${${_option_name}_DEB_DEPEND}")
-    endif()
 
 #    message("PKG ${_option_name} SRCS : ${${_option_name}_srcs}")
 #    message("PKG ${_option_name} HRDS : ${${_option_name}_headers}")
@@ -186,5 +212,4 @@ macro(generate_source_list_from_packages source_dir source_files headers_files i
 #  message("HRDS : ${${headers_files}}")
 #  message("INCS : ${${include_dirs}}")
 
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "${deb_depend}" PARENT_SCOPE)
 endmacro()

@@ -64,18 +64,33 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 # AKANTU version number.  An even minor number corresponds to releases.
 set(AKANTU_MAJOR_VERSION 0)
 set(AKANTU_MINOR_VERSION 1)
-execute_process(COMMAND ./get_revision.sh WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE AKANTU_BUILD_VERSION)
-string(STRIP ${AKANTU_BUILD_VERSION} AKANTU_BUILD_VERSION)
-#MESSAGE(${AKANTU_BUILD_VERSION})
-set(AKANTU_VERSION
-  "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_BUILD_VERSION}"
-  )
+include(FindSubversion)
+
+if (EXISTS ${CMAKE_SOURCE_DIR}/.svn)
+  if(SUBVERSION_FOUND)
+    subversion_wc_info(${CMAKE_SOURCE_DIR} MY)
+    set(AKANTU_BUILD_VERSION ${MY_WC_REVISION})  
+    set(AKANTU_VERSION
+      "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_BUILD_VERSION}"
+      )
+    file(WRITE VERSION "${AKANTU_VERSION}\n")
+  else(SUBVERSION_FOUND)
+    MESSAGE(SEND_ERROR "SVN control files were found but no subversion executable is present... ")
+  endif(SUBVERSION_FOUND)
+else(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
+  if(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
+    FILE(STRINGS VERSION AKANTU_VERSION)
+  else(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
+    MESSAGE(SEND_ERROR "No SVN control file neither VERSION file could be found. How was this release made ?")
+  endif(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
+endif(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
+
+
 # Append the library version information to the library target properties
 if(NOT AKANTU_NO_LIBRARY_VERSION)
   set(AKANTU_LIBRARY_PROPERTIES ${AKANTU_LIBRARY_PROPERTIES}
     VERSION "${AKANTU_VERSION}"
     SOVERSION "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}"
-
     )
 endif(NOT AKANTU_NO_LIBRARY_VERSION)
 
@@ -203,5 +218,9 @@ set(CPACK_PACKAGE_VENDOR "LSMS")
 set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 set(CPACK_PACKAGE_VERSION "${AKANTU_VERSION}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
+list(APPEND CPACK_SOURCE_IGNORE_FILES ${_exclude_source_file})
+list(APPEND CPACK_SOURCE_IGNORE_FILES ${_unactivated_package_file})
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 include(CPack)
 
