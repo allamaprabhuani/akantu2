@@ -1,7 +1,6 @@
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
 set(CORE_FILES
   # source files
-
   common/aka_common.cc
   common/aka_error.cc
   common/aka_extern.cc
@@ -49,7 +48,6 @@ set(CORE_FILES
   synchronizer/grid_synchronizer.cc
   synchronizer/dof_synchronizer.cc
 
-
   #header files
 
   mesh_utils/mesh_io/mesh_io_msh.hh
@@ -81,6 +79,7 @@ set(CORE_FILES
   common/aka_static_memory_tmpl.hh
   common/aka_memory.hh
   common/aka_math.hh
+  common/aka_math_tmpl.hh
   common/aka_csr.hh
   common/aka_error.hh
   common/aka_common.hh
@@ -128,7 +127,6 @@ set(CORE_FILES
   synchronizer/communication_buffer_inline_impl.cc
   common/aka_memory_inline_impl.cc
   common/aka_static_memory_inline_impl.cc
-  common/aka_math_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc
   fem/integrator_gauss_inline_impl.cc
   fem/element_classes/element_class_triangle_3_inline_impl.cc

@@ -213,13 +213,10 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "aka_math_inline_impl.cc"
-#endif
-
+#include "aka_math_tmpl.hh"
 
 __END_AKANTU__
 

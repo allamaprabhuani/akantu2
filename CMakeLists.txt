@@ -103,8 +103,6 @@ option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 # features
 
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
-add_optional_package(EPSN "Use EPSN streering environment" OFF)
-
 
 # Debug
 if(NOT AKANTU_DEBUG)
@@ -217,6 +215,7 @@ set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
 set(CPACK_PACKAGE_VENDOR "LSMS")
 set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-src")
 set(CPACK_PACKAGE_VERSION "${AKANTU_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
 list(APPEND CPACK_SOURCE_IGNORE_FILES ${_exclude_source_file})
