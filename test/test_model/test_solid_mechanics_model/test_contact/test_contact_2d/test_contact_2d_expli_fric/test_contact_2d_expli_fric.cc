@@ -37,11 +37,11 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "contact.hh"
-#include "io_helper.h"
+#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
-#include "io_helper.h"
+#include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 #define NORMAL_PRESSURE -1.e6
@@ -85,7 +85,7 @@ DumperParaview dumper;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   UInt spatial_dimension = 2;
   UInt max_steps = 30000;

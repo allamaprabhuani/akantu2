@@ -74,8 +74,8 @@ class StaticCommunicator;
 /* -------------------------------------------------------------------------- */
 class RealStaticCommunicator {
 public:
-  RealStaticCommunicator(__attribute__ ((unused)) int * argc,
-			 __attribute__ ((unused)) char *** argv) {
+  RealStaticCommunicator(__attribute__ ((unused)) int & argc,
+			 __attribute__ ((unused)) char ** & argv) {
     prank = -1;
     psize = -1;
   };

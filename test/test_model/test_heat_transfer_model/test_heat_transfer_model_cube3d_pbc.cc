@@ -40,13 +40,14 @@ using namespace std;
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#include "io_helper.h"
+#include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(akantu::HeatTransferModel * model,Dumper & dumper);
+void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper);
 void paraviewDump(Dumper & dumper);
-akantu::UInt paraview_type = TETRA1;
+ElemType paraview_type = TETRA1;
 #endif
 
 akantu::UInt spatial_dimension = 3;
@@ -57,7 +58,7 @@ akantu:: ElementType type = akantu::_tetrahedron_4;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;

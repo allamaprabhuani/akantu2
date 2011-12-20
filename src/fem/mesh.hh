@@ -354,8 +354,8 @@ public:
   __aka_inline__ void getLowerBounds(Real * lower) const;
   __aka_inline__ void getUpperBounds(Real * upper) const;
 
-  inline void getLocalLowerBounds(Real * lower) const;
-  inline void getLocalUpperBounds(Real * upper) const;
+  __aka_inline__ void getLocalLowerBounds(Real * lower) const;
+  __aka_inline__ void getLocalUpperBounds(Real * upper) const;
 
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);

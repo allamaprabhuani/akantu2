@@ -39,7 +39,7 @@ macro(add_optional_package PACKAGE DESC DEFAULT)
     endif()
     find_package(${PACKAGE} REQUIRED)
     if(${_u_package}_FOUND)
-      add_definitions(-DAKANTU_USE_${_u_package})
+      list(APPEND AKANTU_DEFINITIONS AKANTU_USE_${_u_package})
       if(DEFINED ${_u_package}_INCLUDE_DIR)
         list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${${_u_package}_INCLUDE_DIR})
       else()
@@ -113,7 +113,7 @@ macro(add_all_packages package_dir)
       list(APPEND AKANTU_PACKAGE_NAMES_LIST_ON ${_option_name})
     else (AKANTU_${_option_name})
       list(APPEND AKANTU_PACKAGE_NAMES_LIST_OFF ${_option_name})
-      list(APPEND _unactivated_package_file ${_pkg})
+      list(APPEND AKANTU_UNACTIVATED_PACKAGE_FILE ${_pkg})
     endif()
 
     foreach(_file ${${_option_name}_FILES})
@@ -148,7 +148,7 @@ macro(add_all_packages package_dir)
 #      string(REGEX REPLACE "\\/" "\\\\\\\\/" __file ${_file})
 #      MESSAGE(${_file} " " ${__file})
 #      list(APPEND _exclude_source_file "/${__file}/")
-      list(APPEND _exclude_source_file ${_file})
+      list(APPEND AKANTU_EXCLUDE_SOURCE_FILE ${_file})
     endforeach()
   endforeach()
 
@@ -156,16 +156,15 @@ macro(add_all_packages package_dir)
   #check dependencies
   foreach(_pkg ${AKANTU_PACKAGE_NAMES_LIST_ON})
     # differentiate the file types
-    #    message("DEPENDS PKG : ${_pkg}")
-    #    message("DEPENDS LST : ${${_pkg}_DEPENDS}")
-    
+#        message("DEPENDS PKG : ${_pkg}")
+#        message("DEPENDS LST : ${${_pkg}_DEPENDS}")
     if (NOT "${${_pkg}_DEB_DEPEND}" STREQUAL "")
       set(deb_depend "${deb_depend}, ${${_pkg}_DEB_DEPEND}")
     endif()
-    
+
     foreach(_dep ${${_pkg}_DEPENDS})
 #      message("DEPENDS DEP : ${_dep}")
-      if (NOT AKANTU_${dep})
+      if (NOT AKANTU_${_dep})
         message(FATAL_ERROR "Package ${_pkg} depends on package ${_dep}. You need to activate it to make it work")
       endif()
     endforeach()
@@ -176,7 +175,7 @@ endmacro()
 #===============================================================================
 macro(generate_source_list_from_packages source_dir source_files headers_files include_dirs)
   set(deb_depend "libc6")
-  
+
 #  message("SRC DIR : ${source_dir}")
   foreach(_option_name ${AKANTU_PACKAGE_NAMES_LIST_ON})
     # differentiate the file types
@@ -212,4 +211,11 @@ macro(generate_source_list_from_packages source_dir source_files headers_files i
 #  message("HRDS : ${${headers_files}}")
 #  message("INCS : ${${include_dirs}}")
 
+endmacro()
+
+#===============================================================================
+macro(add_akantu_definitions)
+  foreach(_definition ${AKANTU_DEFINITIONS})
+    add_definitions(-D${_definition})
+  endforeach()
 endmacro()

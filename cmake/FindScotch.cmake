@@ -82,7 +82,7 @@ if(NOT SCOTCH_FOUND)
 endif()
 
 if(SCOTCH_INCLUDE_DIR)
-  file(STRINGS ${SCOTCH_INCLUDE_PATH}/scotch.h SCOTCH_INCLUDE_CONTENT)
+  file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
   string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
   if(_match)
     add_definitions(-DAKANTU_SCOTCH_NO_EXTERN)

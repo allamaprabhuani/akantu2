@@ -35,7 +35,8 @@
 #include "fem.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -56,13 +57,13 @@ static void trac(__attribute__ ((unused)) double * position,
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   UInt max_steps = 1000;
   Real epot, ekin;
 
 #ifdef AKANTU_USE_IOHELPER
   ElementType type  = _triangle_3;
-  UInt para_type = TRIANGLE1;
+  ElemType para_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
   Mesh mesh(2);
@@ -118,12 +119,12 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(BASE64);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::BASE64);
 
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-			 para_type, model.getFEM().getMesh().getNbElement(type), C_MODE);
+			 para_type, model.getFEM().getMesh().getNbElement(type), iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model.getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model.getForce().values, 2, "force");

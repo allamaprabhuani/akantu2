@@ -28,7 +28,9 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "solid_mechanics_model.hh"
-#include "io_helper.h"
+#include "io_helper.hh"
+
+using namespace iohelper;
 
 extern const akantu::UInt spatial_dimension;
 

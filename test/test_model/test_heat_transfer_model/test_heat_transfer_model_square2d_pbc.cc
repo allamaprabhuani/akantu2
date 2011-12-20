@@ -40,11 +40,12 @@ using namespace std;
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#include "io_helper.h"
+#include "io_helper.hh"
+using namespace iohelper;
 
 void paraviewInit(akantu::HeatTransferModel * model,Dumper & dumper);
 void paraviewDump(Dumper & dumper);
-akantu::UInt paraview_type = TRIANGLE1;
+ElemType paraview_type = TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
 akantu::UInt spatial_dimension = 2;
@@ -56,7 +57,7 @@ akantu:: ElementType type = akantu::_triangle_3;
 int main(int argc, char *argv[])
 {
   akantu::debug::setDebugLevel(akantu::dblWarning);
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;

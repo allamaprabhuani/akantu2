@@ -42,7 +42,7 @@ find_library(MUMPS_LIBRARY_PORD NAMES pord_seq pord_ptscotch pord
    )
 
 
-find_path(MUMPS_INCLUDE_PATH dmumps_c.h
+find_path(MUMPS_INCLUDE_DIR dmumps_c.h
   PATHS ${MUMPS_DIR}
   PATH_SUFFIXES include
   )
@@ -64,7 +64,7 @@ find_library(SCALAPACK_LIBRARY NAME scalapack
 mark_as_advanced(MUMPS_LIBRARY_COMMON)
 mark_as_advanced(MUMPS_LIBRARY_DMUMPS)
 mark_as_advanced(MUMPS_LIBRARY_PORD)
-mark_as_advanced(MUMPS_INCLUDE_PATH)
+mark_as_advanced(MUMPS_INCLUDE_DIR)
 
 mark_as_advanced(BLACS_LIBRARY_C)
 mark_as_advanced(BLACS_LIBRARY_F77)
@@ -99,4 +99,4 @@ endif(NOT Mumps_FOUND)
 #===============================================================================
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Mumps DEFAULT_MSG
-  MUMPS_LIBRARIES MUMPS_INCLUDE_PATH)
+  MUMPS_LIBRARIES MUMPS_INCLUDE_DIR)

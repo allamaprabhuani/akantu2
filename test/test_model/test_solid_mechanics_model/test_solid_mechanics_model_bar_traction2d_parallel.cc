@@ -42,7 +42,8 @@
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 int main(int argc, char *argv[])
@@ -54,7 +55,7 @@ int main(int argc, char *argv[])
   akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.8;
 
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
 

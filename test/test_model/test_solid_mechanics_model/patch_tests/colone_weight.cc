@@ -43,7 +43,8 @@
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]) {
   std::stringstream energy_file;
   akantu::ElementType type;
 #ifdef AKANTU_USE_IOHELPER
-   akantu::UInt paraview_type;
+   ElemType paraview_type;
 #endif //AKANTU_USE_IOHELPER
    UInt vel_damping_interval;
 
@@ -88,7 +89,7 @@ int main(int argc, char *argv[]) {
   akantu::UInt max_steps = 2000;
   akantu::Real time_factor = 0.8;
 
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   //  akantu::Real epot, ekin;
   akantu::Mesh mesh(spatial_dimension);

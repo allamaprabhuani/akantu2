@@ -36,6 +36,7 @@ if(EXISTS "${AKANTU_CMAKE_DIR}/CMakeCache.txt")
    include("${AKANTU_CMAKE_DIR}/AkantuBuildTreeSettings.cmake")
 else()
    set(AKANTU_INCLUDE_DIR "${AKANTU_CMAKE_DIR}/../../include/akantu")
+   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${AKANTU_CMAKE_DIR}/cmake")
 endif()
 
 include("${AKANTU_CMAKE_DIR}/AkantuLibraryDepends.cmake")

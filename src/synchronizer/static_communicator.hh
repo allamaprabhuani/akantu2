@@ -65,7 +65,7 @@ class StaticCommunicator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 protected:
-  StaticCommunicator(int * arc, char *** argv,
+  StaticCommunicator(int & argc, char ** & argv,
 		     CommunicatorType type = _communicator_mpi);
 
 public:
@@ -136,7 +136,7 @@ public:
 
   static StaticCommunicator * getStaticCommunicator(CommunicatorType type = _communicator_mpi);
 
-  static StaticCommunicator * getStaticCommunicator(int * argc, char *** argv,
+  static StaticCommunicator * getStaticCommunicator(int & argc, char ** & argv,
 						    CommunicatorType type = _communicator_mpi);
 
   static bool isInstantiated() { return is_instantiated; };

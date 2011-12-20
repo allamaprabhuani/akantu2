@@ -42,7 +42,7 @@
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[]) {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   akantu::UInt spatial_dimension = 2;
   akantu::Mesh mesh(spatial_dimension);

@@ -57,7 +57,7 @@ class StaticCommunicatorMPI : public RealStaticCommunicator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline StaticCommunicatorMPI(int * argc, char *** argv);
+  inline StaticCommunicatorMPI(int & argc, char ** & argv);
 
   inline virtual ~StaticCommunicatorMPI();
 

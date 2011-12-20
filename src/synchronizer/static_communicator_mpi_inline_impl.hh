@@ -37,9 +37,9 @@ inline CommunicationRequestMPI::~CommunicationRequestMPI() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline StaticCommunicatorMPI::StaticCommunicatorMPI(int * argc, char *** argv) : 
+inline StaticCommunicatorMPI::StaticCommunicatorMPI(int & argc, char ** & argv) : 
   RealStaticCommunicator(argc, argv) {
-  MPI_Init(argc, argv);
+  MPI_Init(&argc, &argv);
   setMPICommunicator(MPI_COMM_WORLD);
 }
 

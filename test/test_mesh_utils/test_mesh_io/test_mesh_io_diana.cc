@@ -40,7 +40,7 @@
 #include "mesh_io_diana.hh"
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */

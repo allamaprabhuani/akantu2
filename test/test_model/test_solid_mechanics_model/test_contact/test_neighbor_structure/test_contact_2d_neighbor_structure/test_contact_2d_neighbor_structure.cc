@@ -41,7 +41,8 @@
 using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 static void initParaview(Mesh & mesh);
 static void initParaviewSurface(Mesh & mesh);
 static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_list);
@@ -54,7 +55,7 @@ DumperParaview dumper_surface;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   int spatial_dimension = 2;
   Real time_factor = 0.2;

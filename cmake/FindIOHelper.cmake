@@ -32,14 +32,14 @@ find_library(IOHELPER_LIBRARY iohelper
   PATH_SUFFIXES lib
   )
 
-find_path(IOHELPER_INCLUDE_PATH io_helper.h
+find_path(IOHELPER_INCLUDE_DIR io_helper.hh
   PATHS ${IOHELPER_DIR}
   PATH_SUFFIXES include include/iohelper
   )
 
 #===============================================================================
 mark_as_advanced(IOHELPER_LIBRARY)
-mark_as_advanced(IOHELPER_INCLUDE_PATH)
+mark_as_advanced(IOHELPER_INCLUDE_DIR)
 
 #===============================================================================
 find_package(ZLIB REQUIRED)
@@ -54,4 +54,4 @@ endif()
 
 #===============================================================================
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(IOHelper DEFAULT_MSG IOHELPER_LIBRARY IOHELPER_INCLUDE_PATH)
+find_package_handle_standard_args(IOHelper DEFAULT_MSG IOHELPER_LIBRARY IOHELPER_INCLUDE_DIR)

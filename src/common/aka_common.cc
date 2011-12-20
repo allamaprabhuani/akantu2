@@ -35,7 +35,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-void initialize(int * argc, char *** argv) {
+void initialize(int & argc, char ** & argv) {
   AKANTU_DEBUG_IN();
 
   StaticMemory::getStaticMemory();

@@ -37,7 +37,8 @@
 #include "local_material_damage.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -57,7 +58,7 @@ static void trac(__attribute__ ((unused)) Real * position,
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   UInt max_steps = 2000;
   Real epot, ekin;
 

@@ -40,20 +40,20 @@ using namespace akantu;
 
 /* ------------------------------------------------------------------------ */
 template <ElementType type>
-static UInt getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return -1; };
+static ElemType getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return MAX_ELEM_TYPE; };
 
-template <> UInt getIOHelperType<_segment_2>()      { return LINE1; }
-template <> UInt getIOHelperType<_segment_3>()      { return LINE2; }
-template <> UInt getIOHelperType<_triangle_3>()     { return TRIANGLE1; }
-template <> UInt getIOHelperType<_triangle_6>()     { return TRIANGLE2; }
-template <> UInt getIOHelperType<_quadrangle_4>()   { return QUAD1; }
-template <> UInt getIOHelperType<_quadrangle_8>()   { return QUAD2; }
-template <> UInt getIOHelperType<_tetrahedron_4>()  { return TETRA1; }
-template <> UInt getIOHelperType<_tetrahedron_10>() { return TETRA2; }
-template <> UInt getIOHelperType<_hexahedron_8>()   { return HEX1; }
+template <> ElemType getIOHelperType<_segment_2>()      { return LINE1; }
+template <> ElemType getIOHelperType<_segment_3>()      { return LINE2; }
+template <> ElemType getIOHelperType<_triangle_3>()     { return TRIANGLE1; }
+template <> ElemType getIOHelperType<_triangle_6>()     { return TRIANGLE2; }
+template <> ElemType getIOHelperType<_quadrangle_4>()   { return QUAD1; }
+template <> ElemType getIOHelperType<_quadrangle_8>()   { return QUAD2; }
+template <> ElemType getIOHelperType<_tetrahedron_4>()  { return TETRA1; }
+template <> ElemType getIOHelperType<_tetrahedron_10>() { return TETRA2; }
+template <> ElemType getIOHelperType<_hexahedron_8>()   { return HEX1; }
 
-static UInt getIOHelperType(ElementType type) {
-  UInt ioh_type = -1;
+static ElemType getIOHelperType(ElementType type) {
+  ElemType ioh_type;
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = getIOHelperType<type>();
 

@@ -68,8 +68,8 @@ void CommunicationRequest::printself(std::ostream & stream, int indent) const {
 
 
 /* -------------------------------------------------------------------------- */
-StaticCommunicator::StaticCommunicator(int * argc,
-				       char *** argv,
+StaticCommunicator::StaticCommunicator(int & argc,
+				       char ** & argv,
 				       CommunicatorType type) {
   real_type = type;
 #ifdef AKANTU_USE_MPI
@@ -93,7 +93,9 @@ StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType 
       AKANTU_DEBUG_ERROR("You must call getStaticCommunicator(argc, argv) to create a MPI communicator");
     }
 #endif
-    static_communicator = new StaticCommunicator(0, NULL, type);
+    int nb_args = 0;
+    char ** null;
+    static_communicator = new StaticCommunicator(nb_args, null, type);
   }
 
   is_instantiated = true;
@@ -103,8 +105,8 @@ StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType 
 }
 
 /* -------------------------------------------------------------------------- */
-StaticCommunicator * StaticCommunicator::getStaticCommunicator(int * argc,
-							       char *** argv,
+StaticCommunicator * StaticCommunicator::getStaticCommunicator(int & argc,
+							       char ** & argv,
   							       CommunicatorType type) {
   if (!static_communicator)
     static_communicator = new StaticCommunicator(argc, argv, type);

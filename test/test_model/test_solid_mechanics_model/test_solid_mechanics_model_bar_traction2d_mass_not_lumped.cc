@@ -40,26 +40,26 @@
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
 using namespace iohelper;
-
-ElemType paraview_type = TRIANGLE2;
 #endif //AKANTU_USE_IOHELPER
 
+using namespace akantu;
+
 //#define CHECK_STRESS
-akantu::ElementType type = akantu::_triangle_6;
+akantu::ElementType type = akantu::_triangle_3;
+#ifdef AKANTU_USE_IOHELPER
+  ElemType paraview_type = TRIANGLE1;
+#endif //AKANTU_USE_IOHELPER
 
 akantu::SolidMechanicsModel * model;
 akantu::UInt spatial_dimension = 2;
 akantu::UInt nb_nodes;
 akantu::UInt nb_element;
-akantu::UInt nb_quadrature_points;
 
-akantu::Vector<akantu::Real> * stress;
-akantu::Vector<akantu::Real> * strain;
-akantu::Vector<akantu::Real> * damage;
+akantu::Vector<akantu::Real> * lumped;
 
 #ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(Dumper & dumper);
+static void paraviewDump(Dumper & dumper);
 #endif
 
 int main(int argc, char *argv[])
@@ -72,12 +72,14 @@ int main(int argc, char *argv[])
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
-  mesh_io.read("bar2.msh", mesh);
+  mesh_io.read("bar1.msh", mesh);
 
   model = new akantu::SolidMechanicsModel(mesh);
 
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);
+
+  lumped = new akantu::Vector<akantu::Real>(nb_nodes, spatial_dimension);
 
   /// model initialization
   model->initVectors();
@@ -89,20 +91,20 @@ int main(int argc, char *argv[])
   model->getDisplacement().clear();
 
   model->initExplicit();
+  //model->initImplicit(true);
   model->initModel();
   model->readMaterials("material.dat");
 
   std::cout << model->getMaterial(0) << std::endl;
 
   model->initMaterials();
-  model->assembleMassLumped();
 
-  nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
+  model->initSolver();
 
-  stress = new akantu::Vector<akantu::Real>(nb_element * nb_quadrature_points,
-					    spatial_dimension* spatial_dimension);
-  strain = new akantu::Vector<akantu::Real>(nb_element * nb_quadrature_points,
-					    spatial_dimension * spatial_dimension);
+  model->assembleMass();
+  //  model->assembleStiffnessMatrix();
+
+  model->getMassMatrix().lump(*lumped);
 
   /// boundary conditions
   akantu::Real eps = 1e-16;
@@ -121,27 +123,34 @@ int main(int argc, char *argv[])
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model->setTimeStep(time_step);
 
+  model->updateResidual();
+  model->initialAcceleration();
+
 
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
-  model->updateResidual();
-  iohelper::DumperParaview dumper;
+  DumperParaview dumper;
   paraviewInit(dumper);
 #endif //AKANTU_USE_IOHELPER
 
-
-#ifdef CHECK_STRESS
-  std::ofstream outfile;
-  outfile.open("stress");
-#endif // CHECK_STRESS
-
   std::ofstream energy;
-  energy.open("energy_bar_2d.csv");
+  energy.open("energy_bar_2d_not_lumped.csv");
   energy << "id,rtime,epot,ekin,tot" << std::endl;
 
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
-    model->explicitPred();
+    //    model->implicitPred();
+    // /// convergence loop
+    // UInt count = 0;
+    // Real error = 0.;
+    // do {
+    // 	std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
+    //   model->updateResidual();
+    //   model->solveDynamic();
+    //   model->implicitCorr();
+    //   count++;
+    // } while(!model->testConvergenceIncrement(1e-12, error) && (count < 1000));
 
+    model->explicitPred();
     model->updateResidual();
     model->updateAcceleration();
     model->explicitCorr();
@@ -152,59 +161,13 @@ int main(int argc, char *argv[])
     energy << s << "," << (s-1)*time_step << "," << epot << "," << ekin << "," << epot + ekin
 	   << std::endl;
 
-#ifdef CHECK_STRESS
-    /// search the position of the maximum of stress to determine the wave speed
-    akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
-    akantu::Real * stress = model->getMaterial(0).getStress(type).values;
-    for (akantu::UInt i = 0; i < nb_element; ++i) {
-      if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
-	max_stress = stress[i*spatial_dimension*spatial_dimension];
-      }
-    }
-
-    akantu::Real * coord    = model->getFEM().getMesh().getNodes().values;
-    akantu::Real * disp_val = model->getDisplacement().values;
-    akantu::UInt * conn     = model->getFEM().getMesh().getConnectivity(type).values;
-    akantu::UInt nb_nodes_per_element = model->getFEM().getMesh().getNbNodesPerElement(type);
-    akantu::Real * coords = new akantu::Real[spatial_dimension];
-    akantu::Real min_x = std::numeric_limits<akantu::Real>::max();
-    akantu::Real max_x = std::numeric_limits<akantu::Real>::min();
-
-    akantu::Real stress_range = 5e7;
-    for (akantu::UInt el = 0; el < nb_element; ++el) {
-      if(stress[el*spatial_dimension*spatial_dimension] > max_stress - stress_range) {
-	akantu::UInt el_offset  = el * nb_nodes_per_element;
-	memset(coords, 0, spatial_dimension*sizeof(akantu::Real));
-	for (akantu::UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  for (akantu::UInt i = 0; i < spatial_dimension; ++i) {
-	    akantu::UInt node = conn[el_offset + n] * spatial_dimension;
-	    coords[i] += (coord[node + i] + disp_val[node + i])
-	      / ((akantu::Real) nb_nodes_per_element);
-	  }
-	}
-	min_x = min_x < coords[0] ? min_x : coords[0];
-	max_x = max_x > coords[0] ? max_x : coords[0];
-      }
-    }
-
-
-    outfile << s << " " << .5 * (min_x + max_x) << " " << min_x << " " << max_x << " " << max_x - min_x << " " << max_stress << std::endl;
-
-    delete [] coords;
-#endif // CHECK_STRESS
-
-
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) paraviewDump(dumper);
+    if(s % 1 == 0) paraviewDump(dumper);
 #endif //AKANTU_USE_IOHELPER
     if(s % 100 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 
   energy.close();
-
-#ifdef CHECK_STRESS
-  outfile.close();
-#endif // CHECK_STRESS
 
   delete model;
 
@@ -218,12 +181,12 @@ int main(int argc, char *argv[])
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper) {
-  dumper.SetMode(iohelper::TEXT);
+void paraviewInit(Dumper & dumper) {
+  dumper.SetMode(TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "bar2d");
+		   spatial_dimension, nb_nodes, "bar2d_mass_not_lumped");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
+			 paraview_type, nb_element, C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,
@@ -232,39 +195,12 @@ void paraviewInit(iohelper::Dumper & dumper) {
 			  spatial_dimension, "acceleration");
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model->getMass().values,
-			  1, "mass");
   dumper.AddNodeDataField(model->getForce().values,
 			  spatial_dimension, "applied_force");
+  dumper.AddNodeDataField(lumped->values,
+			  spatial_dimension, "mass");
 
-  akantu::Real * mat = new akantu::Real[nb_element * nb_quadrature_points];
-  akantu::Vector<akantu::UInt> & elem_mat = model->getElementMaterial(type);
-  for (akantu::UInt e = 0; e < nb_element; ++e) {
-    for (akantu::UInt q = 0; q < nb_quadrature_points; ++q) {
-      mat[e * nb_quadrature_points + q] = elem_mat(e, 0);
-    }
-  }
 
-  akantu::UInt offset = nb_quadrature_points * spatial_dimension * spatial_dimension;
-  akantu::UInt nb_mat = model->getNbMaterials();
-  for (akantu::UInt m = 0; m < nb_mat; ++m) {
-    akantu::Material & material = model->getMaterial(m);
-    const akantu::Vector<akantu::UInt> & elmat = material.getElementFilter(type);
-    for (akantu::UInt e = 0; e < elmat.getSize(); ++e) {
-      memcpy(stress->values + elmat(e, 0) * offset,
-	     material.getStress(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-      memcpy(strain->values + elmat(e, 0) * offset,
-	     material.getStrain(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-    }
-  }
-
-  dumper.AddElemDataField(mat, 1, "material");
-  dumper.AddElemDataField(strain->values,
-   			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(stress->values,
-   			  spatial_dimension*spatial_dimension, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
   dumper.SetPrefix("paraview/");
@@ -273,22 +209,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  akantu::UInt offset = nb_quadrature_points * spatial_dimension * spatial_dimension;
-  akantu::UInt nb_mat = model->getNbMaterials();
-  for (akantu::UInt m = 0; m < nb_mat; ++m) {
-    akantu::Material & material = model->getMaterial(m);
-    const akantu::Vector<akantu::UInt> & elmat = material.getElementFilter(type);
-    for (akantu::UInt e = 0; e < elmat.getSize(); ++e) {
-      memcpy(stress->values + elmat(e, 0) * offset,
-	     material.getStress(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-      memcpy(strain->values + elmat(e, 0) * offset,
-	     material.getStrain(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-    }
-  }
-
+void paraviewDump(Dumper & dumper) {
   dumper.Dump();
 }
 #endif

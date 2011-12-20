@@ -42,8 +42,9 @@ using namespace std;
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#include "io_helper.h"
-akantu::UInt paraview_type = TETRA1;
+#include "io_helper.hh"
+using namespace iohelper;
+ElemType paraview_type = TETRA1;
 #endif //AKANTU_USE_IOHELPER
 
  akantu::UInt spatial_dimension = 3;
@@ -67,7 +68,7 @@ akantu::UInt nb_element;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;

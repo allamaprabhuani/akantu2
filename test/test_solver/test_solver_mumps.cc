@@ -33,7 +33,7 @@
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   //  akantu::debug::setDebugLevel(akantu::dblDump);
 

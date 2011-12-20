@@ -97,6 +97,9 @@ public:
   /// get the stable time step
   __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
 
+  AKANTU_GET_MACRO(E, E, Real);
+  AKANTU_GET_MACRO(Nu, nu, Real);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

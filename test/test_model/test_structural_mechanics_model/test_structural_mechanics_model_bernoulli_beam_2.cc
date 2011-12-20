@@ -43,7 +43,8 @@
 using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 
 void paraviewInit(Dumper & dumper, const StructuralMechanicsModel & model);
 void paraviewDump(Dumper & dumper);
@@ -58,7 +59,7 @@ static void lin_load(double * position, double * load,
 
 int main(int argc, char *argv[]){
 
-  initialize(&argc, &argv);
+  initialize(argc, argv);
   Mesh beams(2);
   debug::setDebugLevel(dblWarning);
 
@@ -186,16 +187,16 @@ int main(int argc, char *argv[]){
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> UInt paraviewType();
-template <> UInt paraviewType<_segment_2>()      { return LINE1; };
-template <> UInt paraviewType<_segment_3>()      { return LINE2; };
-template <> UInt paraviewType<_triangle_3>()     { return TRIANGLE1; };
-template <> UInt paraviewType<_triangle_6>()     { return TRIANGLE2; };
-template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1; };
-template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1; };
-template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2; };
-template <> UInt paraviewType<_hexahedron_8>()   { return HEX1; };
-template <> UInt paraviewType<_bernoulli_beam_2>(){ return LINE1; };
+template <ElementType type> ElemType paraviewType();
+template <> ElemType paraviewType<_segment_2>()      { return LINE1; };
+template <> ElemType paraviewType<_segment_3>()      { return LINE2; };
+template <> ElemType paraviewType<_triangle_3>()     { return TRIANGLE1; };
+template <> ElemType paraviewType<_triangle_6>()     { return TRIANGLE2; };
+template <> ElemType paraviewType<_quadrangle_4>()   { return QUAD1; };
+template <> ElemType paraviewType<_tetrahedron_4>()  { return TETRA1; };
+template <> ElemType paraviewType<_tetrahedron_10>() { return TETRA2; };
+template <> ElemType paraviewType<_hexahedron_8>()   { return HEX1; };
+template <> ElemType paraviewType<_bernoulli_beam_2>(){ return LINE1; };
 /* -------------------------------------------------------------------------- */
 void paraviewInit(Dumper & dumper, const StructuralMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();

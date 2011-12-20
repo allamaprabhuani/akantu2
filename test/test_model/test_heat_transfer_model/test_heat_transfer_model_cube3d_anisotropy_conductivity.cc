@@ -42,7 +42,7 @@ using namespace std;
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#include "io_helper.h"
+#include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
  akantu::UInt spatial_dimension = 3;

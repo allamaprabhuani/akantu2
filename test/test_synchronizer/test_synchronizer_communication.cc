@@ -38,7 +38,8 @@
 #include "communication_buffer.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -166,7 +167,7 @@ void TestAccessor::unpackData(__attribute__ ((unused)) CommunicationBuffer & buf
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  initialize(&argc, &argv);
+  initialize(argc, argv);
 
   int dim = 2;
   ElementType type = _triangle_3;

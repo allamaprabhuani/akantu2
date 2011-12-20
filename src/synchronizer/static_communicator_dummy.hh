@@ -44,8 +44,8 @@ class StaticCommunicatorDummy : public RealStaticCommunicator {
   /* ------------------------------------------------------------------------ */
 public:
 
-  StaticCommunicatorDummy(__attribute__ ((unused)) int * argc,
-			  __attribute__ ((unused)) char *** argv) : RealStaticCommunicator(argc, argv) {
+  StaticCommunicatorDummy(__attribute__ ((unused)) int & argc,
+			  __attribute__ ((unused)) char ** & argv) : RealStaticCommunicator(argc, argv) {
     prank = 0;
     psize = 1;
   };

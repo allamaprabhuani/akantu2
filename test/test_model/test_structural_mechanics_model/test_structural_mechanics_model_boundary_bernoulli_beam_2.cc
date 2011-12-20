@@ -42,7 +42,8 @@
 using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 
 void paraviewInit(Dumper & dumper, const StructuralMechanicsModel & model);
 void paraviewDump(Dumper & dumper);
@@ -57,7 +58,7 @@ static void lin_load(double * position, double * load,
 
 int main(int argc, char *argv[]){
 
-  initialize(&argc, &argv);
+  initialize(argc, argv);
   Mesh beams(2);
   debug::setDebugLevel(dblWarning);
 

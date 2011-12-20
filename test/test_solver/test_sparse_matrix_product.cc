@@ -40,7 +40,7 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  initialize(&argc, &argv);
+  initialize(argc, argv);
   const UInt spatial_dimension = 2;
   const UInt nb_dof = 3;
 

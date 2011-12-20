@@ -42,7 +42,8 @@
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 #define CHECK_STRESS
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
 
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();

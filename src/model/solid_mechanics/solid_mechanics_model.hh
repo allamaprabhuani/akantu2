@@ -80,8 +80,8 @@ public:
 
   /// initialize completely the model
   void initFull(std::string material_file = "",
-                bool explicit_scheme = true,
-                bool implicit_scheme = false, bool implicit_dynamic = false);
+                bool implicit_scheme = false,
+                bool implicit_dynamic = false);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary(bool create_surface = true);

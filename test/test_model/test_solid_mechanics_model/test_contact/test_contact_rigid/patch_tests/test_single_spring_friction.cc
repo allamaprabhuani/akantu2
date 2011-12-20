@@ -32,7 +32,8 @@
 #include <stdlib.h>
 
 #ifdef AKANTU_USE_IOHELPER
-#include <io_helper.h>
+#include <io_helper.hh>
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 #include "aka_common.hh"
@@ -62,7 +63,7 @@ UInt the_node = 0;
 
 const ElementType element_type = _triangle_3; 
 #ifdef AKANTU_USE_IOHELPER
-const UInt paraview_type = TRIANGLE1; 
+const ElemType paraview_type = TRIANGLE1; 
 #endif //AKANTU_USE_IOHELPER
 const char* mesh_name = "single_triangle.msh";
 const char* folder_name = "single_spring_friction";
@@ -121,7 +122,7 @@ bool testFloat(Real a, Real b, Real adm_error);
 /* -------------------------------------------------------------------------- */
 Int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
   debug::setDebugLevel(dblWarning);
 
   // 1: name

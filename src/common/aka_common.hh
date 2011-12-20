@@ -312,7 +312,7 @@ inline std::ostream & operator <<(std::ostream & stream, GhostType type)
 }
 
 /* -------------------------------------------------------------------------- */
-void initialize(int * argc, char *** argv);
+void initialize(int & argc, char ** & argv);
 
 /* -------------------------------------------------------------------------- */
 void finalize ();

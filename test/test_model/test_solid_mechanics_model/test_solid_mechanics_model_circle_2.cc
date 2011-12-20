@@ -35,7 +35,7 @@
 #include "fem.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -51,7 +51,7 @@ static void trac(__attribute__ ((unused)) Real * position,
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   UInt max_steps = 10000;
   Real epot, ekin;
 
@@ -90,12 +90,13 @@ int main(int argc, char *argv[])
   model->computeForcesFromFunction(trac, akantu::_bft_stress);
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(BASE64);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::BASE64);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_6).values,
-			 TRIANGLE2, model->getFEM().getMesh().getNbElement(_triangle_6), C_MODE);
+			 iohelper::TRIANGLE2, model->getFEM().getMesh().getNbElement(_triangle_6), 
+			 iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model->getForce().values, 2, "force");

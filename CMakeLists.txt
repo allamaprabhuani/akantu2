@@ -106,7 +106,7 @@ add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
 
 # Debug
 if(NOT AKANTU_DEBUG)
-  add_definitions(-DAKANTU_NDEBUG)
+  list(APPEND AKANTU_DEFINITIONS AKANTU_NDEBUG)
 endif(NOT AKANTU_DEBUG)
 
 #===============================================================================
@@ -130,8 +130,8 @@ else()
   set(AKANTU_SOLVER OFF)
 endif()
 
-#===============================================================================
-# Library
+add_akantu_definitions()
+
 #===============================================================================
 
 add_subdirectory(src)
@@ -197,18 +197,24 @@ install(FILES ${CMAKE_BINARY_DIR}/AkantuConfig.cmake
   DESTINATION  lib/akantu
   COMPONENT dev)
 
+install(FILES
+  ${CMAKE_SOURCE_DIR}/cmake/FindIOHelper.cmake
+  ${CMAKE_SOURCE_DIR}/cmake/FindMumps.cmake
+  ${CMAKE_SOURCE_DIR}/cmake/FindScotch.cmake
+  ${CMAKE_SOURCE_DIR}/cmake/FindGMSH.cmake
+  DESTINATION  lib/akantu/cmake
+  COMPONENT dev)
+
 #===============================================================================
 # Package builder target module of CPack
 #===============================================================================
 set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch") 
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch")
 #message(${CPACK_DEBIAN_PACKAGE_DEPENDS})
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "i.86")
-  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64" CACHE STRING "Architecture of debian package generation")
 else()
-  message(FAILURE "The architecture is unkown")
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
 endif()
 #message("CPACK_DEBIAN_PACKAGE_ARCHITECTURE = ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
@@ -218,8 +224,8 @@ set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-${CPACK_DEBI
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-src")
 set(CPACK_PACKAGE_VERSION "${AKANTU_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
-list(APPEND CPACK_SOURCE_IGNORE_FILES ${_exclude_source_file})
-list(APPEND CPACK_SOURCE_IGNORE_FILES ${_unactivated_package_file})
+list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_EXCLUDE_SOURCE_FILE})
+list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_UNACTIVATED_PACKAGE_FILE})
 list(APPEND CPACK_SOURCE_IGNORE_FILES "/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 include(CPack)
 

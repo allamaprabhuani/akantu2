@@ -40,7 +40,8 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 #ifdef AKANTU_USE_SCOTCH
@@ -50,11 +51,11 @@
 int main(int argc, char *argv[])
 {
 
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_segment_2;
-  akantu::UInt paraview_type = LINE1;
+  ElemType paraview_type = LINE1;
 #endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 1;
   // akantu::UInt max_steps = 10000;

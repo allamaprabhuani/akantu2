@@ -44,7 +44,8 @@
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 #ifdef AKANTU_USE_SCOTCH
@@ -66,7 +67,7 @@
 int main(int argc, char *argv[])
 {
   akantu::debug::setDebugLevel(akantu::dblWarning);
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   akantu::UInt spatial_dimension = 2;
 
@@ -130,7 +131,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_triangle_6;
-  akantu::UInt paraview_type = TRIANGLE2;
+  ElemType paraview_type = TRIANGLE2;
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
   /// initialize the paraview output

@@ -37,14 +37,15 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   int dim = 3;
 
   Mesh mesh(dim);

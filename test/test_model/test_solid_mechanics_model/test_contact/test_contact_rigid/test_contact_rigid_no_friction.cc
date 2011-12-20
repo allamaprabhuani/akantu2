@@ -49,7 +49,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   const ElementType element_type = TYPE;
   UInt dim = Mesh::getSpatialDimension(element_type);

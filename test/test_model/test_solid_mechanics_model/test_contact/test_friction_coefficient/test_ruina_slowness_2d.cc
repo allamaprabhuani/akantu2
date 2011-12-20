@@ -46,14 +46,14 @@
 #include "contact_search_explicit.hh"
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   UInt dim = 2;
   const ElementType element_type = _triangle_3;

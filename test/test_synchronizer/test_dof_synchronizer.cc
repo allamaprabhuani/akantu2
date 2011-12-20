@@ -35,7 +35,7 @@
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
   debug::setDebugLevel(dblDebug);
 
-  initialize(&argc, &argv);
+  initialize(argc, argv);
   StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm->getNbProc();
   Int prank = comm->whoAmI();

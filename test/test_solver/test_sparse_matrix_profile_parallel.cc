@@ -44,7 +44,7 @@
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   int dim = 2;
   //#ifdef AKANTU_USE_IOHELPER

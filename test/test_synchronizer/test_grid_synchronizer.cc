@@ -127,7 +127,7 @@ void TestAccessor::unpackData(CommunicationBuffer & buffer,
 }
 
 int main(int argc, char *argv[]) {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
 
   UInt spatial_dimension = 2;
   //  ElementType type = _triangle_3;

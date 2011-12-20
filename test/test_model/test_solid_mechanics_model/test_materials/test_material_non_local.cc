@@ -36,7 +36,9 @@
 using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
+using namespace iohelper;
+
 void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model);
 void paraviewDump(Dumper & dumper);
 #endif
@@ -45,7 +47,7 @@ ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", "test")
 const ElementType TYPE = _triangle_6;
 
 int main(int argc, char *argv[]) {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
   debug::setDebugLevel(akantu::dblWarning);
 
   UInt spatial_dimension = 2;
@@ -135,15 +137,15 @@ int main(int argc, char *argv[]) {
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> UInt paraviewType();
-template <> UInt paraviewType<_segment_2>()      { return LINE1;     };
-template <> UInt paraviewType<_segment_3>()      { return LINE2;     };
-template <> UInt paraviewType<_triangle_3>()     { return TRIANGLE1; };
-template <> UInt paraviewType<_triangle_6>()     { return TRIANGLE2; };
-template <> UInt paraviewType<_quadrangle_4>()   { return QUAD1;     };
-template <> UInt paraviewType<_tetrahedron_4>()  { return TETRA1;    };
-template <> UInt paraviewType<_tetrahedron_10>() { return TETRA2;    };
-template <> UInt paraviewType<_hexahedron_8>()   { return HEX1;      };
+template <ElementType type> ElemType paraviewType();
+template <> ElemType paraviewType<_segment_2>()      { return LINE1;     };
+template <> ElemType paraviewType<_segment_3>()      { return LINE2;     };
+template <> ElemType paraviewType<_triangle_3>()     { return TRIANGLE1; };
+template <> ElemType paraviewType<_triangle_6>()     { return TRIANGLE2; };
+template <> ElemType paraviewType<_quadrangle_4>()   { return QUAD1;     };
+template <> ElemType paraviewType<_tetrahedron_4>()  { return TETRA1;    };
+template <> ElemType paraviewType<_tetrahedron_10>() { return TETRA2;    };
+template <> ElemType paraviewType<_hexahedron_8>()   { return HEX1;      };
 
 /* -------------------------------------------------------------------------- */
 void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {

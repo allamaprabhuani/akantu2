@@ -35,7 +35,7 @@
 #include "fem.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -53,7 +53,7 @@ void trac(double * position,double * traction){
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   UInt max_steps = 1;
   Real epot, ekin;
 

@@ -47,7 +47,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
   akantu::debug::setDebugLevel(akantu::dblWarning);
 
   const ElementType element_type = TYPE;

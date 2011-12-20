@@ -28,8 +28,9 @@
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
-#include <io_helper.h>
-#include <reader_restart.h>
+#include <io_helper.hh>
+#include <reader_restart.hh>
+using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 #include "aka_common.hh"
@@ -59,7 +60,7 @@ void freeMap(std::map < std::string, VectorBase* > & map);
 
 UInt dim = 2;
 const ElementType element_type = _triangle_3;
-const UInt paraview_type = TRIANGLE1;
+const ElemType paraview_type = TRIANGLE1;
 
 Surface master;
 UInt nb_nodes;
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   debug::setDebugLevel(dblWarning);
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
  
   /// load mesh
   Mesh my_mesh(dim);

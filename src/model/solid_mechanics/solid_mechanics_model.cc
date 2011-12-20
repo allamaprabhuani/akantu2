@@ -116,7 +116,6 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initFull(std::string material_file,
-                                   bool explicit_scheme,
                                    bool implicit_scheme,
                                    bool implicit_dynamic) {
   // initialize the model
@@ -124,17 +123,18 @@ void SolidMechanicsModel::initFull(std::string material_file,
 
   // initialize the vectors
   initVectors();
-  getForce().clear();
-  getVelocity().clear();
-  getAcceleration().clear();
-  getDisplacement().clear();
+
+  // set the initial condition to 0
+  force->clear();
+  velocity->clear();
+  acceleration->clear();
+  displacement->clear();
 
   // initialize the time integration schemes
-  if(explicit_scheme)
-    initExplicit();
-
   if(implicit_scheme)
     initImplicit(implicit_dynamic);
+  else
+    initExplicit();
 
   // initialize the materials
   if(material_file != "") {

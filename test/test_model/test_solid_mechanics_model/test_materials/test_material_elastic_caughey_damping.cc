@@ -48,7 +48,7 @@ bool testFloat(Real a, Real b, Real adm_error);
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc, &argv);
+  akantu::initialize(argc, argv);
   akantu::debug::setDebugLevel(akantu::dblWarning);
   
   const ElementType element_type = TYPE;

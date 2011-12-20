@@ -36,19 +36,19 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   akantu::UInt max_steps = 10000;
   akantu::Real epot, ekin;
 
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_tetrahedron_4;
-  akantu::UInt paratype = TETRA1;
+  iohelper::ElemType paratype = iohelper::TETRA1;
 #endif //AKANTU_USE_IOHELPER
 
   akantu::Mesh mesh(3);
@@ -97,12 +97,12 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   //  dumper.SetMode(TEXT);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paratype, model->getFEM().getMesh().getNbElement(type), C_MODE);
+			 paratype, model->getFEM().getMesh().getNbElement(type), iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 3, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 3, "velocity");
   dumper.AddNodeDataField(model->getMass().values, 1, "mass");

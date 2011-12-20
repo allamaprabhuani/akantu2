@@ -38,12 +38,12 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.h"
+#  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(&argc,&argv);
+  akantu::initialize(argc, argv);
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
