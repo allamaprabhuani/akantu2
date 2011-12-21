@@ -148,7 +148,7 @@ Real MaterialNeohookean::celerity(const Element & elem) {
     coef, rhot;
 
   for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    memset(F,0.,3*3*sizeof(Real));
+    std::fill_n(F, 0., 3*3);
 
     for (UInt i = 0; i < spatial_dimension; ++i)
       for (UInt j = 0; j < spatial_dimension; ++j)

@@ -148,7 +148,7 @@ namespace debug {
       if(this->level >= level) {
         struct timeval time;
         gettimeofday(&time, NULL);
-        long long  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
+        double  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
         *(cout) << parallel_context
                 << "{" << timestamp << "} "
                 << prefix << info << " "

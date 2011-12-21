@@ -342,7 +342,7 @@ ByElementType<Stored>::firstType(UInt dim, GhostType ghost_type) const {
   }
 
   if(dim != 0) while((b != e) && dim != Mesh::getSpatialDimension(b->first)) ++b;
-  return ByElementType<Stored>::type_iterator(b, e, dim);
+  return typename ByElementType<Stored>::type_iterator(b, e, dim);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -355,7 +355,7 @@ ByElementType<Stored>::lastType(UInt dim, GhostType ghost_type) const {
   } else {
     e = ghost_data.end();
   }
-  return ByElementType<Stored>::type_iterator(e, e, dim);
+  return typename ByElementType<Stored>::type_iterator(e, e, dim);
 }
 
 

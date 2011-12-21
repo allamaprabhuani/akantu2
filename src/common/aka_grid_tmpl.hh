@@ -45,7 +45,7 @@ RegularGrid<T>::RegularGrid(UInt dimension, Real * lower_bounds,
     this->spacing[i]      = spacing[i];
 
     // +2 to add an extra cell on each side
-    this->nb_cells[i]     = std::ceil((upper_bounds[i] - lower_bounds[i]) / spacing[i]) + 2;
+    this->nb_cells[i] = UInt(std::ceil((upper_bounds[i] - lower_bounds[i]) / spacing[i]) + 2);
 
     total_nb_cells *= this->nb_cells[i];
 
@@ -86,7 +86,7 @@ inline UInt RegularGrid<T>::getNumCell(const types::RVector & position) const {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline UInt RegularGrid<T>::getCell(Real position, UInt direction) const {
-  return std::floor((position - lower_bounds[direction]) / spacing[direction]) + 1;
+  return UInt(std::floor((position - lower_bounds[direction]) / spacing[direction]) + 1);
 }
 
 /* -------------------------------------------------------------------------- */
