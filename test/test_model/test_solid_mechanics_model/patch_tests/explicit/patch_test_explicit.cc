@@ -38,7 +38,6 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -48,8 +47,8 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 		      { 0.09, 0.10, 0.11, 0.12 } };
 
 #ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model);
-static void paraviewDump(Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
+static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -191,7 +190,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   my_model.updateResidual();
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(dumper, my_model);
 #endif
   std::ofstream energy;
@@ -317,34 +316,34 @@ int main(int argc, char *argv[])
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dumper vars                                                                */
+/* iohelper::Dumper vars                                                                */
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
-template <ElementType type> static ElemType paraviewType();
+template <ElementType type> static iohelper::ElemType paraviewType();
 
-template <> ElemType paraviewType<_segment_2>()      { return LINE1; }
-template <> ElemType paraviewType<_segment_3>()      { return LINE2; }
-template <> ElemType paraviewType<_triangle_3>()     { return TRIANGLE1; }
-template <> ElemType paraviewType<_triangle_6>()     { return TRIANGLE2; }
-template <> ElemType paraviewType<_quadrangle_4>()   { return QUAD1; }
-template <> ElemType paraviewType<_quadrangle_8>()   { return QUAD2; }
-template <> ElemType paraviewType<_tetrahedron_4>()  { return TETRA1; }
-template <> ElemType paraviewType<_tetrahedron_10>() { return TETRA2; }
-template <> ElemType paraviewType<_hexahedron_8>()   { return HEX1; }
+template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; }
+template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; }
+template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; }
+template <> iohelper::ElemType paraviewType<_quadrangle_8>()   { return iohelper::QUAD2; }
+template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; }
+template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; }
+template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; }
 
-void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {
+void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
   UInt nb_nodes   = model.getFEM().getMesh().getNbNodes();
   UInt nb_element = model.getFEM().getMesh().getNbElement(TYPE);
 
   std::stringstream filename; filename << "out_" << TYPE;
 
-  dumper.SetMode(TEXT);
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, filename.str().c_str());
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
-			 paraviewType<TYPE>(), nb_element, C_MODE);
+			 paraviewType<TYPE>(), nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model.getVelocity().values,
@@ -367,7 +366,7 @@ void paraviewInit(Dumper & dumper, const SolidMechanicsModel & model) {
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump(Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

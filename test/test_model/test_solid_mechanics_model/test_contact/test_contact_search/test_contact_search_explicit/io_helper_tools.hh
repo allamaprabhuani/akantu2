@@ -29,24 +29,24 @@
 #include "aka_common.hh"
 #include "solid_mechanics_model.hh"
 #include "io_helper.hh"
-using namespace iohelper;
+
 
 extern const akantu::UInt spatial_dimension;
 
 /* ------------------------------------------------------------------------ */
-void paraviewInit(Dumper & dumper,
+void paraviewInit(iohelper::Dumper & dumper,
 		  const akantu::SolidMechanicsModel & model,
 		  const akantu::ElementType & type,
 		  const std::string & filename);
 
-void paraviewDump(Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 
-// void checkpointInit(Dumper & dumper,
+// void checkpointInit(iohelper::Dumper & dumper,
 // 		    const akantu::SolidMechanicsModel & model,
 // 		    const akantu::ElementType & type,
 // 		    const std::string & filename);
 
-// void checkpoint(Dumper & dumper,
+// void checkpoint(iohelper::Dumper & dumper,
 // 		const akantu::SolidMechanicsModel & model);
 
 // void restart(const akantu::SolidMechanicsModel & model,

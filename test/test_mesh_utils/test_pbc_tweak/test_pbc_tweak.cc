@@ -39,7 +39,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -74,13 +74,13 @@ int main(int argc, char *argv[])
   /* -------------------------------------------------------------------------- */
   
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
 
   UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-pbc-tweak");
   dumper.SetConnectivity((int*)mesh.getConnectivity(_hexahedron_8).values,
-			 HEX1, mesh.getNbElement(_hexahedron_8), C_MODE);
+			 iohelper::HEX1, mesh.getNbElement(_hexahedron_8), iohelper::C_MODE);
   dumper.AddNodeDataField(model->getMass().values,
 			  3, "mass");
   dumper.SetPrefix("paraview/");

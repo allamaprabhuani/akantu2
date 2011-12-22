@@ -36,7 +36,8 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+using iohelper::ElemType;
+using iohelper::DumperParaview;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -63,7 +64,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   ElementType type  = _triangle_3;
-  ElemType para_type = iohelper::TRIANGLE1;
+  iohelper::ElemType para_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
   Mesh mesh(2);

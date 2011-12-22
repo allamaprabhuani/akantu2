@@ -45,7 +45,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 #ifdef AKANTU_USE_SCOTCH
@@ -131,17 +131,17 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_triangle_6;
-  ElemType paraview_type = TRIANGLE2;
+  iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
   /// initialize the paraview output
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "implicit");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,

@@ -55,7 +55,8 @@ enable_language(CXX)
 set(AKANTU_CMAKE_DIR "${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
-INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
+
+include(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 
 #===============================================================================
 # Version Number
@@ -64,8 +65,8 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 # AKANTU version number.  An even minor number corresponds to releases.
 set(AKANTU_MAJOR_VERSION 0)
 set(AKANTU_MINOR_VERSION 1)
-include(FindSubversion)
 
+find_package(Subversion)
 if (EXISTS ${CMAKE_SOURCE_DIR}/.svn)
   if(SUBVERSION_FOUND)
     subversion_wc_info(${CMAKE_SOURCE_DIR} MY)
@@ -75,13 +76,14 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.svn)
       )
     file(WRITE VERSION "${AKANTU_VERSION}\n")
   else(SUBVERSION_FOUND)
-    MESSAGE(SEND_ERROR "SVN control files were found but no subversion executable is present... ")
+    message("SVN control files were found but no subversion executable is present... ")
+    set(AKANTU_VERSION 0)
   endif(SUBVERSION_FOUND)
 else(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
   if(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
-    FILE(STRINGS VERSION AKANTU_VERSION)
+    file(STRINGS VERSION AKANTU_VERSION)
   else(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
-    MESSAGE(SEND_ERROR "No SVN control file neither VERSION file could be found. How was this release made ?")
+    message("No SVN control file neither VERSION file could be found. How was this release made ?")
   endif(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
 endif(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
 

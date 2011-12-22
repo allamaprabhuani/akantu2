@@ -36,7 +36,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 
@@ -65,11 +65,11 @@ int main(int argc, char *argv[])
   unsigned int nb_nodes = mesh.getNbNodes();
   unsigned int nb_element = mesh.getNbElement(type);
 
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
   dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
-   			 TRIANGLE2, nb_element, C_MODE);
+   			 iohelper::TRIANGLE2, nb_element, iohelper::C_MODE);
 
   akantu::UInt  nb_quadrature_points = 3;
   double * part = new double[nb_element*nb_quadrature_points];

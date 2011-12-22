@@ -167,12 +167,12 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_3).values,
-			 TRIANGLE1, model->getFEM().getMesh().getNbElement(_triangle_3), C_MODE);
+			 iohelper::TRIANGLE1, model->getFEM().getMesh().getNbElement(_triangle_3), iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model->getForce().values, 2, "force");

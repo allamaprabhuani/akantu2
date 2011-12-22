@@ -32,7 +32,7 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #include <io_helper.hh>
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 #include "aka_common.hh"
@@ -62,7 +62,7 @@ UInt the_node = 0;
 
 const ElementType element_type = _triangle_3; 
 #ifdef AKANTU_USE_IOHELPER
-const ElemType paraview_type = TRIANGLE1; 
+const iohelper::ElemType paraview_type = iohelper::TRIANGLE1; 
 #endif //AKANTU_USE_IOHELPER
 const char* mesh_name = "single_triangle.msh";
 const char* folder_name = "single_spring_friction_vel_weak_exp";
@@ -105,7 +105,7 @@ Real * mass;
 std::map < std::string, VectorBase* > restart_map;
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper);
+void paraviewInit(iohelper::Dumper & dumper);
 #endif //AKANTU_USE_IOHELPER
 
 void loadRestartInformation(ContactRigid * contact);
@@ -231,7 +231,7 @@ Int main(int argc, char *argv[])
 
   /// initialize the paraview output
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
 #endif //AKANTU_USE_IOHELPER
   std::ofstream out_info;  
   if (!patch_test) {
@@ -340,15 +340,15 @@ Int main(int argc, char *argv[])
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper) {
+void paraviewInit(iohelper::Dumper & dumper) {
   std::stringstream name;
   name << "paraview/" << folder_name << "/";
 
-  dumper.SetMode(TEXT);
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(element_type).values,
-			 paraview_type, nb_elements, C_MODE);
+			 paraview_type, nb_elements, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,

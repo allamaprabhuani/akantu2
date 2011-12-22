@@ -47,31 +47,31 @@ using namespace std;
 
  akantu::UInt spatial_dimension = 3;
  akantu:: ElementType type = akantu::_tetrahedron_4;
- akantu::UInt paraview_type = TETRA1;
+ akantu::UInt paraview_type = iohelper::TETRA1;
 
 
 // akantu::UInt spatial_dimension = 3;
 // akantu:: ElementType type = akantu::_hexahedron_8;
-// akantu::UInt paraview_type = HEX1;
+// akantu::UInt paraview_type = iohelper::HEX1;
 // //just for checking
 // akantu::UInt spatial_dimension = 2;
 // akantu:: ElementType type = akantu::_triangle_3;
-// akantu::UInt paraview_type = TRIANGLE1;
+// akantu::UInt paraview_type = iohelper::TRIANGLE1;
 
 // akantu::UInt spatial_dimension = 2;
 // akantu:: ElementType type = akantu::_quadrangle_4;
-//  akantu::UInt paraview_type = QUAD1;
+//  akantu::UInt paraview_type = iohelper::QUAD1;
 
  // akantu::UInt spatial_dimension = 1;
  // akantu:: ElementType type = akantu::_segment_2;
- // akantu::UInt paraview_type = LINE1;
+ // akantu::UInt paraview_type = iohelper::LINE1;
 
 //just for checking
  
 
 
-void paraviewInit(Dumper & dumper);
-void paraviewDump(Dumper & dumper);
+void paraviewInit(iohelper::Dumper & dumper);
+void paraviewDump iohelper::Dumper & dumper);
 
 akantu::HeatTransferModel * model;
 
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
    
   }
 
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(dumper);
   model->assembleMassLumped(type);
 
@@ -238,12 +238,12 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void paraviewInit(Dumper & dumper) {
-  dumper.SetMode(TEXT);
+void paraviewInit(iohelper::Dumper & dumper) {
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
    dumper.AddNodeDataField(model->getTemperature().values,
     1, "temperature");
   dumper.AddNodeDataField(model->getHeatFlux().values,
@@ -258,7 +258,7 @@ void paraviewInit(Dumper & dumper) {
 }
 
 
-void paraviewDump(Dumper & dumper) {
+void paraviewDump iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

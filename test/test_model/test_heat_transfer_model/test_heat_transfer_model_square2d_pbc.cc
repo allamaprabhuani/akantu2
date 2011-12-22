@@ -41,11 +41,11 @@ using namespace std;
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
-using namespace iohelper;
 
-void paraviewInit(akantu::HeatTransferModel * model,Dumper & dumper);
-void paraviewDump(Dumper & dumper);
-ElemType paraview_type = TRIANGLE1;
+
+void paraviewInit(akantu::HeatTransferModel * model iohelper::Dumper & dumper);
+void paraviewDump iohelper::Dumper & dumper);
+ElemType paraview_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
 akantu::UInt spatial_dimension = 2;
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 
   /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(model,dumper);
 #endif
   /* ------------------------------------------------------------------------ */
@@ -151,16 +151,16 @@ int main(int argc, char *argv[])
 }
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
+void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper) {
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
 
 
-  //  dumper.SetMode(TEXT);
+  //  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getTemperature().values,
 			  1, "temperature");
   dumper.AddNodeDataField(model->getTemperatureRate().values,
@@ -182,7 +182,7 @@ void paraviewInit(akantu::HeatTransferModel * model, Dumper & dumper) {
 
 /* -------------------------------------------------------------------------- */
 
-void paraviewDump(Dumper & dumper) {
+void paraviewDump iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 #endif

@@ -39,9 +39,9 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
 
-ElemType paraview_type = TRIANGLE2;
+
+iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
 #endif //AKANTU_USE_IOHELPER
 
 //#define CHECK_STRESS
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dumper vars                                                                */
+/* iohelper::Dumper vars                                                                */
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER

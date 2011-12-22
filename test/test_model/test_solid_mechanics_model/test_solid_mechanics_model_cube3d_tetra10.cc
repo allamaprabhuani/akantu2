@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
-  //  dumper.SetMode(TEXT);
+  //  dumper.SetMode(iohelper::TEXT);
 
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates2");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,

@@ -44,7 +44,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   std::stringstream energy_file;
   akantu::ElementType type;
 #ifdef AKANTU_USE_IOHELPER
-   ElemType paraview_type;
+   iohelper::ElemType paraview_type;
 #endif //AKANTU_USE_IOHELPER
    UInt vel_damping_interval;
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     output << "paraview/test_weight_hexa";
     energy_file << "energy_hexa.csv";
 #ifdef AKANTU_USE_IOHELPER
-    paraview_type = HEX1;
+    paraview_type = iohelper::HEX1;
 #endif //AKANTU_USE_IOHELPER
     vel_damping_interval =4;
   }
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     output << "paraview/test_weight_tetra";
     energy_file << "energy_tetra.csv";
 #ifdef AKANTU_USE_IOHELPER
-    paraview_type = TETRA1;
+    paraview_type = iohelper::TETRA1;
 #endif //AKANTU_USE_IOHELPER
     vel_damping_interval = 8;
   }
@@ -165,12 +165,12 @@ int main(int argc, char *argv[]) {
 
   model->updateResidual();
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,

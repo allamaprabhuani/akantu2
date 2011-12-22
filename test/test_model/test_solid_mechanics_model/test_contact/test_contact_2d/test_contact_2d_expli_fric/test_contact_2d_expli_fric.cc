@@ -81,7 +81,7 @@ static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio
 static void initParaview(SolidMechanicsModel & model);
 
 Real y_min, y_max;
-DumperParaview dumper;
+iohelper::DumperParaview dumper;
 
 int main(int argc, char *argv[])
 {
@@ -273,11 +273,11 @@ static void initParaview(SolidMechanicsModel & model)
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   UInt nb_elements = model.getFEM().getMesh().getNbElement(_triangle_3);
 
-  dumper.SetMode(TEXT);
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates");
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_3).values,
-			 TRIANGLE1, nb_elements, C_MODE);
+			 iohelper::TRIANGLE1, nb_elements, iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model.getVelocity().values,

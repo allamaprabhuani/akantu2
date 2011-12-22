@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
   UInt dim = 2;
   const ElementType element_type = _triangle_3;
 #ifdef AKANTU_USE_IOHELPER
-  const UInt paraview_type = TRIANGLE1;
+  const UInt paraview_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
   
   //UInt max_steps = 200000;
@@ -204,11 +204,11 @@ int main(int argc, char *argv[])
   my_model.updateResidual();
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coord_ruina_slowness_2d");
   dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().values,
 			  dim, "displacements");
   dumper.AddNodeDataField(my_model.getVelocity().values, dim, "velocity");

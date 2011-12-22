@@ -42,13 +42,13 @@ using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 static void initParaview(Mesh & mesh);
 static void initParaviewSurface(Mesh & mesh);
 static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_list);
 double * facet_id;
 double * node_id;
-DumperParaview dumper_surface;
+iohelper::DumperParaview dumper_surface;
 #endif //AKANTU_USE_IOHELPER
 
 
@@ -105,12 +105,12 @@ int main(int argc, char *argv[])
 
 //   /// dump surface information to paraview
 // #ifdef AKANTU_USE_IOHELPER
-//   DumperParaview dumper;
-//   dumper.SetMode(TEXT);
+//   iohelper::DumperParaview dumper;
+//   dumper.SetMode(iohelper::TEXT);
   
 //   dumper.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "triangle_3_test-surface-extraction");
 //   dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
-//    			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
+//    			 iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
 //   dumper.SetPrefix("paraview/");
 //   dumper.Init();
 //   dumper.Dump();
@@ -190,13 +190,13 @@ int main(int argc, char *argv[])
 
 static void initParaview(Mesh & mesh) {
 
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
 
   UInt  nb_nodes = mesh.getNbNodes();
   dumper.SetPoints(mesh.getNodes().values, 2, nb_nodes, "test-2d-neighbor");
   dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
-   			 TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
+   			 iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -205,16 +205,16 @@ static void initParaview(Mesh & mesh) {
 
 static void initParaviewSurface(Mesh & mesh) {
   
-  //DumperParaview dumper_surface;
+  iohelper::DumperParaview dumper_surface;
 
-  dumper_surface.SetMode(TEXT);
+  dumper_surface.SetMode(iohelper::TEXT);
 
   UInt  nb_nodes = mesh.getNbNodes();
   dumper_surface.SetPoints(mesh.getNodes().values, 2, nb_nodes, "test-2d-neighbor-surface");
 
 
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
-			       LINE1, mesh.getNbElement(_segment_2), C_MODE);
+			       iohelper::LINE1, mesh.getNbElement(_segment_2), iohelper::C_MODE);
 
   
   facet_id = new double [mesh.getConnectivity(_segment_2).getSize()];

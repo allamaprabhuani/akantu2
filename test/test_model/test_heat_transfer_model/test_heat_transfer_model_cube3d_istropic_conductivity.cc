@@ -43,8 +43,8 @@ using namespace std;
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
-using namespace iohelper;
-ElemType paraview_type = TETRA1;
+
+ElemType paraview_type = iohelper::TETRA1;
 #endif //AKANTU_USE_IOHELPER
 
  akantu::UInt spatial_dimension = 3;
@@ -55,8 +55,8 @@ ElemType paraview_type = TETRA1;
 
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper);
-void paraviewDump(Dumper & dumper);
+void paraviewInit(iohelper::Dumper & dumper);
+void paraviewDump iohelper::Dumper & dumper);
 #endif
 
 akantu::HeatTransferModel * model;
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
   }
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(dumper);
 #endif
   model->assembleCapacityLumped();
@@ -159,12 +159,12 @@ int main(int argc, char *argv[])
 }
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper) {
-  dumper.SetMode(TEXT);
+void paraviewInit(iohelper::Dumper & dumper) {
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates_cube3d_istropic_conductivity");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getTemperature().values,
 			  1, "temperature");
   dumper.AddNodeDataField(model->getResidual().values,
@@ -181,7 +181,7 @@ void paraviewInit(Dumper & dumper) {
 }
 
 
-void paraviewDump(Dumper & dumper) {
+void paraviewDump iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 #endif

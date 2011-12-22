@@ -41,7 +41,7 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -65,12 +65,12 @@ int main(int argc, char *argv[])
 
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_test-surface-extraction");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
-   			 TETRA1, my_mesh.getNbElement(_tetrahedron_4), C_MODE);
+   			 iohelper::TETRA1, my_mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();

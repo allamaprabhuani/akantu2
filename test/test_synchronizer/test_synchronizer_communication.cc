@@ -39,7 +39,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -228,12 +228,12 @@ int main(int argc, char *argv[])
   unsigned int nb_nodes = mesh.getNbNodes();
   unsigned int nb_element = mesh.getNbElement(type);
 
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
   dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
-   			 TRIANGLE1, nb_element, C_MODE);
+   			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
   double * part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
     part[i] = prank;
@@ -245,12 +245,12 @@ int main(int argc, char *argv[])
   delete [] part;
 
   unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
-  DumperParaview dumper_ghost;
-  dumper_ghost.SetMode(TEXT);
+  iohelper::DumperParaview dumper_ghost;
+  dumper_ghost.SetMode(iohelper::TEXT);
   dumper_ghost.SetParallelContext(prank, psize);
   dumper_ghost.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
   dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
-   			 TRIANGLE1, nb_ghost_element, C_MODE);
+   			 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
   part = new double[nb_ghost_element];
   for (unsigned int i = 0; i < nb_ghost_element; ++i)
     part[i] = prank;

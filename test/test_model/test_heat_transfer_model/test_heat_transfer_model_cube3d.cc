@@ -39,15 +39,15 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(HeatTransferModel * model,Dumper & dumper);
-void paraviewDump(Dumper & dumper);
-ElemType paraview_type = TETRA1;
+void paraviewInit(HeatTransferModel * model iohelper::Dumper & dumper);
+void paraviewDump iohelper::Dumper & dumper);
+ElemType paraview_type = iohelper::TETRA1;
 #endif
 
 UInt spatial_dimension = 3;
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
   }
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(model,dumper);
   model->assembleCapacityLumped();
 #endif
@@ -152,17 +152,17 @@ int main(int argc, char *argv[])
 }
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(HeatTransferModel * model, Dumper & dumper) {
+void paraviewInit(HeatTransferModel * model, iohelper::Dumper & dumper) {
   Mesh & mesh = model->getFEM().getMesh();
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_element = mesh.getNbElement(type);
 
 
-  dumper.SetMode(TEXT);
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(mesh.getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
   dumper.SetConnectivity((int *) mesh.getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getTemperature().values,
 			  1, "temperature");
   dumper.AddNodeDataField(model->getTemperatureRate().values,
@@ -180,7 +180,7 @@ void paraviewInit(HeatTransferModel * model, Dumper & dumper) {
 
 /* -------------------------------------------------------------------------- */
 
-void paraviewDump(Dumper & dumper) {
+void paraviewDump iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 #endif

@@ -41,7 +41,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 #ifdef AKANTU_USE_SCOTCH
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   akantu::ElementType type = akantu::_segment_2;
-  ElemType paraview_type = LINE1;
+  iohelper::ElemType paraview_type = iohelper::LINE1;
 #endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 1;
   // akantu::UInt max_steps = 10000;
@@ -129,12 +129,12 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "implicit");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,

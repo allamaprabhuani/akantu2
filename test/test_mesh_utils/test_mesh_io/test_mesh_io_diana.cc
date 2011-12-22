@@ -50,7 +50,7 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   int dim = 3;
   const ElementType element_type = _tetrahedron_4;
-  const UInt paraview_type = TETRA1;
+  const UInt paraview_type = iohelper::TETRA1;
 
   akantu::MeshIODiana mesh_io;
   akantu::Mesh mesh(3);
@@ -67,10 +67,10 @@ int main(int argc, char *argv[]) {
 
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "dam_diana");
-  dumper.SetConnectivity((int *)mesh.getConnectivity(element_type).values, paraview_type, nb_elements, C_MODE);
+  dumper.SetConnectivity((int *)mesh.getConnectivity(element_type).values, paraview_type, nb_elements, iohelper::C_MODE);
 
   UInt i = 0;
 

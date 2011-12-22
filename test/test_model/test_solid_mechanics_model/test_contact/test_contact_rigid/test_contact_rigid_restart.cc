@@ -30,7 +30,7 @@
 #ifdef AKANTU_USE_IOHELPER
 #include <io_helper.hh>
 #include <reader_restart.hh>
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 #include "aka_common.hh"
@@ -51,7 +51,7 @@ using namespace iohelper;
 
 using namespace akantu;
 
-void restartReaderInit(ReaderRestart & reader);
+void restartReaderInit(iohelper::ReaderRestart & reader);
 void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map);
 void DumpRestart(SolidMechanicsModel  & my_model, std::map < std::string, VectorBase* > & map);
 void printRestartMap(std::map < std::string, VectorBase* > & map);
@@ -60,7 +60,7 @@ void freeMap(std::map < std::string, VectorBase* > & map);
 
 UInt dim = 2;
 const ElementType element_type = _triangle_3;
-const ElemType paraview_type = TRIANGLE1;
+const iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 
 Surface master;
 UInt nb_nodes;
@@ -103,11 +103,11 @@ int main(int argc, char *argv[])
 
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "restart_triangle_3");
   dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).values,
-   			 TRIANGLE1, my_mesh.getNbElement(element_type), C_MODE);
+   			 iohelper::TRIANGLE1, my_mesh.getNbElement(element_type), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 }
 
 /* -------------------------------------------------------------------------- */
-void restartReaderInit(ReaderRestart & reader) {
+void restartReaderInit(iohelper::ReaderRestart & reader) {
 
 #ifdef AKANTU_USE_IOHELPER 
   reader.SetPoints("restart_test");
@@ -253,7 +253,7 @@ void restartReaderInit(ReaderRestart & reader) {
   reader.AddNodeDataField("stick_positions");
   reader.AddNodeDataField("residual_forces");
   reader.AddNodeDataField("previous_velocities");
-  reader.SetMode(COMPRESSED);
+  reader.SetMode(iohelper::COMPRESSED);
   reader.SetPrefix("restart");
   reader.Init();
   reader.Read();
@@ -271,7 +271,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
 
 #ifdef AKANTU_USE_IOHELPER
   // get the equilibrium state from the restart files
-  ReaderRestart * restart_reader = new ReaderRestart();
+  iohelper::ReaderRestart * restart_reader = new iohelper::ReaderRestart();
   restartReaderInit(*restart_reader);
   memcpy(displacement,restart_reader->GetNodeDataField("displacements"),dim*nb_nodes*sizeof(Real));
  
@@ -383,12 +383,12 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
 /* -------------------------------------------------------------------------- */
 void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorBase* > & map) {
 #ifdef AKANTU_USE_IOHELPER
-  DumperRestart dumper;
+  iohelper::DumperRestart dumper;
 
   dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values,
                    dim,nb_nodes,"restart_test");
   dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
-                         paraview_type, nb_elements, C_MODE);
+                         paraview_type, nb_elements, iohelper::C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().values,
                           dim, "displacements");
   dumper.AddNodeDataField(my_model.getVelocity().values,
@@ -453,7 +453,7 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorB
   it = map.find("previous_velocities");
   dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "previous_velocities");
 
-  dumper.SetMode(COMPRESSED);
+  dumper.SetMode(iohelper::COMPRESSED);
   dumper.SetPrefix("restart");
   dumper.Init();
 

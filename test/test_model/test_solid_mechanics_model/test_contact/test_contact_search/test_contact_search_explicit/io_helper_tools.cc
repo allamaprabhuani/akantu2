@@ -40,20 +40,20 @@ using namespace akantu;
 
 /* ------------------------------------------------------------------------ */
 template <ElementType type>
-static ElemType getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return MAX_ELEM_TYPE; };
+static iohelper::ElemType getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return iohelper::MAX_ELEM_TYPE; };
 
-template <> ElemType getIOHelperType<_segment_2>()      { return LINE1; }
-template <> ElemType getIOHelperType<_segment_3>()      { return LINE2; }
-template <> ElemType getIOHelperType<_triangle_3>()     { return TRIANGLE1; }
-template <> ElemType getIOHelperType<_triangle_6>()     { return TRIANGLE2; }
-template <> ElemType getIOHelperType<_quadrangle_4>()   { return QUAD1; }
-template <> ElemType getIOHelperType<_quadrangle_8>()   { return QUAD2; }
-template <> ElemType getIOHelperType<_tetrahedron_4>()  { return TETRA1; }
-template <> ElemType getIOHelperType<_tetrahedron_10>() { return TETRA2; }
-template <> ElemType getIOHelperType<_hexahedron_8>()   { return HEX1; }
+template <> iohelper::ElemType getIOHelperType<_segment_2>()      { return iohelper::LINE1; }
+template <> iohelper::ElemType getIOHelperType<_segment_3>()      { return iohelper::LINE2; }
+template <> iohelper::ElemType getIOHelperType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> iohelper::ElemType getIOHelperType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> iohelper::ElemType getIOHelperType<_quadrangle_4>()   { return iohelper::QUAD1; }
+template <> iohelper::ElemType getIOHelperType<_quadrangle_8>()   { return iohelper::QUAD2; }
+template <> iohelper::ElemType getIOHelperType<_tetrahedron_4>()  { return iohelper::TETRA1; }
+template <> iohelper::ElemType getIOHelperType<_tetrahedron_10>() { return iohelper::TETRA2; }
+template <> iohelper::ElemType getIOHelperType<_hexahedron_8>()   { return iohelper::HEX1; }
 
-static ElemType getIOHelperType(ElementType type) {
-  ElemType ioh_type;
+static iohelper::ElemType getIOHelperType(ElementType type) {
+  iohelper::ElemType ioh_type;
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = getIOHelperType<type>();
 
@@ -63,7 +63,7 @@ static ElemType getIOHelperType(ElementType type) {
 }
 
 /* ------------------------------------------------------------------------ */
-void paraviewInit(Dumper & dumper,
+void paraviewInit(iohelper::Dumper & dumper,
 		  const SolidMechanicsModel & model,
 		  const ElementType & type,
 		  const std::string & filename) {
@@ -77,13 +77,13 @@ void paraviewInit(Dumper & dumper,
   UInt whoami = StaticCommunicator::getStaticCommunicator()->whoAmI();
   UInt nproc  = StaticCommunicator::getStaticCommunicator()->getNbProc();
 
-  dumper.SetMode(TEXT);
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(whoami, nproc);
 
   dumper.SetPoints(mesh.getNodes().values,
 		   spatial_dimension, nb_nodes, filename_sstr.str().c_str());
   dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-			 getIOHelperType(type), nb_element, C_MODE);
+			 getIOHelperType(type), nb_element, iohelper::C_MODE);
 
   dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
@@ -120,7 +120,7 @@ void paraviewInit(Dumper & dumper,
 }
 
 /* ------------------------------------------------------------------------ */
-void paraviewDump(Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 
@@ -133,7 +133,7 @@ void paraviewDump(Dumper & dumper) {
 // Vector<Real> checkpoint_force(0, spatial_dimension);
 
 // /* ------------------------------------------------------------------------ */
-// void checkpointInit(Dumper & dumper,
+// void checkpointInit(iohelper::Dumper & dumper,
 // 		    const SolidMechanicsModel & model,
 // 		    const ElementType & type,
 // 		    const std::string & filename) {
@@ -167,13 +167,13 @@ void paraviewDump(Dumper & dumper) {
 
 //     std::stringstream filename_sstr; filename_sstr << filename << "_" << type;
 
-//     dumper.SetMode(COMPRESSED);
+//     dumper.SetMode(iohelper::COMPRESSED);
 //     dumper.SetParallelContext(whoami, nproc);
 
 //     dumper.SetPoints(mesh.getNodes().values,
 // 		     spatial_dimension, nb_nodes, filename_sstr.str().c_str());
 //     dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-// 			   getIOHelperType(type), nb_element, C_MODE);
+// 			   getIOHelperType(type), nb_element, iohelper::C_MODE);
 
 //     dumper.AddNodeDataField(checkpoint_displacements.storage(), spatial_dimension, "displacements");
 //     dumper.AddNodeDataField(checkpoint_velocity     .storage(), spatial_dimension, "velocity");
@@ -192,7 +192,7 @@ void paraviewDump(Dumper & dumper) {
 // }
 
 // /* ------------------------------------------------------------------------ */
-// void checkpoint(Dumper & dumper,
+// void checkpoint(iohelper::Dumper & dumper,
 // 		const SolidMechanicsModel & model) {
 //   UInt whoami = StaticCommunicator::getStaticCommunicator()->whoAmI();
 
@@ -241,9 +241,9 @@ void paraviewDump(Dumper & dumper) {
 
 //     std::stringstream filename_sstr; filename_sstr << filename << "_" << type;
 
-//     ReaderRestart reader;
+//     iohelper::ReaderRestart reader;
 
-//     reader.SetMode(COMPRESSED);
+//     reader.SetMode(iohelper::COMPRESSED);
 //     reader.SetParallelContext(whoami, nproc);
 
 //     reader.SetPoints(filename_sstr.str().c_str());

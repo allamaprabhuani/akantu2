@@ -43,7 +43,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 int main(int argc, char *argv[])
@@ -124,13 +124,13 @@ int main(int argc, char *argv[])
   model.synchronizeBoundaries();
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(mesh.getNodes().values,
 		   spatial_dimension, nb_nodes, "bar2d_para");
   dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-			 TRIANGLE2, nb_element, C_MODE);
+			 iohelper::TRIANGLE2, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model.getMass().values,

@@ -39,7 +39,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -47,7 +47,7 @@ using namespace akantu;
 //#define CHECK_STRESS
 akantu::ElementType type = akantu::_triangle_3;
 #ifdef AKANTU_USE_IOHELPER
-  ElemType paraview_type = TRIANGLE1;
+  iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
 akantu::SolidMechanicsModel * model;
@@ -58,8 +58,8 @@ akantu::UInt nb_element;
 akantu::Vector<akantu::Real> * lumped;
 
 #ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(Dumper & dumper);
-static void paraviewDump(Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper);
+static void paraviewDump iohelper::Dumper & dumper);
 #endif
 
 int main(int argc, char *argv[])
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(dumper);
 #endif //AKANTU_USE_IOHELPER
 
@@ -177,16 +177,16 @@ int main(int argc, char *argv[])
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dumper vars                                                                */
+/* iohelper::Dumper vars                                                                */
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(Dumper & dumper) {
-  dumper.SetMode(TEXT);
+void paraviewInit(iohelper::Dumper & dumper) {
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "bar2d_mass_not_lumped");
   dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, C_MODE);
+			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values,
@@ -209,7 +209,7 @@ void paraviewInit(Dumper & dumper) {
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump(Dumper & dumper) {
+void paraviewDump iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 #endif

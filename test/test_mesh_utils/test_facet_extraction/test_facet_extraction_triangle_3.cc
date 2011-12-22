@@ -38,7 +38,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -59,29 +59,29 @@ int main(int argc, char *argv[])
   const ElementType surf_type = ElementClass<type>::getFacetElementType();
 
   unsigned int nb_nodes = mesh.getNbNodes();
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction");
   dumper.SetConnectivity((int*)mesh.getConnectivity(type).values,
-   			 TRIANGLE1, mesh.getNbElement(type), C_MODE);
+   			 iohelper::TRIANGLE1, mesh.getNbElement(type), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
 
-  DumperParaview dumper_facet;
-  dumper_facet.SetMode(TEXT);
+  iohelper::DumperParaview dumper_facet;
+  dumper_facet.SetMode(iohelper::TEXT);
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_boundary");
   dumper_facet.SetConnectivity((int*)mesh.getConnectivity(surf_type).values,
-			       LINE1, mesh.getNbElement(surf_type), C_MODE);
+			       iohelper::LINE1, mesh.getNbElement(surf_type), iohelper::C_MODE);
   dumper_facet.SetPrefix("paraview/");
   dumper_facet.Init();
   dumper_facet.Dump();
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
   dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(surf_type).values,
-  			       LINE1, mesh.getInternalFacetsMesh().getNbElement(surf_type), C_MODE);
+  			       iohelper::LINE1, mesh.getInternalFacetsMesh().getNbElement(surf_type), iohelper::C_MODE);
   dumper_facet.Init();
   dumper_facet.Dump();
 

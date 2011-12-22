@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(dumper, model, element_type, "test_mat_el_caughey");
 #endif //AKANTU_USE_IOHELPER
 

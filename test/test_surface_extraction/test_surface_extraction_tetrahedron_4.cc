@@ -37,7 +37,7 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -57,23 +57,23 @@ int main(int argc, char *argv[])
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
   dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
-   			 TETRA1, mesh.getNbElement(_tetrahedron_4), C_MODE);
+   			 iohelper::TETRA1, mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
 
-  DumperParaview dumper_surface;
-  dumper_surface.SetMode(TEXT);
+  iohelper::DumperParaview dumper_surface;
+  dumper_surface.SetMode(iohelper::TEXT);
 
   dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
   
   dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_triangle_3).values,
-  			       TRIANGLE1, mesh.getNbElement(_triangle_3), C_MODE);
+  			       iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
   double * surf_id = new double [mesh.getSurfaceID(_triangle_3).getSize()];
   for (UInt i = 0; i < mesh.getSurfaceID(_triangle_3).getSize(); ++i)
     surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).values[i];

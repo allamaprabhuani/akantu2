@@ -43,10 +43,10 @@ using namespace akantu;
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
 
-void paraviewInit(Dumper & dumper, const StructuralMechanicsModel & model);
-void paraviewDump(Dumper & dumper);
+
+void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
+void paraviewDump iohelper::Dumper & dumper);
 #endif
 
 static void lin_load(double * position, double * load,

@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
   model.updateResidual();
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
+  iohelper::DumperParaview dumper;
   paraviewInit(dumper, model, element_type, "test_mat_el_cau_dump");
 #endif //AKANTU_USE_IOHELPER
 

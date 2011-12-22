@@ -43,7 +43,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 #define CHECK_STRESS
@@ -133,13 +133,13 @@ int main(int argc, char *argv[])
   model.setTimeStep(time_step);
 
 #ifdef AKANTU_USE_IOHELPER
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "line_para");
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-			 LINE2, nb_element, C_MODE);
+			 iohelper::LINE2, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model.getVelocity().values,

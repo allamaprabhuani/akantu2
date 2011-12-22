@@ -39,7 +39,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
+
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -122,12 +122,12 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   model.updateResidual();
 
-  DumperParaview dumper;
-  dumper.SetMode(BASE64);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::BASE64);
 
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates_damage_nl");
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_6).values,
-			 TRIANGLE2, model.getFEM().getMesh().getNbElement(_triangle_6), C_MODE);
+			 iohelper::TRIANGLE2, model.getFEM().getMesh().getNbElement(_triangle_6), iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model.getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model.getForce().values, 2, "force");
