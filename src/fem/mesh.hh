@@ -385,6 +385,7 @@ public:
 
   /// get the surface values of facets
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SurfaceID, surface_id, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(SurfaceID, surface_id, UInt);
 
   /// set the int data to the surface id vectors
   __aka_inline__ void setSurfaceIDsFromIntData(std::string & data_name);

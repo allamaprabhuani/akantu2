@@ -79,6 +79,8 @@ public:
 
   /// initialize the model for PBC
   virtual void initPBC(UInt x, UInt y, UInt z);
+  virtual void initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs, 
+		       ElementType surface_e_type);
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

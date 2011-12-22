@@ -61,11 +61,42 @@ void Model::initPBC(UInt x, UInt y, UInt z){
     UInt i1 = (*it).first;
     UInt i2 = (*it).second;
 
-    AKANTU_DEBUG_INFO("pairing " << i1 << "("
+    AKANTU_DEBUG_INFO("pairing " << i1 << " ("
 		      << coords[dim*i1] << "," << coords[dim*i1+1] << ","
 		      << coords[dim*i1+2]
-		      << ") with"
-		      << i2 << "("
+		      << ") with "
+		      << i2 << " ("
+		      << coords[dim*i2] << "," << coords[dim*i2+1] << ","
+		      << coords[dim*i2+2]
+		      << ")");
+    ++it;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
+		    ElementType surface_e_type){
+  Mesh & mesh = getFEM().getMesh();
+  
+  std::list< std::pair<Surface, Surface> >::iterator s_it;
+  for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
+    MeshUtils::computePBCMap(mesh, *s_it, surface_e_type, pbc_pair);
+  }
+
+  std::map<UInt,UInt>::iterator it = pbc_pair.begin();
+  std::map<UInt,UInt>::iterator end = pbc_pair.end();
+
+  Real * coords = mesh.getNodes().values;
+  UInt dim = mesh.getSpatialDimension();
+  while(it != end){
+    UInt i1 = (*it).first;
+    UInt i2 = (*it).second;
+
+    AKANTU_DEBUG_INFO("pairing " << i1 << " ("
+		      << coords[dim*i1] << "," << coords[dim*i1+1] << ","
+		      << coords[dim*i1+2]
+		      << ") with "
+		      << i2 << " ("
 		      << coords[dim*i2] << "," << coords[dim*i2+1] << ","
 		      << coords[dim*i2+2]
 		      << ")");

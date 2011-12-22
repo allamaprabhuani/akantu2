@@ -144,8 +144,8 @@ private:
 // }
 
 /* -------------------------------------------------------------------------- */
-
-void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
+void MeshUtils::computePBCMap(const Mesh & mymesh,
+			      const UInt dir,
 			      std::map<UInt,UInt> & pbc_pair){
   std::vector<UInt> selected_left;
   std::vector<UInt> selected_right;
@@ -174,6 +174,114 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,const UInt dir,
   AKANTU_DEBUG_INFO("found " << selected_left.size() << " and " << selected_right.size()
 	       << " nodes at each boundary for direction " << dir);
 
+  // match pairs
+  MeshUtils::matchPBCPairs(mymesh, dir, selected_left, selected_right, pbc_pair);
+
+}
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::computePBCMap(const Mesh & mymesh,
+			      const std::pair<Surface, Surface> & surface_pair,
+			      const ElementType type,
+			      std::map<UInt,UInt> & pbc_pair) {
+  
+  std::vector<UInt> selected_first;
+  std::vector<UInt> selected_second;
+
+  // get access to surface information
+  UInt nb_surface_element = mymesh.getNbElement(type);
+  const Vector<UInt> & surface_id = mymesh.getSurfaceID(type);
+  const Vector<UInt> & connect = mymesh.getConnectivity(type);
+  UInt nodes_per_surface_element = mymesh.getNbNodesPerElement(type);
+
+  // find nodes on surfaces
+  for(UInt i=0; i < nb_surface_element; ++i) {
+    if (surface_id(i) == surface_pair.first) {
+      for(UInt j=0; j<nodes_per_surface_element; ++j)
+	selected_first.push_back(connect(i,j));
+    }
+    else if (surface_id(i) == surface_pair.second) {
+      for(UInt j=0; j<nodes_per_surface_element; ++j)
+	selected_second.push_back(connect(i,j));
+    }
+  }
+
+  // sort and eliminate repetition of nodes
+  std::vector<UInt>::iterator it_s;
+  
+  std::sort(selected_first.begin(), selected_first.end());
+  it_s = std::unique(selected_first.begin(), selected_first.end());
+  selected_first.resize(it_s - selected_first.begin());
+  
+  std::sort(selected_second.begin(), selected_second.end());
+  it_s = std::unique(selected_second.begin(), selected_second.end());
+  selected_second.resize(it_s - selected_second.begin());
+
+  // coordinates
+  const Vector<Real> & coords = mymesh.getNodes();
+  const UInt dim = mymesh.getSpatialDimension();
+
+  // variables to find min and max of surfaces
+  Real first_max[3], first_min[3];
+  Real second_max[3], second_min[3];
+  for (UInt i=0; i<dim; ++i) {
+    first_min[i] = std::numeric_limits<Real>::max();
+    second_min[i] = std::numeric_limits<Real>::max();
+    first_max[i] = -std::numeric_limits<Real>::max();
+    second_max[i] = -std::numeric_limits<Real>::max();
+  }
+
+  // find min and max of surface nodes
+  for (std::vector<UInt>::iterator it = selected_first.begin();
+       it != selected_first.end();
+       ++it) {
+    for (UInt i=0; i<dim; ++i) {
+      if (first_min[i] > coords(*it,i)) first_min[i] = coords(*it,i);
+      if (first_max[i] < coords(*it,i)) first_max[i] = coords(*it,i);
+    }
+  }
+  for (std::vector<UInt>::iterator it = selected_second.begin();
+       it != selected_second.end();
+       ++it) {
+    for (UInt i=0; i<dim; ++i) {
+      if (second_min[i] > coords(*it,i)) second_min[i] = coords(*it,i);
+      if (second_max[i] < coords(*it,i)) second_max[i] = coords(*it,i);
+    }
+  }
+
+  // find direction of pbc
+  UInt first_dir=0, second_dir=0;
+  for (UInt i=0; i<dim; ++i) {
+    if (Math::are_float_equal(first_min[i], first_max[i])) {
+      first_dir = i;
+    }
+    if (Math::are_float_equal(second_min[i], second_max[i])) {
+      second_dir = i;
+    }
+  }
+  AKANTU_DEBUG_ASSERT(first_dir == second_dir, "Surface pair has not same direction. Surface " 
+		      << surface_pair.first << " dir=" << first_dir << " ; Surface " 
+		      << surface_pair.second << " dir=" << second_dir);
+  UInt dir = first_dir;
+
+  // match pairs
+  if (first_min[dir] < second_min[dir])
+    MeshUtils::matchPBCPairs(mymesh, dir, selected_first, selected_second, pbc_pair);
+  else
+    MeshUtils::matchPBCPairs(mymesh, dir, selected_second, selected_first, pbc_pair);
+}
+
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::matchPBCPairs(const Mesh & mymesh, 
+			      const UInt dir,
+			      std::vector<UInt> & selected_left,
+			      std::vector<UInt> & selected_right,
+			      std::map<UInt,UInt> & pbc_pair) {
+
+  Real * coords = mymesh.nodes->values;
+  const UInt dim = mymesh.getSpatialDimension();
+  
   UInt dir_x,dir_y;
 
   if (dim == 3){

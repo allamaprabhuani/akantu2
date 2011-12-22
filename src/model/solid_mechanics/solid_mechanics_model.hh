@@ -100,6 +100,8 @@ public:
 
   /// init PBC synchronizer
   void initPBC(UInt x,UInt y, UInt z);
+  void initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
+	       ElementType surface_e_type);
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -111,6 +113,11 @@ public:
 
   /// change the equation number for proper assembly when using PBC
   void changeEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair);
+
+private:
+
+  /// register PBC synchronizer
+  void registerPBCSynchronizer();
 
   /* ------------------------------------------------------------------------ */
   /* Explicit                                                                 */

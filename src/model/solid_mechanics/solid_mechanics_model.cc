@@ -234,6 +234,18 @@ void SolidMechanicsModel::initModel() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initPBC(UInt x, UInt y, UInt z){
   Model::initPBC(x,y,z);
+  registerPBCSynchronizer();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
+				  ElementType surface_e_type){
+  Model::initPBC(surface_pairs, surface_e_type);
+  registerPBCSynchronizer();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::registerPBCSynchronizer(){
   PBCSynchronizer * synch = new PBCSynchronizer(pbc_pair);
   synch_registry->registerSynchronizer(*synch, _gst_smm_uv);
   synch_registry->registerSynchronizer(*synch, _gst_smm_mass);
@@ -289,6 +301,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 
   // f -= fint
   /// start synchronization
+  synch_registry->asynchronousSynchronize(_gst_smm_uv);
+  synch_registry->waitEndSynchronize(_gst_smm_uv);
   synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
 
   /// call update residual on each local elements
