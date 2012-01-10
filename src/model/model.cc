@@ -52,25 +52,7 @@ void Model::initPBC(UInt x, UInt y, UInt z){
   if (y) MeshUtils::computePBCMap(mesh,1,pbc_pair);
   if (z) MeshUtils::computePBCMap(mesh,2,pbc_pair);
 
-  std::map<UInt,UInt>::iterator it = pbc_pair.begin();
-  std::map<UInt,UInt>::iterator end = pbc_pair.end();
-
-  Real * coords = mesh.getNodes().values;
-  UInt dim = mesh.getSpatialDimension();
-  while(it != end){
-    UInt i1 = (*it).first;
-    UInt i2 = (*it).second;
-
-    AKANTU_DEBUG_INFO("pairing " << i1 << " ("
-		      << coords[dim*i1] << "," << coords[dim*i1+1] << ","
-		      << coords[dim*i1+2]
-		      << ") with "
-		      << i2 << " ("
-		      << coords[dim*i2] << "," << coords[dim*i2+1] << ","
-		      << coords[dim*i2+2]
-		      << ")");
-    ++it;
-  }
+  initPBC();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,15 +64,26 @@ void Model::initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
   for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
     MeshUtils::computePBCMap(mesh, *s_it, surface_e_type, pbc_pair);
   }
+  
+  initPBC();
+}
 
+/* -------------------------------------------------------------------------- */
+void Model::initPBC() {
+  Mesh & mesh = getFEM().getMesh();
+   
   std::map<UInt,UInt>::iterator it = pbc_pair.begin();
   std::map<UInt,UInt>::iterator end = pbc_pair.end();
+
+  is_pbc_slave_node.resize(mesh.getNbNodes());
 
   Real * coords = mesh.getNodes().values;
   UInt dim = mesh.getSpatialDimension();
   while(it != end){
     UInt i1 = (*it).first;
     UInt i2 = (*it).second;
+
+    is_pbc_slave_node(i1) = true; 
 
     AKANTU_DEBUG_INFO("pairing " << i1 << " ("
 		      << coords[dim*i1] << "," << coords[dim*i1+1] << ","

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
   akantu::initialize(argc, argv);
   akantu::UInt spatial_dimension = 2;
-  akantu::UInt max_steps = 2000;
+  akantu::UInt max_steps = 1000;
   akantu::Real time_factor = 0.2;
 
   akantu::Real epot, ekin;
@@ -93,9 +93,10 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   /// boundary conditions
+  mesh.computeBoundingBox();
   akantu::Real eps = 1e-16;
-  akantu::Real signal_start = 6;
-  akantu::Real signal_end = 7;
+  akantu::Real signal_start = 0.6*mesh.getXMax();
+  akantu::Real signal_end = 0.7*mesh.getXMax();
   akantu::Real delta_d = signal_end - signal_start;
   akantu::Real signal = 1.;
   const akantu::Vector<akantu::Real> & coords = model->getFEM().getMesh().getNodes();
@@ -118,7 +119,7 @@ int main(int argc, char *argv[])
   model->setTimeStep(time_step);
 
   std::ofstream energy;
-  energy.open("energy.csv");
+  energy.open("energy_2d_pbc.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER

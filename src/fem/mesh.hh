@@ -466,7 +466,7 @@ private:
 
   /// get the UIntDataMap for a given ElementType
   __aka_inline__ UIntDataMap & getUIntDataMap(const ElementType & el_type,
-				      const GhostType & ghost_type = _not_ghost);
+					      const GhostType & ghost_type = _not_ghost);
 
   /// get the IntDataMap pointer (moidifyable) for a given ElementType
   __aka_inline__ Vector<UInt> * getUIntDataPointer(const ElementType & el_type,

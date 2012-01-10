@@ -82,6 +82,9 @@ public:
   virtual void initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs, 
 		       ElementType surface_e_type);
   
+private:
+  void initPBC();
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
@@ -147,6 +150,9 @@ protected:
 
   /// pbc pairs 
   std::map<UInt,UInt> pbc_pair;
+
+  /// flag per node to know is pbc slave
+  Vector<bool> is_pbc_slave_node;
 };
 
 
