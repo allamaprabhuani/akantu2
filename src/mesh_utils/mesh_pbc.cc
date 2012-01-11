@@ -250,7 +250,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   }
 
   // find direction of pbc
-  UInt first_dir=0, second_dir=0;
+  Int first_dir=-1, second_dir=-2;
   for (UInt i=0; i<dim; ++i) {
     if (Math::are_float_equal(first_min[i], first_max[i])) {
       first_dir = i;
