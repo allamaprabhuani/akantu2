@@ -158,3 +158,10 @@ inline void Model::changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pai
   }
 }
 /* -------------------------------------------------------------------------- */
+inline bool Model::getIsPBCSlaveNode(const UInt node) {
+  // if no pbc is defined, is_pbc_slave_node is of size zero
+  if (is_pbc_slave_node.getSize() == 0)
+    return true;
+  else
+    return is_pbc_slave_node(node);
+}

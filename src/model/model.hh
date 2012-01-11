@@ -121,6 +121,9 @@ protected:
   template <typename FEMClass>
   __aka_inline__ FEMClass & getFEMClassBoundary(std::string name = "");
 
+  /// returns if node is slave in pbc
+  __aka_inline__ bool getIsPBCSlaveNode(const UInt node);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

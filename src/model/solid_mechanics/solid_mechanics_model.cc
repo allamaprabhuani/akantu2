@@ -856,7 +856,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
   for (UInt n = 0; n < nb_nodes; ++n) {
     Real mv2 = 0;
     bool is_local_node = mesh.isLocalOrMasterNode(n);
-    bool is_not_pbc_slave_node = !is_pbc_slave_node(n);
+    bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
     for (UInt i = 0; i < spatial_dimension; ++i) {
       //      if(is_local_node) {
       mv2 += is_local_node * is_not_pbc_slave_node * *vel_val * *vel_val * *mass_val;

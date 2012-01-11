@@ -131,7 +131,6 @@ int main(int argc, char *argv[])
 
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
     model->explicitPred();
-
     model->updateResidual();
     model->updateAcceleration();
     model->explicitCorr();
