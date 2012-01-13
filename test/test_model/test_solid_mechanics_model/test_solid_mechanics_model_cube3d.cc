@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 			 paratype, model->getFEM().getMesh().getNbElement(type), iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().values, 3, "displacements");
   dumper.AddNodeDataField(model->getVelocity().values, 3, "velocity");
-  dumper.AddNodeDataField(model->getMass().values, 1, "mass");
+  dumper.AddNodeDataField(model->getMass().values, 3, "mass");
   dumper.AddNodeDataField(model->getResidual().values, 3, "force");
   dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values, 9, "strain");
   dumper.AddElemDataField(model->getMaterial(0).getStress(type).values, 9, "stress");

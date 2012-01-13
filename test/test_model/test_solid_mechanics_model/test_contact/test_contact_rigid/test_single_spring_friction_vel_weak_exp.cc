@@ -355,7 +355,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
   dumper.AddNodeDataField(model->getResidual().values,
 			  spatial_dimension, "force");
   dumper.AddNodeDataField(model->getMass().values,
-			  1, "mass");
+			  spatial_dimension, "mass");
   dumper.AddNodeDataField(model->getForce().values,
 			  spatial_dimension, "applied_force");
     

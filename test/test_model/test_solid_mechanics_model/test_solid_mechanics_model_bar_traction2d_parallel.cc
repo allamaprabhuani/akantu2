@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
   dumper.AddNodeDataField(model.getDisplacement().values,
 			  spatial_dimension, "displacements");
   dumper.AddNodeDataField(model.getMass().values,
-			  1, "mass");
+			  spatial_dimension, "mass");
   dumper.AddNodeDataField(model.getVelocity().values,
 			  spatial_dimension, "velocity");
   dumper.AddNodeDataField(model.getResidual().values,

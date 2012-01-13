@@ -286,7 +286,7 @@ void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) 
   dumper.AddNodeDataField(model.getResidual().values,
 			  spatial_dimension, "force");
   dumper.AddNodeDataField(model.getMass().values,
-			  1, "mass");
+			  spatial_dimension, "mass");
   dumper.AddNodeDataField(model.getForce().values,
 			  spatial_dimension, "applied_force");
   dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
