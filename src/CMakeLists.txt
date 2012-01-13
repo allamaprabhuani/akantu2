@@ -49,6 +49,7 @@ set(AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS
 
 
 list(APPEND AKANTU_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${AKANTU_LIBRARY_INCLUDE_DIRS}
   ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS})
 
@@ -67,6 +68,9 @@ endif()
 #===============================================================================
 # Library generation
 #===============================================================================
+
+configure_file(common/aka_config.hh.in "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
+list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
 
 add_library(akantu ${AKANTU_LIBRARY_SRCS})
 

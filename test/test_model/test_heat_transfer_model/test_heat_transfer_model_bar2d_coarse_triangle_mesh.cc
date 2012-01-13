@@ -71,7 +71,7 @@ using namespace std;
 
 
 void paraviewInit(iohelper::Dumper & dumper);
-void paraviewDump iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 
 akantu::HeatTransferModel * model;
 
@@ -258,7 +258,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
 }
 
 
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

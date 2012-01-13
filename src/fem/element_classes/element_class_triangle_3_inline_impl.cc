@@ -1,5 +1,5 @@
 /**
- * @file   element_class_triangle_3.cc
+ * @file   element_class_triangle_3_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Jul 15 10:28:28 2010
  *

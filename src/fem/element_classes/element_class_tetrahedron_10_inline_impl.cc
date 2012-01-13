@@ -1,5 +1,5 @@
 /**
- * @file   element_class_tetrahedron_10.cc
+ * @file   element_class_tetrahedron_10_inline_impl.cc
  * @author Peter Spijker <peter.spijker@epfl.ch>
  * @date   Thu Dec 1 10:28:28 2010
  *

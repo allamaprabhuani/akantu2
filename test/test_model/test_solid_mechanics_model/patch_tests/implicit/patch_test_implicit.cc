@@ -95,7 +95,7 @@ types::Matrix prescribed_stress() {
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-void paraviewDump iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -301,7 +301,7 @@ void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) 
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

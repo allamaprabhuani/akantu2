@@ -59,7 +59,7 @@ akantu::Vector<akantu::Real> * lumped;
 
 #ifdef AKANTU_USE_IOHELPER
 static void paraviewInit(iohelper::Dumper & dumper);
-static void paraviewDump iohelper::Dumper & dumper);
+static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 int main(int argc, char *argv[])
@@ -209,7 +209,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 #endif

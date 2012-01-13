@@ -28,10 +28,6 @@
 /* -------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef AKANTU_USE_IOHELPER
-#include <io_helper.hh>
-
-#endif //AKANTU_USE_IOHELPER
 
 #include "aka_common.hh"
 #include "mesh.hh"
@@ -49,6 +45,10 @@
 #include "regular_grid_neighbor_structure.hh"
 #include "contact_search.hh"
 #include "contact_search_explicit.hh"
+
+#ifdef AKANTU_USE_IOHELPER
+#include <io_helper.hh>
+#endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 

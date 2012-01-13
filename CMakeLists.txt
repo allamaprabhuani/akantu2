@@ -70,7 +70,7 @@ find_package(Subversion)
 if (EXISTS ${CMAKE_SOURCE_DIR}/.svn)
   if(SUBVERSION_FOUND)
     subversion_wc_info(${CMAKE_SOURCE_DIR} MY)
-    set(AKANTU_BUILD_VERSION ${MY_WC_REVISION})  
+    set(AKANTU_BUILD_VERSION ${MY_WC_REVISION})
     set(AKANTU_VERSION
       "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_BUILD_VERSION}"
       )
@@ -103,7 +103,6 @@ option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
 option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 
 # features
-
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF)
 
 # Debug
@@ -132,7 +131,7 @@ else()
   set(AKANTU_SOLVER OFF)
 endif()
 
-add_akantu_definitions()
+#add_akantu_definitions()
 
 #===============================================================================
 
@@ -183,6 +182,66 @@ export(TARGETS akantu
 export(PACKAGE Akantu)
 configure_file(cmake/AkantuBuildTreeSettings.cmake.in  "${CMAKE_BINARY_DIR}/AkantuBuildTreeSettings.cmake" @ONLY)
 
+file(WRITE "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+#===============================================================================
+# @file   AkantuConfigInclude.cmake
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @date   Fri Jun 11 09:46:59 2010
+#
+# @section LICENSE
+#
+# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+#
+# Akantu is free  software: you can redistribute it and/or  modify it under the
+# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# details.
+#
+# You should  have received  a copy  of the GNU  Lesser General  Public License
+# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
+# @section DESCRIPTION
+#
+#===============================================================================
+
+")
+
+foreach(_option ${AKANTU_PACKAGE_NAMES_LIST_ALL})
+  list(FIND AKANTU_OPTION_LIST ${_option} _index)
+  if (_index EQUAL -1)
+    if(NOT "${_option}" STREQUAL "CORE")
+      if(NOT AKANTU_${_option})
+        set(AKANTU_${_option} OFF)
+      endif()
+      file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+set(AKANTU_HAS_${_option} ${AKANTU_${_option}})")
+    endif()
+  endif()
+endforeach()
+
+file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake"
+"
+
+set(AKANTU_HAS_PARTITIONER  ${AKANTU_PARTITIONER})
+set(AKANTU_HAS_SOLVER       ${AKANTU_SOLVER})
+
+set(AKANTU_OPTION_LIST ${AKANTU_OPTION_LIST})
+")
+
+foreach(_option ${AKANTU_OPTION_LIST})
+  file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+set(AKANTU_USE_${_option} ${AKANTU_${_option}})
+set(AKANTU_${_option}_LIBRARIES ${AKANTU_${_option}_LIBRARIES})
+set(AKANTU_${_option}_INCLUDE_DIR ${AKANTU_${_option}_INCLUDE_DIR})
+")
+endforeach()
+
 # Create the AkantuConfig.cmake and AkantuConfigVersion files
 get_filename_component(CONF_REL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 configure_file(cmake/AkantuConfig.cmake.in "${CMAKE_BINARY_DIR}/AkantuConfig.cmake" @ONLY)
@@ -194,6 +253,7 @@ install(EXPORT AkantuLibraryDepends DESTINATION  lib/akantu
   COMPONENT dev)
 
 install(FILES ${CMAKE_BINARY_DIR}/AkantuConfig.cmake
+  ${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake
   ${CMAKE_BINARY_DIR}/AkantuConfigVersion.cmake
   ${CMAKE_SOURCE_DIR}/cmake/AkantuUse.cmake
   DESTINATION  lib/akantu

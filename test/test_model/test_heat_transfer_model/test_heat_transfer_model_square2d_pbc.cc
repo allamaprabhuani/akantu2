@@ -43,9 +43,9 @@ using namespace std;
 #include "io_helper.hh"
 
 
-void paraviewInit(akantu::HeatTransferModel * model iohelper::Dumper & dumper);
-void paraviewDump iohelper::Dumper & dumper);
-ElemType paraview_type = iohelper::TRIANGLE1;
+void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
+iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
 akantu::UInt spatial_dimension = 2;
@@ -182,7 +182,7 @@ void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper) 
 
 /* -------------------------------------------------------------------------- */
 
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 #endif

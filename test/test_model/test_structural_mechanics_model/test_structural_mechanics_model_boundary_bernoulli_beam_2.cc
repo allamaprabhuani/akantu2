@@ -46,7 +46,7 @@ using namespace akantu;
 
 
 void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
-void paraviewDump iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 static void lin_load(double * position, double * load,

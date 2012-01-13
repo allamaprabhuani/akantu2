@@ -47,7 +47,7 @@ using namespace akantu;
 
 
 void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
-void paraviewDump iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 //Linear load function
@@ -220,7 +220,7 @@ void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & mo
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

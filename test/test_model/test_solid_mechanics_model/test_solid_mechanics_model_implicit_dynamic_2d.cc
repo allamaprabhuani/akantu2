@@ -54,7 +54,7 @@ using namespace akantu;
 #  include "io_helper.hh"
 
 void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-void paraviewDump iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -306,7 +306,7 @@ void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) 
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

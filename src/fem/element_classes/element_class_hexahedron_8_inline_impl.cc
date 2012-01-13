@@ -1,5 +1,5 @@
 /**
- * @file   element_class_hexahedron_8.cc
+ * @file   element_class_hexahedron_8_inline_impl.cc
  * @author Peter Spijker <peter.spijker@epfl.ch>
  * @date   Mon Mar 14 17:27:44 2010
  *

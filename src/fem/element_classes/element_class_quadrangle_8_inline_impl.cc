@@ -1,5 +1,5 @@
 /**
- * @file   element_class_quadrangle_8.cc
+ * @file   element_class_quadrangle_8_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue May 17 18:35:04 2011
  *

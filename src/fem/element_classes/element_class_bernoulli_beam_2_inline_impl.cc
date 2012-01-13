@@ -1,5 +1,5 @@
 /**
- * @file   element_class_bernoulli_beam_2.cc
+ * @file   element_class_bernoulli_beam_2_inline_impl.cc
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @date   Thu Mar 31 14:02:22 2011
  *

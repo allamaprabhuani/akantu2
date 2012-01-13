@@ -47,7 +47,7 @@ using namespace akantu;
 
 
 void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
-void paraviewDump iohelper::Dumper & dumper);
+void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 //Linear load function
@@ -222,7 +222,7 @@ template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper
 template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; };
 template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; };
 template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; };
-template <> iohelper::ElemType paraviewType<_bernoulli_beam_2>(){ return BEAM2; };
+template <> iohelper::ElemType paraviewType<_bernoulli_beam_2>(){ return iohelper::BEAM2; };
 /* -------------------------------------------------------------------------- */
 void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
@@ -248,7 +248,7 @@ void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & mo
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump iohelper::Dumper & dumper) {
+void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 

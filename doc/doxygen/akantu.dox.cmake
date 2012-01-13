@@ -7,11 +7,12 @@ PROJECT_NAME           = @CMAKE_PROJECT_NAME@
 PROJECT_NUMBER         = @AKANTU_VERSION@
 OUTPUT_DIRECTORY       = .
 OUTPUT_LANGUAGE        = English
+RECURSIVE              = YES
 FULL_PATH_NAMES        = YES
 STRIP_FROM_PATH        = @CMAKE_SOURCE_DIR@
 STRIP_FROM_INC_PATH    = @CMAKE_SOURCE_DIR@
 TAB_SIZE               = 4
-BUILTIN_STL_SUPPORT    = YES
+BUILTIN_STL_SUPPORT    = NO
 
 #---------------------------------------------------------------------------
 # configuration options related to warning and progress messages
@@ -70,3 +71,16 @@ EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \
                          AKANTU_GET_MACRO_BY_ELEMENT_TYPE
 
 SKIP_FUNCTION_MACROS   = YES
+
+#---------------------------------------------------------------------------
+# Configuration options related to the dot tool
+#---------------------------------------------------------------------------
+
+CLASS_DIAGRAMS         = YES
+HAVE_DOT               = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+TEMPLATE_RELATIONS     = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+DOT_PATH               = @DOXYGEN_DOT_PATH@

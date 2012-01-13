@@ -80,11 +80,3 @@ find_package_handle_standard_args(Scotch DEFAULT_MSG
 if(NOT SCOTCH_FOUND)
   set(SCOTCH_DIR "" CACHE PATH "Location of Scotch library.")
 endif()
-
-if(SCOTCH_INCLUDE_DIR)
-  file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
-  string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
-  if(_match)
-    add_definitions(-DAKANTU_SCOTCH_NO_EXTERN)
-  endif()
-endif()

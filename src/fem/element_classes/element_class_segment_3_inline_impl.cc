@@ -1,5 +1,5 @@
 /**
- * @file   element_class_segment_3.cc
+ * @file   element_class_segment_3_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Sun Oct 3 10:28:28 2010
  *
