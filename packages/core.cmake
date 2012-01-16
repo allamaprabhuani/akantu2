@@ -58,7 +58,6 @@ set(CORE_FILES
   mesh_utils/mesh_io.hh
   mesh_utils/mesh_partition/mesh_partition_scotch.hh
   solver/sparse_matrix.hh
-  solver/solver_mumps.hh
   solver/solver.hh
   synchronizer/synchronizer.hh
   synchronizer/synchronizer_registry.hh
