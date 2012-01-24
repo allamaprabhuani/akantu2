@@ -65,6 +65,7 @@ include(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
 # AKANTU version number.  An even minor number corresponds to releases.
 set(AKANTU_MAJOR_VERSION 0)
 set(AKANTU_MINOR_VERSION 1)
+set(AKANTU_PATCH_VERSION 0)
 
 find_package(Subversion)
 if (EXISTS ${CMAKE_SOURCE_DIR}/.svn)
@@ -72,7 +73,7 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.svn)
     subversion_wc_info(${CMAKE_SOURCE_DIR} MY)
     set(AKANTU_BUILD_VERSION ${MY_WC_REVISION})
     set(AKANTU_VERSION
-      "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_BUILD_VERSION}"
+      "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_PATCH_VERSION}.${AKANTU_BUILD_VERSION}"
       )
     file(WRITE VERSION "${AKANTU_VERSION}\n")
   else(SUBVERSION_FOUND)
