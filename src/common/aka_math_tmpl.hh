@@ -463,11 +463,8 @@ inline bool Math::are_float_equal(const Real x, const Real y){
 /* -------------------------------------------------------------------------- */
 inline bool Math::isnan(Real x) {
 
-#ifdef __APPLE__
-    return isnan(x);
-#else
-    return ::isnan(x);
-#endif
+    return (x == std::numeric_limits<Real>::quiet_NaN());
+
 }
 
 /* -------------------------------------------------------------------------- */
