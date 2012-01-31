@@ -99,6 +99,7 @@ public:
 
   AKANTU_GET_MACRO(E, E, Real);
   AKANTU_GET_MACRO(Nu, nu, Real);
+  AKANTU_GET_MACRO(Mu, mu, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
