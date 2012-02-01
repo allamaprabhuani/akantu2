@@ -72,8 +72,11 @@ public:
 			       Vector<Real> & tangent_matrix,
 			       GhostType ghost_type = _not_ghost);
 
-  /// compute the celerity of wave in the material
-  __aka_inline__ Real celerity();
+  /// compute the p-wave speed in the material
+  virtual Real getPushWaveSpeed();
+
+  /// compute the s-wave speed in the material
+  virtual Real getShearWaveSpeed();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

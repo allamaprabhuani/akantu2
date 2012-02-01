@@ -102,6 +102,12 @@ public:
   /// compute the stable time step for an element of size h
   virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
 
+  /// compute the p-wave speed in the material
+  virtual Real getPushWaveSpeed() { AKANTU_DEBUG_TO_IMPLEMENT(); };
+
+  /// compute the s-wave speed in the material
+  virtual Real getShearWaveSpeed() { AKANTU_DEBUG_TO_IMPLEMENT(); };
+
   /// add an element to the local mesh filter
   __aka_inline__ void addElement(const ElementType & type,
 			 UInt element,

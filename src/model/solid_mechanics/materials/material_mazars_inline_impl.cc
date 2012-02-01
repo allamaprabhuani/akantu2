@@ -118,14 +118,3 @@ inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real 
 
   for(UInt i = 0; i < 9; ++i) sigma[i] *= 1 - dam;
 }
-
-/* -------------------------------------------------------------------------- */
-inline Real MaterialMazars::celerity() {
-  return sqrt(E/rho);
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real MaterialMazars::getStableTimeStep(Real h,
-					      __attribute__ ((unused)) const Element & element) {
-  return (h/celerity());
-}

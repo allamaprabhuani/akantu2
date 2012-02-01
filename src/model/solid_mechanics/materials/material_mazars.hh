@@ -84,10 +84,10 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-  /// compute the celerity of wave in the material
-  __aka_inline__ Real celerity();
-
-  __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
+  /// compute the stable time step for an element of size h
+  Real getStableTimeStep(Real h, const Element & element = ElementNull) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

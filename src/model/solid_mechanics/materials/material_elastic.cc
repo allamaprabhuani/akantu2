@@ -111,6 +111,15 @@ bool MaterialElastic::setParam(const std::string & key, const std::string & valu
   return true;
 }
 
+/* -------------------------------------------------------------------------- */
+Real MaterialElastic::getPushWaveSpeed() {
+  return sqrt((lambda + 2*mu)/rho);
+}
+
+/* -------------------------------------------------------------------------- */
+Real MaterialElastic::getShearWaveSpeed() {
+  return sqrt(mu/rho);
+}
 
 /* -------------------------------------------------------------------------- */
 void MaterialElastic::printself(std::ostream & stream, int indent) const {

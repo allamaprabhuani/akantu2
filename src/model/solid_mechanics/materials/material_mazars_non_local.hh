@@ -77,9 +77,6 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-  /// compute the celerity of wave in the material
-  __aka_inline__ Real celerity();
-
   __aka_inline__ Real getStableTimeStep(Real h, const Element & element) {
     return MaterialMazars::getStableTimeStep(h, element);
   };

@@ -98,12 +98,7 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialElastic::celerity() {
-  return sqrt(E/rho);
-}
-
-/* -------------------------------------------------------------------------- */
 inline Real MaterialElastic::getStableTimeStep(Real h, 
 					       __attribute__ ((unused)) const Element & element) {
-  return (h/celerity());
+  return (h/getPushWaveSpeed());
 }
