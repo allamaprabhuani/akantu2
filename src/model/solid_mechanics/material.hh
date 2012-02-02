@@ -114,7 +114,7 @@ public:
 			 const GhostType & ghost_type);
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
 
@@ -334,22 +334,30 @@ __END_AKANTU__
 #define AKANTU_MATERIAL_LIST						\
   ((elastic         , MaterialElastic       ))				\
   ((elastic_caughey , MaterialElasticCaughey))				\
-  ((damage          , MaterialDamage        ))				\
-  ((mazars          , MaterialMazars        ))				\
   ((neohookean      , MaterialNeohookean    ))				\
-  ((damage_non_local, MaterialDamageNonLocal))				\
-  ((mazars_non_local, MaterialMazarsNonLocal))				\
-  ((damage_linear   , MaterialDamageLinear))
+  ((damage_linear   , MaterialDamageLinear  ))                          \
+  ((marigo          , MaterialMarigo        ))				\
+  ((mazars          , MaterialMazars        ))				\
+  ((marigo_non_local, MaterialMarigoNonLocal))				\
+  ((mazars_non_local, MaterialMazarsNonLocal))
 
 
+/* -------------------------------------------------------------------------- */
+// elastic materials
 #include "material_elastic.hh"
 #include "material_elastic_caughey.hh"
-#include "material_damage.hh"
-#include "material_mazars.hh"
 #include "material_neohookean.hh"
+
+// damage materials
+#include "material_damage.hh"
 #include "material_non_local.hh"
-#include "material_damage_non_local.hh"
-#include "material_mazars_non_local.hh"
+
+#include "material_marigo.hh"
+#include "material_mazars.hh"
 #include "material_damage_linear.hh"
+
+#include "material_marigo_non_local.hh"
+#include "material_mazars_non_local.hh"
+
 
 #endif /* __AKANTU_MATERIAL_HH__ */

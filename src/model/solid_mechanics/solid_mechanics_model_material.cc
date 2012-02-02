@@ -118,6 +118,8 @@ void SolidMechanicsModel::initMaterials() {
     /// init internals properties
     (*mat_it)->initMaterial();
   }
+
+  synch_registry->synchronize(_gst_smm_init_mat);
 }
 
 __END_AKANTU__

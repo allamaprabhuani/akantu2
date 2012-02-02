@@ -331,7 +331,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	/// get the connectivity vector depending on the element type
 	akantu_type = _msh_to_akantu_element_types[(MSHElementType) msh_type];
 
-	if(akantu_type == _not_defined) { 
+	if(akantu_type == _not_defined) {
 	  AKANTU_DEBUG_WARNING("Unsuported element kind " << msh_type
 			       << " at line " << current_line);
 	  continue;

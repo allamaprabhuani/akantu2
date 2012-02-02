@@ -131,8 +131,6 @@ void MaterialElastic::printself(std::ostream & stream, int indent) const {
     stream << space << " + Plane strain" << std::endl;
   else
     stream << space << " + Plane stress" << std::endl;
-  stream << space << " + id                      : " << id << std::endl;
-  stream << space << " + name                    : " << name << std::endl;
   stream << space << " + density                 : " << rho << std::endl;
   stream << space << " + Young's modulus         : " << E << std::endl;
   stream << space << " + Poisson's ratio         : " << nu << std::endl;
@@ -141,6 +139,7 @@ void MaterialElastic::printself(std::ostream & stream, int indent) const {
     stream << space << " + Second Lamé coefficient : " << mu << std::endl;
     stream << space << " + Bulk coefficient        : " << kpa << std::endl;
   }
+  Material::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */

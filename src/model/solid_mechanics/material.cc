@@ -42,7 +42,7 @@ Material::Material(Model & model, const ID & id) :
   id(id),
   name(""),
   stress("stress", id),
-  strain("stain", id),
+  strain("strain", id),
   element_filter("element_filter", id),
   //  potential_energy_vector(false),
   potential_energy("potential_energy", id),
@@ -474,6 +474,8 @@ void Material::computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coo
       UInt nb_element  = elem_filter.getSize();
       UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(*it, ghost_type) * nb_element;
 
+      std::cout << *it << " " << nb_element << std::endl;
+
       Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
       quads.resize(nb_tot_quad);
 
@@ -486,6 +488,17 @@ void Material::computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coo
   AKANTU_DEBUG_OUT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+void Material::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << space << "Material [" << std::endl;
+  stream << space << " + id    : " << id << std::endl;
+  stream << space << " + name  : " << name << std::endl;
+  stream << space << "]" << std::endl;
+}
 
 
 /* -------------------------------------------------------------------------- */

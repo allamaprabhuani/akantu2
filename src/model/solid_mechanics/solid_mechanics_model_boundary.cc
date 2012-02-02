@@ -29,86 +29,50 @@
 #include "solid_mechanics_model.hh"
 #include "dof_synchronizer.hh"
 #include "material.hh"
+#include "aka_types.hh"
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
+class WarppingSurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
+public:
+  WarppingSurfaceLoadFunctor(BoundaryFunction function) : function(function) {}
+
+  void operator()(const types::Vector<Real> & position,
+		  types::Vector<Real> & force,
+		  const types::Vector<Real> & normal,
+		  Surface surface_id) {
+    function(position.storage(),
+	     force.storage(),
+	     normal.storage(),
+	     surface_id);
+  }
+  void operator()(const types::Vector<Real> & position,
+		  types::Matrix & stress,
+		  const types::Vector<Real> & normal,
+		  Surface surface_id) {
+    function(position.storage(),
+	     stress.storage(),
+	     normal.storage(),
+	     surface_id);
+  }
+private:
+  BoundaryFunction function;
+};
+
 /**
  * @param myf pointer  to a function that fills a  vector/tensor with respect to
  * passed coordinates
  * @param function_type  flag to  specify the take  of function:  _bft_stress is
  * tensor like and _bft_forces is traction like.
  */
-void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
+void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction function,
 						    BoundaryFunctionType function_type){
-  /** function type is
-   ** _bft_forces : traction function is given
-   ** _bft_stress : stress function is given
-   */
-  GhostType ghost_type = _not_ghost;
-
-  UInt nb_component = 0;
-  switch(function_type) {
-  case _bft_stress: nb_component = spatial_dimension * spatial_dimension; break;
-  case _bft_forces: nb_component = spatial_dimension; break;
-  }
-
-  Vector<Real> funct(0, nb_component, "traction_stress");
-  Vector<Real> quad_coords(0, spatial_dimension, "quad_coords");
-
-  //prepare the loop over element types
-  const Mesh::ConnectivityTypeList & type_list = getFEMBoundary().getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != getFEMBoundary().getElementDimension()) continue;
-
-    UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
-    UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
-
-    funct.resize(nb_element * nb_quad);
-    quad_coords.resize(nb_element * nb_quad);
-
-    const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
-
-    getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
-						   quad_coords, spatial_dimension, *it, ghost_type);
-
-    Real * imposed_val = funct.storage();
-    Real * normals_on_quad_val = normals_on_quad.storage();
-    Real * qcoord = quad_coords.storage();
-
-    try {
-      const Vector<UInt> & surface_id = mesh.getSurfaceID(*it, ghost_type);
-      /// sigma/tractions on each quadrature points
-      for (UInt el = 0; el < nb_element; ++el) {
-	for (UInt q = 0; q < nb_quad; ++q) {
-	  myf(qcoord, imposed_val, normals_on_quad_val, surface_id(el));
-	  imposed_val += nb_component;
-	  qcoord += spatial_dimension;
-	  normals_on_quad_val += spatial_dimension;
-	}
-      }
-    } catch (...) {
-      for (UInt el = 0; el < nb_element; ++el) {
-	for (UInt q = 0; q < nb_quad; ++q) {
-	  myf(qcoord, imposed_val, normals_on_quad_val, 0);
-	  imposed_val += nb_component;
-	  qcoord += spatial_dimension;
-	  normals_on_quad_val += spatial_dimension;
-	}
-      }
-    }
-
-
-    switch(function_type) {
-    case _bft_stress:
-      computeForcesByStressTensor(funct, *it, ghost_type); break;
-    case _bft_forces:
-      computeForcesByTractionVector(funct, *it, ghost_type); break;
-    }
-  }
+  WarppingSurfaceLoadFunctor functor(function);
+  computeForcesFromFunction(functor, function_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -207,7 +171,7 @@ computeForcesByTractionVector(const Vector<Real> & tractions,
 
   // assemble the result into force vector
   getFEMBoundary().assembleVector(int_funct,
-				  const_cast<Vector<Real> &>(getForce()),
+				  *force,
 				  dof_synchronizer->getLocalDOFEquationNumbers(),
 				  spatial_dimension,
 				  type, ghost_type);

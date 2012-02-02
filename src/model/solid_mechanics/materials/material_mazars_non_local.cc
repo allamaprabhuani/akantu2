@@ -35,7 +35,8 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialMazarsNonLocal::MaterialMazarsNonLocal(Model & model, const ID & id)  :
-Material(model, id),  MaterialMazars(model, id), MaterialNonLocal(model, id),
+  Material(model, id), MaterialElastic(model, id),
+  MaterialMazars(model, id), MaterialNonLocal(model, id),
   Ehat("Ehat", id) {
   AKANTU_DEBUG_IN();
 

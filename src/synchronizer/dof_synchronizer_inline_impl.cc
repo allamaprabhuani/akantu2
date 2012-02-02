@@ -201,7 +201,7 @@ template<typename T> void DOFSynchronizer::synchronize(Vector<T> & dof_vector) c
     }
 
     /// ring blocking communications
-    CommunicationRequest * request;
+    CommunicationRequest * request = NULL;
     if(nb_slave_dofs  != 0) request = communicator->asyncSend(send_buffer, nb_slave_dofs,  sendto  , 0);
     if(nb_master_dofs != 0) communicator->receive(recv_buffer, nb_master_dofs, recvfrom, 0);
 
@@ -251,7 +251,7 @@ template<class Op, typename T> void DOFSynchronizer::reduceSynchronize(Vector<T>
       send_buffer[d] = dof_vector.values[master_dofs[d]];
     }
 
-    CommunicationRequest * request;
+    CommunicationRequest * request = NULL;
     if(nb_master_dofs != 0) request = communicator->asyncSend(send_buffer, nb_master_dofs, sendto  , 0);
     if(nb_slave_dofs  != 0) communicator->receive(recv_buffer, nb_slave_dofs,  recvfrom, 0);
 

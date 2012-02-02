@@ -27,7 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 inline void StaticCommunicator::freeCommunicationRequest(CommunicationRequest * request) {
-  delete request;
+  if(request) delete request;
 }
 
 /* -------------------------------------------------------------------------- */

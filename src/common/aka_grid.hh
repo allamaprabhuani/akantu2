@@ -36,6 +36,8 @@
 
 __BEGIN_AKANTU__
 
+class Mesh;
+
 template<typename T>
 class RegularGrid {
   /* ------------------------------------------------------------------------ */
@@ -49,90 +51,47 @@ public:
 	      Real * upper_bounds, Real * spacing);
   virtual ~RegularGrid() {};
 
+  class Cell;
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  void saveAsMesh(Mesh & mesh) const;
 
   void beginInsertions() { data.countToCSR(); data.resizeCols(); data.beginInsertions(); }
   void endInsertions() { data.endInsertions(); }
   void insert(const T & d, const types::RVector & position);
 
   inline void count(const types::RVector & position);
-  inline UInt getNumCell(const types::RVector & position) const;
+  inline Cell getCell(const types::RVector & position) const;
   inline UInt getCell(Real position, UInt direction) const;
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   typedef typename CSR<T>::iterator iterator;
   typedef typename CSR<T>::const_iterator const_iterator;
-  inline iterator beginCell(UInt cell) { return data.begin(cell); };
-  inline iterator endCell(UInt cell) { return data.end(cell); };
 
-  inline const_iterator beginCell(UInt cell) const { return data.begin(cell); };
-  inline const_iterator endCell(UInt cell) const { return data.end(cell); };
+  inline iterator beginCell(const Cell & cell);
+  inline iterator endCell(const Cell cell);
+  inline const_iterator beginCell(const Cell & cell) const;
+  inline const_iterator endCell(const Cell & cell) const;
 
-  struct neighbor_cells_iterator : std::iterator<std::forward_iterator_tag, UInt> {
-    neighbor_cells_iterator(const RegularGrid & grid,
-			    UInt cell,
-			    bool end) : grid(grid) {
-      this->cell = cell;
-      it = end ? 8 : -1; // if end next cell == 9 else next cell == 0
-      nextCell();
-    };
+  class neighbor_cells_iterator;
 
-    neighbor_cells_iterator(const neighbor_cells_iterator & it) : grid(it.grid) {
-      if(this != &it) {
-	this->cur_cell = it.cur_cell;
-	this->cell = it.cell;
-	this->it = it.it;
-      }
-    };
-
-    neighbor_cells_iterator& operator++() { nextCell(); return *this; };
-    neighbor_cells_iterator operator++(int) { neighbor_cells_iterator tmp(*this); operator++(); return tmp; };
-    bool operator==(const neighbor_cells_iterator& rhs) { return cell == rhs.cell && it = rhs.it; };
-    bool operator!=(const neighbor_cells_iterator& rhs) { return cell != rhs.cell || it != rhs.it; };
-
-    UInt operator*() { return cur_cell; };
-
-  private:
-    UInt nextCell() {
-      ++it;
-      cur_cell = cell;
-      UInt t = 1;
-      Int position[3] = {0,0,0};
-      for (UInt i = 0; i < grid.dimension; ++i, t *= 3) position[i] = ((it / t) % 3) - 1;
-      for (UInt i = grid.dimension - 1; i > 0; --i) cur_cell += position[i] * grid.nb_cells[i - 1];
-      cur_cell += position[0];
-      return cur_cell;
-    }
-
-  private:
-    UInt cur_cell; //current position of the iterator
-    UInt cell; //central cell
-    UInt it; // number representing the current neighbor in base 3;
-
-    const RegularGrid & grid;
-  };
-
-  inline neighbor_cells_iterator beginNeighborCells(UInt cell) {
-    return neighbor_cells_iterator(*this, cell, false);
-  }
-
-  inline neighbor_cells_iterator endNeighborCells(UInt cell) {
-    return neighbor_cells_iterator(*this, cell, true);
-  }
+  inline neighbor_cells_iterator beginNeighborCells(const Cell & cell);
+  inline neighbor_cells_iterator endNeighborCells(const Cell & cell);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   inline UInt getNbCells(UInt dim) const { return nb_cells[dim]; };
 
-  inline UInt getCell(UInt num_cells_by_direction[]) const;
+  AKANTU_GET_MACRO(Dimension, dimension, UInt)
+
+  friend class Cell;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -147,7 +106,7 @@ private:
 
   UInt nb_cells[3];
 
-  // UInt total_nb_cells;
+  UInt total_nb_cells;
 
   Real spacing[3];
 };

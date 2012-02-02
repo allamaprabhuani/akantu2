@@ -35,15 +35,14 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialDamageLinear::MaterialDamageLinear(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id),
-  damage("damage", id) {
+  Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id) {
   AKANTU_DEBUG_IN();
 
   Sigc = 1e5;
   Gc  = 2;
+
   is_non_local = false;
 
-  initInternalVector(this->damage, 1);
   initInternalVector(this->K, 1);
 
   AKANTU_DEBUG_OUT();
@@ -52,18 +51,16 @@ MaterialDamageLinear::MaterialDamageLinear(Model & model, const ID & id)  :
 /* -------------------------------------------------------------------------- */
 void MaterialDamageLinear::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialElastic::initMaterial();
+  MaterialDamage::initMaterial();
 
-  resizeInternalVector(this->damage);
   resizeInternalVector(this->K);
-  Epsmin = Sigc/E;
-  Epsmax= 2*Gc/Sigc+Epsmin;
+  Epsmin = Sigc / E;
+  Epsmax = 2 * Gc/ Sigc + Epsmin;
 
   const Mesh&mesh=model->getFEM().getMesh() ;
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
-  
-  
+
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if (Mesh::getSpatialDimension(*it)!=mesh.getSpatialDimension() )
       continue ;
@@ -112,7 +109,7 @@ bool MaterialDamageLinear::setParam(const std::string & key, const std::string &
   std::stringstream sstr(value);
   if(key == "Sigc") { sstr >> Sigc; }
   else if(key == "Gc") { sstr >> Gc; }
-  else { return MaterialElastic::setParam(key, value, id); }
+  else { return MaterialDamage::setParam(key, value, id); }
   return true;
 }
 
@@ -123,9 +120,9 @@ void MaterialDamageLinear::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_damage_linear> [" << std::endl;
-  stream << space << " + Sigc                    : " << Sigc << std::endl;
-  stream << space << " + GC                      : " << Gc << std::endl;
-  MaterialElastic::printself(stream, indent + 1);
+  stream << space << " + SigmaC : " << Sigc << std::endl;
+  stream << space << " + GC     : " << Gc << std::endl;
+  MaterialDamage::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */

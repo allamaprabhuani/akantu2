@@ -32,18 +32,18 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-VelocityWeakeningExponential::VelocityWeakeningExponential(ContactRigid & contact, 
-							   const Surface & master_surface,
-							   const Real static_friction_coefficient,
-							   const Real dynamic_friction_coefficient,
-							   const Real power) :
+VelocityWeakeningExponential::VelocityWeakeningExponential(ContactRigid & contact,
+                                                           const Surface & master_surface,
+                                                           const Real static_friction_coefficient,
+                                                           const Real dynamic_friction_coefficient,
+                                                           const Real power) :
   FrictionCoefficient(contact, master_surface),
-  VelocityDependentFricCoef(contact, master_surface), 
+  VelocityDependentFricCoef(contact, master_surface),
   HistoricVelocityFricCoef(contact, master_surface),
+  instant_velocity(true),
   static_friction_coefficient(static_friction_coefficient),
   dynamic_friction_coefficient(dynamic_friction_coefficient),
-  power(power),
-  instant_velocity(true) {
+  power(power) {
   AKANTU_DEBUG_IN();
 
   computeAlpha();
@@ -52,19 +52,19 @@ VelocityWeakeningExponential::VelocityWeakeningExponential(ContactRigid & contac
 }
 
 /* -------------------------------------------------------------------------- */
-VelocityWeakeningExponential::VelocityWeakeningExponential(ContactRigid & contact, 
-							   const Surface & master_surface,
-							   const Real static_friction_coefficient,
-							   const Real dynamic_friction_coefficient,
-							   const Real power,
-							   const Real beta) :
+VelocityWeakeningExponential::VelocityWeakeningExponential(ContactRigid & contact,
+                                                           const Surface & master_surface,
+                                                           const Real static_friction_coefficient,
+                                                           const Real dynamic_friction_coefficient,
+                                                           const Real power,
+                                                           const Real beta) :
   FrictionCoefficient(contact, master_surface),
-  VelocityDependentFricCoef(contact, master_surface), 
-  HistoricVelocityFricCoef(contact, master_surface, beta), 
+  VelocityDependentFricCoef(contact, master_surface),
+  HistoricVelocityFricCoef(contact, master_surface, beta),
+  instant_velocity(false),
   static_friction_coefficient(static_friction_coefficient),
   dynamic_friction_coefficient(dynamic_friction_coefficient),
-  power(power),
-  instant_velocity(false) {
+  power(power) {
   AKANTU_DEBUG_IN();
 
   computeAlpha();
@@ -76,7 +76,7 @@ VelocityWeakeningExponential::VelocityWeakeningExponential(ContactRigid & contac
 VelocityWeakeningExponential::~VelocityWeakeningExponential() {
   AKANTU_DEBUG_IN();
 
-  
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -84,7 +84,7 @@ VelocityWeakeningExponential::~VelocityWeakeningExponential() {
 /* -------------------------------------------------------------------------- */
 void VelocityWeakeningExponential::initializeComputeFricCoef() {
   AKANTU_DEBUG_IN();
-  
+
   // compute relative sliding velocities
   if (instant_velocity)
     VelocityDependentFricCoef::initializeComputeFricCoef();
@@ -96,4 +96,3 @@ void VelocityWeakeningExponential::initializeComputeFricCoef() {
 
 
 __END_AKANTU__
-

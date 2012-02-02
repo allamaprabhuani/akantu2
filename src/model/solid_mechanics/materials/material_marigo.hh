@@ -1,10 +1,11 @@
 /**
- * @file   material_damage_linear.hh
+ * @file   material_marigo.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
- * @brief  Material isotropic elastic + linear softening
+ * @brief  Material isotropic elastic
  *
  * @section LICENSE
  *
@@ -31,27 +32,28 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DAMAGE_LINEAR_HH__
-#define __AKANTU_MATERIAL_DAMAGE_LINEAR_HH__
+#ifndef __AKANTU_MATERIAL_MARIGO_HH__
+#define __AKANTU_MATERIAL_MARIGO_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Material liner damage
+ * Material marigo
  *
  * parameters in the material files :
- *   - Sigc : (default: 1e5)
- *   - Gc  : (default: 2)
+ *   - Yd  : (default: 50)
+ *   - Sd  : (default: 5000)
+ *   - Ydrandomness  : (default:0)
  */
-class MaterialDamageLinear : public MaterialDamage {
+class MaterialMarigo : public MaterialDamage {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamageLinear(Model & model, const ID & id = "");
+  MaterialMarigo(Model & model, const ID & id = "");
 
-  virtual ~MaterialDamageLinear() {};
+  virtual ~MaterialMarigo() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -71,7 +73,28 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & damage, Real &K);
+  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & marigo, Real & Y, Real & Ydq);
+
+  __aka_inline__ void computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real & Ydq );
+
+  /* ------------------------------------------------------------------------ */
+  /* DataAccessor inherited members                                           */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
+ 				      SynchronizationTag tag);
+
+  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
+ 					SynchronizationTag tag);
+
+  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
+ 			       const Element & element,
+ 			       SynchronizationTag tag);
+
+  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
+                                 const Element & element,
+                                 SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -83,29 +106,31 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
 
-  /// kind of toughness
-  Real Gc;
+  /// resistance to damage
+  Real Yd;
 
-  /// critical stress
-  Real Sigc;
+  /// damage threshold
+  Real Sd;
 
-  /// damage internal variable
-  ByElementTypeReal K;
+  /// randomness on Yd
+  Real Yd_randomness;
 
-  Real Epsmin, Epsmax;
+  /// Yd random internal variable
+  ByElementTypeReal Yd_rand;
+
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_damage_linear_inline_impl.cc"
+#  include "material_marigo_inline_impl.cc"
 #endif
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamageLinear & _this)
+inline std::ostream & operator <<(std::ostream & stream, const MaterialMarigo & _this)
 {
   _this.printself(stream);
   return stream;
@@ -113,4 +138,4 @@ inline std::ostream & operator <<(std::ostream & stream, const MaterialDamageLin
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_DAMAGE_LINEAR_HH__ */
+#endif /* __AKANTU_MATERIAL_MARIGO_HH__ */

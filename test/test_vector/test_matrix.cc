@@ -68,9 +68,6 @@ int main(int argc, char *argv[]) {
   Math::matrix_matrix(n,n,n,A,B,C1);
   gettimeofday(&end, NULL);
 
-  Vector<Real>::iterator<types::RealTMatrix<n,n> > mitC = C1.begin<types::RealTMatrix<n,n> >();
-  std::cerr << *mitC << std::endl;
-
   //time =  (end.tv_sec * 1e3 + end.tv_usec * 1e-3) - (begin.tv_sec * 1e3 + begin.tv_usec * 1e-3);
   time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
   std::cout << "matrix_matrix : " << std::fixed << time/nbm << "us" << std::endl;
@@ -90,22 +87,6 @@ int main(int argc, char *argv[]) {
   std::cerr << *itC << std::endl;
   time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
   std::cout << "it Mc() = it Ma() * it Mb() : " << std::fixed << time/nbm << "us" << std::endl;
-
-  /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<types::RealTMatrix<n,n> > titA = A. begin<types::RealTMatrix<n,n> >();
-  Vector<Real>::iterator<types::RealTMatrix<n,n> > titB = B. begin<types::RealTMatrix<n,n> >();
-  Vector<Real>::iterator<types::RealTMatrix<n,n> > titC = C3.begin<types::RealTMatrix<n,n> >();
-  gettimeofday(&begin, NULL);
-  for (UInt i = 0; i < nbm; ++i) {
-    *titC = *titA * *titB;
-    ++titA; ++titB;++titC;
-  }
-  gettimeofday(&end, NULL);
-
-  titC = C3.begin<types::RealTMatrix<n,n> >();
-  std::cerr << *titC << std::endl;
-  time =  (end.tv_sec * 1e6 + end.tv_usec) - (begin.tv_sec * 1e6 + begin.tv_usec);
-  std::cout << "it Mc<> = it Ma<> * it Mb<> : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
   Vector<Real>::iterator<types::Matrix> muitA = A.begin(n,n);

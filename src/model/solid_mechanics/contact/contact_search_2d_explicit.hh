@@ -42,6 +42,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+/// type of possible intersections
 enum InterType {
   _not_def = 0,
   _no = 1,

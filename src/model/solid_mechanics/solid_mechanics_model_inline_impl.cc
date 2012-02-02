@@ -79,7 +79,9 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
     break;
   }
   default: {
-    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+    UInt mat = element_material(element.type, _ghost)(element.element);
+    size += materials[mat]->getNbDataToPack(element, tag);
+    //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 
@@ -117,7 +119,9 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
     break;
   }
   default: {
-    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+    UInt mat = element_material(element.type, _ghost)(element.element);
+    size += materials[mat]->getNbDataToPack(element, tag);
+    // AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 
@@ -135,7 +139,7 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = mesh.getConnectivity(element.type, ghost_type).values;
+  UInt * conn  = mesh.getConnectivity(element.type, ghost_type).storage();
 
 #ifndef AKANTU_NDEBUG
   types::RVector barycenter(spatial_dimension);
@@ -178,7 +182,9 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
     break;
   }
   default: {
-    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+    UInt mat = element_material(element.type, ghost_type)(element.element);
+    materials[mat]->packData(buffer, element, tag);
+    //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 
@@ -248,7 +254,9 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
     break;
   }
   default: {
-    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+    UInt mat = element_material(element.type, ghost_type)(element.element);
+    materials[mat]->unpackData(buffer, element, tag);
+    //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 

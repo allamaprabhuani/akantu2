@@ -388,7 +388,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(SurfaceID, surface_id, UInt);
 
   /// set the int data to the surface id vectors
-  __aka_inline__ void setSurfaceIDsFromIntData(std::string & data_name);
+  __aka_inline__ void setSurfaceIDsFromIntData(const std::string & data_name);
 
   __aka_inline__ const Vector<UInt> & getUIntData(const ElementType & el_type,
 					  const std::string & data_name,

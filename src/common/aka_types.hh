@@ -86,11 +86,11 @@ namespace types {
     Real * storage() const { return values; };
 
     /* ---------------------------------------------------------------------- */
-    __aka_inline__ Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
-    __aka_inline__ const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
-    __aka_inline__ Real& operator[](UInt idx) { return *(values + idx); };
-    __aka_inline__ const Real& operator[](UInt idx) const { return *(values + idx); };
-    __aka_inline__ Matrix & operator=(const Matrix & mat) {
+    inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
+    inline const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
+    inline Real& operator[](UInt idx) { return *(values + idx); };
+    inline const Real& operator[](UInt idx) const { return *(values + idx); };
+    inline Matrix & operator=(const Matrix & mat) {
       if(this != &mat) {
 	if(values != NULL) {
 	  memcpy(this->values, mat.values, m*n*sizeof(Real));
@@ -107,7 +107,7 @@ namespace types {
     };
 
     /* ---------------------------------------------------------------------- */
-    __aka_inline__ Matrix operator* (const Matrix & B) {
+    inline Matrix operator* (const Matrix & B) {
       Matrix C(this->m, B.n);
       C.mul<true, false>(*this, B);
 
@@ -115,21 +115,21 @@ namespace types {
     };
 
     template<bool tr_A, bool tr_B>
-    __aka_inline__ void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
+    inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
       if(tr_A) k = A.m;
 
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
 
-    __aka_inline__ void clear() { memset(values, 0, m * n * sizeof(Real)); };
+    inline void clear() { memset(values, 0, m * n * sizeof(Real)); };
 
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << debug::demangle(typeid(*this).name()) << "<" << n << "," << m <<"> :" << std::endl;
+      stream << space << "types::Matrix" << " [" << n << "," << m <<"] :" << std::endl;
       for (UInt i = 0; i < m; ++i) {
 	stream << space << AKANTU_INDENT << "| ";
 	for (UInt j = 0; j < n; ++j) {
@@ -191,13 +191,13 @@ namespace types {
 
 
     /* ---------------------------------------------------------------------- */
-    __aka_inline__ T& operator()(UInt i) { return *(values + i); };
-    __aka_inline__ const T& operator()(UInt i) const { return *(values + i); };
-    __aka_inline__ T& operator[](UInt idx) { return *(values + idx); };
-    __aka_inline__ const T& operator[](UInt idx) const { return *(values + idx); };
+    inline T& operator()(UInt i) { return *(values + i); };
+    inline const T& operator()(UInt i) const { return *(values + i); };
+    inline T& operator[](UInt idx) { return *(values + idx); };
+    inline const T& operator[](UInt idx) const { return *(values + idx); };
 
     /* ---------------------------------------------------------------------- */
-    __aka_inline__ Vector & operator=(const Vector & vect) {
+    inline Vector & operator=(const Vector & vect) {
       if(this != &vect) {
 	if(values != NULL) {
 	  memcpy(this->values, vect.values, n * sizeof(T));
@@ -212,7 +212,7 @@ namespace types {
       return *this;
     };
 
-    __aka_inline__ Vector & operator+=(const Vector & vect) {
+    inline Vector & operator+=(const Vector & vect) {
       T * a = this->values;
       T * b = vect.values;
       for (UInt i = 0; i < n; ++i) *(a++) += *(b++);
@@ -220,17 +220,17 @@ namespace types {
     };
 
 
-    __aka_inline__ void clear() { memset(values, 0, n * sizeof(T)); };
+    inline void clear() { memset(values, 0, n * sizeof(T)); };
 
     template<bool tr_A>
-    __aka_inline__ void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
+    inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
       UInt n = x.n;
       Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
     }
 
 
     /// norm of (*this - x)
-    __aka_inline__ Real distance(const Vector & y) const {
+    inline Real distance(const Vector & y) const {
       Real * vx = values; Real * vy = y.storage();
       Real sum_2 = 0;
       for (UInt i = 0; i < n; ++i, ++vx, ++vy) sum_2 += (*vx - *vy)*(*vx - *vy);
@@ -243,7 +243,7 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << debug::demangle(typeid(*this).name()) << "<" << n <<"> :" << std::endl;
+      stream << space << "types::Vector<" << debug::demangle(typeid(T).name()) << "> [" << n <<"] :" << std::endl;
       stream << space << AKANTU_INDENT << "| ";
       for (UInt i = 0; i < n; ++i) {
 	stream << values[i] << " ";
@@ -275,144 +275,6 @@ namespace types {
     return stream;
   }
 
-
-  /* -------------------------------------------------------------------------- */
-  /* templated matrix                                                           */
-  /* -------------------------------------------------------------------------- */
-  template<typename T, UInt m, UInt n>
-  class TMatrix {
-  public:
-    TMatrix() : values(new T[n*m]), wrapped(false) {};
-
-    TMatrix(T def) : values(new T[n*m]), wrapped(false) {
-      std::fill_n(values, n*m, def);
-    };
-
-    TMatrix(T *data) : values(data), wrapped(true) {};
-
-    TMatrix(TMatrix & src) {
-      values = src.values;
-      wrapped = src.wrapped;
-      src.wrapped = true;
-    };
-
-    virtual ~TMatrix() { if(!wrapped) delete [] values; };
-
-    static UInt size() { return n*m; };
-
-
-    __aka_inline__ T & operator()(UInt i, UInt j) { return *(values + i*n + j); };
-    __aka_inline__ const T & operator()(UInt i, UInt j) const { return *(values + i*n + j); };
-    __aka_inline__ T & operator[](UInt idx) { return *(values + idx); };
-    __aka_inline__ const T & operator[](UInt idx) const { return *(values + idx); };
-
-    __aka_inline__ TMatrix & operator=(const TMatrix & mat) {
-      if(this != &mat) {
-	if(values == NULL) { this->values = new T[n * m]; this->wrapped = false; }
-	memcpy(this->values, &mat[0], size()*sizeof(T));
-      }
-      return *this;
-    };
-
-    __aka_inline__ void clear() { memset(values, 0, m * n * sizeof(T)); };
-
-    /// function to print the containt of the class
-    virtual void printself(std::ostream & stream, int indent = 0) const {
-      std::string space;
-      for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-      stream << space << debug::demangle(typeid(*this).name())<< ":" << std::endl;
-      for (UInt i = 0; i < m; ++i) {
-	stream << space << AKANTU_INDENT << "| ";
-	for (UInt j = 0; j < n; ++j) {
-	  stream << std::setw(10) << values[i*n +j] << " ";
-	}
-	stream << "|" << std::endl;
-      }
-    };
-
-    // T* &data() { return values; };
-    friend class ::akantu::Vector<T>;
-
-  protected:
-    T * values;
-    bool wrapped;
-  };
-
-  /* ------------------------------------------------------------------------ */
-  /* Tensors                                                                  */
-  /* ------------------------------------------------------------------------ */
-  class Tensor2 : public Matrix {
-    Tensor2() : Matrix(){};
-    Tensor2(UInt dim, Real def = 0) : Matrix(dim, dim, def) { };
-    Tensor2(Real* data, UInt dim) : Matrix(data, dim, dim) {};
-    Tensor2(const Tensor2 & t) : Matrix(t) {};
-  };
-
-  class Tensor1 : public RVector {
-    Tensor1() : RVector(){};
-    Tensor1(UInt dim, Real def = 0) : RVector(dim,  def) { };
-    Tensor1(Real* data, UInt dim) : RVector(data, dim) {};
-    Tensor1(const Tensor1 & t) : RVector(t) {};
-  };
-
-
-
-  /* -------------------------------------------------------------------------- */
-  template <UInt m, UInt n>
-  class RealTMatrix : public TMatrix<Real, m, n> {
-  public:
-    RealTMatrix() : TMatrix<Real, m, n>() {};
-    RealTMatrix(Real def) : TMatrix<Real, m, n>(def) {};
-    RealTMatrix(Real * data) : TMatrix<Real, m, n>(data) {};
-    RealTMatrix(RealTMatrix & mat) : TMatrix<Real, m, n>(mat) {};
-  };
-
-
-  template <UInt m, UInt n, UInt k>
-  __aka_inline__ RealTMatrix<m,n> operator* (const RealTMatrix<m,k> & A, const RealTMatrix<k,n> & B) {
-    RealTMatrix<m,n> C;
-    C.clear();
-    for (UInt i = 0; i < m; ++i) {
-      UInt A_i = i * k;
-      UInt C_i = i * n;
-      for (UInt j = 0; j < n; ++j) {
-	for (UInt l = 0; l < k; ++l) {
-	  C[C_i + j] += A[A_i + l] * B[l * n + j];
-	}
-      }
-    }
-    return C;
-  }
-
-
-  /* -------------------------------------------------------------------------- */
-  /* templated vectors                                                          */
-  /* -------------------------------------------------------------------------- */
-
-  template <typename T, UInt n>
-  class TVector : public TMatrix<Real, n, 1> {
-  public:
-    TVector(Real * data) : TMatrix<Real, n, 1>(data) {};
-  };
-
-  template <UInt n>
-  class RealTVector : public TVector<Real, n> {
-  public:
-    RealTVector(Real * data) : TVector<Real, n>(data) {};
-  };
-
-
-  /* -------------------------------------------------------------------------- */
-  /* common                                                                     */
-  /* -------------------------------------------------------------------------- */
-
-  template <typename T, UInt m, UInt n>
-  inline std::ostream & operator<<(std::ostream & stream, const TMatrix<T,n,m> & _this)
-  {
-    _this.printself(stream);
-    return stream;
-  }
 }
 
 __END_AKANTU__

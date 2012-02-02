@@ -28,6 +28,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
+#include "aka_grid.hh"
+#include "fem.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -40,11 +42,12 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class BaseWeightFonction {
 public:
-  BaseWeightFonction(Real radius,
-                 __attribute__((unused)) ElementType type1,
-                 __attribute__((unused)) GhostType ghost_type1,
-                 __attribute__((unused)) ElementType type2,
-                 __attribute__((unused)) GhostType ghost_type2) :
+  BaseWeightFonction(const Material & material,
+                     Real radius,
+                     __attribute__((unused)) ElementType type1,
+                     __attribute__((unused)) GhostType ghost_type1,
+                     __attribute__((unused)) ElementType type2,
+                     __attribute__((unused)) GhostType ghost_type2) :
     radius(radius), r2(radius*radius) {
   }
 
@@ -52,13 +55,13 @@ public:
   inline Real operator()(Real r,
                          __attribute__((unused)) UInt q1,
                          __attribute__((unused)) UInt q2) {
-    Real weight = 0;
+    Real w = 0;
     if(r <= radius) {
-      Real alpha = (1. - r*r * r2);
-      weight = alpha * alpha;
+      Real alpha = (1. - r*r / r2);
+      w = alpha * alpha;
       //	*weight = 1 - sqrt(r / radius);
     }
-    return weight;
+    return w;
   }
 
 protected:
@@ -66,10 +69,7 @@ protected:
   Real r2;
 };
 
-
-
 /* -------------------------------------------------------------------------- */
-
 
 class MaterialNonLocal : public virtual Material {
   /* ------------------------------------------------------------------------ */
@@ -114,16 +114,6 @@ public:
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  // Real getStableTimeStep(Real h, const Element & element = ElementNull) {
-  //   AKANTU_DEBUG_TO_IMPLEMENT();
-  //   return 0.;
-  // };
-
-  // void computeStress(ElementType el_type,
-  // 		     GhostType ghost_type = _not_ghost) {
-  //   AKANTU_DEBUG_TO_IMPLEMENT();
-  // };
-
   virtual void updateResidual(Vector<Real> & displacement, GhostType ghost_type);
 
   /// constitutive law
@@ -135,15 +125,10 @@ public:
 
   void removeDamaged(const ByElementTypeReal & damage, Real thresold);
 
-  // void computeTangentStiffness(const ElementType & el_type,
-  // 			       Vector<Real> & tangent_matrix,
-  // 			       GhostType ghost_type = _not_ghost) {
-  //   AKANTU_DEBUG_TO_IMPLEMENT();
-  // };
-
-
   void savePairs(const std::string & filename) const;
 
+protected:
+  void createCellList(const ByElementTypeReal & quadrature_points_coordinates);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -163,6 +148,7 @@ private:
 
   Real radius;
 
+  RegularGrid<QuadraturePoint> * cell_list;
   //  ByElementTypeReal quadrature_points_coordinates;
 
   std::set< std::pair<ElementType, ElementType> > existing_pairs;

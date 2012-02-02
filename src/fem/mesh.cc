@@ -181,37 +181,39 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   connectivities.printself(stream, indent+2);
   stream << space << "]" << std::endl;
 }
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 void Mesh::computeBoundingBox(){
   AKANTU_DEBUG_IN();
-  UInt dim = spatial_dimension;
-
-  for (UInt k = 0; k < dim; ++k) {
+  for (UInt k = 0; k < spatial_dimension; ++k) {
     local_lower_bounds[k] =   std::numeric_limits<double>::max();
     local_upper_bounds[k] = - std::numeric_limits<double>::max();
   }
 
-  Real * coords = nodes->storage();
   for (UInt i = 0; i < nodes->getSize(); ++i) {
-    for (UInt k = 0; k < dim; ++k) {
-      local_lower_bounds[k] = std::min(local_lower_bounds[k], coords[dim*i+k]);
-      local_upper_bounds[k] = std::max(local_upper_bounds[k], coords[dim*i+k]);
-    }
+    if(!isPureGhostNode(i))
+      for (UInt k = 0; k < spatial_dimension; ++k) {
+        local_lower_bounds[k] = std::min(local_lower_bounds[k], (*nodes)(i, k));
+        local_upper_bounds[k] = std::max(local_upper_bounds[k], (*nodes)(i, k));
+      }
   }
 
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
 
-
-  for (UInt k = 0; k < dim; ++k) {
-    lower_bounds[k] = local_lower_bounds[k];
-    upper_bounds[k] = local_upper_bounds[k];
+  Real reduce_bounds[2 * spatial_dimension];
+  for (UInt k = 0; k < spatial_dimension; ++k) {
+    reduce_bounds[2*k    ] =   local_lower_bounds[k];
+    reduce_bounds[2*k + 1] = - local_upper_bounds[k];
   }
 
-  comm->allReduce(lower_bounds, dim, _so_min);
-  comm->allReduce(upper_bounds, dim, _so_max);
+  comm->allReduce(reduce_bounds, 2 * spatial_dimension, _so_min);
 
-  for (UInt k = 0; k < dim; ++k)
+  for (UInt k = 0; k < spatial_dimension; ++k) {
+    lower_bounds[k] =   reduce_bounds[2*k];
+    upper_bounds[k] = - reduce_bounds[2*k + 1];
+  }
+
+  for (UInt k = 0; k < spatial_dimension; ++k)
     size[k] = upper_bounds[k] - lower_bounds[k];
 
   AKANTU_DEBUG_OUT();

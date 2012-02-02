@@ -97,7 +97,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 		      == nb_degre_of_freedom*nb_nodes_per_element,
 		      "The vector elementary_vect(" << elementary_vect.getID()
 		      << ") has not the good number of component."
-		      << "(" << elementary_vect.getNbComponent() 
+		      << "(" << elementary_vect.getNbComponent()
 		      << " != " << nb_degre_of_freedom*nb_nodes_per_element << ")");
 
   AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degre_of_freedom,
@@ -121,7 +121,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
       UInt node = conn_val[el_offset + n];
       UInt offset_node = node * nb_degre_of_freedom;
       for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-	nodal_values_val[equation_number.values[offset_node + d]] 
+	nodal_values_val[equation_number.values[offset_node + d]]
 	  += scale_factor * elementary_vect_val[d];
       }
       elementary_vect_val += nb_degre_of_freedom;

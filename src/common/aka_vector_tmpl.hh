@@ -590,19 +590,19 @@ protected:
 };
 
 
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret>
-inline Vector<T>::iterator<Ret> Vector<T>::begin() {
-  return iterator<Ret>(values, nb_component);
-}
+// /* -------------------------------------------------------------------------- */
+// template<typename T>
+// template<typename Ret>
+// inline Vector<T>::iterator<Ret> Vector<T>::begin() {
+//   return iterator<Ret>(values, nb_component);
+// }
 
-/* -------------------------------------------------------------------------- */
-template<typename T>
-template<typename Ret>
-inline Vector<T>::iterator<Ret> Vector<T>::end() {
-  return iterator<Ret>(values + nb_component * size, nb_component);
-}
+// /* -------------------------------------------------------------------------- */
+// template<typename T>
+// template<typename Ret>
+// inline Vector<T>::iterator<Ret> Vector<T>::end() {
+//   return iterator<Ret>(values + nb_component * size, nb_component);
+// }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -695,15 +695,15 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
 /**
  * Specialization for scalar types
  */
-template <>
-template <>
-class Vector<Real>::iterator_internal<Real,Real,0> : public std::iterator<std::random_access_iterator_tag, Real> {
+template <typename T>
+template <int fps>
+class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T> {
 public:
-  typedef Real   value_type;
-  typedef Real*  pointer;
-  typedef Real&  reference;
-  typedef Real   internal_value_type;
-  typedef Real*  internal_pointer;
+  typedef T   value_type;
+  typedef T*  pointer;
+  typedef T&  reference;
+  typedef T   internal_value_type;
+  typedef T*  internal_pointer;
 protected:
   iterator_internal(UInt offset, pointer data, pointer ret) : offset(offset),
 							      initial(data),
@@ -788,17 +788,26 @@ inline void Vector<T>::erase(const iterator<R> & it) {
 // }
 
 
-// /* -------------------------------------------------------------------------- */
-// template<>
-// template<>
-// inline Vector<Real>::iterator<Real> Vector<Real>::begin<Real>() {
-//   return iterator<Real>(values);
-// }
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline Vector<T>::iterator<T> Vector<T>::begin() {
+  return iterator<T>(values, 1);
+}
 
-// /* -------------------------------------------------------------------------- */
-// template<>
-// template<>
-// inline Vector<Real>::iterator<Real> Vector<Real>::end<Real>() {
-//   return iterator<Real>(values + nb_component * size);
-// }
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline Vector<T>::iterator<T> Vector<T>::end() {
+  return iterator<T>(values + nb_component * size, 1);
+}
 
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline Vector<T>::const_iterator<T> Vector<T>::begin() const {
+  return iterator<T>(values, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline Vector<T>::const_iterator<T> Vector<T>::end() const {
+  return iterator<T>(values + nb_component * size, 1);
+}

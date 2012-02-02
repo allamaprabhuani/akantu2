@@ -197,6 +197,7 @@ enum SynchronizationTag {
   _gst_smm_for_strain,            /// synchronization of the SolidMechanicsModel.current_position
   _gst_smm_boundary,              /// synchronization of the boundary, forces, velocities and displacement
   _gst_smm_uv,                    /// synchronization of the nodal velocities and displacement
+  _gst_smm_init_mat,              /// synchronization of the data to initialize materials
   /// HeatTransfer tags
   _gst_htm_capacity,              /// synchronization of the nodal heat capacity
   _gst_htm_temperature,           /// synchronization of the nodal temperature

@@ -196,9 +196,29 @@ private:
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
   /* ------------------------------------------------------------------------ */
 public:
+  class SurfaceLoadFunctor {
+  public:
+    virtual void operator()(const types::Vector<Real> & position,
+			    types::Vector<Real> & force,
+			    const types::Vector<Real> & normal,
+			    Surface surface_id) {
+      AKANTU_DEBUG_TO_IMPLEMENT();
+    }
+    
+    virtual void operator()(const types::Vector<Real> & position,
+			    types::Matrix & stress,
+			    const types::Vector<Real> & normal,
+			    Surface surface_id) {
+      AKANTU_DEBUG_TO_IMPLEMENT();
+    }
+  };
+
   /// compute force vector from a function(x,y,z) that describe stresses
   void computeForcesFromFunction(BoundaryFunction in_function,
-				 BoundaryFunctionType function_type);
+				 BoundaryFunctionType function_type) __attribute__((deprecated));
+
+  template<class Functor>
+  void computeForcesFromFunction(Functor & functor, BoundaryFunctionType function_type);
 
   /// integrate a force on the boundary by providing a stress tensor
   void computeForcesByStressTensor(const Vector<Real> & stresses,

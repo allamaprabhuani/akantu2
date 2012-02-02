@@ -59,8 +59,6 @@ INCLUDE_PATH           = @CMAKE_SOURCE_DIR@/src/common \
 			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/materials \
 			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/contact
 
-
-
 INCLUDE_FILE_PATTERNS  = *.hh
 PREDEFINED             = @AKANTU_DOXYGEN_DEFINTIONS@
 EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \

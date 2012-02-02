@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
   std::vector<std::string>::iterator it_nodes;
   for(it_nodes = node_groups.begin(); it_nodes != node_groups.end(); ++it_nodes) {
     nodes_grps[i] = new Real[nb_nodes];
-    std::fill_n(nodes_grps[i], 0, nb_nodes);
+    std::fill_n(nodes_grps[i], nb_nodes, 0);
     const Vector<UInt> & group = mesh_io.getNodeGroup(*it_nodes);
     for (UInt n = 0; n < group.getSize(); ++n) {
       nodes_grps[i][group(n)] = 1.;
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
   std::vector<std::string>::iterator it_elements;
   for(it_elements = element_groups.begin(); it_elements != element_groups.end(); ++it_elements) {
     elements_grps[i] = new Real[nb_elements];
-    std::fill_n(elements_grps[i], 0, nb_elements);
+    std::fill_n(elements_grps[i], nb_elements, 0);
     const std::vector<Element> & group = mesh_io.getElementGroup(*it_elements);
     for (UInt n = 0; n < group.size(); ++n) {
       elements_grps[i][group[n].element] = 1.;

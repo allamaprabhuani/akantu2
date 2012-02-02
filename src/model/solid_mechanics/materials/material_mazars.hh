@@ -1,11 +1,11 @@
 /**
- * @file   material_damage.hh
+ * @file   material_mazars.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
- * @brief  Material isotropic elastic
+ * @brief  Material Following the Mazars law for damage evolution
  *
  * @section LICENSE
  *
@@ -21,8 +21,7 @@
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
- *  if(key == "Yd") { sstr >> Yd; }
-  else if(key == "Sd") { sstr >> Sd; }
+ *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -30,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MAZARS_HH__
@@ -52,7 +51,7 @@ __BEGIN_AKANTU__
  *   - Bc   : Parameter damage compression 2
  *   - beta : Parameter for shear
  */
-class MaterialMazars : public virtual Material {
+class MaterialMazars : public MaterialDamage {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -75,44 +74,24 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-
-
-  /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
-			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  /// compute the stable time step for an element of size h
-  Real getStableTimeStep(Real h, const Element & element = ElementNull) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
 protected:
   /// constitutive law for a given quadrature point
   __aka_inline__ void computeStress(Real * F, Real * sigma,Real & damage, Real & Ehat);
-  
+
   __aka_inline__ void computeDamageAndStress( Real *F, Real * sigma,Real & damage, Real & Ehat);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// the young modulus
-  Real E;
-  /// Poisson coefficient
-  Real nu;
-
   /// damage threshold
   Real K0;
   ///parameter damage traction 1
@@ -126,12 +105,10 @@ protected:
   ///parameter for shear
   Real beta ;
 
-  /// damage internal variable
-  ByElementTypeReal damage;
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

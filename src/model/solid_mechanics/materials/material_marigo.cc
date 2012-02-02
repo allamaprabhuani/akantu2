@@ -1,11 +1,11 @@
 /**
- * @file   material_mazars.cc
+ * @file   material_marigo.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 11:53:52 2010
  *
- * @brief  Specialization of the material class for the damage material
+ * @brief  Specialization of the material class for the marigo material
  *
  * @section LICENSE
  *
@@ -28,42 +28,66 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_mazars.hh"
+#include "material_marigo.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialMazars::MaterialMazars(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id) {
+MaterialMarigo::MaterialMarigo(Model & model, const ID & id)  :
+  Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id),
+  Yd_rand("Yd_rand",id) {
   AKANTU_DEBUG_IN();
 
-  K0   = 1e-4;
-  At   = 0.8;
-  Ac   = 1.4;
-  Bc   = 1900;
-  Bt   = 12000;
-  beta = 1.06;
+  Yd  = 50;
+  Sd  = 5000;
+  Yd_randomness = 0;
+  is_non_local = false;
 
+  initInternalVector(this->Yd_rand, 1);
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::initMaterial() {
+void MaterialMarigo::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage::initMaterial();
 
+  resizeInternalVector(this->Yd_rand);
+
+  const Mesh & mesh = model->getFEM().getMesh();
+
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+
+  for(; it != last_type; ++it) {
+    UInt nb_element  = mesh.getNbElement(*it);
+    UInt nb_quad = model->getFEM().getNbQuadraturePoints(*it);
+
+    Vector <Real> & Yd_rand_vec = Yd_rand(*it);
+
+    for(UInt e = 0; e < nb_element; ++e) {
+      Real rand_part = (2 * drand48()-1) * Yd_randomness * Yd;
+
+      for(UInt q = 0; q < nb_quad; ++q)
+	Yd_rand_vec(nb_quad*e+q,0) = Yd + rand_part;
+    }
+  }
+
   is_init = true;
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
+void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
   Real sigma[3*3];
   Real * dam = damage(el_type, ghost_type).storage();
+  Real * Ydq = Yd_rand(el_type, ghost_type).storage();
+
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -72,9 +96,10 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  Real Ehat;
-  computeStress(F, sigma, *dam, Ehat);
+  Real Y;
+  computeStress(F, sigma, *dam, Y,*Ydq);
   ++dam;
+  ++Ydq;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -86,35 +111,30 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialMazars::setParam(const std::string & key, const std::string & value,
-			      const ID & id) {
+bool MaterialMarigo::setParam(const std::string & key, const std::string & value,
+			       const ID & id) {
   std::stringstream sstr(value);
-  if(key == "K0") { sstr >> K0; }
-  else if(key == "At") { sstr >> At; }
-  else if(key == "Bt") { sstr >> Bt; }
-  else if(key == "Ac") { sstr >> Ac; }
-  else if(key == "Bc") { sstr >> Bc; }
-  else if(key == "beta") { sstr >> beta; }
+  if(key == "Yd") { sstr >> Yd; }
+  else if(key == "Sd") { sstr >> Sd; }
+  else if(key == "Yd_randomness") { sstr >> Yd_randomness; }
   else { return MaterialDamage::setParam(key, value, id); }
   return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::printself(std::ostream & stream, int indent) const {
+void MaterialMarigo::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_mazars> [" << std::endl;
-  stream << space << " + K0    : " << K0 << std::endl;
-  stream << space << " + At    : " << At << std::endl;
-  stream << space << " + Bt    : " << Bt << std::endl;
-  stream << space << " + Ac    : " << Ac << std::endl;
-  stream << space << " + Bc    : " << Bc << std::endl;
-  stream << space << " + beta  : " << beta << std::endl;
+  stream << space << "Material<_marigo> [" << std::endl;
+  stream << space << " + Yd         : " << Yd << std::endl;
+  stream << space << " + Sd         : " << Sd << std::endl;
+  stream << space << " + randomness : " << Yd_randomness << std::endl;
   MaterialDamage::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
+
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__

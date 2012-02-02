@@ -230,7 +230,7 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
   UInt offset = element * nb_nodes_per_element;
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     memcpy(local_coord + n * spatial_dimension,
-	   nodes->values + conn_val[offset + n] * spatial_dimension,
+	   nodes->storage() + conn_val[offset + n] * spatial_dimension,
 	   spatial_dimension*sizeof(Real));
   }
 
@@ -240,7 +240,10 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::setSurfaceIDsFromIntData(std::string & data_name) {
+inline void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
+
+  std::set<Surface> surface_ids;
+
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
@@ -260,8 +263,14 @@ inline void Mesh::setSurfaceIDsFromIntData(std::string & data_name) {
 			  << ") already set to the vector " << surface_id(*it, gt).getID());
 
       surface_id.setVector(*it, gt, *it_data->second);
+
+      for (UInt s = 0; s < it_data->second->getSize(); ++s) {
+	surface_ids.insert((*it_data->second)(s));
+      }
     }
   }
+
+  nb_surfaces = surface_ids.size();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -428,107 +437,3 @@ inline UInt Mesh::getNbGlobalNodes() const {
 inline Int Mesh::getNodeType(UInt local_id) const {
   return nodes_type ? (*nodes_type)(local_id) : -1;
 }
-//  <<<<<<< .mine
-
-// /* -------------------------------------------------------------------------- */
-// /* ByElementType                                                              */
-// /* -------------------------------------------------------------------------- */
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// inline std::string ByElementType<Stored>::printType(const ElementType & type,
-// 						    const GhostType & ghost_type) {
-//   std::stringstream sstr; sstr << "(" << ghost_type << ":" << type << ")";
-//   return sstr.str();
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// inline bool ByElementType<Stored>::exists(ElementType type, GhostType ghost_type) const {
-//   return this->getData(ghost_type).find(type) != this->getData(ghost_type).end();
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// inline const Stored & ByElementType<Stored>::operator()(const ElementType & type,
-// 						const GhostType & ghost_type) const {
-//   typename ByElementType<Stored>::DataMap::const_iterator it =
-//     this->getData(ghost_type).find(type);
-
-//   AKANTU_DEBUG_ASSERT(it != this->getData(ghost_type).end(),
-// 		      "No element of type "
-// 		      << ByElementType<Stored>::printType(type, ghost_type)
-// 		      << " in this ByElementType<"
-// 		      << debug::demangle(typeid(Stored).name()) << "> class");
-//   return it->second;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// inline Stored & ByElementType<Stored>::operator()(const ElementType & type,
-// 					  const GhostType & ghost_type) {
-//   typename ByElementType<Stored>::DataMap::iterator it =
-//     this->getData(ghost_type).find(type);
-
-//   if(it == this->getData(ghost_type).end()) {
-//     ByElementType<Stored>::DataMap & data = this->getData(ghost_type);
-//     const std::pair<typename DataMap::iterator, bool> & res =
-//       data.insert(std::pair<ElementType, Stored>(type, Stored()));
-//     it = res.first;
-//   }
-
-//   return it->second;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// inline typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) {
-//   if(ghost_type == _not_ghost) return data;
-//   else if (ghost_type == _ghost) return ghost_data;
-//   return data;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// inline const typename ByElementType<Stored>::DataMap & ByElementType<Stored>::getData(GhostType ghost_type) const {
-//   if(ghost_type == _not_ghost) return data;
-//   else if (ghost_type == _ghost) return ghost_data;
-//   return data;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// /// Works only if stored is a pointer to a class with a printself method
-// template<class Stored>
-// void ByElementType<Stored>::printself(std::ostream & stream, int indent) const {
-//   std::string space;
-//   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-//   stream << "ByElementType<" << debug::demangle(typeid(Stored).name()) << "> [" << std::endl;
-//   for(UInt g = _not_ghost; g <= _ghost; ++g) {
-//     GhostType gt = (GhostType) g;
-
-//     const ByElementType<Stored>::DataMap & data = getData(gt);
-//     typename ByElementType<Stored>::DataMap::const_iterator it;
-//     for(it = data.begin(); it != data.end(); ++it) {
-//       stream << space << debug::demangle(typeid(Stored).name())
-// 	     << ByElementType<Stored>::printType(it->first, gt) << " [" << std::endl;
-//       it->second->printself(stream, indent + 2);
-//     }
-//   }
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// ByElementType<Stored>::ByElementType() {
-//   AKANTU_DEBUG_IN();
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<class Stored>
-// ByElementType<Stored>::~ByElementType() {
-
-// }
-// =======
-// >>>>>>> .r3650

@@ -37,16 +37,7 @@
 
 __BEGIN_AKANTU__
 
-/**
- * Material damage
- *
- * parameters in the material files :
- *   - Yd  : (default: 50)
- *   - Sd  : (default: 5000)
- *   - Ydrandomness  : (default:0)
-
- */
-class MaterialDamage : public MaterialElastic {
+class MaterialDamage : public virtual MaterialElastic {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -67,7 +58,10 @@ public:
 		const ID & id);
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(__attribute__ ((unused)) ElementType el_type,
+		     __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
 
   /// Compute the tangent stiffness matrix for implicit for a given type
   void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
@@ -77,8 +71,8 @@ public:
   };
 
   /// constitutive law
-  virtual void computeNonLocalStress(ElementType el_type,
-				     GhostType ghost_type = _not_ghost) {
+  virtual void computeNonLocalStress(__attribute__ ((unused)) ElementType el_type,
+				     __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
@@ -96,6 +90,11 @@ protected:
   };
 
   /* ------------------------------------------------------------------------ */
+  /* DataAccessor inherited members                                           */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
@@ -105,28 +104,10 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  /// resistance to damage
-  Real Yd;
-
-  /// damage threshold
-  Real Sd;
-  /// randomness on Yd
-  Real Yd_randomness ;
   /// damage internal variable
   ByElementTypeReal damage;
-  /// Yd random internal variable
-  ByElementTypeReal Yd_rand;
-
 };
 
-/* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_damage_inline_impl.cc"
-#endif
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator

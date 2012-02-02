@@ -25,9 +25,10 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_elastic.cc
   model/solid_mechanics/materials/material_elastic_caughey.cc
   model/solid_mechanics/materials/material_damage.cc
+  model/solid_mechanics/materials/material_marigo.cc
   model/solid_mechanics/materials/material_mazars.cc
   model/solid_mechanics/materials/material_neohookean.cc
-  model/solid_mechanics/materials/material_damage_non_local.cc
+  model/solid_mechanics/materials/material_marigo_non_local.cc
   model/solid_mechanics/materials/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage_linear.cc
   mesh_utils/mesh_io.cc
@@ -105,8 +106,9 @@ set(CORE_FILES
   model/integration_scheme/newmark-beta.hh
   model/integration_scheme/integration_scheme_1st_order.hh
   model/solid_mechanics/materials/material_damage.hh
+  model/solid_mechanics/materials/material_marigo.hh
+  model/solid_mechanics/materials/material_marigo_non_local.hh
   model/solid_mechanics/materials/material_mazars_non_local.hh
-  model/solid_mechanics/materials/material_damage_non_local.hh
   model/solid_mechanics/materials/material_elastic_caughey.hh
   model/solid_mechanics/materials/material_elastic.hh
   model/solid_mechanics/materials/material_non_local.hh
@@ -153,7 +155,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
   model/solid_mechanics/materials/material_non_local_inline_impl.cc
   model/solid_mechanics/materials/material_neohookean_inline_impl.cc
-  model/solid_mechanics/materials/material_damage_inline_impl.cc
+  model/solid_mechanics/materials/material_marigo_inline_impl.cc
   model/solid_mechanics/materials/material_damage_linear_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc

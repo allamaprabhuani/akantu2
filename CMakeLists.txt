@@ -111,6 +111,17 @@ if(NOT AKANTU_DEBUG)
   list(APPEND AKANTU_DEFINITIONS AKANTU_NDEBUG)
 endif(NOT AKANTU_DEBUG)
 
+if(CMAKE_CXX_FLAGS STREQUAL "")
+  set(CMAKE_CXX_FLAGS "-Wall" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+endif()
+
+set(CMAKE_CXX_FLAGS_PROFILING "-g -pg" CACHE STRING "Flags used by the compiler during profiling builds")
+set(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg" CACHE STRING "Flags used by the linker during profiling builds")
+set(CMAKE_SHARED_LINKER_FLAGS_PROFILING "-pg" CACHE STRING "Flags used by the linker during profiling builds")
+mark_as_advanced(CMAKE_CXX_FLAGS_PROFILING)
+mark_as_advanced(CMAKE_EXE_LINKER_FLAGS_PROFILING)
+mark_as_advanced(CMAKE_SHARED_LINKER_FLAGS_PROFILING)
+
 #===============================================================================
 # Dependencies
 #===============================================================================

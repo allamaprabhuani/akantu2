@@ -56,6 +56,8 @@ private:
 /* -------------------------------------------------------------------------- */
 class CommunicationStatus {
 public:
+  CommunicationStatus() : source(0), size(0), tag(0) {};
+
   AKANTU_GET_MACRO(Source, source, Int);
   AKANTU_GET_MACRO(Size,   size, UInt);
   AKANTU_GET_MACRO(Tag,    tag, Int);

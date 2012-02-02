@@ -124,12 +124,24 @@ macro(add_all_packages package_dir)
       list(APPEND _release_all_file ${_file})
     endforeach()
   endforeach()
-#  message("ALL PKG : ${AKANTU_PACKAGE_NAMES_LIST_ALL}")
-#  message("ON  PKG : ${AKANTU_PACKAGE_NAMES_LIST_ON}")
-#  message("ALL FILE LIST : ${_release_all_file}")
+
+  #message("ALL PKG : ${AKANTU_PACKAGE_NAMES_LIST_ALL}")
+  #message("ON  PKG : ${AKANTU_PACKAGE_NAMES_LIST_ON}")
+  #message("ALL FILE LIST : ${_release_all_file}")
+
+  #check if there are some file in the release that are not registered in a package
+  file(GLOB_RECURSE _all_files RELATIVE ${CMAKE_SOURCE_DIR}/src "*.cc" "*.hh")
+  foreach(_file ${all_files})
+    if(NOT ${_file} MATCHES "test.*")
+      list(FIND _release_all_file ${_file} _index)
+      if (_index EQUAL -1)
+        message("The file ${file} is not registered in any package.")
+        message("Please append the file in one of the files within directory ${CMAKE_SOURCE_DIR}/packages")
+      endif()
+    endif()
+  endforeach()
 
   #check if there are some file in the package list that are not on the current directory
-  file(GLOB_RECURSE _all_files RELATIVE ${CMAKE_SOURCE_DIR}/src "*.cc" "*.hh")
 
   foreach(file ${all_files})
     list(FIND RELEASE_ALL_FILE ${file} index)

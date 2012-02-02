@@ -52,12 +52,19 @@ public:
   QuadraturePoint(const QuadraturePoint & quad) :
     Element(quad), num_point(quad.num_point) { };
 
-  virtual ~QuadraturePoint() {};
-
   AKANTU_GET_MACRO(Position, position, const types::RVector &);
   void setPosition(const types::RVector & position) {
     this->position.setSize(position.size());
     this->position.setStorage(position.storage());
+  }
+
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const {
+    std::string space;
+    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+    stream << space << "QuadraturePoint [";
+    Element::printself(stream, 0);
+    stream << ", " << num_point << "]";
   }
 
 public:
@@ -263,6 +270,14 @@ protected:
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const FEM & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
+
+
+/// standard output stream operator
+inline std::ostream & operator <<(std::ostream & stream, const QuadraturePoint & _this)
 {
   _this.printself(stream);
   return stream;

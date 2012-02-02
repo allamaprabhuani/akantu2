@@ -154,31 +154,38 @@ public:
   template<typename R>
   class iterator : public iterator_internal<R> {
   public:
-    typedef typename iterator_internal<R>::pointer pointer;
+    typedef iterator_internal<R> parent;
+    typedef typename parent::pointer pointer;
   public:
-    iterator() : iterator_internal<R>() {};
-    iterator(pointer_type data, UInt offset) : iterator_internal<R>(data, offset) {};
-    iterator(pointer warped) : iterator_internal<R>(warped) {};
-    iterator(const iterator & it) : iterator_internal<R>(it) {};
+    iterator() : parent() {};
+    iterator(pointer_type data, UInt offset) : parent(data, offset) {};
+    iterator(pointer warped) : parent(warped) {};
+    iterator(const iterator & it) : parent(it) {};
   };
 
   /* ------------------------------------------------------------------------ */
   template<typename R>
   class const_iterator : public iterator_internal<const R, R> {
   public:
-    typedef typename iterator_internal<const R, R>::pointer pointer;
+    typedef iterator_internal<const R, R> parent;
+    typedef typename parent::pointer pointer;
   public:
-    const_iterator() : iterator_internal<const R, R>() {};
-    const_iterator(pointer_type data, UInt offset) : iterator_internal<const R, R>(data, offset) {};
-    const_iterator(pointer warped) : iterator_internal<const R, R>(warped) {};
-    const_iterator(const const_iterator & it) : iterator_internal<const R, R>(it) {};
+    const_iterator() : parent() {};
+    const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
+    const_iterator(pointer warped) : parent(warped) {};
+    const_iterator(const const_iterator & it) : parent(it) {};
   };
 
   /* ------------------------------------------------------------------------ */
-  template<typename Ret> inline iterator<Ret> begin();
-  template<typename Ret> inline iterator<Ret> end();
-  template<typename Ret> inline const_iterator<Ret> begin() const;
-  template<typename Ret> inline const_iterator<Ret> end() const;
+  // template<typename Ret> inline iterator<Ret> begin();
+  // template<typename Ret> inline iterator<Ret> end();
+  // template<typename Ret> inline const_iterator<Ret> begin() const;
+  // template<typename Ret> inline const_iterator<Ret> end() const;
+
+  inline iterator<T> begin();
+  inline iterator<T> end();
+  inline const_iterator<T> begin() const;
+  inline const_iterator<T> end() const;
 
   inline iterator< types::Vector<T> > begin(UInt n);
   inline iterator< types::Vector<T> > end(UInt n);

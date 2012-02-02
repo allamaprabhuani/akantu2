@@ -1,11 +1,11 @@
 /**
- * @file   material_damage_inline_impl.cc
+ * @file   material_marigo_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 11:57:43 2010
  *
- * @brief  Implementation of the inline functions of the material damage
+ * @brief  Implementation of the inline functions of the material marigo
  *
  * @section LICENSE
  *
@@ -31,17 +31,8 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam, Real & Y, Real &Ydq) {
-
-  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
-  /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
-  sigma[0] = lambda * trace + 2*mu*F[0];
-  sigma[4] = lambda * trace + 2*mu*F[4];
-  sigma[8] = lambda * trace + 2*mu*F[8];
-
-  sigma[1] = sigma[3] =  mu * (F[1] + F[3]);
-  sigma[2] = sigma[6] =  mu * (F[2] + F[6]);
-  sigma[5] = sigma[7] =  mu * (F[5] + F[7]);
+inline void MaterialMarigo::computeStress(Real * F, Real * sigma, Real & dam, Real & Y, Real &Ydq) {
+  MaterialElastic::computeStress(F, sigma);
 
   Y = sigma[0]*F[0] +
     sigma[1]*F[1] +
@@ -61,7 +52,7 @@ inline void MaterialDamage::computeStress(Real * F, Real * sigma, Real & dam, Re
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialDamage::computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real &Ydq) {
+inline void MaterialMarigo::computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real &Ydq) {
   Real Fd = Y - Ydq - Sd*dam;
 
   if (Fd > 0) dam = (Y - Ydq) / Sd;
@@ -79,59 +70,59 @@ inline void MaterialDamage::computeDamageAndStress(Real * sigma, Real & dam, Rea
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialDamage::getNbDataToPack(const Element & element,
+inline UInt MaterialMarigo::getNbDataToPack(const Element & element,
 					    SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
   if(tag == _gst_smm_init_mat)
     size += sizeof(Real);
-  else
-    size += Material::getNbDataToPack(element, tag);
+
+  size += MaterialDamage::getNbDataToPack(element, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialDamage::getNbDataToUnpack(const Element & element,
+inline UInt MaterialMarigo::getNbDataToUnpack(const Element & element,
 					      SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
   if(tag == _gst_smm_init_mat)
     size += sizeof(Real);
-  else
-    size += Material::getNbDataToPack(element, tag);
+
+  size += MaterialDamage::getNbDataToPack(element, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialDamage::packData(CommunicationBuffer & buffer,
+inline void MaterialMarigo::packData(CommunicationBuffer & buffer,
 				     const Element & element,
 				     SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat)
     buffer << Yd_rand(element.type, _not_ghost)(element.element);
-  else
-    Material::packData(buffer, element, tag);
+
+  MaterialDamage::packData(buffer, element, tag);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialDamage::unpackData(CommunicationBuffer & buffer,
+inline void MaterialMarigo::unpackData(CommunicationBuffer & buffer,
 				       const Element & element,
 				       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat)
     buffer >> Yd_rand(element.type, _ghost)(element.element);
-  else
-    Material::packData(buffer, element, tag);
+
+  MaterialDamage::packData(buffer, element, tag);
 
   AKANTU_DEBUG_OUT();
 }

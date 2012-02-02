@@ -140,37 +140,31 @@ Real MaterialNeohookean::celerity(const Element & elem) {
     + elem.element * nb_quadrature_points * size_strain;
 
   Real F[3*3];
-  Real temprhot = 0;
-  Real C[3*3], Cinv[3*3],
-    detC, defvol,
-    p,
-    traceCinv,
-    coef, rhot;
+  Real C[3*3], Cinv[3*3];
+
+  Real cele = 0.;
 
   for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    std::fill_n(F, 0., 3*3);
+    std::fill_n(F, 3*3, 0.);
 
     for (UInt i = 0; i < spatial_dimension; ++i)
       for (UInt j = 0; j < spatial_dimension; ++j)
-	F[3*i + j] = strain_val[spatial_dimension * i + j];
-    for (UInt i = 0; i < spatial_dimension; ++i)
-      F[i*3 + i] += 1;
+	F[3*i + j] = strain_val[spatial_dimension * i + j] + (i == j);
 
     Math::matMul<true,false>(3, 3, 3, 1., F, F, 0., C);
     Math::inv3(C, Cinv);
-    detC = Math::det3(C);
-    defvol = 0.5*log(detC);
-    p = lambda*defvol;
-    traceCinv = Cinv[0] + Cinv[4] + Cinv[8];
-    coef = mu - p;
 
-    rhot = rho/sqrt(detC);
-    rhot = std::max(temprhot,rhot);
+    Real detC = Math::det3(C);
+    Real defvol = .5 * log(detC);
+    Real p = lambda * defvol;
+    Real traceCinv = Cinv[0] + Cinv[4] + Cinv[8];
+    Real coef = mu - p;
+    Real rhot = rho/sqrt(detC);
+    Real tmpcele = sqrt((lambda + 2*coef)*traceCinv*traceCinv/rhot);
 
+    cele = std::max(cele, tmpcele);
     strain_val += size_strain;
   }
-
-  Real cele = sqrt((lambda + 2*coef)*traceCinv*traceCinv/rhot) ;
 
   return cele;
 }

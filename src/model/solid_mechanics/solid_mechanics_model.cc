@@ -330,8 +330,6 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
       *Ma *= *mass_matrix;
       *residual -= *Ma;
       delete Ma;
-
-      std::cout << "A-Hoy !" << std::endl;
     } else {
       // else lumped mass
       UInt nb_nodes = acceleration->getSize();

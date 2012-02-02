@@ -1,9 +1,10 @@
 /**
- * @file   material_damage_non_local.hh
- * @author  <chambart@lsmscluster1.epfl.ch>
+ * @file   material_marigo_non_local.hh
+ * @author Marion Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Aug 31 17:08:23 2011
- * 
- * @brief  
+ *
+ * @brief
  *
  * @section LICENSE
  *
@@ -22,33 +23,33 @@
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_marigo.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__
-#define __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__
+#ifndef __AKANTU_MATERIAL_MARIGO_NON_LOCAL_HH__
+#define __AKANTU_MATERIAL_MARIGO_NON_LOCAL_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Material Damage
+ * Material Marigo
  *
  * parameters in the material files :
  */
-class MaterialDamageNonLocal : public MaterialDamage, public MaterialNonLocal {
+class MaterialMarigoNonLocal : public MaterialMarigo, public MaterialNonLocal {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamageNonLocal(Model & model, const ID & id = "");
+  MaterialMarigoNonLocal(Model & model, const ID & id = "");
 
-  virtual ~MaterialDamageNonLocal() {};
+  virtual ~MaterialMarigoNonLocal() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -70,18 +71,6 @@ public:
 				     ElementType el_type,
 				     GhostType ghost_type = _not_ghost);
 
-
-  /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<Real> & tangent_matrix,
-			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  __aka_inline__ Real getStableTimeStep(Real h, const Element & element) {
-    return MaterialDamage::getStableTimeStep(h, element);
-  };
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -94,19 +83,24 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   ByElementTypeReal Y;
+
+  /// specify if the weights should be updated and at which rate
+  UInt update_weigths;
+
+  /// count the number of calls of computeStress
+  UInt compute_stress_calls;
 };
 
 /* -------------------------------------------------------------------------- */
 /* __aka_inline__ functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "material_damage_non_local_inline_impl.cc"
+//#include "material_marigo_non_local_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamageNonLocal & _this)
+inline std::ostream & operator <<(std::ostream & stream, const MaterialMarigoNonLocal & _this)
 {
   _this.printself(stream);
   return stream;
@@ -114,4 +108,4 @@ inline std::ostream & operator <<(std::ostream & stream, const MaterialDamageNon
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__ */
+#endif /* __AKANTU_MATERIAL_MARIGO_NON_LOCAL_HH__ */

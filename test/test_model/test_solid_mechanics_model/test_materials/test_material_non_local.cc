@@ -83,13 +83,20 @@ int main(int argc, char *argv[]) {
   std::ofstream pout;
   pout.open("bf_pairs");
   UInt q1 = 0;
+
+  Real R = mat.getRadius();
+
   for(;first_quad_1 != last_quad_1; ++first_quad_1, ++q1) {
     Vector<Real>::iterator<types::RVector> first_quad_2 = quads.begin(spatial_dimension);
     Vector<Real>::iterator<types::RVector> last_quad_2 = quads.end(spatial_dimension);
     UInt q2 = 0;
     for(;first_quad_2 != last_quad_1; ++first_quad_2, ++q2) {
-      if((q2 != q1) && (first_quad_2->distance(*first_quad_1) <= radius))
-	pout << q1 << " " << q2 <<std::endl;
+      Real d = first_quad_2->distance(*first_quad_1);
+      if(d <= radius) {
+	Real alpha = (1 - d*d/(R*R));
+	alpha = alpha*alpha;
+	pout << q1 << " " << q2 << " " << alpha << std::endl;
+      }
     }
   }
   pout.close();
@@ -131,7 +138,7 @@ int main(int argc, char *argv[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
+/* iohelper::Dumper vars                                                      */
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
