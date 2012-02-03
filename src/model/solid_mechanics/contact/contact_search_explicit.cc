@@ -369,6 +369,8 @@ void ContactSearchExplicit::computeComponentsOfProjection(const UInt impactor_no
   case _hexahedron_8:
   case _point:
   case _bernoulli_beam_2:
+  case _cohesive_2d_4:
+  case _cohesive_2d_6:
   case _max_element_type: {
     AKANTU_DEBUG_ERROR("Contact search is not implemented for this surface element type : " << type);
     break;
@@ -409,6 +411,8 @@ void ContactSearchExplicit::checkPenetrationSituation(const UInt impactor_node,
   case _hexahedron_8:
   case _point:
   case _bernoulli_beam_2:
+  case _cohesive_2d_4:
+  case _cohesive_2d_6:
   case _max_element_type: {
     AKANTU_DEBUG_ERROR("Contact search is not implemented for this surface element type : " << type);
     break;

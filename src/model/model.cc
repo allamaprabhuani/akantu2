@@ -45,27 +45,23 @@ void Model::createSynchronizerRegistry(DataAccessor * data_accessor){
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::initPBC(UInt x, UInt y, UInt z){
+void Model::setPBC(UInt x, UInt y, UInt z){
   Mesh & mesh = getFEM().getMesh();
   mesh.computeBoundingBox();
   if (x) MeshUtils::computePBCMap(mesh,0,pbc_pair);
   if (y) MeshUtils::computePBCMap(mesh,1,pbc_pair);
   if (z) MeshUtils::computePBCMap(mesh,2,pbc_pair);
-
-  initPBC();
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
-		    ElementType surface_e_type){
+void Model::setPBC(SurfacePairList & surface_pairs,
+		   ElementType surface_e_type){
   Mesh & mesh = getFEM().getMesh();
   
-  std::list< std::pair<Surface, Surface> >::iterator s_it;
+  SurfacePairList::iterator s_it;
   for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
     MeshUtils::computePBCMap(mesh, *s_it, surface_e_type, pbc_pair);
   }
-  
-  initPBC();
 }
 
 /* -------------------------------------------------------------------------- */

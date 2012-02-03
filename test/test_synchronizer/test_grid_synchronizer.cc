@@ -35,7 +35,6 @@
 #include "synchronizer_registry.hh"
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-using namespace iohelper;
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -163,12 +162,12 @@ int main(int argc, char *argv[]) {
   unsigned int nb_nodes = mesh.getNbNodes();
   unsigned int nb_element = mesh.getNbElement(type);
 
-  DumperParaview dumper;
-  dumper.SetMode(TEXT);
+  iohelper::DumperParaview dumper;
+  dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer");
   dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
-   			 TRIANGLE1, nb_element, C_MODE);
+   			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
   part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
     part[i] = prank;
@@ -179,12 +178,12 @@ int main(int argc, char *argv[]) {
   delete [] part;
 
   unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
-  DumperParaview dumper_ghost;
-  dumper_ghost.SetMode(TEXT);
+  iohelper::DumperParaview dumper_ghost;
+  dumper_ghost.SetMode(iohelper::TEXT);
   dumper_ghost.SetParallelContext(prank, psize);
   dumper_ghost.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
   dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
-   			 TRIANGLE1, nb_ghost_element, C_MODE);
+			       iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
   part = new double[nb_ghost_element];
   for (unsigned int i = 0; i < nb_ghost_element; ++i)
     part[i] = prank;
@@ -291,11 +290,11 @@ int main(int argc, char *argv[]) {
   nb_ghost_element = mesh.getNbElement(type,_ghost);
   nb_nodes = mesh.getNbNodes();
 
-  dumper_ghost.SetMode(TEXT);
+  dumper_ghost.SetMode(iohelper::TEXT);
   dumper_ghost.SetParallelContext(prank, psize);
   dumper_ghost.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
   dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
-   			 TRIANGLE1, nb_ghost_element, C_MODE);
+			       iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
   part = new double[nb_ghost_element];
   for (unsigned int i = 0; i < nb_ghost_element; ++i)
     part[i] = prank;
@@ -305,13 +304,13 @@ int main(int argc, char *argv[]) {
 
   unsigned int nb_grid_element = grid_mesh.getNbElement(_quadrangle_4);
   unsigned int nb_quadrature_points = 4;
-  DumperParaview dumper_grid;
-  dumper_grid.SetMode(TEXT);
+  iohelper::DumperParaview dumper_grid;
+  dumper_grid.SetMode(iohelper::TEXT);
   dumper_grid.SetParallelContext(prank, psize);
   dumper_grid.SetPoints(grid_mesh.getNodes().values, spatial_dimension,
                         grid_mesh.getNbNodes(), "test-grid-synchronizer-grid");
   dumper_grid.SetConnectivity((int*) grid_mesh.getConnectivity(_quadrangle_4).values,
-   			 QUAD1, nb_grid_element, C_MODE);
+   			 iohelper::QUAD1, nb_grid_element, iohelper::C_MODE);
 
   part = new double[nb_grid_element * nb_quadrature_points];
   std::fill_n(part, nb_grid_element * nb_quadrature_points, prank);

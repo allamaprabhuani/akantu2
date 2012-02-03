@@ -154,6 +154,8 @@ inline void Model::changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pai
     for (UInt i = 0; i < dimension; ++i) {
       (*dof_synchronizer->getLocalDOFEquationNumbersPointer())
 	(node_slave*dimension+i) = dimension*node_master+i;
+      (*dof_synchronizer->getGlobalDOFEquationNumbersPointer())
+	(node_slave*dimension+i) = dimension*node_master+i;
     }
   }
 }

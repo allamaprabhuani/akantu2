@@ -85,7 +85,7 @@ public:
   void initModel();
 
   /// init PBC synchronizer
-  void initPBC(UInt x,UInt y, UInt z);
+  void initPBC();
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {};

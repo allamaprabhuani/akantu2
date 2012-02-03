@@ -99,9 +99,7 @@ public:
   void initModel();
 
   /// init PBC synchronizer
-  void initPBC(UInt x,UInt y, UInt z);
-  void initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
-	       ElementType surface_e_type);
+  void initPBC();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

@@ -69,7 +69,8 @@ int main(int argc, char *argv[])
   model->readMaterials("material.dat");
   model->initMaterials();
   /* -------------------------------------------------------------------------- */
-  model->initPBC(1,1,1);
+  model->setPBC(1,1,1);
+  model->initPBC();
   model->assembleMassLumped();
   /* -------------------------------------------------------------------------- */
   

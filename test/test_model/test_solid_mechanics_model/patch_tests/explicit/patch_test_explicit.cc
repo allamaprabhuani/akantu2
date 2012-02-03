@@ -105,9 +105,6 @@ int main(int argc, char *argv[])
   UInt dim = ElementClass<TYPE>::getSpatialDimension();
   const ElementType element_type = TYPE;
 
-  // UInt imposing_steps = 1000;
-  // Real max_displacement = -0.01;
-
   UInt damping_steps = 400000;
   UInt damping_interval = 50;
   Real damping_ratio = 0.99;
@@ -146,10 +143,7 @@ int main(int argc, char *argv[])
 
   std::cout << "The number of time steps is: " << max_steps << " (" << time_step << "s)" << std::endl;
 
-  // // boundary conditions
-  // Vector<UInt> top_nodes(0, 1);
-  // Vector<UInt> base_nodes(0, 1);
-
+  // boundary conditions
   const Vector<Real> & coordinates = my_mesh.getNodes();
   Vector<Real> & displacement = my_model.getDisplacement();
   Vector<bool> & boundary = my_model.getBoundary();
@@ -159,9 +153,6 @@ int main(int argc, char *argv[])
 
   CSR<UInt> surface_nodes;
   MeshUtils::buildNodesPerSurface(my_mesh, surface_nodes);
-
-
-  //CSR<UInt>::iterator snode = surface_nodes.begin(0);
 
   for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
     CSR<UInt>::iterator snode = surface_nodes.begin(s);
@@ -175,14 +166,6 @@ int main(int argc, char *argv[])
 	}
 	boundary(n, i) = true;
       }
-    // if (coordinates(n, 0) < Math::tolerance) {
-    //   boundary(n, 0) = true;
-    //   displacement(n, 0) = 0.;
-    // }
-    // if (coordinates(n, 1) < Math::tolerance) {
-    //   boundary(n, 1) = true;
-    //   displacement(n, 1) = 0.;
-    // }
     }
   }
 
@@ -199,26 +182,12 @@ int main(int argc, char *argv[])
   energy << "id,time,ekin" << std::endl;
   Real ekin_mean = 0.;
 
-
-  double * disp = displacement.values;
-  double * vel = velocity.values;
-
-
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   for(UInt s = 1; s <= max_steps; ++s) {
     if(s % 10000 == 0) std::cout << "passing step " << s << "/" << max_steps
 				 << " (" << s*time_step << "s)" <<std::endl;
-
-    // impose normal displacement
-    // if(s <= imposing_steps) {
-    //   Real current_displacement = max_displacement / (static_cast<Real>(imposing_steps)) * s;
-    //   for(UInt n = 0; n < top_nodes.getSize(); ++n) {
-    // 	UInt node = top_nodes(n);
-    // 	displacement(node, 1) = current_displacement;
-    //   }
-    // }
 
     // damp velocity in order to find equilibrium
     if((s < damping_steps) && (s % damping_interval == 0)) {
@@ -255,8 +224,6 @@ int main(int argc, char *argv[])
 
   energy.close();
 
-  // UInt check_element = 0;
-  // UInt quadrature_point = 0;
   UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(TYPE);
 
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
@@ -311,10 +278,6 @@ int main(int argc, char *argv[])
       }
     }
   }
-
-
-  // std::cout << "Strain : " << strain;
-  // std::cout << "Stress : " << stress;
 
   finalize();
 

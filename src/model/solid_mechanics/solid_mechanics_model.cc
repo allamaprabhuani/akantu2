@@ -130,6 +130,10 @@ void SolidMechanicsModel::initFull(std::string material_file,
   acceleration->clear();
   displacement->clear();
 
+  // initialize pcb
+  if(pbc_pair.size()!=0)
+    initPBC();
+
   // initialize the time integration schemes
   if(implicit_scheme)
     initImplicit(implicit_dynamic);
@@ -219,6 +223,7 @@ void SolidMechanicsModel::initVectors() {
 
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
   dof_synchronizer->initLocalDOFEquationNumbers();
+  dof_synchronizer->initGlobalDOFEquationNumbers();
 
   AKANTU_DEBUG_OUT();
 }
@@ -232,16 +237,19 @@ void SolidMechanicsModel::initModel() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initPBC(UInt x, UInt y, UInt z){
-  Model::initPBC(x,y,z);
+void SolidMechanicsModel::initPBC() {
+  Model::initPBC();
   registerPBCSynchronizer();
-}
 
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs,
-				  ElementType surface_e_type){
-  Model::initPBC(surface_pairs, surface_e_type);
-  registerPBCSynchronizer();
+  // as long as there are ones on the diagonal of the matrix, we can put boudandary true for slaves
+  std::map<UInt, UInt>::iterator it = pbc_pair.begin();
+  std::map<UInt, UInt>::iterator end = pbc_pair.end();
+  UInt dim = mesh.getSpatialDimension();
+  while(it != end) {
+    for (UInt i=0; i<dim; ++i)
+      (*boundary)((*it).first,i) = true;
+    ++it;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -466,7 +474,7 @@ void SolidMechanicsModel::initSolver() {
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
                                          spatial_dimension, sstr.str(), memory_id);
-  dof_synchronizer->initGlobalDOFEquationNumbers();
+  //  dof_synchronizer->initGlobalDOFEquationNumbers();
   jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
 #ifdef AKANTU_USE_MUMPS

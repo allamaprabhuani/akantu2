@@ -181,7 +181,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::computePBCMap(const Mesh & mymesh,
-			      const std::pair<Surface, Surface> & surface_pair,
+			      const SurfacePair & surface_pair,
 			      const ElementType type,
 			      std::map<UInt,UInt> & pbc_pair) {
   

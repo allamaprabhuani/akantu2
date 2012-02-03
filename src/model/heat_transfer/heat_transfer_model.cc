@@ -98,12 +98,12 @@ void HeatTransferModel::initParallel(MeshPartition * partition,
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::initPBC(UInt x, UInt y, UInt z) {
+void HeatTransferModel::initPBC() {
   AKANTU_DEBUG_IN();
-
-  Model::initPBC(x,y,z);
+  
+  Model::initPBC();
   PBCSynchronizer * synch = new PBCSynchronizer(pbc_pair);
-
+  
   synch_registry->registerSynchronizer(*synch, _gst_htm_capacity);
   synch_registry->registerSynchronizer(*synch, _gst_htm_temperature);
   changeLocalEquationNumberforPBC(pbc_pair,1);

@@ -78,12 +78,11 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
   /// initialize the model for PBC
-  virtual void initPBC(UInt x, UInt y, UInt z);
-  virtual void initPBC(std::list< std::pair<Surface, Surface> > & surface_pairs, 
-		       ElementType surface_e_type);
+  void setPBC(UInt x, UInt y, UInt z);
+  void setPBC(SurfacePairList & surface_pairs, 
+	      ElementType surface_e_type);
   
-private:
-  void initPBC();
+  virtual void initPBC();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

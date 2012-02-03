@@ -93,7 +93,8 @@ typedef UInt MemoryID;
 /* -------------------------------------------------------------------------- */
 
 typedef UInt Surface;
-
+typedef std::pair<Surface, Surface> SurfacePair;
+typedef std::list< SurfacePair > SurfacePairList;
 
 /* -------------------------------------------------------------------------- */
 

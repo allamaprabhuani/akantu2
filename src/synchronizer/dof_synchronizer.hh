@@ -106,6 +106,7 @@ public:
   AKANTU_GET_MACRO(GlobalDOFEquationNumbers, global_dof_equation_numbers, const Vector<Int> &);
 
   Vector<Int> * getLocalDOFEquationNumbersPointer(){return &local_dof_equation_numbers;};
+  Vector<Int> * getGlobalDOFEquationNumbersPointer(){return &global_dof_equation_numbers;};
 
   typedef unordered_map<Int, UInt>::type GlobalEquationNumberMap;
   AKANTU_GET_MACRO(GlobalEquationNumberToLocal, global_dof_equation_number_to_local, const GlobalEquationNumberMap &)

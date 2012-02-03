@@ -89,7 +89,8 @@ int main(int argc, char *argv[])
 
   std::cout << model->getMaterial(0) << std::endl;
 
-  model->initPBC(1,0,0);
+  model->setPBC(1,0,0);
+  model->initPBC();
   model->assembleMassLumped();
 
   /// boundary conditions
