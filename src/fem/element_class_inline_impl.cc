@@ -27,11 +27,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type> inline UInt ElementClass<type>::getNbQuadraturePoint() {
-  return nb_quadrature_points;
-}
-
-/* -------------------------------------------------------------------------- */
 template<ElementType type> inline Real * ElementClass<type>::getQuadraturePoints() {
   return quad;
 }
@@ -66,7 +61,7 @@ void ElementClass<type>::preComputeStandards(const Real * coord,
 
   // jacobian
   computeJacobian(dxds, nb_quadrature_points, dimension, jacobians);
- // if dimension == spatial_dimension compute shape derivatives
+  // if dimension == spatial_dimension compute shape derivatives
   if (dimension == spatial_dimension) {
     computeShapeDerivatives(dxds, dnds, nb_quadrature_points, dimension, dshape);
   }

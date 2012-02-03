@@ -158,7 +158,7 @@ UInt StructuralMechanicsModel::getTangentStiffnessVoigtSize(const ElementType & 
 #define GET_TANGENT_STIFFNESS_VOIGT_SIZE(type)	\
   size = getTangentStiffnessVoigtSize<type>();
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_TANGENT_STIFFNESS_VOIGT_SIZE);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_TANGENT_STIFFNESS_VOIGT_SIZE);
 #undef GET_TANGENT_STIFFNESS_VOIGT_SIZE
 
   return size;
@@ -177,7 +177,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 #define ASSEMBLE_STIFFNESS_MATRIX(type)		\
     assembleStiffnessMatrix<type>();
 
-    AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_STIFFNESS_MATRIX);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(ASSEMBLE_STIFFNESS_MATRIX);
 #undef ASSEMBLE_STIFFNESS_MATRIX
   }
 
@@ -196,7 +196,7 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 #define COMPUTE_STRESS_ON_QUAD(type)		\
     computeStressOnQuad<type>();
 
-    AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_STRESS_ON_QUAD);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_STRESS_ON_QUAD);
 #undef COMPUTE_STRESS_ON_QUAD
   }
 

@@ -1,10 +1,10 @@
 /**
- * @file   fem_inline_impl.cc
+ * @file   cohesive_element.cc
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Mon Jul 19 12:21:36 2010
+ * @date   Thu Feb  2 14:20:48 2012
  *
- * @brief  Implementation of the inline functions of the FEM Class
+ * @brief  
  *
  * @section LICENSE
  *
@@ -26,42 +26,17 @@
  *
  */
 
+/* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "cohesive_element.hh"
+
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-inline Mesh & FEM::getMesh() const {
-  return *mesh;
-}
+/// 2D cohesive elements
+template<> const ElementType CohesiveElementSubElementType<_cohesive_2d_4>::type = _segment_2;
+template<> const ElementType CohesiveElementSubElementType<_cohesive_2d_6>::type = _segment_3;
 
+/// 3D cohesive elements
 
-/* -------------------------------------------------------------------------- */
-inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  Real inradius = 0;
-
-#define GET_INRADIUS(type)						\
-  inradius = ElementClass<type>::getInradius(coord);			\
-
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_INRADIUS);
-#undef GET_INRADIUS
-
-  AKANTU_DEBUG_OUT();
-  return inradius;
-}
-
-// /* -------------------------------------------------------------------------- */
-// inline UInt FEM::getNbQuadraturePoints(const ElementType & type) {
-//   AKANTU_DEBUG_IN();
-
-//   UInt nb_quad_points = 0;
-
-// #define GET_NB_QUAD(type)					
-//   nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
-
-//   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
-// #undef GET_NB_QUAD
-    
-//   AKANTU_DEBUG_OUT();
-//   return nb_quad_points;
-// }
-
+__END_AKANTU__

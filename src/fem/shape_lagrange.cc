@@ -330,7 +330,7 @@ void ShapeLagrange::printself(std::ostream & stream, int indent) const {
    Vector<Real> & field_times_shapes,					\
    GhostType ghost_type) const;
 
-AKANTU_BOOST_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
+AKANTU_BOOST_REGULAR_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
 #undef INSTANCIATE_TEMPLATE_CLASS
 
 __END_AKANTU__

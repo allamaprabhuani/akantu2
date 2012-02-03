@@ -1,9 +1,10 @@
 /**
- * @file   shape_functions.hh
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 11:35:29 2011
+ * @file   shape_cohesive.hh
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @date   Thu Feb  2 15:44:27 2012
  *
- * @brief shape function class
+ * @brief  
  *
  * @section LICENSE
  *
@@ -27,31 +28,41 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "aka_memory.hh"
-#include "mesh.hh"
+#include "aka_vector.hh"
+#include "shape_lagrange.hh"
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SHAPE_FUNCTIONS_HH__
-#define __AKANTU_SHAPE_FUNCTIONS_HH__
+#ifndef __AKANTU_SHAPE_COHESIVE_HH__
+#define __AKANTU_SHAPE_COHESIVE_HH__
 
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
-class ShapeFunctions : protected Memory {
+class CohesiveReduceFunctionMean {
+  inline Real operator()(Real u_plus, Real u_minus) {
+    return .5*(u_plus + u_minus);
+  }
+};
+
+class CohesiveReduceFunctionOpening {
+  inline Real operator()(Real u_plus, Real u_minus) {
+    return (u_plus - u_minus);
+  }
+};
+
+
+
+template <class ShapeFunction>
+class ShapeCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  
+  ShapeCohesive();
 
-  ShapeFunctions(Mesh & mesh,
-		 const ID & id = "shape",
-		 const MemoryID & memory_id = 0) :
-    Memory(memory_id), mesh(&mesh),
-    control_points("control_points", id, memory_id) {
-  };
-  virtual ~ShapeFunctions(){};
-
+  virtual ~ShapeCohesive();
+  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -59,92 +70,63 @@ public:
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesOnControlPoints(const Real * natural_coords,
-				       const UInt nb_points,
-				       GhostType ghost_type);
+  void precomputeShapesOnControlPoints(GhostType ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesDerivativesOnControlPoints(const Real * natural_coords,
-						  const UInt nb_points,
-						  const UInt dimension,
-						  GhostType ghost_type);
+  void precomputeShapeDerivativesOnControlPoints(GhostType ghost_type);
 
   /// interpolate nodal values on the control points
-  template <ElementType type>
+  template <ElementType type, class ReduceFunction>
   void interpolateOnControlPoints(const Vector<Real> &u,
 				  Vector<Real> &uq,
 				  UInt nb_degre_of_freedom,
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
+  /// compute the gradient of u on the control points
+  template <ElementType type>
+  void gradientOnControlPoints(const Vector<Real> &u,
+			       Vector<Real> &nablauq,
+			       UInt nb_degre_of_freedom,
+			       GhostType ghost_type = _not_ghost,
+			       const Vector<UInt> * filter_elements = NULL) const;
 
   /// multiply a field by shape functions
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
-			Vector<Real> & fieal_times_shapes) const;
-
-  // /// compute the gradient of u on the constrol points
-  // template <ElementType type>
-  // void gradientOnControlPoints(const Vector<Real> &u,
-  // 			       Vector<Real> &nablauq,
-  // 			       UInt nb_degre_of_freedom,
-  // 			       GhostType ghost_type = _not_ghost,
-  // 			       const Vector<UInt> * filter_elements = NULL) const;
-
-
+			Vector<Real> & fiedl_times_shapes,
+			GhostType ghost_type) const;
+  
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {
-    std::string space;
-    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-    stream << space << "Shapes [" << std::endl;
-    control_points.printself(stream, indent + 1);
-    stream << space << "]" << std::endl;
-  };
-
-  /// set the control points for a given element
-  template <ElementType type>
-  void setControlPointsByType(const Vector<Real> & control_points,
-			      const GhostType & ghost_type);
-
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the size of the shapes returned by the element class
-  static __aka_inline__ UInt getShapeSize(const ElementType & type);
-
-  /// get the size of the shapes derivatives returned by the element class
-  static __aka_inline__ UInt getShapeDerivativesSize(const ElementType & type);
-
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ControlPoints, control_points, Real)
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-protected:
-  Mesh * mesh;
-
-  ID id;
-
-  /// shape functions for all elements
-  ByElementTypeReal control_points;
+  /// shape 
+  ShapeFunction sub_type_shape_function; 
 };
 
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "shape_functions_inline_impl.cc"
-#endif
-
+typedef ShapeCohesive<ShapeLagrange> ShapeCohesiveLagrange;
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+
+//#include "shape_cohesive_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const ShapeFunctions & _this)
+template <class ShapeFunction>
+inline std::ostream & operator <<(std::ostream & stream, const ShapeCohesive<ShapeFunction> & _this)
 {
   _this.printself(stream);
   return stream;
@@ -153,4 +135,5 @@ inline std::ostream & operator <<(std::ostream & stream, const ShapeFunctions & 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_SHAPE_FUNCTIONS_HH__ */
+#endif /* __AKANTU_SHAPE_COHESIVE_HH__ */
+

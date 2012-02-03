@@ -57,7 +57,7 @@ static iohelper::ElemType getIOHelperType(ElementType type) {
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = getIOHelperType<type>();
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
 #undef GET_IOHELPER_TYPE
   return ioh_type;
 }

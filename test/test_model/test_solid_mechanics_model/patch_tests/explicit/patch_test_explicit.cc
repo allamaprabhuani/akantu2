@@ -198,6 +198,12 @@ int main(int argc, char *argv[])
   energy.open(energy_filename.str().c_str());
   energy << "id,time,ekin" << std::endl;
   Real ekin_mean = 0.;
+
+
+  double * disp = displacement.values;
+  double * vel = velocity.values;
+
+
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */

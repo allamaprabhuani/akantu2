@@ -10,10 +10,12 @@ set(CORE_FILES
   common/aka_math.cc
   fem/shape_lagrange.cc
   fem/shape_linked.cc
+  fem/shape_cohesive.cc
   fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
+  fem/cohesive_element.cc
   fem/fem_template.cc
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
@@ -92,10 +94,12 @@ set(CORE_FILES
   fem/by_element_type.hh
   fem/shape_functions.hh
   fem/shape_lagrange.hh
+  fem/shape_cohesive.hh
   fem/fem_template.hh
   fem/integrator_gauss.hh
   fem/integrator.hh
   fem/element_class.hh
+  fem/cohesive_element.hh
   fem/shape_linked.hh
   model/model.hh
   model/parser.hh

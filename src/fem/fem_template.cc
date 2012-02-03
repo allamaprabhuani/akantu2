@@ -97,7 +97,7 @@ void FEMTemplate<Integ,Shape>::gradientOnQuadraturePoints(const Vector<Real> &u,
 							     nb_degree_of_freedom, \
 							     ghost_type, \
 							     filter_elements);
-    AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_GRADIENT);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_GRADIENT);
 #undef COMPUTE_GRADIENT
 
   AKANTU_DEBUG_OUT();
@@ -136,7 +136,7 @@ void FEMTemplate<Integ,Shape>::initShapeFunctions(const GhostType & ghost_type) 
       shape_functions.							\
 	template precomputeShapeDerivativesOnControlPoints<type>(ghost_type);
 
-    AKANTU_BOOST_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 #undef INIT_SHAPE_FUNCTIONS
   }
   AKANTU_DEBUG_OUT();
@@ -181,7 +181,7 @@ void FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 				      ghost_type,	    \
 				      filter_elements);
 
-    AKANTU_BOOST_ELEMENT_SWITCH(INTEGRATE);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
 #undef INTEGRATE
 }
 
@@ -219,7 +219,7 @@ Real FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 						 ghost_type,		\
 						 filter_elements);
 
-  AKANTU_BOOST_ELEMENT_SWITCH(INTEGRATE);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
 #undef INTEGRATE
 
   AKANTU_DEBUG_OUT();
@@ -265,7 +265,7 @@ void FEMTemplate<Integ,Shape>::integrateOnQuadraturePoints(const Vector<Real> & 
 							ghost_type,	\
 							filter_elements);
 
-    AKANTU_BOOST_ELEMENT_SWITCH(INTEGRATE);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
 #undef INTEGRATE
 }
 
@@ -314,7 +314,7 @@ void FEMTemplate<Integ,Shape>::interpolateOnQuadraturePoints(const Vector<Real> 
 							    ghost_type, \
 							    filter_elements);
 
-  AKANTU_BOOST_ELEMENT_SWITCH(INTERPOLATE);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE);
 #undef INTERPOLATE
 
   AKANTU_DEBUG_OUT();
@@ -375,7 +375,7 @@ void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const GhostType & g
     } while(0)
     /* ---------------------------------------------------------------------- */
 
-    AKANTU_BOOST_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD);
 #undef COMPUTE_NORMALS_ON_QUAD
 
   }
@@ -399,7 +399,7 @@ inline UInt FEMTemplate<Integ,Shape>::getNbQuadraturePoints(const ElementType & 
   nb_quad_points =							\
     integrator. template getQuadraturePoints<type>(ghost_type).getSize();
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_QUAD);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
 #undef GET_NB_QUAD
 
   AKANTU_DEBUG_OUT();
@@ -417,7 +417,7 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementTyp
 #define GET_SHAPES(type)						\
   ret = &(shape_functions.getShapes(type, ghost_type));
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
 #undef GET_SHAPES
 
   AKANTU_DEBUG_OUT();
@@ -435,7 +435,7 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const
 #define GET_SHAPES(type)						\
   ret = &(shape_functions.getShapesDerivatives(type, ghost_type));
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
 #undef GET_SHAPES
 
   AKANTU_DEBUG_OUT();
@@ -452,7 +452,7 @@ inline const Vector<Real> & FEMTemplate<Integ,Shape>::getQuadraturePoints(const 
 #define GET_QUADS(type)						\
   ret = &(integrator. template getQuadraturePoints<type>(ghost_type));
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_QUADS);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_QUADS);
 #undef GET_QUADS
 
     AKANTU_DEBUG_OUT();
@@ -477,7 +477,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldLumped(const Vector<Real> & field_1,
 #define ASSEMBLE_LUMPED(type)					\
   assembleLumpedTemplate<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type)
 
-  AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_LUMPED);;
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(ASSEMBLE_LUMPED);;
 
 #undef ASSEMBLE_LUMPED
   AKANTU_DEBUG_OUT();
@@ -495,7 +495,7 @@ FEMTemplate<IntegratorGauss, ShapeLinked>::getShapesDerivatives(const ElementTyp
 #define GET_SHAPES(type)						\
   ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));
 
-  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPES);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
 #undef GET_SHAPES
 
   AKANTU_DEBUG_OUT();
@@ -516,7 +516,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 			    matrix,				\
 			    ghost_type)
 
-  AKANTU_BOOST_ELEMENT_SWITCH(ASSEMBLE_MATRIX);;
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(ASSEMBLE_MATRIX);;
 
 #undef ASSEMBLE_MATRIX
 

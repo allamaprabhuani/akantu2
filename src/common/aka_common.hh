@@ -98,7 +98,7 @@ typedef UInt Surface;
 /* -------------------------------------------------------------------------- */
 
 /// @boost sequence of element to loop on in global tasks
-#define AKANTU_ELEMENT_TYPE			\
+#define AKANTU_REGULAR_ELEMENT_TYPE		\
   (_segment_2)					\
   (_segment_3)					\
   (_triangle_3)					\
@@ -109,7 +109,12 @@ typedef UInt Surface;
   (_quadrangle_8)				\
   (_hexahedron_8)                               \
   (_point)					\
-  (_bernoulli_beam_2)				\
+  (_bernoulli_beam_2)
+
+#define AKANTU_COHESIVE_ELEMENT_TYPE		\
+  (_cohesive_2d_4)				\
+  (_cohesive_2d_6)
+
 
 
 /// @enum ElementType type of element potentially contained in a Mesh
@@ -126,10 +131,10 @@ enum ElementType {
   _hexahedron_8,        /// first  order hexahedron
   _point,               /// point only for some algorithm to be generic like mesh partitioning
   _bernoulli_beam_2,    /// bernoulli beam 2D
+  _cohesive_2d_4,       /// first order 2D cohesive
+  _cohesive_2d_6,       /// second order 2D cohesive
   _max_element_type
 };
-
-
 
 /// @enum MaterialType different materials implemented
 enum MaterialType {
@@ -294,6 +299,8 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _quadrangle_8     : stream << "quadrangle_8"  ; break;
     case _hexahedron_8     : stream << "hexahedron_8"  ; break;
     case _bernoulli_beam_2 : stream << "bernoulli_beam_2"; break;
+    case _cohesive_2d_4    : stream << "cohesive_2d_4" ; break;
+    case _cohesive_2d_6    : stream << "cohesive_2d_6" ; break;
     case _not_defined      : stream << "undefined"     ; break;
     case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
     case _point            : stream << "point"; break;
@@ -363,13 +370,20 @@ __END_AKANTU__
 // BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
 #include <boost/preprocessor.hpp>
 
-#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
-  case type : { macro(type); break;}
+#define AKANTU_BOOST_CASE_MACRO_EXCLUDE(r,macro,type)			\
+  case type : {								\
+    AKANTU_DEBUG_ERROR("Type (" << type << ") not handled by this function"); \
+    break;								\
+  }
 
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro);				\
+#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
+  case type : { macro(type); break; }
+
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro, list, exclude_list)		\
   do {									\
     switch(type) {							\
-      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,AKANTU_ELEMENT_TYPE) \
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,list)		\
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO_EXCLUDE,macro, exclude_list) \
     case _not_defined:							\
     case _max_element_type:  {						\
       AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
@@ -378,11 +392,23 @@ __END_AKANTU__
     }									\
   } while(0)
 
+#define AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(macro)			\
+  AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
+			      AKANTU_REGULAR_ELEMENT_TYPE,		\
+			      AKANTU_COHESIVE_ELEMENT_TYPE)
+
+#define AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(macro)			\
+  AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
+			      AKANTU_COHESIVE_ELEMENT_TYPE,		\
+			      AKANTU_REGULAR_ELEMENT_TYPE)
+
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
   macro(type)
 
-#define AKANTU_BOOST_ELEMENT_LIST(macro)				\
-  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,AKANTU_ELEMENT_TYPE)
+#define AKANTU_BOOST_ELEMENT_LIST(macro,list)			\
+  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,list)
 
+#define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)	\
+  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_REGULAR_ELEMENT_TYPE)
 
 #endif /* __AKANTU_COMMON_HH__ */

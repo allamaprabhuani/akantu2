@@ -353,7 +353,7 @@ void ShapeLinked::gradientOnControlPoints(const Vector<Real> &in_u,
 							      UInt num_degre_of_freedom_to_interpolate,	\
 							      UInt num_degre_of_freedom_interpolated) const;
 
-AKANTU_BOOST_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
+AKANTU_BOOST_REGULAR_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
 #undef INSTANCIATE_TEMPLATE_CLASS
 
 __END_AKANTU__
