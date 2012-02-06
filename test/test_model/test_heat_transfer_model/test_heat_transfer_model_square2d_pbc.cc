@@ -79,7 +79,8 @@ int main(int argc, char *argv[])
   model->getTemperatureRate().clear();
 
   /* -------------------------------------------------------------------------- */
-  model->initPBC(1,1,1);
+  model->setPBC(1,1,1);
+  model->initPBC();
   model->assembleCapacityLumped();
 
   /* -------------------------------------------------------------------------- */
