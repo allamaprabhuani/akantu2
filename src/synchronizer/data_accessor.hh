@@ -58,8 +58,8 @@ public:
    * @brief get  the number of  data to send  for a given akantu::Element  and a
    * given akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToPack(const Element & element,
-                               SynchronizationTag tag) const {
+  virtual UInt getNbDataToPack(__attribute__((unused)) const Element & element,
+                               __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -67,7 +67,7 @@ public:
    * @brief get  the number of  data to send  for a given
    * akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToPack(SynchronizationTag tag) const {
+  virtual UInt getNbDataToPack(__attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -75,8 +75,8 @@ public:
    * @brief get the number of data  to receive for a given akantu::Element and a
    * given akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToUnpack(const Element & element,
-                         SynchronizationTag tag) const {
+  virtual UInt getNbDataToUnpack(__attribute__((unused)) const Element & element,
+				 __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -84,7 +84,7 @@ public:
    * @brief get the number of data  to receive for a given
    * akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const {
+  virtual UInt getNbDataToUnpack(__attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -92,9 +92,9 @@ public:
    * @brief   pack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::SynchronizationTag
    */
-  virtual void packData(CommunicationBuffer & buffer,
-                        const Element & element,
-                        SynchronizationTag tag) const {
+  virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
+                        __attribute__((unused)) const Element & element,
+                        __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -102,8 +102,9 @@ public:
    * @brief   pack  the   data  for   a  given  index  and   a  given
    * akantu::SynchronizationTag
    */
-  virtual void packData(CommunicationBuffer & buffer,const UInt index,
-                        SynchronizationTag tag) const {
+  virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
+			__attribute__((unused)) const UInt index,
+                        __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -111,9 +112,9 @@ public:
    * @brief   unpack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::SynchronizationTag
    */
-  virtual void unpackData(CommunicationBuffer & buffer,
-                          const Element & element,
-                          SynchronizationTag tag) {
+  virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
+                          __attribute__((unused)) const Element & element,
+                          __attribute__((unused)) SynchronizationTag tag) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -121,9 +122,9 @@ public:
    * @brief   unpack  the   data  for   a  given  index  and   a  given
    * akantu::SynchronizationTag
    */
-  virtual void unpackData(CommunicationBuffer & buffer,
-                          const UInt index,
-                          SynchronizationTag tag) {
+  virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
+                          __attribute__((unused)) const UInt index,
+                          __attribute__((unused)) SynchronizationTag tag) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

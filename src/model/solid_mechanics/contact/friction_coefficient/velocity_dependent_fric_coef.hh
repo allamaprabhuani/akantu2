@@ -78,7 +78,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// spatial dimension of contact
-  Real spatial_dimension;
+  UInt spatial_dimension;
 
   /// relative sliding velocities for each active impactor node
   Vector<Real> * relative_sliding_velocities;

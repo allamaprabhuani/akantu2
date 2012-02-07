@@ -138,7 +138,7 @@ void Contact::initNeighborStructure() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Contact::initNeighborStructure(const Surface & master_surface) {
+void Contact::initNeighborStructure(__attribute__ ((unused)) const Surface & master_surface) {
   AKANTU_DEBUG_IN();
 
   contact_search->initNeighborStructure();
@@ -214,7 +214,7 @@ Contact * Contact::newContact(const SolidMechanicsModel & model,
   AKANTU_DEBUG_IN();
 
   Contact * tmp_contact = NULL;
-  ContactSearch * tmp_search = NULL;
+  ContactSearch * tmp_search __attribute__ ((unused)) =  NULL;
 
   switch(contact_type) {
   case _ct_2d_expli: {

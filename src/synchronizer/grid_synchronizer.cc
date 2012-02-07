@@ -96,8 +96,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     Real * proc_bounding_box = bounding_boxes + 2 * spatial_dimension * p;
 
     bool intersects = false;
-    UInt * first_cell = first_cells + p * spatial_dimension;
-    UInt * last_cell =  last_cells  + p * spatial_dimension;
+    UInt * first_cell_p = first_cells + p * spatial_dimension;
+    UInt * last_cell_p =  last_cells  + p * spatial_dimension;
     for (UInt s = 0; s < spatial_dimension; ++s) {
       intersects = Math::intersects(my_bounding_box[s],
                                     my_bounding_box[spatial_dimension + s],
@@ -152,9 +152,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         }
 
 
-        first_cell[s] = grid.getCell(start, s);
-        last_cell [s] = grid.getCell(end, s);
-        std::cout << my_rank << " pouet " << ++pouet << " " << s << " start : " << start << " end : " << end << " -> " << first_cell[s] << " " << last_cell[s] << std::endl;
+        first_cell_p[s] = grid.getCell(start, s);
+        last_cell_p [s] = grid.getCell(end, s);
+        std::cout << my_rank << " pouet " << ++pouet << " " << s << " start : " << start << " end : " << end << " -> " << first_cell_p[s] << " " << last_cell_p[s] << std::endl;
       }
     }
 
@@ -170,30 +170,30 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
       Cell cell(grid);
 
-      std::cout << my_rank << " pouet " << ++pouet << " " << first_cell[0] << " " << last_cell[0] << std::endl;
+      std::cout << my_rank << " pouet " << ++pouet << " " << first_cell_p[0] << " " << last_cell_p[0] << std::endl;
       for (UInt i = 0; i < spatial_dimension; ++i) {
-        if(first_cell[i] != 0) --first_cell[i];
-        if(last_cell[i] != 0) ++last_cell[i];
+        if(first_cell_p[i] != 0) --first_cell_p[i];
+        if(last_cell_p[i] != 0) ++last_cell_p[i];
       }
 
-      std::cout << my_rank << " pouet " << ++pouet << " d: 0 "  << first_cell[0] << " " << last_cell[0] << std::endl;
-      std::cout << my_rank << " pouet " << ++pouet << " d: 1 "  << first_cell[1] << " " << last_cell[1] << std::endl;
-      std::cout << my_rank << " pouet " << ++pouet << " d: 2 "  << first_cell[2] << " " << last_cell[2] << std::endl;
+      std::cout << my_rank << " pouet " << ++pouet << " d: 0 "  << first_cell_p[0] << " " << last_cell_p[0] << std::endl;
+      std::cout << my_rank << " pouet " << ++pouet << " d: 1 "  << first_cell_p[1] << " " << last_cell_p[1] << std::endl;
+      std::cout << my_rank << " pouet " << ++pouet << " d: 2 "  << first_cell_p[2] << " " << last_cell_p[2] << std::endl;
 
-      for (UInt fd = first_cell[0]; fd < last_cell[0]; ++fd) {
+      for (UInt fd = first_cell_p[0]; fd < last_cell_p[0]; ++fd) {
         cell.position[0] = fd;
         if(spatial_dimension == 1) {
 	  cell.updateID();
           cells->push_back(cell);
 	}
         else {
-          for (UInt sd = first_cell[1]; sd < last_cell[1] ; ++sd) {
+          for (UInt sd = first_cell_p[1]; sd < last_cell_p[1] ; ++sd) {
             cell.position[1] = sd;
             if(spatial_dimension == 2) {
 	      cell.updateID();
               cells->push_back(cell);
             } else {
-              for (UInt ld = first_cell[2]; fd < last_cell[2] ; ++ld) {
+              for (UInt ld = first_cell_p[2]; fd < last_cell_p[2] ; ++ld) {
                 cell.position[2] = ld;
 		cell.updateID();
                 cells->push_back(cell);
@@ -361,7 +361,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
             }
 
             // all the nodes are already known locally, the element should already exists
-            UInt c(-1);
+            UInt c = UInt(-1);
             if(nb_node_to_ask_for_elem != 0) {
               c = ghost_connectivity.find(conn);
             }

@@ -369,7 +369,7 @@ bool ContactRigid::isAlreadyActiveImpactor(const Surface master,
     if(active_nodes->at(i) == impactor_node) {
       UInt count = 0;
       for (UInt d=0; d<this->spatial_dimension; ++d) {
-	if(master_normals->at(i,d) == normal[d])
+	if(Math::are_float_equal(master_normals->at(i,d),normal[d]))
 	  count++;
       }
       if(count == this->spatial_dimension)
@@ -437,7 +437,7 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
 
   for(UInt i = 0; i < this->spatial_dimension; ++i) {
     UInt index = impactor_node * spatial_dimension + i;
-    if(normal[i] != 0) {
+    if(!Math::are_float_equal(normal[i],0)) {
       bound_val[index] = true;
       veloc_val[index] = 0.;
       accel_val[index] = 0.;
@@ -501,7 +501,7 @@ void ContactRigid::avoidAdhesion() {
       UInt current_node = impactor_info->active_impactor_nodes->at(n);
 
       for (UInt i=0; i < spatial_dimension; ++i) {
-	Int direction = impactor_info->master_normals->at(n,i);
+	Int direction = Int(impactor_info->master_normals->at(n,i));
 	Real force = residual_val[current_node * spatial_dimension + i];
 	if(force * direction > 0.) {
 	  bound_val[current_node * spatial_dimension + i] = false;
@@ -576,7 +576,7 @@ void ContactRigid::frictionPredictor() {
       Real normal_contact_force = 0.;
       Real friction_force = 0.;
       for (UInt i=0; i < spatial_dimension; ++i) {
-	if(direction_val[n * this->spatial_dimension + i] != 0) {
+	if(!Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	  normal_contact_force = fabs(residual_val[current_node * this->spatial_dimension + i]);
 	  friction_force = friction_coefficient_values_p[n] * normal_contact_force;
 	}
@@ -587,7 +587,7 @@ void ContactRigid::frictionPredictor() {
 	// compute length of projected residual
 	Real projected_residual = 0.;
 	for (UInt i=0; i < this->spatial_dimension; ++i) {
-	  if(direction_val[n * this->spatial_dimension + i] == 0) {
+	  if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	    projected_residual += residual_val[current_node * this->spatial_dimension + i] *
 				  residual_val[current_node * this->spatial_dimension + i];
 	  }
@@ -602,7 +602,7 @@ void ContactRigid::frictionPredictor() {
 	  // compute friction vector
 	  Real friction_direction[3];
 	  for (UInt i=0; i < this->spatial_dimension; ++i) {
-	    if(direction_val[n * this->spatial_dimension + i] == 0) {
+	    if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	      friction_direction[i] = residual_val[current_node * this->spatial_dimension + i];
 	      friction_direction[i] /= projected_residual;
 	    }
@@ -623,7 +623,7 @@ void ContactRigid::frictionPredictor() {
 	else {
 	  // put residual in friction force and set residual to zero
 	  for (UInt i=0; i < this->spatial_dimension; ++i) {
-	    if(direction_val[n * this->spatial_dimension + i] == 0) {
+	    if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	      friction_forces_val[n*spatial_dimension + i] = residual_val[current_node * this->spatial_dimension + i];
 	      residual_val[current_node * this->spatial_dimension + i] = 0.;
 	    }
@@ -641,7 +641,7 @@ void ContactRigid::frictionPredictor() {
 	Real projected_residual = 0.;
 	Real projected_velocity_magnitude = 0.;
 	for (UInt i=0; i < this->spatial_dimension; ++i) {
-	  if(direction_val[n * this->spatial_dimension + i] == 0) {
+	  if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	    projected_residual += residual_val[current_node * this->spatial_dimension + i] *
 				  residual_val[current_node * this->spatial_dimension + i];
 	    projected_velocity_magnitude += previous_velocities_val[n * this->spatial_dimension + i] *
@@ -656,7 +656,7 @@ void ContactRigid::frictionPredictor() {
 	  // put residual in friction force and set residual to zero
 	  // set projected velocity and acceleration to zero
 	  for (UInt i=0; i < this->spatial_dimension; ++i) {
-	    if(direction_val[n * this->spatial_dimension + i] == 0) {
+	    if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	      friction_forces_val[n*spatial_dimension + i] = residual_val[current_node * this->spatial_dimension + i];
 	      residual_val    [current_node * this->spatial_dimension + i] = 0.;
 	      velocity_val    [current_node * this->spatial_dimension + i] = 0.;
@@ -691,7 +691,7 @@ void ContactRigid::frictionPredictor() {
 	  // compute the friction direction
 	  Real friction_direction[3];
 	  for (UInt i=0; i < this->spatial_dimension; ++i) {
-	    if(direction_val[n * this->spatial_dimension + i] == 0) {
+	    if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	      friction_direction[i] = direction_vector[index * this->spatial_dimension + i];
 	      friction_direction[i] /= direction_length;
 	    }
@@ -753,7 +753,7 @@ void ContactRigid::frictionCorrector() {
       Real dot_prod_velocities = 0.;
       Real current_proj_vel_mag = 0.;
       for (UInt i=0; i < this->spatial_dimension; ++i) {
-	if(direction_val[n * this->spatial_dimension + i] == 0) {
+	if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	  dot_prod_velocities += velocity_val[current_node * this->spatial_dimension + i] *
 				 previous_velocities_val[n * this->spatial_dimension + i];
 	  current_proj_vel_mag += velocity_val[current_node * this->spatial_dimension + i] *
@@ -765,7 +765,7 @@ void ContactRigid::frictionCorrector() {
       // if velocity has changed sign or has become very small we get into stick
       if ((dot_prod_velocities < 0.) || (current_proj_vel_mag < tolerance)) {
 	for (UInt i=0; i < this->spatial_dimension; ++i) {
-	  if(direction_val[n * this->spatial_dimension + i] == 0) {
+	  if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	    //friction_forces_val[n*spatial_dimension + i] = residual_forces_val[n*spatial_dimension + i];
 	    residual_forces_val[n * this->spatial_dimension + i] =0.;
 	    residual_val    [current_node * this->spatial_dimension + i] = 0.;
@@ -841,7 +841,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
 
       // find friction force mu * normal force
       for (UInt i=0; i<spatial_dimension; ++i) {
-	if(direction_val[n * this->spatial_dimension + i] != 0) {
+	if(!Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	  normal_contact_force = fabs(residual_val[current_node * this->spatial_dimension + i]);
 	  friction_force = friction_coefficient_values_p[n] * normal_contact_force;
 	}

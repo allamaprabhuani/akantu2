@@ -62,10 +62,10 @@ public:
   virtual void initializeComputeFricCoef() = 0;
 
   /// add an impactor surface to this master surface
-  virtual void addImpactorSurface(const Surface & impactor_surface) {};
+  virtual void addImpactorSurface(__attribute__ ((unused)) const Surface & impactor_surface) {};
 
   /// remove an impactor surface of this master surface
-  virtual void removeImpactorSurface(const Surface & impactor_surface) {};
+  virtual void removeImpactorSurface(__attribute__ ((unused)) const Surface & impactor_surface) {};
 
   /// fill table with friction coefficient
   void computeFrictionCoefficient(Vector<Real> & fric_coef);

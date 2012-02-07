@@ -86,7 +86,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// spatial dimension of contact
-  Real spatial_dimension;
+  UInt spatial_dimension;
 
 protected:
   /// weight parameter

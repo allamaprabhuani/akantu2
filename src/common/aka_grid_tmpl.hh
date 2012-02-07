@@ -115,25 +115,25 @@ private:
 template<typename T>
 inline typename RegularGrid<T>::iterator RegularGrid<T>::beginCell(const typename RegularGrid<T>::Cell & cell) {
   return data.begin(cell.id);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::iterator RegularGrid<T>::endCell(const typename RegularGrid<T>::Cell cell) {
   return data.end(cell.id);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::const_iterator RegularGrid<T>::beginCell(const typename RegularGrid<T>::Cell & cell) const {
   return data.begin(cell.id);
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::const_iterator RegularGrid<T>::endCell(const typename RegularGrid<T>::Cell & cell) const {
   return data.end(cell.id);
-};
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -171,12 +171,12 @@ inline typename RegularGrid<T>::Cell RegularGrid<T>::getCell(const types::RVecto
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline UInt RegularGrid<T>::getCell(Real position, UInt direction) const {
-  return std::floor((position - lower_bounds[direction]) / spacing[direction]);
+  return UInt(std::floor((position - lower_bounds[direction]) / spacing[direction]));
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-struct RegularGrid<T>::neighbor_cells_iterator : std::iterator<std::forward_iterator_tag, UInt> {
+struct RegularGrid<T>::neighbor_cells_iterator : private std::iterator<std::forward_iterator_tag, UInt> {
   neighbor_cells_iterator(const RegularGrid & grid,
 			  const Cell & cell,
 			  bool end) : cell(cell), grid(grid) {

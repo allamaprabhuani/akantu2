@@ -80,7 +80,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// spatial dimension of contact
-  Real spatial_dimension;
+  UInt spatial_dimension;
 
   /// /mu_0, the reference friction coefficient
   Real mu_zero;

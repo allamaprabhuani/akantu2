@@ -71,7 +71,7 @@ inline void MaterialMarigo::computeDamageAndStress(Real * sigma, Real & dam, Rea
 
 /* -------------------------------------------------------------------------- */
 inline UInt MaterialMarigo::getNbDataToPack(const Element & element,
-					    SynchronizationTag tag) {
+					    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -86,7 +86,7 @@ inline UInt MaterialMarigo::getNbDataToPack(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 inline UInt MaterialMarigo::getNbDataToUnpack(const Element & element,
-					      SynchronizationTag tag) {
+					      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -102,7 +102,7 @@ inline UInt MaterialMarigo::getNbDataToUnpack(const Element & element,
 /* -------------------------------------------------------------------------- */
 inline void MaterialMarigo::packData(CommunicationBuffer & buffer,
 				     const Element & element,
-				     SynchronizationTag tag) {
+				     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat)

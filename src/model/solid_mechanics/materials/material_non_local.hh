@@ -42,7 +42,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class BaseWeightFonction {
 public:
-  BaseWeightFonction(const Material & material,
+  BaseWeightFonction(__attribute__((unused)) const Material & material,
                      Real radius,
                      __attribute__((unused)) ElementType type1,
                      __attribute__((unused)) GhostType ghost_type1,

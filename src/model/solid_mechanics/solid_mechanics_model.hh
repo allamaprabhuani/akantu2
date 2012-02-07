@@ -196,17 +196,17 @@ private:
 public:
   class SurfaceLoadFunctor {
   public:
-    virtual void operator()(const types::Vector<Real> & position,
-			    types::Vector<Real> & force,
-			    const types::Vector<Real> & normal,
-			    Surface surface_id) {
+    virtual void operator()(__attribute__ ((unused)) const types::Vector<Real> & position,
+			    __attribute__ ((unused)) types::Vector<Real> & force,
+			    __attribute__ ((unused)) const types::Vector<Real> & normal,
+			    __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
     
-    virtual void operator()(const types::Vector<Real> & position,
-			    types::Matrix & stress,
-			    const types::Vector<Real> & normal,
-			    Surface surface_id) {
+    virtual void operator()(__attribute__ ((unused)) const types::Vector<Real> & position,
+			    __attribute__ ((unused)) types::Matrix & stress,
+			    __attribute__ ((unused)) const types::Vector<Real> & normal,
+			    __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
   };

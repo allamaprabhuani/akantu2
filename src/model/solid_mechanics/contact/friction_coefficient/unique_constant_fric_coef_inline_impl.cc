@@ -26,7 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Real UniqueConstantFricCoef::computeFricCoef(UInt impactor_node_index) {
+inline Real UniqueConstantFricCoef::computeFricCoef(__attribute__((unused)) UInt impactor_node_index) {
   AKANTU_DEBUG_IN();
   
   AKANTU_DEBUG_OUT();

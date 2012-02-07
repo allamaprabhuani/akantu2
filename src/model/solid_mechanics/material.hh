@@ -177,19 +177,19 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
- 				      SynchronizationTag tag);
+  // virtual UInt getNbDataToPack(const Element & element,
+  // 			       SynchronizationTag tag) const;
 
-  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
- 					SynchronizationTag tag);
+  // virtual UInt getNbDataToUnpack(const Element & element,
+  // 				 SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
- 			       const Element & element,
- 			       SynchronizationTag tag);
+  // __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
+  // 			       const Element & element,
+  // 			       SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
-                                 const Element & element,
-                                 SynchronizationTag tag);
+  // __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
+  //                                const Element & element,
+  //                                SynchronizationTag tag) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -342,6 +342,15 @@ __END_AKANTU__
   ((mazars_non_local, MaterialMazarsNonLocal))
 
 
+#if defined(__INTEL_COMPILER)
+#pragma warning ( push )
+/* warning #654: overloaded virtual function
+   "akantu::Material::computeStress" is only partially overridden in
+   class "akantu::Material*" */
+
+#pragma warning ( disable : 654 )
+#endif //defined(__INTEL_COMPILER)
+
 /* -------------------------------------------------------------------------- */
 // elastic materials
 #include "material_elastic.hh"
@@ -358,6 +367,10 @@ __END_AKANTU__
 
 #include "material_marigo_non_local.hh"
 #include "material_mazars_non_local.hh"
+
+#if defined(__INTEL_COMPILER)
+#pragma warning ( pop )
+#endif //defined(__INTEL_COMPILER)
 
 
 #endif /* __AKANTU_MATERIAL_HH__ */

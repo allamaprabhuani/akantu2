@@ -106,7 +106,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  class type_iterator : std::iterator<std::forward_iterator_tag, const ElementType> {
+  class type_iterator : private std::iterator<std::forward_iterator_tag, const ElementType> {
   public:
     typedef const ElementType   value_type;
     typedef const ElementType*  pointer;

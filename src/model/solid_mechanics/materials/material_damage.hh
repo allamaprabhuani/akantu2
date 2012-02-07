@@ -70,12 +70,6 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-  /// constitutive law
-  virtual void computeNonLocalStress(__attribute__ ((unused)) ElementType el_type,
-				     __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

@@ -40,5 +40,6 @@
 
 #cmakedefine AKANTU_USE_IOHELPER
 
+#define __aka_inline__ inline
 
 #endif /* __AKANTU_AKA_CONFIG_HH__ */

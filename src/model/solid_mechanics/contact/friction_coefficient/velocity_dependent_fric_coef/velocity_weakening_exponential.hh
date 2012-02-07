@@ -38,7 +38,7 @@
 
 __BEGIN_AKANTU__
 
-class VelocityWeakeningExponential : public VelocityDependentFricCoef, HistoricVelocityFricCoef {
+class VelocityWeakeningExponential : public VelocityDependentFricCoef, public HistoricVelocityFricCoef {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

@@ -462,9 +462,17 @@ inline bool Math::are_float_equal(const Real x, const Real y){
 }
 /* -------------------------------------------------------------------------- */
 inline bool Math::isnan(Real x) {
+#if defined(__INTEL_COMPILER)
+#pragma warning ( push )
+#pragma warning ( disable : 1572 )
+#endif //defined(__INTEL_COMPILER)
 
-    return (x == std::numeric_limits<Real>::quiet_NaN());
+  // x = x return false means x = quiet_NaN
+  return !(x == x); 
 
+#if defined(__INTEL_COMPILER)
+#pragma warning ( pop )
+#endif //defined(__INTEL_COMPILER)
 }
 
 /* -------------------------------------------------------------------------- */

@@ -73,8 +73,9 @@ configure_file(common/aka_config.hh.in "${CMAKE_CURRENT_BINARY_DIR}/aka_config.h
 list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
 
 add_library(akantu ${AKANTU_LIBRARY_SRCS})
+target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
-add_definitions(-fkeep-inline-functions)
+#add_definitions(-fkeep-inline-functions)
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 set_target_properties(akantu PROPERTIES COMPILE_DEFINITIONS __aka_inline__=inline)
 set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")

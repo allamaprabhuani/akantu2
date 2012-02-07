@@ -85,7 +85,9 @@ public:
   }
 
   template<typename T>
-  inline void probe(Int sender, Int tag, CommunicationStatus & status) {
+  inline void probe(__attribute__ ((unused)) Int sender,
+		    __attribute__ ((unused)) Int tag,
+		    __attribute__ ((unused)) CommunicationStatus & status) {
   }
 
   bool testRequest(__attribute__ ((unused)) CommunicationRequest * request) { return true; };

@@ -424,7 +424,7 @@ void MaterialNonLocal::updateResidual(Vector<Real> & displacement, GhostType gho
 
 /* -------------------------------------------------------------------------- */
 bool MaterialNonLocal::setParam(const std::string & key, const std::string & value,
-                                const ID & id) {
+                                __attribute__((unused)) const ID & id) {
   std::stringstream sstr(value);
   if(key == "radius") { sstr >> radius; }
   else return false;

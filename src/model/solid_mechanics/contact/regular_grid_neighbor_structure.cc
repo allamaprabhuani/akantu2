@@ -189,7 +189,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
     Real grid_length = bound_max[master_surface][dim] - bound_min[master_surface][dim];
 
     /// get nb of cells needed to cover total length and add a cell to each side (start, end)
-    directional_nb_cells[dim] = static_cast<UInt>(ceil(grid_length / grid_spacing[dim])) + 2;
+    directional_nb_cells[dim] = UInt(ceil(grid_length / grid_spacing[dim])) + 2;
     nb_cells *= directional_nb_cells[dim];
 
     Real additional_grid_length = (directional_nb_cells[dim]*grid_spacing[dim] - grid_length) / 2.;
@@ -279,7 +279,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
       /// compute cell index for all directions
       for(UInt dim = 0; dim < spatial_dimension; ++dim) {
 	Real cur_position = node_position[cur_node * spatial_dimension + dim];
-	directional_cell[dim] = static_cast<UInt>(floor((cur_position - grid_min[dim])/grid_spacing[dim]));
+	directional_cell[dim] = UInt(floor((cur_position - grid_min[dim])/grid_spacing[dim]));
       }
 
       /// test if out of grid space

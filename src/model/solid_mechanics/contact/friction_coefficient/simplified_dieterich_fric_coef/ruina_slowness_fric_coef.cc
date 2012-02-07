@@ -192,7 +192,7 @@ void RuinaSlownessFricCoef<compute_analytic_solution>::addImpactorSurface(const 
 
 /* -------------------------------------------------------------------------- */
 template<bool compute_analytic_solution>
-void RuinaSlownessFricCoef<compute_analytic_solution>::removeImpactorSurface(const Surface & impactor_surface) {
+void RuinaSlownessFricCoef<compute_analytic_solution>::removeImpactorSurface(__attribute__((unused)) const Surface & impactor_surface) {
   AKANTU_DEBUG_IN();
 
   /* do not take out the impactor nodes, because we do not know if they belong only to the given impactor_surface or if they belong also to another impactor_surface */

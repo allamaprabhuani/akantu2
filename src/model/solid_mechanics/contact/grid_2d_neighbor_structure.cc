@@ -100,12 +100,14 @@ bool Grid2dNeighborStructure::check() {
 
   for (UInt i = 0; i < 2; ++i) {
     max_increment[i] += max[i];
-    if(max_increment[i] > spacing)
+    if(max_increment[i] > spacing) {
+      AKANTU_DEBUG_OUT();
       return true;
+    }
   }
 
-  return false;
   AKANTU_DEBUG_OUT();
+  return false;
 }
 
 

@@ -35,15 +35,15 @@
 #include "mesh_partition.hh"
 
 #if ! defined(AKANTU_USE_PTSCOTCH)
-#ifndef AKANTU_SCOTCH_NO_EXTERN
+# ifndef AKANTU_SCOTCH_NO_EXTERN
 extern "C" {
-#endif //AKANTU_SCOTCH_NO_EXTERN
-#  include <scotch.h>
-#ifndef AKANTU_SCOTCH_NO_EXTERN
+# endif //AKANTU_SCOTCH_NO_EXTERN
+# include <scotch.h>
+# ifndef AKANTU_SCOTCH_NO_EXTERN
 }
-#endif //AKANTU_SCOTCH_NO_EXTERN
+# endif //AKANTU_SCOTCH_NO_EXTERN
 #else //AKANTU_USE_PTSCOTCH
-#include <ptscotch.h>
+# include <ptscotch.h>
 #endif //AKANTU_USE_PTSCOTCH
 /* -------------------------------------------------------------------------- */
 

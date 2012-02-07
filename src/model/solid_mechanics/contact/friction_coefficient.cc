@@ -69,7 +69,8 @@ void FrictionCoefficient::computeFrictionCoefficient(Vector<Real> & fric_coef) {
 }
 
 /* -------------------------------------------------------------------------- */
-void FrictionCoefficient::setParam(const std::string & key, const std::string & value) {
+void FrictionCoefficient::setParam(const std::string & key,
+				   __attribute__((unused)) const std::string & value) {
   AKANTU_DEBUG_IN();
   
   //if(key == "name") name = std::string(value);

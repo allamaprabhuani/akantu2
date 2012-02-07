@@ -132,7 +132,7 @@ inline UInt RegularGridNeighborStructure<spatial_dimension>::computeNeighborCell
     for(UInt i = 0; i < dir; ++i) {
       factor *= directional_nb_cells[i];
     }
-    directional_cell[dir] = std::floor(global_cell_nb / factor); // integer division !
+    directional_cell[dir] = UInt(std::floor(global_cell_nb / factor)); // integer division !
     global_cell_nb -= directional_cell[dir] * factor;
   }
 

@@ -83,14 +83,14 @@ protected:
 public:
 
   __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
- 				      SynchronizationTag tag);
+ 				      SynchronizationTag tag) const;
 
   __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
- 					SynchronizationTag tag);
+ 					SynchronizationTag tag) const;
 
   __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
  			       const Element & element,
- 			       SynchronizationTag tag);
+ 			       SynchronizationTag tag) const;
 
   __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
                                  const Element & element,

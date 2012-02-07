@@ -257,7 +257,7 @@ AKANTU_DEBUG_IN();
       /* Discriminant bigger-equal than zero */
       t[0] = (-k-getSign(k)*sqrt(delta))/2.;
       t[1] = (-k+getSign(k)*sqrt(delta))/2.;
-      if(abs(t[1]) < 2.*eps)
+      if(std::abs(t[1]) < 2.*eps)
 	t[1] = j/t[0];
 
     } while(0);
@@ -268,18 +268,23 @@ AKANTU_DEBUG_IN();
 	l[i] = -(a[0]+c[0]*t[i])/(b[0]+t[i]*d[0]);
 	if(l[i]>= 0.-eps3 && l[i]<= 1.+eps3) {
 
-	  if(/*t[i]<1.-eps &&*/ l[i]>0.+1.e-3 && l[i]<1.-1.e-3)
+	  if(/*t[i]<1.-eps &&*/ l[i]>0.+1.e-3 && l[i]<1.-1.e-3) {
+	    AKANTU_DEBUG_OUT();
 	    return _yes;
+	  }
 
 	  else if(l[i]<0.5) { /* Node 3 close at the beginning to node 1*/
+	    AKANTU_DEBUG_OUT();
 	    return _node_1;
 	  }
 	  else { /* Node 3 close at the beginning to node 2 */
+	    AKANTU_DEBUG_OUT();
 	    return _node_2;
 	  }
 	}
       }
-
+    
+    AKANTU_DEBUG_OUT();
     return _no;
     }
     else { /* New Equation: t²+k*t+j=0 -> k*t+j=0*/
@@ -289,55 +294,71 @@ AKANTU_DEBUG_IN();
       if(t[0]>= 0.-eps3 && t[0]<=1.+eps4) { // Within time step
 	l[0] = -(a[0]+c[0]*t[0])/(b[0]+t[0]*d[0]);
 	if(l[0]>= 0.-eps3 && l[0]<= 1.+eps3) {
-	  if(/*t[i]<1.-eps &&*/ l[0]>0.+1.e-3 && l[0]<1.-1.e-3)
+	  if(/*t[i]<1.-eps &&*/ l[0]>0.+1.e-3 && l[0]<1.-1.e-3) {
+	    AKANTU_DEBUG_OUT();
 	    return _yes;
+	  }
 
-	  else if(l[0]<0.5)  /* Node 3 close at the beginning to node 1*/
+	  else if(l[0]<0.5) {  /* Node 3 close at the beginning to node 1*/
+	    AKANTU_DEBUG_OUT();
 	    return _node_1;
+	  }
 
-	  else  /* Node 3 close at the beginning to node 2 */
+	  else  {/* Node 3 close at the beginning to node 2 */
+	    AKANTU_DEBUG_OUT();
 	    return _node_2;
+	  }
 	}
       }
+      AKANTU_DEBUG_OUT();
       return _no;
     }
   }
 
-  else if(abs(c[1]/d[0])>eps2 && abs(c[0]/d[1])>eps2) { /* neglect array d */
+  else if(std::abs(c[1]/d[0])>eps2 && std::abs(c[0]/d[1])>eps2) { /* neglect array d */
 
     den = b[0]*c[1]-b[1]*c[0];
     t[0] = (a[0]*b[1]-b[0]*a[1])/den;
-    if(isnan(t[0])) /* Motion parallel */
+    if(isnan(t[0])) { /* Motion parallel */
+      AKANTU_DEBUG_OUT();
       return _no; /* ? */
+    }
 
     /* Check solution */
     if(t[0]>= 0.-eps3 && t[0]<=1.+eps4) { // Possible Intersection Within time step
       l[0] = -(c[1]*a[0]-c[0]*a[1])/den;
-      if(l[0]>= 0.-eps3 && l[0]<= 1.+eps3)
+      if(l[0]>= 0.-eps3 && l[0]<= 1.+eps3) {
+	AKANTU_DEBUG_OUT();
 	return _yes;
+      }
     }
+    AKANTU_DEBUG_OUT();
     return _no;
   }
 
-  else if(abs(d[0]/c[1])>eps2 && abs(d[1]/c[0])>eps2) { /* neglect array c */
+  else if(std::abs(d[0]/c[1])>eps2 && std::abs(d[1]/c[0])>eps2) { /* neglect array c */
 
    t[0] = -(-a[1]*b[0]+b[1]*a[0])/(d[1]*a[0]-d[0]*a[1]);
-   if(isnan(t[0]))
+   if(isnan(t[0])) {
+     AKANTU_DEBUG_OUT();
      return _no; /* ? */
+   }
 
    /* Ceck solution */
    if(t[0]>= 0.-eps3 && t[0]<=1.+eps4) { // Possible Intersection Within time step
      l[0] = -a[0]/(b[0]+t[0]*d[0]);
-     if(l[0]>= 0.-eps3 && l[0]<= 1.+eps3)
+     if(l[0]>= 0.-eps3 && l[0]<= 1.+eps3) {
+       AKANTU_DEBUG_OUT();
        return _yes;
+     }
    }
+   AKANTU_DEBUG_OUT();
    return _no;
   }
 
+  AKANTU_DEBUG_OUT();
   /* Neglect array c and d*/
   return _no; /* undefined (either no motion or parallel motion)*/
-
-AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -380,12 +401,15 @@ bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList & pen
 	 pen_list.gaps(el_type, _not_ghost).push_back(gap);
 	 pen_list.projected_positions(el_type, _not_ghost).push_back(proj);
 	 //pen_list.penetrating_nodes.getSize()++;
+	 AKANTU_DEBUG_OUT();
 	 return true;
        }
 
        InterType test_pen = Detect_Intersection(node1, node2, i_node, vec_surf, vec_dist, gap);
-       if(test_pen == _no)
+       if(test_pen == _no) {
+	 AKANTU_DEBUG_OUT();
 	 return false;
+       }
 
        /* project on node (compute new normal) */
        //       Real new_normal[2] = {0.,0.};
@@ -414,11 +438,12 @@ bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList & pen
        pen_list.facets_normals(el_type, _not_ghost).push_back(vec_normal);
        pen_list.gaps(el_type, _not_ghost).push_back(gap);
        //pen_list.penetrating_nodes.getSize()++;
+       AKANTU_DEBUG_OUT();
        return true;
      }
    }
-   return false;
    AKANTU_DEBUG_OUT();
+   return false;
  }
 
 

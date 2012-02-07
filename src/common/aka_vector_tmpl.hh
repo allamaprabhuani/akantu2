@@ -509,7 +509,8 @@ class Vector<T>::iterator_internal : public std::iterator<std::random_access_ite
 /* -------------------------------------------------------------------------- */
 template<class T>
 template<class R, class IR, int fps>
-class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
+//class Vector<T>::iterator_internal : private std::iterator<std::random_access_iterator_tag, R> {
+class Vector<T>::iterator_internal {
 public:
   typedef R   value_type;
   typedef R*  pointer;
@@ -522,7 +523,7 @@ protected:
 								   ret(ret) {
   }
 
-  virtual ~iterator_internal() { delete ret; };
+  ~iterator_internal() { delete ret; };
 
 public:
   iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
@@ -534,12 +535,12 @@ public:
     AKANTU_DEBUG_ASSERT(offset == ret->size(),
 			"The iterator_internal is not compatible with the type "
 			<< typeid(value_type).name());
-  };
+  }
 
   iterator_internal(pointer warped)  : offset(warped->size()),
 				       initial(warped->storage()),
 				       ret(const_cast<internal_pointer>(warped)) {
-  };
+  }
 
   iterator_internal(const iterator_internal & it) {
     if(this != &it) {
@@ -697,7 +698,8 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
  */
 template <typename T>
 template <int fps>
-class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T> {
+//class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T> {
+class Vector<T>::iterator_internal<T,T,fps> {
 public:
   typedef T   value_type;
   typedef T*  pointer;
@@ -762,7 +764,7 @@ public:
     return (*this).ret != other.ret;
   }
 
-  inline const pointer getCurrentStorage() const {
+  inline pointer getCurrentStorage() const {
     return ret;
   }
 

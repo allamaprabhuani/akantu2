@@ -314,7 +314,7 @@ typename ByElementType<Stored>::type_iterator ByElementType<Stored>::type_iterat
   type_iterator tmp(*this);
   operator++();
   return tmp;
-};
+}
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>

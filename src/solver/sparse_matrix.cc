@@ -160,7 +160,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
 
   for (UInt i = 0; i < size; ++i) {
     KeyCOO irn_jcn = key(i, i);
-    coordinate_list_map::const_iterator irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
+    irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
     if(irn_jcn_k_it == irn_jcn_k.end()) {
       irn_jcn_k[irn_jcn] = nb_non_zero;
       irn.push_back(i + 1);
