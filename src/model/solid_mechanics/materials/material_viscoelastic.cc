@@ -34,20 +34,23 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 MaterialViscoElastic::MaterialViscoElastic(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id),
-  stress_viscosity("stress_viscosity", id),
-  stress_elastic("stress_elastic", id) {
+  history_integral("history_integral", id),
+  stress_dev("stress_dev", id) {
   AKANTU_DEBUG_IN();
 
-  memset(stress_deviator, 0, 3 * 3 * sizeof(Real));
+//  memset(stress_deviator, 0, 3 * 3 * sizeof(Real));
+//  memset(h, 0, 3 * 3 * sizeof(Real));
+
   eta = 1.;
   Ev  = 1.;
-  h   = 0.;
+//  for (UInt i = 0; i < spatial_dimension; ++i)
+//    for (UInt j = 0; j < spatial_dimension; ++j)
+//      h[i*3 + j] = 0.;
   UInt spatial_dimension = this->model->getSpatialDimension();
   UInt stress_size = spatial_dimension * spatial_dimension;
 
-  initInternalVector(this->stress_viscosity, stress_size);
-  initInternalVector(this->stress_elastic  , stress_size);
-
+  initInternalVector(this->stress_dev, stress_size);
+  initInternalVector(this->history_integral, stress_size);
 
   AKANTU_DEBUG_OUT();
 }
@@ -57,8 +60,8 @@ void MaterialViscoElastic::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic::initMaterial();
 
-  resizeInternalVector(this->stress_viscosity);
-  resizeInternalVector(this->stress_elastic  );
+  resizeInternalVector(this->stress_dev);
+  resizeInternalVector(this->history_integral);
 
   AKANTU_DEBUG_OUT();
 }
@@ -70,6 +73,13 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
   Real Theta, tau = eta/Ev, K = E / ( 3 * (1 - 2*nu) );
   Real e[3*3], s[3*3];
   Real sigma[3*3];
+
+  Vector<Real> & stress_d  = stress_dev(el_type, ghost_type);
+  Vector<Real> & history_i = history_integral(el_type, ghost_type);
+
+  Real * stress_d_val  = stress_d.storage();
+  Real * history_i_val = history_i.storage();
+  Real dt = model->getTimeStep();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(e, 0, 3 * 3 * sizeof(Real));
@@ -93,29 +103,32 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
        s[3*i + j] = E / (1 + nu) * e[3*i + j];
- 
+
   /// Update the internal variable
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
-      h[3*i + j] = exp( -dt/tau ) * h[3*i+j] + exp( -0.5*dt/tau ) * ( stress_deviator[3*i + j] + s[3*i + j] );
+      history_i_val[spatial_dimension * i + j]  = exp( -dt/tau ) * history_i_val[spatial_dimension * i + j] + exp( -0.5*dt/tau ) * ( s[3*i + j] - stress_d_val[spatial_dimension*i + j]);
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)  
       if (i == j)
-        sigma[3*i + j] = K * Theta + ( E * s[3*i + j] + Ev * h[3*i + j] ) / ( Ev + E );
+        sigma[3*i + j] = 2./3. * K * Theta + ( E * s[3*i + j] + Ev * history_i_val[spatial_dimension*i + j] ) / ( Ev + E );
       else
-        sigma[3*i + j] = ( E * s[3*i + j] + Ev * h[3*i + j] ) / ( Ev + E );
+        sigma[3*i + j] = ( E * s[3*i + j] + Ev * history_i_val[spatial_dimension*i + j] ) / ( Ev + E );
   
   /// Save the deviator of stress
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
-       stress_deviator[3*i + j] = s[3*i + j];
+       stress_d_val[spatial_dimension*i + j] = s[3*i + j];
 
 //  computeStress(F, sigma);
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
       stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
+
+  stress_d_val += spatial_dimension * spatial_dimension;
+  history_i_val += spatial_dimension * spatial_dimension;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -220,5 +233,6 @@ void MaterialViscoElastic::printself(std::ostream & stream, int indent) const {
 */
 }
 /* -------------------------------------------------------------------------- */
+
 
 __END_AKANTU__

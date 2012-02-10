@@ -84,11 +84,14 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressViscosity, stress_viscosity, Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressElastic,   stress_elastic, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(HistoryIntegral, history_integral, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressDev,  stress_dev, Real);
 
-  AKANTU_GET_MACRO(Alpha, alpha, const Real&); //???
-  AKANTU_SET_MACRO(Alpha, alpha, Real &); //???
+  AKANTU_GET_MACRO(EV, Ev, const Real&); 
+  AKANTU_SET_MACRO(EV, Ev, Real &); 
+
+  AKANTU_GET_MACRO(Eta, eta, const Real&); 
+  AKANTU_SET_MACRO(Eta, eta, Real &); 
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -96,19 +99,19 @@ public:
 private:
 
   /// stress due to viscosity
-  ByElementTypeReal stress_viscosity;
+//  ByElementTypeReal stress_viscosity;
 
   /// stress due to elasticity
-  ByElementTypeReal stress_elastic;
+//  ByElementTypeReal stress_elastic;
 
   /// viscosity, viscous elastic modulus
   Real eta, Ev;
 
   /// history of deviatoric stress
-  ByElementTypeReal stress_deviator[3*3];
+  ByElementTypeReal stress_dev;
 
-  /// Internal variable: strain history
-  ByElementTypeReal h;
+  /// Internal variable: history integral
+  ByElementTypeReal history_integral;
 };
 
 /* -------------------------------------------------------------------------- */
