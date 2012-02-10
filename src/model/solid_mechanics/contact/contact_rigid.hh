@@ -96,6 +96,9 @@ public:
     
     /// velocities before predictor computation
     Vector<Real> * previous_velocities;
+
+    /// friction resistance 
+    Vector<Real> * friction_resistances;
   };
 
   typedef std::map<Surface, ImpactorInformationPerMaster *> SurfaceToImpactInfoMap;
@@ -151,6 +154,11 @@ public:
   virtual void setRestartInformation(std::map<std::string, VectorBase* > & restart_map, 
 				     Surface master);
 
+  /// compute friction based on the simplified prakash clifton regularization (cochard & rice 2000)
+  void setSimplifiedPrakashCliftonFriction(Real v_star, Real length);
+  void unsetSimplifiedPrakashCliftonFriction();
+  void setPrakashCliftonToSteadyState(const Surface master);
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -200,6 +208,13 @@ private:
   
   /// the mesh
   const Mesh & mesh;
+
+  // simplified prakash clifton regularization
+  bool prakash;
+
+  // parameters needed for fomulation of cochard and rice 2000
+  Real ref_velocity;
+  Real characterstic_length;
 
   /// list of impactor nodes info for each master surface
   SurfaceToImpactInfoMap impactors_information;
