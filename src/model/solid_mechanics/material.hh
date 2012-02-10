@@ -333,6 +333,7 @@ __END_AKANTU__
 
 #define AKANTU_MATERIAL_LIST						\
   ((elastic         , MaterialElastic       ))				\
+  ((viscoelastic    , MaterialViscoElastic       ))				\
   ((elastic_caughey , MaterialElasticCaughey))				\
   ((neohookean      , MaterialNeohookean    ))				\
   ((damage_linear   , MaterialDamageLinear  ))                          \
@@ -355,6 +356,7 @@ __END_AKANTU__
 // elastic materials
 #include "material_elastic.hh"
 #include "material_elastic_caughey.hh"
+#include "material_viscoelastic.hh"
 #include "material_neohookean.hh"
 
 // damage materials
