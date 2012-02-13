@@ -234,7 +234,7 @@ AKANTU_DEBUG_IN();
   j = (a[1]*b[0]-b[1]*a[0])/(c[1]*d[0]-d[1]*c[0]);
 
 
-  if(isnan(k)!=true && isnan(j)!=true) {
+  if(Math::isnan(k)!=true && Math::isnan(j)!=true) {
 
     if(k < 1.e12 && j < 1.e12) { /* Equation quadratic */ /* If quadratic therm smaller than eps*other therm exclude them */
 
@@ -319,7 +319,8 @@ AKANTU_DEBUG_IN();
 
     den = b[0]*c[1]-b[1]*c[0];
     t[0] = (a[0]*b[1]-b[0]*a[1])/den;
-    if(isnan(t[0])) { /* Motion parallel */
+
+    if(Math::isnan(t[0])) { /* Motion parallel */
       AKANTU_DEBUG_OUT();
       return _no; /* ? */
     }
@@ -339,7 +340,8 @@ AKANTU_DEBUG_IN();
   else if(std::abs(d[0]/c[1])>eps2 && std::abs(d[1]/c[0])>eps2) { /* neglect array c */
 
    t[0] = -(-a[1]*b[0]+b[1]*a[0])/(d[1]*a[0]-d[0]*a[1]);
-   if(isnan(t[0])) {
+
+   if(Math::isnan(t[0])) {
      AKANTU_DEBUG_OUT();
      return _no; /* ? */
    }
