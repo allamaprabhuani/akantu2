@@ -67,6 +67,19 @@ set(LIST_TYPES
 #===============================================================================
 foreach(_type ${LIST_TYPES})
   if(AKANTU_IOHELPER)
+    register_test(test_material_viscoelastic_${_type} test_material_viscoelastic.cc io_helper_tools.cc)
+  else()
+    register_test(test_material_viscoelastic_${_type} test_material_viscoelastic.cc)
+  endif()
+  set_target_properties(test_material_viscoelastic_${_type}
+    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
+  file(COPY ./data/test_material_viscoelastic_${_type}.msh DESTINATION .)
+  file(COPY ./ref_files/test_material_viscoelastic_${_type}.ref DESTINATION .)
+endforeach()
+
+#===============================================================================
+foreach(_type ${LIST_TYPES})
+  if(AKANTU_IOHELPER)
     register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc io_helper_tools.cc)
   else()
     register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc)
@@ -90,5 +103,6 @@ foreach(_type ${LIST_TYPES})
 endforeach()
 
 #===============================================================================
+file(COPY material_viscoelastic.dat DESTINATION .)
 file(COPY material_elastic_caughey.dat DESTINATION .)
 file(COPY material_elastic_caughey_damping.dat DESTINATION .)
