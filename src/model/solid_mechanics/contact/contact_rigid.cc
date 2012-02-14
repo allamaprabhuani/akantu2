@@ -750,6 +750,8 @@ void ContactRigid::frictionCorrector() {
   Real * acceleration_val = this->model.getAcceleration().values;
   Real * velocity_val     = this->model.getVelocity().values;
 
+  Real time_step = this->model.getTimeStep();
+
   for(UInt m=0; m < this->master_surfaces.size(); ++m) {
     Surface master = this->master_surfaces.at(m);
 
@@ -777,11 +779,17 @@ void ContactRigid::frictionCorrector() {
 
       // compute scalar product of previous velocity with current velocity
       Real dot_prod_velocities = 0.;
+      Real dot_prod_pred_velocities = 0.;
       Real current_proj_vel_mag = 0.;
       for (UInt i=0; i < this->spatial_dimension; ++i) {
 	if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	  dot_prod_velocities += velocity_val[current_node * this->spatial_dimension + i] *
 				 previous_velocities_val[n * this->spatial_dimension + i];
+	  Real pred_vel = velocity_val[current_node * this->spatial_dimension + i] + 
+	                  0.5 * time_step * 
+                          acceleration_val[current_node * this->spatial_dimension + i];
+	  dot_prod_pred_velocities += pred_vel * 
+	                              previous_velocities_val[n * this->spatial_dimension + i];
 	  current_proj_vel_mag += velocity_val[current_node * this->spatial_dimension + i] *
 				  velocity_val[current_node * this->spatial_dimension + i];
 	  }
@@ -789,7 +797,9 @@ void ContactRigid::frictionCorrector() {
       current_proj_vel_mag = sqrt(current_proj_vel_mag);
 
       // if velocity has changed sign or has become very small we get into stick
-      if ((dot_prod_velocities < 0.) || (current_proj_vel_mag < tolerance)) {
+      if ((dot_prod_velocities < 0.) || 
+	  (dot_prod_pred_velocities < 0.) || 
+	  (current_proj_vel_mag < tolerance)) {
 	for (UInt i=0; i < this->spatial_dimension; ++i) {
 	  if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.)) {
 	    //friction_forces_val[n*spatial_dimension + i] = residual_forces_val[n*spatial_dimension + i];

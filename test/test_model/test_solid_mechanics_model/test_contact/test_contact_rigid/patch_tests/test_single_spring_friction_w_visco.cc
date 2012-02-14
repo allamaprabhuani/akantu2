@@ -447,6 +447,11 @@ void loadRestartInformation(ContactRigid * contact) {
   pv_nodes->push_back(vel);
   restart_map["previous_velocities"] = pv_nodes;
 
+  // no friction strength
+  Vector<Real> * fr_nodes = new Vector<Real>(0, 1);
+  fr_nodes->push_back(0.);
+  restart_map["friction_resistances"] = fr_nodes;
+
   contact->setRestartInformation(restart_map, master);
   delete boundary_r;
   delete ai_nodes;
@@ -457,6 +462,7 @@ void loadRestartInformation(ContactRigid * contact) {
   delete sp_nodes;
   delete rf_nodes;
   delete pv_nodes;
+  delete fr_nodes;
 }
 
 /* -------------------------------------------------------------------------- */
