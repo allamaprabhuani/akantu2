@@ -356,7 +356,7 @@ bool ContactRigid::isAlreadyActiveImpactor(const Surface master,
   Real * facet_normal = &facets_normals[facet_offset*spatial_dimension];
   Int normal[this->spatial_dimension];
   for(UInt i = 0; i < this->spatial_dimension; ++i)
-    normal[i] = static_cast<Int>(floor(facet_normal[i] + 0.5));
+    normal[i] = Int(floor(facet_normal[i] + 0.5));
 
   // check if this is already in the active impactor node list
   ContactRigid::SurfaceToImpactInfoMap::iterator it_imp;
