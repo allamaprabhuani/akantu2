@@ -185,6 +185,9 @@ public:
   void implicitCorr();
 
 private:
+  /// finish the computation of residual to solve in increment
+  void updateResidualInternal();
+
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
   void solveDynamic(Vector<Real> & increment);

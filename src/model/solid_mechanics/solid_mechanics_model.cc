@@ -302,7 +302,7 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
 void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_IN();
 
-  // f = f_ext - f_int - Ma - Cv
+  // f = f_ext - f_int
 
   // f = f_ext
   if (need_initialize) initializeUpdateResidualData();
@@ -329,6 +329,14 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
     (*mat_it)->updateResidual(*displacement, _ghost);
   }
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updateResidualInternal() {
+  AKANTU_DEBUG_IN();
+
+  // f = f_ext - f_int - Ma - Cv = r - Ma - Cv;
 
   if(dynamic) {
     // f -= Ma
@@ -342,7 +350,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
       // else lumped mass
       UInt nb_nodes = acceleration->getSize();
       UInt nb_degre_of_freedom = acceleration->getNbComponent();
-
+      
       Real * mass_val     = mass->values;
       Real * accel_val    = acceleration->values;
       Real * res_val      = residual->values;
@@ -358,7 +366,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 	accel_val++;
       }
     }
-
+    
     // f -= Cv
     if(velocity_damping_matrix) {
       Vector<Real> * Cv = new Vector<Real>(*velocity);
@@ -383,6 +391,7 @@ void SolidMechanicsModel::updateAcceleration() {
   increment_acceleration->resize(nb_nodes);
   increment_acceleration->clear();
 
+  updateResidualInternal();
 
   if(!implicit && !mass_matrix) {
 
@@ -566,6 +575,8 @@ void SolidMechanicsModel::solveDynamic() {
 		      "You should first initialize the implicit solver and assemble the mass matrix");
 
   if(!increment) setIncrementFlagOn();
+
+  updateResidualInternal();
 
   solveDynamic<NewmarkBeta::_displacement_corrector>(*increment);
 
