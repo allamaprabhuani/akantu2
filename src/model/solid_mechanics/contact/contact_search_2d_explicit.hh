@@ -75,9 +75,9 @@ public:
   void findPenetration(const Surface & master_surface, PenetrationList & penetration_list);
 
 private:
-  template <typename T> __aka_inline__ Int getSign(T v);
+  template <typename T> inline Int getSign(T v);
 
-  // __aka_inline__ Real F_LINE(UInt node1, UInt node2, UInt node3);
+  // inline Real F_LINE(UInt node1, UInt node2, UInt node3);
 
   InterType Detect_Intersection(UInt node1, UInt node2, UInt node3, Real *vec_surf, Real *vec_dist, Real gap);
 
@@ -98,7 +98,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -106,7 +106,7 @@ private:
 #endif
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const ContactSearch2dExplicit & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const ContactSearch2dExplicit & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -74,7 +74,7 @@ __BEGIN_AKANTU__
     LeftVal  left()  const { return _left; };
     RightVal right() const { return _right; };
 
-    __aka_inline__ Return operator() () const {
+    inline Return operator() () const {
       return Operator::apply(_left, _right);
     }
 
@@ -97,7 +97,7 @@ __BEGIN_AKANTU__
 
     RightVal right() const { return _right; };
 
-    __aka_inline__ Return operator() () const {
+    inline Return operator() () const {
       return Operator::apply(_right);
     }
 
@@ -150,7 +150,7 @@ typedef types::Vector<Real> Vect;
     MultiplyOp() {};
 
     template <class L, class R>
-    static __aka_inline__ typename ResultType<Expression<BinaryOperation<L, R, MultiplyOp> > >::Type apply(const L & a, const R & b) {
+    static inline typename ResultType<Expression<BinaryOperation<L, R, MultiplyOp> > >::Type apply(const L & a, const R & b) {
       return apply(a, b);
     }
 
@@ -159,7 +159,7 @@ typedef types::Vector<Real> Vect;
     /* Blas 2                                                                 */
     /* ---------------------------------------------------------------------- */
     /// @f[ y = A * x @f]
-    static __aka_inline__ Vect apply(const Mat & a, const Vect & x) {
+    static inline Vect apply(const Mat & a, const Vect & x) {
       Vect y(x.size());
       Math::matVectMul<false>(a.rows(), a.cols(),
 			1., a.storage(), x.storage(),
@@ -168,7 +168,7 @@ typedef types::Vector<Real> Vect;
     }
 
     /// @f[ y = A^t * x @f]
-    static __aka_inline__ Vect apply(const TrMat & at, const Vect & x) {
+    static inline Vect apply(const TrMat & at, const Vect & x) {
       const Mat & a = at.right();
       Vect y(x.size());
       Math::matVectMul<false>(a.rows(), a.cols(),
@@ -181,7 +181,7 @@ typedef types::Vector<Real> Vect;
     /* Blas 3                                                                 */
     /* ---------------------------------------------------------------------- */
     /// @f[ C = A * x^t @f]
-    static __aka_inline__ Mat apply(const Vect & x, const TrVect & yt) {
+    static inline Mat apply(const Vect & x, const TrVect & yt) {
       const Vect & y = yt.right();
       Mat c(x.size(), y.size());
       Math::matMul<false, true>(x.size(), y.size(), 1,
@@ -191,7 +191,7 @@ typedef types::Vector<Real> Vect;
     }
 
     /// @f[ y = A^t * x^t @f]
-    static __aka_inline__ Mat apply(const TrVect & xt, const Vect & y) {
+    static inline Mat apply(const TrVect & xt, const Vect & y) {
       const Vect & x = xt.right();
       Mat c(y.size(), x.size());
       Math::matMul<true, false>(y.size(), x.size(), 1,
@@ -202,7 +202,7 @@ typedef types::Vector<Real> Vect;
 
 
     /// @f[ C = A * B @f]
-    static __aka_inline__ Mat apply(const Mat & a, const Mat & b) {
+    static inline Mat apply(const Mat & a, const Mat & b) {
       Mat c(a.rows(), b.cols());
       Math::matMul<false, false>(a.rows(), b.cols(), a.cols(),
 				 1., a.storage(), b.storage(),
@@ -211,7 +211,7 @@ typedef types::Vector<Real> Vect;
     }
 
     /// @f[ C = A^t * B @f]
-    static __aka_inline__ Mat apply(const TrMat & at, const Mat & b) {
+    static inline Mat apply(const TrMat & at, const Mat & b) {
       const Mat & a = at.right();
       Mat c(a.rows(), b.cols());
       Math::matMul<true, false>(a.rows(), b.cols(), a.cols(),
@@ -221,7 +221,7 @@ typedef types::Vector<Real> Vect;
     }
 
     /// @f[ C = A * B^t @f]
-    static __aka_inline__ Mat apply(const Mat & a, const TrMat & bt) {
+    static inline Mat apply(const Mat & a, const TrMat & bt) {
       const Mat & b = bt.right();
       Mat c(a.rows(), b.cols());
       Math::matMul<false, true>(a.rows(), b.cols(), a.cols(),
@@ -231,7 +231,7 @@ typedef types::Vector<Real> Vect;
     }
 
     /// @f[ C = A^t * B^t @f]
-    static __aka_inline__ Mat apply(const TrMat & at, const TrMat & bt) {
+    static inline Mat apply(const TrMat & at, const TrMat & bt) {
       const Mat & a = at.right();
       const Mat & b = bt.right();
       Mat c(a.rows(), b.cols());
@@ -243,7 +243,7 @@ typedef types::Vector<Real> Vect;
   };
 
   template<class A, class B>
-  __aka_inline__ typename ResultType<Expression<BinaryOperation<A, B, MultiplyOp> > >::Type
+  inline typename ResultType<Expression<BinaryOperation<A, B, MultiplyOp> > >::Type
   operator* (const A & a, const A & b) {
     return Expression<BinaryOperation<A,B,MultiplyOp> >(BinaryOperation<A,B,MultiplyOp>(a,b));
   }

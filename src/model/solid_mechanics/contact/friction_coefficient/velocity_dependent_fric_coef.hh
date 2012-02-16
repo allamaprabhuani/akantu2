@@ -86,7 +86,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "velocity_dependent_fric_coef_inline_impl.cc"

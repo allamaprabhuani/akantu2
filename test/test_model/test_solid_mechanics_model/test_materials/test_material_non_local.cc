@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
   model.readMaterials("material_non_local.dat");
   model.initMaterials();
 
-  model.getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
-  const MaterialNonLocal & mat = dynamic_cast<const MaterialNonLocal &>(model.getMaterial(0));
-  mat.computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
-
+  //  model.getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
+  const MaterialNonLocal<BaseWeightFunction> & mat =
+    dynamic_cast<const MaterialNonLocal<BaseWeightFunction> &>(model.getMaterial(0));
+  //  mat.computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
   Real radius = mat.getRadius();
 
   UInt nb_element  = mesh.getNbElement(TYPE);
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
   ByElementTypeReal constant_avg("constant_value_avg", "test");
   mesh.initByElementTypeVector(constant_avg, 1, 0);
 
-  mat.weigthedAvergageOnNeighbours(constant, constant_avg, 1);
+  mat.weightedAvergageOnNeighbours(constant, constant_avg, 1);
 
   debug::setDebugLevel(akantu::dblTest);
   std::cout << constant(TYPE) << std::endl;

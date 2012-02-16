@@ -63,10 +63,10 @@ public:
   virtual void initializeComputeFricCoef();
 
   /// fill table with friction coefficient
-  __aka_inline__ Real computeFricCoef(UInt impactor_node_index);
+  inline Real computeFricCoef(UInt impactor_node_index);
 
   /// compute the alpha parameter
-  __aka_inline__ void computeAlpha();
+  inline void computeAlpha();
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -94,7 +94,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 __END_AKANTU__
 

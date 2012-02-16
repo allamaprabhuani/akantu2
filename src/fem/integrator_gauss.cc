@@ -111,7 +111,7 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const GhostType & gh
 template <ElementType type>
 void IntegratorGauss::integrate(const Vector<Real> & in_f,
 				Vector<Real> &intf,
-				UInt nb_degre_of_freedom,
+				UInt nb_degree_of_freedom,
 				const GhostType & ghost_type,
 				const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
@@ -145,7 +145,7 @@ void IntegratorGauss::integrate(const Vector<Real> & in_f,
       jac      = jac_val  + filter_elem_val[el] * nb_quadrature_points;
     }
 
-    integrate(in_f_val, jac, intf_val, nb_degre_of_freedom, nb_quadrature_points);
+    integrate(in_f_val, jac, intf_val, nb_degree_of_freedom, nb_quadrature_points);
 
     in_f_val += offset_in_f;
     intf_val += offset_intf;
@@ -209,7 +209,7 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
 template <ElementType type>
 void IntegratorGauss::integrateOnQuadraturePoints(const Vector<Real> & in_f,
 						  Vector<Real> &intf,
-						  UInt nb_degre_of_freedom,
+						  UInt nb_degree_of_freedom,
 						  const GhostType & ghost_type,
 						  const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
@@ -241,7 +241,7 @@ void IntegratorGauss::integrateOnQuadraturePoints(const Vector<Real> & in_f,
     }
 
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      for (UInt dof = 0; dof < nb_degre_of_freedom; ++dof) {
+      for (UInt dof = 0; dof < nb_degree_of_freedom; ++dof) {
 	*intf_val = *in_f_val * *jac;
 	++in_f_val; ++intf_val;
       }
@@ -302,7 +302,7 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(c
   template void IntegratorGauss::					\
   integrate<type>(const Vector<Real> & in_f,				\
 		  Vector<Real> &intf,					\
-		  UInt nb_degre_of_freedom,				\
+		  UInt nb_degree_of_freedom,				\
 		  const GhostType & ghost_type,				\
 		  const Vector<UInt> * filter_elements) const;		\
   template Real IntegratorGauss::					\
@@ -312,7 +312,7 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(c
   template void IntegratorGauss::					\
   integrateOnQuadraturePoints<type>(const Vector<Real> & in_f,		\
 			      Vector<Real> &intf,			\
-			      UInt nb_degre_of_freedom,			\
+			      UInt nb_degree_of_freedom,			\
 			      const GhostType & ghost_type,		\
 			      const Vector<UInt> * filter_elements) const;
 

@@ -32,6 +32,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_io.hh"
+
+/* -------------------------------------------------------------------------- */
+#include <vector>
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -134,12 +138,12 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "mesh_io_diana_inline_impl.cc"
 // /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const MeshIODiana & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const MeshIODiana & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -474,8 +474,6 @@ void Material::computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coo
       UInt nb_element  = elem_filter.getSize();
       UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(*it, ghost_type) * nb_element;
 
-      std::cout << *it << " " << nb_element << std::endl;
-
       Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
       quads.resize(nb_tot_quad);
 

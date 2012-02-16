@@ -57,31 +57,16 @@ public:
   bool setParam(const std::string & key, const std::string & value,
 		const ID & id);
 
-  /// constitutive law for all element of a type
-  void computeStress(__attribute__ ((unused)) ElementType el_type,
-		     __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-  /// Compute the tangent stiffness matrix for implicit for a given type
-  void computeTangentStiffness(__attribute__ ((unused)) const ElementType & type,
-			       __attribute__ ((unused)) Vector<double> & tangent_matrix,
-			       __attribute__ ((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  /// give the dissipated energy for the time step
+  Real getDissipatedEnergy() const;
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
-  /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & damage, Real & Y, Real & Ydq);
+  /// update the dissipated energy, must be called after the stress have been computed
+  void updateDissipatedEnergy(GhostType ghost_type);
 
-  __aka_inline__ void computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real & Ydq );
-
-  virtual __aka_inline__ Real getStableTimeStep(Real h, const Element & element) {
-    return MaterialElastic::getStableTimeStep(h, element);
-  };
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -100,6 +85,16 @@ public:
 protected:
   /// damage internal variable
   ByElementTypeReal damage;
+
+  /// dissipated energy
+  ByElementTypeReal dissipated_energy;
+
+  /// previous strain used to compute the dissipated energy
+  ByElementTypeReal strain_prev;
+
+  /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega @f$ the dissipated energy
+  ByElementTypeReal int_sigma;
+
 };
 
 

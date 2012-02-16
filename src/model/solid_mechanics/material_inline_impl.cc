@@ -43,7 +43,7 @@ inline void Material::computePotentialEnergy(Real * F, Real * sigma, Real * epot
   *epot = 0.;
   for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      (*epot) += sigma[t] * F[t] ;
+      (*epot) += sigma[t] * F[t];
 
   *epot *= .5;
 }
@@ -99,38 +99,3 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
   }
 }
 
-// /* -------------------------------------------------------------------------- */
-// inline UInt Material::getNbDataToPack(__attribute__ ((unused)) const Element & element,
-// 				      SynchronizationTag tag) const {
-//   AKANTU_DEBUG_IN();
-//   AKANTU_EXCEPTION("Unknown ghost synchronization tag : " << tag);
-//   AKANTU_DEBUG_OUT();
-//   return 0;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// inline UInt Material::getNbDataToUnpack(__attribute__ ((unused)) const Element & element,
-// 					SynchronizationTag tag) const {
-//   AKANTU_DEBUG_IN();
-//   AKANTU_EXCEPTION("Unknown ghost synchronization tag : " << tag);
-//   AKANTU_DEBUG_OUT();
-//   return 0;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// inline void Material::packData(__attribute__ ((unused)) CommunicationBuffer & buffer,
-// 			       __attribute__ ((unused)) const Element & element,
-// 			       SynchronizationTag tag) const {
-//   AKANTU_DEBUG_IN();
-//   AKANTU_EXCEPTION("Unknown ghost synchronization tag : " << tag);
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* -------------------------------------------------------------------------- */
-// inline void Material::unpackData(__attribute__ ((unused)) CommunicationBuffer & buffer,
-// 				 __attribute__ ((unused)) const Element & element,
-// 				 SynchronizationTag tag) const {
-//   AKANTU_DEBUG_IN();
-//   AKANTU_EXCEPTION("Unknown ghost synchronization tag : " << tag);
-//   AKANTU_DEBUG_OUT();
-// }

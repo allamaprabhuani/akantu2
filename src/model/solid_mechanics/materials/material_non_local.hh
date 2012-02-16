@@ -38,17 +38,20 @@
 
 __BEGIN_AKANTU__
 
-
 /* -------------------------------------------------------------------------- */
-class BaseWeightFonction {
+class BaseWeightFunction {
 public:
-  BaseWeightFonction(__attribute__((unused)) const Material & material,
-                     Real radius,
-                     __attribute__((unused)) ElementType type1,
-                     __attribute__((unused)) GhostType ghost_type1,
-                     __attribute__((unused)) ElementType type2,
-                     __attribute__((unused)) GhostType ghost_type2) :
-    radius(radius), r2(radius*radius) {
+  BaseWeightFunction() : R(0), R2(0) { }
+
+  BaseWeightFunction(Real radius) :
+    R(radius), R2(radius*radius) {
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline void selectType(__attribute__((unused)) ElementType type1,
+			 __attribute__((unused)) GhostType ghost_type1,
+			 __attribute__((unused)) ElementType type2,
+			 __attribute__((unused)) GhostType ghost_type2) {
   }
 
   /* ------------------------------------------------------------------------ */
@@ -56,8 +59,8 @@ public:
                          __attribute__((unused)) UInt q1,
                          __attribute__((unused)) UInt q2) {
     Real w = 0;
-    if(r <= radius) {
-      Real alpha = (1. - r*r / r2);
+    if(r <= R) {
+      Real alpha = (1. - r*r / R2);
       w = alpha * alpha;
       //	*weight = 1 - sqrt(r / radius);
     }
@@ -65,12 +68,12 @@ public:
   }
 
 protected:
-  Real radius;
-  Real r2;
+  Real R;
+  Real R2;
 };
 
 /* -------------------------------------------------------------------------- */
-
+template<class WeightFunction = BaseWeightFunction>
 class MaterialNonLocal : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -92,22 +95,16 @@ public:
 			const ID & id);
 
   /// initialize the material computed parameter
-  virtual void initMaterial();
+  void initMaterial(WeightFunction & func);
 
   void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
 
-  template<class WeightFonction>
   void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
 
-  void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
+  // void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
 
   template<typename T>
-  void accumulateOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
-			      ByElementTypeVector<T> & accumulated,
-			      UInt nb_degree_of_freedom) const;
-
-  template<typename T>
-  void weigthedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+  void weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
 				    ByElementTypeVector<T> & accumulated,
 				    UInt nb_degree_of_freedom) const;
 
@@ -117,18 +114,19 @@ public:
   virtual void updateResidual(Vector<Real> & displacement, GhostType ghost_type);
 
   /// constitutive law
-  virtual void computeNonLocalStress(Vector<Real> & averaged_field,
-				     ElementType el_type,
-				     GhostType ghost_type = _not_ghost) = 0;
-
   virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;
 
-  void removeDamaged(const ByElementTypeReal & damage, Real thresold);
+  // void removeDamaged(const ByElementTypeReal & damage, Real thresold);
 
   void savePairs(const std::string & filename) const;
 
 protected:
   void createCellList(const ByElementTypeReal & quadrature_points_coordinates);
+
+  // template<typename T>
+  // void accumulateOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+  // 			      ByElementTypeVector<T> & accumulated,
+  // 			      UInt nb_degree_of_freedom) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -142,21 +140,29 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
-  PairList<UInt> pair_list;
-  PairList<Real> pair_weigth;
-
+protected:
+  /// the non local radius
   Real radius;
 
-  RegularGrid<QuadraturePoint> * cell_list;
-  //  ByElementTypeReal quadrature_points_coordinates;
+private:
+  /// the pairs of quadrature points
+  PairList<UInt> pair_list;
+  /// the weights associated to the pairs
+  PairList<Real> pair_weight;
 
+  /// the regular grid to construct/update the pair lists
+  RegularGrid<QuadraturePoint> * cell_list;
+
+  /// the types of the existing pairs
   std::set< std::pair<ElementType, ElementType> > existing_pairs;
+
+  /// the weight function used
+  WeightFunction weight_func;
 };
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -164,7 +170,8 @@ private:
 #endif
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialNonLocal & _this)
+template<class WeightFunction>
+inline std::ostream & operator <<(std::ostream & stream, const MaterialNonLocal<WeightFunction> & _this)
 {
   _this.printself(stream);
   return stream;

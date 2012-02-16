@@ -74,7 +74,7 @@ public:
   template <ElementType type>
   void interpolateOnControlPoints(const Vector<Real> &u,
 				  Vector<Real> &uq,
-				  UInt nb_degre_of_freedom,
+				  UInt nb_degree_of_freedom,
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
@@ -88,7 +88,7 @@ public:
   // template <ElementType type>
   // void gradientOnControlPoints(const Vector<Real> &u,
   // 			       Vector<Real> &nablauq,
-  // 			       UInt nb_degre_of_freedom,
+  // 			       UInt nb_degree_of_freedom,
   // 			       GhostType ghost_type = _not_ghost,
   // 			       const Vector<UInt> * filter_elements = NULL) const;
 
@@ -112,10 +112,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the size of the shapes returned by the element class
-  static __aka_inline__ UInt getShapeSize(const ElementType & type);
+  static inline UInt getShapeSize(const ElementType & type);
 
   /// get the size of the shapes derivatives returned by the element class
-  static __aka_inline__ UInt getShapeDerivativesSize(const ElementType & type);
+  static inline UInt getShapeDerivativesSize(const ElementType & type);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ControlPoints, control_points, Real)
 
@@ -140,7 +140,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator

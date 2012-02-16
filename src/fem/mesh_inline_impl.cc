@@ -25,6 +25,12 @@
  *
  */
 
+__END_AKANTU__
+
+#include "cohesive_element.hh"
+
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::elementToLinearized(const Element & elem) {
   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
@@ -240,40 +246,6 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
-
-  std::set<Surface> surface_ids;
-
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-
-    const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
-
-      UIntDataMap & map = uint_data(*it, gt);
-      UIntDataMap::iterator it_data = map.find(data_name);
-      AKANTU_DEBUG_ASSERT(it_data != map.end(),
-			  "No data named " << data_name
-			  << " present in the mesh " << id
-			  << " for the element type " << *it);
-      AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
-			  "Surface id for type (" << gt << ":" << *it
-			  << ") already set to the vector " << surface_id(*it, gt).getID());
-
-      surface_id.setVector(*it, gt, *it_data->second);
-
-      for (UInt s = 0; s < it_data->second->getSize(); ++s) {
-	surface_ids.insert((*it_data->second)(s));
-      }
-    }
-  }
-
-  nb_surfaces = surface_ids.size();
-}
-
-/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
@@ -281,8 +253,16 @@ inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
 #define GET_NB_NODES_PER_ELEMENT(type)					\
   nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_NODES_PER_ELEMENT);
+#define GET_NB_NODES_PER_ELEMENT_COHESIVE(type)				\
+  nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement()
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_NODES_PER_ELEMENT,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_NB_NODES_PER_ELEMENT_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
+
 #undef GET_NB_NODES_PER_ELEMENT
+#undef GET_NB_NODES_PER_ELEMENT_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return nb_nodes_per_element;
@@ -308,11 +288,19 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = 0;
-#define GET_SPATIAL_DIMENSION(type)					\
+#define GET_SPATIAL_DIMENSION(type)				\
   spatial_dimension = ElementClass<type>::getSpatialDimension()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SPATIAL_DIMENSION);
+#define GET_SPATIAL_DIMENSION_COHESIVE(type)				\
+  spatial_dimension = CohesiveElement<type>::getSpatialDimension()
+
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SPATIAL_DIMENSION,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_SPATIAL_DIMENSION_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
 #undef GET_SPATIAL_DIMENSION
+#undef GET_SPATIAL_DIMENSION_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return spatial_dimension;
@@ -326,8 +314,16 @@ inline ElementType Mesh::getFacetElementType(const ElementType & type) {
 #define GET_FACET_TYPE(type)					\
   surface_type = ElementClass<type>::getFacetElementType()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_FACET_TYPE);
+#define GET_FACET_TYPE_COHESIVE(type)				\
+  surface_type = CohesiveElement<type>::getFacetElementType()
+
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_FACET_TYPE,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_FACET_TYPE_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
 #undef GET_FACET_TYPE
+#undef GET_FACET_TYPE_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return surface_type;
@@ -338,11 +334,19 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt n_facet = 0;
-#define GET_NB_FACET(type)					\
+#define GET_NB_FACET(type)				\
   n_facet = ElementClass<type>::getNbFacetsPerElement()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_FACET);
+#define GET_NB_FACET_COHESIVE(type)			\
+  n_facet = CohesiveElement<type>::getNbFacetsPerElement()
+
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_NB_FACET,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_NB_FACET_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
 #undef GET_NB_FACET
+#undef GET_NB_FACET_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return n_facet;
@@ -354,11 +358,19 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   UInt ** facet_conn = NULL;
-#define GET_FACET_CON(type)                                      \
+#define GET_FACET_CON(type)						\
   facet_conn = ElementClass<type>::getFacetLocalConnectivityPerElement()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_FACET_CON);
+#define GET_FACET_CON_COHESIVE(type)					\
+  facet_conn = CohesiveElement<type>::getFacetLocalConnectivityPerElement()
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_FACET_CON,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_FACET_CON_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
+
 #undef GET_FACET_CON
+#undef GET_FACET_CON_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return facet_conn;

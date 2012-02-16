@@ -66,7 +66,7 @@ class SparseMatrix : private Memory {
 public:
   SparseMatrix(UInt size,
 	       const SparseMatrixType & sparse_matrix_type,
-	       UInt nb_degre_of_freedom,
+	       UInt nb_degree_of_freedom,
 	       const ID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
 
@@ -84,16 +84,16 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// remove the existing profile
-  __aka_inline__ void clearProfile();
+  inline void clearProfile();
 
   /// add a non-zero element
   UInt addToProfile(UInt i, UInt j);
 
   /// set the matrix to 0
-  __aka_inline__ void clear();
+  inline void clear();
 
   /// assemble a local matrix in the sparse one
-  __aka_inline__ void addToMatrix(UInt i, UInt j, Real value);
+  inline void addToMatrix(UInt i, UInt j, Real value);
 
   /// fill the profil of the matrix
   void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer);
@@ -126,7 +126,7 @@ public:
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
-  __aka_inline__ KeyCOO key(UInt i, UInt j) const {
+  inline KeyCOO key(UInt i, UInt j) const {
     if(sparse_matrix_type == _symmetric && (i > j))
       return std::make_pair(j, i);
 
@@ -139,8 +139,8 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// return the values at potition i, j
-  __aka_inline__ Real operator()(UInt i, UInt j) const;
-  __aka_inline__ Real & operator()(UInt i, UInt j);
+  inline Real operator()(UInt i, UInt j) const;
+  inline Real & operator()(UInt i, UInt j);
 
   AKANTU_GET_MACRO(IRN, irn, const Vector<Int> &);
 
@@ -152,7 +152,7 @@ public:
 
   AKANTU_GET_MACRO(Size, size, UInt);
 
-  AKANTU_GET_MACRO(NbDegreOfFreedom, nb_degre_of_freedom, UInt);
+  AKANTU_GET_MACRO(NbDegreOfFreedom, nb_degree_of_freedom, UInt);
 
   AKANTU_GET_MACRO(SparseMatrixType, sparse_matrix_type, const SparseMatrixType &);
 
@@ -177,7 +177,7 @@ private:
   SparseMatrixType sparse_matrix_type;
 
   /// number of degre of freedom
-  UInt nb_degre_of_freedom;
+  UInt nb_degree_of_freedom;
 
   /// Mesh corresponding to the profile
   //  const Mesh * mesh;
@@ -224,7 +224,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -232,7 +232,7 @@ private:
 #endif
 
 // /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const SparseMatrix & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const SparseMatrix & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

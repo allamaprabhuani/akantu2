@@ -58,10 +58,10 @@ public:
 public:
 
   /// get the amount of space allocated in bytes
-  __aka_inline__ UInt getMemorySize() const;
+  inline UInt getMemorySize() const;
 
   /// set the size to zero without freeing the allocated space
-  __aka_inline__ void empty();
+  inline void empty();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -145,13 +145,12 @@ public:
 public:
   template <class R, class IR = R, int fps = 0>
   class iterator_internal;
-
 public:
   /* ------------------------------------------------------------------------ */
   // template<typename R, int fps = 0> class iterator : public iterator_internal<R> {};
   // template<typename R, int fps = 0> class const_iterator : public iterator_internal<const R> {};
   /* ------------------------------------------------------------------------ */
-  template<typename R>
+  template<typename R, int fps = 0>
   class iterator : public iterator_internal<R> {
   public:
     typedef iterator_internal<R> parent;
@@ -164,7 +163,7 @@ public:
   };
 
   /* ------------------------------------------------------------------------ */
-  template<typename R>
+  template<typename R, int fps = 0>
   class const_iterator : public iterator_internal<const R, R> {
   public:
     typedef iterator_internal<const R, R> parent;
@@ -175,6 +174,34 @@ public:
     const_iterator(pointer warped) : parent(warped) {};
     const_iterator(const const_iterator & it) : parent(it) {};
   };
+
+  /// specialization of the previous iterators for the scalar types
+  /* ------------------------------------------------------------------------ */
+  template<int fps>
+  class iterator<T, fps> : public iterator_internal<T> {
+  public:
+    typedef iterator_internal<T> parent;
+    typedef typename parent::pointer pointer;
+  public:
+    iterator() : parent() {};
+    iterator(pointer_type data, UInt offset) : parent(data, offset) {};
+    iterator(pointer warped) : parent(warped) {};
+    iterator(const iterator & it) : parent(it) {};
+  };
+
+  /* -------------------------------------------------------------------------- */
+  template<int fps>
+  class const_iterator<T, fps> : public iterator_internal<const T, T> {
+  public:
+    typedef iterator_internal<const T, T> parent;
+    typedef typename parent::pointer pointer;
+  public:
+    const_iterator() : parent() {};
+    const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
+    const_iterator(pointer warped) : parent(warped) {};
+    const_iterator(const const_iterator & it) : parent(it) {};
+  };
+
 
   /* ------------------------------------------------------------------------ */
   // template<typename Ret> inline iterator<Ret> begin();

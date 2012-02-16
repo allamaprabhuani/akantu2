@@ -44,7 +44,7 @@ class Mesh;
 template<typename T>
 class AddOperation {
 public:
-  __aka_inline__ T operator()(T & b, T & a) { return a + b; };
+  inline T operator()(T & b, T & a) { return a + b; };
 };
 
 
@@ -54,7 +54,7 @@ class DOFSynchronizer {
   /* ------------------------------------------------------------------------ */
 public:
 
-  DOFSynchronizer(const Mesh & mesh, UInt nb_degre_of_freedom);
+  DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom);
   virtual ~DOFSynchronizer();
 
   /* ------------------------------------------------------------------------ */
@@ -115,10 +115,10 @@ public:
   AKANTU_GET_MACRO(DOFGlobalIDs, dof_global_ids, const Vector<UInt> &);
 
   /// get the global id of a dof
-  __aka_inline__ UInt getDOFGlobalID(UInt local_id) const { return dof_global_ids(local_id); }
+  inline UInt getDOFGlobalID(UInt local_id) const { return dof_global_ids(local_id); }
 
   /// get the local id of a global dof
-  __aka_inline__ UInt getDOFLocalID(UInt global_id) const { return global_dof_to_local.find(global_id)->second; }
+  inline UInt getDOFLocalID(UInt global_id) const { return global_dof_to_local.find(global_id)->second; }
 
   /// get the DOF type Vector
   AKANTU_GET_MACRO(DOFTypes, dof_types, const Vector<Int> &);
@@ -182,7 +182,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -190,7 +190,7 @@ private:
 #endif
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const DOFSynchronizer & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const DOFSynchronizer & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

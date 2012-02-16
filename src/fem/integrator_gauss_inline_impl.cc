@@ -30,32 +30,32 @@
 template <ElementType type>
 inline void IntegratorGauss::integrateOnElement(const Vector<Real> & f,
 						Real * intf,
-						UInt nb_degre_of_freedom,
+						UInt nb_degree_of_freedom,
 						const UInt elem,
 						const GhostType & ghost_type) const {
 
   Vector<Real> * jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
-  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degre_of_freedom ,
+  AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom ,
 		      "The vector f do not have the good number of component.");
 
   Real * f_val    = f.values + elem * f.getNbComponent();
   Real * jac_val  = jac_loc->values + elem * nb_quadrature_points;
 
-  integrate(f_val, jac_val, intf, nb_degre_of_freedom, nb_quadrature_points);
+  integrate(f_val, jac_val, intf, nb_degree_of_freedom, nb_quadrature_points);
 }
 
 
 /* -------------------------------------------------------------------------- */
 inline void IntegratorGauss::integrate(Real *f, Real *jac, Real * inte,
-			   UInt nb_degre_of_freedom,
+			   UInt nb_degree_of_freedom,
 			   UInt nb_quadrature_points) const {
-  memset(inte, 0, nb_degre_of_freedom * sizeof(Real));
+  memset(inte, 0, nb_degree_of_freedom * sizeof(Real));
 
   Real *cjac = jac;
   for (UInt q = 0; q < nb_quadrature_points; ++q) {
-    for (UInt dof = 0; dof < nb_degre_of_freedom; ++dof) {
+    for (UInt dof = 0; dof < nb_degree_of_freedom; ++dof) {
       inte[dof] += *f * *cjac;
       ++f;
     }

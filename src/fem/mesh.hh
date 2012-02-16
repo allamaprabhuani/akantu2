@@ -37,6 +37,11 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include <set>
+
+/* -------------------------------------------------------------------------- */
+
+
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -44,7 +49,8 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class Element {
 public:
-  Element(ElementType type = _not_defined, UInt element = 0, GhostType ghost_type = _not_ghost) :
+  Element(ElementType type = _not_defined, UInt element = 0,
+	  GhostType ghost_type = _not_ghost) :
     type(type), element(element), ghost_type(ghost_type) {};
 
   Element(const Element & element) {
@@ -214,15 +220,15 @@ typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
  *
  * In order to loop on all element you have to loop on all types like this :
  * @code
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
+  Mesh::type_iterator it = mesh.firstType(dim, ghost_type);
+  Mesh::type_iterator end = mesh.lastType(dim, ghost_type);
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  for(; it != end; ++it) {
     UInt nb_element  = mesh.getNbElement(*it);
-    UInt * conn      = mesh.getConnectivity(*it).values;
+    const Vector<UInt> & conn = mesh.getConnectivity(*it);
 
     for(UInt e = 0; e < nb_element; ++e) {
-      ...
+       ...
     }
   }
   @endcode
@@ -284,26 +290,26 @@ public:
 			       const bool & flag_nb_node_per_elem_multiply=false) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
-  __aka_inline__ void extractNodalCoordinatesFromElement(Real * local_coords,
+  inline void extractNodalCoordinatesFromElement(Real * local_coords,
 						 UInt * connectivity,
 						 UInt n_nodes);
 
   /// extract coordinates of nodes from a reversed element
-  __aka_inline__ void extractNodalCoordinatesFromPBCElement(Real * local_coords,
+  inline void extractNodalCoordinatesFromPBCElement(Real * local_coords,
 						    UInt * connectivity,
 						    UInt n_nodes);
 
   /// convert a element to a linearized element
-  __aka_inline__ UInt elementToLinearized(const Element & elem);
+  inline UInt elementToLinearized(const Element & elem);
 
   /// convert a linearized element to an element
-  __aka_inline__ Element linearizedToElement (UInt linearized_element);
+  inline Element linearizedToElement (UInt linearized_element);
 
   /// update the types offsets array for the conversions
-  __aka_inline__ void updateTypesOffsets(const GhostType & ghost_type);
+  inline void updateTypesOffsets(const GhostType & ghost_type);
 
   /// add a Vector of connectivity for the type <type>.
-  __aka_inline__ void addConnecticityType(const ElementType & type);
+  inline void addConnecticityType(const ElementType & type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -323,26 +329,24 @@ public:
   AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Vector<UInt> &);
 
   /// get the global id of a node
-  __aka_inline__ UInt getNodeGlobalId(UInt local_id) const;
+  inline UInt getNodeGlobalId(UInt local_id) const;
 
   /// get the global number of nodes
-  __aka_inline__ UInt getNbGlobalNodes() const;
+  inline UInt getNbGlobalNodes() const;
 
   /// get the nodes type Vector
   AKANTU_GET_MACRO(NodesType, *nodes_type, const Vector<Int> &);
-  __aka_inline__ Int getNodeType(UInt local_id) const;
-
+  inline Int getNodeType(UInt local_id) const;
 
   /// say if a node is a pure ghost node
-  __aka_inline__ bool isPureGhostNode(UInt n) const;
+  inline bool isPureGhostNode(UInt n) const;
 
   /// say if a node is pur local or master node
-  __aka_inline__ bool isLocalOrMasterNode(UInt n) const;
+  inline bool isLocalOrMasterNode(UInt n) const;
 
-  __aka_inline__ bool isLocalNode(UInt n) const;
-  __aka_inline__ bool isMasterNode(UInt n) const;
-  __aka_inline__ bool isSlaveNode(UInt n) const;
-
+  inline bool isLocalNode(UInt n) const;
+  inline bool isMasterNode(UInt n) const;
+  inline bool isSlaveNode(UInt n) const;
 
   AKANTU_GET_MACRO(XMin, lower_bounds[0], Real);
   AKANTU_GET_MACRO(YMin, lower_bounds[1], Real);
@@ -351,11 +355,11 @@ public:
   AKANTU_GET_MACRO(YMax, upper_bounds[1], Real);
   AKANTU_GET_MACRO(ZMax, upper_bounds[2], Real);
 
-  __aka_inline__ void getLowerBounds(Real * lower) const;
-  __aka_inline__ void getUpperBounds(Real * upper) const;
+  inline void getLowerBounds(Real * lower) const;
+  inline void getUpperBounds(Real * upper) const;
 
-  __aka_inline__ void getLocalLowerBounds(Real * lower) const;
-  __aka_inline__ void getLocalUpperBounds(Real * upper) const;
+  inline void getLocalLowerBounds(Real * lower) const;
+  inline void getLocalUpperBounds(Real * upper) const;
 
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
@@ -368,19 +372,19 @@ public:
   AKANTU_SET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
   /// get the number of element of a type in the mesh
-  __aka_inline__ UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
+  inline UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
 
   // /// get the number of ghost element of a type in the mesh
-  // __aka_inline__ UInt getNbGhostElement(const ElementType & type) const;
+  // inline UInt getNbGhostElement(const ElementType & type) const;
 
   /// get the connectivity list either for the elements or the ghost elements
-  __aka_inline__ const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
+  inline const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
 
   /// get the mesh of the internal facets
-  __aka_inline__ const Mesh & getInternalFacetsMesh() const;
+  inline const Mesh & getInternalFacetsMesh() const;
 
   /// compute the barycenter of a given element
-  __aka_inline__ void getBarycenter(UInt element, const ElementType & type, Real * barycenter,
+  inline void getBarycenter(UInt element, const ElementType & type, Real * barycenter,
 			    GhostType ghost_type = _not_ghost) const;
 
   /// get the surface values of facets
@@ -388,9 +392,9 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(SurfaceID, surface_id, UInt);
 
   /// set the int data to the surface id vectors
-  __aka_inline__ void setSurfaceIDsFromIntData(const std::string & data_name);
+  void setSurfaceIDsFromIntData(const std::string & data_name);
 
-  __aka_inline__ const Vector<UInt> & getUIntData(const ElementType & el_type,
+  inline const Vector<UInt> & getUIntData(const ElementType & el_type,
 					  const std::string & data_name,
 					  const GhostType & ghost_type = _not_ghost) const;
 
@@ -399,26 +403,26 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the number of nodes per element for a given element type
-  static __aka_inline__ UInt getNbNodesPerElement(const ElementType & type);
+  static inline UInt getNbNodesPerElement(const ElementType & type);
 
   /// get the number of nodes per element for a given element type considered as
   /// a first order element
-  static __aka_inline__ ElementType getP1ElementType(const ElementType & type);
+  static inline ElementType getP1ElementType(const ElementType & type);
 
   /// get spatial dimension of a type of element
-  static __aka_inline__ UInt getSpatialDimension(const ElementType & type);
+  static inline UInt getSpatialDimension(const ElementType & type);
 
   /// get number of facets of a given element type
-  static __aka_inline__ UInt getNbFacetsPerElement(const ElementType & type);
+  static inline UInt getNbFacetsPerElement(const ElementType & type);
 
   /// get number of facets of a given element type
-  static __aka_inline__ UInt ** getFacetLocalConnectivity(const ElementType & type);
+  static inline UInt ** getFacetLocalConnectivity(const ElementType & type);
 
   /// get the type of the surface element associated to a given element
-  static __aka_inline__ ElementType getFacetElementType(const ElementType & type);
+  static inline ElementType getFacetElementType(const ElementType & type);
 
   /// get the pointer to the list of elements for a given type
-  __aka_inline__ Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
+  inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
 
 
   /* ------------------------------------------------------------------------ */
@@ -426,11 +430,11 @@ public:
   /* ------------------------------------------------------------------------ */
   typedef ByElementTypeUInt::type_iterator type_iterator;
 
-  __aka_inline__ type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
+  inline type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
     return connectivities.firstType(dim, ghost_type);
   }
 
-  __aka_inline__ type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
+  inline type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
     return connectivities.lastType(dim, ghost_type);
   }
 
@@ -447,29 +451,29 @@ private:
   AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
 
   /// get a pointer to the nodes_global_ids Vector<UInt> and create it if necessary
-  __aka_inline__ Vector<UInt> * getNodesGlobalIdsPointer();
+  inline Vector<UInt> * getNodesGlobalIdsPointer();
 
   /// get a pointer to the nodes_type Vector<Int> and create it if necessary
-  __aka_inline__ Vector<Int> * getNodesTypePointer();
+  inline Vector<Int> * getNodesTypePointer();
 
   /// get a pointer to the connectivity Vector for the given type and create it if necessary
-  __aka_inline__ Vector<UInt> * getConnectivityPointer(const ElementType & type,
+  inline Vector<UInt> * getConnectivityPointer(const ElementType & type,
 					       const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the internal_facets Mesh and create it if necessary
-  __aka_inline__ Mesh * getInternalFacetsMeshPointer();
+  inline Mesh * getInternalFacetsMeshPointer();
 
-  // __aka_inline__ Vector<Real> * getNormalsPointer(ElementType type) const;
+  // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   /// get a pointer to the surface_id Vector for the given type and create it if necessary
-  __aka_inline__ Vector<UInt> * getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type = _not_ghost);
+  inline Vector<UInt> * getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
   /// get the UIntDataMap for a given ElementType
-  __aka_inline__ UIntDataMap & getUIntDataMap(const ElementType & el_type,
-					      const GhostType & ghost_type = _not_ghost);
+  inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
+				      const GhostType & ghost_type = _not_ghost);
 
   /// get the IntDataMap pointer (moidifyable) for a given ElementType
-  __aka_inline__ Vector<UInt> * getUIntDataPointer(const ElementType & el_type,
+  inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type,
 					   const std::string & data_name,
 					   const GhostType & ghost_type = _not_ghost);
 

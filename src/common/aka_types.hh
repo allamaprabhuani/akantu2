@@ -31,6 +31,8 @@
 #include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
+#include <iomanip>
+
 #ifndef __INTEL_COMPILER
 #include <tr1/unordered_map>
 #endif
@@ -114,6 +116,7 @@ namespace types {
       return C;
     };
 
+    /* ---------------------------------------------------------------------- */
     template<bool tr_A, bool tr_B>
     inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
@@ -122,8 +125,32 @@ namespace types {
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
 
+    /* ---------------------------------------------------------------------- */
     inline void clear() { memset(values, 0, m * n * sizeof(Real)); };
 
+    /* ---------------------------------------------------------------------- */
+    inline void copy(const Matrix & src) { memcpy(values, src.storage(), m * n * sizeof(Real)); };
+
+    /* ---------------------------------------------------------------------- */
+    inline void eye(Real alpha = 1.) {
+      AKANTU_DEBUG_ASSERT(n == m, "eye is not a valid operation on a rectangular matrix");
+      clear();
+      for (UInt i = 0; i < n; ++i) {
+	values[i*n + i] = alpha;
+      }
+    }
+
+    /* ---------------------------------------------------------------------- */
+    inline Real trace() {
+      AKANTU_DEBUG_ASSERT(n == m, "trace is not a valid operation on a rectangular matrix");
+      Real trace = 0.;
+      for (UInt i = 0; i < n; ++i)
+	trace += values[i*n + i];
+      return trace;
+    }
+
+
+    /* ---------------------------------------------------------------------- */
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
       std::string space;
@@ -146,6 +173,7 @@ namespace types {
     Real* values;
     bool wrapped;
   };
+
 
   /* ------------------------------------------------------------------------ */
   /* Vector                                                                   */

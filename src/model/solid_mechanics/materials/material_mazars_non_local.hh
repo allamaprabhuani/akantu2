@@ -40,11 +40,12 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-class MaterialMazarsNonLocal : public MaterialMazars, public MaterialNonLocal {
+class MaterialMazarsNonLocal : public MaterialMazars, public MaterialNonLocal<BaseWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  typedef MaterialNonLocal<BaseWeightFunction> MaterialNonLocalParent;
 
   MaterialMazarsNonLocal(Model & model, const ID & id = "");
 
@@ -77,7 +78,7 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-  __aka_inline__ Real getStableTimeStep(Real h, const Element & element) {
+  inline Real getStableTimeStep(Real h, const Element & element) {
     return MaterialMazars::getStableTimeStep(h, element);
   };
 
@@ -98,7 +99,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "material_mazars_non_local_inline_impl.cc"

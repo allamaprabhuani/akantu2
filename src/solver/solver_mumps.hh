@@ -62,18 +62,18 @@ public:
 
   virtual void setRHS(Vector<Real> & rhs);
 
-  // void initNodesLocation(const Mesh & mesh, UInt nb_degre_of_freedom);
+  // void initNodesLocation(const Mesh & mesh, UInt nb_degree_of_freedom);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
 
-  __aka_inline__ Int & icntl(UInt i) {
+  inline Int & icntl(UInt i) {
     return mumps_data.icntl[i - 1];
   }
 
-  __aka_inline__ Int & info(UInt i) {
+  inline Int & info(UInt i) {
     return mumps_data.info[i - 1];
   }
 
@@ -130,13 +130,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "solver_mumps_inline_impl.cc"
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const SolverMumps & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const SolverMumps & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

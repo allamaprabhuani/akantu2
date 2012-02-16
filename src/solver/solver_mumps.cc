@@ -103,10 +103,10 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   AKANTU_DEBUG_IN();
 
   UInt size = matrix.getSize();
-  //  UInt nb_degre_of_freedom = matrix.getNbDegreOfFreedom();
+  //  UInt nb_degree_of_freedom = matrix.getNbDegreOfFreedom();
 
   //  std::stringstream sstr; sstr << id << ":sparse_matrix";
-  //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degre_of_freedom, sstr_mat.str(), memory_id);
+  //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degree_of_freedom, sstr_mat.str(), memory_id);
 
   mumps_data.sym = 2 * (matrix.getSparseMatrixType() == _symmetric);
 

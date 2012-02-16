@@ -39,12 +39,12 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 SparseMatrix::SparseMatrix(UInt size,
 			   const SparseMatrixType & sparse_matrix_type,
-			   UInt nb_degre_of_freedom,
+			   UInt nb_degree_of_freedom,
 			   const ID & id,
 			   const MemoryID & memory_id) :
   Memory(memory_id), id(id),
   sparse_matrix_type(sparse_matrix_type),
-  nb_degre_of_freedom(nb_degre_of_freedom),
+  nb_degree_of_freedom(nb_degree_of_freedom),
   size(size),
   nb_non_zero(0),
   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A") {
@@ -66,7 +66,7 @@ SparseMatrix::SparseMatrix(const SparseMatrix & matrix,
 			   const MemoryID & memory_id) :
   Memory(memory_id), id(id),
   sparse_matrix_type(matrix.sparse_matrix_type),
-  nb_degre_of_freedom(matrix.nb_degre_of_freedom),
+  nb_degree_of_freedom(matrix.nb_degree_of_freedom),
   size(matrix.size),
   nb_proc(matrix.nb_proc),
   nb_non_zero(matrix.nb_non_zero),
@@ -115,21 +115,21 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
 
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
+    UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom;
 
     UInt * conn_val = mesh.getConnectivity(*it, _not_ghost).values;
-    Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
+    Int * local_eq_nb_val = new Int[nb_degree_of_freedom * nb_nodes_per_element];
 
 
     for (UInt e = 0; e < nb_element; ++e) {
       Int * tmp_local_eq_nb_val = local_eq_nb_val;
       for (UInt i = 0; i < nb_nodes_per_element; ++i) {
 	UInt n = conn_val[i];
-	for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-	  *tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degre_of_freedom + d];
+	for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+	  *tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degree_of_freedom + d];
 	}
-	// memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
-	// tmp_local_eq_nb_val += nb_degre_of_freedom;
+	// memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degree_of_freedom, nb_degree_of_freedom * sizeof(Int));
+	// tmp_local_eq_nb_val += nb_degree_of_freedom;
       }
 
       for (UInt i = 0; i < size_mat; ++i) {
@@ -389,11 +389,11 @@ void SparseMatrix::add(const SparseMatrix & matrix, Real alpha) {
 void SparseMatrix::lump(Vector<Real> & lumped) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT((lumped.getNbComponent() == nb_degre_of_freedom),
+  AKANTU_DEBUG_ASSERT((lumped.getNbComponent() == nb_degree_of_freedom),
 		      "The size of the matrix and the vector do not match");
 
-  UInt vect_size = size / nb_degre_of_freedom;
-  if(dof_synchronizer) vect_size = dof_synchronizer->getNbDOFs() / nb_degre_of_freedom;
+  UInt vect_size = size / nb_degree_of_freedom;
+  if(dof_synchronizer) vect_size = dof_synchronizer->getNbDOFs() / nb_degree_of_freedom;
 
   lumped.resize(vect_size);
   lumped.clear();

@@ -57,9 +57,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                                                             MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
-  int pouet = 0;
-
-
   StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
   UInt nb_proc = comm->getNbProc();
   UInt my_rank = comm->whoAmI();
@@ -127,8 +124,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
            *       |-----------|   proc_bounding_box(i)
            *       1           2
            */
-          std::cout << my_rank << " pouet " << ++pouet << " A" << std::endl;
-
           start = proc_bounding_box[s];
           end   = my_bounding_box[s+spatial_dimension];
         } else if(point1 && point2) {
@@ -136,8 +131,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
            *   |-----------|       proc_bounding_box(i)
            *   1           2
            */
-          std::cout << my_rank << " pouet " << ++pouet << " B" << std::endl;
-
           start = proc_bounding_box[s];
           end   = proc_bounding_box[s+spatial_dimension];
         } else if(!point1 && point2) {
@@ -145,8 +138,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
            * |-----------|        proc_bounding_box(i)
            * 1           2
            */
-          std::cout << my_rank << " pouet " << ++pouet << " C" << std::endl;
-
           start = my_bounding_box[s];
           end   = proc_bounding_box[s+spatial_dimension];
         }
@@ -154,7 +145,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
         first_cell_p[s] = grid.getCell(start, s);
         last_cell_p [s] = grid.getCell(end, s);
-        std::cout << my_rank << " pouet " << ++pouet << " " << s << " start : " << start << " end : " << end << " -> " << first_cell_p[s] << " " << last_cell_p[s] << std::endl;
       }
     }
 
@@ -165,20 +155,12 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     if(intersects_proc[p]) {
       AKANTU_DEBUG_INFO("I intersects with processor " << p);
 
-
-      std::cout << my_rank << " pouet " << ++pouet << std::endl;
-
       Cell cell(grid);
 
-      std::cout << my_rank << " pouet " << ++pouet << " " << first_cell_p[0] << " " << last_cell_p[0] << std::endl;
       for (UInt i = 0; i < spatial_dimension; ++i) {
         if(first_cell_p[i] != 0) --first_cell_p[i];
         if(last_cell_p[i] != 0) ++last_cell_p[i];
       }
-
-      std::cout << my_rank << " pouet " << ++pouet << " d: 0 "  << first_cell_p[0] << " " << last_cell_p[0] << std::endl;
-      std::cout << my_rank << " pouet " << ++pouet << " d: 1 "  << first_cell_p[1] << " " << last_cell_p[1] << std::endl;
-      std::cout << my_rank << " pouet " << ++pouet << " d: 2 "  << first_cell_p[2] << " " << last_cell_p[2] << std::endl;
 
       for (UInt fd = first_cell_p[0]; fd < last_cell_p[0]; ++fd) {
         cell.position[0] = fd;
@@ -202,9 +184,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
           }
         }
       }
-
-      std::cout << grid;
-      std::cout << my_rank << " pouet " << ++pouet << std::endl;
 
       typename std::vector<Cell>::iterator cur_cell = cells->begin();
       typename std::vector<Cell>::iterator last_cell = cells->end();

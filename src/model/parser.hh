@@ -34,6 +34,9 @@
 #include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
+#include <fstream>
+
+/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
@@ -73,7 +76,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  __aka_inline__ void my_getline();
+  inline void my_getline();
 
   /// number of the current line
   UInt current_line;

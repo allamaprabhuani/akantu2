@@ -83,7 +83,7 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma);
+  inline void computeStress(Real * F, Real * sigma);
 
   // /// compute the tangent stiffness matrix for an element type
   template<UInt dim>
@@ -98,7 +98,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the stable time step
-  __aka_inline__ Real getStableTimeStep(Real h, const Element & element);
+  inline Real getStableTimeStep(Real h, const Element & element);
 
   AKANTU_GET_MACRO(E, E, Real);
   AKANTU_GET_MACRO(Nu, nu, Real);
@@ -131,7 +131,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

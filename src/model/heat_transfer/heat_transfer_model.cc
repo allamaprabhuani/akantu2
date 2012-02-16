@@ -276,14 +276,14 @@ void HeatTransferModel::updateResidual() {
   /// finally @f$ r -= C \dot T @f$
   // lumped C
   UInt nb_nodes            = temperature_rate->getSize();
-  UInt nb_degre_of_freedom = temperature_rate->getNbComponent();
+  UInt nb_degree_of_freedom = temperature_rate->getNbComponent();
 
   Real * capacity_val  = capacity_lumped->values;
   Real * temp_rate_val = temperature_rate->values;
   Real * res_val       = residual->values;
   bool * boundary_val  = boundary->values;
 
-  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
       *res_val -= *capacity_val * *temp_rate_val;
     }
@@ -454,14 +454,14 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 void HeatTransferModel::solveExplicitLumped() {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = increment->getSize();
-  UInt nb_degre_of_freedom = increment->getNbComponent();
+  UInt nb_degree_of_freedom = increment->getNbComponent();
 
   Real * capa_val      = capacity_lumped->values;
   Real * res_val       = residual->values;
   bool * boundary_val  = boundary->values;
   Real * inc           = increment->values;
 
-  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
       *inc = (*res_val / *capa_val);
     }
@@ -484,10 +484,10 @@ void HeatTransferModel::explicitPred() {
                                     *boundary);
 
   UInt nb_nodes = temperature->getSize();
-  UInt nb_degre_of_freedom = temperature->getNbComponent();
+  UInt nb_degree_of_freedom = temperature->getNbComponent();
 
   Real * temp = temperature->values;
-  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n, ++temp)
+  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n, ++temp)
     if(*temp < 0.) *temp = 0.;
 
   AKANTU_DEBUG_OUT();

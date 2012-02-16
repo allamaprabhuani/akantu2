@@ -36,6 +36,9 @@
 #include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
+#include <list>
+
+/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
@@ -57,20 +60,20 @@ public:
 
   /// malloc
   template<class T>
-  __aka_inline__ Vector<T> & alloc(const ID & name,
+  inline Vector<T> & alloc(const ID & name,
 			   UInt size,
 			   UInt nb_component);
 
   /// malloc
   template<class T>
-  __aka_inline__ Vector<T> & alloc(const ID & name,
+  inline Vector<T> & alloc(const ID & name,
 			   UInt size,
 			   UInt nb_component,
 			   const T & init_value);
 
   /* ------------------------------------------------------------------------ */
   /// free an array
-  __aka_inline__ void dealloc(const ID & name);
+  inline void dealloc(const ID & name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -80,7 +83,7 @@ public:
   AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
 
   template<class T>
-  __aka_inline__ Vector<T> & getVector(const ID & name);
+  inline Vector<T> & getVector(const ID & name);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

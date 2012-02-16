@@ -89,13 +89,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 // #include "mesh_partition_scotch_inline_impl.cc"
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const MeshPartitionScotch & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const MeshPartitionScotch & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

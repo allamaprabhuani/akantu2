@@ -62,7 +62,6 @@ inline void Parser::my_getline() {
   size_t pos = line.find("#"); //remove the comment
   line = line.substr(0, pos);
   trim(line); // remove unnecessary spaces
-  std::cout << line << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -96,17 +96,17 @@ public:
   virtual void synchronizeBoundaries() {};
 
   /// return the fem object associated with a provided name
-  __aka_inline__ FEM & getFEM(std::string name = "") const;
+  inline FEM & getFEM(std::string name = "") const;
 
   /// return the fem boundary object associated with a provided name
   virtual FEM & getFEMBoundary(std::string name = "");
 
   /// register a fem object associated with name
-  template <typename FEMClass> __aka_inline__ void registerFEMObject(const std::string & name,
+  template <typename FEMClass> inline void registerFEMObject(const std::string & name,
 							     Mesh & mesh,
 							     UInt spatial_dimension);
   /// unregister a fem object associated with name
-  __aka_inline__ void unRegisterFEMObject(const std::string & name);
+  inline void unRegisterFEMObject(const std::string & name);
 
   /// return the synchronizer registry 
   SynchronizerRegistry & getSynchronizerRegistry();
@@ -114,14 +114,14 @@ public:
 protected:
   /// return the fem object associated with a provided name
   template <typename FEMClass>
-  __aka_inline__ FEMClass & getFEMClass(std::string name = "") const;
+  inline FEMClass & getFEMClass(std::string name = "") const;
 
   /// return the fem boundary object associated with a provided name
   template <typename FEMClass>
-  __aka_inline__ FEMClass & getFEMClassBoundary(std::string name = "");
+  inline FEMClass & getFEMClassBoundary(std::string name = "");
 
   /// returns if node is slave in pbc
-  __aka_inline__ bool getIsPBCSlaveNode(const UInt node);
+  inline bool getIsPBCSlaveNode(const UInt node);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -159,7 +159,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

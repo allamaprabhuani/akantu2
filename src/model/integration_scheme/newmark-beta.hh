@@ -84,27 +84,27 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  __aka_inline__ void integrationSchemePred(Real delta_t,
+  inline void integrationSchemePred(Real delta_t,
 				    Vector<Real> & u,
 				    Vector<Real> & u_dot,
 				    Vector<Real> & u_dot_dot,
 				    Vector<bool> & boundary);
 
-  __aka_inline__ void integrationSchemeCorrAccel(Real delta_t,
+  inline void integrationSchemeCorrAccel(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
 					 Vector<Real> & delta);
 
-  __aka_inline__ void integrationSchemeCorrVeloc(Real delta_t,
+  inline void integrationSchemeCorrVeloc(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
 					 Vector<Real> & delta);
 
-  __aka_inline__ void integrationSchemeCorrDispl(Real delta_t,
+  inline void integrationSchemeCorrDispl(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
@@ -152,7 +152,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

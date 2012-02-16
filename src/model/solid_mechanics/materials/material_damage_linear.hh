@@ -71,7 +71,7 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & damage, Real &K);
+  inline void computeStress(Real * F, Real * sigma, Real & damage, Real &K);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -96,7 +96,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

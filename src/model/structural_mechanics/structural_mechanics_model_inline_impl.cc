@@ -60,7 +60,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
   computeTangentStiffness<type>(*tangent_stiffness_matrix);
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  UInt bt_d_b_size = nb_degre_of_freedom * nb_nodes_per_element;
+  UInt bt_d_b_size = nb_degree_of_freedom * nb_nodes_per_element;
 
   Vector<Real> * bt_d_b = new Vector<Real>(nb_element*nb_quadrature_points,
 					   bt_d_b_size * bt_d_b_size,
@@ -103,7 +103,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   delete bt_d_b;
 
-  getFEM().assembleMatrix(*int_bt_d_b, K, nb_degre_of_freedom, type);
+  getFEM().assembleMatrix(*int_bt_d_b, K, nb_degree_of_freedom, type);
 
   delete int_bt_d_b;
 
@@ -146,7 +146,7 @@ void StructuralMechanicsModel::computeStressOnQuad() {
   computeTangentStiffness<type>(*tangent_stiffness_matrix);
 
   /// compute DB
-  UInt d_b_size = nb_degre_of_freedom * nb_nodes_per_element;
+  UInt d_b_size = nb_degree_of_freedom * nb_nodes_per_element;
 
   Vector<Real> * d_b = new Vector<Real>(nb_element*nb_quadrature_points,
 					d_b_size * tangent_size,
@@ -181,9 +181,9 @@ void StructuralMechanicsModel::computeStressOnQuad() {
   types::RVector U (d_b_size);
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      memcpy(U.storage()+n*nb_degre_of_freedom,
-	     displacement_rotation->values+connect(e,n)*nb_degre_of_freedom,
-	     nb_degre_of_freedom*sizeof(Real));
+      memcpy(U.storage()+n*nb_degree_of_freedom,
+	     displacement_rotation->values+connect(e,n)*nb_degree_of_freedom,
+	     nb_degree_of_freedom*sizeof(Real));
     }
 
     for (UInt q = 0; q < nb_quadrature_points; ++q) {

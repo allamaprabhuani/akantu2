@@ -33,8 +33,16 @@ inline UInt ShapeFunctions::getShapeSize(const ElementType & type) {
 #define GET_SHAPE_SIZE(type)				\
   shape_size = ElementClass<type>::getShapeSize()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPE_SIZE);
+#define GET_SHAPE_SIZE_COHESIVE(type)			\
+  shape_size = CohesiveElement<type>::getShapeSize()
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_SIZE,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_SHAPE_SIZE_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
+
 #undef GET_SHAPE_SIZE
+#undef GET_SHAPE_SIZE_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return shape_size;
@@ -48,8 +56,16 @@ inline UInt ShapeFunctions::getShapeDerivativesSize(const ElementType & type) {
 #define GET_SHAPE_DERIVATIVES_SIZE(type)				\
   shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_SIZE);
+#define GET_SHAPE_DERIVATIVES_SIZE_COHESIVE(type)			\
+  shape_derivatives_size = CohesiveElement<type>::getShapeDerivativesSize()
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_SIZE,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_SHAPE_DERIVATIVES_SIZE_COHESIVE,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
+
 #undef GET_SHAPE_DERIVATIVES_SIZE
+#undef GET_SHAPE_DERIVATIVES_SIZE_COHESIVE
 
   AKANTU_DEBUG_OUT();
   return shape_derivatives_size;

@@ -1,9 +1,10 @@
 /**
- * @file   grid_synchronizer.hh
+ * @file   integrator_cohesive.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Sep 16 15:05:52 2011
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @date   Mon Feb  6 13:05:50 2012
  *
- * @brief  synchronizer based in RegularGrid
+ * @brief
  *
  * @section LICENSE
  *
@@ -26,44 +27,29 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "distributed_synchronizer.hh"
 
-/* -------------------------------------------------------------------------- */
-
-
-#ifndef __AKANTU_GRID_SYNCHRONIZER_HH__
-#define __AKANTU_GRID_SYNCHRONIZER_HH__
+#ifndef __AKANTU_INTEGRATOR_COHESIVE_HH__
+#define __AKANTU_INTEGRATOR_COHESIVE_HH__
 
 __BEGIN_AKANTU__
 
-class Mesh;
-template<class T>
-class RegularGrid;
-
-class GridSynchronizer : public DistributedSynchronizer {
+template<class Integrator>
+class IntegratorCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  GridSynchronizer(const ID & id = "grid_synchronizer", MemoryID memory_id = 0);
-
-  virtual ~GridSynchronizer() { };
+  IntegratorCohesive();
+  virtual ~IntegratorCohesive();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <class E>
-  static GridSynchronizer *
-  createGridSynchronizer(Mesh & mesh,
-			 const RegularGrid<E> & grid,
-			 SynchronizerID id = "grid_synchronizer",
-			 MemoryID memory_id = 0);
 
   /// function to print the contain of the class
-  // virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -75,6 +61,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
+  Integrator sub_type_integrator;
 };
 
 
@@ -82,16 +69,16 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "grid_synchronizer_inline_impl.cc"
+#include "integrator_cohesive_inline_impl.cc"
 
 /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const GridSynchronizer & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+inline std::ostream & operator <<(std::ostream & stream, const IntegratorCohesive & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__
 
-#endif /* __AKANTU_GRID_SYNCHRONIZER_HH__ */
+#endif /* __AKANTU_INTEGRATOR_COHESIVE_HH__ */

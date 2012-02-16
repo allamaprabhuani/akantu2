@@ -46,17 +46,17 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 
   std::stringstream name;
   name << id << ":structuralmechanics:imposed_linear_load";
-  Vector<Real> lin_load(0, nb_degre_of_freedom,name.str());
+  Vector<Real> lin_load(0, nb_degree_of_freedom,name.str());
   name.clear();
   name << id << ":structuralmechanics:imposed_stresses";
-  Vector<Real> stress_funct(0, nb_degre_of_freedom*nb_degre_of_freedom,name.str());
+  Vector<Real> stress_funct(0, nb_degree_of_freedom*nb_degree_of_freedom,name.str());
 
   UInt offset = 0;
   switch(function_type) {
   case _bft_stress:
-    offset = nb_degre_of_freedom * nb_degre_of_freedom; break;
+    offset = nb_degree_of_freedom * nb_degree_of_freedom; break;
   case _bft_forces:
-    offset = nb_degre_of_freedom; break;
+    offset = nb_degree_of_freedom; break;
   }
 
   //prepare the loop over element types
@@ -133,11 +133,11 @@ void StructuralMechanicsModel::computeForcesByTractionVector(const Vector<Real> 
 		      "the size of the vector should be the total number of quadrature points");
 
   // check number of components
-  AKANTU_DEBUG_ASSERT(tractions.getNbComponent() == nb_degre_of_freedom,
+  AKANTU_DEBUG_ASSERT(tractions.getNbComponent() == nb_degree_of_freedom,
 		      "the number of components should be the spatial dimension of the problem");
 
 
-  Vector<Real> funct(nb_element * nb_quad, nb_degre_of_freedom * nb_nodes_per_element);
+  Vector<Real> funct(nb_element * nb_quad, nb_degree_of_freedom * nb_nodes_per_element);
 
   const Vector<Real> & N0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 0);
   const Vector<Real> & M0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 1);
@@ -146,7 +146,7 @@ void StructuralMechanicsModel::computeForcesByTractionVector(const Vector<Real> 
   const Vector<Real> & Lp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 4);
 
 
-  //  Vector<Real> n (nb_degre_of_freedom * nb_nodes_per_element, nb_degre_of_freedom);
+  //  Vector<Real> n (nb_degree_of_freedom * nb_nodes_per_element, nb_degree_of_freedom);
   funct.clear();
 
   Real * N0_val = N0.values;
@@ -155,9 +155,9 @@ void StructuralMechanicsModel::computeForcesByTractionVector(const Vector<Real> 
   Real * Mp_val = Mp.values;
   Real * Lp_val = Lp.values;
 
-  types::Matrix N(nb_degre_of_freedom , nb_degre_of_freedom * nb_nodes_per_element);
-  Vector<Real>::iterator< types::RVector> Nt_T = funct.begin(nb_degre_of_freedom * nb_nodes_per_element);
-  Vector<Real>::iterator<types::RVector> T = const_cast< Vector<Real> &>(tractions).begin(nb_degre_of_freedom);
+  types::Matrix N(nb_degree_of_freedom , nb_degree_of_freedom * nb_nodes_per_element);
+  Vector<Real>::iterator< types::RVector> Nt_T = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
+  Vector<Real>::iterator<types::RVector> T = const_cast< Vector<Real> &>(tractions).begin(nb_degree_of_freedom);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quad; ++q) {
@@ -192,13 +192,13 @@ void StructuralMechanicsModel::computeForcesByTractionVector(const Vector<Real> 
   // allocate the vector that will contain the integrated values
   std::stringstream name;
   name << id << ":solidmechanics:" << type << ":integral_boundary";
-  Vector<Real> int_funct(nb_element, nb_degre_of_freedom*nb_nodes_per_element,name.str());
+  Vector<Real> int_funct(nb_element, nb_degree_of_freedom*nb_nodes_per_element,name.str());
   //do the integration
-  getFEM().integrate(funct, int_funct, nb_degre_of_freedom*nb_nodes_per_element, type);
+  getFEM().integrate(funct, int_funct, nb_degree_of_freedom*nb_nodes_per_element, type);
   // assemble the result into force vector
   getFEM().assembleVector(int_funct,*force_momentum,
 			  dof_synchronizer->getLocalDOFEquationNumbers(),
-			  nb_degre_of_freedom, type);
+			  nb_degree_of_freedom, type);
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */

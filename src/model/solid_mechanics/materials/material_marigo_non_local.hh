@@ -29,6 +29,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material_marigo.hh"
+#include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MARIGO_NON_LOCAL_HH__
@@ -36,16 +37,44 @@
 
 __BEGIN_AKANTU__
 
+
+/* -------------------------------------------------------------------------- */
+class DamagedWeightFunction : BaseWeightFunction {
+public:
+  DamagedWeightFunction() : damage(NULL){}
+  DamagedWeightFunction(Real radius, ByElementTypeReal & damage) : BaseWeightFunction(radius),
+								   damage(&damage) {}
+
+  inline void selectType(ElementType type1, GhostType ghost_type1,
+			 ElementType type2, GhostType ghost_type2) {
+    selected_damage = &(*damage)(type2, ghost_type2);
+  }
+
+  inline Real operator()(Real r, UInt q1, UInt q2) {
+    Real w = BaseWeightFunction::operator()(r, q1, q2);
+    Real D = (*selected_damage)(q2);
+    w *= exp(- D * D / (0.1 * 0.1));
+    return w;
+  }
+
+private:
+  ByElementTypeReal * damage;
+  Vector<Real> * selected_damage;
+};
+/* -------------------------------------------------------------------------- */
+
+
 /**
  * Material Marigo
  *
  * parameters in the material files :
  */
-class MaterialMarigoNonLocal : public MaterialMarigo, public MaterialNonLocal {
+class MaterialMarigoNonLocal : public MaterialMarigo, public MaterialNonLocal<DamagedWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  typedef MaterialNonLocal<DamagedWeightFunction> MaterialNonLocalParent;
 
   MaterialMarigoNonLocal(Model & model, const ID & id = "");
 
@@ -78,6 +107,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Y, Y, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -93,7 +123,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "material_marigo_non_local_inline_impl.cc"

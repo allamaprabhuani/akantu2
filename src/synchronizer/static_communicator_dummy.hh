@@ -31,8 +31,14 @@
 #define __AKANTU_STATIC_COMMUNICATOR_DUMMY_HH__
 
 /* -------------------------------------------------------------------------- */
+
 #include "aka_common.hh"
 #include "real_static_communicator.hh"
+
+/* -------------------------------------------------------------------------- */
+
+#include <vector>
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -105,26 +111,26 @@ public:
 		 __attribute__ ((unused)) const SynchronizerOperation & op) {}
 
   template<typename T>
-  __aka_inline__ void allGather(__attribute__ ((unused)) T * values,
+  inline void allGather(__attribute__ ((unused)) T * values,
 			__attribute__ ((unused)) Int nb_values) {}
 
   template<typename T>
-  __aka_inline__ void allGatherV(__attribute__ ((unused)) T * values,
+  inline void allGatherV(__attribute__ ((unused)) T * values,
 			 __attribute__ ((unused)) Int * nb_values) {}
 
 
   template<typename T>
-  __aka_inline__ void gather(__attribute__ ((unused)) T * values,
+  inline void gather(__attribute__ ((unused)) T * values,
 		     __attribute__ ((unused)) Int nb_values,
 		     __attribute__ ((unused)) Int root = 0) {}
 
   template<typename T>
-  __aka_inline__ void gatherV(__attribute__ ((unused)) T * values,
+  inline void gatherV(__attribute__ ((unused)) T * values,
 		      __attribute__ ((unused)) Int * nb_values,
 		      __attribute__ ((unused)) Int root = 0) {}
 
   template<typename T>
-  __aka_inline__ void broadcast(__attribute__ ((unused)) T * values,
+  inline void broadcast(__attribute__ ((unused)) T * values,
 			__attribute__ ((unused)) Int nb_values,
 			__attribute__ ((unused)) Int root = 0) {}
 

@@ -79,9 +79,9 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma,Real & damage, Real & Ehat);
+  inline void computeStress(Real * F, Real * sigma,Real & damage, Real & Ehat);
 
-  __aka_inline__ void computeDamageAndStress( Real *F, Real * sigma,Real & damage, Real & Ehat);
+  inline void computeDamageAndStress( Real *F, Real * sigma,Real & damage, Real & Ehat);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -104,7 +104,6 @@ protected:
   Real Bc ;
   ///parameter for shear
   Real beta ;
-
 };
 
 /* -------------------------------------------------------------------------- */

@@ -58,9 +58,9 @@ public:
 
   /// integrate f on the element "elem" of type "type"
   template <ElementType type>
-  __aka_inline__ void integrateOnElement(const Vector<Real> & f,
+  inline void integrateOnElement(const Vector<Real> & f,
 				 Real * intf,
-				 UInt nb_degre_of_freedom,
+				 UInt nb_degree_of_freedom,
 				 const UInt elem,
 				 const GhostType & ghost_type) const;
 
@@ -68,7 +68,7 @@ public:
   template <ElementType type>
   void integrate(const Vector<Real> & in_f,
 		 Vector<Real> &intf,
-		 UInt nb_degre_of_freedom,
+		 UInt nb_degree_of_freedom,
 		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
@@ -82,7 +82,7 @@ public:
   template <ElementType type>
   void integrateOnQuadraturePoints(const Vector<Real> & in_f,
 				   Vector<Real> &intf,
-				   UInt nb_degre_of_freedom,
+				   UInt nb_degree_of_freedom,
 				   const GhostType & ghost_type,
 				   const Vector<UInt> * filter_elements) const;
 
@@ -116,8 +116,8 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  __aka_inline__ void integrate(Real *f, Real *jac, Real * inte,
-			UInt nb_degre_of_freedom,
+  inline void integrate(Real *f, Real *jac, Real * inte,
+			UInt nb_degree_of_freedom,
 			UInt nb_quadrature_points) const;
 
 
@@ -126,7 +126,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

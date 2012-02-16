@@ -86,7 +86,7 @@ public:
   virtual void initMaterial();
 
   /// compute the residual for this material
-  virtual void updateResidual(Vector<Real> & current_position,
+  virtual void updateResidual(Vector<Real> & displacement,
 			      GhostType ghost_type = _not_ghost);
 
   void assembleResidual(GhostType ghost_type);
@@ -109,7 +109,7 @@ public:
   virtual Real getShearWaveSpeed() { AKANTU_DEBUG_TO_IMPLEMENT(); };
 
   /// add an element to the local mesh filter
-  __aka_inline__ void addElement(const ElementType & type,
+  inline void addElement(const ElementType & type,
 			 UInt element,
 			 const GhostType & ghost_type);
 
@@ -144,9 +144,9 @@ protected:
 
   /// transfer the B matrix to a Voigt notation B matrix
   template<UInt dim>
-  __aka_inline__ void transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const;
+  inline void transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const;
 
-  __aka_inline__ UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
+  inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
 
 
   /// compute the potential energy by element
@@ -161,7 +161,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// compute the potential energy for on element
-  __aka_inline__ void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
+  inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
 
   /// allocate an internal vector
   template<typename T>
@@ -176,20 +176,6 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-
-  // virtual UInt getNbDataToPack(const Element & element,
-  // 			       SynchronizationTag tag) const;
-
-  // virtual UInt getNbDataToUnpack(const Element & element,
-  // 				 SynchronizationTag tag) const;
-
-  // __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
-  // 			       const Element & element,
-  // 			       SynchronizationTag tag) const;
-
-  // __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
-  //                                const Element & element,
-  //                                SynchronizationTag tag) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -249,7 +235,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

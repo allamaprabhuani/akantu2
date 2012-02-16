@@ -30,9 +30,16 @@
 #ifndef __AKANTU_MESH_UTILS_HH__
 #define __AKANTU_MESH_UTILS_HH__
 
+/* -------------------------------------------------------------------------- */
+
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "aka_csr.hh"
+/* -------------------------------------------------------------------------- */
+
+#include <vector>
+
+/* -------------------------------------------------------------------------- */
 
 
 __BEGIN_AKANTU__
@@ -53,12 +60,17 @@ public:
 
   /// build map from nodes to elements
   static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = 0);
+
   //  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem, UInt spatial_dimension = 0);
+
   /// build map from nodes to elements for a specific element type
   static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, CSR<UInt> & node_to_elem);
+
   //  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+
   /// build facets elements : boundary and/or internals
   static void buildFacets(Mesh & mesh, bool boundary_flag = true, bool internal_flag = false);
+
   /// build normal to some elements
   //  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
 
@@ -88,7 +100,7 @@ public:
 
 
   // /// tweak mesh connectivity to activate pbc
-  // static void tweakConnectivityForPBC(Mesh & mesh, 
+  // static void tweakConnectivityForPBC(Mesh & mesh,
   // 				      bool flag_x,
   // 				      bool flag_y = false,
   // 				      bool flag_z = false);
@@ -100,9 +112,9 @@ public:
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
-  
+
   /// match pairs that are on the associated pbc's
-  static void matchPBCPairs(const Mesh & mymesh, 
+  static void matchPBCPairs(const Mesh & mymesh,
 			    const UInt dir,
 			    std::vector<UInt> & selected_left,
 			    std::vector<UInt> & selected_right,
@@ -122,7 +134,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -130,7 +142,7 @@ private:
 #endif
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const MeshUtils & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const MeshUtils & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -220,6 +220,41 @@ void Mesh::computeBoundingBox(){
 }
 
 /* -------------------------------------------------------------------------- */
+void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
+
+  std::set<Surface> surface_ids;
+
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+
+    const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
+    Mesh::ConnectivityTypeList::const_iterator it;
+    for(it = type_list.begin(); it != type_list.end(); ++it) {
+      if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
+
+      UIntDataMap & map = uint_data(*it, gt);
+      UIntDataMap::iterator it_data = map.find(data_name);
+      AKANTU_DEBUG_ASSERT(it_data != map.end(),
+			  "No data named " << data_name
+			  << " present in the mesh " << id
+			  << " for the element type " << *it);
+      AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
+			  "Surface id for type (" << gt << ":" << *it
+			  << ") already set to the vector " << surface_id(*it, gt).getID());
+
+      surface_id.setVector(*it, gt, *it_data->second);
+
+      for (UInt s = 0; s < it_data->second->getSize(); ++s) {
+	surface_ids.insert((*it_data->second)(s));
+      }
+    }
+  }
+
+  nb_surfaces = surface_ids.size();
+}
+
+
+/* -------------------------------------------------------------------------- */
 template<typename T>
 void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 				   UInt nb_component,

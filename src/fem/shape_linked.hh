@@ -63,7 +63,7 @@ public:
   template <ElementType type>
   void interpolateOnControlPoints(const Vector<Real> &u,
 				  Vector<Real> &uq,
-				  UInt nb_degre_of_freedom,
+				  UInt nb_degree_of_freedom,
 				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL,
 				  bool accumulate = false,
@@ -76,7 +76,7 @@ public:
   template <ElementType type>
   void gradientOnControlPoints(const Vector<Real> &u,
 			       Vector<Real> &nablauq,
-			       UInt nb_degre_of_freedom,
+			       UInt nb_degree_of_freedom,
 			       const GhostType & ghost_type = _not_ghost,
 			       const Vector<UInt> * filter_elements = NULL,
 			       bool accumulate = false,
@@ -97,12 +97,12 @@ public:
 public:
 
   /// get a the shapes vector
-  __aka_inline__ const Vector<Real> & getShapes(const ElementType & type,
+  inline const Vector<Real> & getShapes(const ElementType & type,
 					const GhostType & ghost_type,
 					UInt id = 0) const;
 
   /// get a the shapes derivatives vector
-  __aka_inline__ const Vector<Real> & getShapesDerivatives(const ElementType & type,
+  inline const Vector<Real> & getShapesDerivatives(const ElementType & type,
 						   const GhostType & ghost_type,
 						   UInt id = 0) const;
 
@@ -119,7 +119,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -127,7 +127,7 @@ private:
 #endif
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const ShapeLinked & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const ShapeLinked & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

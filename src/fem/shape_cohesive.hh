@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb  2 15:44:27 2012
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -58,11 +58,11 @@ class ShapeCohesive {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   ShapeCohesive();
 
   virtual ~ShapeCohesive();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -80,39 +80,39 @@ public:
   template <ElementType type, class ReduceFunction>
   void interpolateOnControlPoints(const Vector<Real> &u,
 				  Vector<Real> &uq,
-				  UInt nb_degre_of_freedom,
+				  UInt nb_degree_of_freedom,
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
   /// compute the gradient of u on the control points
-  template <ElementType type>
-  void gradientOnControlPoints(const Vector<Real> &u,
-			       Vector<Real> &nablauq,
-			       UInt nb_degre_of_freedom,
-			       GhostType ghost_type = _not_ghost,
-			       const Vector<UInt> * filter_elements = NULL) const;
+  template <ElementType type, class ReduceFunction>
+  void variationOnControlPoints(const Vector<Real> &u,
+				Vector<Real> &nablauq,
+				UInt nb_degree_of_freedom,
+				GhostType ghost_type = _not_ghost,
+				const Vector<UInt> * filter_elements = NULL) const;
 
   /// multiply a field by shape functions
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
 			Vector<Real> & fiedl_times_shapes,
 			GhostType ghost_type) const;
-  
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// shape 
-  ShapeFunction sub_type_shape_function; 
+  /// real shape function implementation
+  ShapeFunction sub_type_shape_function;
 };
 
 
@@ -136,4 +136,3 @@ inline std::ostream & operator <<(std::ostream & stream, const ShapeCohesive<Sha
 __END_AKANTU__
 
 #endif /* __AKANTU_SHAPE_COHESIVE_HH__ */
-

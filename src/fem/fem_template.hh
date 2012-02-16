@@ -65,7 +65,7 @@ public:
   /// integrate f for all elements of type "type"
   void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
-		 UInt nb_degre_of_freedom,
+		 UInt nb_degree_of_freedom,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const;
@@ -79,7 +79,7 @@ public:
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
   void integrateOnQuadraturePoints(const Vector<Real> & f,
 				   Vector<Real> &intf,
-				   UInt nb_degre_of_freedom,
+				   UInt nb_degree_of_freedom,
 				   const ElementType & type,
 				   const GhostType & ghost_type = _not_ghost,
 				   const Vector<UInt> * filter_elements = NULL) const;
@@ -110,14 +110,14 @@ public:
 
   void gradientOnQuadraturePoints(const Vector<Real> &u,
 				  Vector<Real> &nablauq,
-				  const UInt nb_degre_of_freedom,
+				  const UInt nb_degree_of_freedom,
 				  const ElementType & type,
 				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
-				     UInt nb_degre_of_freedom,
+				     UInt nb_degree_of_freedom,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const;
@@ -193,14 +193,14 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "fem_template_inline_impl.cc"
 
 /// standard output stream operator
 
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const FEMTemplate & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const FEMTemplate & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

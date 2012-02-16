@@ -69,10 +69,10 @@ public:
 
 private:
   /// compute the state variable by the analytical solution
-  __aka_inline__ Real computeAnalyticTheta(Real previous_theta, Real sliding_speed, Real delta_t);
+  inline Real computeAnalyticTheta(Real previous_theta, Real sliding_speed, Real delta_t);
 
   /// compute the state variable by the implicit solution
-  __aka_inline__ Real computeImplicitTheta(Real previous_theta, Real sliding_speed, Real delta_t);
+  inline Real computeImplicitTheta(Real previous_theta, Real sliding_speed, Real delta_t);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -101,7 +101,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

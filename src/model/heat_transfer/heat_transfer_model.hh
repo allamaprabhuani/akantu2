@@ -138,23 +138,23 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ UInt getNbDataToPack(const Element & element,
+  inline UInt getNbDataToPack(const Element & element,
 			      SynchronizationTag tag) const;
-  __aka_inline__ UInt getNbDataToUnpack(const Element & element,
+  inline UInt getNbDataToUnpack(const Element & element,
 				SynchronizationTag tag) const;
-  __aka_inline__ void packData(CommunicationBuffer & buffer,
+  inline void packData(CommunicationBuffer & buffer,
 		       const Element & element,
 		       SynchronizationTag tag) const;
-  __aka_inline__ void unpackData(CommunicationBuffer & buffer,
+  inline void unpackData(CommunicationBuffer & buffer,
 			 const Element & element,
 			 SynchronizationTag tag);
 
-  __aka_inline__ UInt getNbDataToPack(SynchronizationTag tag) const;
-  __aka_inline__ UInt getNbDataToUnpack(SynchronizationTag tag) const;
-  __aka_inline__ void packData(CommunicationBuffer & buffer,
+  inline UInt getNbDataToPack(SynchronizationTag tag) const;
+  inline UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  inline void packData(CommunicationBuffer & buffer,
 		       const UInt index,
 		       SynchronizationTag tag) const;
-  __aka_inline__ void unpackData(CommunicationBuffer & buffer,
+  inline void unpackData(CommunicationBuffer & buffer,
 			 const UInt index,
 			 SynchronizationTag tag);
 
@@ -267,7 +267,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

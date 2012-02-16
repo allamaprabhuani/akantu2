@@ -73,26 +73,33 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & marigo, Real & Y, Real & Ydq);
+  inline void computeStress(Real * F, Real * sigma,
+			    Real & dam,
+			    Real & Y, Real & Ydq,
+			    Real delta_t, Real & dissip_energy);
 
-  __aka_inline__ void computeDamageAndStress(Real * sigma, Real & dam, Real & Y, Real & Ydq );
+  inline void computeDamageAndStress(Real * F, 
+				     Real * sigma,
+				     Real & dam,
+				     Real & Y, Real & Ydq,
+				     Real delta_t, Real & dissip_energy);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
+  inline virtual UInt getNbDataToPack(const Element & element,
  				      SynchronizationTag tag) const;
 
-  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
+  inline virtual UInt getNbDataToUnpack(const Element & element,
  					SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
+  inline virtual void packData(CommunicationBuffer & buffer,
  			       const Element & element,
  			       SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
+  inline virtual void unpackData(CommunicationBuffer & buffer,
                                  const Element & element,
                                  SynchronizationTag tag);
 
@@ -114,6 +121,11 @@ protected:
 
   /// randomness on Yd
   Real Yd_randomness;
+
+  /// critical epsilon when the material is considered as broken
+  Real epsilon_c;
+
+  Real Yc;
 
   /// Yd random internal variable
   ByElementTypeReal Yd_rand;

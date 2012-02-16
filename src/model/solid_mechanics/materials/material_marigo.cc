@@ -44,6 +44,8 @@ MaterialMarigo::MaterialMarigo(Model & model, const ID & id)  :
   Yd_randomness = 0;
   is_non_local = false;
 
+  epsilon_c = std::numeric_limits<Real>::max();
+
   initInternalVector(this->Yd_rand, 1);
   AKANTU_DEBUG_OUT();
 }
@@ -53,6 +55,12 @@ void MaterialMarigo::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage::initMaterial();
 
+  if (std::abs(epsilon_c - std::numeric_limits<Real>::max()) < std::numeric_limits<Real>::epsilon())
+    Yc = std::numeric_limits<Real>::max();
+  else {
+    Yc = .5 * epsilon_c * E * epsilon_c;
+  }
+
   resizeInternalVector(this->Yd_rand);
 
   const Mesh & mesh = model->getFEM().getMesh();
@@ -61,7 +69,7 @@ void MaterialMarigo::initMaterial() {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
 
   for(; it != last_type; ++it) {
-    UInt nb_element  = mesh.getNbElement(*it);
+    UInt nb_element  = element_filter(*it).getSize();
     UInt nb_quad = model->getFEM().getNbQuadraturePoints(*it);
 
     Vector <Real> & Yd_rand_vec = Yd_rand(*it);
@@ -87,6 +95,9 @@ void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
   Real sigma[3*3];
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
+  Real * dpe = dissipated_energy(el_type, ghost_type).storage();
+
+  Real delta_t = model->getTimeStep();
 
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
@@ -96,16 +107,20 @@ void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  Real Y;
-  computeStress(F, sigma, *dam, Y,*Ydq);
+  Real Y = 0;
+  computeStress(F, sigma, *dam, Y, *Ydq, delta_t, *dpe);
   ++dam;
   ++Ydq;
+  ++dpe;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
       stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+
+  if(!is_non_local) updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -117,6 +132,7 @@ bool MaterialMarigo::setParam(const std::string & key, const std::string & value
   if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
   else if(key == "Yd_randomness") { sstr >> Yd_randomness; }
+  else if(key == "epsilon_c") { sstr >> epsilon_c; }
   else { return MaterialDamage::setParam(key, value, id); }
   return true;
 }
@@ -131,6 +147,10 @@ void MaterialMarigo::printself(std::ostream & stream, int indent) const {
   stream << space << " + Yd         : " << Yd << std::endl;
   stream << space << " + Sd         : " << Sd << std::endl;
   stream << space << " + randomness : " << Yd_randomness << std::endl;
+  if (std::abs(epsilon_c - std::numeric_limits<Real>::max()) > std::numeric_limits<Real>::epsilon()) {
+    stream << space << " + epsilon_c  : " << epsilon_c << std::endl;
+    stream << space << " + Yc         : " << Yc << std::endl;
+  }
   MaterialDamage::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }

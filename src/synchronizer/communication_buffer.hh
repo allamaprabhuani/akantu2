@@ -51,20 +51,20 @@ public:
 public:
 
   /// reset to "empty"
-  __aka_inline__ void reset();
+  inline void reset();
 
   /// resize the internal buffer
-  __aka_inline__ void resize(UInt size);
+  inline void resize(UInt size);
 
   /// clear buffer context
-  __aka_inline__ void clear();
+  inline void clear();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ char * storage() { return buffer.values; };
+  inline char * storage() { return buffer.values; };
 
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
@@ -72,33 +72,33 @@ public:
 public:
 
   /// printing tool
-  template <typename T> __aka_inline__ std::string extractStream(UInt packet_size);
+  template <typename T> inline std::string extractStream(UInt packet_size);
 
   /// packing data
   template<typename T>
-  __aka_inline__ CommunicationBuffer & operator<< (const T & to_pack);
+  inline CommunicationBuffer & operator<< (const T & to_pack);
 
   template<typename T>
-  __aka_inline__ CommunicationBuffer & operator<< (const types::Vector<T> & to_pack);
+  inline CommunicationBuffer & operator<< (const types::Vector<T> & to_pack);
 
 
   /// unpacking data
   template<typename T>
-  __aka_inline__ CommunicationBuffer & operator>> (T & to_unpack);
+  inline CommunicationBuffer & operator>> (T & to_unpack);
 
   template<typename T>
-  __aka_inline__ CommunicationBuffer & operator>> (types::Vector<T> & to_unpack);
+  inline CommunicationBuffer & operator>> (types::Vector<T> & to_unpack);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 
   /// return the size in bytes of the stored values
-  __aka_inline__ UInt getPackedSize(){return ptr_pack-buffer.values;}; 
+  inline UInt getPackedSize(){return ptr_pack-buffer.values;}; 
   /// return the size in bytes of data left to be unpacked
-  __aka_inline__ UInt getLeftToUnpack(){return buffer.getSize()-(ptr_unpack-buffer.values);}; 
+  inline UInt getLeftToUnpack(){return buffer.getSize()-(ptr_unpack-buffer.values);}; 
   /// return the global size allocated
-  __aka_inline__ UInt getSize(){return buffer.getSize();}; 
+  inline UInt getSize(){return buffer.getSize();}; 
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -117,7 +117,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

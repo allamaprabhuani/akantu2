@@ -24,6 +24,13 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+
+__END_AKANTU__
+
+#include <cmath>
+#include <cstring>
+
 #ifdef AKANTU_USE_BLAS
 # ifndef AKANTU_USE_BLAS_MKL
 #  include <cblas.h>
@@ -32,7 +39,8 @@
 # endif //AKANTU_USE_BLAS_MKL
 #endif //AKANTU_USE_BLAS
 
-#include <math.h>
+__BEGIN_AKANTU__
+
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt m, UInt n,

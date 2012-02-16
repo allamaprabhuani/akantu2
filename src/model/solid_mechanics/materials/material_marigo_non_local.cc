@@ -37,7 +37,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 MaterialMarigoNonLocal::MaterialMarigoNonLocal(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id),
-  MaterialMarigo(model, id), MaterialNonLocal(model, id),
+  MaterialMarigo(model, id), MaterialNonLocalParent(model, id),
   Y("Y", id), update_weigths(0), compute_stress_calls(0) {
   AKANTU_DEBUG_IN();
 
@@ -52,7 +52,11 @@ MaterialMarigoNonLocal::MaterialMarigoNonLocal(Model & model, const ID & id)  :
 void MaterialMarigoNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMarigo::initMaterial();
-  MaterialNonLocal::initMaterial();
+
+  DamagedWeightFunction weight_function(radius, damage);
+  //BaseWeightFunction weight_function(radius);
+
+  MaterialNonLocalParent::initMaterial(weight_function);
 
   resizeInternalVector(this->Y);
 
@@ -70,6 +74,9 @@ void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Yt = Y(el_type, ghost_type).storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
+  Real * dpe = dissipated_energy(el_type, ghost_type).storage();
+
+  Real delta_t = model->getTimeStep();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -78,10 +85,11 @@ void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  MaterialMarigo::computeStress(F, sigma, *dam, *Yt, *Ydq);
+  MaterialMarigo::computeStress(F, sigma, *dam, *Yt, *Ydq, delta_t, *dpe);
   ++dam;
   ++Yt;
   ++Ydq;
+  ++dpe;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -103,16 +111,16 @@ void MaterialMarigoNonLocal::computeNonLocalStress(GhostType ghost_type) {
 
   if(update_weigths && (compute_stress_calls % update_weigths == 0)) {
     Vector<Real> coordinates(mesh.getNodes(), true);
-    coordinates += model->getDisplacement();
+    //coordinates += model->getDisplacement();
     computeQuadraturePointsCoordinates(coordinates, quadrature_points_coordinates);
-    computeWeights<BaseWeightFonction>(quadrature_points_coordinates);
+    computeWeights(quadrature_points_coordinates);
   }
 
   ByElementTypeReal Ynl("Y non local", id);
   initInternalVector(Ynl, 1);
   resizeInternalVector(Ynl);
 
-  weigthedAvergageOnNeighbours(Y, Ynl, 1);
+  weightedAvergageOnNeighbours(Y, Ynl, 1);
 
   UInt spatial_dimension = model->getSpatialDimension();
 
@@ -138,21 +146,28 @@ void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
 
   Vector<Real>::iterator<types::Matrix> stress_it =
     stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::Matrix> strain_it =
+    strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Ynlt = Ynl.storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
+  Real * dpe = dissipated_energy(el_type, ghost_type).storage();
+
+  Real delta_t = model->getTimeStep();
 
   Real sigma[3*3];
+  Real F[3*3];
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       for (UInt i = 0; i < spatial_dimension; ++i)
-        for (UInt j = 0; j < spatial_dimension; ++j)
-          sigma[3 * i + j] = (*stress_it)(i, j);
+        for (UInt j = 0; j < spatial_dimension; ++j) {
+	  F[3*i + j]       = (*strain_it)(i, j);
+	  sigma[3 * i + j] = (*stress_it)(i, j);
+	}
 
-
-      computeDamageAndStress(sigma, *dam, *Ynlt, *Ydq);
+      computeDamageAndStress(F, sigma, *dam, *Ynlt, *Ydq, delta_t, *dpe);
 
       for (UInt i = 0; i < spatial_dimension; ++i)
         for (UInt j = 0; j < spatial_dimension; ++j)
@@ -162,8 +177,11 @@ void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
       ++dam;
       ++Ynlt;
       ++Ydq;
+      ++dpe;
     }
   }
+
+  updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -172,9 +190,9 @@ void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
 bool MaterialMarigoNonLocal::setParam(const std::string & key, const std::string & value,
                                const ID & id) {
   std::stringstream sstr(value);
-  if(key == "UpdateWeigths") { sstr >> update_weigths; }
+  if(key == "UpdateWeights") { sstr >> update_weigths; }
   else {
-    return MaterialNonLocal::setParam(key, value, id) ||
+    return MaterialNonLocalParent::setParam(key, value, id) ||
       MaterialMarigo::setParam(key, value, id);
   }
   return true;
@@ -187,8 +205,9 @@ void MaterialMarigoNonLocal::printself(std::ostream & stream, int indent) const 
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_marigo_non_local> [" << std::endl;
+  stream << space << " + UpdateWeights  : " << update_weigths << std::endl;
   MaterialMarigo::printself(stream, indent + 1);
-  MaterialNonLocal::printself(stream, indent + 1);
+  MaterialNonLocalParent::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */

@@ -349,14 +349,14 @@ void SolidMechanicsModel::updateResidualInternal() {
     } else {
       // else lumped mass
       UInt nb_nodes = acceleration->getSize();
-      UInt nb_degre_of_freedom = acceleration->getNbComponent();
+      UInt nb_degree_of_freedom = acceleration->getNbComponent();
       
       Real * mass_val     = mass->values;
       Real * accel_val    = acceleration->values;
       Real * res_val      = residual->values;
       bool * boundary_val = boundary->values;
 
-      for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+      for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
 	if(!(*boundary_val)) {
 	  *res_val -= *accel_val * *mass_val;
 	}
@@ -384,10 +384,10 @@ void SolidMechanicsModel::updateAcceleration() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = acceleration->getSize();
-  UInt nb_degre_of_freedom = acceleration->getNbComponent();
+  UInt nb_degree_of_freedom = acceleration->getNbComponent();
 
   if(!increment_acceleration)
-    increment_acceleration = new Vector<Real>(nb_nodes, nb_degre_of_freedom);
+    increment_acceleration = new Vector<Real>(nb_nodes, nb_degree_of_freedom);
   increment_acceleration->resize(nb_nodes);
   increment_acceleration->clear();
 
@@ -402,7 +402,7 @@ void SolidMechanicsModel::updateAcceleration() {
     Real * accel_val    = acceleration->values;
 
     for (UInt n = 0; n < nb_nodes; ++n) {
-      for (UInt d = 0; d < nb_degre_of_freedom; d++) {
+      for (UInt d = 0; d < nb_degree_of_freedom; d++) {
         if(!(*boundary_val)) {
           *inc = f_m2a * (*residual_val / *mass_val);
         }
@@ -592,7 +592,7 @@ void SolidMechanicsModel::solveStatic() {
 		      "You should first initialize the implicit solver and assemble the stiffness matrix");
 
   UInt nb_nodes = displacement->getSize();
-  UInt nb_degre_of_freedom = displacement->getNbComponent();
+  UInt nb_degree_of_freedom = displacement->getNbComponent();
 
   stiffness_matrix->applyBoundary(*boundary);
 
@@ -609,7 +609,7 @@ void SolidMechanicsModel::solveStatic() {
   Real * displacement_val  = displacement->values;
   bool * boundary_val      = boundary->values;
 
-  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
       *displacement_val += *increment_val;
     }
@@ -637,7 +637,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = displacement->getSize();
-  UInt nb_degre_of_freedom = displacement->getNbComponent();
+  UInt nb_degree_of_freedom = displacement->getNbComponent();
 
   error = 0;
   Real norm[2] = {0., 0.};
@@ -647,7 +647,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
-    for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+    for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
       if(!(*boundary_val) && is_local_node) {
         norm[0] += *increment_val * *increment_val;
         norm[1] += *displacement_val * *displacement_val;
@@ -664,7 +664,6 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
   norm[1] = sqrt(norm[1]);
   AKANTU_DEBUG_ASSERT(!Math::isnan(norm[0]), "Something goes wrong in the solve phase");
 
-  std::cout << norm[0] << " " << norm[1] << std::endl;
 
   AKANTU_DEBUG_OUT();
   error = norm[0] / norm[1];

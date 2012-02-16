@@ -66,26 +66,26 @@ public:
    * @param[out] shape_deriv shape functions derivatives [nb_quad*node_per_elem*spatial_dim]
    * @param[out] jacobian  jacobians * integration weights [nb_quad]
    */
-  __aka_inline__ static void preComputeStandards(const Real * coord,
+  inline static void preComputeStandards(const Real * coord,
 					 const UInt dimension,
 					 Real * shape,
 					 Real * shape_deriv,
 					 Real * jacobian);
   /// compute the shape values for a point given in natural coordinates
-  __aka_inline__ static void computeShapes(const Real * natural_coords, Real * shapes);
+  inline static void computeShapes(const Real * natural_coords, Real * shapes);
 
 
   /// compute the shape values for a set of points given in natural coordinates
-  __aka_inline__ static void computeShapes(const Real * natural_coords,
+  inline static void computeShapes(const Real * natural_coords,
 				   const UInt nb_points,
 				   Real * shapes);
 
-  __aka_inline__ static void computeShapes(const Real * natural_coords,
+  inline static void computeShapes(const Real * natural_coords,
 				   const UInt nb_points,
 				   Real * shapes,
 				   const Real * local_coord,
 				   UInt id = 0);
-  __aka_inline__ static void computeShapes(const Real * natural_coords,
+  inline static void computeShapes(const Real * natural_coords,
 				   Real * shapes,
 				   const Real * local_coord,
 				   UInt id = 0);
@@ -95,7 +95,7 @@ public:
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  __aka_inline__ static void computeDXDS(const Real * dnds,
+  inline static void computeDXDS(const Real * dnds,
 				 const Real * node_coords,
 				 const UInt dimension,
 				 Real * dxds);
@@ -105,17 +105,17 @@ public:
    * variation of natural coordinates on a given set of points in
    * natural coordinates
    */
-  __aka_inline__ static void computeDXDS(const Real * dnds,
+  inline static void computeDXDS(const Real * dnds,
 				 const UInt nb_points,
 				 const Real * node_coords,
 				 const UInt dimension, Real * dxds);
 
-  /** 
+  /**
    * compute dnds the variation of real shape functions along with
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  __aka_inline__ static void computeDNDS(const Real * natural_coords,
+  inline static void computeDNDS(const Real * natural_coords,
 				 Real * dnds);
 
   /**
@@ -123,47 +123,47 @@ public:
    * variation of natural coordinates on a given set of points in
    * natural coordinates
    */
-  __aka_inline__ static void computeDNDS(const Real * natural_coords,
+  inline static void computeDNDS(const Real * natural_coords,
 				 const UInt nb_points,
 				 Real * dnds);
 
 
   /// compute jacobian (or integration variable change factor) for a set of points
-  __aka_inline__ static void computeJacobian(const Real * dxds,
+  inline static void computeJacobian(const Real * dxds,
 				     const UInt nb_points,
 				     const UInt dimension,
 				     Real * jac);
 
   /// compute jacobian (or integration variable change factor) for a given point
-  __aka_inline__ static void computeJacobian(const Real * dxds,
+  inline static void computeJacobian(const Real * dxds,
 				     const UInt dimension,
 				     Real & jac);
-                                                  
+
   /// compute shape derivatives (input is dxds) for a set of points
-  __aka_inline__ static void computeShapeDerivatives(const Real * dxds,
+  inline static void computeShapeDerivatives(const Real * dxds,
 					     const Real * dnds,
 					     const UInt nb_points,
 					     const UInt dimension,
 					     Real * shape_deriv);
   /// compute shape derivatives (input is dxds) for a given point
-  __aka_inline__ static void computeShapeDerivatives(const Real * dxds,
+  inline static void computeShapeDerivatives(const Real * dxds,
 					     const Real * dnds,
 					     Real * shape_deriv);
 
-  __aka_inline__ static void computeShapeDerivatives(const Real * natural_coords, 
+  inline static void computeShapeDerivatives(const Real * natural_coords,
 					     const UInt  nb_points,
 					     const UInt dimension,
 					     Real * shape_deriv,
 					     const Real * local_coord,
 					     UInt id = 0);
 
-  __aka_inline__ static void computeShapeDerivatives(const Real * natural_coords, 
+  inline static void computeShapeDerivatives(const Real * natural_coords,
 					     Real * shape_deriv,
 					     const Real * local_coord,
 					     UInt id);
 
   /// compute normals on quad points
-  __aka_inline__ static void computeNormalsOnQuadPoint(const Real * dxds,
+  inline static void computeNormalsOnQuadPoint(const Real * dxds,
 					       const UInt dimension,
 					       Real * normals);
 
@@ -185,14 +185,14 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(FacetLocalConnectivityPerElement, facet_connectivity, UInt**);
   static AKANTU_GET_MACRO_NOT_CONST(NbShapeFunctions, nb_shape_functions, UInt);
 
-  static __aka_inline__ Real * getQuadraturePoints();
-  static __aka_inline__ UInt getShapeSize();
-  static __aka_inline__ UInt getShapeDerivativesSize();
+  static inline Real * getQuadraturePoints();
+  static inline UInt getShapeSize();
+  static inline UInt getShapeDerivativesSize();
 
   /// compute the in-radius
-  static __aka_inline__ Real getInradius(const Real * coord);
+  static inline Real getInradius(const Real * coord);
 
-  static __aka_inline__ Real * getGaussIntegrationWeights();
+  static inline Real * getGaussIntegrationWeights();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -234,7 +234,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

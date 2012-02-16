@@ -30,22 +30,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam, Real &Ehat) {
-  Real Fdiag[3];
-  Math::matrix33_eigenvalues(F, Fdiag);
-  Fdiag[0] = std::max(0., Fdiag[0]);
-  Fdiag[1] = std::max(0., Fdiag[1]);
-  Fdiag[2] = std::max(0., Fdiag[2]);
-
-  Ehat = sqrt(Fdiag[0]*Fdiag[0] + Fdiag[1]*Fdiag[1] + Fdiag[2]*Fdiag[2]);
-
-  MaterialElastic::computeStress(F, sigma);
-
-  if(!is_non_local) {
-    computeDamageAndStress(F,sigma, dam, Ehat);
-  }
-}
-inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real & dam, Real & Ehat) {
+inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam, Real & Ehat) {
   Real Fdiag[3];
   Real Fdiagp[3];
 
@@ -54,6 +39,11 @@ inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real 
   Fdiagp[0] = std::max(0., Fdiag[0]);
   Fdiagp[1] = std::max(0., Fdiag[1]);
   Fdiagp[2] = std::max(0., Fdiag[2]);
+
+  Ehat = sqrt(Fdiagp[0]*Fdiagp[0] + Fdiagp[1]*Fdiagp[1] + Fdiagp[2]*Fdiagp[2]);
+
+  MaterialElastic::computeStress(F, sigma);
+
   Real Fs = Ehat - K0;
   if (Fs > 0.) {
     Real damt;
@@ -100,6 +90,67 @@ inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real 
   }
 
   dam = std::min(dam,1.);
+
+
+  if(!is_non_local) {
+    computeDamageAndStress(F,sigma, dam, Ehat);
+  }
+}
+inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real & dam, Real & Ehat) {
+  // Real Fdiag[3];
+  // Real Fdiagp[3];
+
+  // Math::matrix33_eigenvalues(F, Fdiag);
+
+  // Fdiagp[0] = std::max(0., Fdiag[0]);
+  // Fdiagp[1] = std::max(0., Fdiag[1]);
+  // Fdiagp[2] = std::max(0., Fdiag[2]);
+  // Real Fs = Ehat - K0;
+  // if (Fs > 0.) {
+  //   Real damt;
+  //   Real damc;
+  //   damt =  1 - K0*(1 - At)/Ehat - At*(exp(-Bt*(Ehat - K0)));
+  //   damc =  1 - K0*(1 - Ac)/Ehat - Ac*(exp(-Bc*(Ehat - K0)));
+
+  //   Real Cdiag;
+  //   Cdiag = E*(1-nu)/((1+nu)*(1-2*nu));
+
+  //   Real SigDiag[3];
+  //   SigDiag[0] = Cdiag*Fdiag[0] + lambda*(Fdiag[1] + Fdiag[2]);
+  //   SigDiag[1] = Cdiag*Fdiag[1] + lambda*(Fdiag[0] + Fdiag[2]);
+  //   SigDiag[2] = Cdiag*Fdiag[2] + lambda*(Fdiag[1] + Fdiag[0]);
+
+  //   Real SigDiagT[3];
+  //   for (UInt i = 0; i < 3; i++) {
+  //     if(SigDiag[i] >= 0.) {
+  // 	SigDiagT[i] = SigDiag[i];
+  //     } else {
+  // 	SigDiagT[i] = 0.;
+  //     }
+  //   }
+
+  //   Real TraSigT;
+  //   TraSigT = SigDiagT[0] + SigDiagT[1] + SigDiagT[2];
+
+  //   Real FDiagT[3];
+  //   for (UInt i = 0; i < 3; i++){
+  //     FDiagT [i]=  (SigDiagT[i]*(1 + nu) - TraSigT*nu)/E;
+  //   }
+
+  //   Real alphat;
+  //   alphat = (FDiagT[0]*Fdiagp[0] + FDiagT[1]*Fdiagp[1] + FDiagT[2]*Fdiagp[2])/(Ehat*Ehat);
+  //   alphat = std::min(alphat, 1.);
+
+  //   Real alphac;
+  //   alphac = 1 - alphat;
+
+  //   Real damtemp;
+  //   damtemp = pow(alphat,beta)*damt + pow(alphac,beta)*damc;
+
+  //   dam = std::max(damtemp, dam);
+  // }
+
+  // dam = std::min(dam,1.);
 
   for(UInt i = 0; i < 9; ++i) sigma[i] *= 1 - dam;
 }

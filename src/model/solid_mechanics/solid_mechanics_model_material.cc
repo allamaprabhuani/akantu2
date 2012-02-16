@@ -63,8 +63,6 @@ __BEGIN_AKANTU__
     else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \
 			    << mat_type);				\
   } while(0)
-/* -------------------------------------------------------------------------- */
-
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
@@ -99,11 +97,10 @@ void SolidMechanicsModel::initMaterials() {
     GhostType gt = (GhostType) g;
 
     /// fill the element filters of the materials using the element_material arrays
-    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
 
+    for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
       UInt * elem_mat_val = element_material(*it, gt).storage();
 
@@ -121,5 +118,33 @@ void SolidMechanicsModel::initMaterials() {
 
   synch_registry->synchronize(_gst_smm_init_mat);
 }
+
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_name) {
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
+
+    for(; it != end; ++it) {
+      try {
+	const Vector<UInt> & data = mesh.getUIntData(*it, data_name, gt);
+
+	AKANTU_DEBUG_ASSERT(element_material.exists(*it, gt),
+			    "element_material for type (" << gt << ":" << *it
+			    << ") does not exists!");
+
+	element_material(*it, gt).copy(data);
+      } catch(...) {
+	AKANTU_DEBUG_ERROR("No data named " << data_name
+			   << " present in the mesh " << id
+			   << " for the element type " << *it);
+      }
+    }
+  }
+}
+
 
 __END_AKANTU__

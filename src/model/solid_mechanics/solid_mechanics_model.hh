@@ -205,7 +205,7 @@ public:
 			    __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
-    
+
     virtual void operator()(__attribute__ ((unused)) const types::Vector<Real> & position,
 			    __attribute__ ((unused)) types::Matrix & stress,
 			    __attribute__ ((unused)) const types::Vector<Real> & normal,
@@ -240,10 +240,14 @@ public:
 public:
   /// read the material files to instantiate all the materials
   void readMaterials(const std::string & filename);
+
   /// read a custom material with a keyword and class as template
   template <typename M>
   UInt readCustomMaterial(const std::string & filename,
 				const std::string & keyword);
+
+  /// Use a UIntData in the mesh to specify the material to use per element
+  void setMaterialIDsFromIntData(const std::string & data_name);
 
 private:
   /// read properties part of a material file and create the material
@@ -281,29 +285,29 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
+  inline virtual UInt getNbDataToPack(const Element & element,
 				      SynchronizationTag tag) const;
 
-  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
+  inline virtual UInt getNbDataToUnpack(const Element & element,
 					SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
+  inline virtual void packData(CommunicationBuffer & buffer,
 			       const Element & element,
 			       SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
+  inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
 				 SynchronizationTag tag);
 
-  __aka_inline__ virtual UInt getNbDataToPack(SynchronizationTag tag) const;
+  inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
 
-  __aka_inline__ virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
+  inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
+  inline virtual void packData(CommunicationBuffer & buffer,
 			       const UInt index,
 			       SynchronizationTag tag) const;
 
-  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
+  inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const UInt index,
 				 SynchronizationTag tag);
 
@@ -369,11 +373,11 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
 
   /// get a particular material
-  __aka_inline__ Material & getMaterial(UInt mat_index);
-  __aka_inline__ const Material & getMaterial(UInt mat_index) const;
+  inline Material & getMaterial(UInt mat_index);
+  inline const Material & getMaterial(UInt mat_index) const;
 
   /// give the number of materials
-  __aka_inline__ UInt getNbMaterials() { return materials.size(); };
+  inline UInt getNbMaterials() { return materials.size(); };
 
   /// compute the stable time step
   Real getStableTimeStep();
@@ -398,7 +402,7 @@ public:
   /// get the mass matrix
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
-  __aka_inline__ FEM & getFEMBoundary(std::string name = "");
+  inline FEM & getFEMBoundary(std::string name = "");
 
 private:
   /// compute the stable time step
@@ -489,7 +493,7 @@ private:
 __END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #include "parser.hh"

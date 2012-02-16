@@ -33,10 +33,22 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/// 2D cohesive elements
-template<> const ElementType CohesiveElementSubElementType<_cohesive_2d_4>::type = _segment_2;
-template<> const ElementType CohesiveElementSubElementType<_cohesive_2d_6>::type = _segment_3;
+/* 2D cohesive elements                                                       */
+/* -------------------------------------------------------------------------- */
+template<> UInt CohesiveElement<_cohesive_2d_4>::vec_facet_connectivity[]= {0, 1,
+									    2, 3};
+template<> UInt * CohesiveElement<_cohesive_2d_4>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+									    &vec_facet_connectivity[2]};
 
-/// 3D cohesive elements
+/* -------------------------------------------------------------------------- */
+template<> UInt CohesiveElement<_cohesive_2d_6>::vec_facet_connectivity[]= {0, 1, 2,
+									    3, 4, 5};
+template<> UInt * CohesiveElement<_cohesive_2d_6>::facet_connectivity[]  = {&vec_facet_connectivity[0],
+									    &vec_facet_connectivity[3]};
+
+/* -------------------------------------------------------------------------- */
+/* 3D cohesive elements                                                       */
+/* -------------------------------------------------------------------------- */
+
 
 __END_AKANTU__

@@ -47,15 +47,16 @@ inline void MaterialDamageLinear::computeStress(Real * F, Real * sigma, Real & d
   Fdiagp[2] = std::max(0., Fdiag[2]);
 
   Real Ehat=sqrt(Fdiagp[0]*Fdiagp[0]+Fdiagp[1]*Fdiagp[1]+Fdiagp[2]*Fdiagp[2]);
+
   MaterialElastic::computeStress(F, sigma);
 
   Real Fd = Ehat-K;
 
   if (Fd > 0) {
     dam = (Ehat - Epsmin) / (Epsmax-Epsmin)*(Ehat/Epsmax);
-  dam = std::min(dam,1.);
-  K=Ehat;
-}
+    dam = std::min(dam, 1.);
+    K=Ehat;
+  }
 
   sigma[0] *= 1-dam;
   sigma[4] *= 1-dam;

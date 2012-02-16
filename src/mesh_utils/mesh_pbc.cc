@@ -281,8 +281,8 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 
   Real * coords = mymesh.nodes->values;
   const UInt dim = mymesh.getSpatialDimension();
-  
-  UInt dir_x,dir_y;
+
+  UInt dir_x = UInt(-1) ,dir_y = UInt(-1);
 
   if (dim == 3){
     if (dir == 0){
@@ -331,8 +331,8 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 
     Real dx = 0.0;
     Real dy = 0.0;
-    if (dim == 2) dx = coords[dim*i1+dir_x] - coords[dim*i2+dir_x];
-    if (dim == 3) dy = coords[dim*i1+dir_y] - coords[dim*i2+dir_y];
+    if (dim == 2) dx = coords[dim*i1 + dir_x] - coords[dim*i2 + dir_x];
+    if (dim == 3) dy = coords[dim*i1 + dir_y] - coords[dim*i2 + dir_y];
 
     if (fabs(dx*dx+dy*dy) < Math::getTolerance())
       {

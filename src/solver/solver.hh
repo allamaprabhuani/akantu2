@@ -104,7 +104,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
@@ -112,7 +112,7 @@ protected:
 #endif
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const Solver & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const Solver & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

@@ -62,7 +62,7 @@ public:
   template <ElementType type>
   void interpolateOnControlPoints(const Vector<Real> &u,
 				  Vector<Real> &uq,
-				  UInt nb_degre_of_freedom,
+				  UInt nb_degree_of_freedom,
 				  GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
@@ -70,7 +70,7 @@ public:
   template <ElementType type>
   void gradientOnControlPoints(const Vector<Real> &u,
 			       Vector<Real> &nablauq,
-			       UInt nb_degre_of_freedom,
+			       UInt nb_degree_of_freedom,
 			       GhostType ghost_type = _not_ghost,
 			       const Vector<UInt> * filter_elements = NULL) const;
 
@@ -87,7 +87,7 @@ public:
 protected:
   /// compute the shape derivatives on control points for a given element
   template <ElementType type>
-  __aka_inline__ void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
+  inline void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
 							Real * node_coords,
 							UInt nb_nodes_per_element,
 							Real * natural_coords,
@@ -120,7 +120,7 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

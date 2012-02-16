@@ -309,7 +309,6 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
   Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
   UInt nb_nodes = 1;
 
-  std::cout << "Dimension : " << dimension << std::endl;
 
   for (UInt i = 0; i < dimension; ++i) {
     nb_nodes *= (nb_cells[i] + 1);
@@ -334,8 +333,6 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
   if(dimension == 2) {
     UInt nnx = nb_cells[0] + 1;
     UInt nny = nb_cells[1] + 1;
-
-    std::cout << "Nb Nodes : " << nnx << " " << nny << std::endl;
 
     for (UInt nx = 0; nx < nnx; ++nx) {
       for (UInt ny = 0; ny < nny; ++ny) {

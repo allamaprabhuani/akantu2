@@ -143,13 +143,13 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 // #include "data_accessor_inline_impl.cc"
 
 // /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const DataAccessor & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const DataAccessor & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

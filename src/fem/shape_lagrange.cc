@@ -124,7 +124,7 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
 template <ElementType type>
 void ShapeLagrange::interpolateOnControlPoints(const Vector<Real> &in_u,
 						  Vector<Real> &out_uq,
-						  UInt nb_degre_of_freedom,
+						  UInt nb_degree_of_freedom,
 						  GhostType ghost_type,
 						  const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
@@ -155,7 +155,7 @@ void ShapeLagrange::interpolateOnControlPoints(const Vector<Real> &in_u,
   UInt offset_uq   = out_uq.getNbComponent() * nb_points;
 
   Real * shape = shape_val;
-  Real * u = new Real[nb_nodes_per_element * nb_degre_of_freedom];
+  Real * u = new Real[nb_nodes_per_element * nb_degree_of_freedom];
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
@@ -165,13 +165,13 @@ void ShapeLagrange::interpolateOnControlPoints(const Vector<Real> &in_u,
     }
 
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      memcpy(u + n * nb_degre_of_freedom,
-	     u_val + conn_val[el_offset + n] * nb_degre_of_freedom,
-	     nb_degre_of_freedom * sizeof(Real));
+      memcpy(u + n * nb_degree_of_freedom,
+	     u_val + conn_val[el_offset + n] * nb_degree_of_freedom,
+	     nb_degree_of_freedom * sizeof(Real));
     }
 
     /// @f$ u_q = \textbf{N} * u @f$
-    Math::matrix_matrix(nb_points, nb_degre_of_freedom, nb_nodes_per_element,
+    Math::matrix_matrix(nb_points, nb_degree_of_freedom, nb_nodes_per_element,
 			shape, u, uq_val);
 
     uq_val += offset_uq;
@@ -190,7 +190,7 @@ void ShapeLagrange::interpolateOnControlPoints(const Vector<Real> &in_u,
 template <ElementType type>
 void ShapeLagrange::gradientOnControlPoints(const Vector<Real> &in_u,
 					       Vector<Real> &out_nablauq,
-					       UInt nb_degre_of_freedom,
+					       UInt nb_degree_of_freedom,
 					       GhostType ghost_type,
 					       const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
@@ -219,11 +219,11 @@ void ShapeLagrange::gradientOnControlPoints(const Vector<Real> &in_u,
   Real * u_val       = in_u.values;
   Real * nablauq_val = out_nablauq.storage();
 
-  UInt offset_nablauq = nb_degre_of_freedom * element_dimension;
+  UInt offset_nablauq = nb_degree_of_freedom * element_dimension;
   UInt offset_shaped  = nb_nodes_per_element * element_dimension;
 
   Real * shaped  = shaped_val;
-  Real * u       = new Real[nb_nodes_per_element * nb_degre_of_freedom];
+  Real * u       = new Real[nb_nodes_per_element * nb_degree_of_freedom];
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
@@ -233,14 +233,14 @@ void ShapeLagrange::gradientOnControlPoints(const Vector<Real> &in_u,
     }
 
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      memcpy(u + n * nb_degre_of_freedom,
-	     u_val + conn_val[el_offset + n] * nb_degre_of_freedom,
-	     nb_degre_of_freedom * sizeof(Real));
+      memcpy(u + n * nb_degree_of_freedom,
+	     u_val + conn_val[el_offset + n] * nb_degree_of_freedom,
+	     nb_degree_of_freedom * sizeof(Real));
     }
 
     for (UInt q = 0; q < nb_points; ++q) {
       /// @f$\nabla u^t = u^t * B^t@f$
-      Math::matrixt_matrix(nb_degre_of_freedom, element_dimension, nb_nodes_per_element,
+      Math::matrixt_matrix(nb_degree_of_freedom, element_dimension, nb_nodes_per_element,
 			   u,
 			   shaped,
 			   nablauq_val);
@@ -296,7 +296,7 @@ void ShapeLagrange::printself(std::ostream & stream, int indent) const {
 
 
 /* -------------------------------------------------------------------------- */
-/* template instanciation */
+/* template instantiation */
 /* -------------------------------------------------------------------------- */
 
 #define INSTANCIATE_TEMPLATE_CLASS(type)				\
@@ -312,7 +312,7 @@ void ShapeLagrange::printself(std::ostream & stream, int indent) const {
   void   ShapeLagrange::gradientOnControlPoints<type>			\
   (const Vector<Real> &in_u,						\
    Vector<Real> &out_nablauq,						\
-   UInt nb_degre_of_freedom,						\
+   UInt nb_degree_of_freedom,						\
    GhostType ghost_type,						\
    const Vector<UInt> * filter_elements) const;				\
 									\
@@ -320,7 +320,7 @@ void ShapeLagrange::printself(std::ostream & stream, int indent) const {
   void ShapeLagrange::interpolateOnControlPoints<type>			\
   (const Vector<Real> &in_u,						\
    Vector<Real> &out_uq,						\
-   UInt nb_degre_of_freedom,						\
+   UInt nb_degree_of_freedom,						\
    GhostType ghost_type,						\
    const Vector<UInt> * filter_elements) const;				\
 									\

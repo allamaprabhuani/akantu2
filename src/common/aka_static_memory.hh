@@ -39,6 +39,9 @@
 #include "aka_vector.hh"
 
 /* -------------------------------------------------------------------------- */
+#include <map>
+
+/* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
 typedef std::map<ID, VectorBase *> VectorMap;
@@ -77,11 +80,11 @@ public:
   void destroy();
 
   /// access to an Vector
-  __aka_inline__ const VectorBase & getVector(const MemoryID & memory_id,
+  inline const VectorBase & getVector(const MemoryID & memory_id,
 				      const ID & name) const;
 
   /// get all vectors of a memory
-  __aka_inline__ const VectorMap & getMemory(const MemoryID & memory_id) const;
+  inline const VectorMap & getMemory(const MemoryID & memory_id) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Methods                                                            */
@@ -145,7 +148,7 @@ private:
 #endif
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator

@@ -74,7 +74,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// advance start and end position by one
-  __aka_inline__ void makeStep();
+  inline void makeStep();
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -85,8 +85,8 @@ private:
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  __aka_inline__ reference operator()(UInt i, UInt j = 0);
-  __aka_inline__ const_reference operator()(UInt i, UInt j = 0) const;
+  inline reference operator()(UInt i, UInt j = 0);
+  inline const_reference operator()(UInt i, UInt j = 0) const;
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -107,7 +107,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

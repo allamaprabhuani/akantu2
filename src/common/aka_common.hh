@@ -35,19 +35,19 @@
 #define __AKANTU_COMMON_HH__
 
 /* -------------------------------------------------------------------------- */
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+// #include <cmath>
+// #include <cstdlib>
+// #include <cstring>
 
 /* -------------------------------------------------------------------------- */
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <string>
-#include <exception>
-#include <vector>
-#include <map>
-#include <set>
+// #include <iostream>
+// #include <fstream>
+// #include <iomanip>
+// #include <string>
+// #include <exception>
+// #include <vector>
+// #include <map>
+// #include <set>
 #include <list>
 #include <limits>
 #include <algorithm>
@@ -237,13 +237,7 @@ enum SynchronizerOperation {
 #define AKANTU_MIN_ALLOCATION 2000
 
 #define AKANTU_INDENT " "
-
-#if !defined(__aka_inline__)
-#  define __aka_inline__
-#else
-#  define AKANTU_INCLUDE_INLINE_IMPL
-#endif
-
+#define AKANTU_INCLUDE_INLINE_IMPL
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_SET_MACRO(name, variable, type)	\
@@ -371,20 +365,17 @@ __END_AKANTU__
 // BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
 #include <boost/preprocessor.hpp>
 
-#define AKANTU_BOOST_CASE_MACRO_EXCLUDE(r,macro,type)			\
-  case type : {								\
-    AKANTU_DEBUG_ERROR("Type (" << type << ") not handled by this function"); \
-    break;								\
-  }
+#define AKANTU_EXCLUDE_ELEMENT_TYPE(type)			\
+  AKANTU_DEBUG_ERROR("Type (" << type << ") not handled by this function")
 
 #define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
   case type : { macro(type); break; }
 
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro, list, exclude_list)		\
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1, macro2, list2)	\
   do {									\
     switch(type) {							\
-      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO,macro,list)		\
-      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO_EXCLUDE,macro, exclude_list) \
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)	\
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro2, list2)	\
     case _not_defined:							\
     case _max_element_type:  {						\
       AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
@@ -396,11 +387,13 @@ __END_AKANTU__
 #define AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
 			      AKANTU_REGULAR_ELEMENT_TYPE,		\
+			      AKANTU_EXCLUDE_ELEMENT_TYPE,		\
 			      AKANTU_COHESIVE_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
 			      AKANTU_COHESIVE_ELEMENT_TYPE,		\
+			      AKANTU_EXCLUDE_ELEMENT_TYPE,		\
 			      AKANTU_REGULAR_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
@@ -411,5 +404,9 @@ __END_AKANTU__
 
 #define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)	\
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_REGULAR_ELEMENT_TYPE)
+
+#define AKANTU_BOOST_COHESIVE_ELEMENT_LIST(macro)	\
+  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_COHESIVE_ELEMENT_TYPE)
+
 
 #endif /* __AKANTU_COMMON_HH__ */

@@ -82,6 +82,9 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
+
+  if(!is_non_local) updateDissipatedEnergy(ghost_type);
+
   AKANTU_DEBUG_OUT();
 }
 

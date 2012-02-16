@@ -35,7 +35,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degre_of_freedom) :
+DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
   global_dof_equation_numbers(0, 1, "global_equation_number"),
   local_dof_equation_numbers(0, 1, "local_equation_number"),
   dof_global_ids(0, 1, "global_ids"),
@@ -51,20 +51,20 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degre_of_freedom) :
 
   UInt nb_nodes = mesh.getNbNodes();
 
-  nb_dofs = nb_nodes * nb_degre_of_freedom;
+  nb_dofs = nb_nodes * nb_degree_of_freedom;
 
   dof_global_ids.resize(nb_dofs);
   dof_types.resize(nb_dofs);
 
-  nb_global_dofs = mesh.getNbGlobalNodes() * nb_degre_of_freedom;
+  nb_global_dofs = mesh.getNbGlobalNodes() * nb_degree_of_freedom;
 
   UInt * dof_global_id       = dof_global_ids.values;
   Int  * dof_type            = dof_types.values;
   for(UInt n = 0, ld = 0; n < nb_nodes; ++n) {
     UInt node_global_id = mesh.getNodeGlobalId(n);
     UInt node_type      = mesh.getNodeType(n);
-    for (UInt d = 0; d < nb_degre_of_freedom; ++d, ++ld) {
-      *dof_global_id = node_global_id * nb_degre_of_freedom + d;
+    for (UInt d = 0; d < nb_degree_of_freedom; ++d, ++ld) {
+      *dof_global_id = node_global_id * nb_degree_of_freedom + d;
       global_dof_to_local[*dof_global_id] = ld;
 
       *(dof_type++)  = node_type;

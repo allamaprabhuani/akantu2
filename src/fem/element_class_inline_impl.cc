@@ -81,7 +81,7 @@ inline void ElementClass<type>::computeShapes(const Real * natural_coords,
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
+template <ElementType type>
 inline void ElementClass<type>::computeShapes(const Real * natural_coords,
 					      const UInt nb_points, 
 					      Real * shapes,
@@ -241,9 +241,8 @@ inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord,
     cpoint += spatial_dimension;
     cnormals += dimension;
   }
-
-
 }
+
 /* -------------------------------------------------------------------------- */
 template <ElementType type> 
 inline void ElementClass<type>::computeShapes(const Real * natural_coords, 

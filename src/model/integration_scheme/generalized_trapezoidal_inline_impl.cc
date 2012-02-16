@@ -34,13 +34,13 @@ void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
-  UInt nb_degre_of_freedom = u.getNbComponent() * nb_nodes;
+  UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
   Real * u_val         = u.values;
   Real * u_dot_val     = u_dot.values;
   bool * boundary_val  = boundary.values;
 
-  for (UInt d = 0; d < nb_degre_of_freedom; d++) {
+  for (UInt d = 0; d < nb_degree_of_freedom; d++) {
     if(!(*boundary_val)) {
       *u_val += delta_t * *u_dot_val;
     }
@@ -118,7 +118,7 @@ void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
-  UInt nb_degre_of_freedom = u.getNbComponent() * nb_nodes;
+  UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
   Real e = getTemperatureCoefficient<type>(delta_t);
   Real d = getTemperatureRateCoefficient<type>(delta_t);
@@ -128,7 +128,7 @@ void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
   Real * delta_val     = delta.values;
   bool * boundary_val  = boundary.values;
 
-  for (UInt dof = 0; dof < nb_degre_of_freedom; dof++) {
+  for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
     if(!(*boundary_val)) {
       *u_val         += e * *delta_val;
       *u_dot_val     += d * *delta_val;

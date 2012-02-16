@@ -154,7 +154,7 @@ void ShapeLinked::precomputeShapeDerivativesOnControlPoints(const GhostType & gh
 template <ElementType type>
 void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
 					     Vector<Real> &out_uq,
-					     UInt nb_degre_of_freedom,
+					     UInt nb_degree_of_freedom,
 					     const GhostType & ghost_type,
 					     const Vector<UInt> * filter_elements,
 					     bool accumulate,
@@ -208,7 +208,7 @@ void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
     }
 
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      u[n] = u_val[conn_val[el_offset + n] * nb_degre_of_freedom + num_degre_of_freedom_to_interpolate];
+      u[n] = u_val[conn_val[el_offset + n] * nb_degree_of_freedom + num_degre_of_freedom_to_interpolate];
     }
 
     /// Uq = Shape * U : matrix product
@@ -216,7 +216,7 @@ void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
 			shape, u, uq);
 
     for (UInt p = 0; p < nb_points; ++p) {
-      uq_val[p*nb_degre_of_freedom + num_degre_of_freedom_interpolated] += uq[p];
+      uq_val[p*nb_degree_of_freedom + num_degre_of_freedom_interpolated] += uq[p];
     }
 
    uq_val += offset_uq;
@@ -236,7 +236,7 @@ void ShapeLinked::interpolateOnControlPoints(const Vector<Real> &in_u,
 template <ElementType type>
 void ShapeLinked::gradientOnControlPoints(const Vector<Real> &in_u,
 					  Vector<Real> &out_nablauq,
-					  UInt nb_degre_of_freedom,
+					  UInt nb_degree_of_freedom,
 					  const GhostType & ghost_type,
 					  const Vector<UInt> * filter_elements,
 					  bool accumulate,
@@ -275,7 +275,7 @@ void ShapeLinked::gradientOnControlPoints(const Vector<Real> &in_u,
   Real * u_val       = in_u.values;
   Real * nablauq_val = out_nablauq.values;
 
-  UInt offset_nablauq = nb_degre_of_freedom * element_dimension;
+  UInt offset_nablauq = nb_degree_of_freedom * element_dimension;
   UInt offset_shaped  = nb_nodes_per_element * element_dimension;
 
   Real * shaped  = shaped_val;
@@ -294,7 +294,7 @@ void ShapeLinked::gradientOnControlPoints(const Vector<Real> &in_u,
     }
 
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      u[n] = u_val[conn_val[el_offset + n] * nb_degre_of_freedom + num_degre_of_freedom_to_interpolate];
+      u[n] = u_val[conn_val[el_offset + n] * nb_degree_of_freedom + num_degre_of_freedom_to_interpolate];
     }
 
     for (UInt q = 0; q < nb_points; ++q) {

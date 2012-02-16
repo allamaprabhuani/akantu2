@@ -62,45 +62,45 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ void beginInsertions() {};
+  inline void beginInsertions() {};
 
-  __aka_inline__ UInt insertInRow(UInt row, const T & val) {
+  inline UInt insertInRow(UInt row, const T & val) {
     UInt pos = rows_offsets(row)++;
     rows(pos) = val;
     return pos;
   }
 
-  __aka_inline__ const T & operator()(UInt row, UInt col) const {
+  inline const T & operator()(UInt row, UInt col) const {
     return rows(rows_offsets(row) + col);
   }
 
-  __aka_inline__ T & operator()(UInt row, UInt col) {
+  inline T & operator()(UInt row, UInt col) {
     return rows(rows_offsets(row) + col);
   }
 
-  __aka_inline__ void endInsertions() {
+  inline void endInsertions() {
     for (UInt i = nb_rows; i > 0; --i) rows_offsets(i) = rows_offsets(i-1);
     rows_offsets(0) = 0;
   }
 
-  __aka_inline__ void countToCSR() {
+  inline void countToCSR() {
     for (UInt i = 1; i < nb_rows; ++i) rows_offsets(i) += rows_offsets(i-1);
     for (UInt i = nb_rows; i >= 1; --i) rows_offsets(i) = rows_offsets(i-1);
     rows_offsets(0) = 0;
   }
 
-  __aka_inline__ void clearRows() { rows_offsets.clear(); rows.resize(0); };
+  inline void clearRows() { rows_offsets.clear(); rows.resize(0); };
 
-  __aka_inline__ void resizeRows(UInt nb_rows) {
+  inline void resizeRows(UInt nb_rows) {
     this->nb_rows = nb_rows;
     rows_offsets.resize(nb_rows + 1);
   }
 
-  __aka_inline__ void resizeCols() {
+  inline void resizeCols() {
     rows.resize(rows_offsets(nb_rows));
   }
 
-  __aka_inline__ void copy(Vector<UInt> & offsets, Vector<T> & values) {
+  inline void copy(Vector<UInt> & offsets, Vector<T> & values) {
     offsets.copy(rows_offsets);
     values.copy(rows);
   }
@@ -109,11 +109,11 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  __aka_inline__ UInt getNbRows() { return rows_offsets.getSize() - 1; };
+  inline UInt getNbRows() { return rows_offsets.getSize() - 1; };
 
-  __aka_inline__ UInt getNbCols(UInt row) { return rows_offsets(row + 1) - rows_offsets(row); };
+  inline UInt getNbCols(UInt row) { return rows_offsets(row + 1) - rows_offsets(row); };
 
-  __aka_inline__ UInt & rowOffset(UInt row) { return rows_offsets(row); };
+  inline UInt & rowOffset(UInt row) { return rows_offsets(row); };
 
   /// iterator on a row
   template <class R>
@@ -143,17 +143,17 @@ public:
   typedef iterator_internal<T> iterator;
   typedef iterator_internal<const T> const_iterator;
 
-  __aka_inline__ iterator begin(UInt row) { return iterator(rows.values + rows_offsets(row)); };
-  __aka_inline__ iterator end(UInt row) { return iterator(rows.values + rows_offsets(row+1)); };
+  inline iterator begin(UInt row) { return iterator(rows.values + rows_offsets(row)); };
+  inline iterator end(UInt row) { return iterator(rows.values + rows_offsets(row+1)); };
 
-  __aka_inline__ const_iterator begin(UInt row) const { return const_iterator(rows.values + rows_offsets(row)); };
-  __aka_inline__ const_iterator end(UInt row) const { return const_iterator(rows.values + rows_offsets(row+1)); };
+  inline const_iterator begin(UInt row) const { return const_iterator(rows.values + rows_offsets(row)); };
+  inline const_iterator end(UInt row) const { return const_iterator(rows.values + rows_offsets(row+1)); };
 
-  __aka_inline__ iterator rbegin(UInt row) { return iterator(rows.values + rows_offsets(row+1) - 1); };
-  __aka_inline__ iterator rend(UInt row) { return iterator(rows.values + rows_offsets(row) - 1); };
+  inline iterator rbegin(UInt row) { return iterator(rows.values + rows_offsets(row+1) - 1); };
+  inline iterator rend(UInt row) { return iterator(rows.values + rows_offsets(row) - 1); };
 
-  __aka_inline__ const Vector<UInt> & getRowsOffset() const { return rows_offsets; };
-  __aka_inline__ const Vector<T> & getRows() const { return rows; };
+  inline const Vector<UInt> & getRowsOffset() const { return rows_offsets; };
+  inline const Vector<T> & getRows() const { return rows; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -185,26 +185,26 @@ class DataCSR : public CSR<UInt> {
 public:
   DataCSR(UInt nb_rows = 0) : CSR<UInt>(nb_rows), data(0,1) { };
 
-  __aka_inline__ void resizeCols() {
+  inline void resizeCols() {
     CSR<UInt>::resizeCols();
     data.resize(rows_offsets(nb_rows));
   }
 
 
-  __aka_inline__ const Vector<T> & getData() const { return data; };
+  inline const Vector<T> & getData() const { return data; };
 private:
   Vector<T> data;
 };
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 //#include "aka_csr_inline_impl.cc"
 
 /// standard output stream operator
-// __aka_inline__ std::ostream & operator <<(std::ostream & stream, const CSR & _this)
+// inline std::ostream & operator <<(std::ostream & stream, const CSR & _this)
 // {
 //   _this.printself(stream);
 //   return stream;

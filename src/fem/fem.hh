@@ -108,7 +108,7 @@ public:
   /// integrate f for all elements of type "type"
   virtual void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
-		 UInt nb_degre_of_freedom,
+		 UInt nb_degree_of_freedom,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const = 0;
@@ -122,7 +122,7 @@ public:
   /// integrate f for all quadrature points of type "type"
   virtual void integrateOnQuadraturePoints(const Vector<Real> & f,
 					   Vector<Real> &intf,
-					   UInt nb_degre_of_freedom,
+					   UInt nb_degree_of_freedom,
 					   const ElementType & type,
 					   const GhostType & ghost_type = _not_ghost,
 					   const Vector<UInt> * filter_elements = NULL) const = 0;
@@ -154,7 +154,7 @@ public:
   virtual
   void gradientOnQuadraturePoints(const Vector<Real> &u,
 				  Vector<Real> &nablauq,
-				  const UInt nb_degre_of_freedom,
+				  const UInt nb_degree_of_freedom,
 				  const ElementType & type,
 				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const = 0;
@@ -162,7 +162,7 @@ public:
   virtual
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
-				     UInt nb_degre_of_freedom,
+				     UInt nb_degree_of_freedom,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const =0;
@@ -180,7 +180,7 @@ public:
   void assembleVector(const Vector<Real> & elementary_vect,
 		      Vector<Real> & nodal_values,
 		      const Vector<Int> & equation_number,
-		      UInt nb_degre_of_freedom,
+		      UInt nb_degree_of_freedom,
 		      const ElementType & type,
 		      const GhostType & ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL,
@@ -189,7 +189,7 @@ public:
   /// assemble matrix in the complete sparse matrix
   void assembleMatrix(const Vector<Real> & elementary_mat,
 		      SparseMatrix & matrix,
-		      UInt nb_degre_of_freedom,
+		      UInt nb_degree_of_freedom,
 		      const ElementType & type,
 		      const GhostType & ghost_type = _not_ghost,
 		      const Vector<UInt> * filter_elements = NULL) const;
@@ -231,10 +231,10 @@ public:
   AKANTU_GET_MACRO(ElementDimension, element_dimension, UInt);
 
   /// get the mesh contained in the fem object
-  __aka_inline__ Mesh & getMesh() const;
+  inline Mesh & getMesh() const;
 
   /// get the in-radius of an element
-  static __aka_inline__ Real getElementInradius(Real * coord, const ElementType & type);
+  static inline Real getElementInradius(Real * coord, const ElementType & type);
 
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);
@@ -260,7 +260,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

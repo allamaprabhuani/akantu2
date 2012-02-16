@@ -92,7 +92,7 @@ public:
 
 private:
   template<ElementType type>
-  __aka_inline__ UInt getTangentStiffnessVoigtSize();
+  inline UInt getTangentStiffnessVoigtSize();
 
   template <ElementType type>
   void assembleStiffnessMatrix();
@@ -190,7 +190,7 @@ private:
   UInt spatial_dimension;
 
   /// number of degre of freedom
-  UInt nb_degre_of_freedom;
+  UInt nb_degree_of_freedom;
 
   /* -------------------------------------------------------------------------- */
   std::vector<StructuralMaterial> materials;
@@ -198,7 +198,7 @@ private:
 
 
 /* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
+/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

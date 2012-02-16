@@ -36,7 +36,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 MaterialMazarsNonLocal::MaterialMazarsNonLocal(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id),
-  MaterialMazars(model, id), MaterialNonLocal(model, id),
+  MaterialMazars(model, id), MaterialNonLocalParent(model, id),
   Ehat("Ehat", id) {
   AKANTU_DEBUG_IN();
 
@@ -51,7 +51,8 @@ MaterialMazarsNonLocal::MaterialMazarsNonLocal(Model & model, const ID & id)  :
 void MaterialMazarsNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMazars::initMaterial();
-  MaterialNonLocal::initMaterial();
+  BaseWeightFunction func(radius);
+  MaterialNonLocalParent::initMaterial(func);
 
   resizeInternalVector(this->Ehat);
 
@@ -92,11 +93,12 @@ void MaterialMazarsNonLocal::computeStress(ElementType el_type, GhostType ghost_
 /* -------------------------------------------------------------------------- */
 void MaterialMazarsNonLocal::computeNonLocalStress(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  ByElementTypeReal Ehatnl("Ehat non local", id);
-  initInternalVector(Ehatnl, 1);
-  resizeInternalVector(Ehatnl);
+  ByElementTypeReal nl_var("Non local variable", id);
+  initInternalVector(nl_var, 1);
+  resizeInternalVector(nl_var);
 
-  weigthedAvergageOnNeighbours(Ehat, Ehatnl, 1);
+  //  weightedAvergageOnNeighbours(Ehat, nl_var, 1);
+  weightedAvergageOnNeighbours(damage, nl_var, 1);
 
   UInt spatial_dimension = model->getSpatialDimension();
 
@@ -104,18 +106,20 @@ void MaterialMazarsNonLocal::computeNonLocalStress(GhostType ghost_type) {
   Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
 
   for(; it != last_type; ++it) {
-    computeNonLocalStress(Ehatnl(*it, ghost_type), *it, ghost_type);
+    computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & Ehatnl, ElementType el_type, GhostType ghost_type) {
+void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & non_loc_var, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = damage(el_type, ghost_type).storage();
-  Real * Ehatnlt = Ehatnl.storage();
+  //  Real * dam   = damage(el_type, ghost_type).storage();
+  Real * Ehatt = Ehat(el_type, ghost_type).storage();
+
+  Real * nl_var = non_loc_var.storage();
 
   Real sigma[3*3];
   Real F[3*3] ;
@@ -129,10 +133,13 @@ void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & Ehatnl, Elemen
       sigma[3 * i + j] = stress_val[spatial_dimension*i + j];
     }
 
-  computeDamageAndStress(F, sigma, *dam, *Ehatnlt);
+  //  computeDamageAndStress(F, sigma, *dam, *nl_var);
+  //  ++dam;
 
-  ++dam;
-  ++Ehatnlt;
+  computeDamageAndStress(F, sigma, *nl_var, *Ehatt);
+  ++Ehatt;
+
+  ++nl_var;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -140,17 +147,16 @@ void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & Ehatnl, Elemen
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
+  updateDissipatedEnergy(ghost_type);
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 bool MaterialMazarsNonLocal::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
-
-
-    return MaterialNonLocal::setParam(key, value, id) ||
-      MaterialMazars::setParam(key, value, id);
-
+  return MaterialNonLocalParent::setParam(key, value, id) ||
+    MaterialMazars::setParam(key, value, id);
 }
 
 
@@ -161,7 +167,7 @@ void MaterialMazarsNonLocal::printself(std::ostream & stream, int indent) const 
 
   stream << space << "Material<_mazars_non_local> [" << std::endl;
   MaterialMazars::printself(stream, indent + 1);
-  MaterialNonLocal::printself(stream, indent + 1);
+  MaterialNonLocalParent::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 

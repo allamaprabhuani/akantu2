@@ -36,11 +36,17 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id),
-  damage("damage", id) {
+  damage("damage", id),
+  dissipated_energy("Dissipated Energy", id),
+  strain_prev("Previous Strain", id),
+  int_sigma("Integral of sigma", id) {
   AKANTU_DEBUG_IN();
 
   is_non_local = false;
   initInternalVector(this->damage, 1);
+  initInternalVector(this->dissipated_energy, 1);
+  initInternalVector(this->strain_prev, spatial_dimension * spatial_dimension);
+  initInternalVector(this->int_sigma, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -51,10 +57,79 @@ void MaterialDamage::initMaterial() {
   MaterialElastic::initMaterial();
 
   resizeInternalVector(this->damage);
+  resizeInternalVector(this->dissipated_energy);
+  resizeInternalVector(this->strain_prev);
+  resizeInternalVector(this->int_sigma);
 
   is_init = true;
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+/**
+ * Compute the dissipated energy in  each element by a rectangular approximation
+ * of
+ * @f$ Ed = \int_0^{\epsilon}\sigma(\omega)d\omega - \frac{1}{2}\sigma:\epsilon@f$
+ */
+void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
+  // compute the dissipated energy per element
+  const Mesh & mesh = model->getFEM().getMesh();
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
+
+  for(; it != end; ++it) {
+    ElementType el_type = *it;
+    Vector<Real>::iterator<types::Matrix> sigma =
+      stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    Vector<Real>::iterator<types::Matrix> epsilon =
+      strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    Vector<Real>::iterator<types::Matrix> epsilon_p =
+      strain_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+
+
+    Vector<Real>::iterator<Real> ints = int_sigma(el_type, ghost_type).begin();
+    Vector<Real>::iterator<Real> ed   = dissipated_energy(el_type, ghost_type).begin();
+    Vector<Real>::iterator<Real> end  = dissipated_energy(el_type, ghost_type).end();
+
+    for (; ed != end; ++ed, ++ints, ++epsilon, ++sigma, ++epsilon_p) {
+      Real epot = 0.;
+      Real dint = 0.;
+      for (UInt i = 0; i < spatial_dimension; ++i) {
+	for (UInt j = 0; j < spatial_dimension; ++j) {
+	  epot += (*sigma)(i,j) * (*epsilon)(i,j);
+	  dint += (*sigma)(i,j) * ((*epsilon)(i,j) - (*epsilon_p)(i,j));
+	  (*epsilon_p)(i,j) = (*epsilon)(i,j);
+	}
+      }
+
+      epot *= .5;
+
+      *ints += dint;
+      *ed = *ints - epot;
+    }
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+Real MaterialDamage::getDissipatedEnergy() const {
+  AKANTU_DEBUG_IN();
+
+  Real de = 0.;
+  const Mesh & mesh = model->getFEM().getMesh();
+
+  /// integrate the dissipated energy for each type of elements
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
+
+  for(; it != end; ++it) {
+    de += model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
+				    _not_ghost, &element_filter(*it, _not_ghost));
+  }
+
+  AKANTU_DEBUG_OUT();
+  return de;
 }
 
 /* -------------------------------------------------------------------------- */

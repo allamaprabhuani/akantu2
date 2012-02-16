@@ -103,9 +103,9 @@ inline Real & SparseMatrix::operator()(UInt i, UInt j) {
 //   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
 //   Real * a_val = a.values;
 
-//   for (UInt j = 0; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
+//   for (UInt j = 0; j < nb_nodes_per_element * nb_degree_of_freedom; ++j) {
 //     UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 :
-//       nb_nodes_per_element * nb_degre_of_freedom;
+//       nb_nodes_per_element * nb_degree_of_freedom;
 //     for (UInt i = 0; i < i_end; ++i) {
 //       UInt k = *(elem_to_sparse_val++);
 //       a_val[k] += *(mat_val++);
@@ -127,10 +127,10 @@ inline Real & SparseMatrix::operator()(UInt i, UInt j) {
 //   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
 //   Real * a_val = a.values;
 
-//   for (UInt i = 0; i < nb_nodes_per_element * nb_degre_of_freedom; ++i) {
+//   for (UInt i = 0; i < nb_nodes_per_element * nb_degree_of_freedom; ++i) {
 //     UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;
-//     UInt elem_to_sparse_i = i * nb_nodes_per_element * nb_degre_of_freedom;
-//     for (UInt j = j_start; j < nb_nodes_per_element * nb_degre_of_freedom; ++j) {
+//     UInt elem_to_sparse_i = i * nb_nodes_per_element * nb_degree_of_freedom;
+//     for (UInt j = j_start; j < nb_nodes_per_element * nb_degree_of_freedom; ++j) {
 //       UInt k = elem_to_sparse_val[elem_to_sparse_i + j];
 //       a_val[k] += mat_val[elem_to_sparse_i + j];
 //     }

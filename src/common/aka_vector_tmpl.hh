@@ -29,6 +29,12 @@
 /* Inline Functions Vector<T>                                                 */
 /* -------------------------------------------------------------------------- */
 
+__END_AKANTU__
+
+#include <memory>
+
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 template <typename T> inline T & Vector<T>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(size > 0,
@@ -696,9 +702,99 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
 /**
  * Specialization for scalar types
  */
+
+/* If gcc <  4.4 some problem with detection of specialization  of a template by
+ * an other template so I have copied the code, that is really ugly just to help
+ * the compiler. This part of code should  be removed if version of gcc before *
+ * 4.4 are note supported anymore. Problems  for know appears on Mac OS with gcc
+ * version is 4.2.1
+ */
+#if (__GNUC__  < 4)  ||				\
+  ((__GNUC__ ==  4) && (__GNUC_MINOR__ < 4))
+
+#define specialize_internal_iterator_for_scalar(T)			\
+  template <>								\
+  template <>								\
+  class Vector<T>::iterator_internal<T,T,0> {				\
+  public:								\
+  typedef T   value_type;						\
+  typedef T*  pointer;							\
+  typedef T&  reference;						\
+  typedef T   internal_value_type;					\
+  typedef T*  internal_pointer;						\
+  protected:								\
+  iterator_internal(UInt offset, pointer data, pointer ret) :		\
+    offset(offset),							\
+    initial(data),							\
+    ret(ret) { }							\
+  									\
+  public:								\
+  iterator_internal() : offset(0), initial(NULL), ret(NULL) {};		\
+  									\
+  iterator_internal(pointer data, UInt offset)  : offset(offset),	\
+						  initial(data),	\
+						  ret(data) {		\
+    AKANTU_DEBUG_ASSERT(offset == 1,					\
+			"The iterator is not compatible with the type "	\
+			<< typeid(value_type).name());			\
+  };									\
+  									\
+  iterator_internal(const iterator_internal & it) {			\
+    if(this != &it) {							\
+      this->offset = it.offset;						\
+      this->initial = it.initial;					\
+      this->ret = new internal_value_type(*it.ret);			\
+    }									\
+  }									\
+  									\
+  virtual ~iterator_internal() { };					\
+  									\
+  inline iterator_internal & operator=(const iterator_internal & it) {	\
+    if(this != &it) {							\
+      this->offset = it.offset;						\
+      this->initial = it.initial;					\
+      this->ret = it.ret;						\
+    }									\
+    return *this;							\
+  }									\
+  									\
+  inline reference operator*() { return *ret; };			\
+  inline pointer operator->() { return ret; };				\
+  inline iterator_internal & operator++() { ret += offset; return *this; }; \
+  									\
+  inline iterator_internal & operator+=(const UInt n) {			\
+    ret += offset * n;							\
+    return *this;							\
+  }									\
+  									\
+  inline reference operator[](const UInt n) {				\
+    ret = initial + n*offset;						\
+    return *ret;							\
+  }									\
+  									\
+  inline bool operator==(const iterator_internal & other) {		\
+    return (*this).ret == other.ret;					\
+  }									\
+  inline bool operator!=(const iterator_internal & other) {		\
+    return (*this).ret != other.ret;					\
+  }									\
+  									\
+  inline pointer getCurrentStorage() const {				\
+    return ret;								\
+  }									\
+  									\
+  protected:								\
+  UInt offset;								\
+  pointer initial;							\
+  pointer ret;								\
+  }
+
+specialize_internal_iterator_for_scalar(Real);
+specialize_internal_iterator_for_scalar(UInt);
+
+#else
 template <typename T>
 template <int fps>
-//class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T> {
 class Vector<T>::iterator_internal<T,T,fps> {
 public:
   typedef T   value_type;
@@ -773,6 +869,7 @@ protected:
   pointer initial;
   pointer ret;
 };
+#endif
 
 
 /* -------------------------------------------------------------------------- */

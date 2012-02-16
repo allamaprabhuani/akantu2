@@ -71,7 +71,7 @@ FEM::~FEM() {
 void FEM::assembleVector(const Vector<Real> & elementary_vect,
 			 Vector<Real> & nodal_values,
 			 const Vector<Int> & equation_number,
-			 UInt nb_degre_of_freedom,
+			 UInt nb_degree_of_freedom,
 			 const ElementType & type,
 			 const GhostType & ghost_type,
 			 const Vector<UInt> * filter_elements,
@@ -94,17 +94,17 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 		      << ") has not the good size.");
 
   AKANTU_DEBUG_ASSERT(elementary_vect.getNbComponent()
-		      == nb_degre_of_freedom*nb_nodes_per_element,
+		      == nb_degree_of_freedom*nb_nodes_per_element,
 		      "The vector elementary_vect(" << elementary_vect.getID()
 		      << ") has not the good number of component."
 		      << "(" << elementary_vect.getNbComponent()
-		      << " != " << nb_degre_of_freedom*nb_nodes_per_element << ")");
+		      << " != " << nb_degree_of_freedom*nb_nodes_per_element << ")");
 
-  AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degre_of_freedom,
+  AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() == nb_degree_of_freedom,
 		      "The vector nodal_values(" << nodal_values.getID()
 		      << ") has not the good number of component."
 		      << "(" << nodal_values.getNbComponent()
-		      << " != " << nb_degre_of_freedom << ")");
+		      << " != " << nb_degree_of_freedom << ")");
 
 
   nodal_values.resize(nb_nodes);
@@ -119,12 +119,12 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
     }
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt node = conn_val[el_offset + n];
-      UInt offset_node = node * nb_degre_of_freedom;
-      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+      UInt offset_node = node * nb_degree_of_freedom;
+      for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
 	nodal_values_val[equation_number.values[offset_node + d]]
 	  += scale_factor * elementary_vect_val[d];
       }
-      elementary_vect_val += nb_degre_of_freedom;
+      elementary_vect_val += nb_degree_of_freedom;
     }
   }
 
@@ -134,7 +134,7 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 /* -------------------------------------------------------------------------- */
 void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 			 SparseMatrix & matrix,
-			 UInt nb_degre_of_freedom,
+			 UInt nb_degree_of_freedom,
 			 const ElementType & type,
 			 const GhostType & ghost_type,
 			 const Vector<UInt> * filter_elements) const {
@@ -161,7 +161,7 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
 		      << ") has not the good size.");
 
   AKANTU_DEBUG_ASSERT(elementary_mat.getNbComponent()
-		      == nb_degre_of_freedom * nb_nodes_per_element * nb_degre_of_freedom * nb_nodes_per_element,
+		      == nb_degree_of_freedom * nb_nodes_per_element * nb_degree_of_freedom * nb_nodes_per_element,
 		      "The vector elementary_mat(" << elementary_mat.getID()
 		      << ") has not the good number of component.");
 
@@ -169,11 +169,11 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
   UInt offset_elementary_mat = elementary_mat.getNbComponent();
   UInt * connectivity_val = mesh->getConnectivity(type, ghost_type).values;
 
-  UInt size_mat = nb_nodes_per_element * nb_degre_of_freedom;
-  UInt size = mesh->getNbGlobalNodes() * nb_degre_of_freedom;
+  UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom;
+  UInt size = mesh->getNbGlobalNodes() * nb_degree_of_freedom;
 
   Int * eq_nb_val = matrix.getDOFSynchronizer().getGlobalDOFEquationNumbers().values;
-  Int * local_eq_nb_val = new Int[nb_degre_of_freedom * nb_nodes_per_element];
+  Int * local_eq_nb_val = new Int[nb_degree_of_freedom * nb_nodes_per_element];
 
   for (UInt e = 0; e < nb_element; ++e) {
     UInt el = e;
@@ -183,11 +183,11 @@ void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
     UInt * conn_val = connectivity_val + el * nb_nodes_per_element;
     for (UInt i = 0; i < nb_nodes_per_element; ++i) {
       UInt n = conn_val[i];
-      for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
-	*tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degre_of_freedom + d];
+      for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+	*tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degree_of_freedom + d];
       }
-      // memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degre_of_freedom, nb_degre_of_freedom * sizeof(Int));
-      // tmp_local_eq_nb_val += nb_degre_of_freedom;
+      // memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degree_of_freedom, nb_degree_of_freedom * sizeof(Int));
+      // tmp_local_eq_nb_val += nb_degree_of_freedom;
     }
 
     for (UInt i = 0; i < size_mat; ++i) {

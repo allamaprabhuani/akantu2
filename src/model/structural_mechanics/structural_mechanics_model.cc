@@ -64,7 +64,7 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
   this->increment    = NULL;
 
   if(spatial_dimension == 2)
-    nb_degre_of_freedom = 3;
+    nb_degree_of_freedom = 3;
   else {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
@@ -97,11 +97,11 @@ void StructuralMechanicsModel::initVectors() {
   std::stringstream sstr_boun; sstr_boun << id << ":boundary";
   std::stringstream sstr_incr; sstr_incr << id << ":increment";
 
-  displacement_rotation = &(alloc<Real>(sstr_disp.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
-  force_momentum        = &(alloc<Real>(sstr_forc.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
-  residual              = &(alloc<Real>(sstr_resi.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
-  boundary              = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degre_of_freedom, false));
-  increment             = &(alloc<Real>(sstr_incr.str(), nb_nodes, nb_degre_of_freedom, REAL_INIT_VALUE));
+  displacement_rotation = &(alloc<Real>(sstr_disp.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
+  force_momentum        = &(alloc<Real>(sstr_forc.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
+  residual              = &(alloc<Real>(sstr_resi.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
+  boundary              = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degree_of_freedom, false));
+  increment             = &(alloc<Real>(sstr_incr.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
 
   const Mesh::ConnectivityTypeList & type_list = getFEM().getMesh().getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -115,7 +115,7 @@ void StructuralMechanicsModel::initVectors() {
     stress.alloc(nb_element * nb_quadrature_points, size , *it, _not_ghost);
   }
 
-  dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(), nb_degre_of_freedom);
+  dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(), nb_degree_of_freedom);
   dof_synchronizer->initLocalDOFEquationNumbers();
 
   AKANTU_DEBUG_OUT();
@@ -133,8 +133,8 @@ void StructuralMechanicsModel::initImplicitSolver() {
   const Mesh & mesh = getFEM().getMesh();
 
   std::stringstream sstr; sstr << id << ":stiffness_matrix";
-  stiffness_matrix = new SparseMatrix(mesh.getNbGlobalNodes() * nb_degre_of_freedom, _symmetric,
-				      nb_degre_of_freedom, sstr.str(), memory_id);
+  stiffness_matrix = new SparseMatrix(mesh.getNbGlobalNodes() * nb_degree_of_freedom, _symmetric,
+				      nb_degree_of_freedom, sstr.str(), memory_id);
 
   dof_synchronizer->initGlobalDOFEquationNumbers();
 
@@ -236,7 +236,7 @@ void StructuralMechanicsModel::solve() {
   Real * displacement_val  = displacement_rotation->values;
   bool * boundary_val      = boundary->values;
 
-  for (UInt n = 0; n < nb_nodes * nb_degre_of_freedom; ++n) {
+  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
       *displacement_val += *increment_val;
     }
@@ -264,7 +264,7 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & e
   AKANTU_DEBUG_IN();
   Mesh & mesh= getFEM().getMesh();
   UInt nb_nodes = displacement_rotation->getSize();
-  UInt nb_degre_of_freedom = displacement_rotation->getNbComponent();
+  UInt nb_degree_of_freedom = displacement_rotation->getNbComponent();
 
   Real norm = 0;
   Real * increment_val     = increment->values;
@@ -272,7 +272,7 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & e
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
-    for (UInt d = 0; d < nb_degre_of_freedom; ++d) {
+    for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
       if(!(*boundary_val) && is_local_node) {
 	norm += *increment_val * *increment_val;
       }
@@ -332,7 +332,7 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_
   Real * Lpp_val = Lpp.values;
 
   UInt tangent_size = getTangentStiffnessVoigtSize<_bernoulli_beam_2>();
-  UInt bt_d_b_size  = nb_nodes_per_element * nb_degre_of_freedom;
+  UInt bt_d_b_size  = nb_nodes_per_element * nb_degree_of_freedom;
   b.clear();
   Vector<Real>::iterator<types::Matrix> B = b.begin(tangent_size, bt_d_b_size);
 

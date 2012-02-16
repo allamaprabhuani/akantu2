@@ -26,15 +26,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <csignal>
-//#include <cerrno>
-#include <execinfo.h>
-//#include <cxxabi.h>
-#include <fstream>
-
-/* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 #include "aka_error.hh"
+/* -------------------------------------------------------------------------- */
+#include <iostream>
+#include <csignal>
+#include <execinfo.h>
+#include <cxxabi.h>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -53,50 +54,56 @@ namespace debug {
 
   /* ------------------------------------------------------------------------ */
   std::string demangle(const char* symbol) {
-    // int status;
-    // std::string result;
-    // char * demangled_name;
+    int status;
+    std::string result;
+    char * demangled_name;
 
-    // if ((demangled_name = abi::__cxa_demangle(symbol, NULL, 0, &status)) != NULL) {
-    //   result = demangled_name;
-    //   free(demangled_name);
-    // } else {
-    //   result = symbol;
-    // }
+    if ((demangled_name = abi::__cxa_demangle(symbol, NULL, 0, &status)) != NULL) {
+      result = demangled_name;
+      free(demangled_name);
+    } else {
+      result = symbol;
+    }
 
-    // return result;
-    return symbol;
+    return result;
+    //return symbol;
   }
-
 
   /* ------------------------------------------------------------------------ */
   void printBacktrace(int sig) {
     AKANTU_DEBUG_INFO("Caught  signal " << sig << "!");
 
-    void *array[10];
-    size_t size;
-    char **strings;
+    const size_t max_depth = 100;
+    size_t stack_depth;
+    void *stack_addrs[max_depth];
+    char **stack_strings;
+
     size_t i;
 
-    size = backtrace (array, 10);
-    strings = backtrace_symbols (array, size);
+    stack_depth = backtrace (stack_addrs, max_depth);
+    stack_strings = backtrace_symbols (stack_addrs, stack_depth);
 
-    std::cerr << "BACKTRACE :  " << size - 1 << " stack frames." <<std::endl;
+    std::cerr << "BACKTRACE :  " << stack_depth << " stack frames." <<std::endl;
+    size_t w = size_t(floor(log(stack_depth)/log(10)));
+
     /// -1 to remove the call to the printBacktrace function
-    for (i = 1; i < size; i++)
-      std::cerr << "   " << demangle(strings[i]) << std::endl;;
+    for (i = 0; i < stack_depth; i++) {
+      std::cerr << "  [" << std::setw(w) << i << "] ";
+      std::string bt_line(stack_strings[i]);
+      size_t first, second;
+      if((first = bt_line.find('(')) != std::string::npos && (second = bt_line.find('+')) != std::string::npos) {
+	std::cerr << bt_line.substr(0,first + 1) << demangle(bt_line.substr(first + 1, second - first - 1).c_str()) <<  bt_line.substr(second) << std::endl;
+      } else {
+	std::cerr << bt_line << std::endl;
+      }
+    }
 
-    free (strings);
-
+    free(stack_strings);
     std::cerr << "END BACKTRACE" << std::endl;
-
-    // int * segfault = NULL;
-    // *segfault = 0;
   }
 
   /* ------------------------------------------------------------------------ */
   /* ------------------------------------------------------------------------ */
-
   Debugger::Debugger() {
     cout = &std::cerr;
     level = dblInfo;
