@@ -30,7 +30,7 @@
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <fstream>
-
+#include <sstream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
@@ -52,12 +52,13 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
 
   const ElementType element_type = TYPE;
+  iohelper::ElemType ioh_type = getIOHelperType(element_type);
   UInt dim = Mesh::getSpatialDimension(element_type);
 
   /// load mesh
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
-  std::stringstream meshname_sstr; 
+  std::stringstream meshname_sstr;
   meshname_sstr << "test_material_viscoelastic_" << element_type << ".msh";
   mesh_io.read(meshname_sstr.str().c_str(), mesh);
 
@@ -113,21 +114,23 @@ int main(int argc, char *argv[])
   MaterialViscoElastic & mat = dynamic_cast<MaterialViscoElastic &>((model.getMaterial(0)));
   dumper.SetMode(iohelper::BASE64);
 
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates_damage_nl");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_3).values,
-			 iohelper::TRIANGLE1, model.getFEM().getMesh().getNbElement(_triangle_3), iohelper::C_MODE);
+  std::stringstream sstr; sstr << "test_material_viscoelastic_" << TYPE;
+
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, sstr.str());
+  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
+			 ioh_type, model.getFEM().getMesh().getNbElement(TYPE), iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
   dumper.AddNodeDataField(model.getVelocity().values, 2, "velocity");
   dumper.AddNodeDataField(model.getForce().values, 2, "force");
   dumper.AddNodeDataField(model.getMass().values, 1, "Mass");
   dumper.AddNodeDataField(model.getResidual().values, 2, "residual");
-  dumper.AddElemDataField(mat.getStrain(_triangle_3).values, 4, "strain");
-  dumper.AddElemDataField(mat.getStress(_triangle_3).values, 4, "stress");
+  dumper.AddElemDataField(mat.getStrain(TYPE).values, 4, "strain");
+  dumper.AddElemDataField(mat.getStress(TYPE).values, 4, "stress");
 
-//  Real * dam = mat.getHistoryIntegral(_triangle_3).values;
+//  Real * dam = mat.getHistoryIntegral(TYPE).values;
 //  dumper.AddElemDataField(dam, 4, "damage");
 
-  dumper.AddElemDataField(mat.getHistoryIntegral(_triangle_3).values, 4, "history");
+  dumper.AddElemDataField(mat.getHistoryIntegral(TYPE).values, 4, "history");
 
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("force", 1);

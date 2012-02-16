@@ -33,6 +33,8 @@
 extern const akantu::UInt spatial_dimension;
 
 /* ------------------------------------------------------------------------ */
+iohelper::ElemType getIOHelperType(akantu::ElementType type);
+/* -------------------------------------------------------------------------- */
 void paraviewInit(iohelper::Dumper & dumper,
 		  const akantu::SolidMechanicsModel & model,
 		  const akantu::ElementType & type,

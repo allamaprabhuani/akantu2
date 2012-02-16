@@ -52,7 +52,7 @@ template <> iohelper::ElemType getIOHelperType<_tetrahedron_4>()  { return iohel
 template <> iohelper::ElemType getIOHelperType<_tetrahedron_10>() { return iohelper::TETRA2; }
 template <> iohelper::ElemType getIOHelperType<_hexahedron_8>()   { return iohelper::HEX1; }
 
-static iohelper::ElemType getIOHelperType(ElementType type) {
+iohelper::ElemType getIOHelperType(ElementType type) {
   iohelper::ElemType ioh_type;
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = getIOHelperType<type>();
