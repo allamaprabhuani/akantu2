@@ -1,7 +1,7 @@
 /**
  * @file   material_viscoelastic.hh
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch> 
- * @date   Thu Feb 7 2012 
+ * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
+ * @date   Thu Feb 7 2012
  *
  * @brief  Material Visco-elastic
  *
@@ -34,19 +34,13 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 MaterialViscoElastic::MaterialViscoElastic(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id),
-  history_integral("history_integral", id),
-  stress_dev("stress_dev", id) {
+  stress_dev("stress_dev", id),
+  history_integral("history_integral", id) {
   AKANTU_DEBUG_IN();
-
-//  memset(stress_deviator, 0, 3 * 3 * sizeof(Real));
-//  memset(h, 0, 3 * 3 * sizeof(Real));
 
   eta = 1.;
   Ev  = 1.;
-//  for (UInt i = 0; i < spatial_dimension; ++i)
-//    for (UInt j = 0; j < spatial_dimension; ++j)
-//      h[i*3 + j] = 0.;
-  UInt spatial_dimension = this->model->getSpatialDimension();
+
   UInt stress_size = spatial_dimension * spatial_dimension;
 
   initInternalVector(this->stress_dev, stress_size);
@@ -70,120 +64,68 @@ void MaterialViscoElastic::initMaterial() {
 void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real Theta, tau = eta/Ev, K = E / ( 3 * (1 - 2*nu) );
-  Real e[3*3], s[3*3];
-  Real sigma[3*3];
+  Real tau = eta / Ev;
+  Real K = E / ( 3 * (1 - 2*nu) ); // kpa ?
 
-  Vector<Real> & stress_d  = stress_dev(el_type, ghost_type);
-  Vector<Real> & history_i = history_integral(el_type, ghost_type);
+  Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
+  Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Real * stress_d_val  = stress_d.storage();
-  Real * history_i_val = history_i.storage();
+  Vector<Real>::iterator<types::Matrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+
+
+  types::Matrix e(spatial_dimension, spatial_dimension);
+  types::Matrix s(spatial_dimension, spatial_dimension);
+  types::Matrix theta_sp(spatial_dimension, spatial_dimension);
+
   Real dt = model->getTimeStep();
+  Real exp_dt_thau = exp( -dt/tau );
+  Real exp_dt_thau_2 = exp( -.5*dt/tau );
 
+  /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(e, 0, 3 * 3 * sizeof(Real));
-  memset(s, 0, 3 * 3 * sizeof(Real));
-  memset(sigma, 0, 3 * 3 * sizeof(Real));
+
+  types::Matrix sigma(stress_val, spatial_dimension, spatial_dimension);
+  types::Matrix F(strain_val, spatial_dimension, spatial_dimension);
+
+  e.clear();
+  s.clear();
+  sigma.clear();
 
   /// Compute the first invariant of strain
-  Theta = 0;
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    Theta += strain_val[spatial_dimension * i + i];
+  Real Theta = F.trace();
 
-  /// Compute the deviator of strain
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      if (i == j)
-        e[3*i + j] = strain_val[spatial_dimension * i + j] - 1/double(spatial_dimension)*Theta;
-      else
-        e[3*i + j] = strain_val[spatial_dimension * i + j];
+  theta_sp.eye(1/double(spatial_dimension) * Theta);
 
-  /// Compute the deviator of stress
+  /// Compute the deviator of strain @f$ @f$
   for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-       s[3*i + j] = E / (1 + nu) * e[3*i + j];
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      e(i, j) = F(i, j) - theta_sp(i, j);
+      s(i, j) = E / (1 + nu) * e(i, j);
+    }
+
 
   /// Update the internal variable
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
-      history_i_val[spatial_dimension * i + j]  = exp( -dt/tau ) * history_i_val[spatial_dimension * i + j] + exp( -0.5*dt/tau ) * ( s[3*i + j] - stress_d_val[spatial_dimension*i + j]);
+      (*history_int)(i, j)  = exp_dt_thau * (*history_int)(i, j) + exp_dt_thau_2 * (s(i, j) - (*stress_d)(i, j));
 
+  Real alpha = 2./3. * K * Theta;
+  Real beta = 1. / ( Ev + E );
   for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)  
-      if (i == j)
-        sigma[3*i + j] = 2./3. * K * Theta + ( E * s[3*i + j] + Ev * history_i_val[spatial_dimension*i + j] ) / ( Ev + E );
-      else
-        sigma[3*i + j] = ( E * s[3*i + j] + Ev * history_i_val[spatial_dimension*i + j] ) / ( Ev + E );
-  
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      sigma(i, j) = (i == j) * alpha + beta * (E * s(i, j) + Ev * (*history_int)(i, j));
+
+
   /// Save the deviator of stress
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-       stress_d_val[spatial_dimension*i + j] = s[3*i + j];
+  stress_d->copy(s);
 
-//  computeStress(F, sigma);
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
-
-  stress_d_val += spatial_dimension * spatial_dimension;
-  history_i_val += spatial_dimension * spatial_dimension;
+  ++stress_d;
+  ++history_int;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-/*
-  UInt spatial_dimension = model->getSpatialDimension();
-
-  Vector<UInt> & elem_filter = element_filter  (el_type, ghost_type);
-  Vector<Real> & stress_visc = stress_viscosity(el_type, ghost_type);
-  Vector<Real> & stress_el   = stress_elastic  (el_type, ghost_type);
-  //mu       = E / (2 * (1 + nu));
-
-  MaterialElastic::computeStress(el_type, ghost_type);
-
-  Vector<Real> & velocity = model->getVelocity();
-  UInt nb_elem = element_filter(el_type, ghost_type).getSize();
-  UInt nb_quad_points_per_elem =
-    model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
-  UInt nb_quad_points = nb_quad_points_per_elem * nb_elem;
-
-  Vector<Real> strain_rate(nb_quad_points,
-			   spatial_dimension * spatial_dimension,
-			   "strain_rate");
-
-  model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
-   					     spatial_dimension,
-   					     el_type, ghost_type, &elem_filter);
-
-  Real F[3*3];
-  Real sigma[3*3];
-  Real * strain_rate_val = strain_rate.storage();
-  Real * stress_visc_val = stress_visc.storage();
-  Real * stress_el_val   = stress_el.storage();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_rate_val[spatial_dimension * i + j];
-
-  MaterialElastic::computeStress(F, sigma);
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-//      stress_visc_val[spatial_dimension * i + j]  = alpha * sigma[3 * i + j];
-      stress_el_val  [spatial_dimension * i + j]  = stress_val[spatial_dimension*i + j];
-//      stress_val     [spatial_dimension * i + j] += stress_visc_val[spatial_dimension*i + j];
-    }
-
-  strain_rate_val += spatial_dimension * spatial_dimension;
-//  stress_visc_val += spatial_dimension * spatial_dimension;
-  stress_el_val   += spatial_dimension * spatial_dimension;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-*/
   AKANTU_DEBUG_OUT();
 }
 
@@ -222,15 +164,14 @@ bool MaterialViscoElastic::setParam(const std::string & key, const std::string &
 
 /* -------------------------------------------------------------------------- */
 void MaterialViscoElastic::printself(std::ostream & stream, int indent) const {
-/*
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "MaterialViscoElastic [" << std::endl;
   MaterialElastic::printself(stream, indent + 1);
-  stream << space << " + artifical viscous ratio : " << alpha << std::endl;
+  stream << space << " + Eta : " << eta << std::endl;
+  stream << space << " + Ev  : " << Ev << std::endl;
   stream << space << "]" << std::endl;
-*/
 }
 /* -------------------------------------------------------------------------- */
 
