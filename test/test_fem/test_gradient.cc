@@ -32,9 +32,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <cstdlib>
-#include <fstream>
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "fem.hh"
 #include "mesh.hh"
@@ -42,7 +39,10 @@
 #include "mesh_io_msh.hh"
 #include "shape_lagrange.hh"
 #include "integrator_gauss.hh"
-
+/* -------------------------------------------------------------------------- */
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

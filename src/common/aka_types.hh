@@ -240,14 +240,36 @@ namespace types {
       return *this;
     };
 
+    /* ---------------------------------------------------------------------- */
     inline Vector & operator+=(const Vector & vect) {
-      T * a = this->values;
-      T * b = vect.values;
+      T * a = this->storage();
+      T * b = vect.storage();
       for (UInt i = 0; i < n; ++i) *(a++) += *(b++);
       return *this;
     };
 
+    /* ---------------------------------------------------------------------- */
+    inline Vector & operator-=(const Vector & vect) {
+      T * a = this->storage();
+      T * b = vect.storage();
+      for (UInt i = 0; i < n; ++i) *(a++) -= *(b++);
+      return *this;
+    };
 
+    /* ---------------------------------------------------------------------- */
+    inline Vector & operator*=(T & scalar) {
+      T * a = this->storage();
+      for (UInt i = 0; i < n; ++i) *(a++) *= scalar;
+      return *this;
+    };
+
+
+    /* ---------------------------------------------------------------------- */
+    inline Real dot(const Vector & vect) {
+      return Math::vectorDot(values, vect.storage(), vect.n);
+    }
+
+    /* ---------------------------------------------------------------------- */
     inline void clear() { memset(values, 0, n * sizeof(T)); };
 
     template<bool tr_A>
@@ -256,7 +278,12 @@ namespace types {
       Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
     }
 
-
+    /* ---------------------------------------------------------------------- */
+    inline Real norm() const {
+      return Math::norm(this->n, this->values);
+    }
+   
+    /* ---------------------------------------------------------------------- */
     /// norm of (*this - x)
     inline Real distance(const Vector & y) const {
       Real * vx = values; Real * vy = y.storage();

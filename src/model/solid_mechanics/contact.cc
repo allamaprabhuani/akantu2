@@ -36,6 +36,8 @@
 #include "contact_2d_explicit.hh"
 #include "contact_search_2d_explicit.hh"
 #include "contact_rigid.hh"
+/* -------------------------------------------------------------------------- */
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 

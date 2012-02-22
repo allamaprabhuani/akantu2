@@ -202,6 +202,21 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
+inline Real Math::vectorDot(const Real * v1, const Real * v2, UInt n) {
+#ifdef AKANTU_USE_BLAS
+  ///  d := v1 . v2
+  cblas_ddot(n, v1, 1, v2, 1);
+#else
+  Real d = 0;
+  for (UInt i = 0; i < n; ++i) {
+    d += v1[i] * v2[i];
+  }
+#endif
+  return d;
+}
+
+
+/* -------------------------------------------------------------------------- */
 template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
 			 Real alpha, const Real * A, const Real * B,
@@ -294,6 +309,16 @@ inline Real Math::norm2(const Real * vec) {
 inline Real Math::norm3(const Real * vec) {
   return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 }
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::norm(UInt n, const Real * vec) {
+  Real norm = 0.;
+  for (UInt i = 0; i < n; ++i) {
+    norm += vec[i]*vec[i];
+  }
+  return sqrt(norm);
+}
+
 
 /* -------------------------------------------------------------------------- */
 inline void Math::inv2(const Real * mat,Real * inv) {

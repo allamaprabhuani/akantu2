@@ -30,6 +30,8 @@
 #include "contact_search.hh"
 #include "contact_rigid.hh"
 #include "solid_mechanics_model.hh"
+/* -------------------------------------------------------------------------- */
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 

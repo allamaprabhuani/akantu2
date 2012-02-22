@@ -23,7 +23,9 @@ set(CORE_FILES
   model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
-  model/solid_mechanics/materials/material_non_local.cc
+  model/solid_mechanics/materials/material_cohesive/material_cohesive.cc
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
   model/solid_mechanics/materials/material_elastic.cc
   model/solid_mechanics/materials/material_elastic_caughey.cc
   model/solid_mechanics/materials/material_viscoelastic.cc
@@ -110,6 +112,9 @@ set(CORE_FILES
   model/integration_scheme/generalized_trapezoidal.hh
   model/integration_scheme/newmark-beta.hh
   model/integration_scheme/integration_scheme_1st_order.hh
+  model/solid_mechanics/materials/material_cohesive/material_cohesive.hh
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.hh
   model/solid_mechanics/materials/material_damage.hh
   model/solid_mechanics/materials/material_marigo.hh
   model/solid_mechanics/materials/material_marigo_non_local.hh

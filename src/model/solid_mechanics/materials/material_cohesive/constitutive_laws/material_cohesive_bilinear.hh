@@ -1,0 +1,106 @@
+/**
+ * @file   material_cohesive_bilinear.hh
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @date   Thu Feb 16 14:14:34 2012
+ *
+ * @brief  Bilinear cohesive constitutive law
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __AKANTU_MATERIAL_COHESIVE_BILINEAR_HH__
+#define __AKANTU_MATERIAL_COHESIVE_BILINEAR_HH__
+
+/* -------------------------------------------------------------------------- */
+
+#include "material_cohesive_linear.hh"
+#include "aka_common.hh"
+
+__BEGIN_AKANTU__
+
+/**
+ * Cohesive material bilinear
+ *
+ * parameters in the material files :
+ *   - delta_0   : elastic limit displacement (default: 0)
+ */
+
+class MaterialCohesiveBilinear : public MaterialCohesiveLinear {
+  /* ------------------------------------------------------------------------ */
+  /* Constructors/Destructors                                                 */
+  /* ------------------------------------------------------------------------ */
+public:
+  
+  MaterialCohesiveBilinear(Model & model, const ID & id = "");
+  virtual ~MaterialCohesiveBilinear();
+  
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  /// set patameters
+  virtual bool setParam(const std::string & key, const std::string & value,
+			const ID & id);
+
+  /// function to print the contain of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+
+  /// initialize the material computed parameter
+  virtual void initMaterial();
+
+  /// update delta_max values with delta_0
+  virtual void updateDeltaMax(GhostType ghost_type);
+
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+  
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
+protected:
+
+  /// elastic limit displacement
+  Real delta_0;
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+/* inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+
+//#include "material_cohesive_elastic_inline_impl.cc"
+
+/// standard output stream operator
+inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesiveBilinear & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
+
+
+__END_AKANTU__
+
+#endif /* __AKANTU_MATERIAL_COHESIVE_ELASTIC_HH__ */

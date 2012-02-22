@@ -318,16 +318,17 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define AKANTU_MATERIAL_LIST						\
-  ((elastic         , MaterialElastic       ))				\
-  ((viscoelastic    , MaterialViscoElastic       ))				\
-  ((elastic_caughey , MaterialElasticCaughey))				\
-  ((neohookean      , MaterialNeohookean    ))				\
-  ((damage_linear   , MaterialDamageLinear  ))                          \
-  ((marigo          , MaterialMarigo        ))				\
-  ((mazars          , MaterialMazars        ))				\
-  ((marigo_non_local, MaterialMarigoNonLocal))				\
-  ((mazars_non_local, MaterialMazarsNonLocal))
-
+  ((elastic          , MaterialElastic         ))			\
+  ((elastic_caughey  , MaterialElasticCaughey  ))			\
+  ((viscoelastic     , MaterialViscoElastic    ))			\
+  ((neohookean       , MaterialNeohookean      ))			\
+  ((damage_linear    , MaterialDamageLinear    ))			\
+  ((marigo           , MaterialMarigo          ))			\
+  ((mazars           , MaterialMazars          ))			\
+  ((marigo_non_local , MaterialMarigoNonLocal  ))			\
+  ((mazars_non_local , MaterialMazarsNonLocal  ))			\
+  ((cohesive_bilinear, MaterialCohesiveBilinear))			\
+  ((cohesive_linear  , MaterialCohesiveLinear  ))
 
 #if defined(__INTEL_COMPILER)
 #pragma warning ( push )
@@ -355,6 +356,11 @@ __END_AKANTU__
 
 #include "material_marigo_non_local.hh"
 #include "material_mazars_non_local.hh"
+
+// cohesive materials
+#include "material_cohesive.hh"
+#include "material_cohesive_linear.hh"
+#include "material_cohesive_bilinear.hh"
 
 #if defined(__INTEL_COMPILER)
 #pragma warning ( pop )

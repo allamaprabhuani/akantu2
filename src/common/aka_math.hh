@@ -153,11 +153,17 @@ public:
   /// return norm of a 3-vector
   static inline Real norm3(const Real * v);
 
+  /// return norm of a vector
+  static inline Real norm(UInt n, const Real * v);
+
   /// return the dot product between 2 vectors in 2d
   static inline Real vectorDot2(const Real * v1, const Real * v2);
 
   /// return the dot product between 2 vectors in 3d
   static inline Real vectorDot3(const Real * v1, const Real * v2);
+
+  /// return the dot product between 2 vectors
+  static __aka_inline__ Real vectorDot(const Real * v1, const Real * v2, UInt n);
 
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
