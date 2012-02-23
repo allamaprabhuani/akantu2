@@ -37,7 +37,7 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
 					       Vector<Real> & u,
 					       Vector<Real> & u_dot,
 					       Vector<Real> & u_dot_dot,
-					       Vector<bool> & boundary) {
+					       Vector<bool> & boundary) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -77,7 +77,7 @@ inline void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
 						    Vector<Real> & u_dot_dot,
 						    Vector<bool> & boundary,
 						    Vector<Real> & delta
-						    ) {
+						    ) const {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<_acceleration_corrector>(delta_t,
@@ -102,7 +102,7 @@ inline void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
 						    Vector<Real> & u_dot_dot,
 						    Vector<bool> & boundary,
 						    Vector<Real> & delta
-						    ) {
+						    ) const {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<_velocity_corrector>(delta_t,
@@ -127,7 +127,7 @@ inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
 						    Vector<Real> & u_dot_dot,
 						    Vector<bool> & boundary,
 						    Vector<Real> & delta
-						    ) {
+						    ) const {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<_displacement_corrector>(delta_t,
@@ -142,43 +142,43 @@ inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(__attribute__((unused)) Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_acceleration_corrector>(__attribute__((unused)) Real delta_t) const {
   return 1.;
 }
 template<>
-inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) const {
   return 1. / (beta * delta_t);
 }
 template<>
-inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getAccelerationCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) const {
   return 1. / (alpha * beta * delta_t * delta_t);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) const {
   return beta * delta_t;
 }
 template<>
-inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(__attribute__((unused)) Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_velocity_corrector>(__attribute__((unused)) Real delta_t) const {
   return 1.;
 }
 template<>
-inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getVelocityCoefficient<NewmarkBeta::_displacement_corrector>(Real delta_t) const {
   return 1. / (alpha * delta_t);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_acceleration_corrector>(Real delta_t) const {
   return alpha * beta * delta_t * delta_t;
 }
 template<>
-inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_velocity_corrector>(Real delta_t) const {
   return alpha * delta_t;
 }
 template<>
-inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(__attribute__((unused)) Real delta_t) {
+inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_corrector>(__attribute__((unused)) Real delta_t) const {
   return 1.;
 }
 
@@ -193,7 +193,7 @@ void NewmarkBeta::integrationSchemeCorr(Real delta_t,
 					Vector<Real> & u_dot_dot,
 					Vector<bool> & boundary,
 					Vector<Real> & delta
-					) {
+					) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();

@@ -60,21 +60,21 @@ public:
 				     Vector<Real> & u,
 				     Vector<Real> & u_dot,
 				     Vector<Real> & u_dot_dot,
-				     Vector<bool> & boundary) = 0;
+				     Vector<bool> & boundary) const = 0;
 
   virtual void integrationSchemeCorrDispl(Real delta_t,
 					  Vector<Real> & u,
 					  Vector<Real> & u_dot,
 					  Vector<Real> & u_dot_dot,
 					  Vector<bool> & boundary,
-					  Vector<Real> & delta) = 0;
+					  Vector<Real> & delta) const = 0;
 
   virtual void integrationSchemeCorrAccel(Real delta_t,
 					  Vector<Real> & u,
 					  Vector<Real> & u_dot,
 					  Vector<Real> & u_dot_dot,
 					  Vector<bool> & boundary,
-					  Vector<Real> & delta) = 0;
+					  Vector<Real> & delta) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

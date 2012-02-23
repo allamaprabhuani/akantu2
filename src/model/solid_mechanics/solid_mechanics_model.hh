@@ -404,6 +404,9 @@ public:
 
   inline FEM & getFEMBoundary(std::string name = "");
 
+  /// get integrator
+  AKANTU_GET_MACRO(Integrator, *integrator, const IntegrationScheme2ndOrder &);
+
 private:
   /// compute the stable time step
   Real getStableTimeStep(const GhostType & ghost_type);

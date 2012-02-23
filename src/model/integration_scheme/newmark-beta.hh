@@ -88,38 +88,38 @@ public:
 				    Vector<Real> & u,
 				    Vector<Real> & u_dot,
 				    Vector<Real> & u_dot_dot,
-				    Vector<bool> & boundary);
+				    Vector<bool> & boundary) const;
 
   inline void integrationSchemeCorrAccel(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
-					 Vector<Real> & delta);
+					 Vector<Real> & delta) const;
 
   inline void integrationSchemeCorrVeloc(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
-					 Vector<Real> & delta);
+					 Vector<Real> & delta) const;
 
   inline void integrationSchemeCorrDispl(Real delta_t,
 					 Vector<Real> & u,
 					 Vector<Real> & u_dot,
 					 Vector<Real> & u_dot_dot,
 					 Vector<bool> & boundary,
-					 Vector<Real> & delta);
+					 Vector<Real> & delta) const;
 
 public:
   template<IntegrationSchemeCorrectorType type>
-  Real getAccelerationCoefficient(Real delta_t);
+  Real getAccelerationCoefficient(Real delta_t) const;
 
   template<IntegrationSchemeCorrectorType type>
-  Real getVelocityCoefficient(Real delta_t);
+  Real getVelocityCoefficient(Real delta_t) const;
 
   template<IntegrationSchemeCorrectorType type>
-  Real getDisplacementCoefficient(Real delta_t);
+  Real getDisplacementCoefficient(Real delta_t) const;
 
 private:
   template<IntegrationSchemeCorrectorType type>
@@ -128,7 +128,7 @@ private:
 			     Vector<Real> & u_dot,
 			     Vector<Real> & u_dot_dot,
 			     Vector<bool> & boundary,
-			     Vector<Real> & delta);
+			     Vector<Real> & delta) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
