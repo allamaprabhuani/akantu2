@@ -44,7 +44,7 @@ class ShapeFunctions : protected Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  ShapeFunctions(Mesh & mesh,
+  ShapeFunctions(const Mesh & mesh,
 		 const ID & id = "shape",
 		 const MemoryID & memory_id = 0) :
     Memory(memory_id), mesh(&mesh),
@@ -125,7 +125,7 @@ public:
 private:
 
 protected:
-  Mesh * mesh;
+  const Mesh * mesh;
 
   ID id;
 

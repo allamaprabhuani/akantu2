@@ -33,6 +33,9 @@
 #include "integrator.hh"
 #include "shape_functions.hh"
 #include "shape_lagrange.hh"
+#include "shape_cohesive.hh"
+#include "integrator_gauss.hh"
+#include "integrator_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -128,6 +131,13 @@ public:
 
   /// pre-compute normals on control points
   void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost);
+  void computeNormalsOnControlPoints(const Vector<Real> & field,
+				     const GhostType & ghost_type = _not_ghost);
+  void computeNormalsOnControlPoints(const Vector<Real> & field,
+				     Vector<Real> & normal,
+				     const ElementType & type,
+				     const GhostType & ghost_type = _not_ghost) const;
+
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const{};

@@ -108,10 +108,9 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
 
   Int * eq_nb_val = dof_synchronizer.getGlobalDOFEquationNumbers().values;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (Mesh::getSpatialDimension(*it) != mesh.getSpatialDimension()) continue;
+  Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension());
+  Mesh::type_iterator end = mesh.lastType(mesh.getSpatialDimension());
+  for(; it != end; ++it) {
 
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);

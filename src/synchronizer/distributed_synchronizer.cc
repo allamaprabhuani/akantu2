@@ -128,12 +128,10 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /**
      * connectivity and communications scheme construction
      */
-    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
+    Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension());
+    Mesh::type_iterator end = mesh.lastType(mesh.getSpatialDimension());
+    for(; it != end; ++it) {
       ElementType type = *it;
-
-      if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
       UInt nb_element = mesh.getNbElement(*it);
@@ -622,8 +620,9 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
     if (gt == _ghost) set = GHOST_SET;
 
     std::fill_n(already_seen, nb_nodes, false);
-    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
+    Mesh::type_iterator it  = mesh.firstType(0, gt);
+    Mesh::type_iterator end = mesh.lastType(0, gt);
+    for(; it != end; ++it) {
       ElementType type = *it;
 
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);

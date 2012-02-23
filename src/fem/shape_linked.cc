@@ -78,9 +78,12 @@ void ShapeLinked::precomputeShapesOnControlPoints(const GhostType & ghost_type) 
 
     Real local_coord[spatial_dimension * nb_nodes_per_element];
     for (UInt elem = 0; elem < nb_element; ++elem) {
-      mesh->extractNodalCoordinatesFromElement(local_coord,
-					       elem_val+elem*nb_nodes_per_element,
-					       nb_nodes_per_element);
+      mesh->extractNodalValuesFromElement(mesh->getNodes(),
+					  local_coord,
+					  elem_val+elem*nb_nodes_per_element,
+					  nb_nodes_per_element,
+					  spatial_dimension);
+
       ElementClass<type>::computeShapes(natural_coords,
 					nb_points,
 					shapes_val, local_coord, s);
@@ -131,9 +134,11 @@ void ShapeLinked::precomputeShapeDerivativesOnControlPoints(const GhostType & gh
     Real * shapesd_val   = shapes_derivatives_tmp[s]->values;
     Real local_coord[spatial_dimension * nb_nodes_per_element];
     for (UInt elem = 0; elem < nb_element; ++elem) {
-      mesh->extractNodalCoordinatesFromElement(local_coord,
-					       elem_val+elem*nb_nodes_per_element,
-					       nb_nodes_per_element);
+      mesh->extractNodalValuesFromElement(mesh->getNodes(),
+					  local_coord,
+					  elem_val+elem*nb_nodes_per_element,
+					  nb_nodes_per_element,
+					  spatial_dimension);
 
       // compute shape derivatives
       ElementClass<type>::computeShapeDerivatives(natural_coords,

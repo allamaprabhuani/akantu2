@@ -181,41 +181,41 @@ namespace types {
   template<typename T>
   class Vector {
   public:
-    Vector() : n(0), values(NULL), wrapped(true) {};
+    Vector() : n(0), values(NULL), wrapped(true) {}
 
     Vector(UInt n, Real def = 0) : n(n), values(new T[n]), wrapped(false) {
       std::fill_n(values, n, def);
-    };
+    }
 
-    Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {};
+    Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {}
 
     Vector(const Vector & src) {
       n = src.n;
       values = src.values;
       wrapped = src.wrapped;
       const_cast<Vector &>(src).wrapped = true;
-    };
+    }
 
     virtual ~Vector() { if(!wrapped) delete [] values; };
 
     /* ---------------------------------------------------------------------- */
-    UInt size() const { return n; };
+    UInt size() const { return n; }
 
-    T * storage() const { return values; };
+    T * storage() const { return values; }
 
     void setStorage(T * values) {
       AKANTU_DEBUG_ASSERT(wrapped == true,
 			  "You should not change the pointed values "
 			  << "of this kind of vector.");
       this->values = values;
-    };
+    }
 
     void setSize(UInt size) {
       AKANTU_DEBUG_ASSERT(wrapped == true,
 			  "You should not change the pointed values "
 			  << "of this kind of vector.");
       this->n = size;
-    };
+    }
 
 
     /* ---------------------------------------------------------------------- */
@@ -238,7 +238,7 @@ namespace types {
 	}
       }
       return *this;
-    };
+    }
 
     /* ---------------------------------------------------------------------- */
     inline Vector & operator+=(const Vector & vect) {
@@ -246,7 +246,7 @@ namespace types {
       T * b = vect.storage();
       for (UInt i = 0; i < n; ++i) *(a++) += *(b++);
       return *this;
-    };
+    }
 
     /* ---------------------------------------------------------------------- */
     inline Vector & operator-=(const Vector & vect) {
@@ -254,15 +254,21 @@ namespace types {
       T * b = vect.storage();
       for (UInt i = 0; i < n; ++i) *(a++) -= *(b++);
       return *this;
-    };
+    }
 
     /* ---------------------------------------------------------------------- */
     inline Vector & operator*=(T & scalar) {
       T * a = this->storage();
       for (UInt i = 0; i < n; ++i) *(a++) *= scalar;
       return *this;
-    };
+    }
 
+    /* ---------------------------------------------------------------------- */
+    inline Vector & operator/=(Real x) {
+      T * a = this->values;
+      for (UInt i = 0; i < n; ++i) *(a++) /= x;
+      return *this;
+    }
 
     /* ---------------------------------------------------------------------- */
     inline Real dot(const Vector & vect) {
@@ -282,7 +288,7 @@ namespace types {
     inline Real norm() const {
       return Math::norm(this->n, this->values);
     }
-   
+
     /* ---------------------------------------------------------------------- */
     /// norm of (*this - x)
     inline Real distance(const Vector & y) const {
@@ -304,7 +310,7 @@ namespace types {
 	stream << values[i] << " ";
       }
       stream << "|" << std::endl;
-    };
+    }
 
     friend class ::akantu::Vector<T>;
   protected:

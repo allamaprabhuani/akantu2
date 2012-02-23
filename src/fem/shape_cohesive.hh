@@ -29,6 +29,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "aka_vector.hh"
+#include "shape_functions.hh"
 #include "shape_lagrange.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -38,13 +39,13 @@
 
 __BEGIN_AKANTU__
 
-class CohesiveReduceFunctionMean {
+struct CohesiveReduceFunctionMean {
   inline Real operator()(Real u_plus, Real u_minus) {
     return .5*(u_plus + u_minus);
   }
 };
 
-class CohesiveReduceFunctionOpening {
+struct CohesiveReduceFunctionOpening {
   inline Real operator()(Real u_plus, Real u_minus) {
     return (u_plus - u_minus);
   }
@@ -53,15 +54,17 @@ class CohesiveReduceFunctionOpening {
 
 
 template <class ShapeFunction>
-class ShapeCohesive {
+class ShapeCohesive : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  ShapeCohesive();
+  ShapeCohesive(const Mesh & mesh,
+		const ID & id = "shape_cohesive",
+		const MemoryID & memory_id = 0);
 
-  virtual ~ShapeCohesive();
+  virtual ~ShapeCohesive() { if(sub_type_shape_function) delete sub_type_shape_function; };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -81,8 +84,18 @@ public:
   void interpolateOnControlPoints(const Vector<Real> &u,
 				  Vector<Real> &uq,
 				  UInt nb_degree_of_freedom,
-				  GhostType ghost_type = _not_ghost,
+				  const GhostType ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
+
+  template <ElementType type>
+  void interpolateOnControlPoints(const Vector<Real> &u,
+				  Vector<Real> &uq,
+				  UInt nb_degree_of_freedom,
+				  const GhostType ghost_type = _not_ghost,
+				  const Vector<UInt> * filter_elements = NULL) const {
+    interpolateOnControlPoints<type, CohesiveReduceFunctionMean>(u, uq, nb_degree_of_freedom, ghost_type, filter_elements);
+  };
+
 
   /// compute the gradient of u on the control points
   template <ElementType type, class ReduceFunction>
@@ -92,19 +105,31 @@ public:
 				GhostType ghost_type = _not_ghost,
 				const Vector<UInt> * filter_elements = NULL) const;
 
+  template <ElementType type, class ReduceFunction>
+  void computeNormalsOnControlPoints(const Vector<Real> &u,
+				     Vector<Real> &normals_u,
+				     GhostType ghost_type = _not_ghost,
+				     const Vector<UInt> * filter_elements = NULL) const;
+
   /// multiply a field by shape functions
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
 			Vector<Real> & fiedl_times_shapes,
-			GhostType ghost_type) const;
+			GhostType ghost_type) const { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  const Vector<Real> & getShapes(const ElementType & type,
+				 GhostType ghost_type = _not_ghost) const;
+
+  const Vector<Real> & getShapesDerivatives(const ElementType & type,
+					    GhostType ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -112,7 +137,7 @@ public:
 private:
 
   /// real shape function implementation
-  ShapeFunction sub_type_shape_function;
+  ShapeFunction * sub_type_shape_function;
 };
 
 
@@ -122,7 +147,7 @@ typedef ShapeCohesive<ShapeLagrange> ShapeCohesiveLagrange;
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "shape_cohesive_inline_impl.cc"
+#include "shape_cohesive_inline_impl.cc"
 
 /// standard output stream operator
 template <class ShapeFunction>

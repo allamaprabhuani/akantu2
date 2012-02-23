@@ -431,18 +431,18 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   outfile << "$Elements" << std::endl;;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
+  Mesh::type_iterator it  = mesh.firstType();
+  Mesh::type_iterator end = mesh.lastType();
 
   Int nb_elements = 0;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  for(; it != end; ++it) {
     const Vector<UInt> & connectivity = mesh.getConnectivity(*it, _not_ghost);
     nb_elements += connectivity.getSize();
   }
   outfile << nb_elements << std::endl;
 
   UInt element_idx = 1;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  for(it  = mesh.firstType(); it != end; ++it) {
     ElementType type = *it;
     const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 

@@ -62,10 +62,9 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 
   Vector<Real> rho_1(0,1);
 
-  const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != end; ++it) {
     ElementType type = *it;
 
     computeRho(rho_1, type, ghost_type);
@@ -109,10 +108,9 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   //UInt nb_element;
   mass_matrix->clear();
 
-  const Mesh::ConnectivityTypeList & type_list = fem.getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != end; ++it) {
     ElementType type = *it;
 
     computeRho(rho_1, type, ghost_type);

@@ -58,12 +58,10 @@ void MaterialDamageLinear::initMaterial() {
   Epsmax = 2 * Gc/ Sigc + Epsmin;
 
   const Mesh&mesh=model->getFEM().getMesh() ;
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if (Mesh::getSpatialDimension(*it)!=mesh.getSpatialDimension() )
-      continue ;
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
+  for(; it != end; ++it) {
     UInt nb_element  = mesh.getNbElement(*it);
     UInt nb_quad = model->getFEM().getNbQuadraturePoints(*it);
     Vector <Real> & K_vec = K(*it);

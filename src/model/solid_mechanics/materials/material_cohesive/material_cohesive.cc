@@ -75,6 +75,8 @@ void MaterialCohesive::initMaterial() {
 
   Material::initMaterial();
 
+  fem_cohesive = &(model->getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
+
   resizeInternalVector(reversible_energy);
   resizeInternalVector(total_energy);
   resizeInternalVector(tractions_old);
@@ -149,10 +151,10 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     Real * shapes_filtered_val = shapes_filtered->values;
 
     for (UInt el = 0; el < nb_element; ++el) {
-      shapes_val = shapes.storage() + elem_filter_val[el] * 
+      shapes_val = shapes.storage() + elem_filter_val[el] *
 	size_of_shapes * nb_quadrature_points;
       memcpy(shapes_filtered_val, shapes_val,
-             size_of_shapes * nb_quadrature_points * sizeof(Real));
+	     size_of_shapes * nb_quadrature_points * sizeof(Real));
       shapes_filtered_val += size_of_shapes * nb_quadrature_points;
     }
 
@@ -235,15 +237,58 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
 			"normal");
 
     /// compute normals @f$\mathbf{n}@f$
-    //    computeNormal(normal, *it, ghost_type);
+    computeNormal(model->getCurrentPosition(), normal, *it, ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
-    //    computeOpening(opening, *it, ghost_type);
+    computeOpening(model->getDisplacement(), opening(*it, ghost_type), *it, ghost_type);
 
     /// compute traction @f$\mathbf{t}@f$
     computeTraction(normal, *it, ghost_type);
 
   }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesive::computeNormal(const Vector<Real> & position,
+				     Vector<Real> & normal,
+				     ElementType type,
+				     GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+#define COMPUTE_NORMAL(type)						\
+  fem_cohesive->getShapeFunctions().					\
+    computeNormalsOnControlPoints<type, CohesiveReduceFunctionMean>(position, \
+								    normal, \
+								    ghost_type,	\
+								    &(element_filter(type, ghost_type)))
+
+  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
+#undef COMPUTE_NORMAL
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesive::computeOpening(const Vector<Real> & displacement,
+				      Vector<Real> & opening,
+				      ElementType type,
+				      GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+#define COMPUTE_OPENING(type)						\
+  fem_cohesive->getShapeFunctions().					\
+    interpolateOnControlPoints<type, CohesiveReduceFunctionOpening>(displacement, \
+								    opening, \
+								    spatial_dimension, \
+								    ghost_type, \
+								    &(element_filter(type, ghost_type)))
+
+  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_OPENING);
+#undef COMPUTE_OPENING
 
   AKANTU_DEBUG_OUT();
 }
@@ -286,8 +331,8 @@ void MaterialCohesive::computeEnergies() {
 
       types::RVector h(spatial_dimension);
       h  = *traction_old_it;
-      h += *traction_it;      
-      
+      h += *traction_it;
+
       *etot += .5 * b.dot(h);
       *erev  = .5 * traction_it->dot(*opening_it);
     }
@@ -309,7 +354,7 @@ Real MaterialCohesive::getReversibleEnergy() {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
     erev += model->getFEM().integrate(reversible_energy(*it, _not_ghost), *it,
-                                      _not_ghost, &element_filter(*it, _not_ghost));
+				      _not_ghost, &element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -329,7 +374,7 @@ Real MaterialCohesive::getDissipatedEnergy() {
     Vector<Real> dissipated_energy(total_energy(*it));
     dissipated_energy -= reversible_energy(*it);
     edis += model->getFEM().integrate(dissipated_energy(*it), *it,
-                                      _not_ghost, &element_filter(*it));
+				      _not_ghost, &element_filter(*it));
   }
 
   AKANTU_DEBUG_OUT();

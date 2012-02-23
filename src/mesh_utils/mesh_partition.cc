@@ -241,12 +241,11 @@ void MeshPartition::fillPartitionInformations(const Mesh & mesh,
   // UInt * node_offset_val = node_offset.values;
   // UInt * node_index_val = node_index.values;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
+  for(; it != end; ++it) {
   UInt linearized_el = 0;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);

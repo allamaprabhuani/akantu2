@@ -32,6 +32,9 @@
 #include "aka_common.hh"
 #include "shape_lagrange.hh"
 #include "shape_linked.hh"
+
+#include "shape_cohesive.hh"
+#include "integrator_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 
@@ -109,18 +112,12 @@ void FEMTemplate<Integ,Shape>::initShapeFunctions(const GhostType & ghost_type) 
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh->getSpatialDimension();
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-
-  for(it = type_list.begin();
-      it != type_list.end();
-      ++it) {
-
+  Mesh::type_iterator it  = mesh->firstType(element_dimension, ghost_type);
+  Mesh::type_iterator end = mesh->lastType(element_dimension, ghost_type);
+  for(; it != end; ++it) {
     ElementType type = *it;
 
 #define INIT_SHAPE_FUNCTIONS(type)					\
-    if (element_dimension != ElementClass<type>::getSpatialDimension()) \
-      continue;								\
     integrator.template computeQuadraturePoints<type>(ghost_type);	\
     integrator.								\
       template precomputeJacobiansOnQuadraturePoints<type>(ghost_type);	\
@@ -325,6 +322,18 @@ template <typename Integ, typename Shape>
 void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
+  computeNormalsOnControlPoints(mesh->getNodes(),
+				ghost_type);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const Vector<Real> & field,
+							     const GhostType & ghost_type) {
+  AKANTU_DEBUG_IN();
+
   if (ghost_type == _ghost) { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   //  Real * coord = mesh->getNodes().values;
@@ -334,51 +343,60 @@ void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const GhostType & g
   mesh->initByElementTypeVector(normals_on_quad_points, spatial_dimension, element_dimension);
 
   //loop over the type to build the normals
-  const Mesh::ConnectivityTypeList & type_list = mesh->getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
+  Mesh::type_iterator it  = mesh->firstType(element_dimension, ghost_type);
+  Mesh::type_iterator end = mesh->lastType(element_dimension, ghost_type);
+  for(; it != end; ++it) {
+    Vector<Real> & normals_on_quad = normals_on_quad_points(*it, ghost_type);
+    computeNormalsOnControlPoints(field, normals_on_quad, *it, ghost_type);
+  }
 
-  for(it = type_list.begin();
-      it != type_list.end();
-      ++it) {
+  AKANTU_DEBUG_OUT();
+}
 
-    ElementType type = *it;
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+void FEMTemplate<Integ,Shape>::computeNormalsOnControlPoints(const Vector<Real> & field,
+							     Vector<Real> & normal,
+							     const ElementType & type,
+							     const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
 
-    UInt element_type_spatial_dimension = Mesh::getSpatialDimension(type);
+  if (ghost_type == _ghost) { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
-    if(element_type_spatial_dimension != element_dimension) continue;
+  UInt spatial_dimension = mesh->getSpatialDimension();
+  UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
+  UInt nb_quad_points = getQuadraturePoints(type, ghost_type).getSize();
+  UInt * elem_val = mesh->getConnectivity(type, ghost_type).storage();
+  UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();
 
-    UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
-    UInt nb_quad_points = getQuadraturePoints(type, ghost_type).getSize();
-    UInt * elem_val = mesh->getConnectivity(type, ghost_type).values;
-    UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();
-
-    Vector<Real> & normals_on_quad = normals_on_quad_points(type, ghost_type);
-    normals_on_quad.resize(nb_element * nb_quad_points);
-    Real * normals_on_quad_val  =  normals_on_quad.storage();
+  normal.resize(nb_element * nb_quad_points);
+  Real * normals_on_quad_val  =  normal.storage();
 
     /* ---------------------------------------------------------------------- */
 #define COMPUTE_NORMALS_ON_QUAD(type)					\
-    do {								\
-      const Vector<Real> & quads =					\
-	integrator. template getQuadraturePoints<type>(ghost_type);	\
-      UInt nb_points = quads.getSize();					\
-      Real local_coord[spatial_dimension * nb_nodes_per_element];	\
-      for (UInt elem = 0; elem < nb_element; ++elem) {			\
-	mesh->extractNodalCoordinatesFromElement(local_coord,		\
-						 elem_val+elem*nb_nodes_per_element, \
-						 nb_nodes_per_element);	\
-	ElementClass<type>::computeNormalsOnQuadPoint(local_coord,      \
-						  spatial_dimension,	\
-						  normals_on_quad_val);	\
-	normals_on_quad_val += spatial_dimension*nb_points;	 	\
-      }									\
-    } while(0)
-    /* ---------------------------------------------------------------------- */
+  do {									\
+    const Vector<Real> & quads =					\
+      integrator. template getQuadraturePoints<type>(ghost_type);	\
+    UInt nb_points = quads.getSize();					\
+    Real local_coord[spatial_dimension * nb_nodes_per_element];		\
+    for (UInt elem = 0; elem < nb_element; ++elem) {			\
+      mesh->extractNodalValuesFromElement(field,			\
+					  local_coord,			\
+					  elem_val+elem*nb_nodes_per_element, \
+					  nb_nodes_per_element,		\
+					  spatial_dimension);		\
+      									\
+      ElementClass<type>::computeNormalsOnQuadPoint(local_coord,	\
+						    spatial_dimension,	\
+						    normals_on_quad_val); \
+      normals_on_quad_val += spatial_dimension*nb_points;	 	\
+    }									\
+  } while(0)
+  /* ---------------------------------------------------------------------- */
 
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD);
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD);
 #undef COMPUTE_NORMALS_ON_QUAD
 
-  }
   AKANTU_DEBUG_OUT();
 }
 
@@ -565,7 +583,7 @@ assembleLumpedTemplate<_tetrahedron_10>(const Vector<Real> & field_1,
 /* -------------------------------------------------------------------------- */
 template <>
 template <>
-void 
+void
 FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_quadrangle_8>(const Vector<Real> & field_1,
 										  UInt nb_degree_of_freedom,
 										  Vector<Real> & lumped,
@@ -741,11 +759,26 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
   AKANTU_DEBUG_OUT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+template <>
+void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
+gradientOnQuadraturePoints(const Vector<Real> &u,
+			   Vector<Real> &nablauq,
+			   const UInt nb_degree_of_freedom,
+			   const ElementType & type,
+			   const GhostType & ghost_type,
+			   const Vector<UInt> * filter_elements) const {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+}
+
+
 /* -------------------------------------------------------------------------- */
 /* template instanciation                                                     */
 /* -------------------------------------------------------------------------- */
 
 template class FEMTemplate<IntegratorGauss,ShapeLagrange>;
 template class FEMTemplate<IntegratorGauss,ShapeLinked>;
+template class FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >;
 
 __END_AKANTU__

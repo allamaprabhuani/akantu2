@@ -33,6 +33,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+template<class Shape>
+class ShapeCohesive;
+
 
 class ShapeLagrange : public ShapeFunctions{
   /* ------------------------------------------------------------------------ */
@@ -40,7 +43,7 @@ class ShapeLagrange : public ShapeFunctions{
   /* ------------------------------------------------------------------------ */
 public:
 
-  ShapeLagrange(Mesh & mesh,
+  ShapeLagrange(const Mesh & mesh,
 		const ID & id = "shape_lagrange",
 		const MemoryID & memory_id = 0);
   virtual ~ShapeLagrange(){};
@@ -109,7 +112,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
+  friend class ShapeCohesive<ShapeLagrange>;
   /// shape functions for all elements
   ByElementTypeReal shapes;
 

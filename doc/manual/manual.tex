@@ -47,9 +47,11 @@
 
 \tableofcontents
 
-\chapter{Data structures\label{chap:data-structure}}
+\chapter{Introduction}
 
-\section{Vectors\label{sec:vectors}}
+\section{Data structures\label{chap:data-structure}}
+
+\subsection{Vectors\label{sec:vectors}}
 
 The Vector class is a template class  that can store scalar types as Real, UInt,
 Int  or bool.   A Vector  instance is  defined  by its  size and  its number  of
@@ -80,7 +82,7 @@ exemple if you want to store a m * k matrix on each tuple you must specify c = m
 * k.  To access a particular value  in a matrix of  a tuple you will  have to do
 something like $values[ i * m * k + j_i * m + j_j]$.
 
-\section{Vector storage convention within FE object\label{sec:FE-convention}}
+\subsubsection{Vector storage convention within FE object\label{sec:FE-convention}}
 
 The point of  this section is to describe the convention  of storage for vectors
 intented  to be  passed to  {\bf  FE} object  methods.  Indeed  a convention  of
@@ -118,25 +120,26 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
 {\bf The general convention is that  the number of component shall always be the
   size of  the object manipulated  at the lowest  level.  The object could  be a
   per-element, of  per quadrature point  or even per  node basis this  will also
-  apply as shown below. The figures \ref{fig:vector-chain} and \ref{fig:interpolate-storage} shows the pattern of
-  the vectors is the case a interpolation on quadrature points.}
+  apply    as   shown    below.   The    figures    \ref{fig:vector-chain}   and
+  \ref{fig:interpolate-storage} shows the  pattern of the vectors is  the case a
+  interpolation on quadrature points.}
 
 \begin{figure}
   \begin{equation}
     \left(
       \begin{array}{c}
-        N_1 \\
-        \vdots \\
-        N_I
-        \left\{
-          \begin{array}{c}
-            a_1 \\
-            \vdots \\
-            a_{dim} \\
-          \end{array}
-        \right. \\
-        \vdots \\
-        N_{nb\_nodes}
+	N_1 \\
+	\vdots \\
+	N_I
+	\left\{
+	  \begin{array}{c}
+	    a_1 \\
+	    \vdots \\
+	    a_{dim} \\
+	  \end{array}
+	\right. \\
+	\vdots \\
+	N_{nb\_nodes}
       \end{array}
     \right)
     \begin{array}{c}
@@ -148,26 +151,26 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
     \end{array}
     \left(
       \begin{array}{c}
-        E_1 \\
-        \vdots \\
-        E_e
-        \left\{
-          \begin{array}{c}
-            q_1 \\
-            \vdots \\
-            \left.
-              \begin{array}{c}
-                a_1 \\
-                \vdots \\
-                a_{dim}
-              \end{array}
-            \right\} q_i \\
-            \vdots \\
-            q_p \\
-          \end{array}
-        \right.  \\
-        \vdots \\
-        E_{nb\_elements}
+	E_1 \\
+	\vdots \\
+	E_e
+	\left\{
+	  \begin{array}{c}
+	    q_1 \\
+	    \vdots \\
+	    \left.
+	      \begin{array}{c}
+		a_1 \\
+		\vdots \\
+		a_{dim}
+	      \end{array}
+	    \right\} q_i \\
+	    \vdots \\
+	    q_p \\
+	  \end{array}
+	\right.  \\
+	\vdots \\
+	E_{nb\_elements}
       \end{array}
     \right)
   \end{equation}
@@ -180,12 +183,13 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
   \centering
   \includegraphics{figures/interpolate}
   \caption{Input and output  vector of interpolateOnQuadraturePoints. The output
-    Vector has nb\_quadrature\_points tuples, the quadrature points are grouped by
-    elements (p is the number of quadrature points per element).}
+    Vector has nb\_quadrature\_points tuples,  the quadrature points are grouped
+    by elements (p is the number of quadrature points per element).}
   \label{fig:interpolate-storage}
 \end{figure}
 
-\chapter{Models}
+
+\chapter{How to use Akantu}
 
 \section{Solid Mechanics model}
 
@@ -195,67 +199,106 @@ object   to   do  the   interpolation,   gradient,   integration  and   assemble
 operations. This model contain some Vectors that we will describe now.
 
 \begin{itemize}
-\item displacement
+\item[Displacement] contain the  displacements of the free degrees  of freedom or
+  the imposed displacements for the blocked degrees of freedom.
+\item[Velocity] contain the velocities of  the degree of freedoms, acts like the
+  displacement vector
+\item[Acceleration] contain  the accelerations of  the degree of  freedoms, acts
+  like the displacement vector
+\item[Force] contain the external forces applied on the different nodes.
 \end{itemize}
 
+\subsection{Resolution methods}
+\subsubsection{Implicit static}
 
-\subsection{Contact Neighbor Structure}
+\subsubsection{Implicit dynamic}
 
-The contact neighbor structure is an interface which is ment to be heritated from in order to implement different type of contact neighbor structures. It has the following protected attributes:
-\begin{itemize}
-  \item id
-  \item contact search
-  \item master surface
-  \item neighbor list
-  \item type
-\end{itemize}
-The \emph{id} and the \emph{type} are characteristics of the contact neighcor structure object which define its id and its type. The \emph{contact search} attribute is the associated contact search object to the given contact neighbor structure object. The \emph{master surface} attribute is the id of the associated master surface for which the neighbor structure has to be built. Finally, the neighbor list is the constructed neighbor structure which defines the impactor nodes that are in the neighborhood of either a given master node or a given master surface element, depending on the type of contact neighbor structure.
+\subsubsection{Explicit}
 
-The contact neighbor structure provides the accessor \emph{getNeighborList} to the constructed neighbor list and forces the heritated classes to provide a public \emph{initNeighborStructure} function, which initializes the neighbor structure, as well as a public \emph{update} function, which updates the neighbor structure.
+\subsection{Constitutive laws}
+\subsection{}
+\subsection{Contact}
 
-\subsubsection{Regular Grid Neighbor Structure}
-
-The regular grid neighbor structure builds a regular grid around the master surface and uses it in order to construct the neighbor list. This neighbor structure can construct both types of neighbor list, the 
+\subsection{Cohesive laws}
 
 
-\subsection{Implementation of a new solid mechanics problem}
+\section{Structural Mechanics model}
 
-Let us imagine you want to implement a new material called
-"toto" in akantu. The have to complete the following steps (in
-any order) : 
-\begin{enumerate}
-\item
-Declare a new material in the file
-     \textit{Akantu/model/solid\_mechanics/solid\_mechanics\_model\_material.cc}.
-You have to had this line after the list of possible cases   
-\begin{verbatim}else if(mat\_type == "toto") material =
-     parser.readMaterialObject<MaterialToto>(*this,mat_id);
-\end{verbatim}
+\section{Heat Transfer model}
+
+% \subsection{Contact Neighbor Structure}
+
+% The contact neighbor  structure is an interface which is  ment to be heritated
+% from in order  to implement different type of  contact neighbor structures. It
+% has the following protected attributes:
+% \begin{itemize}
+%   \item id
+%   \item contact search
+%   \item master surface
+%   \item neighbor list
+%   \item type
+% \end{itemize}
+% The \emph{id} and the \emph{type}  are characteristics of the contact neighcor
+% structure object which  define its id and its  type. The \emph{contact search}
+% attribute  is  the associated  contact  search  object  to the  given  contact
+% neighbor structure  object. The \emph{master  surface} attribute is the  id of
+% the  associated master  surface for  which the  neighbor structure  has  to be
+% built. Finally, the neighbor list  is the constructed neighbor structure which
+% defines the  impactor nodes  that are  in the neighborhood  of either  a given
+% master  node or  a given  master  surface element,  depending on  the type  of
+% contact neighbor structure.
+
+% The contact neighbor structure provides the accessor \emph{getNeighborList} to
+% the constructed  neighbor list and forces  the heritated classes  to provide a
+% public \emph{initNeighborStructure}  function, which initializes  the neighbor
+% structure,  as well  as a  public  \emph{update} function,  which updates  the
+% neighbor structure.
+
+% \subsubsection{Regular Grid Neighbor Structure}
+
+% The regular  grid neighbor structure builds  a regular grid  around the master
+% surface and  uses it in  order to construct  the neighbor list.  This neighbor
+% structure can construct both types of neighbor list, the
 
 
-\item
-Include the new material in \textit{Akantu/model/solid\_mechanics/material.hh} \\
-add the line :
-\begin{verbatim}
-#include "materials/material\_toto.hh"
-\end{verbatim}
+% \subsection{Implementation of a new solid mechanics problem}
 
-\item
-For compilation include the new file to compile in
-     \textit{Akantu/CMakelist.txt} by adding 
-\begin{verbatim}
-model/solid_mechanics/materials/material_toto.cc 
-\end{verbatim}
-\item
-In \textit{Akantu/model/solid\_mechanics/materials}, create (or copy from
-     an allready existing material) the three following files :\\
-- material\_toto.cc\\
-- material\_toto.hh\\
-- material\_toto\_inline\_impl.cc
+% Let us imagine you want to implement a new material called
+% "toto" in akantu. The have to complete the following steps (in
+% any order) :
+% \begin{enumerate}
+% \item
+% Declare a new material in the file
+%      \textit{Akantu/model/solid\_mechanics/solid\_mechanics\_model\_material.cc}.
+% You have to had this line after the list of possible cases
+% \begin{verbatim}else if(mat\_type == "toto") material =
+%      parser.readMaterialObject<MaterialToto>(*this,mat_id);
+% \end{verbatim}
 
-\item
-Modify the files !
 
-\end{enumerate}
+% \item
+% Include the new material in \textit{Akantu/model/solid\_mechanics/material.hh} \\
+% add the line :
+% \begin{verbatim}
+% #include "materials/material\_toto.hh"
+% \end{verbatim}
+
+% \item
+% For compilation include the new file to compile in
+%      \textit{Akantu/CMakelist.txt} by adding
+% \begin{verbatim}
+% model/solid_mechanics/materials/material_toto.cc
+% \end{verbatim}
+% \item
+% In \textit{Akantu/model/solid\_mechanics/materials}, create (or copy from
+%      an allready existing material) the three following files :\\
+% - material\_toto.cc\\
+% - material\_toto.hh\\
+% - material\_toto\_inline\_impl.cc
+
+% \item
+% Modify the files !
+
+% \end{enumerate}
 
 \end{document}

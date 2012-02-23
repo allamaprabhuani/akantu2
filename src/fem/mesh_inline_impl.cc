@@ -284,6 +284,24 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline ElementKind Mesh::getKind(const ElementType & type) {
+  AKANTU_DEBUG_IN();
+
+  ElementKind kind = _ek_not_defined;
+#define GET_KIND(type)				\
+  kind = ElementClass<type>::getKind()
+
+  AKANTU_BOOST_ELEMENT_SWITCH(GET_KIND,
+			      AKANTU_REGULAR_ELEMENT_TYPE,
+			      GET_KIND,
+			      AKANTU_COHESIVE_ELEMENT_TYPE);
+#undef GET_KIND
+
+  AKANTU_DEBUG_OUT();
+  return kind;
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getSpatialDimension(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
@@ -377,15 +395,29 @@ inline UInt ** Mesh::getFacetLocalConnectivity(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
-						     UInt * connectivity,
-						     UInt n_nodes){
+template<typename T>
+inline void Mesh::extractNodalValuesFromElement(const Vector<T> & nodal_values,
+						T * local_coord,
+						UInt * connectivity,
+						UInt n_nodes,
+						UInt nb_degree_of_freedom) const {
   for (UInt n = 0; n < n_nodes; ++n) {
-    memcpy(local_coord + n * spatial_dimension,
-	   nodes->values + connectivity[n] * spatial_dimension,
-	   spatial_dimension * sizeof(Real));
+    memcpy(local_coord + n * nb_degree_of_freedom,
+	   nodal_values.storage() + connectivity[n] * nb_degree_of_freedom,
+	   nb_degree_of_freedom * sizeof(T));
   }
 }
+
+/* -------------------------------------------------------------------------- */
+// inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
+// 						     UInt * connectivity,
+// 						     UInt n_nodes){
+//   for (UInt n = 0; n < n_nodes; ++n) {
+//     memcpy(local_coord + n * spatial_dimension,
+// 	   nodes->values + connectivity[n] * spatial_dimension,
+// 	   spatial_dimension * sizeof(Real));
+//   }
+// }
 
 /* -------------------------------------------------------------------------- */
 #define DECLARE_GET_BOUND(Var, var)                               \

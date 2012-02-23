@@ -40,7 +40,7 @@ class Integrator : protected Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Integrator(Mesh & mesh,
+  Integrator(const Mesh & mesh,
 	     const ID & id="integrator",
 	     const MemoryID & memory_id = 0) :
     Memory(memory_id),
@@ -89,7 +89,7 @@ public:
 
 
 protected:
-  Mesh * mesh;
+  const Mesh * mesh;
 
   ID id;
 

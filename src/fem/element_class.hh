@@ -175,7 +175,7 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
+  static AKANTU_GET_MACRO_NOT_CONST(Kind, kind, ElementKind);
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement, nb_nodes_per_element, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, p1_element_type, ElementType);
   static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
@@ -198,6 +198,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+
+  /// Kind of element
+  static ElementKind kind;
 
   /// Number of nodes per element
   static UInt nb_nodes_per_element;

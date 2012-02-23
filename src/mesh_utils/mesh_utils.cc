@@ -585,10 +585,9 @@ void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_su
   UInt  nb_facet_types = 0;
   ElementType facet_type[_max_element_type];
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(mesh.getSpatialDimension(*it) != spatial_dimension) continue;
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
+  for(; it != end; ++it) {
     facet_type[nb_facet_types++] = mesh.getFacetElementType(*it);
   }
 

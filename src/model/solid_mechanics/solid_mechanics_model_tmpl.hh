@@ -70,10 +70,11 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
   Vector<Real> quad_coords(0, spatial_dimension, "quad_coords");
 
   //prepare the loop over element types
-  const Mesh::ConnectivityTypeList & type_list = getFEMBoundary().getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != getFEMBoundary().getElementDimension()) continue;
+  Mesh::type_iterator it  = getFEMBoundary().getMesh().firstType(getFEMBoundary().getElementDimension(),
+								 ghost_type);
+  Mesh::type_iterator end = getFEMBoundary().getMesh().lastType(getFEMBoundary().getElementDimension(),
+								ghost_type);
+  for(; it != end; ++it) {
 
     UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
     UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);

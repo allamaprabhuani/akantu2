@@ -43,6 +43,8 @@
 #include "material.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
+#include "integrator_cohesive.hh"
+#include "shape_cohesive.hh"
 #include "aka_types.hh"
 #include "integration_scheme_2nd_order.hh"
 
@@ -65,6 +67,7 @@ class SolidMechanicsModel : public Model, public DataAccessor {
 public:
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
+  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
 
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = 0,
@@ -100,6 +103,9 @@ public:
 
   /// init PBC synchronizer
   void initPBC();
+
+  /// initialize the structures for cohesive elements
+  void initCohesive();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

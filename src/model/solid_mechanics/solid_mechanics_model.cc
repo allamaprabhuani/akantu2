@@ -147,6 +147,7 @@ void SolidMechanicsModel::initFull(std::string material_file,
   }
 }
 
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initParallel(MeshPartition * partition,
 				       DataAccessor * data_accessor) {
   AKANTU_DEBUG_IN();
@@ -159,6 +160,11 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_boundary);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::initCohesive() {
+  registerFEMObject<MyFEMCohesiveType>("CohesiveFEM", mesh, spatial_dimension);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -213,9 +219,9 @@ void SolidMechanicsModel::initVectors() {
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
+    for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
       element_material.alloc(nb_element, 1, *it, gt);
     }
@@ -800,11 +806,9 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
   Element elem;
   elem.ghost_type = ghost_type;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(mesh.getSpatialDimension(*it) != spatial_dimension) continue;
-
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != end; ++it) {
     elem.type = *it;
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
     UInt nb_element           = mesh.getNbElement(*it);

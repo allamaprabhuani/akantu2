@@ -34,7 +34,7 @@
 #include "aka_memory.hh"
 #include "aka_vector.hh"
 #include "element_class.hh"
-
+#include "by_element_type.hh"
 /* -------------------------------------------------------------------------- */
 
 #include <set>
@@ -82,6 +82,7 @@ struct CompElementLess {
 
 extern const Element ElementNull;
 
+
 /* -------------------------------------------------------------------------- */
 /* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
@@ -122,7 +123,8 @@ public:
   public:
     type_iterator(DataMapIterator & list_begin,
 		  DataMapIterator & list_end,
-		  UInt dim);
+		  UInt dim,
+		  ElementKind ek);
 
     type_iterator(const type_iterator & it);
 
@@ -136,10 +138,15 @@ public:
     DataMapIterator list_begin;
     DataMapIterator list_end;
     UInt dim;
+    ElementKind kind;
   };
 
-  inline type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const;
-  inline type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const;
+  inline type_iterator firstType(UInt dim = 0,
+				 GhostType ghost_type = _not_ghost,
+				 ElementKind kind = _ek_not_defined) const;
+  inline type_iterator lastType(UInt dim = 0,
+				GhostType ghost_type = _not_ghost,
+				ElementKind kind = _ek_not_defined) const;
 
 
 protected:
@@ -290,9 +297,12 @@ public:
 			       const bool & flag_nb_node_per_elem_multiply=false) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
-  inline void extractNodalCoordinatesFromElement(Real * local_coords,
-						 UInt * connectivity,
-						 UInt n_nodes);
+  template<typename T>
+  inline void extractNodalValuesFromElement(const Vector<T> & nodal_values,
+					    T * elemental_values,
+					    UInt * connectivity,
+					    UInt n_nodes,
+					    UInt nb_degree_of_freedom) const;
 
   /// extract coordinates of nodes from a reversed element
   inline void extractNodalCoordinatesFromPBCElement(Real * local_coords,
@@ -409,6 +419,9 @@ public:
   /// a first order element
   static inline ElementType getP1ElementType(const ElementType & type);
 
+  /// get the kind of the element type
+  static inline ElementKind getKind(const ElementType & type);
+
   /// get spatial dimension of a type of element
   static inline UInt getSpatialDimension(const ElementType & type);
 
@@ -430,13 +443,18 @@ public:
   /* ------------------------------------------------------------------------ */
   typedef ByElementTypeUInt::type_iterator type_iterator;
 
-  inline type_iterator firstType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
-    return connectivities.firstType(dim, ghost_type);
+  inline type_iterator firstType(UInt dim = 0,
+				 GhostType ghost_type = _not_ghost,
+				 ElementKind kind = _ek_regular) const {
+    return connectivities.firstType(dim, ghost_type, kind);
   }
 
-  inline type_iterator lastType(UInt dim = 0, GhostType ghost_type = _not_ghost) const {
-    return connectivities.lastType(dim, ghost_type);
+  inline type_iterator lastType(UInt dim = 0,
+				GhostType ghost_type = _not_ghost,
+				ElementKind kind = _ek_regular) const {
+    return connectivities.lastType(dim, ghost_type, kind);
   }
+
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */

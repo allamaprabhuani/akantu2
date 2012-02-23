@@ -221,7 +221,6 @@ template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
 			 Real alpha, const Real * A, const Real * B,
 			 __attribute__ ((unused)) Real beta,  Real * C) {
-  // #ifndef AKANTU_USE_BLAS
   if(tr_A) {
     if(tr_B) matrixt_matrixt(m, n, k, A, B, C, alpha);
     else matrixt_matrix(m, n, k, A, B, C, alpha);
@@ -229,13 +228,6 @@ inline void Math::matMul(UInt m, UInt n, UInt k,
     if(tr_B) matrix_matrixt(m, n, k, A, B, C, alpha);
     else matrix_matrix(m, n, k, A, B, C, alpha);
   }
-  // #else
-  //   static CBLAS_TRANSPOSE transpose[2] = {CblasNoTrans, CblasTrans};
-  //   cblas_dgemm(CblasRowMajor, transpose[tr_A], transpose[tr_B],
-  // 	      m, n, k,
-  // 	      alpha, A, m, B, k,
-  // 	      beta, C, n);
-  // #endif
 }
 
 /* -------------------------------------------------------------------------- */
@@ -243,21 +235,25 @@ template <bool tr_A>
 inline void Math::matVectMul(UInt m, UInt n,
 			     Real alpha, const Real * A, const Real * x,
 			     __attribute__ ((unused)) Real beta, Real * y) {
-  //#ifndef AKANTU_USE_BLAS
   if(tr_A) {
     matrixt_vector(m, n, A, x, y, alpha);
   } else {
     matrix_vector(m, n, A, x, y, alpha);
   }
-  // #else
-  //   static CBLAS_TRANSPOSE transpose[2] = {CblasNoTrans, CblasTrans};
-  //   cblas_dgemv(CblasRowMajor, transpose[tr_A],
-  // 	      m, n,
-  // 	      alpha, A, m, x, 1,
-  // 	      beta, y, 1);
-  // #endif
 }
 
+/* -------------------------------------------------------------------------- */
+inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
+#ifdef AKANTU_USE_LAPACK
+  char jobvs('V'); // compute eigenvectors
+  char sort('N'); // eigen values/vectors are not sorted
+  extern dgees_(char JOBVS, char SORT, SELECT, N, A, LDA, SDIM, WR, WI, VS, LDVS, WORK, LWORK, BWORK, INFO);
+
+  dgees_(JOBVS, SORT, SELECT, N, A, LDA, SDIM, WR, WI, VS, LDVS, WORK, LWORK, BWORK, INFO);
+#else
+  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
+#endif
+}
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::det2(const Real * mat) {

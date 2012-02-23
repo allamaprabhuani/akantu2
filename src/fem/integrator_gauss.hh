@@ -40,7 +40,7 @@ class IntegratorGauss : public Integrator {
   /* ------------------------------------------------------------------------ */
 public:
 
-  IntegratorGauss(Mesh & mesh,
+  IntegratorGauss(const Mesh & mesh,
 		  const ID & id = "integrator_gauss",
 		  const MemoryID & memory_id = 0);
 

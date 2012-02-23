@@ -34,7 +34,7 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
-IntegratorGauss::IntegratorGauss(Mesh & mesh,
+IntegratorGauss::IntegratorGauss(const Mesh & mesh,
 				 const ID & id,
 				 const MemoryID & memory_id) :
   Integrator(mesh, id, memory_id),
@@ -89,9 +89,11 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const GhostType & gh
 
   Real local_coord[spatial_dimension * nb_nodes_per_element];
   for (UInt elem = 0; elem < nb_element; ++elem) {
-    mesh->extractNodalCoordinatesFromElement(local_coord,
-					     elem_val+elem*nb_nodes_per_element,
-					     nb_nodes_per_element);
+    mesh->extractNodalValuesFromElement(mesh->getNodes(),
+					local_coord,
+					elem_val+elem*nb_nodes_per_element,
+					nb_nodes_per_element,
+					spatial_dimension);
 
     computeJacobianOnQuadPointsByElement<type>(spatial_dimension,
 					       local_coord,
@@ -275,9 +277,11 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(c
   Real local_coord[spatial_dimension * nb_nodes_per_element];
   Real * jacobians_val = jacobians_tmp.storage();
   for (UInt elem = 0; elem < nb_element; ++elem) {
-    mesh->extractNodalCoordinatesFromElement(local_coord,
-					     elem_val+elem*nb_nodes_per_element,
-					     nb_nodes_per_element);
+    mesh->extractNodalValuesFromElement(mesh->getNodes(),
+					local_coord,
+					elem_val+elem*nb_nodes_per_element,
+					nb_nodes_per_element,
+					spatial_dimension);
 
     ElementClass<_bernoulli_beam_2>::computeJacobian(local_coord,
 						     nb_quadrature_points,

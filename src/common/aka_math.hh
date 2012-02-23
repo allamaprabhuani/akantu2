@@ -118,7 +118,10 @@ public:
 				Real beta, Real * y);
 
   static void matrix33_eigenvalues(Real * A,
-				    Real * Adiag);
+				   Real * Adiag);
+
+  /// solve @f$ A x = \Lambda x @f$ and return d and V such as @f$ A V[i:] = D[i] V[i:]@f$
+  static void matrixEig(UInt n, Real * A, Real * d, Real * V);
 
   /// determinent of a 3x3 matrix
   static inline Real det3(const Real * mat);
@@ -132,6 +135,10 @@ public:
   /// inverse a 2x2 matrix
   static inline void inv2(const Real * mat, Real * inv);
 
+
+  /* ------------------------------------------------------------------------ */
+  /* Vector algebra                                                           */
+  /* ------------------------------------------------------------------------ */
   /// vector cross product
   static inline void vectorProduct3(const Real * v1, const Real * v2, Real * res);
 

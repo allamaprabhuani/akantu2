@@ -108,15 +108,13 @@ template<typename T>
 void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) {
   AKANTU_DEBUG_IN();
 
+  const Mesh & mesh = model->getFEM().getMesh();
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    const Mesh::ConnectivityTypeList & type_list =
-      model->getFEM().getMesh().getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
+    for(; it != end; ++it) {
       Vector<UInt> & elem_filter = element_filter(*it, gt);
 
       UInt nb_element           = elem_filter.getSize();
@@ -289,13 +287,10 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostTyp
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  const Mesh::ConnectivityTypeList & type_list =
-    model->getFEM().getMesh().getConnectivityTypeList(ghost_type);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-
-    if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
+  Mesh & mesh = model->getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != last_type; ++it) {
     switch(spatial_dimension) {
     case 1: { assembleStiffnessMatrix<1>(current_position, *it, ghost_type); break; }
     case 2: { assembleStiffnessMatrix<2>(current_position, *it, ghost_type); break; }
@@ -416,10 +411,10 @@ void Material::computePotentialEnergy(ElementType el_type, GhostType ghost_type)
 void Material::computePotentialEnergyByElement() {
   AKANTU_DEBUG_IN();
 
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+  Mesh & mesh = model->getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  for(; it != last_type; ++it) {
 
     if(!potential_energy.exists(*it, _not_ghost)) {
       UInt nb_element = element_filter(*it, _not_ghost).getSize();
@@ -443,10 +438,10 @@ Real Material::getPotentialEnergy() {
   computePotentialEnergyByElement();
 
   /// integrate the potential energy for each type of elements
-  const Mesh::ConnectivityTypeList & type_list = model->getFEM().getMesh().getConnectivityTypeList(_not_ghost);
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    if(model->getFEM().getMesh().getSpatialDimension(*it) != spatial_dimension) continue;
+  Mesh & mesh = model->getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  for(; it != last_type; ++it) {
 
     epot += model->getFEM().integrate(potential_energy(*it, _not_ghost), *it,
                                       _not_ghost, &element_filter(*it, _not_ghost));

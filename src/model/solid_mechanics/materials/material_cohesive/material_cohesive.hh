@@ -42,11 +42,13 @@ class MaterialCohesive : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+protected:
+  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
 public:
-  
+
   MaterialCohesive(Model & model, const ID & id = "");
   virtual ~MaterialCohesive();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -92,6 +94,23 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
+
+  void computeNormal(const Vector<Real> & position,
+		     Vector<Real> & normal,
+		     ElementType type,
+		     GhostType ghost_type);
+
+  void computeOpening(const Vector<Real> & displacement,
+		      Vector<Real> & normal,
+		      ElementType type,
+		      GhostType ghost_type);
+
+  template<ElementType type>
+  void computeNormal(const Vector<Real> & position,
+		     Vector<Real> & normal,
+		     GhostType ghost_type);
+
+
   /// assemble residual
   void assembleResidual(GhostType ghost_type = _not_ghost);
 
@@ -105,7 +124,7 @@ protected:
 
   /// compute reversible and total energies by element
   void computeEnergies();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -142,6 +161,9 @@ protected:
   /// opening in all elements and quadrature points
   ByElementTypeReal opening;
 
+  /// Link to the cohesive fem object in the model
+  MyFEMCohesiveType * fem_cohesive;
+
 };
 
 
@@ -149,7 +171,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "material_cohesive_inline_impl.cc"
+#include "material_cohesive_inline_impl.cc"
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesive & _this)

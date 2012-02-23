@@ -902,11 +902,11 @@ inline Vector<T>::iterator<T> Vector<T>::end() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline Vector<T>::const_iterator<T> Vector<T>::begin() const {
-  return iterator<T>(values, 1);
+  return const_iterator<T>(values, 1);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline Vector<T>::const_iterator<T> Vector<T>::end() const {
-  return iterator<T>(values + nb_component * size, 1);
+  return const_iterator<T>(values + nb_component * size, 1);
 }

@@ -150,9 +150,9 @@ Mesh::~Mesh() {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    const ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
-    ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
+    Mesh::type_iterator it  = firstType(0, gt);
+    Mesh::type_iterator end = lastType(0, gt);
+    for(; it != end; ++it) {
       UIntDataMap & map = uint_data(*it, gt);
       UIntDataMap::iterator dit;
       for (dit = map.begin(); dit != map.end(); ++dit) {
@@ -227,11 +227,9 @@ void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension - 1) continue;
-
+    Mesh::type_iterator it  = firstType(spatial_dimension - 1, gt);
+    Mesh::type_iterator end = lastType(spatial_dimension - 1, gt);
+    for(; it != end; ++it) {
       UIntDataMap & map = uint_data(*it, gt);
       UIntDataMap::iterator it_data = map.find(data_name);
       AKANTU_DEBUG_ASSERT(it_data != map.end(),
@@ -265,11 +263,10 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    const Mesh::ConnectivityTypeList & type_list = getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
+    Mesh::type_iterator it  = firstType(dim, gt);
+    Mesh::type_iterator end = lastType(dim, gt);
+    for(; it != end; ++it) {
       ElementType type = *it;
-      if(dim > 0 && Mesh::getSpatialDimension(type) != dim) continue;
       if (flag_nb_node_per_elem_multiply) nb_component *= Mesh::getNbNodesPerElement(*it);
       vect.alloc(0, nb_component, type);
     }

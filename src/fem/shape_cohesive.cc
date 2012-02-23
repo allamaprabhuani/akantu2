@@ -35,288 +35,444 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
-template <class ShapeFunction>
-template <ElementType type>
-void ShapeCohesive<ShapeFunction>::precomputeShapesOnControlPoints(GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
 
-  const ElementType sub_type = CohesiveElementSubElementType<type>::type;
+// /* -------------------------------------------------------------------------- */
+// template <class ShapeFunction>
+// ShapeCohesive<ShapeFunction>::ShapeCohesive(const Mesh & mesh,
+// 					    const ID & id,
+// 					    const MemoryID & memory_id) {
+//   AKANTU_DEBUG_IN();
 
-  Real * natural_coords = this->control_points(sub_type, ghost_type).storage();
-  UInt nb_points        = this->control_points(sub_type, ghost_type).getSize();
+//   std::stringstream sstr;
+//   sstr << id << "sub_shapes_functions";
+//   sub_type_shape_function = ShapeFunction(mesh, sstr.str(), memory_id);
 
-  UInt size_of_shapes    = CohesiveElement<type>::getShapeSize();
+//   AKANTU_DEBUG_OUT();
+// }
 
-  UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();;
+// /* -------------------------------------------------------------------------- */
+// template <class ShapeFunction>
+// template <ElementType type>
+// void ShapeCohesive<ShapeFunction>::precomputeShapesOnControlPoints(GhostType ghost_type) {
+//   AKANTU_DEBUG_IN();
 
-  Vector<Real> & shapes_tmp = sub_type_shape_function.shapes.alloc(nb_element*nb_points,
-								   size_of_shapes,
-								   type,
-								   ghost_type);
+//   const ElementType sub_type = CohesiveElementSubElementType<type>::type;
 
-  Real * shapes_val    = shapes_tmp.storage();
+//   Real * natural_coords = this->control_points(sub_type, ghost_type).storage();
+//   UInt nb_points        = this->control_points(sub_type, ghost_type).getSize();
 
-  for (UInt elem = 0; elem < nb_element; ++elem) {
-    ElementClass<sub_type>::computeShapes(natural_coords,
-				      nb_points,shapes_val);
+//   UInt size_of_shapes    = CohesiveElement<type>::getShapeSize();
 
-    shapes_val += size_of_shapes*nb_points;
-  }
+//   UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();;
 
-  AKANTU_DEBUG_OUT();
-}
+//   Vector<Real> & shapes_tmp = sub_type_shape_function.shapes.alloc(nb_element*nb_points,
+// 								   size_of_shapes,
+// 								   type,
+// 								   ghost_type);
 
-/* -------------------------------------------------------------------------- */
-template <class ShapeFunction>
-template <ElementType type>
-void ShapeCohesive<ShapeFunction>::precomputeShapeDerivativesOnControlPoints(GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
+//   Real * shapes_val    = shapes_tmp.storage();
 
-  const ElementType sub_type = CohesiveElementSubElementType<type>::type;
+//   for (UInt elem = 0; elem < nb_element; ++elem) {
+//     ElementClass<sub_type>::computeShapes(natural_coords,
+// 				      nb_points,shapes_val);
 
-  Real * coord = this->mesh->getNodes().storage();
-  UInt spatial_dimension = this->mesh->getSpatialDimension();
+//     shapes_val += size_of_shapes*nb_points;
+//   }
 
-  UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement(type);
-  UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
-  UInt size_of_shapesd      = CohesiveElement<type>::getShapeDerivativesSize();
-  UInt nb_points            = this->control_points(type, ghost_type).getSize();
-  Real * natural_coords     = this->control_points(type, ghost_type).storage();
+//   AKANTU_DEBUG_OUT();
+// }
+
+// /* -------------------------------------------------------------------------- */
+// template <class ShapeFunction>
+// template <ElementType type>
+// void ShapeCohesive<ShapeFunction>::precomputeShapeDerivativesOnControlPoints(GhostType ghost_type) {
+//   AKANTU_DEBUG_IN();
+
+//   const ElementType sub_type = CohesiveElementSubElementType<type>::type;
+
+//   Real * coord = this->mesh->getNodes().storage();
+//   UInt spatial_dimension = this->mesh->getSpatialDimension();
+
+//   UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement(type);
+//   UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
+//   UInt size_of_shapesd      = CohesiveElement<type>::getShapeDerivativesSize();
+//   UInt nb_points            = this->control_points(type, ghost_type).getSize();
+//   Real * natural_coords     = this->control_points(type, ghost_type).storage();
 
 
-  UInt * elem_val = this->mesh->getConnectivity(type, ghost_type).storage();;
-  UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();
+//   UInt * elem_val = this->mesh->getConnectivity(type, ghost_type).storage();;
+//   UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();
 
-  Vector<Real> & shapes_derivatives_tmp =
-    sub_type_shape_function.shapes_derivatives.alloc(nb_element*nb_points,
-						     size_of_shapesd,
-						     type,
-						     ghost_type);
+//   Vector<Real> & shapes_derivatives_tmp =
+//     sub_type_shape_function.shapes_derivatives.alloc(nb_element*nb_points,
+// 						     size_of_shapesd,
+// 						     type,
+// 						     ghost_type);
 
-  Real * shapesd_val = shapes_derivatives_tmp.storage();
-  Real local_coord[spatial_dimension * nb_nodes_per_element];
+//   Real * shapesd_val = shapes_derivatives_tmp.storage();
+//   Real local_coord[spatial_dimension * nb_nodes_per_element];
 
-  CohesiveReduceFunctionMean reduce_function;
+//   CohesiveReduceFunctionMean reduce_function;
 
-  for (UInt elem = 0; elem < nb_element; ++elem) {
-    UInt el_offset = elem * nb_nodes_per_element;
+//   for (UInt elem = 0; elem < nb_element; ++elem) {
+//     UInt el_offset = elem * nb_nodes_per_element;
 
-    for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
-      for (UInt d = 0; d < spatial_dimension; ++d) {
-	Real u_plus  = coord[elem_val[el_offset + n] * spatial_dimension];
-	Real u_minus = coord[elem_val[el_offset + n + nb_nodes_per_sub_element] * spatial_dimension];
-	local_coord[n*spatial_dimension + d] = reduce_function(u_plus, u_minus);
-      }
-    }
+//     for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
+//       for (UInt d = 0; d < spatial_dimension; ++d) {
+// 	Real u_plus  = coord[elem_val[el_offset + n] * spatial_dimension];
+// 	Real u_minus = coord[elem_val[el_offset + n + nb_nodes_per_sub_element] * spatial_dimension];
+// 	local_coord[n*spatial_dimension + d] = reduce_function(u_plus, u_minus);
+//       }
+//     }
 
-    ElementClass<type>::computeDNDS(natural_coords, nb_points, shapesd_val);
+//     ElementClass<type>::computeDNDS(natural_coords, nb_points, shapesd_val);
 
-    natural_coords += nb_points * spatial_dimension;
-    shapesd_val += size_of_shapesd * nb_points;
-  }
+//     natural_coords += nb_points * spatial_dimension;
+//     shapesd_val += size_of_shapesd * nb_points;
+//   }
 
-  AKANTU_DEBUG_OUT();
+//   AKANTU_DEBUG_OUT();
 
-}
+// }
 
-/* -------------------------------------------------------------------------- */
-template <class ShapeFunction>
-template <ElementType type, class ReduceFunction>
-void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real> &in_u,
-					       Vector<Real> &out_uq,
-					       UInt nb_degree_of_freedom,
-					       GhostType ghost_type,
-					       const Vector<UInt> * filter_elements) const {
-  AKANTU_DEBUG_IN();
+// /* -------------------------------------------------------------------------- */
+// template <class ShapeFunction>
+// template <ElementType type, class ReduceFunction>
+// void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real> &in_u,
+// 					       Vector<Real> &out_uq,
+// 					       UInt nb_degree_of_freedom,
+// 					       GhostType ghost_type,
+// 					       const Vector<UInt> * filter_elements) const {
+//   AKANTU_DEBUG_IN();
 
-  const ElementType sub_type = CohesiveElementSubElementType<type>::type;
+//   const ElementType sub_type = CohesiveElementSubElementType<type>::type;
 
-  AKANTU_DEBUG_ASSERT(sub_type_shape_function.shapes.exists(sub_type, ghost_type),
-		      "No shapes for the type "
-		      << sub_type_shape_function.shapes.printType(sub_type, ghost_type));
+//   AKANTU_DEBUG_ASSERT(sub_type_shape_function.shapes.exists(sub_type, ghost_type),
+// 		      "No shapes for the type "
+// 		      << sub_type_shape_function.shapes.printType(sub_type, ghost_type));
 
-  UInt nb_element = this->mesh->getNbElement(type, ghost_type);
-  UInt * conn_val = this->mesh->getConnectivity(type, ghost_type).storage();
+//   UInt nb_element = this->mesh->getNbElement(type, ghost_type);
+//   UInt * conn_val = this->mesh->getConnectivity(type, ghost_type).storage();
 
-  const Vector<Real> & shapes = sub_type_shape_function.shapes(sub_type, ghost_type);
+//   const Vector<Real> & shapes = sub_type_shape_function.shapes(sub_type, ghost_type);
 
-  UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
-  UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
+//   UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
+//   UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
 
-  UInt nb_points = this->control_points(type, ghost_type).getSize();
-  UInt size_of_shapes = CohesiveElement<type>::getShapeSize();
+//   UInt nb_points = this->control_points(type, ghost_type).getSize();
+//   UInt size_of_shapes = CohesiveElement<type>::getShapeSize();
 
-  UInt * filter_elem_val = NULL;
-  if(filter_elements != NULL) {
-    nb_element = filter_elements->getSize();
-    filter_elem_val = filter_elements->storage();
-  }
+//   UInt * filter_elem_val = NULL;
+//   if(filter_elements != NULL) {
+//     nb_element = filter_elements->getSize();
+//     filter_elem_val = filter_elements->storage();
+//   }
 
-  Real * shape_val = shapes.storage();
-  Real * u_val     = in_u.storage();
-  Vector<Real>::iterator<types::Matrix> uq_it =
-    out_uq.begin(nb_points, nb_degree_of_freedom);
+//   Real * shape_val = shapes.storage();
+//   Real * u_val     = in_u.storage();
+//   Vector<Real>::iterator<types::Matrix> uq_it =
+//     out_uq.begin(nb_points, nb_degree_of_freedom);
 
-  Vector<Real>::const_iterator<types::Matrix> shape =
-    shapes.begin(nb_points, nb_nodes_per_element);
+//   Vector<Real>::const_iterator<types::Matrix> shape =
+//     shapes.begin(nb_points, nb_nodes_per_element);
 
-  types::Matrix u(nb_nodes_per_element, nb_degree_of_freedom);
+//   types::Matrix u(nb_nodes_per_element, nb_degree_of_freedom);
 
-  ReduceFunction reduce_function;
+//   ReduceFunction reduce_function;
 
-  for (UInt el = 0; el < nb_element; ++el) {
-    UInt el_offset = el * nb_nodes_per_element;
-    if(filter_elements != NULL) {
-      shape  = shapes.begin(nb_points, nb_nodes_per_element);
-      shape += filter_elem_val[el];
-      el_offset = filter_elem_val[el] * nb_nodes_per_element;
-    }
+//   for (UInt el = 0; el < nb_element; ++el) {
+//     UInt el_offset = el * nb_nodes_per_element;
+//     if(filter_elements != NULL) {
+//       shape  = shapes.begin(nb_points, nb_nodes_per_element);
+//       shape += filter_elem_val[el];
+//       el_offset = filter_elem_val[el] * nb_nodes_per_element;
+//     }
 
-    for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
-      for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-	Real u_plus  = u_val[conn_val[el_offset + n] * nb_degree_of_freedom + d];
-	Real u_minus = u_val[conn_val[el_offset + n + nb_nodes_per_sub_element] * nb_degree_of_freedom + d];
-	u(n, d)	= reduce_function(u_plus, u_minus);
-      }
-    }
+//     for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
+//       for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+// 	Real u_plus  = u_val[conn_val[el_offset + n] * nb_degree_of_freedom + d];
+// 	Real u_minus = u_val[conn_val[el_offset + n + nb_nodes_per_sub_element] * nb_degree_of_freedom + d];
+// 	u(n, d)	= reduce_function(u_plus, u_minus);
+//       }
+//     }
 
-    /// @f$ u_q = \textbf{N} * u @f$
-    uq_it->mul<false, false>(*shape, u);
-    // Math::matrix_matrix(nb_points, nb_degree_of_freedom, nb_nodes_per_element,
-    // 			shape, u, uq_val);
+//     /// @f$ u_q = \textbf{N} * u @f$
+//     uq_it->mul<false, false>(*shape, u);
+//     // Math::matrix_matrix(nb_points, nb_degree_of_freedom, nb_nodes_per_element,
+//     // 			shape, u, uq_val);
 
-    ++uq_it;
-    if(filter_elements == NULL) {
-      ++shape;
-    }
-  }
+//     ++uq_it;
+//     if(filter_elements == NULL) {
+//       ++shape;
+//     }
+//   }
 
-  AKANTU_DEBUG_OUT();
-}
+//   AKANTU_DEBUG_OUT();
+// }
 
-/* -------------------------------------------------------------------------- */
-template <class ShapeFunction>
-template <ElementType type, class ReduceFunction>
-void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &in_u,
-							    Vector<Real> &nablauq,
-							    UInt nb_degree_of_freedom,
-							    GhostType ghost_type,
-							    const Vector<UInt> * filter_elements) const {
-  const ElementType sub_type = CohesiveElementSubElementType<type>::type;
+// /* -------------------------------------------------------------------------- */
+// template <class ShapeFunction>
+// template <ElementType type, class ReduceFunction>
+// void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &in_u,
+// 							    Vector<Real> &nablauq,
+// 							    UInt nb_degree_of_freedom,
+// 							    GhostType ghost_type,
+// 							    const Vector<UInt> * filter_elements) const {
+//   const ElementType sub_type = CohesiveElementSubElementType<type>::type;
 
-  AKANTU_DEBUG_ASSERT(sub_type_shape_function.shapes_derivatives.exists(sub_type, ghost_type),
-		      "No shapes for the type "
-		      << sub_type_shape_function.shapes.printType(sub_type, ghost_type));
+//   AKANTU_DEBUG_ASSERT(sub_type_shape_function.shapes_derivatives.exists(sub_type, ghost_type),
+// 		      "No shapes for the type "
+// 		      << sub_type_shape_function.shapes.printType(sub_type, ghost_type));
 
-  UInt nb_element        = this->mesh->getNbElement(type, ghost_type);
-  UInt spatial_dimension = this->mesh->getSpatialDimension();
+//   UInt nb_element        = this->mesh->getNbElement(type, ghost_type);
+//   UInt spatial_dimension = this->mesh->getSpatialDimension();
 
-  const Vector<UInt> & connectivity = this->mesh->getConnectivity(type, ghost_type);
+//   const Vector<UInt> & connectivity = this->mesh->getConnectivity(type, ghost_type);
 
-  const Vector<Real> & shapes_derivatives =
-    sub_type_shape_function.shapes_derivatives(sub_type, ghost_type);
+//   const Vector<Real> & shapes_derivatives =
+//     sub_type_shape_function.shapes_derivatives(sub_type, ghost_type);
 
-  UInt nb_nodes_per_element     = CohesiveElement<type> ::getNbNodesPerElement();
-  UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
+//   UInt element_dimension        = CohesiveElement<type>::getSpatialDimension();
+//   UInt nb_nodes_per_element     = CohesiveElement<type>::getNbNodesPerElement();
+//   UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
 
-  UInt nb_points = this->control_points(type, ghost_type).getSize();
+//   UInt nb_points = this->control_points(type, ghost_type).getSize();
 
-  Vector<UInt>::const_iterator<UInt> filter_elem;
-  if(filter_elements != NULL) {
-    nb_element  = filter_elements->getSize();
-    filter_elem = filter_elements->begin();
-  }
+//   Vector<UInt>::const_iterator<UInt> filter_elem;
+//   if(filter_elements != NULL) {
+//     nb_element  = filter_elements->getSize();
+//     filter_elem = filter_elements->begin();
+//   }
 
-  Vector<Real>::iterator<types::Matrix> nablauq_it =
-    nablauq.begin(nb_points, nb_degree_of_freedom);
+//   Vector<Real>::iterator<types::Matrix> nablauq_it =
+//     nablauq.begin(element_dimension, nb_degree_of_freedom);
 
-  Vector<Real>::const_iterator<types::Matrix> shape_derivative =
-    shapes_derivatives.begin(spatial_dimension, nb_nodes_per_element);
+//   Vector<Real>::const_iterator<types::Matrix> shape_derivative =
+//     shapes_derivatives.begin(element_dimension, nb_nodes_per_element);
 
-  types::Matrix u(nb_nodes_per_element, nb_degree_of_freedom);
+//   types::Matrix u(nb_nodes_per_element, nb_degree_of_freedom);
 
-  ReduceFunction reduce_function;
+//   ReduceFunction reduce_function;
 
-  for (UInt el = 0; el < nb_element; ++el) {
-    UInt el_offset = el * nb_nodes_per_element;
-    if(filter_elements != NULL) {
-      shape_derivative  = shapes_derivatives.begin(nb_points, nb_nodes_per_element);
-      shape_derivative += *filter_elem;
-      ++filter_elem;
-    }
+//   for (UInt el = 0; el < nb_element; ++el) {
+//     UInt el_offset = el * nb_nodes_per_element;
+//     if(filter_elements != NULL) {
+//       shape_derivative  = shapes_derivatives.begin(nb_points, nb_nodes_per_element);
+//       shape_derivative += *filter_elem;
+//       ++filter_elem;
+//     }
 
-    for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
-      for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-	Real u_plus  = in_u(connectivity(*filter_elem, n), d);
-	Real u_minus = in_u(connectivity(*filter_elem, n + nb_nodes_per_sub_element), d);
-	u(n, d)	= reduce_function(u_plus, u_minus);
-      }
-    }
+//     for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
+//       for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+// 	Real u_plus  = in_u(connectivity(*filter_elem, n), d);
+// 	Real u_minus = in_u(connectivity(*filter_elem, n + nb_nodes_per_sub_element), d);
+// 	u(n, d)	= reduce_function(u_plus, u_minus);
+//       }
+//     }
 
-    for (UInt q = 0; q < nb_points; ++q) {
-      nablauq_it->mul<false, false>(*shape_derivative, u);
-      ++shape_derivative;
-      ++nablauq_it;
-    }
-  }
-}
+//     for (UInt q = 0; q < nb_points; ++q) {
+//       nablauq_it->mul<false, false>(*shape_derivative, u);
+//       ++shape_derivative;
+//       ++nablauq_it;
+//     }
+//   }
+// }
 
-/* -------------------------------------------------------------------------- */
-/* template instantiation */
-/* -------------------------------------------------------------------------- */
+// /* -------------------------------------------------------------------------- */
+// template <class ShapeFunction>
+// template <ElementType type, class ReduceFunction>
+// void ShapeCohesive<ShapeFunction>::computeNormalsOnControlPoints(const Vector<Real> &u,
+// 								 Vector<Real> &normals_u,
+// 								 GhostType ghost_type,
+// 								 const Vector<UInt> * filter_elements) const {
+//   AKANTU_DEBUG_IN();
 
-#define INSTANCIATE_TEMPLATE_CLASS(type)				\
-  template<>								\
-  template<>								\
-  void ShapeCohesive<ShapeLagrange>::					\
-  precomputeShapesOnControlPoints<type>					\
-  (									\
-   GhostType ghost_type);						\
-  									\
-  template<>								\
-  template<>								\
-  void ShapeCohesive<ShapeLagrange>::					\
-  precomputeShapeDerivativesOnControlPoints<type>			\
-  (									\
-   GhostType ghost_type);						\
-									\
-  template<>								\
-  template<>								\
-  void ShapeCohesive<ShapeLagrange>::					\
-  variationOnControlPoints<type, CohesiveReduceFunctionMean>		\
-  (									\
-   const Vector<Real> &in_u,						\
-   Vector<Real> &out_nablauq,						\
-   UInt nb_degree_of_freedom,						\
-   GhostType ghost_type,						\
-   const Vector<UInt> * filter_elements) const;				\
-									\
-  template<>								\
-  template<>								\
-  void ShapeCohesive<ShapeLagrange>::					\
-  interpolateOnControlPoints<type, CohesiveReduceFunctionMean>		\
-  (									\
-   const Vector<Real> &in_u,						\
-   Vector<Real> &out_uq,						\
-   UInt nb_degree_of_freedom,						\
-   GhostType ghost_type,						\
-   const Vector<UInt> * filter_elements) const;				\
-									\
-  template<>								\
-  template<>								\
-  void ShapeCohesive<ShapeLagrange>::					\
-  interpolateOnControlPoints<type, CohesiveReduceFunctionOpening>	\
-  (									\
-   const Vector<Real> &in_u,						\
-   Vector<Real> &out_uq,						\
-   UInt nb_degree_of_freedom,						\
-   GhostType ghost_type,						\
-   const Vector<UInt> * filter_elements) const;
+//   const ElementType sub_type = CohesiveElementSubElementType<type>::type;
 
-AKANTU_BOOST_COHESIVE_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
+//   UInt nb_element = this->mesh->getNbElement(type, ghost_type);
+//   UInt nb_points  = this->control_points(type, ghost_type).getSize();
+//   UInt spatial_dimension = this->mesh->getSpatialDimension();
 
-#undef INSTANCIATE_TEMPLATE_CLASS
+//   if(filter_elements != NULL) {
+//     nb_element  = filter_elements->getSize();
+//   }
+
+//   Vector<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  spatial_dimension -1));
+
+//   this->template variationOnControlPoints<type, ReduceFunction>(u,
+// 								tangents_u,
+// 								spatial_dimension,
+// 								ghost_type,
+// 								filter_elements);
+
+//   normals_u.resize(nb_points * nb_element);
+//   Vector<Real>::iterator<types::RVector> normal     = normals_u.begin(spatial_dimension);
+//   Vector<Real>::iterator<types::RVector> normal_end = normals_u.end(spatial_dimension);
+
+//   Real * tangent = tangents_u.storage();
+
+//   if(spatial_dimension == 3)
+//     for (; normal != normal_end; ++normal) {
+//       Math::vectorProduct3(tangent, tangent+spatial_dimension, normal->storage());
+//       //      (*normal) /= normal->norm();
+//       tangent += spatial_dimension * 2;
+//     }
+//   else if(spatial_dimension == 2)
+//     for (; normal != normal_end; ++normal) {
+//       types::RVector a1(tangent, spatial_dimension);
+
+//       (*normal)(0) = a1(1);
+//       (*normal)(1) = -a1(0);
+//       //      (*normal) /= normal->norm();
+
+//       tangent += spatial_dimension;
+//     }
+
+//   AKANTU_DEBUG_OUT();
+// }
+
+
+
+// /* -------------------------------------------------------------------------- */
+// /* template instantiation                                                     */
+// /* -------------------------------------------------------------------------- */
+// #define INSTANCIATE_TEMPLATE_CLASS(type)		\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   precomputeShapesOnControlPoints<type>					\
+//   (									\
+//    GhostType ghost_type);						\
+//   									\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   precomputeShapeDerivativesOnControlPoints<type>			\
+//   (									\
+//    GhostType ghost_type);						\
+// 									\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   interpolateOnControlPoints<type, CohesiveReduceFunctionMean>		\
+//   (									\
+//    const Vector<Real> &in_u,						\
+//    Vector<Real> &out_uq,						\
+//    UInt nb_degree_of_freedom,						\
+//    GhostType ghost_type,						\
+//    const Vector<UInt> * filter_elements) const;				\
+// 									\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   interpolateOnControlPoints<type, CohesiveReduceFunctionOpening>	\
+//   (									\
+//    const Vector<Real> &in_u,						\
+//    Vector<Real> &out_uq,						\
+//    UInt nb_degree_of_freedom,						\
+//    GhostType ghost_type,						\
+//    const Vector<UInt> * filter_elements) const;				\
+//   									\
+//   template <>								\
+//   template <>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   variationOnControlPoints<type, CohesiveReduceFunctionMean>		\
+//   (									\
+//    const Vector<Real> &in_u,						\
+//    Vector<Real> &nablauq,						\
+//    UInt nb_degree_of_freedom,						\
+//    GhostType ghost_type,						\
+//    const Vector<UInt> * filter_elements) const;				\
+// 									\
+//   template <>								\
+//   template <>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   computeNormalsOnControlPoints<type, CohesiveReduceFunctionMean>	\
+//   (									\
+//     const Vector<Real> &u,						\
+//     Vector<Real> &normals_u,						\
+//     GhostType ghost_type,						\
+//     const Vector<UInt> * filter_elements) const;
+
+
+
+// #define INSTANCIATE_TEMPLATE_CLASS_REGULAR_ELEMENT(type)		\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   precomputeShapesOnControlPoints<type>					\
+//   (									\
+//    GhostType ghost_type) {						\
+//     AKANTU_DEBUG_TO_IMPLEMENT();					\
+//   }									\
+//   									\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   precomputeShapeDerivativesOnControlPoints<type>			\
+//   (									\
+//    GhostType ghost_type) {						\
+//     AKANTU_DEBUG_TO_IMPLEMENT();					\
+//   }									\
+//   									\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   interpolateOnControlPoints<type, CohesiveReduceFunctionMean>		\
+//   (									\
+//    const Vector<Real> &in_u,						\
+//    Vector<Real> &out_uq,						\
+//    UInt nb_degree_of_freedom,						\
+//    GhostType ghost_type,						\
+//    const Vector<UInt> * filter_elements) const {			\
+//     AKANTU_DEBUG_TO_IMPLEMENT();					\
+//   }									\
+// 									\
+//   template<>								\
+//   template<>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   interpolateOnControlPoints<type, CohesiveReduceFunctionOpening>	\
+//   (									\
+//    const Vector<Real> &in_u,						\
+//    Vector<Real> &out_uq,						\
+//    UInt nb_degree_of_freedom,						\
+//    GhostType ghost_type,						\
+//    const Vector<UInt> * filter_elements) const {			\
+//     AKANTU_DEBUG_TO_IMPLEMENT();					\
+//   }									\
+//   									\
+//   template <>								\
+//   template <>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   variationOnControlPoints<type, CohesiveReduceFunctionMean>		\
+//   (									\
+//    const Vector<Real> &in_u,						\
+//    Vector<Real> &nablauq,						\
+//    UInt nb_degree_of_freedom,						\
+//    GhostType ghost_type,						\
+//    const Vector<UInt> * filter_elements) const {			\
+//     AKANTU_DEBUG_TO_IMPLEMENT();					\
+//   }									\
+// 									\
+//   template <>								\
+//   template <>								\
+//   void ShapeCohesive<ShapeLagrange>::					\
+//   computeNormalsOnControlPoints<type, CohesiveReduceFunctionMean>	\
+//   (									\
+//     const Vector<Real> &u,						\
+//     Vector<Real> &normals_u,						\
+//     GhostType ghost_type,						\
+//     const Vector<UInt> * filter_elements) const {			\
+//     AKANTU_DEBUG_TO_IMPLEMENT();					\
+//   }
+
+
+
+// AKANTU_BOOST_COHESIVE_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS);
+// AKANTU_BOOST_REGULAR_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS_REGULAR_ELEMENT);
+
+// #undef INSTANCIATE_TEMPLATE_CLASS
+// #undef INSTANCIATE_TEMPLATE_CLASS_REGULAR_ELEMENT
 
 
 __END_AKANTU__

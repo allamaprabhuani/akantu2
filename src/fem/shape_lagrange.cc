@@ -36,7 +36,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-ShapeLagrange::ShapeLagrange(Mesh & mesh,
+ShapeLagrange::ShapeLagrange(const Mesh & mesh,
 			     const ID & id,
 			     const MemoryID & memory_id) :
   ShapeFunctions(mesh, id, memory_id),
@@ -101,9 +101,11 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
   Real local_coord[spatial_dimension * nb_nodes_per_element];
 
   for (UInt elem = 0; elem < nb_element; ++elem) {
-    mesh->extractNodalCoordinatesFromElement(local_coord,
-					     elem_val+elem*nb_nodes_per_element,
-					     nb_nodes_per_element);
+    mesh->extractNodalValuesFromElement(mesh->getNodes(),
+					local_coord,
+					elem_val+elem*nb_nodes_per_element,
+					nb_nodes_per_element,
+					spatial_dimension);
 
     computeShapeDerivativesOnCPointsByElement<type>(spatial_dimension,
 						    local_coord,

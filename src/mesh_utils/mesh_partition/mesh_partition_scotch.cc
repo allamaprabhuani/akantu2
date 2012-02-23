@@ -57,12 +57,10 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
   UInt total_nb_element = 0;
   UInt nb_edge = 0;
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
+  for(; it != end; ++it) {
     ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -86,7 +84,8 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 
   memset(verttab, 0, (vnodnbr + velmnbr + 1) * sizeof(SCOTCH_Num));
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  it  = mesh.firstType(spatial_dimension);
+  for(; it != end; ++it) {
     ElementType type = *it;
     if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
@@ -113,9 +112,10 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
   SCOTCH_Num * edgetab = new SCOTCH_Num[edgenbr];
 
   UInt linearized_el = 0;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+
+  it  = mesh.firstType(spatial_dimension);
+  for(; it != end; ++it) {
     ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -134,9 +134,9 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
   SCOTCH_Num * verttab_tmp = verttab + vnodnbr + 1;
   SCOTCH_Num * edgetab_tmp = edgetab + verttab[vnodnbr];
 
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  it  = mesh.firstType(spatial_dimension);
+  for(; it != end; ++it) {
     ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -292,12 +292,12 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 
     const Vector<Real> & nodes = mesh.getNodes();
 
-    const Mesh::ConnectivityTypeList & f_type_list = mesh.getConnectivityTypeList();
-    Mesh::ConnectivityTypeList::const_iterator f_it;
+    Mesh::type_iterator f_it  = mesh.firstType(spatial_dimension);
+    Mesh::type_iterator f_end = mesh.lastType(spatial_dimension);
+
     UInt out_linerized_el = 0;
-    for(f_it = f_type_list.begin(); f_it != f_type_list.end(); ++f_it) {
+    for(; f_it != f_end; ++f_it) {
       ElementType type = *f_it;
-      if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
 
       UInt nb_element = mesh.getNbElement(*f_it);
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -418,10 +418,10 @@ void MeshPartitionScotch::reorder() {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList(gt);
-    Mesh::ConnectivityTypeList::const_iterator it;
+    Mesh::type_iterator it  = mesh.firstType(0, gt);
+    Mesh::type_iterator end = mesh.lastType(0, gt);
 
-    for(it = type_list.begin(); it != type_list.end(); ++it) {
+    for(; it != end; ++it) {
       ElementType type = *it;
 
       UInt nb_element = mesh.getNbElement(type, gt);

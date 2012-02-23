@@ -279,15 +279,15 @@ inline void ByElementTypeVector<T>::setVector(const ElementType & type,
 template <class Stored>
 ByElementType<Stored>::type_iterator::type_iterator(DataMapIterator & list_begin,
                                                     DataMapIterator & list_end,
-                                                    UInt dim) :
-  list_begin(list_begin), list_end(list_end), dim(dim) {
+                                                    UInt dim, ElementKind ek) :
+  list_begin(list_begin), list_end(list_end), dim(dim), kind(ek) {
 }
 
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
 ByElementType<Stored>::type_iterator::type_iterator(const type_iterator & it) :
-  list_begin(it.list_begin), list_end(it.list_end), dim(it.dim) {
+  list_begin(it.list_begin), list_end(it.list_end), dim(it.dim), kind(it.kind) {
 }
 
 /* -------------------------------------------------------------------------- */
@@ -302,8 +302,9 @@ template <class Stored>
 inline typename ByElementType<Stored>::type_iterator &
 ByElementType<Stored>::type_iterator::operator++() {
   ++list_begin;
-  if(dim != 0)
-    while((list_begin != list_end) && dim != Mesh::getSpatialDimension(list_begin->first))
+  while((list_begin != list_end) &&
+	(((dim != 0) && (dim != Mesh::getSpatialDimension(list_begin->first))) ||
+	 ((kind != _ek_not_defined) && (kind != Mesh::getKind(list_begin->first)))))
       ++list_begin;
   return *this;
 }
@@ -331,7 +332,7 @@ inline bool ByElementType<Stored>::type_iterator::operator!=(const type_iterator
 /* -------------------------------------------------------------------------- */
 template <class Stored>
 inline typename ByElementType<Stored>::type_iterator
-ByElementType<Stored>::firstType(UInt dim, GhostType ghost_type) const {
+ByElementType<Stored>::firstType(UInt dim, GhostType ghost_type, ElementKind kind) const {
   typename DataMap::const_iterator b,e;
   if(ghost_type == _not_ghost) {
     b = data.begin();
@@ -341,21 +342,26 @@ ByElementType<Stored>::firstType(UInt dim, GhostType ghost_type) const {
     e = ghost_data.end();
   }
 
-  if(dim != 0) while((b != e) && dim != Mesh::getSpatialDimension(b->first)) ++b;
-  return typename ByElementType<Stored>::type_iterator(b, e, dim);
+  // loop until the first valid type
+  while((b != e) &&
+	(((dim != 0) && (dim != Mesh::getSpatialDimension(b->first))) ||
+	 ((kind != _ek_not_defined) && (kind != Mesh::getKind(b->first)))))
+      ++b;
+
+  return typename ByElementType<Stored>::type_iterator(b, e, dim, kind);
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
 inline typename ByElementType<Stored>::type_iterator
-ByElementType<Stored>::lastType(UInt dim, GhostType ghost_type) const {
+ByElementType<Stored>::lastType(UInt dim, GhostType ghost_type, ElementKind kind) const {
   typename DataMap::const_iterator e;
   if(ghost_type == _not_ghost) {
     e = data.end();
   } else {
     e = ghost_data.end();
   }
-  return typename ByElementType<Stored>::type_iterator(e, e, dim);
+  return typename ByElementType<Stored>::type_iterator(e, e, dim, kind);
 }
 
 

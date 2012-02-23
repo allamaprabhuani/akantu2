@@ -388,9 +388,9 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
   std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << 0;
   //Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
 
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
+  Mesh::type_iterator it  = mesh.firstType();
+  Mesh::type_iterator end = mesh.lastType();
+  for(; it != end; ++it) {
     UInt nb_element = mesh.getNbElement(*it);
     mesh.getUIntDataPointer(*it, "material", _not_ghost)->resize(nb_element);
   }

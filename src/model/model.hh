@@ -72,16 +72,16 @@ public:
   Synchronizer & createParallelSynch(MeshPartition * partition,
 				     DataAccessor * data_accessor);
 
-  /// change local equation number so that PBC is assembled properly 
+  /// change local equation number so that PBC is assembled properly
   void changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,UInt dimension);
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
   /// initialize the model for PBC
   void setPBC(UInt x, UInt y, UInt z);
-  void setPBC(SurfacePairList & surface_pairs, 
+  void setPBC(SurfacePairList & surface_pairs,
 	      ElementType surface_e_type);
-  
+
   virtual void initPBC();
 
   /* ------------------------------------------------------------------------ */
@@ -108,10 +108,10 @@ public:
   /// unregister a fem object associated with name
   inline void unRegisterFEMObject(const std::string & name);
 
-  /// return the synchronizer registry 
+  /// return the synchronizer registry
   SynchronizerRegistry & getSynchronizerRegistry();
 
-protected:
+public:
   /// return the fem object associated with a provided name
   template <typename FEMClass>
   inline FEMClass & getFEMClass(std::string name = "") const;
@@ -120,13 +120,14 @@ protected:
   template <typename FEMClass>
   inline FEMClass & getFEMClassBoundary(std::string name = "");
 
+protected:
   /// returns if node is slave in pbc
   inline bool getIsPBCSlaveNode(const UInt node);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-  
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -144,13 +145,13 @@ protected:
   /// default fem object
   std::string default_fem;
 
-  /// synchronizer registry 
+  /// synchronizer registry
   SynchronizerRegistry * synch_registry;
 
   /// handle the equation number things
   DOFSynchronizer * dof_synchronizer;
 
-  /// pbc pairs 
+  /// pbc pairs
   std::map<UInt,UInt> pbc_pair;
 
   /// flag per node to know is pbc slave

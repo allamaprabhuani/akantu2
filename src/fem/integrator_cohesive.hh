@@ -27,29 +27,85 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "integrator.hh"
+#include "cohesive_element.hh"
+
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_INTEGRATOR_COHESIVE_HH__
 #define __AKANTU_INTEGRATOR_COHESIVE_HH__
 
 __BEGIN_AKANTU__
 
-template<class Integrator>
-class IntegratorCohesive {
+template<class Inte>
+class IntegratorCohesive : public Integrator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  IntegratorCohesive();
-  virtual ~IntegratorCohesive();
+  IntegratorCohesive(const Mesh & mesh,
+		     const ID & id = "integrator_gauss",
+		     const MemoryID & memory_id = 0);
+  virtual ~IntegratorCohesive() { if(sub_type_integrator) delete sub_type_integrator; };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// precompute jacobians on elements of type "type"
+  template <ElementType type>
+  void precomputeJacobiansOnQuadraturePoints(const GhostType & ghost_type);
 
-  /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+
+  /// integrate f on the element "elem" of type "type"
+  template <ElementType type>
+  inline void integrateOnElement(const Vector<Real> & f,
+				 Real * intf,
+				 UInt nb_degree_of_freedom,
+				 const UInt elem,
+				 const GhostType & ghost_type) const;
+
+  /// integrate f for all elements of type "type"
+  template <ElementType type>
+  void integrate(const Vector<Real> & in_f,
+		 Vector<Real> &intf,
+		 UInt nb_degree_of_freedom,
+		 const GhostType & ghost_type,
+		 const Vector<UInt> * filter_elements) const;
+
+  /// integrate scalar field in_f
+  template <ElementType type>
+  Real integrate(const Vector<Real> & in_f,
+		 const GhostType & ghost_type,
+		 const Vector<UInt> * filter_elements) const;
+
+  /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
+  template <ElementType type>
+  void integrateOnQuadraturePoints(const Vector<Real> & in_f,
+				   Vector<Real> &intf,
+				   UInt nb_degree_of_freedom,
+				   const GhostType & ghost_type,
+				   const Vector<UInt> * filter_elements) const;
+
+  /// return a vector with quadrature points natural coordinates
+  template <ElementType type>
+  const Vector<Real> & getQuadraturePoints(const GhostType & ghost_type) const;
+
+  /// compute the vector of quadrature points natural coordinates
+  template <ElementType type> void computeQuadraturePoints(const GhostType & ghost_type);
+
+  /// check that the jacobians are not negative
+  template <ElementType type> void checkJacobians(const GhostType & ghost_type) const;
+
+protected:
+
+  /// compute the jacobians on quad points for a given element
+  template <ElementType type>
+  void computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
+					    Real * node_coords,
+					    UInt nb_nodes_per_element,
+					    Real * jacobians);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -61,7 +117,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  Integrator sub_type_integrator;
+  Inte * sub_type_integrator;
 };
 
 
@@ -72,7 +128,8 @@ private:
 #include "integrator_cohesive_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const IntegratorCohesive & _this)
+template<class Integrator>
+inline std::ostream & operator <<(std::ostream & stream, const IntegratorCohesive<Integrator> & _this)
 {
   _this.printself(stream);
   return stream;
