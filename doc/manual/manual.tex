@@ -35,6 +35,8 @@
 
 \newcommand{\note}[1]{\textbf{Note: }\textit{#1}}
 
+\bibliographystyle{plain}
+
 \title{\textbf{\Huge AKANTU}\\
   \vspace{0.5cm}
   \textbf{\huge User's Guide}\\
@@ -193,6 +195,33 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
 
 
 \chapter{How to use Akantu}
+\section{Getting start}
+\subsection{Downloading the code}
+SVN URL to get akantu :
+
+\noindent {\small\code{svn co
+
+  svn+ssh://username@intranet-lsms.epfl.ch/space/repositories/SimulPack/akantu/trunk akantu}}
+
+% or via http:
+
+% \noindent {\small\code{svn co
+
+%   http://username@intranet-lsms.epfl.ch/svn/akantu/trunk/ akantu}}
+
+\subsection{Compiling akantu}
+\noindent\code{> mkdir build}
+
+\noindent\code{> cd build}
+
+\noindent\code{> ccmake <path to akantu sources>}
+
+Set the option that you need
+
+\noindent\code{> make}
+
+\noindent\code{> make install}
+
 
 \section{Solid Mechanics model}
 
@@ -217,17 +246,92 @@ We will present more in detail through some examples how to use this model.
 
 \subsection{Set up a model}
 \subsubsection{Create and load a mesh}
+
+
+\begin{verbatim}
+  UInt spatial_dimension = 2;
+
+  Mesh mesh(spatial_dimension);
+
+  MeshIOMSH mesh_io;
+  mesh_io.read("square.msh", mesh);
+\end{verbatim}
+
 \subsubsection{Set initial conditions}
-\subsubsection{Set boundary conditions}\label{sect:smm:boundary}
+\subsubsection{Set boundary conditions\label{sect:smm:boundary}}
+
+\begin{verbatim}
+  const  Vector<Real> & position = mesh.getNodes();
+  Vector<bool> & boundary = model.getBoundary();
+  Vector<Real> & displacment = model.getDisplacement();
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    if(position(n,0) < Math::getTolerance()) boundary(n,0) = true;
+    if(position(n,1) < Math::getTolerance()) boundary(n,1) = true;
+
+    if(std::abs(position(n,0) - bar_length) < Math::getTolerance()) {
+      boundary(n,0) = true;
+      displacment(n,0) = 0.1;
+    }
+  }
+\end{verbatim}
+
+This conditions put the left and bottom side on rollers
 
 \subsection{Resolution methods}
 In the  solid mechanics  model different  way to solve  the motion  equation are
-implemented. This equations can be solved implicitly or explicitly.
+implemented.  The equations  to  solve is  mainly  $Ma +  Cv +  Ku  = f_{ext}  -
+f_{int} = q$. So we can solve static case where $a = v = 0$, for this we only need a
+solver, like Mumps(\cite{mumps}) for example.
+
+We  can also  solve  the complete  equation,  and for  this we  can  do it  with
+different time discretizations, either  explicit or implicit.  By default Akantu
+use  a  predictor-corrector  Newmark-$\beta$  time integration  scheme.
+
+So the three differentiate equations (dynamic and cinematic) are \cite{curnier92a}:
+\begin{eqnarray}
+  M \ddot{u}_{n+1} + C \dot{u}_{n+1} + K u_{n+1} &=& q_{n+1} \\
+  u_{n+1} &=& u_{n} + (1 - \alpha) \Delta t \dot{u}_{n} + \alpha \Delta t \dot{u}_{n+1} + (1/2 - \alpha) \Delta t^2 \ddot{u}_n \\
+  \dot{u}_{n+1} &=& \dot{u}_{n} + (1 - \beta) \Delta t \ddot{u}_{n} + \beta \Delta t \ddot{u}_{n+1}
+\end{eqnarray}
+
+can be rewrote as
+
+\noindent Predictor:
+\begin{eqnarray}
+  u^{0}_{n+1}        &=& u_{n} +  \Delta t \dot{u}_n + \frac{\Delta t^2}{2} \ddot{u}_n \\
+  \dot{u}^{0}_{n+1}  &=& \dot{u}_{n} +  \Delta t \ddot{u}_{n} \\
+  \ddot{u}^{0}_{n+1} &=& \ddot{u}_{n}
+\end{eqnarray}
+
+\noindent Solve :
+\begin{eqnarray}
+ (c M + d C + e K^i_{n+1}) w = q_{n+1} - f^i_{n+1} - C \dot{u}^i_{n+1} - M \ddot{u}^i_{n+1}
+\end{eqnarray}
+
+\noindent Corrector :
+\begin{eqnarray}
+  \ddot{u}^{i+1}_{n+1} &=& \ddot{u}^{i}_{n+1} + c w \\
+  \dot{u}^{i+1}_{n+1} &=& \dot{u}^{i}_{n+1} + d w \\
+  u^{i+1}_{n+1} &=& u^{i}_{n+1} + e w
+\end{eqnarray}
+
+c, d and e are parameters depending on the method used to solve the equations
+
+\begin{center}
+  \begin{tabular}{l|c|c|c|c}
+    & w & e & d & c\\
+    \hline
+    in acceleration &$ \delta \ddot{u}$ & $\alpha \beta \Delta t^2$ &$\beta \Delta t$ &$1$\\
+    in velocity & $ \delta \dot{u}$& $1/\beta \Delta t$ & $1$ & $\alpha \Delta t$\\
+    in displacement &$\delta u$ & $ 1$ & $1/\alpha \Delta t$ & $1/\alpha \beta \Delta t^2$
+  \end{tabular}
+\end{center}
 
 \note{In you want to use the  implicit solver Akantu should be compiled at least
   with one sparse matrix linear system solver.}
 
-\subsubsection{Implicit static}\label{sect:smm:implicit:static}
+\subsubsection{Implicit static\label{sect:smm:implicit:static}}
 The example presented here is \code{example/manuel/implicit\_static.cc}
 
 The example is composed of a 2D  plate of steel blocked with rollers on the left
@@ -238,8 +342,7 @@ material, it can handle such a deformation).
 \begin{figure}[!htb]
   \centering
   \includegraphics{figures/implicit_static}
-  \caption{Numerical setup}
-  \label{fig:smm:implicit:static}
+  \caption{Numerical setup\label{fig:smm:implicit:static}}
 \end{figure}
 
 To  solve  this  problem  we  will   use  the  static  implicit  solver  of  the
@@ -366,13 +469,13 @@ The difference here is that the equation we solve is now $Ma + Cv + Ku = f_{ext}
 the mass matrix $M$ (in case of an elastic material $C = 0$).
 
 \note{Here we have a elastic material so $K$ is constant, but for other material
-  we should assemble $K$ at each iterations.}
+  we should assemble $K$ at each iteration.}
 
 Once the matrix assembled  we can start the time loop. To do  this we will use a
 predictor-corrector  scheme. By  default  for  an implicit  resolution  it is  a
-Newmark-$\beta$ in the particular case of the trapezoidal rule.  The call to the
-predictor can  be seen line 5, and  the corrector call is  in the Newton-Raphson
-loop (line 12)
+Newmark-$\beta$ in  the particular case of  the trapezoidal rule that  is to say
+$\beta = 1/2$ and $\alpha = 1/2$.  The call to the predictor can be seen line 5,
+and the corrector call is in the Newton-Raphson loop (line 12)
 
 After the predictor we can solve the system to get the new displacement for this
 time step. In these case  the Newton-Raphson convergence algorithm is needed due
@@ -384,10 +487,6 @@ displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
 \note{For the convergence loop  it is a good usage to put  also a limit in terms
   of number of iterations to avoid an  infinite loop in case of a error criteria
   to hard to reach.}
-
-
-
-
 
 \subsubsection{Explicit}
 
@@ -484,5 +583,8 @@ displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
 % Modify the files !
 
 % \end{enumerate}
+\bibliography{biblio}
+
+
 
 \end{document}
