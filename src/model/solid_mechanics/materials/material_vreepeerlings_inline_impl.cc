@@ -1,9 +1,9 @@
 /**
- * @file   material_vreeperlings_inline_impl.cc
+ * @file   material_vreepeerlings_inline_impl.cc
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
  * @date   Fri Feb 17 14:00:00 2012
  *
- * @brief  Specialization of the material class for the VreePerlings material
+ * @brief  Specialization of the material class for the VreePeerlings material
  *
  * @section LICENSE
  *
@@ -29,7 +29,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialVreePerlings::computeStress(Real * F, Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
+inline void MaterialVreePeerlings::computeStress(Real * F, Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
 
   types::Matrix Ft(F, 3, 3);
 
@@ -49,7 +49,7 @@ inline void MaterialVreePerlings::computeStress(Real * F, Real * sigma, Real & d
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialVreePerlings::computeDamageAndStress(Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
+inline void MaterialVreePeerlings::computeDamageAndStress(Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
   Real Fd = Equistrain - Kapaq;
 
   if (Fd > 0) {

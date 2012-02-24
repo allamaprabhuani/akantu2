@@ -36,7 +36,8 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_marigo_non_local.cc
   model/solid_mechanics/materials/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage_linear.cc
-  model/solid_mechanics/materials/material_vreeperlings.cc
+  model/solid_mechanics/materials/material_vreepeerlings.cc
+  model/solid_mechanics/materials/material_vreepeerlings_non_local.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
@@ -127,7 +128,8 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_mazars.hh
   model/solid_mechanics/materials/material_damage_linear.hh
   model/solid_mechanics/materials/material_neohookean.hh
-  model/solid_mechanics/materials/material_vreeperlings.hh
+  model/solid_mechanics/materials/material_vreepeerlings.hh
+  model/solid_mechanics/materials/material_vreepeerlings_non_local.hh
   model/solid_mechanics/solid_mechanics_model.hh
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/material.hh
@@ -170,7 +172,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_neohookean_inline_impl.cc
   model/solid_mechanics/materials/material_marigo_inline_impl.cc
   model/solid_mechanics/materials/material_damage_linear_inline_impl.cc
-  model/solid_mechanics/materials/material_vreeperlings_inline_impl.cc
+  model/solid_mechanics/materials/material_vreepeerlings_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
   )

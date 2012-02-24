@@ -1,9 +1,9 @@
 /**
- * @file   material_vreeperlings.hh
+ * @file   material_vreepeerlings.hh
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
  * @date   Fri Feb 17 14:00:00 2012
  *
- * @brief  Specialization of the material class for the VreePerlings material
+ * @brief  Specialization of the material class for the VreePeerlings material
  *
  * @section LICENSE
  *
@@ -30,13 +30,13 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VREEPERLINGS_HH__
-#define __AKANTU_MATERIAL_VREEPERLINGS_HH__
+#ifndef __AKANTU_MATERIAL_VREEPEERLINGS_HH__
+#define __AKANTU_MATERIAL_VREEPEERLINGS_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Material vreeperlings
+ * Material vreepeerlings
  *
  * parameters in the material files :
  *   - Kapa0  : (default: 50) Initial threshold (of the equivalent strain)
@@ -45,15 +45,15 @@ __BEGIN_AKANTU__
  *   - Kct    : (default: 1) Ratio between compressive and tensile strength
  *   - Kapa0_randomness  : (default:0) Kapa random internal variable
  */
-class MaterialVreePerlings : public MaterialDamage {
+class MaterialVreePeerlings : public MaterialDamage {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialVreePerlings(Model & model, const ID & id = "");
+  MaterialVreePeerlings(Model & model, const ID & id = "");
 
-  virtual ~MaterialVreePerlings() {};
+  virtual ~MaterialVreePeerlings() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -73,28 +73,28 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  __aka_inline__ void computeStress(Real * F, Real * sigma, Real & vreeperlings, Real & Equistrain, Real & Kapaq);
+  inline void computeStress(Real * F, Real * sigma, Real & dam, Real & Equistrain, Real & Kapaq);
 
-  __aka_inline__ void computeDamageAndStress(Real * sigma, Real & dam, Real & Equistrain, Real & Kapaq );
+  inline void computeDamageAndStress(Real * sigma, Real & dam, Real & Equistrain, Real & Kapaq);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
 
-  __aka_inline__ virtual UInt getNbDataToPack(const Element & element,
- 				      SynchronizationTag tag);
+  virtual UInt getNbDataToPack(const Element & element,
+			       SynchronizationTag tag);
 
-  __aka_inline__ virtual UInt getNbDataToUnpack(const Element & element,
- 					SynchronizationTag tag);
+  virtual UInt getNbDataToUnpack(const Element & element,
+				 SynchronizationTag tag);
 
-  __aka_inline__ virtual void packData(CommunicationBuffer & buffer,
- 			       const Element & element,
- 			       SynchronizationTag tag);
+  virtual void packData(CommunicationBuffer & buffer,
+			const Element & element,
+			SynchronizationTag tag);
 
-  __aka_inline__ virtual void unpackData(CommunicationBuffer & buffer,
-                                 const Element & element,
-                                 SynchronizationTag tag);
+  virtual void unpackData(CommunicationBuffer & buffer,
+			  const Element & element,
+			  SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -130,13 +130,11 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_vreeperlings_inline_impl.cc"
-#endif
+#include "material_vreepeerlings_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialVreePerlings & _this)
+inline std::ostream & operator <<(std::ostream & stream, const MaterialVreePeerlings & _this)
 {
   _this.printself(stream);
   return stream;
@@ -144,4 +142,4 @@ inline std::ostream & operator <<(std::ostream & stream, const MaterialVreePerli
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_VREEPERLINGS_HH__ */
+#endif /* __AKANTU_MATERIAL_VREEPEERLINGS_HH__ */

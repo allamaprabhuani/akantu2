@@ -1,9 +1,9 @@
 /**
- * @file   material_vreeperlings.cc
+ * @file   material_vreepeerlings.cc
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
  * @date   Fri Feb 17 14:00:00 2012
  *
- * @brief  Specialization of the material class for the VreePerlings material
+ * @brief  Specialization of the material class for the VreePeerlings material
  *
  * @section LICENSE
  *
@@ -26,13 +26,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_vreeperlings.hh"
+#include "material_vreepeerlings.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialVreePerlings::MaterialVreePerlings(Model & model, const ID & id)  :
+MaterialVreePeerlings::MaterialVreePeerlings(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id),
   Kapa("Kapa",id) {
   AKANTU_DEBUG_IN();
@@ -49,7 +49,7 @@ MaterialVreePerlings::MaterialVreePerlings(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePerlings::initMaterial() {
+void MaterialVreePeerlings::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage::initMaterial();
 
@@ -76,7 +76,7 @@ void MaterialVreePerlings::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePerlings::computeStress(ElementType el_type, GhostType ghost_type) {
+void MaterialVreePeerlings::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
@@ -107,7 +107,7 @@ void MaterialVreePerlings::computeStress(ElementType el_type, GhostType ghost_ty
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialVreePerlings::setParam(const std::string & key, const std::string & value,
+bool MaterialVreePeerlings::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "Kapa0") { sstr >> Kapa0; }
@@ -121,11 +121,11 @@ bool MaterialVreePerlings::setParam(const std::string & key, const std::string &
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePerlings::printself(std::ostream & stream, int indent) const {
+void MaterialVreePeerlings::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_vreeperlings> [" << std::endl;
+  stream << space << "Material<_vreepeerlings> [" << std::endl;
   stream << space << " + Kapa0            : " << Kapa0 << std::endl;
   stream << space << " + Alpha            : " << Alpha << std::endl;
   stream << space << " + Beta             : " << Beta << std::endl;
@@ -136,7 +136,7 @@ void MaterialVreePerlings::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MaterialVreePerlings::getNbDataToPack(const Element & element,
+UInt MaterialVreePeerlings::getNbDataToPack(const Element & element,
 					    SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
@@ -153,7 +153,7 @@ UInt MaterialVreePerlings::getNbDataToPack(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MaterialVreePerlings::getNbDataToUnpack(const Element & element,
+UInt MaterialVreePeerlings::getNbDataToUnpack(const Element & element,
 					      SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
@@ -170,7 +170,7 @@ UInt MaterialVreePerlings::getNbDataToUnpack(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePerlings::packData(CommunicationBuffer & buffer,
+void MaterialVreePeerlings::packData(CommunicationBuffer & buffer,
 				     const Element & element,
 				     SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
@@ -188,7 +188,7 @@ void MaterialVreePerlings::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePerlings::unpackData(CommunicationBuffer & buffer,
+void MaterialVreePeerlings::unpackData(CommunicationBuffer & buffer,
 				       const Element & element,
 				       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();

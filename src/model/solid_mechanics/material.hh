@@ -318,18 +318,19 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define AKANTU_MATERIAL_LIST						\
-  ((elastic          , MaterialElastic         ))			\
-  ((viscoelastic     , MaterialViscoElastic    ))			\
-  ((elastic_caughey  , MaterialElasticCaughey  ))			\
-  ((neohookean       , MaterialNeohookean      ))			\
-  ((damage_linear    , MaterialDamageLinear    ))			\
-  ((marigo           , MaterialMarigo          ))			\
-  ((mazars           , MaterialMazars          ))			\
-  ((vreepeerlings    , MaterialVreePeerlings   ))			\
-  ((marigo_non_local , MaterialMarigoNonLocal  ))			\
-  ((mazars_non_local , MaterialMazarsNonLocal  ))			\
-  ((cohesive_bilinear, MaterialCohesiveBilinear))			\
-  ((cohesive_linear  , MaterialCohesiveLinear  ))
+  ((elastic                , MaterialElastic              ))		\
+  ((viscoelastic           , MaterialViscoElastic         ))		\
+  ((elastic_caughey        , MaterialElasticCaughey       ))		\
+  ((neohookean             , MaterialNeohookean           ))		\
+  ((damage_linear          , MaterialDamageLinear         ))		\
+  ((marigo                 , MaterialMarigo               ))		\
+  ((mazars                 , MaterialMazars               ))		\
+  ((vreepeerlings          , MaterialVreePeerlings        ))		\
+  ((marigo_non_local       , MaterialMarigoNonLocal       ))		\
+  ((mazars_non_local       , MaterialMazarsNonLocal       ))		\
+  ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))		\
+  ((cohesive_bilinear      , MaterialCohesiveBilinear     ))		\
+  ((cohesive_linear        , MaterialCohesiveLinear       ))
 
 
 #if defined(__INTEL_COMPILER)
@@ -355,10 +356,11 @@ __END_AKANTU__
 #include "material_marigo.hh"
 #include "material_mazars.hh"
 #include "material_damage_linear.hh"
-#include "material_vreeperlings.hh"
+#include "material_vreepeerlings.hh"
 
 #include "material_marigo_non_local.hh"
 #include "material_mazars_non_local.hh"
+#include "material_vreepeerlings_non_local.hh"
 
 // cohesive materials
 #include "material_cohesive.hh"

@@ -45,6 +45,16 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * A solid mechanics model need a mesh  and a dimension to be created. the model
+ * by it  self can not  do a lot,  the good init  functions should be  called in
+ * order to configure the model depending on what we want to do.
+ *
+ * @param  mesh mesh  representing  the model  we  want to  simulate
+ * @param dim spatial  dimension of the problem, if dim =  0 (default value) the
+ * dimension of the problem is assumed to be the on of the mesh
+ * @param id an id to identify the model
+ */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt dim,
 					 const ID & id,
@@ -115,9 +125,21 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 /* -------------------------------------------------------------------------- */
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */
+/**
+ * This function groups  many of the initialization in on  function. For most of
+ * basics  case the  function should  be  enough. The  functions initialize  the
+ * model, the internal  vectors, set them to 0, and  depending on the parameters
+ * it also initialize the explicit or implicit solver.
+ *
+ * @param material_file the file containing the materials to use
+ * @param implicit_scheme set to true for implicit simulations, or to false for
+ * explicit ones
+ * @param implicit_dynamic in case of implicit solver activated it specify if we
+ * want to solve a static or dynamic case.
+ */
 void SolidMechanicsModel::initFull(std::string material_file,
-                                   bool implicit_scheme,
-                                   bool implicit_dynamic) {
+				   bool implicit_scheme,
+				   bool implicit_dynamic) {
   // initialize the model
   initModel();
 
@@ -194,6 +216,11 @@ void SolidMechanicsModel::initExplicit() {
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Allocate all the needed vectors. By  default their are not necessarily set to
+ * 0
+ *
+ */
 void SolidMechanicsModel::initVectors() {
   AKANTU_DEBUG_IN();
 
@@ -235,6 +262,12 @@ void SolidMechanicsModel::initVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Initialize the model,basically it  pre-compute the shapes, shapes derivatives
+ * and jacobian
+ *
+ */
 void SolidMechanicsModel::initModel() {
   /// \todo add  the current position  as a parameter to  initShapeFunctions for
   /// large deformation
@@ -305,6 +338,13 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+/**
+ * This function compute  the second member of the motion  equation.  That is to
+ * say the sum of forces @f$ r = F_{ext} - F_{int} @f$. @f$ F_{ext} @f$ is given
+ * by the  user in  the force  vector, and @f$  F_{int} @f$  is computed  as @f$
+ * F_{int} = \int_{\Omega} N \sigma d\Omega@f$
+ *
+ */
 void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_IN();
 
@@ -314,22 +354,22 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   if (need_initialize) initializeUpdateResidualData();
 
   // f -= fint
-  /// start synchronization
+  // start synchronization
   synch_registry->asynchronousSynchronize(_gst_smm_uv);
   synch_registry->waitEndSynchronize(_gst_smm_uv);
   synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
 
-  /// call update residual on each local elements
+  // call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     //(*mat_it)->updateResidual(*current_position, _not_ghost);
     (*mat_it)->updateResidual(*displacement, _not_ghost);
   }
 
-  /// finalize communications
+  // finalize communications
   synch_registry->waitEndSynchronize(_gst_smm_for_strain);
 
-  /// call update residual on each ghost elements
+  // call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     //(*mat_it)->updateResidual(*current_position, _ghost);
     (*mat_it)->updateResidual(*displacement, _ghost);
@@ -356,7 +396,7 @@ void SolidMechanicsModel::updateResidualInternal() {
       // else lumped mass
       UInt nb_nodes = acceleration->getSize();
       UInt nb_degree_of_freedom = acceleration->getNbComponent();
-      
+
       Real * mass_val     = mass->values;
       Real * accel_val    = acceleration->values;
       Real * res_val      = residual->values;
@@ -372,7 +412,7 @@ void SolidMechanicsModel::updateResidualInternal() {
 	accel_val++;
       }
     }
-    
+
     // f -= Cv
     if(velocity_damping_matrix) {
       Vector<Real> * Cv = new Vector<Real>(*velocity);
@@ -409,14 +449,14 @@ void SolidMechanicsModel::updateAcceleration() {
 
     for (UInt n = 0; n < nb_nodes; ++n) {
       for (UInt d = 0; d < nb_degree_of_freedom; d++) {
-        if(!(*boundary_val)) {
-          *inc = f_m2a * (*residual_val / *mass_val);
-        }
-        residual_val++;
-        boundary_val++;
-        inc++;
-        mass_val++;
-        accel_val++;
+	if(!(*boundary_val)) {
+	  *inc = f_m2a * (*residual_val / *mass_val);
+	}
+	residual_val++;
+	boundary_val++;
+	inc++;
+	mass_val++;
+	accel_val++;
       }
     }
   } else {
@@ -480,6 +520,10 @@ void SolidMechanicsModel::explicitCorr() {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Initialize the solver and create the sparse matrices needed.
+ *
+ */
 void SolidMechanicsModel::initSolver() {
 #if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
@@ -488,7 +532,7 @@ void SolidMechanicsModel::initSolver() {
 
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
-                                         spatial_dimension, sstr.str(), memory_id);
+					 spatial_dimension, sstr.str(), memory_id);
   //  dof_synchronizer->initGlobalDOFEquationNumbers();
   jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
@@ -507,6 +551,11 @@ void SolidMechanicsModel::initSolver() {
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Initialize the implicit solver, either for dynamic or static cases, 
+ *
+ * @param dynamic
+ */
 void SolidMechanicsModel::initImplicit(bool dynamic) {
   AKANTU_DEBUG_IN();
 
@@ -562,7 +611,7 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
 
   stiffness_matrix->clear();
 
-  /// call compute stiffness matrix on each local elements
+  // call compute stiffness matrix on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     (*mat_it)->assembleStiffnessMatrix(*displacement, _not_ghost);
@@ -655,8 +704,8 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
       if(!(*boundary_val) && is_local_node) {
-        norm[0] += *increment_val * *increment_val;
-        norm[1] += *displacement_val * *displacement_val;
+	norm[0] += *increment_val * *increment_val;
+	norm[1] += *displacement_val * *displacement_val;
       }
       boundary_val++;
       increment_val++;

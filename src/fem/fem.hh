@@ -172,7 +172,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// pre-compute normals on control points
-  virtual void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost)=0;
+  virtual void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost) = 0;
 
   /// pre-compute normals on control points
   virtual void computeNormalsOnControlPoints(const Vector<Real> & field,
