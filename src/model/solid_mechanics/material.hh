@@ -328,7 +328,7 @@ __END_AKANTU__
   ((vreepeerlings          , MaterialVreePeerlings        ))		\
   ((marigo_non_local       , MaterialMarigoNonLocal       ))		\
   ((mazars_non_local       , MaterialMazarsNonLocal       ))		\
-  ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))		\
+  //  ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))	\
   ((cohesive_bilinear      , MaterialCohesiveBilinear     ))		\
   ((cohesive_linear        , MaterialCohesiveLinear       ))
 
@@ -360,7 +360,7 @@ __END_AKANTU__
 
 #include "material_marigo_non_local.hh"
 #include "material_mazars_non_local.hh"
-#include "material_vreepeerlings_non_local.hh"
+//#include "material_vreepeerlings_non_local.hh"
 
 // cohesive materials
 #include "material_cohesive.hh"
