@@ -1,6 +1,5 @@
 \documentclass[a4paper,11pt]{book}
 
-\usepackage{hyperref}
 %\usepackage{xspace}
 \usepackage[T1]{fontenc}
 %\usepackage{palatino}
@@ -16,10 +15,59 @@
 %\usepackage{moreverb}
 \usepackage{longtable}
 \usepackage{array}
-\usepackage{color}
+\usepackage[dvipsnames,usenames]{color}
+\usepackage{xcolor}
+
 %\usepackage{rotating}
 %\usepackage{sectionbox}
 \usepackage{listings}
+
+\lstset {
+language=C++,				% the language of the code
+basicstyle=\footnotesize,			% the size of the fonts that are used for the code
+%    basicstyle=\ttfamily, % Without beramono, we'd get cmtt, the teletype font.
+%    commentstyle=\textit, % cmtt doesn't do italics. It might do slanted text though.
+commentstyle=\color{Emerald}\itshape,
+keywordstyle= \color{DarkOrchid}\bfseries,
+%fontadjust,
+numbers=left,					% where to put the line-numbers
+numberstyle=\tiny,		% the size of the fonts that are used for the line-numbers
+stepnumber=2,					% the step between two line-numbers. If it's 1, each line will be numbered
+numbersep=5pt,				% how far the line-numbers are from the code
+%backgroundcolor=\color{white},	% choose the background color. You must add \usepackage{color}
+%showspaces=false,				% show spaces adding particular underscores
+showstringspaces=false,			% underline spaces within strings
+%showtabs=false,				% show tabs within strings adding particular underscores
+%frame=llines,					% adds a frame around the code
+%frame=tb,
+tabsize=2,						% sets default tabsize to 2 spaces
+captionpos=t,					% sets the caption-position to bottom
+breaklines=true,				% sets automatic line breaking
+breakatwhitespace=false,			% sets if automatic breaks should only happen at whitespace
+%title=\lstname,					% show the filename of files included with \lstinputlisting; also try caption instead of title
+%escapeinside={\%*}{*)},			% if you want to add a comment within your code
+xleftmargin=1cm,
+xrightmargin=1cm,
+mathescape=true,
+escapechar=\%,
+morekeywords={size_t, value_type, reference_type, pointer_type}
+}
+
+
+\usepackage[pdftex,
+            hyperindex=true,
+%            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue,
+            anchorcolor=magenta,
+            citecolor=blue,
+            urlcolor=blue,
+            unicode,
+            implicit=true
+            ]{hyperref}
+
+
+
 % \usepackage{ae}
 % \usepackage{aecompl}
 % \usepackage[cm]{aeguill}
@@ -53,6 +101,13 @@
 \tableofcontents
 
 \chapter{Introduction}
+
+\begin{lstlisting}[caption={ \code{Array} class template}, label=lst:array]
+typedef array::Array<1> vector_type;
+typedef array::Array<2> matrix_type;
+typedef array::Array<4> tensor_type;
+\end{lstlisting}
+
 
 \section{Data structures\label{chap:data-structure}}
 
