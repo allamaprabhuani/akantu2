@@ -34,7 +34,7 @@ inline SynchronizerRegistry & Model::getSynchronizerRegistry(){
 
 /* -------------------------------------------------------------------------- */
 template <typename FEMClass>
-inline FEMClass & Model::getFEMClassBoundary(std::string name){
+inline FEMClass & Model::getFEMClassBoundary(std::string name) {
   AKANTU_DEBUG_IN();
 
   if (name == "") name = default_fem;

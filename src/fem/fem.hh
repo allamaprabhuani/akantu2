@@ -179,6 +179,15 @@ public:
 					     const GhostType & ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
+  
+  /// pre-compute normals on control points
+  virtual void computeNormalsOnControlPoints(const Vector<Real> & field,
+					     Vector<Real> & normal,
+					     const ElementType & type,
+					     const GhostType & ghost_type = _not_ghost) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+
 
 
 
