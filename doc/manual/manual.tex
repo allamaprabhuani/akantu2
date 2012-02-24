@@ -1,37 +1,39 @@
 \documentclass[a4paper,11pt]{book}
 
 \usepackage{hyperref}
-\usepackage{xspace}
+%\usepackage{xspace}
 \usepackage[T1]{fontenc}
-\usepackage{palatino}
+%\usepackage{palatino}
 % \usepackage[dvips,dvipdf]{graphics}
 \usepackage{graphics}
 \usepackage{epsfig}
 \usepackage{url}
 \usepackage{a4wide}
-\usepackage{boxedminipage}
-\usepackage{calc}
+%\usepackage{boxedminipage}
+%\usepackage{calc}
 \usepackage{fancybox}
 \usepackage{alltt}
-\usepackage{moreverb}
+%\usepackage{moreverb}
 \usepackage{longtable}
 \usepackage{array}
-\usepackage{listings}
 \usepackage{color}
-\usepackage{rotating}
-\usepackage{sectionbox}
+%\usepackage{rotating}
+%\usepackage{sectionbox}
+\usepackage{listings}
 % \usepackage{ae}
 % \usepackage{aecompl}
 % \usepackage[cm]{aeguill}
 % \usepackage{times}
 % \usepackage{bookman}
 \usepackage{palatino}
-%\usepackage{verbatim}
+\usepackage{verbatim}
 
 \sloppy
 \newcommand{\version}{0.1}
 
 \newcommand{\code}[1]{{\tt{#1}}}
+
+\newcommand{\note}[1]{\textbf{Note: }\textit{#1}}
 
 \title{\textbf{\Huge AKANTU}\\
   \vspace{0.5cm}
@@ -39,6 +41,7 @@
   \vspace{1cm}
   {\small \today{} --- Version \version}
 }
+
 \date{}
 
 \begin{document}
@@ -86,7 +89,7 @@ something like $values[ i * m * k + j_i * m + j_j]$.
 
 The point of  this section is to describe the convention  of storage for vectors
 intented  to be  passed to  {\bf  FE} object  methods.  Indeed  a convention  of
-necessary  since gradient  operators or  integration loops  will use  vectors as
+necessary  since gradient  operators or  integrtaion loops  will use  vectors as
 input and ouput.   Such vectors will be ordered with  a specific convention that
 we intend to describe now.
 
@@ -181,7 +184,7 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics{figures/interpolate}
+  \includegraphics[width=\textwidth]{figures/interpolate}
   \caption{Input and output  vector of interpolateOnQuadraturePoints. The output
     Vector has nb\_quadrature\_points tuples,  the quadrature points are grouped
     by elements (p is the number of quadrature points per element).}
@@ -193,30 +196,211 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
 
 \section{Solid Mechanics model}
 
-The  solid  mechanics  model  is   a  specifique  implementation  of  the  model
-interface. The model is instanciated for a given mesh. It will create is own FEM
+The  solid  mechanics  model  is   a  specific  implementation  of  the  model
+interface. The model is instantiated for a given mesh. It will create is own FEM
 object   to   do  the   interpolation,   gradient,   integration  and   assemble
 operations. This model contain some Vectors that we will describe now.
 
-\begin{itemize}
-\item[Displacement] contain the  displacements of the free degrees  of freedom or
+\begin{description}
+\item[Displacement] contain the displacements of  the free degrees of freedom or
   the imposed displacements for the blocked degrees of freedom.
 \item[Velocity] contain the velocities of  the degree of freedoms, acts like the
   displacement vector
 \item[Acceleration] contain  the accelerations of  the degree of  freedoms, acts
   like the displacement vector
 \item[Force] contain the external forces applied on the different nodes.
-\end{itemize}
+\item[Residual] contain the difference  between external and internal forces. On
+  blocked degree of freedom, residual contain the reactions form the support.
+\end{description}
+
+We will present more in detail through some examples how to use this model.
+
+\subsection{Set up a model}
+\subsubsection{Create and load a mesh}
+\subsubsection{Set initial conditions}
+\subsubsection{Set boundary conditions}\label{sect:smm:boundary}
 
 \subsection{Resolution methods}
-\subsubsection{Implicit static}
+In the  solid mechanics  model different  way to solve  the motion  equation are
+implemented. This equations can be solved implicitly or explicitly.
+
+\note{In you want to use the  implicit solver Akantu should be compiled at least
+  with one sparse matrix linear system solver.}
+
+\subsubsection{Implicit static}\label{sect:smm:implicit:static}
+The example presented here is \code{example/manuel/implicit\_static.cc}
+
+The example is composed of a 2D  plate of steel blocked with rollers on the left
+and bottom side as shown on figure \ref{fig:smm:implicit:static}. The nodes from
+the right side  of the sample are  displaced from $10\%$ (since it  is a elastic
+material, it can handle such a deformation).
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics{figures/implicit_static}
+  \caption{Numerical setup}
+  \label{fig:smm:implicit:static}
+\end{figure}
+
+To  solve  this  problem  we  will   use  the  static  implicit  solver  of  the
+SolidMechanicsModel object in Akantu. The following lines of code are an extract
+of the example code.
+
+\begin{verbatim}
+  ...
+
+1.  SolidMechanicsModel model(mesh);
+2.  model.initFull("material.dat", true, false);
+
+  ...
+
+3.  model.assembleStiffnessMatrix();
+4.  model.updateResidual();
+
+5.  Real norm;
+6.  UInt count = 0;
+7.  while(!model.testConvergenceResidual(1e-3, norm) &&
+8.        (count < 100)) {
+9.    if (prank == 0)
+10.      std::cout << "Iter : " << ++count
+11.                << " - residual norm : "
+12.                << norm << std::endl;
+13.    model.solveStatic();
+14.    model.updateResidual();
+15. };
+\end{verbatim}
+
+The  part presenting  how to  create a  mesh and  read it  in Akantu  as already
+presented before so here we skip this first part.
+
+Once we have a  mesh we can use it to create  a SolidMechanicsModel object (line
+1). This object need to be initialized in order to be used. In this case we want
+to  initialize the  implicit solver.   For  this we  use the  initFull (line  2)
+function that  initialize all the part  of the model. The  parameters are, first
+the material file, and then 2 switches specifying that we need a implicit solver
+not for dynamic case.
+
+Once we  have the model  initialized we  can start to  use it. The  part skipped
+between lines 2 and 3 corresponds  to the boundary conditions setup to in detail
+how to set them check the section \ref{sect:smm:boundary}
+
+What we want to solve is $Ku = f_{ext} - f_{int}$, so first we will assemble the
+stiffness matrix $K$ (line 3), and then the second member $f$ (line 4).
+
+The lines 5 to 15 correspond  to a Newton-Raphson convergence loop. In this case
+this loop  is not needed since the  material is elastic. The  solution should be
+found at  the first iteration.  So technically this  10 lines can replaced  by a
+simple call to the \code{solveStatic} function.
+
+The solution can be found in the displacement vector.
+
 
 \subsubsection{Implicit dynamic}
+The example presented here is \code{example/manuel/implicit\_dynamic.cc}
+
+This example consists in a beam blocked on one side and on a roller on the other
+side,  on  which   we  apply  a  constant  force  in   the  middle.  The  figure
+\ref{fig:smm:implicit:dynamic} present the geometry of this case.
+
+We can give a approximation  (eqn. \ref{eqn:smm:implicit}) of the dynamic answer
+of the middle point of the beam.
+
+\begin{equation}
+  u(\frac{L}{2}, t) = \frac{1}{\pi^4} (1 - cos(\pi^2 t) +
+  \frac{1}{81}(1 - cos(3^2 \pi^2 t)) +
+  \frac{1}{625}(1 - cos(5^2 \pi^2 t)))
+\end{equation}
+\label{eqn:smm:implicit}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[scale=.6]{figures/implicit_dynamic}
+  \caption{Numerical setup}
+  \label{fig:smm:implicit:dynamic}
+\end{figure}
+
+
+\begin{verbatim}
+   ...
+
+1.  model.assembleStiffnessMatrix();
+2.  model.assembleMass();
+
+3.  model.setTimeStep(time_step);
+    /// time loop
+4.  for (UInt s = 1; time < 0.62; ++s) {
+
+5.    model.implicitPred();
+
+      /// convergence loop
+6.    count = 0;
+7.    do {
+8.      if(count > 0)
+9.        std::cout << "step " << s << " " << count++ << " : "
+		    << std::scientific << error << "\r" << std::flush;
+
+10.     model.updateResidual();
+11.     model.solveDynamic();
+
+12.     model.implicitCorr();
+13.    } while(!model.testConvergenceIncrement(1e-12, error) &&
+	       (count < 100));
+
+14.    std::cout << "step " << s << " - " << count << " : "
+		 << std::scientific << error << std::endl;
+
+15.    pos << s << "," << s * time_step
+	   << "," << displacment(node_to_print, 1)
+	   << "," << analytical_solution(s*time_step) << std::endl;
+
+16.    time += time_step;
+17. }
+\end{verbatim}
+
+For  this simulation  everything  is really  similar  to the  example in  static
+(section  \ref{sect:smm:implicit:static}) except  that  in this  one during  the
+initialization of the model we have to specify that it is a dynamic case.
+
+The difference here is that the equation we solve is now $Ma + Cv + Ku = f_{ext}
+- f_{int}$. So we first have to  assemble the stiffness matrix $K$ (line 1) then
+the mass matrix $M$ (in case of an elastic material $C = 0$).
+
+\note{Here we have a elastic material so $K$ is constant, but for other material
+  we should assemble $K$ at each iterations.}
+
+Once the matrix assembled  we can start the time loop. To do  this we will use a
+predictor-corrector  scheme. By  default  for  an implicit  resolution  it is  a
+Newmark-$\beta$ in the particular case of the trapezoidal rule.  The call to the
+predictor can  be seen line 5, and  the corrector call is  in the Newton-Raphson
+loop (line 12)
+
+After the predictor we can solve the system to get the new displacement for this
+time step. In these case  the Newton-Raphson convergence algorithm is needed due
+to  non-linearity  potentially  introduced  the  dynamic  behavior.  The  motion
+equation  in this  case  is solved  in  increment of  displacement,  so for  the
+convergence criteria  we just have  to check that  the norm of the  increment of
+displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
+
+\note{For the convergence loop  it is a good usage to put  also a limit in terms
+  of number of iterations to avoid an  infinite loop in case of a error criteria
+  to hard to reach.}
+
+
+
+
 
 \subsubsection{Explicit}
 
 \subsection{Constitutive laws}
-\subsection{}
+\subsubsection{Elastic}
+\subsubsection{Caughey}
+\subsubsection{Neo-hookean}
+\subsubsection{Visco-elastic}
+\subsubsection{Damage Marigo}
+\subsubsection{Damage Mazars}
+
+\subsection{Adding a new constitutive law}
+
 \subsection{Contact}
 
 \subsection{Cohesive laws}
