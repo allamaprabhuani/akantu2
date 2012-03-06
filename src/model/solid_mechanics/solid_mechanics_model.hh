@@ -377,13 +377,14 @@ public:
 
   /// get the SolidMechanicsModel::element_material vector corresponding to a given akantu::ElementType
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
   inline const Material & getMaterial(UInt mat_index) const;
 
   /// give the number of materials
-  inline UInt getNbMaterials() { return materials.size(); };
+  inline UInt getNbMaterials() const { return materials.size(); };
 
   /// compute the stable time step
   Real getStableTimeStep();
