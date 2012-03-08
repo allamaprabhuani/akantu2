@@ -87,8 +87,8 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressViscosity, stress_viscosity, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressElastic,   stress_elastic, Real);
 
-  AKANTU_GET_MACRO(Alpha, alpha, const Real&);
-  AKANTU_SET_MACRO(Alpha, alpha, Real &);
+  AKANTU_GET_MACRO(Alpha, alpha, const Real);
+  AKANTU_SET_MACRO(Alpha, alpha, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
