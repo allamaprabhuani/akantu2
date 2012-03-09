@@ -43,7 +43,7 @@ public:
 
   typedef ByElementType<Vector<Real> **> ByElementTypeMultiReal;
 
-  ShapeLinked(Mesh & mesh, const ID & id = "shape_linked");
+  ShapeLinked(Mesh & mesh, const ID & id = "shape_linked", const MemoryID & memory_id = 0);
   virtual ~ShapeLinked(){};
 
   /* ------------------------------------------------------------------------ */

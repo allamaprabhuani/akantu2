@@ -43,10 +43,10 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
 FEMTemplate<Integ,Shape>::FEMTemplate(Mesh & mesh, UInt spatial_dimension,
-				      ID id,MemoryID memory_id)
-  :FEM(mesh,spatial_dimension,id,memory_id),
-   integrator(mesh),
-   shape_functions(mesh)
+				      ID id, MemoryID memory_id) :
+  FEM(mesh,spatial_dimension,id,memory_id),
+  integrator(mesh, id, memory_id),
+  shape_functions(mesh, id, memory_id)
 {
 }
 
