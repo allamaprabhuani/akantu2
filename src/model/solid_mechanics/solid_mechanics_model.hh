@@ -337,46 +337,34 @@ public:
 
   /// get the SolidMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement,    *displacement,           Vector<Real> &);
-
-  /**
-   * @brief  get  the  SolidMechanicsModel::current_position vector  \warn  only
-   * consistent after a call to SolidMechanicsModel::updateCurrentPosition
-   */
+  /// get the SolidMechanicsModel::current_position vector \warn only consistent
+  /// after a call to SolidMechanicsModel::updateCurrentPosition
   AKANTU_GET_MACRO(CurrentPosition, *current_position, const Vector<Real> &);
-
-  /**
-   * @brief get the  SolidMechanicsModel::increment vector \warn only consistent
-   * if SolidMechanicsModel::setIncrementFlagOn has been called before
-   */
-  AKANTU_GET_MACRO(Increment,       *increment,        const Vector<Real> &);
+  /// get  the SolidMechanicsModel::increment  vector \warn  only  consistent if
+  /// SolidMechanicsModel::setIncrementFlagOn has been called before
+  AKANTU_GET_MACRO(Increment,       *increment,              Vector<Real> &);
   /// get the lumped SolidMechanicsModel::mass vector
-  AKANTU_GET_MACRO(Mass,            *mass,             const Vector<Real> &);
+  AKANTU_GET_MACRO(Mass,            *mass,                   Vector<Real> &);
   /// get the SolidMechanicsModel::velocity vector
   AKANTU_GET_MACRO(Velocity,        *velocity,               Vector<Real> &);
-
-  /**
-   * @brief get    the    SolidMechanicsModel::acceleration    vector,   updated    by
-   * SolidMechanicsModel::updateAcceleration
-   */
-  AKANTU_GET_MACRO(Acceleration,   *acceleration,           Vector<Real> &);
-
-  /// get the SolidMechnicsModel::incrementAcceleration vector
-  AKANTU_GET_MACRO(IncrementAcceleration,   *increment_acceleration,           Vector<Real> &);
-
+  /// get    the    SolidMechanicsModel::acceleration    vector,   updated    by
+  /// SolidMechanicsModel::updateAcceleration
+  AKANTU_GET_MACRO(Acceleration,    *acceleration,           Vector<Real> &);
   /// get the SolidMechanicsModel::force vector (boundary forces)
   AKANTU_GET_MACRO(Force,           *force,                  Vector<Real> &);
-
-  /// get the SolidMechanicsModel::residual vector, computed by SolidMechanicsModel::updateResidual
-  AKANTU_GET_MACRO(Residual,        *residual,         const Vector<Real> &);
-
+  /// get     the    SolidMechanicsModel::residual    vector,     computed    by
+  /// SolidMechanicsModel::updateResidual
+  AKANTU_GET_MACRO(Residual,        *residual,               Vector<Real> &);
   /// get the SolidMechanicsModel::boundary vector
   AKANTU_GET_MACRO(Boundary,        *boundary,               Vector<bool> &);
+  /// get the SolidMechnicsModel::incrementAcceleration vector
+  AKANTU_GET_MACRO(IncrementAcceleration, *increment_acceleration, Vector<Real> &);
 
   /// get the value of the SolidMechanicsModel::increment_flag
   AKANTU_GET_MACRO(IncrementFlag, increment_flag, bool);
 
-  /// get the SolidMechanicsModel::element_material vector corresponding to a given akantu::ElementType
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
+  /// get  the SolidMechanicsModel::element_material  vector corresponding  to a
+  /// given akantu::ElementType
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
 
   /// get a particular material
@@ -391,6 +379,7 @@ public:
 
   /// compute the potential energy
   Real getPotentialEnergy();
+
   /// compute the kinetic energy
   Real getKineticEnergy();
 

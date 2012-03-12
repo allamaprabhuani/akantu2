@@ -208,6 +208,8 @@ void SolidMechanicsModel::initExplicit() {
   if (integrator) delete integrator;
   integrator = new CentralDifference();
 
+  increment_acceleration = new Vector<Real>(nb_nodes, nb_degree_of_freedom, 0);
+
   dynamic = true;
   implicit = false;
 
@@ -431,11 +433,6 @@ void SolidMechanicsModel::updateAcceleration() {
 
   UInt nb_nodes = acceleration->getSize();
   UInt nb_degree_of_freedom = acceleration->getNbComponent();
-
-  if(!increment_acceleration)
-    increment_acceleration = new Vector<Real>(nb_nodes, nb_degree_of_freedom);
-  increment_acceleration->resize(nb_nodes);
-  increment_acceleration->clear();
 
   updateResidualInternal();
 
