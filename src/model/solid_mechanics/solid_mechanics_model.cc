@@ -208,7 +208,8 @@ void SolidMechanicsModel::initExplicit() {
   if (integrator) delete integrator;
   integrator = new CentralDifference();
 
-  increment_acceleration = new Vector<Real>(nb_nodes, nb_degree_of_freedom, 0);
+  increment_acceleration = new Vector<Real>(this->mesh.getNbNodes(), 
+					    this->spatial_dimension, 0.);
 
   dynamic = true;
   implicit = false;
