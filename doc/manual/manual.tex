@@ -17,46 +17,65 @@
 \usepackage{array}
 \usepackage[dvipsnames,usenames]{color}
 \usepackage{xcolor}
-
+\usepackage{makeidx}
 %\usepackage{rotating}
 %\usepackage{sectionbox}
 \usepackage{listings}
 
-\lstset {
-language=C++,				% the language of the code
-basicstyle=\footnotesize,			% the size of the fonts that are used for the code
-%    basicstyle=\ttfamily, % Without beramono, we'd get cmtt, the teletype font.
-%    commentstyle=\textit, % cmtt doesn't do italics. It might do slanted text though.
-commentstyle=\color{Emerald}\itshape,
-keywordstyle= \color{DarkOrchid}\bfseries,
-%fontadjust,
-numbers=left,					% where to put the line-numbers
-numberstyle=\tiny,		% the size of the fonts that are used for the line-numbers
-stepnumber=2,					% the step between two line-numbers. If it's 1, each line will be numbered
-numbersep=5pt,				% how far the line-numbers are from the code
-%backgroundcolor=\color{white},	% choose the background color. You must add \usepackage{color}
-%showspaces=false,				% show spaces adding particular underscores
-showstringspaces=false,			% underline spaces within strings
-%showtabs=false,				% show tabs within strings adding particular underscores
-%frame=llines,					% adds a frame around the code
-%frame=tb,
-tabsize=2,						% sets default tabsize to 2 spaces
-captionpos=t,					% sets the caption-position to bottom
-breaklines=true,				% sets automatic line breaking
-breakatwhitespace=false,			% sets if automatic breaks should only happen at whitespace
-%title=\lstname,					% show the filename of files included with \lstinputlisting; also try caption instead of title
-%escapeinside={\%*}{*)},			% if you want to add a comment within your code
-xleftmargin=1cm,
-xrightmargin=1cm,
-mathescape=true,
-escapechar=\%,
-morekeywords={size_t, value_type, reference_type, pointer_type}
+\definecolor{RED}{rgb}{1,0,0}
+
+\lstdefinestyle{C++}{
+  language=C++, % the language of the code
+  basicstyle=\scriptsize, % the size of the fonts that are used for the code
+  basicstyle=\ttfamily, % Without beramono, we'd get cmtt, the teletype font.
+  % commentstyle=\textit, % cmtt doesn't do italics. It might do slanted text though.
+  commentstyle=\color{Emerald}\itshape,
+  keywordstyle=\color{DarkOrchid}\bfseries,
+  % fontadjust,
+  % numbers=left, % where to put the line-numbers
+  % numberstyle=\tiny, % the size of the fonts that are used for the line-numbers
+  % stepnumber=2, % the step between two  line-numbers.  If it's 1, each line will
+		% be numbered
+  % numbersep=5pt, % how far the line-numbers are from the code
+  % showspaces=false, % show spaces adding particular underscores
+  showstringspaces=false, % underline spaces within strings
+  % showtabs=false, % show tabs within strings adding particular underscores
+  % frame=llines, % adds a frame around the code
+  % frame=tb,
+  tabsize=2, % sets default tabsize to 2 spaces
+  captionpos=b, % sets the caption-position to bottom
+  breaklines=true, % sets automatic line breaking
+  breakatwhitespace=false,   % sets if  automatic breaks  should only  happen at
+			    % whitespace
+  % title=\lstname, % show the filename of files included with \lstinputlisting;
+  % also try caption instead of title
+  % escapeinside={\%*}{*)}, % if you want to add a comment within your code
+  xleftmargin=1cm,
+  xrightmargin=1cm,
+  mathescape=true,
+  escapechar=\%,
+  morekeywords={Real, UInt, Int},
+  columns=flexible,
+  keepspaces=true,
+  backgroundcolor=\color{GreenYellow}
 }
+
+\lstnewenvironment{cpp}{\lstset{style=C++}}{}
+
+\makeatletter
+\def\lst@outputspace{{\ifx\lst@bkgcolor\empty\color{white}\else\lst@bkgcolor\fi\lst@visiblespace}}
+\makeatother
+
+
+\lstnewenvironment{command}{\lstset{
+    language=bash,
+    backgroundcolor=\color{Salmon},
+    breaklines=true}}{}
 
 
 \usepackage[pdftex,
             hyperindex=true,
-%            pagebackref=true,
+            pagebackref=true,
             colorlinks=true,
             linkcolor=blue,
             anchorcolor=magenta,
@@ -65,8 +84,6 @@ morekeywords={size_t, value_type, reference_type, pointer_type}
             unicode,
             implicit=true
             ]{hyperref}
-
-
 
 % \usepackage{ae}
 % \usepackage{aecompl}
@@ -80,8 +97,11 @@ morekeywords={size_t, value_type, reference_type, pointer_type}
 \newcommand{\version}{0.1}
 
 \newcommand{\code}[1]{{\tt{#1}}}
-
 \newcommand{\note}[1]{\textbf{Note: }\textit{#1}}
+\newcommand{\todo}[1]{({\small\color{red}\textbf{TODO: }\textbf{#1}})}
+
+
+
 
 \bibliographystyle{plain}
 
@@ -94,6 +114,8 @@ morekeywords={size_t, value_type, reference_type, pointer_type}
 
 \date{}
 
+\makeindex
+
 \begin{document}
 
 \maketitle
@@ -101,13 +123,6 @@ morekeywords={size_t, value_type, reference_type, pointer_type}
 \tableofcontents
 
 \chapter{Introduction}
-
-\begin{lstlisting}[caption={ \code{Array} class template}, label=lst:array]
-typedef array::Array<1> vector_type;
-typedef array::Array<2> matrix_type;
-typedef array::Array<4> tensor_type;
-\end{lstlisting}
-
 
 \section{Data structures\label{chap:data-structure}}
 
@@ -253,69 +268,73 @@ and will return a vector($n\_nodes$,$dim$) nodal object.\\
 \section{Getting start}
 \subsection{Downloading the code}
 SVN URL to get akantu :
-
-\noindent {\small\code{svn co
-
-  svn+ssh://username@intranet-lsms.epfl.ch/space/repositories/SimulPack/akantu/trunk akantu}}
-
-% or via http:
-
-% \noindent {\small\code{svn co
-
-%   http://username@intranet-lsms.epfl.ch/svn/akantu/trunk/ akantu}}
+\begin{command}
+> svn co svn+ssh://username@intranet-lsms.epfl.ch/space/repositories/SimulPack/akantu/trunk akantu
+\end{command}
 
 \subsection{Compiling akantu}
-\noindent\code{> mkdir build}
-
-\noindent\code{> cd build}
-
-\noindent\code{> ccmake <path to akantu sources>}
+\begin{command}
+> mkdir build
+> cd build
+> ccmake <path to akantu sources>
+\end{command}
 
 Set the option that you need
 
-\noindent\code{> make}
+\begin{command}
+> make
+> make install
+\end{command}
 
-\noindent\code{> make install}
+\section{Solid Mechanics model\index{SolidMechanicsModel}}
 
+The solid  mechanics model is a  specific implementation of  the model interface
+dedicated to  handle the  equation of  motion. The model  is instantiated  for a
+given mesh.  It will create his  own \code{FEM} object to  do the interpolation,
+gradient,  integration and  assembly  operations. A  solid  mechanics model  can
+simply be instantiated like this.
+\begin{cpp}
+SolidMechanicsModel model(mesh, spatial_dimension);
+\end{cpp}
 
-\section{Solid Mechanics model}
-
-The  solid  mechanics  model  is   a  specific  implementation  of  the  model
-interface. The model is instantiated for a given mesh. It will create is own FEM
-object   to   do  the   interpolation,   gradient,   integration  and   assemble
-operations. This model contain some Vectors that we will describe now.
-
+This model contain \code{Vectors} that we will describe now.
 \begin{description}
-\item[Displacement] contain the displacements of  the free degrees of freedom or
-  the imposed displacements for the blocked degrees of freedom.
-\item[Velocity] contain the velocities of  the degree of freedoms, acts like the
-  displacement vector
-\item[Acceleration] contain  the accelerations of  the degree of  freedoms, acts
-  like the displacement vector
-\item[Force] contain the external forces applied on the different nodes.
-\item[Residual] contain the difference  between external and internal forces. On
-  blocked degree of freedom, residual contain the reactions form the support.
+\item[Boundary] contains a  boolean value for each degree  of freedom specifying
+  if it is  blocked or not. If  it is blocked a Dirichlet  boundary condition is
+  prescribed, other why a Neumann boundary condition can be imposed.
+\item[Displacement] contains the displacements of the degrees of freedom. It can
+  be either  a computed displacement  for free degrees  of freedom or  an imposed
+  displacement in case blocked ones.
+\item[Velocity] contains the  velocities of the degrees of  freedoms, as for the
+  \textbf{Displacement} it  can be computed  or imposed velocities  depending on
+  the nature of the degrees of freedoms.
+\item[Acceleration] contains the accelerations of the degree of freedoms, as for
+  the \textbf{Displacement}  it can be computed or  imposed velocities depending
+  on the nature of the degrees of freedoms.
+\item[Force] contains the external forces applied on the nodes.
+\item[Residual] contains the difference  between external and internal forces. On
+  blocked degrees of freedom, \textbf{Residual} contains the support reactions.
 \end{description}
 
-We will present more in detail through some examples how to use this model.
+We will present how to use this model in more details through some examples.
 
 \subsection{Set up a model}
-\subsubsection{Create and load a mesh}
+\subsubsection{Create and load a mesh\label{sect:common:mesh}}
 
 
-\begin{verbatim}
+\begin{cpp}
   UInt spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
 
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
-\end{verbatim}
+\end{cpp}
 
-\subsubsection{Set initial conditions}
-\subsubsection{Set boundary conditions\label{sect:smm:boundary}}
+\subsubsection{Set initial conditions \todo{Aur\'elia}}
+\subsubsection{Set boundary conditions\label{sect:smm:boundary} \todo{Aur\'elia}}
 
-\begin{verbatim}
+\begin{cpp}
   const  Vector<Real> & position = mesh.getNodes();
   Vector<bool> & boundary = model.getBoundary();
   Vector<Real> & displacment = model.getDisplacement();
@@ -329,11 +348,102 @@ We will present more in detail through some examples how to use this model.
       displacment(n,0) = 0.1;
     }
   }
-\end{verbatim}
+\end{cpp}
 
 This conditions put the left and bottom side on rollers
 
-\subsection{Resolution methods}
+\subsection{Static Resolutions\label{sect:smm:static}}
+
+The \code{SolidMechanicsModel} class can handle different method of resolutions,
+the first one that we will present is the static case. In this case the equation
+to solve is the following
+\begin{equation}\label{eq:smm:static}
+  K u = f_{ext}
+\end{equation}
+
+To explain  how to solve  a static  problem we will  go through an  example. The
+source   code    corresponding   to   this    example   can   be    found   here
+\code{example/manuel/implicit\_static.cc}
+
+The example is composed of a 2D  plate of steel blocked with rollers on left
+and bottom sides as shown on figure \ref{fig:smm:static}. The nodes from
+the right side  of the sample are  displaced from $0.01\%$.
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics{figures/implicit_static}
+  \caption{Numerical setup\label{fig:smm:static}}
+\end{figure}
+
+To   solve   this   problem   we   will   use   the   static   solver   of   the
+\code{SolidMechanicsModel}\index{SolidMechanicsModel} object. To do this we must
+first instantiate a model and initialize it.  To create the model we need a mesh
+that    can    be   read    from    a    file    as   explained    in    section
+\ref{sect:common:mesh}. Once we have an instance of a \code{SolidMechanicsModel}
+we  need  to  initialize   it,  to  do  so  the  easiest  way   is  to  use  the
+initFull\index{SolidMechanicsModel!initFull} function by  giving a material file
+containing the material parameters, and  by specifying the good flags. The first
+flag define  if we want to  use a implicit or  explicit time scheme.   It has no
+importance  in this  example. The  second flag  define if  we are  interested in
+solving  a dynamic problem.  In our  case we  should set  it to  \code{false} to
+select a static problem.
+
+\begin{cpp}
+  SolidMechanicsModel model(mesh);
+  model.initFull("material.dat", true, false);
+\end{cpp}
+
+Once the model is created and  initialized we can set the boundary conditions as
+explained in  the section  \ref{sect:smm:boundary}. The boundary  condition will
+prescribe the external forces for the free degrees of freedoms $f_{ext}$ and the
+displacement for  the others.   To completely define  the system  represented in
+equation   \ref{eq:smm:static}   we    must   compute   the   stiffness   matrix
+$K$. \index{SolidMechanicsModel!assembleStiffnessMatrix}
+
+\begin{cpp}
+  model.assembleStiffnessMatrix();
+\end{cpp}
+
+In   fact  to   find   the   equilibrium  we   modify   slightly  the   equation
+\ref{eq:smm:static} in order to apply a Newton-Raphson convergence algorithm.
+
+\begin{eqnarray}\label{eq:smm:static-newton-raphson}
+  K^{i+1} \delta u^{i+1} &=& r = f_{ext} - f_{int} = f_{ext} - K^{i} u^{i}\\
+  u^{i+1} &=& u^{i} + \delta u^{i+1}
+\end{eqnarray}
+
+In  the Newton-Raphson  iteration we  update $K$  according to  the displacement
+computed at  the previous iteration and  we loop until the  forces are balanced,
+that is to  say $r = 0$. To do  this we have to evaluate $r$  and then solve the
+system.\index{SolidMechanicsModel!updateResidual}
+\index{SolidMechanicsModel!solveStatic}
+
+\begin{cpp}
+  model.updateResidual();
+  model.solveStatic();
+\end{cpp}
+
+In an  elastic case the solution is  directly found at the  first iteration. But
+for non elastic case we need to iterate as long as the residual is not null.
+\begin{cpp}
+  Real norm;
+  UInt count = 0;
+  model.updateResidual();
+  while(!model.testConvergenceResidual(1e-3, norm) && (count < 100)) {
+    if (prank == 0)
+      std::cout << "Iter : " << ++count
+                << " - residual norm : "
+                << norm << std::endl;
+    model.solveStatic();
+    model.updateResidual();
+  };
+\end{cpp}
+
+At  the  end  of  the  resolution   the  final  solution  is  contained  in  the
+\code{displacement} vector.
+
+
+\subsection{Dynamic resolutions}
 In the  solid mechanics  model different  way to solve  the motion  equation are
 implemented.  The equations  to  solve is  mainly  $Ma +  Cv +  Ku  = f_{ext}  -
 f_{int} = q$. So we can solve static case where $a = v = 0$, for this we only need a
@@ -386,72 +496,6 @@ c, d and e are parameters depending on the method used to solve the equations
 \note{In you want to use the  implicit solver Akantu should be compiled at least
   with one sparse matrix linear system solver.}
 
-\subsubsection{Implicit static\label{sect:smm:implicit:static}}
-The example presented here is \code{example/manuel/implicit\_static.cc}
-
-The example is composed of a 2D  plate of steel blocked with rollers on the left
-and bottom side as shown on figure \ref{fig:smm:implicit:static}. The nodes from
-the right side  of the sample are  displaced from $10\%$ (since it  is a elastic
-material, it can handle such a deformation).
-
-\begin{figure}[!htb]
-  \centering
-  \includegraphics{figures/implicit_static}
-  \caption{Numerical setup\label{fig:smm:implicit:static}}
-\end{figure}
-
-To  solve  this  problem  we  will   use  the  static  implicit  solver  of  the
-SolidMechanicsModel object in Akantu. The following lines of code are an extract
-of the example code.
-
-\begin{verbatim}
-  ...
-
-1.  SolidMechanicsModel model(mesh);
-2.  model.initFull("material.dat", true, false);
-
-  ...
-
-3.  model.assembleStiffnessMatrix();
-4.  model.updateResidual();
-
-5.  Real norm;
-6.  UInt count = 0;
-7.  while(!model.testConvergenceResidual(1e-3, norm) &&
-8.        (count < 100)) {
-9.    if (prank == 0)
-10.      std::cout << "Iter : " << ++count
-11.                << " - residual norm : "
-12.                << norm << std::endl;
-13.    model.solveStatic();
-14.    model.updateResidual();
-15. };
-\end{verbatim}
-
-The  part presenting  how to  create a  mesh and  read it  in Akantu  as already
-presented before so here we skip this first part.
-
-Once we have a  mesh we can use it to create  a SolidMechanicsModel object (line
-1). This object need to be initialized in order to be used. In this case we want
-to  initialize the  implicit solver.   For  this we  use the  initFull (line  2)
-function that  initialize all the part  of the model. The  parameters are, first
-the material file, and then 2 switches specifying that we need a implicit solver
-not for dynamic case.
-
-Once we  have the model  initialized we  can start to  use it. The  part skipped
-between lines 2 and 3 corresponds  to the boundary conditions setup to in detail
-how to set them check the section \ref{sect:smm:boundary}
-
-What we want to solve is $Ku = f_{ext} - f_{int}$, so first we will assemble the
-stiffness matrix $K$ (line 3), and then the second member $f$ (line 4).
-
-The lines 5 to 15 correspond  to a Newton-Raphson convergence loop. In this case
-this loop  is not needed since the  material is elastic. The  solution should be
-found at  the first iteration.  So technically this  10 lines can replaced  by a
-simple call to the \code{solveStatic} function.
-
-The solution can be found in the displacement vector.
-
 
 \subsubsection{Implicit dynamic}
 The example presented here is \code{example/manuel/implicit\_dynamic.cc}
@@ -478,42 +522,42 @@ of the middle point of the beam.
 \end{figure}
 
 
-\begin{verbatim}
-   ...
+\begin{cpp}
+  // Initial and boundary conditions
 
-1.  model.assembleStiffnessMatrix();
-2.  model.assembleMass();
+ model.assembleStiffnessMatrix();
+ model.assembleMass();
 
-3.  model.setTimeStep(time_step);
-    /// time loop
-4.  for (UInt s = 1; time < 0.62; ++s) {
+ model.setTimeStep(time_step);
+ /// time loop
+ for (UInt s = 1; time < 0.62; ++s) {
 
-5.    model.implicitPred();
+   model.implicitPred();
 
-      /// convergence loop
-6.    count = 0;
-7.    do {
-8.      if(count > 0)
-9.        std::cout << "step " << s << " " << count++ << " : "
+   /// convergence loop
+   count = 0;
+   do {
+     if(count > 0)
+       std::cout << "step " << s << " " << count++ << " : "
 		    << std::scientific << error << "\r" << std::flush;
 
-10.     model.updateResidual();
-11.     model.solveDynamic();
+     model.updateResidual();
+     model.solveDynamic();
 
-12.     model.implicitCorr();
-13.    } while(!model.testConvergenceIncrement(1e-12, error) &&
+     model.implicitCorr();
+    } while(!model.testConvergenceIncrement(1e-12, error) &&
 	       (count < 100));
 
-14.    std::cout << "step " << s << " - " << count << " : "
+    std::cout << "step " << s << " - " << count << " : "
 		 << std::scientific << error << std::endl;
 
-15.    pos << s << "," << s * time_step
+    pos << s << "," << s * time_step
 	   << "," << displacment(node_to_print, 1)
 	   << "," << analytical_solution(s*time_step) << std::endl;
 
-16.    time += time_step;
-17. }
-\end{verbatim}
+    time += time_step;
+ }
+\end{cpp}
 
 For  this simulation  everything  is really  similar  to the  example in  static
 (section  \ref{sect:smm:implicit:static}) except  that  in this  one during  the
@@ -543,9 +587,9 @@ displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
   of number of iterations to avoid an  infinite loop in case of a error criteria
   to hard to reach.}
 
-\subsubsection{Explicit}
+\subsubsection{Explicit\todo{Cyprien}}
 
-\subsection{Constitutive laws}
+\subsection{Constitutive laws\todo{L\'eonardo}}
 \subsubsection{Elastic}
 \subsubsection{Caughey}
 \subsubsection{Neo-hookean}
@@ -553,16 +597,16 @@ displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
 \subsubsection{Damage Marigo}
 \subsubsection{Damage Mazars}
 
-\subsection{Adding a new constitutive law}
+\subsection{Adding a new constitutive law\todo{Mohadeseh}}
 
-\subsection{Contact}
+\subsection{Contact\todo{Alejendro, David, Vlad}}
 
-\subsection{Cohesive laws}
+\subsection{Cohesive laws\todo{Marco}}
 
 
-\section{Structural Mechanics model}
+\section{Structural Mechanics model\todo{Till}}
 
-\section{Heat Transfer model}
+\section{Heat Transfer model\todo{Guillaume}}
 
 % \subsection{Contact Neighbor Structure}
 
@@ -638,8 +682,8 @@ displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
 % Modify the files !
 
 % \end{enumerate}
+\printindex
+
 \bibliography{biblio}
-
-
 
 \end{document}
