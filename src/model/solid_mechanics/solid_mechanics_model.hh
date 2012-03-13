@@ -366,6 +366,7 @@ public:
   /// get  the SolidMechanicsModel::element_material  vector corresponding  to a
   /// given akantu::ElementType
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
