@@ -356,26 +356,15 @@ This conditions put the left and bottom side on rollers
 
 The \code{SolidMechanicsModel} class can handle different method of resolutions,
 the first one that we will present is the static case. In this case the equation
-to solve is the following
-\begin{equation}\label{eq:smm:static}
+to solve is the following,
+\begin{equation}\label{eqn:smm:static}
   K u = f_{ext}
 \end{equation}
+with $K$ the  stiffness matrix, $u$ the displacement  and $f_{ext}$ the external
+forces applied to the system.
 
-To explain  how to solve  a static  problem we will  go through an  example. The
-source   code    corresponding   to   this    example   can   be    found   here
-\code{example/manuel/implicit\_static.cc}
 
-The example is composed of a 2D  plate of steel blocked with rollers on left
-and bottom sides as shown on figure \ref{fig:smm:static}. The nodes from
-the right side  of the sample are  displaced from $0.01\%$.
-
-\begin{figure}[!htb]
-  \centering
-  \includegraphics{figures/implicit_static}
-  \caption{Numerical setup\label{fig:smm:static}}
-\end{figure}
-
-To   solve   this   problem   we   will   use   the   static   solver   of   the
+To   solve  such   a   problem  we   will   use  the   static   solver  of   the
 \code{SolidMechanicsModel}\index{SolidMechanicsModel} object. To do this we must
 first instantiate a model and initialize it.  To create the model we need a mesh
 that    can    be   read    from    a    file    as   explained    in    section
@@ -385,7 +374,7 @@ initFull\index{SolidMechanicsModel!initFull} function by  giving a material file
 containing the material parameters, and  by specifying the good flags. The first
 flag define  if we want to  use a implicit or  explicit time scheme.   It has no
 importance  in this  example. The  second flag  define if  we are  interested in
-solving  a dynamic problem.  In our  case we  should set  it to  \code{false} to
+solving a  dynamic problem.   In our case  we should  set it to  \code{false} to
 select a static problem.
 
 \begin{cpp}
@@ -397,7 +386,7 @@ Once the model is created and  initialized we can set the boundary conditions as
 explained in  the section  \ref{sect:smm:boundary}. The boundary  condition will
 prescribe the external forces for the free degrees of freedoms $f_{ext}$ and the
 displacement for  the others.   To completely define  the system  represented in
-equation   \ref{eq:smm:static}   we    must   compute   the   stiffness   matrix
+equation   (\ref{eqn:smm:static})   we    must   compute   the   stiffness   matrix
 $K$. \index{SolidMechanicsModel!assembleStiffnessMatrix}
 
 \begin{cpp}
@@ -442,50 +431,102 @@ for non elastic case we need to iterate as long as the residual is not null.
 At  the  end  of  the  resolution   the  final  solution  is  contained  in  the
 \code{displacement} vector.
 
+A full  example of  how to  resolve a static  problem is  presented in  the code
+\code{example/manuel/implicit\_static.cc}.  This  example is  composed  of a  2D
+plate of steel blocked with rollers on  left and bottom sides as shown on figure
+\ref{fig:smm:static}. The nodes from the  right side of the sample are displaced
+from $0.01\%$.
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics{figures/implicit_static}
+  \caption{Numerical setup\label{fig:smm:static}}
+\end{figure}
+
 
 \subsection{Dynamic resolutions}
-In the  solid mechanics  model different  way to solve  the motion  equation are
-implemented.  The equations  to  solve is  mainly  $Ma +  Cv +  Ku  = f_{ext}  -
-f_{int} = q$. So we can solve static case where $a = v = 0$, for this we only need a
-solver, like Mumps(\cite{mumps}) for example.
 
-We  can also  solve  the complete  equation,  and for  this we  can  do it  with
-different time discretizations, either  explicit or implicit.  By default Akantu
-use  a  predictor-corrector  Newmark-$\beta$  time integration  scheme.
+In the solid mechanics model different way to solve the equation of motion are
+implemented.  The equations to solve is
+\begin{equation}\label{eqn:equation-motion}
+M\ddot{u} + C\dot{u} + Ku = f_{ext} -f_{int} = q
+\end{equation}
+where  $M$,  $C$  and $K$  are  respectively  the  mass, damping  and  stiffness
+matrices.
 
-So the three differentiate equations (dynamic and cinematic) are \cite{curnier92a}:
+In the previous  section we already explained how to solve  this equation in the
+static case where $\ddot{u}  = \dot{u} = 0$.  Here we will  explain how to solve
+this   equation  in   the  general   case.  For   this  we   must  add   a  time
+discretization. The most common is the  Newmark method, which is the default one
+in Akantu.
+
+For the Newmark method  the equation (\ref{eqn:equation-motion}) become the system
+of   three   equations    (see   \cite{curnier92a}
+\cite{hughes-83a} for more detail):
 \begin{eqnarray}
-  M \ddot{u}_{n+1} + C \dot{u}_{n+1} + K u_{n+1} &=& q_{n+1} \\
-  u_{n+1} &=& u_{n} + (1 - \alpha) \Delta t \dot{u}_{n} + \alpha \Delta t \dot{u}_{n+1} + (1/2 - \alpha) \Delta t^2 \ddot{u}_n \\
-  \dot{u}_{n+1} &=& \dot{u}_{n} + (1 - \beta) \Delta t \ddot{u}_{n} + \beta \Delta t \ddot{u}_{n+1}
+  M     \ddot{u}_{n+1}    +     C    \dot{u}_{n+1}     +    K     u_{n+1}    &=&
+  q_{n+1} \label{eqn:equation-motion-discret} \\
+  u_{n+1}  &=& u_{n}  + (1  - \alpha)  \Delta t  \dot{u}_{n} +  \alpha  \Delta t
+  \dot{u}_{n+1}       +       (1/2        -       \alpha)       \Delta       t^2
+  \ddot{u}_n \label{eqn:finite-difference-1}\\
+  \dot{u}_{n+1}  &=& \dot{u}_{n} +  (1 -  \beta) \Delta  t \ddot{u}_{n}  + \beta
+  \Delta t \ddot{u}_{n+1}\label{eqn:finite-difference-2}
 \end{eqnarray}
 
-can be rewrote as
+In   this  new   equations,  $\ddot{u}_n$,   $\dot{u}_n$  and   $u_n$   are  the
+approximations  of $\ddot{u}(t_n)$, $\dot{u}(t_n)$  and $u(t_n)$.   The equation
+(\ref{eqn:equation-motion-discret})  is   the  equation  of  motion   in  term  of
+approximate      solutions       and      (\ref{eqn:finite-difference-1})      and
+(\ref{eqn:finite-difference-2}) are the  finite difference formulas describing the
+evolution  of the  approximate solutions.  The $\alpha$  and  $\beta$ parameters
+determine the stability and the  accuracy of the algorithm. Classical values for
+$\alpha$ and $\beta$ are usually $\beta = 1/2$ for no numerical damping and $0 <
+\alpha < 1/2$.
 
-\noindent Predictor:
+\begin{center}
+  \begin{tabular}{c|l}
+    $\alpha$ & Methode ($\beta = 1/2$)\\
+    \hline
+    $0$ & central difference\\
+    $1/6$ & Fox-Goodwin (royal road)\\
+    $1/3$ & Linear acceleration\\
+    $1/2$ & Average acceleration(trapezoidal rule)
+  \end{tabular}
+\end{center}
+
+To   be    able   to    solve   this   system    of   equation    the   equation
+(\ref{eqn:equation-motion-discret})-(\ref{eqn:finite-difference-2})   should  be
+split  in a predictor-corrector  system of  equation.  Moreover  in the  case of
+non-linear equation, as for the static case, we apply a iterative algorithm such
+as the Newton-Raphson method. With this  conditions the sytem of equation can be
+wrote as:
+
+
+\noindent\textit{Predictor:}
 \begin{eqnarray}
   u^{0}_{n+1}        &=& u_{n} +  \Delta t \dot{u}_n + \frac{\Delta t^2}{2} \ddot{u}_n \\
   \dot{u}^{0}_{n+1}  &=& \dot{u}_{n} +  \Delta t \ddot{u}_{n} \\
   \ddot{u}^{0}_{n+1} &=& \ddot{u}_{n}
 \end{eqnarray}
 
-\noindent Solve :
+\noindent\textit{Solve:}
 \begin{eqnarray}
- (c M + d C + e K^i_{n+1}) w = q_{n+1} - f^i_{n+1} - C \dot{u}^i_{n+1} - M \ddot{u}^i_{n+1}
+ (c M + d C + e K^i_{n+1}) w = q_{n+1} - f^i_{int~n+1} - C \dot{u}^i_{n+1} - M \ddot{u}^i_{n+1}
 \end{eqnarray}
 
-\noindent Corrector :
+\noindent\textit{Corrector:}
 \begin{eqnarray}
   \ddot{u}^{i+1}_{n+1} &=& \ddot{u}^{i}_{n+1} + c w \\
   \dot{u}^{i+1}_{n+1} &=& \dot{u}^{i}_{n+1} + d w \\
   u^{i+1}_{n+1} &=& u^{i}_{n+1} + e w
 \end{eqnarray}
 
-c, d and e are parameters depending on the method used to solve the equations
+where  $i$ is  the Newton-Raphson  iteration counter  and $c$,  $d$ and  $e$ are
+parameters depending on the method used to solve the equations
 
 \begin{center}
   \begin{tabular}{l|c|c|c|c}
-    & w & e & d & c\\
+    & $w$ & $e$ & $d$ & $c$\\
     \hline
     in acceleration &$ \delta \ddot{u}$ & $\alpha \beta \Delta t^2$ &$\beta \Delta t$ &$1$\\
     in velocity & $ \delta \dot{u}$& $1/\beta \Delta t$ & $1$ & $\alpha \Delta t$\\
@@ -494,25 +535,26 @@ c, d and e are parameters depending on the method used to solve the equations
 \end{center}
 
 \note{In you want to use the  implicit solver Akantu should be compiled at least
-  with one sparse matrix linear system solver.}
+  with one sparse matrix solver such as Mumps\cite{mumps}.}
 
 
-\subsubsection{Implicit dynamic}
+\subsubsection{Implicit time integration}
 The example presented here is \code{example/manuel/implicit\_dynamic.cc}
 
 This example consists in a beam blocked on one side and on a roller on the other
 side,  on  which   we  apply  a  constant  force  in   the  middle.  The  figure
-\ref{fig:smm:implicit:dynamic} present the geometry of this case.
+\ref{fig:smm:implicit:dynamic} present  the geometry of this  case. The material
+used is a linear elastic one.
 
-We can give a approximation  (eqn. \ref{eqn:smm:implicit}) of the dynamic answer
-of the middle point of the beam.
+We  can give  a  approximation (eqn.  (\ref{eqn:smm:implicit}))  of the  dynamic
+answer of the middle point of the beam.
 
-\begin{equation}
+\begin{equation}\label{eqn:smm:implicit}
   u(\frac{L}{2}, t) = \frac{1}{\pi^4} (1 - cos(\pi^2 t) +
   \frac{1}{81}(1 - cos(3^2 \pi^2 t)) +
   \frac{1}{625}(1 - cos(5^2 \pi^2 t)))
 \end{equation}
-\label{eqn:smm:implicit}
+
 
 \begin{figure}[!htb]
   \centering
@@ -521,67 +563,68 @@ of the middle point of the beam.
   \label{fig:smm:implicit:dynamic}
 \end{figure}
 
+To resolve the  this problem with an implicit time  integration scheme we should
+as first  create a \code{SolidMechanicsModel}  object initialize it and  set the
+initial and boundary conditions. Everything  is really similar to the example in
+static  (section  \ref{sect:smm:static}) except  that  in  this  one during  the
+initialization of  the model we  have to  specify that it  is a dynamic  case by
+setting the flags to \code{true}.
 
+\begin{cpp}[escapechar=\%]
+  SolidMechanicsModel model(mesh);
+  model.initFull("material.dat", true, true);
+  /* Boundary conditions see section %\ref{sect:smm:boundary}% */
+\end{cpp}
+
+Then we have to compute the stiffness  matrix $K$ and the mass matrix $M$. Since
+the material is elastic in this case $C = 0$.
+\index{SolidMechanicsModel!assembleStiffnessMatrix}
+\index{SolidMechanicsModel!assembleMass}
 \begin{cpp}
-  // Initial and boundary conditions
-
  model.assembleStiffnessMatrix();
  model.assembleMass();
+\end{cpp}
 
- model.setTimeStep(time_step);
- /// time loop
- for (UInt s = 1; time < 0.62; ++s) {
+Since we are doing a dynamic simulation we should do specify what is the $\Delta
+t$ we want to use. In  the case of implicit simulations by default \code(Akantu)
+use a trapezoidal rule. That is to say $\alpha = 1/2$ and $\beta = 1/2$ which is
+unconditionally stable. Therefore  why can choose whatever we  want for the time
+step.
+\index{SolidMechanicsModel!setTimeStep}
+\begin{cpp}
+  model.setTimeStep(time_step);
+\end{cpp}
 
+Now everything is set to do the  time stepping. The time loop should contain the
+predictor,  the solve  and  the corrector  with  the Newton-Raphson  convergence
+algorithm even if the material is  linear. By default the equation are solved in
+displacement.
+\index{SolidMechanicsModel!implicitPred}
+\index{SolidMechanicsModel!implicitCorr}
+\index{SolidMechanicsModel!updateResidual}
+\index{SolidMechanicsModel!solveDynamic}
+\begin{cpp}
+  for (Real time = 0; time < simulation_time; time += time_step) {
    model.implicitPred();
 
-   /// convergence loop
-   count = 0;
+   UInt count = 0;
+   /// Newton-Raphson convergence loop
    do {
-     if(count > 0)
-       std::cout << "step " << s << " " << count++ << " : "
-		    << std::scientific << error << "\r" << std::flush;
-
      model.updateResidual();
      model.solveDynamic();
 
      model.implicitCorr();
-    } while(!model.testConvergenceIncrement(1e-12, error) &&
-	       (count < 100));
+     ++count;
+   } while(!model.testConvergenceIncrement(1e-12, error) && count < 100);
 
-    std::cout << "step " << s << " - " << count << " : "
-		 << std::scientific << error << std::endl;
-
-    pos << s << "," << s * time_step
-	   << "," << displacment(node_to_print, 1)
-	   << "," << analytical_solution(s*time_step) << std::endl;
-
-    time += time_step;
+   pos << time
+       << "," << displacment(node_to_print, 1)
+       << "," << analytical_solution(time) << std::endl;
  }
 \end{cpp}
 
-For  this simulation  everything  is really  similar  to the  example in  static
-(section  \ref{sect:smm:implicit:static}) except  that  in this  one during  the
-initialization of the model we have to specify that it is a dynamic case.
-
-The difference here is that the equation we solve is now $Ma + Cv + Ku = f_{ext}
-- f_{int}$. So we first have to  assemble the stiffness matrix $K$ (line 1) then
-the mass matrix $M$ (in case of an elastic material $C = 0$).
-
 \note{Here we have a elastic material so $K$ is constant, but for other material
   we should assemble $K$ at each iteration.}
-
-Once the matrix assembled  we can start the time loop. To do  this we will use a
-predictor-corrector  scheme. By  default  for  an implicit  resolution  it is  a
-Newmark-$\beta$ in  the particular case of  the trapezoidal rule that  is to say
-$\beta = 1/2$ and $\alpha = 1/2$.  The call to the predictor can be seen line 5,
-and the corrector call is in the Newton-Raphson loop (line 12)
-
-After the predictor we can solve the system to get the new displacement for this
-time step. In these case  the Newton-Raphson convergence algorithm is needed due
-to  non-linearity  potentially  introduced  the  dynamic  behavior.  The  motion
-equation  in this  case  is solved  in  increment of  displacement,  so for  the
-convergence criteria  we just have  to check that  the norm of the  increment of
-displacement is smaller that a give threshold, here $10^{-12}$ (line 13).
 
 \note{For the convergence loop  it is a good usage to put  also a limit in terms
   of number of iterations to avoid an  infinite loop in case of a error criteria
