@@ -92,13 +92,15 @@
 % \usepackage{bookman}
 \usepackage{palatino}
 \usepackage{verbatim}
+\usepackage{xspace}
 
 \sloppy
 \newcommand{\version}{0.1}
 
-\newcommand{\code}[1]{{\tt{#1}}}
+\newcommand{\akantu}{\texttt{\textbf{Akantu}}\xspace}
+\newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\note}[1]{\textbf{Note: }\textit{#1}}
-\newcommand{\todo}[1]{({\small\color{red}\textbf{TODO: }\textbf{#1}})}
+\newcommand{\todo}[1]{~({\small\color{red}\textbf{TODO: }\textbf{#1}})}
 
 
 
@@ -124,162 +126,183 @@
 
 \chapter{Introduction}
 
-\section{Data structures\label{chap:data-structure}}
+% \section{Data structures\label{chap:data-structure}}
 
-\subsection{Vectors\label{sec:vectors}}
+% \subsection{Vectors\label{sec:vectors}}
 
-The Vector class is a template class  that can store scalar types as Real, UInt,
-Int  or bool.   A Vector  instance is  defined  by its  size and  its number  of
-component.  It also  has an  identifier and  some extra  internal  variables for
-memory handling purpose.
+% The Vector class is a template class  that can store scalar types as Real, UInt,
+% Int  or bool.   A Vector  instance is  defined  by its  size and  its number  of
+% component.  It also  has an  identifier and  some extra  internal  variables for
+% memory handling purpose.
 
-\begin{itemize}
-\item The size is the number of tupels stored in the Vector.
-\item The number of component is the number of values stored for each tuple.
-\end{itemize}
+% \begin{itemize}
+% \item The size is the number of tupels stored in the Vector.
+% \item The number of component is the number of values stored for each tuple.
+% \end{itemize}
+
+% \begin{figure}[!htb]
+%   \centering
+%   \includegraphics{figures/vectors}
+%   \caption{View of  a Vector of size  n and c compenents,  (a) representation of
+%     the vector, (b) representation of the storage of the same Vector.}
+%   \label{fig:vectors}
+% \end{figure}
+
+% All the  data are linerarized  in memory in  an array called values.  This class
+% member is public.  So for a Vector  of size $n$ and $c$ component, to access the
+% $j^{th}$  component of  th  $i^{th}$ tuple,  you have  to  get $values[i  * c  +
+% j]$. You  can also  access to this  value with  accessor \code{at(i, j)}  or the
+% constant accessor \code{get(i, j)}.
+
+% If  you want to  store a  matrix on  each tuple  you have  to linearize  it. For
+% exemple if you want to store a m * k matrix on each tuple you must specify c = m
+% * k.  To access a particular value  in a matrix of  a tuple you will  have to do
+% something like $values[ i * m * k + j_i * m + j_j]$.
+
+% \subsubsection{Vector storage convention within FE object\label{sec:FE-convention}}
+
+% The point of  this section is to describe the convention  of storage for vectors
+% intented  to be  passed to  {\bf  FE} object  methods.  Indeed  a convention  of
+% necessary  since gradient  operators or  integrtaion loops  will use  vectors as
+% input and ouput.   Such vectors will be ordered with  a specific convention that
+% we intend to describe now.
+
+% For  vector objects,  the  size of  the vector  is  always the  number of  nodes
+% associated.  The number  of components  is related  to the  order of  the tensor
+% considered. For a scalar  field it is 1, for a vectorial  field, the size of the
+% vector is the number of components. For a $m\times n$ matrix field the number of
+% components is $m\times n$.
+
+% One common operation  is the manipulation of continuum  fields at the quadrature
+% point  positions.   Here  the  size   of  the  vector  is   $mn\_element  \times
+% nb\_quad\_points$  and  the  number  of  components is  related  to  the  stored
+% object.  For instance the  method \verb$interpolateOnQuadraturePoints()$  take a
+% nodal field  stored in a  vector($n\_nodes$,$dim$) and return  a vector($n\_elem
+% \times n\_quads$,$dim$).
+
+% Basic gradient operations, like method \verb$gradientOnQuadraturePoints()$, will
+% take  as input a  vector($n\_nodes$,$dim$) and  return a  vector($n\_elem \times
+% n\_quads$,$dim \times spatial\_dimension$) where spatial dimension is the number
+% of dimension in which the domain is embedded.
+
+% In  the  same  way   the  integration  routines  expect  vector($n\_elem  \times
+% n\_quads$,$dim$)  and  will  return vector($n\_elem$,$dim$).   For  non-Gaussian
+% integrations, the input  by be direction a nodal field.   (At present time, only
+% gaussian integrators are implemented within akantu).
+
+% Last but  not the least  is the vectorial  assembly process for which  accept as
+% input vector($n\_elem \times n\_quads \times n\_nodes\_per\_element$,$dim$)
+% and will return a vector($n\_nodes$,$dim$) nodal object.\\
+
+% {\bf The general convention is that  the number of component shall always be the
+%   size of  the object manipulated  at the lowest  level.  The object could  be a
+%   per-element, of  per quadrature point  or even per  node basis this  will also
+%   apply    as   shown    below.   The    figures    \ref{fig:vector-chain}   and
+%   \ref{fig:interpolate-storage} shows the  pattern of the vectors is  the case a
+%   interpolation on quadrature points.}
+
+% \begin{figure}
+%   \begin{equation}
+%     \left(
+%       \begin{array}{c}
+% 	N_1 \\
+% 	\vdots \\
+% 	N_I
+% 	\left\{
+% 	  \begin{array}{c}
+% 	    a_1 \\
+% 	    \vdots \\
+% 	    a_{dim} \\
+% 	  \end{array}
+% 	\right. \\
+% 	\vdots \\
+% 	N_{nb\_nodes}
+%       \end{array}
+%     \right)
+%     \begin{array}{c}
+%       \Longrightarrow \\
+%       interpolate\\
+%       On\\
+%       Quadrature\\
+%       Points\\
+%     \end{array}
+%     \left(
+%       \begin{array}{c}
+% 	E_1 \\
+% 	\vdots \\
+% 	E_e
+% 	\left\{
+% 	  \begin{array}{c}
+% 	    q_1 \\
+% 	    \vdots \\
+% 	    \left.
+% 	      \begin{array}{c}
+% 		a_1 \\
+% 		\vdots \\
+% 		a_{dim}
+% 	      \end{array}
+% 	    \right\} q_i \\
+% 	    \vdots \\
+% 	    q_p \\
+% 	  \end{array}
+% 	\right.  \\
+% 	\vdots \\
+% 	E_{nb\_elements}
+%       \end{array}
+%     \right)
+%   \end{equation}
+%   \caption{\label{fig:vector-chain}Pattern   of   vectors   manipulated   during
+%     interpolation on  quadrature points.  Symbols  N (resp. E, q)  denotes nodes
+%     (resp. elements, quadrature points).}
+% \end{figure}
+
+% \begin{figure}[!htb]
+%   \centering
+%   \includegraphics[width=\textwidth]{figures/interpolate}
+%   \caption{Input and output  vector of interpolateOnQuadraturePoints. The output
+%     Vector has nb\_quadrature\_points tuples,  the quadrature points are grouped
+%     by elements (p is the number of quadrature points per element).}
+%   \label{fig:interpolate-storage}
+% \end{figure}
+
+\chapter{Planning}
+
+\begin{description}
+\item[03/12/12] Cyprien: Explicit time integration scheme
+\item[03/29/12] Aur\'elia: Boundary conditions
+\item[04/13/12] L\'eonardo: Existing constitutive laws
+\item[04/20/12] Mohadeseh: Adding a constitutive law
+\item[04/27/12] Peter: Adding an element
+\item[05/04/12] Till: Structural mechanics model
+\item[05/11/12] Guillaume: Heat transfer model
+\item[05/18/12] Marco: Cohesive elements
+\item[05/25/12] Alejandro: Contact detection
+\item[06/01/12] David: Contact resolution
+\end{description}
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics{figures/vectors}
-  \caption{View of  a Vector of size  n and c compenents,  (a) representation of
-    the vector, (b) representation of the storage of the same Vector.}
-  \label{fig:vectors}
-\end{figure}
-
-All the  data are linerarized  in memory in  an array called values.  This class
-member is public.  So for a Vector  of size $n$ and $c$ component, to access the
-$j^{th}$  component of  th  $i^{th}$ tuple,  you have  to  get $values[i  * c  +
-j]$. You  can also  access to this  value with  accessor \code{at(i, j)}  or the
-constant accessor \code{get(i, j)}.
-
-If  you want to  store a  matrix on  each tuple  you have  to linearize  it. For
-exemple if you want to store a m * k matrix on each tuple you must specify c = m
-* k.  To access a particular value  in a matrix of  a tuple you will  have to do
-something like $values[ i * m * k + j_i * m + j_j]$.
-
-\subsubsection{Vector storage convention within FE object\label{sec:FE-convention}}
-
-The point of  this section is to describe the convention  of storage for vectors
-intented  to be  passed to  {\bf  FE} object  methods.  Indeed  a convention  of
-necessary  since gradient  operators or  integrtaion loops  will use  vectors as
-input and ouput.   Such vectors will be ordered with  a specific convention that
-we intend to describe now.
-
-For  vector objects,  the  size of  the vector  is  always the  number of  nodes
-associated.  The number  of components  is related  to the  order of  the tensor
-considered. For a scalar  field it is 1, for a vectorial  field, the size of the
-vector is the number of components. For a $m\times n$ matrix field the number of
-components is $m\times n$.
-
-One common operation  is the manipulation of continuum  fields at the quadrature
-point  positions.   Here  the  size   of  the  vector  is   $mn\_element  \times
-nb\_quad\_points$  and  the  number  of  components is  related  to  the  stored
-object.  For instance the  method \verb$interpolateOnQuadraturePoints()$  take a
-nodal field  stored in a  vector($n\_nodes$,$dim$) and return  a vector($n\_elem
-\times n\_quads$,$dim$).
-
-Basic gradient operations, like method \verb$gradientOnQuadraturePoints()$, will
-take  as input a  vector($n\_nodes$,$dim$) and  return a  vector($n\_elem \times
-n\_quads$,$dim \times spatial\_dimension$) where spatial dimension is the number
-of dimension in which the domain is embedded.
-
-In  the  same  way   the  integration  routines  expect  vector($n\_elem  \times
-n\_quads$,$dim$)  and  will  return vector($n\_elem$,$dim$).   For  non-Gaussian
-integrations, the input  by be direction a nodal field.   (At present time, only
-gaussian integrators are implemented within akantu).
-
-Last but  not the least  is the vectorial  assembly process for which  accept as
-input vector($n\_elem \times n\_quads \times n\_nodes\_per\_element$,$dim$)
-and will return a vector($n\_nodes$,$dim$) nodal object.\\
-
-{\bf The general convention is that  the number of component shall always be the
-  size of  the object manipulated  at the lowest  level.  The object could  be a
-  per-element, of  per quadrature point  or even per  node basis this  will also
-  apply    as   shown    below.   The    figures    \ref{fig:vector-chain}   and
-  \ref{fig:interpolate-storage} shows the  pattern of the vectors is  the case a
-  interpolation on quadrature points.}
-
-\begin{figure}
-  \begin{equation}
-    \left(
-      \begin{array}{c}
-	N_1 \\
-	\vdots \\
-	N_I
-	\left\{
-	  \begin{array}{c}
-	    a_1 \\
-	    \vdots \\
-	    a_{dim} \\
-	  \end{array}
-	\right. \\
-	\vdots \\
-	N_{nb\_nodes}
-      \end{array}
-    \right)
-    \begin{array}{c}
-      \Longrightarrow \\
-      interpolate\\
-      On\\
-      Quadrature\\
-      Points\\
-    \end{array}
-    \left(
-      \begin{array}{c}
-	E_1 \\
-	\vdots \\
-	E_e
-	\left\{
-	  \begin{array}{c}
-	    q_1 \\
-	    \vdots \\
-	    \left.
-	      \begin{array}{c}
-		a_1 \\
-		\vdots \\
-		a_{dim}
-	      \end{array}
-	    \right\} q_i \\
-	    \vdots \\
-	    q_p \\
-	  \end{array}
-	\right.  \\
-	\vdots \\
-	E_{nb\_elements}
-      \end{array}
-    \right)
-  \end{equation}
-  \caption{\label{fig:vector-chain}Pattern   of   vectors   manipulated   during
-    interpolation on  quadrature points.  Symbols  N (resp. E, q)  denotes nodes
-    (resp. elements, quadrature points).}
-\end{figure}
-
-\begin{figure}[!htb]
-  \centering
-  \includegraphics[width=\textwidth]{figures/interpolate}
-  \caption{Input and output  vector of interpolateOnQuadraturePoints. The output
-    Vector has nb\_quadrature\_points tuples,  the quadrature points are grouped
-    by elements (p is the number of quadrature points per element).}
-  \label{fig:interpolate-storage}
+  \includegraphics[width=\linewidth]{figures/doc_wheel}
+  \caption{Documentation wheel\label{fig:doc_wheel}}
 \end{figure}
 
 
-\chapter{How to use Akantu}
-\section{Getting start}
+\chapter{How to use \akantu}
+\section{Getting started}
 \subsection{Downloading the code}
-SVN URL to get akantu :
+SVN URL to get \akantu :
 \begin{command}
 > svn co svn+ssh://username@intranet-lsms.epfl.ch/space/repositories/SimulPack/akantu/trunk akantu
 \end{command}
 
-\subsection{Compiling akantu}
+\subsection{Compiling \akantu}
 \begin{command}
 > mkdir build
 > cd build
 > ccmake <path to akantu sources>
 \end{command}
 
-Set the option that you need
+Set the options that you need
 
 \begin{command}
 > make
@@ -288,39 +311,39 @@ Set the option that you need
 
 \section{Solid Mechanics model\index{SolidMechanicsModel}}
 
-The solid  mechanics model is a  specific implementation of  the model interface
-dedicated to  handle the  equation of  motion. The model  is instantiated  for a
-given mesh.  It will create his  own \code{FEM} object to  do the interpolation,
-gradient,  integration and  assembly  operations. A  solid  mechanics model  can
-simply be instantiated like this.
+The  solid mechanics  model is  a  specific implementation  of the  \code{Model}
+interface dedicated to handle the  equation of motion. The model is instantiated
+for  a  given  mesh.  It  will  create  its  own  \code{FEM}  object to  do  the
+interpolation, gradient, integration and  assembly operations. A solid mechanics
+model can simply be instantiated like this:
 \begin{cpp}
 SolidMechanicsModel model(mesh, spatial_dimension);
 \end{cpp}
 
-This model contain \code{Vectors} that we will describe now.
+This model contains \code{Vectors} that will be described in the following.
 \begin{description}
 \item[Boundary] contains a  boolean value for each degree  of freedom specifying
-  if it is  blocked or not. If  it is blocked a Dirichlet  boundary condition is
-  prescribed, other why a Neumann boundary condition can be imposed.
+  whether it is blocked or not.  if it is blocked a Dirichlet boundary condition
+  is prescribed, otherwise a Neumann boundary condition can be imposed.
 \item[Displacement] contains the displacements of the degrees of freedom. It can
-  be either  a computed displacement  for free degrees  of freedom or  an imposed
-  displacement in case blocked ones.
-\item[Velocity] contains the  velocities of the degrees of  freedoms, as for the
-  \textbf{Displacement} it  can be computed  or imposed velocities  depending on
+  be either  a computed displacement for  free degrees of freedom  or an imposed
+  displacement in case of blocked ones.
+\item[Velocity]  contains the  velocities of  the  degrees of  freedoms. As  the
+  \textbf{Displacement}, it contain computed  or imposed velocities depending on
   the nature of the degrees of freedoms.
-\item[Acceleration] contains the accelerations of the degree of freedoms, as for
-  the \textbf{Displacement}  it can be computed or  imposed velocities depending
+\item[Acceleration] contains the accelerations of the degree of freedoms. As the
+  \textbf{Displacement}, it contain  computed or imposed accelerations depending
   on the nature of the degrees of freedoms.
 \item[Force] contains the external forces applied on the nodes.
-\item[Residual] contains the difference  between external and internal forces. On
+\item[Residual] contains the difference between external and internal forces. On
   blocked degrees of freedom, \textbf{Residual} contains the support reactions.
 \end{description}
 
-We will present how to use this model in more details through some examples.
+Some examples for  understanding how to use this model will  be presented in the
+following.
 
-\subsection{Set up a model}
-\subsubsection{Create and load a mesh\label{sect:common:mesh}}
-
+\subsection{Model setup}
+\subsubsection{Creating and loading a mesh\label{sect:common:mesh}}
 
 \begin{cpp}
   UInt spatial_dimension = 2;
@@ -331,8 +354,10 @@ We will present how to use this model in more details through some examples.
   mesh_io.read("square.msh", mesh);
 \end{cpp}
 
-\subsubsection{Set initial conditions \label{sect:smm:initial_condition}\todo{Aur\'elia}}
-\subsubsection{Set boundary conditions\label{sect:smm:boundary} \todo{Aur\'elia}}
+\subsubsection{Setting   initial  conditions  \label{sect:smm:initial_condition}
+  \todo{Aur\'elia}}
+\subsubsection{Seting        boundary        conditions\label{sect:smm:boundary}
+  \todo{Aur\'elia}}
 
 \begin{cpp}
   const  Vector<Real> & position = mesh.getNodes();
@@ -350,31 +375,32 @@ We will present how to use this model in more details through some examples.
   }
 \end{cpp}
 
-This conditions put the left and bottom side on rollers
+These conditions put the left and bottom side on rollers.
 
-\subsection{Static Resolutions\label{sect:smm:static}}
 
-The \code{SolidMechanicsModel} class can handle different method of resolutions,
-the first one that we will present is the static case. In this case the equation
-to solve is the following,
+\subsection{Static resolving\label{sect:smm:static}}
+
+The \code{SolidMechanicsModel} class can handle different methods of resolution,
+the first  one that  will be  presented is the  static case.  In this  case, the
+equation to solve is as following,
 \begin{equation}\label{eqn:smm:static}
   K u = f_{ext}
 \end{equation}
-with $K$ the  stiffness matrix, $u$ the displacement  and $f_{ext}$ the external
+where $K$ is the stiffness matrix, $u$ the displacement and $f_{ext}$ the external
 forces applied to the system.
 
 
-To   solve  such   a   problem  we   will   use  the   static   solver  of   the
-\code{SolidMechanicsModel}\index{SolidMechanicsModel} object. To do this we must
-first instantiate a model and initialize it.  To create the model we need a mesh
-that    can    be   read    from    a    file    as   explained    in    section
-\ref{sect:common:mesh}. Once we have an instance of a \code{SolidMechanicsModel}
-we  need  to  initialize   it,  to  do  so  the  easiest  way   is  to  use  the
+To     solve    such     a    problem     the    static     solver     of    the
+\code{SolidMechanicsModel}\index{SolidMechanicsModel}  object is used.   First a
+model has to be instantiates and  initialized.  To create the model, a mesh that
+can   be   read   from   a   file   is   needed,   as   explained   in   section
+\ref{sect:common:mesh}.   Once an  instance of  a  \code{SolidMechanicsModel} is
+instantiated,   the   easiest   way   to   initialize   it   is   to   use   the
 initFull\index{SolidMechanicsModel!initFull} function by  giving a material file
 containing the material parameters, and  by specifying the good flags. The first
-flag define  if we want to  use a implicit or  explicit time scheme.   It has no
-importance  in this  example. The  second flag  define if  we are  interested in
-solving a  dynamic problem.   In our case  we should  set it to  \code{false} to
+flag defines if we  want to use an implicit or explicit  time scheme.  It has no
+importance in  this example.  The second  flag defines if  we are  interested in
+solving a  dynamic problem.  In  our case, we  should set it to  \code{false} to
 select a static problem.
 
 \begin{cpp}
@@ -382,28 +408,28 @@ select a static problem.
   model.initFull("material.dat", true, false);
 \end{cpp}
 
-Once the model is created and  initialized we can set the boundary conditions as
-explained in  the section  \ref{sect:smm:boundary}. The boundary  condition will
-prescribe the external forces for the free degrees of freedoms $f_{ext}$ and the
-displacement for  the others.   To completely define  the system  represented in
-equation   (\ref{eqn:smm:static})   we    must   compute   the   stiffness   matrix
-$K$. \index{SolidMechanicsModel!assembleStiffnessMatrix}
+Once the model is created and initialized we can set the boundary conditions can
+be set as explained  in section \ref{sect:smm:boundary}.  The boundary condition
+will prescribe  the external forces for  the free degrees  of freedoms $f_{ext}$
+and  the  displacement  for  the   others.   To  completely  define  the  system
+represented in  equation (\ref{eqn:smm:static}),  we must compute  the stiffness
+matrix $K$. \index{SolidMechanicsModel!assembleStiffnessMatrix}
 
 \begin{cpp}
   model.assembleStiffnessMatrix();
 \end{cpp}
 
-In   fact  to   find   the   equilibrium  we   modify   slightly  the   equation
-\ref{eq:smm:static} in order to apply a Newton-Raphson convergence algorithm.
+In   fact,  to   find  the   equilibrium   we  modify   slightly  the   equation
+(\ref{eqn:smm:static}) in order to apply a Newton-Raphson convergence algorithm.
 
 \begin{eqnarray}\label{eq:smm:static-newton-raphson}
   K^{i+1} \delta u^{i+1} &=& r = f_{ext} - f_{int} = f_{ext} - K^{i} u^{i}\\
   u^{i+1} &=& u^{i} + \delta u^{i+1}
 \end{eqnarray}
 
-In  the Newton-Raphson  iteration we  update $K$  according to  the displacement
+In the  Newton-Raphson iteration,  we update $K$  according to  the displacement
 computed at  the previous iteration and  we loop until the  forces are balanced,
-that is to  say $r = 0$. To do  this we have to evaluate $r$  and then solve the
+that is to say $r  = 0$. To do this, we have to evaluate  $r$ and then solve the
 system.\index{SolidMechanicsModel!updateResidual}
 \index{SolidMechanicsModel!solveStatic}
 
@@ -413,7 +439,8 @@ system.\index{SolidMechanicsModel!updateResidual}
 \end{cpp}
 
 In an  elastic case the solution is  directly found at the  first iteration. But
-for non elastic case we need to iterate as long as the residual is not null.
+for non elastic case, we need to iterate  as long as the norm of the residual is
+not zero.
 \begin{cpp}
   Real norm;
   UInt count = 0;
@@ -428,14 +455,12 @@ for non elastic case we need to iterate as long as the residual is not null.
   };
 \end{cpp}
 
-At  the  end  of  the  resolution   the  final  solution  is  contained  in  the
-\code{displacement} vector.
-
-A full  example of  how to  resolve a static  problem is  presented in  the code
-\code{example/manuel/implicit\_static.cc}.  This  example is  composed  of a  2D
-plate of steel blocked with rollers on  left and bottom sides as shown on figure
-\ref{fig:smm:static}. The nodes from the  right side of the sample are displaced
-from $0.01\%$.
+At  the   end  of  the   resolution  the  final   solution  is  stored   in  the
+\code{displacement} vector.  A  full example of how to  resolve a static problem
+is  presented  in   the  code  \code{example/manuel/implicit\_static.cc}.   This
+example is  composed of a 2D  plate of steel,  blocked with rollers on  left and
+bottom sides as  shown in figure \ref{fig:smm:static}. The  nodes from the right
+side of the sample are displaced from $0.01\%$ of the length.
 
 \begin{figure}[!htb]
   \centering
@@ -444,28 +469,28 @@ from $0.01\%$.
 \end{figure}
 
 
-\subsection{Dynamic resolutions}
+\subsection{Dynamic methods}
 
-In the solid mechanics model different way to solve the equation of motion are
-implemented.  The equations to solve is
+Different ways  to solve  the equation  of motion are  implemented in  the solid
+mechanics model.  The complete equations that should be solved is
 \begin{equation}\label{eqn:equation-motion}
-M\ddot{u} + C\dot{u} + Ku = f_{ext} -f_{int} = q
+M\ddot{u} + C\dot{u} + Ku = f_{ext} -f_{int} = r
 \end{equation}
-where  $M$,  $C$  and $K$  are  respectively  the  mass, damping  and  stiffness
-matrices.
+where  $M$,  $C$   and  $K$  are  the  mass,   damping  and  stiffness  matrices
+respectively.
 
-In the previous  section we already explained how to solve  this equation in the
+In the previous section, we already  explained how to solve this equation in the
 static case where $\ddot{u}  = \dot{u} = 0$.  Here we will  explain how to solve
-this   equation  in   the  general   case.  For   this  we   must  add   a  time
-discretization. The most common is the  Newmark method, which is the default one
-in Akantu.
+this equation in the general case.  To reach this purpose, a time discretization
+should be added. The most common discretization method in solid mechanics is the
+Newmark-$\beta$ method, which is the default one in \akantu.
 
-For the Newmark method  the equation (\ref{eqn:equation-motion}) become the system
-of   three   equations    (see   \cite{curnier92a}
-\cite{hughes-83a} for more detail):
+For the  Newmark-$\beta$ method, equation  (\ref{eqn:equation-motion}) becomes a
+system  of three  equations  (see \cite{curnier92a}  \cite{hughes-83a} for  more
+detail):
 \begin{eqnarray}
   M     \ddot{u}_{n+1}    +     C    \dot{u}_{n+1}     +    K     u_{n+1}    &=&
-  q_{n+1} \label{eqn:equation-motion-discret} \\
+  r_{n+1} \label{eqn:equation-motion-discret} \\
   u_{n+1}  &=& u_{n}  + (1  - \alpha)  \Delta t  \dot{u}_{n} +  \alpha  \Delta t
   \dot{u}_{n+1}       +       (1/2        -       \alpha)       \Delta       t^2
   \ddot{u}_n \label{eqn:finite-difference-1}\\
@@ -474,11 +499,11 @@ of   three   equations    (see   \cite{curnier92a}
 \end{eqnarray}
 
 In   this  new   equations,  $\ddot{u}_n$,   $\dot{u}_n$  and   $u_n$   are  the
-approximations  of $\ddot{u}(t_n)$, $\dot{u}(t_n)$  and $u(t_n)$.   The equation
-(\ref{eqn:equation-motion-discret})  is   the  equation  of  motion   in  term  of
-approximate      solutions       and      (\ref{eqn:finite-difference-1})      and
-(\ref{eqn:finite-difference-2}) are the  finite difference formulas describing the
-evolution  of the  approximate solutions.  The $\alpha$  and  $\beta$ parameters
+approximations  of  $\ddot{u}(t_n)$,   $\dot{u}(t_n)$  and  $u(t_n)$.   Equation
+(\ref{eqn:equation-motion-discret})  is  the  equation  of motion  in  terms  of
+approximate  solution  and  the  equations  (\ref{eqn:finite-difference-1})  and
+(\ref{eqn:finite-difference-2})  are the  finite difference  formulas describing
+the evolution of the approximate solutions.  The $\alpha$ and $\beta$ parameters
 determine the stability and the  accuracy of the algorithm. Classical values for
 $\alpha$ and $\beta$ are usually $\beta = 1/2$ for no numerical damping and $0 <
 \alpha < 1/2$.
@@ -490,28 +515,29 @@ $\alpha$ and $\beta$ are usually $\beta = 1/2$ for no numerical damping and $0 <
     $0$ & central difference\\
     $1/6$ & Fox-Goodwin (royal road)\\
     $1/3$ & Linear acceleration\\
-    $1/2$ & Average acceleration(trapezoidal rule)
+    $1/2$ & Average acceleration (trapezoidal rule)
   \end{tabular}
 \end{center}
 
-To   be    able   to    solve   this   system    of   equation    the   equation
+To    be    able   to    solve    this    system    of   equations,    equations
 (\ref{eqn:equation-motion-discret})-(\ref{eqn:finite-difference-2})   should  be
-split  in a predictor-corrector  system of  equation.  Moreover  in the  case of
-non-linear equation, as for the static case, we apply a iterative algorithm such
-as the Newton-Raphson method. With this  conditions the sytem of equation can be
-wrote as:
-
+split in a predictor-corrector system of  equations.  Moreover, in the case of a
+non-linear equation as  for the static case, an iterative  algorithm such as the
+Newton-Raphson method  is applied.  Respecting  these conditions, the  system of
+equation can be written as:
 
 \noindent\textit{Predictor:}
 \begin{eqnarray}
-  u^{0}_{n+1}        &=& u_{n} +  \Delta t \dot{u}_n + \frac{\Delta t^2}{2} \ddot{u}_n \\
+  u^{0}_{n+1} &=& u_{n}  + \Delta t \dot{u}_n +  \frac{\Delta t^2}{2} \ddot{u}_n
+  \\
   \dot{u}^{0}_{n+1}  &=& \dot{u}_{n} +  \Delta t \ddot{u}_{n} \\
   \ddot{u}^{0}_{n+1} &=& \ddot{u}_{n}
 \end{eqnarray}
 
 \noindent\textit{Solve:}
 \begin{eqnarray}
- (c M + d C + e K^i_{n+1}) w = q_{n+1} - f^i_{int~n+1} - C \dot{u}^i_{n+1} - M \ddot{u}^i_{n+1}
+ (c M + d C + e K^i_{n+1}) w = f_{ext~n+1} - f^i_{int~n+1} - C \dot{u}^i_{n+1} -
+ M \ddot{u}^i_{n+1}
 \end{eqnarray}
 
 \noindent\textit{Corrector:}
@@ -528,26 +554,28 @@ parameters depending on the method used to solve the equations
   \begin{tabular}{l|c|c|c|c}
     & $w$ & $e$ & $d$ & $c$\\
     \hline
-    in acceleration &$ \delta \ddot{u}$ & $\alpha \beta \Delta t^2$ &$\beta \Delta t$ &$1$\\
-    in velocity & $ \delta \dot{u}$& $1/\beta \Delta t$ & $1$ & $\alpha \Delta t$\\
-    in displacement &$\delta u$ & $ 1$ & $1/\alpha \Delta t$ & $1/\alpha \beta \Delta t^2$
+    in  acceleration &$  \delta \ddot{u}$  & $\alpha  \beta \Delta  t^2$ &$\beta
+    \Delta t$ &$1$\\
+    in velocity &  $ \delta \dot{u}$& $1/\beta \Delta t$ &  $1$ & $\alpha \Delta
+    t$\\
+    in displacement &$\delta  u$ & $ 1$ & $1/\alpha \Delta  t$ & $1/\alpha \beta
+    \Delta t^2$
   \end{tabular}
 \end{center}
 
-\note{In you want to use the  implicit solver Akantu should be compiled at least
-  with one sparse matrix solver such as Mumps\cite{mumps}.}
+\note{If you want to use the implicit solver \akantu should be compiled at
+  least with one sparse matrix solver such as Mumps\cite{mumps}.}
 
 
 \subsubsection{Implicit time integration}
-The example presented here is \code{example/manuel/implicit\_dynamic.cc}
-
-This example consists in a beam blocked on one side and on a roller on the other
-side,  on  which   we  apply  a  constant  force  in   the  middle.  The  figure
-\ref{fig:smm:implicit:dynamic} present  the geometry of this  case. The material
+The example  presented here is  \code{example/manuel/implicit\_dynamic.cc}. This
+example consists of a  beam blocked on one side and is on  a roller on the other
+side.   A  constant  force is  applied  in  the  middle  of this  beam.   Figure
+\ref{fig:smm:implicit:dynamic} presents the geometry  of this case. The material
 used is a linear elastic one.
 
-We  can give  a  approximation (eqn.  (\ref{eqn:smm:implicit}))  of the  dynamic
-answer of the middle point of the beam.
+The  equation (\ref{eqn:smm:implicit})  gives  an approximation  of the  dynamic
+response of the middle point of the beam.
 
 \begin{equation}\label{eqn:smm:implicit}
   u(\frac{L}{2}, t) = \frac{1}{\pi^4} (1 - cos(\pi^2 t) +
@@ -563,12 +591,12 @@ answer of the middle point of the beam.
   \label{fig:smm:implicit:dynamic}
 \end{figure}
 
-To resolve the  this problem with an implicit time  integration scheme we should
-as first  create a \code{SolidMechanicsModel}  object initialize it and  set the
-initial and boundary conditions. Everything  is really similar to the example in
-static  (section  \ref{sect:smm:static}) except  that  in  this  one during  the
-initialization of  the model we  have to  specify that it  is a dynamic  case by
-setting the flags to \code{true}.
+To  solve  this  problem with  an  implicit  time  integration scheme,  first  a
+\code{SolidMechanicsModel} object  should be created and  initialized.  Then the
+initial and  boundary conditions have to  be set.  Everything is  similar to the
+example in  static (section \ref{sect:smm:static}), however in  this case during
+the initialization of the model, the implicit dynamic case should be selected by
+setting the two flags to \code{true}.
 
 \begin{cpp}[escapechar=\%]
   SolidMechanicsModel model(mesh);
@@ -576,8 +604,8 @@ setting the flags to \code{true}.
   /* Boundary conditions see section %\ref{sect:smm:boundary}% */
 \end{cpp}
 
-Then we have to compute the stiffness  matrix $K$ and the mass matrix $M$. Since
-the material is elastic in this case $C = 0$.
+Then,   the  stiffness  matrix   $K$  and   the  mass   matrix  $M$   should  be
+assembled.  Since the material is elastic in this case $C$ is equal to zero.
 \index{SolidMechanicsModel!assembleStiffnessMatrix}
 \index{SolidMechanicsModel!assembleMass}
 \begin{cpp}
@@ -585,21 +613,19 @@ the material is elastic in this case $C = 0$.
  model.assembleMass();
 \end{cpp}
 
-Since we are doing a dynamic simulation we should do specify what is the $\Delta
-t$ we want to use. In  the case of implicit simulations by default \code(Akantu)
-use a trapezoidal rule. That is to say $\alpha = 1/2$ and $\beta = 1/2$ which is
-unconditionally stable. Therefore  why can choose whatever we  want for the time
-step.
-\index{SolidMechanicsModel!setTimeStep}
+Since  a dynamic  simulation is  conducted, a  time step  $\Delta t$  has  to be
+specified. In the  case of implicit simulations, \akantu  use a trapezoidal rule
+by  default.  That  is to  say  $\alpha  =  1/2$  and  $\beta =  1/2$  which  is
+unconditionally  stable. Therefore  the value  of the  time step  can  be chosen
+arbitrary.  \index{SolidMechanicsModel!setTimeStep}
 \begin{cpp}
   model.setTimeStep(time_step);
 \end{cpp}
 
-Now everything is set to do the  time stepping. The time loop should contain the
-predictor,  the solve  and  the corrector  with  the Newton-Raphson  convergence
-algorithm even if the material is  linear. By default the equation are solved in
-displacement.
-\index{SolidMechanicsModel!implicitPred}
+Now everything is set to do the time stepping. The time loop should contains the
+predictor,  the  solving  and   the  corrector  steps  with  the  Newton-Raphson
+convergence algorithm even  if the material is linear.  By default the equations
+are  solved  \emph{in  displacement}.   \index{SolidMechanicsModel!implicitPred}
 \index{SolidMechanicsModel!implicitCorr}
 \index{SolidMechanicsModel!updateResidual}
 \index{SolidMechanicsModel!solveDynamic}
@@ -623,12 +649,12 @@ displacement.
  }
 \end{cpp}
 
-\note{Here we have a elastic material so $K$ is constant, but for other material
-  we should assemble $K$ at each iteration.}
+\note{In case  of an elastic material  $K$ is constant, but  for other materials
+  $K$ has to be re-assembled at each iteration.}
 
 \note{For the convergence loop  it is a good usage to put  also a limit in terms
-  of number of iterations to avoid an  infinite loop in case of a error criteria
-  to hard to reach.}
+  of the  number of iterations  to avoid  an infinite loop  in case of  an error
+  criterion too hard to reach.}
 
 \subsubsection{Explicit dynamic}
 
@@ -667,7 +693,7 @@ In the initialization, the use of explicit scheme is noted by both flags equal
 
 \note{In explicit it is possible to write because both  
  \code{model.initFull("material.dat")}
- flags are equal to false by default in \code{Akantu}.}
+ flags are equal to false by default in \akantu.}
 
 To improve the computation time in explicit scheme, the matrix mass $M$ in 
 the equation \ref{eqn:equation-motion-discret} is lumped. 
