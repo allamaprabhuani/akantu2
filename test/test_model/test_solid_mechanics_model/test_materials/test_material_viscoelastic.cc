@@ -31,6 +31,7 @@
 #include <limits>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
@@ -52,7 +53,9 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
 
   const ElementType element_type = TYPE;
+#ifdef AKANTU_USE_IOHELPER
   iohelper::ElemType ioh_type = getIOHelperType(element_type);
+#endif //AKANTU_USE_IOHELPER
   UInt dim = Mesh::getSpatialDimension(element_type);
 
   /// load mesh
