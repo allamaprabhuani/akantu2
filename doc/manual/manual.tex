@@ -658,7 +658,7 @@ are  solved  \emph{in  displacement}.   \index{SolidMechanicsModel!implicitPred}
 
 \subsubsection{Explicit dynamic}
 
-The explicit dynamic integration scheme is based on the Newmark-$\beta$ time integration 
+The explicit dynamic time integration scheme is based on the Newmark-$\beta$ 
 scheme with $\alpha=0$ (see equations \ref{eqn:equation-motion-discret}-\ref{eqn:finite-difference-2}).
 In \akantu, $\beta$ is defined as $\beta=1/2$, see section \ref{sect:smm:Dynamic_methods}.
 
@@ -675,7 +675,7 @@ to false (see section \ref{sect:smm:static}).
 
 \note{Writting \code{model.initFull("material.dat");} is equivalent to setting both flags to false, as this is the default case.}
 
-The implemented explicit scheme in \akantu uses a lumped mass matrix $M$ (which reduces the computation cost). This matrix is assembled by distributing the mass of each element onto its nodes. The resulting $M$ is therefore a diagonal matrix.
+The implemented explicit time integration scheme in \akantu uses a lumped mass matrix $M$ (which reduces the computation cost). This matrix is assembled by distributing the mass of each element onto its nodes. The resulting $M$ is therefore a diagonal matrix.
 
 \begin{cpp}
   model.assembleMassLumped();
@@ -756,7 +756,7 @@ solve the equation which gives the acceleration increment $\delta \ddot{u}$:
 \end{eqnarray}
 
 \end{itemize}
-The use of the explicit integration scheme is illustrated on an exemple
+The use of the explicit time integration scheme is illustrated on an exemple
 (see \code{example/manuel/explicit\_dynamic.cc}).
 This example models the propagation of a wave in a steel beam. The beam 
 is blocked on one side and a displacement is applied on the other side, as shown in figure \ref{fig:smm:explicit}. 
