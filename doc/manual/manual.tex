@@ -469,7 +469,7 @@ side of the sample are displaced from $0.01\%$ of the length.
 \end{figure}
 
 
-\subsection{Dynamic methods}
+\subsection{Dynamic methods} \label{sect:smm:Dynamic_methods}
 
 Different ways  to solve  the equation  of motion are  implemented in  the solid
 mechanics model.  The complete equations that should be solved is
@@ -658,32 +658,14 @@ are  solved  \emph{in  displacement}.   \index{SolidMechanicsModel!implicitPred}
 
 \subsubsection{Explicit dynamic}
 
-\subparagraph{Description:}\label{ref:smm:explicit:paragraphdescription}
+The explicit dynamic integration scheme is based on the Newmark-$\beta$ time integration 
+scheme with $\alpha=0$ (see equations \ref{eqn:equation-motion-discret}-\ref{eqn:finite-difference-2}).
+In \akantu, $\beta$ is defined as $\beta=1/2$, see section \ref{sect:smm:Dynamic_methods}.
 
-The explicit dynamic scheme is based on the Newmark-$\beta$ time integration 
-scheme with $\alpha=0$ (see equation). In akuntu $beta=1/2$ see (part 1). The 
-displacement, velocity and acceleration fields are directly calculated from 
-their values at $t$. The advantages and drawbacks of this method compared to 
-implicit dynamic scheme are:
-\\
-\\
-\textbf{Advantages:}
-\begin{itemize}
-\item Simple and rapid.
-\item Adapted for the problems evolving on very short duration (crash,...).
-\end{itemize}
-\textbf{Drawbacks:}
-\begin{itemize}
-\item Conditionally stable.
-\item The step time depend on the mesh size.
-\end{itemize}
-
-\subparagraph{Implementation:}
-
-The beginning of the simulation is similar to the static and implicit dynamic. 
-The model is created from \code{SolidMechanicsModel} class and initialized. 
-In the initialization, the use of explicit scheme is noted by both flags equal
- to false (see section). 
+The initialization of the simulation is similar to the static and implicit dynamic version. 
+The model is created from the \code{SolidMechanicsModel} class. 
+In the initialization, the use of the explicit scheme is defined by setting both flags 
+to false (see section \ref{sect:smm:static}). 
 
 \begin{cpp}
   SolidMechanicsModel model(mesh);
@@ -691,27 +673,16 @@ In the initialization, the use of explicit scheme is noted by both flags equal
 \end{cpp}
 \index{SolidMechanicsModel!initFull}
 
-\note{In explicit it is possible to write because both  
- \code{model.initFull("material.dat")}
- flags are equal to false by default in \akantu.}
+\note{Writting \code{model.initFull("material.dat");} is equivalent to setting both flags to false, as this is the default case.}
 
-To improve the computation time in explicit scheme, the matrix mass $M$ in 
-the equation \ref{eqn:equation-motion-discret} is lumped. 
-This method consist to distibute the total mass of element on these nodes 
-in order to transform $M$ into diagonal matrix.
+The implemented explicit scheme in \akantu uses a lumped mass matrix $M$ (which reduces the computation cost). This matrix is assembled by distributing the mass of each element onto its nodes. The resulting $M$ is therefore a diagonal matrix.
 
 \begin{cpp}
   model.assembleMassLumped();
 \end{cpp}
 \index{SolidMechanicsModel!assembleMassLumped}
 
-It has been noted in the paragraph Description 
-\ref{ref:smm:explicit:paragraphdescription} that the explicit scheme is 
-conditionally stable. 
-The direct computation of the displacement, velocity and acceleration fields 
-from their values at $t$ leading to the unstability of the scheme over stable 
-time step. 
-The following line allows to obtain the stable time step value.
+The explicit integration scheme is conditionally stable. The time step has to be smaller than the stable time step which is obtained in \akantu as following: 
 
 \begin{cpp}
   time_step = model.getStableTimeStep();
@@ -725,14 +696,10 @@ The stable time step is defined as
 \end{equation}
 \label{eqn:smm:explicit:stabletime}
 
-where is the $\Delta x$ is characteristic length, $\mu$ and $\lambda$ are the 
-first and second Lame's coefficients and $\rho$ the density. The stable time is 
-time spent by the compressive wave to cross the smallest characteristic length of 
-the mesh. 
-However, note that if the time step of the computation is equal to stable time step, 
-the simulation results still remains instable. 
-Therefore, before to impose the time step, it is advisable to multiply the stable 
-time step by a critical factor often chosen equal to $0.1$.
+where $\Delta x$ is characteristic length, $\mu$ and $\lambda$ are the 
+first and second Lame's coefficients and $\rho$ the density. The stable time step corresponds to the time the fastest wave (the compressive wave) needs, to travel the characteristic length of the mesh. 
+However, note that if the time step of the computation is equal to the stable time step, 
+the simulation remains unstable. Therefore, is it necessary to impose a time step that is smaller than the stable time step. One can, for instance, multiply  the stable time step by a time factor smaller than one. 
 
 \begin{cpp}
   const Real time_factor = 0.1;
@@ -740,13 +707,11 @@ time step by a critical factor often chosen equal to $0.1$.
   model.setTimeStep(applied_time_step);
 \end{cpp}
 \index{SolidMechanicsModel!setTimeStep}
+ 
+The initial displacement and velocity fields are, by default, equal to zero if not given specifically by the user (see \ref{sect:smm:initial_condition}).
 
-Before to start the explicit loop, it is necessary to initialize the explicit scheme. 
-The initials displacement and velocity fields given by the user or equal to zero by 
-default (see \ref{sect:smm:initial_condition}).
-
-The loop following allows, for each time step, to udapte the displacement, velocity 
-and acceleration fields which are given by Newmark$-\beta$ equations with $\beta=1/2$ 
+The loop allows, for each time step, to update the displacement, velocity 
+and acceleration fields which are given by the Newmark$-\beta$ equations with $\beta=1/2$ 
 and $\alpha=0$.
 
 \begin{cpp}
@@ -765,7 +730,7 @@ and $\alpha=0$.
 In the code shown above, the explicit loop contains four steps:
 \begin{itemize}
 \item \code{model.explicitPred()} allows to compute the displacement field at $t+1$ and a 
-part of the velocity field at $t+1$, noted $\dot{u}_{n+1/2}$, which will be used later in 
+part of the velocity field at $t+1$, denoted by $\dot{u}_{n+1/2}$, which will be used later in 
 the \code{model.explicitCorr()}. The solved equations are :
 
 \begin{eqnarray}
@@ -775,15 +740,15 @@ the \code{model.explicitCorr()}. The solved equations are :
 \end{eqnarray}
 
 \item \code{model.updateResidual()} and \code{model.updateAcceleration()} allow to 
-solve the following equations which give acceleration increment $\delta \ddot{u}$:
+solve the equation which gives the acceleration increment $\delta \ddot{u}$:
 
 \begin{eqnarray}
  (M + \frac{1}{2} \Delta t C + ) \delta \ddot{u} = f_{ext} - f_{int~n+1} - C \dot{u}_{n} - M \ddot{u}_{n}
 \end{eqnarray}
 
-\note{The internal force $f_{int~n+1}$ is computed from the displacement $u_{n+1}$.} 
+\note{The internal force $f_{int~n+1}$ is computed from the displacement $u_{n+1}$ based on the constitutive law.} 
 
-\item \code{model.explicitCorr()} compute the velocity and acceleration fields at $t+1$:
+\item \code{model.explicitCorr()} computes the velocity and acceleration fields at $t+1$:
 
 \begin{eqnarray}
 \dot{u}_{n+1}  &=& \dot{u}_{n+1/2} + \frac{\Delta t}{2} \delta \ddot{u} \\
@@ -791,14 +756,10 @@ solve the following equations which give acceleration increment $\delta \ddot{u}
 \end{eqnarray}
 
 \end{itemize}
-
-
-To illustrate this theoric part, an example using explicit scheme is proposed in the 
-following.
-The example presented here is: \code{example/manuel/explicit\_dynamic.cc}.
-This example consists to simulate the propagation of a wave in a steel beam. The beam 
-is blocked on one side and a displacement is applied on the other side which is equal 
-to $0.05m$, as shown in figure \ref{fig:smm:explicit}. 
+The use of the explicit integration scheme is illustrated on an exemple
+(see \code{example/manuel/explicit\_dynamic.cc}).
+This example models the propagation of a wave in a steel beam. The beam 
+is blocked on one side and a displacement is applied on the other side, as shown in figure \ref{fig:smm:explicit}. 
 
 \begin{figure}[!htb]
   \centering
@@ -806,10 +767,11 @@ to $0.05m$, as shown in figure \ref{fig:smm:explicit}.
   \caption{Numerical setup \label{fig:smm:explicit}}
 \end{figure}
 
-The length and height of the beam are $10m$ and $1m$, respectively. The material is 
-assumed linear elastic, homogeneous and isotropic (density: $7800kgm^{-3}$, Young's 
-modulus: $210*10^{9}Pa$ and Poisson's ratio: $0.3$).
-The potential, kinetic and total energies are computed. The critical factor is equal to $10\%$ of the stable step time. The simulation total time is $0.01s$.
+The length and height of the beam are $10$m and $1$m, respectively. The material is 
+linear elastic, homogeneous and isotropic (density: $7800$kg.m$^{-3}$, Young's 
+modulus: $210.10^{9}$Pa and Poisson's ratio: $0.3$). The imposed displacement is equal 
+to $\Delta u = 0.05$m. The potential, kinetic and total energies are computed. 
+The time factor is equal to $0.1$. The total simulated time is $0.01s$.
 
 \subsection{Constitutive laws\todo{L\'eonardo}}
 \subsubsection{Elastic}
