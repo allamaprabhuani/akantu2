@@ -56,20 +56,20 @@ struct unordered_map { typedef typename std::map<Key, Ty> type; };
 #endif
 
 namespace types {
-
+  
   /* ------------------------------------------------------------------------ */
   /* Matrix                                                                   */
   /* ------------------------------------------------------------------------ */
   class Matrix {
   public:
     Matrix() : m(0), n(0), values(NULL), wrapped(true) {};
-
+    
     Matrix(UInt m, UInt n, Real def = 0) : m(m), n(n), values(new Real[n*m]), wrapped(false) {
       std::fill_n(values, n*m, def);
     };
-
+    
     Matrix(Real* data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
-
+    
     Matrix(const Matrix & src) {
       m = src.m;
       n = src.n;
@@ -77,16 +77,16 @@ namespace types {
       wrapped = src.wrapped;
       const_cast<Matrix &>(src).wrapped = true;
     };
-
+    
     virtual ~Matrix() { if(!wrapped) delete [] values; };
-
+    
     /* ---------------------------------------------------------------------- */
     UInt size() const { return n*m; };
-
+    
     UInt rows() const { return m; };
     UInt cols() const { return n; };
     Real * storage() const { return values; };
-
+    
     /* ---------------------------------------------------------------------- */
     inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
     inline const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
@@ -94,78 +94,78 @@ namespace types {
     inline const Real& operator[](UInt idx) const { return *(values + idx); };
     inline Matrix & operator=(const Matrix & mat) {
       if(this != &mat) {
-	if(values != NULL) {
-	  memcpy(this->values, mat.values, m*n*sizeof(Real));
-	} else {
-	  this->m = mat.m;
-	  this->n = mat.n;
-
-	  this->values = mat.values;
-	  const_cast<Matrix &>(mat).wrapped = true;
-	  this->wrapped = false;
-	}
+        if(values != NULL) {
+          memcpy(this->values, mat.values, m*n*sizeof(Real));
+        } else {
+          this->m = mat.m;
+          this->n = mat.n;
+          
+          this->values = mat.values;
+          const_cast<Matrix &>(mat).wrapped = true;
+          this->wrapped = false;
+        }
       }
       return *this;
     };
-
+    
     /* ---------------------------------------------------------------------- */
     inline Matrix operator* (const Matrix & B) {
       Matrix C(this->m, B.n);
       C.mul<true, false>(*this, B);
-
+      
       return C;
     };
-
+    
     /* ---------------------------------------------------------------------- */
     template<bool tr_A, bool tr_B>
     inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
       UInt k = A.n;
       if(tr_A) k = A.m;
-
+      
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline void clear() { memset(values, 0, m * n * sizeof(Real)); };
-
+    
     /* ---------------------------------------------------------------------- */
     inline void copy(const Matrix & src) { memcpy(values, src.storage(), m * n * sizeof(Real)); };
-
+    
     /* ---------------------------------------------------------------------- */
     inline void eye(Real alpha = 1.) {
       AKANTU_DEBUG_ASSERT(n == m, "eye is not a valid operation on a rectangular matrix");
       clear();
       for (UInt i = 0; i < n; ++i) {
-	values[i*n + i] = alpha;
+        values[i*n + i] = alpha;
       }
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Real trace() {
       AKANTU_DEBUG_ASSERT(n == m, "trace is not a valid operation on a rectangular matrix");
       Real trace = 0.;
       for (UInt i = 0; i < n; ++i)
-	trace += values[i*n + i];
+        trace += values[i*n + i];
       return trace;
     }
-
-
+    
+    
     /* ---------------------------------------------------------------------- */
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
+      
       stream << space << "types::Matrix" << " [" << n << "," << m <<"] :" << std::endl;
       for (UInt i = 0; i < m; ++i) {
-	stream << space << AKANTU_INDENT << "| ";
-	for (UInt j = 0; j < n; ++j) {
-	  stream << std::setw(10) << values[i*n +j] << " ";
-	}
-	stream << "|" << std::endl;
+        stream << space << AKANTU_INDENT << "| ";
+        for (UInt j = 0; j < n; ++j) {
+          stream << std::setw(10) << values[i*n +j] << " ";
+        }
+        stream << "|" << std::endl;
       }
     };
-
+    
     friend class ::akantu::Vector<Real>;
   protected:
     UInt m;
@@ -173,73 +173,80 @@ namespace types {
     Real* values;
     bool wrapped;
   };
-
-
+  
+  
   /* ------------------------------------------------------------------------ */
   /* Vector                                                                   */
   /* ------------------------------------------------------------------------ */
   template<typename T>
   class Vector {
   public:
-    Vector() : n(0), values(NULL), wrapped(true) {}
-
+    Vector() : n(0), values(NULL), wrapped(false) {}
+    
     Vector(UInt n, Real def = 0) : n(n), values(new T[n]), wrapped(false) {
       std::fill_n(values, n, def);
     }
-
+    
     Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {}
-
+    
     Vector(const Vector & src) {
-      n = src.n;
-      values = src.values;
+      
       wrapped = src.wrapped;
-      const_cast<Vector &>(src).wrapped = true;
+      n = src.n;
+      if (src.wrapped) {
+        values = src.values;
+      } else {
+        values = new T[n];
+        memcpy(this->values, src.values, n * sizeof(T));
+      }
     }
-
+    
     virtual ~Vector() { if(!wrapped) delete [] values; };
-
+    
     /* ---------------------------------------------------------------------- */
     UInt size() const { return n; }
-
+    
     T * storage() const { return values; }
-
+    
     void setStorage(T * values) {
       AKANTU_DEBUG_ASSERT(wrapped == true,
-			  "You should not change the pointed values "
-			  << "of this kind of vector.");
+                          "You should not change the pointed values "
+                          << "of this kind of vector.");
       this->values = values;
     }
-
+    
     void setSize(UInt size) {
       AKANTU_DEBUG_ASSERT(wrapped == true,
-			  "You should not change the pointed values "
-			  << "of this kind of vector.");
+                          "You should not change the pointed values "
+                          << "of this kind of vector.");
       this->n = size;
     }
-
-
+    
+    
     /* ---------------------------------------------------------------------- */
     inline T& operator()(UInt i) { return *(values + i); };
     inline const T& operator()(UInt i) const { return *(values + i); };
     inline T& operator[](UInt idx) { return *(values + idx); };
     inline const T& operator[](UInt idx) const { return *(values + idx); };
-
+    
     /* ---------------------------------------------------------------------- */
-    inline Vector & operator=(const Vector & vect) {
-      if(this != &vect) {
-	if(values != NULL) {
-	  memcpy(this->values, vect.values, n * sizeof(T));
-	} else {
-	  this->n = vect.n;
+    inline Vector & operator=(const Vector & src) {
+      if(this != &src) {
+        if (wrapped) {
+          
+          AKANTU_DEBUG_ASSERT(n == src.n, "vectors of different size");
+          memcpy(this->values, src.values, n * sizeof(T));
 
-	  this->values = vect.values;
-	  const_cast<Vector &>(vect).wrapped = true;
-	  this->wrapped = false;
-	}
+        } else {
+          n = src.n;
+          delete []values;
+          values = new T[n];
+          memcpy(this->values, src.values, n * sizeof(T));
+        }
       }
       return *this;
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Vector & operator+=(const Vector & vect) {
       T * a = this->storage();
@@ -247,7 +254,7 @@ namespace types {
       for (UInt i = 0; i < n; ++i) *(a++) += *(b++);
       return *this;
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Vector & operator-=(const Vector & vect) {
       T * a = this->storage();
@@ -255,40 +262,40 @@ namespace types {
       for (UInt i = 0; i < n; ++i) *(a++) -= *(b++);
       return *this;
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Vector & operator*=(T & scalar) {
       T * a = this->storage();
       for (UInt i = 0; i < n; ++i) *(a++) *= scalar;
       return *this;
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Vector & operator/=(Real x) {
       T * a = this->values;
       for (UInt i = 0; i < n; ++i) *(a++) /= x;
       return *this;
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Real dot(const Vector & vect) {
       return Math::vectorDot(values, vect.storage(), vect.n);
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline void clear() { memset(values, 0, n * sizeof(T)); };
-
+    
     template<bool tr_A>
     inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0) {
       UInt n = x.n;
       Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
     }
-
+    
     /* ---------------------------------------------------------------------- */
     inline Real norm() const {
       return Math::norm(this->n, this->values);
     }
-
+    
     /* ---------------------------------------------------------------------- */
     /// norm of (*this - x)
     inline Real distance(const Vector & y) const {
@@ -297,45 +304,67 @@ namespace types {
       for (UInt i = 0; i < n; ++i, ++vx, ++vy) sum_2 += (*vx - *vy)*(*vx - *vy);
       return sqrt(sum_2);
     }
-
+    
     /* ---------------------------------------------------------------------- */
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
+      
       stream << space << "types::Vector<" << debug::demangle(typeid(T).name()) << "> [" << n <<"] :" << std::endl;
       stream << space << AKANTU_INDENT << "| ";
       for (UInt i = 0; i < n; ++i) {
-	stream << values[i] << " ";
+        stream << values[i] << " ";
       }
       stream << "|" << std::endl;
     }
-
+    
     friend class ::akantu::Vector<T>;
   protected:
     UInt n;
     T * values;
     bool wrapped;
   };
-
+  
   typedef Vector<Real> RVector;
-
-
+  
+  // support opertions for the creation of other vectors
+  
+  template <typename T>
+  Vector<T> operator*(T scalar, const Vector<T>& a) {
+    Vector<T> r = a;
+    r *= scalar;
+    return r;
+  }
+  template <typename T>
+  Vector<T> operator+(const Vector<T>& a, const Vector<T>& b) {
+    Vector<T> r = a;
+    r += b;
+    return r;
+  }
+  template <typename T>
+  Vector<T> operator-(const Vector<T>& a, const Vector<T>& b) {
+    Vector<T> r = a;
+    r -= b;
+    return r;
+  }
+  
+  
+  
   /* -------------------------------------------------------------------------- */
   inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)
   {
     _this.printself(stream);
     return stream;
   }
-
+  
   /* -------------------------------------------------------------------------- */
   inline std::ostream & operator<<(std::ostream & stream, const RVector & _this)
   {
     _this.printself(stream);
     return stream;
   }
-
+  
 }
 
 __END_AKANTU__
