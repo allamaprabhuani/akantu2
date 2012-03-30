@@ -42,13 +42,11 @@ SynchronizerRegistry::SynchronizerRegistry(DataAccessor & da) :
 SynchronizerRegistry::~SynchronizerRegistry() {
   AKANTU_DEBUG_IN();
 
-  // for (std::list<Synchronizer *>::iterator it = synchronizers.begin();
+  // for (Tag2Sync::iterator it = synchronizers.begin();
   //      it != synchronizers.end();
   //      ++it) {
-  //   delete (*it);
+  //   delete it->second;
   // }
-  // synchronizers.clear();
-
   synchronizers.clear();
 
   AKANTU_DEBUG_OUT();
@@ -102,7 +100,7 @@ void SynchronizerRegistry::registerSynchronizer(Synchronizer & synchronizer,
   AKANTU_DEBUG_IN();
 
   synchronizers.
-    insert(std::pair<SynchronizationTag,Synchronizer *>(tag,&synchronizer));
+    insert(std::pair<SynchronizationTag, Synchronizer *>(tag, &synchronizer));
 
   AKANTU_DEBUG_OUT();
 }

@@ -222,7 +222,6 @@ namespace types {
       this->n = size;
     }
     
-    
     /* ---------------------------------------------------------------------- */
     inline T& operator()(UInt i) { return *(values + i); };
     inline const T& operator()(UInt i) const { return *(values + i); };
@@ -329,7 +328,6 @@ namespace types {
   typedef Vector<Real> RVector;
   
   // support opertions for the creation of other vectors
-  
   template <typename T>
   Vector<T> operator*(T scalar, const Vector<T>& a) {
     Vector<T> r = a;

@@ -269,15 +269,15 @@ inline UInt SolidMechanicsModel::getNbDataToPack(SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  UInt nb_nodes = mesh.getNbNodes();
+  //  UInt nb_nodes = mesh.getNbNodes();
 
   switch(tag) {
   case _gst_smm_uv: {
-    size += nb_nodes * sizeof(Real) * spatial_dimension * 2;
+    size += sizeof(Real) * spatial_dimension * 2;
     break;
   }
   case _gst_smm_mass: {
-    size += nb_nodes * sizeof(Real) * spatial_dimension;
+    size += sizeof(Real) * spatial_dimension;
     break;
   }
   default: {
@@ -294,15 +294,15 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(SynchronizationTag tag) const
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  UInt nb_nodes = mesh.getNbNodes();
+  //  UInt nb_nodes = mesh.getNbNodes();
 
   switch(tag) {
   case _gst_smm_uv: {
-    size += nb_nodes * sizeof(Real) * spatial_dimension * 2;
+    size += sizeof(Real) * spatial_dimension * 2;
     break;
   }
   case _gst_smm_mass: {
-    size += nb_nodes * sizeof(Real) * spatial_dimension;
+    size += sizeof(Real) * spatial_dimension;
     break;
   }
   default: {
@@ -322,17 +322,16 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_uv: {
-    for (UInt d = 0; d < spatial_dimension; ++d) {
-      buffer << (*displacement)(index,d);
-      buffer << (*velocity)(index,d);
-    }
+    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
+    Vector<Real>::iterator<types::RVector> it_velo = velocity->begin(spatial_dimension);
+    buffer << it_disp[index];
+    buffer << it_velo[index];
     break;
   }
   case _gst_smm_mass: {
     AKANTU_DEBUG_INFO("pack mass of node " << index << " which is " << (*mass)(index,0));
-    for (UInt d = 0; d < spatial_dimension; ++d) {
-      buffer << (*mass)(index,d);
-    }
+    Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+    buffer << it_mass[index];
     break;
   }
   default: {
@@ -351,17 +350,16 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_uv: {
-    for (UInt d = 0; d < spatial_dimension; ++d) {
-      buffer >> (*displacement)(index,d);
-      buffer >> (*velocity)(index,d);
-    }
+    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
+    Vector<Real>::iterator<types::RVector> it_velo = velocity->begin(spatial_dimension);
+    buffer >> it_disp[index];
+    buffer >> it_velo[index];
     break;
   }
   case _gst_smm_mass: {
     AKANTU_DEBUG_INFO("mass of node " << index << " was " << (*mass)(index,0));
-    for (UInt d = 0; d < spatial_dimension; ++d) {
-      buffer >> (*mass)(index,d);
-    }
+    Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+    buffer >> it_mass[index];
     AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index,0));
     break;
   }

@@ -315,14 +315,14 @@ void Vector<T>::resize(UInt new_size) {
 template <class T>
 void Vector<T>::resizeUnitialized(UInt new_size) {
   //  AKANTU_DEBUG_IN();
-  /// free some memory
+  // free some memory
   if(new_size <= allocated_size) {
     if(allocated_size - new_size > AKANTU_MIN_ALLOCATION) {
       AKANTU_DEBUG(dblAccessory, "Freeing "
 		   << (allocated_size - size)*nb_component*sizeof(T) / 1024.
 		   << "kB (" << id <<")");
 
-      /// Normally there are no allocation problem when reducing an array
+      // Normally there are no allocation problem when reducing an array
       T * tmp_ptr = static_cast<T*>(realloc(values, new_size * nb_component * sizeof(T)));
       if(new_size != 0 && tmp_ptr == NULL) {
 	AKANTU_DEBUG_ERROR("Cannot free data (" << id << ")"
@@ -339,7 +339,7 @@ void Vector<T>::resizeUnitialized(UInt new_size) {
     return;
   }
 
-  /// allocate more memory
+  // allocate more memory
   UInt size_to_alloc = (new_size - allocated_size < AKANTU_MIN_ALLOCATION) ?
     allocated_size + AKANTU_MIN_ALLOCATION : new_size;
 

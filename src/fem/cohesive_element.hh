@@ -103,11 +103,11 @@ public:
     return Parent::getGaussIntegrationWeights();
   }
 
-  static const ElementType getFacetElementType() {
+  static inline ElementType getFacetElementType() {
     return ElementType(CohesiveElementSubElementType<ct>::value);
   }
 
-  static UInt getNbFacetsPerElement() { return 2; }
+  static inline UInt getNbFacetsPerElement() { return 2; }
 
   static AKANTU_GET_MACRO_NOT_CONST(FacetLocalConnectivityPerElement, facet_connectivity, UInt**);
 

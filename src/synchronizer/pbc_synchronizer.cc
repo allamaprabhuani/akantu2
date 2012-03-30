@@ -43,16 +43,22 @@ PBCSynchronizer::PBCSynchronizer(std::map<UInt,UInt> & pairs,
 void PBCSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
 					      SynchronizationTag tag){
 
-  if (size_buffer.count(tag) == 0) computeBufferSize(data_accessor,tag);
+  if (size_buffer.find(tag) == size_buffer.end())
+    computeBufferSize(data_accessor, tag);
+
   buffer.resize(size_buffer[tag]);
+  
   for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
-       it != pbc_pair.end();++it) {
-    UInt node_master = (*it).second;
-    UInt node_slave = (*it).first;
+       it != pbc_pair.end();
+       ++it) {
+    UInt node_master = it->second;
+    UInt node_slave = it->first;
+
     AKANTU_DEBUG_INFO("packing node " << node_master);
-    data_accessor.packData(buffer,node_master,tag);
+    data_accessor.packData(buffer, node_master, tag);
+
     AKANTU_DEBUG_INFO("unpacking node " << node_slave);
-    data_accessor.unpackData(buffer,node_slave,tag);
+    data_accessor.unpackData(buffer, node_slave, tag);
   }
 }
 
@@ -66,13 +72,14 @@ void PBCSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 					SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  UInt & size = size_buffer[tag];
-  size = 0;
+  UInt size = 0;
 
   for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
        it != pbc_pair.end();++it) {
     size += data_accessor.getNbDataToPack(tag);
   }
+
+  size_buffer[tag] = size;
 
   AKANTU_DEBUG_OUT();
 }
