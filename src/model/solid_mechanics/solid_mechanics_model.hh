@@ -47,13 +47,13 @@
 #include "shape_cohesive.hh"
 #include "aka_types.hh"
 #include "integration_scheme_2nd_order.hh"
+#include "solver.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
   //  class Material;
   class IntegrationScheme2ndOrder;
   class Contact;
-  class Solver;
   class SparseMatrix;
 }
 
@@ -159,10 +159,11 @@ public:
 public:
 
   /// initialize the solver and the jacobian_matrix (called by initImplicit)
-  void initSolver();
+  void initSolver(SolverOptions & options = _solver_no_options);
 
   /// initialize the stuff for the implicit solver
-  void initImplicit(bool dynamic = false);
+  void initImplicit(bool dynamic = false,
+                    SolverOptions & solver_options = _solver_no_options);
 
   /// solve Ma = f to get the initial acceleration
   void initialAcceleration();

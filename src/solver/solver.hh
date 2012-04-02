@@ -42,6 +42,19 @@
 
 __BEGIN_AKANTU__
 
+class SolverOptions {
+public:
+  SolverOptions(bool no_option = false) : no_option(no_option) { }
+
+  virtual void niceFunctionWhichDoesNothing() {
+    AKANTU_DEBUG_ERROR("Nothing!!! (of course)");
+  };
+private:
+  bool no_option;
+};
+
+extern SolverOptions _solver_no_options;
+
 class Solver : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -60,7 +73,7 @@ public:
 public:
 
   /// initialize the solver
-  virtual void initialize() = 0;
+  virtual void initialize(SolverOptions & options = _solver_no_options) = 0;
 
   /// solve
   virtual void solve(Vector<Real> & solution) = 0;

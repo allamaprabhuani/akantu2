@@ -36,6 +36,26 @@
 
 __BEGIN_AKANTU__
 
+class SolverMumpsOptions : protected SolverOptions {
+public:
+  enum ParallelMethod {
+    _fully_distributed,
+    _master_slave_distributed
+  };
+
+  SolverMumpsOptions(ParallelMethod parallel_method = _fully_distributed) :
+    SolverOptions(),
+    parallel_method(parallel_method) { }
+
+  virtual void niceFunctionWhichDoesNothing() { 
+    SolverOptions::niceFunctionWhichDoesNothing();
+    AKANTU_DEBUG_ERROR("Nothing!!! (TWICE)"); };
+
+private:
+  friend class SolverMumps;
+  ParallelMethod parallel_method;
+};
+
 class SolverMumps : public Solver {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -54,15 +74,13 @@ public:
 public:
 
   /// build the profile and do the analysis part
-  void initialize();
+  void initialize(SolverOptions & options = _solver_no_options);
 
   /// factorize and solve the system
   void solve(Vector<Real> & solution);
   void solve();
 
   virtual void setRHS(Vector<Real> & rhs);
-
-  // void initNodesLocation(const Mesh & mesh, UInt nb_degree_of_freedom);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -77,6 +95,7 @@ private:
     return mumps_data.info[i - 1];
   }
 
+  void initMumpsData(SolverMumpsOptions::ParallelMethod parallel_method);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -91,28 +110,11 @@ private:
   /// mumps data
   DMUMPS_STRUC_C mumps_data;
 
-  /// Vector containing the proc number for each node
-  Vector<UInt> ** rhs_position;
-
-  /// solution repartition over processors
-  Vector<UInt> ** solution_position;
-
-  /// nb node per proc
-  UInt * nb_nodes_per_proc;
-
-  /// nb node per proc
-  UInt * nb_nodes_per_proc_rhs;
-
-  /// nb local nodes
-  UInt nb_local_nodes;
-
-  /// nodes types
-  Int * nodes_type;
-
   /* ------------------------------------------------------------------------ */
   /* Local types                                                              */
   /* ------------------------------------------------------------------------ */
 private:
+  SolverMumpsOptions::ParallelMethod parallel_method;
 
   bool rhs_is_local;
 

@@ -265,7 +265,6 @@ void SolidMechanicsModel::initVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
-
 /**
  * Initialize the model,basically it  pre-compute the shapes, shapes derivatives
  * and jacobian
@@ -522,7 +521,7 @@ void SolidMechanicsModel::explicitCorr() {
  * Initialize the solver and create the sparse matrices needed.
  *
  */
-void SolidMechanicsModel::initSolver() {
+void SolidMechanicsModel::initSolver(SolverOptions & options) {
 #if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #else
@@ -543,7 +542,7 @@ void SolidMechanicsModel::initSolver() {
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
 
-  solver->initialize();
+  solver->initialize(options);
 #endif //AKANTU_HAS_SOLVER
 }
 
@@ -554,13 +553,13 @@ void SolidMechanicsModel::initSolver() {
  *
  * @param dynamic
  */
-void SolidMechanicsModel::initImplicit(bool dynamic) {
+void SolidMechanicsModel::initImplicit(bool dynamic, SolverOptions & solver_options) {
   AKANTU_DEBUG_IN();
 
   this->dynamic = dynamic;
   implicit = true;
 
-  initSolver();
+  initSolver(solver_options);
 
   if(dynamic) {
     if(integrator) delete integrator;

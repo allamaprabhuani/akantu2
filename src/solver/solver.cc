@@ -32,6 +32,8 @@
 
 __BEGIN_AKANTU__
 
+SolverOptions _solver_no_options(true);
+
 /* -------------------------------------------------------------------------- */
 Solver::Solver(SparseMatrix & matrix,
 	       const ID & id,

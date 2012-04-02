@@ -164,12 +164,16 @@ private:
 			      Vector<Real> & lumped,
 			      const Vector<Int> & equation_number,
 			      const GhostType & ghost_type) const;
+
+  /// @f$ \tilde{M}_{i} = \sum_j M_{ij} = \sum_j \int \rho \varphi_i \varphi_j dV = \int \rho \varphi_i dV @f$
   template <ElementType type>
   void assembleLumpedRowSum(const Vector<Real> & field_1,
 			    UInt nb_degree_of_freedom,
 			    Vector<Real> & lumped,
 			    const Vector<Int> & equation_number,
 			    const GhostType & ghost_type) const;
+
+  /// @f$ \tilde{M}_{i} = c * M_{ii} = \int_{V_e} \rho dV @f$
   template <ElementType type>
   void assembleLumpedDiagonalScaling(const Vector<Real> & field_1,
 				     UInt nb_degree_of_freedom,
