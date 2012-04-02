@@ -36,7 +36,7 @@
 
 __BEGIN_AKANTU__
 
-class SolverMumpsOptions : protected SolverOptions {
+class SolverMumpsOptions : public SolverOptions {
 public:
   enum ParallelMethod {
     _fully_distributed,
@@ -76,9 +76,14 @@ public:
   /// build the profile and do the analysis part
   void initialize(SolverOptions & options = _solver_no_options);
 
+  void initializeSlave(SolverOptions & options = _solver_no_options);
+
+
   /// factorize and solve the system
   void solve(Vector<Real> & solution);
   void solve();
+
+  void solveSlave();
 
   virtual void setRHS(Vector<Real> & rhs);
 
@@ -109,6 +114,8 @@ private:
 
   /// mumps data
   DMUMPS_STRUC_C mumps_data;
+
+  UInt prank;
 
   /* ------------------------------------------------------------------------ */
   /* Local types                                                              */

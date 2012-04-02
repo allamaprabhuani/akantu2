@@ -131,16 +131,21 @@ void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_meth
   switch(parallel_method) {
   case SolverMumpsOptions::_fully_distributed:
       icntl(18) = 3; //fully distributed
-      icntl(28) = 0; //parallel analysis
+      icntl(28) = 0; //automatic choice
 
       mumps_data.nz_loc  = matrix->getNbNonZero();
       mumps_data.irn_loc = matrix->getIRN().values;
       mumps_data.jcn_loc = matrix->getJCN().values;
       break;
   case SolverMumpsOptions::_master_slave_distributed:
+    if(prank == 0) {
       mumps_data.nz  = matrix->getNbNonZero();
       mumps_data.irn = matrix->getIRN().values;
       mumps_data.jcn = matrix->getJCN().values;
+    } else {
+      mumps_data.nz  = NULL;
+      mumps_data.irn = NULL;
+      mumps_data.jcn = NULL;
 
       icntl(18) = 0; //centralized
       icntl(28) = 0; //sequential analysis
@@ -159,10 +164,11 @@ void SolverMumps::initialize(SolverOptions & options) {
     if(opt->parallel_method == SolverMumpsOptions::_master_slave_distributed) {
       mumps_data.par = 0;
     }
-  }
 
+ 
   mumps_data.sym = 2 * (matrix->getSparseMatrixType() == _symmetric);
   communicator = StaticCommunicator::getStaticCommunicator();
+  prank = communicator->whoAmI();
 #ifdef AKANTU_USE_MPI
   mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator->getRealStaticCommunicator()).getMPICommunicator());
 #endif
@@ -180,7 +186,7 @@ void SolverMumps::initialize(SolverOptions & options) {
   /* ------------------------------------------------------------------------ */
   UInt size = matrix->getSize();
 
-  if(communicator->whoAmI() == 0) {
+  if(prank == 0) {
     std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
     rhs = &(alloc<Real>(sstr_rhs.str(), size, 1, REAL_INIT_VALUE));
   } else {
@@ -222,7 +228,7 @@ void SolverMumps::initialize(SolverOptions & options) {
 
 /* -------------------------------------------------------------------------- */
 void SolverMumps::setRHS(Vector<Real> & rhs) {
-  if(communicator->whoAmI() == 0) {
+  if(prank == 0) {
     matrix->getDOFSynchronizer().gather(rhs, 0, this->rhs);
   } else {
     matrix->getDOFSynchronizer().gather(rhs, 0);
@@ -236,10 +242,11 @@ void SolverMumps::solve() {
   if(parallel_method == SolverMumpsOptions::_fully_distributed)
     mumps_data.a_loc  = matrix->getA().values;
   else
-    mumps_data.a  = matrix->getA().values;
+    if(prank == 0) {
+      mumps_data.a  = matrix->getA().values;
+    }
 
-
-  if(communicator->whoAmI() == 0) {
+  if(prank == 0) {
     mumps_data.rhs = rhs->values;
   }
 
@@ -264,7 +271,7 @@ void SolverMumps::solve(Vector<Real> & solution) {
 
   solve();
 
-  if(communicator->whoAmI() == 0) {
+  if(prank == 0) {
     matrix->getDOFSynchronizer().scatter(solution, 0, this->rhs);
   } else {
     matrix->getDOFSynchronizer().scatter(solution, 0);

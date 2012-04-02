@@ -405,6 +405,9 @@ public:
   /// get integrator
   AKANTU_GET_MACRO(Integrator, *integrator, const IntegrationScheme2ndOrder &);
 
+  /// get access to the internal solver
+  AKANTU_GET_MACRO(Solver, *solver, Solver &);
+
 private:
   /// compute the stable time step
   Real getStableTimeStep(const GhostType & ghost_type);

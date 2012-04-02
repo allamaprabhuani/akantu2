@@ -69,21 +69,24 @@ template<typename T> void DOFSynchronizer::gather(const Vector<T> & to_gather, U
     for (UInt p = 0; p < psize; ++p) {
       if(p == root) continue;
       UInt nb_dofs = proc_informations[p].dofs.getSize();
-      AKANTU_DEBUG_INFO("Receiving " << nb_dofs << " from " << p);
-      buffer = new T[nb_dofs];
-      communicator->receive(buffer, nb_dofs, p, 0);
+      AKANTU_DEBUG_INFO("Gather - Receiving " << nb_dofs << " from " << p);
+      if(nb_dofs) {
+	buffer = new T[nb_dofs];
+	communicator->receive(buffer, nb_dofs, p, 0);
 
-      T * buffer_tmp = buffer;
-      UInt * remote_dofs = proc_informations[p].dofs.values;
-      for (UInt d = 0; d < nb_dofs; ++d) {
-	gathered->values[*remote_dofs++] = *(buffer_tmp++);
+	T * buffer_tmp = buffer;
+	UInt * remote_dofs = proc_informations[p].dofs.values;
+	for (UInt d = 0; d < nb_dofs; ++d) {
+	  gathered->values[*remote_dofs++] = *(buffer_tmp++);
+	}
+
+	delete [] buffer;
       }
-
-      delete [] buffer;
     }
   } else {
-    AKANTU_DEBUG_INFO("Sending " << nb_local_dofs << " to " << root);
-    communicator->send(buffer, nb_local_dofs, root, 0);
+    AKANTU_DEBUG_INFO("Gather - Sending " << nb_local_dofs << " to " << root);
+    if(nb_local_dofs)
+      communicator->send(buffer, nb_local_dofs, root, 0);
     delete [] buffer;
   }
 
@@ -116,22 +119,26 @@ template<typename T> void DOFSynchronizer::scatter(Vector<T> & scattered, UInt r
 
       UInt nb_needed_dof = proc_informations[p].needed_dofs.getSize();
       UInt nb_local_dof  = proc_informations[p].dofs.getSize();
-      T * send_buffer = new T[nb_local_dof + nb_needed_dof];
 
-      T * buffer_tmp = send_buffer;
+      AKANTU_DEBUG_INFO("Scatter - Sending " << nb_local_dof + nb_needed_dof << " to " << p);
+      if(nb_local_dof + nb_needed_dof) {
+	T * send_buffer = new T[nb_local_dof + nb_needed_dof];
 
-      UInt * remote_dofs = proc_informations[p].dofs.values;
-      for (UInt d = 0; d < nb_local_dof; ++d) {
-	*(buffer_tmp++) = to_scatter->values[*remote_dofs++];
+	T * buffer_tmp = send_buffer;
+
+	UInt * remote_dofs = proc_informations[p].dofs.values;
+	for (UInt d = 0; d < nb_local_dof; ++d) {
+	  *(buffer_tmp++) = to_scatter->values[*remote_dofs++];
+	}
+
+	remote_dofs = proc_informations[p].needed_dofs.values;
+	for (UInt d = 0; d < nb_needed_dof; ++d) {
+	  *(buffer_tmp++) = to_scatter->values[*remote_dofs++];
+	}
+
+	communicator->send(send_buffer, nb_local_dof + nb_needed_dof, p, 0);
+	delete [] send_buffer;
       }
-
-      remote_dofs = proc_informations[p].needed_dofs.values;
-      for (UInt d = 0; d < nb_needed_dof; ++d) {
-	*(buffer_tmp++) = to_scatter->values[*remote_dofs++];
-      }
-
-      communicator->send(send_buffer, nb_local_dof + nb_needed_dof, p, 0);
-      delete [] send_buffer;
     }
 
     T * scattered_val = scattered.values;
@@ -146,24 +153,27 @@ template<typename T> void DOFSynchronizer::scatter(Vector<T> & scattered, UInt r
     }
   } else {
     T  * buffer;
-    buffer = new T[nb_local_dofs + nb_needed_dofs];
-    communicator->receive(buffer, nb_local_dofs + nb_needed_dofs, root, 0);
+    AKANTU_DEBUG_INFO("Scatter - Receiving " << nb_dofs << " from " << root);
+    if(nb_local_dofs + nb_needed_dofs) {
+      buffer = new T[nb_local_dofs + nb_needed_dofs];
+      communicator->receive(buffer, nb_local_dofs + nb_needed_dofs, root, 0);
 
 
-    T * scattered_val = scattered.values;
-    UInt local_dofs = 0;
-    UInt needed_dofs = nb_local_dofs;
-    for (UInt d = 0; d < nb_dofs; ++d) {
-      if(*dof_type != -3) {
-	if(*dof_type == -1 || *dof_type == -2)
-	  *scattered_val = buffer[local_dofs++];
-	else if(*dof_type >= 0)
-	  *scattered_val = buffer[needed_dofs++];
+      T * scattered_val = scattered.values;
+      UInt local_dofs = 0;
+      UInt needed_dofs = nb_local_dofs;
+      for (UInt d = 0; d < nb_dofs; ++d) {
+	if(*dof_type != -3) {
+	  if(*dof_type == -1 || *dof_type == -2)
+	    *scattered_val = buffer[local_dofs++];
+	  else if(*dof_type >= 0)
+	    *scattered_val = buffer[needed_dofs++];
+	}
+	scattered_val++;
+	dof_type++;
       }
-      scattered_val++;
-      dof_type++;
+      delete [] buffer;
     }
-    delete [] buffer;
   }
 
   AKANTU_DEBUG_OUT();
