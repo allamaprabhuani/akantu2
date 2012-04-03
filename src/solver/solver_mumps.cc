@@ -143,13 +143,14 @@ void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_meth
       mumps_data.irn = matrix->getIRN().values;
       mumps_data.jcn = matrix->getJCN().values;
     } else {
-      mumps_data.nz  = NULL;
+      mumps_data.nz  = 0;
       mumps_data.irn = NULL;
       mumps_data.jcn = NULL;
 
       icntl(18) = 0; //centralized
       icntl(28) = 0; //sequential analysis
-      break;
+    }
+    break;
   }
 }
 
@@ -164,8 +165,8 @@ void SolverMumps::initialize(SolverOptions & options) {
     if(opt->parallel_method == SolverMumpsOptions::_master_slave_distributed) {
       mumps_data.par = 0;
     }
+  }
 
- 
   mumps_data.sym = 2 * (matrix->getSparseMatrixType() == _symmetric);
   communicator = StaticCommunicator::getStaticCommunicator();
   prank = communicator->whoAmI();
