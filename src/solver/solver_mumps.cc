@@ -154,11 +154,10 @@ void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_meth
   }
 }
 
-
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initialize(SolverOptions & options) {
   AKANTU_DEBUG_IN();
-
+  
   mumps_data.par = 1;
 
   if(SolverMumpsOptions * opt = dynamic_cast<SolverMumpsOptions *>(&options)) {
