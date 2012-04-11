@@ -389,31 +389,31 @@ following.
 
 \subsubsection{Setting   initial  conditions  \label{sect:smm:initial_condition}}
 
-For a unique solution of the equation of motion initial displacements and velocities at time $t=0$ at all degrees of freedom must be specified.
+For a unique solution of the equations of motion initial displacements and velocities at time $t=0$ at all degrees of freedom must be specified.
 
 \begin{eqnarray}
  \vec{u(t=0)} = \vec{u_{0}}\\
  \vec{\dot u(t=0)} = \vec{v_{0}}
 \end{eqnarray}
-The solid mechanics model can be initialized by using as follows:
+The solid mechanics model can be initialized as follows:
 \begin{cpp}
   model.initFull("material.dat")
 \end{cpp}
-This function initializes the internal vectors and sets them to zero. Initial displacements and velocities that are not equal to zero can be prescribed by running a loop over the total number of nodes. Here, the initial displacement and velocity in x-direction at all nodes is $0.1$ and $1$ respectively.
+This function initializes the internal vectors and sets them to zero. Initial displacements and velocities that are not equal to zero can be prescribed by running a loop over the total number of nodes. Here, the initial displacement and in x-direction and the initial velocity in y-direction at all nodes is set to $0.1$ and $1$ respectively.
 \begin{cpp}
   Vector<Real> & disp = model.getDisplacement();
   Vector<Real> & velo = model.getVelocity();
   for (UInt i = 0; i < nb_nodes; ++i) {
       disp(i, 0) = 0.1;
-      velo(i, 0) = 1.;
+      velo(i, 1) = 1.;
   }
 \end{cpp}  
 \subsubsection{Setting boundary conditions\label{sect:smm:boundary}}
-The following section will explain how to impose Dirichlet or Neumann boundary conditions. A Dirichlet boundary condition specifies the values that the solution needs to take at the boundary ($\Gamma_u$) of the problem domain (Fig.~\ref{fig:smm:boundaries}):
+This section explains how to impose Dirichlet or Neumann boundary conditions. A Dirichlet boundary condition specifies the values that the displacement needs to take at the boundary ($\Gamma_u$) of the problem domain (Fig.~\ref{fig:smm:boundaries}):
 \begin{equation}
   \vec{u} = \vec{\bar u} \quad \forall \vec{x}\in \Gamma_{u}
 \end{equation}
-A Neumann boundary condition specifies the values that the derivative of a solution needs to take at the boundary ($\Gamma_t$) of the problem domain (Fig.~\ref{fig:smm:boundaries}):
+A Neumann boundary condition specifies the values that the gradient of the solution needs to take at the boundary ($\Gamma_t$) of the problem domain (Fig.~\ref{fig:smm:boundaries}):
 \begin{equation}
   \vec{t} = \mat{\sigma} \vec{n} = \vec{\bar t} \quad \forall \vec{x}\in \Gamma_{t}
 \end{equation} 
@@ -423,20 +423,19 @@ A Neumann boundary condition specifies the values that the derivative of a solut
   \caption{Problem boundary in two dimensions.\label{fig:smm:boundaries}}
 \end{figure}
 
-Figure~\ref{fig:smm:dirichlet_bc} shows a beam with a fixed support on the left side. On the right end of the bar a load is applied. At the fixed support, the displacement is a given value. For this example, the displacement in both the x- and y-direction is zero. Implementing this displacement boundary condition is similar to the implementation of initial displacement conditions described in the previous section~\ref{sect:smm:boundary}. However, in order to impose a displacement boundary condition for all time steps, the corresponding nodes need to be marked as boundary nodes as shown in the following code:
+Figure~\ref{fig:smm:dirichlet_bc} shows a beam with a fixed support on the left side. On the right end of the beam a load is applied. At the fixed support, the displacement has a given value. For this example, the displacement in both the x- and y-direction is set to zero. Implementing this displacement boundary condition is similar to the implementation of initial displacement conditions described above. However, in order to impose a displacement boundary condition for all time steps, the corresponding nodes need to be marked as boundary nodes as shown in the following code:
 \begin{cpp}
   Vector<bool> & boun = model.getBoundary(); 
 
   const Vector<Real> & pos = mesh.getNodes();
 
   UInt nb_nodes = mesh.getNbNodes();
-  Real epsilon = Math::getTolerance();
+  Real epsilon = Math::getTolerance(); // this tolerance is by default equal to the machine precision but can be changed setTolerance()
 
   for (UInt i = 0; i < nb_nodes; ++i) {
-    // blocked node:
     if(std::abs(pos(i, 0)) < epsilon) {
-      boun(i, 0) = true;
-      boun(i, 1) = true;
+      boun(i, 0) = true;  //block displacement in x-direction
+      boun(i, 1) = true;  //block displacement in y-direction
 
       disp(i, 0) = 0.;   //fixed displacement in x-direction
       disp(i, 1) = 0.;   //fixed displacement in y-direction
@@ -452,20 +451,12 @@ Figure~\ref{fig:smm:dirichlet_bc} shows a beam with a fixed support on the left 
 If the Neumann boundary condition consits of a single load that is acting on one node, the load can simply be prescribed in the force vector:
 \begin{cpp}
   Vector<Real> & forc = model.getForce();
-  const Vector<Real> & pos = mesh.getNodes();
-
-  UInt nb_nodes = mesh.getNbNodes();
-  Real epsilon = Math::getTolerance();
-
-  for (UInt i = 0; i < nb_nodes; ++i) {
-    if(std::abs(pos(i, 0)) - bar_length < epsilon) {
-
-      forc(i, 0) = 10.;
-      forc(i, 1) = 0.;
-    }
+  //force acting on node 4:
+  forc(4, 0) = 10.;
+  forc(4, 1) = 0.;  
 \end{cpp}
 
-In the case of a surface load the consistent nodal force has to be computed. Therefore, a new class \code{MySurfaceLoadFunctor} needs to be created, which inherits from the class \code{SolidMechanicsModel}. The operator of this class needs to be overloaded and the following parameters in the operator parenthesis need to be defined: 
+In the case of a surface load the consistent nodal force has to be computed. Therefore, a new class \code{MySurfaceLoadFunctor} needs to be created, which inherits from the class \code{SolidMechanicsModel}. The call operator of this class needs to be overloaded and the following parameters in the call operator parenthesis need to be defined: 
 \begin{itemize}
 \item The position where the load is applied.
 \item The type of load (traction or stress).
@@ -473,20 +464,20 @@ In the case of a surface load the consistent nodal force has to be computed. The
 \item The surface\_id of the surface where the load is applied.
 \end{itemize}
 \begin{cpp}
-Real bar_length = 10;
+Real bar_length = 10.;
 
 class MySurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
 public:
-    //if a traction vector is provided:
-    void operator()(const types::Vector<Real> & position,
-		    types::Vector<Real> & traction,
-		    const types::Vector<Real> & normal,
-		    Surface surface_id) {
-      Real epsilon = Math::getTolerance();
-      if(std::abs(position(0) - bar_length) < epsilon) {
-	force(0) = 10e9;
-      }     
-    }
+  //if a traction vector is provided:
+  void operator()(const types::Vector<Real> & position,
+		  types::Vector<Real> & traction,
+		  const types::Vector<Real> & normal,
+		  Surface surface_id) {
+    Real epsilon = Math::getTolerance();
+    if(std::abs(position(0) - bar_length) < epsilon) {
+      force(0) = 10e9;
+    }     
+  }
 
   //if a stress tensor is provided:
   void operator() (const types::Vector<Real> & position,
@@ -502,7 +493,7 @@ public:
 };
 \end{cpp}
 
-In order to apply the load that has been defined in \code{MySurfaceLoadFunctor} on a corresponding surface, this surface needs to be created first. This can either be done in a mesh generator like Gmsh or directly in \akantu by using the function \code{MeshUtils::buildFacets(mesh)}. Once the surface has been created, a FEM object containing the surface elements of the mesh needs to be generated. In the next step, the shape functions, the derivatives of the shape functions and jacobians for the surface elements need to be computed. Subsequently, the normals on the quadrature points of the surface elements are calculated and an instance of \code{MySurfaceLoadFunctor} is created. In the last step, the load at the gauss quadrature points is computed by using the function \code{computeForcesFromFunction}:
+In order to apply the load that has been defined in \code{MySurfaceLoadFunctor} on a corresponding surface, this surface needs to be created first. This can either be done in a mesh generator like Gmsh or directly in \akantu by using the function \code{MeshUtils::buildFacets(mesh)}. Once the surface has been created, a FEM object containing the surface elements of the mesh needs to be generated. In the next step, the shape functions, the derivatives of the shape functions and Jacobians for the surface elements need to be computed. Subsequently, the normals on the quadrature points of the surface elements are calculated and an instance of \code{MySurfaceLoadFunctor} is created. In the last step, the load at the Gauss quadrature points is computed by using the function \code{computeForcesFromFunction}:
 \begin{cpp}
   MeshUtils::buildFacets(mesh);
 
@@ -517,10 +508,10 @@ In order to apply the load that has been defined in \code{MySurfaceLoadFunctor} 
 \item\code{model.getFEMBoundary()} creates a FEM object that contains the surface elements of the mesh.
 \item\code{fem\_boundary.initShapeFunctions()} computes the shape functions, their derivatives and the jacobians.
 \item\code{fem\_boundary.computeNormalsOnControlPoints()} computes the normals at the quadrature points of the surface elements.
-\item\code{model.computeForcesFromFunction(boundary\_force,\_bft\_force)} computes the forces from the function defined in the object \code{boundary\_force}. The second parameter \code{\_bft\_force} indicates that a traction is provided. In case where a stress is provided this parameter needs to be replaced by \code{\_bft\_stress}.
+\item\code{model.computeForcesFromFunction(boundary\_force,\_bft\_force)} computes the forces from the function defined in the object \code{boundary\_force}. The second parameter \code{\_bft\_force} indicates that a traction is provided. For convenience the user can provide a stress tensor which is multiplied by the normal vector in order to compute the traction vector. In this case, the second parameter needs to be replaced by  \code{\_bft\_stress}.
 \end{itemize}
   
-A full example for setting both initial and boundary conditions can be found in \code{example/manual/boundary\_conditions.cc}. The problem is shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with movable supports on the left and bottom side. On the right side a traction which increases linearly with the number of time steps is applied. The initial displacement and velocity in x-direction at all free nodes is zero and 2 respectively.
+A full example for setting both initial and boundary conditions can be found in \code{example/manual/boundary\_conditions.cc}. The problem of that example is shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with movable supports on the left and bottom side. On the right side, a traction which increases linearly with the number of time steps, is applied. The initial displacement and velocity in x-direction at all free nodes is zero and two respectively.
 \begin{figure}[!htb]
   \centering
   \includegraphics[scale=0.8]{figures/bc_and_ic_example}
