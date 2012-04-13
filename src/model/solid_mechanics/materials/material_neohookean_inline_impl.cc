@@ -36,13 +36,13 @@ inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
 
   ///Compute determinant of C
   Real detC;
-  detC=Math::det3(C);
+  detC = Math::det3(C);
 
   Real defvol ;
   defvol= 0.5*log(detC);
 
   Real p;
-  p = lambda*defvol;
+  p = lambda * defvol;
 
   // Real traceC;
   // traceC = C[0]+C[4]+C[8];
@@ -116,7 +116,7 @@ inline void MaterialNeohookean::computePotentialEnergy(Real * F, Real * epot) {
   Real traceC;
   traceC = C[0] + C[4] + C[8];
 
-  ///energie potentielle
+  /// potential energy
   *epot = (0.5*p - mu)*defvol + 0.5*mu*(traceC - 3.);
 }
 

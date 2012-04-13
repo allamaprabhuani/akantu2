@@ -31,46 +31,14 @@
 #include "aka_grid.hh"
 #include "fem.hh"
 
-/* -------------------------------------------------------------------------- */
+#include "weight_function.hh"
 
+
+/* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_MATERIAL_NON_LOCAL_HH__
 #define __AKANTU_MATERIAL_NON_LOCAL_HH__
 
 __BEGIN_AKANTU__
-
-/* -------------------------------------------------------------------------- */
-class BaseWeightFunction {
-public:
-  BaseWeightFunction() : R(0), R2(0) { }
-
-  BaseWeightFunction(Real radius) :
-    R(radius), R2(radius*radius) {
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline void selectType(__attribute__((unused)) ElementType type1,
-			 __attribute__((unused)) GhostType ghost_type1,
-			 __attribute__((unused)) ElementType type2,
-			 __attribute__((unused)) GhostType ghost_type2) {
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline Real operator()(Real r,
-                         __attribute__((unused)) UInt q1,
-                         __attribute__((unused)) UInt q2) {
-    Real w = 0;
-    if(r <= R) {
-      Real alpha = (1. - r*r / R2);
-      w = alpha * alpha;
-      //	*weight = 1 - sqrt(r / radius);
-    }
-    return w;
-  }
-
-protected:
-  Real R;
-  Real R2;
-};
 
 /* -------------------------------------------------------------------------- */
 template<class WeightFunction = BaseWeightFunction>
@@ -119,6 +87,7 @@ public:
   // void removeDamaged(const ByElementTypeReal & damage, Real thresold);
 
   void savePairs(const std::string & filename) const;
+  void neighbourhoodStatistics(const std::string & filename) const;
 
 protected:
   void createCellList(const ByElementTypeReal & quadrature_points_coordinates);
@@ -144,6 +113,9 @@ protected:
   /// the non local radius
   Real radius;
 
+  /// the weight function used
+  WeightFunction * weight_func;
+
 private:
   /// the pairs of quadrature points
   PairList<UInt> pair_list;
@@ -155,9 +127,6 @@ private:
 
   /// the types of the existing pairs
   std::set< std::pair<ElementType, ElementType> > existing_pairs;
-
-  /// the weight function used
-  WeightFunction weight_func;
 };
 
 

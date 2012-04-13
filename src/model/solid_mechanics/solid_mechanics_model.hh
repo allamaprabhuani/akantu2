@@ -40,7 +40,6 @@
 #include "aka_common.hh"
 #include "model.hh"
 #include "data_accessor.hh"
-#include "material.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "integrator_cohesive.hh"
@@ -51,7 +50,7 @@
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-  //  class Material;
+  class Material;
   class IntegrationScheme2ndOrder;
   class Contact;
   class SparseMatrix;
@@ -82,9 +81,8 @@ public:
 public:
 
   /// initialize completely the model
-  void initFull(std::string material_file = "",
-                bool implicit_scheme = false,
-                bool implicit_dynamic = false);
+  void initFull(std::string material_file,
+                AnalysisMethod method = _explicit_dynamic);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary(bool create_surface = true);
@@ -499,7 +497,7 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
+#include "material.hh"
 #include "parser.hh"
 
 __BEGIN_AKANTU__

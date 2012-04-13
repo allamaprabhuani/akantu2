@@ -131,15 +131,12 @@ SolidMechanicsModel::~SolidMechanicsModel() {
  * model, the internal  vectors, set them to 0, and  depending on the parameters
  * it also initialize the explicit or implicit solver.
  *
- * @param material_file the file containing the materials to use
- * @param implicit_scheme set to true for implicit simulations, or to false for
- * explicit ones
- * @param implicit_dynamic in case of implicit solver activated it specify if we
- * want to solve a static or dynamic case.
+ * @param material_file the  file containing the materials to  use
+ * @param method the analysis method wanted.  See the akantu::AnalysisMethod for
+ * the different possibilites
  */
 void SolidMechanicsModel::initFull(std::string material_file,
-				   bool implicit_scheme,
-				   bool implicit_dynamic) {
+				   AnalysisMethod method) {
   // initialize the model
   initModel();
 
@@ -157,10 +154,17 @@ void SolidMechanicsModel::initFull(std::string material_file,
     initPBC();
 
   // initialize the time integration schemes
-  if(implicit_scheme)
-    initImplicit(implicit_dynamic);
-  else
+  switch(method) {
+  case _explicit_dynamic:
     initExplicit();
+    break;
+  case _implicit_dynamic:
+    initImplicit(true);
+    break;
+  case _static:
+    initImplicit(false);
+    break;
+  }
 
   // initialize the materials
   if(material_file != "") {
@@ -208,8 +212,11 @@ void SolidMechanicsModel::initExplicit() {
   if (integrator) delete integrator;
   integrator = new CentralDifference();
 
-  increment_acceleration = new Vector<Real>(this->mesh.getNbNodes(), 
-					    this->spatial_dimension, 0.);
+  UInt nb_nodes = acceleration->getSize();
+  UInt nb_degree_of_freedom = acceleration->getNbComponent();
+
+  std::stringstream sstr; sstr << id << ":increment_acceleration";
+  increment_acceleration = &(alloc<Real>(sstr.str(), nb_nodes, nb_degree_of_freedom, Real()));
 
   dynamic = true;
   implicit = false;
@@ -307,7 +314,6 @@ void SolidMechanicsModel::updateCurrentPosition() {
   UInt nb_nodes = mesh.getNbNodes();
 
   current_position->resize(nb_nodes);
-  //Vector<Real> * current_position = new Vector<Real>(nb_nodes, spatial_dimension, NAN, "position");
   Real * current_position_val = current_position->values;
   Real * position_val         = mesh.getNodes().values;
   Real * displacement_val     = displacement->values;
@@ -581,22 +587,28 @@ void SolidMechanicsModel::initialAcceleration() {
   AKANTU_DEBUG_INFO("Solving Ma = f");
 
   Solver * acc_solver = NULL;
+
+  std::stringstream sstr; sstr << id << ":tmp_mass_matrix";
+  SparseMatrix * tmp_mass = new SparseMatrix(*mass_matrix, sstr.str(), memory_id);
+
 #ifdef AKANTU_USE_MUMPS
-  std::stringstream sstr; sstr << id << ":solver_mass_matrix";
-  acc_solver = new SolverMumps(*mass_matrix, sstr.str());
+  std::stringstream sstr_solver; sstr << id << ":solver_mass_matrix";
+  acc_solver = new SolverMumps(*mass_matrix, sstr_solver.str());
 
   dof_synchronizer->initScatterGatherCommunicationScheme();
 #else
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
+
   acc_solver->initialize();
 
-  mass_matrix->applyBoundary(*boundary);
+  tmp_mass->applyBoundary(*boundary);
 
   acc_solver->setRHS(*residual);
   acc_solver->solve(*acceleration);
 
   delete acc_solver;
+  delete tmp_mass;
 
   AKANTU_DEBUG_OUT();
 }

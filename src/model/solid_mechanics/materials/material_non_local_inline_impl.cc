@@ -42,7 +42,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<class WeightFunction>
 MaterialNonLocal<WeightFunction>::MaterialNonLocal(Model & model, const ID & id)  :
-  Material(model, id), cell_list(NULL) {
+  Material(model, id), weight_func(NULL), cell_list(NULL) {
   AKANTU_DEBUG_IN();
 
   is_non_local = true;
@@ -55,7 +55,8 @@ template<class WeightFunction>
 MaterialNonLocal<WeightFunction>::~MaterialNonLocal() {
   AKANTU_DEBUG_IN();
 
-  if(cell_list) { delete cell_list; };
+  delete cell_list;
+  delete weight_func;
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,12 +68,12 @@ void MaterialNonLocal<WeightFunction>::initMaterial(WeightFunction & func) {
   //  Material::initMaterial();
 
   Mesh & mesh = this->model->getFEM().getMesh();
-  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
   mesh.initByElementTypeVector(quadrature_points_coordinates,
                                spatial_dimension, 0);
   computeQuadraturePointsCoordinates(mesh.getNodes(), quadrature_points_coordinates);
 
-  this->weight_func = func;
+  this->weight_func = &func;
 
   createCellList(quadrature_points_coordinates);
 
@@ -365,14 +366,14 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
     Vector<Real>::iterator<Real> weight  = weights.begin();
 
-    this->weight_func.selectType(type1, ghost_type1, type2, ghost_type2);
+    this->weight_func->selectType(type1, ghost_type1, type2, ghost_type2);
 
     // Weight function
     for(;first_pair != last_pair; ++first_pair, ++weight) {
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
       Real r = iquads1[q1].distance(iquads2[q2]);
-      *weight = this->weight_func(r, q1, q2);
+      *weight = this->weight_func->operator()(r, q1, q2);
 
       quads_volumes(q1) += *weight;
     }
@@ -442,6 +443,67 @@ void MaterialNonLocal<WeightFunction>::savePairs(const std::string & filename) c
       pout << q1 << " " << q2 << " "<< *pair_w << std::endl;
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template<class WeightFunction>
+void MaterialNonLocal<WeightFunction>::neighbourhoodStatistics(const std::string & filename) const {
+  std::ofstream pout;
+  pout.open(filename.c_str());
+
+  std::set< std::pair<ElementType, ElementType> >::const_iterator first_pair_types = existing_pairs.begin();
+  std::set< std::pair<ElementType, ElementType> >::const_iterator last_pair_types = existing_pairs.end();
+
+  const Mesh & mesh = this->model->getFEM().getMesh();
+
+  ByElementTypeUInt nb_neighbors("nb_neighbours", id, memory_id);
+  initInternalVector(nb_neighbors, 1);
+  resizeInternalVector(nb_neighbors);
+
+  GhostType ghost_type1, ghost_type2;
+  ghost_type1 = ghost_type2 = _not_ghost;
+
+  for (; first_pair_types != last_pair_types; ++first_pair_types) {
+    const Vector<UInt> & pairs =
+    pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
+
+    pout << "Types : " << first_pair_types->first << " " << first_pair_types->second << std::endl;
+    Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
+    Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+    Vector<UInt> & nb_neigh = nb_neighbors(first_pair_types->first, ghost_type1);
+
+    for(;first_pair != last_pair; ++first_pair) {
+      ++(nb_neigh((*first_pair)(0)));
+    }
+  }
+
+  Mesh::type_iterator it        = mesh.firstType(spatial_dimension, ghost_type1);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type1);
+  UInt nb_quads = 0;
+  Real mean_nb_neig = 0;
+  UInt max_nb_neig = 0;
+  UInt min_nb_neig = std::numeric_limits<UInt>::max();
+  for(; it != last_type; ++it) {
+    Vector<UInt> & nb_neighor = nb_neighbors(*it, ghost_type1);
+    Vector<UInt>::iterator<UInt> nb_neigh = nb_neighor.begin();
+    Vector<UInt>::iterator<UInt> end_neigh  = nb_neighor.end();
+
+    for (; nb_neigh != end_neigh; ++nb_neigh, ++nb_quads) {
+      UInt nb = *nb_neigh;
+      mean_nb_neig += nb;
+      max_nb_neig = std::max(max_nb_neig, nb);
+      min_nb_neig = std::min(min_nb_neig, nb);
+    }
+  }
+
+  mean_nb_neig /= Real(nb_quads);
+
+  pout << "Nb quadrature points: " << nb_quads << std::endl;
+  pout << "Average nb neighbors: " << mean_nb_neig << std::endl;
+  pout << "Max nb neighbors:     " << max_nb_neig << std::endl;
+  pout << "Min nb neighbors:     " << min_nb_neig << std::endl;
+
+  pout.close();
 }
 
 /* -------------------------------------------------------------------------- */

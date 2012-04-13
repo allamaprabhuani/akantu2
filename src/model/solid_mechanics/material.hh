@@ -26,17 +26,17 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_MATERIAL_HH__
-#define __AKANTU_MATERIAL_HH__
-
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
 //#include "fem.hh"
 //#include "mesh.hh"
 #include "data_accessor.hh"
 //#include "static_communicator.hh"
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __AKANTU_MATERIAL_HH__
+#define __AKANTU_MATERIAL_HH__
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -163,14 +163,16 @@ protected:
   /// compute the potential energy for on element
   inline void computePotentialEnergy(Real * F, Real * sigma, Real * epot);
 
+
+public:
   /// allocate an internal vector
   template<typename T>
   void initInternalVector(ByElementTypeVector<T> & vect,
-			  UInt nb_component);
+			  UInt nb_component) const;
 
   /// resize an internal vector
   template<typename T>
-  void resizeInternalVector(ByElementTypeVector<T> & vect);
+  void resizeInternalVector(ByElementTypeVector<T> & vect) const;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -181,6 +183,8 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  AKANTU_GET_MACRO(Model, *model, const SolidMechanicsModel &)
 
   AKANTU_GET_MACRO(ID, id, const ID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
@@ -328,7 +332,7 @@ __END_AKANTU__
   ((vreepeerlings          , MaterialVreePeerlings        ))		\
   ((marigo_non_local       , MaterialMarigoNonLocal       ))		\
   ((mazars_non_local       , MaterialMazarsNonLocal       ))		\
-  ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))            \
+  ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))		\
   ((cohesive_bilinear      , MaterialCohesiveBilinear     ))		\
   ((cohesive_linear        , MaterialCohesiveLinear       ))
 
@@ -351,8 +355,6 @@ __END_AKANTU__
 
 // damage materials
 #include "material_damage.hh"
-#include "material_non_local.hh"
-
 #include "material_marigo.hh"
 #include "material_mazars.hh"
 #include "material_damage_linear.hh"

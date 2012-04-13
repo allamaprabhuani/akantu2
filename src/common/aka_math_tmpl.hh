@@ -243,13 +243,43 @@ inline void Math::matVectMul(UInt m, UInt n,
 }
 
 /* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_LAPACK
+extern "C" {
+  void dgeev_(char* jobvl, char* jobvr, int* n, double* a,
+	      int* lda, double* wr, double* wi, double* vl, int* ldvl,
+	      double* vr, int* ldvr, double* work, int* lwork, int* info);
+}
+#endif
+
 inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
 #ifdef AKANTU_USE_LAPACK
-  char jobvs('V'); // compute eigenvectors
-  char sort('N'); // eigen values/vectors are not sorted
-  extern dgees_(char JOBVS, char SORT, SELECT, N, A, LDA, SDIM, WR, WI, VS, LDVS, WORK, LWORK, BWORK, INFO);
+  // Matrix  A is  row major,  so the  lapack function  in fortran  will process
+  // A^t. Asking for the left eigenvectors of A^t will give the transposed right
+  // eigenvectors of A so in the C++ code the right eigenvectors.
 
-  dgees_(JOBVS, SORT, SELECT, N, A, LDA, SDIM, WR, WI, VS, LDVS, WORK, LWORK, BWORK, INFO);
+  char jobvl('V'); // compute left  eigenvectors
+  char jobvr('N'); // compute right eigenvectors
+
+  double * di = new double[n]; // imaginary part of the eigenvalues
+
+  int info;
+  int N = n;
+
+  double wkopt;
+  int lwork = -1;
+  // query and allocate the optimal workspace
+  dgeev_(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, &wkopt, &lwork, &info);
+
+  lwork = int(wkopt);
+  double * work = new double[lwork];
+  // solve the eigenproblem
+  dgeev_(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, work, &lwork, &info);
+
+  AKANTU_DEBUG_ASSERT(info == 0, "Problem computing eigenvalues/vectors. DGEEV exited with the value " << info);
+
+
+  delete [] work;
+  delete [] di; // I hope for you that there was no complex eigenvalues !!!
 #else
   AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
 #endif

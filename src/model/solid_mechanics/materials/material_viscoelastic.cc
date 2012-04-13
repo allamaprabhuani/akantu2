@@ -110,7 +110,8 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
     for (UInt j = 0; j < spatial_dimension; ++j)
       (*history_int)(i, j)  = exp_dt_thau * (*history_int)(i, j) + exp_dt_thau_2 * (s(i, j) - (*stress_d)(i, j));
 
-  Real alpha = 2./3. * K * Theta;
+  //  Real alpha = 2./3. * K * Theta;
+  Real alpha = K * Theta;
   Real beta = 1. / ( Ev + E );
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)

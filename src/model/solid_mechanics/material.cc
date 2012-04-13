@@ -75,7 +75,7 @@ Material::~Material() {
 
 /* -------------------------------------------------------------------------- */
 bool Material::setParam(const std::string & key, const std::string & value,
-                        __attribute__ ((unused)) const ID & id) {
+			__attribute__ ((unused)) const ID & id) {
   std::stringstream sstr(value);
 
   if(key == "name") name = std::string(value);
@@ -96,7 +96,7 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalVector(ByElementTypeVector<T> & vect,
-                                  UInt nb_component) {
+				  UInt nb_component) const {
   AKANTU_DEBUG_IN();
 
   model->getFEM().getMesh().initByElementTypeVector(vect, nb_component, spatial_dimension);
@@ -105,7 +105,7 @@ void Material::initInternalVector(ByElementTypeVector<T> & vect,
 }
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) {
+void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) const {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = model->getFEM().getMesh();
@@ -115,7 +115,7 @@ void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) {
     Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
     Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
     for(; it != end; ++it) {
-      Vector<UInt> & elem_filter = element_filter(*it, gt);
+      const Vector<UInt> & elem_filter = element_filter(*it, gt);
 
       UInt nb_element           = elem_filter.getSize();
       UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, gt);
@@ -191,7 +191,7 @@ void Material::assembleResidual(GhostType ghost_type) {
     for (UInt el = 0; el < nb_element; ++el) {
       shapesd_val = shapesd + elem_filter_val[el] * size_of_shapes_derivatives * nb_quadrature_points;
       memcpy(shapesd_filtered_val, shapesd_val,
-             size_of_shapes_derivatives * nb_quadrature_points * sizeof(Real));
+	     size_of_shapes_derivatives * nb_quadrature_points * sizeof(Real));
       shapesd_filtered_val += size_of_shapes_derivatives * nb_quadrature_points;
     }
 
@@ -207,9 +207,9 @@ void Material::assembleResidual(GhostType ghost_type) {
     // }
 
     Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-                         *shapesd_filtered,
-                         stress_vect,
-                         *sigma_dphi_dx);
+			 *shapesd_filtered,
+			 stress_vect,
+			 *sigma_dphi_dx);
 
     delete shapesd_filtered;
 
@@ -218,19 +218,19 @@ void Material::assembleResidual(GhostType ghost_type) {
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
     Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element, nb_nodes_per_element * spatial_dimension,
-                                                        "int_sigma_x_dphi_/_dX");
+							"int_sigma_x_dphi_/_dX");
 
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-                              size_of_shapes_derivatives,
-                              *it, ghost_type,
-                              &elem_filter);
+			      size_of_shapes_derivatives,
+			      *it, ghost_type,
+			      &elem_filter);
     delete sigma_dphi_dx;
 
     /// assemble
     model->getFEM().assembleVector(*int_sigma_dphi_dx, residual,
-                                   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
-                                   residual.getNbComponent(),
-                                   *it, ghost_type, &elem_filter, -1);
+				   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
+				   residual.getNbComponent(),
+				   *it, ghost_type, &elem_filter, -1);
     delete int_sigma_dphi_dx;
   }
 
@@ -263,8 +263,8 @@ void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) 
 
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
-                                              spatial_dimension,
-                                              *it, ghost_type, &elem_filter);
+					      spatial_dimension,
+					      *it, ghost_type, &elem_filter);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
@@ -304,8 +304,8 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostTyp
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
-                                       const ElementType & type,
-                                       GhostType ghost_type) {
+				       const ElementType & type,
+				       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
@@ -325,13 +325,13 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   strain_vect.resize(nb_quadrature_points * nb_element);
 
   model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
-                                             dim, type, ghost_type, &elem_filter);
+					     dim, type, ghost_type, &elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 
   Vector<Real> * tangent_stiffness_matrix =
     new Vector<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
-                     "tangent_stiffness_matrix");
+		     "tangent_stiffness_matrix");
 
   computeTangentStiffness(type, *tangent_stiffness_matrix, ghost_type);
 
@@ -339,8 +339,8 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   UInt bt_d_b_size = dim * nb_nodes_per_element;
 
   Vector<Real> * bt_d_b = new Vector<Real>(nb_element * nb_quadrature_points,
-                                           bt_d_b_size * bt_d_b_size,
-                                           "B^t*D*B");
+					   bt_d_b_size * bt_d_b_size,
+					   "B^t*D*B");
 
   UInt size_of_b = tangent_size * bt_d_b_size;
   Real * B = new Real[size_of_b];
@@ -373,13 +373,13 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   Vector<Real> * K_e = new Vector<Real>(nb_element,
-                                        bt_d_b_size * bt_d_b_size,
-                                        "K_e");
+					bt_d_b_size * bt_d_b_size,
+					"K_e");
 
   model->getFEM().integrate(*bt_d_b, *K_e,
-                            bt_d_b_size * bt_d_b_size,
-                            type, ghost_type,
-                            &elem_filter);
+			    bt_d_b_size * bt_d_b_size,
+			    type, ghost_type,
+			    &elem_filter);
 
   delete bt_d_b;
 
@@ -421,7 +421,7 @@ void Material::computePotentialEnergyByElement() {
       UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, _not_ghost);
 
       potential_energy.alloc(nb_element * nb_quadrature_points, 1,
-                             *it, _not_ghost);
+			     *it, _not_ghost);
     }
 
     computePotentialEnergy(*it);
@@ -444,7 +444,7 @@ Real Material::getPotentialEnergy() {
   for(; it != last_type; ++it) {
 
     epot += model->getFEM().integrate(potential_energy(*it, _not_ghost), *it,
-                                      _not_ghost, &element_filter(*it, _not_ghost));
+				      _not_ghost, &element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -454,7 +454,7 @@ Real Material::getPotentialEnergy() {
 
 /* -------------------------------------------------------------------------- */
 void Material::computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coordinates,
-                                                  ByElementTypeReal & quadrature_points_coordinates) {
+						  ByElementTypeReal & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = model->getFEM().getMesh();
@@ -473,14 +473,13 @@ void Material::computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coo
       quads.resize(nb_tot_quad);
 
       model->getFEM().interpolateOnQuadraturePoints(nodes_coordinates,
-                                                    quads, spatial_dimension,
-                                                    *it, ghost_type, &elem_filter);
+						    quads, spatial_dimension,
+						    *it, ghost_type, &elem_filter);
     }
   }
 
   AKANTU_DEBUG_OUT();
 }
-
 
 /* -------------------------------------------------------------------------- */
 void Material::printself(std::ostream & stream, int indent) const {
@@ -496,14 +495,14 @@ void Material::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalVector<Real>(ByElementTypeVector<Real> & vect,
-                                                 UInt nb_component);
+						 UInt nb_component) const;
 template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
-                                                 UInt nb_component);
+						 UInt nb_component) const;
 template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
-                                                UInt nb_component);
+						UInt nb_component) const;
 
-template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect);
-template void Material::resizeInternalVector<UInt>(ByElementTypeVector<UInt> & vect);
-template void Material::resizeInternalVector<Int>(ByElementTypeVector<Int> & vect);
+template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect) const;
+template void Material::resizeInternalVector<UInt>(ByElementTypeVector<UInt> & vect) const;
+template void Material::resizeInternalVector<Int>(ByElementTypeVector<Int> & vect) const;
 
 __END_AKANTU__

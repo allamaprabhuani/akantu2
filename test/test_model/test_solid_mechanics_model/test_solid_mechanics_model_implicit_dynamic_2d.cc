@@ -88,15 +88,15 @@ int main(int argc, char *argv[])
   if(prank == 0) {
     MeshIOMSH mesh_io;
     mesh_io.read("beam_2d_lin.msh", mesh);
-    
+
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->reorder();
     partition->partitionate(psize);
   }
-  
+
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
   model->initParallel(partition);
-  
+
 
   //  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 	if(mesh.isLocalOrMasterNode(n)) {
 	  print_node = true;
 	  node_to_print = n;
-	  std::cout << "I, proc " << prank +1 << " handle the print of node " << n 
+	  std::cout << "I, proc " << prank +1 << " handle the print of node " << n
 		    << "(" << x << ", "<< y << ", " << z << ")" << std::endl;
 	}
       }

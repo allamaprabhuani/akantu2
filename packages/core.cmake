@@ -33,6 +33,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_marigo.cc
   model/solid_mechanics/materials/material_mazars.cc
   model/solid_mechanics/materials/material_neohookean.cc
+  model/solid_mechanics/materials/weight_function.cc
   model/solid_mechanics/materials/material_marigo_non_local.cc
   model/solid_mechanics/materials/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage_linear.cc

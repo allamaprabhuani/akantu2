@@ -164,7 +164,6 @@ template <> inline void ElementClass<_triangle_6>::computeDNDS(const Real * natu
   dnds[9]  = - 4 * c1;
   dnds[10] = 4 * c1;
   dnds[11] = 4 * (c0 - c2);
-
 }
 
 

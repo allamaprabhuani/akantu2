@@ -150,7 +150,7 @@ namespace debug {
         gettimeofday(&time, NULL);
         double  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
         *(cout) << parallel_context
-                << "{" << timestamp << "} "
+                << "{" << (unsigned int)timestamp << "} "
                 << prefix << info << " "
                 << AKANTU_LOCATION
                 << std::endl;

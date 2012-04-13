@@ -63,10 +63,10 @@ inline void MaterialMarigo::computeStress(Real * F, Real * sigma,
     sigma[6]*F[6] +
     sigma[7]*F[7] +
     sigma[8]*F[8];
-  //Y *= 0.5 * (1 - dam);
-  Y *= 0.5;
+  Y *= 0.5 * (1 - dam);
+  //Y *= 0.5;
 
-  Y = std::min(Y, Yc);
+  //Y = std::min(Y, Yc);
 
   if(!is_non_local) {
     computeDamageAndStress(F, sigma, dam, Y, Ydq, delta_t, dissip_energy);

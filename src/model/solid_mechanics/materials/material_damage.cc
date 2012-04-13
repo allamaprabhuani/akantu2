@@ -39,6 +39,7 @@ MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
   damage("damage", id),
   dissipated_energy("Dissipated Energy", id),
   strain_prev("Previous Strain", id),
+  stress_prev("Previous Stress", id),
   int_sigma("Integral of sigma", id) {
   AKANTU_DEBUG_IN();
 
@@ -46,6 +47,7 @@ MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
   initInternalVector(this->damage, 1);
   initInternalVector(this->dissipated_energy, 1);
   initInternalVector(this->strain_prev, spatial_dimension * spatial_dimension);
+  initInternalVector(this->stress_prev, spatial_dimension * spatial_dimension);
   initInternalVector(this->int_sigma, 1);
 
   AKANTU_DEBUG_OUT();
@@ -59,6 +61,7 @@ void MaterialDamage::initMaterial() {
   resizeInternalVector(this->damage);
   resizeInternalVector(this->dissipated_energy);
   resizeInternalVector(this->strain_prev);
+  resizeInternalVector(this->stress_prev);
   resizeInternalVector(this->int_sigma);
 
   is_init = true;
@@ -82,6 +85,8 @@ void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
     ElementType el_type = *it;
     Vector<Real>::iterator<types::Matrix> sigma =
       stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    Vector<Real>::iterator<types::Matrix> sigma_p =
+      stress_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::Matrix> epsilon =
       strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::Matrix> epsilon_p =
@@ -98,8 +103,9 @@ void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
       for (UInt i = 0; i < spatial_dimension; ++i) {
 	for (UInt j = 0; j < spatial_dimension; ++j) {
 	  epot += (*sigma)(i,j) * (*epsilon)(i,j);
-	  dint += (*sigma)(i,j) * ((*epsilon)(i,j) - (*epsilon_p)(i,j));
+	  dint += .5 * ((*sigma_p)(i,j) + (*sigma)(i,j)) * ((*epsilon)(i,j) - (*epsilon_p)(i,j));
 	  (*epsilon_p)(i,j) = (*epsilon)(i,j);
+	  (*sigma_p)(i,j) = (*sigma)(i,j);
 	}
       }
 

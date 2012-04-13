@@ -48,15 +48,46 @@ MaterialMarigoNonLocal::MaterialMarigoNonLocal(Model & model, const ID & id)  :
   AKANTU_DEBUG_OUT();
 }
 
+// /* -------------------------------------------------------------------------- */
+// template<>
+// void MaterialMarigoNonLocal::initWeightFuncion<BaseWeightFunction>() {
+//   BaseWeightFunction * weight_function = new BaseWeightFunction(radius);
+//   MaterialNonLocalParent::initMaterial(*weight_function);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// template<>
+// void MaterialMarigoNonLocal::initWeightFuncion<DamagedWeightFunction>() {
+//   DamagedWeightFunction * weight_function = new DamagedWeightFunction(radius, damage);
+//   MaterialNonLocalParent::initMaterial(*weight_function);
+// }
+
+/* -------------------------------------------------------------------------- */
+template<>
+void MaterialMarigoNonLocal::initWeightFuncion<StressBasedWeightFunction>() {
+  StressBasedWeightFunction * weight_function = new StressBasedWeightFunction(radius,
+									      10e9,
+									      spatial_dimension,
+									      *this);
+
+  const Mesh & mesh = model->getFEM().getMesh();
+  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+  mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
+
+  computeQuadraturePointsCoordinates(mesh.getNodes(), quadrature_points_coordinates);
+  weight_function->setQuadraturePointsCoordinates(quadrature_points_coordinates);
+  weight_function->updatePrincipalStress(_not_ghost);
+  weight_function->updatePrincipalStress(_ghost);
+
+  MaterialNonLocalParent::initMaterial(*weight_function);
+}
+
 /* -------------------------------------------------------------------------- */
 void MaterialMarigoNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMarigo::initMaterial();
 
-  DamagedWeightFunction weight_function(radius, damage);
-  //BaseWeightFunction weight_function(radius);
-
-  MaterialNonLocalParent::initMaterial(weight_function);
+  initWeightFuncion<MarigoNonLocalWeightFunction>();
 
   resizeInternalVector(this->Y);
 
@@ -64,6 +95,7 @@ void MaterialMarigoNonLocal::initMaterial() {
 
   AKANTU_DEBUG_OUT();
 }
+
 
 /* -------------------------------------------------------------------------- */
 void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_type) {
@@ -106,13 +138,18 @@ void MaterialMarigoNonLocal::computeNonLocalStress(GhostType ghost_type) {
 
   const Mesh & mesh = model->getFEM().getMesh();
 
-  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
-  mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
-
   if(update_weigths && (compute_stress_calls % update_weigths == 0)) {
+    ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+    mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
     Vector<Real> coordinates(mesh.getNodes(), true);
-    //coordinates += model->getDisplacement();
-    computeQuadraturePointsCoordinates(coordinates, quadrature_points_coordinates);
+    coordinates += model->getDisplacement();
+
+    if(StressBasedWeightFunction * wf =
+       dynamic_cast<StressBasedWeightFunction *>(weight_func)){
+      computeQuadraturePointsCoordinates(coordinates, quadrature_points_coordinates);
+      wf->setQuadraturePointsCoordinates(quadrature_points_coordinates);
+      wf->updatePrincipalStress(ghost_type);
+    }
     computeWeights(quadrature_points_coordinates);
   }
 

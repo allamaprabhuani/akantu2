@@ -239,7 +239,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
 			  spatial_dimension, "applied_force");
 
   akantu::Real * mat = new akantu::Real[nb_element * nb_quadrature_points];
-  akantu::Vector<akantu::UInt> & elem_mat = model->getElementMaterial(type);
+  const akantu::Vector<akantu::UInt> & elem_mat = model->getElementMaterial(type);
   for (akantu::UInt e = 0; e < nb_element; ++e) {
     for (akantu::UInt q = 0; q < nb_quadrature_points; ++q) {
       mat[e * nb_quadrature_points + q] = elem_mat(e, 0);

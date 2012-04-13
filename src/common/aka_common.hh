@@ -144,6 +144,14 @@ enum ElementKind {
   _ek_cohesive
 };
 
+
+/// enum AnalysisMethod type of solving method used to solve the equation of motion
+enum AnalysisMethod {
+  _static,
+  _implicit_dynamic,
+  _explicit_dynamic
+};
+
 /// myfunction(double * position, double * stress/force, double * normal, unsigned int material_id)
 typedef void (*BoundaryFunction)(double *,double *, double*, unsigned int);
 

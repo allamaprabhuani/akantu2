@@ -37,30 +37,6 @@
 
 __BEGIN_AKANTU__
 
-
-/* -------------------------------------------------------------------------- */
-class DamagedWeightFunction : BaseWeightFunction {
-public:
-  DamagedWeightFunction() : damage(NULL){}
-  DamagedWeightFunction(Real radius, ByElementTypeReal & damage) : BaseWeightFunction(radius),
-								   damage(&damage) {}
-
-  inline void selectType(ElementType type1, GhostType ghost_type1,
-			 ElementType type2, GhostType ghost_type2) {
-    selected_damage = &(*damage)(type2, ghost_type2);
-  }
-
-  inline Real operator()(Real r, UInt q1, UInt q2) {
-    Real w = BaseWeightFunction::operator()(r, q1, q2);
-    Real D = (*selected_damage)(q2);
-    w *= exp(- D * D / (0.1 * 0.1));
-    return w;
-  }
-
-private:
-  ByElementTypeReal * damage;
-  Vector<Real> * selected_damage;
-};
 /* -------------------------------------------------------------------------- */
 
 
@@ -69,12 +45,14 @@ private:
  *
  * parameters in the material files :
  */
-class MaterialMarigoNonLocal : public MaterialMarigo, public MaterialNonLocal<DamagedWeightFunction> {
+typedef StressBasedWeightFunction MarigoNonLocalWeightFunction;
+class MaterialMarigoNonLocal : public MaterialMarigo,
+			       public MaterialNonLocal<MarigoNonLocalWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<DamagedWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<MarigoNonLocalWeightFunction> MaterialNonLocalParent;
 
   MaterialMarigoNonLocal(Model & model, const ID & id = "");
 
@@ -102,6 +80,10 @@ public:
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+private:
+  template<class WeightFunction>
+  void initWeightFuncion() {};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

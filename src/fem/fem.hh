@@ -47,7 +47,7 @@ public:
   QuadraturePoint(ElementType type = _not_defined, UInt element = 0,
 		  UInt num_point = 0, GhostType ghost_type = _not_ghost) :
     Element(type, element, ghost_type), num_point(num_point),
-    position() { };
+    position((Real *)NULL, 0) { };
 
   QuadraturePoint(const QuadraturePoint & quad) :
     Element(quad), num_point(quad.num_point) { };
