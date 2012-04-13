@@ -101,6 +101,13 @@ if(AKANTU_MUMPS)
 endif()
 
 #===============================================================================
+add_mesh(test_pbc_parallel_mesh square_structured.geo 2 1 OUTPUT square_structured.msh)
+
+register_test(test_solid_mechanics_model_pbc_parallel
+  test_solid_mechanics_model_pbc_parallel.cc)
+add_dependencies(test_solid_mechanics_model_pbc_parallel test_pbc_parallel_mesh)
+
+#===============================================================================
 add_mesh(test_cube3d_mesh1 cube.geo 3 1 OUTPUT cube1.msh)
 add_mesh(test_cube3d_mesh2 cube.geo 3 2 OUTPUT cube2.msh)
 

@@ -61,13 +61,13 @@ public:
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
+  /// fill the partitions array with a given linearized partition information
+  void fillPartitionInformation(const Mesh & mesh, const Int * linearized_partitions);
+
 protected:
 
   /// build the dual graph of the mesh, for all element of spatial_dimension
   void buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy);
-
-  /// fill the partitions array with a given linearized partition information
-  void fillPartitionInformations(const Mesh & mesh, const Int * linearized_partitions);
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

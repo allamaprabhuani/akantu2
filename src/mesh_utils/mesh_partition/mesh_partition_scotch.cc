@@ -355,7 +355,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
   SCOTCH_graphFree(&scotch_graph);
   SCOTCH_graphExit(&scotch_graph);
 
-  fillPartitionInformations(mesh, parttab);
+  fillPartitionInformation(mesh, parttab);
 
   delete [] parttab;
   AKANTU_DEBUG_OUT();

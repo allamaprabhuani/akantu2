@@ -228,8 +228,8 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshPartition::fillPartitionInformations(const Mesh & mesh,
-					      const Int * linearized_partitions) {
+void MeshPartition::fillPartitionInformation(const Mesh & mesh,
+					     const Int * linearized_partitions) {
   AKANTU_DEBUG_IN();
 
   // Vector<UInt> node_offset;
