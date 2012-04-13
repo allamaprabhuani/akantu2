@@ -34,8 +34,10 @@
 
 \usepackage{makeidx}
 
+\usepackage[lofdepth,lotdepth]{subfig}
 \usepackage{tikz}
 \usetikzlibrary{decorations}
+
 
 %\usepackage{fancybox}
 %\usepackage{alltt}
@@ -1045,11 +1047,107 @@ is equal to  $\Delta u = \unit{0.05}{\metre}$. The  potential, kinetic and
 total  energies are  computed.  The  time factor  is equal  to $0.1$.  The total
 simulated time is \unit{0.01}{\second}.
 
-\subsection{Constitutive laws\todo{Leonardo}}
+\subsection{Constitutive laws}
+In order to predict the element response of the kinematic driven finite element formulation, one needs to use an appropriate constitutive relationship for every element in the mesh. The constitutive law enables to compute the element's stresses from the experienced element's strains. In the finite element discretization, the constitutive formulation is applied to every quadrature point of each element.
+
+The chosen materials for the virtual experiment have to be specified in the mesh file or as an alternative they can be assigned using the \code{element\_material} vector.
+For every material assigned to the problem one has to specify the material characteristics (constitutive behavior and material properties) in a text file (e.g. material.dat) as follows:
+\begin{cpp}
+material %\emph{constitutive\_law}% [
+	 name = %\emph{XXX}%
+	 rho = %\emph{XXX}%
+	 %$\vdots$%
+]
+
+\end{cpp}
+\index{Constitutive_laws}
+where \emph{constitutive\_law} is the adopted constitutive law, followed by the material properties listed one by line in the bracket (e.g. \code{name} and density \code{rho}). The file needs to be loaded in \akantu using the \code{readMaterials} method.
+\begin{cpp}
+  model.readMaterials("material.dat");
+\end{cpp}
+The following subsections describe the constitutive models implemented in \akantu.
+
 \subsubsection{Elastic}
+A commonly used constitutive relationship that can be used for a wide range of engineering materials (e.g., metals, concrete, rock, wood, glass, rubber, etc.) provided that the strains remain small (i.e. small deformation and stress lower than yield strength). The linear elastic behavior is described by Hooke's law, which states that the stress is linearly proportional to the applied strain (material behaves like an ideal spring), as illustrated in figure~\ref{fig:smm:cl:elastic}.
+\begin{figure}[!htb]
+  \begin{center}
+
+    \subfloat[]{
+      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_el.pdf}
+      \label{fig:smm:cl:elastic:stress_strain}
+    }
+    \hspace{0.05\textwidth}
+    \subfloat[]{
+      \raisebox{0.125\textwidth}{\includegraphics[width=0.3\textwidth,keepaspectratio=true]{figures/hooke_law.pdf}}
+      \label{fig:smm:cl:elastic:hooke}
+    }
+    \caption{(a) Stress-strain curve for elastic material and (b) schematic representation of Hooke's law}
+    \label{fig:smm:cl:elastic}
+  \end{center}
+\end{figure}
+The equation that relates the stresses to the displacements is:
+%First the strain is computed (at every gauss point) from the displacements as follows:
+
+\begin{equation}\label{eqn:smm:strain_inf}
+  \mat{\epsilon} = \frac{1}{2} \left[ \mat{F}-\mat{I}+(\mat{F}-\mat{I})^T \rigth]
+\end{equation}
+where $\mat{\epsilon}$ is the infinitesimal strain tensor and $\mat{F} = \nabla_{\vec{X}}\vec{x}$ is the deformation gradient tensor. The constitutive equation for isotropic homogeneous media can be expressed as:
+\begin{equation}\label{eqn:smm:constitutive_elastic}
+  \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu \mat{\epsilon}
+\end{equation}
+where $\mat{\sigma}$ represents the Cauchy stress tensor and $\mat{I}$ the identity matrix.
+Beyond the name and density, one has to specify the following properties in the material file: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and \code{Plain\_Stress} (if set to zero plain strain, else plain stress).
+
 \subsubsection{Caughey}
+** Not in release **
+The model is a particular case of the Rayleigh damping model, with damping being proportional only to the stiffness matrix. Substitute with complete Rayleigh damping model for release?
+
 \subsubsection{Neo-hookean}
+The Neo-Hookean constitutive law is a hyperelastic material formulation, which results from an extension of the linear elastic relationship (Hooke's Law) for large deformation. Thus, the model predicts nonlinear stress-strain behavior for media undergoing large deformations.
+ 
+\begin{figure}[!htb]
+  \begin{center}
+    \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_neo.pdf}
+    \caption{Neo-hookean Stress-strain curve}
+    \label{fig:smm:cl:neo_hookean}
+  \end{center}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:smm:cl:neo_hookean}, the behavior is initially linear but at a certain point it will start to converge to a plateau.
+This constitutive relationship has been proposed by Ronald Rivlin and is suitable to simulate rubber-like (e.g. polymers) material behavior. The constitutive equation is 
+\begin{equation}
+\mat{\sigma } = -p \mat{I} + \mu \mat{B}
+\end{equation}
+where $p$ is the pressure and $\mat{B}$ is the Finger deformation tensor ($\mat{B}=\mat{F}^{-1}\mat{F}^{-T}$).
+The parameters to indicate in the material file are the same as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and \code{Plain\_Stress} (if set to zero plain strain, else plain stress).
+
 \subsubsection{Visco-elastic}
+
+%Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes, "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
+Visco-elasticity is characterized by time dependent strain behavior. Moreover, when such a material undergoes a deformation it dissipates some energy. This dissipation results in a hysteresis loop in the stress-strain curve at every loading cycle (see figure~\ref{fig:smm:cl:visco-elastic:hyst}). In principle, it can be applied to many materials, since all materials exhibit a visco-elastic behavior if subjected to particular condition (such as high temperatures).
+\begin{figure}[!htb]
+  \begin{center}
+
+    \subfloat[]{
+      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_visco.pdf}
+      \label{fig:smm:cl:visco-elastic:hyst}
+    }
+    \hspace{0.05\textwidth}
+    \subfloat[]{
+      \raisebox{0.025\textwidth}{\includegraphics[width=0.3\textwidth,keepaspectratio=true]{figures/visco_elastic_law.pdf}}
+      \label{fig:smm:cl:visco-elastic:model}
+    }
+    \caption{(a) Characteristic stress-strain behavior with hysteresis loop and (b) schematic representation of visco-elastic model.}
+    \label{fig:smm:cl:visco-elastic}
+  \end{center}
+\end{figure}
+The standard rheological linear solid model has been implemented in \akantu. This model results from the combination of a spring mounted in parallel with a spring and a dashpot connected in series, as illustrated in figure~\ref{fig:smm:cl:visco-elastic:model}. The advantage of this model is that it allows to account for creep and stress relaxation. The equation that relates the stress to the strain is:
+\begin{equation}
+    \frac{d\epsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\epsilon(t) \right ]
+\end{equation}
+where $\eta$ is the viscosity.
+The parameters requested in the material file are the following: \code{rho} (density), \code{E} (Young's modulus), \code{nu} (Poisson's ratio), \code{Plane\_Stress} (if set to zero plane strain, otherwise plane stress), \code{eta} (dashpot viscosity) and \code{Ev} (stiffness of the viscous element).
+
 \subsubsection{Damage Marigo}
 \subsubsection{Damage Mazars}
 
