@@ -243,8 +243,9 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
 
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension);
-  for(; it != end; ++it) {
+
   UInt linearized_el = 0;
+  for(; it != end; ++it) {
     ElementType type = *it;
 
     UInt nb_element = mesh.getNbElement(*it);
