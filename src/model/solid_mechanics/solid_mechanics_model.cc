@@ -305,6 +305,7 @@ void SolidMechanicsModel::registerPBCSynchronizer(){
   PBCSynchronizer * synch = new PBCSynchronizer(pbc_pair);
   synch_registry->registerSynchronizer(*synch, _gst_smm_uv);
   synch_registry->registerSynchronizer(*synch, _gst_smm_mass);
+  synch_registry->registerSynchronizer(*synch, _gst_smm_res);
   changeLocalEquationNumberforPBC(pbc_pair, mesh.getSpatialDimension());
 }
 
@@ -816,8 +817,17 @@ void SolidMechanicsModel::implicitCorr() {
 void SolidMechanicsModel::synchronizeBoundaries() {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
-		      << " Did you call initParallel ?");
+		      << " Did you call initParallel?");
   synch_registry->synchronize(_gst_smm_boundary);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::synchronizeResidual() {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
+		      << " Did you call initPBC?");
+  synch_registry->synchronize(_gst_smm_res);
   AKANTU_DEBUG_OUT();
 }
 

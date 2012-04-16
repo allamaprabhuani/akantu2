@@ -179,6 +179,26 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  virtual inline UInt getNbDataToPack(__attribute__((unused)) const Element & element,
+				      __attribute__((unused)) SynchronizationTag tag) const {
+    return 0;
+  }
+
+  virtual inline UInt getNbDataToUnpack(__attribute__((unused)) const Element & element,
+					__attribute__((unused)) SynchronizationTag tag) const {
+    return 0;
+  }
+
+  virtual inline void packData(__attribute__((unused)) CommunicationBuffer & buffer,
+			       __attribute__((unused)) const Element & element,
+			       __attribute__((unused)) SynchronizationTag tag) const {
+  }
+
+  virtual inline void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
+				 __attribute__((unused)) const Element & element,
+				 __attribute__((unused)) SynchronizationTag tag) {
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

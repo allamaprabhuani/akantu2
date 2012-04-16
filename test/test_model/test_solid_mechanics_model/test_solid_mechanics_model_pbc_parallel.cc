@@ -75,12 +75,14 @@ int main(int argc, char *argv[])
     akantu::MeshIOMSH mesh_io;
     mesh_io.read("square_structured.msh", mesh);
     partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition->setNbPartition(psize);
 
     // create the partition
     akantu::Vector<akantu::Int> part_tab(0,1);
     mesh.computeBoundingBox();
     akantu::Real rank_border = 0.5 * (mesh.getYMax() - mesh.getYMin());
-    
+    rank_border += 1e-10;
+
     akantu::Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
     akantu::Mesh::type_iterator end = mesh.lastType(spatial_dimension);
     for(; it != end; ++it) {
@@ -96,16 +98,14 @@ int main(int argc, char *argv[])
 	  part_tab.push_back(1);
       }
     }
-
+    
     partition->fillPartitionInformation(mesh,part_tab.storage());
+  } else {
+    mesh.computeBoundingBox();
   }
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
   model->initParallel(partition);
-
-  akantu::UInt nb_element = mesh.getNbElement(type);
-  for(akantu::UInt i=0; i<nb_element; ++i) 
-    proc_rank.push_back(prank);
 
   /// model initialization
   model->initVectors();
@@ -128,19 +128,35 @@ int main(int argc, char *argv[])
   model->initPBC();
   model->assembleMassLumped();
 
+  akantu::UInt nb_element = mesh.getNbElement(type);
+  akantu::UInt nb_quads = model->getFEM().getNbQuadraturePoints(type);
+  for(akantu::UInt i=0; i<nb_element * nb_quads; ++i) 
+    proc_rank.push_back(prank);
+
   /// boundary conditions
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::Real eps = 1e-16;
-  const akantu::Vector<akantu::Real> & coords = model->getFEM().getMesh().getNodes();
+  akantu::Vector<akantu::Real> & coords = const_cast<akantu::Vector<akantu::Real> & >(model->getFEM().getMesh().getNodes());
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    // block top and bottom nodes
     if(std::abs(coords(i,1)-mesh.getYMax()) <= eps 
        || std::abs(coords(i,1)-mesh.getYMin()) <= eps) {
       model->getBoundary().values[spatial_dimension*i + 1] = true;
     }
+    // correct coordinates (gmsh's unprecision)
+    for (akantu::UInt d=0; d<spatial_dimension; ++d) {
+      akantu::Real cor = std::floor(10 * coords(i,d) + 0.5) / 10.;
+      coords(i,d) = cor;
+      //std::cout << cor << " ";
+    }
+    //std::cout << std::endl;
   }
+  //std::cout << std::endl;
+  model->synchronizeBoundaries();
 
   akantu::Real time_step = model->getStableTimeStep() * time_factor;
-  std::cout << "Time Step = " << time_step << "s" << std::endl;
+  if(prank == 0)  
+    std::cout << "Time Step = " << time_step << "s" << std::endl;
   model->setTimeStep(time_step);
 
 #ifdef AKANTU_USE_IOHELPER
@@ -150,21 +166,38 @@ int main(int argc, char *argv[])
   paraviewInit(dumper, *model);
 #endif //AKANTU_USE_IOHELPER
 
-  return EXIT_SUCCESS;
-
-  for(akantu::UInt s = 1; s <= max_steps; ++s) {
-    model->explicitPred();
-    model->updateResidual();
-    model->updateAcceleration();
-    model->explicitCorr();
+  // modify displacements
+  akantu::Vector<akantu::Real> & displacement = model->getDisplacement();
+  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    displacement(i,1) = std::abs(coords(i,1) - mesh.getYMin()) * 0.0001;
+  }
+  model->synchronizeBoundaries();
 
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 20 == 0) paraviewDump(dumper);
+  /// initialize the paraview output
+  model->updateResidual();
+  model->synchronizeResidual();
+  paraviewDump(dumper);
 #endif //AKANTU_USE_IOHELPER
 
-    std::cerr << "passing step " << s << "/" << max_steps << std::endl;
+  // test (traction at top and bottom boundary should be 2.826923077e7)
+  // therefore the nodal residual should be 2.826923077e6
+  akantu::Real solution = 2.826923077e6;
+  akantu::Real adm_error = 1e-3;
+  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+    akantu::Real trac = std::abs(model->getResidual().values[spatial_dimension*i + 1]);
+    if((std::abs(coords(i,1)-mesh.getYMax()) <= eps 
+       || std::abs(coords(i,1)-mesh.getYMin()) <= eps) &&
+       std::abs(trac - solution) > adm_error) {
+      std::cerr << "Boundary residual in y direction is " << trac << 
+	" but should be " << solution << "!!!" << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
+  akantu::finalize();
+  if(prank == 0)
+    std::cout << "Test successful!" << std::endl;
   return EXIT_SUCCESS;
 }
 
@@ -174,9 +207,15 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
 void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel & model) {
+  akantu::StaticCommunicator * comm = 
+    akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm->getNbProc();
+  akantu::Int prank = comm->whoAmI();
+
   akantu::Real spatial_dimension = model.getSpatialDimension();
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
+  dumper.SetParallelContext(prank, psize);
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "pbc_parallel");
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,

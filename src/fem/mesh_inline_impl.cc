@@ -57,8 +57,10 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) {
 /* -------------------------------------------------------------------------- */
 inline void Mesh::updateTypesOffsets(const GhostType & ghost_type) {
   types_offsets.clear();
-  ConnectivityTypeList::const_iterator it;
-  for (it = type_set.begin(); it != type_set.end(); ++it)
+  type_iterator it   = firstType(0, ghost_type);
+  type_iterator last = lastType(0, ghost_type);
+
+  for (; it != last; ++it)
     types_offsets(*it) = connectivities(*it, ghost_type).getSize();
 
   for (UInt t = _not_defined + 1;  t <= _max_element_type; ++t)
@@ -407,17 +409,6 @@ inline void Mesh::extractNodalValuesFromElement(const Vector<T> & nodal_values,
 	   nb_degree_of_freedom * sizeof(T));
   }
 }
-
-/* -------------------------------------------------------------------------- */
-// inline void Mesh::extractNodalCoordinatesFromElement(Real * local_coord,
-// 						     UInt * connectivity,
-// 						     UInt n_nodes){
-//   for (UInt n = 0; n < n_nodes; ++n) {
-//     memcpy(local_coord + n * spatial_dimension,
-// 	   nodes->values + connectivity[n] * spatial_dimension,
-// 	   spatial_dimension * sizeof(Real));
-//   }
-// }
 
 /* -------------------------------------------------------------------------- */
 #define DECLARE_GET_BOUND(Var, var)                               \

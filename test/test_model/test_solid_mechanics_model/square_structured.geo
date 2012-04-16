@@ -1,7 +1,10 @@
 // Mesh size
-h  = 0.1;
+nb_nodes = 11.;
+
 Lx = 1;
 Ly = 1;
+
+h = Lx / nb_nodes;
 
 // ------------------------------------------
 // Geometry

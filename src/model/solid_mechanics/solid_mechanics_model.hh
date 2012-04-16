@@ -116,6 +116,9 @@ public:
   /// change the equation number for proper assembly when using PBC
   void changeEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair);
 
+  /// synchronize Residual for output
+  void synchronizeResidual();
+
 private:
 
   /// register PBC synchronizer

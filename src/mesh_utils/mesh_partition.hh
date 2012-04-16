@@ -78,6 +78,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);
 
   AKANTU_GET_MACRO(NbPartition, nb_partitions, UInt);
+  AKANTU_SET_MACRO(NbPartition, nb_partitions, UInt);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
