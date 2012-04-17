@@ -97,7 +97,7 @@ void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
     Vector<Real>::iterator<Real> ed   = dissipated_energy(el_type, ghost_type).begin();
     Vector<Real>::iterator<Real> end  = dissipated_energy(el_type, ghost_type).end();
 
-    for (; ed != end; ++ed, ++ints, ++epsilon, ++sigma, ++epsilon_p) {
+    for (; ed != end; ++ed, ++ints, ++epsilon, ++sigma, ++epsilon_p, ++sigma_p) {
       Real epot = 0.;
       Real dint = 0.;
       for (UInt i = 0; i < spatial_dimension; ++i) {
