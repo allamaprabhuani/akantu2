@@ -151,8 +151,7 @@ namespace debug {
         double  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
         *(cout) << parallel_context
                 << "{" << (unsigned int)timestamp << "} "
-                << prefix << info << " "
-                << AKANTU_LOCATION
+                << prefix << info
                 << std::endl;
       }
     }
@@ -181,19 +180,19 @@ namespace debug {
 }
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_STRINGSTREAM_IN(str, sstr);                              \
+#define AKANTU_STRINGSTREAM_IN(_str, _sstr);				\
   do {                                                                  \
-    std::stringstream s_info;						\
-    s_info << sstr;                                                     \
-    str = s_info.str();                                                 \
+    std::stringstream _dbg_s_info;					\
+    _dbg_s_info << _sstr;						\
+    _str = _dbg_s_info.str();						\
   } while(0)
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_EXCEPTION(info)                                          \
   do {									\
-    std::string str;                                                    \
-    AKANTU_STRINGSTREAM_IN(str, info);                                  \
-    ::akantu::debug::debugger.throwException(str);                      \
+    std::string _dbg_str;						\
+    AKANTU_STRINGSTREAM_IN(_dbg_str, info);				\
+    ::akantu::debug::debugger.throwException(_dbg_str);			\
   } while(0)
 
 #define AKANTU_DEBUG_TO_IMPLEMENT()				\
@@ -220,9 +219,9 @@ namespace debug {
 
 #define AKANTU_DEBUG_(pref, level, info)                                \
   do {									\
-    std::string str;                                                    \
-    AKANTU_STRINGSTREAM_IN(str, info);                                  \
-    ::akantu::debug::debugger.printMessage(pref, level, str);           \
+    std::string _dbg_str;						\
+    AKANTU_STRINGSTREAM_IN(_dbg_str, info  << " " << AKANTU_LOCATION);	\
+    ::akantu::debug::debugger.printMessage(pref, level, _dbg_str);	\
   } while(0)
 
 #define AKANTU_DEBUG_TEST(level)		\
