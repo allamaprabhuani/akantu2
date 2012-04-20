@@ -951,9 +951,9 @@ smaller than the stable time step which is obtained in \akantu as follows:
 \index{SolidMechanicsModel!StableTimeStep}
 
 The stable time step is defined as:
-\begin{equation}
+\begin{equation}\label{eqn:smm:explicit:stabletime}
   \Delta t_{\st{crit}} = \Delta x \sqrt{\frac{\rho}{2 \mu +\lambda}}
-\end{equation}\label{eqn:smm:explicit:stabletime}
+\end{equation}
 where $\Delta  x$ is a  characteristic length (\eg  the inradius in the  case of
 linear triangle  element), $\mu$ and $\lambda$  are the first  and second Lame's
 coefficients and $\rho$ is the density.  The stable time step corresponds to the
@@ -1156,13 +1156,15 @@ The parameters requested in the material file are the following: \code{rho} (den
 \subsection{Adding a new constitutive law}
 
 
-There are several existing laws in \akantu as described in the previous section (\ref{sect:smm:CL}); it is also possible to add a new constitutive law to the
-current ones. To define a new material, two files (\code {material\_XXX.cc} and
+There are  several existing constitutive laws in  \akantu as described
+in the  previous Section \ref{sect:smm:CL};  it is also  possible to
+add a new constitutive relationship which indicates a new material to the
+current ones. To define a new plugin material, two files (\code {material\_XXX.cc} and
 \code{material\_XXX.hh}) should be provided where \code{XXX} is the name of
 the new material. In the \code{material\_XXX.hh} the interface of the custom material
 should be given and in the \code{material\_XXX.cc} the implementation of
 the functions should be presented.  The new law has to inherit from
-the material class or any other existing \code{Material} classes and the
+the material class or any other existing \code{Material} class and the
 following functions have to be redefined for the new constitutive law.
 
 
@@ -1184,10 +1186,10 @@ following functions have to be redefined for the new constitutive law.
 \end{cpp}
 
 
-For each material,  the minimum required parameters can  be defined in
-material file.    For reading this file, as mentioned in section \ref{sect:smm:CL}, one can
-utilize a \code{readMaterials}
-or \code{initFull} function. However, for reading the parameters of
+For each material, the minimum required parameters has to be defined in
+a material file.  For existing materials, as mentioned in section
+\ref{sect:smm:CL}, one can use a \code{readMaterials}
+or \code{initFull} function for reading a material file. However, for reading the parameters of
 the  \textbf{plugin} material  law  \code{readCustomMaterial} function
 should be used. Some of  these parameters can  be initialized  in the
 constructor. Moreover, some internal values can be considered
@@ -1199,7 +1201,7 @@ real values that are considered for each of the quadrature points of the element
 
 
 
-Finally,    the    class   members    should    be    set   in    the
+Finally,    the    class   members    should    be    declared   in    the
 \code{material\_XXX.hh} file. In the following, each required function is described.
 
 
@@ -1213,27 +1215,28 @@ Finally,    the    class   members    should    be    set   in    the
   If the key of the parameter is known in
   this  function  it  will  be   stored  otherwise  it  will  call  the
   \code{setParam} of the parent class to set it.
-  Therefore, the  parameters which are specially for  the new material
+  Therefore, the parameters which are specially made for the new material
   can be stored as following.
 
   \begin{cpp}
+    stringstream sstr(value);
     if(key == "E") { sstr >> E; }
     else if(key == "nu") { sstr >> nu; }
     else if(key == "Plane_Stress") { sstr >> plane_stress; }
     else { return Material::setParam(key, value, id); }
   \end{cpp}
 
-\item \code{initMaterial} This  function is called  after material  file is  fully read  and the
+\item \code{initMaterial} This function is called after the material file is fully read and the
   elements  corresponding  to  each  material are  assigned.  In  this
   function, some of the constant parameters which
   are frequently used are calculated. For example, for the 
   elastic material the Lame's constants  can be considered as these kinds
-  of parameters.  Moreover, the  internal members can  be resize  with
+  of parameters.  Moreover, the  internal members can  be resized  with
   \code{resizeInternalVector} function to the number of the quadrature
   points handled by the material.
 
 \item \code{computeStress}  In this function the stresses are computed based on the constitutive
-  law knowing the  strains for the quadrature points.  For example for
+  law knowing the  strains for the quadrature points.  For example, for
   the  elastic  material the  stresses  are  calculated  based on  the
   following formula: 
 
@@ -1245,13 +1248,23 @@ Therefore, this
   function contains  a loop on  all quadrature points assigned  to the
   material                          using                          the
   \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_BEGIN;}               and
-  \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_END;} commands. 
+  \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_END;}  macros.  For
+  example in  the following  the components of  the strain  matrix are
+  stored in a temporary matrix (F).
 
- \note{ This  function can be splitted  in two functions.  In other words,
+  \begin{cpp}
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+    
+// stress_val <- f(strain_val)
+   
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  \end{cpp} 
+
+ \note{ This  function can be split  in two functions.  In other words,
    the calculation of the stress for a quadrature point can be done in
    an inline function which is stored in a file such as \code{material\_XXX\_inline.cc}.}
   
-\note{  The strain  vector  in  \akantu contains  the  values for  the
+\note{  The strain  vector  in  \akantu contains  the  values of  the
   $\nabla \vec{u}$.}
 
 
@@ -1263,9 +1276,10 @@ Therefore, this
     \mat{K } =\int{\mat{B^T}\mat{D(\epsilon)}\mat{B}}
   \end{equation}
 
-Therefore, in this function the  tangent to the stiffness matrix for a
-given  strain should  be specified.  It should  be mentioned  that the
-\code{tangent} matrix is stored based on the Voigt notation.
+Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for a given strain. 
+
+\note{ The \code{tangent}  matrix is a $4^{th}$ order  tensor which is
+  stored as a matrix in the Voigt notation.}
   
   \begin{figure}[!htb]
     \begin{center}
@@ -1279,8 +1293,7 @@ given  strain should  be specified.  It should  be mentioned  that the
 \item \code{getStableTimeStep} For the dynamic methods the stable
   time     step    should     be    calculated     based     on    the
   equation \ref{eqn:smm:explicit:stabletime}.  This function depends
-  on longitudinal wave speed which changes for different materials and
-  also it  may change for  different strains. Therefore, the  value of
+  on longitudinal wave speed which changes for different materials and strains. Therefore, the  value of
   this  velocity should  be  defined  in this  function  for each  new
   material. 
 
@@ -1289,11 +1302,11 @@ given  strain should  be specified.  It should  be mentioned  that the
   \code{getShearWaveSpeed}).  Therefore,  the  first  function  can  be
   called for calculation of the stable time step.} 
 
-\item \code{printself}
-
-  The Final function which should be redifined is a function for printing
+\item \code{printself} The final function which should be redefined is
+  a function to print out
   the information of the material law. The interface of this function
-  is similar to the one for existing laws. In this function, the required information is specified for printing. 
+  is similar to the one for existing laws. This function will write on
+  the output the required material information. 
 \end{itemize}
 
   A full example for adding a new damage law can be
