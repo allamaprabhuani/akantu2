@@ -29,3 +29,26 @@
  *
  */
 
+#include <algorithm>
+
+
+__BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
+inline void to_lower(std::string & str) {
+  std::transform(str.begin(),
+		 str.end(),
+		 str.begin(),
+		 (int(*)(int))std::tolower);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void trim(std::string & to_trim) {
+  size_t first = to_trim.find_first_not_of(" \t");
+  if (first != std::string::npos) {
+    size_t last = to_trim.find_last_not_of(" \t");
+    to_trim = to_trim.substr(first, last - first + 1);
+  } else to_trim = "";
+}
+
+__END_AKANTU__

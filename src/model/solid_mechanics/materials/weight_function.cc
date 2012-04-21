@@ -34,20 +34,23 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Stress based weight function                                               */
 /* -------------------------------------------------------------------------- */
-StressBasedWeightFunction::StressBasedWeightFunction(Real radius, Real ft,
-						     UInt spatial_dimension,
-						     const Material & material) :
-  BaseWeightFunction(radius), material(&material), ft(ft),
-  spatial_dimension(spatial_dimension),
+StressBasedWeightFunction::StressBasedWeightFunction(const Material & material) :
+  BaseWeightFunction(material),
+  ft(0.),
+  spatial_dimension(material.getModel().getSpatialDimension()),
   stress_diag("stress_diag", material.getID()), selected_stress_diag(NULL),
   stress_base("stress_base", material.getID()), selected_stress_base(NULL),
   characteristic_size("lc", material.getID()),  selected_characteristic_size(NULL)
 {
   material.initInternalVector(stress_diag, spatial_dimension);
-  material.resizeInternalVector(stress_diag);
   material.initInternalVector(stress_base, spatial_dimension * spatial_dimension);
-  material.resizeInternalVector(stress_base);
   material.initInternalVector(characteristic_size, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+void StressBasedWeightFunction::init() {
+  material.resizeInternalVector(stress_diag);
+  material.resizeInternalVector(stress_base);
   material.resizeInternalVector(characteristic_size);
 
   const Mesh & mesh = material.getModel().getFEM().getMesh();
@@ -77,15 +80,16 @@ StressBasedWeightFunction::StressBasedWeightFunction(Real radius, Real ft,
   }
 }
 
+
 /* -------------------------------------------------------------------------- */
 void StressBasedWeightFunction::updatePrincipalStress(GhostType ghost_type) {
-  const Mesh & mesh = material->getModel().getFEM().getMesh();
+  const Mesh & mesh = material.getModel().getFEM().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     Vector<Real>::const_iterator<types::Matrix> sigma =
-      material->getStress(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
+      material.getStress(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::RVector> eigenvalues =
       stress_diag(*it, ghost_type).begin(spatial_dimension);
     Vector<Real>::iterator<types::RVector> eigenvalues_end =
@@ -96,16 +100,19 @@ void StressBasedWeightFunction::updatePrincipalStress(GhostType ghost_type) {
 #ifndef __trick__
     Vector<Real>::iterator<Real> cl = characteristic_size(*it, ghost_type).begin();
 #endif
-    for(;eigenvalues != eigenvalues_end; ++eigenvalues, ++eigenvector, ++cl) {
+    UInt q = 0;
+    for(;eigenvalues != eigenvalues_end; ++sigma, ++eigenvalues, ++eigenvector, ++cl, ++q) {
+      //      if (q == 4871) std::cout << "Sigma " << *sigma;
       sigma->eig(*eigenvalues, *eigenvector);
+      //      if (q == 17774) std::cout << "Before " << *eigenvalues;
       *eigenvalues /= ft;
-
 #ifndef __trick__
       // specify a lower bound for principal stress based on the size of the element
       for (UInt i = 0; i < spatial_dimension; ++i) {
         (*eigenvalues)(i) = std::max(*cl / R, (*eigenvalues)(i));
       }
 #endif
+      //      if (q == 17774) std::cout << "After " << *eigenvalues;
     }
   }
 }

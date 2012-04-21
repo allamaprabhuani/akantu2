@@ -63,7 +63,7 @@ public:
 			const ID & id);
 
   /// initialize the material computed parameter
-  void initMaterial(WeightFunction & func);
+  virtual void initMaterial();
 
   void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
 

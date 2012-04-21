@@ -42,23 +42,24 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class BaseWeightFunction {
 public:
-  BaseWeightFunction() : R(0), R2(0) { }
+  BaseWeightFunction(const Material & material) : material(material) {}
 
-  BaseWeightFunction(Real radius) :
-    R(radius), R2(radius*radius) {
-  }
+  virtual void init() {};
+
+  /* ------------------------------------------------------------------------ */
+  inline void setRadius(Real radius) { R = radius; R2 = R * R; }
 
   /* ------------------------------------------------------------------------ */
   inline void selectType(__attribute__((unused)) ElementType type1,
-			 __attribute__((unused)) GhostType ghost_type1,
+			 __attribute__((unused)) GhostType   ghost_type1,
 			 __attribute__((unused)) ElementType type2,
-			 __attribute__((unused)) GhostType ghost_type2) {
+			 __attribute__((unused)) GhostType   ghost_type2) {
   }
 
   /* ------------------------------------------------------------------------ */
   inline Real operator()(Real r,
-			 __attribute__((unused)) UInt q1,
-			 __attribute__((unused)) UInt q2) {
+			 __attribute__((unused)) QuadraturePoint & q1,
+			 __attribute__((unused)) QuadraturePoint & q2) {
     Real w = 0;
     if(r <= R) {
       Real alpha = (1. - r*r / R2);
@@ -68,26 +69,36 @@ public:
     return w;
   }
 
+  /* ------------------------------------------------------------------------ */
+  bool setParam(const std::string & key, const std::string & value) {
+    return false;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  virtual void printself(std::ostream & stream) const {
+    stream << "BaseWeightFunction";
+  }
+
 protected:
+  const Material & material;
+
   Real R;
   Real R2;
 };
 
-
 /* -------------------------------------------------------------------------- */
-class DamagedWeightFunction : BaseWeightFunction {
+class DamagedWeightFunction : public BaseWeightFunction {
 public:
-  DamagedWeightFunction() : damage(NULL){}
-  DamagedWeightFunction(Real radius, ByElementTypeReal & damage) : BaseWeightFunction(radius),
-								   damage(&damage) {}
+  DamagedWeightFunction(const Material & material) : BaseWeightFunction(material) {}
 
   inline void selectType(ElementType type1, GhostType ghost_type1,
 			 ElementType type2, GhostType ghost_type2) {
-    selected_damage = &(*damage)(type2, ghost_type2);
+    selected_damage = &(dynamic_cast<const MaterialDamage &>(material).getDamage(type2, ghost_type2));
   }
 
-  inline Real operator()(Real r, UInt q1, UInt q2) {
-    Real D = (*selected_damage)(q2);
+  inline Real operator()(Real r, QuadraturePoint & q1, QuadraturePoint & q2) {
+    UInt quad = q2.global_num;
+    Real D = (*selected_damage)(quad);
     Real Radius = (1.-D)*(1.-D) * R2;
     if(Radius < Math::getTolerance()) {
       Radius = 0.01 * 0.01 * R2;
@@ -97,32 +108,53 @@ public:
     return w;
   }
 
+  /* ------------------------------------------------------------------------ */
+  bool setParam(const std::string & key, const std::string & value) {
+    return false;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  virtual void printself(std::ostream & stream) const {
+    stream << "DamageWeightFunction";
+  }
+
 private:
-  ByElementTypeReal * damage;
-  Vector<Real> * selected_damage;
+  const Vector<Real> * selected_damage;
 };
 
 
 /* -------------------------------------------------------------------------- */
 /* Stress Based Weight                                                        */
 /* -------------------------------------------------------------------------- */
-class StressBasedWeightFunction : BaseWeightFunction {
+class StressBasedWeightFunction : public BaseWeightFunction {
 public:
-  StressBasedWeightFunction(Real radius, Real ft,
-			    UInt spatial_dimension,
-			    const Material & material);
+  StressBasedWeightFunction(const Material & material);
+
+  virtual void init();
 
   void updatePrincipalStress(GhostType ghost_type);
 
-  inline void setQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates);
+  inline void updateQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates);
 
   inline void selectType(ElementType type1, GhostType ghost_type1,
 			 ElementType type2, GhostType ghost_type2);
 
-  inline Real operator()(Real r, UInt q1, UInt q2);
+  inline Real operator()(Real r, QuadraturePoint & q1, QuadraturePoint & q2);
+
+  /* ------------------------------------------------------------------------ */
+  bool setParam(const std::string & key, const std::string & value) {
+    std::stringstream sstr(value);
+    if(key == "ft") { sstr >> ft; }
+    else return false;
+    return true;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  virtual void printself(std::ostream & stream) const {
+    stream << "StressBasedWeightFunction [ft : " << ft << "]";
+  }
 
 private:
-  const Material * material;
   Real ft;
   UInt spatial_dimension;
 
@@ -132,13 +164,20 @@ private:
   Vector<Real> * selected_stress_base;
 
 
-  ByElementTypeReal * quadrature_points_coordinates;
+  ByElementTypeReal quadrature_points_coordinates;
   Vector<Real> * selected_position_1;
   Vector<Real> * selected_position_2;
 
   ByElementTypeReal characteristic_size;
   Vector<Real> * selected_characteristic_size;
 };
+
+
+inline std::ostream & operator <<(std::ostream & stream, const BaseWeightFunction & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 #include "weight_function_tmpl.hh"
 

@@ -47,6 +47,8 @@ MaterialNonLocal<WeightFunction>::MaterialNonLocal(Model & model, const ID & id)
 
   is_non_local = true;
 
+  this->weight_func = new WeightFunction(*this);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -63,7 +65,7 @@ MaterialNonLocal<WeightFunction>::~MaterialNonLocal() {
 
 /* -------------------------------------------------------------------------- */
 template<class WeightFunction>
-void MaterialNonLocal<WeightFunction>::initMaterial(WeightFunction & func) {
+void MaterialNonLocal<WeightFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
   //  Material::initMaterial();
 
@@ -73,11 +75,12 @@ void MaterialNonLocal<WeightFunction>::initMaterial(WeightFunction & func) {
                                spatial_dimension, 0);
   computeQuadraturePointsCoordinates(mesh.getNodes(), quadrature_points_coordinates);
 
-  this->weight_func = &func;
+  weight_func->setRadius(radius);
+  weight_func->init();
 
   createCellList(quadrature_points_coordinates);
-
   updatePairList(quadrature_points_coordinates);
+
   computeWeights(quadrature_points_coordinates);
 
   AKANTU_DEBUG_OUT();
@@ -331,6 +334,7 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
   ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
   this->model->getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
 
+
   // Compute the weights
   first_pair_types = existing_pairs.begin();
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
@@ -351,7 +355,9 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
     weights.clear();
 
     const Vector<UInt> & elem_filter = element_filter(type1, ghost_type1);
-    UInt nb_tot_quad = this->model->getFEM().getNbQuadraturePoints(type1, ghost_type1) * elem_filter.getSize();;
+    UInt nb_quad1 = this->model->getFEM().getNbQuadraturePoints(type1);
+    UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
+    UInt nb_tot_quad =  nb_quad1 * elem_filter.getSize();;
 
     Vector<Real> & quads_volumes = quadrature_points_volumes(type1, ghost_type1);
     quads_volumes.resize(nb_tot_quad);
@@ -370,12 +376,17 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
 
     // Weight function
     for(;first_pair != last_pair; ++first_pair, ++weight) {
-      UInt q1 = (*first_pair)(0);
-      UInt q2 = (*first_pair)(1);
-      Real r = iquads1[q1].distance(iquads2[q2]);
+      UInt _q1 = (*first_pair)(0);
+      UInt _q2 = (*first_pair)(1);
+      const types::RVector & pos1 = iquads1[_q1];
+      const types::RVector & pos2 = iquads2[_q2];
+      QuadraturePoint q1(_q1 / nb_quad1, _q1 % nb_quad1, _q1, pos1, type1, ghost_type1);
+      QuadraturePoint q2(_q2 / nb_quad2, _q2 % nb_quad2, _q2, pos2, type2, ghost_type2);
+
+      Real r = pos1.distance(pos2);
       *weight = this->weight_func->operator()(r, q1, q2);
 
-      quads_volumes(q1) += *weight;
+      quads_volumes(_q1) += *weight;
     }
   }
 
@@ -409,7 +420,7 @@ bool MaterialNonLocal<WeightFunction>::setParam(const std::string & key, const s
                                 const ID & id) {
   std::stringstream sstr(value);
   if(key == "radius") { sstr >> radius; }
-  else return false;
+  else if(!weight_func->setParam(key, value)) return false;
   return true;
 }
 
@@ -514,6 +525,6 @@ void MaterialNonLocal<WeightFunction>::printself(std::ostream & stream, int inde
 
   stream << space << "Material<_non_local> [" << std::endl;
   stream << space << " + Radius          : " << radius << std::endl;
-  stream << space << " + Weight Function : " << debug::demangle(typeid(WeightFunction).name()) << std::endl;
+  stream << space << " + Weight Function : " << *weight_func << std::endl;
   stream << space << "]" << std::endl;
 }

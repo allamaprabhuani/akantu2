@@ -36,6 +36,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <sys/wait.h>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -73,6 +74,16 @@ namespace debug {
   void printBacktrace(int sig) {
     AKANTU_DEBUG_INFO("Caught  signal " << sig << "!");
 
+    // std::stringstream pidsstr;
+    // pidsstr << getpid();
+    // char name_buf[512];
+    // name_buf[readlink("/proc/self/exe", name_buf, 511)]=0;
+    // std::string execname(name_buf);
+    // std::cout << "stack trace for " << execname << " pid=" << pidsstr.str() << std::endl;
+    // std::string cmd;
+    // cmd = "CMDFILE=$(mktemp); echo 'bt' > ${CMDFILE}; gdb --batch " + execname + " " + pidsstr.str() + " < ${CMDFILE};";
+    // int retval __attribute__((unused)) = system(("bash -c '" + cmd + "'").c_str());
+
     const size_t max_depth = 100;
     size_t stack_depth;
     void *stack_addrs[max_depth];
@@ -80,25 +91,36 @@ namespace debug {
 
     size_t i;
 
-    stack_depth = backtrace (stack_addrs, max_depth);
-    stack_strings = backtrace_symbols (stack_addrs, stack_depth);
+    stack_depth = backtrace(stack_addrs, max_depth);
+    stack_strings = backtrace_symbols(stack_addrs, stack_depth);
 
-    std::cerr << "BACKTRACE :  " << stack_depth << " stack frames." <<std::endl;
-    size_t w = size_t(floor(log(stack_depth)/log(10)));
+    std::cerr << "BACKTRACE :  " << stack_depth - 1 << " stack frames." <<std::endl;
+    size_t w = size_t(floor(log(stack_depth)/log(10)+1));
 
     /// -1 to remove the call to the printBacktrace function
-    for (i = 0; i < stack_depth; i++) {
+    for (i = 1; i < stack_depth; i++) {
       std::cerr << "  [" << std::setw(w) << i << "] ";
       std::string bt_line(stack_strings[i]);
       size_t first, second;
+
       if((first = bt_line.find('(')) != std::string::npos && (second = bt_line.find('+')) != std::string::npos) {
-	std::cerr << bt_line.substr(0,first + 1) << demangle(bt_line.substr(first + 1, second - first - 1).c_str()) <<  bt_line.substr(second) << std::endl;
+    	std::cerr << bt_line.substr(0,first + 1) << demangle(bt_line.substr(first + 1, second - first - 1).c_str()) <<  bt_line.substr(second) << std::endl;
+
+    	// char name_exe[512];
+    	// name_exe[readlink("/proc/self/exe", name_exe, 511)]=0;
+
+    	// std::stringstream syscom;
+    	// syscom << "addr2line " << stack_addrs[i] << "-C -s -e " << name_exe;
+    	// for (UInt i = 0; i < w + 4; ++i) std::cerr << " ";
+    	// std::cout << "-> " << std::flush;
+    	// int retval __attribute__((unused)) = system(syscom.str().c_str());
       } else {
-	std::cerr << bt_line << std::endl;
+    	std::cerr << bt_line << std::endl;
       }
     }
 
     free(stack_strings);
+
     std::cerr << "END BACKTRACE" << std::endl;
   }
 

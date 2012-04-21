@@ -90,18 +90,12 @@ namespace types {
 
     T * storage() const { return values; }
 
-    void setStorage(T * values) {
-      AKANTU_DEBUG_ASSERT(wrapped == true,
-			  "You should not change the pointed values "
-			  << "of this kind of vector.");
-      this->values = values;
-    }
-
-    void setSize(UInt size) {
-      AKANTU_DEBUG_ASSERT(wrapped == true,
-			  "You should not change the size "
-			  << "of this kind of vector.");
-      this->n = size;
+    /* ---------------------------------------------------------------------- */
+    void shallowCopy(const Vector & src) {
+      if(!wrapped) delete [] values;
+      this->n = src.n;
+      this->wrapped = true;
+      this->values = src.values;
     }
 
     /* ---------------------------------------------------------------------- */

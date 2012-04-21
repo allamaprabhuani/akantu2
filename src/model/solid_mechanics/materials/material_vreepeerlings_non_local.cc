@@ -52,8 +52,7 @@ void MaterialVreePeerlingsNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialVreePeerlings::initMaterial();
 
-  BaseWeightFunction func(radius);
-  MaterialNonLocalParent::initMaterial(func);
+  MaterialNonLocalParent::initMaterial();
 
   resizeInternalVector(this->equi_strain);
 

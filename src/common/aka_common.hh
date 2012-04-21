@@ -35,22 +35,8 @@
 #define __AKANTU_COMMON_HH__
 
 /* -------------------------------------------------------------------------- */
-// #include <cmath>
-// #include <cstdlib>
-// #include <cstring>
-
-/* -------------------------------------------------------------------------- */
-// #include <iostream>
-// #include <fstream>
-// #include <iomanip>
-// #include <string>
-// #include <exception>
-// #include <vector>
-// #include <map>
-// #include <set>
 #include <list>
 #include <limits>
-#include <algorithm>
 
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
@@ -158,7 +144,7 @@ typedef void (*BoundaryFunction)(double *,double *, double*, unsigned int);
 /// @enum BoundaryFunctionType type of function passed for boundary conditions
 enum BoundaryFunctionType {
   _bft_stress,
-  _bft_forces
+  _bft_traction
 };
 
 /// @enum SparseMatrixType type of sparse matrix used
@@ -352,29 +338,13 @@ void finalize ();
 /* -------------------------------------------------------------------------- */
 /* string manipulation                                                        */
 /* -------------------------------------------------------------------------- */
-inline void to_lower(std::string & str) {
-  std::transform(str.begin(),
-		 str.end(),
-		 str.begin(),
-		 (int(*)(int))std::tolower);
-}
-
+inline void to_lower(std::string & str);
 /* -------------------------------------------------------------------------- */
-inline void trim(std::string & to_trim) {
-  size_t first = to_trim.find_first_not_of(" \t");
-  if (first != std::string::npos) {
-    size_t last = to_trim.find_last_not_of(" \t");
-    to_trim = to_trim.substr(first, last - first + 1);
-  } else to_trim = "";
-}
+inline void trim(std::string & to_trim);
 
 __END_AKANTU__
 
-//#include "aka_types.hh"
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "aka_common_inline_impl.cc"
-#endif
+#include "aka_common_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 // BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING

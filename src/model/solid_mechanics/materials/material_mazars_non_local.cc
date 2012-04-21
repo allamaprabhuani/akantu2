@@ -51,8 +51,8 @@ MaterialMazarsNonLocal::MaterialMazarsNonLocal(Model & model, const ID & id)  :
 void MaterialMazarsNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMazars::initMaterial();
-  BaseWeightFunction * func = new BaseWeightFunction(radius);
-  MaterialNonLocalParent::initMaterial(*func);
+
+  MaterialNonLocalParent::initMaterial();
 
   resizeInternalVector(this->Ehat);
 

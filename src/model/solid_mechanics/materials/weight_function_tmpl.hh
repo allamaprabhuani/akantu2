@@ -32,20 +32,11 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-inline void StressBasedWeightFunction::
-setQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) {
-  this->quadrature_points_coordinates = &quadrature_points_coordinates;
-}
-
-/* -------------------------------------------------------------------------- */
 inline void StressBasedWeightFunction::selectType(ElementType type1,
 						  GhostType ghost_type1,
 						  ElementType type2, GhostType ghost_type2) {
   selected_stress_diag = &stress_diag(type2, ghost_type2);
   selected_stress_base = &stress_base(type2, ghost_type2);
-
-  selected_position_1 = &(*quadrature_points_coordinates)(type1, ghost_type1);
-  selected_position_2 = &(*quadrature_points_coordinates)(type2, ghost_type2);
 
   selected_characteristic_size = &characteristic_size(type1, ghost_type1);
 }
@@ -53,25 +44,22 @@ inline void StressBasedWeightFunction::selectType(ElementType type1,
 
 /* -------------------------------------------------------------------------- */
 inline Real StressBasedWeightFunction::operator()(Real r,
-						  UInt q1,
-						  UInt q2) {
+						  QuadraturePoint & q1,
+						  QuadraturePoint & q2) {
   Real zero = std::numeric_limits<Real>::epsilon();
 
   if(r < zero) return 1.; // means x and s are the same points
 
-  types::RVector x =
-    selected_position_1->begin(spatial_dimension)[q1];
-
-  types::RVector s =
-    selected_position_2->begin(spatial_dimension)[q2];
+  const types::RVector & x = q1.getPosition();
+  const types::RVector & s = q2.getPosition();
 
   types::RVector eigs =
-    selected_stress_diag->begin(spatial_dimension)[q2];
+    selected_stress_diag->begin(spatial_dimension)[q2.global_num];
 
   types::Matrix eigenvects =
-    selected_stress_base->begin(spatial_dimension, spatial_dimension)[q2];
+    selected_stress_base->begin(spatial_dimension, spatial_dimension)[q2.global_num];
 
-  Real min_rho_lc = selected_characteristic_size->begin()[q1];
+  Real min_rho_lc = selected_characteristic_size->begin()[q1.global_num];
 
   types::RVector x_s(spatial_dimension);
   x_s  = x;
@@ -182,11 +170,11 @@ inline Real StressBasedWeightFunction::operator()(Real r,
 
   Real rho_lc_2 = std::max(R2 * rho_2, min_rho_lc*min_rho_lc);
 
-  //  Real w = std::max(0., 1. - r*r / rho_lc_2);
-  //  w = w*w;
+  Real w = std::max(0., 1. - r*r / rho_lc_2);
+  w = w*w;
 
   //    std::cout << "(" << q1 << "," << q2 << ") " << w << std::endl;
-  Real w = exp(- 2*2*r*r / rho_lc_2);
+  //  Real w = exp(- 2*2*r*r / rho_lc_2);
 
   return w;
 }

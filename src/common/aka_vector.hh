@@ -268,7 +268,7 @@ public:
   Int find(T elem[]) const;
 
   /// set a vvector to 0
-  inline void clear() { memset(values, 0, size*nb_component*sizeof(T)); };
+  inline void clear() { std::fill_n(values, size*nb_component, T()); };
 
   /// copy the content of an other vector
   void copy(const Vector<T> & vect);

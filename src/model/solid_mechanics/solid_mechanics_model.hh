@@ -208,7 +208,7 @@ public:
   class SurfaceLoadFunctor {
   public:
     virtual void operator()(__attribute__ ((unused)) const types::Vector<Real> & position,
-			    __attribute__ ((unused)) types::Vector<Real> & force,
+			    __attribute__ ((unused)) types::Vector<Real> & traction,
 			    __attribute__ ((unused)) const types::Vector<Real> & normal,
 			    __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
