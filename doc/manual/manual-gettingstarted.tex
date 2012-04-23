@@ -1,0 +1,32 @@
+\section{Getting started}
+\subsection{Downloading the code}
+SVN URL to get \akantu :
+\begin{command}
+  > svn co svn+ssh://username@intranet-lsms.epfl.ch/space/repositories/SimulPack/akantu/trunk akantu
+\end{command}
+
+\subsection{Compiling Akantu}
+\begin{command}
+  > cd akantu
+  > mkdir build
+  > cd build
+  > ccmake <path to akantu sources>
+\end{command}
+
+Set the options that you need
+
+\begin{command}
+  > make
+  > make install
+\end{command}
+
+\subsection{Creating and loading a mesh\label{sect:common:mesh}}
+
+\begin{cpp}
+  UInt spatial_dimension = 2;
+
+  Mesh mesh(spatial_dimension);
+
+  MeshIOMSH mesh_io;
+  mesh_io.read("square.msh", mesh);
+\end{cpp}

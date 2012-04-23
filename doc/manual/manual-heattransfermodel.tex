@@ -1,0 +1,75 @@
+\section{Heat Transfer model\todo{Guillaume}}
+
+% \subsection{Contact Neighbor Structure}
+
+% The contact neighbor  structure is an interface which is  ment to be heritated
+% from in order  to implement different type of  contact neighbor structures. It
+% has the following protected attributes:
+% \begin{itemize}
+% \item id
+% \item contact search
+% \item master surface
+% \item neighbor list
+% \item type
+% \end{itemize}
+% The \emph{id} and the \emph{type}  are characteristics of the contact neighcor
+% structure object which  define its id and its  type. The \emph{contact search}
+% attribute  is  the associated  contact  search  object  to the  given  contact
+% neighbor structure  object. The \emph{master  surface} attribute is the  id of
+% the  associated master  surface for  which the  neighbor structure  has  to be
+% built. Finally, the neighbor list  is the constructed neighbor structure which
+% defines the  impactor nodes  that are  in the neighborhood  of either  a given
+% master  node or  a given  master  surface element,  depending on  the type  of
+% contact neighbor structure.
+
+% The contact neighbor structure provides the accessor \emph{getNeighborList} to
+% the constructed  neighbor list and forces  the heritated classes  to provide a
+% public \emph{initNeighborStructure}  function, which initializes  the neighbor
+% structure,  as well  as a  public  \emph{update} function,  which updates  the
+% neighbor structure.
+
+% \subsubsection{Regular Grid Neighbor Structure}
+
+% The regular  grid neighbor structure builds  a regular grid  around the master
+% surface and  uses it in  order to construct  the neighbor list.  This neighbor
+% structure can construct both types of neighbor list, the
+
+
+% \subsection{Implementation of a new solid mechanics problem}
+
+% Let us imagine you want to implement a new material called
+% "toto" in akantu. The have to complete the following steps (in
+% any order) :
+% \begin{enumerate}
+% \item
+%   Declare a new material in the file
+%   \textit{Akantu/model/solid\_mechanics/solid\_mechanics\_model\_material.cc}.
+%   You have to had this line after the list of possible cases
+% \begin{verbatim}else if(mat\_type == "toto") material =
+% parser.readMaterialObject<MaterialToto>(*this,mat_id);
+% \end{verbatim}
+
+
+% \item
+%   Include the new material in \textit{Akantu/model/solid\_mechanics/material.hh} \\
+%   add the line :
+% \begin{verbatim}
+% #include "materials/material\_toto.hh"
+% \end{verbatim}
+
+% \item
+%   For compilation include the new file to compile in
+%   \textit{Akantu/CMakelist.txt} by adding
+% \begin{verbatim}
+% model/solid_mechanics/materials/material_toto.cc
+% \end{verbatim}
+% \item
+%   In \textit{Akantu/model/solid\_mechanics/materials}, create (or copy from
+%   an allready existing material) the three following files :\\
+%   - material\_toto.cc\\
+%   - material\_toto.hh\\
+%   - material\_toto\_inline\_impl.cc
+
+% \item
+%   Modify the files !
+% \end{enumerate}
