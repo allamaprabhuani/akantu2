@@ -193,7 +193,7 @@
 \newcommand\addspaceintoc{\addtocontents{toc}{\protect\addvspace{20pt}}}
 
 % Change the appearance of the bibliography
-\bibliographystyle{plain}
+\bibliographystyle{manual-bibliographystyle}
 \renewcommand\bibname{References}
 \usepackage{cite} % To sort citations: [2,10-14]
 \let\oldthebibliography=\thebibliography
@@ -202,7 +202,7 @@
 { \begin{oldthebibliography}{#1}
 %    \small
     \addcontentsline{toc}{chapter}{\bibname}
-    \setlength{\labelsep}{5mm}
+    \setlength{\labelsep}{2mm}
     \setlength{\parskip}{0\baselineskip}
     \setlength{\itemsep}{0.24\baselineskip}
 }
@@ -210,15 +210,13 @@
 
 % Hyperref
 \usepackage{url}
-\usepackage[pdftex, 
-  hyperindex=true, 
-  colorlinks=true, 
-  unicode, 
-  implicit=true,
-  linkcolor=blue, 
-  anchorcolor=magenta, 
-  citecolor=blue, 
-  urlcolor=blue]{hyperref}
+\usepackage[pdftex,
+  bookmarks=true,
+  bookmarksnumbered=true,
+  linkbordercolor={1 1 1},
+  pdfborder={0 0 0},
+  pdfpagemode=UseOutlines
+]{hyperref}
 \hypersetup{
   pdfauthor={Computational Solid Mechanics Laboratory - EPFL},
   pdftitle={Akantu User's Guide},
