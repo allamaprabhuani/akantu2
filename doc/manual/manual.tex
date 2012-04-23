@@ -6,6 +6,7 @@
 % \usepackage{mathpazo}
 \linespread{1.05}
 \usepackage{palatino}
+
 % \usepackage{carolmin}
 
 \usepackage{a4wide}
@@ -24,11 +25,11 @@ linkcolor=blue, anchorcolor=magenta, citecolor=blue, urlcolor=blue]{hyperref}
 \usepackage{amssymb}
 \usepackage[squaren]{SIunits}
 
+\usepackage{pxfonts}
 
 \usepackage{longtable}
 
-\usepackage[dvipsnames,usenames]{color}
-\usepackage{xcolor}
+\usepackage[dvipsnames,usenames]{xcolor}
 
 \usepackage{listings}
 
@@ -37,6 +38,14 @@ linkcolor=blue, anchorcolor=magenta, citecolor=blue, urlcolor=blue]{hyperref}
 \usepackage[lofdepth,lotdepth]{subfig}
 \usepackage{tikz}
 \usetikzlibrary{decorations}
+
+%%% For references \todo check the coherency
+%% section 3.5 -> Section 3.5
+%% figure 3.5 -> Figure 3.5
+%% equation 3.5 -> Equation (3.5)
+
+
+
 
 
 % \usepackage{fancybox}
@@ -127,8 +136,8 @@ linkcolor=blue, anchorcolor=magenta, citecolor=blue, urlcolor=blue]{hyperref}
 \newcommand{\mat}[1]{\ensuremath{\boldsymbol{#1}}}
 \newcommand{\st}[1]{{\mathrm{#1}}}
 
-\newcommand{\eg}{\emph{e.g.}\xspace}
-\newcommand{\ie}{\emph{i.e.}\xspace}
+\newcommand{\eg}{\emph{e.g.},\xspace}
+\newcommand{\ie}{\emph{i.e.},\xspace}
 
 \bibliographystyle{plain}
 
@@ -321,6 +330,7 @@ SVN URL to get \akantu :
 
 \subsection{Compiling Akantu}
 \begin{command}
+  > cd akantu
   > mkdir build
   > cd build
   > ccmake <path to akantu sources>
@@ -389,7 +399,7 @@ This model contains at least the the following six \code{Vectors}:
   \textbf{residual} should be zero on free degrees of freedom.
 \end{description}
 
-Some examples for to help to understand  how to use this model will be presented
+Some examples to help to understand  how to use this model will be presented
 in the next sections.
 
 \subsection{Model setup}
@@ -397,11 +407,11 @@ in the next sections.
 \subsubsection{Setting   initial  conditions  \label{sect:smm:initial_condition}}
 
 For  a unique  solution of  the equations  of motion  initial  displacements and
-velocities at time $t=0$ at all degrees of freedom must be specified.
+velocities at time $t=0$ at all degrees of freedom must be specified:
 
 \begin{eqnarray}
   \vec{u(t=0)} = \vec{u}_{0}\\
-  \vec{\dot u(t=0)} = \vec{v}_{0}
+  \vec{\dot u(t=0)} = \vec{v}_{0}~.
 \end{eqnarray}
 The solid mechanics model can be initialized as follows:
 \begin{cpp}
@@ -420,6 +430,7 @@ to $0.1$ and $1$ respectively.
     velo(i, 1) = 1.;
   }
 \end{cpp}
+
 \subsubsection{Setting boundary conditions\label{sect:smm:boundary}}
 This section explains how to  impose Dirichlet or Neumann boundary conditions. A
 Dirichlet boundary condition specifies the values that the displacement needs to
@@ -505,7 +516,7 @@ the call operator need to be defined:
     Surface surface_id) {
       Real epsilon = Math::getTolerance();
       if(std::abs(position(0) - bar_length) < epsilon) {
-        force(0) = 10e9;
+	force(0) = 10e9;
       }
     }
 
@@ -516,8 +527,8 @@ the call operator need to be defined:
     Surface surface_id) {
       Real epsilon = Math::getTolerance();
       if(std::abs(position(0) - bar_length) < epsilon) {
-        stress(0,0) = 10e9;
-        stress(1,1) = 10e9;
+	stress(0,0) = 10e9;
+	stress(1,1) = 10e9;
       }
     }
   };
@@ -541,8 +552,8 @@ by using the function \code{computeForcesFromFunction}:
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
 
-  MySurfaceLoadFunctor boundary_force;
-  model.computeForcesFromFunction(boundary_force, _bft_force);
+  MySurfaceLoadFunctor boundary_traction;
+  model.computeForcesFromFunction(boundary_traction, _bft_traction);
 \end{cpp}
 \begin{itemize}
 \item\code{model.getFEMBoundary()}  creates  a  FEM  object  that  contains  the
@@ -551,14 +562,14 @@ by using the function \code{computeForcesFromFunction}:
   their derivatives and the jacobians.
 \item\code{fem\_boundary.computeNormalsOnControlPoints()}  computes  the normals
   at the quadrature points of the surface elements.
-\item\code{model.computeForcesFromFunction(boundary\_force,\_bft\_force)}
+\item\code{model.computeForcesFromFunction(boundary\_traction,\_bft\_traction)}
   computes  the   forces  from   the  call  operator   defined  in   the  object
-  \code{boundary\_force}.       The      second      parameter      of      type
-  \code{BoundaryFunctionType}    can    be    either   \code{\_bft\_force}    or
-  \code{\_bft\_stress}. The value  \code{\_bft\_force} indicates that a traction
-  is provided.   For convenience the user  can provide a stress  tensor which is
-  internally multiplied  by the normal vector  in order to  compute the traction
-  vector.   In  this  case,  the  second  parameter  needs  to  take  the  value
+  \code{boundary\_traction}.       The     second     parameter      of     type
+  \code{BoundaryFunctionType}   can    be   either   \code{\_bft\_traction}   or
+  \code{\_bft\_stress}.  The  value   \code{\_bft\_traction}  indicates  that  a
+  traction is  provided.  For convenience the  user can provide  a stress tensor
+  which is  internally multiplied by the  normal vector in order  to compute the
+  traction vector.  In  this case, the second parameter needs  to take the value
   \code{\_bft\_stress}.
 \end{itemize}
 
@@ -579,10 +590,10 @@ respectively.
 \subsection{Static analysis\label{sect:smm:static}}
 
 The \code{SolidMechanicsModel} class can  handle different analysis methods, the
-first one that will be presented is the static case.  In this case, the equation
+first one being presented is the static case.  In this case, the equation
 to solve is,
 \begin{equation}\label{eqn:smm:static}
-  \mat{K} \vec{u} = \vec{f_{\st{ext}}}
+  \mat{K} \vec{u} = \vec{f_{\st{ext}}}~,
 \end{equation}
 where  $\mat{K}$ is  the  global stiffness  matrix,  $\vec{u}$ the  displacement
 vector  and  $\vec{f_{\st{ext}}}$ the  external  forces  vector  applied to  the
@@ -624,16 +635,16 @@ matrix            $\mat{K}$             must            be            assembled.
   model.assembleStiffnessMatrix();
 \end{cpp}
 
-In fact, to find the  equilibrium equation (\ref{eqn:smm:static}) is modified in
+In fact, to find the  equilibrium, Equation (\ref{eqn:smm:static}) is modified in
 order to apply a Newton-Raphson convergence algorithm.
 
 \begin{align}\label{eqn:smm:static-newton-raphson}
-  \mat{K}^{i+1} \vec{\delta u}^{i+1} &= \vec{r} \\
+  \mat{K}^{i+1} \delta\vec{u}^{i+1} &= \vec{r} \\
   &= \vec{f_{\st{ext}}} - \vec{f_{\st{int}}}\\
   &= \vec{f_{\st{ext}}} - \mat{K}^{i} \vec{u}^{i}\\
-  \vec{u}^{i+1} &= \vec{u}^{i} + \vec{\delta u}^{i+1}\nonumber
+  \vec{u}^{i+1} &= \vec{u}^{i} + \delta\vec{u}^{i+1}~,\nonumber
 \end{align}
-where $\vec{\delta  u}$ is the  increment of displacement  to be added  from one
+where $\delta\vec{ u}$ is the  increment of displacement  to be added  from one
 iteration to the other, and $i$ is the number of the Newton-Raphson iteration.
 
 So  in  a  Newton-Raphson  iteration,  $\mat{K}$ is  updated  according  to  the
@@ -649,12 +660,12 @@ done as follow:
   model.solveStatic();
 \end{cpp}
 \begin{itemize}
-\item \code{model.updateResidual}  assemble the  internal force and  remove them
+\item \code{model.updateResidual} assembles the  internal forces and remove them
   from the external forces.
-\item         \code{model.solveStatic}        solve         the        equations
-  (\ref{eqn:smm:static-newton-raphson}).   The vector \textbf{increment}  of the
-  model   will   contain   the   new   increment  of   displacement,   and   the
-  \textbf{displacement} is also updated to the new displacement.
+\item        \code{model.solveStatic}         solves        the        equations
+  (\ref{eqn:smm:static-newton-raphson}).   The \textbf{increment} vector  of the
+  model   will   contain  the   new   increment   of   displacements,  and   the
+  \textbf{displacement} vector is also updated to the new displacements.
 \end{itemize}
 
 For  an   elastic  problem  the  solution   is  directly  found   at  the  first
@@ -701,15 +712,15 @@ Different ways  to solve  the equations  of motion are  implemented in  the soli
 mechanics model.  The complete equations that should be solved are:
 \begin{equation}\label{eqn:equation-motion}
   \mat{M}\vec{\ddot{u}}     +    \mat{C}\vec{\dot{u}}    +     \mat{K}\vec{u}    =
-  \vec{f_{\st{ext}}} - \vec{f_{\st{int}}} = \vec{r}
+  \vec{f_{\st{ext}}} - \vec{f_{\st{int}}} = \vec{r}~,
 \end{equation}
 where $\mat{M}$,  $\mat{C}$ and  $\mat{K}$ are the  mass, damping  and stiffness
-matrices respectively.
+matrices, respectively.
 
 In  the previous  section,  it has  already  been discussed  how  to solve  this
 equation in  the static case where  $\vec{\ddot{u}} = \vec{\dot{u}}  = 0$.  Here
-the method  to solve this  equation in the  general case will be  presented.  To
-reach  this purpose, a  time discretization  should be  added.  The  most common
+the method  to solve this equation in  the general case will  be presented.  For
+this  purpose,  a  time  discretization   should  be  added.   The  most  common
 discretization method in solid mechanics is the Newmark-$\beta$ method, which is
 therefore also the default in \akantu.
 
@@ -758,6 +769,7 @@ non-linear equation as  for the static case, an iterative  algorithm such as the
 Newton-Raphson method is applied.  According  to these conditions, the system of
 equations can be written as:
 
+
 \noindent\textit{Predictor:}
 \begin{align}
   \vec{u}_{n+1}^{0} &=  \vec{u}_{n} +  \Delta t \vec{\dot{u}}_{n}  + \frac{\Delta
@@ -788,11 +800,11 @@ parameters depending on the method used to solve the equations
     \toprule
     & $\vec{w}$ & $e$ & $d$ & $c$\\
     \midrule
-    in  acceleration  &$ \vec{\delta  \ddot{u}}$  &  $\alpha  \beta \Delta  t^2$
+    in  acceleration  &$ \delta\vec{\ddot{u}}$  &  $\alpha  \beta \Delta  t^2$
     &$\beta \Delta t$ &$1$\\
-    in velocity  & $ \vec{\delta \dot{u}}$&  $\frac{1}{\beta} \Delta t$  & $1$ &
+    in velocity  & $ \delta\vec{\dot{u}}$&  $\frac{1}{\beta} \Delta t$  & $1$ &
     $\alpha \Delta t$\\
-    in displacement  &$\vec{\delta u}$  & $ 1$  & $\frac{1}{\alpha} \Delta  t$ &
+    in displacement  &$\delta\vec{u}$  & $ 1$  & $\frac{1}{\alpha} \Delta  t$ &
     $\frac{1}{\alpha \beta} \Delta t^2$\\
     \bottomrule
   \end{tabular}
@@ -803,11 +815,11 @@ parameters depending on the method used to solve the equations
 
 
 \subsubsection{Implicit time integration}
-To  solve  a  problem with  an  implicit  time  integration scheme,  first  a
+To  solve  a  problem  with   an  implicit  time  integration  scheme,  first  a
 \code{SolidMechanicsModel} object  should be created and  initialized.  Then the
 initial and  boundary conditions have to  be set.  Everything is  similar to the
-example  in static case  (section \ref{sect:smm:static}),  however in  this case
-during  the initialization of  the model,  the implicit  dynamic case  should be
+example  in the static  case (section  \ref{sect:smm:static}), however,  in this
+case during the initialization of the model, the implicit dynamic case should be
 selected.
 
 \begin{cpp}
@@ -866,7 +878,7 @@ the        equations       are       solved        \emph{in       displacement}.
   of the  number of iterations  to avoid  an infinite loop  in case of  an error
   criterion too hard to reach.}
 
-An    example    of    implicit    dynamic   analysis    is    presented    here
+An    example    of    implicit     dynamic    analysis    is    presented    in
 \code{example/manual/implicit\_dynamic.cc}.  This example  consists of a 2D beam
 of $\unit{10}{\meter}\,\times\,\unit{1}{\meter}$ blocked on one side and is on a
 roller on the other side.  A constant force of \unit{5}{\kilo\newton} is applied
@@ -952,14 +964,14 @@ smaller than the stable time step which is obtained in \akantu as follows:
 
 The stable time step is defined as:
 \begin{equation}\label{eqn:smm:explicit:stabletime}
-  \Delta t_{\st{crit}} = \Delta x \sqrt{\frac{\rho}{2 \mu +\lambda}}
+  \Delta t_{\st{crit}} = \Delta x \sqrt{\frac{\rho}{2 \mu + \lambda}}
 \end{equation}
 where $\Delta  x$ is a  characteristic length (\eg  the inradius in the  case of
 linear triangle  element), $\mu$ and $\lambda$  are the first  and second Lame's
 coefficients and $\rho$ is the density.  The stable time step corresponds to the
 time the fastest wave (the  compressive wave) needs to travel the characteristic
 length of the mesh.   However, note that if the time step  of the computation is
-equal to the stable time step, the simulation remains unstable. Therefore, is it
+equal to the stable time step, the simulation remains unstable. Therefore, it is
 necessary to impose a  time step that is smaller than the  stable time step, for
 instance, by  multiplying the stable time  step by a safety  factor smaller than
 one.
@@ -1056,9 +1068,8 @@ For every material assigned to the problem one has to specify the material chara
   material %\emph{constitutive\_law}% [
   name = %\emph{XXX}%
   rho = %\emph{XXX}%
-  % $\vdots$%
+  ...
   ]
-
 \end{cpp}
 \index{Constitutive_laws}
 where \emph{constitutive\_law} is the adopted constitutive law, followed by the material properties listed one by line in the bracket (\eg \code{name} and density \code{rho}). The file needs to be loaded in \akantu using the \code{readMaterials} method
@@ -1094,15 +1105,16 @@ The equation that relates the strains to the displacements is:
 \begin{equation}\label{eqn:smm:strain_inf}
   \mat{\epsilon} = \frac{1}{2} \left[ \mat{F}-\mat{I}+(\mat{F}-\mat{I})^T \right]
 \end{equation}
-where $\mat{\epsilon}$ represents the infinitesimal strain tensor, $\mat{F} = \nabla_{\vec{X}}\vec{x}$ the deformation gradient tensor and $\mat{I}$ the identity matrix. The constitutive equation for isotropic homogeneous media can be expressed as:
-\begin{equation}\label{eqn:smm:constitutive_elastic}
+where $\mat{\epsilon}$ represents the infinitesimal strain tensor, $\mat{F} = \nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient tensor and $\mat{I}$ the identity matrix. The constitutive equation for isotropic homogeneous media can be expressed as:
+\begin{equation}\label{eqn:smm:material:constitutive_elastic}
   \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu \mat{\epsilon}
 \end{equation}
-where $\mat{\sigma}$ is the Cauchy stress tensor ($\lambda$ and $\mu$ are the the first  and second Lame's coefficients). Besides the name and density, one has to specify the following properties in the material file: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and (for 2D) \code{Plain\_Stress} (if set to zero or not specified plane strain conditions are assumed for a plain analysis, otherwise plane stress conditions are applied).
+where $\mat{\sigma}$ is the Cauchy stress tensor ($\lambda$ and $\mu$ are the the first  and second Lame's coefficients). Besides the name and density, one has to specify the following properties in the material file: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set to zero or not specified plane strain conditions are assumed for a plain analysis, otherwise plane stress conditions are applied).
 
-\subsubsection{Caughey}
-** Not in release **
-The model is a particular case of the Rayleigh damping model, with damping being proportional only to the stiffness matrix. Substitute with complete Rayleigh damping model for release?
+% \subsubsection{Caughey}
+% ** Not in  release ** The model  is a particular case of  the Rayleigh damping
+% model,   with    damping   being   proportional   only    to   the   stiffness
+% matrix. Substitute with complete Rayleigh damping model for release?
 
 \subsubsection{Neo-Hookean}
 The Neo-Hookean constitutive law is a hyperelastic material formulation, which results from an extension of the linear elastic relationship (Hooke's Law) for large deformation. Thus, the model predicts nonlinear stress-strain behavior for bodies undergoing large deformations.
@@ -1116,12 +1128,12 @@ The Neo-Hookean constitutive law is a hyperelastic material formulation, which r
 \end{figure}
 
 As illustrated in Figure~\ref{fig:smm:cl:neo_hookean}, the behavior is initially linear but at a certain point it will start to converge to a plateau.
-This constitutive relationship has been proposed by Ronald Rivlin and is suitable to simulate rubber-like (\eg polymers) material behavior. The constitutive equation is 
+This constitutive relationship has been proposed by Ronald Rivlin\cite{ronald-neohooken} and is suitable to simulate rubber-like (\eg polymers) material behavior. The constitutive equation is
 \begin{equation}
   \mat{\sigma } = -p \mat{I} + \mu \mat{B}
 \end{equation}
 where $p$ is the pressure and $\mat{B}$ is the Finger deformation tensor ($\mat{B}=\mat{F}^{-1}\mat{F}^{-T}$) and $\mat{F}$, as before, the deformation gradient tensor.
-The parameters to indicate in the material file are the same as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and \code{Plain\_Stress} (if set to zero plane strain, else plane stress).
+The parameters to indicate in the material file are the same as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and \code{Plane\_Stress} (if set to zero plane strain, else plane stress).
 
 \subsubsection{Visco-elastic (IMPLEMENTATION TO VERIFY!!)}
 
@@ -1229,7 +1241,7 @@ Finally,    the    class   members    should    be    declared   in    the
 \item \code{initMaterial} This function is called after the material file is fully read and the
   elements  corresponding  to  each  material are  assigned.  In  this
   function, some of the constant parameters which
-  are frequently used are calculated. For example, for the 
+  are frequently used are calculated. For example, for the
   elastic material the Lame's constants  can be considered as these kinds
   of parameters.  Moreover, the  internal members can  be resized  with
   \code{resizeInternalVector} function to the number of the quadrature
@@ -1238,7 +1250,7 @@ Finally,    the    class   members    should    be    declared   in    the
 \item \code{computeStress}  In this function the stresses are computed based on the constitutive
   law knowing the  strains for the quadrature points.  For example, for
   the  elastic  material the  stresses  are  calculated  based on  the
-  following formula: 
+  following formula:
 
  \begin{equation}\label{eqn:smm:constitutive_elastic}
     \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu \mat{\epsilon}
@@ -1248,20 +1260,20 @@ Therefore, this
   function contains  a loop on  all quadrature points assigned  to the
   material                          using                          the
   \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_BEGIN;}               and
-  \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_END;}  macros. 
+  \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_END;}  macros.
 
   \begin{cpp}
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-    
+
 // stress_val <- f(strain_val)
-   
+
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-  \end{cpp} 
+  \end{cpp}
 
  \note{ This  function can be split  in two functions.  In other words,
    the calculation of the stress for a quadrature point can be done in
    an inline function which is stored in a file such as \code{material\_XXX\_inline.cc}.}
-  
+
 \note{  The strain  vector  in  \akantu contains  the  values of  the
   $\nabla \vec{u}$.}
 
@@ -1274,11 +1286,11 @@ Therefore, this
     \mat{K } =\int{\mat{B^T}\mat{D(\epsilon)}\mat{B}}
   \end{equation}
 
-Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for a given strain. 
+Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for a given strain.
 
 \note{ The \code{tangent}  matrix is a $4^{th}$ order  tensor which is
   stored as a matrix in the Voigt notation.}
-  
+
   \begin{figure}[!htb]
     \begin{center}
       \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/tangent.pdf}
@@ -1293,25 +1305,25 @@ Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for 
   equation \ref{eqn:smm:explicit:stabletime}.  This function depends
   on longitudinal wave speed which changes for different materials and strains. Therefore, the  value of
   this  velocity should  be  defined  in this  function  for each  new
-  material. 
+  material.
 
   \note  {In case  of need,  the calculation  of the  longitudinal and
     shear wave speeds can be done in separate functions (\code{getPushWaveSpeed} and
   \code{getShearWaveSpeed}).  Therefore,  the  first  function  can  be
-  called for calculation of the stable time step.} 
+  called for calculation of the stable time step.}
 
 \item \code{printself} The final function which should be redefined is
   a function to print out
   the information of the material law. The interface of this function
   is similar to the one for existing laws. This function will write on
-  the output the required material information. 
+  the output the required material information.
 \end{itemize}
 
   A full example for adding a new damage law can be
-  found in \code{example/manual/new\_material}. 
+  found in \code{example/manual/new\_material}.
 
 
-\subsection{Contact\todo{Alejendro, David, Vlad}}
+\subsection{Contact \todo{Alejendro, David, Vlad}}
 
 \subsection{Cohesive laws\todo{Marco}}
 
