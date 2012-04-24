@@ -38,9 +38,46 @@
 % Easy tables
 \usepackage{booktabs}
 \usepackage{longtable}
+\usepackage{rotating}       % For sideways tables
+\usepackage{multirow}       % For larger cells
+
+% A special environment for element tables
+\newcommand\elemline{\hline}%{\noalign{\smallskip}\hline\noalign{\smallskip}}
+\newcommand\elemcooroned{\ensuremath{\left(\xi\right)}}
+\newcommand\elemcoortwod{\ensuremath{\left(\xi,\eta\right)}}
+\newcommand\elemcoorthreed{\ensuremath{\left(\xi,\eta,\zeta\right)}}
+\newcommand\elemdshapeoned{\ensuremath{\left(\partial N_i/\partial\xi\right)}}
+\newcommand\elemdshapetwod{\ensuremath{\left(\partial N_i/\partial\xi,\partial N_i/\partial\eta\right)}}
+\newcommand\elemdshapethreed{\ensuremath{\left(\partial N_i/\partial\xi,\partial N_i/\partial\eta,\partial N_i/\partial\zeta\right)}}
+\newenvironment{Element}[1]
+  {\begin{table*}[!htbp]\small\begin{center}
+   \renewcommand{\arraystretch}{1.50}
+   \begin{tabular}{c|c|c|ccc}
+   Node ($i$) & Coord. 
+   \ifthenelse{\equal{#1}{1D}}{\elemcooroned}{}
+   \ifthenelse{\equal{#1}{2D}}{\elemcoortwod}{}
+   \ifthenelse{\equal{#1}{3D}}{\elemcoorthreed}{}
+   & Shape function ($N_{i}$) & \multicolumn{3}{l}{Derivative %of shape function
+   \ifthenelse{\equal{#1}{1D}}{\elemdshapeoned}{}
+   \ifthenelse{\equal{#1}{2D}}{\elemdshapetwod}{}
+   \ifthenelse{\equal{#1}{3D}}{\elemdshapethreed}{}
+   }\\
+   \elemline
+  }
+  {\end{tabular}\end{center}\end{table*}}
+\newenvironment{QuadPoints}[1]
+  {\begin{table*}[!htbp]\begin{center}
+   \renewcommand{\arraystretch}{1.50}
+   \ifthenelse{\equal{#1}{1}}{\begin{tabular*}{0.95\textwidth}{l|c}}{}
+   \ifthenelse{\equal{#1}{2}}{\begin{tabular*}{0.95\textwidth}{l|cc}}{}
+   \ifthenelse{\equal{#1}{3}}{\begin{tabular*}{0.95\textwidth}{l|ccc}}{}
+   \ifthenelse{\equal{#1}{4}}{\begin{tabular*}{0.95\textwidth}{l|cccc}}{}
+   \ifthenelse{\equal{#1}{5}}{\begin{tabular*}{0.95\textwidth}{l|ccccc}}{}
+  }
+  {\end{tabular*}\end{center}\end{table*}}
 
 % Nice coloring
-\usepackage[dvipsnames,usenames]{xcolor}
+\usepackage[dvipsnames,usenames,table]{xcolor}
 \definecolor{RED}{rgb}{1,0,0}
 \definecolor{cppbg}{HTML}{EBF2F2}
 \definecolor{shellbg}{HTML}{F5EDE4}
