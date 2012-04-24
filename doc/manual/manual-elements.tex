@@ -1,0 +1,155 @@
+\section{Elements\index{Elements}}
+
+The base for every finite element computation is its mesh and the elements that are used within that mesh. What kind of element types can be used depends on the mesh, but also on the dimensionality of the problem (1D, 2D or 3D). In \akantu several isoparametric Langrangian element types are supported. Each of these types is discussed in more detail below, starting with the 1D-elements all the way to the 3D-elements. For each element type the coordinates of the nodes are given in the isoparametric frame of reference, together with the shape functions (and their derivatives) on these respective nodes. Also all the quadrature points within each element are listed (together with the weight that is applied on these points).
+
+%%%%%%%%%% 1D %%%%%%%%%
+\subsection{Isoparametric Elements in 1D\index{Elements!1D}}
+
+In \akantu there are two types of isoparametric elements defined in 1D. These element types are called \code{segment\_2} and \code{segment\_3}.
+
+\subsubsection{Segment 2\index{Elements!1D!Segment 2}}
+
+\begin{Element}{1D}
+ 1  &  -1  &  $\half\left(1-\xi\right)$  &  $-\half$  & &\\
+\elemline
+ 2  &   1  &  $\half\left(1+\xi\right)$  &  $\half$   & &\\
+\end{Element}
+
+\begin{QuadPoints}{1}
+Coord. \elemcooroned  &  0  \\
+\elemline
+Weight  &  2  \\
+\end{QuadPoints}
+
+\subsubsection{Segment 3\index{Elements!1D!Segment 3}}
+
+\begin{Element}{1D}
+ 1  &  -1  &  $\half\xi\left(\xi-1\right)$  &  $\xi-\half$   & &\\
+\elemline
+ 2  &   1  &  $\half\xi\left(\xi+1\right)$  &  $\xi+\half$   & &\\
+\elemline
+ 3  &   0  &  $1-\xi^{2}$                    &  $-2\xi$       & &\\
+\end{Element}
+
+\begin{QuadPoints}{2}
+Coord. \elemcooroned  &  $-1/\sqrt{3}$  &  $1/\sqrt{3}$  \\
+\elemline
+Weight  &  1  &  1  \\
+\end{QuadPoints}
+
+%%%%%%%%%% 2D %%%%%%%%%
+\subsection{Isoparametric Elements in 2D\index{Elements!2D}}
+
+In \akantu there are four types of isoparametric elements defined in 2D. These element types are called \code{triangle\_3}, \code{triangle\_6}, \code{quadrangle\_4} and \code{quadrangle\_8}.
+
+\subsubsection{Triangle 3\index{Elements!2D!Triangle 3}}
+
+\begin{Element}{2D}
+ 1  &  0,0  &  $1-\xi-\eta$  &  -1  &  -1  & \\
+\elemline
+ 2  &  1,0  &  $\xi$         &   1  &   0  & \\
+\elemline
+ 3  &  0,1  &  $\eta$        &   0  &   1  & \\
+\end{Element}
+
+\begin{QuadPoints}{1}
+Coord. \elemcoortwod  &  (\third,\third)  \\
+\elemline
+Weight  &  1  \\
+\end{QuadPoints}
+
+\subsubsection{Triangle 6\index{Elements!2D!Triangle 6}}
+
+\begin{Element}{2D}
+ 1  &  0     , 0      &  $-\left(1-\xi-\eta\right)\left(1-2\left(1-\xi-\eta\right)\right)$ & $1-4\left(1-\xi-\eta\right)$ & $1-4\left(1-\xi-\eta\right)$ & \\
+\elemline
+ 2  &  1     , 0      &  $-\xi\left(1-2\xi\right)$                                         & $4\xi-1$                     & $0$                          & \\
+\elemline
+ 3  &  0     , 1      &  $-\eta\left(1-2\eta\right)$                                       & $0$                          & $4\eta-1$                    & \\
+\elemline
+ 4  &  \half , 0      &  $4\xi\left(1-\xi-\eta\right)$                                     & $4\left(1-2\xi-\eta\right)$  & $-4\xi$                      & \\
+\elemline
+ 5  &  \half , \half  &  $4\xi\eta$                                                        & $4\eta$                      & $4\xi$                       & \\
+\elemline
+ 6  &  0     , \half  &  $4\eta\left(1-\xi-\eta\right)$                                    & $-4\eta$                     & $4\left(1-\xi-2\eta\right)$  & \\
+\elemline
+\end{Element}
+
+\begin{QuadPoints}{3}
+Coord. \elemcoortwod  &  (\sixth,\sixth) & (\twothird,\sixth) & (\sixth,\twothird) \\
+\elemline
+Weight & \sixth & \sixth & \sixth \\
+\end{QuadPoints}
+
+\subsubsection{Quadrangle 4\index{Elements!2D!Quadrangle 4}}
+
+\begin{Element}{2D}
+ 1  &  -1 , -1  &  $\quart\left(1-\xi\right)\left(1-\eta\right)$  &  $-\quart\left(1-\eta\right)$  &  $-\quart\left(1-\xi\right)$ & \\
+\elemline
+ 2  &   1 , -1  &  $\quart\left(1+\xi\right)\left(1-\eta\right)$  &  $\quart\left(1-\eta\right)$   &  $-\quart\left(1-\xi\right)$ & \\
+\elemline
+ 3  &   1 ,  1  &  $\quart\left(1+\xi\right)\left(1+\eta\right)$  &  $\quart\left(1-\eta\right)$   &  $\quart\left(1-\xi\right)$  & \\
+\elemline
+ 4  &  -1 ,  1  &  $\quart\left(1-\xi\right)\left(1+\eta\right)$  &  $-\quart\left(1-\eta\right)$  &  $\quart\left(1-\xi\right)$  & \\
+\end{Element}
+
+\begin{QuadPoints}{4}
+Coord. \elemcoortwod  &  ($-1/\sqrt{3}$,$-1/\sqrt{3}$)  &  ($1/\sqrt{3}$,$-1/\sqrt{3}$)  &  ($1/\sqrt{3}$,$1/\sqrt{3}$)  & ($-1/\sqrt{3}$,$1/\sqrt{3}$) \\ 
+\elemline
+Weight & 1 & 1 & 1 & 1 \\
+\end{QuadPoints}
+
+\subsubsection{Quadrangle 8\index{Elements!2D!Quadrangle 8}}
+
+\begin{Element}{2D}
+ 1  &  -1 , -1  &  $\quart\left(1-\xi\right)\left(1-\eta\right)\left(-1-\xi-\eta\right)$ 
+                &  $\quart\left(1-\eta\right)\left(2\xi+\eta\right)$
+                &  $\quart\left(1-\xi\right)\left(\xi+2\eta\right)$  & \\
+\elemline
+ 2  &   1 , -1  &  $\quart\left(1+\xi\right)\left(1-\eta\right)\left(-1+\xi-\eta\right)$ 
+                &  $\quart\left(1-\eta\right)\left(2\xi-\eta\right)$
+                &  $-\quart\left(1+\xi\right)\left(\xi-2\eta\right)$  & \\
+\elemline
+ 3  &   1 ,  1  &  $\quart\left(1+\xi\right)\left(1+\eta\right)\left(-1+\xi+\eta\right)$ 
+                &  $\quart\left(1+\eta\right)\left(2\xi+\eta\right)$
+                &  $\quart\left(1+\xi\right)\left(\xi+2\eta\right)$  & \\
+\elemline
+ 4  &  -1 ,  1  &  $\quart\left(1-\xi\right)\left(1+\eta\right)\left(-1-\xi+\eta\right)$ 
+                &  $\quart\left(1+\eta\right)\left(2\xi-\eta\right)$
+                &  $-\quart\left(1-\xi\right)\left(\xi-2\eta\right)$  & \\
+\elemline
+ 5  &   0 , -1  &  $\half\left(1-\xi^{2}\right)\left(1-\eta\right)$ 
+                &  $-\xi\left(1-\eta\right)$
+                &  $-\half\left(1-\xi^{2}\right)$  & \\
+\elemline
+ 6  &   1 ,  0  &  $\half\left(1+\xi\right)\left(1-\eta^{2}\right)$
+                &  $\half\left(1-\eta^{2}\right)$
+                &  $-\eta\left(1+\xi\right)$  & \\
+\elemline
+ 7  &   0 ,  1  &  $\half\left(1-\xi^{2}\right)\left(1+\eta\right)$
+                &  $-\xi\left(1+\eta\right)$
+                &  $\half\left(1-\xi^{2}\right)$  & \\
+\elemline
+ 8  &  -1 ,  0  &  $\half\left(1-\xi\right)\left(1-\eta^{2}\right)$
+                &  $-\half\left(1-\eta^{2}\right)$
+                &  $-\eta\left(1-\xi\right)$  & \\
+\end{Element}
+
+\begin{QuadPoints}{5}
+Coord. \elemcoortwod & (0,0) & ($\sqrt{3/5}$,$\sqrt{3/5}$) & ($-\sqrt{3/5}$,$\sqrt{3/5}$) & ($-\sqrt{3/5}$,$-\sqrt{3/5}$) & ($\sqrt{3/5}$,$-\sqrt{3/5}$) \\
+\elemline
+Weight & 64/81 & 25/81 & 25/81 & 25/81 & 25/81 \\
+\elemline
+Coord. \elemcoortwod &         (0,$\sqrt{3/5}$)            & ($-\sqrt{3/5}$,0)            & (0,$-\sqrt{3/5}$)             & ($\sqrt{3/5}$,0) \\
+\elemline
+Weight & 40/81 & 40/81 & 40/81 & 40/81 \\
+\end{QuadPoints}
+
+%%%%%%%%%% 3D %%%%%%%%%
+\subsection{Isoparametric Elements in 3D\index{Elements!3D}}
+
+\subsubsection{Tetrahedron 4\index{Elements!3D!Tetrahedron 4}}
+
+\subsubsection{Tetrahedron 10\index{Elements!3D!Tetrahedron 10}}
+
+\subsubsection{Hexahedron 8\index{Elements!3D!Hexahedron 8}}
