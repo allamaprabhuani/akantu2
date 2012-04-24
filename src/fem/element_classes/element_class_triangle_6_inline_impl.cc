@@ -70,12 +70,12 @@
  *       & \frac{\partial N3}{\partial \eta} = - 1 + 4 \eta \\
  * N4 = 4 \xi (1 - \xi - \eta)
  *       & \frac{\partial N4}{\partial \xi}  = 4 (1 - 2 \xi - \eta)
- *       & \frac{\partial N4}{\partial \eta} = - 4 \eta \\
+ *       & \frac{\partial N4}{\partial \eta} = - 4 \xi \\
  * N5 = 4 \xi \eta
- *       & \frac{\partial N5}{\partial \xi}  = 4 \xi
- *       & \frac{\partial N5}{\partial \eta} = 4 \eta \\
+ *       & \frac{\partial N5}{\partial \xi}  = 4 \eta
+ *       & \frac{\partial N5}{\partial \eta} = 4 \xi \\
  * N6 = 4 \eta (1 - \xi - \eta)
- *       & \frac{\partial N6}{\partial \xi}  = - 4 \xi
+ *       & \frac{\partial N6}{\partial \xi}  = - 4 \eta
  *       & \frac{\partial N6}{\partial \eta} = 4 (1 - \xi - 2 \eta)
  * \end{array}
  * @f]
