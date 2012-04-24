@@ -75,14 +75,11 @@ protected:
   /// constitutive law for a given quadrature point
   inline void computeStress(Real * F, Real * sigma,
 			    Real & dam,
-			    Real & Y, Real & Ydq,
-			    Real delta_t, Real & dissip_energy);
+			    Real & Y, Real & Ydq);
 
-  inline void computeDamageAndStress(Real * F, 
-				     Real * sigma,
+  inline void computeDamageAndStress(Real * sigma,
 				     Real & dam,
-				     Real & Y, Real & Ydq,
-				     Real delta_t, Real & dissip_energy);
+				     Real & Y, Real & Ydq);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */

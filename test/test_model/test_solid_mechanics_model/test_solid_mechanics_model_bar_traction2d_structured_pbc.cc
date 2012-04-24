@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
 void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel & model) {
-  akantu::Real spatial_dimension = model.getSpatialDimension();
+  akantu::UInt spatial_dimension = model.getSpatialDimension();
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,

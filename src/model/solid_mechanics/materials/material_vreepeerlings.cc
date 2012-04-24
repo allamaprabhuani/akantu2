@@ -137,7 +137,7 @@ void MaterialVreePeerlings::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 UInt MaterialVreePeerlings::getNbDataToPack(const Element & element,
-					    SynchronizationTag tag) {
+					    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -154,7 +154,7 @@ UInt MaterialVreePeerlings::getNbDataToPack(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 UInt MaterialVreePeerlings::getNbDataToUnpack(const Element & element,
-					      SynchronizationTag tag) {
+					      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -172,12 +172,12 @@ UInt MaterialVreePeerlings::getNbDataToUnpack(const Element & element,
 /* -------------------------------------------------------------------------- */
 void MaterialVreePeerlings::packData(CommunicationBuffer & buffer,
 				     const Element & element,
-				     SynchronizationTag tag) {
+				     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat){
     UInt nb_quad = model->getFEM().getNbQuadraturePoints(element.type);
-    Vector<Real> & kapa = Kapa(element.type, _not_ghost);
+    const Vector<Real> & kapa = Kapa(element.type, _not_ghost);
     for(UInt q = 0; q < nb_quad; ++q)
       buffer << kapa(element.element * nb_quad + q);
   }

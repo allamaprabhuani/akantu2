@@ -70,9 +70,6 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  /// compute the potential energy for all elements
-  virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

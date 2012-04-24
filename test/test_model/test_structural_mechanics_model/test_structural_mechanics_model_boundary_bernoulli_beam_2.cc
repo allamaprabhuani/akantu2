@@ -41,14 +41,6 @@
 
 using namespace akantu;
 
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-
-void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
-void paraviewDump(iohelper::Dumper & dumper);
-#endif
-
 static void lin_load(double * position, double * load,
 		     __attribute__ ((unused)) Real * normal, __attribute__ ((unused)) UInt surface_id){
   memset(load,0,sizeof(Real)*3);
@@ -113,7 +105,7 @@ int main(int argc, char *argv[]){
 
   forces.clear();
 
-  model->computeForcesFromFunction(lin_load, akantu::_bft_forces);
+  model->computeForcesFromFunction(lin_load, akantu::_bft_traction);
 
 
 }

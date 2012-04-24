@@ -607,7 +607,7 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
   UInt * nodes_set = new UInt[nb_nodes];
   std::fill_n(nodes_set, nb_nodes, 0);
 
-  Mesh::ConnectivityTypeList::const_iterator it;
+  //  Mesh::ConnectivityTypeList::const_iterator it;
 
   const UInt NORMAL_SET = 1;
   const UInt GHOST_SET  = 2;

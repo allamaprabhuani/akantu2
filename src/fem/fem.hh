@@ -198,16 +198,16 @@ public:
   virtual void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost) = 0;
 
   /// pre-compute normals on control points
-  virtual void computeNormalsOnControlPoints(const Vector<Real> & field,
-					     const GhostType & ghost_type = _not_ghost) {
+  virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Vector<Real> & field,
+					     __attribute__((unused)) const GhostType & ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
   
   /// pre-compute normals on control points
-  virtual void computeNormalsOnControlPoints(const Vector<Real> & field,
-					     Vector<Real> & normal,
-					     const ElementType & type,
-					     const GhostType & ghost_type = _not_ghost) const {
+  virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Vector<Real> & field,
+					     __attribute__((unused)) Vector<Real> & normal,
+					     __attribute__((unused)) const ElementType & type,
+					     __attribute__((unused)) const GhostType & ghost_type = _not_ghost) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

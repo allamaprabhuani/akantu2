@@ -131,28 +131,6 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialViscoElastic::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-/*
-  if(ghost_type != _not_ghost) return;
-
-  Vector<Real> & stress_el = stress_elastic(el_type, ghost_type);
-  Real * stress_el_val = stress_el.storage();
-
-  Real * epot = potential_energy(el_type, ghost_type).storage();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-
-  MaterialElastic::computePotentialEnergy(strain_val, stress_el_val, epot);
-  epot++;
-  stress_el_val += spatial_dimension*spatial_dimension;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-*/
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 bool MaterialViscoElastic::setParam(const std::string & key, const std::string & value,
 				      const ID & id) {
   std::stringstream sstr(value);

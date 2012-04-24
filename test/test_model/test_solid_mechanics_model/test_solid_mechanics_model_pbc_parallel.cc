@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
   akantu::Int prank = comm->whoAmI();
 
   akantu::UInt spatial_dimension = 2;
-  akantu::UInt max_steps = 1;
+  //  akantu::UInt max_steps = 1;
   akantu::Real time_factor = 0.2;
 
   akantu::Mesh mesh(spatial_dimension);
@@ -212,7 +212,7 @@ void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel &
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();
 
-  akantu::Real spatial_dimension = model.getSpatialDimension();
+  akantu::UInt spatial_dimension = model.getSpatialDimension();
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
   dumper.SetParallelContext(prank, psize);

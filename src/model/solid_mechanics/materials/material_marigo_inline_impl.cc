@@ -28,9 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialMarigo::computeDamageAndStress(Real * F, Real * sigma, Real & dam,
-						   Real & Y, Real &Ydq,
-						   Real delta_t, Real & dissip_energy) {
+inline void MaterialMarigo::computeDamageAndStress(Real * sigma, Real & dam,
+						   Real & Y, Real &Ydq) {
   Real Fd = Y - Ydq - Sd * dam;
 
   if (Fd > 0) dam = (Y - Ydq) / Sd;
@@ -48,10 +47,10 @@ inline void MaterialMarigo::computeDamageAndStress(Real * F, Real * sigma, Real 
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialMarigo::computeStress(Real * F, Real * sigma,
+inline void MaterialMarigo::computeStress(Real * F,
+					  Real * sigma,
 					  Real & dam,
-					  Real & Y, Real &Ydq,
-					  Real delta_t, Real & dissip_energy) {
+					  Real & Y, Real &Ydq) {
   MaterialElastic::computeStress(F, sigma);
 
   Y = sigma[0]*F[0] +
@@ -69,7 +68,7 @@ inline void MaterialMarigo::computeStress(Real * F, Real * sigma,
   //Y = std::min(Y, Yc);
 
   if(!is_non_local) {
-    computeDamageAndStress(F, sigma, dam, Y, Ydq, delta_t, dissip_energy);
+    computeDamageAndStress(sigma, dam, Y, Ydq);
   }
 }
 

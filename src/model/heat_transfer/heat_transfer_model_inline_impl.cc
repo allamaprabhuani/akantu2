@@ -45,7 +45,8 @@ inline UInt HeatTransferModel::getNbDataToPack(SynchronizationTag tag) const{
 
   AKANTU_DEBUG_OUT();
   return size;
-};
+}
+
 /* -------------------------------------------------------------------------- */
 inline UInt HeatTransferModel::getNbDataToUnpack(SynchronizationTag tag) const{
   AKANTU_DEBUG_IN();
@@ -66,7 +67,8 @@ inline UInt HeatTransferModel::getNbDataToUnpack(SynchronizationTag tag) const{
 
   AKANTU_DEBUG_OUT();
   return size;
-};
+}
+
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
 					const UInt index,
@@ -87,12 +89,12 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
   }
 
   AKANTU_DEBUG_OUT();
-};
+}
+
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 					  const UInt index,
 					  SynchronizationTag tag) {
-
   AKANTU_DEBUG_IN();
 
   switch(tag) {
@@ -110,11 +112,11 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
   }
 
   AKANTU_DEBUG_OUT();
-};
+}
+
 /* -------------------------------------------------------------------------- */
 inline UInt HeatTransferModel::getNbDataToPack(const Element & element,
 					       SynchronizationTag tag) const {
-
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -148,6 +150,7 @@ inline UInt HeatTransferModel::getNbDataToPack(const Element & element,
   AKANTU_DEBUG_OUT();
   return size;
 }
+
 /* -------------------------------------------------------------------------- */
 inline UInt HeatTransferModel::getNbDataToUnpack(const Element & element,
 						 SynchronizationTag tag) const {
@@ -184,6 +187,7 @@ inline UInt HeatTransferModel::getNbDataToUnpack(const Element & element,
   AKANTU_DEBUG_OUT();
   return size;
 }
+
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
 					const Element & element,
@@ -242,7 +246,8 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
   }
   }
 }
-  /* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 		       const Element & element,
 		       SynchronizationTag tag) {
@@ -271,7 +276,6 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     buffer >> coords;
     UInt offset_conn = conn[el_offset + n];
-    Real tolerance = 1e-15;
     Real * coords_local = nodes+spatial_dimension*offset_conn;
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if(!(std::abs(coords(i) - coords_local[i]) <= tolerance))
@@ -358,4 +362,5 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
   }
   }
 }
+
 /* -------------------------------------------------------------------------- */

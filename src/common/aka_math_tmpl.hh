@@ -249,10 +249,10 @@ extern "C" {
 	      int* lda, double* wr, double* wi, double* vl, int* ldvl,
 	      double* vr, int* ldvr, double* work, int* lwork, int* info);
 }
-#endif
+
 
 inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
-#ifdef AKANTU_USE_LAPACK
+
   // Matrix  A is  row major,  so the  lapack function  in fortran  will process
   // A^t. Asking for the left eigenvectors of A^t will give the transposed right
   // eigenvectors of A so in the C++ code the right eigenvectors.
@@ -280,11 +280,15 @@ inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
 
   delete [] work;
   delete [] di; // I hope for you that there was no complex eigenvalues !!!
-#else
-  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
-#endif
 }
-
+#else
+inline void Math::matrixEig(__attribute__((unused)) UInt n,
+			    __attribute__((unused)) Real * A,
+			    __attribute__((unused)) Real * d,
+			    __attribute__((unused)) Real * V) {
+  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
+}
+#endif
 /* -------------------------------------------------------------------------- */
 inline Real Math::det2(const Real * mat) {
   return mat[0]*mat[3] - mat[1]*mat[2];

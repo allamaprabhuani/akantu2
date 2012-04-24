@@ -417,7 +417,7 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
 /* -------------------------------------------------------------------------- */
 template<class WeightFunction>
 bool MaterialNonLocal<WeightFunction>::setParam(const std::string & key, const std::string & value,
-                                const ID & id) {
+						__attribute__((unused)) const ID & id) {
   std::stringstream sstr(value);
   if(key == "radius") { sstr >> radius; }
   else if(!weight_func->setParam(key, value)) return false;

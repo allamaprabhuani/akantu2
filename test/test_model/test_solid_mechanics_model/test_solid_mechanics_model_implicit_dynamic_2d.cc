@@ -53,8 +53,8 @@ using namespace akantu;
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
 
-void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
+static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -68,7 +68,7 @@ UInt spatial_dimension = 2;
 Real time_step = 1e-4;
 
 
-Real analytical_solution(Real time) {
+static Real analytical_solution(Real time) {
   return 1./pow(M_PI, 4) * ((1. - cos(M_PI*M_PI*time)) + (1. - cos(3*3*M_PI*M_PI*time))/81. + (1. - cos(5*5*M_PI*M_PI*time))/625.);
 }
 
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
   // CSR<UInt> surface_nodes;
   // MeshUtils::buildNodesPerSurface(mesh, surface_nodes);
 
-  UInt node_to_print = -1;
+  UInt node_to_print = UInt(-1);
   bool print_node = false;
 
   // for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
@@ -260,15 +260,15 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> iohelper::ElemType paraviewType();
-template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1;     };
-template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2;     };
-template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; };
-template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; };
-template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1;     };
-template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1;    };
-template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2;    };
-template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1;      };
+template <ElementType type> static iohelper::ElemType paraviewType();
+template <> static iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1;     }
+template <> static iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2;     }
+template <> static iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> static iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> static iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1;     }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1;    }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2;    }
+template <> static iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1;      }
 
 /* -------------------------------------------------------------------------- */
 void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {

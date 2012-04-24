@@ -53,7 +53,6 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
   /* ------------------------------------------------------------------------ */
-  DistributedSynchronizer * communicator;
   MeshPartition * partition;
 
   if(prank == 0) {
@@ -63,10 +62,10 @@ int main(int argc, char *argv[])
     std::cout << "Partitioning mesh..." << std::endl;
     partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
-    communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
+    DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
     delete partition;
   } else {
-    communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
+    DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
   }
 
   UInt nb_nodes = mesh.getNbNodes();

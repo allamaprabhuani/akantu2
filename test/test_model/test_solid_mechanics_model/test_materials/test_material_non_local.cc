@@ -39,8 +39,8 @@ using namespace akantu;
 #  include "io_helper.hh"
 
 
-void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
+//static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", "test");
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 
   for(;first_quad_1 != last_quad_1; ++first_quad_1, ++q1) {
     Vector<Real>::iterator<types::RVector> first_quad_2 = quads.begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> last_quad_2 = quads.end(spatial_dimension);
+    //Vector<Real>::iterator<types::RVector> last_quad_2 = quads.end(spatial_dimension);
     UInt q2 = 0;
     for(;first_quad_2 != last_quad_1; ++first_quad_2, ++q2) {
       Real d = first_quad_2->distance(*first_quad_1);
@@ -109,12 +109,12 @@ int main(int argc, char *argv[]) {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
     UInt nb_quadrature_points = model.getFEM().getNbQuadraturePoints(*it);
-    UInt nb_element = mesh.getNbElement(*it);
+    UInt _nb_element = mesh.getNbElement(*it);
 
     Vector<Real> & constant_vect = constant(*it);
-    constant_vect.resize(nb_element * nb_quadrature_points);
+    constant_vect.resize(_nb_element * nb_quadrature_points);
 
-    std::fill_n(constant_vect.storage(), nb_quadrature_points * nb_element, 1.);
+    std::fill_n(constant_vect.storage(), nb_quadrature_points * _nb_element, 1.);
   }
 
   ByElementTypeReal constant_avg("constant_value_avg", "test");
@@ -144,15 +144,15 @@ int main(int argc, char *argv[]) {
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> iohelper::ElemType paraviewType();
-template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1;     };
-template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2;     };
-template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; };
-template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; };
-template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1;     };
-template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1;    };
-template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2;    };
-template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1;      };
+template <ElementType type> static iohelper::ElemType paraviewType();
+template <> static iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1;     }
+template <> static iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2;     }
+template <> static iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> static iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> static iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1;     }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1;    }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2;    }
+template <> static iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1;      }
 
 /* -------------------------------------------------------------------------- */
 void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {
@@ -177,9 +177,9 @@ void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) 
 }
 
 /* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
-}
+// void paraviewDump(iohelper::Dumper & dumper) {
+//   dumper.Dump();
+// }
 
 /* -------------------------------------------------------------------------- */
 #endif

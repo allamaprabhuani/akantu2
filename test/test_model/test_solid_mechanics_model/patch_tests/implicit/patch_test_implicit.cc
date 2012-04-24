@@ -50,7 +50,7 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-types::Matrix prescribed_strain() {
+static types::Matrix prescribed_strain() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix strain(spatial_dimension, spatial_dimension);
 
@@ -63,7 +63,7 @@ types::Matrix prescribed_strain() {
 }
 
 template<ElementType type>
-types::Matrix prescribed_stress() {
+static types::Matrix prescribed_stress() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix stress(spatial_dimension, spatial_dimension);
 
@@ -94,8 +94,8 @@ types::Matrix prescribed_stress() {
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
+static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -255,17 +255,17 @@ int main(int argc, char *argv[])
 /* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
-template <ElementType type> iohelper::ElemType paraviewType();
+template <ElementType type> static iohelper::ElemType paraviewType();
 
-template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; };
-template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; };
-template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; };
-template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; };
-template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; };
-template <> iohelper::ElemType paraviewType<_quadrangle_8>()   { return iohelper::QUAD2; };
-template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; };
-template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; };
-template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; };
+template <> static iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; }
+template <> static iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; }
+template <> static iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> static iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> static iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; }
+template <> static iohelper::ElemType paraviewType<_quadrangle_8>()   { return iohelper::QUAD2; }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; }
+template <> static iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; }
 
 void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();

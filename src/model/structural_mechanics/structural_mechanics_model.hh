@@ -85,7 +85,8 @@ public:
   void solve();
   bool testConvergenceIncrement(Real tolerance);
   bool testConvergenceIncrement(Real tolerance, Real & error);
-  virtual void printself(std::ostream & stream, int indent = 0) const {};
+  virtual void printself(__attribute__ ((unused)) std::ostream & stream,
+			 __attribute__ ((unused)) int indent = 0) const {};
   UInt getTangentStiffnessVoigtSize(const ElementType & type);
 
   /* ------------------------------------------------------------------------ */

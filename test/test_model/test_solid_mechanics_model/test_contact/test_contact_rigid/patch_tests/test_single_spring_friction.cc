@@ -107,17 +107,17 @@ Real * mass;
 std::map < std::string, VectorBase* > restart_map;
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper);
 #endif //AKANTU_USE_IOHELPER
 
-void loadRestartInformation(ContactRigid * contact);
-void printPredictor(UInt step, 
-		    std::ofstream & out_stream);
-void printCorrector(UInt step, 
-		    ContactRigid * contact, 
-		    std::ofstream & out_stream);
-void getStickInfo(ContactRigid * contact);
-bool testFloat(Real a, Real b, Real adm_error);
+static void loadRestartInformation(ContactRigid * contact);
+static void printPredictor(UInt step, 
+			   std::ofstream & out_stream);
+static void printCorrector(UInt step, 
+			   ContactRigid * contact, 
+			   std::ofstream & out_stream);
+static void getStickInfo(ContactRigid * contact);
+static bool testFloat(Real a, Real b, Real adm_error);
 
 /* -------------------------------------------------------------------------- */
 Int main(int argc, char *argv[])

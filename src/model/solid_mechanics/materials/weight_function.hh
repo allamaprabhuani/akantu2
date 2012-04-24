@@ -44,6 +44,8 @@ class BaseWeightFunction {
 public:
   BaseWeightFunction(const Material & material) : material(material) {}
 
+  virtual ~BaseWeightFunction() {}
+
   virtual void init() {};
 
   /* ------------------------------------------------------------------------ */
@@ -70,7 +72,8 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  bool setParam(const std::string & key, const std::string & value) {
+  bool setParam(__attribute__((unused)) const std::string & key,
+		__attribute__((unused)) const std::string & value) {
     return false;
   }
 
@@ -91,12 +94,12 @@ class DamagedWeightFunction : public BaseWeightFunction {
 public:
   DamagedWeightFunction(const Material & material) : BaseWeightFunction(material) {}
 
-  inline void selectType(ElementType type1, GhostType ghost_type1,
+  inline void selectType(__attribute__((unused)) ElementType type1,__attribute__((unused)) GhostType ghost_type1,
 			 ElementType type2, GhostType ghost_type2) {
     selected_damage = &(dynamic_cast<const MaterialDamage &>(material).getDamage(type2, ghost_type2));
   }
 
-  inline Real operator()(Real r, QuadraturePoint & q1, QuadraturePoint & q2) {
+  inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
     UInt quad = q2.global_num;
     Real D = (*selected_damage)(quad);
     Real Radius = (1.-D)*(1.-D) * R2;
@@ -109,7 +112,8 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  bool setParam(const std::string & key, const std::string & value) {
+  bool setParam(__attribute__((unused)) const std::string & key,
+		__attribute__((unused)) const std::string & value) {
     return false;
   }
 
@@ -130,7 +134,7 @@ class StressBasedWeightFunction : public BaseWeightFunction {
 public:
   StressBasedWeightFunction(const Material & material);
 
-  virtual void init();
+  void init();
 
   void updatePrincipalStress(GhostType ghost_type);
 

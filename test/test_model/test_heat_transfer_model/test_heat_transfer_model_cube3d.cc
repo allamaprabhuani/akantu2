@@ -44,8 +44,8 @@
 using namespace akantu;
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(HeatTransferModel * model, iohelper::Dumper & dumper);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(HeatTransferModel * model, iohelper::Dumper & dumper);
+static void paraviewDump(iohelper::Dumper & dumper);
 iohelper::ElemType paraview_type = iohelper::TETRA1;
 #endif
 
@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
 
   HeatTransferModel * model;
   UInt nb_nodes;
-  UInt nb_element;
 
   model = new HeatTransferModel(mesh);
   model->readMaterials("material.dat");
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
   model->initVectors();
 
   nb_nodes = mesh.getNbNodes();
-  nb_element = mesh.getNbElement(type);
+  //nb_element = mesh.getNbElement(type);
 
   nb_nodes = mesh.getNbNodes();
 
@@ -93,9 +92,10 @@ int main(int argc, char *argv[])
   Vector<bool> & boundary = model->getBoundary();
   Vector<Real> & temperature = model->getTemperature();
 
-  double t1, t2, length;
-  t1 = 300.;
-  t2 = 100.;
+  //double t1, t2;
+  double length;
+  // t1 = 300.;
+  // t2 = 100.;
   length = 1.;
 
   for (UInt i = 0; i < nb_nodes; ++i) {

@@ -51,7 +51,7 @@ using namespace akantu;
 
 //static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap);
 static void setBoundaryConditions(SolidMechanicsModel & model);
-void my_force(Real * coord, Real * T, Real * normal, UInt surface_id);
+static void my_force(Real * coord, Real * T, Real * normal, UInt surface_id);
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio);
 static void initParaview(SolidMechanicsModel & model);
 

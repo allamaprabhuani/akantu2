@@ -48,12 +48,12 @@
 
 using namespace akantu;
 
-void restartReaderInit(iohelper::ReaderRestart & reader);
-void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map);
-void DumpRestart(SolidMechanicsModel  & my_model, std::map < std::string, VectorBase* > & map);
-void printRestartMap(std::map < std::string, VectorBase* > & map);
-void printContact(ContactRigid * contact);
-void freeMap(std::map < std::string, VectorBase* > & map);
+static void restartReaderInit(iohelper::ReaderRestart & reader);
+static void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map);
+static void DumpRestart(SolidMechanicsModel  & my_model, std::map < std::string, VectorBase* > & map);
+static void printRestartMap(std::map < std::string, VectorBase* > & map);
+static void printContact(ContactRigid * contact);
+static void freeMap(std::map < std::string, VectorBase* > & map);
 
 UInt dim = 2;
 const ElementType element_type = _triangle_3;
@@ -146,8 +146,9 @@ int main(int argc, char *argv[])
   my_contact->addMasterSurface(master);
   my_contact->addImpactorSurfaceToMasterSurface(impactor, master);
 
-  FrictionCoefficient *fric_coef;
-  fric_coef = new UniqueConstantFricCoef(*my_contact, master, 0.1);
+  //FrictionCoefficient *fric_coef;
+  //fric_coef = 
+  new UniqueConstantFricCoef(*my_contact, master, 0.1);
 
   // contact information
   ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp_1;

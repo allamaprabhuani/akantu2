@@ -763,12 +763,12 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
 /* -------------------------------------------------------------------------- */
 template <>
 void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
-gradientOnQuadraturePoints(const Vector<Real> &u,
-			   Vector<Real> &nablauq,
-			   const UInt nb_degree_of_freedom,
-			   const ElementType & type,
-			   const GhostType & ghost_type,
-			   const Vector<UInt> * filter_elements) const {
+gradientOnQuadraturePoints(__attribute__((unused)) const Vector<Real> &u,
+			   __attribute__((unused)) Vector<Real> &nablauq,
+			   __attribute__((unused)) const UInt nb_degree_of_freedom,
+			   __attribute__((unused)) const ElementType & type,
+			   __attribute__((unused)) const GhostType & ghost_type,
+			   __attribute__((unused)) const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

@@ -55,8 +55,8 @@ iohelper::ElemType paraview_type = iohelper::TETRA1;
 
 
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper);
+static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 akantu::HeatTransferModel * model;

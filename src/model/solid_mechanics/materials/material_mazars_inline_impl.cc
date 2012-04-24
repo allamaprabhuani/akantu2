@@ -96,7 +96,9 @@ inline void MaterialMazars::computeStress(Real * F, Real * sigma, Real & dam, Re
     computeDamageAndStress(F,sigma, dam, Ehat);
   }
 }
-inline void MaterialMazars::computeDamageAndStress(Real *F,  Real * sigma, Real & dam, Real & Ehat) {
+inline void MaterialMazars::computeDamageAndStress(__attribute__((unused)) Real *F,
+						   Real * sigma, Real & dam,
+						   __attribute__((unused)) Real & Ehat) {
   // Real Fdiag[3];
   // Real Fdiagp[3];
 

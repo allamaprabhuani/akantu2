@@ -46,7 +46,7 @@
 
 using namespace akantu;
 
-bool testFloat(Real a, Real b, Real adm_error);
+static bool testFloat(Real a, Real b, Real adm_error);
 
 int main(int argc, char *argv[])
 {

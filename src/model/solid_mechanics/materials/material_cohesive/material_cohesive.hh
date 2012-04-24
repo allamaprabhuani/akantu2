@@ -67,7 +67,8 @@ public:
 
 
   /// compute the stable time step for an element of size h
-  virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) {
+  virtual Real getStableTimeStep(__attribute__((unused)) Real h,
+				 __attribute__((unused)) const Element & element = ElementNull) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -82,15 +83,15 @@ public:
 protected:
 
   /// constitutive law
-  virtual void computeStress(ElementType el_type,
-			     GhostType ghost_type = _not_ghost) {
+  virtual void computeStress(__attribute__((unused)) ElementType el_type,
+			     __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// compute the tangent stiffness matrix
-  virtual void computeTangentStiffness(const ElementType & el_type,
-				       Vector<Real> & tangent_matrix,
-				       GhostType ghost_type = _not_ghost) {
+  virtual void computeTangentStiffness(__attribute__((unused)) const ElementType & el_type,
+				       __attribute__((unused)) Vector<Real> & tangent_matrix,
+				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

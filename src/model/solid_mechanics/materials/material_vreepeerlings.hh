@@ -83,14 +83,14 @@ protected:
 public:
 
   virtual UInt getNbDataToPack(const Element & element,
-			       SynchronizationTag tag);
+			       SynchronizationTag tag) const;
 
   virtual UInt getNbDataToUnpack(const Element & element,
-				 SynchronizationTag tag);
+				 SynchronizationTag tag) const;
 
   virtual void packData(CommunicationBuffer & buffer,
 			const Element & element,
-			SynchronizationTag tag);
+			SynchronizationTag tag) const;
 
   virtual void unpackData(CommunicationBuffer & buffer,
 			  const Element & element,

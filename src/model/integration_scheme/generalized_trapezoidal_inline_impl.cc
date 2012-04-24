@@ -88,7 +88,7 @@ void GeneralizedTrapezoidal::integrationSchemeCorrTempRate(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 template<>
-Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_temperature_corrector>(Real delta_t) {
+Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_temperature_corrector>(__attribute__ ((unused)) Real delta_t) {
   return 1.;
 }
 
@@ -104,7 +104,7 @@ Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_
 }
 
 template<>
-Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoidal::_temperature_rate_corrector>(Real delta_t) {
+Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoidal::_temperature_rate_corrector>(__attribute__ ((unused)) Real delta_t) {
   return 1.;
 }
 

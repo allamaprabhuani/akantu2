@@ -46,8 +46,8 @@ using namespace akantu;
 #  include "io_helper.hh"
 
 
-void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
+static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 //Linear load function
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]){
 
   forces(nb_nodes-1,2) += M;
 
-  model->computeForcesFromFunction(lin_load, akantu::_bft_forces);
+  model->computeForcesFromFunction(lin_load, akantu::_bft_traction);
 
   /* -------------------------------------------------------------------------- */
   // Defining the boundary conditions
@@ -213,16 +213,16 @@ int main(int argc, char *argv[]){
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> iohelper::ElemType paraviewType();
-template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; };
-template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; };
-template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; };
-template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; };
-template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; };
-template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; };
-template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; };
-template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; };
-template <> iohelper::ElemType paraviewType<_bernoulli_beam_2>(){ return iohelper::BEAM2; };
+template <ElementType type> static iohelper::ElemType paraviewType();
+template <> static iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; }
+template <> static iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; }
+template <> static iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> static iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> static iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; }
+template <> static iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; }
+template <> static iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; }
+template <> static iohelper::ElemType paraviewType<_bernoulli_beam_2>(){ return iohelper::BEAM2; }
 /* -------------------------------------------------------------------------- */
 void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();

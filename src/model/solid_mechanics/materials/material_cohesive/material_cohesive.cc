@@ -93,7 +93,8 @@ void MaterialCohesive::initMaterial() {
  * @param[in] displacements nodes displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void MaterialCohesive::updateResidual(Vector<Real> & displacement, GhostType ghost_type) {
+void MaterialCohesive::updateResidual(__attribute__((unused)) Vector<Real> & displacement,
+				      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// compute traction
@@ -373,7 +374,7 @@ Real MaterialCohesive::getDissipatedEnergy() {
   for(; it != last_type; ++it) {
     Vector<Real> dissipated_energy(total_energy(*it));
     dissipated_energy -= reversible_energy(*it);
-    edis += model->getFEM().integrate(dissipated_energy(*it), *it,
+    edis += model->getFEM().integrate(dissipated_energy, *it,
 				      _not_ghost, &element_filter(*it));
   }
 

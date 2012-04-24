@@ -95,9 +95,6 @@ void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
   Real sigma[3*3];
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
-  Real * dpe = dissipated_energy(el_type, ghost_type).storage();
-
-  Real delta_t = model->getTimeStep();
 
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
@@ -108,10 +105,9 @@ void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
   Real Y = 0;
-  computeStress(F, sigma, *dam, Y, *Ydq, delta_t, *dpe);
+  computeStress(F, sigma, *dam, Y, *Ydq);
   ++dam;
   ++Ydq;
-  ++dpe;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)

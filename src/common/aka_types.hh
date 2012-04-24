@@ -35,6 +35,8 @@
 
 #ifndef __INTEL_COMPILER
 #include <tr1/unordered_map>
+#else
+#include <map>
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -216,18 +218,25 @@ namespace types {
   typedef Vector<Real> RVector;
 
   // support opertions for the creation of other vectors
+  template <typename T> Vector<T> operator*(T scalar, const Vector<T>& a);
+  template <typename T> Vector<T> operator+(const Vector<T>& a, const Vector<T>& b);
+  template <typename T> Vector<T> operator-(const Vector<T>& a, const Vector<T>& b);
+
+  /* -------------------------------------------------------------------------- */
   template <typename T>
   Vector<T> operator*(T scalar, const Vector<T>& a) {
     Vector<T> r = a;
     r *= scalar;
     return r;
   }
+
   template <typename T>
   Vector<T> operator+(const Vector<T>& a, const Vector<T>& b) {
     Vector<T> r = a;
     r += b;
     return r;
   }
+
   template <typename T>
   Vector<T> operator-(const Vector<T>& a, const Vector<T>& b) {
     Vector<T> r = a;

@@ -94,8 +94,8 @@ namespace debug {
     stack_depth = backtrace(stack_addrs, max_depth);
     stack_strings = backtrace_symbols(stack_addrs, stack_depth);
 
-    std::cerr << "BACKTRACE :  " << stack_depth - 1 << " stack frames." <<std::endl;
-    size_t w = size_t(floor(log(stack_depth)/log(10)+1));
+    std::cerr << "BACKTRACE :  " << stack_depth << " stack frames." <<std::endl;
+    size_t w = size_t(floor(log(double(stack_depth))/log(10.))+1);
 
     /// -1 to remove the call to the printBacktrace function
     for (i = 1; i < stack_depth; i++) {

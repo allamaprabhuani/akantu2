@@ -55,7 +55,7 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
   switch(function_type) {
   case _bft_stress:
     offset = nb_degree_of_freedom * nb_degree_of_freedom; break;
-  case _bft_forces:
+  case _bft_traction:
     offset = nb_degree_of_freedom; break;
   }
 
@@ -88,7 +88,7 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
     stress_funct.resize(nb_element*nb_quad);
     imposed_val = stress_funct.values;
     break;
-  case _bft_forces:
+  case _bft_traction:
     lin_load.resize(nb_element*nb_quad);
     imposed_val = lin_load.values;
     break;
@@ -107,7 +107,7 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
   switch(function_type) {
   case _bft_stress:
     computeForcesByStressTensor(stress_funct,(type)); break;
-  case _bft_forces:
+  case _bft_traction:
     computeForcesByTractionVector(lin_load,(type)); break;
   }
 }
@@ -202,8 +202,8 @@ void StructuralMechanicsModel::computeForcesByTractionVector(const Vector<Real> 
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stresses,
-						      const ElementType & type){
+void StructuralMechanicsModel::computeForcesByStressTensor(__attribute__ ((unused)) const Vector<Real> & stresses,
+							   __attribute__ ((unused)) const ElementType & type){
   AKANTU_DEBUG_IN();
   /**
   UInt nb_element = getFEMBoundary().getMesh().getNbElement(type);

@@ -112,14 +112,14 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void StructuralMechanicsModel::computeTangentStiffness(Vector<Real> & tangent_stiffness_matrix) {
+void StructuralMechanicsModel::computeTangentStiffness(__attribute__ ((unused)) Vector<Real> & tangent_stiffness_matrix) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix(Vector<Real> & b) {
+void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix(__attribute__ ((unused)) Vector<Real> & b) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

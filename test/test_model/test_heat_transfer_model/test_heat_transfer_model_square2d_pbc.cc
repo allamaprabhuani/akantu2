@@ -43,8 +43,8 @@ using namespace std;
 #include "io_helper.hh"
 
 
-void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper);
-void paraviewDump(iohelper::Dumper & dumper);
+static void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper);
+static void paraviewDump(iohelper::Dumper & dumper);
 iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 
@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
 
   akantu::HeatTransferModel * model;
   akantu::UInt nb_nodes;
-  akantu::UInt nb_element;
 
   model = new akantu::HeatTransferModel(mesh);
 
@@ -85,9 +84,8 @@ int main(int argc, char *argv[])
 
   /* -------------------------------------------------------------------------- */
   nb_nodes = model->getFEM().getMesh().getNbNodes();
-  nb_element = model->getFEM().getMesh().getNbElement(type);
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
-
+  //nb_element = model->getFEM().getMesh().getNbElement(type);
+  
   /* ------------------------------------------------------------------------ */
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
@@ -100,9 +98,7 @@ int main(int argc, char *argv[])
   akantu::Vector<bool> & boundary = model->getBoundary();
   akantu::Vector<akantu::Real> & temperature = model->getTemperature();
 
-  double t1, t2, length;
-  t1 = 300.;
-  t2 = 100.;
+  double length;
   length = 1.;
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {

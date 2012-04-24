@@ -40,17 +40,17 @@ using namespace akantu;
 
 /* ------------------------------------------------------------------------ */
 template <ElementType type>
-static iohelper::ElemType getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return iohelper::MAX_ELEM_TYPE; };
+static iohelper::ElemType getIOHelperType() { AKANTU_DEBUG_TO_IMPLEMENT(); return iohelper::MAX_ELEM_TYPE; }
 
-template <> iohelper::ElemType getIOHelperType<_segment_2>()      { return iohelper::LINE1; }
-template <> iohelper::ElemType getIOHelperType<_segment_3>()      { return iohelper::LINE2; }
-template <> iohelper::ElemType getIOHelperType<_triangle_3>()     { return iohelper::TRIANGLE1; }
-template <> iohelper::ElemType getIOHelperType<_triangle_6>()     { return iohelper::TRIANGLE2; }
-template <> iohelper::ElemType getIOHelperType<_quadrangle_4>()   { return iohelper::QUAD1; }
-template <> iohelper::ElemType getIOHelperType<_quadrangle_8>()   { return iohelper::QUAD2; }
-template <> iohelper::ElemType getIOHelperType<_tetrahedron_4>()  { return iohelper::TETRA1; }
-template <> iohelper::ElemType getIOHelperType<_tetrahedron_10>() { return iohelper::TETRA2; }
-template <> iohelper::ElemType getIOHelperType<_hexahedron_8>()   { return iohelper::HEX1; }
+template <> static iohelper::ElemType getIOHelperType<_segment_2>()      { return iohelper::LINE1; }
+template <> static iohelper::ElemType getIOHelperType<_segment_3>()      { return iohelper::LINE2; }
+template <> static iohelper::ElemType getIOHelperType<_triangle_3>()     { return iohelper::TRIANGLE1; }
+template <> static iohelper::ElemType getIOHelperType<_triangle_6>()     { return iohelper::TRIANGLE2; }
+template <> static iohelper::ElemType getIOHelperType<_quadrangle_4>()   { return iohelper::QUAD1; }
+template <> static iohelper::ElemType getIOHelperType<_quadrangle_8>()   { return iohelper::QUAD2; }
+template <> static iohelper::ElemType getIOHelperType<_tetrahedron_4>()  { return iohelper::TETRA1; }
+template <> static iohelper::ElemType getIOHelperType<_tetrahedron_10>() { return iohelper::TETRA2; }
+template <> static iohelper::ElemType getIOHelperType<_hexahedron_8>()   { return iohelper::HEX1; }
 
 static iohelper::ElemType getIOHelperType(ElementType type) {
   iohelper::ElemType ioh_type;

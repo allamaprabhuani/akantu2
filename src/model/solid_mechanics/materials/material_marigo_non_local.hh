@@ -82,8 +82,6 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
 private:
-  template<class WeightFunction>
-  void initWeightFuncion() {};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
