@@ -49,32 +49,36 @@
 \newcommand\elemdshapeoned{\ensuremath{\left(\partial N_i/\partial\xi\right)}}
 \newcommand\elemdshapetwod{\ensuremath{\left(\partial N_i/\partial\xi,\partial N_i/\partial\eta\right)}}
 \newcommand\elemdshapethreed{\ensuremath{\left(\partial N_i/\partial\xi,\partial N_i/\partial\eta,\partial N_i/\partial\zeta\right)}}
+\newcommand\inelemone[1]{\ensuremath{#1}}
+\newcommand\inelemtwo[2]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2 \;} \end{pmatrix}}}
+\newcommand\inelemthree[3]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2} & \!,\! & {#3 \;} \end{pmatrix}}}
+\newcommand\inquadone[1]{\ensuremath{#1}}
+\newcommand\inquadtwo[2]{\ensuremath{\left(\, #1 \, , \, #2 \,\right)}}
+\newcommand\inquadthree[3]{\ensuremath{\left(\, #1 \, , \, #2 \, , \, #3 \,\right)}}
 \newenvironment{Element}[1]
-  {\begin{table*}[!htbp]\small\begin{center}
-   \renewcommand{\arraystretch}{1.50}
-   \begin{tabular}{c|c|c|ccc}
+  {\begin{table*}[!htbp]\footnotesize\begin{center}
+   \ifthenelse{\equal{#1}{1D}}{\renewcommand{\arraystretch}{1.50}}{}
+   \ifthenelse{\equal{#1}{2D}}{\renewcommand{\arraystretch}{1.60}}{}
+   \ifthenelse{\equal{#1}{3D}}{\renewcommand{\arraystretch}{1.70}}{}
+   \begin{tabular}{c|c|c|c}
    Node ($i$) & Coord. 
    \ifthenelse{\equal{#1}{1D}}{\elemcooroned}{}
    \ifthenelse{\equal{#1}{2D}}{\elemcoortwod}{}
    \ifthenelse{\equal{#1}{3D}}{\elemcoorthreed}{}
-   & Shape function ($N_{i}$) & \multicolumn{3}{l}{Derivative %of shape function
-   \ifthenelse{\equal{#1}{1D}}{\elemdshapeoned}{}
-   \ifthenelse{\equal{#1}{2D}}{\elemdshapetwod}{}
-   \ifthenelse{\equal{#1}{3D}}{\elemdshapethreed}{}
-   }\\
+   & Shape function ($N_{i}$)
+   & {Derivative
+      \ifthenelse{\equal{#1}{1D}}{\elemdshapeoned}{}
+      \ifthenelse{\equal{#1}{2D}}{\elemdshapetwod}{}
+      \ifthenelse{\equal{#1}{3D}}{\elemdshapethreed}{}
+     }\\
    \elemline
   }
   {\end{tabular}\end{center}\end{table*}}
-\newenvironment{QuadPoints}[1]
-  {\begin{table*}[!htbp]\begin{center}
+\newenvironment{QuadPoints}
+  {\begin{table*}[!htbp]\footnotesize\begin{center}
    \renewcommand{\arraystretch}{1.50}
-   \ifthenelse{\equal{#1}{1}}{\begin{tabular*}{0.95\textwidth}{l|c}}{}
-   \ifthenelse{\equal{#1}{2}}{\begin{tabular*}{0.95\textwidth}{l|cc}}{}
-   \ifthenelse{\equal{#1}{3}}{\begin{tabular*}{0.95\textwidth}{l|ccc}}{}
-   \ifthenelse{\equal{#1}{4}}{\begin{tabular*}{0.95\textwidth}{l|cccc}}{}
-   \ifthenelse{\equal{#1}{5}}{\begin{tabular*}{0.95\textwidth}{l|ccccc}}{}
   }
-  {\end{tabular*}\end{center}\end{table*}}
+  {\end{center}\end{table*}}
 
 % Nice coloring
 \usepackage[dvipsnames,usenames,table]{xcolor}
