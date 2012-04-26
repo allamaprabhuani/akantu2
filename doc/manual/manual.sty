@@ -44,23 +44,31 @@
 % A special environment for element tables
 \newcommand\elemline{\hline}%{\noalign{\smallskip}\hline\noalign{\smallskip}}
 \newcommand\elemcooroned{\ensuremath{\left(\xi\right)}}
-\newcommand\elemcoortwod{\ensuremath{\left(\xi,\eta\right)}}
-\newcommand\elemcoorthreed{\ensuremath{\left(\xi,\eta,\zeta\right)}}
+\newcommand\elemcoortwod{\ensuremath{\left(\xi\;,\;\eta\right)}}
+\newcommand\elemcoorthreed{\ensuremath{\left(\xi\;,\;\eta\;,\;\zeta\right)}}
 \newcommand\elemdshapeoned{\ensuremath{\left(\partial N_i/\partial\xi\right)}}
-\newcommand\elemdshapetwod{\ensuremath{\left(\partial N_i/\partial\xi,\partial N_i/\partial\eta\right)}}
-\newcommand\elemdshapethreed{\ensuremath{\left(\partial N_i/\partial\xi,\partial N_i/\partial\eta,\partial N_i/\partial\zeta\right)}}
+\newcommand\elemdshapetwod{\ensuremath{\left(\partial N_i/\partial\xi\;,\;\partial N_i/\partial\eta\right)}}
+\newcommand\elemdshapethreed{\ensuremath{\left(\partial N_i/\partial\xi\;,\;\partial N_i/\partial\eta\;,\;\partial N_i/\partial\zeta\right)}}
 \newcommand\inelemone[1]{\ensuremath{#1}}
-\newcommand\inelemtwo[2]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2 \;} \end{pmatrix}}}
-\newcommand\inelemthree[3]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2} & \!,\! & {#3 \;} \end{pmatrix}}}
+%\newcommand\inelemtwo[2]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2 \;} \end{pmatrix}}}
+%\newcommand\inelemthree[3]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2} & \!,\! & {#3 \;} \end{pmatrix}}}
+\newcommand\inelemtwo[2]{\ensuremath{\left( {\; #1} \; , \; {#2 \;} \right)}}
+\newcommand\inelemthree[3]{\ensuremath{\left( {\; #1} \; , \; {#2} \; , \; {#3 \;} \right)}}
 \newcommand\inquadone[1]{\ensuremath{#1}}
 \newcommand\inquadtwo[2]{\ensuremath{\left(\, #1 \, , \, #2 \,\right)}}
 \newcommand\inquadthree[3]{\ensuremath{\left(\, #1 \, , \, #2 \, , \, #3 \,\right)}}
+%\newcommand\quada{\tfrac{1}{20}\left(5-\sqrt{5}\right)}
+%\newcommand\quadb{\tfrac{1}{20}\left(5+3\sqrt{5}\right)}
+\newcommand\quada{\tfrac{\left(5-\sqrt{5}\right)}{20}}
+\newcommand\quadb{\tfrac{\left(5+3\sqrt{5}\right)}{20}}
 \newenvironment{Element}[1]
-  {\begin{table*}[!htbp]\footnotesize\begin{center}
+  {\begin{table*}[!htbp]\footnotesize
    \ifthenelse{\equal{#1}{1D}}{\renewcommand{\arraystretch}{1.50}}{}
    \ifthenelse{\equal{#1}{2D}}{\renewcommand{\arraystretch}{1.60}}{}
    \ifthenelse{\equal{#1}{3D}}{\renewcommand{\arraystretch}{1.70}}{}
+   \textbf{{\normalsize Element properties}}\newline\vspace*{0.5\baselineskip}
    \begin{tabular}{c|c|c|c}
+   %\multicolumn{4}{l}{\textbf{{\normalsize Element properties}}} \\
    Node ($i$) & Coord. 
    \ifthenelse{\equal{#1}{1D}}{\elemcooroned}{}
    \ifthenelse{\equal{#1}{2D}}{\elemcoortwod}{}
@@ -73,12 +81,14 @@
      }\\
    \elemline
   }
-  {\end{tabular}\end{center}\end{table*}}
-\newenvironment{QuadPoints}
-  {\begin{table*}[!htbp]\footnotesize\begin{center}
+  {\end{tabular}\end{table*}}
+\newenvironment{QuadPoints}%[1]
+  {\vspace*{-\baselineskip}
+   \begin{table*}[!htbp]\footnotesize
    \renewcommand{\arraystretch}{1.50}
+   \textbf{{\normalsize Gaussian quadrature points}}\newline\vspace*{0.5\baselineskip}
   }
-  {\end{center}\end{table*}}
+  {\end{table*}}
 
 % Nice coloring
 \usepackage[dvipsnames,usenames,table]{xcolor}
