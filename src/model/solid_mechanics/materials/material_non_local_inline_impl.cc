@@ -33,6 +33,7 @@ __END_AKANTU__
 #include "grid_synchronizer.hh"
 #include "synchronizer_registry.hh"
 /* -------------------------------------------------------------------------- */
+#include <iostream>
 #include <fstream>
 /* -------------------------------------------------------------------------- */
 
@@ -42,7 +43,8 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<class WeightFunction>
 MaterialNonLocal<WeightFunction>::MaterialNonLocal(Model & model, const ID & id)  :
-  Material(model, id), weight_func(NULL), cell_list(NULL) {
+  Material(model, id), weight_func(NULL), cell_list(NULL),
+  update_weigths(0), compute_stress_calls(0) {
   AKANTU_DEBUG_IN();
 
   is_non_local = true;
@@ -68,12 +70,8 @@ template<class WeightFunction>
 void MaterialNonLocal<WeightFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
   //  Material::initMaterial();
-
-  Mesh & mesh = this->model->getFEM().getMesh();
   ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
-  mesh.initByElementTypeVector(quadrature_points_coordinates,
-                               spatial_dimension, 0);
-  computeQuadraturePointsCoordinates(mesh.getNodes(), quadrature_points_coordinates);
+  computeQuadraturePointsCoordinates(quadrature_points_coordinates);
 
   weight_func->setRadius(radius);
   weight_func->init();
@@ -90,6 +88,15 @@ void MaterialNonLocal<WeightFunction>::initMaterial() {
 template<class WeightFunction>
 void MaterialNonLocal<WeightFunction>::updateResidual(Vector<Real> & displacement, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+  // Update the weights for the non local variable averaging
+  if(ghost_type == _not_ghost && this->update_weigths && (this->compute_stress_calls % this->update_weigths == 0)) {
+    ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+    computeQuadraturePointsCoordinates(quadrature_points_coordinates);
+    computeWeights(quadrature_points_coordinates);
+  }
+  if(ghost_type == _not_ghost) ++this->compute_stress_calls;
+
 
   computeStress(displacement, ghost_type);
   computeNonLocalStress(ghost_type);
@@ -127,8 +134,7 @@ void MaterialNonLocal<WeightFunction>::weightedAvergageOnNeighbours(const ByElem
 
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-
-    Real * pair_w = weights.storage();
+    Vector<Real>::const_iterator< types::Vector<Real> > pair_w = weights.begin(2);
 
     typename Vector<T>::template const_iterator< types::Vector<T> > to_acc_it = to_acc.begin(nb_degree_of_freedom);
     typename Vector<T>::template iterator< typename types::Vector<T> > acc_it = acc.begin(nb_degree_of_freedom);
@@ -136,8 +142,10 @@ void MaterialNonLocal<WeightFunction>::weightedAvergageOnNeighbours(const ByElem
     for(;first_pair != last_pair; ++first_pair, ++pair_w) {
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
-      for(UInt d = 0; d < nb_degree_of_freedom; ++d)
-	acc_it[q1](d) += *pair_w * to_acc_it[q2](d);
+      for(UInt d = 0; d < nb_degree_of_freedom; ++d) {
+	acc_it[q1](d) += (*pair_w)(0) * to_acc_it[q2](d);
+	acc_it[q2](d) += (*pair_w)(1) * to_acc_it[q1](d);
+      }
     }
   }
 
@@ -304,7 +312,7 @@ void MaterialNonLocal<WeightFunction>::updatePairList(const ByElementTypeReal & 
           const types::RVector & neigh_quad = quad.getPosition();
 
           Real distance = first_quad->distance(neigh_quad);
-          if(distance <= radius) {
+          if(distance <= radius && my_num_quad <= neigh_num_quad) { // sotring only half lists
             UInt pair[2];
             pair[0] = my_num_quad;
 	    pair[1] = neigh_num_quad;
@@ -334,6 +342,7 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
   ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
   this->model->getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
 
+  weight_func->updateInternals(quadrature_points_volumes);
 
   // Compute the weights
   first_pair_types = existing_pairs.begin();
@@ -346,7 +355,7 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
     ByElementTypeReal & weights_type_1 = pair_weight(type1, ghost_type1);
     Vector<Real> * tmp_weight = NULL;
     if(!weights_type_1.exists(type2, ghost_type2)) {
-      tmp_weight = &(weights_type_1.alloc(0, 1, type2, ghost_type2));
+      tmp_weight = &(weights_type_1.alloc(0, 2, type2, ghost_type2));
     } else {
       tmp_weight = &(weights_type_1(type2, ghost_type2));
     }
@@ -370,7 +379,7 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
 
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-    Vector<Real>::iterator<Real> weight  = weights.begin();
+    Vector<Real>::iterator<types::RVector> weight  = weights.begin(2);
 
     this->weight_func->selectType(type1, ghost_type1, type2, ghost_type2);
 
@@ -384,9 +393,14 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
       QuadraturePoint q2(_q2 / nb_quad2, _q2 % nb_quad2, _q2, pos2, type2, ghost_type2);
 
       Real r = pos1.distance(pos2);
-      *weight = this->weight_func->operator()(r, q1, q2);
+      (*weight)(0) = this->weight_func->operator()(r, q1, q2);
+      if(_q1 != _q2)
+	(*weight)(1) = this->weight_func->operator()(r, q2, q1);
+      else
+	(*weight)(1) = 0;
 
-      quads_volumes(_q1) += *weight;
+      quads_volumes(_q1) += (*weight)(0);
+      quads_volumes(_q2) += (*weight)(1);
     }
   }
 
@@ -403,11 +417,13 @@ void MaterialNonLocal<WeightFunction>::computeWeights(const ByElementTypeReal & 
 
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-    Vector<Real>::iterator<Real> weight  = weights.begin();
+    Vector<Real>::iterator<types::RVector> weight  = weights.begin(2);
 
     for(;first_pair != last_pair; ++first_pair, ++weight) {
       UInt q1 = (*first_pair)(0);
-      *weight *= 1. / quads_volumes(q1);
+      UInt q2 = (*first_pair)(1);
+      (*weight)(0) *= 1. / quads_volumes(q1);
+      (*weight)(1) *= 1. / quads_volumes(q2);
     }
   }
 
@@ -420,6 +436,7 @@ bool MaterialNonLocal<WeightFunction>::setParam(const std::string & key, const s
 						__attribute__((unused)) const ID & id) {
   std::stringstream sstr(value);
   if(key == "radius") { sstr >> radius; }
+  else if(key == "UpdateWeights") { sstr >> update_weigths; }
   else if(!weight_func->setParam(key, value)) return false;
   return true;
 }
@@ -446,12 +463,12 @@ void MaterialNonLocal<WeightFunction>::savePairs(const std::string & filename) c
 
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-    Real * pair_w = weights.storage();
+    Vector<Real>::const_iterator<types::RVector> pair_w = weights.begin(2);
 
     for(;first_pair != last_pair; ++first_pair, ++pair_w) {
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
-      pout << q1 << " " << q2 << " "<< *pair_w << std::endl;
+      pout << q1 << " " << q2 << " "<< (*pair_w)(0) << " " << (*pair_w)(1) << std::endl;
     }
   }
 }
@@ -481,10 +498,13 @@ void MaterialNonLocal<WeightFunction>::neighbourhoodStatistics(const std::string
     pout << "Types : " << first_pair_types->first << " " << first_pair_types->second << std::endl;
     Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
     Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-    Vector<UInt> & nb_neigh = nb_neighbors(first_pair_types->first, ghost_type1);
-
+    Vector<UInt> & nb_neigh_1 = nb_neighbors(first_pair_types->first, ghost_type1);
+    Vector<UInt> & nb_neigh_2 = nb_neighbors(first_pair_types->second, ghost_type2);
     for(;first_pair != last_pair; ++first_pair) {
-      ++(nb_neigh((*first_pair)(0)));
+      UInt q1 = (*first_pair)(0);
+      UInt q2 = (*first_pair)(1);
+      ++(nb_neigh_1(q1));
+      if(q1 != q2) ++(nb_neigh_2(q2));
     }
   }
 
@@ -525,6 +545,7 @@ void MaterialNonLocal<WeightFunction>::printself(std::ostream & stream, int inde
 
   stream << space << "Material<_non_local> [" << std::endl;
   stream << space << " + Radius          : " << radius << std::endl;
+  stream << space << " + UpdateWeights   : " << update_weigths << std::endl;
   stream << space << " + Weight Function : " << *weight_func << std::endl;
   stream << space << "]" << std::endl;
 }

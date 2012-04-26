@@ -153,8 +153,7 @@ protected:
   void computePotentialEnergyByElement();
 
 
-  void computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coordinates,
-                                          ByElementTypeReal & quadrature_points_coordinates);
+  void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const;
 
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */

@@ -127,6 +127,12 @@ private:
 
   /// the types of the existing pairs
   std::set< std::pair<ElementType, ElementType> > existing_pairs;
+
+  /// specify if the weights should be updated and at which rate
+  UInt update_weigths;
+
+  /// count the number of calls of computeStress
+  UInt compute_stress_calls;
 };
 
 

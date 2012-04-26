@@ -48,6 +48,8 @@ public:
 
   virtual void init() {};
 
+  virtual void updateInternals(__attribute__((unused)) const ByElementTypeReal & quadrature_points_coordinates) {};
+
   /* ------------------------------------------------------------------------ */
   inline void setRadius(Real radius) { R = radius; R2 = R * R; }
 
@@ -135,6 +137,11 @@ public:
   StressBasedWeightFunction(const Material & material);
 
   void init();
+
+  virtual void updateInternals(__attribute__((unused)) const ByElementTypeReal & quadrature_points_coordinates) {
+    updatePrincipalStress(_not_ghost);
+    updatePrincipalStress(_ghost);
+  };
 
   void updatePrincipalStress(GhostType ghost_type);
 

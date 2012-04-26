@@ -300,7 +300,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     if(intersects_proc[p]) {
       ElementType type = _not_defined;
       do {
-        UInt info[2];
+        UInt info[2] = { 0 };
         comm->receive(info, 2, p, GEN_TAG(p, count, SIZE_TAG));
 
         type = (ElementType) info[0];

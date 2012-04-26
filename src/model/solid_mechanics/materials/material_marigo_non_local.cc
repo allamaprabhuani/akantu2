@@ -38,54 +38,26 @@ __BEGIN_AKANTU__
 MaterialMarigoNonLocal::MaterialMarigoNonLocal(Model & model, const ID & id)  :
   Material(model, id), MaterialElastic(model, id),
   MaterialMarigo(model, id), MaterialNonLocalParent(model, id),
-  Y("Y", id), update_weigths(0), compute_stress_calls(0) {
+  Y("Y", id) {
   AKANTU_DEBUG_IN();
 
   is_non_local = true;
-  // StressBasedWeightFunction * weight_function =
-  //   new StressBasedWeightFunction(*this);
 
   initInternalVector(this->Y, 1);
 
   AKANTU_DEBUG_OUT();
 }
 
-// /* -------------------------------------------------------------------------- */
-// template<>
-// void MaterialMarigoNonLocal::initWeightFuncion<BaseWeightFunction>() {
-//   BaseWeightFunction * weight_function = new BaseWeightFunction(radius);
-//   MaterialNonLocalParent::initMaterial(*weight_function);
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<>
-// void MaterialMarigoNonLocal::initWeightFuncion<DamagedWeightFunction>() {
-//   DamagedWeightFunction * weight_function = new DamagedWeightFunction(radius, damage);
-//   MaterialNonLocalParent::initMaterial(*weight_function);
-// }
-
-/* -------------------------------------------------------------------------- */
-// template<>
-// void MaterialMarigoNonLocal::initWeightFuncion<StressBasedWeightFunction>() {
-//   const Mesh & mesh = model->getFEM().getMesh();
-
-//   //  weight_function->setQuadraturePointsCoordinates(quadrature_points_coordinates);
-//   weight_func->updatePrincipalStress(_not_ghost);
-//   weight_func->updatePrincipalStress(_ghost);
-
-// }
-
 /* -------------------------------------------------------------------------- */
 void MaterialMarigoNonLocal::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMarigo::initMaterial();
 
-  //  initWeightFuncion<MarigoNonLocalWeightFunction>();
+
   if(StressBasedWeightFunction * wf =
      dynamic_cast<StressBasedWeightFunction *>(weight_func)){
     wf->updatePrincipalStress(_not_ghost);
     wf->updatePrincipalStress(_ghost);
-
   }
 
   MaterialNonLocalParent::initMaterial();
@@ -107,24 +79,6 @@ void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_
   Real * dam = damage(el_type, ghost_type).storage();
   Real * Yt = Y(el_type, ghost_type).storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
-
-  // Update the weights for the non local variable averaging
-  const Mesh & mesh = model->getFEM().getMesh();
-  if(update_weigths && (compute_stress_calls % update_weigths == 0)) {
-    ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
-    mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
-    Vector<Real> coordinates(mesh.getNodes(), true);
-    coordinates += model->getDisplacement();
-    computeQuadraturePointsCoordinates(coordinates, quadrature_points_coordinates);
-
-    if(StressBasedWeightFunction * wf =
-       dynamic_cast<StressBasedWeightFunction *>(weight_func)){
-      wf->updatePrincipalStress(ghost_type);
-    }
-    computeWeights(quadrature_points_coordinates);
-  }
-  if(ghost_type == _not_ghost) ++compute_stress_calls;
-
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -216,13 +170,8 @@ void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
 /* -------------------------------------------------------------------------- */
 bool MaterialMarigoNonLocal::setParam(const std::string & key, const std::string & value,
                                const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "UpdateWeights") { sstr >> update_weigths; }
-  else {
-    return MaterialNonLocalParent::setParam(key, value, id) ||
-      MaterialMarigo::setParam(key, value, id);
-  }
-  return true;
+  return MaterialNonLocalParent::setParam(key, value, id) ||
+    MaterialMarigo::setParam(key, value, id);
 }
 
 
@@ -232,7 +181,6 @@ void MaterialMarigoNonLocal::printself(std::ostream & stream, int indent) const 
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_marigo_non_local> [" << std::endl;
-  stream << space << " + UpdateWeights  : " << update_weigths << std::endl;
   MaterialMarigo::printself(stream, indent + 1);
   MaterialNonLocalParent::printself(stream, indent + 1);
   stream << space << "]" << std::endl;

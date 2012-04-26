@@ -83,6 +83,8 @@ void StressBasedWeightFunction::init() {
 
 /* -------------------------------------------------------------------------- */
 void StressBasedWeightFunction::updatePrincipalStress(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
   const Mesh & mesh = material.getModel().getFEM().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
@@ -115,6 +117,7 @@ void StressBasedWeightFunction::updatePrincipalStress(GhostType ghost_type) {
       //      if (q == 17774) std::cout << "After " << *eigenvalues;
     }
   }
+  AKANTU_DEBUG_OUT();
 }
 
 

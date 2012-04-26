@@ -98,7 +98,7 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
       send_buffer[d] = dof_global_id[master_dofs[d]];
     }
 
-    UInt nb_slave_dofs;
+    UInt nb_slave_dofs = 0;
     UInt * recv_buffer;
     std::vector<CommunicationRequest *> requests;
     requests.push_back(communicator->asyncSend(&nb_master_dofs, 1, sendto, 0));

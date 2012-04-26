@@ -386,7 +386,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     UInt * nodes_per_proc[nb_proc];
     /* --------<<<<-NB_NODES + NODES----------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
-      UInt nb_nodes;
+      UInt nb_nodes = 0;
       //      UInt * buffer;
       if(p != root) {
         AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
@@ -497,7 +497,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     ElementType type = _not_defined;
     do {
       /* --------<<<<-SIZE--------------------------------------------------- */
-      UInt size[6];
+      UInt size[6] = { 0 };
       comm->receive(size, 6, root, TAG_SIZES);
 
       type          = (ElementType) size[0];

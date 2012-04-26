@@ -34,7 +34,7 @@ macro(add_optional_package PACKAGE DESC DEFAULT)
   option(${_option_name} ${DESC} ${DEFAULT})
 
   if(${_option_name})
-    if(${PACKAGE} MATCHES BLAS)
+    if("${PACKAGE}" STREQUAL "BLAS" OR "${PACKAGE}" STREQUAL "LAPACK")
       enable_language(Fortran)
     endif()
     find_package(${PACKAGE} REQUIRED)

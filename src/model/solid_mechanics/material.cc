@@ -453,18 +453,22 @@ Real Material::getPotentialEnergy() {
 
 
 /* -------------------------------------------------------------------------- */
-void Material::computeQuadraturePointsCoordinates(const Vector<Real> & nodes_coordinates,
-						  ByElementTypeReal & quadrature_points_coordinates) {
+void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = model->getFEM().getMesh();
+  mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
+  Vector<Real> nodes_coordinates(mesh.getNodes(), true);
+  nodes_coordinates += model->getDisplacement();
+
+  
 
   for(UInt gt =  (UInt) _not_ghost; gt < (UInt) _casper; ++gt) {
     GhostType ghost_type = (GhostType) gt;
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
     Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
     for(; it != last_type; ++it) {
-      Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+      const Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
 
       UInt nb_element  = elem_filter.getSize();
       UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(*it, ghost_type) * nb_element;
