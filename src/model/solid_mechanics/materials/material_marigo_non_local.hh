@@ -45,7 +45,7 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-typedef StressBasedWeightFunction MarigoNonLocalWeightFunction;
+typedef BaseWeightFunction MarigoNonLocalWeightFunction;
 class MaterialMarigoNonLocal : public MaterialMarigo,
 			       public MaterialNonLocal<MarigoNonLocalWeightFunction> {
   /* ------------------------------------------------------------------------ */

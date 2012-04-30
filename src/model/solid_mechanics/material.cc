@@ -461,8 +461,6 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
   Vector<Real> nodes_coordinates(mesh.getNodes(), true);
   nodes_coordinates += model->getDisplacement();
 
-  
-
   for(UInt gt =  (UInt) _not_ghost; gt < (UInt) _casper; ++gt) {
     GhostType ghost_type = (GhostType) gt;
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);

@@ -97,8 +97,11 @@ void MaterialMazarsNonLocal::computeNonLocalStress(GhostType ghost_type) {
   initInternalVector(nl_var, 1);
   resizeInternalVector(nl_var);
 
+#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE 
+  weightedAvergageOnNeighbours(damage, nl_var, 1);
+#else
   weightedAvergageOnNeighbours(Ehat, nl_var, 1);
-  //weightedAvergageOnNeighbours(damage, nl_var, 1);
+#endif
 
   UInt spatial_dimension = model->getSpatialDimension();
 
@@ -116,8 +119,11 @@ void MaterialMazarsNonLocal::computeNonLocalStress(GhostType ghost_type) {
 void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & non_loc_var, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE 
+  Real * Ehatt = Ehat(el_type, ghost_type).storage();
+#else
   Real * dam   = damage(el_type, ghost_type).storage();
-  //Real * Ehatt = Ehat(el_type, ghost_type).storage();
+#endif
 
   Real * nl_var = non_loc_var.storage();
 
@@ -133,11 +139,13 @@ void MaterialMazarsNonLocal::computeNonLocalStress(Vector<Real> & non_loc_var, E
       sigma[3 * i + j] = stress_val[spatial_dimension*i + j];
     }
 
+#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE 
+  computeDamageAndStress(F, sigma, *nl_var, *Ehatt);
+  ++Ehatt;
+#else
   computeDamageAndStress(F, sigma, *dam, *nl_var);
   ++dam;
-
-  //computeDamageAndStress(F, sigma, *nl_var, *Ehatt);
-  //++Ehatt;
+#endif
 
   ++nl_var;
 

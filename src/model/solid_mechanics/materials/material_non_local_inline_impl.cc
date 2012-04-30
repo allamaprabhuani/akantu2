@@ -140,8 +140,8 @@ void MaterialNonLocal<WeightFunction>::weightedAvergageOnNeighbours(const ByElem
       UInt q1 = (*first_pair)(0);
       UInt q2 = (*first_pair)(1);
       for(UInt d = 0; d < nb_degree_of_freedom; ++d){
-	acc(q1, d) += *pair_w * to_acc(q2, d);
-	acc(q2, d) += *pair_w * to_acc(q1, d);
+	acc(q1, d) += (*pair_w)(0) * to_acc(q2, d);
+	acc(q2, d) += (*pair_w)(1) * to_acc(q1, d);
       }
     }
   }
