@@ -438,36 +438,45 @@ void SolidMechanicsModel::updateResidualInternal() {
 void SolidMechanicsModel::updateAcceleration() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = acceleration->getSize();
-  UInt nb_degree_of_freedom = acceleration->getNbComponent();
-
   updateResidualInternal();
 
   if(!implicit && !mass_matrix) {
-
-    Real * mass_val     = mass->values;
-    Real * residual_val = residual->values;
-    bool * boundary_val = boundary->values;
-    Real * inc = increment_acceleration->values;
-    Real * accel_val    = acceleration->values;
-
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      for (UInt d = 0; d < nb_degree_of_freedom; d++) {
-	if(!(*boundary_val)) {
-	  *inc = f_m2a * (*residual_val / *mass_val);
-	}
-	residual_val++;
-	boundary_val++;
-	inc++;
-	mass_val++;
-	accel_val++;
-      }
-    }
+    /* residual = residual_{n+1} - M * acceleration_n therefore
+       solution = increment acceleration not acceleration */
+    solveLumped(*increment_acceleration,
+		*mass,
+		*residual,
+		*boundary,
+		f_m2a);
   } else {
     solveDynamic<NewmarkBeta::_acceleration_corrector>(*increment_acceleration);
   }
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::solveLumped(Vector<Real> & x,
+				      const Vector<Real> & A,
+				      const Vector<Real> & b,
+				      const Vector<bool> & boundary,
+				      Real alpha) {
+  Real * A_val = A.storage();
+  Real * b_val = b.storage();
+  Real * x_val = x.storage();
+  bool * boundary_val = boundary.storage();
+  
+  UInt nb_degrees_of_freedom = x.getSize() * x.getNbComponent();
+  
+  for (UInt n = 0; n < nb_degrees_of_freedom; ++n) {
+    if(!(*boundary_val)) {
+      *x_val = alpha * (*b_val / *A_val);
+    }
+    x_val++;
+    A_val++;
+    b_val++;
+    boundary_val++;
+  }
 }
 
 /* -------------------------------------------------------------------------- */

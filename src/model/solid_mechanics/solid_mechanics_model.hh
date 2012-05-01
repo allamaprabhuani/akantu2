@@ -148,6 +148,13 @@ public:
    */
   void updateAcceleration();
 
+  /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
+  void solveLumped(Vector<Real> & x, 
+		   const Vector<Real> & A,
+		   const Vector<Real> & b,
+		   const Vector<bool> & boundary,
+		   Real alpha);
+
   /// explicit integration predictor
   void explicitPred();
 
