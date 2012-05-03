@@ -1,5 +1,5 @@
 \section{Structural  Mechanics   model\todo{Till}}
-Static    structure   mechanics    problems   can    be   handled    using   the
+Static    structural   mechanics    problems   can    be   handled    using   the
 \code{StructuralMechanicsModel}.  So far, \akantu\  provides 2D and 3D Bernoulli
 beam elements \cite{frey2009}.  Just  as for the \code{SolidMechanicsModel}, the
 model  is created  for  a given  \code{Mesh}.   The model  will  create its  own
@@ -174,18 +174,18 @@ to converge in one iteration.}
   \textbf{displacement} vector is also updated to the new displacements.
 \end{itemize}
 
-At the end of the analysis the final solution is stored in the
-\textbf{displacement} vector.  A full example of how to solve a
-structure mechanics problem is presented in the code
-\code{example/manual/WHERE-DO-EXAMPLES-GO?}.  This example is composed
-of a 2D beam, clamped at the left end and supported by two rollers as
-shown in Figure \ref{fig:structMechMod:exem1_1}. The problem is
-defined by the applied load $q=\unit{6}{\kilo\newton\per\metre}$,
-moment $\bar{M} = \unit{3.6}{\kilo\newton\metre}$, moments of inertia
-$I_1 = \unit{250\,000}{\power{\centi\metre}{4}}$ and $I_2 =
-\unit{128\,000}{\power{\centi\metre}{4}}$ and lengths $L_1 =
-\unit{10}{\metre}$ and $L_2 = \unit{8}{\metre}$.  The resulting
-rotations at node two and three are $  \varphi_2 = 0.001\,167\ \mbox{and}\ \varphi_3 = -0.000\,771.$
+At   the  end   of  the   analysis  the   final  solution   is  stored   in  the
+\textbf{displacement}  vector.  A  full example  of  how to  solve a  structural
+mechanics       problem        is       presented       in        the       code
+\code{example/manual/WHERE-DO-EXAMPLES-GO?}.  This  example is composed  of a 2D
+beam, clamped at  the left end and  supported by two rollers as  shown in Figure
+\ref{fig:structMechMod:exem1_1}.  The problem  is  defined by  the applied  load
+$q=\unit{6}{\kilo\newton\per\metre}$,          moment         $\bar{M}         =
+\unit{3.6}{\kilo\newton\metre}$,      moments     of     inertia      $I_1     =
+\unit{250\,000}{\power{\centi\metre}{4}}$           and          $I_2          =
+\unit{128\,000}{\power{\centi\metre}{4}}$ and  lengths $L_1 = \unit{10}{\metre}$
+and $L_2 = \unit{8}{\metre}$.  The resulting rotations at node two and three are
+$ \varphi_2 = 0.001\,167\ \mbox{and}\ \varphi_3 = -0.000\,771.$
 
 
  \begin{figure}[htb]
