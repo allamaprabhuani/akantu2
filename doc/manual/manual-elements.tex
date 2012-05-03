@@ -37,6 +37,29 @@ Element type & Order & \# nodes & \# quad. points \\
 \label{tab:elements:1D}
 \end{table}
 
+
+\subsection{Bernoulli beam elements \index{Bernoulli}}
+These elements allow to compute the displacements and rotations of structures constituted by Bernoulli beams. \akantu defines them for both 2D and 3D problems in the element types \code{\_bernoulli\_beam\_2} and \code{\_bernoulli\_beam\_3}. A schematic depiction of a beam element is shown in Figure~\ref{fig:elements:bernoulli} and some of its properties are listed in Table~\ref{tab:elements:bernoulli}.
+
+\note{Beam elements are of mixed order: the axial displacement is linearly interpolated while transverse displacements and rotations use cubic shape functions.}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=1.1]{figures/elements/bernoulli_2}
+  \caption{A schematic depiction of a Bernoulli beam element (applies to 2D and 3D) in \akantu. The node numbering as used in \akantu is indicated and also the quadrature points are highlighted (gray disks).}
+  \label{fig:elements:bernoulli}
+\end{figure}
+\begin{table}[htb]
+  \centering
+  \begin{tabular}{c||c|c|c|c}
+    Element type &\#nodes &\#quad. points & \#dimensions & \#d.o.f.\\\hline\hline
+    \code{\_bernoulli\_beam\_2} & 2&3 &2 &4\\\hline
+    \code{\_bernoulli\_beam\_2} & 2&3 &3 &6
+  \end{tabular}
+  \caption{Some basic properties of \akantu's beam elements}
+  \label{tab:elements:bernoulli}
+\end{table}
+
 %%%%%%%%%% 2D %%%%%%%%%
 \subsection{Isoparametric Elements in 2D\index{Elements!2D}}
 
@@ -123,3 +146,12 @@ Element type & Order & \# nodes & \# quad. points  \\
 \caption{Some basic properties of the three 3D isoparametric elements in \akantu.}
 \label{tab:elements:3D}
 \end{table}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:
+
+
