@@ -259,6 +259,19 @@ template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep, const ID 
 }
 
 /* -------------------------------------------------------------------------- */
+template <class T> Vector<T>::Vector(const std::vector<T>& vect) {
+  AKANTU_DEBUG_IN();
+  this->id = "";
+
+  allocate(vect.size(), 1);
+  T * tmp = values;
+  std::uninitialized_copy(&(vect[0]), &(vect[size-1]), tmp);
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::~Vector () {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG(dblAccessory, "Freeing "
@@ -515,8 +528,8 @@ class Vector<T>::iterator_internal : public std::iterator<std::random_access_ite
 /* -------------------------------------------------------------------------- */
 template<class T>
 template<class R, class IR, int fps>
-//class Vector<T>::iterator_internal : private std::iterator<std::random_access_iterator_tag, R> {
-class Vector<T>::iterator_internal {
+class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
+  //class Vector<T>::iterator_internal {
 public:
   typedef R   value_type;
   typedef R*  pointer;
@@ -667,6 +680,7 @@ inline Vector<Real>::iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) {
   return iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
 }
 
+
 /* -------------------------------------------------------------------------- */
 template<>
 inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) const {
@@ -685,6 +699,78 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
   return const_iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
 }
 
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::iterator< types::Matrix >
+Vector<Real>::begin_reinterpret(UInt m, UInt n,
+			       UInt size,
+			       UInt nb_component) {
+  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << nb_component <<
+		      ") are not compatible with the one of this vector");
+
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+
+  return iterator< types::Matrix >(new types::Matrix(values, m, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::iterator< types::Matrix >
+Vector<Real>::end_reinterpret(UInt m, UInt n,
+			      UInt size,
+			      UInt nb_component) {
+  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << nb_component <<
+		      ") are not compatible with the one of this vector");
+
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+
+  return iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::const_iterator< types::Matrix >
+Vector<Real>::begin_reinterpret(UInt m, UInt n,
+			       UInt size,
+			       UInt nb_component) const {
+  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << nb_component <<
+		      ") are not compatible with the one of this vector");
+
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+
+  return const_iterator< types::Matrix >(new types::Matrix(values, m, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Vector<Real>::const_iterator< types::Matrix >
+Vector<Real>::end_reinterpret(UInt m, UInt n,
+			      UInt size,
+			      UInt nb_component) const {
+  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << nb_component <<
+		      ") are not compatible with the one of this vector");
+
+  AKANTU_DEBUG_ASSERT(nb_component == n*m,
+		      "The iterator is not compatible with the type Matrix("
+		      << m << "," << n<< ")");
+
+  return const_iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+}
 
 // template<typename T>
 // template<int fps>
@@ -724,15 +810,13 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
   typedef T*  internal_pointer;						\
   protected:								\
   iterator_internal(UInt offset, pointer data, pointer ret) :		\
-    offset(offset),							\
     initial(data),							\
     ret(ret) { }							\
   									\
   public:								\
-  iterator_internal() : offset(0), initial(NULL), ret(NULL) {};		\
+  iterator_internal() : initial(NULL), ret(NULL) {};			\
   									\
-  iterator_internal(pointer data, UInt offset)  : offset(offset),	\
-						  initial(data),	\
+  iterator_internal(pointer data, UInt offset)  : initial(data),	\
 						  ret(data) {		\
     AKANTU_DEBUG_ASSERT(offset == 1,					\
 			"The iterator is not compatible with the type "	\
@@ -741,7 +825,6 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
   									\
   iterator_internal(const iterator_internal & it) {			\
     if(this != &it) {							\
-      this->offset = it.offset;						\
       this->initial = it.initial;					\
       this->ret = new internal_value_type(*it.ret);			\
     }									\
@@ -751,7 +834,6 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
   									\
   inline iterator_internal & operator=(const iterator_internal & it) {	\
     if(this != &it) {							\
-      this->offset = it.offset;						\
       this->initial = it.initial;					\
       this->ret = it.ret;						\
     }									\
@@ -763,12 +845,12 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
   inline iterator_internal & operator++() { ret += offset; return *this; }; \
   									\
   inline iterator_internal & operator+=(const UInt n) {			\
-    ret += offset * n;							\
+    ret += n;								\
     return *this;							\
   }									\
   									\
   inline reference operator[](const UInt n) {				\
-    ret = initial + n*offset;						\
+    ret = initial + n;							\
     return *ret;							\
   }									\
   									\
@@ -779,12 +861,20 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
     return (*this).ret != other.ret;					\
   }									\
   									\
+  inline iterator_internal & operator-(size_t n) {			\
+    ret -= n;                                                           \
+    return *this;							\
+  }									\
+									\
+  inline size_t operator-(const iterator_internal & b) {		\
+    return ret - b.getCurrentStorage();					\
+  }									\
+                                                                        \
   inline pointer getCurrentStorage() const {				\
     return ret;								\
   }									\
   									\
   protected:								\
-  UInt offset;								\
   pointer initial;							\
   pointer ret;								\
   }
@@ -795,7 +885,7 @@ specialize_internal_iterator_for_scalar(UInt);
 #else
 template <typename T>
 template <int fps>
-class Vector<T>::iterator_internal<T,T,fps> {
+class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T>{
 public:
   typedef T   value_type;
   typedef T*  pointer;
@@ -803,16 +893,14 @@ public:
   typedef T   internal_value_type;
   typedef T*  internal_pointer;
 protected:
-  iterator_internal(UInt offset, pointer data, pointer ret) : offset(offset),
-							      initial(data),
-							      ret(ret) {
-  }
+  iterator_internal(UInt offset, pointer data, pointer ret) :
+    initial(data),
+    ret(ret) { }
 
 public:
-  iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
+  iterator_internal() : initial(NULL), ret(NULL) {};
 
   iterator_internal(pointer data, UInt offset)  :
-    offset(offset),
     initial(data),
     ret(data) {
     AKANTU_DEBUG_ASSERT(offset == 1,
@@ -822,7 +910,6 @@ public:
 
   iterator_internal(const iterator_internal & it) {
     if(this != &it) {
-      this->offset = it.offset;
       this->initial = it.initial;
       this->ret = new internal_value_type(*it.ret);
     }
@@ -832,7 +919,6 @@ public:
 
   inline iterator_internal & operator=(const iterator_internal & it) {
     if(this != &it) {
-      this->offset = it.offset;
       this->initial = it.initial;
       this->ret = it.ret;
     }
@@ -841,15 +927,16 @@ public:
 
   inline reference operator*() { return *ret; };
   inline pointer operator->() { return ret; };
-  inline iterator_internal & operator++() { ret += offset; return *this; };
+  inline iterator_internal & operator++() { ++ret; return *this; };
+  inline iterator_internal & operator--() { --ret; return *this; };
 
   inline iterator_internal & operator+=(const UInt n) {
-    ret += offset * n;
+    ret += n;
     return *this;
   }
 
   inline reference operator[](const UInt n) {
-    ret = initial + n*offset;
+    ret = initial + n;
     return *ret;
   }
 
@@ -860,12 +947,42 @@ public:
     return (*this).ret != other.ret;
   }
 
+  inline bool operator<(const iterator_internal & other) {
+    return ret < other.ret;
+  }
+
+  inline bool operator<=(const iterator_internal & other) {
+    return ret <= other.ret;
+  }
+
+  inline bool operator>(const iterator_internal & other) {
+    return ret > other.ret;
+  }
+
+  inline bool operator>=(const iterator_internal & other) {
+    return ret >= other.ret;
+  }
+
+
+  inline iterator_internal & operator-(size_t n) {
+    ret -= n;
+    return *this;
+  }
+
+  inline size_t operator-(const iterator_internal & b) {
+    return ret - b.getCurrentStorage();
+  }
+
+  inline iterator_internal & operator+(size_t n) {
+    ret += n;
+    return *this;
+  }
+
   inline pointer getCurrentStorage() const {
     return ret;
   }
 
 protected:
-  UInt offset;
   pointer initial;
   pointer ret;
 };

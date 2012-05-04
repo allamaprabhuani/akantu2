@@ -55,11 +55,12 @@ Mesh::Mesh(UInt spatial_dimension,
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
-  internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
   nb_surfaces(0),
   surface_id("surface_id", id),
+  element_to_subelement("element_to_subelement", id),
+  subelement_to_element("subelement_to_element", id),
   uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
@@ -93,11 +94,12 @@ Mesh::Mesh(UInt spatial_dimension,
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
-  internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
   nb_surfaces(0),
   surface_id("surface_id", id),
+  element_to_subelement("element_to_subelement", id),
+  subelement_to_element("subelement_to_element", id),
   uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
@@ -119,11 +121,12 @@ Mesh::Mesh(UInt spatial_dimension,
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
-  internal_facets_mesh(NULL),
   types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
   nb_surfaces(0),
   surface_id("surface_id", id),
+  element_to_subelement("element_to_subelement", id),
+  subelement_to_element("subelement_to_element", id),
   uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
@@ -257,14 +260,15 @@ template<typename T>
 void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 				   UInt nb_component,
 				   UInt dim,
-				   const bool & flag_nb_node_per_elem_multiply) const {
+				   const bool & flag_nb_node_per_elem_multiply,
+				   ElementKind element_kind) const {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    Mesh::type_iterator it  = firstType(dim, gt);
-    Mesh::type_iterator end = lastType(dim, gt);
+    Mesh::type_iterator it  = firstType(dim, gt, element_kind);
+    Mesh::type_iterator end = lastType(dim, gt, element_kind);
     for(; it != end; ++it) {
       ElementType type = *it;
       if (flag_nb_node_per_elem_multiply) nb_component *= Mesh::getNbNodesPerElement(*it);
@@ -279,14 +283,19 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & vect,
 						  UInt nb_component,
 						  UInt dim,
-						  const bool & flag_nb_elem_multiply) const;
+						  const bool & flag_nb_elem_multiply,
+						  ElementKind element_kind) const;
+
 template void Mesh::initByElementTypeVector<Int>(ByElementTypeVector<Int> & vect,
 						 UInt nb_component,
 						 UInt dim,
-						 const bool & flag_nb_elem_multiply) const;
+						 const bool & flag_nb_elem_multiply,
+						 ElementKind element_kind) const;
+
 template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & vect,
 						  UInt nb_component,
 						  UInt dim,
-						  const bool & flag_nb_elem_multiply) const;
+						  const bool & flag_nb_elem_multiply,
+						  ElementKind element_kind) const;
 
 __END_AKANTU__

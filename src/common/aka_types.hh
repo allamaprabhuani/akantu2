@@ -139,14 +139,14 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
-    inline Vector & operator*=(T & scalar) {
+    inline Vector & operator*=(const T & scalar) {
       T * a = this->storage();
       for (UInt i = 0; i < n; ++i) *(a++) *= scalar;
       return *this;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline Vector & operator/=(T & x) {
+    inline Vector & operator/=(const T & x) {
       T * a = this->values;
       for (UInt i = 0; i < n; ++i) *(a++) /= x;
       return *this;

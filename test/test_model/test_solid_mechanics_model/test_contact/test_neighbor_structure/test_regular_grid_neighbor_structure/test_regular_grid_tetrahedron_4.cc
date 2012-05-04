@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   mesh_io.read("cubes.msh", my_mesh);
 
   /// build facet connectivity and surface id
-  MeshUtils::buildFacets(my_mesh,1,0);
+  MeshUtils::buildFacets(my_mesh);
   MeshUtils::buildSurfaceID(my_mesh);
 
   unsigned int nb_nodes = my_mesh.getNbNodes();

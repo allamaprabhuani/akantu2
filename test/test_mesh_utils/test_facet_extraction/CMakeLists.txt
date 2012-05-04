@@ -26,7 +26,7 @@
 #===============================================================================
 
 #===============================================================================
-add_mesh(test_facet_square_mesh square.geo 2 1)
+add_mesh(test_facet_square_mesh square.geo 2 2)
 
 register_test(test_facet_extraction_triangle_3 test_facet_extraction_triangle_3.cc)
 add_dependencies(test_facet_extraction_triangle_3 test_facet_square_mesh)

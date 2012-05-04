@@ -73,6 +73,9 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
+  /// resize vectors for new cohesive elements
+  virtual void resizeCohesiveVectors();
+
 protected:
 
   /// constitutive law

@@ -75,7 +75,7 @@ void Contact::initContact(bool add_surfaces_flag) {
 
   /// Build surfaces if not done yet
   if(mesh.getNbSurfaces() == 0) { /* initialise nb_surfaces to zero in mesh_io */
-    MeshUtils::buildFacets(mesh,1,0);
+    MeshUtils::buildFacets(mesh);
     MeshUtils::buildSurfaceID(mesh);
   }
 

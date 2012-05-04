@@ -19,6 +19,7 @@ set(CORE_FILES
   fem/fem_template.cc
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
+  model/solid_mechanics/solid_mechanics_model_cohesive.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
@@ -26,7 +27,9 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/material_cohesive.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.cc
   model/solid_mechanics/materials/material_elastic.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic.cc
   model/solid_mechanics/materials/material_elastic_caughey.cc
   model/solid_mechanics/materials/material_viscoelastic.cc
   model/solid_mechanics/materials/material_damage.cc
@@ -118,6 +121,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/material_cohesive.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.hh
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
   model/solid_mechanics/materials/material_damage.hh
   model/solid_mechanics/materials/material_marigo.hh
   model/solid_mechanics/materials/material_marigo_non_local.hh
@@ -125,6 +129,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_elastic_caughey.hh
   model/solid_mechanics/materials/material_viscoelastic.hh
   model/solid_mechanics/materials/material_elastic.hh
+  model/solid_mechanics/materials/material_elastic_orthotropic.hh
   model/solid_mechanics/materials/material_non_local.hh
   model/solid_mechanics/materials/material_mazars.hh
   model/solid_mechanics/materials/material_damage_linear.hh
@@ -132,6 +137,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_vreepeerlings.hh
   model/solid_mechanics/materials/material_vreepeerlings_non_local.hh
   model/solid_mechanics/solid_mechanics_model.hh
+  model/solid_mechanics/solid_mechanics_model_cohesive.hh
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/material.hh
   model/heat_transfer/heat_transfer_model.hh
@@ -169,6 +175,7 @@ set(CORE_FILES
   model/solid_mechanics/solid_mechanics_model_inline_impl.cc
   model/solid_mechanics/materials/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   model/solid_mechanics/materials/material_non_local_inline_impl.cc
   model/solid_mechanics/materials/material_neohookean_inline_impl.cc
   model/solid_mechanics/materials/material_marigo_inline_impl.cc

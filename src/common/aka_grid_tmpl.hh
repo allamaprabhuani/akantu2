@@ -320,7 +320,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
       nodes.at(n, 0) = n * spacing[0] + lower_bounds[0];
     }
 
-    mesh.addConnecticityType(_segment_2);
+    mesh.addConnectivityType(_segment_2);
     Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_segment_2));
     connectivity.resize(total_nb_cells);
 
@@ -342,7 +342,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
       }
     }
 
-    mesh.addConnecticityType(_quadrangle_4);
+    mesh.addConnectivityType(_quadrangle_4);
     Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_quadrangle_4));
     connectivity.resize(total_nb_cells);
     for (UInt ex = 0; ex < nb_cells[0]; ++ex) {
@@ -372,7 +372,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
       }
     }
 
-    mesh.addConnecticityType(_quadrangle_4);
+    mesh.addConnectivityType(_quadrangle_4);
     Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_quadrangle_4));
     connectivity.resize(total_nb_cells);
     for (UInt ex = 0; ex < nb_cells[0]; ++ex) {

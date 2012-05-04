@@ -150,7 +150,7 @@ Int main(int argc, char *argv[])
   mesh_io.read(mesh_name, *mesh);
 
   /// build facet connectivity and surface id
-  MeshUtils::buildFacets(*mesh,1,0);
+  MeshUtils::buildFacets(*mesh);
   MeshUtils::buildSurfaceID(*mesh);
 
   /// declaration of model

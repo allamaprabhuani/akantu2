@@ -141,7 +141,7 @@ void DOFSynchronizer::initLocalDOFEquationNumbers() {
     *(dof_equation_number++) = d;
   }
 
-  local_dof_equation_numbers.resize(nb_dofs);
+  //local_dof_equation_numbers.resize(nb_dofs);
   AKANTU_DEBUG_OUT();
 }
 

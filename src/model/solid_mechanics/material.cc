@@ -96,29 +96,40 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalVector(ByElementTypeVector<T> & vect,
-				  UInt nb_component) const {
+                                  UInt nb_component,
+				  ElementKind element_kind) const {
   AKANTU_DEBUG_IN();
 
-  model->getFEM().getMesh().initByElementTypeVector(vect, nb_component, spatial_dimension);
+  model->getFEM().getMesh().initByElementTypeVector(vect,
+						    nb_component,
+						    spatial_dimension,
+						    false,
+						    element_kind);
 
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect) const {
+void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect,
+				    ElementKind element_kind) const {
   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh = model->getFEM().getMesh();
+  FEM * fem = & model->getFEM();
+
+  if (element_kind == _ek_cohesive)
+      fem = & model->getFEM("CohesiveFEM");
+
+  const Mesh & mesh = fem->getMesh();
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
-    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt, element_kind);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt, element_kind);
     for(; it != end; ++it) {
       const Vector<UInt> & elem_filter = element_filter(*it, gt);
 
       UInt nb_element           = elem_filter.getSize();
-      UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, gt);
+      UInt nb_quadrature_points = fem->getNbQuadraturePoints(*it, gt);
       UInt new_size = nb_element * nb_quadrature_points;
 
       Vector<T> & vect = by_el_type_vect(*it, gt);
@@ -497,14 +508,26 @@ void Material::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalVector<Real>(ByElementTypeVector<Real> & vect,
-						 UInt nb_component) const;
-template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
-						 UInt nb_component) const;
-template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
-						UInt nb_component) const;
+                                                 UInt nb_component,
+						 ElementKind element_kind) const;
 
-template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect) const;
-template void Material::resizeInternalVector<UInt>(ByElementTypeVector<UInt> & vect) const;
-template void Material::resizeInternalVector<Int>(ByElementTypeVector<Int> & vect) const;
+template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
+                                                 UInt nb_component,
+						 ElementKind element_kind) const;
+
+template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
+                                                UInt nb_component,
+						ElementKind element_kind) const;
+
+
+template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect,
+						   ElementKind element_kind) const;
+
+template void Material::resizeInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
+						   ElementKind element_kind) const;
+
+template void Material::resizeInternalVector<Int>(ByElementTypeVector<Int> & vect,
+						  ElementKind element_kind) const;
+
 
 __END_AKANTU__

@@ -45,6 +45,9 @@ template<> UInt CohesiveElement<_cohesive_2d_6>::vec_facet_connectivity[]= {0, 1
 									    3, 4, 5};
 template<> UInt * CohesiveElement<_cohesive_2d_6>::facet_connectivity[]  = {&vec_facet_connectivity[0],
 									    &vec_facet_connectivity[3]};
+/* -------------------------------------------------------------------------- */
+
+
 
 /* -------------------------------------------------------------------------- */
 /* 3D cohesive elements                                                       */

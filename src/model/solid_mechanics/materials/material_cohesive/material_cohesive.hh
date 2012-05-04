@@ -42,7 +42,7 @@ class MaterialCohesive : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-protected:
+public:
   typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
 public:
 
@@ -60,6 +60,9 @@ public:
 
   /// initialize the material computed parameter
   virtual void initMaterial();
+
+  /// resize vectors for new cohesive elements
+  virtual void resizeCohesiveVectors();
 
   /// compute the residual for this material
   virtual void updateResidual(Vector<Real> & current_position,

@@ -181,7 +181,7 @@ inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
   if(it == this->getData(ghost_type).end()) {
     std::stringstream sstr; sstr << this->id << ":" << type << ghost_id;
     tmp = &(Memory::alloc<T>(sstr.str(), size,
-                            nb_component, 0));
+			     nb_component, T()));
     std::stringstream sstrg; sstrg << ghost_type;
     tmp->setTag(sstrg.str());
     this->getData(ghost_type)[type] = tmp;

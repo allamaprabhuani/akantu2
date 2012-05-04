@@ -167,11 +167,13 @@ public:
   /// allocate an internal vector
   template<typename T>
   void initInternalVector(ByElementTypeVector<T> & vect,
-			  UInt nb_component) const;
+			  UInt nb_component,
+			  ElementKind element_kind = _ek_regular) const;
 
   /// resize an internal vector
   template<typename T>
-  void resizeInternalVector(ByElementTypeVector<T> & vect) const;
+  void resizeInternalVector(ByElementTypeVector<T> & vect,
+			    ElementKind element_kind = _ek_regular) const;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -361,6 +363,7 @@ __END_AKANTU__
 
 #define AKANTU_MATERIAL_LIST						\
   ((elastic                , MaterialElastic              ))		\
+  ((elastic_orthotropic    , MaterialElasticOrthotropic   ))		\
   ((viscoelastic           , MaterialViscoElastic         ))		\
   ((elastic_caughey        , MaterialElasticCaughey       ))		\
   ((neohookean             , MaterialNeohookean           ))		\
@@ -372,7 +375,8 @@ __END_AKANTU__
   ((mazars_non_local       , MaterialMazarsNonLocal       ))		\
   ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))		\
   ((cohesive_bilinear      , MaterialCohesiveBilinear     ))		\
-  ((cohesive_linear        , MaterialCohesiveLinear       ))
+  ((cohesive_linear        , MaterialCohesiveLinear       ))		\
+  ((cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic ))
 
 
 #if defined(__INTEL_COMPILER)
@@ -390,6 +394,7 @@ __END_AKANTU__
 #include "material_elastic_caughey.hh"
 #include "material_viscoelastic.hh"
 #include "material_neohookean.hh"
+#include "material_elastic_orthotropic.hh"
 
 // damage materials
 #include "material_damage.hh"
@@ -406,6 +411,8 @@ __END_AKANTU__
 #include "material_cohesive.hh"
 #include "material_cohesive_linear.hh"
 #include "material_cohesive_bilinear.hh"
+#include "material_cohesive_linear_extrinsic.hh"
+
 
 #if defined(__INTEL_COMPILER)
 #pragma warning ( pop )

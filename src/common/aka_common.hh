@@ -103,7 +103,8 @@ typedef std::list< SurfacePair > SurfacePairList;
   (_cohesive_2d_4)				\
   (_cohesive_2d_6)
 
-
+#define AKANTU_ALL_ELEMENT_TYPE					\
+  AKANTU_REGULAR_ELEMENT_TYPE AKANTU_COHESIVE_ELEMENT_TYPE 
 
 /// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
@@ -368,6 +369,18 @@ __END_AKANTU__
     }									\
   } while(0)
 
+
+#define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro1)				\
+  do {									\
+    switch(type) {							\
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, AKANTU_ALL_ELEMENT_TYPE) \
+    case _max_element_type:  {						\
+      AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
+      break;								\
+    }									\
+    }									\
+  } while(0)
+
 #define AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
 			      AKANTU_REGULAR_ELEMENT_TYPE,		\
@@ -385,6 +398,9 @@ __END_AKANTU__
 
 #define AKANTU_BOOST_ELEMENT_LIST(macro,list)			\
   BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,list)
+
+#define AKANTU_BOOST_ALL_ELEMENT_LIST(macro)	\
+  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_ALL_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)	\
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_REGULAR_ELEMENT_TYPE)

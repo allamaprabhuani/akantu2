@@ -122,20 +122,22 @@ void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
 Real MaterialDamage::getDissipatedEnergy() const {
   AKANTU_DEBUG_IN();
 
-  Real de = 0.;
-  const Mesh & mesh = model->getFEM().getMesh();
+  // Real de = 0.;
+  // const Mesh & mesh = model->getFEM().getMesh();
 
-  /// integrate the dissipated energy for each type of elements
-  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost);
-  Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
+  // /// integrate the dissipated energy for each type of elements
+  // Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost);
+  // Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
 
-  for(; it != end; ++it) {
-    de += model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
-				    _not_ghost, &element_filter(*it, _not_ghost));
-  }
+  // Real * tmp = dissipated(_triangle_3,_not_ghost).values;
+
+  // for(; it != end; ++it) {
+  //   de += model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
+  // 				    _not_ghost, &element_filter(*it, _not_ghost));
+  // }
 
   AKANTU_DEBUG_OUT();
-  return de;
+  // return de;
 }
 
 /* -------------------------------------------------------------------------- */

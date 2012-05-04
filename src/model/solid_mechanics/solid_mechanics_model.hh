@@ -81,8 +81,8 @@ public:
 public:
 
   /// initialize completely the model
-  void initFull(std::string material_file,
-                AnalysisMethod method = _explicit_dynamic);
+  virtual void initFull(std::string material_file,
+			AnalysisMethod method = _explicit_dynamic);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary(bool create_surface = true);
@@ -97,13 +97,10 @@ public:
   void initMaterials();
 
   /// initialize the model
-  void initModel();
+  virtual void initModel();
 
   /// init PBC synchronizer
   void initPBC();
-
-  /// initialize the structures for cohesive elements
-  void initCohesive();
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -119,7 +116,7 @@ public:
   /// synchronize Residual for output
   void synchronizeResidual();
 
-private:
+protected:
 
   /// register PBC synchronizer
   void registerPBCSynchronizer();
@@ -199,7 +196,7 @@ public:
   /// implicit time integration corrector
   void implicitCorr();
 
-private:
+protected:
   /// finish the computation of residual to solve in increment
   void updateResidualInternal();
 
@@ -264,7 +261,7 @@ public:
   /// Use a UIntData in the mesh to specify the material to use per element
   void setMaterialIDsFromIntData(const std::string & data_name);
 
-private:
+protected:
   /// read properties part of a material file and create the material
   template <typename M>
   Material * readMaterialProperties(std::ifstream & infile,
@@ -283,7 +280,7 @@ public:
   void assembleMass();
 
 
-private:
+protected:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
@@ -416,14 +413,14 @@ public:
   /// get access to the internal solver
   AKANTU_GET_MACRO(Solver, *solver, Solver &);
 
-private:
+protected:
   /// compute the stable time step
   Real getStableTimeStep(const GhostType & ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
   /// time step
   Real time_step;

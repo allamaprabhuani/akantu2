@@ -27,6 +27,7 @@
 
 add_akantu_test(test_materials "test_materials")
 add_akantu_test(patch_tests "patch_tests")
+add_akantu_test(test_cohesive "cohesive_test")
 if(AKANTU_CONTACT)
   add_akantu_test(test_contact "test_contact")
 endif(AKANTU_CONTACT)

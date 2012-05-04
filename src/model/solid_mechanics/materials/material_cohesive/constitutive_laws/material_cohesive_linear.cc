@@ -44,7 +44,7 @@ MaterialCohesiveLinear::MaterialCohesiveLinear(Model & model, const ID & id) :
   G_cI      = 0;
   G_cII     = 0;
 
-  initInternalVector(delta_max, 1);
+  initInternalVector(delta_max, 1, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }
@@ -63,11 +63,15 @@ void MaterialCohesiveLinear::initMaterial() {
   MaterialCohesive::initMaterial();
 
   kappa   = G_cII / G_cI;
-  delta_c = G_cI / sigma_c;
-
-  resizeInternalVector(delta_max);
+  delta_c = 2 * G_cI / sigma_c;
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesiveLinear::resizeCohesiveVectors() {
+  MaterialCohesive::resizeCohesiveVectors();
+  resizeInternalVector(delta_max, _ek_cohesive);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -138,7 +142,7 @@ void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
 
 
     /// full damage case
-    if (delta >= delta_c) {
+    if (delta >= delta_c || delta == 0) {
 
       /// set traction to zero
       for (UInt i = 0; i < spatial_dimension; ++i) {

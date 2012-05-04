@@ -96,7 +96,7 @@ public:
   /// check that the jacobians are not negative
   template <ElementType type> void checkJacobians(const GhostType & ghost_type) const;
 
-protected:
+public:
 
   /// compute the jacobians on quad points for a given element
   template <ElementType type>
@@ -114,12 +114,13 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
   inline void integrate(Real *f, Real *jac, Real * inte,
 			UInt nb_degree_of_freedom,
 			UInt nb_quadrature_points) const;
 
+private:
 
   ByElementTypeReal quadrature_points;
 };

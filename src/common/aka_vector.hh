@@ -31,16 +31,15 @@
 #define __AKANTU_VECTOR_HH__
 
 /* -------------------------------------------------------------------------- */
-#include <typeinfo>
-
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+/* -------------------------------------------------------------------------- */
+#include <typeinfo>
+#include <vector>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
 class Matrix;
-
 
 /// class that afford to store vectors in static memory
 class VectorBase {
@@ -133,8 +132,12 @@ public:
   Vector(UInt size, UInt nb_component,
 	 const_reference value, const ID & id = "");
 
-  /// Copy constructor (deep copy if deep=true) \todo to implement
+  /// Copy constructor (deep copy if deep=true)
   Vector(const Vector<value_type>& vect, bool deep = true, const ID & id = "");
+
+  /// Copy constructor (deep copy)
+  Vector(const std::vector<value_type>& vect);
+
 
   virtual ~Vector();
 
@@ -223,6 +226,14 @@ public:
   inline iterator< types::Matrix > end(UInt m, UInt n);
   inline const_iterator< types::Matrix > begin(UInt m, UInt n) const;
   inline const_iterator< types::Matrix > end(UInt m, UInt n) const;
+
+  inline iterator< types::Matrix > begin_reinterpret(UInt m, UInt n,
+						     UInt size, UInt nb_component);
+  inline iterator< types::Matrix > end_reinterpret(UInt m, UInt n, UInt size, UInt nb_component);
+  inline const_iterator< types::Matrix > begin_reinterpret(UInt m, UInt n,
+							   UInt size, UInt nb_component) const;
+  inline const_iterator< types::Matrix > end_reinterpret(UInt m, UInt n,
+							 UInt size, UInt nb_component) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

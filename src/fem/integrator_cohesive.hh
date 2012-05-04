@@ -38,7 +38,7 @@
 __BEGIN_AKANTU__
 
 template<class Inte>
-class IntegratorCohesive : public Integrator {
+class IntegratorCohesive : public Inte {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -47,7 +47,8 @@ public:
   IntegratorCohesive(const Mesh & mesh,
 		     const ID & id = "integrator_gauss",
 		     const MemoryID & memory_id = 0);
-  virtual ~IntegratorCohesive() { if(sub_type_integrator) delete sub_type_integrator; };
+  virtual ~IntegratorCohesive() { // if(sub_type_integrator) delete sub_type_integrator;
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -117,7 +118,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  Inte * sub_type_integrator;
+  //  Inte * sub_type_integrator;
 };
 
 

@@ -28,7 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "solver_mumps.hh"
 #include "static_communicator.hh"
-
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])

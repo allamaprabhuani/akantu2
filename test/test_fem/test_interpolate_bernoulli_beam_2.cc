@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
     Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
     nodes.resize(4);
 
-    beams.addConnecticityType(_bernoulli_beam_2);
+    beams.addConnectivityType(_bernoulli_beam_2);
     Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
     connectivity.resize(3);
 

@@ -65,17 +65,17 @@ void ShapeCohesive<ShapeFunction>::precomputeShapesOnControlPoints(GhostType gho
 
   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 
-  Real * natural_coords = this->control_points(sub_type, ghost_type).storage();
-  UInt nb_points        = this->control_points(sub_type, ghost_type).getSize();
+  Real * natural_coords = this->control_points(type, ghost_type).storage();
+  UInt nb_points        = this->control_points(type, ghost_type).getSize();
 
   UInt size_of_shapes    = CohesiveElement<type>::getShapeSize();
 
-  UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();;
+  UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();
 
   Vector<Real> & shapes_tmp = sub_type_shape_function->shapes.alloc(nb_element*nb_points,
-								   size_of_shapes,
-								   type,
-								   ghost_type);
+								    size_of_shapes,
+								    type,
+								    ghost_type);
 
   Real * shapes_val    = shapes_tmp.storage();
 
@@ -98,7 +98,7 @@ void ShapeCohesive<ShapeFunction>::precomputeShapeDerivativesOnControlPoints(Gho
   // const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 
   // Real * coord = this->mesh->getNodes().storage();
-  UInt spatial_dimension = this->mesh->getSpatialDimension();
+  UInt spatial_dimension = CohesiveElement<type>::getSpatialDimension();
 
   // UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
   // UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
@@ -106,34 +106,19 @@ void ShapeCohesive<ShapeFunction>::precomputeShapeDerivativesOnControlPoints(Gho
   UInt nb_points            = this->control_points(type, ghost_type).getSize();
   Real * natural_coords     = this->control_points(type, ghost_type).storage();
 
-
   // UInt * elem_val = this->mesh->getConnectivity(type, ghost_type).storage();;
   UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();
 
   Vector<Real> & shapes_derivatives_tmp =
     sub_type_shape_function->shapes_derivatives.alloc(nb_element*nb_points,
-						     size_of_shapesd,
-						     type,
-						     ghost_type);
+						      size_of_shapesd,
+						      type,
+						      ghost_type);
 
   Real * shapesd_val = shapes_derivatives_tmp.storage();
-  // Real local_coord[spatial_dimension * nb_nodes_per_element];
-
-  // CohesiveReduceFunctionMean reduce_function;
 
   for (UInt elem = 0; elem < nb_element; ++elem) {
-    // UInt el_offset = elem * nb_nodes_per_element;
-
-    // for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
-    //   for (UInt d = 0; d < spatial_dimension; ++d) {
-    // 	Real u_plus  = coord[elem_val[el_offset + n] * spatial_dimension];
-    // 	Real u_minus = coord[elem_val[el_offset + n + nb_nodes_per_sub_element] * spatial_dimension];
-    // 	local_coord[n*spatial_dimension + d] = reduce_function(u_plus, u_minus);
-    //   }
-    // }
-
-    ElementClass<type>::computeDNDS(natural_coords, nb_points, shapesd_val);
-
+    CohesiveElement<type>::computeDNDS(natural_coords, nb_points, shapesd_val);
     natural_coords += nb_points * spatial_dimension;
     shapesd_val += size_of_shapesd * nb_points;
   }
@@ -154,16 +139,16 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
 
   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 
-  AKANTU_DEBUG_ASSERT(sub_type_shape_function->shapes.exists(sub_type, ghost_type),
+  AKANTU_DEBUG_ASSERT(sub_type_shape_function->shapes.exists(type, ghost_type),
 		      "No shapes for the type "
-		      << sub_type_shape_function->shapes.printType(sub_type, ghost_type));
+		      << sub_type_shape_function->shapes.printType(type, ghost_type));
 
   UInt nb_element = this->mesh->getNbElement(type, ghost_type);
   UInt * conn_val = this->mesh->getConnectivity(type, ghost_type).storage();
 
-  const Vector<Real> & shapes = sub_type_shape_function->shapes(sub_type, ghost_type);
+  const Vector<Real> & shapes = sub_type_shape_function->shapes(type, ghost_type);
 
-  UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
+  //  UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
   UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
 
   UInt nb_points = this->control_points(type, ghost_type).getSize();
@@ -178,21 +163,27 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
   // Real * shape_val = shapes.storage();
   Real * u_val     = in_u.storage();
   Vector<Real>::iterator<types::Matrix> uq_it =
-    out_uq.begin(nb_points, nb_degree_of_freedom);
+    out_uq.begin_reinterpret(nb_points, nb_degree_of_freedom,
+			     nb_element,
+			     nb_points * nb_degree_of_freedom);
 
   Vector<Real>::const_iterator<types::Matrix> shape =
-    shapes.begin(nb_points, nb_nodes_per_element);
+    shapes.begin_reinterpret(nb_points, nb_nodes_per_sub_element,
+			     nb_element,
+			     nb_points * nb_nodes_per_sub_element);
 
-  types::Matrix u(nb_nodes_per_element, nb_degree_of_freedom);
+  types::Matrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 
   ReduceFunction reduce_function;
 
   for (UInt el = 0; el < nb_element; ++el) {
-    UInt el_offset = el * nb_nodes_per_element;
+    UInt el_offset = el * nb_nodes_per_sub_element;
     if(filter_elements != NULL) {
-      shape  = shapes.begin(nb_points, nb_nodes_per_element);
+      shape = shapes.begin_reinterpret(nb_points, nb_nodes_per_sub_element,
+				       nb_element,
+				       nb_points * nb_nodes_per_sub_element);
       shape += filter_elem_val[el];
-      el_offset = filter_elem_val[el] * nb_nodes_per_element;
+      el_offset = filter_elem_val[el] * nb_nodes_per_sub_element;
     }
 
     for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
@@ -227,9 +218,9 @@ void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &
 							    const Vector<UInt> * filter_elements) const {
   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 
-  AKANTU_DEBUG_ASSERT(sub_type_shape_function->shapes_derivatives.exists(sub_type, ghost_type),
+  AKANTU_DEBUG_ASSERT(sub_type_shape_function->shapes_derivatives.exists(type, ghost_type),
 		      "No shapes for the type "
-		      << sub_type_shape_function->shapes.printType(sub_type, ghost_type));
+		      << sub_type_shape_function->shapes.printType(type, ghost_type));
 
   UInt nb_element        = this->mesh->getNbElement(type, ghost_type);
   // UInt spatial_dimension = this->mesh->getSpatialDimension();
@@ -237,10 +228,10 @@ void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &
   const Vector<UInt> & connectivity = this->mesh->getConnectivity(type, ghost_type);
 
   const Vector<Real> & shapes_derivatives =
-    sub_type_shape_function->shapes_derivatives(sub_type, ghost_type);
+    sub_type_shape_function->shapes_derivatives(type, ghost_type);
 
-  UInt element_dimension        = CohesiveElement<type>::getSpatialDimension();
-  UInt nb_nodes_per_element     = CohesiveElement<type>::getNbNodesPerElement();
+  UInt element_dimension        = ElementClass<sub_type>::getSpatialDimension();
+  //  UInt nb_nodes_per_element     = CohesiveElement<type>::getNbNodesPerElement();
   UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
 
   UInt nb_points = this->control_points(type, ghost_type).getSize();
@@ -255,24 +246,29 @@ void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &
     nablauq.begin(element_dimension, nb_degree_of_freedom);
 
   Vector<Real>::const_iterator<types::Matrix> shape_derivative =
-    shapes_derivatives.begin(element_dimension, nb_nodes_per_element);
+    shapes_derivatives.begin(element_dimension, nb_nodes_per_sub_element);
 
-  types::Matrix u(nb_nodes_per_element, nb_degree_of_freedom);
+  types::Matrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 
   ReduceFunction reduce_function;
 
   for (UInt el = 0; el < nb_element; ++el) {
     // UInt el_offset = el * nb_nodes_per_element;
+    UInt element = el;
     if(filter_elements != NULL) {
-      shape_derivative  = shapes_derivatives.begin(nb_points, nb_nodes_per_element);
+      element = *filter_elem;
+      shape_derivative  =
+	shapes_derivatives.begin(element_dimension, nb_nodes_per_sub_element);
+
       shape_derivative += *filter_elem;
       ++filter_elem;
     }
 
+    // compute the average/difference of the nodal field loaded from cohesive element
     for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {
       for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-	Real u_plus  = in_u(connectivity(*filter_elem, n), d);
-	Real u_minus = in_u(connectivity(*filter_elem, n + nb_nodes_per_sub_element), d);
+	Real u_plus  = in_u(connectivity(element, n), d);
+	Real u_minus = in_u(connectivity(element, n + nb_nodes_per_sub_element), d);
 	u(n, d)	= reduce_function(u_plus, u_minus);
       }
     }
@@ -304,7 +300,7 @@ void ShapeCohesive<ShapeFunction>::computeNormalsOnControlPoints(const Vector<Re
     nb_element  = filter_elements->getSize();
   }
 
-  Vector<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  spatial_dimension -1));
+  Vector<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  (spatial_dimension -1)));
 
   this->template variationOnControlPoints<type, ReduceFunction>(u,
 								tangents_u,
@@ -321,7 +317,9 @@ void ShapeCohesive<ShapeFunction>::computeNormalsOnControlPoints(const Vector<Re
   if(spatial_dimension == 3)
     for (; normal != normal_end; ++normal) {
       Math::vectorProduct3(tangent, tangent+spatial_dimension, normal->storage());
-      //      (*normal) /= normal->norm();
+
+      (*normal) /= normal->norm();
+
       tangent += spatial_dimension * 2;
     }
   else if(spatial_dimension == 2)
@@ -330,7 +328,7 @@ void ShapeCohesive<ShapeFunction>::computeNormalsOnControlPoints(const Vector<Re
 
       (*normal)(0) = a1(1);
       (*normal)(1) = -a1(0);
-      //      (*normal) /= normal->norm();
+      (*normal) /= normal->norm();
 
       tangent += spatial_dimension;
     }

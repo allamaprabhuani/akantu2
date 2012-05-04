@@ -165,8 +165,8 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       node_to_elem.insertInRow(conn_val[el_offset + n], el);
     }
-      // node_to_elem_val[node_offset_val[conn_val[nb_nodes_per_element*el + n]]] = el;
-      // node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
+    // node_to_elem_val[node_offset_val[conn_val[nb_nodes_per_element*el + n]]] = el;
+    // node_offset_val[conn_val[nb_nodes_per_element*el + n]]++;
   }
 
   // ///  rearrange node_offset to start with 0
@@ -178,24 +178,65 @@ void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag){
+void MeshUtils::buildFacets(Mesh & mesh){
   AKANTU_DEBUG_IN();
 
-  CSR<UInt> node_to_elem;
-  // Vector<UInt> node_offset;
-  // Vector<UInt> node_to_elem;
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  ByElementTypeReal barycenter;
 
-  //  buildNode2Elements(mesh,node_offset,node_to_elem);
-  buildNode2Elements(mesh, node_to_elem);
+  buildFacetsDimension(mesh, mesh, true, spatial_dimension, barycenter);
 
-  //  std::cout << "node offset " << std::endl << node_offset << std::endl;
-  // std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::buildAllFacets(Mesh & mesh, Mesh & mesh_facets) {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  ByElementTypeReal barycenter;
+
+  /// generate facets
+  buildFacetsDimension(mesh, mesh_facets, false, spatial_dimension, barycenter);
+
+  /// compute their barycenters
+  mesh_facets.initByElementTypeVector(barycenter, spatial_dimension, spatial_dimension - 1);
+  Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1);
+  Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1);
+  for(; it != end; ++it) {
+    UInt nb_element = mesh_facets.getNbElement(*it);
+    barycenter(*it).resize(nb_element);
+
+    Vector<Real>::iterator<types::RVector> bary = barycenter(*it).begin(spatial_dimension);
+    Vector<Real>::iterator<types::RVector> end = barycenter(*it).end(spatial_dimension);
+    for (UInt el = 0; bary != end; ++bary, ++el) {
+      mesh_facets.getBarycenter(el, *it, bary->storage());
+    }
+  }
+
+  /// sort facets and generate subfacets
+  for (UInt i = spatial_dimension - 1; i > 0; --i) {
+    buildFacetsDimension(mesh_facets, mesh_facets, false, i, barycenter);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::buildFacetsDimension(Mesh & mesh,
+				     Mesh & mesh_facets,
+				     bool boundary_only,
+				     UInt dimension,
+				     ByElementTypeReal & barycenter){
+  AKANTU_DEBUG_IN();
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 
   UInt nb_types = type_list.size();
   UInt nb_good_types = 0;
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
   UInt nb_nodes_per_element[nb_types];
   UInt nb_nodes_per_facet[nb_types];
@@ -203,45 +244,53 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
   UInt nb_facets[nb_types];
   UInt ** node_in_facet[nb_types];
   Vector<UInt> * connectivity_facets[nb_types];
-  Vector<UInt> * connectivity_internal_facets[nb_types];
+  Vector<Vector<Element> > * element_to_subelement[nb_types];
+  Vector<Element> * subelement_to_element[nb_types];
 
   UInt * conn_val[nb_types];
   UInt nb_element[nb_types];
 
   ElementType facet_type;
 
-  Mesh * internal_facets_mesh = NULL;
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  if (internal_flag) internal_facets_mesh = mesh.getInternalFacetsMeshPointer();
-
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
-    if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
 
-    nb_nodes_per_element[nb_good_types]    = mesh.getNbNodesPerElement(type);
+    if(mesh.getSpatialDimension(type) != dimension) continue;
+
+    nb_nodes_per_element[nb_good_types] = mesh.getNbNodesPerElement(type);
 
     facet_type = mesh.getFacetElementType(type);
     nb_facets[nb_good_types] = mesh.getNbFacetsPerElement(type);
     node_in_facet[nb_good_types] = mesh.getFacetLocalConnectivity(type);
 
-    nb_nodes_per_facet[nb_good_types]    = mesh.getNbNodesPerElement(facet_type);
+    nb_nodes_per_facet[nb_good_types] = mesh.getNbNodesPerElement(facet_type);
 
-    if (boundary_flag){
-      // getting connectivity of boundary facets
-      connectivity_facets[nb_good_types] = mesh.getConnectivityPointer(facet_type);
-      connectivity_facets[nb_good_types]->resize(0);
-    }
-    if (internal_flag){
-      // getting connectivity of internal facets
-      connectivity_internal_facets[nb_good_types] =
-	internal_facets_mesh->getConnectivityPointer(facet_type);
-      connectivity_internal_facets[nb_good_types]->resize(0);
-    }
+    // getting connectivity of boundary facets
+    connectivity_facets[nb_good_types] = mesh_facets.getConnectivityPointer(facet_type);
+    connectivity_facets[nb_good_types]->resize(0);
+
+    element_to_subelement[nb_good_types] = mesh_facets.getElementToSubelementPointer(facet_type);
+    element_to_subelement[nb_good_types]->resize(0);
 
     conn_val[nb_good_types] = mesh.getConnectivity(type, _not_ghost).values;
     nb_element[nb_good_types] = mesh.getConnectivity(type, _not_ghost).getSize();
+
+    subelement_to_element[nb_good_types] = mesh_facets.getSubelementToElementPointer(type);
+    subelement_to_element[nb_good_types]->resize(nb_element[nb_good_types]);
+
     nb_good_types++;
   }
+
+
+  CSR<UInt> node_to_elem;
+  // Vector<UInt> node_offset;
+  // Vector<UInt> node_to_elem;
+
+  //  buildNode2Elements(mesh,node_offset,node_to_elem);
+  buildNode2Elements(mesh, node_to_elem, dimension);
+
+  // std::cout << "node offset " << std::endl << node_offset << std::endl;
+  // std::cout << "node to elem " << std::endl << node_to_elem << std::endl;
 
   Vector<UInt> counter;
   /// count number of occurrence of each node
@@ -264,46 +313,199 @@ void MeshUtils::buildFacets(Mesh & mesh, bool boundary_flag, bool internal_flag)
 	  // node_offset.values[facet_nodes[0]];
 	counter.resize(first_node_nelements);
 	counter.clear();
-	//loop over the other nodes to search intersecting elements
+	//loop over the other nodes to search intersecting elements,
+	//which are the elements that share another node with the
+	//starting element after first_node
+	CSR<UInt>::iterator first_node_elements_end;
+	first_node_elements_end = node_to_elem.end(facet_nodes[0]);
 	for (UInt n = 1; n < nb_nodes_per_facet[t]; ++n) {
-	  first_node_elements = node_to_elem.begin(facet_nodes[0]);
-
 	  CSR<UInt>::iterator node_elements, node_elements_begin, node_elements_end;
 	  node_elements_begin = node_to_elem.begin(facet_nodes[n]);
 	  node_elements_end = node_to_elem.end(facet_nodes[n]);
 	  //	  UInt * node_elements = node_to_elem.values+node_offset.values[facet_nodes[n]];
 	    // node_offset.values[facet_nodes[n]+1]-
 	    // node_offset.values[facet_nodes[n]];
-	  for (UInt el1 = 0; el1 < first_node_nelements; ++el1, ++first_node_elements) {
-	    for (node_elements = node_elements_begin; node_elements != node_elements_end; ++node_elements) {
+	  UInt local_el = 0;
+	  for (first_node_elements = node_to_elem.begin(facet_nodes[0]);
+	       first_node_elements != first_node_elements_end;
+	       ++first_node_elements, ++local_el) {
+	    for (node_elements = node_elements_begin;
+		 node_elements != node_elements_end;
+		 ++node_elements) {
 	      if (*first_node_elements == *node_elements) {
-		++counter.values[el1];
+		++counter.values[local_el];
+		// it may cause trouble:
 		break;
 	      }
 	    }
-	    if (counter.values[el1] == nb_nodes_per_facet[t]) break;
+	    //	    if (counter.values[local_el] == nb_nodes_per_facet[t]) break;
 	  }
 	}
-	bool connected_facet = false;
+	// bool connected_facet = false;
+
 	//the connected elements are those for which counter is n_facet
 	//	UInt connected_element = -1;
+
+	// counting the number of elements connected to the facets and
+	// taking the minimum element number, because the facet should
+	// be inserted just once
+	UInt nb_element_connected_to_facet = 0;
+	UInt minimum_el_index = std::numeric_limits<UInt>::max();
+	Vector<UInt> connected_elements;
 	for (UInt el1 = 0; el1 < counter.getSize(); el1++) {
 	  UInt el_index = node_to_elem(facet_nodes[0], el1);
-	  // node_to_elem.values[node_offset.values[facet_nodes[0]]+el1];
-	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index > linearized_el){
-	    //	    connected_element = el_index;
-	    AKANTU_DEBUG(dblDump,"connecting elements " << linearized_el << " and " << el_index);
-	    if (internal_flag)
-	      connectivity_internal_facets[t]->push_back(facet_nodes);
+
+	  if (counter.values[el1] == nb_nodes_per_facet[t]-1) {
+	    ++nb_element_connected_to_facet;
+	    minimum_el_index = std::min(minimum_el_index, el_index);
+	    connected_elements.push_back(el_index);
 	  }
-	  if (counter.values[el1] == nb_nodes_per_facet[t]-1 && el_index != linearized_el)
-	    connected_facet = true;
 	}
-	if (!connected_facet) {
-	  AKANTU_DEBUG(dblDump,"facet " << f << " in element " << linearized_el << " is a boundary");
-	  if (boundary_flag)
+
+	if (minimum_el_index == linearized_el) {
+	  if (!boundary_only || (boundary_only && nb_element_connected_to_facet == 1)) {
 	    connectivity_facets[t]->push_back(facet_nodes);
+
+	    UInt current_nb_facets = element_to_subelement[t]->getSize();
+	    element_to_subelement[t]->resize(current_nb_facets + 1);
+	    Vector<Element> & elements = (*element_to_subelement[t])(current_nb_facets);
+
+	    // build elements_on_facets: linearized_el must come first
+	    // in order to store the facet in the correct direction
+	    // and avoid to invert the sign in the normal computation
+	    elements.push_back(mesh.linearizedToElement(linearized_el));
+
+	    /// boundary facet
+	    if (nb_element_connected_to_facet == 1)
+	      elements.push_back(ElementNull);
+	    /// internal facet
+	    else if (nb_element_connected_to_facet == 2)
+	      elements.push_back(mesh.linearizedToElement(connected_elements.values[1]));
+	    /// facet of facet
+	    else {
+	      UInt nb_connected = connected_elements.getSize();
+	      for (UInt i = 1; i < nb_connected; ++i) {
+		elements.push_back(mesh.linearizedToElement(connected_elements.values[i]));
+	      }
+
+	      /// check if sorting is needed:
+	      /// - in 3D to sort triangles around segments
+	      /// - in 2D to sort segments around points
+	      if (dimension == spatial_dimension - 1) {
+
+		/// barycentrical coordinates for each connected
+		/// element with respect to start_node
+		Vector<Real> connected_nodes(nb_connected, 2);
+
+		const Vector<Real> & coord = mesh_facets.getNodes();
+		const Vector<UInt> & facet_conn = mesh_facets.getConnectivity(facet_type);
+
+		/// node around which the sorting is carried out is
+		/// the first node of the current facet
+		UInt start_node = facet_conn(facet_conn.getSize()-1, 0);
+		Real start_coord[spatial_dimension];
+		for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+		  start_coord[dim] = coord(start_node, dim);
+		}
+
+		if (spatial_dimension == 3) {
+		  /// vector connecting facet first node to second
+		  Real tangent[spatial_dimension];
+		  /// vector connecting facet first node and
+		  /// barycenter of elements(0)
+		  Real temp[spatial_dimension];
+		  /// two normals to the segment facet to define the
+		  /// reference system
+		  Real normal1[spatial_dimension];
+		  Real normal2[spatial_dimension];
+
+		  Vector<Real> & bary = barycenter(elements(0).type);
+
+		  /// facet second node
+		  UInt second_node = facet_conn(facet_conn.getSize()-1, 1);
+
+		  /// construction of tangent and temp arrays
+		  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+		    Real x1, x2;
+		    x1 = coord(second_node, dim);
+		    x2 = bary(elements(0).element, dim);
+		    tangent[dim] = x1 - start_coord[dim];
+		    temp[dim] = x2 - start_coord[dim];
+		  }
+
+		  /// get normal1 and normal2
+		  Math::normalize3(tangent);
+		  Math::vectorProduct3(tangent, temp, normal1);
+		  Math::normalize3(normal1);
+		  Math::vectorProduct3(tangent, normal1, normal2);
+
+		  for (UInt n = 0; n < nb_connected; ++n) {
+		    Real bary_coord[spatial_dimension];
+		    Vector<Real> & bary = barycenter(elements(n).type);
+
+		    /// get the barycenter local coordinates
+		    for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+		      bary_coord[dim] = bary(elements(n).element, dim)
+			- start_coord[dim];
+		    }
+		    /// project the barycenter coordinates on the two
+		    /// normals to have them on the same plane
+		    connected_nodes(n, 0) = Math::vectorDot(bary_coord, normal1, spatial_dimension);
+		    connected_nodes(n, 1) = Math::vectorDot(bary_coord, normal2, spatial_dimension);
+		  }
+		}
+		else if (spatial_dimension == 2) {
+		  for (UInt n = 0; n < nb_connected; ++n) {
+		    Vector<Real> & bary = barycenter(elements(n).type);
+		    /// get the barycenter local coordinates
+		    for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+		      connected_nodes(n, dim) = bary(elements(n).element, dim)
+			- start_coord[dim];
+		    }
+		  }
+		}
+
+		/// associate to each element a real value based on
+		/// atan2 function (check wikipedia)
+		std::map<Element, Real, CompElementLess> atan2;
+
+		for (UInt n = 0; n < nb_connected; ++n) {
+		  Real x = connected_nodes(n, 0);
+		  Real y = connected_nodes(n, 1);
+		  /// in order to avoid division by zero:
+		  if (y == 0 && x < 0)
+		    y = Math::getTolerance();
+		  atan2[elements(n)] = y / (sqrt(x * x + y * y) + x);
+		}
+
+		/// sort elements according to their atan2 values
+		ElementSorter sorter(atan2);
+		std::sort(elements.storage(), elements.storage() + elements.getSize(), sorter);
+
+	      }
+	    }
+
+	    /// current facet index
+	    UInt current_facet = connectivity_facets[t]->getSize() - 1;
+
+	    /// loop on every element connected to current facet and
+	    /// insert current facet in the first free spot of the
+	    /// subelement_to_element vector
+	    for (UInt el = 0; el < elements.getSize(); ++el) {
+	      if (elements(el).type != _not_defined) {
+		for (UInt f_in = 0; f_in < nb_facets[t]; ++f_in) {
+		  if ((*subelement_to_element[t])(elements(el).element, f_in).type == _not_defined) {
+		    (*subelement_to_element[t])(elements(el).element, f_in).type = facet_type;
+		    (*subelement_to_element[t])(elements(el).element, f_in).element = current_facet;
+		    break;
+		  }
+		}
+	      }
+	    }
+
+	  }
 	}
+
       }
     }
   }

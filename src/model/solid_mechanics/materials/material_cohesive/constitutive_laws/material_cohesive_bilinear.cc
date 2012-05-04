@@ -62,12 +62,21 @@ void MaterialCohesiveBilinear::initMaterial() {
    * \frac{{\sigma_c}_\textup{old} \delta_c} {\delta_c - \delta_0} @f$
    */
 
+  AKANTU_DEBUG_ASSERT(delta_c != delta_0, "Check your material.dat");
+
   sigma_c *= delta_c / (delta_c - delta_0);
 
-  MaterialCohesiveBilinear::updateDeltaMax(_ghost);
-  MaterialCohesiveBilinear::updateDeltaMax(_not_ghost);
+  updateDeltaMax(_ghost);
+  updateDeltaMax(_not_ghost);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesiveBilinear::resizeCohesiveVectors() {
+  MaterialCohesiveLinear::resizeCohesiveVectors();
+  updateDeltaMax(_ghost);
+  updateDeltaMax(_not_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -75,8 +84,8 @@ void MaterialCohesiveBilinear::updateDeltaMax(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = model->getFEM().getMesh();
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
 
   for(; it != last_type; ++it) {
     Vector<Real>::iterator<Real>delta_max_it =

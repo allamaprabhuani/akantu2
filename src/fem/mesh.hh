@@ -59,6 +59,19 @@ public:
     this->ghost_type = element.ghost_type;
   }
 
+  inline bool operator==(const Element & elem) {
+    return ((element == elem.element)
+	    && (type == elem.type) 
+	    && (ghost_type == elem.ghost_type));
+  }
+
+  inline bool operator!=(const Element & elem) {
+    return ((element != elem.element)
+	    || (type != elem.type) 
+	    || (ghost_type != elem.ghost_type));
+  }
+
+
   virtual ~Element() {};
 
   /// function to print the containt of the class
@@ -248,8 +261,7 @@ public:
 
   /// constructor that create nodes coordinates array
   Mesh(UInt spatial_dimension,
-       const ID & id = "mesh"
-,
+       const ID & id = "mesh",
        const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
@@ -294,7 +306,8 @@ public:
   template<typename T>
   void initByElementTypeVector(ByElementTypeVector<T> & v,
  			       UInt nb_component, UInt size,
-			       const bool & flag_nb_node_per_elem_multiply=false) const; /// @todo: think about nicer way to do it
+			       const bool & flag_nb_node_per_elem_multiply=false,
+			       ElementKind element_kind = _ek_regular) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
   template<typename T>
@@ -319,7 +332,7 @@ public:
   inline void updateTypesOffsets(const GhostType & ghost_type);
 
   /// add a Vector of connectivity for the type <type>.
-  inline void addConnecticityType(const ElementType & type);
+  inline void addConnectivityType(const ElementType & type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -332,6 +345,8 @@ public:
 
   /// get the nodes Vector aka coordinates
   AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Vector<Real> &);
+
   /// get the number of nodes
   AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
 
@@ -376,6 +391,7 @@ public:
 
   /// get the connectivity Vector for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
 
   /// @todo take out this set, if mesh can read surface id
   /// set the number of surfaces
@@ -390,12 +406,17 @@ public:
   /// get the connectivity list either for the elements or the ghost elements
   inline const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
 
-  /// get the mesh of the internal facets
-  inline const Mesh & getInternalFacetsMesh() const;
-
   /// compute the barycenter of a given element
   inline void getBarycenter(UInt element, const ElementType & type, Real * barycenter,
 			    GhostType ghost_type = _not_ghost) const;
+
+  /// get the element connected to a subelement
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementToSubelement, element_to_subelement, Vector<Element>);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementToSubelement, element_to_subelement, Vector<Element>);
+
+  /// get the subelement connected to an element
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SubelementToElement, subelement_to_element, Element);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(SubelementToElement, subelement_to_element, Element);
 
   /// get the surface values of facets
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SurfaceID, surface_id, UInt);
@@ -428,7 +449,7 @@ public:
   /// get number of facets of a given element type
   static inline UInt getNbFacetsPerElement(const ElementType & type);
 
-  /// get number of facets of a given element type
+  /// get local connectivity of a facet for a given facet type
   static inline UInt ** getFacetLocalConnectivity(const ElementType & type);
 
   /// get the type of the surface element associated to a given element
@@ -478,9 +499,6 @@ private:
   inline Vector<UInt> * getConnectivityPointer(const ElementType & type,
 					       const GhostType & ghost_type = _not_ghost);
 
-  /// get a pointer to the internal_facets Mesh and create it if necessary
-  inline Mesh * getInternalFacetsMeshPointer();
-
   // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   /// get a pointer to the surface_id Vector for the given type and create it if necessary
@@ -490,10 +508,18 @@ private:
   inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
 				      const GhostType & ghost_type = _not_ghost);
 
-  /// get the IntDataMap pointer (moidifyable) for a given ElementType
+  /// get the IntDataMap pointer (modifyable) for a given ElementType
   inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type,
 					   const std::string & data_name,
 					   const GhostType & ghost_type = _not_ghost);
+
+  /// get a pointer to the element_to_subelement Vector for the given type and create it if necessary
+  inline Vector<Vector<Element> > * getElementToSubelementPointer(const ElementType & type,
+								  const GhostType & ghost_type = _not_ghost);
+
+  /// get a pointer to the subelement_to_element Vector for the given type and create it if necessary
+  inline Vector<Element > * getSubelementToElementPointer(const ElementType & type,
+							  const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -531,9 +557,6 @@ private:
   /// the spatial dimension of this mesh
   UInt spatial_dimension;
 
-  /// internal facets mesh
-  Mesh * internal_facets_mesh;
-
   /// types offsets
   Vector<UInt> types_offsets;
 
@@ -560,7 +583,11 @@ private:
   /// local max of coordinates
   Real local_upper_bounds[3];
 
+  /// List of elements connected to subelements
+  ByElementTypeVector<Vector<Element> > element_to_subelement;
 
+  /// List of subelements connected to elements
+  ByElementTypeVector<Element > subelement_to_element;
 
   // /// list of elements that are reversed due to pbc
   // ByElementTypeUInt reversed_elements_pbc;
@@ -569,6 +596,7 @@ private:
 
   /// list of the vectors corresponding to tags in the mesh
   ByElementTypeUIntDataMap uint_data;
+
 };
 
 /* -------------------------------------------------------------------------- */

@@ -71,6 +71,9 @@ public:
   /// update delta_max values with delta_0
   virtual void updateDeltaMax(GhostType ghost_type);
 
+  /// resize vectors for new cohesive elements
+  virtual void resizeCohesiveVectors();
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -197,13 +197,15 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+
+public: 
+  /// Number of nodes per element
+  static UInt nb_nodes_per_element;
+
 private:
 
   /// Kind of element
   static ElementKind kind;
-
-  /// Number of nodes per element
-  static UInt nb_nodes_per_element;
 
   /// Number of quadrature points per element
   static UInt nb_quadrature_points;

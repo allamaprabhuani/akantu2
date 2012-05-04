@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
   mesh_io.read("triangle_3.msh", my_mesh);
 
   /// build facet connectivity and surface id
-  MeshUtils::buildFacets(my_mesh,1,0);
+  MeshUtils::buildFacets(my_mesh);
   MeshUtils::buildSurfaceID(my_mesh);
 
   UInt max_steps = 3;

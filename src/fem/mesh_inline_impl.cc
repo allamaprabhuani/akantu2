@@ -43,15 +43,19 @@ inline UInt Mesh::elementToLinearized(const Element & elem) {
 
 /* -------------------------------------------------------------------------- */
 inline Element Mesh::linearizedToElement (UInt linearized_element) {
+
   UInt t;
-  for (t = _not_defined + 1;
-       linearized_element > types_offsets.values[t] && t <= _max_element_type; ++t);
 
-  AKANTU_DEBUG_ASSERT(t < _max_element_type,
-		      "The linearized element " << linearized_element
-		      << "does not exists in the mesh " << id);
+  for (t = _not_defined;
+       t != _max_element_type && linearized_element >= types_offsets(t);
+       ++t);
+    
+  AKANTU_DEBUG_ASSERT(t != _max_element_type,
+   		      "The linearized element " << linearized_element
+   		      << "does not exists in the mesh " << id);
 
-  return Element((ElementType) t, linearized_element-types_offsets.values[t]);
+  --t;
+  return Element(ElementType(t), linearized_element - types_offsets.values[t]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -63,13 +67,16 @@ inline void Mesh::updateTypesOffsets(const GhostType & ghost_type) {
   for (; it != last; ++it)
     types_offsets(*it) = connectivities(*it, ghost_type).getSize();
 
-  for (UInt t = _not_defined + 1;  t <= _max_element_type; ++t)
+  for (UInt t = _not_defined + 1; t < _max_element_type; ++t)
     types_offsets(t) += types_offsets(t - 1);
+  for (UInt t = _max_element_type; t > _not_defined; --t)
+    types_offsets(t) = types_offsets(t - 1);
+  types_offsets(0) = 0;
 }
 
 /* -------------------------------------------------------------------------- */
 inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(const GhostType & ghost_type) const {
-  if(ghost_type == _not_ghost)
+  if (ghost_type == _not_ghost)
     return type_set;
   else
     return ghost_type_set;
@@ -125,31 +132,6 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Mesh & Mesh::getInternalFacetsMesh() const {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-  if (!internal_facets_mesh)
-    AKANTU_DEBUG_ERROR("Internal facets mesh was not created before access "
-		       << "=> use mesh utils to that purpose");
-  return *internal_facets_mesh;
-}
-
-/* -------------------------------------------------------------------------- */
-inline Mesh * Mesh::getInternalFacetsMeshPointer() {
-  AKANTU_DEBUG_IN();
-
-  if (!internal_facets_mesh){
-    std::stringstream name(this->id);
-    name << ":internalfacets";
-    internal_facets_mesh = new Mesh(this->spatial_dimension-1,*this->nodes,name.str());
-  }
-
-  AKANTU_DEBUG_OUT();
-  return internal_facets_mesh;
-}
-
-/* -------------------------------------------------------------------------- */
 inline Vector<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -160,6 +142,45 @@ inline Vector<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type, const 
 		      << type << " created");
   } else {
     tmp = &(surface_id(type, ghost_type));
+  }
+
+  AKANTU_DEBUG_OUT();
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Vector<Vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type, const GhostType & ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Vector<Vector<Element> > * tmp;
+  if(!element_to_subelement.exists(type, ghost_type)) {
+    tmp = &(element_to_subelement.alloc(0, 1, type, ghost_type));
+
+    AKANTU_DEBUG_INFO("The element_to_subelement vector for the type "
+		      << type << " created");
+  } else {
+    tmp = &(element_to_subelement(type, ghost_type));
+  }
+
+  AKANTU_DEBUG_OUT();
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Vector<Element > * Mesh::getSubelementToElementPointer(const ElementType & type, const GhostType & ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Vector<Element > * tmp;
+  if(!subelement_to_element.exists(type, ghost_type)) {
+
+    UInt nb_facets = getNbFacetsPerElement(type);
+
+    tmp = &(subelement_to_element.alloc(0, nb_facets, type, ghost_type));
+
+    AKANTU_DEBUG_INFO("The subelement_to_element vector for the type "
+		      << type << " created");
+  } else {
+    tmp = &(subelement_to_element(type, ghost_type));
   }
 
   AKANTU_DEBUG_OUT();
@@ -427,7 +448,7 @@ DECLARE_GET_BOUND(LocalUpper, local_upper)
 #undef DECLARE_GET_BOUND
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::addConnecticityType(const ElementType & type){
+inline void Mesh::addConnectivityType(const ElementType & type){
   getConnectivityPointer(type);
 }
 

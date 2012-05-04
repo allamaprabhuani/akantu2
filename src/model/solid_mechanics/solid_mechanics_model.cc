@@ -189,15 +189,10 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initCohesive() {
-  registerFEMObject<MyFEMCohesiveType>("CohesiveFEM", mesh, spatial_dimension);
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initFEMBoundary(bool create_surface) {
 
   if(create_surface)
-    MeshUtils::buildFacets(mesh, true, false);
+    MeshUtils::buildFacets(mesh);
 
   FEM & fem_boundary = getFEMBoundary();
   fem_boundary.initShapeFunctions();
@@ -256,8 +251,8 @@ void SolidMechanicsModel::initVectors() {
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
-    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt, _ek_not_defined);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt, _ek_not_defined);
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
       element_material.alloc(nb_element, 1, *it, gt);

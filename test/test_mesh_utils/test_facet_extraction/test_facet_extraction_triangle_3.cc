@@ -46,14 +46,14 @@ using namespace akantu;
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
-  const ElementType type = _triangle_3;
+  const ElementType type = _triangle_6;
   int dim = ElementClass<type>::getSpatialDimension();
 
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
 
-  MeshUtils::buildFacets(mesh,1,1);
+  MeshUtils::buildAllFacets(mesh);
 
 #ifdef AKANTU_USE_IOHELPER
   const ElementType surf_type = ElementClass<type>::getFacetElementType();
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
   dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction");
   dumper.SetConnectivity((int*)mesh.getConnectivity(type).values,
-   			 iohelper::TRIANGLE1, mesh.getNbElement(type), iohelper::C_MODE);
+   			 iohelper::TRIANGLE2, mesh.getNbElement(type), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
@@ -74,16 +74,16 @@ int main(int argc, char *argv[])
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_boundary");
   dumper_facet.SetConnectivity((int*)mesh.getConnectivity(surf_type).values,
-			       iohelper::LINE1, mesh.getNbElement(surf_type), iohelper::C_MODE);
+			       iohelper::LINE2, mesh.getNbElement(surf_type), iohelper::C_MODE);
   dumper_facet.SetPrefix("paraview/");
   dumper_facet.Init();
   dumper_facet.Dump();
 
-  dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
-  dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(surf_type).values,
-  			       iohelper::LINE1, mesh.getInternalFacetsMesh().getNbElement(surf_type), iohelper::C_MODE);
-  dumper_facet.Init();
-  dumper_facet.Dump();
+  // dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
+  // dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(surf_type).values,
+  // 			       iohelper::LINE2, mesh.getInternalFacetsMesh().getNbElement(surf_type), iohelper::C_MODE);
+  // dumper_facet.Init();
+  // dumper_facet.Dump();
 
 #endif //AKANTU_USE_IOHELPER
   akantu::finalize();

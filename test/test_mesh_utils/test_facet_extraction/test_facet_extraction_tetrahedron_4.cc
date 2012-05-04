@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
   
-  MeshUtils::buildFacets(mesh,1,1);
+  MeshUtils::buildAllFacets(mesh);
 
 #ifdef AKANTU_USE_IOHELPER
   unsigned int nb_nodes = mesh.getNbNodes();

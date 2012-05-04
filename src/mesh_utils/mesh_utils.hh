@@ -27,17 +27,16 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_UTILS_HH__
-#define __AKANTU_MESH_UTILS_HH__
-
-/* -------------------------------------------------------------------------- */
-
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "aka_csr.hh"
 /* -------------------------------------------------------------------------- */
 
 #include <vector>
+
+/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_MESH_UTILS_HH__
+#define __AKANTU_MESH_UTILS_HH__
 
 /* -------------------------------------------------------------------------- */
 
@@ -68,8 +67,18 @@ public:
 
   //  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
 
-  /// build facets elements : boundary and/or internals
-  static void buildFacets(Mesh & mesh, bool boundary_flag = true, bool internal_flag = false);
+  /// build facets elements on boundary
+  static void buildFacets(Mesh & mesh);
+
+  /// build facets elements : boundary and internals
+  static void buildAllFacets(Mesh & mesh, Mesh & mesh_facets);
+
+  /// build facets for a given spatial dimension
+  static void buildFacetsDimension(Mesh & mesh,
+				   Mesh & mesh_facets,
+				   bool boundary_only,
+				   UInt dimension,
+				   ByElementTypeReal & barycenter);
 
   /// build normal to some elements
   //  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
@@ -130,6 +139,18 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
+};
+
+
+class ElementSorter {
+public:
+  ElementSorter(const ElementSorter & e) : atan2(e.atan2) {}
+
+  ElementSorter(std::map<Element, Real, CompElementLess> & atan2) : atan2(atan2) {}
+
+  inline bool operator()(const Element & first, const Element & second);
+private:
+  std::map<Element, Real, CompElementLess> & atan2;
 };
 
 

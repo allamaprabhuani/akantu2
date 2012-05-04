@@ -77,7 +77,7 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const GhostType & gh
 
   Real * weights = ElementClass<type>::getGaussIntegrationWeights();
 
-  UInt * elem_val = mesh->getConnectivity(type,ghost_type).storage();;
+  UInt * elem_val = mesh->getConnectivity(type,ghost_type).storage();
   UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();
 
   Vector<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
@@ -319,8 +319,6 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(c
 			      UInt nb_degree_of_freedom,			\
 			      const GhostType & ghost_type,		\
 			      const Vector<UInt> * filter_elements) const;
-
-
 
 AKANTU_BOOST_REGULAR_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
 #undef INSTANCIATE_TEMPLATE_CLASS

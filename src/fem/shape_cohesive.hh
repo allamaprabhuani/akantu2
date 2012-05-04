@@ -139,6 +139,7 @@ public:
 private:
 
   /// real shape function implementation
+  //QUESTION!!!!!!! why having a member of the class you derive ? what do you gain ?
   ShapeFunction * sub_type_shape_function;
 };
 

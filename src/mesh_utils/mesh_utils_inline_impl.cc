@@ -1,9 +1,9 @@
 /**
  * @file   mesh_utils_inline_impl.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Wed Aug 18 14:05:36 2010
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @date   Wed Apr  4 16:44:33 2012
  *
- * @brief  All mesh utils necessary for various tasks
+ * @brief  Mesh utils inline functions
  *
  * @section LICENSE
  *
@@ -28,3 +28,7 @@
 /* -------------------------------------------------------------------------- */
 
 
+inline bool ElementSorter::operator()(const Element & first,
+				      const Element & second) {
+  return atan2[first] < atan2[second];
+}

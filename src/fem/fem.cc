@@ -108,7 +108,6 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 
 
   nodal_values.resize(nb_nodes);
-
   Real * elementary_vect_val = elementary_vect.values;
   Real * nodal_values_val    = nodal_values.values;
 

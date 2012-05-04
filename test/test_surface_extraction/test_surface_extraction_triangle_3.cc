@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
   MeshIOMSH mesh_io;
   mesh_io.read("squares.msh", mesh);
 
-  MeshUtils::buildFacets(mesh, 1, 0);
+  MeshUtils::buildFacets(mesh);
   MeshUtils::buildSurfaceID(mesh);
 
   unsigned int nb_nodes = mesh.getNbNodes();

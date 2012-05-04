@@ -68,7 +68,7 @@ public:
 
   static UInt getNbNodesPerElement() {
     return 2 * Parent::getNbNodesPerElement();
-  }
+}
 
   static UInt getNbQuadraturePoints() {
     return Parent::getNbQuadraturePoints();
