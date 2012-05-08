@@ -204,7 +204,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
      * compute @f$\int t \cdot N\, dS@f$ by  @f$ \sum_q \mathbf{N}^t
      * \mathbf{t}_q \overline w_q J_q@f$
      */
-    Vector<Real> int_t_N(nb_element,spatial_dimension*size_of_shapes,
+    Vector<Real> int_t_N(nb_element, spatial_dimension*size_of_shapes,
 			 "int_t_N");
 
     fem_cohesive->integrate(traction_cpy, int_t_N,
@@ -212,16 +212,14 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 			    *it, ghost_type,
 			    &elem_filter);
 
-    int_t_N.extendComponentsInterlaced(2,spatial_dimension);
+    int_t_N.extendComponents(2);
 
     Real * int_t_N_val = int_t_N.storage();
     for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt n = 0; n < size_of_shapes*spatial_dimension; ++n) {
+      for (UInt n = 0; n < size_of_shapes*spatial_dimension; ++n)
 	int_t_N_val[n] *= -1.;
-      }
       int_t_N_val += nb_nodes_per_element*spatial_dimension;
     }
-
 
     /// assemble
     model->getFEMBoundary().assembleVector(int_t_N, residual,

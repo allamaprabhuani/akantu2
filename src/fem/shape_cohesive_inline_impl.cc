@@ -98,7 +98,7 @@ void ShapeCohesive<ShapeFunction>::precomputeShapeDerivativesOnControlPoints(Gho
   // const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 
   // Real * coord = this->mesh->getNodes().storage();
-  UInt spatial_dimension = CohesiveElement<type>::getSpatialDimension();
+  //  UInt spatial_dimension = CohesiveElement<type>::getSpatialDimension();
 
   // UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
   // UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
@@ -119,7 +119,7 @@ void ShapeCohesive<ShapeFunction>::precomputeShapeDerivativesOnControlPoints(Gho
 
   for (UInt elem = 0; elem < nb_element; ++elem) {
     CohesiveElement<type>::computeDNDS(natural_coords, nb_points, shapesd_val);
-    natural_coords += nb_points * spatial_dimension;
+    //    natural_coords += nb_points * spatial_dimension;
     shapesd_val += size_of_shapesd * nb_points;
   }
 
@@ -148,7 +148,7 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
 
   const Vector<Real> & shapes = sub_type_shape_function->shapes(type, ghost_type);
 
-  //  UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
+  UInt nb_nodes_per_element = CohesiveElement<type>::getNbNodesPerElement();
   UInt nb_nodes_per_sub_element = ElementClass<sub_type>::getNbNodesPerElement();
 
   UInt nb_points = this->control_points(type, ghost_type).getSize();
@@ -183,7 +183,7 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
 				       nb_element,
 				       nb_points * nb_nodes_per_sub_element);
       shape += filter_elem_val[el];
-      el_offset = filter_elem_val[el] * nb_nodes_per_sub_element;
+      el_offset = filter_elem_val[el] * nb_nodes_per_element;
     }
 
     for (UInt n = 0; n < nb_nodes_per_sub_element; ++n) {

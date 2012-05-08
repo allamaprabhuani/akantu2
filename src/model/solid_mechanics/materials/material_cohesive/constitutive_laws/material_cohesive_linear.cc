@@ -145,9 +145,8 @@ void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
     if (delta >= delta_c || delta == 0) {
 
       /// set traction to zero
-      for (UInt i = 0; i < spatial_dimension; ++i) {
+      for (UInt i = 0; i < spatial_dimension; ++i)
 	(*traction_it)(i) = 0.;
-      }
 
     }
     /// element not fully damaged
