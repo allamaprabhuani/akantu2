@@ -1,0 +1,7 @@
+#! /bin/bash
+
+rm -fr paraview
+mkdir paraview
+
+./test_cohesive
+
