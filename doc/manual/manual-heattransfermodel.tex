@@ -1,2 +1,116 @@
-\section{Heat Transfer model\todo{Guillaume}}
+\section{Heat Transfer model}
 
+The hest transfer model is a specific implementation of the \code{Model} interfance
+dedicated to handle the dynamical heat equation. 
+\subsection{Theory}
+The strong form of the heat equation 
+can be expressed as:
+\begin{equation}
+  \rho c_v \dot{T} + \nabla \cdot \vec{\kappa} \nabla T = b
+\end{equation}
+with $T$ the temperature scalar field,
+$c_v$ is heat capacity per unit of mass, $\rho$ is the mass density, 
+$\kappa$ is the conductivity tensor and $b$ is the volumic heat generation. 
+The weak form discretized with finite elements thus becomes:
+\begin{equation}
+  \forall I \quad 
+  \sum_J \left( \int_\Omega \rho c_v N_J N_I  d\Omega \right) \dot{T}_J 
+  - \sum_J \left( \int_\Omega \vec{\kappa} \nabla N_J \nabla N_I d\Omega \right) T_J = 
+  - \int_{\Gamma}  N_I \vec{q} \cdot \vec{n} d\Gamma + \int_\Omega b N_I d\Omega
+\end{equation}
+with $\vec{n}$ the field of normals to the surface $\Gamma$. 
+So that we can define the capacity and conductivity matrices:
+\begin{equation}
+  C_{IJ} = \int_\Omega \rho c_v N_J N_I  d\Omega \qquad   
+  K_{IJ} = - \int_\Omega \vec{\kappa} \nabla N_J \nabla N_I d\Omega
+\end{equation}
+so that the discrete system to solve can be written:
+\begin{equation}
+  \mat{C} \cdot \vec{\dot{T}} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T} 
+\end{equation}
+with $Q^{ext}_I$ the consistent heat generated on node $I$.
+\subsection{Using the heat transfer model}
+At present time an explicit dynamic resolution is available by
+using the \code{HeatTransferModel}  object.
+One such can simply be created like this:
+\begin{cpp}
+  HeatTransferModel model(mesh, spatial_dimension);
+\end{cpp}
+With a mesh constructed and fully functional (see \ref{sect:common:mesh} for that).
+Then the model object can be initialized with:
+\begin{cpp}
+  model.initFull("material.dat")
+\end{cpp}
+where the a material filename has to be provided. This function will load the materials 
+properties, and allocate/initialize the nodal and per element vectors.
+More precisely the model contains 4 \code{Vectors}:
+\begin{description}
+\item[temperature] contains the nodal temperatures ($T$) 
+\item[temperature\_rate] contains the variation of temperature ($\dot{T}$) 
+\item[boundary]  contains a  \code{boolean}  value for  each  node
+  specifying  whether  temperature is  blocked  or  not. A  Dirichlet  boundary
+  condition can be prescribed by setting the \textbf{boundary} value of a node 
+  to  \code{true}.  A Neumann boundary condition  can only be applied
+  if the  \textbf{boundary} value of a node is  \code{false}. If a
+  node has a  \textbf{boundary} value  that is  \code{false}, the
+  \textbf{temperature},     \textbf{temperature\_rate} and
+  \textbf{residual} are computed by the solve algorithm when relevant, otherwise
+  these  vectors  contain   the  imposed  values  (zero  by   default  after  the
+  initialization).
+\item[residual] contains the difference between external and internal heat generation. On
+  temperature imposed nodes,  \textbf{residual} contains the support heat reactions. ($\vec{R} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T}$)
+\end{description}
+
+\subsubsection{Explicit dynamic}
+
+The implemented explicit  time integration scheme in \akantu  uses a lumped capacity
+matrix $\mat{C}$ (reducing the computational  cost). This matrix is assembled by
+distributing the capacity of each element onto its nodes. The resulting $\mat{C}$ is
+therefore a diagonal matrix stored in the \textbf{capacity} vector of the model.
+
+\begin{cpp}
+  model.assembleCapacityLumped();
+\end{cpp}
+\index{HeatTransferModel!assembleCapacityLumped}
+
+The explicit integration scheme is a \index{Forward Euler}.\\
+
+Predictor:
+\begin{align}
+\vec{T}_{n+1} &= \vec{T}_{n} + \Delta t \dot{\vec{T}}_{n} \\
+\end{align}
+
+Solve :
+\begin{equation}
+\mat{C} \vec{\delta T} +  \dot{\vec{T}} = \vec{q_{n+1}} - \vec{f^i_{n+1}} 
+\end{equation}
+
+Corrector :
+\begin{align}
+\dot{\vec{T}}^{i+1}_{n+1} &= \dot{\vec{T}}^{i}_{n+1} + a \vec{\delta T} \\
+\end{align}
+
+The explicit integration scheme is conditionally stable. The time step has to be
+smaller than the stable time step which is obtained in \akantu as follows:
+
+\begin{cpp}
+  time_step = model.getStableTimeStep();
+\end{cpp}
+\index{HeatTransferModel!StableTimeStep}
+
+The stable time step is defined as:
+\begin{equation}\label{eqn:smm:explicit:stabletime}
+  \Delta t_{\st{crit}} = 2 \Delta x^2 \frac{\rho c_v}{\mid\mid \mat{\kappa} \mid\mid^\infty}
+\end{equation}
+where $\Delta  x$ is a  characteristic length (\eg  the inradius in the  case of
+linear triangle  element), $\rho$ is the density, $\mat{\kappa}$ is the conductivity tensor
+and $c_v$ is the heat capacity per unit of mass. It is
+necessary to impose a  time step that is smaller than the  stable time step, for
+instance, by  multiplying the stable time  step by a safety  factor smaller than
+one.
+
+\begin{cpp}
+  const Real safety_time_factor = 0.1;
+  Real applied_time_step = time_step * safety_time_factor;
+  model.setTimeStep(applied_time_step);
+\end{cpp}
