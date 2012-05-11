@@ -69,6 +69,9 @@ public:
 
 public:
 
+  /// generic function to initialize everything ready for explicit dynamics
+  void initFull(const std::string & material_file);
+
   /// set the parameters
   bool setParam(const std::string & key, const std::string & value);
 
@@ -102,9 +105,6 @@ public:
   /// compute the heat flux
   void updateResidual();
 
-  /// solve the system in temperature rate  @f$C\delta \dot T = q_{n+1} - C \dot T_{n}@f$
-  void solveExplicitLumped();
-
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityLumped();
 
@@ -121,6 +121,10 @@ public:
   // void initializeTemperature(Vector<Real> &temp);
 
 private:
+
+  /// solve the system in temperature rate  @f$C\delta \dot T = q_{n+1} - C \dot T_{n}@f$
+  void solveExplicitLumped();
+
   /// compute the heat flux on ghost types
   void updateResidual(const GhostType & ghost_type);
 

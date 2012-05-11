@@ -56,7 +56,13 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   Model(id, memory_id),
   integrator(new ForwardEuler()),
   spatial_dimension(dim),
-  temperature_gradient("temperature_gradient", id) {
+  temperature_gradient    ("temperature_gradient", id),
+  temperature_on_qpoints  ("temperature_on_qpoints", id),
+  conductivity_on_qpoints ("conductivity_on_qpoints", id),
+  k_gradt_on_qpoints      ("k_gradt_on_qpoints", id),
+  int_bt_k_gT             ("int_bt_k_gT", id),
+  bt_k_gT                 ("bt_k_gT", id)
+{
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
@@ -195,6 +201,7 @@ void HeatTransferModel::initVectors() {
   /* -------------------------------------------------------------------------- */
   dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(),1);
   dof_synchronizer->initLocalDOFEquationNumbers();
+  dof_synchronizer->initGlobalDOFEquationNumbers();
 
   AKANTU_DEBUG_OUT();
 }
@@ -296,6 +303,8 @@ void HeatTransferModel::updateResidual() {
 #ifndef AKANTU_NDEBUG
   getSynchronizerRegistry().synchronize(akantu::_gst_htm_gradient_temperature);
 #endif
+
+  solveExplicitLumped();
 
   AKANTU_DEBUG_OUT();
 }
@@ -539,18 +548,19 @@ Real HeatTransferModel::getStableTimeStep()
         }
 
         el_size    = getFEM().getElementInradius(u, *it);
-
-        //get the biggest parameter from k11 until k33//
-        for(UInt i = 0; i < spatial_dimension * spatial_dimension; i++) {
-          if(conductivity[i] > conductivitymax)
-            conductivitymax=conductivity[i];
-        }
         min_el_size = std::min(min_el_size, el_size);
     }
+
     AKANTU_DEBUG_INFO("The minimum element size : " << min_el_size
                       << " and the max conductivity is : "
                       << conductivitymax);
     delete [] u;
+  }
+
+  //get the biggest parameter from k11 until k33//
+  for(UInt i = 0; i < spatial_dimension * spatial_dimension; i++) {
+    if(conductivity[i] > conductivitymax)
+      conductivitymax=conductivity[i];
   }
 
   Real min_dt = 2 * min_el_size * min_el_size * density
@@ -616,4 +626,17 @@ bool HeatTransferModel::setParam(const std::string & key,
 }
 
 /* -------------------------------------------------------------------------- */
+
+void HeatTransferModel::initFull(const std::string & material_file){
+  readMaterials(material_file);
+  //model initialization
+  initModel();
+  //initialize the vectors
+  initVectors();
+  getTemperature().clear();
+  getTemperatureRate().clear();
+}
+/* -------------------------------------------------------------------------- */
+
+
 __END_AKANTU__
