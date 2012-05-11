@@ -30,6 +30,8 @@
 #ifndef __AKANTU_AKA_CONFIG_HH__
 #define __AKANTU_AKA_CONFIG_HH__
 
+#cmakedefine AKANTU_NDEBUG
+
 #cmakedefine AKANTU_USE_BLAS
 #cmakedefine AKANTU_USE_LAPACK
 

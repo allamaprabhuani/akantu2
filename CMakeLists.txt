@@ -113,7 +113,9 @@ add_optional_package(LAPACK "Use LAPACK for arithmetic operations" OFF)
 
 # Debug
 if(NOT AKANTU_DEBUG)
-  list(APPEND AKANTU_DEFINITIONS AKANTU_NDEBUG)
+  set(AKANTU_NDEBUG ON)
+else()
+  set(AKANTU_NDEBUG OFF)
 endif(NOT AKANTU_DEBUG)
 
 if(CMAKE_CXX_FLAGS STREQUAL "")
