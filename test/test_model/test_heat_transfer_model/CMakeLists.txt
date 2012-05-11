@@ -44,6 +44,9 @@ add_mesh(test_heat_square_tri3 square_tri.geo 2 1 OUTPUT square_tri3.msh)
 register_test(test_heat_transfer_model_square2d_pbc
   test_heat_transfer_model_square2d_pbc.cc)
 add_dependencies(test_heat_transfer_model_square2d_pbc test_heat_square_tri3)
+register_test(test_heat_transfer_model_square2d
+  test_heat_transfer_model_square2d.cc)
+add_dependencies(test_heat_transfer_model_square2d test_heat_square_tri3)
 
 
 register_test(test_heat_transfer_model_cube3d_istropic_conductivity

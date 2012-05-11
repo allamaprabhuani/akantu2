@@ -26,32 +26,31 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "heat_transfer_model.hh"
 #include "pbc_synchronizer.hh"
+/* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <fstream>
 #include <string.h>
 using namespace std;
-
 /* -------------------------------------------------------------------------- */
+
 #ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
 
-
-static void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper);
+static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
 static void paraviewDump(iohelper::Dumper & dumper);
 iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
+
 #endif //AKANTU_USE_IOHELPER
 
+/* -------------------------------------------------------------------------- */
 akantu::UInt spatial_dimension = 2;
 akantu:: ElementType type = akantu::_triangle_3;
-
-
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[])
@@ -59,48 +58,34 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
   akantu::initialize(argc, argv);
 
+  //create mesh
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
-
   mesh_io.read("square_tri3.msh", mesh);
-
-  akantu::HeatTransferModel * model;
-  akantu::UInt nb_nodes;
-
-  model = new akantu::HeatTransferModel(mesh);
-
-  /* -------------------------------------------------------------------------- */
-  model->readMaterials("material.dat");
-  model->initModel();
-  model->initVectors();
-
-  model->getTemperature().clear();
-  model->getTemperatureRate().clear();
-
-  /* -------------------------------------------------------------------------- */
-  model->setPBC(1,1,1);
-  model->initPBC();
-  model->assembleCapacityLumped();
-
-  /* -------------------------------------------------------------------------- */
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
-  //nb_element = model->getFEM().getMesh().getNbElement(type);
   
-  /* ------------------------------------------------------------------------ */
+  akantu::HeatTransferModel model(mesh);
+  //initialize everything
+  model.initFull("material.dat");
+  
+  //initialize PBC
+  model.setPBC(1,1,1);
+  model.initPBC();
+  
+  //assemble the lumped capacity
+  model.assembleCapacityLumped();
+  
   //get stable time step
-  akantu::Real time_step = model->getStableTimeStep()*0.8;
-  cout<<"time step is:"<<time_step<<endl;
-  model->setTimeStep(time_step);
-
-  /* -------------------------------------------------------------------------- */
-  /// boundary conditions
-  const akantu::Vector<akantu::Real> & nodes = model->getFEM().getMesh().getNodes();
-  akantu::Vector<bool> & boundary = model->getBoundary();
-  akantu::Vector<akantu::Real> & temperature = model->getTemperature();
-
+  akantu::Real time_step = model.getStableTimeStep()*0.8;
+  cout<<"time step is:" << time_step << endl;
+  model.setTimeStep(time_step);
+  
+  //boundary conditions
+  const akantu::Vector<akantu::Real> & nodes = model.getFEM().getMesh().getNodes();
+  akantu::Vector<bool> & boundary = model.getBoundary();
+  akantu::Vector<akantu::Real> & temperature = model.getTemperature();
   double length;
   length = 1.;
-
+  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 
@@ -118,23 +103,18 @@ int main(int argc, char *argv[])
     }
   }
 
-  /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
   paraviewInit(model,dumper);
 #endif
-  /* ------------------------------------------------------------------------ */
-  // //for testing
+  //main loop
   int max_steps = 100000;
-
-  /* ------------------------------------------------------------------------ */
   for(int i=0; i<max_steps; i++)
     {
-      model->explicitPred();
-      model->updateResidual();
-      model->solveExplicitLumped();
-      model->explicitCorr();
-
+      model.explicitPred();
+      model.updateResidual();
+      model.explicitCorr();
+      
 #ifdef AKANTU_USE_IOHELPER
       if(i % 100 == 0)
 	paraviewDump(dumper);
@@ -148,28 +128,30 @@ int main(int argc, char *argv[])
 }
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper) {
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+/* -------------------------------------------------------------------------- */
+
+void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
+  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
 
 
   //  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
+  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
 			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getTemperature().values,
+  dumper.AddNodeDataField(model.getTemperature().values,
 			  1, "temperature");
-  dumper.AddNodeDataField(model->getTemperatureRate().values,
+  dumper.AddNodeDataField(model.getTemperatureRate().values,
    			  1, "temperature_rate");
-  dumper.AddNodeDataField(model->getResidual().values,
+  dumper.AddNodeDataField(model.getResidual().values,
    			  1, "residual");
-  dumper.AddNodeDataField(model->getCapacityLumped().values,
+  dumper.AddNodeDataField(model.getCapacityLumped().values,
    			  1, "capacity_lumped");
-  dumper.AddElemDataField(model->getTemperatureGradient(type).values,
+  dumper.AddElemDataField(model.getTemperatureGradient(type).values,
     			  spatial_dimension, "temperature_gradient");
 
-  dumper.AddElemDataField(model->getConductivityOnQpoints(type).values,
+  dumper.AddElemDataField(model.getConductivityOnQpoints(type).values,
     			  spatial_dimension*spatial_dimension, "conductivity_qpoints");
 
 
@@ -182,5 +164,7 @@ void paraviewInit(akantu::HeatTransferModel * model, iohelper::Dumper & dumper) 
 void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
+
+/* -------------------------------------------------------------------------- */
 #endif
 /* -------------------------------------------------------------------------- */

@@ -33,55 +33,30 @@
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "heat_transfer_model.hh"
-//#include "material.hh"
-// basic file operations
+/* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <fstream>
 #include <string.h>
 using namespace std;
-
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
+
 #include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
 
- akantu::UInt spatial_dimension = 3;
- akantu:: ElementType type = akantu::_tetrahedron_4;
- akantu::UInt paraview_type = iohelper::TETRA1;
-
-
-// akantu::UInt spatial_dimension = 3;
-// akantu:: ElementType type = akantu::_hexahedron_8;
-// akantu::UInt paraview_type = iohelper::HEX1;
-// //just for checking
-// akantu::UInt spatial_dimension = 2;
-// akantu:: ElementType type = akantu::_triangle_3;
-// akantu::UInt paraview_type = iohelper::TRIANGLE1;
-
-// akantu::UInt spatial_dimension = 2;
-// akantu:: ElementType type = akantu::_quadrangle_4;
-//  akantu::UInt paraview_type = iohelper::QUAD1;
-
- // akantu::UInt spatial_dimension = 1;
- // akantu:: ElementType type = akantu::_segment_2;
- // akantu::UInt paraview_type = iohelper::LINE1;
-
-//just for checking
- 
-
-
+akantu::UInt paraview_type = iohelper::TETRA1;
 void paraviewInit(iohelper::Dumper & dumper);
 void paraviewDump(iohelper::Dumper & dumper);
 
-akantu::HeatTransferModel * model;
-
-akantu::UInt nb_nodes;
-akantu::UInt nb_element;
+#endif //AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 
 
+akantu::UInt spatial_dimension = 3;
+akantu:: ElementType type = akantu::_tetrahedron_4;
 akantu::Real density;
 akantu::Real conductivity[3][3];
 akantu::Real capacity;
+/* -------------------------------------------------------------------------- */
 
 
 int readMaterial () {
@@ -130,7 +105,7 @@ int readMaterial () {
 
    return 0;
 }
-
+/* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[])
 {
@@ -238,6 +213,10 @@ int main(int argc, char *argv[])
   return 0;
 }
 
+/* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
+
 void paraviewInit(iohelper::Dumper & dumper) {
   dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
@@ -257,8 +236,14 @@ void paraviewInit(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
 
+/* -------------------------------------------------------------------------- */
+
 
 void paraviewDump(iohelper::Dumper & dumper) {
   dumper.Dump();
 }
+/* -------------------------------------------------------------------------- */
+#endif AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
+
 
