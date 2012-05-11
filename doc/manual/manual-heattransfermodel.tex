@@ -1,6 +1,6 @@
 \section{Heat Transfer model}
 
-The hest transfer model is a specific implementation of the \code{Model} interfance
+The heat transfer model is a specific implementation of the \code{Model} interface
 dedicated to handle the dynamical heat equation. 
 \subsection{Theory}
 The strong form of the heat equation 
@@ -10,7 +10,7 @@ can be expressed as:
 \end{equation}
 with $T$ the temperature scalar field,
 $c_v$ is heat capacity per unit of mass, $\rho$ is the mass density, 
-$\kappa$ is the conductivity tensor and $b$ is the volumic heat generation. 
+$\kappa$ is the conductivity tensor and $b$ is the heat generation per unit of volume. 
 The weak form discretized with finite elements thus becomes:
 \begin{equation}
   \forall I \quad 
@@ -41,7 +41,7 @@ Then the model object can be initialized with:
 \begin{cpp}
   model.initFull("material.dat")
 \end{cpp}
-where the a material filename has to be provided. This function will load the materials 
+where the a material file name has to be provided. This function will load the materials 
 properties, and allocate/initialize the nodal and per element vectors.
 More precisely the model contains 4 \code{Vectors}:
 \begin{description}
@@ -61,6 +61,18 @@ More precisely the model contains 4 \code{Vectors}:
   temperature imposed nodes,  \textbf{residual} contains the support heat reactions. ($\vec{R} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T}$)
 \end{description}
 
+Only a single material can currently be specified on the domain. 
+A material file allows to give the characteristics (material properties) in a text file (\eg material.dat) as follows:
+\begin{cpp}
+  heat %\emph{name\_material}% [
+  capacity = %\emph{XXX}%
+  density = %\emph{XXX}%
+  conductivity = [%\emph{XXX}% ... %\emph{XXX}%]
+  ]
+\end{cpp}
+where $capacity$ and $density$ are scalars, and the $conductivity$ is specified as a full 
+tensor with $3\times 3$ components.
+
 \subsubsection{Explicit dynamic}
 
 The implemented explicit  time integration scheme in \akantu  uses a lumped capacity
@@ -68,27 +80,21 @@ matrix $\mat{C}$ (reducing the computational  cost). This matrix is assembled by
 distributing the capacity of each element onto its nodes. The resulting $\mat{C}$ is
 therefore a diagonal matrix stored in the \textbf{capacity} vector of the model.
 
+\note{At current time only explicit and lumped capacity matrix is implemented within \akantu.}
+
 \begin{cpp}
   model.assembleCapacityLumped();
 \end{cpp}
 \index{HeatTransferModel!assembleCapacityLumped}
 
-The explicit integration scheme is a \index{Forward Euler}.\\
+The explicit integration scheme is a \index{Forward Euler} {\it Forward Euler} 
+\cite{curnier92a} which is a generalized trapezoidal rule of first order.
 
-Predictor:
-\begin{align}
-\vec{T}_{n+1} &= \vec{T}_{n} + \Delta t \dot{\vec{T}}_{n} \\
-\end{align}
-
-Solve :
-\begin{equation}
-\mat{C} \vec{\delta T} +  \dot{\vec{T}} = \vec{q_{n+1}} - \vec{f^i_{n+1}} 
-\end{equation}
-
-Corrector :
-\begin{align}
-\dot{\vec{T}}^{i+1}_{n+1} &= \dot{\vec{T}}^{i}_{n+1} + a \vec{\delta T} \\
-\end{align}
+\begin{itemize}
+\item Predictor: $\vec{T}_{n+1} = \vec{T}_{n} + \Delta t \dot{\vec{T}}_{n}$
+\item Update residual: $R_{n+1} = \left( \vec{Q^{ext}_{n+1}} - \vec{f_{n+1}} \right)$
+\item Corrector : $\dot{\vec{T}}_{n+1} = \mat{C}^{-1} R_{n+1}$
+\end{itemize}
 
 The explicit integration scheme is conditionally stable. The time step has to be
 smaller than the stable time step which is obtained in \akantu as follows:
@@ -114,3 +120,41 @@ one.
   Real applied_time_step = time_step * safety_time_factor;
   model.setTimeStep(applied_time_step);
 \end{cpp}
+
+The initial temperature  and temperature\_rate fields are, by default,  equal to zero if
+not given specifically by the user (similar to the SolidMechanicsModel initial conditions
+\ref{sect:smm:initial_condition}).
+
+The loop  allows, for each time  step, to update the  temperatures, residual and
+temperature\_rate  fields  following the previously described integration scheme.
+
+\begin{cpp}
+  for (UInt s = 1; (s-1)*applied_time_step < total_time; ++s) {
+    model.explicitPred();
+    model.updateResidual();
+    model.solveExplicitLumped();
+    model.explicitCorr();  
+  }
+\end{cpp}
+\index{HeatTransferModel!explicitPred}
+\index{HeatTransferModel!explicitCorr}
+\index{HeatTransferModel!updateResidual}
+\index{HeatTransferModel!solveExplicitLumped}
+
+An    example    of    explicit     dynamic    heat propagation is    presented    in
+\code{example/manual/??.cc}.\todo{set the right example file}  This example  consists of a square 2D plate of \unit{1}{\squaremetre} 
+having an initial temperature of 100 Kelvins everywhere but a none centered hot point 
+maintained at 300 Kelvins. Figure \ref{fig:smm:implicit:dynamic} presents the
+geometry of this case. The material used is a linear fictitious elastic material
+with  a density  of  \unit{8940}{\kilogrampercubicmetre}, a  conductivity of 
+\unit{401}{\watt\per\metre\per\kelvin} and a heat capacity per mas unit of \unit{385}{\joule\per\kelvin\per\kilogram}. The time step used is \unit{0.12}{\second}.
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=.4\textwidth]{figures/hot-point-1}
+  \hfill
+  \includegraphics[width=.4\textwidth]{figures/hot-point-2}
+  \caption{Initial temperature field (left) and after 15000 time steps = 30 minutes (rights). The lines represent the some iso-surfaces.}
+  \label{fig:htm:explicit:dynamic}
+\end{figure}
+
