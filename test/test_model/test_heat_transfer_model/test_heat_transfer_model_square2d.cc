@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
   paraviewInit(model,dumper);
 #endif
   //main loop
-  int max_steps = 100000;
+  int max_steps = 1000;
   for(int i=0; i<max_steps; i++)
     {
       model.explicitPred();
