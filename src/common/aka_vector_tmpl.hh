@@ -279,7 +279,7 @@ template <class T> Vector<T>::~Vector () {
 	       << "kB (" << id <<")");
 
   if(values){
-    for (UInt i = 0; i < allocated_size * nb_component; ++i) {
+    for (UInt i = 0; i < size * nb_component; ++i) {
       T * obj = values+i;
       obj->~T();
     }
