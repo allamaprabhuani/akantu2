@@ -215,7 +215,8 @@ void SolverMumps::initialize(SolverOptions & options) {
   icntl(5) = 0; // Assembled matrix
   
   SolverMumpsOptions * opt = dynamic_cast<SolverMumpsOptions *>(&options);
-  parallel_method = opt->parallel_method;
+  if(opt)
+    parallel_method = opt->parallel_method;
 
   initMumpsData(parallel_method);
 
