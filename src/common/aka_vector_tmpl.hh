@@ -322,7 +322,17 @@ template <class T> void Vector<T>::allocate(UInt size,
 template <class T>
 void Vector<T>::resize(UInt new_size) {
   UInt old_size = size;
+
+  T * old_values = values;
+  if(new_size < size) {
+    for (UInt i = new_size * nb_component; i < size * nb_component; ++i) {
+      T * obj = old_values+i;
+      obj->~T();
+    }
+  }
+
   resizeUnitialized(new_size);
+
 
   T val = T();
   if(size > old_size)
