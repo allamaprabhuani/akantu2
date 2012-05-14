@@ -278,8 +278,13 @@ template <class T> Vector<T>::~Vector () {
 	       << allocated_size*nb_component*sizeof(T) / 1024.
 	       << "kB (" << id <<")");
 
-  if(values)
+  if(values){
+    for (UInt i = 0; i < allocated_size * nb_component; ++i) {
+      T * obj = values+i;
+      obj->~T();
+    }
     free(values);
+  }
   size = allocated_size = 0;
   AKANTU_DEBUG_OUT();
 }
