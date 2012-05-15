@@ -16,12 +16,17 @@ dimensionality as the one specified by the mesh.
 
 This model contains at least the the following six \code{Vectors}:
 \begin{description}
-\item[boundary]  contains a  boolean  value for  each  degree of  freedom
-  specifying  whether  that degree  is  blocked  or  not. A  Dirichlet  boundary
-  condition can be prescribed by setting the \textbf{boundary} value of a degree
-  of freedom to  \code{true}.
-  A Neumann boundary condition can be applied by setting the \textbf{boundary} value of a degree of freedom to \code{false}.
-  The \textbf{displacement},     \textbf{velocity} and     \textbf{acceleration} are computed for all degrees of freedom for which the \textbf{boundary} value is set to \code{false}. For the remaining degrees of freedom, the imposed values (zero by default after initialization) are kept.
+\item[boundary] contains a  boolean value for each degree  of freedom specifying
+  whether that degree  is blocked or not. A Dirichlet  boundary condition can be
+  prescribed by  setting the \textbf{boundary} value  of a degree  of freedom to
+  \code{true}.   A Neumann  boundary condition  can  be applied  by setting  the
+  \textbf{boundary}  value  of  a   degree  of  freedom  to  \code{false}.   The
+  \textbf{displacement},   \textbf{velocity}   and   \textbf{acceleration}   are
+  computed for all  degrees of freedom for which  the \textbf{boundary} value is
+  set to \code{false}. For the  remaining degrees of freedom, the imposed values
+  (zero by default  after initialization) are kept. \todo{Till to  Nico: You need
+    to approve  my changes to  your part  and please tell  me if you're  not ok,
+    because I made the same changes to Guillaume's and my part}
 \item[displacement] contains the displacements of all degrees of freedom. It can
   be either  a computed displacement for  free degrees of freedom  or an imposed
   displacement in case of blocked ones ($\vec{u}$ in the following).

@@ -76,7 +76,14 @@ The easiest way to initialize the structural mechanics model is:
 The method \code{initFull} computes the shape functions, initializes the internal vectors mentioned above and allocates the memory for the stiffness matrix.
 
 Material  properties are  defined using  the \code{StructuralMaterial}
-structure described in Table~\ref{tab:structMechMod:strucMaterial}.  
+structure described in Table~\ref{tab:structMechMod:strucMaterial}. Such a definition could for instance look like
+\begin{cpp}
+  StructuralMaterial mat;
+  mat.E=3e10;
+  mat.I=0.0025;
+  mat.A=0.01;
+\end{cpp}
+
 \begin{table}[htb] \centering
   \begin{tabular}{c|c} field  & description \\\hline\hline
     \code{E} & Young's  modulus  \\\hline
@@ -172,10 +179,10 @@ to converge in one iteration.}
   \textbf{displacement} vector is also updated to the new displacements.
 \end{itemize}
 
-At   the  end   of  the   analysis  the   final  solution   is  stored   in  the
+At   the  end   of  the   analysis, the   final  solution   is  stored   in  the
 \textbf{displacement}  vector.  A  full example  of  how to  solve a  structural
 mechanics       problem        is       presented       in        the       code
-\code{example/manual/WHERE-DO-EXAMPLES-GO?}.  This  example is composed  of a 2D
+\code{example/manual/WHERE-DO-EXAMPLES-GO?}\todo{set the right example file}.  This  example is composed  of a 2D
 beam, clamped at  the left end and  supported by two rollers as  shown in Figure
 \ref{fig:structMechMod:exem1_1}.  The problem  is  defined by  the applied  load
 $q=\unit{6}{\kilo\newton\per\metre}$,          moment         $\bar{M}         =

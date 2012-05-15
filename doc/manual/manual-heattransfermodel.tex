@@ -52,15 +52,28 @@ More precisely, the heat transfer model contains 4 \code{Vectors}:
 \item[temperature\_rate] contains the variation of temperature $\dot{T}$ 
   (zero  by   default  after  the
   initialization) 
-\item[boundary]  contains a  \code{bool} value for  each  node
-  specifying  whether  temperature is  fixed  or  not. A  Dirichlet  boundary
-  condition can be prescribed by setting the \textbf{boundary} value of a node 
-  to  \code{true}.  A Neumann boundary condition  can only be applied
-  if the  \textbf{boundary} value of a node is  \code{false}. If a
-  node has a  \textbf{boundary} value  that is  \code{false}, the
-  \textbf{temperature},     \textbf{temperature\_rate} and
-  \textbf{residual} are computed by the solve algorithm when relevant\todo{wait for till correction}, 
-  otherwise these  vectors  contain   the  imposed  values.
+%\item[boundary]  contains a  \code{bool} value for  each  node
+%  specifying  whether  temperature is  fixed  or  not. A  Dirichlet  boundary
+%  condition can be prescribed by setting the \textbf{boundary} value of a node 
+%  to  \code{true}.  A Neumann boundary condition  can only be applied
+%  if the  \textbf{boundary} value of a node is  \code{false}. If a
+%  node has a  \textbf{boundary} value  that is  \code{false}, the
+%  \textbf{temperature},     \textbf{temperature\_rate} and
+%  \textbf{residual} are computed by the solve algorithm when relevant\todo{wait for till correction}, 
+%  otherwise these  vectors  contain   the  imposed  values.
+
+\item[boundary] contains a  boolean value for each degree  of freedom specifying
+  whether that degree  is blocked or not. A Dirichlet  boundary condition can be
+  prescribed by  setting the \textbf{boundary} value  of a degree  of freedom to
+  \code{true}.   A Neumann  boundary condition  can  be applied  by setting  the
+  corresponding     \textbf{boundary}     value     to    \code{false}.      The
+  \textbf{temperature} and  the \textbf{temperature\_rate} are  computed for all
+  degrees  of  freedom   for  which  the  \textbf{boundary}  value   is  set  to
+  \code{false}.  For the remaining degrees  of freedom, the imposed values (zero
+  by default after  initialization) are kept. \todo{Till to  Guillaume: You need
+    to approve  my changes to  your part  and please tell  me if you're  not ok,
+    because I made the same changes to Nico's and my part}
+
 \item[residual] contains the difference between external and internal heat generation. On
   temperature imposed nodes,  \textbf{residual} contains the support heat reactions. ($\vec{R} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T}$)
 \end{description}
@@ -80,7 +93,7 @@ full tensor with $3\times 3$ components.
 \subsubsection{Explicit dynamic}
 
 The implemented explicit  time integration scheme in \akantu  uses a lumped capacity
-matrix $\mat{C}$ (reducing the computational  cost, see Section \ref{section:smm}). 
+matrix $\mat{C}$ (reducing the computational  cost, see Section \ref{section:smm}\todo{Guillaume, this ref is dead}). 
 This matrix is assembled by
 distributing the capacity of each element onto its nodes. The resulting $\mat{C}$ is
 therefore a diagonal matrix stored in the \code{capacity} vector of the model.
