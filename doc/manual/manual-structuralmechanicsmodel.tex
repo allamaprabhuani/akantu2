@@ -1,4 +1,4 @@
-\section{Structural  Mechanics   model\todo{Till}}
+\section{Structural  Mechanics   model}
 Static    structural   mechanics    problems   can    be   handled    using   the
 \code{StructuralMechanicsModel}.  So far, \akantu\  provides 2D and 3D Bernoulli
 beam elements \cite{frey2009}.  Just  as for the \code{SolidMechanicsModel}, the
@@ -10,7 +10,6 @@ like
 \begin{cpp}
   StructuralMechanicsModel model(mesh, spatial_dimension);
 \end{cpp}
-
 where \code{mesh} is  a \code{Mesh} object defining the  structure for which the
 equations  of statics  are to  be solved,  and \code{spatial\_dimension}  is the
 dimensionality  of the  problem.  If  \code{spatial\_dimension} is  omitted, the
@@ -19,37 +18,36 @@ mesh.
 
 \note[\ 1]{Dynamic computations are not supported to date.}
 
-\note[\ 2]{Structural meshes are be created and loaded as described in
+\note[\ 2]{Structural meshes are created and loaded as described in
   Section~\ref{sect:common:mesh} with \code{MeshIOMSHStruct} instead  of \code{MeshIOMSH}.}
 
 \vspace{1cm}
-This model contains at least the the following \code{Vectors}:
+This model contains at least the following \code{Vectors}:
 \begin{description}
-\item[boundary]  contains a  \code{boolean}  value for  each  degree of  freedom
+\item[boundary]  contains a  boolean  value for  each  degree of  freedom
   specifying  whether  that degree  is  blocked  or  not. A  Dirichlet  boundary
   condition can be prescribed by setting the \textbf{boundary} value of a degree
-  of freedom to  \code{true}.  A Neumann boundary condition  can only be applied
-  if the  \textbf{boundary} value of a  degree of freedom is  \code{false}. If a
-  degree  of freedom  has a  \textbf{boundary} value  that is  \code{false}, the
-  \textbf{displacement}  and   \textbf{residual}  are  computed   by  the  solve
-  algorithm when  relevant, otherwise these  vectors contain the  imposed values
-  (zero by default after the initialization).
+  of freedom to  \code{true}.  A Neumann boundary condition  can  be applied
+  by setting the corresponding  \textbf{boundary} value to  \code{false}.
+  The \textbf{displacement} is computed for all degrees of freedom for which the \textbf{boundary} value is set to \code{false}. For the remaining degrees of freedom, the imposed values (zero by default after initialization) are kept.
   
-\item[displacement\_rotation]  contains  the  generalized displacements  of  all
+
+  
+\item[displacement\_rotation]  contains  the  generalized displacements (displacements and rotations)  of  all
   degrees of freedom. It can be  either a computed displacement for free degrees
   of freedom  or an imposed displacement  in case of blocked  ones ($\vec{u}$ in
   the following).
   
-\item[force\_moment]  contains the  generalized external  forces applied  to the
+\item[force\_moment]  contains the  generalized external  forces (forces and moments) applied  to the
   nodes ($\vec{f_{\st{ext}}}$ in the following).
   
 \item[residual] contains the difference between external and internal forces and
-  moments. On blocked degrees of freedom, \textbf{residual} contains the support
-  reactions.   ($\vec{r}$ in  the following).   It should  be mentioned  that at
-  equilibrium \textbf{residual} should be zero on free degrees of freedom.
+  moments. On the blocked degrees of freedom, \textbf{residual} contains the support
+  reactions   ($\vec{r}$ in  the following).   It should  be mentioned  that at
+  equilibrium, \textbf{residual} should be zero on the free degrees of freedom.
 \end{description}
 
-An example to help to understand how  to use this model will be presented in the
+An example to help understand how  to use this model will be presented in the
 next section.
 
 \subsection{Model setup}
@@ -75,7 +73,7 @@ The easiest way to initialize the structural mechanics model is:
 \begin{cpp}
   model.initFull();
 \end{cpp}
-The method \code{initFull} computes the shape functions, initializes the internal vectors mentioned above and creates the stiffness matrix.
+The method \code{initFull} computes the shape functions, initializes the internal vectors mentioned above and allocates the memory for the stiffness matrix.
 
 Material  properties are  defined using  the \code{StructuralMaterial}
 structure described in Table~\ref{tab:structMechMod:strucMaterial}.  
@@ -104,7 +102,7 @@ see Section~\ref{sect:smm:CL}.
 Both Dirichlet  and Neumann  type boundary conditions  are applied to  nodes the
 same     exact    way     as     for    \code{SolidMechanicsModel},     see
 Section~\ref{sect:smm:boundary}.   The  method  \code{computeForcesFromFunction}
-can still be used to apply Neumann-type boundary conditions.
+can still be used to apply Neumann boundary conditions.
 
 \subsection{Static analysis\label{sect:structMechMod:static}}
 
@@ -119,7 +117,7 @@ vector  and  $\vec{f_{\st{ext}}}$ the  vector of generalized external  forces   
 system.
 
 
-To     solve    such     a    problem     the    static     solver     of    the
+To     solve    such     a    problem,     the    static     solver     of    the
 \code{StructuralMechanicsModel}\index{StructuralMechanicsModel}  object is used.   First a
 model has to be  created and initialized.  To create the model,  a mesh is required.
 Once an instance of a \code{StructuralMechanicsModel} is obtained, the easiest way to
@@ -150,7 +148,7 @@ matrix            $\mat{K}$             must            be            assembled.
 \end{cpp}
 
 The computation of the static equilibrium is performed using the same
-Newton-Raphson solution algorithm as described in
+Newton-Raphson algorithm as described in
 Section~\ref{sect:smm:static}.
 
 \note{To date,
