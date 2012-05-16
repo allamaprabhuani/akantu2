@@ -568,8 +568,8 @@ class Vector<T>::iterator_internal : public std::iterator<std::random_access_ite
 /* -------------------------------------------------------------------------- */
 template<class T>
 template<class R, class IR, int fps>
-class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
-  //class Vector<T>::iterator_internal {
+//class Vector<T>::iterator_internal : public virtual std::iterator<std::random_access_iterator_tag, R> {
+class Vector<T>::iterator_internal {
 public:
   typedef R   value_type;
   typedef R*  pointer;
@@ -582,7 +582,7 @@ protected:
 								   ret(ret) {
   }
 
-  ~iterator_internal() { delete ret; };
+  virtual ~iterator_internal() { delete ret; };
 
 public:
   iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
@@ -743,8 +743,8 @@ inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UIn
 template<>
 inline Vector<Real>::iterator< types::Matrix >
 Vector<Real>::begin_reinterpret(UInt m, UInt n,
-			       UInt size,
-			       UInt nb_component) {
+				__attribute__((unused)) UInt size,
+				__attribute__((unused)) UInt nb_component) {
   AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
 		      "The new values for size (" << size
 		      << ") and nb_component (" << nb_component <<
@@ -754,7 +754,7 @@ Vector<Real>::begin_reinterpret(UInt m, UInt n,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
 
-  return iterator< types::Matrix >(new types::Matrix(values, m, n));
+  return iterator< types::Matrix >(new types::Matrix(values + nb_component * 0, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -780,8 +780,8 @@ Vector<Real>::end_reinterpret(UInt m, UInt n,
 template<>
 inline Vector<Real>::const_iterator< types::Matrix >
 Vector<Real>::begin_reinterpret(UInt m, UInt n,
-			       UInt size,
-			       UInt nb_component) const {
+				__attribute__((unused)) UInt size,
+				__attribute__((unused)) UInt nb_component) const {
   AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
 		      "The new values for size (" << size
 		      << ") and nb_component (" << nb_component <<
@@ -791,7 +791,7 @@ Vector<Real>::begin_reinterpret(UInt m, UInt n,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
 
-  return const_iterator< types::Matrix >(new types::Matrix(values, m, n));
+  return const_iterator< types::Matrix >(new types::Matrix(values + nb_component * 0, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -849,15 +849,22 @@ Vector<Real>::end_reinterpret(UInt m, UInt n,
   typedef T   internal_value_type;					\
   typedef T*  internal_pointer;						\
   protected:								\
-  iterator_internal(UInt offset, pointer data, pointer ret) :		\
+  iterator_internal(__attribute__((unused)) UInt offset,		\
+		    pointer data, pointer ret) :			\
     initial(data),							\
-    ret(ret) { }							\
+    ret(ret) {								\
+    AKANTU_DEBUG_ASSERT(offset == 1,					\
+			"The iterator is not compatible with the type "	\
+			<< typeid(value_type).name());			\
+  }									\
   									\
   public:								\
   iterator_internal() : initial(NULL), ret(NULL) {};			\
   									\
-  iterator_internal(pointer data, UInt offset)  : initial(data),	\
-						  ret(data) {		\
+  iterator_internal(pointer data,					\
+		    __attribute__((unused)) UInt offset)  :		\
+    initial(data),							\
+    ret(data) {								\
     AKANTU_DEBUG_ASSERT(offset == 1,					\
 			"The iterator is not compatible with the type "	\
 			<< typeid(value_type).name());			\
@@ -882,7 +889,7 @@ Vector<Real>::end_reinterpret(UInt m, UInt n,
   									\
   inline reference operator*() { return *ret; };			\
   inline pointer operator->() { return ret; };				\
-  inline iterator_internal & operator++() { ret += offset; return *this; }; \
+  inline iterator_internal & operator++() { ++ret; return *this; };	\
   									\
   inline iterator_internal & operator+=(const UInt n) {			\
     ret += n;								\
