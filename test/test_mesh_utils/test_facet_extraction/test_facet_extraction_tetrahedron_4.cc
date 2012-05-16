@@ -51,8 +51,9 @@ int main(int argc, char *argv[])
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
-  
-  MeshUtils::buildAllFacets(mesh);
+  Mesh mesh_facets(dim, const_cast<Vector<Real> &>(mesh.getNodes()), "mesh_facets", 1);
+
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
 
 #ifdef AKANTU_USE_IOHELPER
   unsigned int nb_nodes = mesh.getNbNodes();
@@ -77,8 +78,8 @@ int main(int argc, char *argv[])
   dumper_facet.Dump();
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_internal");
-  dumper_facet.SetConnectivity((int*)mesh.getInternalFacetsMesh().getConnectivity(_triangle_3).values,
-  			       iohelper::TRIANGLE1, mesh.getInternalFacetsMesh().getNbElement(_triangle_3), iohelper::C_MODE);
+  dumper_facet.SetConnectivity((int*)mesh_facets.getConnectivity(_triangle_3).values,
+  			       iohelper::TRIANGLE1, mesh_facets.getNbElement(_triangle_3), iohelper::C_MODE);
   dumper_facet.Init();
   dumper_facet.Dump();
 

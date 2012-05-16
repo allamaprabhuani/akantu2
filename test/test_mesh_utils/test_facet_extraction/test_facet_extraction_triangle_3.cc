@@ -52,8 +52,9 @@ int main(int argc, char *argv[])
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
+  Mesh mesh_facets(dim, const_cast<Vector<Real> &>(mesh.getNodes()), "mesh_facets", 1);
 
-  MeshUtils::buildAllFacets(mesh);
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
 
 #ifdef AKANTU_USE_IOHELPER
   const ElementType surf_type = ElementClass<type>::getFacetElementType();
@@ -73,8 +74,8 @@ int main(int argc, char *argv[])
   dumper_facet.SetMode(iohelper::TEXT);
 
   dumper_facet.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-facet-extraction_boundary");
-  dumper_facet.SetConnectivity((int*)mesh.getConnectivity(surf_type).values,
-			       iohelper::LINE2, mesh.getNbElement(surf_type), iohelper::C_MODE);
+  dumper_facet.SetConnectivity((int*)mesh_facets.getConnectivity(surf_type).values,
+			       iohelper::LINE2, mesh_facets.getNbElement(surf_type), iohelper::C_MODE);
   dumper_facet.SetPrefix("paraview/");
   dumper_facet.Init();
   dumper_facet.Dump();
