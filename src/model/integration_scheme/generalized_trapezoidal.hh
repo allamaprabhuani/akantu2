@@ -59,7 +59,8 @@ __BEGIN_AKANTU__
  * u^{i+1}_{n+1} &=& u^{i}_{n+1} + b w
  * @f}
  *
- * a and b depends on the resolution method : temperature (u) or temperature rate (\dot{u})
+ * a and b depends on the resolution method : temperature (u) or temperature rate (@f$\dot{u}@f$)
+ *
  * For temperature : @f$ w = \delta u, a = 1 / (\alpha \Delta t) , b = 1 @f$ @n
  * For temperature rate : @f$ w = \delta \dot{u}, a = 1, b = \alpha \Delta t @f$
  */
