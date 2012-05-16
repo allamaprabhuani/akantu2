@@ -34,5 +34,5 @@ if(AKANTU_HEAT_TRANSFER)
 endif()
 
 if(AKANTU_STRUCTURAL_MECHANICS)
-add_subdirectory(test_structural_mechanics_model)
+  add_akantu_test(test_structural_mechanics_model "Test for the structural mechanics model")
 endif()
