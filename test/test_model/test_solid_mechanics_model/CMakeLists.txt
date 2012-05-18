@@ -113,6 +113,7 @@ endif()
 #===============================================================================
 add_mesh(test_cube3d_mesh1 cube.geo 3 1 OUTPUT cube1.msh)
 add_mesh(test_cube3d_mesh2 cube.geo 3 2 OUTPUT cube2.msh)
+add_mesh(test_cube3d_mesh_structured cube_structured.geo 3 1 OUTPUT cube_structured.msh)
 
 register_test(test_solid_mechanics_model_cube3d
   test_solid_mechanics_model_cube3d.cc)
@@ -121,6 +122,11 @@ add_dependencies(test_solid_mechanics_model_cube3d test_cube3d_mesh1)
 register_test(test_solid_mechanics_model_cube3d_tetra10
   test_solid_mechanics_model_cube3d_tetra10.cc)
 add_dependencies(test_solid_mechanics_model_cube3d_tetra10 test_cube3d_mesh2)
+
+register_test(test_solid_mechanics_model_cube3d_pbc
+  test_solid_mechanics_model_cube3d_pbc.cc)
+add_dependencies(test_solid_mechanics_model_cube3d_pbc test_cube3d_mesh_structured)
+
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)

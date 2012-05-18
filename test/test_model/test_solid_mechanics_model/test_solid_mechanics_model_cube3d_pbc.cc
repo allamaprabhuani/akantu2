@@ -54,18 +54,18 @@ int main(int argc, char *argv[])
 
   akantu::Mesh mesh(3);
   akantu::MeshIOMSH mesh_io;
-  mesh_io.read("cube1.msh", mesh);
+  mesh_io.read("cube_structured.msh", mesh);
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
-  model->initFull("material.dat");
 
+  model->setPBC(1,1,1);
+  model->initFull("material.dat");
   akantu::Real time_step = model->getStableTimeStep();
   model->setTimeStep(time_step/10.);
 
   model->assembleMassLumped();
 
   std::cout << *model << std::endl;
-
 
   /// boundary conditions
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
