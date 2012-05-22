@@ -57,41 +57,10 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// pre compute all shapes on the element control points from natural coordinates
-  template <ElementType type>
-  void precomputeShapesOnControlPoints(const Real * natural_coords,
-				       const UInt nb_points,
-				       GhostType ghost_type);
-
-  /// pre compute all shapes on the element control points from natural coordinates
-  template <ElementType type>
-  void precomputeShapesDerivativesOnControlPoints(const Real * natural_coords,
-						  const UInt nb_points,
-						  const UInt dimension,
-						  GhostType ghost_type);
-
-  /// interpolate nodal values on the control points
-  template <ElementType type>
-  void interpolateOnControlPoints(const Vector<Real> &u,
-				  Vector<Real> &uq,
-				  UInt nb_degree_of_freedom,
-				  GhostType ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const;
-
-
   /// multiply a field by shape functions
   template <ElementType type>
   void fieldTimesShapes(const Vector<Real> & field,
 			Vector<Real> & fieal_times_shapes) const;
-
-  // /// compute the gradient of u on the constrol points
-  // template <ElementType type>
-  // void gradientOnControlPoints(const Vector<Real> &u,
-  // 			       Vector<Real> &nablauq,
-  // 			       UInt nb_degree_of_freedom,
-  // 			       GhostType ghost_type = _not_ghost,
-  // 			       const Vector<UInt> * filter_elements = NULL) const;
-
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {

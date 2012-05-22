@@ -190,6 +190,8 @@ public:
 				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const =0;
 
+  
+
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
   /* ------------------------------------------------------------------------ */

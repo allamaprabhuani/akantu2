@@ -77,3 +77,8 @@ void ShapeFunctions::setControlPointsByType(const Vector<Real> & points,
 					    const GhostType & ghost_type) {
   control_points.setVector(type, ghost_type, points);
 }
+/* -------------------------------------------------------------------------- */
+
+
+
+

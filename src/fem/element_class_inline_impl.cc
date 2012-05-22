@@ -242,12 +242,108 @@ inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord,
     cnormals += dimension;
   }
 }
+/* -------------------------------------------------------------------------- */
+template <ElementType type> 
+inline void ElementClass<type>::interpolateOnNaturalCoordinates(const Real * natural_coords,
+								const Real * nodal_values,
+								UInt dimension,
+								Real * interpolated){
+
+
+  Real shapes[nb_nodes_per_element];
+  computeShapes(natural_coords,shapes);
+  Math::matrix_matrix(1, dimension, nb_nodes_per_element,
+		      shapes, nodal_values, interpolated);
+}
+
+/* -------------------------------------------------------------------------- */
+template <ElementType type> 
+inline void ElementClass<type>::inverseMap(const types::RVector & real_coords,
+					   const types::Matrix & node_coords,
+					   UInt dimension,	
+					   types::RVector & natural_coords,
+					   Real tolerance){
+
+  //matric copy of the real_coords
+  types::Matrix mreal_coords(real_coords.storage(),1,spatial_dimension);
+  //initial guess
+  types::Matrix natural_guess(1,dimension,0.);
+  // realspace coordinates provided by initial guess
+  types::Matrix physical_guess(1,dimension);
+  // objective function f = real_coords - physical_guess
+  types::Matrix f(1,dimension);
+  // dnds computed on the natural_guess
+  types::Matrix dnds(nb_nodes_per_element,spatial_dimension);
+  // dxds computed on the natural_guess
+  types::Matrix dxds(spatial_dimension,dimension);
+  // transposed dxds computed on the natural_guess
+  types::Matrix dxds_t(dimension,spatial_dimension);
+  // G = dxds * dxds_t
+  types::Matrix G(spatial_dimension,spatial_dimension);
+  // Ginv = G^{-1}
+  types::Matrix Ginv(spatial_dimension,spatial_dimension);
+  // J = Ginv * dxds
+  types::Matrix J(spatial_dimension,dimension);
+  // dxi = \xi_{k+1} - \xi in the iterative process
+  types::Matrix dxi(1,spatial_dimension);  
+  
+  /* --------------------------- */
+  // init before iteration loop
+  /* --------------------------- */
+  
+  // do interpolation 
+  interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
+  // compute initial objective function value f = real_coords - physical_guess
+  f = physical_guess; 
+  f*= -1.; 
+  f+= mreal_coords;
+  // compute initial error
+  Real inverse_map_error = f.norm();
+
+
+  /* --------------------------- */
+  // iteration loop
+  /* --------------------------- */
+
+  while(tolerance < inverse_map_error)
+    {
+      //compute dxds 
+      computeDNDS(natural_guess.storage(), dnds.storage());
+      computeDXDS(dnds.storage(),node_coords.storage(),dimension,dxds.storage());
+      //compute G
+      dxds_t = dxds;
+      dxds_t.transpose();
+      G.mul<false,false>(dxds,dxds_t);
+      // inverse G
+      if      (spatial_dimension == 1) Ginv[0] = 1./G[0]; 
+      else if (spatial_dimension == 2) Math::inv2(G.storage(),Ginv.storage()); 
+      else if (spatial_dimension == 3) Math::inv3(G.storage(),Ginv.storage()); 
+
+      //compute J
+      J.mul<false,false>(Ginv,dxds);
+
+      //compute increment
+      dxi.mul<false,false>(f,J);
+
+      
+      //update our guess
+      natural_guess += dxi;
+      //interpolate
+      interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
+      // compute error
+      f = physical_guess;
+      f*= -1.;
+      f+= mreal_coords;
+      inverse_map_error = f.norm();
+    }
+    memcpy(natural_coords.storage(),natural_guess.storage(),sizeof(Real)*natural_coords.size());    
+}
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type> 
 inline void ElementClass<type>::computeShapes(const Real * natural_coords, 
 					      Real * shapes) {
-  computeShapes(natural_coords, shapes, 0);
+  computeShapes(natural_coords, shapes, NULL,0);
 }
 /* -------------------------------------------------------------------------- */
 template <ElementType type> 
@@ -287,6 +383,18 @@ template <ElementType type>
 inline Real * ElementClass<type>::getGaussIntegrationWeights() {
   return gauss_integration_weights;
 }
+
+/* -------------------------------------------------------------------------- */
+
+
+template <ElementType type> 
+inline bool ElementClass<type>::contains(__attribute__ ((unused)) const types::RVector & natural_coords) {
+  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+}
+
+/* -------------------------------------------------------------------------- */
+
+
 
 #include "element_classes/element_class_segment_2_inline_impl.cc"
 #include "element_classes/element_class_segment_3_inline_impl.cc"

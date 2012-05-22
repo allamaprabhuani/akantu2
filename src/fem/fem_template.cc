@@ -32,7 +32,6 @@
 #include "aka_common.hh"
 #include "shape_lagrange.hh"
 #include "shape_linked.hh"
-
 #include "shape_cohesive.hh"
 #include "integrator_cohesive.hh"
 /* -------------------------------------------------------------------------- */

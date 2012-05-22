@@ -84,6 +84,26 @@ public:
 			GhostType ghost_type) const;
 
 
+  /// find natural coords from real coords provided an element
+  template <ElementType type>
+  void inverseMap(const types::RVector & real_coords,
+		  UInt element,
+		  types::RVector & natural_coords,
+		  const GhostType & ghost_type = _not_ghost) const;
+
+  /// return true if the coordinates provided are inside the element, false otherwise
+  template <ElementType type>
+  bool contains(const types::RVector & real_coords,
+		UInt elem,
+		const GhostType & ghost_type) const;
+
+  /// compute the shape on a provided point
+  template <ElementType type>
+  void computeShapes(const types::RVector & real_coords,
+		     UInt elem,
+		     types::RVector & shapes,
+		     const GhostType & ghost_type) const;
+
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

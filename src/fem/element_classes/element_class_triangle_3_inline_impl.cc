@@ -116,3 +116,17 @@ template <> inline void ElementClass<_triangle_3>::computeJacobian(const Real * 
 template<> inline Real ElementClass<_triangle_3>::getInradius(const Real * coord) {
   return Math::triangle_inradius(coord, coord+2, coord+4);
 }
+
+/* -------------------------------------------------------------------------- */
+
+template<> inline bool ElementClass<_triangle_3>::contains(const types::RVector & natural_coords) {
+  if (natural_coords[0] < 0.) return false;
+  if (natural_coords[0] > 1.) return false;
+  if (natural_coords[1] < 0.) return false;
+  if (natural_coords[1] > 1.) return false;
+  if (natural_coords[0]+natural_coords[1] > 1.) return false;
+  return true;
+}
+/* -------------------------------------------------------------------------- */
+
+

@@ -46,3 +46,59 @@ computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
   ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_points,
 					      spatial_dimension, shapesd);
 }
+
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+void ShapeLagrange::inverseMap(const types::RVector & real_coords,
+			       UInt elem,
+			       types::RVector & natural_coords,
+			       const GhostType & ghost_type) const{
+  
+  UInt spatial_dimension = mesh->getSpatialDimension();
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  
+  UInt * elem_val = mesh->getConnectivity(type, ghost_type).values;
+  types::Matrix local_coord(nb_nodes_per_element,spatial_dimension);
+  
+  mesh->extractNodalValuesFromElement(mesh->getNodes(),
+				      local_coord.storage(),
+				      elem_val+elem*nb_nodes_per_element,
+				      nb_nodes_per_element,
+				      spatial_dimension);
+  
+  
+  ElementClass<type>::inverseMap(real_coords,local_coord,spatial_dimension,natural_coords);
+}
+
+/* -------------------------------------------------------------------------- */
+
+template <ElementType type>
+bool ShapeLagrange::contains(const types::RVector & real_coords,
+			     UInt elem,
+			     const GhostType & ghost_type) const{
+
+  UInt spatial_dimension = mesh->getSpatialDimension();  
+  types::RVector natural_coords(spatial_dimension);
+
+  inverseMap<type>(real_coords,elem,natural_coords,ghost_type);
+  return ElementClass<type>::contains(natural_coords);
+}
+
+/* -------------------------------------------------------------------------- */
+
+template <ElementType type>
+void ShapeLagrange::computeShapes(const types::RVector & real_coords,
+				  UInt elem,
+				  types::RVector & shapes,
+				  const GhostType & ghost_type) const{
+
+  UInt spatial_dimension = mesh->getSpatialDimension();  
+  types::RVector natural_coords(spatial_dimension);
+
+  inverseMap<type>(real_coords,elem,natural_coords,ghost_type);
+  ElementClass<type>::computeShapes(natural_coords.storage(),shapes.storage());
+}
+
+/* -------------------------------------------------------------------------- */
+
+

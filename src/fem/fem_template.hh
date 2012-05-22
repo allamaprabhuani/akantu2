@@ -34,6 +34,7 @@
 #include "shape_functions.hh"
 #include "shape_lagrange.hh"
 #include "shape_cohesive.hh"
+#include "shape_linked.hh"
 #include "integrator_gauss.hh"
 #include "integrator_cohesive.hh"
 /* -------------------------------------------------------------------------- */
@@ -125,6 +126,28 @@ public:
 				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const;
 
+  /// find natural coords from real coords provided an element
+  void inverseMap(const types::RVector & real_coords,
+		  UInt element,
+		  const ElementType & type,
+		  types::RVector & natural_coords,
+		  const GhostType & ghost_type = _not_ghost) const;
+
+  /// return true if the coordinates provided are inside the element, false otherwise
+  inline bool contains(const types::RVector & real_coords,
+		       UInt element,
+		       const ElementType & type,
+		       const GhostType & ghost_type = _not_ghost) const;
+
+  /// compute the shape on a provided point
+  inline void computeShapes(const types::RVector & real_coords,
+			    UInt element,
+			    const ElementType & type,
+			    types::RVector & shapes,
+			    const GhostType & ghost_type = _not_ghost) const;
+
+
+
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
   /* ------------------------------------------------------------------------ */
@@ -210,7 +233,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "fem_template_inline_impl.cc"
+#include "fem_template_inline_impl.cc"
 
 /// standard output stream operator
 
