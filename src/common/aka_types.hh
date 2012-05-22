@@ -144,7 +144,12 @@ namespace types {
       for (UInt i = 0; i < n; ++i) *(a++) *= scalar;
       return *this;
     }
-
+    /* -------------------------------------------------------------------------- */
+    inline Vector & operator=(T & scalar) {
+      T * a = this->storage();
+      for (UInt i = 0; i < n; ++i) *(a++) = scalar;
+      return *this;
+    }
     /* ---------------------------------------------------------------------- */
     inline Vector & operator/=(const T & x) {
       T * a = this->values;
@@ -156,7 +161,6 @@ namespace types {
     inline Real dot(const Vector & vect) {
       return Math::vectorDot(values, vect.storage(), n);
     }
-
     /* ---------------------------------------------------------------------- */
     inline Vector & crossProduct(const Vector & v1, const Vector & v2) {
       AKANTU_DEBUG_ASSERT(n == 3,
@@ -217,7 +221,7 @@ namespace types {
 
   typedef Vector<Real> RVector;
 
-  // support opertions for the creation of other vectors
+  // support operations for the creation of other vectors
   template <typename T> Vector<T> operator*(T scalar, const Vector<T>& a);
   template <typename T> Vector<T> operator+(const Vector<T>& a, const Vector<T>& b);
   template <typename T> Vector<T> operator-(const Vector<T>& a, const Vector<T>& b);
@@ -305,7 +309,13 @@ namespace types {
 
       return C;
     };
-
+    /* -------------------------------------------------------------------------- */
+    inline Matrix & operator+= (const Matrix & B) {
+      for (UInt i = 0; i < m*n; ++i) {
+	values[i] += B[i];
+      }
+      return *this;
+    };
     /* ---------------------------------------------------------------------- */
     inline Matrix & operator*=(Real x) {
       Real * a = this->storage();
@@ -327,9 +337,25 @@ namespace types {
       UInt k = A.n;
       if(tr_A) k = A.m;
 
+#ifndef AKANTU_NDEBUG
+      if (tr_B){
+	AKANTU_DEBUG_ASSERT(k == B.n, "matrices to multiply have no fit dimensions");
+	AKANTU_DEBUG_ASSERT(n == B.m, "matrices to multiply have no fit dimensions");
+      }
+      else {
+	AKANTU_DEBUG_ASSERT(k == B.m, "matrices to multiply have no fit dimensions");
+	AKANTU_DEBUG_ASSERT(n == B.n, "matrices to multiply have no fit dimensions");
+      }
+      if (tr_A){
+	AKANTU_DEBUG_ASSERT(m == A.n, "matrices to multiply have no fit dimensions");
+      }
+      else{
+	AKANTU_DEBUG_ASSERT(m == A.m, "matrices to multiply have no fit dimensions");
+      }
+#endif //AKANTU_NDEBUG
+
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
-
     /* ---------------------------------------------------------------------- */
     inline void eig(types::Vector<Real> & eigenvalues, Matrix & eigenvectors) const {
       AKANTU_DEBUG_ASSERT(n == m, "eig is not a valid operation on a rectangular matrix");
@@ -361,7 +387,10 @@ namespace types {
 	trace += values[i*n + i];
       return trace;
     }
-
+    /* -------------------------------------------------------------------------- */
+    inline Real norm() const {
+      return Math::norm(this->n*this->m, this->values);
+    }
     /* ---------------------------------------------------------------------- */
     inline Matrix transpose() const {
       Matrix tmp(m, n);

@@ -145,6 +145,7 @@ inline FEM & Model::getFEMBoundary(std::string name){
   return *(it->second);
 }
 /* -------------------------------------------------------------------------- */
+/// @todo : should merge with a single function which handles local and global
 inline void Model::changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,
 					    UInt dimension){
   for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();

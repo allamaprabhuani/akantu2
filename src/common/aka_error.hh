@@ -196,7 +196,8 @@ namespace debug {
   } while(0)
 
 #define AKANTU_DEBUG_TO_IMPLEMENT()				\
-  AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !")
+  AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !");	\
+  exit(-1);
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
