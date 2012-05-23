@@ -77,6 +77,11 @@ foreach(_type ${LIST_TYPES})
   file(COPY ./ref_files/test_material_viscoelastic_${_type}.ref DESTINATION .)
 endforeach()
 
+add_mesh(test_material_viscoelastic_relaxation_mesh test_material_viscoelastic_relaxation.geo 2 1)
+register_test(test_material_viscoelastic_relaxation test_material_viscoelastic_relaxation.cc)
+add_dependencies(test_material_viscoelastic_relaxation test_material_viscoelastic_relaxation_mesh)
+file(COPY material_viscoelastic_relaxation.dat DESTINATION .)
+
 #===============================================================================
 foreach(_type ${LIST_TYPES})
   if(AKANTU_IOHELPER)

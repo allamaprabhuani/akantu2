@@ -1,0 +1,8 @@
+material viscoelastic [
+	 name = anything
+	 rho = 7800     # density
+	 E   = 10      # young's modulus
+	 nu  = 0.25     # poisson's ratio
+	 eta = 10       # viscosity
+         Ev  = 5      # viscous stiffness
+]
