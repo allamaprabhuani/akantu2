@@ -140,7 +140,7 @@ namespace debug {
     virtual ~Debugger();
 
     void exit(int status) __attribute__ ((noreturn));
-    void throwException(const std::string & info);
+    void throwException(const std::string & info) throw(akantu::debug::Exception);
 
     inline void printMessage(const std::string & prefix,
                              const DebugLevel & level,

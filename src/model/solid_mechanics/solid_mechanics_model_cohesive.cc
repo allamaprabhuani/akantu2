@@ -120,16 +120,11 @@ void SolidMechanicsModelCohesive::initModel() {
 
 /* -------------------------------------------------------------------------- */
 
-void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file,
-						AnalysisMethod method) {
-
+void SolidMechanicsModelCohesive::initExtrinsic() {
   AKANTU_DEBUG_IN();
 
-  SolidMechanicsModelCohesive::initFull(material_file, method);
-
-  MaterialCohesiveLinearExtrinsic * mat_cohesive
-    = dynamic_cast<MaterialCohesiveLinearExtrinsic*>(materials[cohesive_index]);
-  AKANTU_DEBUG_ASSERT(mat_cohesive, "Choose the linear extrinsic cohesive constitutive law");
+  MaterialCohesive * mat_cohesive
+    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
 
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   sigma_lim.resize(nb_facet);
@@ -137,15 +132,43 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file,
   const Real rand = mat_cohesive->getRandFactor();
   std::srand(time(NULL));
 
-  for (UInt f = 0; f < nb_facet; ++f)
-    sigma_lim(f) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
+  const Vector<Vector<Element> > & element_to_facet
+    = mesh_facets.getElementToSubelement(type_facet);
+  facets_check.resize(nb_facet);
+
+  for (UInt f = 0; f < nb_facet; ++f) {
+    if (element_to_facet(f)(1) != ElementNull) {
+      facets_check(f) = true;
+      sigma_lim(f) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
+    }
+    else {
+      facets_check(f) = false;
+      sigma_lim(f) = std::numeric_limits<Real>::max();
+    }
+  }
 
   registerFEMObject<MyFEMType>("FacetsFEM", mesh_facets, spatial_dimension-1);
   getFEM("FacetsFEM").initShapeFunctions();
   getFEM("FacetsFEM").computeNormalsOnControlPoints();
 
-  AKANTU_DEBUG_OUT();
+  /// THIS HAS TO BE CHANGED:
+  const Vector<Real> & normals = getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
 
+  Vector<Real>::const_iterator<types::RVector> normal_it =
+    normals.begin(spatial_dimension);
+
+  tangents.resize(normals.getSize());
+  tangents.extendComponents(spatial_dimension);
+
+  Vector<Real>::iterator<types::RVector> tangent_it =
+    tangents.begin(spatial_dimension);
+
+  for (UInt i = 0; i < normals.getSize(); ++i, ++normal_it, ++tangent_it) {
+    Math::normal2( (*normal_it).storage(), (*tangent_it).storage() );
+  }
+
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -153,74 +176,26 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file,
 void SolidMechanicsModelCohesive::checkCohesiveStress() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  UInt nb_quad_facet = getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   Vector<UInt> facet_insertion;
-  Vector<Real> sigma_insertion;
 
-  const Vector<Real> & normals = getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
+  MaterialCohesive * mat_cohesive
+    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
 
-  const Vector<Vector<Element> > & element_to_facet
-    = mesh_facets.getElementToSubelement(type_facet);
+  mat_cohesive->checkInsertion(facet_insertion);
 
-  for (UInt f = 0; f < nb_facet; ++f) {
-    /// check that facet isn't on the boundary
-    if (element_to_facet(f)(1).type != _not_defined) {
-
-      Vector<Real> stress_on_quad(2*nb_quad_facet, spatial_dimension);
-
-      for (UInt el = 0; el < 2; ++el) {
-	UInt elem_nb = element_to_facet(f)(el).element;
-	ElementType type_elem = element_to_facet(f)(el).type;
-	//	UInt nb_quad_elem = getFEM().getNbQuadraturePoints(type_elem);
-	const Vector<Real> & stress = getMaterial(0).getStress(type_elem);
-
-	/// linear element case
-	types::Matrix stress_local(spatial_dimension, spatial_dimension);
-	for (UInt i = 0; i < spatial_dimension; ++i)
-	  for (UInt j = 0; j < spatial_dimension; ++j)
-	    stress_local(i, j) = stress(elem_nb, i*spatial_dimension + j);
-
-	types::RVector normal(spatial_dimension);
-	for (UInt i = 0; i < spatial_dimension; ++i)
-	  normal(i) = normals(f, i);
-
-	types::RVector stress_norm(spatial_dimension);
-	stress_norm.mul<false>(stress_local, normal);
-
-	for (UInt dim = 0; dim < spatial_dimension; ++dim)
-	  stress_on_quad(el, dim) = fabs(stress_norm(dim));
-      }
-
-      Real sigma_max = *std::max_element(stress_on_quad.storage(),
-					 stress_on_quad.storage() +
-					 stress_on_quad.getSize() *
-					 stress_on_quad.getNbComponent());
-
-      if (sigma_lim(f) < sigma_max) {
-	facet_insertion.push_back(f);
-	sigma_insertion.push_back(sigma_max);
-      }
-    }
-  }
-
-  insertCohesiveElements(facet_insertion, true);
-
-  /// resize cohesive material vectors
-  MaterialCohesiveLinearExtrinsic * mat_cohesive
-    = dynamic_cast<MaterialCohesiveLinearExtrinsic*>(materials[cohesive_index]);
-  AKANTU_DEBUG_ASSERT(mat_cohesive, "Initialize the material with initExtrinsic");
-  mat_cohesive->resizeCohesiveVectors(sigma_insertion);
+  if (facet_insertion.getSize() != 0)
+    insertCohesiveElements(facet_insertion);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 
-void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & facet_insertion,
-							 const bool random_sigma) {
+void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & facet_insertion) {
 
   AKANTU_DEBUG_IN();
+
+  if(facet_insertion.getSize() == 0) return;
 
   Vector<UInt> doubled_nodes(0, 2);
   Vector<UInt> doubled_facets(0, 2);
@@ -295,12 +270,10 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
   getFEM("CohesiveFEM").initShapeFunctions(_not_ghost);
 
   /// resize cohesive material vectors
-  if (!random_sigma) {
-    MaterialCohesive * mat_cohesive
-      = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
-    AKANTU_DEBUG_ASSERT(mat_cohesive, "No cohesive materials in the materials vector");
-    mat_cohesive->resizeCohesiveVectors();
-  }
+  MaterialCohesive * mat_cohesive
+    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
+  AKANTU_DEBUG_ASSERT(mat_cohesive, "No cohesive materials in the materials vector");
+  mat_cohesive->resizeCohesiveVectors();
 
   AKANTU_DEBUG_OUT();
 }
@@ -653,6 +626,32 @@ void SolidMechanicsModelCohesive::doubleSubfacet(const Element & subfacet,
 
   /// resize list of facets of the original subfacet
   facet_to_subfacet(sf_index).resize(nb_connected_facets);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+
+Real SolidMechanicsModelCohesive::getReversibleEnergy() {
+  AKANTU_DEBUG_IN();
+
+  MaterialCohesive * mat_cohesive
+    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
+
+  return mat_cohesive->getReversibleEnergy();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+
+Real SolidMechanicsModelCohesive::getDissipatedEnergy() {
+  AKANTU_DEBUG_IN();
+
+  MaterialCohesive * mat_cohesive
+    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
+
+  return mat_cohesive->getDissipatedEnergy();
 
   AKANTU_DEBUG_OUT();
 }

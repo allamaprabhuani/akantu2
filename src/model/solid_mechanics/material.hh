@@ -109,7 +109,7 @@ public:
   virtual Real getShearWaveSpeed() { AKANTU_DEBUG_TO_IMPLEMENT(); };
 
   /// add an element to the local mesh filter
-  inline void addElement(const ElementType & type,
+  inline UInt addElement(const ElementType & type,
 			 UInt element,
 			 const GhostType & ghost_type);
 
@@ -376,7 +376,8 @@ __END_AKANTU__
   ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))		\
   ((cohesive_bilinear      , MaterialCohesiveBilinear     ))		\
   ((cohesive_linear        , MaterialCohesiveLinear       ))		\
-  ((cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic ))
+  ((cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic ))	\
+  ((cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))
 
 
 #if defined(__INTEL_COMPILER)
@@ -412,6 +413,7 @@ __END_AKANTU__
 #include "material_cohesive_linear.hh"
 #include "material_cohesive_bilinear.hh"
 #include "material_cohesive_linear_extrinsic.hh"
+#include "material_cohesive_linear_exponential_extrinsic.hh"
 
 
 #if defined(__INTEL_COMPILER)

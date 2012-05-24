@@ -51,9 +51,9 @@ int main(int argc, char *argv[]) {
   //  debug::setDebugLevel(dblDump);
 
   const UInt spatial_dimension = 2;
-  const UInt max_steps = 500;
+  const UInt max_steps = 1000;
 
-  const ElementType type = _triangle_3;
+  const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
@@ -62,7 +62,8 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initExtrinsic("material.dat");
+  model.initFull("material.dat");
+  model.initExtrinsic();
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -80,16 +81,24 @@ int main(int argc, char *argv[]) {
 
   const ElementType type_facet = mesh.getFacetElementType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  //  const Vector<Real> & position = mesh.getNodes();
+  const Vector<Real> & position = mesh.getNodes();
   //  const Vector<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
 
   Vector<Real> & sigma_lim = model.getSigmaLimit();
+  Vector<bool> & facet_check = model.getFacetsCheck();
 
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[0] == -0.25) sigma_lim(f) = 100;
-    else sigma_lim(f) = 1e4;
+    if (bary_facet[1] == 0.25) {
+      sigma_lim(f) = 100;
+      facet_check(f) = true;
+      std::cout << f << std::endl;
+    }
+    else {
+      sigma_lim(f) = 1e10;
+      facet_check(f) = false;
+    }
   }
   delete[] bary_facet;
 
@@ -99,67 +108,78 @@ int main(int argc, char *argv[]) {
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
 
-  //  Vector<bool> & boundary = model.getBoundary();
+  Vector<Real> & velocity = model.getVelocity();
+  Vector<bool> & boundary = model.getBoundary();
+  Vector<Real> & displacement = model.getDisplacement();
   //  const Vector<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
-  UInt nb_element = mesh.getNbElement(type);
+  //  UInt nb_element = mesh.getNbElement(type);
 
-  // /// boundary conditions
-  // for (UInt dim = 0; dim < spatial_dimension; ++dim) {
-  //   for (UInt n = 0; n < nb_nodes; ++n) {
-  //     boundary(n, dim) = true;
-  //   }
-  // }
+  /// boundary conditions
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    if (position(n, 1) == 1 || position(n, 1) == -1)
+      boundary(n, 1) = true;
+
+    if (position(n, 0) == 1 || position(n, 0) == -1)
+      boundary(n, 0) = true;
+  }
 
   model.updateResidual();
 
-  iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
+  // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
 
-  /// initialize the paraview output
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(mesh.getNodes().values,
-  		   spatial_dimension, mesh.getNbNodes(), "explicit");
-  dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-  			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-  			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
-  			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
-  			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getForce().values,
-  			  spatial_dimension, "applied_force");
-  dumper.AddNodeDataField(model.getResidual().values,
-  			  spatial_dimension, "forces");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetEmbeddedValue("forces", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  // /// initialize the paraview output
+  // iohelper::DumperParaview dumper;
+  // dumper.SetMode(iohelper::TEXT);
+  // dumper.SetPoints(mesh.getNodes().values,
+  // 		   spatial_dimension, mesh.getNbNodes(), "explicit");
+  // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+  // 			 paraview_type, nb_element, iohelper::C_MODE);
+  // dumper.AddNodeDataField(model.getDisplacement().values,
+  // 			  spatial_dimension, "displacements");
+  // dumper.AddNodeDataField(model.getVelocity().values,
+  // 			  spatial_dimension, "velocity");
+  // dumper.AddNodeDataField(model.getAcceleration().values,
+  // 			  spatial_dimension, "acceleration");
+  // dumper.AddNodeDataField(model.getForce().values,
+  // 			  spatial_dimension, "applied_force");
+  // dumper.AddNodeDataField(model.getResidual().values,
+  // 			  spatial_dimension, "forces");
+  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+  // 			  spatial_dimension*spatial_dimension, "strain");
+  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+  // 			  spatial_dimension*spatial_dimension, "stress");
+  // dumper.SetEmbeddedValue("displacements", 1);
+  // dumper.SetEmbeddedValue("applied_force", 1);
+  // dumper.SetEmbeddedValue("forces", 1);
+  // dumper.SetPrefix("paraview/");
+  // dumper.Init();
+  // dumper.Dump();
 
 
   /// initial conditions
-  const Vector<Real> & position = mesh.getNodes();
-  Vector<Real> & velocity = model.getVelocity();
-  Real loading_rate = 1;
+  Real loading_rate = 0.5;
+  Real disp_update = loading_rate * time_step;
   for (UInt n = 0; n < nb_nodes; ++n) {
-    velocity(n, 0) = loading_rate * position(n, 0);
+    velocity(n, 1) = loading_rate * position(n, 1);
   }
 
   // std::ofstream edis("edis.txt");
   // std::ofstream erev("erev.txt");
 
-  Vector<Real> & residual = model.getResidual();
+  //  Vector<Real> & residual = model.getResidual();
+
+  //  const Vector<Real> & stress = model.getMaterial(0).getStress(type);
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
+
+    /// update displacement on extreme nodes
+    for (UInt n = 0; n < nb_nodes; ++n) {
+      if (position(n, 1) == 1 || position(n, 1) == -1)
+	displacement(n, 1) += disp_update * position(n, 1);
+    }
 
     model.checkCohesiveStress();
 
@@ -169,30 +189,30 @@ int main(int argc, char *argv[]) {
     model.explicitCorr();
 
     if(s % 1 == 0) {
-      dumper.SetPoints(mesh.getNodes().values,
-		       spatial_dimension, mesh.getNbNodes(), "explicit");
-      dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-			     paraview_type, nb_element, iohelper::C_MODE);
-      dumper.AddNodeDataField(model.getDisplacement().values,
-			      spatial_dimension, "displacements");
-      dumper.AddNodeDataField(model.getVelocity().values,
-			      spatial_dimension, "velocity");
-      dumper.AddNodeDataField(model.getAcceleration().values,
-			      spatial_dimension, "acceleration");
-      dumper.AddNodeDataField(model.getForce().values,
-			      spatial_dimension, "applied_force");
-      dumper.AddNodeDataField(model.getResidual().values,
-			      spatial_dimension, "forces");
-      dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-			      spatial_dimension*spatial_dimension, "strain");
-      dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-			      spatial_dimension*spatial_dimension, "stress");
-      dumper.SetEmbeddedValue("displacements", 1);
-      dumper.SetEmbeddedValue("applied_force", 1);
-      dumper.SetEmbeddedValue("forces", 1);
-      dumper.SetPrefix("paraview/");
-      dumper.Init();
-      dumper.Dump();
+      // dumper.SetPoints(mesh.getNodes().values,
+      // 		       spatial_dimension, mesh.getNbNodes(), "explicit");
+      // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+      // 			     paraview_type, nb_element, iohelper::C_MODE);
+      // dumper.AddNodeDataField(model.getDisplacement().values,
+      // 			      spatial_dimension, "displacements");
+      // dumper.AddNodeDataField(model.getVelocity().values,
+      // 			      spatial_dimension, "velocity");
+      // dumper.AddNodeDataField(model.getAcceleration().values,
+      // 			      spatial_dimension, "acceleration");
+      // dumper.AddNodeDataField(model.getForce().values,
+      // 			      spatial_dimension, "applied_force");
+      // dumper.AddNodeDataField(model.getResidual().values,
+      // 			      spatial_dimension, "forces");
+      // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+      // 			      spatial_dimension*spatial_dimension, "strain");
+      // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+      // 			      spatial_dimension*spatial_dimension, "stress");
+      // dumper.SetEmbeddedValue("displacements", 1);
+      // dumper.SetEmbeddedValue("applied_force", 1);
+      // dumper.SetEmbeddedValue("forces", 1);
+      // dumper.SetPrefix("paraview/");
+      // dumper.Init();
+      // dumper.Dump();
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
@@ -212,16 +232,16 @@ int main(int argc, char *argv[]) {
   // edis.close();
   // erev.close();
 
-  Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
+  Real Ed = model.getDissipatedEnergy();
 
-  Real Edt = 2;
+  Real Edt = 200*std::sqrt(2);
 
   std::cout << Ed << " " << Edt << std::endl;
 
-  // if (Ed < Edt - 0.0001 || Ed > Edt + 0.0001) {
-  //   std::cout << "The dissipated energy is incorrect" << std::endl;
-  //   return EXIT_FAILURE;
-  // }
+  if (Ed < Edt * 0.999 || Ed > Edt * 1.001) {
+    std::cout << "The dissipated energy is incorrect" << std::endl;
+    return EXIT_FAILURE;
+  }
 
   finalize();
 

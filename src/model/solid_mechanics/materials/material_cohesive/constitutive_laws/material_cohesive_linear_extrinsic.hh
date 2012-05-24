@@ -75,7 +75,12 @@ public:
   virtual void initMaterial();
 
   /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors(const Vector<Real> & sigma_insertion);
+  virtual void resizeCohesiveVectors();
+
+  /// compute effective stress norm for insertion check
+  virtual Real computeEffectiveNorm(const types::Matrix & stress,
+				    const types::RVector & normal,
+				    const types::RVector & tangent);
 
 protected:
 
@@ -89,19 +94,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// get sigma_c
-  AKANTU_GET_MACRO(SigmaC, sigma_c, Real);
-
-  /// get rand
-  AKANTU_GET_MACRO(RandFactor, rand, Real);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  /// critical stress
-  Real sigma_c;
 
   /// critical effective stress
   ByElementTypeReal sigma_c_eff;
@@ -123,9 +119,6 @@ protected:
 
   /// critical displacement
   ByElementTypeReal delta_c;
-
-  /// randomness factor
-  Real rand;
 
 };
 

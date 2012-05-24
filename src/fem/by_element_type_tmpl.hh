@@ -187,7 +187,7 @@ inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
     this->getData(ghost_type)[type] = tmp;
   } else {
     AKANTU_DEBUG_WARNING("The vector " << this->id << this->printType(type, ghost_type)
-                         << " already exists, it is resized instead of allocated.");
+			 << " already exists, it is resized instead of allocated.");
     tmp = it->second;
     it->second->resize(size);
   }

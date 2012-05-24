@@ -103,9 +103,11 @@ void SolidMechanicsModel::initMaterials() {
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
       UInt * elem_mat_val = element_material(*it, gt).storage();
+      element_index_by_material.alloc(nb_element, 1, *it, gt);
 
       for (UInt el = 0; el < nb_element; ++el) {
-	mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
+	UInt index = mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
+	element_index_by_material(*it, gt)(el) = index;
       }
     }
   }

@@ -374,6 +374,10 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
 
+  /// vectors containing local material element index for each global element index
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
+
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
   inline const Material & getMaterial(UInt mat_index) const;
@@ -469,6 +473,9 @@ protected:
 
   /// materials of all elements
   ByElementTypeUInt element_material;
+
+  /// vectors containing local material element index for each global element index
+  ByElementTypeUInt element_index_by_material;
 
   /// list of used materials
   std::vector<Material *> materials;

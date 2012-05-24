@@ -63,22 +63,26 @@ public:
   void checkCohesiveStress();
 
   /// function to insert cohesive elements on the selected facets
-  void insertCohesiveElements(const Vector<UInt> & facet_insertion,
-			      const bool random_sigma = false);
+  void insertCohesiveElements(const Vector<UInt> & facet_insertion);
 
   /// initialize completely the model
   void initFull(std::string material_file,
                 AnalysisMethod method = _explicit_dynamic);
 
   /// initialize completely the model for extrinsic elements
-  void initExtrinsic(std::string material_file,
-		     AnalysisMethod method = _explicit_dynamic);
+  void initExtrinsic();
 
   /// initialize the model
   void initModel();
 
   /// initialize cohesive material
   void initCohesiveMaterial();
+
+  /// compute reversible energy
+  Real getReversibleEnergy();
+
+  /// compute dissipated energy
+  Real getDissipatedEnergy();
 
 private:
 
@@ -112,11 +116,17 @@ public:
   AKANTU_GET_MACRO(FacetType, type_facet, ElementType);
 
   /// get the facet mesh
-  AKANTU_GET_MACRO(MeshFacets, mesh_facets, Mesh);
+  AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
 
   /// get the sigma limit vector for automatic insertion
   AKANTU_GET_MACRO(SigmaLimit, sigma_lim, const Vector<Real> &);
   AKANTU_GET_MACRO_NOT_CONST(SigmaLimit, sigma_lim, Vector<Real> &);
+
+  /// get the facets check vector
+  AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Vector<bool> &);
+
+  /// THIS HAS TO BE CHANGED
+  AKANTU_GET_MACRO(Tangents, tangents, const Vector<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -137,6 +147,12 @@ private:
 
   /// vector containing a sigma limit for automatic insertion
   Vector<Real> sigma_lim;
+
+  /// vector containing facets in which cohesive elements can be automatically inserted
+  Vector<bool> facets_check;
+
+  /// THIS HAS TO BE CHANGED:
+  Vector<Real> tangents;
 
 };
 

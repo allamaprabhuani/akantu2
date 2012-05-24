@@ -28,7 +28,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_cohesive_linear_extrinsic.hh"
-#include "solid_mechanics_model.hh"
+#include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
 #include "dof_synchronizer.hh"
 
@@ -74,7 +74,7 @@ void MaterialCohesiveLinearExtrinsic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExtrinsic::resizeCohesiveVectors(const Vector<Real> & sigma_insertion) {
+void MaterialCohesiveLinearExtrinsic::resizeCohesiveVectors() {
   MaterialCohesive::resizeCohesiveVectors();
 
   resizeInternalVector(sigma_c_eff, _ek_cohesive);
@@ -93,16 +93,16 @@ void MaterialCohesiveLinearExtrinsic::resizeCohesiveVectors(const Vector<Real> &
 
     if (nb_element == 0) continue;
 
-    UInt nb_element_old = nb_element - sigma_insertion.getSize();
     UInt nb_quadrature_points = fem_cohesive.getNbQuadraturePoints(*it, _not_ghost);
+    UInt nb_element_old = nb_element - sigma_insertion.getSize() / nb_quadrature_points;
 
     Vector<Real> & sigma_c_eff_vec = sigma_c_eff(*it, _not_ghost);
     Vector<Real> & delta_c_vec = delta_c(*it, _not_ghost);
 
     for (UInt el = nb_element_old; el < nb_element; ++el) {
-      Real new_sigma = sigma_insertion(el - nb_element_old);
-      Real new_delta = 2 * G_cI / new_sigma;
       for (UInt q = 0; q < nb_quadrature_points; ++q) {
+	Real new_sigma = sigma_insertion((el - nb_element_old) * nb_quadrature_points+q);
+	Real new_delta = 2 * G_cI / new_sigma;
 	sigma_c_eff_vec(el * nb_quadrature_points + q) = new_sigma;
 	delta_c_vec(el * nb_quadrature_points + q) = new_delta;
       }
@@ -112,7 +112,7 @@ void MaterialCohesiveLinearExtrinsic::resizeCohesiveVectors(const Vector<Real> &
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialCohesiveLinearExtrinsic::setParam(const std::string & key, 
+bool MaterialCohesiveLinearExtrinsic::setParam(const std::string & key,
 					       const std::string & value,
 					       const ID & id) {
   std::stringstream sstr(value);
@@ -123,6 +123,29 @@ bool MaterialCohesiveLinearExtrinsic::setParam(const std::string & key,
   else if(key == "rand") { sstr >> rand; }
   else { return Material::setParam(key, value, id); }
   return true;
+}
+
+/* -------------------------------------------------------------------------- */
+Real MaterialCohesiveLinearExtrinsic::computeEffectiveNorm(const types::Matrix & stress, const types::RVector & normal, const types::RVector & tangent) {
+  AKANTU_DEBUG_IN();
+
+  Real normal_contrib, tangent_contrib;
+  types::RVector normal_stress(spatial_dimension);
+  types::RVector tangential_stress(spatial_dimension);
+
+  normal_stress.mul<false>(stress, normal);
+  tangential_stress.mul<false>(stress, tangent);
+
+  normal_contrib = normal_stress.dot(normal);
+  tangent_contrib = tangential_stress.dot(tangent);
+
+  if (normal_contrib < 0) normal_contrib = 0;
+
+  AKANTU_DEBUG_OUT();
+
+  return std::sqrt(normal_contrib*normal_contrib
+		   + tangent_contrib*tangent_contrib/beta/beta);
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -190,9 +213,7 @@ void MaterialCohesiveLinearExtrinsic::computeTraction(const Vector<Real> & norma
     if (delta >= *delta_c_it || delta == 0) {
 
       /// set traction to zero
-      for (UInt i = 0; i < spatial_dimension; ++i)
-	(*traction_it)(i) = 0.;
-
+      (*traction_it).clear();
     }
     /// element not fully damaged
     else {
@@ -208,21 +229,11 @@ void MaterialCohesiveLinearExtrinsic::computeTraction(const Vector<Real> & norma
       *traction_it *= beta2_kappa;
       *traction_it += normal_opening;
 
-      /// crack opening case
-      if (delta > *delta_max_it) {
-	Real k = *sigma_c_it / delta * (1. - delta / *delta_c_it);
-	*traction_it *= k;
+      /// update maximum displacement
+      *delta_max_it = std::max(*delta_max_it, delta);
 
-	/// update maximum displacement
-	*delta_max_it = delta;
-
-      }
-      /// unloading-reloading case
-      else {
-	Real k = *sigma_c_it / *delta_max_it * (1. - *delta_max_it / *delta_c_it);
-	*traction_it *= k;
-      }
-
+      Real k = *sigma_c_it / *delta_max_it * (1. - *delta_max_it / *delta_c_it);
+      *traction_it *= k;
     }
 
   }

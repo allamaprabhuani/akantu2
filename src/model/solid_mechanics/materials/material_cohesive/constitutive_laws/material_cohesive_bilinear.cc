@@ -27,7 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_cohesive_bilinear.hh"
-#include "solid_mechanics_model.hh"
+#include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
 #include "dof_synchronizer.hh"
 
@@ -83,7 +83,7 @@ void MaterialCohesiveBilinear::resizeCohesiveVectors() {
 void MaterialCohesiveBilinear::updateDeltaMax(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Mesh & mesh = model->getFEM().getMesh();
+  const Mesh & mesh = model->getFEM("CohesiveFEM").getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
 

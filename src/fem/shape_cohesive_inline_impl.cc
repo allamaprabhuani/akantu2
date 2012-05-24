@@ -326,8 +326,8 @@ void ShapeCohesive<ShapeFunction>::computeNormalsOnControlPoints(const Vector<Re
     for (; normal != normal_end; ++normal) {
       types::RVector a1(tangent, spatial_dimension);
 
-      (*normal)(0) = a1(1);
-      (*normal)(1) = -a1(0);
+      (*normal)(0) = -a1(1);
+      (*normal)(1) = a1(0);
       (*normal) /= normal->norm();
 
       tangent += spatial_dimension;

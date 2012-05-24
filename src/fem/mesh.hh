@@ -59,13 +59,13 @@ public:
     this->ghost_type = element.ghost_type;
   }
 
-  inline bool operator==(const Element & elem) {
+  inline bool operator==(const Element & elem) const {
     return ((element == elem.element)
 	    && (type == elem.type) 
 	    && (ghost_type == elem.ghost_type));
   }
 
-  inline bool operator!=(const Element & elem) {
+  inline bool operator!=(const Element & elem) const {
     return ((element != elem.element)
 	    || (type != elem.type) 
 	    || (ghost_type != elem.ghost_type));

@@ -26,11 +26,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include <limits>
 #include <fstream>
 #include <iostream>
-
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
@@ -86,6 +84,7 @@ int main(int argc, char *argv[]) {
   const ElementType type_facet = mesh.getFacetElementType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   //  const Vector<Real> & position = mesh.getNodes();
+  //  Vector<Real> & displacement = model.getDisplacement();
   //  const Vector<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
 
   Vector<UInt> facet_insertion;
@@ -164,6 +163,18 @@ int main(int argc, char *argv[]) {
 
   updateDisplacement(model, elements, type, increment);
 
+  // for (UInt n = 0; n < nb_nodes; ++n) {
+  //   if (position(n, 1) + displacement(n, 1) > 0) {
+  //     if (position(n, 0) == 0) {
+  // 	displacement(n, 1) -= 0.25;
+  //     }
+  //     if (position(n, 0) == 1) {
+  // 	displacement(n, 1) += 0.25;
+  //     }
+  //   }
+  // }
+
+
   // std::ofstream edis("edis.txt");
   // std::ofstream erev("erev.txt");
 
@@ -175,16 +186,22 @@ int main(int argc, char *argv[]) {
     model.updateAcceleration();
     model.explicitCorr();
 
+    updateDisplacement(model, elements, type, increment);
+
     if(s % 1 == 0) {
       //      dumper.Dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
-    /// update displacement
-    updateDisplacement(model, elements, type, increment);
+    // // update displacement
+    // for (UInt n = 0; n < nb_nodes; ++n) {
+    //   if (position(n, 1) + displacement(n, 1) > 0) {
+    // 	displacement(n, 0) -= 0.01;
+    //   }
+    // }
 
-    // Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
-    // Real Er = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getReversibleEnergy();
+    //    Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
+    //    Real Er = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getReversibleEnergy();
 
     // edis << s << " "
     // 	 << Ed << std::endl;
@@ -197,11 +214,13 @@ int main(int argc, char *argv[]) {
   // edis.close();
   // erev.close();
 
-  Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
+  Real Ed = model.getDissipatedEnergy();
 
   Real Edt = 2 * sqrt(2);
 
-  if (Ed < Edt - 0.0001 || Ed > Edt + 0.0001) {
+  std::cout << Ed << " " << Edt << std::endl;
+
+  if (Ed < Edt * 0.999 || Ed > Edt * 1.001) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
     return EXIT_FAILURE;
   }
@@ -232,8 +251,8 @@ static void updateDisplacement(SolidMechanicsModelCohesive & model,
       UInt node = connectivity(elements(el), n);
       if (!update(node)) {
 	displacement(node, 0) += increment;
-	//	displacement(node, 1) -= increment;
-	update(node) = true;	
+	//	displacement(node, 1) += increment;
+	update(node) = true;
       }
     }
   }

@@ -613,6 +613,7 @@ public:
     if(this != &it) {
       this->offset = it.offset;
       this->initial = it.initial;
+      if(ret) delete (ret);
       this->ret = new internal_value_type(*it.ret);
     }
     return *this;

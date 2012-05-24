@@ -31,18 +31,18 @@ add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
 
 #===============================================================================
 
-register_test(test_cohesive test_cohesive.cc)
-
-#===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
-  COPYONLY
-  )
-file(COPY run DESTINATION .)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+#register_test(test_cohesive test_cohesive.cc)
+#
+##===============================================================================
+#configure_file(
+#  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
+#  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
+#  COPYONLY
+#  )
+#configure_file(
+#  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
+#  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
+#  COPYONLY
+#  )
+#file(COPY run DESTINATION .)
+#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

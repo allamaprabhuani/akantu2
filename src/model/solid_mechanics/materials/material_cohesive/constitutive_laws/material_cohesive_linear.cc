@@ -39,7 +39,6 @@ MaterialCohesiveLinear::MaterialCohesiveLinear(Model & model, const ID & id) :
   delta_max("delta max",id) {
   AKANTU_DEBUG_IN();
 
-  sigma_c   = 0;
   beta      = 0;
   G_cI      = 0;
   G_cII     = 0;
@@ -145,8 +144,7 @@ void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
     if (delta >= delta_c || delta == 0) {
 
       /// set traction to zero
-      for (UInt i = 0; i < spatial_dimension; ++i)
-	(*traction_it)(i) = 0.;
+      (*traction_it).clear();
 
     }
     /// element not fully damaged
@@ -163,23 +161,12 @@ void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
       *traction_it *= beta2_kappa;
       *traction_it += normal_opening;
 
-      /// crack opening case
-      if (delta > *delta_max_it) {
-	Real k = sigma_c / delta * (1. - delta / delta_c);
-	*traction_it *= k;
+      /// update maximum displacement
+      *delta_max_it = std::max(*delta_max_it, delta);
 
-	/// update maximum displacement
-	*delta_max_it = delta;
-
-      }
-      /// unloading-reloading case
-      else {
-	Real k = sigma_c / *delta_max_it * (1. - *delta_max_it / delta_c);
-	*traction_it *= k;
-      }
-
+      Real k = sigma_c / *delta_max_it * (1. - *delta_max_it / delta_c);
+      *traction_it *= k;
     }
-
   }
 
   AKANTU_DEBUG_OUT();

@@ -55,6 +55,11 @@ MaterialElasticOrthotropic::MaterialElasticOrthotropic(Model & model, const ID &
 }
 
 /* -------------------------------------------------------------------------- */
+MaterialElasticOrthotropic::~MaterialElasticOrthotropic() {
+  delete[] S;
+}
+
+/* -------------------------------------------------------------------------- */
 void MaterialElasticOrthotropic::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();

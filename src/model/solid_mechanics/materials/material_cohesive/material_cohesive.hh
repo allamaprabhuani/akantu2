@@ -35,6 +35,9 @@
 #define __AKANTU_MATERIAL_COHESIVE_HH__
 
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+  class SolidMechanicsModelCohesive;
+}
 
 __BEGIN_AKANTU__
 
@@ -83,6 +86,9 @@ public:
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  /// check stress for cohesive elements' insertion
+  virtual void checkInsertion(Vector<UInt> & facet_insertion);
+
 protected:
 
   /// constitutive law
@@ -129,6 +135,13 @@ protected:
   /// compute reversible and total energies by element
   void computeEnergies();
 
+  /// compute effective stress norm for insertion check
+  virtual Real computeEffectiveNorm(const types::Matrix & stress,
+				    const types::RVector & normal,
+				    const types::RVector & tangent){
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -139,6 +152,12 @@ public:
 
   /// compute dissipated energy
   Real getDissipatedEnergy();
+
+  /// get sigma_c
+  AKANTU_GET_MACRO(SigmaC, sigma_c, Real);
+
+  /// get rand
+  AKANTU_GET_MACRO(RandFactor, rand, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -167,6 +186,18 @@ protected:
 
   /// Link to the cohesive fem object in the model
   MyFEMCohesiveType * fem_cohesive;
+
+  /// critical stress
+  Real sigma_c;
+
+  /// randomness factor
+  Real rand;
+
+  /// vector to store stresses on facets for element insertions
+  Vector<Real> sigma_insertion;
+
+  /// pointer to the solid mechanics model for cohesive elements
+  SolidMechanicsModelCohesive * model;
 
 };
 

@@ -27,7 +27,7 @@
 
 register_test(test_cohesive_extrinsic test_cohesive_extrinsic.cc)
 
-add_mesh(test_cohesive_extrinsic_mesh mesh.geo 2 1)
+add_mesh(test_cohesive_extrinsic_mesh mesh.geo 2 2)
 add_dependencies(test_cohesive_extrinsic test_cohesive_extrinsic_mesh)
 
 #===============================================================================

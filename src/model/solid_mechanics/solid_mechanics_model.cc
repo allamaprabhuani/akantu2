@@ -66,6 +66,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   stiffness_matrix(NULL),
   jacobian_matrix(NULL),
   element_material("element_material", id),
+  element_index_by_material("element index by material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
   spatial_dimension(dim), mesh(mesh), dynamic(false), implicit(false) {

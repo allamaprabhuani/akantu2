@@ -27,10 +27,11 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void Material::addElement(const ElementType & type,
+inline UInt Material::addElement(const ElementType & type,
 				 UInt element,
 				 const GhostType & ghost_type) {
   element_filter(type, ghost_type).push_back(element);
+  return element_filter(type, ghost_type).getSize()-1;
 }
 
 /* -------------------------------------------------------------------------- */

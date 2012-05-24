@@ -61,7 +61,7 @@ public:
 
   MaterialElasticOrthotropic(Model & model, const ID & id = "");
 
-  virtual ~MaterialElasticOrthotropic() {};
+  ~MaterialElasticOrthotropic();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

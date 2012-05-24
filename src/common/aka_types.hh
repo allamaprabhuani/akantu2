@@ -131,6 +131,13 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
+    inline Vector & operator+=(const T & x) {
+      T * a = this->values;
+      for (UInt i = 0; i < n; ++i) *(a++) += x;
+      return *this;
+    }
+
+    /* ---------------------------------------------------------------------- */
     inline Vector & operator-=(const Vector & vect) {
       T * a = this->storage();
       T * b = vect.storage();
@@ -309,6 +316,7 @@ namespace types {
 
       return C;
     };
+
     /* -------------------------------------------------------------------------- */
     inline Matrix & operator+= (const Matrix & B) {
       for (UInt i = 0; i < m*n; ++i) {
@@ -316,6 +324,14 @@ namespace types {
       }
       return *this;
     };
+
+    /* ---------------------------------------------------------------------- */
+    inline Matrix & operator+=(Real x) {
+      Real * a = this->values;
+      for (UInt i = 0; i < n*m; ++i) *(a++) += x;
+      return *this;
+    }
+
     /* ---------------------------------------------------------------------- */
     inline Matrix & operator*=(Real x) {
       Real * a = this->storage();
