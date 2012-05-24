@@ -382,6 +382,9 @@ public:
   inline Material & getMaterial(UInt mat_index);
   inline const Material & getMaterial(UInt mat_index) const;
 
+  /// push a new material object
+  void pushNewMaterial(Material * mat);
+
   /// give the number of materials
   inline UInt getNbMaterials() const { return materials.size(); };
 

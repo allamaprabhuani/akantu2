@@ -395,6 +395,8 @@ void SolidMechanicsModel::updateResidualInternal() {
       // if full mass_matrix
       Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
       *Ma *= *mass_matrix;
+      /// \todo check unit conversion for implicit dynamics
+      //      *Ma /= f_m2a
       *residual -= *Ma;
       delete Ma;
     } else {
@@ -409,7 +411,7 @@ void SolidMechanicsModel::updateResidualInternal() {
 
       for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
 	if(!(*boundary_val)) {
-	  *res_val -= *accel_val * *mass_val;
+	  *res_val -= *accel_val * *mass_val /f_m2a;
 	}
 	boundary_val++;
 	res_val++;

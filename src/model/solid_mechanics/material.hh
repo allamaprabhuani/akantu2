@@ -228,6 +228,7 @@ public:
 
   AKANTU_GET_MACRO(ID, id, const ID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
+  AKANTU_SET_MACRO(Rho, rho, Real);
 
   Real getPotentialEnergy();
 

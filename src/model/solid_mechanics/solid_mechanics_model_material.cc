@@ -148,5 +148,14 @@ void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_nam
   }
 }
 
+/* -------------------------------------------------------------------------- */
+
+void SolidMechanicsModel::pushNewMaterial(Material * mat){
+  materials.push_back(mat);
+}
+/* -------------------------------------------------------------------------- */
+
+
+
 
 __END_AKANTU__

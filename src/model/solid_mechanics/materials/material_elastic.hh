@@ -105,6 +105,8 @@ public:
   AKANTU_GET_MACRO(Mu, mu, Real);
   AKANTU_GET_MACRO(Lambda, lambda, Real);
 
+  AKANTU_SET_MACRO(E, E, Real);
+  AKANTU_SET_MACRO(Nu, nu, Real);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
