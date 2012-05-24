@@ -30,12 +30,14 @@
 
 /* -------------------------------------------------------------------------- */
 inline void MaterialElastic::computeStress(Real * F, Real * sigma) {
-  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
+  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33} 
 
   /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
   sigma[0] = lambda * trace + 2*mu*F[0];
   sigma[4] = lambda * trace + 2*mu*F[4];
+  if(plane_stress) F[8] = (F[0] + F[4])*(nu/(nu-1.)); 
   sigma[8] = lambda * trace + 2*mu*F[8];
+
 
   sigma[1] = sigma[3] =  mu * (F[1] + F[3]);
   sigma[2] = sigma[6] =  mu * (F[2] + F[6]);

@@ -33,9 +33,17 @@ inline void MaterialVreePeerlings::computeStress(Real * F, Real * sigma, Real & 
 
   types::Matrix Ft(F, 3, 3);
 
-  Real I1 = Ft.trace();
+  Real I1=0.;
+  Real J2=0.;
 
-  Real J2 = (3*(Ft(0,0)*Ft(0,0)+Ft(1,1)*Ft(1,1)+Ft(2,2)*Ft(2,2)+(Ft(0,1)+Ft(1,0))*(Ft(0,1)+Ft(1,0))+(Ft(1,2)+Ft(2,1))*(Ft(1,2)+Ft(2,1))+(Ft(2,0)+Ft(0,2))*(Ft(2,0)+Ft(0,2)))-I1*I1)/6;
+  if(plane_stress) {
+     I1 = (Ft(0,0)+Ft(1,1))*(1-2*nu)/(1-nu);
+     J2 = (3*(Ft(0,0)*Ft(0,0)+Ft(1,1)*Ft(1,1)+(nu/(nu-1)*(Ft(0,0)+Ft(1,1)))*(nu/(nu-1)*(Ft(0,0)+Ft(1,1)))+(Ft(0,1)+Ft(1,0))*(Ft(0,1)+Ft(1,0))/2.+(Ft(1,2)+Ft(2,1))*(Ft(1,2)+Ft(2,1))/2.+(Ft(2,0)+Ft(0,2))*(Ft(2,0)+Ft(0,2))/2.)-I1*I1)/6;
+  }
+  else {
+     I1 = Ft.trace();
+     J2 = (3*(Ft(0,0)*Ft(0,0)+Ft(1,1)*Ft(1,1)+Ft(2,2)*Ft(2,2)+(Ft(0,1)+Ft(1,0))*(Ft(0,1)+Ft(1,0))/2.+(Ft(1,2)+Ft(2,1))*(Ft(1,2)+Ft(2,1))/2.+(Ft(2,0)+Ft(0,2))*(Ft(2,0)+Ft(0,2))/2.)-I1*I1)/6;
+  }
 
   Equistrain = ((Kct-1)*I1)/(2*Kct*(1-2*nu))+((1)/(2*Kct))*sqrt((((Kct-1)*I1)/(1-2*nu))*(((Kct-1)*I1)/(1-2*nu))+(12*Kct*J2)/((1+nu)*(1+nu)));
 
@@ -50,11 +58,15 @@ inline void MaterialVreePeerlings::computeStress(Real * F, Real * sigma, Real & 
 
 /* -------------------------------------------------------------------------- */
 inline void MaterialVreePeerlings::computeDamageAndStress(Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
-  Real Fd = Equistrain - Kapaq;
+  
+
+
+Real Fd = Equistrain - Kapaq;
 
   if (Fd > 0) {
     Kapaq = std::max(Equistrain,Kapaq);
-    dam = 1.-(Kapa0/Kapaq)*((1-Alpha)+Alpha*exp(-Beta*(Kapaq-Kapa0))); 
+    //dam = 1.-(Kapa0/Kapaq)*((1-Alpha)+Alpha*exp(-Beta*(Kapaq-Kapa0)));
+    dam = 1.-(Kapa0/Kapaq)*((Alpha-Kapaq)/(Alpha-Kapa0));  
 
     dam = std::min(dam,1.);
   }

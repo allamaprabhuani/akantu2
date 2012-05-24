@@ -30,7 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_vreepeerlings.hh"
+#include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_VREEPEERLINGS_NON_LOCAL_HH__
@@ -43,13 +44,14 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
+typedef BaseWeightFunction VreePeerlingsNonLocalWeightFunction;
 class MaterialVreePeerlingsNonLocal : public MaterialVreePeerlings,
-				      public MaterialNonLocal<BaseWeightFunction> {
+				      public MaterialNonLocal<VreePeerlingsNonLocalWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<BaseWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<VreePeerlingsNonLocalWeightFunction> MaterialNonLocalParent;
 
   MaterialVreePeerlingsNonLocal(Model & model, const ID & id = "");
 

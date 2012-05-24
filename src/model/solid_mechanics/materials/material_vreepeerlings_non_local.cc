@@ -81,6 +81,7 @@ void MaterialVreePeerlingsNonLocal::computeStress(ElementType el_type, GhostType
   MaterialVreePeerlings::computeStress(F, sigma, *dam, *equi_straint, *Kapaq);
   ++dam;
   ++equi_straint;
+  ++Kapaq;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -133,7 +134,7 @@ void MaterialVreePeerlingsNonLocal::computeNonLocalStress(Vector<Real> & non_loc
 
   computeDamageAndStress(sigma, *dam, *nl_var, *Kapaq);
   ++dam;
-
+  ++Kapaq;
   ++nl_var;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
