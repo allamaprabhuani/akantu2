@@ -30,7 +30,8 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialElasticOrthotropic::computeStress(Real * F, Real * sigma) {
+template<UInt spatial_dimension>
+inline void MaterialElasticOrthotropic<spatial_dimension>::computeStress(Real * F, Real * sigma) {
   /// \mathbf{\sigma} = \mathbf{S} \mathbf{F}
   sigma[0] = S[0] * F[0] + S[3] * F[4] + S[4] * F[8];
   sigma[4] = S[3] * F[0] + S[1] * F[4] + S[5] * F[8];
@@ -43,28 +44,7 @@ inline void MaterialElasticOrthotropic::computeStress(Real * F, Real * sigma) {
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void  MaterialElasticOrthotropic::computeTangentStiffnessByDim(__attribute__((unused)) akantu::ElementType,
-						    akantu::Vector<Real>& tangent_matrix,
-						    __attribute__((unused)) akantu::GhostType) {
-  AKANTU_DEBUG_IN();
-
-  Real * tangent_val   = tangent_matrix.values;
-  UInt offset_tangent  = tangent_matrix.getNbComponent();
-  UInt nb_quads        = tangent_matrix.getSize();
-
-  if (nb_quads == 0) return;
-
-  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
-  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
-    computeTangentStiffness<dim>(tangent_val);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt dim>
-void  MaterialElasticOrthotropic::computeTangentStiffness(Real * tangent) {
+void MaterialElasticOrthotropic<dim>::computeTangentStiffness(Real * tangent) {
 
   UInt n = (dim * (dim - 1) / 2 + dim);
 
@@ -92,7 +72,8 @@ void  MaterialElasticOrthotropic::computeTangentStiffness(Real * tangent) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialElasticOrthotropic::getStableTimeStep(Real h, 
-					       __attribute__ ((unused)) const Element & element) {
+template<UInt spatial_dimension>
+inline Real MaterialElasticOrthotropic<spatial_dimension>::getStableTimeStep(Real h, 
+									     __attribute__ ((unused)) const Element & element) {
   return (h/getPushWaveSpeed());
 }

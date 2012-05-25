@@ -29,45 +29,63 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialVreePeerlings::computeStress(Real * F, Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
+template<UInt spatial_dimension>
+inline void MaterialVreePeerlings<spatial_dimension>::computeStress(Real * F,
+								    Real * sigma,
+								    Real & dam,
+								    Real & Equistrain,
+								    Real & Kapaq) {
 
   types::Matrix Ft(F, 3, 3);
 
   Real I1=0.;
   Real J2=0.;
 
-  if(plane_stress) {
-     I1 = (Ft(0,0)+Ft(1,1))*(1-2*nu)/(1-nu);
-     J2 = (3*(Ft(0,0)*Ft(0,0)+Ft(1,1)*Ft(1,1)+(nu/(nu-1)*(Ft(0,0)+Ft(1,1)))*(nu/(nu-1)*(Ft(0,0)+Ft(1,1)))+(Ft(0,1)+Ft(1,0))*(Ft(0,1)+Ft(1,0))/2.+(Ft(1,2)+Ft(2,1))*(Ft(1,2)+Ft(2,1))/2.+(Ft(2,0)+Ft(0,2))*(Ft(2,0)+Ft(0,2))/2.)-I1*I1)/6;
+  if(this->plane_stress) {
+     I1 = (Ft(0,0) + Ft(1,1))*(1 - 2*this->nu)/(1 - this->nu);
+     Real tmp = this->nu/(this->nu - 1);
+     tmp *= tmp;
+     J2 = .5*(Ft(0,0)*Ft(0,0) +
+	      Ft(1,1)*Ft(1,1) +
+	      tmp*(Ft(0,0) + Ft(1,1))*(Ft(0,0) + Ft(1,1)) +
+	      .5*(Ft(0,1) + Ft(1,0))*(Ft(0,1) + Ft(1,0))) -
+       I1*I1/6.;
   }
   else {
      I1 = Ft.trace();
-     J2 = (3*(Ft(0,0)*Ft(0,0)+Ft(1,1)*Ft(1,1)+Ft(2,2)*Ft(2,2)+(Ft(0,1)+Ft(1,0))*(Ft(0,1)+Ft(1,0))/2.+(Ft(1,2)+Ft(2,1))*(Ft(1,2)+Ft(2,1))/2.+(Ft(2,0)+Ft(0,2))*(Ft(2,0)+Ft(0,2))/2.)-I1*I1)/6;
+     J2 = .5*(Ft(0,0)*Ft(0,0) +
+	      Ft(1,1)*Ft(1,1) +
+	      Ft(2,2)*Ft(2,2) +
+	      .5*(Ft(0,1) + Ft(1,0))*(Ft(0,1) + Ft(1,0)) +
+	      .5*(Ft(1,2) + Ft(2,1))*(Ft(1,2) + Ft(2,1)) +
+	      .5*(Ft(2,0) + Ft(0,2))*(Ft(2,0) + Ft(0,2))) -
+       I1 * I1/6.;
   }
 
-  Equistrain = ((Kct-1)*I1)/(2*Kct*(1-2*nu))+((1)/(2*Kct))*sqrt((((Kct-1)*I1)/(1-2*nu))*(((Kct-1)*I1)/(1-2*nu))+(12*Kct*J2)/((1+nu)*(1+nu)));
+  Real tmp = (Kct - 1)*I1/(1 - 2*this->nu);
+  Real nu1 = (1 + this->nu);
 
+  Equistrain = tmp / (2*Kct) + 1./(2*Kct) * sqrt(tmp * tmp + (12 * Kct * J2)/(nu1 * nu1));
 
-  MaterialElastic::computeStress(F, sigma);
+  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
 
-
-  if(!is_non_local) {
+  if(!this->is_non_local) {
     computeDamageAndStress(sigma, dam, Equistrain, Kapaq);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialVreePeerlings::computeDamageAndStress(Real * sigma, Real & dam, Real & Equistrain, Real &Kapaq) {
-  
-
-
-Real Fd = Equistrain - Kapaq;
+template<UInt spatial_dimension>
+inline void MaterialVreePeerlings<spatial_dimension>::computeDamageAndStress(Real * sigma,
+									     Real & dam,
+									     Real & Equistrain,
+									     Real & Kapaq) {
+  Real Fd = Equistrain - Kapaq;
 
   if (Fd > 0) {
     Kapaq = std::max(Equistrain,Kapaq);
-    //dam = 1.-(Kapa0/Kapaq)*((1-Alpha)+Alpha*exp(-Beta*(Kapaq-Kapa0)));
-    dam = 1.-(Kapa0/Kapaq)*((Alpha-Kapaq)/(Alpha-Kapa0));  
-
+    //dam = 1. - Kapa0/Kapaq*((1 - Alpha) + Alpha*exp(-Beta*(Kapaq - Kapa0)));
+    dam = 1. - Kapa0/Kapaq * ((Alpha-Kapaq)/(Alpha - Kapa0));
     dam = std::min(dam,1.);
   }
 

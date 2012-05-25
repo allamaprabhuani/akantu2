@@ -34,7 +34,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveLinear::MaterialCohesiveLinear(Model & model, const ID & id) :
+template<UInt spatial_dimension>
+MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(SolidMechanicsModel & model,
+								  const ID & id) :
   MaterialCohesive(model,id),
   delta_max("delta max",id) {
   AKANTU_DEBUG_IN();
@@ -49,14 +51,16 @@ MaterialCohesiveLinear::MaterialCohesiveLinear(Model & model, const ID & id) :
 }
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveLinear::~MaterialCohesiveLinear() {
+template<UInt spatial_dimension>
+MaterialCohesiveLinear<spatial_dimension>::~MaterialCohesiveLinear() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinear::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesive::initMaterial();
@@ -68,15 +72,17 @@ void MaterialCohesiveLinear::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinear::resizeCohesiveVectors() {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinear<spatial_dimension>::resizeCohesiveVectors() {
   MaterialCohesive::resizeCohesiveVectors();
   resizeInternalVector(delta_max, _ek_cohesive);
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialCohesiveLinear::setParam(const std::string & key, 
-				      const std::string & value,
-				      const ID & id) {
+template<UInt spatial_dimension>
+bool MaterialCohesiveLinear<spatial_dimension>::setParam(const std::string & key, 
+							 const std::string & value,
+							 const ID & id) {
   std::stringstream sstr(value);
   if(key == "sigma_c") { sstr >> sigma_c; }
   else if(key == "beta") { sstr >> beta; }
@@ -87,9 +93,10 @@ bool MaterialCohesiveLinear::setParam(const std::string & key,
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
-					     ElementType el_type,
-					     GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Real> & normal,
+								ElementType el_type,
+								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -142,14 +149,11 @@ void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
 
     /// full damage case
     if (delta >= delta_c || delta == 0) {
-
       /// set traction to zero
       (*traction_it).clear();
-
     }
     /// element not fully damaged
     else {
-
       /**
        * Compute traction @f$ \mathbf{T} = \left(
        * \frac{\beta^2}{\kappa} \Delta_t \mathbf{t} + \Delta_n
@@ -173,7 +177,9 @@ void MaterialCohesiveLinear::computeTraction(const Vector<Real> & normal,
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinear::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinear<spatial_dimension>::printself(std::ostream & stream,
+							  int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -182,7 +188,7 @@ void MaterialCohesiveLinear::printself(std::ostream & stream, int indent) const 
   stream << space << " + beta         : " << beta << std::endl;
   stream << space << " + G_cI         : " << G_cI << std::endl;
   stream << space << " + G_cII        : " << G_cII << std::endl;
-  if(is_init) {
+  if(this->isInit()) {
     stream << space << " + kappa      : " << kappa << std::endl;
     stream << space << " + delta_c    : " << delta_c << std::endl;
   }
@@ -190,6 +196,8 @@ void MaterialCohesiveLinear::printself(std::ostream & stream, int indent) const 
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialCohesiveLinear);
 
 
 __END_AKANTU__

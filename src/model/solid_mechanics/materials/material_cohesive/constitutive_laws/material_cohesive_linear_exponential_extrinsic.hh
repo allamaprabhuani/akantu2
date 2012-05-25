@@ -53,14 +53,14 @@ __BEGIN_AKANTU__
  *   - gamma     : gamma factor (default: 0)
  *   - z_max     : z max (default: 0)
  */
-
+template<UInt spatial_dimension>
 class MaterialCohesiveLinearExponentialExtrinsic : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialCohesiveLinearExponentialExtrinsic(Model & model, const ID & id = "");
+  MaterialCohesiveLinearExponentialExtrinsic(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveLinearExponentialExtrinsic();
 
   /* ------------------------------------------------------------------------ */
@@ -144,14 +144,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 //#include "material_cohesive_linear_inline_impl.cc"
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesiveLinearExponentialExtrinsic & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-
 
 __END_AKANTU__
 

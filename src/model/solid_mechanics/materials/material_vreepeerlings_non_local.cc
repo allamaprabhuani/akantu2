@@ -34,42 +34,45 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialVreePeerlingsNonLocal::MaterialVreePeerlingsNonLocal(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id),
-  MaterialVreePeerlings(model, id), MaterialNonLocalParent(model, id),
+template<UInt spatial_dimension>
+MaterialVreePeerlingsNonLocal<spatial_dimension>::MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model,
+							     const ID & id)  :
+  Material(model, id),
+  MaterialElastic<spatial_dimension>(model, id),
+  MaterialVreePeerlings<spatial_dimension>(model, id),
+  MaterialNonLocalParent(model, id),
   equi_strain("equi_strain", id) {
   AKANTU_DEBUG_IN();
 
-  is_non_local = true;
+  this->is_non_local = true;
 
-  initInternalVector(this->equi_strain, 1);
+  this->initInternalVector(this->equi_strain, 1);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlingsNonLocal::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialVreePeerlingsNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialVreePeerlings::initMaterial();
-
+  MaterialVreePeerlings<spatial_dimension>::initMaterial();
   MaterialNonLocalParent::initMaterial();
 
-  resizeInternalVector(this->equi_strain);
-
-  is_init = true;
+  this->resizeInternalVector(this->equi_strain);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlingsNonLocal::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialVreePeerlingsNonLocal<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).storage();
   Real * equi_straint = equi_strain(el_type, ghost_type).storage();
-  Real * Kapaq = Kapa(el_type, ghost_type).storage();
+  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -78,7 +81,7 @@ void MaterialVreePeerlingsNonLocal::computeStress(ElementType el_type, GhostType
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  MaterialVreePeerlings::computeStress(F, sigma, *dam, *equi_straint, *Kapaq);
+  MaterialVreePeerlings<spatial_dimension>::computeStress(F, sigma, *dam, *equi_straint, *Kapaq);
   ++dam;
   ++equi_straint;
   ++Kapaq;
@@ -93,18 +96,17 @@ void MaterialVreePeerlingsNonLocal::computeStress(ElementType el_type, GhostType
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlingsNonLocal::computeNonLocalStress(GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialVreePeerlingsNonLocal<spatial_dimension>::computeNonLocalStress(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  ByElementTypeReal nl_var("Non local variable", id);
-  initInternalVector(nl_var, 1);
-  resizeInternalVector(nl_var);
+  ByElementTypeReal nl_var("Non local variable", this->id);
+  this->initInternalVector(nl_var, 1);
+  this->resizeInternalVector(nl_var);
 
-  weightedAvergageOnNeighbours(equi_strain, nl_var, 1);
+  this->weightedAvergageOnNeighbours(equi_strain, nl_var, 1);
 
-  UInt spatial_dimension = model->getSpatialDimension();
-
-  Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
 
   for(; it != last_type; ++it) {
     computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
@@ -114,11 +116,12 @@ void MaterialVreePeerlingsNonLocal::computeNonLocalStress(GhostType ghost_type) 
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlingsNonLocal::computeNonLocalStress(Vector<Real> & non_loc_var, ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialVreePeerlingsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Real> & non_loc_var, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam   = damage(el_type, ghost_type).storage();
-  Real * Kapaq = Kapa(el_type, ghost_type).storage();
+  Real * dam   = this->damage(el_type, ghost_type).storage();
+  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
 
   Real * nl_var = non_loc_var.storage();
 
@@ -132,7 +135,7 @@ void MaterialVreePeerlingsNonLocal::computeNonLocalStress(Vector<Real> & non_loc
       sigma[3 * i + j] = stress_val[spatial_dimension*i + j];
     }
 
-  computeDamageAndStress(sigma, *dam, *nl_var, *Kapaq);
+  this->computeDamageAndStress(sigma, *dam, *nl_var, *Kapaq);
   ++dam;
   ++Kapaq;
   ++nl_var;
@@ -143,30 +146,33 @@ void MaterialVreePeerlingsNonLocal::computeNonLocalStress(Vector<Real> & non_loc
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-  updateDissipatedEnergy(ghost_type);
+  this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialVreePeerlingsNonLocal::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialVreePeerlingsNonLocal<spatial_dimension>::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   return MaterialNonLocalParent::setParam(key, value, id) ||
-    MaterialVreePeerlings::setParam(key, value, id);
+    MaterialVreePeerlings<spatial_dimension>::setParam(key, value, id);
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlingsNonLocal::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialVreePeerlingsNonLocal<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_vreepeerlings_non_local> [" << std::endl;
-  MaterialVreePeerlings::printself(stream, indent + 1);
+  MaterialVreePeerlings<spatial_dimension>::printself(stream, indent + 1);
   MaterialNonLocalParent::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
+INSTANSIATE_MATERIAL(MaterialVreePeerlingsNonLocal);
 
 __END_AKANTU__

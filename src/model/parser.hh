@@ -63,8 +63,9 @@ public:
   /// read properties and instanciate a given material object
   template <typename M>
   void readSection(M & model);
-  template <typename Obj>
-  Obj * readSection(Model & model, std::string & obj_name);
+
+  template <typename Obj, typename M>
+  Obj * readSection(M & model, std::string & obj_name);
 
 
   /* ------------------------------------------------------------------------ */

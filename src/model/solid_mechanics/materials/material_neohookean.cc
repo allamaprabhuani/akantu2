@@ -32,7 +32,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialNeohookean::MaterialNeohookean(Model & model, const ID & id)  :
+template<UInt spatial_dimension>
+MaterialNeohookean<spatial_dimension>::MaterialNeohookean(SolidMechanicsModel & model,
+							  const ID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
@@ -45,7 +47,8 @@ MaterialNeohookean::MaterialNeohookean(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialNeohookean::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialNeohookean<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
@@ -55,12 +58,12 @@ void MaterialNeohookean::initMaterial() {
     lambda = 2 * lambda * mu / (lambda + 2 * mu);
   kpa      = lambda + 2./3. * mu;
 
-  is_init = true;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialNeohookean::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialNeohookean<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
@@ -87,7 +90,8 @@ void MaterialNeohookean::computeStress(ElementType el_type, GhostType ghost_type
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialNeohookean::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
@@ -104,10 +108,23 @@ void MaterialNeohookean::computePotentialEnergy(ElementType el_type, GhostType g
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-void  MaterialNeohookean::computeTangentStiffnessByDim(ElementType el_type,
-						       Vector<Real>& tangent_matrix,
-						       GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialNeohookean<spatial_dimension>::computeTangentStiffness(const ElementType & el_type,
+								    Vector<Real> & tangent_matrix,
+								    GhostType ghost_type) {
+//   switch(spatial_dimension) {
+//   case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
+//   case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
+//   case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
+//   }
+// }
+
+
+// /* -------------------------------------------------------------------------- */
+// template<UInt dim>
+// void  MaterialNeohookean::computeTangentStiffnessByDim(ElementType el_type,
+// 						       Vector<Real>& tangent_matrix,
+// 						       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   tangent_matrix.clear();
@@ -122,7 +139,7 @@ void  MaterialNeohookean::computeTangentStiffnessByDim(ElementType el_type,
   for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] += 1;
   //F is now the real F !!
 
-  computeTangentStiffness<dim>(tangent_val, F);
+  computeTangentStiffness(tangent_val, F);
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
 
@@ -130,7 +147,8 @@ void  MaterialNeohookean::computeTangentStiffnessByDim(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialNeohookean::celerity(const Element & elem) {
+template<UInt spatial_dimension>
+Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
   UInt nb_quadrature_points =
     model->getFEM().getNbQuadraturePoints(elem.type, elem.ghost_type);
 
@@ -170,7 +188,8 @@ Real MaterialNeohookean::celerity(const Element & elem) {
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialNeohookean::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialNeohookean<spatial_dimension>::setParam(const std::string & key, const std::string & value,
 				  const ID & id) {
   std::stringstream sstr(value);
   if(key == "E") { sstr >> E; }
@@ -181,7 +200,8 @@ bool MaterialNeohookean::setParam(const std::string & key, const std::string & v
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialNeohookean::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialNeohookean<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -195,36 +215,17 @@ void MaterialNeohookean::printself(std::ostream & stream, int indent) const {
   stream << space << " + density                 : " << rho << std::endl;
   stream << space << " + Young's modulus         : " << E << std::endl;
   stream << space << " + Poisson's ratio         : " << nu << std::endl;
-  if(is_init) {
+  if(this->isInit()) {
     stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
     stream << space << " + Second Lamé coefficient : " << mu << std::endl;
     stream << space << " + Bulk coefficient        : " << kpa << std::endl;
   }
   stream << space << "]" << std::endl;
 }
-/* -------------------------------------------------------------------------- */
-template
-void  MaterialNeohookean::computeTangentStiffnessByDim<1>(akantu::ElementType el_type,
-							  akantu::Vector<Real>& tangent_matrix,
-							  akantu::GhostType ghost_type);
-template
-void  MaterialNeohookean::computeTangentStiffnessByDim<2>(akantu::ElementType el_type,
-							  akantu::Vector<Real>& tangent_matrix,
-							  akantu::GhostType ghost_type);
-template
-void  MaterialNeohookean::computeTangentStiffnessByDim<3>(akantu::ElementType el_type,
-							  akantu::Vector<Real>& tangent_matrix,
-							  akantu::GhostType ghost_type);
 
 /* -------------------------------------------------------------------------- */
-void MaterialNeohookean::computeTangentStiffness(const ElementType & el_type,
-						 Vector<Real> & tangent_matrix,
-						 GhostType ghost_type) {
-  switch(spatial_dimension) {
-  case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
-  case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
-  case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
-  }
-}
+
+INSTANSIATE_MATERIAL(MaterialNeohookean);
+
 
 __END_AKANTU__

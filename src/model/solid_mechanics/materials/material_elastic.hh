@@ -44,13 +44,14 @@ __BEGIN_AKANTU__
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
+template<UInt spatial_dimension>
 class MaterialElastic : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElastic(Model & model, const ID & id = "");
+  MaterialElastic(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialElastic() {};
 
@@ -85,12 +86,7 @@ protected:
   /// constitutive law for a given quadrature point
   inline void computeStress(Real * F, Real * sigma);
 
-  // /// compute the tangent stiffness matrix for an element type
-  template<UInt dim>
-  void computeTangentStiffnessByDim(akantu::ElementType, akantu::Vector<Real>& tangent_matrix, akantu::GhostType);
-
   // /// compute the tangent stiffness matrix for an element
-  template<UInt dim>
   void computeTangentStiffness(Real * tangent);
 
   /* ------------------------------------------------------------------------ */
@@ -136,17 +132,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_elastic_inline_impl.cc"
-#endif
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialElastic & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+#include "material_elastic_inline_impl.cc"
 
 __END_AKANTU__
 

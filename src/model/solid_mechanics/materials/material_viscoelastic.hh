@@ -1,7 +1,7 @@
 /**
  * @file   material_viscoelastic.hh
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch> 
- * @date   Thu Feb 7 2012 
+ * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
+ * @date   Thu Feb 7 2012
  *
  * @brief  Material Visco-elastic, based on Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes, "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
  *
@@ -47,13 +47,14 @@ __BEGIN_AKANTU__
  *   - Ev  : stiffness of the viscous element
  *   - h   : internal variable of the integral history
  */
-class MaterialViscoElastic : public MaterialElastic {
+template<UInt spatial_dimension>
+class MaterialViscoElastic : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */  
+  /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialViscoElastic(Model & model, const ID & id = "");
+  MaterialViscoElastic(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialViscoElastic() {};
 
@@ -84,11 +85,11 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(HistoryIntegral, history_integral, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressDev,  stress_dev, Real);
 
-  AKANTU_GET_MACRO(EV, Ev, const Real&); 
-  AKANTU_SET_MACRO(EV, Ev, Real &); 
+  AKANTU_GET_MACRO(EV, Ev, const Real&);
+  AKANTU_SET_MACRO(EV, Ev, Real &);
 
-  AKANTU_GET_MACRO(Eta, eta, const Real&); 
-  AKANTU_SET_MACRO(Eta, eta, Real &); 
+  AKANTU_GET_MACRO(Eta, eta, const Real&);
+  AKANTU_SET_MACRO(Eta, eta, Real &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -129,4 +130,3 @@ inline std::ostream & operator <<(std::ostream & stream, const MaterialViscoElas
 __END_AKANTU__
 
 #endif /* __AKANTU_MATERIAL_VISCOELASTIC_HH__ */
-

@@ -46,7 +46,7 @@ Vector<T> & StaticMemory::smalloc(const MemoryID & memory_id,
   }
 
   Vector<T> * tmp_vect = new Vector<T>(size, nb_component, name);
-  (memory_it->second)[name] = dynamic_cast<VectorBase *>(tmp_vect);
+  (memory_it->second)[name] = tmp_vect;
 
   AKANTU_DEBUG_OUT();
   return *tmp_vect;
@@ -74,7 +74,7 @@ Vector<T> & StaticMemory::smalloc(const MemoryID & memory_id,
   }
 
   Vector<T> * tmp_vect = new Vector<T>(size, nb_component, init_value, name);
-  (memory_it->second)[name] = dynamic_cast<VectorBase *>(tmp_vect);
+  (memory_it->second)[name] = tmp_vect;
 
   AKANTU_DEBUG_OUT();
   return *tmp_vect;

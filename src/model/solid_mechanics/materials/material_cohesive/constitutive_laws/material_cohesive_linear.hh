@@ -48,16 +48,16 @@ __BEGIN_AKANTU__
  *   - G_cI      : fracture energy for mode I (default: 0)
  *   - G_cII     : fracture energy for mode II (default: 0)
  */
-
+template<UInt spatial_dimension>
 class MaterialCohesiveLinear : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  MaterialCohesiveLinear(Model & model, const ID & id = "");
+
+  MaterialCohesiveLinear(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveLinear();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -87,7 +87,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -119,13 +119,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 //#include "material_cohesive_linear_inline_impl.cc"
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesiveLinear & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 
 __END_AKANTU__

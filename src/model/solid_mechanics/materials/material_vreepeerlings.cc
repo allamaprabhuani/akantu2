@@ -32,8 +32,12 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialVreePeerlings::MaterialVreePeerlings(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id),
+template<UInt spatial_dimension>
+MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsModel & model,
+					     const ID & id)  :
+  Material(model, id),
+  MaterialElastic<spatial_dimension>(model, id),
+  MaterialDamage<spatial_dimension>(model, id),
   Kapa("Kapa",id) {
   AKANTU_DEBUG_IN();
 
@@ -41,21 +45,21 @@ MaterialVreePeerlings::MaterialVreePeerlings(Model & model, const ID & id)  :
   Alpha  = 0.99;
   Beta   = 300.;
   Kct    = 1.;
-  Kapa0_randomness = 0;
-  is_non_local = false;
+  Kapa0_randomness = 0.;
 
-  initInternalVector(this->Kapa, 1);
+  this->initInternalVector(this->Kapa, 1);
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlings::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialVreePeerlings<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialDamage::initMaterial();
+  MaterialDamage<spatial_dimension>::initMaterial();
 
-  resizeInternalVector(this->Kapa);
+  this->resizeInternalVector(this->Kapa);
 
-  const Mesh & mesh = model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEM().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
@@ -69,19 +73,17 @@ void MaterialVreePeerlings::initMaterial() {
       *kapa_it = Kapa0 + rand_part;
     }
   }
-
-  is_init = true;
-
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlings::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Kapaq = Kapa(el_type, ghost_type).storage();
 
 
@@ -103,13 +105,14 @@ void MaterialVreePeerlings::computeStress(ElementType el_type, GhostType ghost_t
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-  if(!is_non_local) updateDissipatedEnergy(ghost_type);
+  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialVreePeerlings::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialVreePeerlings<spatial_dimension>::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "Kapa0") { sstr >> Kapa0; }
@@ -117,13 +120,14 @@ bool MaterialVreePeerlings::setParam(const std::string & key, const std::string 
   else if(key == "Beta") { sstr >> Beta; }
   else if(key == "Kct") { sstr >> Kct; }
   else if(key == "Kapa0_randomness") { sstr >> Kapa0_randomness; }
-  else { return MaterialDamage::setParam(key, value, id); }
+  else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlings::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialVreePeerlings<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -133,79 +137,85 @@ void MaterialVreePeerlings::printself(std::ostream & stream, int indent) const {
   stream << space << " + Beta             : " << Beta << std::endl;
   stream << space << " + Kct              : " << Kct << std::endl;
   stream << space << " + Kapa0 randomness : " << Kapa0_randomness << std::endl;
-  MaterialDamage::printself(stream, indent + 1);
+  MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MaterialVreePeerlings::getNbDataToPack(const Element & element,
+template<UInt spatial_dimension>
+UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToPack(const Element & element,
 					    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
   if(tag == _gst_smm_init_mat) {
-    UInt nb_quad = model->getFEM().getNbQuadraturePoints(element.type);
+    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
     size += sizeof(Real) + nb_quad;
   }
 
-  size += MaterialDamage::getNbDataToPack(element, tag);
+  size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MaterialVreePeerlings::getNbDataToUnpack(const Element & element,
+template<UInt spatial_dimension>
+UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToUnpack(const Element & element,
 					      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
   if(tag == _gst_smm_init_mat) {
-    UInt nb_quad = model->getFEM().getNbQuadraturePoints(element.type);
+    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
     size += sizeof(Real) + nb_quad;
   }
 
-  size += MaterialDamage::getNbDataToPack(element, tag);
+  size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlings::packData(CommunicationBuffer & buffer,
+template<UInt spatial_dimension>
+void MaterialVreePeerlings<spatial_dimension>::packData(CommunicationBuffer & buffer,
 				     const Element & element,
 				     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat){
-    UInt nb_quad = model->getFEM().getNbQuadraturePoints(element.type);
+    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
     const Vector<Real> & kapa = Kapa(element.type, _not_ghost);
     for(UInt q = 0; q < nb_quad; ++q)
       buffer << kapa(element.element * nb_quad + q);
   }
 
-  MaterialDamage::packData(buffer, element, tag);
-
+  MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialVreePeerlings::unpackData(CommunicationBuffer & buffer,
+template<UInt spatial_dimension>
+void MaterialVreePeerlings<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
 				       const Element & element,
 				       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat) {
-    UInt nb_quad = model->getFEM().getNbQuadraturePoints(element.type);
+    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
     Vector<Real> & kapa = Kapa(element.type, _not_ghost);
     for(UInt q = 0; q < nb_quad; ++q)
       buffer >> kapa(element.element * nb_quad + q);
   }
-  
 
-  MaterialDamage::packData(buffer, element, tag);
-
+  MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+INSTANSIATE_MATERIAL(MaterialVreePeerlings);
+
+
 
 __END_AKANTU__

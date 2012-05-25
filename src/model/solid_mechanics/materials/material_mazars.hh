@@ -51,13 +51,14 @@ __BEGIN_AKANTU__
  *   - Bc   : Parameter damage compression 2
  *   - beta : Parameter for shear
  */
-class MaterialMazars : public MaterialDamage {
+template<UInt spatial_dimension>
+class MaterialMazars : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialMazars(Model & model, const ID & id = "");
+  MaterialMazars(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialMazars() {};
 
@@ -110,17 +111,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_mazars_inline_impl.cc"
-#endif
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialMazars & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+#include "material_mazars_inline_impl.cc"
 
 __END_AKANTU__
 

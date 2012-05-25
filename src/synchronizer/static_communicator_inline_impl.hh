@@ -47,7 +47,7 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
 #define AKANTU_BOOST_REAL_COMMUNICATOR_CALL(r, call, comm_type)		\
   case BOOST_PP_LIST_AT(comm_type, 0): {				\
     BOOST_PP_LIST_AT(comm_type, 1) * comm =				\
-      dynamic_cast<BOOST_PP_LIST_AT(comm_type, 1) *>(real_static_communicator); \
+      static_cast<BOOST_PP_LIST_AT(comm_type, 1) *>(real_static_communicator); \
     BOOST_PP_IF(BOOST_PP_LIST_AT(call, 0),				\
 		return comm->BOOST_PP_LIST_AT(call, 1),			\
 		comm->BOOST_PP_LIST_AT(call, 1); break;);		\
@@ -62,7 +62,7 @@ inline void StaticCommunicator::freeCommunicationRequest(std::vector<Communicati
 			      AKANTU_COMMUNICATOR_LIST_ALL)		\
       default:								\
 	StaticCommunicatorDummy * comm =				\
-	  dynamic_cast<StaticCommunicatorDummy *>(real_static_communicator); \
+	  static_cast<StaticCommunicatorDummy *>(real_static_communicator); \
 	BOOST_PP_IF(ret, return comm->call, comm->call);		\
       }									\
   } while(0)

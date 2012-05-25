@@ -27,10 +27,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-
-/* -------------------------------------------------------------------------- */
-inline void MaterialDamageLinear::computeStress(Real * F, Real * sigma, Real & dam, Real &K) {
+template<UInt spatial_dimension>
+inline void MaterialDamageLinear<spatial_dimension>::computeStress(Real * F, Real * sigma, Real & dam, Real &K) {
   //  Real trace = F[0] + F[4] + F[8];
   // Real K = 1./3. * (E/(1. - 2.*nu));
   // Real G = E / (2*(1 + nu));
@@ -48,7 +46,7 @@ inline void MaterialDamageLinear::computeStress(Real * F, Real * sigma, Real & d
 
   Real Ehat=sqrt(Fdiagp[0]*Fdiagp[0]+Fdiagp[1]*Fdiagp[1]+Fdiagp[2]*Fdiagp[2]);
 
-  MaterialElastic::computeStress(F, sigma);
+  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
 
   Real Fd = Ehat-K;
 

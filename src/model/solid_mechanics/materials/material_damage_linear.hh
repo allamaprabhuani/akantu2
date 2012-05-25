@@ -43,13 +43,14 @@ __BEGIN_AKANTU__
  *   - Sigc : (default: 1e5)
  *   - Gc  : (default: 2)
  */
-class MaterialDamageLinear : public MaterialDamage {
+template<UInt spatial_dimension>
+class MaterialDamageLinear : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamageLinear(Model & model, const ID & id = "");
+  MaterialDamageLinear(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialDamageLinear() {};
 
@@ -99,17 +100,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_damage_linear_inline_impl.cc"
-#endif
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamageLinear & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+#include "material_damage_linear_inline_impl.cc"
 
 __END_AKANTU__
 

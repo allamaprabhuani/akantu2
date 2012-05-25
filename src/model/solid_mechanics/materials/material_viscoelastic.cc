@@ -32,8 +32,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialViscoElastic::MaterialViscoElastic(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id),
+template<UInt spatial_dimension>
+MaterialViscoElastic<spatial_dimension>::MaterialViscoElastic(SolidMechanicsModel & model, const ID & id)  :
+  Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   stress_dev("stress_dev", id),
   history_integral("history_integral", id) {
   AKANTU_DEBUG_IN();
@@ -50,9 +51,10 @@ MaterialViscoElastic::MaterialViscoElastic(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialViscoElastic::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialViscoElastic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialElastic::initMaterial();
+  MaterialElastic<spatial_dimension>::initMaterial();
 
   resizeInternalVector(this->stress_dev);
   resizeInternalVector(this->history_integral);
@@ -61,11 +63,12 @@ void MaterialViscoElastic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real tau = eta / Ev;
-  Real K = E / ( 3 * (1 - 2*nu) ); // kpa ?
+  Real K = this->E / ( 3 * (1 - 2*this->nu) ); // kpa ?
 
   Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
@@ -78,7 +81,7 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
   types::Matrix s(spatial_dimension, spatial_dimension);
   types::Matrix theta_sp(spatial_dimension, spatial_dimension);
 
-  Real dt = model->getTimeStep();
+  Real dt = this->model->getTimeStep();
   Real exp_dt_thau = exp( -dt/tau );
   Real exp_dt_thau_2 = exp( -.5*dt/tau );
 
@@ -101,7 +104,7 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {
       e(i, j) = F(i, j) - theta_sp(i, j);
-      s(i, j) = E / (1 + nu) * e(i, j);
+      s(i, j) = this->E / (1 + this->nu) * e(i, j);
     }
 
 
@@ -112,10 +115,10 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
 
   //  Real alpha = 2./3. * K * Theta;
   Real alpha = K * Theta;
-  Real beta = 1. / ( Ev + E );
+  Real beta = 1. / ( Ev + this->E );
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
-      sigma(i, j) = (i == j) * alpha + beta * (E * s(i, j) + Ev * (*history_int)(i, j));
+      sigma(i, j) = (i == j) * alpha + beta * (this->E * s(i, j) + Ev * (*history_int)(i, j));
 
 
   /// Save the deviator of stress
@@ -131,28 +134,31 @@ void MaterialViscoElastic::computeStress(ElementType el_type, GhostType ghost_ty
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialViscoElastic::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialViscoElastic<spatial_dimension>::setParam(const std::string & key, const std::string & value,
 				      const ID & id) {
   std::stringstream sstr(value);
   if(key == "eta") { sstr >> eta; }
   else if(key == "Ev") { sstr >> Ev; }
-  else { return MaterialElastic::setParam(key, value, id); }
+  else { return MaterialElastic<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialViscoElastic::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialViscoElastic<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "MaterialViscoElastic [" << std::endl;
-  MaterialElastic::printself(stream, indent + 1);
+  MaterialElastic<spatial_dimension>::printself(stream, indent + 1);
   stream << space << " + Eta : " << eta << std::endl;
   stream << space << " + Ev  : " << Ev << std::endl;
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
 
+INSTANSIATE_MATERIAL(MaterialViscoElastic);
 
 __END_AKANTU__

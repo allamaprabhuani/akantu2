@@ -32,7 +32,8 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialElastic::MaterialElastic(Model & model, const ID & id)  :
+template<UInt spatial_dimension>
+MaterialElastic<spatial_dimension>::MaterialElastic(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
@@ -44,25 +45,27 @@ MaterialElastic::MaterialElastic(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
   lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
   mu       = E / (2 * (1 + nu));
 
-  if(plane_stress)
-    lambda = 2 * lambda * mu / (lambda + 2 * mu);
+  if(plane_stress) {
+    //lambda = 2 * lambda * mu / (lambda + 2 * mu);
+    lambda = nu * E / ((1 + nu)*(1 - nu));
+  }
 
   kpa      = lambda + 2./3. * mu;
 
-
-  is_init = true;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
@@ -89,19 +92,29 @@ void MaterialElastic::computeStress(ElementType el_type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::computeTangentStiffness(const ElementType & el_type,
-					      Vector<Real> & tangent_matrix,
-					      GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::computeTangentStiffness(const ElementType & el_type,
+								 Vector<Real> & tangent_matrix,
+								 GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
-  switch(spatial_dimension) {
-  case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
-  case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
-  case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
+  Real * tangent_val   = tangent_matrix.values;
+  UInt offset_tangent  = tangent_matrix.getNbComponent();
+  UInt nb_quads        = tangent_matrix.getSize();
+
+  if (nb_quads == 0) return;
+
+  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
+  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
+    computeTangentStiffness(tangent_val);
   }
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialElastic::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialElastic<spatial_dimension>::setParam(const std::string & key, const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "E") { sstr >> E; }
@@ -112,17 +125,21 @@ bool MaterialElastic::setParam(const std::string & key, const std::string & valu
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialElastic::getPushWaveSpeed() {
+template<UInt spatial_dimension>
+Real MaterialElastic<spatial_dimension>::getPushWaveSpeed() {
   return sqrt((lambda + 2*mu)/rho);
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialElastic::getShearWaveSpeed() {
+template<UInt spatial_dimension>
+Real MaterialElastic<spatial_dimension>::getShearWaveSpeed() {
   return sqrt(mu/rho);
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElastic::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::printself(std::ostream & stream,
+						   int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -134,7 +151,7 @@ void MaterialElastic::printself(std::ostream & stream, int indent) const {
   stream << space << " + density                 : " << rho << std::endl;
   stream << space << " + Young's modulus         : " << E << std::endl;
   stream << space << " + Poisson's ratio         : " << nu << std::endl;
-  if(is_init) {
+  if(this->isInit()) {
     stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
     stream << space << " + Second Lamé coefficient : " << mu << std::endl;
     stream << space << " + Bulk coefficient        : " << kpa << std::endl;
@@ -143,5 +160,7 @@ void MaterialElastic::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialElastic);
 
 __END_AKANTU__

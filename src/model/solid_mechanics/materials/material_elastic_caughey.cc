@@ -33,14 +33,15 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialElasticCaughey::MaterialElasticCaughey(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id),
+template<UInt spatial_dimension>
+MaterialElasticCaughey<spatial_dimension>::MaterialElasticCaughey(SolidMechanicsModel & model,
+								  const ID & id)  :
+  Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   stress_viscosity("stress_viscosity", id),
   stress_elastic("stress_elastic", id) {
   AKANTU_DEBUG_IN();
 
   alpha = 0.;
-  UInt spatial_dimension = this->model->getSpatialDimension();
   UInt stress_size = spatial_dimension * spatial_dimension;
 
   initInternalVector(this->stress_viscosity, stress_size);
@@ -51,9 +52,10 @@ MaterialElasticCaughey::MaterialElasticCaughey(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticCaughey::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialElasticCaughey<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialElastic::initMaterial();
+  MaterialElastic<spatial_dimension>::initMaterial();
 
   resizeInternalVector(this->stress_viscosity);
   resizeInternalVector(this->stress_elastic  );
@@ -62,27 +64,27 @@ void MaterialElasticCaughey::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialElasticCaughey<spatial_dimension>::computeStress(ElementType el_type,
+							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  UInt spatial_dimension = model->getSpatialDimension();
-
-  Vector<UInt> & elem_filter = element_filter  (el_type, ghost_type);
+  Vector<UInt> & elem_filter = this->element_filter  (el_type, ghost_type);
   Vector<Real> & stress_visc = stress_viscosity(el_type, ghost_type);
   Vector<Real> & stress_el   = stress_elastic  (el_type, ghost_type);
 
-  MaterialElastic::computeStress(el_type, ghost_type);
+  MaterialElastic<spatial_dimension>::computeStress(el_type, ghost_type);
 
-  Vector<Real> & velocity = model->getVelocity();
-  UInt nb_elem = element_filter(el_type, ghost_type).getSize();
+  Vector<Real> & velocity = this->model->getVelocity();
+  UInt nb_elem = this->element_filter(el_type, ghost_type).getSize();
   UInt nb_quad_points_per_elem =
-    model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
+    this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
   UInt nb_quad_points = nb_quad_points_per_elem * nb_elem;
 
   Vector<Real> strain_rate(nb_quad_points,
 			   spatial_dimension * spatial_dimension,
 			   "strain_rate");
 
-  model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
+  this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
    					     spatial_dimension,
    					     el_type, ghost_type, &elem_filter);
 
@@ -99,7 +101,7 @@ void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_rate_val[spatial_dimension * i + j];
 
-  MaterialElastic::computeStress(F, sigma);
+  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {
@@ -118,7 +120,9 @@ void MaterialElasticCaughey::computeStress(ElementType el_type, GhostType ghost_
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticCaughey::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialElasticCaughey<spatial_dimension>::computePotentialEnergy(ElementType el_type,
+								       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   if(ghost_type != _not_ghost) return;
@@ -126,11 +130,11 @@ void MaterialElasticCaughey::computePotentialEnergy(ElementType el_type, GhostTy
   Vector<Real> & stress_el = stress_elastic(el_type, ghost_type);
   Real * stress_el_val = stress_el.storage();
 
-  Real * epot = potential_energy(el_type, ghost_type).storage();
+  Real * epot = this->potential_energy(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-  MaterialElastic::computePotentialEnergy(strain_val, stress_el_val, epot);
+  MaterialElastic<spatial_dimension>::computePotentialEnergy(strain_val, stress_el_val, epot);
   epot++;
   stress_el_val += spatial_dimension*spatial_dimension;
 
@@ -140,25 +144,32 @@ void MaterialElasticCaughey::computePotentialEnergy(ElementType el_type, GhostTy
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialElasticCaughey::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialElasticCaughey<spatial_dimension>::setParam(const std::string & key,
+							 const std::string & value,
 				      const ID & id) {
   std::stringstream sstr(value);
   if(key == "alpha") { sstr >> alpha; }
-  else { return MaterialElastic::setParam(key, value, id); }
+  else { return MaterialElastic<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticCaughey::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialElasticCaughey<spatial_dimension>::printself(std::ostream & stream,
+							  int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "MaterialElasticCaughey [" << std::endl;
-  MaterialElastic::printself(stream, indent + 1);
+  MaterialElastic<spatial_dimension>::printself(stream, indent + 1);
   stream << space << " + artifical viscous ratio : " << alpha << std::endl;
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialElasticCaughey);
+
 
 __END_AKANTU__

@@ -36,14 +36,14 @@
 #define __AKANTU_MATERIAL_DAMAGE_HH__
 
 __BEGIN_AKANTU__
-
-class MaterialDamage : public virtual MaterialElastic {
+template<UInt spatial_dimension>
+class MaterialDamage : public virtual MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialDamage(Model & model, const ID & id = "");
+  MaterialDamage(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialDamage() {};
 
@@ -100,14 +100,6 @@ protected:
 
 };
 
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialDamage & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

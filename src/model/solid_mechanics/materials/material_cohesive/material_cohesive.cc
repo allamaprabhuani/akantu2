@@ -34,7 +34,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesive::MaterialCohesive(Model & model, const ID & id) :
+MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   Material(model,id),
   reversible_energy("reversible_energy", id),
   total_energy("total_energy", id),

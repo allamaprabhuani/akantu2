@@ -39,22 +39,21 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 
-
 /**
  * Material Marigo
  *
  * parameters in the material files :
  */
-typedef BaseWeightFunction MarigoNonLocalWeightFunction;
-class MaterialMarigoNonLocal : public MaterialMarigo,
-			       public MaterialNonLocal<MarigoNonLocalWeightFunction> {
+template<UInt spatial_dimension>
+class MaterialMarigoNonLocal : public MaterialMarigo<spatial_dimension>,
+			       public MaterialNonLocal<spatial_dimension, BaseWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<MarigoNonLocalWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<spatial_dimension, BaseWeightFunction> MaterialNonLocalParent;
 
-  MaterialMarigoNonLocal(Model & model, const ID & id = "");
+  MaterialMarigoNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialMarigoNonLocal() {};
 
@@ -102,13 +101,6 @@ private:
 
 //#include "material_marigo_non_local_inline_impl.cc"
 
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialMarigoNonLocal & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

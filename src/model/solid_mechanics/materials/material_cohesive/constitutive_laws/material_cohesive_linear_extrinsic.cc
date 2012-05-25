@@ -35,7 +35,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveLinearExtrinsic::MaterialCohesiveLinearExtrinsic(Model & model, const ID & id) :
+template<UInt spatial_dimension>
+MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrinsic(SolidMechanicsModel & model,
+										    const ID & id) :
   MaterialCohesive(model,id),
   sigma_c_eff("sigma_c_eff",id),
   delta_max("delta max",id),
@@ -56,14 +58,16 @@ MaterialCohesiveLinearExtrinsic::MaterialCohesiveLinearExtrinsic(Model & model, 
 }
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveLinearExtrinsic::~MaterialCohesiveLinearExtrinsic() {
+template<UInt spatial_dimension>
+MaterialCohesiveLinearExtrinsic<spatial_dimension>::~MaterialCohesiveLinearExtrinsic() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExtrinsic::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesive::initMaterial();
@@ -74,7 +78,8 @@ void MaterialCohesiveLinearExtrinsic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExtrinsic::resizeCohesiveVectors() {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors() {
   MaterialCohesive::resizeCohesiveVectors();
 
   resizeInternalVector(sigma_c_eff, _ek_cohesive);
@@ -112,9 +117,10 @@ void MaterialCohesiveLinearExtrinsic::resizeCohesiveVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialCohesiveLinearExtrinsic::setParam(const std::string & key,
-					       const std::string & value,
-					       const ID & id) {
+template<UInt spatial_dimension>
+bool MaterialCohesiveLinearExtrinsic<spatial_dimension>::setParam(const std::string & key,
+								  const std::string & value,
+								  const ID & id) {
   std::stringstream sstr(value);
   if(key == "sigma_c") { sstr >> sigma_c; }
   else if(key == "beta") { sstr >> beta; }
@@ -126,7 +132,10 @@ bool MaterialCohesiveLinearExtrinsic::setParam(const std::string & key,
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialCohesiveLinearExtrinsic::computeEffectiveNorm(const types::Matrix & stress, const types::RVector & normal, const types::RVector & tangent) {
+template<UInt spatial_dimension>
+Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress,
+									      const types::RVector & normal,
+									      const types::RVector & tangent) {
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;
@@ -145,13 +154,13 @@ Real MaterialCohesiveLinearExtrinsic::computeEffectiveNorm(const types::Matrix &
 
   return std::sqrt(normal_contrib*normal_contrib
 		   + tangent_contrib*tangent_contrib/beta/beta);
-
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExtrinsic::computeTraction(const Vector<Real> & normal,
-						      ElementType el_type,
-						      GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const Vector<Real> & normal,
+									 ElementType el_type,
+									 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -242,7 +251,9 @@ void MaterialCohesiveLinearExtrinsic::computeTraction(const Vector<Real> & norma
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExtrinsic::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::printself(std::ostream & stream,
+								   int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -252,7 +263,7 @@ void MaterialCohesiveLinearExtrinsic::printself(std::ostream & stream, int inden
   stream << space << " + G_cI         : " << G_cI << std::endl;
   stream << space << " + G_cII        : " << G_cII << std::endl;
   stream << space << " + rand         : " << rand << std::endl;
-  if(is_init) {
+  if(this->isInit()) {
     stream << space << " + kappa      : " << kappa << std::endl;
   }
   MaterialCohesive::printself(stream, indent + 1);
@@ -260,5 +271,6 @@ void MaterialCohesiveLinearExtrinsic::printself(std::ostream & stream, int inden
 }
 /* -------------------------------------------------------------------------- */
 
+INSTANSIATE_MATERIAL(MaterialCohesiveLinearExtrinsic);
 
 __END_AKANTU__

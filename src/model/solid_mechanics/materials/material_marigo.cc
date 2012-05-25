@@ -34,15 +34,18 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialMarigo::MaterialMarigo(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id),
+template<UInt spatial_dimension>
+MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
+						  const ID & id)  :
+  Material(model, id),
+  MaterialElastic<spatial_dimension>(model, id),
+  MaterialDamage<spatial_dimension>(model, id),
   Yd_rand("Yd_rand",id) {
   AKANTU_DEBUG_IN();
 
   Yd  = 50;
   Sd  = 5000;
   Yd_randomness = 0;
-  is_non_local = false;
 
   epsilon_c = std::numeric_limits<Real>::max();
 
@@ -51,26 +54,27 @@ MaterialMarigo::MaterialMarigo(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigo::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialMarigo<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialDamage::initMaterial();
+  MaterialDamage<spatial_dimension>::initMaterial();
 
   if (std::abs(epsilon_c - std::numeric_limits<Real>::max()) < std::numeric_limits<Real>::epsilon())
     Yc = std::numeric_limits<Real>::max();
   else {
-    Yc = .5 * epsilon_c * E * epsilon_c;
+    Yc = .5 * epsilon_c * this->E * epsilon_c;
   }
 
   resizeInternalVector(this->Yd_rand);
 
-  const Mesh & mesh = model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEM().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
 
   for(; it != last_type; ++it) {
-    UInt nb_element  = element_filter(*it).getSize();
-    UInt nb_quad = model->getFEM().getNbQuadraturePoints(*it);
+    UInt nb_element  = this->element_filter(*it).getSize();
+    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
 
     Vector <Real> & Yd_rand_vec = Yd_rand(*it);
 
@@ -82,18 +86,18 @@ void MaterialMarigo::initMaterial() {
     }
   }
 
-  is_init = true;
-
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
+						      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Ydq = Yd_rand(el_type, ghost_type).storage();
 
 
@@ -116,26 +120,30 @@ void MaterialMarigo::computeStress(ElementType el_type, GhostType ghost_type) {
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
 
-  if(!is_non_local) updateDissipatedEnergy(ghost_type);
+  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialMarigo::setParam(const std::string & key, const std::string & value,
+template<UInt spatial_dimension>
+bool MaterialMarigo<spatial_dimension>::setParam(const std::string & key,
+						 const std::string & value,
 			       const ID & id) {
   std::stringstream sstr(value);
   if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
   else if(key == "Yd_randomness") { sstr >> Yd_randomness; }
   else if(key == "epsilon_c") { sstr >> epsilon_c; }
-  else { return MaterialDamage::setParam(key, value, id); }
+  else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigo::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialMarigo<spatial_dimension>::printself(std::ostream & stream,
+						  int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -147,10 +155,13 @@ void MaterialMarigo::printself(std::ostream & stream, int indent) const {
     stream << space << " + epsilon_c  : " << epsilon_c << std::endl;
     stream << space << " + Yc         : " << Yc << std::endl;
   }
-  MaterialDamage::printself(stream, indent + 1);
+  MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialMarigo);
+
 
 __END_AKANTU__

@@ -40,6 +40,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 class BaseWeightFunction {
 public:
   BaseWeightFunction(const Material & material) : material(material) {}
@@ -92,21 +93,25 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-class DamagedWeightFunction : public BaseWeightFunction {
+template<UInt spatial_dimension>
+class DamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  DamagedWeightFunction(const Material & material) : BaseWeightFunction(material) {}
+  DamagedWeightFunction(const Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
 
-  inline void selectType(__attribute__((unused)) ElementType type1,__attribute__((unused)) GhostType ghost_type1,
-			 ElementType type2, GhostType ghost_type2) {
-    selected_damage = &(dynamic_cast<const MaterialDamage &>(material).getDamage(type2, ghost_type2));
+  inline void selectType(__attribute__((unused)) ElementType type1,
+			 __attribute__((unused)) GhostType ghost_type1,
+			 ElementType type2,
+			 GhostType ghost_type2) {
+    selected_damage =
+      &(dynamic_cast<const MaterialDamage<spatial_dimension> &>(this->material).getDamage(type2, ghost_type2));
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
     UInt quad = q2.global_num;
     Real D = (*selected_damage)(quad);
-    Real Radius = (1.-D)*(1.-D) * R2;
+    Real Radius = (1.-D)*(1.-D) * this->R2;
     if(Radius < Math::getTolerance()) {
-      Radius = 0.01 * 0.01 * R2;
+      Radius = 0.01 * 0.01 * this->R2;
     }
     Real alpha = std::max(0., 1. - r*r / Radius);
     Real w = alpha * alpha;
@@ -132,7 +137,8 @@ private:
 /* -------------------------------------------------------------------------- */
 /* Stress Based Weight                                                        */
 /* -------------------------------------------------------------------------- */
-class StressBasedWeightFunction : public BaseWeightFunction {
+template<UInt spatial_dimension>
+class StressBasedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
   StressBasedWeightFunction(const Material & material);
 
@@ -167,7 +173,6 @@ public:
 
 private:
   Real ft;
-  UInt spatial_dimension;
 
   ByElementTypeReal stress_diag;
   Vector<Real> * selected_stress_diag;
@@ -183,8 +188,9 @@ private:
   Vector<Real> * selected_characteristic_size;
 };
 
-
-inline std::ostream & operator <<(std::ostream & stream, const BaseWeightFunction & _this)
+template<UInt spatial_dimension>
+inline std::ostream & operator <<(std::ostream & stream,
+				  const BaseWeightFunction<spatial_dimension> & _this)
 {
   _this.printself(stream);
   return stream;

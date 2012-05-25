@@ -34,8 +34,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveBilinear::MaterialCohesiveBilinear(Model & model, const ID & id) :
-  MaterialCohesiveLinear(model,id) {
+template<UInt spatial_dimension>
+MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(SolidMechanicsModel & model, const ID & id) :
+  MaterialCohesiveLinear<spatial_dimension>(model,id) {
   AKANTU_DEBUG_IN();
 
   delta_0   = 0;
@@ -44,17 +45,19 @@ MaterialCohesiveBilinear::MaterialCohesiveBilinear(Model & model, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveBilinear::~MaterialCohesiveBilinear() {
+template<UInt spatial_dimension>
+MaterialCohesiveBilinear<spatial_dimension>::~MaterialCohesiveBilinear() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveBilinear::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  MaterialCohesiveLinear::initMaterial();
+  MaterialCohesiveLinear<spatial_dimension>::initMaterial();
 
   /**
    * Recompute sigma_c as
@@ -62,9 +65,9 @@ void MaterialCohesiveBilinear::initMaterial() {
    * \frac{{\sigma_c}_\textup{old} \delta_c} {\delta_c - \delta_0} @f$
    */
 
-  AKANTU_DEBUG_ASSERT(delta_c != delta_0, "Check your material.dat");
+  AKANTU_DEBUG_ASSERT(this->delta_c != delta_0, "Check your material.dat");
 
-  sigma_c *= delta_c / (delta_c - delta_0);
+  this->sigma_c *= this->delta_c / (this->delta_c - delta_0);
 
   updateDeltaMax(_ghost);
   updateDeltaMax(_not_ghost);
@@ -73,26 +76,29 @@ void MaterialCohesiveBilinear::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveBilinear::resizeCohesiveVectors() {
-  MaterialCohesiveLinear::resizeCohesiveVectors();
+template<UInt spatial_dimension>
+void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveVectors() {
+  MaterialCohesiveLinear<spatial_dimension>::resizeCohesiveVectors();
   updateDeltaMax(_ghost);
   updateDeltaMax(_not_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveBilinear::updateDeltaMax(GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialCohesiveBilinear<spatial_dimension>::updateDeltaMax(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh = model->getFEM("CohesiveFEM").getMesh();
+  const Mesh & mesh = this->model->getFEM("CohesiveFEM").getMesh();
+
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
 
   for(; it != last_type; ++it) {
     Vector<Real>::iterator<Real>delta_max_it =
-      delta_max(*it, ghost_type).begin();
+      this->delta_max(*it, ghost_type).begin();
 
     Vector<Real>::iterator<Real>delta_max_end =
-      delta_max(*it, ghost_type).end();
+      this->delta_max(*it, ghost_type).end();
 
     for (; delta_max_it != delta_max_end; ++delta_max_it) {
       *delta_max_it = delta_0;
@@ -104,25 +110,30 @@ void MaterialCohesiveBilinear::updateDeltaMax(GhostType ghost_type) {
 
 
 /* -------------------------------------------------------------------------- */
-bool MaterialCohesiveBilinear::setParam(const std::string & key, 
+template<UInt spatial_dimension>
+bool MaterialCohesiveBilinear<spatial_dimension>::setParam(const std::string & key,
 				       const std::string & value,
 				       const ID & id) {
   std::stringstream sstr(value);
   if(key == "delta_0") { sstr >> delta_0; }
-  else { return MaterialCohesiveLinear::setParam(key, value, id); }
+  else { return MaterialCohesiveLinear<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveBilinear::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialCohesiveBilinear<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_cohesive_bilinear> [" << std::endl;
   stream << space << " + delta_0      : " << delta_0 << std::endl;
-  MaterialCohesiveLinear::printself(stream, indent + 1);
+  MaterialCohesiveLinear<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialCohesiveBilinear);
+
 
 __END_AKANTU__

@@ -43,14 +43,14 @@ __BEGIN_AKANTU__
  * parameters in the material files :
  *   - delta_0   : elastic limit displacement (default: 0)
  */
-
-class MaterialCohesiveBilinear : public MaterialCohesiveLinear {
+template<UInt spatial_dimension>
+class MaterialCohesiveBilinear : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   
-  MaterialCohesiveBilinear(Model & model, const ID & id = "");
+  MaterialCohesiveBilinear(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveBilinear();
   
   /* ------------------------------------------------------------------------ */
@@ -95,13 +95,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 //#include "material_cohesive_elastic_inline_impl.cc"
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesiveBilinear & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 
 __END_AKANTU__

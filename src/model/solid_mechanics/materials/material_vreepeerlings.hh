@@ -45,13 +45,14 @@ __BEGIN_AKANTU__
  *   - Kct    : (default: 1) Ratio between compressive and tensile strength
  *   - Kapa0_randomness  : (default:0) Kapa random internal variable
  */
-class MaterialVreePeerlings : public MaterialDamage {
+template<UInt spatial_dimension>
+class MaterialVreePeerlings : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialVreePeerlings(Model & model, const ID & id = "");
+  MaterialVreePeerlings(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialVreePeerlings() {};
 
@@ -131,14 +132,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 #include "material_vreepeerlings_inline_impl.cc"
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialVreePeerlings & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

@@ -29,13 +29,14 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialElastic::computeStress(Real * F, Real * sigma) {
-  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33} 
+template<UInt spatial_dimension>
+inline void MaterialElastic<spatial_dimension>::computeStress(Real * F, Real * sigma) {
+  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
 
   /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
   sigma[0] = lambda * trace + 2*mu*F[0];
   sigma[4] = lambda * trace + 2*mu*F[4];
-  if(plane_stress) F[8] = (F[0] + F[4])*(nu/(nu-1.)); 
+  //  if(plane_stress) F[8] = (F[0] + F[4])*(nu/(nu-1.));
   sigma[8] = lambda * trace + 2*mu*F[8];
 
 
@@ -45,31 +46,17 @@ inline void MaterialElastic::computeStress(Real * F, Real * sigma) {
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-void  MaterialElastic::computeTangentStiffnessByDim(__attribute__((unused)) akantu::ElementType,
-						    akantu::Vector<Real>& tangent_matrix,
-						    __attribute__((unused)) akantu::GhostType) {
-  AKANTU_DEBUG_IN();
-
-  Real * tangent_val   = tangent_matrix.values;
-  UInt offset_tangent  = tangent_matrix.getNbComponent();
-  UInt nb_quads        = tangent_matrix.getSize();
-
-  if (nb_quads == 0) return;
-
-  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
-  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
-    computeTangentStiffness<dim>(tangent_val);
-  }
-
-  AKANTU_DEBUG_OUT();
+template<>
+inline void MaterialElastic<1>::computeStress(Real * F, Real * sigma) {
+  sigma[0] = E * F[0];
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt dim>
-void  MaterialElastic::computeTangentStiffness(Real * tangent) {
 
-  UInt n = (dim * (dim - 1) / 2 + dim);
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::computeTangentStiffness(Real * tangent) {
+
+  UInt n = (spatial_dimension * (spatial_dimension - 1) / 2 + spatial_dimension);
 
   Real Ep = E/((1+nu)*(1-2*nu));
   Real Miiii = Ep * (1-nu);
@@ -79,7 +66,7 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
   tangent[0 * n + 0] = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the template
-  if(dim >= 2) {
+  if(spatial_dimension >= 2) {
     tangent[1 * n + 1] = Miiii;
     tangent[0 * n + 1] = Miijj;
     tangent[1 * n + 0] = Miijj;
@@ -87,7 +74,7 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
     tangent[(n - 1) * n + (n - 1)] = Mijij;
   }
 
-  if(dim == 3) {
+  if(spatial_dimension == 3) {
     tangent[2 * n + 2] = Miiii;
     tangent[0 * n + 2] = Miijj;
     tangent[1 * n + 2] = Miijj;
@@ -100,7 +87,8 @@ void  MaterialElastic::computeTangentStiffness(Real * tangent) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialElastic::getStableTimeStep(Real h, 
-					       __attribute__ ((unused)) const Element & element) {
+template<UInt spatial_dimension>
+inline Real MaterialElastic<spatial_dimension>::getStableTimeStep(Real h,
+								  __attribute__ ((unused)) const Element & element) {
   return (h/getPushWaveSpeed());
 }

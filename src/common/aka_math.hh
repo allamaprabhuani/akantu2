@@ -207,6 +207,10 @@ public:
   /// test if two vectors are equal within a given tolerance
   static inline bool are_vector_equal(UInt n, Real * x, Real * y);
 
+#ifdef isnan
+#  error "You probably  included <math.h> which  is incompatible with aka_math  please use\
+<cmath> or add a \"#undef isnan\" before akantu includes"
+#endif
   /// test if a real is a NaN
   static inline bool isnan(Real x);
 

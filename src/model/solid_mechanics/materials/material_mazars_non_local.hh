@@ -40,14 +40,16 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-class MaterialMazarsNonLocal : public MaterialMazars, public MaterialNonLocal<BaseWeightFunction> {
+template<UInt spatial_dimension>
+class MaterialMazarsNonLocal : public MaterialMazars<spatial_dimension>,
+			       public MaterialNonLocal<spatial_dimension, BaseWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<BaseWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<spatial_dimension, BaseWeightFunction> MaterialNonLocalParent;
 
-  MaterialMazarsNonLocal(Model & model, const ID & id = "");
+  MaterialMazarsNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialMazarsNonLocal() {};
 
@@ -79,7 +81,7 @@ public:
   };
 
   inline Real getStableTimeStep(Real h, const Element & element) {
-    return MaterialMazars::getStableTimeStep(h, element);
+    return MaterialMazars<spatial_dimension>::getStableTimeStep(h, element);
   };
 
   /// function to print the containt of the class
@@ -103,14 +105,6 @@ private:
 /* -------------------------------------------------------------------------- */
 
 //#include "material_mazars_non_local_inline_impl.cc"
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialMazarsNonLocal & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

@@ -29,7 +29,8 @@
 #include "aka_math.hh"
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
+template<UInt spatial_dimension>
+inline void MaterialNeohookean<spatial_dimension>::computeStress(Real * F, Real * sigma) {
   ///First compute the Left Cauchy-Green deformation tensor : C= F^tF.
   Real C[3*3];
   Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
@@ -66,7 +67,8 @@ inline void MaterialNeohookean::computeStress(Real * F, Real * sigma) {
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void  MaterialNeohookean::computeTangentStiffness(Real * tangent, Real * F ) {
+void MaterialNeohookean<dim>::computeTangentStiffness(Real * tangent,
+						      Real * F ) {
   UInt n = (dim * (dim - 1) / 2 + dim);
   Real J = Math::det3(F);
   Real alpha = mu - 0.5*lambda*(J*J - 1);
@@ -98,7 +100,9 @@ void  MaterialNeohookean::computeTangentStiffness(Real * tangent, Real * F ) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void MaterialNeohookean::computePotentialEnergy(Real * F, Real * epot) {
+template<UInt spatial_dimension>
+inline void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(Real * F,
+									  Real * epot) {
   *epot = 0.;
   Real C[3*3];
   Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
@@ -121,7 +125,8 @@ inline void MaterialNeohookean::computePotentialEnergy(Real * F, Real * epot) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real MaterialNeohookean::getStableTimeStep(Real h,
-						 const Element & element) {
+template<UInt spatial_dimension>
+inline Real MaterialNeohookean<spatial_dimension>::getStableTimeStep(Real h,
+								     const Element & element) {
   return (h/celerity(element));
 }

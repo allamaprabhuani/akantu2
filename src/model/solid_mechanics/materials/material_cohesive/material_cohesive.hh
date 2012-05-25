@@ -46,10 +46,11 @@ class MaterialCohesive : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
+  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>,
+		       ShapeCohesive<ShapeLagrange> >         MyFEMCohesiveType;
 public:
 
-  MaterialCohesive(Model & model, const ID & id = "");
+  MaterialCohesive(SolidMechanicsModel& model, const ID & id = "");
   virtual ~MaterialCohesive();
 
   /* ------------------------------------------------------------------------ */
@@ -207,13 +208,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 #include "material_cohesive_inline_impl.cc"
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesive & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

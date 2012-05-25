@@ -26,7 +26,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 template<ElementType type>
 void MaterialCohesive::computeNormal(const Vector<Real> & position,
 				     Vector<Real> & normal,

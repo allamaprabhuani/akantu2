@@ -34,8 +34,12 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialMazars::MaterialMazars(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id), MaterialDamage(model, id) {
+template<UInt spatial_dimension>
+MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
+						  const ID & id)  :
+  Material(model, id),
+  MaterialElastic<spatial_dimension>(model, id),
+  MaterialDamage<spatial_dimension>(model, id) {
   AKANTU_DEBUG_IN();
 
   K0   = 1e-4;
@@ -49,21 +53,22 @@ MaterialMazars::MaterialMazars(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialMazars<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialDamage::initMaterial();
-
-  is_init = true;
+  MaterialDamage<spatial_dimension>::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
+						      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -83,14 +88,16 @@ void MaterialMazars::computeStress(ElementType el_type, GhostType ghost_type) {
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
 
-  if(!is_non_local) updateDissipatedEnergy(ghost_type);
+  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialMazars::setParam(const std::string & key, const std::string & value,
-			      const ID & id) {
+template<UInt spatial_dimension>
+bool MaterialMazars<spatial_dimension>::setParam(const std::string & key,
+						 const std::string & value,
+						 const ID & id) {
   std::stringstream sstr(value);
   if(key == "K0") { sstr >> K0; }
   else if(key == "At") { sstr >> At; }
@@ -98,13 +105,15 @@ bool MaterialMazars::setParam(const std::string & key, const std::string & value
   else if(key == "Ac") { sstr >> Ac; }
   else if(key == "Bc") { sstr >> Bc; }
   else if(key == "beta") { sstr >> beta; }
-  else { return MaterialDamage::setParam(key, value, id); }
+  else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialMazars::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialMazars<spatial_dimension>::printself(std::ostream & stream,
+						  int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -115,9 +124,11 @@ void MaterialMazars::printself(std::ostream & stream, int indent) const {
   stream << space << " + Ac    : " << Ac << std::endl;
   stream << space << " + Bc    : " << Bc << std::endl;
   stream << space << " + beta  : " << beta << std::endl;
-  MaterialDamage::printself(stream, indent + 1);
+  MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialMazars);
 
 __END_AKANTU__

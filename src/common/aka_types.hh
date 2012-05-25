@@ -312,8 +312,7 @@ namespace types {
     /* ---------------------------------------------------------------------- */
     inline Matrix operator* (const Matrix & B) {
       Matrix C(this->m, B.n);
-      C.mul<true, false>(*this, B);
-
+      C.mul<false, false>(*this, B);
       return C;
     };
 

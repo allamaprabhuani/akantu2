@@ -53,13 +53,14 @@ __BEGIN_AKANTU__
  *   - G23  : Shear modulus along yz (default: 0)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
+template<UInt spatial_dimension>
 class MaterialElasticOrthotropic : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElasticOrthotropic(Model & model, const ID & id = "");
+  MaterialElasticOrthotropic(SolidMechanicsModel & model, const ID & id = "");
 
   ~MaterialElasticOrthotropic();
 
@@ -94,12 +95,7 @@ protected:
   /// constitutive law for a given quadrature point
   inline void computeStress(Real * F, Real * sigma);
 
-  // /// compute the tangent stiffness matrix for an element type
-  template<UInt dim>
-  void computeTangentStiffnessByDim(akantu::ElementType, akantu::Vector<Real>& tangent_matrix, akantu::GhostType);
-
-  // /// compute the tangent stiffness matrix for an element
-  template<UInt dim>
+  /// compute the tangent stiffness matrix for an element
   void computeTangentStiffness(Real * tangent);
 
   /* ------------------------------------------------------------------------ */
@@ -164,17 +160,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_elastic_orthotropic_inline_impl.cc"
-#endif
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialElasticOrthotropic & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+#include "material_elastic_orthotropic_inline_impl.cc"
 
 __END_AKANTU__
 

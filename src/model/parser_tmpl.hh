@@ -54,13 +54,13 @@ inline void Parser::readSection(M & model){
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename Obj>
-inline Obj * Parser::readSection(Model & model,std::string & obj_name){
+template <typename Obj, typename ParentType>
+inline Obj * Parser::readSection(ParentType & parent, std::string & obj_name){
   std::string keyword;
   std::string value;
 
   /// instanciate the material object
-  Obj * obj = new Obj(model, obj_name);
+  Obj * obj = new Obj(parent, obj_name);
   /// read the material properties
   my_getline();
 

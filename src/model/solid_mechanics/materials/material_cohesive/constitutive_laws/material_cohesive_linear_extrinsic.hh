@@ -49,14 +49,14 @@ __BEGIN_AKANTU__
  *   - G_cII     : fracture energy for mode II (default: 0)
  *   - rand      : randomness factor (default: 0)
  */
-
+template<UInt spatial_dimension>
 class MaterialCohesiveLinearExtrinsic : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialCohesiveLinearExtrinsic(Model & model, const ID & id = "");
+  MaterialCohesiveLinearExtrinsic(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveLinearExtrinsic();
 
   /* ------------------------------------------------------------------------ */
@@ -128,14 +128,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 //#include "material_cohesive_linear_inline_impl.cc"
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialCohesiveLinearExtrinsic & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-
 
 __END_AKANTU__
 

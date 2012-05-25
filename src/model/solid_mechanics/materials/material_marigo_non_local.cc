@@ -35,50 +35,46 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialMarigoNonLocal::MaterialMarigoNonLocal(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id),
-  MaterialMarigo(model, id), MaterialNonLocalParent(model, id),
+template<UInt spatial_dimension>
+MaterialMarigoNonLocal<spatial_dimension>::MaterialMarigoNonLocal(SolidMechanicsModel & model,
+					       const ID & id)  :
+  Material(model, id),
+  MaterialElastic<spatial_dimension>(model, id),
+  MaterialMarigo<spatial_dimension>(model, id),
+  MaterialNonLocalParent(model, id),
   Y("Y", id) {
   AKANTU_DEBUG_IN();
 
-  is_non_local = true;
+  this->is_non_local = true;
 
-  initInternalVector(this->Y, 1);
+  this->initInternalVector(this->Y, 1);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigoNonLocal::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialMarigoNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialMarigo::initMaterial();
-
-
-  if(StressBasedWeightFunction * wf =
-     dynamic_cast<StressBasedWeightFunction *>(weight_func)){
-    wf->updatePrincipalStress(_not_ghost);
-    wf->updatePrincipalStress(_ghost);
-  }
-
+  MaterialMarigo<spatial_dimension>::initMaterial();
   MaterialNonLocalParent::initMaterial();
 
-  resizeInternalVector(this->Y);
-
-  is_init = true;
-
+  this->resizeInternalVector(this->Y);
   AKANTU_DEBUG_OUT();
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialMarigoNonLocal<spatial_dimension>::computeStress(ElementType el_type,
+							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
   Real sigma[3*3];
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Yt = Y(el_type, ghost_type).storage();
-  Real * Ydq = Yd_rand(el_type, ghost_type).storage();
+  Real * Ydq = this->Yd_rand(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
   memset(F, 0, 3 * 3 * sizeof(Real));
@@ -87,7 +83,7 @@ void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_
     for (UInt j = 0; j < spatial_dimension; ++j)
       F[3*i + j] = strain_val[spatial_dimension * i + j];
 
-  MaterialMarigo::computeStress(F, sigma, *dam, *Yt, *Ydq);
+  MaterialMarigo<spatial_dimension>::computeStress(F, sigma, *dam, *Yt, *Ydq);
   ++dam;
   ++Yt;
   ++Ydq;
@@ -102,19 +98,18 @@ void MaterialMarigoNonLocal::computeStress(ElementType el_type, GhostType ghost_
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigoNonLocal::computeNonLocalStress(GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialMarigoNonLocal<spatial_dimension>::computeNonLocalStress(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  ByElementTypeReal Ynl("Y non local", id);
-  initInternalVector(Ynl, 1);
-  resizeInternalVector(Ynl);
+  ByElementTypeReal Ynl("Y non local", this->id);
+  this->initInternalVector(Ynl, 1);
+  this->resizeInternalVector(Ynl);
 
-  weightedAvergageOnNeighbours(Y, Ynl, 1);
+  this->weightedAvergageOnNeighbours(Y, Ynl, 1);
 
-  UInt spatial_dimension = model->getSpatialDimension();
-
-  Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
 
   for(; it != last_type; ++it) {
     computeNonLocalStress(Ynl(*it, ghost_type), *it, ghost_type);
@@ -124,21 +119,22 @@ void MaterialMarigoNonLocal::computeNonLocalStress(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
-                                                   ElementType el_type,
-                                                   GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialMarigoNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Real> & Ynl,
+								      ElementType el_type,
+								      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
-  UInt nb_element = element_filter(el_type, ghost_type).getSize();
+  UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
+  UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
   if (nb_element == 0) return;
 
   Vector<Real>::iterator<types::Matrix> stress_it =
-    stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
-  Real * dam = damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Ynlt = Ynl.storage();
-  Real * Ydq = Yd_rand(el_type, ghost_type).storage();
+  Real * Ydq = this->Yd_rand(el_type, ghost_type).storage();
 
   Real sigma[3*3];
 
@@ -149,7 +145,7 @@ void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
 	  sigma[3 * i + j] = (*stress_it)(i, j);
 	}
 
-      computeDamageAndStress(sigma, *dam, *Ynlt, *Ydq);
+      this->computeDamageAndStress(sigma, *dam, *Ynlt, *Ydq);
 
       for (UInt i = 0; i < spatial_dimension; ++i)
         for (UInt j = 0; j < spatial_dimension; ++j)
@@ -162,29 +158,33 @@ void MaterialMarigoNonLocal::computeNonLocalStress(Vector<Real> & Ynl,
     }
   }
 
-  updateDissipatedEnergy(ghost_type);
+  this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialMarigoNonLocal::setParam(const std::string & key, const std::string & value,
-                               const ID & id) {
+template<UInt spatial_dimension>
+bool MaterialMarigoNonLocal<spatial_dimension>::setParam(const std::string & key, const std::string & value,
+							 const ID & id) {
   return MaterialNonLocalParent::setParam(key, value, id) ||
-    MaterialMarigo::setParam(key, value, id);
+    MaterialMarigo<spatial_dimension>::setParam(key, value, id);
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialMarigoNonLocal::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialMarigoNonLocal<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_marigo_non_local> [" << std::endl;
-  MaterialMarigo::printself(stream, indent + 1);
+  MaterialMarigo<spatial_dimension>::printself(stream, indent + 1);
   MaterialNonLocalParent::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialMarigoNonLocal);
 
 __END_AKANTU__

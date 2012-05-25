@@ -35,7 +35,9 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialElasticOrthotropic::MaterialElasticOrthotropic(Model & model, const ID & id)  :
+template<UInt spatial_dimension>
+MaterialElasticOrthotropic<spatial_dimension>::MaterialElasticOrthotropic(SolidMechanicsModel & model,
+									  const ID & id)  :
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
@@ -55,12 +57,14 @@ MaterialElasticOrthotropic::MaterialElasticOrthotropic(Model & model, const ID &
 }
 
 /* -------------------------------------------------------------------------- */
-MaterialElasticOrthotropic::~MaterialElasticOrthotropic() {
+template<UInt spatial_dimension>
+MaterialElasticOrthotropic<spatial_dimension>::~MaterialElasticOrthotropic() {
   delete[] S;
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticOrthotropic::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
@@ -104,7 +108,9 @@ void MaterialElasticOrthotropic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticOrthotropic::computeStress(ElementType el_type, GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::computeStress(ElementType el_type,
+								  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real F[3*3];
@@ -131,20 +137,31 @@ void MaterialElasticOrthotropic::computeStress(ElementType el_type, GhostType gh
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticOrthotropic::computeTangentStiffness(const ElementType & el_type,
-					      Vector<Real> & tangent_matrix,
-					      GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::computeTangentStiffness(const ElementType & el_type,
+									    Vector<Real> & tangent_matrix,
+									    GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
-  switch(spatial_dimension) {
-  case 1: { computeTangentStiffnessByDim<1>(el_type, tangent_matrix, ghost_type); break; }
-  case 2: { computeTangentStiffnessByDim<2>(el_type, tangent_matrix, ghost_type); break; }
-  case 3: { computeTangentStiffnessByDim<3>(el_type, tangent_matrix, ghost_type); break; }
+  Real * tangent_val   = tangent_matrix.values;
+  UInt offset_tangent  = tangent_matrix.getNbComponent();
+  UInt nb_quads        = tangent_matrix.getSize();
+
+  if (nb_quads == 0) return;
+
+  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
+  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
+    computeTangentStiffness(tangent_val);
   }
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialElasticOrthotropic::setParam(const std::string & key, const std::string & value,
-			       const ID & id) {
+template<UInt spatial_dimension>
+bool MaterialElasticOrthotropic<spatial_dimension>::setParam(const std::string & key,
+							     const std::string & value,
+							     const ID & id) {
   std::stringstream sstr(value);
   if(key == "E1") { sstr >> E1; }
   else if(key == "E2") { sstr >> E2; }
@@ -161,17 +178,21 @@ bool MaterialElasticOrthotropic::setParam(const std::string & key, const std::st
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialElasticOrthotropic::getPushWaveSpeed() {
+template<UInt spatial_dimension>
+Real MaterialElasticOrthotropic<spatial_dimension>::getPushWaveSpeed() {
   return sqrt( (*std::max_element(S, S+3)) /rho);
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialElasticOrthotropic::getShearWaveSpeed() {
+template<UInt spatial_dimension>
+Real MaterialElasticOrthotropic<spatial_dimension>::getShearWaveSpeed() {
   return sqrt( (*std::max_element(S+6, S+9)) /rho);
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialElasticOrthotropic::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::printself(std::ostream & stream,
+							      int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -195,5 +216,8 @@ void MaterialElasticOrthotropic::printself(std::ostream & stream, int indent) co
   stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialElasticOrthotropic);
+
 
 __END_AKANTU__

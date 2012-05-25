@@ -34,30 +34,45 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+#define AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, dim) \
+  mat =	parser.readSection<mat_class<dim>,				\
+			   SolidMechanicsModel>(*this, mat_id)		\
+
+#define AKANTU_INTANTIATE_MATERIAL(mat, mat_class, mat_id, parser)	\
+  switch(spatial_dimension) {						\
+  case 1: {								\
+    AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, 1); \
+    break; }								\
+  case 2: {								\
+    AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, 2); \
+    break; }								\
+  case 3: {								\
+    AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, 3); \
+    break; }								\
+  }
+
+
+#define AKANTU_INTANTIATE_MATERIAL_IF(data, elem)			\
+  if (BOOST_PP_TUPLE_ELEM(4, 0, BOOST_PP_APPLY(data)) ==		\
+      BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) {		\
+  AKANTU_INTANTIATE_MATERIAL(BOOST_PP_TUPLE_ELEM(4, 1, BOOST_PP_APPLY(data)), \
+			     BOOST_PP_TUPLE_ELEM(2, 1, elem),		\
+			     BOOST_PP_TUPLE_ELEM(4, 2, BOOST_PP_APPLY(data)), \
+			     BOOST_PP_TUPLE_ELEM(4, 3, BOOST_PP_APPLY(data))) \
+      }
+
 #define AKANTU_INTANTIATE_OTHER_MATERIAL(r, data, elem)			\
-  else if (BOOST_PP_TUPLE_ELEM(4, 0, data) ==				\
-	   BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem)))		\
-    BOOST_PP_TUPLE_ELEM(4, 1, data) =					\
-      BOOST_PP_TUPLE_ELEM(4, 3, data).					\
-      readSection<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(*this,		\
-						   BOOST_PP_TUPLE_ELEM(4, 2, data));
+  else AKANTU_INTANTIATE_MATERIAL_IF(data, elem)
 
 #define AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, mat_lst) \
   BOOST_PP_SEQ_FOR_EACH(AKANTU_INTANTIATE_OTHER_MATERIAL,		\
-			(mat_type, material, mat_id, parser),		\
+			((mat_type, material, mat_id, parser)),		\
 			mat_lst)
 
 #define AKANTU_INTANTIATE_MATERIALS(mat_type, material, mat_id, parser)	\
   do {									\
-    if(mat_type ==							\
-       BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2,			\
-					      0,			\
-					      BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST)))) \
-      material =							\
-	parser.readSection<BOOST_PP_TUPLE_ELEM(2,			\
-					       1,			\
-					       BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST))> \
-	(*this, mat_id);						\
+    AKANTU_INTANTIATE_MATERIAL_IF(((mat_type, material, mat_id, parser)), \
+				  BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST)) \
     AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, \
 				      BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST)) \
     else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \

@@ -26,6 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 
 #ifndef __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
 #define __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__

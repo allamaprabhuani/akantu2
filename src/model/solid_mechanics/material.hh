@@ -70,7 +70,7 @@ class Material : protected Memory, public DataAccessor {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Material(Model & model, const ID & id = "");
+  Material(SolidMechanicsModel & model, const ID & id = "");
   virtual ~Material();
 
   /* ------------------------------------------------------------------------ */
@@ -206,7 +206,7 @@ public:
 
   virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
 			__attribute__((unused)) const UInt index,
-                        __attribute__((unused)) SynchronizationTag tag) const {
+			__attribute__((unused)) SynchronizationTag tag) const {
   }
 
   virtual inline void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
@@ -237,15 +237,16 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
 
+protected:
+
+  bool isInit() const { return is_init; }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// id of the material
   ID id;
-
-  /// spatial dimension
-  UInt spatial_dimension;
 
   /// material name
   std::string name;
@@ -271,12 +272,15 @@ protected:
   /// potential energy by element
   ByElementTypeReal potential_energy;
 
-  /// boolean to know if the material has been initialized
-  bool is_init;
-
   /// tell if using in non local mode or not
   bool is_non_local;
 
+  /// spatial dimension
+  UInt spatial_dimension;
+
+private:
+  /// boolean to know if the material has been initialized
+  bool is_init;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -300,50 +304,49 @@ __END_AKANTU__
 /* Auto loop                                                                  */
 /* -------------------------------------------------------------------------- */
 
-#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN			\
-  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(el_type, ghost_type); \
-  UInt size_strain = spatial_dimension * spatial_dimension;		\
-  									\
-  UInt nb_element = element_filter(el_type, ghost_type).getSize();	\
-  if (nb_element == 0) return;						\
+#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN                     \
+  UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type); \
+  UInt size_strain = spatial_dimension * spatial_dimension;             \
 									\
-  Vector<Real> & stress_tmp = stress(el_type, ghost_type);		\
-  stress_tmp.resize(nb_element*nb_quadrature_points);			\
-  Vector<Real> & strain_tmp = strain(el_type, ghost_type);		\
-  									\
-  Real * strain_val = strain_tmp.storage();				\
-  Real * stress_val = stress_tmp.storage();				\
-  									\
-  for (UInt el = 0; el < nb_element; ++el) {				\
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {			\
+  UInt nb_element = this->element_filter(el_type, ghost_type).getSize();      \
+  if (nb_element == 0) return;                                          \
+									\
+  Vector<Real> & stress_tmp = this->stress(el_type, ghost_type);              \
+  stress_tmp.resize(nb_element*nb_quadrature_points);                   \
+  Vector<Real> & strain_tmp = this->strain(el_type, ghost_type);              \
+									\
+  Real * strain_val = strain_tmp.storage();                             \
+  Real * stress_val = stress_tmp.storage();                             \
+									\
+  for (UInt el = 0; el < nb_element; ++el) {                            \
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {                   \
 
 
-#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END			\
-      strain_val += size_strain;					\
-      stress_val += size_strain;					\
-    }									\
-  }									\
+#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END                       \
+      strain_val += size_strain;                                        \
+      stress_val += size_strain;                                        \
+    }                                                                   \
+  }                                                                     \
 
 
-#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent)		\
-  UInt nb_quadrature_points =						\
-    model->getFEM().getNbQuadraturePoints(el_type, ghost_type);		\
-  UInt size_strain = spatial_dimension * spatial_dimension;		\
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent)           \
+  UInt nb_quadrature_points =                                           \
+    this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type);         \
+  UInt size_strain = spatial_dimension * spatial_dimension;             \
 									\
-  UInt nb_element = element_filter(el_type, ghost_type).getSize();	\
-  if (nb_element == 0) return;						\
+  UInt nb_element = this->element_filter(el_type, ghost_type).getSize();      \
+  if (nb_element == 0) return;                                          \
 									\
-  Vector<Real> & strain_tmp = strain(el_type, ghost_type);		\
-  									\
-  Real * strain_val = strain_tmp.storage();				\
+  Vector<Real> & strain_tmp = this->strain(el_type, ghost_type);              \
 									\
-  Real * tangent_val = tangent.values;					\
-  UInt size_tangent = getTangentStiffnessVoigtSize(spatial_dimension);	\
-  size_tangent *= size_tangent;						\
-  									\
-  									\
-  for (UInt el = 0; el < nb_element; ++el) {				\
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {			\
+  Real * strain_val = strain_tmp.storage();                             \
+									\
+  Real * tangent_val = tangent.values;                                  \
+  UInt size_tangent = this->getTangentStiffnessVoigtSize(spatial_dimension);  \
+  size_tangent *= size_tangent;                                         \
+									\
+  for (UInt el = 0; el < nb_element; ++el) {                            \
+    for (UInt q = 0; q < nb_quadrature_points; ++q) {                   \
 
 
 // Vector<Real> * stress_tmp = stress(el_type, ghost_type);
@@ -351,12 +354,11 @@ __END_AKANTU__
 // Real * stress_val = stress_tmp->values;
 
 
-#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\
-      strain_val += size_strain;					\
-      tangent_val += size_tangent;					\
-    }									\
-  }                                                                     \
-
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END                      \
+      strain_val += size_strain;                                        \
+      tangent_val += size_tangent;                                      \
+    }                                                                   \
+  }
 
 /* -------------------------------------------------------------------------- */
 /* Material list                                                              */
@@ -380,6 +382,11 @@ __END_AKANTU__
   ((cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic ))	\
   ((cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))
 
+
+#define INSTANSIATE_MATERIAL(mat_name)			\
+  template class mat_name<1>;				\
+  template class mat_name<2>;				\
+  template class mat_name<3>;
 
 #if defined(__INTEL_COMPILER)
 #pragma warning ( push )

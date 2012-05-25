@@ -47,13 +47,14 @@ __BEGIN_AKANTU__
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  *   - alpha : viscous ratio
  */
-class MaterialElasticCaughey : public MaterialElastic {
+template<UInt spatial_dimension>
+class MaterialElasticCaughey : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElasticCaughey(Model & model, const ID & id = "");
+  MaterialElasticCaughey(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialElasticCaughey() {};
 
@@ -112,15 +113,6 @@ private:
 
 //#include "material_elastic_caughey_inline_impl.cc"
 
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-/*
-inline std::ostream & operator <<(std::ostream & stream, const MaterialElasticCaughey & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-*/
 __END_AKANTU__
 
 #endif /* __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__ */

@@ -37,22 +37,22 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Material::Material(Model & model, const ID & id) :
+Material::Material(SolidMechanicsModel & model, const ID & id) :
   Memory(model.getMemoryID()),
   id(id),
   name(""),
+  model(&model),
   stress("stress", id),
   strain("strain", id),
   element_filter("element_filter", id),
   //  potential_energy_vector(false),
   potential_energy("potential_energy", id),
-  is_init(false),
-  is_non_local(false) {
+  is_non_local(false), is_init(false) {
+
   AKANTU_DEBUG_IN();
 
   rho = 0;
 
-  this->model = dynamic_cast<SolidMechanicsModel*>(&model);
   AKANTU_DEBUG_ASSERT(this->model,"model has wrong type: cannot proceed");
   spatial_dimension = this->model->getSpatialDimension();
 
@@ -90,6 +90,8 @@ void Material::initMaterial() {
 
   resizeInternalVector(stress);
   resizeInternalVector(strain);
+
+  is_init = true;
 
   AKANTU_DEBUG_OUT();
 }
@@ -179,8 +181,6 @@ void Material::assembleResidual(GhostType ghost_type) {
 
     Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
 
-
-
     UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
     UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(*it);
     UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it, ghost_type);
@@ -257,6 +257,9 @@ void Material::assembleResidual(GhostType ghost_type) {
  */
 void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+  resizeInternalVector(stress);
+  resizeInternalVector(strain);
 
   UInt spatial_dimension = model->getSpatialDimension();
 

@@ -45,13 +45,14 @@ __BEGIN_AKANTU__
  *   - Sd  : (default: 5000)
  *   - Ydrandomness  : (default:0)
  */
-class MaterialMarigo : public MaterialDamage {
+template<UInt spatial_dimension>
+class MaterialMarigo : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialMarigo(Model & model, const ID & id = "");
+  MaterialMarigo(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialMarigo() {};
 
@@ -133,17 +134,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_marigo_inline_impl.cc"
-#endif
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialMarigo & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+#include "material_marigo_inline_impl.cc"
 
 __END_AKANTU__
 

@@ -34,8 +34,10 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
-  Material(model, id), MaterialElastic(model, id),
+template<UInt spatial_dimension>
+MaterialDamage<spatial_dimension>::MaterialDamage(SolidMechanicsModel & model,
+						  const ID & id)  :
+  Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   damage("damage", id),
   dissipated_energy("Dissipated Energy", id),
   strain_prev("Previous Strain", id),
@@ -43,7 +45,7 @@ MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
   int_sigma("Integral of sigma", id) {
   AKANTU_DEBUG_IN();
 
-  is_non_local = false;
+  this->is_non_local = false;
   initInternalVector(this->damage, 1);
   initInternalVector(this->dissipated_energy, 1);
   initInternalVector(this->strain_prev, spatial_dimension * spatial_dimension);
@@ -54,17 +56,16 @@ MaterialDamage::MaterialDamage(Model & model, const ID & id)  :
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialDamage<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialElastic::initMaterial();
+  MaterialElastic<spatial_dimension>::initMaterial();
 
   resizeInternalVector(this->damage);
   resizeInternalVector(this->dissipated_energy);
   resizeInternalVector(this->strain_prev);
   resizeInternalVector(this->stress_prev);
   resizeInternalVector(this->int_sigma);
-
-  is_init = true;
 
   AKANTU_DEBUG_OUT();
 }
@@ -75,20 +76,21 @@ void MaterialDamage::initMaterial() {
  * of
  * @f$ Ed = \int_0^{\epsilon}\sigma(\omega)d\omega - \frac{1}{2}\sigma:\epsilon@f$
  */
-void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
+template<UInt spatial_dimension>
+void MaterialDamage<spatial_dimension>::updateDissipatedEnergy(GhostType ghost_type) {
   // compute the dissipated energy per element
-  const Mesh & mesh = model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEM().getMesh();
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
 
   for(; it != end; ++it) {
     ElementType el_type = *it;
     Vector<Real>::iterator<types::Matrix> sigma =
-      stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+      this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::Matrix> sigma_p =
       stress_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::Matrix> epsilon =
-      strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+      this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::Matrix> epsilon_p =
       strain_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
@@ -119,19 +121,20 @@ void MaterialDamage::updateDissipatedEnergy(GhostType ghost_type) {
 
 
 /* -------------------------------------------------------------------------- */
-Real MaterialDamage::getDissipatedEnergy() const {
+template<UInt spatial_dimension>
+Real MaterialDamage<spatial_dimension>::getDissipatedEnergy() const {
   AKANTU_DEBUG_IN();
 
   Real de = 0.;
-  const Mesh & mesh = model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEM().getMesh();
 
   /// integrate the dissipated energy for each type of elements
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
 
   for(; it != end; ++it) {
-    de += model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
-				    _not_ghost, &element_filter(*it, _not_ghost));
+    de += this->model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
+					  _not_ghost, &this->element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -139,21 +142,29 @@ Real MaterialDamage::getDissipatedEnergy() const {
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialDamage::setParam(const std::string & key, const std::string & value,
-			       const ID & id) {
-  return MaterialElastic::setParam(key, value, id);
+template<UInt spatial_dimension>
+bool MaterialDamage<spatial_dimension>::setParam(const std::string & key,
+						 const std::string & value,
+						 const ID & id) {
+  return MaterialElastic<spatial_dimension>::setParam(key, value, id);
 }
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialDamage::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialDamage<spatial_dimension>::printself(std::ostream & stream,
+						  int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Material<_damage> [" << std::endl;
-  MaterialElastic::printself(stream, indent + 1);
+  MaterialElastic<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
+
 /* -------------------------------------------------------------------------- */
+
+INSTANSIATE_MATERIAL(MaterialDamage);
+
 
 __END_AKANTU__

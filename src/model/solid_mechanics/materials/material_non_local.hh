@@ -41,14 +41,14 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template<class WeightFunction = BaseWeightFunction>
+template<UInt DIM, template <UInt> class WeightFunction = BaseWeightFunction>
 class MaterialNonLocal : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialNonLocal(Model & model, const ID & id = "");
+  MaterialNonLocal(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialNonLocal();
 
   template<typename T>
@@ -114,7 +114,7 @@ protected:
   Real radius;
 
   /// the weight function used
-  WeightFunction * weight_func;
+  WeightFunction<DIM> * weight_func;
 
 private:
   /// the pairs of quadrature points
@@ -140,17 +140,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_non_local_inline_impl.cc"
-#endif
-
-/// standard output stream operator
-template<class WeightFunction>
-inline std::ostream & operator <<(std::ostream & stream, const MaterialNonLocal<WeightFunction> & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+#include "material_non_local_inline_impl.cc"
 
 
 __END_AKANTU__

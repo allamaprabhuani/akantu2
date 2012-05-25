@@ -44,16 +44,16 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-typedef BaseWeightFunction VreePeerlingsNonLocalWeightFunction;
-class MaterialVreePeerlingsNonLocal : public MaterialVreePeerlings,
-				      public MaterialNonLocal<VreePeerlingsNonLocalWeightFunction> {
+template<UInt spatial_dimension>
+class MaterialVreePeerlingsNonLocal : public MaterialVreePeerlings<spatial_dimension>,
+				      public MaterialNonLocal<spatial_dimension, BaseWeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<VreePeerlingsNonLocalWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<spatial_dimension, BaseWeightFunction> MaterialNonLocalParent;
 
-  MaterialVreePeerlingsNonLocal(Model & model, const ID & id = "");
+  MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialVreePeerlingsNonLocal() {};
 
@@ -105,14 +105,6 @@ private:
 /* -------------------------------------------------------------------------- */
 
 //#include "material_vreepeerlings_non_local_inline_impl.cc"
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialVreePeerlingsNonLocal & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

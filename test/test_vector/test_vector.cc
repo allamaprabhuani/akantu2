@@ -90,5 +90,7 @@ int main(int argc, char *argv[]) {
     std::cout << *itm << std::endl;
   }
 
+  int_vect0.resize(0);
+
   return EXIT_SUCCESS;
 }

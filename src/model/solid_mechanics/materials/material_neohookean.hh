@@ -44,13 +44,14 @@ __BEGIN_AKANTU__
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
  */
+template<UInt spatial_dimension>
 class MaterialNeohookean : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialNeohookean(Model & model, const ID & id = "");
+  MaterialNeohookean(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialNeohookean() {};
 
@@ -88,12 +89,7 @@ protected:
   /// constitutive law for a given quadrature point
   inline void computeStress(Real * F, Real * sigma);
 
-  // /// compute the tangent stiffness matrix for an element type
-  template<UInt dim>
-  void computeTangentStiffnessByDim(akantu::ElementType, akantu::Vector<Real>& tangent_matrix, akantu::GhostType);
-
   // /// compute the tangent stiffness matrix for an element
-  template<UInt dim>
   void computeTangentStiffness(Real * tangent, Real * F);
 
   /* ------------------------------------------------------------------------ */
@@ -131,17 +127,9 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_neohookean_inline_impl.cc"
-#endif
+#include "material_neohookean_inline_impl.cc"
 
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const MaterialNeohookean & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
+
 
 __END_AKANTU__
 

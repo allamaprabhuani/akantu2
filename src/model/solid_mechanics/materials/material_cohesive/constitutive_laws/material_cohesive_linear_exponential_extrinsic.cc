@@ -35,7 +35,8 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveLinearExponentialExtrinsic::MaterialCohesiveLinearExponentialExtrinsic(Model & model, const ID & id) :
+template<UInt spatial_dimension>
+MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::MaterialCohesiveLinearExponentialExtrinsic(SolidMechanicsModel & model, const ID & id) :
   MaterialCohesive(model,id),
   sigma_c_eff("sigma_c_eff",id),
   delta_max("delta max",id),
@@ -56,14 +57,16 @@ MaterialCohesiveLinearExponentialExtrinsic::MaterialCohesiveLinearExponentialExt
 }
 
 /* -------------------------------------------------------------------------- */
-MaterialCohesiveLinearExponentialExtrinsic::~MaterialCohesiveLinearExponentialExtrinsic() {
+template<UInt spatial_dimension>
+MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::~MaterialCohesiveLinearExponentialExtrinsic() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExponentialExtrinsic::initMaterial() {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesive::initMaterial();
@@ -74,7 +77,8 @@ void MaterialCohesiveLinearExponentialExtrinsic::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExponentialExtrinsic::resizeCohesiveVectors() {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesiveVectors() {
   MaterialCohesive::resizeCohesiveVectors();
 
   resizeInternalVector(sigma_c_eff, _ek_cohesive);
@@ -111,7 +115,8 @@ void MaterialCohesiveLinearExponentialExtrinsic::resizeCohesiveVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real MaterialCohesiveLinearExponentialExtrinsic::computeEffectiveNorm(const types::Matrix & stress, const types::RVector & normal, const types::RVector & tangent) {
+template<UInt spatial_dimension>
+Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress, const types::RVector & normal, const types::RVector & tangent) {
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;
@@ -136,7 +141,8 @@ Real MaterialCohesiveLinearExponentialExtrinsic::computeEffectiveNorm(const type
 }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialCohesiveLinearExponentialExtrinsic::setParam(const std::string & key, 
+template<UInt spatial_dimension>
+bool MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::setParam(const std::string & key, 
 							  const std::string & value,
 							  const ID & id) {
   std::stringstream sstr(value);
@@ -154,7 +160,8 @@ bool MaterialCohesiveLinearExponentialExtrinsic::setParam(const std::string & ke
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExponentialExtrinsic::computeTraction(const Vector<Real> & normal,
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTraction(const Vector<Real> & normal,
 								 ElementType el_type,
 								 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -252,7 +259,8 @@ void MaterialCohesiveLinearExponentialExtrinsic::computeTraction(const Vector<Re
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesiveLinearExponentialExtrinsic::printself(std::ostream & stream, int indent) const {
+template<UInt spatial_dimension>
+void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -266,7 +274,7 @@ void MaterialCohesiveLinearExponentialExtrinsic::printself(std::ostream & stream
   stream << space << " + delta_0      : " << delta_0 << std::endl;
   stream << space << " + z_max        : " << z_max << std::endl;
   stream << space << " + sigma_max    : " << sigma_max << std::endl;
-  if(is_init) {
+  if(this->isInit()) {
     stream << space << " + kappa      : " << kappa << std::endl;
   }
   MaterialCohesive::printself(stream, indent + 1);
@@ -274,5 +282,6 @@ void MaterialCohesiveLinearExponentialExtrinsic::printself(std::ostream & stream
 }
 /* -------------------------------------------------------------------------- */
 
+INSTANSIATE_MATERIAL(MaterialCohesiveLinearExponentialExtrinsic);
 
 __END_AKANTU__
