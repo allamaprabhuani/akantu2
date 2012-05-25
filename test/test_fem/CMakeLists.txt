@@ -67,6 +67,7 @@ foreach(_type ${LIST_TYPES})
   register_fem_test(interpolate ${_type})
   register_fem_test(gradient    ${_type})
   register_fem_test(integrate   ${_type})
+  register_fem_test(inverse_map ${_type})
 
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
     file(COPY ${_type}.msh DESTINATION .)
