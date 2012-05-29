@@ -42,10 +42,9 @@ MaterialElasticCaughey<spatial_dimension>::MaterialElasticCaughey(SolidMechanics
   AKANTU_DEBUG_IN();
 
   alpha = 0.;
-  UInt stress_size = spatial_dimension * spatial_dimension;
 
-  initInternalVector(this->stress_viscosity, stress_size);
-  initInternalVector(this->stress_elastic  , stress_size);
+  this->initInternalVector(this->stress_viscosity, spatial_dimension * spatial_dimension);
+  this->initInternalVector(this->stress_elastic  , spatial_dimension * spatial_dimension);
 
 
   AKANTU_DEBUG_OUT();
@@ -57,8 +56,8 @@ void MaterialElasticCaughey<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic<spatial_dimension>::initMaterial();
 
-  resizeInternalVector(this->stress_viscosity);
-  resizeInternalVector(this->stress_elastic  );
+  this->resizeInternalVector(this->stress_viscosity);
+  this->resizeInternalVector(this->stress_elastic  );
 
   AKANTU_DEBUG_OUT();
 }

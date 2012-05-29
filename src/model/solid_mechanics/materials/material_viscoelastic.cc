@@ -40,12 +40,13 @@ MaterialViscoElastic<spatial_dimension>::MaterialViscoElastic(SolidMechanicsMode
   AKANTU_DEBUG_IN();
 
   eta = 1.;
+  E_inf = 1.;
   Ev  = 1.;
 
   UInt stress_size = spatial_dimension * spatial_dimension;
 
-  initInternalVector(this->stress_dev, stress_size);
-  initInternalVector(this->history_integral, stress_size);
+  this->initInternalVector(this->stress_dev, stress_size);
+  this->initInternalVector(this->history_integral, stress_size);
 
   AKANTU_DEBUG_OUT();
 }
@@ -54,10 +55,13 @@ MaterialViscoElastic<spatial_dimension>::MaterialViscoElastic(SolidMechanicsMode
 template<UInt spatial_dimension>
 void MaterialViscoElastic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
+
+  E_inf = this->E - this->Ev;
+
   MaterialElastic<spatial_dimension>::initMaterial();
 
-  resizeInternalVector(this->stress_dev);
-  resizeInternalVector(this->history_integral);
+  this->resizeInternalVector(this->stress_dev);
+  this->resizeInternalVector(this->history_integral);
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,8 +71,10 @@ template<UInt spatial_dimension>
 void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real tau = eta / Ev;
-  Real K = this->E / ( 3 * (1 - 2*this->nu) ); // kpa ?
+
+  Real tau = 0.;
+  if(std::abs(Ev) > std::numeric_limits<Real>::epsilon())
+    tau = eta / Ev;
 
   Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
@@ -79,6 +85,7 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
 
   types::Matrix e(spatial_dimension, spatial_dimension);
   types::Matrix s(spatial_dimension, spatial_dimension);
+
   types::Matrix theta_sp(spatial_dimension, spatial_dimension);
 
   Real dt = this->model->getTimeStep();
@@ -89,42 +96,52 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
   types::Matrix sigma(stress_val, spatial_dimension, spatial_dimension);
-  types::Matrix F(strain_val, spatial_dimension, spatial_dimension);
+  types::Matrix grad_u(strain_val, spatial_dimension, spatial_dimension);
+  types::Matrix & dev_s = *stress_d;
+  types::Matrix & h = *history_int;
 
   e.clear();
   s.clear();
+
   sigma.clear();
 
   /// Compute the first invariant of strain
-  Real Theta = F.trace();
+  Real Theta = grad_u.trace();
 
-  theta_sp.eye(1/double(spatial_dimension) * Theta);
+  ///\todo correct the trace in case of plane stress
+  if(spatial_dimension == 2 && this->plane_stress) AKANTU_DEBUG_ERROR("Correct the code for the trace");
 
-  /// Compute the deviator of strain @f$ @f$
   for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      e(i, j) = F(i, j) - theta_sp(i, j);
-      s(i, j) = this->E / (1 + this->nu) * e(i, j);
-    }
+    grad_u(i, i) -= 1./3. * Theta;
+
+  MaterialElastic<spatial_dimension>::computeStress(grad_u, s);
+
+  Real trace_s = s.trace();
+  if(spatial_dimension == 2 && this->plane_stress == false) trace_s += this->lambda * Theta;
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    s(i, i) -= 1./3. * trace_s;
 
 
   /// Update the internal variable
   for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      (*history_int)(i, j)  = exp_dt_thau * (*history_int)(i, j) + exp_dt_thau_2 * (s(i, j) - (*stress_d)(i, j));
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      h(i, j)  = exp_dt_thau * h(i, j) + exp_dt_thau_2 * (s(i, j) - dev_s(i, j));
+      dev_s(i, j) = s(i, j);
+    }
 
   //  Real alpha = 2./3. * K * Theta;
-  Real alpha = K * Theta;
-  Real beta = 1. / ( Ev + this->E );
+  types::Matrix U_rond_prim(spatial_dimension, spatial_dimension);
+  U_rond_prim.eye(this->lambda * Theta);
+
+  Real gamma_inf = E_inf / this->E;
+  Real gamma_v   = Ev    / this->E;
+
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
-      sigma(i, j) = (i == j) * alpha + beta * (this->E * s(i, j) + Ev * (*history_int)(i, j));
-
+      sigma(i, j) = U_rond_prim(i,j) + gamma_inf * s(i, j) + gamma_v * h(i, j);
 
   /// Save the deviator of stress
-  stress_d->copy(s);
-
-
   ++stress_d;
   ++history_int;
 

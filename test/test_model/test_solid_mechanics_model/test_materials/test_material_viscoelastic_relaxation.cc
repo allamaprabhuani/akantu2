@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   Real T = 10.;
   Real eps = 1.;
 
-  UInt dim = 2;
+  const UInt dim = 2;
   Real sim_time = 25.;
   Real time_factor = 0.8;
 
@@ -63,17 +63,19 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initVectors();
-  model.getForce().clear();
-  model.getVelocity().clear();
-  model.getAcceleration().clear();
-  model.getDisplacement().clear();
-  model.updateResidual();
+  // model.initVectors();
+  // model.getForce().clear();
+  // model.getVelocity().clear();
+  // model.getAcceleration().clear();
+  // model.getDisplacement().clear();
+  // //  model.updateResidual();
 
-  model.initExplicit();
-  model.initModel();
-  model.readMaterials("material_viscoelastic_relaxation.dat");
-  model.initMaterials();
+  // model.initExplicit();
+  // model.initModel();
+  // model.readMaterials("material_viscoelastic_relaxation.dat");
+  // model.initMaterials();
+
+  model.initFull("material_viscoelastic_relaxation.dat", _explicit_dynamic);
 
   std::cout << model.getMaterial(0) << std::endl;
 
@@ -85,19 +87,21 @@ int main(int argc, char *argv[])
   output_data.open(filename_sstr.str().c_str());
   output_data << "#[1]-time [2]-sigma_analytic [3+]-sigma_measurements" << std::endl;
 
-  MaterialViscoElastic & mat = dynamic_cast<MaterialViscoElastic &>(model.getMaterial(0));
+  MaterialViscoElastic<dim> & mat = dynamic_cast<MaterialViscoElastic<dim> &>(model.getMaterial(0));
   //  const Vector<Real> & strain = mat.getStrain(element_type);
   const Vector<Real> & stress = mat.getStress(element_type);
 
   Real Eta = mat.getEta();
-  Real EV = mat.getEV();
-  Real E = mat.getE();
+  Real EV = mat.getEv();
+  Real Einf = mat.getEinf();
   Real nu = mat.getNu();
-  Real Ginf = E/(2*(1+nu));
+  Real Ginf = Einf/(2*(1+nu));
   Real G = EV/(2*(1+nu));
   Real G0 = G + Ginf;
-  Real gamma = G/Ginf;
-  Real tau = Eta / G;
+  Real gamma = G/G0;
+  Real tau = 0.;
+  if(std::abs(G) > std::numeric_limits<Real>::epsilon())
+    tau = Eta / EV;
   Real gammainf = Ginf/G0;
 
   UInt nb_nodes = mesh.getNbNodes();
@@ -117,7 +121,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
-  for(UInt s = 1; s <= max_steps; ++s) {
+  for(UInt s = 0; s <= max_steps; ++s) {
 
     time = s * time_step;
     // impose displacement
@@ -146,6 +150,7 @@ int main(int argc, char *argv[])
       }
       else {
 	solution = 2 * G0 * eps * (gammainf + gamma * tau / T * (exp((T-time)/tau) - exp(-time/tau)));
+	//solution = 2 * G0 * eps * (gammainf + gamma * exp(-time/tau));
       }
 
       output_data << s*time_step << " " << solution;

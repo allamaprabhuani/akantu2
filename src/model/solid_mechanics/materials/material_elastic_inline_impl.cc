@@ -46,6 +46,20 @@ inline void MaterialElastic<spatial_dimension>::computeStress(Real * F, Real * s
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline void MaterialElastic<spatial_dimension>::computeStress(types::Matrix & grad_u,
+							      types::Matrix & sigma) {
+  Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
+
+  /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
+  for (UInt i = 0; i < spatial_dimension; ++i) {
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      sigma(i, j) =  (i == j) * lambda * trace + mu*(grad_u(i, j) + grad_u(j, i));
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 template<>
 inline void MaterialElastic<1>::computeStress(Real * F, Real * sigma) {
   sigma[0] = E * F[0];

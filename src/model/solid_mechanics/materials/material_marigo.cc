@@ -49,7 +49,7 @@ MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
 
   epsilon_c = std::numeric_limits<Real>::max();
 
-  initInternalVector(this->Yd_rand, 1);
+  this->initInternalVector(this->Yd_rand, 1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -65,7 +65,7 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
     Yc = .5 * epsilon_c * this->E * epsilon_c;
   }
 
-  resizeInternalVector(this->Yd_rand);
+  this->resizeInternalVector(this->Yd_rand);
 
   const Mesh & mesh = this->model->getFEM().getMesh();
 

@@ -386,7 +386,7 @@ __END_AKANTU__
 #define INSTANSIATE_MATERIAL(mat_name)			\
   template class mat_name<1>;				\
   template class mat_name<2>;				\
-  template class mat_name<3>;
+  template class mat_name<3>
 
 #if defined(__INTEL_COMPILER)
 #pragma warning ( push )

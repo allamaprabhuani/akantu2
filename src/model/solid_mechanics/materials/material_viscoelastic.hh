@@ -3,7 +3,9 @@
  * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
  * @date   Thu Feb 7 2012
  *
- * @brief  Material Visco-elastic, based on Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes, "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
+ * @brief Material Visco-elastic, based on Standard Solid rheological model, see
+ * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
+ * see Sections 10.2 and 10.3
  *
  * @section LICENSE
  *
@@ -36,16 +38,25 @@
 __BEGIN_AKANTU__
 
 /**
- * Material viscoelastic (caughey condition) isotropic
+ * Material viscoelastic 
+ *
+ *
+ * @verbatim
+
+             E_\inf  
+      ------|\/\/\|------
+      |                 |
+   ---|                 |---
+      |                 |
+      ----|\/\/\|--[|----
+            E_v   \eta
+
+ @endverbatim
  *
  * parameters in the material files :
- *   - rho : density (default: 0)
- *   - E   : Young's modulus (default: 0)
- *   - nu  : Poisson's ratio (default: 1/2)
- *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
+ *   - E   : Initial Young's modulus @f[ E = E_\inf + E_v @f]
  *   - eta : viscosity
  *   - Ev  : stiffness of the viscous element
- *   - h   : internal variable of the integral history
  */
 template<UInt spatial_dimension>
 class MaterialViscoElastic : public MaterialElastic<spatial_dimension> {
@@ -83,27 +94,23 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(HistoryIntegral, history_integral, Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressDev,  stress_dev, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(DeviatoricStress,  stress_dev, Real);
 
-  AKANTU_GET_MACRO(EV, Ev, const Real&);
-  AKANTU_SET_MACRO(EV, Ev, Real &);
+  AKANTU_GET_MACRO(Ev, Ev, const Real);
+  AKANTU_SET_MACRO(Ev, Ev, Real);
+  AKANTU_GET_MACRO(Einf, E_inf, const Real);
+  AKANTU_SET_MACRO(Einf, E_inf, Real);
 
-  AKANTU_GET_MACRO(Eta, eta, const Real&);
-  AKANTU_SET_MACRO(Eta, eta, Real &);
+  AKANTU_GET_MACRO(Eta, eta, const Real);
+  AKANTU_SET_MACRO(Eta, eta, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// stress due to viscosity
-//  ByElementTypeReal stress_viscosity;
-
-  /// stress due to elasticity
-//  ByElementTypeReal stress_elastic;
-
   /// viscosity, viscous elastic modulus
-  Real eta, Ev;
+  Real eta, Ev, E_inf;
 
   /// history of deviatoric stress
   ByElementTypeReal stress_dev;

@@ -46,11 +46,11 @@ MaterialDamage<spatial_dimension>::MaterialDamage(SolidMechanicsModel & model,
   AKANTU_DEBUG_IN();
 
   this->is_non_local = false;
-  initInternalVector(this->damage, 1);
-  initInternalVector(this->dissipated_energy, 1);
-  initInternalVector(this->strain_prev, spatial_dimension * spatial_dimension);
-  initInternalVector(this->stress_prev, spatial_dimension * spatial_dimension);
-  initInternalVector(this->int_sigma, 1);
+  this->initInternalVector(this->damage, 1);
+  this->initInternalVector(this->dissipated_energy, 1);
+  this->initInternalVector(this->strain_prev, spatial_dimension * spatial_dimension);
+  this->initInternalVector(this->stress_prev, spatial_dimension * spatial_dimension);
+  this->initInternalVector(this->int_sigma, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -61,11 +61,11 @@ void MaterialDamage<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic<spatial_dimension>::initMaterial();
 
-  resizeInternalVector(this->damage);
-  resizeInternalVector(this->dissipated_energy);
-  resizeInternalVector(this->strain_prev);
-  resizeInternalVector(this->stress_prev);
-  resizeInternalVector(this->int_sigma);
+  this->resizeInternalVector(this->damage);
+  this->resizeInternalVector(this->dissipated_energy);
+  this->resizeInternalVector(this->strain_prev);
+  this->resizeInternalVector(this->stress_prev);
+  this->resizeInternalVector(this->int_sigma);
 
   AKANTU_DEBUG_OUT();
 }
