@@ -80,6 +80,8 @@ endforeach()
 add_mesh(test_material_viscoelastic_relaxation_mesh test_material_viscoelastic_relaxation.geo 2 1)
 register_test(test_material_viscoelastic_relaxation test_material_viscoelastic_relaxation.cc)
 add_dependencies(test_material_viscoelastic_relaxation test_material_viscoelastic_relaxation_mesh)
+register_test(test_material_viscoelastic_relaxation_tension test_material_viscoelastic_relaxation_tension.cc)
+add_dependencies(test_material_viscoelastic_relaxation_tension test_material_viscoelastic_relaxation_mesh)
 file(COPY material_viscoelastic_relaxation.dat DESTINATION .)
 
 #===============================================================================
