@@ -204,3 +204,9 @@ template<> inline Real ElementClass<_triangle_6>::getInradius(const Real * coord
 
   return inradius;
 }
+
+/* -------------------------------------------------------------------------- */
+
+template<> inline bool ElementClass<_triangle_6>::contains(const types::RVector & natural_coords) {
+  return ElementClass<_triangle_3>::contains(natural_coords);
+}

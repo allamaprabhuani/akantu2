@@ -91,7 +91,7 @@ template<> inline Real ElementClass<_segment_2>::getInradius(const Real * coord)
 /* -------------------------------------------------------------------------- */
 
 template<> inline bool ElementClass<_segment_2>::contains(const types::RVector & natural_coords) {
-  if (natural_coords[0] < 0.) return false;
+  if (natural_coords[0] < -1.) return false;
   if (natural_coords[0] > 1.) return false;
   return true;
 }

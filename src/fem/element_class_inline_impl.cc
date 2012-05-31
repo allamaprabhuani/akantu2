@@ -390,6 +390,7 @@ inline Real * ElementClass<type>::getGaussIntegrationWeights() {
 template <ElementType type> 
 inline bool ElementClass<type>::contains(__attribute__ ((unused)) const types::RVector & natural_coords) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+  return true;
 }
 
 /* -------------------------------------------------------------------------- */
