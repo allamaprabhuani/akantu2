@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
   
   const ElementType element_type = TYPE;
-  UInt dim = Mesh::getSpatialDimension(element_type);
+  const UInt dim = ElementClass<TYPE>::getSpatialDimension();
   
   /// load mesh
   Mesh mesh(dim);
@@ -82,9 +82,9 @@ int main(int argc, char *argv[])
   model.initExplicit();
   model.initModel();
   model.readMaterials("material_elastic_caughey_damping.dat");
-  MaterialElasticCaughey & my_mat = dynamic_cast<MaterialElasticCaughey & >(model.getMaterial(0));
+  Material & my_mat = model.getMaterial(0);
   Real a_value = 1e-6;//3.836e-06;
-  my_mat.setAlpha(a_value);
+  my_mat.setParam("alpha", a_value);
   model.initMaterials();
   
   std::cout << model.getMaterial(0) << std::endl;

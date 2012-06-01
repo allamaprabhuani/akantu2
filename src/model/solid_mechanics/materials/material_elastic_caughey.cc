@@ -156,6 +156,23 @@ bool MaterialElasticCaughey<spatial_dimension>::setParam(const std::string & key
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
+Real MaterialElasticCaughey<spatial_dimension>::getParam(const ID & param) const {
+  ID key = to_lower(param);
+  if(key == "alpha") { return alpha; }
+  else return Material::getParam(param);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElasticCaughey<spatial_dimension>::setParam(const ID & param, Real value) {
+  ID key = to_lower(param);
+  if(key == "alpha") { alpha = value; }
+  else Material::setParam(param, value);
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 void MaterialElasticCaughey<spatial_dimension>::printself(std::ostream & stream,
 							  int indent) const {
   std::string space;

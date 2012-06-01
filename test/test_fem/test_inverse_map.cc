@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 
    for(UInt el = 0 ; el < nb_elements ; ++el){
     for(UInt q = 0 ; q < nb_quad_points ; ++q){
-      fem->inverseMap(*it,el,type,natural_coords);
+      fem->inverseMap(*it, el, type, natural_coords);
       for (UInt i = 0; i < dim; ++i) {
 	const Real eps = 1e-15;
 	AKANTU_DEBUG_ASSERT(fabs(natural_coords[i] - quad[i]) < eps,

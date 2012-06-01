@@ -339,7 +339,7 @@ void finalize ();
 /* -------------------------------------------------------------------------- */
 /* string manipulation                                                        */
 /* -------------------------------------------------------------------------- */
-inline void to_lower(std::string & str);
+inline std::string to_lower(const std::string & str);
 /* -------------------------------------------------------------------------- */
 inline void trim(std::string & to_trim);
 

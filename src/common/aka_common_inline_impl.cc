@@ -35,11 +35,13 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-inline void to_lower(std::string & str) {
+inline std::string to_lower(const std::string & str) {
+  std::string lstr;
   std::transform(str.begin(),
 		 str.end(),
-		 str.begin(),
+		 lstr.begin(),
 		 (int(*)(int))std::tolower);
+  return lstr;
 }
 
 /* -------------------------------------------------------------------------- */

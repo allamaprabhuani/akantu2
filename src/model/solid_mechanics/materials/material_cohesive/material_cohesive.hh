@@ -137,9 +137,9 @@ protected:
   void computeEnergies();
 
   /// compute effective stress norm for insertion check
-  virtual Real computeEffectiveNorm(const types::Matrix & stress,
-				    const types::RVector & normal,
-				    const types::RVector & tangent){
+  virtual Real computeEffectiveNorm(__attribute__((unused)) const types::Matrix & stress,
+				    __attribute__((unused)) const types::RVector & normal,
+				    __attribute__((unused)) const types::RVector & tangent){
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 

@@ -313,7 +313,7 @@ void IntegratorCohesive<Inte>::checkJacobians(const GhostType & ghost_type) cons
 template<>
 template<>
 inline void IntegratorCohesive<IntegratorGauss>
-::precomputeJacobiansOnQuadraturePoints<_not_defined>(const GhostType & ghost_type) {
+::precomputeJacobiansOnQuadraturePoints<_not_defined>(__attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -321,11 +321,11 @@ inline void IntegratorCohesive<IntegratorGauss>
 template<>
 template<>
 inline void IntegratorCohesive<IntegratorGauss>
-::integrateOnElement<_not_defined>(const Vector<Real> & f,
-				   Real * intf,
-				   UInt nb_degree_of_freedom,
-				   const UInt elem,
-				   const GhostType & ghost_type) const {
+::integrateOnElement<_not_defined>(__attribute__((unused)) const Vector<Real> & f,
+				   __attribute__((unused)) Real * intf,
+				   __attribute__((unused)) UInt nb_degree_of_freedom,
+				   __attribute__((unused)) const UInt elem,
+				   __attribute__((unused)) const GhostType & ghost_type) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -334,7 +334,7 @@ template<>
 template<>
 inline const Vector<Real> &
 IntegratorCohesive<IntegratorGauss>
-::getQuadraturePoints<_not_defined>(const GhostType & ghost_type) const {
+::getQuadraturePoints<_not_defined>(__attribute__((unused)) const GhostType & ghost_type) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -342,7 +342,7 @@ IntegratorCohesive<IntegratorGauss>
 template<>
 template<>
 inline void IntegratorCohesive<IntegratorGauss>
-::computeQuadraturePoints<_not_defined>(const GhostType & ghost_type) {
+::computeQuadraturePoints<_not_defined>(__attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -361,11 +361,11 @@ computeJacobianOnQuadPointsByElement<_not_defined>(__attribute__((unused)) UInt 
 template<>
 template<>
 inline void IntegratorCohesive<IntegratorGauss>
-::integrate<_not_defined>(const Vector<Real> & in_f,
-			  Vector<Real> &intf,
-			  UInt nb_degree_of_freedom,
-			  const GhostType & ghost_type,
-			  const Vector<UInt> * filter_elements) const {
+::integrate<_not_defined>(__attribute__((unused)) const Vector<Real> & in_f,
+			  __attribute__((unused)) Vector<Real> &intf,
+			  __attribute__((unused)) UInt nb_degree_of_freedom,
+			  __attribute__((unused)) const GhostType & ghost_type,
+			  __attribute__((unused)) const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -374,9 +374,9 @@ inline void IntegratorCohesive<IntegratorGauss>
 template<>
 template<>
 inline Real IntegratorCohesive<IntegratorGauss>
-::integrate<_not_defined>(const Vector<Real> & in_f,
-			  const GhostType & ghost_type,
-			  const Vector<UInt> * filter_elements) const {
+::integrate<_not_defined>(__attribute__((unused)) const Vector<Real> & in_f,
+			  __attribute__((unused)) const GhostType & ghost_type,
+			  __attribute__((unused)) const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -385,11 +385,11 @@ inline Real IntegratorCohesive<IntegratorGauss>
 template<>
 template<>
 inline void IntegratorCohesive<IntegratorGauss>
-::integrateOnQuadraturePoints<_not_defined>(const Vector<Real> & in_f,
-					    Vector<Real> &intf,
-					    UInt nb_degree_of_freedom,
-					    const GhostType & ghost_type,
-					    const Vector<UInt> * filter_elements) const {
+::integrateOnQuadraturePoints<_not_defined>(__attribute__((unused)) const Vector<Real> & in_f,
+					    __attribute__((unused)) Vector<Real> &intf,
+					    __attribute__((unused)) UInt nb_degree_of_freedom,
+					    __attribute__((unused)) const GhostType & ghost_type,
+					    __attribute__((unused)) const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -397,7 +397,7 @@ inline void IntegratorCohesive<IntegratorGauss>
 template<>
 template<>
 inline void IntegratorCohesive<IntegratorGauss>
-::checkJacobians<_not_defined>(const GhostType & ghost_type) const {
+::checkJacobians<_not_defined>(__attribute__((unused)) const GhostType & ghost_type) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

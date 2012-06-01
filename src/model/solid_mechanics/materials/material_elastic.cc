@@ -93,9 +93,9 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentStiffness(const ElementType & el_type,
+void MaterialElastic<spatial_dimension>::computeTangentStiffness(__attribute__((unused)) const ElementType & el_type,
 								 Vector<Real> & tangent_matrix,
-								 GhostType ghost_type) {
+								 __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real * tangent_val   = tangent_matrix.values;
@@ -123,6 +123,31 @@ bool MaterialElastic<spatial_dimension>::setParam(const std::string & key, const
   else { return Material::setParam(key, value, id); }
   return true;
 }
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+Real MaterialElastic<spatial_dimension>::getParam(const ID & param) const {
+  ID key = to_lower(param);
+  if(key == "e") { return E; }
+  else if(key == "nu") { return nu; }
+  else if(key == "lambda") { return nu; }
+  else if(key == "mu") { return mu; }
+  else if(key == "kapa") { return kpa; }
+  else return Material::getParam(param);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::setParam(const ID & param, Real value) {
+  ID key = to_lower(param);
+  if(key == "e") { E = value; }
+  else if(key == "nu") { nu = value; }
+  else if(key == "lambda") { nu = value; }
+  else if(key == "mu") { mu = value; }
+  else if(key == "kapa") { kpa = value; }
+  else Material::setParam(param, value);
+}
+
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>

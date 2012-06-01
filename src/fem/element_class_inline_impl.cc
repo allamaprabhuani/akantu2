@@ -156,7 +156,7 @@ template <ElementType type>
 inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
 							const Real * dnds,
 							const UInt nb_points,
-							const UInt dimension,
+							__attribute__ ((unused)) const UInt dimension,
 							Real * shape_deriv) {
   AKANTU_DEBUG_ASSERT(dimension == spatial_dimension,"gradient in space "
 		      << dimension
@@ -375,7 +375,7 @@ template <ElementType type>
 inline void ElementClass<type>::computeJacobian(__attribute__ ((unused)) const Real * dxds,
  						__attribute__ ((unused)) const UInt dimension, 
 						__attribute__ ((unused)) Real & jac) {
-//AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+  //AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -390,13 +390,10 @@ inline Real * ElementClass<type>::getGaussIntegrationWeights() {
 template <ElementType type> 
 inline bool ElementClass<type>::contains(__attribute__ ((unused)) const types::RVector & natural_coords) {
   AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
-  return true;
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */
-
-
-
 #include "element_classes/element_class_segment_2_inline_impl.cc"
 #include "element_classes/element_class_segment_3_inline_impl.cc"
 #include "element_classes/element_class_triangle_3_inline_impl.cc"

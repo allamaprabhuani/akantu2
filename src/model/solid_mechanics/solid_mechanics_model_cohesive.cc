@@ -92,10 +92,8 @@ void SolidMechanicsModelCohesive::initCohesiveMaterial() {
 
   /// find the cohesive index
   cohesive_index = 0;
-  MaterialCohesive * mat_cohesive;
 
-  while ((mat_cohesive =
-	  dynamic_cast<MaterialCohesive *>(materials[cohesive_index])) == NULL
+  while ((dynamic_cast<MaterialCohesive *>(materials[cohesive_index]) == NULL)
 	 && cohesive_index <= materials.size())
     ++cohesive_index;
 

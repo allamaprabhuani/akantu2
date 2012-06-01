@@ -237,6 +237,11 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
 
+  const Vector<Real> & getVector(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
+
+  virtual Real getParam(const ID & param) const;
+  virtual void setParam(const ID & param, Real value);
+
 protected:
 
   bool isInit() const { return is_init; }

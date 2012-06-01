@@ -498,6 +498,40 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
 }
 
 /* -------------------------------------------------------------------------- */
+const Vector<Real> & Material::getVector(const ID & vect_id, const ElementType & type, const GhostType & ghost_type) const {
+  std::stringstream sstr;
+  std::string ghost_id = "";
+  if (ghost_type == _ghost) ghost_id = ":ghost";
+  sstr << id << ":" << vect_id << ":" << type << ghost_id;
+
+  ID fvect_id = sstr.str();
+  try {
+    return Memory::getVector<Real>(fvect_id);
+  } catch(debug::Exception & e) {
+    AKANTU_EXCEPTION("The material " << name << "(" <<id << ") does not contain a vector " << vect_id << "(" << fvect_id << ") [" << e << "]");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+Real Material::getParam(const ID & param) const {
+  ID lparam = to_lower(param);
+  if(lparam == "rho") {
+    return rho;
+  }
+  AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")");
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::setParam(const ID & param, Real value) {
+  ID lparam = to_lower(lparam);
+  if(lparam == "rho") {
+    rho = value;
+  }
+  AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")"); 
+}
+
+
+/* -------------------------------------------------------------------------- */
 void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

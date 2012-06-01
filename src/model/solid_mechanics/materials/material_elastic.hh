@@ -111,6 +111,10 @@ public:
 
   AKANTU_SET_MACRO(E, E, Real);
   AKANTU_SET_MACRO(Nu, nu, Real);
+
+  virtual Real getParam(const ID & param) const;
+  virtual void setParam(const ID & param, Real value);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

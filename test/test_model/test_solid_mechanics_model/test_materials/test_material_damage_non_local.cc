@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
   fem_boundary.computeNormalsOnControlPoints();
   model.computeForcesFromFunction(trac, akantu::_bft_stress);
 
-  MaterialDamage & mat = dynamic_cast<MaterialDamage &>((model.getMaterial(0)));
+  MaterialDamage<spatial_dimension> & mat = dynamic_cast<MaterialDamage<spatial_dimension> &>((model.getMaterial(0)));
 
 #ifdef AKANTU_USE_IOHELPER
   model.updateResidual();

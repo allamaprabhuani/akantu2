@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
   akantu::initialize(argc, argv);
   debug::setDebugLevel(akantu::dblWarning);
 
-  UInt spatial_dimension = 2;
+  const UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
   mesh_io.read("mesh.msh", mesh);
@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
   model.initMaterials();
 
   //  model.getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
-  const MaterialNonLocal<BaseWeightFunction> & mat =
-    dynamic_cast<const MaterialNonLocal<BaseWeightFunction> &>(model.getMaterial(0));
+  const MaterialNonLocal<spatial_dimension, BaseWeightFunction> & mat =
+    dynamic_cast<const MaterialNonLocal<spatial_dimension, BaseWeightFunction> &>(model.getMaterial(0));
   //  mat.computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
   Real radius = mat.getRadius();
 

@@ -131,6 +131,14 @@ namespace debug {
     unsigned int  _line;
   };
 
+  /// standard output stream operator
+  inline std::ostream & operator <<(std::ostream & stream, const Exception & _this)
+  {
+    stream << _this.what();
+    return stream;
+  }
+
+
   /* -------------------------------------------------------------------------- */
 #define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
 
@@ -140,7 +148,7 @@ namespace debug {
     virtual ~Debugger();
 
     void exit(int status) __attribute__ ((noreturn));
-    void throwException(const std::string & info) throw(akantu::debug::Exception);
+    void throwException(const std::string & info) throw(akantu::debug::Exception) __attribute__ ((noreturn));
 
     inline void printMessage(const std::string & prefix,
                              const DebugLevel & level,

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   iohelper::ElemType ioh_type = getIOHelperType(element_type);
 #endif //AKANTU_USE_IOHELPER
-  UInt dim = Mesh::getSpatialDimension(element_type);
+  const UInt dim = ElementClass<TYPE>::getSpatialDimension();
 
   /// load mesh
   Mesh mesh(dim);
@@ -113,13 +113,13 @@ int main(int argc, char *argv[])
   /// dump facet and surface information to paraview
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
- // paraviewInit(dumper, model, element_type, "test_viscoelastic2");
-  MaterialViscoElastic & mat = dynamic_cast<MaterialViscoElastic &>((model.getMaterial(0)));
+  // paraviewInit(dumper, model, element_type, "test_viscoelastic2");
   dumper.SetMode(iohelper::BASE64);
+  Material & mat = model.getMaterial(0);
 
   std::stringstream sstr; sstr << "test_material_viscoelastic_" << TYPE;
 
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, sstr.str());
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, dim, nb_nodes, sstr.str());
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
 			 ioh_type, model.getFEM().getMesh().getNbElement(TYPE), iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
@@ -133,7 +133,10 @@ int main(int argc, char *argv[])
 //  Real * dam = mat.getHistoryIntegral(TYPE).values;
 //  dumper.AddElemDataField(dam, 4, "damage");
 
-  dumper.AddElemDataField(mat.getHistoryIntegral(TYPE).values, 4, "history");
+  try{
+    const Vector<Real> & history = mat.getVector("history_integral", TYPE);
+    dumper.AddElemDataField(history.storage(), 4, "history");
+  } catch (...) {};
 
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("force", 1);

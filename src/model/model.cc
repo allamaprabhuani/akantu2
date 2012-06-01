@@ -73,12 +73,16 @@ void Model::initPBC() {
   std::map<UInt,UInt>::iterator end = pbc_pair.end();
 
   is_pbc_slave_node.resize(mesh.getNbNodes());
-
+#ifndef AKANTU_NDEBUG
   Real * coords = mesh.getNodes().values;
   UInt dim = mesh.getSpatialDimension();
+#endif
   while(it != end){
     UInt i1 = (*it).first;
+
+#ifndef AKANTU_NDEBUG
     UInt i2 = (*it).second;
+#endif
 
     is_pbc_slave_node(i1) = true; 
 

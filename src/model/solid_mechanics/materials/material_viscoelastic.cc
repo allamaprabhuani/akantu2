@@ -73,7 +73,9 @@ template<UInt spatial_dimension>
 void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real tau = eta / Ev;
+  Real tau = 0.;
+  // if(std::abs(Ev) > std::numeric_limits<Real>::epsilon())
+  tau = eta / Ev;
 
   Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);

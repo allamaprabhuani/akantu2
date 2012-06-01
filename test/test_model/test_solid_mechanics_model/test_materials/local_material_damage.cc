@@ -61,7 +61,6 @@ void LocalMaterialDamage::initMaterial() {
   mu     = E / (2 * (1 + nu));
   kpa    = lambda + 2./3. * mu;
 
-  is_init = true;
   AKANTU_DEBUG_OUT();
 }
 
@@ -142,7 +141,7 @@ void LocalMaterialDamage::printself(std::ostream & stream, int indent) const {
   stream << space << " + Poisson's ratio         : " << nu << std::endl;
   stream << space << " + Yd                      : " << Yd << std::endl;
   stream << space << " + Sd                      : " << Sd << std::endl;
-  if(is_init) {
+  if(this->isInit()) {
     stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
     stream << space << " + Second Lamé coefficient : " << mu << std::endl;
     stream << space << " + Bulk coefficient        : " << kpa << std::endl;

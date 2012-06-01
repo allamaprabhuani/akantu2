@@ -71,7 +71,7 @@ namespace debug {
   }
 
   /* ------------------------------------------------------------------------ */
-  void printBacktrace(int sig) {
+  void printBacktrace(__attribute__((unused)) int sig) {
     AKANTU_DEBUG_INFO("Caught  signal " << sig << "!");
 
     // std::stringstream pidsstr;

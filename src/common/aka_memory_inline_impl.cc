@@ -55,3 +55,8 @@ inline void Memory::dealloc(const ID & name) {
 template<class T> inline Vector<T> & Memory::getVector(const ID & name) {
   return static_cast< Vector<T> & >(const_cast<VectorBase &>(static_memory->getVector(memory_id, name)));
 }
+
+/* -------------------------------------------------------------------------- */
+template<class T> inline const Vector<T> & Memory::getVector(const ID & name) const {
+  return static_cast< Vector<T> & >(const_cast<VectorBase &>(static_memory->getVector(memory_id, name)));
+}

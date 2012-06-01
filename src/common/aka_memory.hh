@@ -82,8 +82,11 @@ public:
 
   AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
 
-  template<class T>
+  template<typename T>
   inline Vector<T> & getVector(const ID & name);
+
+  template<typename T>
+  inline const Vector<T> & getVector(const ID & name) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
