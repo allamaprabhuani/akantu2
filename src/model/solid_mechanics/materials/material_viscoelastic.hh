@@ -99,7 +99,7 @@ public:
   AKANTU_GET_MACRO(Ev, Ev, const Real);
   AKANTU_SET_MACRO(Ev, Ev, Real);
   AKANTU_GET_MACRO(Einf, E_inf, const Real);
-  AKANTU_SET_MACRO(Einf, E_inf, Real);
+  //  AKANTU_SET_MACRO(Einf, E_inf, Real); // Einf is computed in initMaterial based on E and Ev
 
   AKANTU_GET_MACRO(Eta, eta, const Real);
   AKANTU_SET_MACRO(Eta, eta, Real);
