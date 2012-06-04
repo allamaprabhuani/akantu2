@@ -287,6 +287,22 @@ void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) 
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void Material::setToSteadyState(GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = model->getSpatialDimension();
+
+  Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+
+  for(; it != last_type; ++it) {
+    setToSteadyState(*it, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 /**

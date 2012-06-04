@@ -95,6 +95,9 @@ public:
   virtual void computeStress(Vector<Real> & current_position,
 			     GhostType ghost_type = _not_ghost);
 
+  /// set material to steady state
+  void setToSteadyState(GhostType ghost_type = _not_ghost);
+
   /// compute the stiffness matrix
   void assembleStiffnessMatrix(Vector<Real> & current_position,
 			       GhostType ghost_type);
@@ -121,6 +124,11 @@ protected:
   /// constitutive law
   virtual void computeStress(ElementType el_type,
 			     GhostType ghost_type = _not_ghost) = 0;
+
+
+  /// set the material to steady state (to be implemented for materials that need it)
+  virtual void setToSteadyState(ElementType el_type,
+				GhostType ghost_type = _not_ghost) {};
 
   // /// constitutive law
   // virtual void computeNonLocalStress(ElementType el_type,

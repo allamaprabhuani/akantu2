@@ -66,7 +66,7 @@ template<UInt spatial_dimension>
 inline void
 MaterialNeohookean<spatial_dimension>::computeTangentStiffnessOnQuad(types::Matrix & grad_u,
 								     types::Matrix & tangent) {
-  UInt n = tangent.size();
+  UInt n = tangent.cols();
   types::Matrix F(3, 3);
   this->template gradUToF<spatial_dimension>(grad_u, F);
   Real J = Math::det3(F.storage());

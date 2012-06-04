@@ -1,6 +1,8 @@
 /**
  * @file   material_viscoelastic.hh
  * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Kammer <david.kammer@epfl.ch>
  * @date   Thu Feb 7 2012
  *
  * @brief Material Visco-elastic, based on Standard Solid rheological model, see
@@ -75,6 +77,8 @@ public:
 public:
 
   void initMaterial();
+
+  void setToSteadyState(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   virtual bool setParam(const std::string & key, const std::string & value,
 			const ID & id);

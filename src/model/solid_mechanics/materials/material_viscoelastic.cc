@@ -70,6 +70,47 @@ void MaterialViscoElastic<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
+void MaterialViscoElastic<spatial_dimension>::setToSteadyState(ElementType el_type, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+  
+  Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
+  Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
+
+  Vector<Real>::iterator<types::Matrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+
+  Real plane_stress_coeff = this->nu / (this->nu - 1);
+
+  /// Loop on all quadrature points
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+
+  types::Matrix & dev_s = *stress_d;
+  types::Matrix & h = *history_int;
+
+  /// Compute the first invariant of strain
+  Real Theta = grad_u.trace();
+
+  ///\todo correct the trace in case of plane stress
+  if(spatial_dimension == 2 && this->plane_stress == true)
+    Theta += plane_stress_coeff * (grad_u(0,0) + grad_u(1,1));
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      dev_s(i, j) = 2 * this->mu * (.5 * (grad_u(i,j) + grad_u(j,i)) - 1./3. * Theta *(i == j));
+      h(i, j) = 0.;
+    }
+
+  /// Save the deviator of stress
+  ++stress_d;
+  ++history_int;
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -83,10 +124,7 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   Vector<Real>::iterator<types::Matrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
   Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
-  types::Matrix e(spatial_dimension, spatial_dimension);
   types::Matrix s(spatial_dimension, spatial_dimension);
-
-  types::Matrix theta_sp(spatial_dimension, spatial_dimension);
 
   Real dt = this->model->getTimeStep();
   Real exp_dt_tau = exp( -dt/tau );
@@ -100,7 +138,6 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   types::Matrix & dev_s = *stress_d;
   types::Matrix & h = *history_int;
 
-  e.clear();
   s.clear();
 
   sigma.clear();
@@ -112,18 +149,6 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   if(spatial_dimension == 2 && this->plane_stress == true)
     Theta += plane_stress_coeff * (grad_u(0,0) + grad_u(1,1));
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      s(i, j) = 2 * this->mu * (.5 * (grad_u(i,j) + grad_u(j,i)) - 1./3. * Theta *(i == j));
-    }
-  
-  /// Update the internal variable
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      h(i, j)  = exp_dt_tau * h(i, j) + exp_dt_tau_2 * (s(i, j) - dev_s(i, j));
-      dev_s(i, j) = s(i, j);
-    }
-
   types::Matrix U_rond_prim(spatial_dimension, spatial_dimension);
   U_rond_prim.eye(this->kpa * Theta);
 
@@ -131,8 +156,12 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   Real gamma_v   = Ev    / this->E;
 
   for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      s(i, j) = 2 * this->mu * (.5 * (grad_u(i,j) + grad_u(j,i)) - 1./3. * Theta *(i == j));
+      h(i, j)  = exp_dt_tau * h(i, j) + exp_dt_tau_2 * (s(i, j) - dev_s(i, j));
+      dev_s(i, j) = s(i, j);
       sigma(i, j) =  U_rond_prim(i,j) + gamma_inf * s(i, j) + gamma_v * h(i, j);
+    }
 
   /// Save the deviator of stress
   ++stress_d;
