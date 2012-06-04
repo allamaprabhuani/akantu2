@@ -28,25 +28,23 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialDamageLinear<spatial_dimension>::computeStress(Real * F, Real * sigma, Real & dam, Real &K) {
-  //  Real trace = F[0] + F[4] + F[8];
-  // Real K = 1./3. * (E/(1. - 2.*nu));
-  // Real G = E / (2*(1 + nu));
-  // Real lambda = nu * E / ((1 + nu) * (1 - 2*nu));
-
-
+inline void
+MaterialDamageLinear<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+							     types::Matrix & sigma,
+							     Real & dam,
+							     Real & K) {
   Real Fdiag[3];
   Real Fdiagp[3];
 
-  Math::matrix33_eigenvalues(F, Fdiag);
+  Math::matrix33_eigenvalues(grad_u.storage(), Fdiag);
 
   Fdiagp[0] = std::max(0., Fdiag[0]);
   Fdiagp[1] = std::max(0., Fdiag[1]);
   Fdiagp[2] = std::max(0., Fdiag[2]);
 
-  Real Ehat=sqrt(Fdiagp[0]*Fdiagp[0]+Fdiagp[1]*Fdiagp[1]+Fdiagp[2]*Fdiagp[2]);
+  Real Ehat=sqrt(Fdiagp[0]*Fdiagp[0] + Fdiagp[1]*Fdiagp[1] + Fdiagp[2]*Fdiagp[2]);
 
-  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
+  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
   Real Fd = Ehat-K;
 
@@ -56,14 +54,6 @@ inline void MaterialDamageLinear<spatial_dimension>::computeStress(Real * F, Rea
     K=Ehat;
   }
 
-  sigma[0] *= 1-dam;
-  sigma[4] *= 1-dam;
-  sigma[8] *= 1-dam;
-  sigma[1] *= 1-dam;
-  sigma[3] *= 1-dam;
-  sigma[2] *= 1-dam;
-  sigma[6] *= 1-dam;
-  sigma[5] *= 1-dam;
-  sigma[7] *= 1-dam;
+  sigma *= 1-dam;
 }
 

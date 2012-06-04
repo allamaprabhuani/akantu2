@@ -72,7 +72,10 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma, Real & damage, Real &K);
+  inline void computeStressOnQuad(types::Matrix & F,
+				  types::Matrix & sigma,
+				  Real & damage,
+				  Real &K);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

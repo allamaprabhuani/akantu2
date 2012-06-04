@@ -59,7 +59,7 @@ MaterialElasticOrthotropic<spatial_dimension>::MaterialElasticOrthotropic(SolidM
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 MaterialElasticOrthotropic<spatial_dimension>::~MaterialElasticOrthotropic() {
-  delete[] S;
+  delete S;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -68,40 +68,41 @@ void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  S = new Real[9];
+  UInt size = this->getTangentStiffnessVoigtSize(spatial_dimension);
+  S = new types::Matrix(size, size);
   Real Delta;
 
   Real nu21 = nu12 * E2 / E1;
   Real nu31 = nu13 * E3 / E1;
   Real nu32 = nu23 * E3 / E2;
 
-  if(plane_stress) {
-    Delta = 1 - nu12 * nu21;
+  S->clear();
 
-    S[0] = E1 / Delta;
-    S[1] = E2 / Delta;
-    S[2] = 0;
-    S[3] = E1 * nu21 / Delta;
-    S[4] = E2 * nu12 / Delta;
-    S[5] = 0;
-    S[6] = G12;
-    S[7] = 0;
-    S[8] = 0;
-  }
-  else {
-    Delta = 1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu21 * nu13 * nu32;
+  Delta = 1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu21 * nu13 * nu32;
+  (*S)(0,0) = E1 * (1 - nu23 * nu32) / Delta;
 
-    S[0] = E1 * (1 - nu23 * nu32) / Delta;
-    S[1] = E2 * (1 - nu31 * nu13) / Delta;
-    S[2] = E3 * (1 - nu12 * nu21) / Delta;
-
-    S[3] = E2 * (nu12 + nu32 * nu13) / Delta;
-    S[4] = E1 * (nu31 + nu21 * nu32) / Delta;
-    S[5] = E3 * (nu23 + nu21 * nu13) / Delta;
-
-    S[6] = G12;
-    S[7] = G13;
-    S[8] = G23;
+  if(spatial_dimension >= 2) {
+    if(plane_stress) {
+      Delta = 1 - nu12 * nu21;
+      (*S)(0,0) = E1 / Delta;
+      (*S)(1,1) = E2 / Delta;
+      (*S)(0,1) = E1 * nu21 / Delta;
+      (*S)(1,0) = E2 * nu12 / Delta;
+      (*S)(2,2) = G12;
+    }
+    else {
+      (*S)(0,0) = E1 * (1 - nu23 * nu32) / Delta;
+      (*S)(1,1) = E2 * (1 - nu31 * nu13) / Delta;
+      (*S)(0,1) = (*S)(1,0) = E2 * (nu12 + nu32 * nu13) / Delta;
+      (*S)(size - 1,size - 1) = G12;
+    }
+    if (spatial_dimension == 3) {
+      (*S)(2,2) = E3 * (1 - nu12 * nu21) / Delta;
+      (*S)(0,2) = (*S)(2,0) = E1 * (nu31 + nu21 * nu32) / Delta;
+      (*S)(1,2) = (*S)(2,1) = E3 * (nu23 + nu21 * nu13) / Delta;
+      (*S)(4,4) = G23;
+      (*S)(5,5) = G13;
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -113,24 +114,8 @@ void MaterialElasticOrthotropic<spatial_dimension>::computeStress(ElementType el
 								  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real F[3*3];
-  Real sigma[3*3];
-
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-  //  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
-
-  computeStress(F, sigma);
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
-
+  computeStressOnQuad(grad_u, sigma);
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
@@ -143,16 +128,9 @@ void MaterialElasticOrthotropic<spatial_dimension>::computeTangentStiffness(cons
 									    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * tangent_val   = tangent_matrix.values;
-  UInt offset_tangent  = tangent_matrix.getNbComponent();
-  UInt nb_quads        = tangent_matrix.getSize();
-
-  if (nb_quads == 0) return;
-
-  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
-  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
-    computeTangentStiffness(tangent_val);
-  }
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+  tangent.copy(*S);
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }
@@ -180,13 +158,27 @@ bool MaterialElasticOrthotropic<spatial_dimension>::setParam(const std::string &
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 Real MaterialElasticOrthotropic<spatial_dimension>::getPushWaveSpeed() {
-  return sqrt( (*std::max_element(S, S+3)) /rho);
+  Real Et = (*S)(0,0);
+  if(spatial_dimension >= 2)
+    Et = std::max(Et, (*S)(1,1));
+  if(spatial_dimension == 3)
+    Et = std::max(Et, (*S)(2,2));
+
+  return sqrt( Et / rho);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 Real MaterialElasticOrthotropic<spatial_dimension>::getShearWaveSpeed() {
-  return sqrt( (*std::max_element(S+6, S+9)) /rho);
+  Real G = 0;
+  if(spatial_dimension == 2)
+    G = (*S)(2,2);
+  if(spatial_dimension == 3) {
+    G = (*S)(3,3);
+    G = std::max(G, (*S)(4,4));
+    G = std::max(G, (*S)(5,5));
+  }
+  return sqrt( G / rho);
 }
 
 /* -------------------------------------------------------------------------- */

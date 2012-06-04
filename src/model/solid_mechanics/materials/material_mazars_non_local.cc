@@ -64,25 +64,15 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(ElementType el_typ
 							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real F[3*3];
-  Real sigma[3*3];
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Ehatt = this->Ehat(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-  MaterialMazars<spatial_dimension>::computeStress(F, sigma, *dam, *Ehatt);
+  MaterialMazars<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
+							 *dam, *Ehatt);
   ++dam;
   ++Ehatt;
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -125,34 +115,18 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Rea
 #else
   Real * dam   = this->damage(el_type, ghost_type).storage();
 #endif
-
   Real * nl_var = non_loc_var.storage();
 
-  Real sigma[3*3];
-  Real F[3*3] ;
-
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
-      sigma[3 * i + j] = stress_val[spatial_dimension*i + j];
-    }
 
 #ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
-  this->computeDamageAndStress(F, sigma, *nl_var, *Ehatt);
+  this->computeDamageAndStressOnQuad(grad_u, sigma, *nl_var, *Ehatt);
   ++Ehatt;
 #else
-  this->computeDamageAndStress(F, sigma, *dam, *nl_var);
+  this->computeDamageAndStressOnQuad(grad_u, sigma, *dam, *nl_var);
   ++dam;
 #endif
-
   ++nl_var;
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 

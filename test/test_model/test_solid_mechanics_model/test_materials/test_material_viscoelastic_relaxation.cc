@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
   output_data << "#[1]-time [2]-sigma_analytic [3+]-sigma_measurements" << std::endl;
 
   MaterialViscoElastic<dim> & mat = dynamic_cast<MaterialViscoElastic<dim> &>(model.getMaterial(0));
+
   const Vector<Real> & stress = mat.getStress(element_type);
 
   Real Eta = mat.getEta();

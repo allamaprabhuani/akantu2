@@ -41,19 +41,19 @@ add_dependencies(test_local_material
   )
 
 add_mesh(test_material_non_local_mesh mesh.geo 2 2 OUTPUT mesh.msh)
-register_test(test_material_non_local test_material_non_local.cc)
-add_dependencies(test_material_non_local
-  test_material_non_local_mesh
-  )
+#register_test(test_material_non_local test_material_non_local.cc)
+#add_dependencies(test_material_non_local
+#  test_material_non_local_mesh
+#  )
 
 register_test(test_material_damage_non_local test_material_damage_non_local.cc)
 add_dependencies(test_material_damage_non_local
-  test_local_material_barre_trou_mesh
+  test_material_non_local_mesh
   )
 
 #===============================================================================
 file(COPY material.dat DESTINATION .)
-file(COPY material_non_local.dat DESTINATION .)
+#file(COPY material_non_local.dat DESTINATION .)
 file(COPY material_damage_non_local.dat DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

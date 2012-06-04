@@ -145,16 +145,15 @@ int main(int argc, char *argv[]) {
   Int psize = comm->getNbProc();
   Int prank = comm->whoAmI();
 
-  DistributedSynchronizer * communicator;
   if(prank == 0) {
     MeshIOMSH mesh_io;
     mesh_io.read("triangle.msh", mesh);
     MeshPartition * partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
-    communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
+    DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
     delete partition;
   } else {
-    communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
+    DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
   }
 
 #ifdef AKANTU_USE_IOHELPER

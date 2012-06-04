@@ -417,6 +417,12 @@ namespace types {
       return tmp;
     }
 
+    /* ---------------------------------------------------------------------- */
+    inline void inv(const Matrix & A) {
+      AKANTU_DEBUG_ASSERT(A.n == A.m, "inv is not a valid operation on a rectangular matrix");
+      AKANTU_DEBUG_ASSERT(n == A.n, "the matrix should have the same size as its inverse");
+      Math::inv(A.n, A.values, this->values);
+    }
 
     /* ---------------------------------------------------------------------- */
     /// function to print the containt of the class

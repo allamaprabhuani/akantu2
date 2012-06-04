@@ -49,6 +49,7 @@ template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
+  if (spatial_dimension == 1) nu = 0.;
 
   lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
   mu       = E / (2 * (1 + nu));
@@ -68,24 +69,8 @@ template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real F[3*3];
-  Real sigma[3*3];
-
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-  //  for (UInt i = 0; i < spatial_dimension; ++i) F[i*3 + i] -= 1;
-
-  computeStress(F, sigma);
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
-
+  computeStressOnQuad(grad_u, sigma);
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
@@ -98,16 +83,9 @@ void MaterialElastic<spatial_dimension>::computeTangentStiffness(__attribute__((
 								 __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * tangent_val   = tangent_matrix.values;
-  UInt offset_tangent  = tangent_matrix.getNbComponent();
-  UInt nb_quads        = tangent_matrix.getSize();
-
-  if (nb_quads == 0) return;
-
-  memset(tangent_val, 0, offset_tangent * nb_quads * sizeof(Real));
-  for (UInt q = 0; q < nb_quads; ++q, tangent_val += offset_tangent) {
-    computeTangentStiffness(tangent_val);
-  }
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+  computeTangentStiffnessOnQuad(tangent);
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }

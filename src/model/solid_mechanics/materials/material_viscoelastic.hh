@@ -43,7 +43,7 @@ __BEGIN_AKANTU__
  *
  * @verbatim
 
-             E_\inf  
+             E_\inf
       ------|\/\/\|------
       |                 |
    ---|                 |---
@@ -54,7 +54,7 @@ __BEGIN_AKANTU__
  @endverbatim
  *
  * parameters in the material files :
- *   - E   : Initial Young's modulus @f[ E = E_\inf + E_v @f]
+ *   - E   : Initial Young's modulus @f$ E = E_i + E_v @f$
  *   - eta : viscosity
  *   - Ev  : stiffness of the viscous element
  */

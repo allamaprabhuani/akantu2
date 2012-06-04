@@ -39,6 +39,23 @@ __END_AKANTU__
 # endif //AKANTU_USE_BLAS_MKL
 #endif //AKANTU_USE_BLAS
 
+#ifdef AKANTU_USE_LAPACK
+extern "C" {
+  void dgeev_(char* jobvl, char* jobvr, int* n, double* a,
+	      int* lda, double* wr, double* wi, double* vl, int* ldvl,
+	      double* vr, int* ldvr, double* work, int* lwork, int* info);
+
+  // LU decomposition of a general matrix
+  void dgetrf_(int* m, int *n,
+	       double* a, int* lda,
+	       int* ipiv, int* info);
+
+  // generate inverse of a matrix given its LU decomposition
+  void dgetri_(int* n, double* a, int* lda,
+	       int* ipiv, double* work, int* lwork, int* info);
+}
+#endif
+
 __BEGIN_AKANTU__
 
 
@@ -244,13 +261,6 @@ inline void Math::matVectMul(UInt m, UInt n,
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_LAPACK
-extern "C" {
-  void dgeev_(char* jobvl, char* jobvr, int* n, double* a,
-	      int* lda, double* wr, double* wi, double* vl, int* ldvl,
-	      double* vr, int* ldvr, double* work, int* lwork, int* info);
-}
-
-
 inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
 
   // Matrix  A is  row major,  so the  lapack function  in fortran  will process
@@ -289,6 +299,39 @@ inline void Math::matrixEig(__attribute__((unused)) UInt n,
   AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
 }
 #endif
+
+#ifdef AKANTU_USE_LAPACK
+inline void Math::inv(UInt n, const Real * A, Real * invA) {
+  int N = n;
+  int info;
+  int * ipiv = new int[N+1];
+  int lwork = N*N;
+  double * work = new double[lwork];
+
+  std::copy(A, A + n*n, invA);
+
+  dgetrf_(&N, &N, invA, &N, ipiv, &info);
+  if(info > 0) {
+    AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "
+		       << info <<" )");
+  }
+
+  dgetri_(&N, invA, &N, ipiv, work, &lwork, &info);
+  if(info != 0) {
+    AKANTU_DEBUG_ERROR("Cannot invert the matrix (info: "<< info <<" )");
+  }
+
+  delete [] ipiv;
+  delete [] work;
+}
+#else
+inline void Math::inv(__attribute__((unused)) UInt n,
+		      __attribute__((unused)) const Real * A,
+		      __attribute__((unused)) Real * Ainv) {
+  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
+}
+#endif
+
 /* -------------------------------------------------------------------------- */
 inline Real Math::det2(const Real * mat) {
   return mat[0]*mat[3] - mat[1]*mat[2];

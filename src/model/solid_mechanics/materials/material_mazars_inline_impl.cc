@@ -31,14 +31,15 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeStress(Real * F,
-							     Real * sigma,
-							     Real & dam,
-							     Real & Ehat) {
-  Real Fdiag[3];
-  Real Fdiagp[3];
+inline void
+MaterialMazars<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+						       types::Matrix & sigma,
+						       Real & dam,
+						       Real & Ehat) {
+  Real Fdiag[3] = { 0 };
+  Real Fdiagp[3] = { 0 };
 
-  Math::matrix33_eigenvalues(F, Fdiag);
+  Math::matrix33_eigenvalues(grad_u.storage(), Fdiag);
 
   Fdiagp[0] = std::max(0., Fdiag[0]);
   Fdiagp[1] = std::max(0., Fdiag[1]);
@@ -46,7 +47,7 @@ inline void MaterialMazars<spatial_dimension>::computeStress(Real * F,
 
   Ehat = sqrt(Fdiagp[0]*Fdiagp[0] + Fdiagp[1]*Fdiagp[1] + Fdiagp[2]*Fdiagp[2]);
 
-  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
+  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
 #ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
   Real Fs = Ehat - K0;
@@ -98,24 +99,28 @@ inline void MaterialMazars<spatial_dimension>::computeStress(Real * F,
 #endif // AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
 
   if(!this->is_non_local) {
-    computeDamageAndStress(F,sigma, dam, Ehat);
+    computeDamageAndStressOnQuad(grad_u, sigma, dam, Ehat);
   }
 }
 
 #ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
 template<UInt spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeDamageAndStress(__attribute__((unused)) Real *F,
-								      Real * sigma, Real & dam,
-								      __attribute__((unused)) Real & Ehat) {
+inline void
+MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(__attribute__((unused)) types::Matrix & grad_u,
+								types::Matrix & sigma,
+								Real & dam,
+								__attribute__((unused)) Real & Ehat) {
 #else
-template<UInt spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeDamageAndStress(Real *F,
-								      Real * sigma, Real & dam,
-								      Real & Ehat) {
+  template<UInt spatial_dimension>
+inline void
+MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & grad_u,
+								types::Matrix & sigma,
+								Real & dam,
+								Real & Ehat) {
   Real Fdiag[3];
   Real Fdiagp[3];
 
-  Math::matrix33_eigenvalues(F, Fdiag);
+  Math::matrix33_eigenvalues(grad_u.storage(), Fdiag);
 
   Fdiagp[0] = std::max(0., Fdiag[0]);
   Fdiagp[1] = std::max(0., Fdiag[1]);
@@ -168,6 +173,5 @@ inline void MaterialMazars<spatial_dimension>::computeDamageAndStress(Real *F,
   dam = std::min(dam,1.);
 #endif // AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
 
-
-  for(UInt i = 0; i < 9; ++i) sigma[i] *= 1 - dam;
+  sigma *= 1 - dam;
 }

@@ -82,7 +82,7 @@ Real start_displacement = 0.2;
 
 Mesh * mesh;
 SolidMechanicsModel * model;
-UInt spatial_dimension = 2;
+const UInt spatial_dimension = 2;
 Real time_step_security = 10.;//3.;
 Real time_step;
 UInt nb_nodes;
@@ -173,7 +173,7 @@ Int main(int argc, char *argv[])
 
   /// read and initialize material
   model->readMaterials("material_elastic_caughey.dat");
-  MaterialElasticCaughey & my_mat = dynamic_cast<MaterialElasticCaughey & > (model->getMaterial(0));
+  MaterialElasticCaughey<spatial_dimension> & my_mat = dynamic_cast<MaterialElasticCaughey<spatial_dimension> & > (model->getMaterial(0));
   my_mat.setAlpha(viscous_factor);
   model->initMaterials();
 

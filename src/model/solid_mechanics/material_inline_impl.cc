@@ -38,15 +38,44 @@ inline UInt Material::addElement(const ElementType & type,
 inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
   return (dim * (dim - 1) / 2 + dim);
 }
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+inline void Material::gradUToF(const types::Matrix & grad_u,
+			       types::Matrix & F) {
+  UInt size_F = F.size();
+
+  AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim,
+		      "The dimension of the tensor F should be greater or equal to the dimension of the tensor grad_u.");
+
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
+      F(i, j) = grad_u(i, j);
+
+  for (UInt i = 0; i < size_F; ++i) F(i, i) += 1;
+}
 
 /* -------------------------------------------------------------------------- */
-inline void Material::computePotentialEnergy(Real * F, Real * sigma, Real * epot) {
-  *epot = 0.;
-  for (UInt i = 0, t = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j, ++t)
-      (*epot) += sigma[t] * F[t];
+inline void Material::rightCauchy(const types::Matrix & F,
+				  types::Matrix & C) {
+  C.mul<true, false>(F, F);
+}
 
-  *epot *= .5;
+/* -------------------------------------------------------------------------- */
+inline void Material::leftCauchy(const types::Matrix & F,
+				 types::Matrix & B) {
+  B.mul<false, true>(F, F);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Material::computePotentialEnergyOnQuad(types::Matrix & grad_u,
+						   types::Matrix & sigma,
+						   Real & epot) {
+  epot = 0.;
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      epot += sigma(i, j) * grad_u(i, j);
+
+  epot *= .5;
 }
 
 /* -------------------------------------------------------------------------- */

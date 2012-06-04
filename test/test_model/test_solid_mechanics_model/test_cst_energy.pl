@@ -20,6 +20,7 @@ my $fh;
 my @files = ();
 
 my $filename = shift @ARGV;
+my $tol = shift @ARGV;
 
 open($fh, $filename) or die "Cannot open $filename";
 
@@ -39,9 +40,10 @@ close($fh);
 my $mean = mean(@mesure);
 my $std_devi = sqrt(variance($mean, @mesure));
 
-if (($std_devi/$mean <= 1e-3)) {
+if (($std_devi/$mean <= $tol)) {
+  say "Pass: Mean $mean (std devi $std_devi) -> ".($std_devi/$mean)." <= $tol";
   exit 0;
 } else {
-  say "Mean : $mean (std devi $std_devi)";
+  say "FAIL: Mean $mean (std devi $std_devi) -> ".($std_devi/$mean)." > $tol";
   exit 1;
 }

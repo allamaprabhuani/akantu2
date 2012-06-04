@@ -31,43 +31,21 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialElasticOrthotropic<spatial_dimension>::computeStress(Real * F, Real * sigma) {
+inline void
+MaterialElasticOrthotropic<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+								   types::Matrix & sigma) {
   /// \mathbf{\sigma} = \mathbf{S} \mathbf{F}
-  sigma[0] = S[0] * F[0] + S[3] * F[4] + S[4] * F[8];
-  sigma[4] = S[3] * F[0] + S[1] * F[4] + S[5] * F[8];
-  sigma[8] = S[4] * F[0] + S[5] * F[4] + S[2] * F[8];
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      sigma(i,i) = (*S)(i,j) * grad_u(i,i);
 
-  sigma[1] = sigma[3] = S[6] * (F[1] + F[3]) / 2;
-  sigma[2] = sigma[6] = S[7] * (F[2] + F[6]) / 2;
-  sigma[5] = sigma[7] = S[8] * (F[5] + F[7]) / 2;
-}
+  if(spatial_dimension == 2)
+    sigma(0,1) = sigma(1,0) = (*S)(2,2) * (grad_u(0,1) + grad_u(1,0)) / 2;
 
-/* -------------------------------------------------------------------------- */
-template<UInt dim>
-void MaterialElasticOrthotropic<dim>::computeTangentStiffness(Real * tangent) {
-
-  UInt n = (dim * (dim - 1) / 2 + dim);
-
-  tangent[0 * n + 0] = S[0];
-
-  // test of dimension should by optimized out by the compiler due to the template
-  if(dim >= 2) {
-    tangent[1 * n + 1] = S[1];
-    tangent[0 * n + 1] = S[3];
-    tangent[1 * n + 0] = S[3];
-
-    tangent[(n - 1) * n + (n - 1)] = S[6];
-  }
-
-  if(dim == 3) {
-    tangent[2 * n + 2] = S[2];
-    tangent[0 * n + 2] = S[4];
-    tangent[1 * n + 2] = S[5];
-    tangent[2 * n + 0] = S[4];
-    tangent[2 * n + 1] = S[5];
-
-    tangent[3 * n + 3] = S[7];
-    tangent[4 * n + 4] = S[8];
+  if(spatial_dimension == 3) {
+    sigma(2,1) = sigma(1,2) = (*S)(3,3) * (grad_u(2,1) + grad_u(1,2)) / 2;
+    sigma(0,2) = sigma(2,0) = (*S)(4,4) * (grad_u(0,2) + grad_u(2,0)) / 2;
+    sigma(0,1) = sigma(1,0) = (*S)(5,5) * (grad_u(0,1) + grad_u(1,0)) / 2;
   }
 }
 

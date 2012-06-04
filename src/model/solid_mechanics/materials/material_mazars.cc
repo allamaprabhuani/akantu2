@@ -66,24 +66,13 @@ void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
 						      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real F[3*3];
-  Real sigma[3*3];
   Real * dam = this->damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
 
   Real Ehat;
-  computeStress(F, sigma, *dam, Ehat);
+  computeStressOnQuad(grad_u, sigma, *dam, Ehat);
   ++dam;
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 

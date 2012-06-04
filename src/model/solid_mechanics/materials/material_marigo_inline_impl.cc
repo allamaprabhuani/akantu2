@@ -29,48 +29,42 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::computeDamageAndStress(Real * sigma, Real & dam,
-								      Real & Y, Real &Ydq) {
+inline void
+MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & sigma,
+								Real & dam,
+								Real & Y,
+								Real &Ydq) {
   Real Fd = Y - Ydq - Sd * dam;
 
   if (Fd > 0) dam = (Y - Ydq) / Sd;
   dam = std::min(dam,1.);
 
-  sigma[0] *= 1-dam;
-  sigma[4] *= 1-dam;
-  sigma[8] *= 1-dam;
-  sigma[1] *= 1-dam;
-  sigma[3] *= 1-dam;
-  sigma[2] *= 1-dam;
-  sigma[6] *= 1-dam;
-  sigma[5] *= 1-dam;
-  sigma[7] *= 1-dam;
+  sigma *= 1-dam;
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::computeStress(Real * F,
-							     Real * sigma,
-							     Real & dam,
-							     Real & Y, Real &Ydq) {
-  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
+inline void
+MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+						       types::Matrix & sigma,
+						       Real & dam,
+						       Real & Y,
+						       Real &Ydq) {
+  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
-  Y = sigma[0]*F[0] +
-    sigma[1]*F[1] +
-    sigma[2]*F[2] +
-    sigma[3]*F[3] +
-    sigma[4]*F[4] +
-    sigma[5]*F[5] +
-    sigma[6]*F[6] +
-    sigma[7]*F[7] +
-    sigma[8]*F[8];
+  Y = 0;
+  for (UInt i = 0; i < spatial_dimension; ++i) {
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      Y += sigma(i,j) * grad_u(i,j);
+    }
+  }
   Y *= 0.5;
 
   //Y *= (1 - dam);
   //Y = std::min(Y, Yc);
 
   if(!this->is_non_local) {
-    computeDamageAndStress(sigma, dam, Y, Ydq);
+    computeDamageAndStressOnQuad(sigma, dam, Y, Ydq);
   }
 }
 

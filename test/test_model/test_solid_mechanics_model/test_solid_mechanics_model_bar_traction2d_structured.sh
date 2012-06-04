@@ -6,7 +6,7 @@ rm energy.csv
 
 if [ $? -eq 0 ]
 then
-    ./test_cst_energy.pl energy.csv
+    ./test_cst_energy.pl energy.csv 1e-3
 else
     return $?
 fi

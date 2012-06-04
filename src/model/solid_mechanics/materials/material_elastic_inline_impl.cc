@@ -30,46 +30,29 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeStress(Real * F, Real * sigma) {
-  Real trace = F[0] + F[4] + F[8]; /// \F_{11} + \F_{22} + \F_{33}
-
-  /// \sigma_{ij} = \lamda * \F_{kk} * \delta_{ij} + 2 * \mu * \F_{ij}
-  sigma[0] = lambda * trace + 2*mu*F[0];
-  sigma[4] = lambda * trace + 2*mu*F[4];
-  //  if(plane_stress) F[8] = (F[0] + F[4])*(nu/(nu-1.));
-  sigma[8] = lambda * trace + 2*mu*F[8];
-
-
-  sigma[1] = sigma[3] =  mu * (F[1] + F[3]);
-  sigma[2] = sigma[6] =  mu * (F[2] + F[6]);
-  sigma[5] = sigma[7] =  mu * (F[5] + F[7]);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeStress(types::Matrix & grad_u,
-							      types::Matrix & sigma) {
+inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+								    types::Matrix & sigma) {
   Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
 
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
-      sigma(i, j) =  (i == j) * lambda * trace + mu*(grad_u(i, j) + grad_u(j, i));
+      sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i));
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void MaterialElastic<1>::computeStress(Real * F, Real * sigma) {
-  sigma[0] = E * F[0];
+inline void MaterialElastic<1>::computeStressOnQuad(types::Matrix & grad_u,
+						    types::Matrix & sigma) {
+  sigma(0, 0) =  E*grad_u(0, 0);
 }
 
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentStiffness(Real * tangent) {
-
+void MaterialElastic<spatial_dimension>::computeTangentStiffnessOnQuad(types::Matrix & tangent) {
   UInt n = (spatial_dimension * (spatial_dimension - 1) / 2 + spatial_dimension);
 
   Real Ep = E/((1+nu)*(1-2*nu));
@@ -77,26 +60,26 @@ void MaterialElastic<spatial_dimension>::computeTangentStiffness(Real * tangent)
   Real Miijj = Ep * nu;
   Real Mijij = Ep * (1-2*nu) * .5;
 
-  tangent[0 * n + 0] = Miiii;
+  tangent(0, 0) = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the template
   if(spatial_dimension >= 2) {
-    tangent[1 * n + 1] = Miiii;
-    tangent[0 * n + 1] = Miijj;
-    tangent[1 * n + 0] = Miijj;
+    tangent(1, 1) = Miiii;
+    tangent(0, 1) = Miijj;
+    tangent(1, 0) = Miijj;
 
-    tangent[(n - 1) * n + (n - 1)] = Mijij;
+    tangent(n - 1, n - 1) = Mijij;
   }
 
   if(spatial_dimension == 3) {
-    tangent[2 * n + 2] = Miiii;
-    tangent[0 * n + 2] = Miijj;
-    tangent[1 * n + 2] = Miijj;
-    tangent[2 * n + 0] = Miijj;
-    tangent[2 * n + 1] = Miijj;
+    tangent(2, 2) = Miiii;
+    tangent(0, 2) = Miijj;
+    tangent(1, 2) = Miijj;
+    tangent(2, 0) = Miijj;
+    tangent(2, 1) = Miijj;
 
-    tangent[3 * n + 3] = Mijij;
-    tangent[4 * n + 4] = Mijij;
+    tangent(3, 3) = Mijij;
+    tangent(4, 4) = Mijij;
   }
 }
 

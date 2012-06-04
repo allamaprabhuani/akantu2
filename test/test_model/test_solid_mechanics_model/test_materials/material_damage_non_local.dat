@@ -1,4 +1,4 @@
-material damage_non_local [
+material marigo_non_local [
 	 name = concrete
 	 rho = 3000    # density
 	 E   = 40e9    # young's modulus

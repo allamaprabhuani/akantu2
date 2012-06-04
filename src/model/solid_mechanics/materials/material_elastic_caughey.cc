@@ -87,31 +87,27 @@ void MaterialElasticCaughey<spatial_dimension>::computeStress(ElementType el_typ
    					     spatial_dimension,
    					     el_type, ghost_type, &elem_filter);
 
-  Real F[3*3];
-  Real sigma[3*3];
-  Real * strain_rate_val = strain_rate.storage();
-  Real * stress_visc_val = stress_visc.storage();
-  Real * stress_el_val   = stress_el.storage();
+  Vector<Real>::iterator<types::Matrix> strain_rate_it =
+    strain_rate.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::Matrix> stress_visc_it =
+    stress_visc.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::Matrix> stress_el_it =
+    stress_el.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
+  types::Matrix & strain_rate = *strain_rate_it;
+  types::Matrix & sigma_visc  = *stress_visc_it;
+  types::Matrix & sigma_el    = *stress_el_it;
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_rate_val[spatial_dimension * i + j];
+  MaterialElastic<spatial_dimension>::computeStressOnQuad(strain_rate, sigma_visc);
 
-  MaterialElastic<spatial_dimension>::computeStress(F, sigma);
+  sigma_visc *= alpha;
+  sigma_el.copy(sigma);
+  sigma += sigma_visc;
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      stress_visc_val[spatial_dimension * i + j]  = alpha * sigma[3 * i + j];
-      stress_el_val  [spatial_dimension * i + j]  = stress_val[spatial_dimension*i + j];
-      stress_val     [spatial_dimension * i + j] += stress_visc_val[spatial_dimension*i + j];
-    }
-
-  strain_rate_val += spatial_dimension * spatial_dimension;
-  stress_visc_val += spatial_dimension * spatial_dimension;
-  stress_el_val   += spatial_dimension * spatial_dimension;
+  ++strain_rate_it;
+  ++stress_visc_it;
+  ++stress_el_it;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -127,16 +123,18 @@ void MaterialElasticCaughey<spatial_dimension>::computePotentialEnergy(ElementTy
   if(ghost_type != _not_ghost) return;
 
   Vector<Real> & stress_el = stress_elastic(el_type, ghost_type);
-  Real * stress_el_val = stress_el.storage();
+  Vector<Real>::iterator<types::Matrix> stress_el_it =
+    stress_el.begin(spatial_dimension, spatial_dimension);
 
   Real * epot = this->potential_energy(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-
-  MaterialElastic<spatial_dimension>::computePotentialEnergy(strain_val, stress_el_val, epot);
+  types::Matrix & sigma_el    = *stress_el_it;
+  Material::computePotentialEnergyOnQuad(grad_u,
+					 sigma_el,
+					 *epot);
   epot++;
-  stress_el_val += spatial_dimension*spatial_dimension;
-
+  ++stress_el_it;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
@@ -157,16 +155,14 @@ bool MaterialElasticCaughey<spatial_dimension>::setParam(const std::string & key
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 Real MaterialElasticCaughey<spatial_dimension>::getParam(const ID & param) const {
-  ID key = to_lower(param);
-  if(key == "alpha") { return alpha; }
+  if(param == "alpha") { return alpha; }
   else return Material::getParam(param);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElasticCaughey<spatial_dimension>::setParam(const ID & param, Real value) {
-  ID key = to_lower(param);
-  if(key == "alpha") { alpha = value; }
+  if(param == "alpha") { alpha = value; }
   else Material::setParam(param, value);
 }
 

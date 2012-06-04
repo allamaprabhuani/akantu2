@@ -175,8 +175,8 @@ set(CORE_FILES
   model/integration_scheme/generalized_trapezoidal_inline_impl.cc
   model/integration_scheme/newmark-beta_inline_impl.cc
   model/solid_mechanics/solid_mechanics_model_inline_impl.cc
-  model/solid_mechanics/materials/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
+  model/solid_mechanics/materials/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   model/solid_mechanics/materials/material_non_local_inline_impl.cc
   model/solid_mechanics/materials/material_neohookean_inline_impl.cc

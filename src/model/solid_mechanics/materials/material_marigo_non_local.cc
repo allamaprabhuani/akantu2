@@ -70,28 +70,16 @@ void MaterialMarigoNonLocal<spatial_dimension>::computeStress(ElementType el_typ
 							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real F[3*3];
-  Real sigma[3*3];
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Yt = Y(el_type, ghost_type).storage();
   Real * Ydq = this->Yd_rand(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-  MaterialMarigo<spatial_dimension>::computeStress(F, sigma, *dam, *Yt, *Ydq);
+  MaterialMarigo<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
+							 *dam, *Yt, *Ydq);
   ++dam;
   ++Yt;
   ++Ydq;
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
-
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
@@ -125,38 +113,16 @@ void MaterialMarigoNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Rea
 								      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
-  UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
-  if (nb_element == 0) return;
-
-  Vector<Real>::iterator<types::Matrix> stress_it =
-    this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Ynlt = Ynl.storage();
   Real * Ydq = this->Yd_rand(el_type, ghost_type).storage();
 
-  Real sigma[3*3];
-
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      for (UInt i = 0; i < spatial_dimension; ++i)
-        for (UInt j = 0; j < spatial_dimension; ++j) {
-	  sigma[3 * i + j] = (*stress_it)(i, j);
-	}
-
-      this->computeDamageAndStress(sigma, *dam, *Ynlt, *Ydq);
-
-      for (UInt i = 0; i < spatial_dimension; ++i)
-        for (UInt j = 0; j < spatial_dimension; ++j)
-          (*stress_it)(i, j) = sigma[3 * i + j];
-
-      ++stress_it;
-      ++dam;
-      ++Ynlt;
-      ++Ydq;
-    }
-  }
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  this->computeDamageAndStressOnQuad(sigma, *dam, *Ynlt, *Ydq);
+  ++dam;
+  ++Ynlt;
+  ++Ydq;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   this->updateDissipatedEnergy(ghost_type);
 

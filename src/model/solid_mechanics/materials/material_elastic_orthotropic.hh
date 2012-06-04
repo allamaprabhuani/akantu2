@@ -93,10 +93,8 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
-
-  /// compute the tangent stiffness matrix for an element
-  void computeTangentStiffness(Real * tangent);
+  inline void computeStressOnQuad(types::Matrix & grad_u,
+				  types::Matrix & sigma);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -149,7 +147,7 @@ protected:
   Real G23;
 
   /// stiffness coefficients
-  Real * S;
+  types::Matrix * S;
 
   /// Plane stress or plane strain
   bool plane_stress;

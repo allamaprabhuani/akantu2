@@ -188,7 +188,7 @@ template<> UInt ElementClass<_quadrangle_4>::nb_nodes_per_element    = 4;
 template<> ElementType ElementClass<_quadrangle_4>::p1_element_type  = _quadrangle_4;
 template<> UInt ElementClass<_quadrangle_4>::nb_quadrature_points    = 4;
 //template<> Real ElementClass<_quadrangle_4>::quad[]                  = {0, 0};
-template<> Real ElementClass<_quadrangle_4>::quad[]                  = {-1./sqrt(3), -1./sqrt(3),
+template<> Real ElementClass<_quadrangle_4>::quad[]                  = {-1./std::sqrt(3), -1./sqrt(3),
 									 1./sqrt(3), -1./sqrt(3),
 									 1./sqrt(3),  1./sqrt(3),
 									-1./sqrt(3),  1./sqrt(3)};

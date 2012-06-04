@@ -103,13 +103,6 @@ void paraviewInit(iohelper::Dumper & dumper,
   dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
 			  spatial_dimension*spatial_dimension, "stress");
 
-
-  if(dynamic_cast<const MaterialDamage *>(&model.getMaterial(0))) {
-    const MaterialDamage & mat = dynamic_cast<const MaterialDamage &>(model.getMaterial(0));
-    Real * dam = mat.getDamage(type).storage();
-    dumper.AddElemDataField(dam, 1, "damage");
-  }
-
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
 

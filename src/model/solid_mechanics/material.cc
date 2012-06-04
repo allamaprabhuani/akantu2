@@ -413,7 +413,7 @@ void Material::computePotentialEnergy(ElementType el_type, GhostType ghost_type)
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-  computePotentialEnergy(strain_val, stress_val, epot);
+  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
   epot++;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;

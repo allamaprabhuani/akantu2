@@ -30,98 +30,93 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialNeohookean<spatial_dimension>::computeStress(Real * F, Real * sigma) {
+inline void
+MaterialNeohookean<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+							   types::Matrix & sigma) {
+  types::Matrix F(3, 3);
+  this->template gradUToF<spatial_dimension>(grad_u, F);
+
   ///First compute the Left Cauchy-Green deformation tensor : C= F^tF.
-  Real C[3*3];
-  Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
+  types::Matrix C(3, 3);
+  this->rightCauchy(F, C);
 
   ///Compute determinant of C
-  Real detC;
-  detC = Math::det3(C);
+  Real detC = Math::det3(C.storage());
+  Real defvol = 0.5 * log(detC);
 
-  Real defvol ;
-  defvol= 0.5*log(detC);
+  Real p = lambda * defvol;
 
-  Real p;
-  p = lambda * defvol;
+  types::Matrix S(3, 3);
+  Math::inv3(C.storage(), S.storage());
 
-  // Real traceC;
-  // traceC = C[0]+C[4]+C[8];
+  S *= p - mu;
 
-  Real Cinv[3*3];
-  Math::inv3(C, Cinv);
+  for (UInt i = 0; i < 3; ++i) S(i,i) = S(i,i) + mu;
 
-  Real coef = p - mu;
+  types::Matrix sigma_tmp(3, 3);
+  sigma_tmp.mul<false, false>(F, S);
 
-  Real S[3*3];
-  for(UInt i=0; i < 3*3; i++){
-    S[i] = coef*Cinv[i];
-  }
-
-  S[0] = S[0] + mu;
-  S[4] = S[4] + mu;
-  S[8] = S[8] + mu;
-
-  Math::matrix_matrix(3, 3,3, F, S, sigma, 1.);
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      sigma(i, j) = sigma_tmp(i, j);
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-void MaterialNeohookean<dim>::computeTangentStiffness(Real * tangent,
-						      Real * F ) {
-  UInt n = (dim * (dim - 1) / 2 + dim);
-  Real J = Math::det3(F);
-  Real alpha = mu - 0.5*lambda*(J*J - 1);
-  Real Miiii = 2*mu+lambda;
+template<UInt spatial_dimension>
+inline void
+MaterialNeohookean<spatial_dimension>::computeTangentStiffnessOnQuad(types::Matrix & grad_u,
+								     types::Matrix & tangent) {
+  UInt n = tangent.size();
+  types::Matrix F(3, 3);
+  this->template gradUToF<spatial_dimension>(grad_u, F);
+  Real J = Math::det3(F.storage());
+  Real Miiii = 2*mu + lambda;
   Real Miijj = lambda*J*J;
-  Real Mijij = alpha;
+  Real Mijij = mu - 0.5*lambda*(J*J - 1);
 
-  tangent[0 * n + 0] = Miiii;
+  tangent(0, 0) = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the template
-  if(dim >= 2) {
-    tangent[1 * n + 1] = Miiii;
-    tangent[0 * n + 1] = Miijj;
-    tangent[1 * n + 0] = Miijj;
+  if(spatial_dimension >= 2) {
+    tangent(1, 1) = Miiii;
+    tangent(0, 1) = Miijj;
+    tangent(1, 0) = Miijj;
 
-    tangent[(n - 1) * n + (n - 1)] = Mijij;
+    tangent(n - 1, n - 1) = Mijij;
   }
 
-  if(dim == 3) {
-    tangent[2 * n + 2] = Miiii;
-    tangent[0 * n + 2] = Miijj;
-    tangent[1 * n + 2] = Miijj;
-    tangent[2 * n + 0] = Miijj;
-    tangent[2 * n + 1] = Miijj;
+  if(spatial_dimension == 3) {
+    tangent(2, 2) = Miiii;
+    tangent(0, 2) = Miijj;
+    tangent(1, 2) = Miijj;
+    tangent(2, 0) = Miijj;
+    tangent(2, 1) = Miijj;
 
-    tangent[3 * n + 3] = Mijij;
-    tangent[4 * n + 4] = Mijij;
+    tangent(3, 3) = Mijij;
+    tangent(4, 4) = Mijij;
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(Real * F,
-									  Real * epot) {
-  *epot = 0.;
-  Real C[3*3];
-  Math::matMul<true,false>(3,3,3,1.,F,F,0.,C);
+inline void
+MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(types::Matrix & grad_u,
+								    Real & epot) {
 
-  ///Compute determinant of C
-  Real detC;
-  detC = Math::det3(C);
+  types::Matrix F(3, 3);
+  types::Matrix C(3, 3);
 
-  Real defvol ;
-  defvol = 0.5*log(detC);
+  Material::gradUToF<spatial_dimension>(grad_u, F);
+  this->rightCauchy(F, C);
 
-  Real p;
-  p = lambda*defvol;
+  Real detC = Math::det3(C.storage());
 
-  Real traceC;
-  traceC = C[0] + C[4] + C[8];
+  Real defvol = 0.5*log(detC);
+  Real p = lambda * defvol;
+  Real traceC = C.trace();
 
   /// potential energy
-  *epot = (0.5*p - mu)*defvol + 0.5*mu*(traceC - 3.);
+  epot = (0.5*p - mu)*defvol + 0.5*mu*(traceC - 3.);
 }
 
 /* -------------------------------------------------------------------------- */

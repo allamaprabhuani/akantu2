@@ -68,27 +68,19 @@ template<UInt spatial_dimension>
 void MaterialVreePeerlingsNonLocal<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real F[3*3];
-  Real sigma[3*3];
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * equi_straint = equi_strain(el_type, ghost_type).storage();
   Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  memset(F, 0, 3 * 3 * sizeof(Real));
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      F[3*i + j] = strain_val[spatial_dimension * i + j];
-
-  MaterialVreePeerlings<spatial_dimension>::computeStress(F, sigma, *dam, *equi_straint, *Kapaq);
+  MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
+								*dam,
+								*equi_straint,
+								*Kapaq);
   ++dam;
   ++equi_straint;
   ++Kapaq;
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -125,24 +117,12 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension>::computeNonLocalStress(Vec
 
   Real * nl_var = non_loc_var.storage();
 
-  Real sigma[3*3];
-
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      sigma[3 * i + j] = stress_val[spatial_dimension*i + j];
-    }
-
-  this->computeDamageAndStress(sigma, *dam, *nl_var, *Kapaq);
+  this->computeDamageAndStressOnQuad(sigma, *dam, *nl_var, *Kapaq);
   ++dam;
   ++Kapaq;
   ++nl_var;
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      stress_val[spatial_dimension*i + j] = sigma[3 * i + j];
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 

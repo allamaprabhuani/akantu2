@@ -45,7 +45,7 @@ __BEGIN_AKANTU__
  *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
  */
 template<UInt spatial_dimension>
-class MaterialNeohookean : public Material {
+class MaterialNeohookean : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -84,13 +84,16 @@ private:
   Real celerity(const Element & element);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergy(Real * F, Real * epot);
+  inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
+					   Real & epot);
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
+  inline void computeStressOnQuad(types::Matrix & grad_u,
+				  types::Matrix & sigma);
 
   // /// compute the tangent stiffness matrix for an element
-  void computeTangentStiffness(Real * tangent, Real * F);
+  void computeTangentStiffnessOnQuad(types::Matrix & grad_u,
+				     types::Matrix & tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

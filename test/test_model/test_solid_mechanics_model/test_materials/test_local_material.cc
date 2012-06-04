@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
   model->initExplicit();
   model->initModel();
-  model->readCustomMaterial<LocalMaterialDamage>("material.dat","LOCAL_DAMAGE");
+  model->readCustomMaterial<LocalMaterialDamage>("material.dat", "local_damage");
 
   model->initMaterials();
 

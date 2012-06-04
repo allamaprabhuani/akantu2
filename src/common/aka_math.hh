@@ -129,6 +129,9 @@ public:
   /// determinent of a 2x2 matrix
   static inline Real det2(const Real * mat);
 
+  /// inverse a nxn matrix
+  static inline void inv(UInt n, const Real * mat, Real * inv);
+
   /// inverse a 3x3 matrix
   static inline void inv3(const Real * mat, Real * inv);
 

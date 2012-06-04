@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
 
-  mesh_io.read("barre_trou.msh", mesh);
+  mesh_io.read("mesh.msh", mesh);
 
   SolidMechanicsModel model(mesh);
 

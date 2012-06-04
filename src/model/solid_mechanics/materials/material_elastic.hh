@@ -84,15 +84,11 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStress(Real * F, Real * sigma);
-
-  
-  inline void computeStress(types::Matrix & grad_u,
-			    types::Matrix & sigma);
-
+  inline void computeStressOnQuad(types::Matrix & grad_u,
+				  types::Matrix & sigma);
 
   // /// compute the tangent stiffness matrix for an element
-  void computeTangentStiffness(Real * tangent);
+  void computeTangentStiffnessOnQuad(types::Matrix & tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

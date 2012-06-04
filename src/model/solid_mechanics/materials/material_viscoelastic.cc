@@ -97,8 +97,6 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-  types::Matrix sigma(stress_val, spatial_dimension, spatial_dimension);
-  types::Matrix grad_u(strain_val, spatial_dimension, spatial_dimension);
   types::Matrix & dev_s = *stress_d;
   types::Matrix & h = *history_int;
 

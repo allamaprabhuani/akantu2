@@ -7,7 +7,7 @@ mpirun -np 2 ./test_solid_mechanics_model_bar_traction2d_parallel
 
 if [ $? -eq 0 ]
 then
-    ./test_cst_energy.pl energy_bar_2d_para.csv
+    ./test_cst_energy.pl energy_bar_2d_para.csv 1e-2
 else
     return $?
 fi
