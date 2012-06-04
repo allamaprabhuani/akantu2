@@ -270,11 +270,6 @@ void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) 
     Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
     Vector<Real> & strain_vect = strain(*it, ghost_type);
 
-    UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(*it, ghost_type);
-    UInt nb_element = elem_filter.getSize();
-
-    strain_vect.resize(nb_quadrature_points * nb_element);
-
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
 					      spatial_dimension,
@@ -291,12 +286,24 @@ void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) 
 void Material::setToSteadyState(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  const Vector<Real> & displacement = model->getDisplacement();
+
+  resizeInternalVector(strain);
+
   UInt spatial_dimension = model->getSpatialDimension();
 
   Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
 
   for(; it != last_type; ++it) {
+    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Vector<Real> & strain_vect = strain(*it, ghost_type);
+
+    /// compute @f$\nabla u@f$
+    model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
+					      spatial_dimension,
+					      *it, ghost_type, &elem_filter);
+
     setToSteadyState(*it, ghost_type);
   }
 
