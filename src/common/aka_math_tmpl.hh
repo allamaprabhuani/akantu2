@@ -528,7 +528,7 @@ inline Real Math::tetrahedron_inradius(const Real * coord1,
   s3 = (l23 + l34 + l24) * 0.5;
   s3 = sqrt(s3*(s3-l23)*(s3-l34)*(s3-l24));
 
-  s4 = (l13 + l34 + l24) * 0.5;
+  s4 = (l13 + l34 + l14) * 0.5;
   s4 = sqrt(s4*(s4-l13)*(s4-l34)*(s4-l14));
 
   Real volume = Math::tetrahedron_volume(coord1,coord2,coord3,coord4);

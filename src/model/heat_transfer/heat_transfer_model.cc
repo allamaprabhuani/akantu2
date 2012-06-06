@@ -126,6 +126,7 @@ void HeatTransferModel::initVectors() {
   std::stringstream sstr_temp;      sstr_temp     << id << ":temperature";
   std::stringstream sstr_temp_rate; sstr_temp     << id << ":temperature_rate";
   std::stringstream sstr_inc;       sstr_temp_rate<< id << ":increment";
+  std::stringstream sstr_ext_flx;   sstr_ext_flx  << id << ":external_flux";
   std::stringstream sstr_residual;  sstr_residual << id << ":residual";
   std::stringstream sstr_lump;      sstr_lump     << id << ":lumped";
   std::stringstream sstr_boun;      sstr_boun     << id << ":boundary";
@@ -133,6 +134,7 @@ void HeatTransferModel::initVectors() {
   temperature      = &(alloc<Real>(sstr_temp.str(),      nb_nodes, 1, REAL_INIT_VALUE));
   temperature_rate = &(alloc<Real>(sstr_temp_rate.str(), nb_nodes, 1, REAL_INIT_VALUE));
   increment        = &(alloc<Real>(sstr_inc.str(),       nb_nodes, 1, REAL_INIT_VALUE));
+  external_flux    = &(alloc<Real>(sstr_ext_flx.str(),   nb_nodes, 1, REAL_INIT_VALUE));
   residual         = &(alloc<Real>(sstr_residual.str(),  nb_nodes, 1, REAL_INIT_VALUE));
   capacity_lumped  = &(alloc<Real>(sstr_lump.str(),      nb_nodes, 1, REAL_INIT_VALUE));
   boundary         = &(alloc<bool>(sstr_boun.str(),      nb_nodes, 1, false));
@@ -194,7 +196,7 @@ void HeatTransferModel::initVectors() {
       bt_k_gT(*it, gt).clear();
 
       int_bt_k_gT(*it, gt).resize(nb_element);
-      bt_k_gT(*it, gt).clear();
+      int_bt_k_gT(*it, gt).clear();
     }
   }
 
@@ -271,7 +273,10 @@ void HeatTransferModel::updateResidual() {
 
   //clear the array
   /// first @f$ r = q_{ext} @f$
-  residual->clear();
+  //  residual->clear();
+  residual->resize(getFEM().getMesh().getNbNodes());
+  memcpy(residual->values, external_flux->values, 
+	 getFEM().getMesh().getNbNodes()*sizeof(Real));
 
   /// then @f$ r -= q_{int} @f$
   // update the not ghost ones
@@ -635,8 +640,19 @@ void HeatTransferModel::initFull(const std::string & material_file){
   initVectors();
   getTemperature().clear();
   getTemperatureRate().clear();
+  external_flux->clear();
 }
+
 /* -------------------------------------------------------------------------- */
+void HeatTransferModel::initFEMBoundary(bool create_surface) {
+
+  if(create_surface)
+    MeshUtils::buildFacets(getFEM().getMesh());
+
+  FEM & fem_boundary = getFEMBoundary();
+  fem_boundary.initShapeFunctions();
+  fem_boundary.computeNormalsOnControlPoints();
+}
 
 
 __END_AKANTU__

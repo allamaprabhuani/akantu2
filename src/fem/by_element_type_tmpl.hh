@@ -186,8 +186,8 @@ inline Vector<T> & ByElementTypeVector<T>::alloc(UInt size,
     tmp->setTag(sstrg.str());
     this->getData(ghost_type)[type] = tmp;
   } else {
-    AKANTU_DEBUG_WARNING("The vector " << this->id << this->printType(type, ghost_type)
-			 << " already exists, it is resized instead of allocated.");
+    AKANTU_DEBUG_INFO("The vector " << this->id << this->printType(type, ghost_type)
+		      << " already exists, it is resized instead of allocated.");
     tmp = it->second;
     it->second->resize(size);
   }
@@ -263,9 +263,9 @@ inline void ByElementTypeVector<T>::setVector(const ElementType & type,
   typename ByElementTypeVector<T>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
-  if(AKANTU_DEBUG_TEST(dblWarning) && it != this->getData(ghost_type).end()) {
+  if(AKANTU_DEBUG_TEST(dblWarning) && it != this->getData(ghost_type).end() && it->second != &vect) {
     AKANTU_DEBUG_WARNING("The Vector " << this->printType(type, ghost_type)
-                         << " is already registred, this call can lead to a memory leek.");
+                         << " is already registred, this call can lead to a memory leak.");
   }
 
   this->getData(ghost_type)[type] = &(const_cast<Vector<T> &>(vect));

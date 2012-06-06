@@ -72,6 +72,9 @@ public:
   /// generic function to initialize everything ready for explicit dynamics
   void initFull(const std::string & material_file);
 
+  /// initialize the fem object of the boundary
+  void initFEMBoundary(bool create_surface = true);
+
   /// set the parameters
   bool setParam(const std::string & key, const std::string & value);
 
@@ -168,6 +171,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  inline FEM & getFEMBoundary(std::string name = "");
+
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
   /// get the current value of the time step
@@ -180,12 +185,18 @@ public:
   AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Vector<Real>&);
   /// get the boundary vector
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
+  /// get the external flux vector
+  AKANTU_GET_MACRO(ExternalFlux, * external_flux, Vector<Real>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient, temperature_gradient, Real);
   /// get the conductivity on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ConductivityOnQpoints, conductivity_on_qpoints, Real);
   /// get the conductivity on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureOnQpoints, temperature_on_qpoints, Real);
+  /// internal variables
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(KGradtOnQpoints,  k_gradt_on_qpoints, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(IntBtKgT, int_bt_k_gT, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(BtKgT, bt_k_gT, Real);
   /// get the temperature
   AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
   /// get the temperature derivative

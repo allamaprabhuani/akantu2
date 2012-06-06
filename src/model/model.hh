@@ -88,6 +88,8 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get id of model
+  AKANTU_GET_MACRO(ID, id, const ID) 
 
   /// return the object hadling equation numbers
   AKANTU_GET_MACRO(DOFSynchronizer, *dof_synchronizer, const DOFSynchronizer &)

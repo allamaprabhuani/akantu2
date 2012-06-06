@@ -25,6 +25,12 @@
  *
  */
 
+
+/* -------------------------------------------------------------------------- */
+inline FEM & HeatTransferModel::getFEMBoundary(std::string name) {
+  return dynamic_cast<FEM &>(getFEMClassBoundary<MyFEMType>(name));
+}
+
 /* -------------------------------------------------------------------------- */
 inline UInt HeatTransferModel::getNbDataToPack(SynchronizationTag tag) const{
   AKANTU_DEBUG_IN();
