@@ -54,8 +54,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// open a file to parse
+  /// open/close a file to parse
   void open(const std::string & filename);
+  void close();
 
   /// read the file and return the next material type
   std::string getNextSection(const std::string & obj_type);
@@ -87,6 +88,9 @@ private:
 
   /// current read line
   std::string line;
+
+  /// name of file parsed
+  std::string filename;
 };
 
 #include "parser_tmpl.hh"

@@ -146,7 +146,7 @@ void MaterialElastic<spatial_dimension>::printself(std::ostream & stream,
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_elastic> [" << std::endl;
+  stream << space << "MaterialElastic [" << std::endl;
   if(!plane_stress)
     stream << space << " + Plane strain" << std::endl;
   else

@@ -39,12 +39,12 @@ inline std::string Parser::getNextSection(const std::string & section_type){
     std::string value;
 
     sstr >> keyword;
-    to_lower(keyword);
-    /// if found a material deccription then stop
-    /// and prepare the things for further reading
+    keyword = to_lower(keyword);
+    //if found a material decription then stop and prepare the things
+    // for further reading
     if(keyword == section_type) {
       std::string type; sstr >> type;
-      to_lower(type);
+      type = to_lower(type);
       std::string obracket; sstr >> obracket;
       if(obracket != "[")
 	AKANTU_DEBUG_ERROR("Malformed config file : missing [ at line " << current_line);
@@ -57,19 +57,26 @@ inline std::string Parser::getNextSection(const std::string & section_type){
 /* -------------------------------------------------------------------------- */
 inline void Parser::my_getline() {
   std::getline(infile, line); //read the line
-  if (!(infile.flags() & (std::ios::failbit | std::ios::eofbit)))
-    ++current_line;
+  ++current_line;
+  if(infile.bad()) { AKANTU_DEBUG_ERROR("Something went wrong will reading file "
+					<< filename << " at line " << current_line); }
   size_t pos = line.find("#"); //remove the comment
   line = line.substr(0, pos);
-  trim(line); // remove unnecessary spaces
+  line = trim(line); // remove unnecessary spaces
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Parser::open(const std::string & filename){
+  this->filename = filename;
   infile.open(filename.c_str());
   current_line = 0;
 
   if(!infile.good()) {
     AKANTU_DEBUG_ERROR("Cannot open file " << filename);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Parser::close(){
+  infile.close();
 }

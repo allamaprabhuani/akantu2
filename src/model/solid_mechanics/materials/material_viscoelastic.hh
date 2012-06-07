@@ -81,7 +81,7 @@ public:
   void setToSteadyState(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
+   			const ID & id);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
@@ -90,8 +90,6 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
-  /// constitutive law for a given quadrature point
-  //__aka_inline__ void computeStress(Real * F, Real * sigma);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -123,21 +121,6 @@ private:
   ByElementTypeReal history_integral;
 };
 
-/* -------------------------------------------------------------------------- */
-/* __aka_inline__ functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-//#include "material_elastic_caughey_inline_impl.cc"
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-/*
-inline std::ostream & operator <<(std::ostream & stream, const MaterialViscoElastic & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-*/
 __END_AKANTU__
 
 #endif /* __AKANTU_MATERIAL_VISCOELASTIC_HH__ */

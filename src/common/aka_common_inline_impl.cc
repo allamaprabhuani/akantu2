@@ -31,26 +31,32 @@
 
 #include <algorithm>
 
-
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 inline std::string to_lower(const std::string & str) {
-  std::string lstr;
-  std::transform(str.begin(),
-		 str.end(),
+  std::string lstr = str;
+  std::transform(lstr.begin(),
+		 lstr.end(),
 		 lstr.begin(),
 		 (int(*)(int))std::tolower);
   return lstr;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void trim(std::string & to_trim) {
-  size_t first = to_trim.find_first_not_of(" \t");
-  if (first != std::string::npos) {
-    size_t last = to_trim.find_last_not_of(" \t");
-    to_trim = to_trim.substr(first, last - first + 1);
-  } else to_trim = "";
+inline std::string trim(const std::string & to_trim) {
+  std::string trimed = to_trim;
+  //left trim
+  trimed.erase(trimed.begin(),
+	       std::find_if(trimed.begin(),
+			    trimed.end(),
+			    std::not1(std::ptr_fun<int, int>(std::isspace))));
+  // right trim
+  trimed.erase(std::find_if(trimed.rbegin(),
+			    trimed.rend(),
+			    std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
+	       trimed.end());
+  return trimed;
 }
 
 __END_AKANTU__

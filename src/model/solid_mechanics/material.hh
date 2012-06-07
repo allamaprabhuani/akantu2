@@ -389,8 +389,8 @@ __END_AKANTU__
 
 #define AKANTU_MATERIAL_LIST						\
   ((elastic                , MaterialElastic              ))		\
-  ((elastic_orthotropic    , MaterialElasticOrthotropic   ))		\
   ((viscoelastic           , MaterialViscoElastic         ))		\
+  ((elastic_orthotropic    , MaterialElasticOrthotropic   ))		\
   ((elastic_caughey        , MaterialElasticCaughey       ))		\
   ((neohookean             , MaterialNeohookean           ))		\
   ((damage_linear          , MaterialDamageLinear         ))		\

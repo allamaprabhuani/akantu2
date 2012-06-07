@@ -38,12 +38,12 @@ template<UInt spatial_dimension>
 MaterialViscoElastic<spatial_dimension>::MaterialViscoElastic(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   stress_dev("stress_dev", id),
-  history_integral("history_integral", id) {
+  history_integral("history_integral", id) { 
   AKANTU_DEBUG_IN();
 
-  eta = 1.;
+  eta   = 1.;
   E_inf = 1.;
-  Ev  = 1.;
+  Ev    = 1.;
 
   UInt stress_size = spatial_dimension * spatial_dimension;
 
@@ -175,7 +175,7 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 bool MaterialViscoElastic<spatial_dimension>::setParam(const std::string & key, const std::string & value,
-				      const ID & id) {
+ 						       const ID & id) {
   std::stringstream sstr(value);
   if(key == "eta") { sstr >> eta; }
   else if(key == "Ev") { sstr >> Ev; }

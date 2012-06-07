@@ -341,7 +341,7 @@ void finalize ();
 /* -------------------------------------------------------------------------- */
 inline std::string to_lower(const std::string & str);
 /* -------------------------------------------------------------------------- */
-inline void trim(std::string & to_trim);
+inline std::string trim(const std::string & to_trim);
 
 __END_AKANTU__
 

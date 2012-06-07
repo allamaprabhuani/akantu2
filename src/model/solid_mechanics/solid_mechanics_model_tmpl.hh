@@ -32,7 +32,7 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 
   Parser parser;
   parser.open(filename);
-  std::string key = to_lower(keyword);
+  std::string key = keyword;
 
   std::string mat_name = parser.getNextSection("material");
   while (mat_name != ""){

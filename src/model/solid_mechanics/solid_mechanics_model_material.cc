@@ -73,12 +73,12 @@ __BEGIN_AKANTU__
   do {									\
     AKANTU_INTANTIATE_MATERIAL_IF(((mat_type, material, mat_id, parser)), \
 				  BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST)) \
-    AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, \
-				      BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST)) \
+      AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, \
+					BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST)) \
     else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \
 			    << mat_type);				\
   } while(0)
-
+  
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
   Parser parser;
@@ -98,6 +98,7 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     materials.push_back(material);
     mat_type = parser.getNextSection("material");
   }
+  parser.close();
 }
 
 /* -------------------------------------------------------------------------- */
