@@ -310,6 +310,13 @@ namespace types {
     };
 
     /* ---------------------------------------------------------------------- */
+    inline Matrix & operator=(Real x) {
+      Real * a = this->values;
+      for (UInt i = 0; i < n*m; ++i) *(a++) = x;
+      return *this;
+    }
+
+    /* ---------------------------------------------------------------------- */
     inline Matrix operator* (const Matrix & B) {
       Matrix C(this->m, B.n);
       C.mul<false, false>(*this, B);

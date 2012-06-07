@@ -112,6 +112,9 @@ public:
   /// get the cohesive element type
   AKANTU_GET_MACRO(CohesiveElementType, type_cohesive, ElementType);
 
+  /// get the cohesive index
+  AKANTU_GET_MACRO(CohesiveIndex, cohesive_index, UInt);
+
   /// get the facet type
   AKANTU_GET_MACRO(FacetType, type_facet, ElementType);
 
@@ -151,8 +154,14 @@ private:
   /// vector containing facets in which cohesive elements can be automatically inserted
   Vector<bool> facets_check;
 
-  /// THIS HAS TO BE CHANGED:
+  /// @todo store tangents when normals are computed:
   Vector<Real> tangents;
+
+  /// quadrature points coordinates by element
+  ByElementTypeReal quad_elements;
+
+  /// list of facet quadrature points positions by element
+  ByElementTypeReal elements_quad_facets;
 
 };
 

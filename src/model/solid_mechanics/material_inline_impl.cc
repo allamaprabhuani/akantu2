@@ -129,3 +129,32 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
   }
 }
 
+/* -------------------------------------------------------------------------- */
+template<ElementType type>
+inline void Material::buildInterpolationCoodinates(const types::Matrix & coordinates,
+						   types::Matrix & coordMatrix) {
+  AKANTU_DEBUG_TO_IMPLEMENT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::buildInterpolationCoodinates<_triangle_3>(const types::Matrix & coordinates,
+								types::Matrix & coordMatrix) {
+
+  for (UInt i = 0; i < coordinates.rows(); ++i)
+    coordMatrix(i, 0) = 1;
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::buildInterpolationCoodinates<_triangle_6>(const types::Matrix & coordinates,
+								types::Matrix & coordMatrix) {
+
+  UInt nb_quadrature_points = 3;
+
+  for (UInt i = 0; i < coordinates.rows(); ++i) {
+    coordMatrix(i, 0) = 1;
+    for (UInt j = 1; j < nb_quadrature_points; ++j)
+      coordMatrix(i, j) = coordinates(i, j-1);
+  }
+}

@@ -39,6 +39,7 @@ __BEGIN_AKANTU__
 
 /**
  * Orthotropic elastic material
+ * \todo extend this law for any material orientation
  *
  * parameters in the material files :
  *   - rho  : density (default: 0)

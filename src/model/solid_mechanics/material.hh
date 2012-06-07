@@ -119,6 +119,13 @@ public:
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  /// interpolate stress on given positions for each element by means
+  /// of a geometrical interpolation on quadrature points
+  virtual void interpolateStress(const ElementType type,
+				 const Vector<Real> & quad_coordinates,
+				 const Vector<Real> & coordinates,
+				 Vector<Real> & result);
+
 protected:
 
   /// constitutive law
@@ -163,6 +170,18 @@ protected:
 
   void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const;
 
+  /// interpolate an elemental field on given points for each element
+  template <ElementType type>
+  void interpolateElementalField(const Vector<Real> & field,
+				 const Vector<Real> & quad_coordinates,
+				 const Vector<Real> & coordinates,
+				 Vector<Real> & result);
+
+  /// build the coordinate matrix for the interpolation on elemental field
+  template <ElementType type>
+  inline void buildInterpolationCoodinates(const types::Matrix & coordinates,
+					   types::Matrix & coordMatrix);
+
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */
   /* ------------------------------------------------------------------------ */
@@ -171,7 +190,6 @@ protected:
   inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
 					   types::Matrix & sigma,
 					   Real & epot);
-
 
 public:
   /// allocate an internal vector

@@ -113,117 +113,38 @@ void MaterialCohesive::resizeCohesiveVectors() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::checkInsertion(Vector<UInt> & facet_insertion) {
+void MaterialCohesive::checkInsertion(const Vector<Real> & facet_stress,
+				      Vector<UInt> & facet_insertion) {
   AKANTU_DEBUG_IN();
 
   sigma_insertion.resize(0);
 
-  const Mesh & mesh_facets = model->getMeshFacets();
-  const Mesh & mesh = model->getFEM("CohesiveFEM").getMesh();
-  ElementType type_facet = model->getFacetType();
-  const Vector<UInt> & conn_facet = mesh_facets.getConnectivity(type_facet);
-
   Vector<bool> & facets_check = model->getFacetsCheck();
+  ElementType type_facet = model->getFacetType();
 
-  UInt nb_facet = facets_check.getSize();
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
-
-  const Vector<Real> & normals =
-    model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
-
-  const Vector<Vector<Element> > & element_to_facet
-    = mesh_facets.getElementToSubelement(type_facet);
-
-  types::RVector stresses(spatial_dimension);
-  types::RVector stress_check(nb_quad_facet);
-
-  Real coords[3];
-  coords[0] = -1./6. * 2.;
-  coords[1] = (1./3. - 1./std::sqrt(3)) * 2.;
-  coords[2] = (1./3. + 1./std::sqrt(3)) * 2.;
-
-  Vector<Real> natural_coords(nb_quad_facet*spatial_dimension);
+  UInt nb_facet = facets_check.getSize();
 
   const Vector<Real> & tangents = model->getTangents();
+  const Vector<Real> & normals
+    = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
 
-  types::Matrix shapes(nb_quad_facet, 3);
-  shapes.clear();
-  shapes += 1.;
-
+  UInt sp2 = spatial_dimension * spatial_dimension;
+  types::RVector stress_check(nb_quad_facet);
 
   for (UInt f = 0; f < nb_facet; ++f) {
     if (facets_check(f) == true) {
 
       stress_check.clear();
 
-      for (UInt el = 0; el < 2; ++el) {
-	UInt elem_nb = element_to_facet(f)(el).element;
-	ElementType type_elem = element_to_facet(f)(el).type;
-	UInt nb_quad_elem = model->getFEM().getNbQuadraturePoints(type_elem);
-	UInt mat_index = model->getElementMaterial(type_elem)(elem_nb);
-	const Vector<Real> & stress = model->getMaterial(mat_index).getStress(type_elem);
-	UInt global_elem = model->getElementIndexByMaterial(type_elem)(elem_nb);
+      for (UInt e = 0; e < 2; ++e) {
+  	for (UInt q = 0; q < nb_quad_facet; ++q) {
 
-	if (type_elem == _triangle_6) {
-
-	  const Vector<UInt> & conn_elem = mesh.getConnectivity(type_elem);
-	  UInt facet_index;
-	  for (UInt n = 0; n < 3; ++n) {
-	    UInt global_node = conn_elem(global_elem, n);
-	    if (global_node != conn_facet(f, 0) && global_node != conn_facet(f, 1)) {
-	      facet_index = n + 1;
-	      break;
-	    }
-	  }
-
-	  if (facet_index == 3) facet_index = 0;
-
-	  if (facet_index == 0) {
-	    natural_coords(0) = coords[1];
-	    natural_coords(1) = coords[0];
-	    natural_coords(2) = coords[2];
-	    natural_coords(3) = coords[0];
-	  }
-	  else if (facet_index == 1) {
-	    natural_coords(0) = coords[2];
-	    natural_coords(1) = coords[1];
-	    natural_coords(2) = coords[1];
-	    natural_coords(3) = coords[2];
-	  }
-	  else if (facet_index == 2) {
-	    natural_coords(0) = coords[0];
-	    natural_coords(1) = coords[2];
-	    natural_coords(2) = coords[0];
-	    natural_coords(3) = coords[1];
-	  }
-
-	  if (conn_elem(global_elem, 2) == conn_facet(f, 1)) {
-	    Real x = natural_coords(0);
-	    Real y = natural_coords(1);
-	    natural_coords(0) = natural_coords(2);
-	    natural_coords(1) = natural_coords(3);
-	    natural_coords(2) = x;
-	    natural_coords(3) = y;
-	  }
-
-	  ElementClass<_triangle_3>::computeShapes(natural_coords.storage(),
-						   nb_quad_facet,
-						   shapes.storage());
-	}
-
-	types::Matrix stress_edge(spatial_dimension, spatial_dimension);
-	types::Matrix stress_shape(spatial_dimension, spatial_dimension);
-
-	for (UInt q = 0; q < nb_quad_facet; ++q) {
-	  stress_edge.clear();
-
-	  for (UInt q_el = 0; q_el < nb_quad_elem; ++q_el) {
-	    types::Matrix stress_local(stress.storage() + global_elem*nb_quad_elem*spatial_dimension*spatial_dimension + q_el*spatial_dimension*spatial_dimension,
-				       spatial_dimension, spatial_dimension);
-	    stress_shape = stress_local;
-	    stress_shape *= shapes(q, q_el);
-	    stress_edge += stress_shape;
-	  }
+	  types::Matrix stress_edge(facet_stress.storage()
+				    + f * 2 * nb_quad_facet * sp2
+				    + e * nb_quad_facet * sp2
+				    + q * sp2,
+				    spatial_dimension, spatial_dimension);
 
 	  types::RVector normal(normals.storage() + f*nb_quad_facet*spatial_dimension,
 				spatial_dimension);
@@ -237,13 +158,13 @@ void MaterialCohesive::checkInsertion(Vector<UInt> & facet_insertion) {
       }
 
       for (UInt q = 0; q < nb_quad_facet; ++q) {
-	if (stress_check(q) > model->getSigmaLimit()(f)) {
-	  facet_insertion.push_back(f);
-	  for (UInt qs = 0; qs < nb_quad_facet; ++qs)
-	    sigma_insertion.push_back(stress_check(qs));
-	  facets_check(f) = false;
-	  break;
-	}
+  	if (stress_check(q) > model->getSigmaLimit()(f)) {
+  	  facet_insertion.push_back(f);
+  	  for (UInt qs = 0; qs < nb_quad_facet; ++qs)
+  	    sigma_insertion.push_back(stress_check(qs));
+  	  facets_check(f) = false;
+  	  break;
+  	}
       }
     }
   }
@@ -357,7 +278,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 			    *it, ghost_type,
 			    &elem_filter);
 
-    int_t_N.extendComponents(2);
+    int_t_N.extendComponentsInterlaced(2, int_t_N.getNbComponent() );
 
     Real * int_t_N_val = int_t_N.storage();
     for (UInt el = 0; el < nb_element; ++el) {

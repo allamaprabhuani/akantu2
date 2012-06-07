@@ -48,7 +48,7 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  //  debug::setDebugLevel(dblDump);
+  debug::setDebugLevel(dblWarning);
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 1000;
@@ -114,7 +114,6 @@ int main(int argc, char *argv[]) {
   //  const Vector<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
-  //  UInt nb_element = mesh.getNbElement(type);
 
   /// boundary conditions
   for (UInt n = 0; n < nb_nodes; ++n) {
@@ -128,6 +127,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
+  //  UInt nb_element = mesh.getNbElement(type);
 
   // /// initialize the paraview output
   // iohelper::DumperParaview dumper;

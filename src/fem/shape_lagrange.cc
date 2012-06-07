@@ -125,10 +125,10 @@ void ShapeLagrange::precomputeShapeDerivativesOnControlPoints(GhostType ghost_ty
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrange::interpolateOnControlPoints(const Vector<Real> &in_u,
-						  Vector<Real> &out_uq,
-						  UInt nb_degree_of_freedom,
-						  GhostType ghost_type,
-						  const Vector<UInt> * filter_elements) const {
+					       Vector<Real> &out_uq,
+					       UInt nb_degree_of_freedom,
+					       GhostType ghost_type,
+					       const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(shapes.exists(type, ghost_type),

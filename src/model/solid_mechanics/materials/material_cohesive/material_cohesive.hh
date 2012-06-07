@@ -89,7 +89,14 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// check stress for cohesive elements' insertion
-  virtual void checkInsertion(Vector<UInt> & facet_insertion);
+  virtual void checkInsertion(const Vector<Real> & facet_stress,
+			      Vector<UInt> & facet_insertion);
+
+  /// interpolate stress on given positions for each element
+  void interpolateStress(const ElementType type,
+			 const Vector<Real> & quad_coordinates,
+			 const Vector<Real> & coordinates,
+			 Vector<Real> & result) {};
 
 protected:
 

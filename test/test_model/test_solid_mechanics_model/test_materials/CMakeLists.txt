@@ -113,3 +113,6 @@ endforeach()
 file(COPY material_viscoelastic.dat DESTINATION .)
 file(COPY material_elastic_caughey.dat DESTINATION .)
 file(COPY material_elastic_caughey_damping.dat DESTINATION .)
+
+#===============================================================================
+register_test(test_interpolate_stress test_interpolate_stress.cc)

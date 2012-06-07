@@ -426,31 +426,6 @@ template <class T> void Vector<T>::extendComponentsInterlaced(UInt multiplicator
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> void Vector<T>::extendComponents(UInt multiplicator) {
-  AKANTU_DEBUG_IN();
-
-  if (multiplicator == 1) return;
-
-  AKANTU_DEBUG_ASSERT(multiplicator > 1,
-  		      "invalid multiplicator");
-
-  values = static_cast<T*>(realloc(values, nb_component*multiplicator*size* sizeof(T)));
-
-  for (UInt i = size-1, ii=0; ii < size; --i, ++ii) {
-    for (UInt m = multiplicator-1, mm=0; mm < multiplicator; --m, ++mm) {
-      for (UInt j = nb_component-1, jj=0; jj < nb_component; --j, ++jj) {
-	values[i * nb_component * multiplicator + nb_component * m + j] =
-	  values[i * nb_component + j];
-      }
-    }
-  }
-
-  nb_component = nb_component * multiplicator;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 template <class T> Int Vector<T>::find(const T & elem) const {
   AKANTU_DEBUG_IN();
   UInt i = 0;

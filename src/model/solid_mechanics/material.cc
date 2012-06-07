@@ -521,6 +521,101 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
 }
 
 /* -------------------------------------------------------------------------- */
+void Material::interpolateStress(const ElementType type,
+				 const Vector<Real> & quad_coordinates,
+				 const Vector<Real> & coordinates,
+				 Vector<Real> & result) {
+  AKANTU_DEBUG_IN();
+
+#define INTERPOLATE_ELEMENTAL_FIELD(type)				\
+  interpolateElementalField<type>(stress(type),				\
+				  quad_coordinates,			\
+				  coordinates,				\
+				  result)				\
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
+#undef INTERPOLATE_ELEMENTAL_FIELD	  
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+void Material::interpolateElementalField(const Vector<Real> & field,
+					 const Vector<Real> & quad_coordinates,
+					 const Vector<Real> & coordinates,
+					 Vector<Real> & result) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_element = element_filter(type).getSize();
+  UInt nb_quad_per_element = model->getFEM().getNbQuadraturePoints(type);
+
+  types::Matrix quad_coord_matrix(nb_quad_per_element, nb_quad_per_element);
+  types::Matrix inv_quad_coord_matrix(nb_quad_per_element, nb_quad_per_element);
+  types::Matrix coefficients(nb_quad_per_element, field.getNbComponent());
+
+  Vector<Real>::const_iterator<types::Matrix> field_it =
+    field.begin_reinterpret(nb_quad_per_element,
+			    field.getNbComponent(),
+			    nb_element,
+			    nb_quad_per_element * field.getNbComponent());
+
+  AKANTU_DEBUG_ASSERT(coordinates.getSize() % nb_element == 0,
+		      "Can't interpolate elemental field on elements, the coordinates vector has a wrong size");
+
+  UInt nb_points_per_elem = coordinates.getSize() / nb_element;
+
+  types::Matrix coord_matrix(nb_points_per_elem, nb_quad_per_element);
+
+  Vector<Real>::iterator<types::Matrix> result_it
+    = result.begin_reinterpret(nb_points_per_elem,
+			       field.getNbComponent(),
+			       nb_element,
+			       nb_points_per_elem * field.getNbComponent());
+
+  UInt quad_block = nb_quad_per_element * spatial_dimension;
+  UInt coord_block = nb_points_per_elem * spatial_dimension;
+
+  /// loop over the elements of the current material and element type
+  for (UInt el = 0; el < nb_element; ++el, ++field_it, ++result_it) {
+
+    /// create a matrix containing the quadrature points coordinates
+    types::Matrix quad_coords(quad_coordinates.storage()
+  			      + quad_block * element_filter(type)(el),
+  			      nb_quad_per_element,
+  			      spatial_dimension);
+
+    /// insert the quad coordinates in a matrix compatible with the interpolation
+    buildInterpolationCoodinates<type>(quad_coords, quad_coord_matrix);
+
+    /// invert the interpolation matrix
+    Math::inv(nb_quad_per_element,
+	      quad_coord_matrix.storage(),
+	      inv_quad_coord_matrix.storage());
+
+    /// multiply it by the field values over quadrature points to get
+    /// the interpolation coefficients
+    coefficients.mul<false, false>(inv_quad_coord_matrix, *field_it);
+
+    /// create a matrix containing the points' coordinates
+    types::Matrix coord(coordinates.storage()
+			+ coord_block * element_filter(type)(el),
+			nb_points_per_elem,
+			spatial_dimension);
+
+    /// insert the points coordinates in a matrix compatible with the interpolation
+    buildInterpolationCoodinates<type>(coord, coord_matrix);
+
+    /// multiply the coordinates matrix by the coefficients matrix and store the result
+    (*result_it).mul<false, false>(coord_matrix, coefficients);
+  }
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+
 const Vector<Real> & Material::getVector(const ID & vect_id, const ElementType & type, const GhostType & ghost_type) const {
   std::stringstream sstr;
   std::string ghost_id = "";
@@ -553,8 +648,8 @@ void Material::setParam(const ID & param, Real value) {
   AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")"); 
 }
 
-
 /* -------------------------------------------------------------------------- */
+
 void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
