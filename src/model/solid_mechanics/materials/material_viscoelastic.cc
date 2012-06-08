@@ -79,8 +79,6 @@ void MaterialViscoElastic<spatial_dimension>::setToSteadyState(ElementType el_ty
   Vector<Real>::iterator<types::Matrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
   Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
-  Real plane_stress_coeff = this->nu / (this->nu - 1);
-
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
@@ -89,10 +87,6 @@ void MaterialViscoElastic<spatial_dimension>::setToSteadyState(ElementType el_ty
 
   /// Compute the first invariant of strain
   Real Theta = grad_u.trace();
-
-  ///\todo correct the trace in case of plane stress
-  if(spatial_dimension == 2 && this->plane_stress == true)
-    Theta += plane_stress_coeff * (grad_u(0,0) + grad_u(1,1));
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {
@@ -130,8 +124,6 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   Real exp_dt_tau = exp( -dt/tau );
   Real exp_dt_tau_2 = exp( -.5*dt/tau );
 
-  Real plane_stress_coeff = this->nu / (this->nu - 1);
-
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
@@ -139,21 +131,16 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
   types::Matrix & h = *history_int;
 
   s.clear();
-
   sigma.clear();
 
   /// Compute the first invariant of strain
   Real Theta = grad_u.trace();
 
-  ///\todo correct the trace in case of plane stress
-  if(spatial_dimension == 2 && this->plane_stress == true)
-    Theta += plane_stress_coeff * (grad_u(0,0) + grad_u(1,1));
-
-  types::Matrix U_rond_prim(spatial_dimension, spatial_dimension);
-  U_rond_prim.eye(this->kpa * Theta);
-
   Real gamma_inf = E_inf / this->E;
   Real gamma_v   = Ev    / this->E;
+
+  types::Matrix U_rond_prim(spatial_dimension, spatial_dimension);
+  U_rond_prim.eye(gamma_inf * this->kpa * Theta);
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {

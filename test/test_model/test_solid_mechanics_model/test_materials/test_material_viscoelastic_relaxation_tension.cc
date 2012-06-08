@@ -74,6 +74,9 @@ int main(int argc, char *argv[])
 
   model.assembleMassLumped();
 
+  model.updateResidual();
+  model.getMaterial(0).setToSteadyState();
+
   std::stringstream filename_sstr;
   filename_sstr << "test_material_viscoelastic_relaxation_tension.out";
   std::ofstream output_data;
@@ -87,8 +90,7 @@ int main(int argc, char *argv[])
   Real EV = mat.getEv();
   Real Einf = mat.getEinf();
   Real E0 = mat.getE();
-  Real nu = mat.getNu();
-
+  
   Real kpa = mat.getKpa();
   Real mu = mat.getMu();
 
@@ -96,6 +98,7 @@ int main(int argc, char *argv[])
   Real gammainf = Einf/E0;
 
   Real tau = Eta / EV;
+  std::cout << "relaxation time = " << tau << std::endl;
 
   UInt nb_nodes = mesh.getNbNodes();
   const Vector<Real> & coordinate = mesh.getNodes();
@@ -129,8 +132,6 @@ int main(int argc, char *argv[])
       epsilon = eps;
     }
 
-    Real epskk = (dim + mat.getPlaneStress()*2*nu/(nu-1))*eps;
-    
     for (UInt n=0; n<nb_nodes; ++n) {
       for (UInt d=0; d<dim; ++d)
 	displacement(n,d) = epsilon * coordinate(n,d);
@@ -142,12 +143,13 @@ int main(int argc, char *argv[])
     // print output
     if(s % out_interval == 0) {
       // analytical solution
+      Real epskk = dim * eps;
       Real solution= 0.;
       if (time < T) {
-	solution = 2 * mu * (eps - epskk/3.) / T * (gammainf * time + gamma * tau * (1 - exp(-time/tau))) + kpa * epskk * time / T;
+	solution = 2 * mu * (eps - epskk/3.) / T * (gammainf * time + gamma * tau * (1 - exp(-time/tau))) + gammainf * kpa * epskk * time / T;
       }
       else {
-	solution = 2 * mu * (eps - epskk/3.) * (gammainf + gamma * tau / T *(exp((T-time)/tau) - exp(-time/tau))) + kpa * epskk;
+	solution = 2 * mu * (eps - epskk/3.) * (gammainf + gamma * tau / T *(exp((T-time)/tau) - exp(-time/tau))) + gammainf * kpa * epskk;
       }
       output_data << s*time_step << " " << solution;
 
@@ -161,7 +163,7 @@ int main(int argc, char *argv[])
 	Real rel_error_1 = std::abs(((*stress_it)(1,1) - solution) / solution);
 	if (rel_error_1 > tolerance) {
 	  std::cerr << "Relative error: " << rel_error_1 << std::endl;
-	  //	  return EXIT_FAILURE;
+	  return EXIT_FAILURE;
 	}
       }
       output_data << std::endl;
