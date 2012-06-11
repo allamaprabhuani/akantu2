@@ -570,6 +570,8 @@ void ContactRigid::frictionPredictor() {
     Real * previous_velocities_val = impactor_info->previous_velocities->storage();
     Real * friction_resistances_val = impactor_info->friction_resistances->storage();
 
+    Vector<Real> & nodal_velocity = model.getVelocity();
+
     for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
       UInt current_node = active_impactor_nodes_val[n];
 
@@ -590,7 +592,6 @@ void ContactRigid::frictionPredictor() {
       // prakash clifton regularization
       if (this->prakash) {
 	// compute (|v| + v*)/L
-	Vector<Real> nodal_velocity = model.getVelocity();
 	Real v_L_term = 0.;
 	for (UInt i=0; i < spatial_dimension; ++i) {
 	  if(Math::are_float_equal(direction_val[n * this->spatial_dimension + i],0.))
