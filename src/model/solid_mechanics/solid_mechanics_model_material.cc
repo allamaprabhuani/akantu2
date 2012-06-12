@@ -34,56 +34,72 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, dim) \
-  mat =	parser.readSection<mat_class<dim>,				\
-			   SolidMechanicsModel>(*this, mat_id)		\
+#define AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL(dim, elem)		\
+  material = parser.readSection< BOOST_PP_ARRAY_ELEM(1, elem)< dim >,	\
+				 SolidMechanicsModel >(*this, mat_id)
 
-#define AKANTU_INTANTIATE_MATERIAL(mat, mat_class, mat_id, parser)	\
-  switch(spatial_dimension) {						\
-  case 1: {								\
-    AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, 1); \
-    break; }								\
-  case 2: {								\
-    AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, 2); \
-    break; }								\
-  case 3: {								\
-    AKANTU_INTANTIATE_MATERIAL_BY_DIM(mat, mat_class, mat_id, parser, 3); \
-    break; }								\
+
+#define AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL_EACH(r, data, i, elem)	\
+  BOOST_EXPR_IF(BOOST_PP_NOT_EQUAL(0, i), else )			\
+  if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
+    material =								\
+      parser.readSection< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
+							BOOST_PP_TUPLE_ELEM(2, 1, elem) >, \
+			  SolidMechanicsModel >(*this, mat_id);		\
   }
 
 
-#define AKANTU_INTANTIATE_MATERIAL_IF(data, elem)			\
-  if (BOOST_PP_TUPLE_ELEM(4, 0, BOOST_PP_APPLY(data)) ==		\
-      BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) {		\
-  AKANTU_INTANTIATE_MATERIAL(BOOST_PP_TUPLE_ELEM(4, 1, BOOST_PP_APPLY(data)), \
-			     BOOST_PP_TUPLE_ELEM(2, 1, elem),		\
-			     BOOST_PP_TUPLE_ELEM(4, 2, BOOST_PP_APPLY(data)), \
-			     BOOST_PP_TUPLE_ELEM(4, 3, BOOST_PP_APPLY(data))) \
-      }
+#define AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL(dim, elem)		\
+  BOOST_PP_SEQ_FOR_EACH(AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL_EACH,	\
+			(2, (dim, BOOST_PP_ARRAY_ELEM(1, elem))),	\
+			BOOST_PP_ARRAY_ELEM(2, elem))
+
+// #define AKANTU_INTANTIATE_MATERIAL_BY_DIM(dim, elem)
+//   BOOST_PP_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem)),
+//    	      AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL,
+//    	      AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL)(dim, elem)
+#define AKANTU_INTANTIATE_MATERIAL_BY_DIM(dim, elem)			\
+  material =								\
+    parser.readSection<BOOST_PP_ARRAY_ELEM(1, elem)< dim		\
+						     BOOST_PP_COMMA_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem))) \
+      BOOST_PP_EXPR_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem)),	\
+		       BOOST_PP_APPLY(BOOST_PP_ARRAY_ELEM(2, elem))) >, \
+		       SolidMechanicsModel>(*this, mat_id)
+
+
+#define AKANTU_INTANTIATE_MATERIAL(elem)				\
+  switch(spatial_dimension) {						\
+  case 1: { AKANTU_INTANTIATE_MATERIAL_BY_DIM(1, elem); break; }	\
+  case 2: { AKANTU_INTANTIATE_MATERIAL_BY_DIM(2, elem); break; }	\
+  case 3: { AKANTU_INTANTIATE_MATERIAL_BY_DIM(3, elem); break; }	\
+  }
+
+
+#define AKANTU_INTANTIATE_MATERIAL_IF(elem)			\
+  if (mat_type == BOOST_PP_STRINGIZE(BOOST_PP_ARRAY_ELEM(0, elem))) { \
+    AKANTU_INTANTIATE_MATERIAL(elem);					\
+  }
 
 #define AKANTU_INTANTIATE_OTHER_MATERIAL(r, data, elem)			\
-  else AKANTU_INTANTIATE_MATERIAL_IF(data, elem)
+  else AKANTU_INTANTIATE_MATERIAL_IF(elem)
 
-#define AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, mat_lst) \
-  BOOST_PP_SEQ_FOR_EACH(AKANTU_INTANTIATE_OTHER_MATERIAL,		\
-			((mat_type, material, mat_id, parser)),		\
-			mat_lst)
-
-#define AKANTU_INTANTIATE_MATERIALS(mat_type, material, mat_id, parser)	\
+#define AKANTU_INTANTIATE_MATERIALS()					\
   do {									\
-    AKANTU_INTANTIATE_MATERIAL_IF(((mat_type, material, mat_id, parser)), \
-				  BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST)) \
-      AKANTU_INTANTIATE_OTHER_MATERIALS(mat_type, material, mat_id, parser, \
-					BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST)) \
-    else AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \
-			    << mat_type);				\
+    AKANTU_INTANTIATE_MATERIAL_IF(BOOST_PP_SEQ_HEAD(AKANTU_MATERIAL_LIST)) \
+      BOOST_PP_SEQ_FOR_EACH(AKANTU_INTANTIATE_OTHER_MATERIAL,		\
+			    _,						\
+			    BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST))	\
+    else								\
+      AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \
+			 << mat_type);					\
   } while(0)
-  
+
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::readMaterials(const std::string & filename) {
   Parser parser;
   parser.open(filename);
-  std::string mat_type = parser.getNextSection("material");
+  std::string opt_param;
+  std::string mat_type = parser.getNextSection("material", opt_param);
   UInt mat_count = 0;
 
   while (mat_type != ""){
@@ -93,10 +109,10 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
     /// read the material properties
 
     // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
-    AKANTU_INTANTIATE_MATERIALS(mat_type, material, mat_id, parser);
+    AKANTU_INTANTIATE_MATERIALS();
 
     materials.push_back(material);
-    mat_type = parser.getNextSection("material");
+    mat_type = parser.getNextSection("material", opt_param);
   }
   parser.close();
 }

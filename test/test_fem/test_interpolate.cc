@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
   my_file << const_val << std::endl;
   my_file << val_on_quad << std::endl;
 
+
   // interpolate coordinates
   Vector<Real> coord_on_quad(nb_quadrature_points, my_mesh.getSpatialDimension(), "coord_on_quad");
 

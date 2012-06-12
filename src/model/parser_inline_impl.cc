@@ -27,7 +27,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline std::string Parser::getNextSection(const std::string & section_type){
+inline std::string Parser::getNextSection(const std::string & section_type,
+					  std::string & optional_param){
+  optional_param = "";
   while(infile.good()) {
     my_getline();
 
@@ -46,8 +48,13 @@ inline std::string Parser::getNextSection(const std::string & section_type){
       std::string type; sstr >> type;
       type = to_lower(type);
       std::string obracket; sstr >> obracket;
-      if(obracket != "[")
-	AKANTU_DEBUG_ERROR("Malformed config file : missing [ at line " << current_line);
+      if(obracket != "[") {
+	optional_param = obracket;
+	sstr >> obracket;
+	if(obracket != "[") {
+	  AKANTU_DEBUG_ERROR("Malformed config file : missing [ at line " << current_line);
+	}
+      }
       return type;
     }
   }

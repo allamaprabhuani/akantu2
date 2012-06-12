@@ -459,7 +459,7 @@ template <class T> void Vector<T>::copy(const Vector<T>& vect) {
 
   if(AKANTU_DEBUG_TEST(dblWarning))
     if(vect.nb_component != nb_component) {
-      AKANTU_DEBUG(dblWarning, "The two vectors does not have the same number of components");
+      AKANTU_DEBUG(dblWarning, "The two vectors do not have the same number of components");
     }
   //  this->id = vect.id;
   resize((vect.size * vect.nb_component) / nb_component);
@@ -529,14 +529,13 @@ inline void VectorBase::empty() {
 }
 
 /** \todo change definition of iterators
-template<class T>
-template<class R, class IR, bool value >
+    template<class T>
+    template<class R, class IR, bool value >
 
-template<class T>
-template<class R, class IR, bool = TypeTraits<R>::isScalar >
-class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
-  */
-  
+    template<class T>
+    template<class R, class IR, bool = TypeTraits<R>::isScalar >
+    class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
+*/
 
 /* -------------------------------------------------------------------------- */
 /* Iterators                                                                  */

@@ -59,7 +59,7 @@ public:
   void close();
 
   /// read the file and return the next material type
-  std::string getNextSection(const std::string & obj_type);
+  std::string getNextSection(const std::string & obj_type, std::string & optional_param);
 
   /// read properties and instanciate a given material object
   template <typename M>

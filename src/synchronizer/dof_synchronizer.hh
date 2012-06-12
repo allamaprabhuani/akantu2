@@ -109,16 +109,21 @@ public:
   Vector<Int> * getGlobalDOFEquationNumbersPointer(){return &global_dof_equation_numbers;};
 
   typedef unordered_map<Int, UInt>::type GlobalEquationNumberMap;
+
   AKANTU_GET_MACRO(GlobalEquationNumberToLocal, global_dof_equation_number_to_local, const GlobalEquationNumberMap &)
 
   /// get the Vector of global ids of the dofs
   AKANTU_GET_MACRO(DOFGlobalIDs, dof_global_ids, const Vector<UInt> &);
 
   /// get the global id of a dof
-  inline UInt getDOFGlobalID(UInt local_id) const { return dof_global_ids(local_id); }
+  inline UInt getDOFGlobalID(UInt local_id) const {
+    return dof_global_ids(local_id);
+  }
 
   /// get the local id of a global dof
-  inline UInt getDOFLocalID(UInt global_id) const { return global_dof_to_local.find(global_id)->second; }
+  inline UInt getDOFLocalID(UInt global_id) const {
+    return global_dof_to_local.find(global_id)->second;
+  }
 
   /// get the DOF type Vector
   AKANTU_GET_MACRO(DOFTypes, dof_types, const Vector<Int> &);

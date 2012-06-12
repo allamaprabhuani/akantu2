@@ -397,6 +397,9 @@ public:
   /// compute the kinetic energy
   Real getKineticEnergy();
 
+  /// get the energies
+  Real getEnergy(std::string id);
+
   /// set the Contact object
   AKANTU_SET_MACRO(Contact, contact, Contact *);
 

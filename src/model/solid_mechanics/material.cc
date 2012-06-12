@@ -98,7 +98,7 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalVector(ByElementTypeVector<T> & vect,
-                                  UInt nb_component,
+				  UInt nb_component,
 				  ElementKind element_kind) const {
   AKANTU_DEBUG_IN();
 
@@ -490,6 +490,14 @@ Real Material::getPotentialEnergy() {
 
 
 /* -------------------------------------------------------------------------- */
+Real Material::getEnergy(std::string type) {
+  AKANTU_DEBUG_IN();
+  if(type == "potential") return getPotentialEnergy();
+  AKANTU_DEBUG_OUT();
+  return 0.;
+}
+
+/* -------------------------------------------------------------------------- */
 void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const {
   AKANTU_DEBUG_IN();
 
@@ -632,20 +640,20 @@ const Vector<Real> & Material::getVector(const ID & vect_id, const ElementType &
 
 /* -------------------------------------------------------------------------- */
 Real Material::getParam(const ID & param) const {
-  ID lparam = to_lower(param);
-  if(lparam == "rho") {
+  if(param == "rho") {
     return rho;
+  } else {
+    AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")");
   }
-  AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")");
 }
 
 /* -------------------------------------------------------------------------- */
 void Material::setParam(const ID & param, Real value) {
-  ID lparam = to_lower(lparam);
-  if(lparam == "rho") {
+  if(param == "rho") {
     rho = value;
+  } else {
+    AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")");
   }
-  AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")"); 
 }
 
 /* -------------------------------------------------------------------------- */
@@ -663,15 +671,15 @@ void Material::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalVector<Real>(ByElementTypeVector<Real> & vect,
-                                                 UInt nb_component,
+						 UInt nb_component,
 						 ElementKind element_kind) const;
 
 template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
-                                                 UInt nb_component,
+						 UInt nb_component,
 						 ElementKind element_kind) const;
 
 template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
-                                                UInt nb_component,
+						UInt nb_component,
 						ElementKind element_kind) const;
 
 

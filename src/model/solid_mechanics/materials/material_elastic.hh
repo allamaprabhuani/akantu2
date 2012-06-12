@@ -87,8 +87,11 @@ protected:
   inline void computeStressOnQuad(types::Matrix & grad_u,
 				  types::Matrix & sigma);
 
-  // /// compute the tangent stiffness matrix for an element
+  /// compute the tangent stiffness matrix for an element
   void computeTangentStiffnessOnQuad(types::Matrix & tangent);
+
+  /// recompute the lame coefficient if E or nu changes
+  void recomputeLameCoefficient();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -105,8 +108,8 @@ public:
 
   AKANTU_GET_MACRO(PlaneStress, plane_stress, bool);
 
-  AKANTU_SET_MACRO(E, E, Real);
-  AKANTU_SET_MACRO(Nu, nu, Real);
+  void setE(Real E) { this->E = E; recomputeLameCoefficient(); };
+  void setNu(Real nu) { this->nu = nu; recomputeLameCoefficient(); };
 
   virtual Real getParam(const ID & param) const;
   virtual void setParam(const ID & param, Real value);

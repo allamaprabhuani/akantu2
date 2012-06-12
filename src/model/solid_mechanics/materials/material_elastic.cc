@@ -51,6 +51,13 @@ void MaterialElastic<spatial_dimension>::initMaterial() {
   Material::initMaterial();
   if (spatial_dimension == 1) nu = 0.;
 
+  recomputeLameCoefficient();
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::recomputeLameCoefficient() {
   lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
   mu       = E / (2 * (1 + nu));
 
@@ -60,8 +67,6 @@ void MaterialElastic<spatial_dimension>::initMaterial() {
   }
 
   kpa      = lambda + 2./3. * mu;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,26 +109,21 @@ bool MaterialElastic<spatial_dimension>::setParam(const std::string & key, const
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getParam(const ID & param) const {
-  ID key = to_lower(param);
-  if(key == "e") { return E; }
+Real MaterialElastic<spatial_dimension>::getParam(const ID & key) const {
+  if(key == "E") { return E; }
   else if(key == "nu") { return nu; }
   else if(key == "lambda") { return nu; }
   else if(key == "mu") { return mu; }
   else if(key == "kapa") { return kpa; }
-  else return Material::getParam(param);
+  else return Material::getParam(key);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::setParam(const ID & param, Real value) {
-  ID key = to_lower(param);
-  if(key == "e") { E = value; }
-  else if(key == "nu") { nu = value; }
-  else if(key == "lambda") { nu = value; }
-  else if(key == "mu") { mu = value; }
-  else if(key == "kapa") { kpa = value; }
-  else Material::setParam(param, value);
+void MaterialElastic<spatial_dimension>::setParam(const ID & key, Real value) {
+  if(key == "E") { E = value; recomputeLameCoefficient(); }
+  else if(key == "nu") { nu = value; recomputeLameCoefficient(); }
+  else Material::setParam(key, value);
 }
 
 

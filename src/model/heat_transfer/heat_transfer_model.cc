@@ -582,7 +582,8 @@ Real HeatTransferModel::getStableTimeStep()
 void HeatTransferModel::readMaterials(const std::string & filename) {
   Parser parser;
   parser.open(filename);
-  std::string mat_type = parser.getNextSection("heat");
+  std::string opt_param;
+  std::string mat_type = parser.getNextSection("heat", opt_param);
 
   if (mat_type != ""){
     parser.readSection<HeatTransferModel>(*this);

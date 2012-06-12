@@ -34,11 +34,13 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
   parser.open(filename);
   std::string key = keyword;
 
-  std::string mat_name = parser.getNextSection("material");
+  std::string opt_param;
+  std::string mat_name = parser.getNextSection("material", opt_param);
   while (mat_name != ""){
     if (mat_name == key) break;
-    mat_name = parser.getNextSection("material");
+    mat_name = parser.getNextSection("material", opt_param);
   }
+
   if (mat_name != key) AKANTU_DEBUG_ERROR("material "
 					  << key
 					  << " not found in file " << filename);

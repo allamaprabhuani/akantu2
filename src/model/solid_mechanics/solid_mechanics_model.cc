@@ -922,19 +922,41 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
-  Real epot = 0.;
+  Real energy = 0.;
 
   /// call update residual on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    epot += (*mat_it)->getPotentialEnergy();
+    energy += (*mat_it)->getPotentialEnergy();
   }
 
   /// reduction sum over all processors
-  StaticCommunicator::getStaticCommunicator()->allReduce(&epot, 1, _so_sum);
+  StaticCommunicator::getStaticCommunicator()->allReduce(&energy, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
-  return epot;
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getEnergy(std::string id) {
+  AKANTU_DEBUG_IN();
+
+  if (id == "kinetic") {
+    return getKineticEnergy();
+  }
+
+  Real energy = 0.;
+
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    energy += (*mat_it)->getEnergy(id);
+  }
+
+  /// reduction sum over all processors
+  StaticCommunicator::getStaticCommunicator()->allReduce(&energy, 1, _so_sum);
+
+  AKANTU_DEBUG_OUT();
+  return energy;
 }
 
 /* -------------------------------------------------------------------------- */

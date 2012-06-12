@@ -152,12 +152,20 @@ bool MaterialDamage<spatial_dimension>::setParam(const std::string & key,
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
+Real MaterialDamage<spatial_dimension>::getEnergy(std::string type) {
+  if(type == "dissipated") return getDissipatedEnergy();
+  else return Material::getEnergy(type);
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 void MaterialDamage<spatial_dimension>::printself(std::ostream & stream,
 						  int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_damage> [" << std::endl;
+  stream << space << "MaterialDamage [" << std::endl;
   MaterialElastic<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }

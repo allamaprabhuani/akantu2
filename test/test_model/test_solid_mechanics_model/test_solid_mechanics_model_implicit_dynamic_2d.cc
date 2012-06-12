@@ -58,24 +58,35 @@ static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
 /* -------------------------------------------------------------------------- */
-const Real F = 0.5e4;
 #define bar_length 10.
 #define bar_height 1.
 #define bar_depth  1.
-const ElementType TYPE = _triangle_3;
+const ElementType TYPE = _triangle_6;
+//const ElementType TYPE = _tetrahedron_10;
 
-UInt spatial_dimension = 2;
+const UInt spatial_dimension = 2;
 Real time_step = 1e-4;
 
+const Real F   = 0.5e4;
+const Real L   = bar_length;
+const Real I   = bar_depth * bar_height * bar_height * bar_height / 12.;
+const Real E   = 12e7;
+const Real rho = 1000;
+const Real m   = rho * bar_height * bar_depth;
+
+
+static Real w(UInt n) {
+  return n*n*M_PI*M_PI/(L*L)*sqrt(E*I/m);
+}
 
 static Real analytical_solution(Real time) {
-  return 1./pow(M_PI, 4) * ((1. - cos(M_PI*M_PI*time)) + (1. - cos(3*3*M_PI*M_PI*time))/81. + (1. - cos(5*5*M_PI*M_PI*time))/625.);
+  return 2*F*L*L*L/(pow(M_PI, 4)*E*I) * ((1. - cos(w(1)*time)) + (1. - cos(w(3)*time))/81. + (1. - cos(w(5)*time))/625.);
 }
 
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  debug::setDebugLevel(dblWarning);
+  debug::setDebugLevel(dblError);
   initialize(argc, argv);
 
   Mesh mesh(spatial_dimension);
@@ -87,10 +98,10 @@ int main(int argc, char *argv[])
   MeshPartition * partition = NULL;
   if(prank == 0) {
     MeshIOMSH mesh_io;
-    mesh_io.read("beam_2d_lin.msh", mesh);
+    mesh_io.read("beam_2d_quad.msh", mesh);
 
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
-    partition->reorder();
+    //    partition->reorder();
     partition->partitionate(psize);
   }
 
@@ -105,6 +116,10 @@ int main(int argc, char *argv[])
 
   model->initModel();
   model->readMaterials("material_implicit_dynamic.dat");
+  Material &mat = model->getMaterial(0);
+  mat.setParam("E", E);
+  mat.setParam("rho", rho);
+
   model->initMaterials();
 
   model->initImplicit(true);
@@ -226,7 +241,7 @@ int main(int argc, char *argv[])
       model->implicitCorr();
       count++;
     } while(!model->testConvergenceIncrement(1e-12, error) && (count < 1000));
-    if(prank == 0) std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << std::endl;
+    if(prank == 0) std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
     count = 0;
 
     // if(s % print_freq == 0) {

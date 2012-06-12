@@ -239,7 +239,7 @@ public:
 
   virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
 			__attribute__((unused)) const UInt index,
-                        __attribute__((unused)) SynchronizationTag tag) const {
+			__attribute__((unused)) SynchronizationTag tag) const {
   }
 
   virtual inline void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
@@ -263,6 +263,7 @@ public:
   AKANTU_SET_MACRO(Rho, rho, Real);
 
   Real getPotentialEnergy();
+  virtual Real getEnergy(std::string type);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
@@ -386,25 +387,29 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Material list                                                              */
 /* -------------------------------------------------------------------------- */
+#define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
+  ((stress_wf, StressBasedWeightFunction))				\
+  ((damage_wf, DamageWeightFunction     ))				\
+  ((base_wf,   BaseWeightFunction       ))
 
 #define AKANTU_MATERIAL_LIST						\
-  ((elastic                , MaterialElastic              ))		\
-  ((viscoelastic           , MaterialViscoElastic         ))		\
-  ((elastic_orthotropic    , MaterialElasticOrthotropic   ))		\
-  ((elastic_caughey        , MaterialElasticCaughey       ))		\
-  ((neohookean             , MaterialNeohookean           ))		\
-  ((damage_linear          , MaterialDamageLinear         ))		\
-  ((marigo                 , MaterialMarigo               ))		\
-  ((mazars                 , MaterialMazars               ))		\
-  ((vreepeerlings          , MaterialVreePeerlings        ))		\
-  ((marigo_non_local       , MaterialMarigoNonLocal       ))		\
-  ((mazars_non_local       , MaterialMazarsNonLocal       ))		\
-  ((vreepeerlings_non_local, MaterialVreePeerlingsNonLocal))		\
-  ((cohesive_bilinear      , MaterialCohesiveBilinear     ))		\
-  ((cohesive_linear        , MaterialCohesiveLinear       ))		\
-  ((cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic ))	\
-  ((cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))
-
+  ((2, (elastic                , MaterialElastic              )))	\
+  ((2, (viscoelastic           , MaterialViscoElastic         )))	\
+  ((2, (elastic_orthotropic    , MaterialElasticOrthotropic   )))	\
+  ((2, (elastic_caughey        , MaterialElasticCaughey       )))	\
+  ((2, (neohookean             , MaterialNeohookean           )))	\
+  ((2, (damage_linear          , MaterialDamageLinear         )))	\
+  ((2, (marigo                 , MaterialMarigo               )))	\
+  ((2, (mazars                 , MaterialMazars               )))	\
+  ((2, (vreepeerlings          , MaterialVreePeerlings        )))	\
+  ((2, (marigo_non_local       , MaterialMarigoNonLocal       )))	\
+  ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
+  ((2, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal)))	\
+  ((2, (cohesive_bilinear      , MaterialCohesiveBilinear     )))	\
+  ((2, (cohesive_linear        , MaterialCohesiveLinear       )))	\
+  ((2, (cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic )))	\
+  ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic )))
+//  ((3, (marigo_non_local_giry  , MaterialMarigoNonLocal, (StressBasedWeigthFunction))))
 
 #define INSTANSIATE_MATERIAL(mat_name)			\
   template class mat_name<1>;				\

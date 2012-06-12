@@ -117,12 +117,13 @@ inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
 	      C, n);
 #else
   memset(C, 0, m*n*sizeof(Real));
-  for (UInt i = 0; i < m; ++i) {
-    UInt A_i = i * k;
-    UInt C_i = i * n;
-    for (UInt j = 0; j < n; ++j) {
+  for (UInt j = 0; j < n; ++j) {
+    for (UInt i = 0; i < m; ++i) {
+      UInt A_i = i * k;
+      UInt C_i = i * n;
       for (UInt l = 0; l < k; ++l) {
-	C[C_i + j] += A[A_i + l] * B[l * n + j];
+	UInt B_l = l * n;
+	C[C_i + j] += A[A_i + l] * B[B_l + j];
       }
       C[C_i + j] *= alpha;
     }

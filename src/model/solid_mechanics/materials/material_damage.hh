@@ -57,9 +57,6 @@ public:
   bool setParam(const std::string & key, const std::string & value,
 		const ID & id);
 
-  /// give the dissipated energy for the time step
-  Real getDissipatedEnergy() const;
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -78,6 +75,11 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
+
+  /// give the dissipated energy for the time step
+  Real getDissipatedEnergy() const;
+
+  virtual Real getEnergy(std::string type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
