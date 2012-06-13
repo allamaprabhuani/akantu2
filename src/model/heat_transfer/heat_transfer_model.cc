@@ -274,9 +274,7 @@ void HeatTransferModel::updateResidual() {
   //clear the array
   /// first @f$ r = q_{ext} @f$
   //  residual->clear();
-  residual->resize(getFEM().getMesh().getNbNodes());
-  memcpy(residual->values, external_flux->values, 
-	 getFEM().getMesh().getNbNodes()*sizeof(Real));
+  residual->copy(*external_flux);
 
   /// then @f$ r -= q_{int} @f$
   // update the not ghost ones
@@ -639,8 +637,8 @@ void HeatTransferModel::initFull(const std::string & material_file){
   initModel();
   //initialize the vectors
   initVectors();
-  getTemperature().clear();
-  getTemperatureRate().clear();
+  temperature->clear();
+  temperature_rate->clear();
   external_flux->clear();
 }
 
