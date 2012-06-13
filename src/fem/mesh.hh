@@ -50,25 +50,29 @@ __BEGIN_AKANTU__
 class Element {
 public:
   Element(ElementType type = _not_defined, UInt element = 0,
-	  GhostType ghost_type = _not_ghost) :
-    type(type), element(element), ghost_type(ghost_type) {};
+	  GhostType ghost_type = _not_ghost, ElementKind kind = _ek_regular) :
+    type(type), element(element),
+    ghost_type(ghost_type), kind(kind) {};
 
   Element(const Element & element) {
     this->type    = element.type;
     this->element = element.element;
     this->ghost_type = element.ghost_type;
+    this->kind = element.kind;
   }
 
   inline bool operator==(const Element & elem) const {
     return ((element == elem.element)
 	    && (type == elem.type) 
-	    && (ghost_type == elem.ghost_type));
+	    && (ghost_type == elem.ghost_type)
+	    && (kind == elem.kind));
   }
 
   inline bool operator!=(const Element & elem) const {
     return ((element != elem.element)
 	    || (type != elem.type) 
-	    || (ghost_type != elem.ghost_type));
+	    || (ghost_type != elem.ghost_type)
+	    || (kind != elem.kind));
   }
 
 
@@ -80,15 +84,18 @@ public:
   ElementType type;
   UInt element;
   GhostType ghost_type;
+  ElementKind kind;
 };
 
 struct CompElementLess {
   bool operator() (const Element& lhs, const Element& rhs) const {
-    bool res = ((lhs.ghost_type < rhs.ghost_type) ||
-                ((lhs.ghost_type == rhs.ghost_type) &&
-                 ((lhs.type < rhs.type) ||
-                  ((lhs.type == rhs.type) &&
-                   (lhs.element < rhs.element)))));
+    bool res = ((lhs.kind < rhs.kind) ||
+		((lhs.kind == rhs.kind) &&
+		 ((lhs.ghost_type < rhs.ghost_type) ||
+		  ((lhs.ghost_type == rhs.ghost_type) &&
+		   ((lhs.type < rhs.type) ||
+		    ((lhs.type == rhs.type) &&
+		     (lhs.element < rhs.element)))))));
     return res;
   }
 };

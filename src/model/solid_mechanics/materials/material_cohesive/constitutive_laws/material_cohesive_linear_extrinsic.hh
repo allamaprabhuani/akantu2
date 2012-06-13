@@ -114,9 +114,6 @@ protected:
   /// kappa parameter
   Real kappa;
 
-  /// maximum displacement
-  ByElementTypeReal delta_max;
-
   /// critical displacement
   ByElementTypeReal delta_c;
 

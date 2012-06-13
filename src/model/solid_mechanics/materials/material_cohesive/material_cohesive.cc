@@ -41,7 +41,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   tractions_old("tractions (old)",id),
   opening_old("opening (old)",id),
   tractions("tractions",id),
-  opening("opening",id) {
+  opening("opening",id),
+  delta_max("delta max",id),
+  damage("damage", id) {
 
   AKANTU_DEBUG_IN();
 
@@ -53,6 +55,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   initInternalVector(tractions, spatial_dimension, _ek_cohesive);
   initInternalVector(opening_old, spatial_dimension, _ek_cohesive);
   initInternalVector(opening, spatial_dimension, _ek_cohesive);
+  initInternalVector(delta_max, 1, _ek_cohesive);
+  initInternalVector(damage, 1, _ek_cohesive);
 
   sigma_c = 0;
   rand = 0;
@@ -109,6 +113,8 @@ void MaterialCohesive::resizeCohesiveVectors() {
   resizeInternalVector(tractions, _ek_cohesive);
   resizeInternalVector(opening_old, _ek_cohesive);
   resizeInternalVector(opening, _ek_cohesive);
+  resizeInternalVector(delta_max, _ek_cohesive);
+  resizeInternalVector(damage, _ek_cohesive);
 
 }
 

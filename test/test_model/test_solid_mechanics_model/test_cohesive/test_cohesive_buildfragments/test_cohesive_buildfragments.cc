@@ -1,0 +1,216 @@
+/**
+ * @file   test_cohesive.cc
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @date   Fri Feb 24 14:32:31 2012
+ *
+ * @brief  Test for cohesive elements
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+
+#include <limits>
+#include <fstream>
+#include <iostream>
+
+
+/* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "mesh.hh"
+#include "mesh_io.hh"
+#include "mesh_io_msh.hh"
+#include "mesh_utils.hh"
+#include "solid_mechanics_model_cohesive.hh"
+#include "material.hh"
+#include "io_helper.hh"
+/* -------------------------------------------------------------------------- */
+
+using namespace akantu;
+
+int main(int argc, char *argv[]) {
+  initialize(argc, argv);
+
+  debug::setDebugLevel(dblWarning);
+
+  const UInt spatial_dimension = 2;
+  const UInt max_steps = 200;
+
+  //  const ElementType type = _triangle_6;
+
+  Mesh mesh(spatial_dimension);
+  MeshIOMSH mesh_io;
+  mesh_io.read("mesh.msh", mesh);
+
+  SolidMechanicsModelCohesive model(mesh);
+
+  /// model initialization
+  model.initFull("material.dat");
+  model.initExtrinsic();
+  Real time_step = model.getStableTimeStep()*0.05;
+  model.setTimeStep(time_step);
+  //  std::cout << "Time step: " << time_step << std::endl;
+
+  model.assembleMassLumped();
+
+  Real strain_rate = 1.e5;
+  Real L = 0.03;
+  Real disp_increment = strain_rate * L / 2. * time_step;
+
+  Vector<Real> & velocity = model.getVelocity();
+  Vector<bool> & boundary = model.getBoundary();
+  Vector<Real> & displacement = model.getDisplacement();
+  //  const Vector<Real> & residual = model.getResidual();
+
+  const Vector<Real> & position = mesh.getNodes();
+  UInt nb_nodes = mesh.getNbNodes();
+
+  /// initial conditions
+  for (UInt n = 0; n < nb_nodes; ++n)
+    velocity(n, 0) = strain_rate * position(n, 0);
+
+  /// boundary conditions
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    if (position(n, 0) == L/2) {
+      boundary(n, 0) = true;
+      displacement(n, 0) += disp_increment;
+    }
+    if (position(n, 0) == -1.* L/2) {
+      boundary(n, 0) = true;
+      displacement(n, 0) -= disp_increment;
+    }
+  }
+
+  model.updateResidual();
+
+  // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
+  //  UInt nb_element = mesh.getNbElement(type);
+
+  // /// initialize the paraview output
+  // iohelper::DumperParaview dumper;
+  // dumper.SetMode(iohelper::TEXT);
+  // dumper.SetPoints(mesh.getNodes().values,
+  // 		   spatial_dimension, mesh.getNbNodes(), "explicit");
+  // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+  // 			 paraview_type, nb_element, iohelper::C_MODE);
+  // dumper.AddNodeDataField(model.getDisplacement().values,
+  // 			  spatial_dimension, "displacements");
+  // dumper.AddNodeDataField(model.getVelocity().values,
+  // 			  spatial_dimension, "velocity");
+  // dumper.AddNodeDataField(model.getAcceleration().values,
+  // 			  spatial_dimension, "acceleration");
+  // dumper.AddNodeDataField(model.getForce().values,
+  // 			  spatial_dimension, "applied_force");
+  // dumper.AddNodeDataField(model.getResidual().values,
+  // 			  spatial_dimension, "forces");
+  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+  // 			  spatial_dimension*spatial_dimension, "strain");
+  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+  // 			  spatial_dimension*spatial_dimension, "stress");
+  // dumper.SetEmbeddedValue("displacements", 1);
+  // dumper.SetEmbeddedValue("applied_force", 1);
+  // dumper.SetEmbeddedValue("forces", 1);
+  // dumper.SetPrefix("paraview/");
+  // dumper.Init();
+  // dumper.Dump();
+
+  ElementType type_facet = model.getFacetType();
+  ElementType type_cohesive = model.getCohesiveElementType();
+  UInt cohesive_index = model.getCohesiveIndex();
+
+  UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
+  MaterialCohesive & mat_cohesive
+    = dynamic_cast<MaterialCohesive&>(model.getMaterial(cohesive_index));
+  const Vector<Real> & damage = mat_cohesive.getDamage(type_cohesive);
+
+  /// Main loop
+  for (UInt s = 1; s <= max_steps; ++s) {
+
+    model.checkCohesiveStress();
+
+    model.explicitPred();
+    model.updateResidual();
+    model.updateAcceleration();
+    model.explicitCorr();
+
+    /// apply boundary conditions
+    for (UInt n = 0; n < nb_nodes; ++n) {
+      if (position(n, 0) == L/2) {
+	displacement(n, 0) += disp_increment;
+      }
+      if (position(n, 0) == -1.* L/2) {
+	displacement(n, 0) -= disp_increment;
+      }
+    }
+
+    if(s % 1 == 0) {
+      // dumper.SetPoints(mesh.getNodes().values,
+      // 		       spatial_dimension, mesh.getNbNodes(), "explicit");
+      // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+      // 			     paraview_type, nb_element, iohelper::C_MODE);
+      // dumper.AddNodeDataField(model.getDisplacement().values,
+      // 			      spatial_dimension, "displacements");
+      // dumper.AddNodeDataField(model.getVelocity().values,
+      // 			      spatial_dimension, "velocity");
+      // dumper.AddNodeDataField(model.getAcceleration().values,
+      // 			      spatial_dimension, "acceleration");
+      // dumper.AddNodeDataField(model.getForce().values,
+      // 			      spatial_dimension, "applied_force");
+      // dumper.AddNodeDataField(model.getResidual().values,
+      // 			      spatial_dimension, "forces");
+      // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+      // 			      spatial_dimension*spatial_dimension, "strain");
+      // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+      // 			      spatial_dimension*spatial_dimension, "stress");
+      // dumper.SetEmbeddedValue("displacements", 1);
+      // dumper.SetEmbeddedValue("applied_force", 1);
+      // dumper.SetEmbeddedValue("forces", 1);
+      // dumper.SetPrefix("paraview/");
+      // dumper.Init();
+      // dumper.Dump();
+
+      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+
+      model.buildFragmentsList();
+      UInt nb_fragment_num = model.getNbFragment();
+
+      UInt nb_cohesive_elements = mesh.getNbElement(type_cohesive);
+
+      UInt nb_fragment = 1;
+      for (UInt el = 0; el < nb_cohesive_elements; ++el) {
+	UInt q = 0;
+	while (q < nb_quad_per_facet &&
+	       damage(el * nb_quad_per_facet + q) == 1) ++q;
+
+	if (q == nb_quad_per_facet) ++nb_fragment;
+      }
+
+      if (nb_fragment != nb_fragment_num) {
+	std::cout << "The number of fragments is wrong!" << std::endl;
+	return EXIT_FAILURE;
+      }
+    }
+  }
+
+  finalize();
+
+  std::cout << "OK: test_cohesive_buildfragments was passed!" << std::endl;
+  return EXIT_SUCCESS;
+}

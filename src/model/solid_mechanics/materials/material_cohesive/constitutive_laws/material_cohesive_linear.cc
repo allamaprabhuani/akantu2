@@ -37,15 +37,12 @@ __BEGIN_AKANTU__
 template<UInt spatial_dimension>
 MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(SolidMechanicsModel & model,
 								  const ID & id) :
-  MaterialCohesive(model,id),
-  delta_max("delta max",id) {
+  MaterialCohesive(model,id) {
   AKANTU_DEBUG_IN();
 
   beta      = 0;
   G_cI      = 0;
   G_cII     = 0;
-
-  initInternalVector(delta_max, 1, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }
@@ -69,13 +66,6 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   delta_c = 2 * G_cI / sigma_c;
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveLinear<spatial_dimension>::resizeCohesiveVectors() {
-  MaterialCohesive::resizeCohesiveVectors();
-  resizeInternalVector(delta_max, _ek_cohesive);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -115,6 +105,9 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
   Vector<Real>::iterator<Real>delta_max_it =
     delta_max(el_type, ghost_type).begin();
 
+  Vector<Real>::iterator<Real>damage_it =
+    damage(el_type, ghost_type).begin();
+
   /// compute scalars
   Real beta2_kappa2 = beta*beta/kappa/kappa;
   Real beta2_kappa  = beta*beta/kappa;
@@ -122,7 +115,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
-       ++traction_it, ++opening_it, ++normal_it, ++delta_max_it) {
+       ++traction_it, ++opening_it, ++normal_it, ++delta_max_it, ++damage_it) {
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
@@ -147,10 +140,11 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
     delta = sqrt(delta);
 
 
-    /// full damage case
+    /// full damage case or zero displacement case
     if (delta >= delta_c || delta == 0) {
       /// set traction to zero
       (*traction_it).clear();
+      *damage_it = delta >= delta_c;
     }
     /// element not fully damaged
     else {
@@ -167,8 +161,9 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
 
       /// update maximum displacement
       *delta_max_it = std::max(*delta_max_it, delta);
+      *damage_it = *delta_max_it / delta_c;
 
-      Real k = sigma_c / *delta_max_it * (1. - *delta_max_it / delta_c);
+      Real k = sigma_c / *delta_max_it * (1. - *damage_it);
       *traction_it *= k;
     }
   }

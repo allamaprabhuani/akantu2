@@ -168,6 +168,9 @@ public:
   /// get rand
   AKANTU_GET_MACRO(RandFactor, rand, Real);
 
+  /// get damage
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -204,6 +207,12 @@ protected:
 
   /// vector to store stresses on facets for element insertions
   Vector<Real> sigma_insertion;
+
+  /// maximum displacement
+  ByElementTypeReal delta_max;
+
+  /// damage
+  ByElementTypeReal damage;
 
   /// pointer to the solid mechanics model for cohesive elements
   SolidMechanicsModelCohesive * model;

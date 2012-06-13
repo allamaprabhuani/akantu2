@@ -39,7 +39,6 @@ template<UInt spatial_dimension>
 MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::MaterialCohesiveLinearExponentialExtrinsic(SolidMechanicsModel & model, const ID & id) :
   MaterialCohesive(model,id),
   sigma_c_eff("sigma_c_eff",id),
-  delta_max("delta max",id),
   sigma_actual("sigma actual",id) {
   AKANTU_DEBUG_IN();
 
@@ -50,7 +49,6 @@ MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::MaterialCohesiveL
   G_cII     = 0;
 
   initInternalVector(sigma_c_eff, 1, _ek_cohesive);
-  initInternalVector(delta_max, 1, _ek_cohesive);
   initInternalVector(sigma_actual, 1, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
@@ -82,7 +80,6 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesi
   MaterialCohesive::resizeCohesiveVectors();
 
   resizeInternalVector(sigma_c_eff, _ek_cohesive);
-  resizeInternalVector(delta_max, _ek_cohesive);
   resizeInternalVector(sigma_actual, _ek_cohesive);
 
   FEM & fem_cohesive = model->getFEM("CohesiveFEM");

@@ -78,6 +78,9 @@ public:
   /// initialize cohesive material
   void initCohesiveMaterial();
 
+  /// build fragments list
+  void buildFragmentsList();
+
   /// compute reversible energy
   Real getReversibleEnergy();
 
@@ -128,6 +131,15 @@ public:
   /// get the facets check vector
   AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Vector<bool> &);
 
+  /// get the stress on facets vector
+  AKANTU_GET_MACRO(StressOnFacets, facet_stress, const Vector<Real> &);
+
+  /// get the number of fragments
+  AKANTU_GET_MACRO(NbFragment, nb_fragment, UInt);
+
+  /// get the fragment_to_element vectors
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FragmentToElement, fragment_to_element, UInt);
+
   /// THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO(Tangents, tangents, const Vector<Real> &);
 
@@ -162,6 +174,18 @@ private:
 
   /// list of facet quadrature points positions by element
   ByElementTypeReal elements_quad_facets;
+
+  /// stress on facets on the two sides by quadrature point
+  Vector<Real> facet_stress;
+
+  /// list of facets connected to each cohesive element
+  Vector<UInt> facets_to_cohesive_el;
+
+  /// fragment number for each element
+  ByElementTypeUInt fragment_to_element;
+
+  /// number of fragments
+  UInt nb_fragment;
 
 };
 

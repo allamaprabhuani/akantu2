@@ -73,9 +73,6 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors();
-
 protected:
 
   /// constitutive law
@@ -104,9 +101,6 @@ protected:
 
   /// kappa parameter
   Real kappa;
-
-  /// maximum displacement
-  ByElementTypeReal delta_max;
 
   /// critical displacement
   Real delta_c;

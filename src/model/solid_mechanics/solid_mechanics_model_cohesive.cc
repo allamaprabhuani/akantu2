@@ -46,8 +46,11 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
     mesh_facets(mesh.getSpatialDimension(),
 		mesh.getNodes().getID(),
 		id, memory_id),
-    quad_elements("quad elements", id),
-    elements_quad_facets("elements_quad_facets", id) {
+    quad_elements("quad_elements", id),
+    elements_quad_facets("elements_quad_facets", id),
+    facet_stress(0, spatial_dimension * spatial_dimension, "facet_stress"),
+    facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
+    fragment_to_element("fragment_to_element", id) {
   AKANTU_DEBUG_IN();
 
   registerFEMObject<MyFEMCohesiveType>("CohesiveFEM", mesh, spatial_dimension);
@@ -251,8 +254,7 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
   ByElementTypeReal stress_on_facet;
 
   /// vector containing stresses coming from the two elements of each facets
-  Vector<Real> facet_stress(2 * nb_facet * nb_quad_per_facet,
-			    spatial_dimension * spatial_dimension);
+  facet_stress.resize(2 * nb_facet * nb_quad_per_facet);
 
   Vector<bool> facet_stress_count(nb_facet);
   facet_stress_count.clear();
@@ -333,10 +335,8 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
 
   /// update mesh
   for (UInt f = 0; f < facet_insertion.getSize(); ++f) {
-      Element facet;
-      facet.element = facet_insertion(f);
-      facet.type = type_facet;
-      doubleFacet(facet, doubled_nodes, doubled_facets);
+    Element facet(type_facet, facet_insertion(f));
+    doubleFacet(facet, doubled_nodes, doubled_facets);
   }
 
   /// double middle nodes if it's the case
@@ -349,6 +349,8 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
   UInt nb_nodes_per_facet = conn_facet.getNbComponent();
   const Vector<Real> & position = mesh.getNodes();
   Vector<UInt> & element_mat = getElementMaterial(type_cohesive);
+  Vector<Vector<Element> > & element_to_facet
+    = mesh_facets.getElementToSubelement(type_facet);
 
   for (UInt f = 0; f < doubled_facets.getSize(); ++f) {
 
@@ -391,6 +393,17 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
     element_mat.resize(nb_cohesive_elements + 1);
     element_mat(nb_cohesive_elements) = cohesive_index;
     materials[cohesive_index]->addElement(type_cohesive, nb_cohesive_elements, _not_ghost);
+
+    /// update element_to_facet vectors
+    Element cohesive_element(type_cohesive, nb_cohesive_elements,
+			     _not_ghost, _ek_cohesive);
+    element_to_facet(first_facet)(1) = cohesive_element;
+    element_to_facet(second_facet)(1) = cohesive_element;
+
+    /// update facets_to_cohesive_el vector
+    facets_to_cohesive_el.resize(nb_cohesive_elements + 1);
+    facets_to_cohesive_el(nb_cohesive_elements, 0) = first_facet;
+    facets_to_cohesive_el(nb_cohesive_elements, 1) = second_facet;
   }
 
   /// update shape functions
@@ -557,7 +570,8 @@ void SolidMechanicsModelCohesive::doubleFacet(Element & facet,
   doubled_facets(nb_doubled_facets, 1) = nb_facet;
 
   /// update elements connected to facet
-  element_to_facet.push_back(element_to_facet(f_index));
+  Vector<Element> first_facet_list = element_to_facet(f_index);
+  element_to_facet.push_back(first_facet_list);
 
   /// set new and original facets as boundary facets
   element_to_facet(f_index)(1) = ElementNull;
@@ -629,7 +643,8 @@ void SolidMechanicsModelCohesive::doubleFacet(Element & facet,
 
       /// if current loop facet is on the boundary, double subfacet
       UInt f_global = facet_to_subfacet(sf_index)(f).element;
-      if (element_to_facet(f_global)(1).type == _not_defined) {
+      if (element_to_facet(f_global)(1).type == _not_defined ||
+	  element_to_facet(f_global)(1).kind == _ek_cohesive) {
 	doubleSubfacet(subfacet_to_facet(f_index, sf), start, f, doubled_nodes);
 	break;
       }
@@ -731,9 +746,7 @@ void SolidMechanicsModelCohesive::doubleSubfacet(const Element & subfacet,
     subfacet_to_facet(f_global, i).element = nb_subfacet;
 
     /// add current facet to facet_to_subfacet last position
-    Element current_facet;
-    current_facet.element = f_global;
-    current_facet.type = type_facet;
+    Element current_facet(type_facet, f_global);
     facet_to_subfacet(nb_subfacet).push_back(current_facet);
 
     /// exit loop if it reaches the end
@@ -757,6 +770,119 @@ void SolidMechanicsModelCohesive::doubleSubfacet(const Element & subfacet,
 
   /// resize list of facets of the original subfacet
   facet_to_subfacet(sf_index).resize(nb_connected_facets);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+
+void SolidMechanicsModelCohesive::buildFragmentsList() {
+  AKANTU_DEBUG_IN();
+
+  Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last = mesh.lastType(spatial_dimension);
+
+  const UInt max = std::numeric_limits<UInt>::max();
+
+  for (; it != last; ++it) {
+    UInt nb_element = mesh.getNbElement(*it);
+    if (nb_element != 0) {
+      /// initialize the list of checked elements and the list of
+      /// elements to be checked
+      fragment_to_element.alloc(nb_element, 1, *it);
+
+      for (UInt el = 0; el < nb_element; ++el)
+	fragment_to_element(*it)(el) = max;
+    }
+  }
+
+  Vector<Vector<Element> > & element_to_facet
+    = mesh_facets.getElementToSubelement(type_facet);
+
+  nb_fragment = 0;
+  it = mesh.firstType(spatial_dimension);
+
+  MaterialCohesive * mat_cohesive
+    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
+  const Vector<Real> & damage = mat_cohesive->getDamage(type_cohesive);
+  UInt nb_quad_cohesive = getFEM("CohesiveFEM").getNbQuadraturePoints(type_cohesive);
+
+  for (; it != last; ++it) {
+    Vector<UInt> & checked_el = fragment_to_element(*it);
+    UInt nb_element = checked_el.getSize();
+    if (nb_element != 0) {
+
+      Vector<Element> & facet_to_element = mesh_facets.getSubelementToElement(*it);
+      UInt nb_facet_per_elem = facet_to_element.getNbComponent();
+
+      /// loop on elements
+      for (UInt el = 0; el < nb_element; ++el) {
+	if (checked_el(el) == max) {
+	  /// build fragment
+	  ++nb_fragment;
+	  checked_el(el) = nb_fragment - 1;
+	  Vector<Element> elem_to_check;
+
+	  Element current_el(*it, el);
+	  elem_to_check.push_back(current_el);
+
+	  /// keep looping while there are elements to check
+	  while (elem_to_check.getSize() != 0) {
+	    UInt nb_elem_check = elem_to_check.getSize();
+
+	    for (UInt el_check = 0; el_check < nb_elem_check; ++el_check) {
+	      Element current_el = elem_to_check(el_check);
+
+	      for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+		/// find adjacent element on current facet
+		UInt global_facet = facet_to_element(current_el.element, f).element;
+		Element next_el;
+		for (UInt i = 0; i < 2; ++i) {
+		  next_el = element_to_facet(global_facet)(i);
+		  if (next_el != current_el) break;
+		}
+
+		if (next_el.kind == _ek_cohesive) {
+		  /// fragmention occurs when the cohesive element has
+		  /// reached damage = 1 on every quadrature point
+		  UInt q = 0;
+		  while (q < nb_quad_cohesive &&
+			 damage(next_el.element * nb_quad_cohesive + q) == 1) ++q;
+
+		  if (q == nb_quad_cohesive)
+		    next_el = ElementNull;
+		  else {
+		    /// check which facet is the correct one
+		    UInt other_facet_index
+		      = facets_to_cohesive_el(next_el.element, 0) == global_facet;
+		    UInt other_facet
+		      = facets_to_cohesive_el(next_el.element, other_facet_index);
+
+		    /// get the other regualar element
+		    next_el = element_to_facet(other_facet)(0);
+		  }
+		}
+
+		/// if it exists, add it to the fragment list
+		if (next_el != ElementNull) {
+		  Vector<UInt> & checked_next_el = fragment_to_element(next_el.type);
+		  /// check if the element isn't already part of a fragment
+		  if (checked_next_el(next_el.element) == max) {
+		    checked_next_el(next_el.element) = nb_fragment - 1;
+		    elem_to_check.push_back(next_el);
+		  }
+		}
+	      }
+	    }
+
+	    /// erase elements that have already been checked
+	    for (UInt el_check = nb_elem_check; el_check > 0; --el_check)
+	      elem_to_check.erase(el_check - 1);
+	  }
+	}
+      }
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
