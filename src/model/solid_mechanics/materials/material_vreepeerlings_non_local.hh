@@ -108,7 +108,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "material_vreepeerlings_non_local_inline_impl.cc"
+#include "material_vreepeerlings_non_local_inline_impl.cc"
 
 __END_AKANTU__
 

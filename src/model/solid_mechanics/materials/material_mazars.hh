@@ -90,8 +90,7 @@ protected:
 					   Real & damage,
 					   Real & Ehat);
 
-  inline void computeDamageOnQuad(const types::Matrix & grad_u,
-				  const Real & Ehat,
+  inline void computeDamageOnQuad(const Real & Ehat,
 				  const types::RVector & FDiag,
 				  Real & dam);
 

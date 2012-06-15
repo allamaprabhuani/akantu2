@@ -331,8 +331,6 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const ByElementTypeReal & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
 
-  std::cout << "Compute weights" << std::endl;
-
   std::set< std::pair<ElementType, ElementType> >::iterator first_pair_types;
   std::set< std::pair<ElementType, ElementType> >::iterator last_pair_types = existing_pairs.end();
 

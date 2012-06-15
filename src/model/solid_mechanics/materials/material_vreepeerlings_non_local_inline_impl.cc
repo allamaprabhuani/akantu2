@@ -33,8 +33,8 @@ template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model,
 												const ID & id)  :
   Material(model, id),
-  MaterialElastic<spatial_dimension, WeigthFunction>(model, id),
-  MaterialVreePeerlings<spatial_dimension, WeigthFunction>(model, id),
+  MaterialElastic<spatial_dimension>(model, id),
+  MaterialVreePeerlings<spatial_dimension>(model, id),
   MaterialNonLocalParent(model, id),
   equi_strain("equi-strain", id),
   equi_strain_non_local("equi-strain_non_local", id) {
@@ -52,7 +52,7 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::MaterialVreePe
 template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialVreePeerlings<spatial_dimension, WeigthFunction>::initMaterial();
+  MaterialVreePeerlings<spatial_dimension>::initMaterial();
   MaterialNonLocalParent::initMaterial();
 
   this->resizeInternalVector(this->equi_strain);
@@ -72,7 +72,7 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeSt
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-  MaterialVreePeerlings<spatial_dimension, WeigthFunction>::computeStressOnQuad(grad_u, sigma,
+  MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
 								*dam,
 								*equi_straint,
 								*Kapaq);
@@ -96,7 +96,7 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeNo
   Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
 
   for(; it != last_type; ++it) {
-    computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
+    computeNonLocalStress(equi_strain_non_local(*it, ghost_type), *it, ghost_type);
   }
 
   AKANTU_DEBUG_OUT();

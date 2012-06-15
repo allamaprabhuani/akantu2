@@ -52,7 +52,7 @@ MaterialMazars<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
   MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
   if(damage_in_compute_stress) {
-    computeDamageOnQuad(grad_u, Ehat, Fdiag, dam);
+    computeDamageOnQuad(Ehat, Fdiag, dam);
   }
 
   if(!this->is_non_local) {
@@ -72,7 +72,7 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & 
     Fdiag.clear();
     Math::eigenvalues<spatial_dimension>(grad_u.storage(), Fdiag.storage());
 
-    computeDamageOnQuad(grad_u, Ehat, Fdiag, dam);
+    computeDamageOnQuad(Ehat, Fdiag, dam);
   }
 
   sigma *= 1 - dam;
@@ -81,8 +81,7 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeDamageOnQuad(const types::Matrix & grad_u,
-						       const Real & Ehat,
+MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & Ehat,
 						       const types::RVector & Fdiag,
 						       Real & dam) {
   Real Fs = Ehat - K0;

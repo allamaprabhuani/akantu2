@@ -98,7 +98,6 @@ void MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::computeNonLocalS
                                                    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
   UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
   if (nb_element == 0) return;
 
