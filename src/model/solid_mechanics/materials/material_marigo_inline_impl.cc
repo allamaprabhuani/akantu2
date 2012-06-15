@@ -30,21 +30,6 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & sigma,
-								Real & dam,
-								Real & Y,
-								Real &Ydq) {
-  Real Fd = Y - Ydq - Sd * dam;
-
-  if (Fd > 0) dam = (Y - Ydq) / Sd;
-  dam = std::min(dam,1.);
-
-  sigma *= 1-dam;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline void
 MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
 						       types::Matrix & sigma,
 						       Real & dam,
@@ -60,8 +45,9 @@ MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
   }
   Y *= 0.5;
 
-  //Y *= (1 - dam);
-  //Y = std::min(Y, Yc);
+  if(damage_in_y) Y *= (1 - dam);
+
+  if(yc_limit) Y = std::min(Y, Yc);
 
   if(!this->is_non_local) {
     computeDamageAndStressOnQuad(sigma, dam, Y, Ydq);
@@ -70,8 +56,23 @@ MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
+inline void
+MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & sigma,
+								Real & dam,
+								Real & Y,
+								Real &Ydq) {
+  Real Fd = Y - Ydq - Sd * dam;
+
+  if (Fd > 0) dam = (Y - Ydq) / Sd;
+  dam = std::min(dam,1.);
+
+  sigma *= 1-dam;
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 inline UInt MaterialMarigo<spatial_dimension>::getNbDataToPack(const Element & element,
-							       SynchronizationTag tag) const {
+					    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -87,7 +88,7 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbDataToPack(const Element & e
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline UInt MaterialMarigo<spatial_dimension>::getNbDataToUnpack(const Element & element,
-								 SynchronizationTag tag) const {
+					      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -103,8 +104,8 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbDataToUnpack(const Element &
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::packData(CommunicationBuffer & buffer,
-							const Element & element,
-							SynchronizationTag tag) const {
+				     const Element & element,
+				     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat)
@@ -118,8 +119,8 @@ inline void MaterialMarigo<spatial_dimension>::packData(CommunicationBuffer & bu
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
-							  const Element & element,
-							  SynchronizationTag tag) {
+				       const Element & element,
+				       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat)

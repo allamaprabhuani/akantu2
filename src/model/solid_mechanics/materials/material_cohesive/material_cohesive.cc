@@ -106,7 +106,6 @@ void MaterialCohesive::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::resizeCohesiveVectors() {
-
   resizeInternalVector(reversible_energy, _ek_cohesive);
   resizeInternalVector(total_energy, _ek_cohesive);
   resizeInternalVector(tractions_old, _ek_cohesive);
@@ -115,7 +114,6 @@ void MaterialCohesive::resizeCohesiveVectors() {
   resizeInternalVector(opening, _ek_cohesive);
   resizeInternalVector(delta_max, _ek_cohesive);
   resizeInternalVector(damage, _ek_cohesive);
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -145,7 +143,6 @@ void MaterialCohesive::checkInsertion(const Vector<Real> & facet_stress,
 
       for (UInt e = 0; e < 2; ++e) {
   	for (UInt q = 0; q < nb_quad_facet; ++q) {
-
 	  types::Matrix stress_edge(facet_stress.storage()
 				    + f * 2 * nb_quad_facet * sp2
 				    + e * nb_quad_facet * sp2

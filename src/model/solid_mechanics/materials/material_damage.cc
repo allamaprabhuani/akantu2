@@ -72,7 +72,7 @@ void MaterialDamage<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 /**
- * Compute the dissipated energy in  each element by a rectangular approximation
+ * Compute the dissipated energy in  each element by a trapezoidal approximation
  * of
  * @f$ Ed = \int_0^{\epsilon}\sigma(\omega)d\omega - \frac{1}{2}\sigma:\epsilon@f$
  */
@@ -104,8 +104,9 @@ void MaterialDamage<spatial_dimension>::updateDissipatedEnergy(GhostType ghost_t
       Real dint = 0.;
       for (UInt i = 0; i < spatial_dimension; ++i) {
 	for (UInt j = 0; j < spatial_dimension; ++j) {
-	  epot += (*sigma)(i,j) * (*epsilon)(i,j);
-	  dint += .5 * ((*sigma_p)(i,j) + (*sigma)(i,j)) * ((*epsilon)(i,j) - (*epsilon_p)(i,j));
+	  epot += (*sigma)(i,j) * (*epsilon)(i,j); /// \f$ epot = .5 \sigma : \epsilon \f$
+	  dint += .5 * ((*sigma_p)(i,j) + (*sigma)(i,j)) * ((*epsilon)(i,j) - (*epsilon_p)(i,j)); /// \f$ \frac{.5 \sigma(\epsilon(t-h)) + \sigma(\epsilon(t))}{\epsilon(t) - \epsilon(t-h)} \f$
+
 	  (*epsilon_p)(i,j) = (*epsilon)(i,j);
 	  (*sigma_p)(i,j) = (*sigma)(i,j);
 	}

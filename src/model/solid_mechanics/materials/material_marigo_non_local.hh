@@ -44,14 +44,14 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-template<UInt spatial_dimension>
+template<UInt spatial_dimension, template <UInt> class WeightFunction>
 class MaterialMarigoNonLocal : public MaterialMarigo<spatial_dimension>,
-			       public MaterialNonLocal<spatial_dimension, BaseWeightFunction> {
+			       public MaterialNonLocal<spatial_dimension, WeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<spatial_dimension, BaseWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<spatial_dimension, WeightFunction> MaterialNonLocalParent;
 
   MaterialMarigoNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
@@ -99,8 +99,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "material_marigo_non_local_inline_impl.cc"
-
+#include "material_marigo_non_local_inline_impl.cc"
 
 __END_AKANTU__
 

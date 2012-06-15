@@ -131,6 +131,8 @@ protected:
   /// Yd random internal variable
   ByElementTypeReal Yd_rand;
 
+  bool damage_in_y;
+  bool yc_limit;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -723,7 +723,7 @@ const Vector<Real> & Material::getVector(const ID & vect_id, const ElementType &
 }
 
 /* -------------------------------------------------------------------------- */
-Real Material::getParam(const ID & param) const {
+Real Material::getProperty(const ID & param) const {
   if(param == "rho") {
     return rho;
   } else {
@@ -732,7 +732,7 @@ Real Material::getParam(const ID & param) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::setParam(const ID & param, Real value) {
+void Material::setProperty(const ID & param, Real value) {
   if(param == "rho") {
     rho = value;
   } else {

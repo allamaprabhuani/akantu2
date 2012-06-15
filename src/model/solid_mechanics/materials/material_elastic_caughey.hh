@@ -91,8 +91,8 @@ public:
   AKANTU_GET_MACRO(Alpha, alpha, Real);
   AKANTU_SET_MACRO(Alpha, alpha, Real);
 
-  virtual Real getParam(const ID & param) const;
-  virtual void setParam(const ID & param, Real value);
+  virtual Real getProperty(const ID & param) const;
+  virtual void setProperty(const ID & param, Real value);
 
 
   /* ------------------------------------------------------------------------ */

@@ -26,6 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "material.hh"
 #include "fem_template.hh"
 #include "aka_common.hh"

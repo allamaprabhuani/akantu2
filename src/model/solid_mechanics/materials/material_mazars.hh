@@ -90,6 +90,11 @@ protected:
 					   Real & damage,
 					   Real & Ehat);
 
+  inline void computeDamageOnQuad(const types::Matrix & grad_u,
+				  const Real & Ehat,
+				  const types::RVector & FDiag,
+				  Real & dam);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -111,6 +116,9 @@ protected:
   Real Bc ;
   ///parameter for shear
   Real beta ;
+
+  /// specify the variable to average false = ehat, true = damage (only valid for non local version)
+  bool damage_in_compute_stress;
 };
 
 /* -------------------------------------------------------------------------- */

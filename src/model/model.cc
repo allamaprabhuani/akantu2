@@ -86,6 +86,8 @@ void Model::initPBC() {
 
     is_pbc_slave_node(i1) = true; 
 
+#ifndef AKANTU_NDEBUG
+    UInt i2 = (*it).second;
     AKANTU_DEBUG_INFO("pairing " << i1 << " ("
 		      << coords[dim*i1] << "," << coords[dim*i1+1] << ","
 		      << coords[dim*i1+2]
@@ -94,6 +96,7 @@ void Model::initPBC() {
 		      << coords[dim*i2] << "," << coords[dim*i2+1] << ","
 		      << coords[dim*i2+2]
 		      << ")");
+#endif
     ++it;
   }
 }

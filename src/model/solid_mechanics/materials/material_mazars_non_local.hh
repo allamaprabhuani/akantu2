@@ -96,7 +96,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
+  /// the ehat per quadrature points to perform the averaging
   ByElementTypeReal Ehat;
 };
 

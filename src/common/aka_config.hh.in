@@ -44,6 +44,9 @@
 #cmakedefine AKANTU_USE_MUMPS
 
 #cmakedefine AKANTU_USE_IOHELPER
+#cmakedefine AKANTU_USE_QVIEW
+
+#cmakedefine AKANTU_DAMAGE_NON_LOCAL
 
 #define __aka_inline__ inline
 

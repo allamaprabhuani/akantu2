@@ -40,14 +40,14 @@ MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
   Material(model, id),
   MaterialElastic<spatial_dimension>(model, id),
   MaterialDamage<spatial_dimension>(model, id),
-  Yd_rand("Yd_rand",id) {
+  Yd_rand("Yd_rand",id), damage_in_y(false), yc_limit(false) {
   AKANTU_DEBUG_IN();
 
   Yd  = 50;
   Sd  = 5000;
-  Yd_randomness = 0;
+  Yd_randomness = 0.;
+  epsilon_c = 0.;
 
-  epsilon_c = std::numeric_limits<Real>::max();
 
   this->initInternalVector(this->Yd_rand, 1);
   AKANTU_DEBUG_OUT();
@@ -59,11 +59,7 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage<spatial_dimension>::initMaterial();
 
-  if (std::abs(epsilon_c - std::numeric_limits<Real>::max()) < std::numeric_limits<Real>::epsilon())
-    Yc = std::numeric_limits<Real>::max();
-  else {
-    Yc = .5 * epsilon_c * this->E * epsilon_c;
-  }
+  Yc = .5 * epsilon_c * this->E * epsilon_c;
 
   this->resizeInternalVector(this->Yd_rand);
 
@@ -77,12 +73,12 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
 
     Vector <Real> & Yd_rand_vec = Yd_rand(*it);
-
+    
     for(UInt e = 0; e < nb_element; ++e) {
       Real rand_part = (2 * drand48()-1) * Yd_randomness * Yd;
 
       for(UInt q = 0; q < nb_quad; ++q)
-	Yd_rand_vec(nb_quad*e+q,0) = Yd + rand_part;
+ 	Yd_rand_vec(nb_quad*e+q,0) = Yd + rand_part;
     }
   }
 
@@ -96,15 +92,16 @@ void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
   AKANTU_DEBUG_IN();
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Ydq = Yd_rand(el_type, ghost_type).storage();
-
+  Real * Yd_q = Yd_rand(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
   Real Y = 0;
-  computeStressOnQuad(grad_u, sigma, *dam, Y, *Ydq);
+
+  computeStressOnQuad(grad_u, sigma, *dam, Y, *Yd_q);
+
   ++dam;
-  ++Ydq;
+  ++Yd_q;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -122,7 +119,8 @@ bool MaterialMarigo<spatial_dimension>::setParam(const std::string & key,
   if(key == "Yd") { sstr >> Yd; }
   else if(key == "Sd") { sstr >> Sd; }
   else if(key == "Yd_randomness") { sstr >> Yd_randomness; }
-  else if(key == "epsilon_c") { sstr >> epsilon_c; }
+  else if(key == "epsilon_c") { sstr >> epsilon_c; yc_limit = true; }
+  else if(key == "damage_in_y") { sstr >> damage_in_y; }
   else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
   return true;
 }
@@ -135,14 +133,16 @@ void MaterialMarigo<spatial_dimension>::printself(std::ostream & stream,
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_marigo> [" << std::endl;
+  stream << space << "MaterialMarigo [" << std::endl;
   stream << space << " + Yd         : " << Yd << std::endl;
   stream << space << " + Sd         : " << Sd << std::endl;
   stream << space << " + randomness : " << Yd_randomness << std::endl;
-  if (std::abs(epsilon_c - std::numeric_limits<Real>::max()) > std::numeric_limits<Real>::epsilon()) {
+  if (yc_limit) {
     stream << space << " + epsilon_c  : " << epsilon_c << std::endl;
     stream << space << " + Yc         : " << Yc << std::endl;
   }
+
+  if (damage_in_y) stream << space << " + damage in y: true" << std::endl;
   MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }

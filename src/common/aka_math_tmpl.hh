@@ -267,8 +267,12 @@ inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
   // Matrix  A is  row major,  so the  lapack function  in fortran  will process
   // A^t. Asking for the left eigenvectors of A^t will give the transposed right
   // eigenvectors of A so in the C++ code the right eigenvectors.
+  char jobvl;
+  if(V != NULL)
+    jobvl = 'V'; // compute left  eigenvectors
+  else 
+    jobvl = 'N'; // compute left  eigenvectors
 
-  char jobvl('V'); // compute left  eigenvectors
   char jobvr('N'); // compute right eigenvectors
 
   double * di = new double[n]; // imaginary part of the eigenvalues
@@ -301,6 +305,7 @@ inline void Math::matrixEig(__attribute__((unused)) UInt n,
 }
 #endif
 
+/* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_LAPACK
 inline void Math::inv(UInt n, const Real * A, Real * invA) {
   int N = n;
@@ -332,6 +337,60 @@ inline void Math::inv(__attribute__((unused)) UInt n,
   AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
 }
 #endif
+
+/* -------------------------------------------------------------------------- */
+inline void Math::matrix22_eigenvalues(Real * A, Real *Adiag) {
+  ///d = determinant of Matrix A
+  Real d = det2(A);
+  ///b = trace of Matrix A
+  Real b = A[0]+A[3];
+
+  Real c = sqrt(b*b - 4 *d);
+  Adiag[0]= .5*(b + c);
+  Adiag[1]= .5*(b - c);
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Math::matrix33_eigenvalues(Real * A, Real *Adiag) {
+  ///d = determinant of Matrix A
+  Real d = det3(A);
+  ///b = trace of Matrix A
+  Real b = A[0]+A[4]+A[8];
+
+  Real a = -1 ;
+  /// c = 0.5*(trace(M^2)-trace(M)^2)
+  Real c =  A[3]*A[1] + A[2]*A[6] + A[5]*A[7] - A[0]*A[4] -
+    A[0]*A[8] - A[4]*A[8];
+  /// Define x, y, z
+  Real x = ((3*c/a) - ((b*b)/(a*a)))/3;
+  Real y=((2*(b*b*b)/(a*a*a)) - (9*b*c/(a*a)) + (27*d/a))/27;
+  Real z = (y*y)/4 + (x*x*x)/27;
+  /// Define I, j, k, m, n, p (so equations are not so cluttered)
+  Real i = sqrt(y*y/4 - z);
+  Real j = -pow(i,1./3.);
+  Real k;
+  if (fabs(i)<1e-12)
+     k = 0;
+     else
+     k = acos(-(y/(2*i)));
+
+  Real m = cos(k/3);
+  Real n = sqrt(3)*sin(k/3);
+  Real p = b/(3*a);
+
+  Adiag[0]=-(2*j*m + p);;
+  Adiag[1]=-(-j *(m + n) + p);
+  Adiag[2]=-(-j * (m - n) + p);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+inline void Math::eigenvalues(Real * A, Real * d) {
+  if(dim == 1) { d[0] = A[0]; }
+  else if(dim == 2) { matrix22_eigenvalues(A, d); }
+  else if(dim == 3) { matrix33_eigenvalues(A, d); }
+  else matrixEig(dim, A, d);
+}
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::det2(const Real * mat) {

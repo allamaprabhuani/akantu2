@@ -41,10 +41,13 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(SolidMechanics
   MaterialElastic<spatial_dimension>(model, id),
   MaterialMazars<spatial_dimension>(model, id),
   MaterialNonLocalParent(model, id),
-  Ehat("Ehat", id) {
+  Ehat("equistrain", id) {
   AKANTU_DEBUG_IN();
+
+  this->damage_in_compute_stress = false;
   this->is_non_local = true;
   this->initInternalVector(this->Ehat, 1);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -87,15 +90,13 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(GhostType 
   this->initInternalVector(nl_var, 1);
   this->resizeInternalVector(nl_var);
 
-#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
-  this->weightedAvergageOnNeighbours(damage, nl_var, 1);
-#else
-  this->weightedAvergageOnNeighbours(Ehat, nl_var, 1);
-#endif
+  if(this->damage_in_compute_stress)
+    this->weightedAvergageOnNeighbours(this->damage, nl_var, 1);
+  else
+    this->weightedAvergageOnNeighbours(this->Ehat, nl_var, 1);
 
   Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
-
   for(; it != last_type; ++it) {
     this->computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
   }
@@ -110,22 +111,22 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Rea
 								      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
-  Real * Ehatt = this->Ehat(el_type, ghost_type).storage();
-#else
-  Real * dam   = this->damage(el_type, ghost_type).storage();
-#endif
+  Real * not_averaged;
+  if(this->damage_in_compute_stress)
+    not_averaged = this->Ehat(el_type, ghost_type).storage();
+  else 
+    not_averaged = this->damage(el_type, ghost_type).storage();
+
   Real * nl_var = non_loc_var.storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
-  this->computeDamageAndStressOnQuad(grad_u, sigma, *nl_var, *Ehatt);
-  ++Ehatt;
-#else
-  this->computeDamageAndStressOnQuad(grad_u, sigma, *dam, *nl_var);
-  ++dam;
-#endif
+  if (this->damage_in_compute_stress)
+    this->computeDamageAndStressOnQuad(grad_u, sigma, *nl_var, *not_averaged);
+  else
+    this->computeDamageAndStressOnQuad(grad_u, sigma, *not_averaged, *nl_var);
+
+  ++not_averaged;
   ++nl_var;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
@@ -140,8 +141,14 @@ template<UInt spatial_dimension>
 bool MaterialMazarsNonLocal<spatial_dimension>::setParam(const std::string & key,
 							 const std::string & value,
 							 const ID & id) {
+  std::stringstream sstr(value);
+  if(key == "average_on_damage") { sstr >> this->damage_in_compute_stress; }
+  else {
   return MaterialNonLocalParent::setParam(key, value, id) ||
     MaterialMazars<spatial_dimension>::setParam(key, value, id);
+  }
+
+  return true;
 }
 
 
@@ -152,7 +159,13 @@ void MaterialMazarsNonLocal<spatial_dimension>::printself(std::ostream & stream,
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_mazars_non_local> [" << std::endl;
+  stream << space << "MaterialMazarsNonLocal [" << std::endl;
+
+  if(this->damage_in_compute_stress)
+    stream << space << " + Average on damage" << std::endl;
+  else 
+    stream << space << " + Average on Ehat" << std::endl;
+
   MaterialMazars<spatial_dimension>::printself(stream, indent + 1);
   MaterialNonLocalParent::printself(stream, indent + 1);
   stream << space << "]" << std::endl;

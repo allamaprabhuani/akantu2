@@ -140,8 +140,6 @@ namespace debug {
 
 
   /* -------------------------------------------------------------------------- */
-#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
-
   class Debugger {
   public:
     Debugger();
@@ -188,6 +186,9 @@ namespace debug {
 }
 
 /* -------------------------------------------------------------------------- */
+#define AKANTU_LOCATION "(" <<__FILE__ << ":" << __func__ << "():" << __LINE__ << ")"
+
+/* -------------------------------------------------------------------------- */
 #define AKANTU_STRINGSTREAM_IN(_str, _sstr);				\
   do {                                                                  \
     std::stringstream _dbg_s_info;					\
@@ -203,10 +204,6 @@ namespace debug {
     ::akantu::debug::debugger.throwException(_dbg_str);			\
   } while(0)
 
-#define AKANTU_DEBUG_TO_IMPLEMENT()				\
-  AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !");	\
-  exit(-1);
-
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
 #define AKANTU_DEBUG_TEST(level)     (false)
@@ -219,7 +216,8 @@ namespace debug {
 #define AKANTU_DEBUG_WARNING(info)
 #define AKANTU_DEBUG_TRACE(info)
 #define AKANTU_DEBUG_ASSERT(test,info)
-#define AKANTU_DEBUG_ERROR(info)   AKANTU_EXCEPTION(info)
+#define AKANTU_DEBUG_ERROR(info) AKANTU_EXCEPTION(info)
+#define AKANTU_DEBUG_TO_IMPLEMENT() ::akantu::debug::debugger.exit(EXIT_FAILURE)
 
 /* -------------------------------------------------------------------------- */
 #else
@@ -269,6 +267,9 @@ namespace debug {
     ::akantu::debug::debugger.exit(EXIT_FAILURE);                       \
   } while(0)
 
+
+#define AKANTU_DEBUG_TO_IMPLEMENT()					\
+    AKANTU_DEBUG_ERROR(__func__ << " : not implemented yet !")
 #endif // AKANTU_NDEBUG
 
 /* -------------------------------------------------------------------------- */

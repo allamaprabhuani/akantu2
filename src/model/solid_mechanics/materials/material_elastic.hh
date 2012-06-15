@@ -111,8 +111,8 @@ public:
   void setE(Real E) { this->E = E; recomputeLameCoefficient(); };
   void setNu(Real nu) { this->nu = nu; recomputeLameCoefficient(); };
 
-  virtual Real getParam(const ID & param) const;
-  virtual void setParam(const ID & param, Real value);
+  virtual Real getProperty(const ID & param) const;
+  virtual void setProperty(const ID & param, Real value);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

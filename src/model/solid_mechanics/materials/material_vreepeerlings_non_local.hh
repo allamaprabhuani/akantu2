@@ -44,14 +44,14 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-template<UInt spatial_dimension>
+template<UInt spatial_dimension, template <UInt> class WeightFunction>
 class MaterialVreePeerlingsNonLocal : public MaterialVreePeerlings<spatial_dimension>,
-				      public MaterialNonLocal<spatial_dimension, BaseWeightFunction> {
+				      public MaterialNonLocal<spatial_dimension, WeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<spatial_dimension, BaseWeightFunction> MaterialNonLocalParent;
+  typedef MaterialNonLocal<spatial_dimension, WeightFunction> MaterialNonLocalParent;
 
   MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
@@ -96,8 +96,12 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
+  /// equivalent strain used to compute the criteria for damage evolution
   ByElementTypeReal equi_strain;
+
+  /// non local version of equivalent strain
+  ByElementTypeReal equi_strain_non_local;
+
 };
 
 /* -------------------------------------------------------------------------- */

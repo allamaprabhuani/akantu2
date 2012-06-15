@@ -113,13 +113,19 @@ add_optional_package(LAPACK "Use LAPACK for arithmetic operations" OFF)
 
 # Debug
 if(NOT AKANTU_DEBUG)
+  if(NOT CMAKE_CXX_FLAGS MATCHES "-Wno-return-type")
+    set(CMAKE_CXX_FLAGS "-Wno-return-type ${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+  endif()
   set(AKANTU_NDEBUG ON)
 else()
-  set(AKANTU_NDEBUG OFF)
+  string(REPLACE "-Wno-return-type " "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  message("TOTO ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif(NOT AKANTU_DEBUG)
 
-if(CMAKE_CXX_FLAGS STREQUAL "")
-  set(CMAKE_CXX_FLAGS "-Wall" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+
+if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
+  set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
 set(CMAKE_CXX_FLAGS_PROFILING "-g -pg" CACHE STRING "Flags used by the compiler during profiling builds")
@@ -280,6 +286,7 @@ install(FILES ${CMAKE_BINARY_DIR}/AkantuConfig.cmake
 
 install(FILES
   ${CMAKE_SOURCE_DIR}/cmake/FindIOHelper.cmake
+  ${CMAKE_SOURCE_DIR}/cmake/FindQVIEW.cmake
   ${CMAKE_SOURCE_DIR}/cmake/FindMumps.cmake
   ${CMAKE_SOURCE_DIR}/cmake/FindScotch.cmake
   ${CMAKE_SOURCE_DIR}/cmake/FindGMSH.cmake

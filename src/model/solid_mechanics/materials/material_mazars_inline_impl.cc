@@ -36,129 +36,96 @@ MaterialMazars<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
 						       types::Matrix & sigma,
 						       Real & dam,
 						       Real & Ehat) {
-  Real Fdiag[3] = { 0 };
-  Real Fdiagp[3] = { 0 };
+  types::RVector Fdiag(3);
+  Fdiag.clear();
+  types::RVector Fdiagp(3);
+  Fdiagp.clear();
 
-  Math::matrix33_eigenvalues(grad_u.storage(), Fdiag);
+  Math::eigenvalues<spatial_dimension>(grad_u.storage(), Fdiag.storage());
 
-  Fdiagp[0] = std::max(0., Fdiag[0]);
-  Fdiagp[1] = std::max(0., Fdiag[1]);
-  Fdiagp[2] = std::max(0., Fdiag[2]);
+  Fdiagp(0) = std::max(0., Fdiag(0));
+  Fdiagp(1) = std::max(0., Fdiag(1));
+  Fdiagp(2) = std::max(0., Fdiag(2));
 
-  Ehat = sqrt(Fdiagp[0]*Fdiagp[0] + Fdiagp[1]*Fdiagp[1] + Fdiagp[2]*Fdiagp[2]);
+  Ehat = sqrt(Fdiagp(0)*Fdiagp(0) + Fdiagp(1)*Fdiagp(1) + Fdiagp(2)*Fdiagp(2));
 
   MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
-#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
-  Real Fs = Ehat - K0;
-  if (Fs > 0.) {
-    Real damt;
-    Real damc;
-    damt =  1 - K0*(1 - At)/Ehat - At*(exp(-Bt*(Ehat - K0)));
-    damc =  1 - K0*(1 - Ac)/Ehat - Ac*(exp(-Bc*(Ehat - K0)));
-
-    Real Cdiag;
-    Cdiag = E*(1-nu)/((1+nu)*(1-2*nu));
-
-    Real SigDiag[3];
-    SigDiag[0] = Cdiag*Fdiag[0] + lambda*(Fdiag[1] + Fdiag[2]);
-    SigDiag[1] = Cdiag*Fdiag[1] + lambda*(Fdiag[0] + Fdiag[2]);
-    SigDiag[2] = Cdiag*Fdiag[2] + lambda*(Fdiag[1] + Fdiag[0]);
-
-    Real SigDiagT[3];
-    for (UInt i = 0; i < 3; i++) {
-      if(SigDiag[i] >= 0.) {
-	SigDiagT[i] = SigDiag[i];
-      } else {
-	SigDiagT[i] = 0.;
-      }
-    }
-
-    Real TraSigT;
-    TraSigT = SigDiagT[0] + SigDiagT[1] + SigDiagT[2];
-
-    Real FDiagT[3];
-    for (UInt i = 0; i < 3; i++){
-      FDiagT [i]=  (SigDiagT[i]*(1 + nu) - TraSigT*nu)/E;
-    }
-
-    Real alphat;
-    alphat = (FDiagT[0]*Fdiagp[0] + FDiagT[1]*Fdiagp[1] + FDiagT[2]*Fdiagp[2])/(Ehat*Ehat);
-    alphat = std::min(alphat, 1.);
-
-    Real alphac;
-    alphac = 1 - alphat;
-
-    Real damtemp;
-    damtemp = pow(alphat,beta)*damt + pow(alphac,beta)*damc;
-
-    dam = std::max(damtemp, dam);
+  if(damage_in_compute_stress) {
+    computeDamageOnQuad(grad_u, Ehat, Fdiag, dam);
   }
-
-  dam = std::min(dam,1.);
-#endif // AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
 
   if(!this->is_non_local) {
     computeDamageAndStressOnQuad(grad_u, sigma, dam, Ehat);
   }
 }
 
-#ifdef AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
+/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void
-MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(__attribute__((unused)) types::Matrix & grad_u,
-								types::Matrix & sigma,
-								Real & dam,
-								__attribute__((unused)) Real & Ehat) {
-#else
-  template<UInt spatial_dimension>
 inline void
 MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & grad_u,
 								types::Matrix & sigma,
 								Real & dam,
 								Real & Ehat) {
-  Real Fdiag[3];
-  Real Fdiagp[3];
+  if(!damage_in_compute_stress) {
+    types::RVector Fdiag(3);
+    Fdiag.clear();
+    Math::eigenvalues<spatial_dimension>(grad_u.storage(), Fdiag.storage());
 
-  Math::matrix33_eigenvalues(grad_u.storage(), Fdiag);
+    computeDamageOnQuad(grad_u, Ehat, Fdiag, dam);
+  }
 
-  Fdiagp[0] = std::max(0., Fdiag[0]);
-  Fdiagp[1] = std::max(0., Fdiag[1]);
-  Fdiagp[2] = std::max(0., Fdiag[2]);
+  sigma *= 1 - dam;
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline void
+MaterialMazars<spatial_dimension>::computeDamageOnQuad(const types::Matrix & grad_u,
+						       const Real & Ehat,
+						       const types::RVector & Fdiag,
+						       Real & dam) {
   Real Fs = Ehat - K0;
   if (Fs > 0.) {
+    types::RVector Fdiagp(3);
+    Fdiagp.clear();
+
+    Fdiagp(0) = std::max(0., Fdiag(0));
+    Fdiagp(1) = std::max(0., Fdiag(1));
+    Fdiagp(2) = std::max(0., Fdiag(2));
+
     Real damt;
     Real damc;
-    damt =  1 - K0*(1 - At)/Ehat - At*(exp(-Bt*(Ehat - K0)));
-    damc =  1 - K0*(1 - Ac)/Ehat - Ac*(exp(-Bc*(Ehat - K0)));
+    damt = 1 - K0*(1 - At)/Ehat - At*(exp(-Bt*(Ehat - K0)));
+    damc = 1 - K0*(1 - Ac)/Ehat - Ac*(exp(-Bc*(Ehat - K0)));
 
     Real Cdiag;
-    Cdiag = this->E*(1 - this->nu)/((1 + this->nu)*(1-2*this->nu));
+    Cdiag = this->E*(1-this->nu)/((1+this->nu)*(1-2*this->nu));
+    
+    types::RVector SigDiag(3);
+    SigDiag(0) = Cdiag*Fdiag(0) + this->lambda*(Fdiag(1) + Fdiag(2));
+    SigDiag(1) = Cdiag*Fdiag(1) + this->lambda*(Fdiag(0) + Fdiag(2));
+    SigDiag(2) = Cdiag*Fdiag(2) + this->lambda*(Fdiag(1) + Fdiag(0));
 
-    Real SigDiag[3];
-    SigDiag[0] = Cdiag*Fdiag[0] + this->lambda*(Fdiag[1] + Fdiag[2]);
-    SigDiag[1] = Cdiag*Fdiag[1] + this->lambda*(Fdiag[0] + Fdiag[2]);
-    SigDiag[2] = Cdiag*Fdiag[2] + this->lambda*(Fdiag[1] + Fdiag[0]);
-
-    Real SigDiagT[3];
+    types::RVector SigDiagT(3);
     for (UInt i = 0; i < 3; i++) {
-      if(SigDiag[i] >= 0.) {
-	SigDiagT[i] = SigDiag[i];
+      if(SigDiag(i) >= 0.) {
+	SigDiagT(i) = SigDiag(i);
       } else {
-	SigDiagT[i] = 0.;
+	SigDiagT(i) = 0.;
       }
     }
 
     Real TraSigT;
-    TraSigT = SigDiagT[0] + SigDiagT[1] + SigDiagT[2];
+    TraSigT = SigDiagT(0) + SigDiagT(1) + SigDiagT(2);
 
-    Real FDiagT[3];
+    types::RVector FDiagT(3);
     for (UInt i = 0; i < 3; i++){
-      FDiagT [i]=  (SigDiagT[i]*(1 + this->nu) - TraSigT*this->nu)/this->E;
+      FDiagT (i)=  (SigDiagT(i)*(1 + this->nu) - TraSigT*this->nu)/this->E;
     }
 
     Real alphat;
-    alphat = (FDiagT[0]*Fdiagp[0] + FDiagT[1]*Fdiagp[1] + FDiagT[2]*Fdiagp[2])/(Ehat*Ehat);
+    alphat = (FDiagT(0)*Fdiagp(0) + FDiagT(1)*Fdiagp(1) + FDiagT(2)*Fdiagp(2))/(Ehat*Ehat);
     alphat = std::min(alphat, 1.);
 
     Real alphac;
@@ -171,7 +138,4 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & 
   }
 
   dam = std::min(dam,1.);
-#endif // AKANTU_MAZARS_NON_LOCAL_AVERAGE_DAMAGE
-
-  sigma *= 1 - dam;
 }

@@ -150,8 +150,11 @@ namespace debug {
 
   /* ------------------------------------------------------------------------ */
   void Debugger::exit(int status) {
+#ifndef AKANTU_NDEBUG
     int * a = NULL;
     *a = 1;
+#endif
+
     if (status != EXIT_SUCCESS)
       akantu::debug::printBacktrace(15);
 #ifdef AKANTU_USE_MPI

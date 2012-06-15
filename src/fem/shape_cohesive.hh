@@ -139,7 +139,7 @@ public:
 private:
 
   /// real shape function implementation
-  //QUESTION!!!!!!! why having a member of the class you derive ? what do you gain ?
+  //\todo QUESTION!!!!!!! why having a member of the class you derive ? what do you gain ? containing the storage of the shapes 
   ShapeFunction * sub_type_shape_function;
 };
 

@@ -109,21 +109,22 @@ bool MaterialElastic<spatial_dimension>::setParam(const std::string & key, const
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getParam(const ID & key) const {
+Real MaterialElastic<spatial_dimension>::getProperty(const ID & key) const {
   if(key == "E") { return E; }
   else if(key == "nu") { return nu; }
   else if(key == "lambda") { return nu; }
   else if(key == "mu") { return mu; }
   else if(key == "kapa") { return kpa; }
-  else return Material::getParam(key);
+  else return Material::getProperty(key);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::setParam(const ID & key, Real value) {
+void MaterialElastic<spatial_dimension>::setProperty(const ID & key,
+						     Real value) {
   if(key == "E") { E = value; recomputeLameCoefficient(); }
   else if(key == "nu") { nu = value; recomputeLameCoefficient(); }
-  else Material::setParam(key, value);
+  else Material::setProperty(key, value);
 }
 
 

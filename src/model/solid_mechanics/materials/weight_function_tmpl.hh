@@ -102,9 +102,7 @@ void StressBasedWeightFunction<spatial_dimension>::updatePrincipalStress(GhostTy
 #endif
     UInt q = 0;
     for(;eigenvalues != eigenvalues_end; ++sigma, ++eigenvalues, ++eigenvector, ++cl, ++q) {
-      //      if (q == 4871) std::cout << "Sigma " << *sigma;
       sigma->eig(*eigenvalues, *eigenvector);
-      //      if (q == 17774) std::cout << "Before " << *eigenvalues;
       *eigenvalues /= ft;
 #ifndef __trick__
       // specify a lower bound for principal stress based on the size of the element
@@ -112,7 +110,6 @@ void StressBasedWeightFunction<spatial_dimension>::updatePrincipalStress(GhostTy
         (*eigenvalues)(i) = std::max(*cl / this->R, (*eigenvalues)(i));
       }
 #endif
-      //      if (q == 17774) std::cout << "After " << *eigenvalues;
     }
   }
   AKANTU_DEBUG_OUT();
@@ -129,7 +126,6 @@ inline void StressBasedWeightFunction<spatial_dimension>::selectType(ElementType
 
   selected_characteristic_size = &characteristic_size(type1, ghost_type1);
 }
-
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
@@ -155,116 +151,130 @@ inline Real StressBasedWeightFunction<spatial_dimension>::operator()(Real r,
   x_s  = x;
   x_s -= s;
 
-  Real rho_2 = 0.;
-
-  switch(spatial_dimension) {
-  case 1: {
-    rho_2 = eigs[0];
-    break;
-  }
-  case 2:{
-    types::RVector u1(eigenvects.storage(), spatial_dimension);
-    Real cos_t = x_s.dot(u1) / (x_s.norm() * u1.norm());
-
-    Real cos_t_2;
-    Real sin_t_2;
-
-    Real sigma1_2 = eigs[0]*eigs[0];
-    Real sigma2_2 = eigs[1]*eigs[1];
-
-#ifdef __trick__
-    if(std::abs(cos_t) < zero) {
-      cos_t_2 = 0;
-      sin_t_2 = 1;
-    } else {
-#endif
-      cos_t_2 = cos_t * cos_t;
-      sin_t_2 = (1 - cos_t_2);
-#ifdef __trick__
-    }
-
-    Real rhop1 = std::max(0., cos_t_2 / sigma1_2);
-    Real rhop2 = std::max(0., sin_t_2 / sigma2_2);
-#else
-    Real rhop1 = cos_t_2 / sigma1_2;
-    Real rhop2 = sin_t_2 / sigma2_2;
-#endif
-
-    rho_2 = 1./ (rhop1 + rhop2);
-
-    break;
-  }
-  case 3: {
-    types::RVector u1(eigenvects.storage(), spatial_dimension);
-    types::RVector u3(eigenvects.storage() + 2*spatial_dimension, spatial_dimension);
-
-    types::RVector tmp(spatial_dimension);
-    tmp.crossProduct(x_s, u3);
-
-    types::RVector u3_C_x_s_C_u3(spatial_dimension);
-    u3_C_x_s_C_u3.crossProduct(u3, tmp);
-
-    Real norm_u3_C_x_s_C_u3 = u3_C_x_s_C_u3.norm();
-    Real cos_t = 0.;
-    if(std::abs(norm_u3_C_x_s_C_u3) > zero) {
-      Real inv_norm_u3_C_x_s_C_u3 = 1. / norm_u3_C_x_s_C_u3;
-      cos_t = u1.dot(u3_C_x_s_C_u3) * inv_norm_u3_C_x_s_C_u3;
-    }
-
-    Real cos_p = u3.dot(x_s) / r;
-    //    std::cout << " - cos_t: " << std::setw(13) << cos_t;
-    //    std::cout << " - cos_p: " << std::setw(13) << cos_p;
-
-    Real cos_t_2;
-    Real sin_t_2;
-    Real cos_p_2;
-    Real sin_p_2;
-
-    Real sigma1_2 = eigs[0]*eigs[0];
-    Real sigma2_2 = eigs[1]*eigs[1];
-    Real sigma3_2 = eigs[2]*eigs[2];
-
-#ifdef __trick__
-    if(std::abs(cos_t) < zero) {
-      cos_t_2 = 0;
-      sin_t_2 = 1;
-    } else {
-#endif
-      cos_t_2 = cos_t * cos_t;
-      sin_t_2 = (1 - cos_t_2);
-#ifdef __trick__
-    }
-
-    if(std::abs(cos_p) < zero) {
-      cos_p_2 = 0;
-      sin_p_2 = 1;
-    } else {
-#endif
-      cos_p_2 = cos_p * cos_p;
-      sin_p_2 = (1 - cos_p_2);
-#ifdef __trick__
-    }
-
-    Real rhop1 = std::max(0., sin_p_2 * cos_t_2 / sigma1_2);
-    Real rhop2 = std::max(0., sin_p_2 * sin_t_2 / sigma2_2);
-    Real rhop3 = std::max(0., cos_p_2 / sigma3_2);
-#else
-    Real rhop1 = sin_p_2 * cos_t_2 / sigma1_2;
-    Real rhop2 = sin_p_2 * sin_t_2 / sigma2_2;
-    Real rhop3 = cos_p_2 / sigma3_2;
-#endif
-
-    rho_2 = 1./ (rhop1 + rhop2 + rhop3);
-  }
-  }
+  Real rho_2 = computeRhoSquare(r, eigs, eigenvects, x_s);
 
   Real rho_lc_2 = std::max(this->R2 * rho_2, min_rho_lc*min_rho_lc);
 
-  Real w = std::max(0., 1. - r*r / rho_lc_2);
-  w = w*w;
-
-  //    std::cout << "(" << q1 << "," << q2 << ") " << w << std::endl;
-  //  Real w = exp(- 2*2*r*r / rho_lc_2);
-
+  // Real w = std::max(0., 1. - r*r / rho_lc_2);
+  // w = w*w;
+  Real w = exp(- 2*2*r*r / rho_lc_2);
   return w;
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Real StressBasedWeightFunction<1>::computeRhoSquare(__attribute__ ((unused)) Real r,
+							   types::RVector & eigs,
+							   __attribute__ ((unused)) types::Matrix & eigenvects,
+							   __attribute__ ((unused)) types::RVector & x_s) {
+  return eigs[0];
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Real StressBasedWeightFunction<2>::computeRhoSquare(__attribute__ ((unused)) Real r,
+							   types::RVector & eigs,
+							   types::Matrix & eigenvects,
+							   types::RVector & x_s) {
+  types::RVector u1(eigenvects.storage(), 2);
+  Real cos_t = x_s.dot(u1) / (x_s.norm() * u1.norm());
+
+  Real cos_t_2;
+  Real sin_t_2;
+
+  Real sigma1_2 = eigs[0]*eigs[0];
+  Real sigma2_2 = eigs[1]*eigs[1];
+
+#ifdef __trick__
+  Real zero = std::numeric_limits<Real>::epsilon();
+  if(std::abs(cos_t) < zero) {
+    cos_t_2 = 0;
+    sin_t_2 = 1;
+  } else {
+    cos_t_2 = cos_t * cos_t;
+    sin_t_2 = (1 - cos_t_2);
+  }
+
+  Real rhop1 = std::max(0., cos_t_2 / sigma1_2);
+  Real rhop2 = std::max(0., sin_t_2 / sigma2_2);
+#else
+  cos_t_2 = cos_t * cos_t;
+  sin_t_2 = (1 - cos_t_2);
+
+  Real rhop1 = cos_t_2 / sigma1_2;
+  Real rhop2 = sin_t_2 / sigma2_2;
+#endif
+
+  return 1./ (rhop1 + rhop2);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline Real StressBasedWeightFunction<3>::computeRhoSquare(Real r,
+							   types::RVector & eigs,
+							   types::Matrix & eigenvects,
+							   types::RVector & x_s) {
+  types::RVector u1(eigenvects.storage() + 0*3, 3);
+//types::RVector u2(eigenvects.storage() + 1*3, 3);
+  types::RVector u3(eigenvects.storage() + 2*3, 3);
+
+  Real zero = std::numeric_limits<Real>::epsilon();
+
+  types::RVector tmp(3);
+  tmp.crossProduct(x_s, u3);
+
+  types::RVector u3_C_x_s_C_u3(3);
+  u3_C_x_s_C_u3.crossProduct(u3, tmp);
+
+  Real norm_u3_C_x_s_C_u3 = u3_C_x_s_C_u3.norm();
+  Real cos_t = 0.;
+  if(std::abs(norm_u3_C_x_s_C_u3) > zero) {
+    Real inv_norm_u3_C_x_s_C_u3 = 1. / norm_u3_C_x_s_C_u3;
+    cos_t = u1.dot(u3_C_x_s_C_u3) * inv_norm_u3_C_x_s_C_u3;
+  }
+
+  Real cos_p = u3.dot(x_s) / r;
+  
+  Real cos_t_2;
+  Real sin_t_2;
+  Real cos_p_2;
+  Real sin_p_2;
+
+  Real sigma1_2 = eigs[0]*eigs[0];
+  Real sigma2_2 = eigs[1]*eigs[1];
+  Real sigma3_2 = eigs[2]*eigs[2];
+
+#ifdef __trick__
+  if(std::abs(cos_t) < zero) {
+    cos_t_2 = 0;
+    sin_t_2 = 1;
+  } else {
+    cos_t_2 = cos_t * cos_t;
+    sin_t_2 = (1 - cos_t_2);
+  }
+
+  if(std::abs(cos_p) < zero) {
+    cos_p_2 = 0;
+    sin_p_2 = 1;
+  } else {
+    cos_p_2 = cos_p * cos_p;
+    sin_p_2 = (1 - cos_p_2);
+  }
+
+  Real rhop1 = std::max(0., sin_p_2 * cos_t_2 / sigma1_2);
+  Real rhop2 = std::max(0., sin_p_2 * sin_t_2 / sigma2_2);
+  Real rhop3 = std::max(0., cos_p_2 / sigma3_2);
+#else
+  cos_t_2 = cos_t * cos_t;
+  sin_t_2 = (1 - cos_t_2);
+
+  cos_p_2 = cos_p * cos_p;
+  sin_p_2 = (1 - cos_p_2);
+
+  Real rhop1 = sin_p_2 * cos_t_2 / sigma1_2;
+  Real rhop2 = sin_p_2 * sin_t_2 / sigma2_2;
+  Real rhop3 = cos_p_2 / sigma3_2;
+#endif
+
+  return 1./ (rhop1 + rhop2 + rhop3);
 }

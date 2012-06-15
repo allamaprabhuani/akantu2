@@ -44,7 +44,7 @@ __BEGIN_AKANTU__
 template<UInt DIM, template <UInt> class WeightFunction>
 MaterialNonLocal<DIM, WeightFunction>::MaterialNonLocal(SolidMechanicsModel & model,
 							const ID & id)  :
-  Material(model, id), weight_func(NULL), cell_list(NULL),
+  Material(model, id), radius(100.), weight_func(NULL), cell_list(NULL),
   update_weigths(0), compute_stress_calls(0) {
   AKANTU_DEBUG_IN();
 
@@ -330,6 +330,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const ByElementTypeReal & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
+
+  std::cout << "Compute weights" << std::endl;
 
   std::set< std::pair<ElementType, ElementType> >::iterator first_pair_types;
   std::set< std::pair<ElementType, ElementType> >::iterator last_pair_types = existing_pairs.end();

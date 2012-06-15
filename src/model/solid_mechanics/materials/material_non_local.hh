@@ -41,7 +41,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template<UInt DIM, template <UInt> class WeightFunction = BaseWeightFunction>
+template<UInt dim, template <UInt> class WeightFunction = BaseWeightFunction>
 class MaterialNonLocal : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -114,7 +114,7 @@ protected:
   Real radius;
 
   /// the weight function used
-  WeightFunction<DIM> * weight_func;
+  WeightFunction<dim> * weight_func;
 
 private:
   /// the pairs of quadrature points

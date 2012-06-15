@@ -154,16 +154,17 @@ bool MaterialElasticCaughey<spatial_dimension>::setParam(const std::string & key
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElasticCaughey<spatial_dimension>::getParam(const ID & param) const {
+Real MaterialElasticCaughey<spatial_dimension>::getProperty(const ID & param) const {
   if(param == "alpha") { return alpha; }
-  else return Material::getParam(param);
+  else return Material::getProperty(param);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticCaughey<spatial_dimension>::setParam(const ID & param, Real value) {
+void MaterialElasticCaughey<spatial_dimension>::setProperty(const ID & param,
+							    Real value) {
   if(param == "alpha") { alpha = value; }
-  else Material::setParam(param, value);
+  else Material::setProperty(param, value);
 }
 
 

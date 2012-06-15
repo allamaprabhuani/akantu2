@@ -39,9 +39,9 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
 						  const ID & id)  :
   Material(model, id),
   MaterialElastic<spatial_dimension>(model, id),
-  MaterialDamage<spatial_dimension>(model, id) {
+  MaterialDamage<spatial_dimension>(model, id),
+  damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
-
   K0   = 1e-4;
   At   = 0.8;
   Ac   = 1.4;
@@ -106,7 +106,7 @@ void MaterialMazars<spatial_dimension>::printself(std::ostream & stream,
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material<_mazars> [" << std::endl;
+  stream << space << "MaterialMazars [" << std::endl;
   stream << space << " + K0    : " << K0 << std::endl;
   stream << space << " + At    : " << At << std::endl;
   stream << space << " + Bt    : " << Bt << std::endl;

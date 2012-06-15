@@ -117,11 +117,17 @@ public:
 				Real alpha, const Real * A, const Real * x,
 				Real beta, Real * y);
 
-  static void matrix33_eigenvalues(Real * A,
-				   Real * Adiag);
+  static inline void matrix33_eigenvalues(Real * A,
+					  Real * Adiag);
 
-  /// solve @f$ A x = \Lambda x @f$ and return d and V such as @f$ A V[i:] = D[i] V[i:]@f$
-  static void matrixEig(UInt n, Real * A, Real * d, Real * V);
+  static inline void matrix22_eigenvalues(Real * A,
+					  Real * Adiag);
+
+  /// solve @f$ A x = \Lambda x @f$ and return d and V such as @f$ A V[i:] = d[i] V[i:]@f$
+  static void matrixEig(UInt n, Real * A, Real * d, Real * V = NULL);
+
+  template<UInt dim>
+  static inline void eigenvalues(Real * A, Real * d);
 
   /// determinent of a 3x3 matrix
   static inline Real det3(const Real * mat);

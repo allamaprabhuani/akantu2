@@ -158,6 +158,11 @@ public:
 
   inline Real operator()(Real r, QuadraturePoint & q1, QuadraturePoint & q2);
 
+  inline Real computeRhoSquare(Real r,
+			       types::RVector & eigs,
+			       types::Matrix & eigenvects,
+			       types::RVector & x_s);
+
   /* ------------------------------------------------------------------------ */
   bool setParam(const std::string & key, const std::string & value) {
     std::stringstream sstr(value);

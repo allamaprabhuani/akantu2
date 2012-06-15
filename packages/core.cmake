@@ -38,11 +38,8 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_mazars.cc
   model/solid_mechanics/materials/material_neohookean.cc
   model/solid_mechanics/materials/weight_function.cc
-  model/solid_mechanics/materials/material_marigo_non_local.cc
-  model/solid_mechanics/materials/material_mazars_non_local.cc
   model/solid_mechanics/materials/material_damage_linear.cc
   model/solid_mechanics/materials/material_vreepeerlings.cc
-  model/solid_mechanics/materials/material_vreepeerlings_non_local.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
@@ -126,8 +123,6 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
   model/solid_mechanics/materials/material_damage.hh
   model/solid_mechanics/materials/material_marigo.hh
-  model/solid_mechanics/materials/material_marigo_non_local.hh
-  model/solid_mechanics/materials/material_mazars_non_local.hh
   model/solid_mechanics/materials/material_elastic_caughey.hh
   model/solid_mechanics/materials/material_viscoelastic.hh
   model/solid_mechanics/materials/material_elastic.hh
@@ -137,7 +132,6 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_damage_linear.hh
   model/solid_mechanics/materials/material_neohookean.hh
   model/solid_mechanics/materials/material_vreepeerlings.hh
-  model/solid_mechanics/materials/material_vreepeerlings_non_local.hh
   model/solid_mechanics/solid_mechanics_model.hh
   model/solid_mechanics/solid_mechanics_model_cohesive.hh
   model/solid_mechanics/solid_mechanics_model_tmpl.hh

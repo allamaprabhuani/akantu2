@@ -351,7 +351,7 @@ inline void ElementClass<type>::computeShapes(__attribute__ ((unused)) const Rea
 					      __attribute__ ((unused)) Real * shapes,
 					      __attribute__ ((unused)) const Real * local_coord, 
 					      __attribute__ ((unused)) UInt id) {
-  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+  AKANTU_DEBUG_TO_IMPLEMENT();
 }
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
@@ -366,7 +366,7 @@ inline void ElementClass<type>::computeShapeDerivatives(__attribute__ ((unused))
 							__attribute__ ((unused)) Real * shape_deriv,
 							__attribute__ ((unused)) const Real * local_coord,
 							__attribute__ ((unused)) UInt id) {
-  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+  AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 
@@ -389,7 +389,7 @@ inline Real * ElementClass<type>::getGaussIntegrationWeights() {
 
 template <ElementType type> 
 inline bool ElementClass<type>::contains(__attribute__ ((unused)) const types::RVector & natural_coords) {
-  AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
+  AKANTU_DEBUG_TO_IMPLEMENT();
   return false;
 }
 
