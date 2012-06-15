@@ -40,7 +40,9 @@ MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrin
 										    const ID & id) :
   MaterialCohesive(model,id),
   sigma_c_eff("sigma_c_eff",id),
-  delta_c("delta_c",id) {
+  delta_c("delta_c",id),
+  normal_stress(spatial_dimension),
+  tangential_stress(spatial_dimension) {
   AKANTU_DEBUG_IN();
 
   sigma_c   = 0;
@@ -136,8 +138,6 @@ Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(co
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;
-  types::RVector normal_stress(spatial_dimension);
-  types::RVector tangential_stress(spatial_dimension);
 
   normal_stress.mul<false>(stress, normal);
   tangential_stress.mul<false>(stress, tangent);

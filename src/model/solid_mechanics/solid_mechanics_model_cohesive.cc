@@ -46,7 +46,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
     mesh_facets(mesh.getSpatialDimension(),
 		mesh.getNodes().getID(),
 		id, memory_id),
-    quad_elements("quad_elements", id),
     elements_quad_facets("elements_quad_facets", id),
     facet_stress(0, spatial_dimension * spatial_dimension, "facet_stress"),
     facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
@@ -199,16 +198,6 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
     UInt nb_element = mesh.getNbElement(*it);
     if (nb_element == 0) continue;
 
-    /// compute quadrature point position
-    UInt nb_quad_per_element = getFEM().getNbQuadraturePoints(*it);
-    UInt nb_quad = nb_quad_per_element * nb_element;
-    quad_elements.alloc(nb_quad, spatial_dimension, *it);
-
-    getFEM().interpolateOnQuadraturePoints(position,
-					   quad_elements(*it),
-					   spatial_dimension,
-					   *it);
-
     /// compute elements' quadrature points and list of facet
     /// quadrature points positions by element
     Vector<Element> & facet_to_element = mesh_facets.getSubelementToElement(*it);
@@ -234,6 +223,9 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
       }
     }
   }
+
+  /// initialize the interpolation function
+  materials[0]->initInterpolateElementalField();
 
   AKANTU_DEBUG_OUT();
 }
@@ -271,7 +263,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
       UInt nb_element = mesh.getNbElement(*it);
       if (nb_element == 0) continue;
 
-      const Vector<Real> & quad_elem = quad_elements(*it);
       const Vector<Real> & el_q_facet = elements_quad_facets(*it);
 
       stress_on_facet.alloc(el_q_facet.getSize(),
@@ -282,7 +273,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 
       /// interpolate stress on facet quadrature points positions
       materials[m]->interpolateStress(*it,
-				      quad_elem,
 				      el_q_facet,
 				      stress_on_f);
 

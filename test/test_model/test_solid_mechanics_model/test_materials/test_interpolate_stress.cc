@@ -133,10 +133,11 @@ int main(int argc, char *argv[]) {
   }
 
   /// interpolate stresses on facets' quadrature points
+  model.getMaterial(0).initInterpolateElementalField();
+
   Vector<Real> interpolated_stress(nb_element * nb_facet_per_elem * nb_quad_per_facet,
 				   stress.getNbComponent());
   model.getMaterial(0).interpolateStress(type,
-					 quad_elements,
 					 el_q_facet,
 					 interpolated_stress);
 

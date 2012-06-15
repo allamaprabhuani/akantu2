@@ -117,6 +117,12 @@ protected:
   /// critical displacement
   ByElementTypeReal delta_c;
 
+  /// vector to temporarily store the normal stress for the norm
+  types::RVector normal_stress;
+
+  /// vector to temporarily store the tangential stress for the norm
+  types::RVector tangential_stress;
+
 };
 
 

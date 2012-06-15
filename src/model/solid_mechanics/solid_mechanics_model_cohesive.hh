@@ -169,9 +169,6 @@ private:
   /// @todo store tangents when normals are computed:
   Vector<Real> tangents;
 
-  /// quadrature points coordinates by element
-  ByElementTypeReal quad_elements;
-
   /// list of facet quadrature points positions by element
   ByElementTypeReal elements_quad_facets;
 

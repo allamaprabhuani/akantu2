@@ -122,9 +122,12 @@ public:
   /// interpolate stress on given positions for each element by means
   /// of a geometrical interpolation on quadrature points
   virtual void interpolateStress(const ElementType type,
-				 const Vector<Real> & quad_coordinates,
 				 const Vector<Real> & coordinates,
 				 Vector<Real> & result);
+
+  /// function to initialize the elemental field interpolation
+  /// function by inverting the quadrature points' coordinates
+  virtual void initInterpolateElementalField();
 
 protected:
 
@@ -173,9 +176,13 @@ protected:
   /// interpolate an elemental field on given points for each element
   template <ElementType type>
   void interpolateElementalField(const Vector<Real> & field,
-				 const Vector<Real> & quad_coordinates,
 				 const Vector<Real> & coordinates,
 				 Vector<Real> & result);
+
+  /// template function to initialize the elemental field interpolation
+  template <ElementType type>
+  void initInterpolation(const Vector<Real> & quad_coordinates,
+			 Vector<Real> & interp_inv_coord);
 
   /// build the coordinate matrix for the interpolation on elemental field
   template <ElementType type>
@@ -315,6 +322,9 @@ protected:
 
   /// spatial dimension
   UInt spatial_dimension;
+
+  /// elemental field interpolation coefficients
+  ByElementTypeReal interpolationInvCoordinates;
 
 private:
   /// boolean to know if the material has been initialized
