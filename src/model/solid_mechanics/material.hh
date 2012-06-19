@@ -92,8 +92,8 @@ public:
   void assembleResidual(GhostType ghost_type);
 
   /// compute the residual for this material
-  virtual void computeStress(Vector<Real> & current_position,
-			     GhostType ghost_type = _not_ghost);
+  virtual void computeAllStresses(Vector<Real> & current_position,
+				  GhostType ghost_type = _not_ghost);
 
   /// set material to steady state
   void setToSteadyState(GhostType ghost_type = _not_ghost);
@@ -397,11 +397,6 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Material list                                                              */
 /* -------------------------------------------------------------------------- */
-#define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
-  ((stress_wf, StressBasedWeightFunction))				\
-  ((damage_wf, DamageWeightFunction     ))				\
-  ((base_wf,   BaseWeightFunction       ))
-
 #define AKANTU_CORE_MATERIAL_LIST					\
   ((2, (elastic                , MaterialElastic              )))	\
   ((2, (viscoelastic           , MaterialViscoElastic         )))	\
@@ -422,12 +417,17 @@ __END_AKANTU__
   ((2, (vreepeerlings          , MaterialVreePeerlings        )))
 
 #ifdef AKANTU_DAMAGE_NON_LOCAL
+#define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
+  ((stress_wf, StressBasedWeightFunction  ))				\
+  ((damage_wf, DamagedWeightFunction      ))				\
+  ((remove_wf, RemoveDamagedWeightFunction))				\
+  ((base_wf,   BaseWeightFunction         ))
+
 #  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST				\
-  ((3, (marigo_non_local       , MaterialMarigoNonLocal, (BaseWeightFunction)))) \
-  ((3, (marigo_non_local_giry  , MaterialMarigoNonLocal, (StressBasedWeightFunction)))) \
+  ((3, (marigo_non_local       , MaterialMarigoNonLocal, AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST))) \
   ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
-  ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal, (BaseWeightFunction))))	\
-  ((3, (vreepeerlings_non_local_damage_wf, MaterialVreePeerlingsNonLocal, (DamagedWeightFunction))))		
+  ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal, AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
+
 #else
 #  define AKANTU_DAMAGE_NON_LOCAL_LIST BOOST_PP_SEQ_NIL
 #endif

@@ -99,7 +99,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(Vector<
   if(ghost_type == _not_ghost) ++this->compute_stress_calls;
 
 
-  computeStress(displacement, ghost_type);
+  computeAllStresses(displacement, ghost_type);
   computeNonLocalStress(ghost_type);
   assembleResidual(ghost_type);
 

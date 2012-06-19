@@ -94,10 +94,9 @@ public:
 			      Vector<UInt> & facet_insertion);
 
   /// interpolate stress on given positions for each element
-  void interpolateStress(const ElementType type,
-			 const Vector<Real> & quad_coordinates,
-			 const Vector<Real> & coordinates,
-			 Vector<Real> & result) {};
+  virtual void interpolateStress(__attribute__((unused)) const ElementType type,
+				 __attribute__((unused)) const Vector<Real> & coordinates,
+				 __attribute__((unused)) Vector<Real> & result) {};
 
 protected:
 

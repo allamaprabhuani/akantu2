@@ -95,11 +95,11 @@ void MaterialElasticCaughey<spatial_dimension>::computeStress(ElementType el_typ
     stress_el.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
-  types::Matrix & strain_rate = *strain_rate_it;
-  types::Matrix & sigma_visc  = *stress_visc_it;
-  types::Matrix & sigma_el    = *stress_el_it;
+  types::Matrix & grad_v     = *strain_rate_it;
+  types::Matrix & sigma_visc = *stress_visc_it;
+  types::Matrix & sigma_el   = *stress_el_it;
 
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(strain_rate, sigma_visc);
+  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_v, sigma_visc);
 
   sigma_visc *= alpha;
   sigma_el.copy(sigma);

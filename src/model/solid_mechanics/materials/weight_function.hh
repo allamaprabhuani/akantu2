@@ -40,6 +40,8 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+/*  Normal weight function                                                    */
+/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 class BaseWeightFunction {
 public:
@@ -93,6 +95,8 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
+/*  Damage weight function                                                    */
+/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 class DamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
@@ -133,6 +137,54 @@ private:
   const Vector<Real> * selected_damage;
 };
 
+/* -------------------------------------------------------------------------- */
+/*  Remove damaged weight function                                            */
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+class RemoveDamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
+public:
+  RemoveDamagedWeightFunction(const Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+
+  inline void selectType(__attribute__((unused)) ElementType type1,
+			 __attribute__((unused)) GhostType ghost_type1,
+			 ElementType type2,
+			 GhostType ghost_type2) {
+    selected_damage =
+      &(dynamic_cast<const MaterialDamage<spatial_dimension> &>(this->material).getDamage(type2, ghost_type2));
+  }
+
+  inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
+    UInt quad = q2.global_num;
+    Real D = (*selected_damage)(quad);
+    Real w = 0.;
+    if(D < damage_limit) {
+      Real alpha = std::max(0., 1. - r*r / this->R2);
+      w = alpha * alpha;
+    }
+    return w;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  bool setParam(const std::string & key,
+		const std::string & value) {
+    std::stringstream sstr(value);
+    if(key == "damage_limit") { sstr >> damage_limit; }
+    else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
+    return true;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  virtual void printself(std::ostream & stream) const {
+    stream << "RemoveDamagedWeightFunction [damage_limit: " << damage_limit << "]";
+  }
+
+private:
+  /// limit at which a point is considered as complitely broken
+  Real damage_limit;
+
+  /// internal pointer to the current damage vector
+  const Vector<Real> * selected_damage;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Stress Based Weight                                                        */
@@ -167,13 +219,13 @@ public:
   bool setParam(const std::string & key, const std::string & value) {
     std::stringstream sstr(value);
     if(key == "ft") { sstr >> ft; }
-    else return false;
+    else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
     return true;
   }
 
   /* ------------------------------------------------------------------------ */
   virtual void printself(std::ostream & stream) const {
-    stream << "StressBasedWeightFunction [ft : " << ft << "]";
+    stream << "StressBasedWeightFunction [ft: " << ft << "]";
   }
 
 private:

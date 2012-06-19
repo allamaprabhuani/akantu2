@@ -159,7 +159,7 @@ void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect,
 void Material::updateResidual(Vector<Real> & displacement, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  computeStress(displacement, ghost_type);
+  computeAllStresses(displacement, ghost_type);
 
   assembleResidual(ghost_type);
 
@@ -257,7 +257,7 @@ void Material::assembleResidual(GhostType ghost_type) {
  * @param[in] current_position nodes postition + displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void Material::computeStress(Vector<Real> & displacement, GhostType ghost_type) {
+void Material::computeAllStresses(Vector<Real> & displacement, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   resizeInternalVector(stress);

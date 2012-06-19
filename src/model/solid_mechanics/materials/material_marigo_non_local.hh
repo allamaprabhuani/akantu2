@@ -44,7 +44,7 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-template<UInt spatial_dimension, template <UInt> class WeightFunction>
+template<UInt spatial_dimension, template <UInt> class WeightFunction = BaseWeightFunction>
 class MaterialMarigoNonLocal : public MaterialMarigo<spatial_dimension>,
 			       public MaterialNonLocal<spatial_dimension, WeightFunction> {
   /* ------------------------------------------------------------------------ */
