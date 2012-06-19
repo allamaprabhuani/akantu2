@@ -165,6 +165,7 @@ public:
 				GhostType ghost_type = _not_ghost,
 				ElementKind kind = _ek_not_defined) const;
 
+  inline void setID(const ID & id) { this->id = id; }
 
 protected:
   inline DataMap & getData(GhostType ghost_type);

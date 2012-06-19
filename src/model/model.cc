@@ -80,10 +80,6 @@ void Model::initPBC() {
   while(it != end){
     UInt i1 = (*it).first;
 
-#ifndef AKANTU_NDEBUG
-    UInt i2 = (*it).second;
-#endif
-
     is_pbc_slave_node(i1) = true; 
 
 #ifndef AKANTU_NDEBUG

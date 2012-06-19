@@ -42,7 +42,7 @@
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
-
+bool plane_strain = true;
 Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 		      { 0.05, 0.06, 0.07, 0.08 },
 		      { 0.09, 0.10, 0.11, 0.12 } };
@@ -86,12 +86,24 @@ static types::Matrix prescribed_stress() {
 
   for (UInt i = 0; i < spatial_dimension; ++i) trace += strain(i,i);
 
+
+  if (plane_strain){
   Real Ep = E / (1 + nu);
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {
       stress(i, j) = Ep * strain(i,j);
       if(i == j) stress(i, j) += Ep * (nu / (1 - 2*nu)) * trace;
     }
+  }
+
+  if (!plane_strain){
+  Real Ep = E / (1 + nu);
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j) {
+      stress(i, j) = Ep * strain(i,j);
+      if(i == j) stress(i, j) += (nu * E)/(1-(nu*nu)) * trace;
+    }
+  }
 
   return stress;
 }
@@ -137,7 +149,7 @@ int main(int argc, char *argv[])
   my_model.readMaterials("material_check_stress.dat");
   my_model.initMaterials();
 
-
+  std::cout << my_model.getMaterial(0) << std::endl;
   Real time_step = my_model.getStableTimeStep()/5.;
   my_model.setTimeStep(time_step);
   my_model.assembleMassLumped();
