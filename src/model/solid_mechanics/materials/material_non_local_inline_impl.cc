@@ -350,7 +350,13 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
 
     const Vector<UInt> & pairs = pair_list(type1, ghost_type1)(type2, ghost_type2);
 
+    std::string ghost_id = "";
+    if (ghost_type1 == _ghost) ghost_id = ":ghost";
+
     ByElementTypeReal & weights_type_1 = pair_weight(type1, ghost_type1);
+    std::stringstream sstr; sstr << id << ":pair_weight:" << type1 << ghost_id;
+    weights_type_1.setID(sstr.str());
+
     Vector<Real> * tmp_weight = NULL;
     if(!weights_type_1.exists(type2, ghost_type2)) {
       tmp_weight = &(weights_type_1.alloc(0, 2, type2, ghost_type2));

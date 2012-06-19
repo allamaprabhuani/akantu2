@@ -126,7 +126,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   virtual void printself(std::ostream & stream) const {
-    stream << "DamageWeightFunction";
+    stream << "DamagedWeightFunction";
   }
 
 private:
