@@ -144,6 +144,12 @@ protected:
   /// compute reversible and total energies by element
   void computeEnergies();
 
+  /// compute reversible energy
+  Real getReversibleEnergy();
+
+  /// compute dissipated energy
+  Real getDissipatedEnergy();
+
   /// compute effective stress norm for insertion check
   virtual Real computeEffectiveNorm(__attribute__((unused)) const types::Matrix & stress,
 				    __attribute__((unused)) const types::RVector & normal,
@@ -156,11 +162,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// compute reversible energy
-  Real getReversibleEnergy();
-
-  /// compute dissipated energy
-  Real getDissipatedEnergy();
+  /// get energy
+  virtual Real getEnergy(std::string type);
 
   /// get sigma_c
   AKANTU_GET_MACRO(SigmaC, sigma_c, Real);

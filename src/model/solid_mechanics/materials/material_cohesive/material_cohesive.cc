@@ -473,6 +473,17 @@ Real MaterialCohesive::getDissipatedEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
+Real MaterialCohesive::getEnergy(std::string type) {
+  AKANTU_DEBUG_IN();
+
+  if (type == "reversible") return getReversibleEnergy();
+  else if (type == "dissipated") return getDissipatedEnergy();
+
+  AKANTU_DEBUG_OUT();
+  return 0.;
+}
+
+/* -------------------------------------------------------------------------- */
 void MaterialCohesive::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

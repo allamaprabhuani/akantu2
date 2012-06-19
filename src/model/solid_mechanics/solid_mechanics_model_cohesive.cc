@@ -49,7 +49,9 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
     elements_quad_facets("elements_quad_facets", id),
     facet_stress(0, spatial_dimension * spatial_dimension, "facet_stress"),
     facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
-    fragment_to_element("fragment_to_element", id) {
+    fragment_to_element("fragment_to_element", id),
+    fragment_velocity(0, spatial_dimension, "fragment_velocity"),
+    fragment_center(0, spatial_dimension, "fragment_center") {
   AKANTU_DEBUG_IN();
 
   registerFEMObject<MyFEMCohesiveType>("CohesiveFEM", mesh, spatial_dimension);
@@ -72,6 +74,8 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   else if (type_facet == _segment_3) type_cohesive = _cohesive_2d_6;
 
   mesh.addConnectivityType(type_cohesive);
+
+  nb_fragment = 1;
 
   AKANTU_DEBUG_OUT();
 }
@@ -483,6 +487,8 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   residual              ->resize(nb_new_nodes);
   boundary              ->resize(nb_new_nodes);
   mass                  ->resize(nb_new_nodes);
+  if (increment)
+    increment->resize(nb_new_nodes);
 
   /**
    * @todo temporary patch, should be done in a better way that works
@@ -513,6 +519,17 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
     for (UInt dim = 0; dim < increment_acceleration->getNbComponent(); ++dim) {
       (*increment_acceleration)(new_node, dim)
 	= (*increment_acceleration)(old_node, dim);
+    }
+  }
+
+  if (increment) {
+    for (UInt n = 0; n < doubled_nodes.getSize(); ++n) {
+
+      UInt old_node = doubled_nodes(n, 0);
+      UInt new_node = doubled_nodes(n, 1);
+
+      for (UInt dim = 0; dim < increment->getNbComponent(); ++dim)
+	(*increment)(new_node, dim) = (*increment)(old_node, dim);
     }
   }
 
@@ -780,9 +797,10 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
       /// initialize the list of checked elements and the list of
       /// elements to be checked
       fragment_to_element.alloc(nb_element, 1, *it);
+      Vector<UInt> & frag_to_el = fragment_to_element(*it);
 
       for (UInt el = 0; el < nb_element; ++el)
-	fragment_to_element(*it)(el) = max;
+	frag_to_el(el) = max;
     }
   }
 
@@ -879,26 +897,74 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
 
 /* -------------------------------------------------------------------------- */
 
-Real SolidMechanicsModelCohesive::getReversibleEnergy() {
+void SolidMechanicsModelCohesive::computeFragmentsMV() {
   AKANTU_DEBUG_IN();
 
-  MaterialCohesive * mat_cohesive
-    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
+  fragment_mass.resize(nb_fragment);
+  fragment_mass.clear();
 
-  return mat_cohesive->getReversibleEnergy();
+  fragment_velocity.resize(nb_fragment);
+  fragment_velocity.clear();
+
+  fragment_center.resize(nb_fragment);
+  fragment_center.clear();
+
+  UInt nb_nodes = mesh.getNbNodes();
+  Vector<bool> checked_node(nb_nodes);
+  checked_node.clear();
+
+  const Vector<Real> & position = mesh.getNodes();
+
+  Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last = mesh.lastType(spatial_dimension);
+
+  for (; it != last; ++it) {
+    UInt nb_element = mesh.getNbElement(*it);
+    if (nb_element != 0) {
+      const Vector<UInt> & frag_to_el = fragment_to_element(*it);
+      const Vector<UInt> & connectivity = mesh.getConnectivity(*it);
+      UInt nb_nodes_per_elem = connectivity.getNbComponent();
+
+      /// loop over each node of every element
+      for (UInt el = 0; el < nb_element; ++el) {
+	for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
+	  UInt node = connectivity(el, n);
+	  /// if the node hasn't been checked, store its data
+	  if (!checked_node(node)) {
+	    fragment_mass(frag_to_el(el)) += (*mass)(node);
+
+	    for (UInt s = 0; s < spatial_dimension; ++s) {
+	      fragment_velocity(frag_to_el(el), s)
+		+= (*mass)(node) * (*velocity)(node, s);
+
+	      fragment_center(frag_to_el(el), s)
+		+= (*mass)(node) * position(node, s);
+	    }
+
+	    checked_node(node) = true;
+	  }
+	}
+      }
+    }
+  }
+
+  for (UInt frag = 0; frag < nb_fragment; ++frag) {
+    for (UInt s = 0; s < spatial_dimension; ++s) {
+      fragment_velocity(frag, s) /= fragment_mass(frag);
+      fragment_center(frag, s) /= fragment_mass(frag);
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 
-Real SolidMechanicsModelCohesive::getDissipatedEnergy() {
+void SolidMechanicsModelCohesive::computeFragmentsData() {
   AKANTU_DEBUG_IN();
 
-  MaterialCohesive * mat_cohesive
-    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
-
-  return mat_cohesive->getDissipatedEnergy();
+  buildFragmentsList();
+  computeFragmentsMV();
 
   AKANTU_DEBUG_OUT();
 }

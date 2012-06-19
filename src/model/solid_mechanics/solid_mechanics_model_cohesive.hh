@@ -78,14 +78,8 @@ public:
   /// initialize cohesive material
   void initCohesiveMaterial();
 
-  /// build fragments list
-  void buildFragmentsList();
-
-  /// compute reversible energy
-  Real getReversibleEnergy();
-
-  /// compute dissipated energy
-  Real getDissipatedEnergy();
+  /// build fragments and compute their data (mass, velocity..)
+  void computeFragmentsData();
 
 private:
 
@@ -106,6 +100,12 @@ private:
 
   /// function to update nodal parameters for doubled nodes
   void updateDoubledNodes(const Vector<UInt> & doubled_nodes);
+
+  /// build fragments list
+  void buildFragmentsList();
+
+  /// compute fragments' mass and velocity
+  void computeFragmentsMV();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -139,6 +139,15 @@ public:
 
   /// get the fragment_to_element vectors
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FragmentToElement, fragment_to_element, UInt);
+
+  /// get mass for each fragment
+  AKANTU_GET_MACRO(FragmentsMass, fragment_mass, const Vector<Real> &);
+
+  /// get average velocity for each fragment
+  AKANTU_GET_MACRO(FragmentsVelocity, fragment_velocity, const Vector<Real> &);
+
+  /// get the center of mass coordinates for each fragment
+  AKANTU_GET_MACRO(FragmentsCenter, fragment_center, const Vector<Real> &);
 
   /// THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO(Tangents, tangents, const Vector<Real> &);
@@ -183,6 +192,15 @@ private:
 
   /// number of fragments
   UInt nb_fragment;
+
+  /// mass for each fragment
+  Vector<Real> fragment_mass;
+
+  /// average velocity for each fragment
+  Vector<Real> fragment_velocity;
+
+  /// center of mass coordinates for each element
+  Vector<Real> fragment_center;
 
 };
 

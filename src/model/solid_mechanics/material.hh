@@ -427,9 +427,8 @@ __END_AKANTU__
   ((3, (marigo_non_local       , MaterialMarigoNonLocal, AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST))) \
   ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
   ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal, AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
-
 #else
-#  define AKANTU_DAMAGE_NON_LOCAL_LIST BOOST_PP_SEQ_NIL
+#  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
 #endif
 
 #define AKANTU_MATERIAL_LIST			\

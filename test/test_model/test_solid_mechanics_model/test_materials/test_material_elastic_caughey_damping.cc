@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
   model.readMaterials("material_elastic_caughey_damping.dat");
   Material & my_mat = model.getMaterial(0);
   Real a_value = 1e-6;//3.836e-06;
-  my_mat.setParam("alpha", a_value);
+  my_mat.setProperty("alpha", a_value);
   model.initMaterials();
   
   std::cout << model.getMaterial(0) << std::endl;

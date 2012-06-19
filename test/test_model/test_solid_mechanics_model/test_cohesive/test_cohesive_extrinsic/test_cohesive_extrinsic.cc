@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
   // edis.close();
   // erev.close();
 
-  Real Ed = model.getDissipatedEnergy();
+  Real Ed = model.getEnergy("dissipated");
 
   Real Edt = 200*std::sqrt(2);
 

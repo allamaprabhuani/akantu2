@@ -53,8 +53,6 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   const UInt max_steps = 200;
 
-  //  const ElementType type = _triangle_6;
-
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
   mesh_io.read("mesh.msh", mesh);
@@ -72,7 +70,10 @@ int main(int argc, char *argv[]) {
 
   Real strain_rate = 1.e5;
   Real L = 0.03;
+  Real theoretical_mass = L * L/20. * 2500;
   Real disp_increment = strain_rate * L / 2. * time_step;
+
+  Real epsilon = std::numeric_limits<Real>::epsilon();
 
   Vector<Real> & velocity = model.getVelocity();
   Vector<bool> & boundary = model.getBoundary();
@@ -101,7 +102,9 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
-  //  UInt nb_element = mesh.getNbElement(type);
+
+  // const ElementType type = _triangle_6;
+  // UInt nb_element = mesh.getNbElement(type);
 
   // /// initialize the paraview output
   // iohelper::DumperParaview dumper;
@@ -139,6 +142,8 @@ int main(int argc, char *argv[]) {
   MaterialCohesive & mat_cohesive
     = dynamic_cast<MaterialCohesive&>(model.getMaterial(cohesive_index));
   const Vector<Real> & damage = mat_cohesive.getDamage(type_cohesive);
+
+  const Vector<Real> & fragment_mass = model.getFragmentsMass();
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
@@ -188,7 +193,9 @@ int main(int argc, char *argv[]) {
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
-      model.buildFragmentsList();
+      model.computeFragmentsData();
+
+      /// check number of fragments
       UInt nb_fragment_num = model.getNbFragment();
 
       UInt nb_cohesive_elements = mesh.getNbElement(type_cohesive);
@@ -206,6 +213,31 @@ int main(int argc, char *argv[]) {
 	std::cout << "The number of fragments is wrong!" << std::endl;
 	return EXIT_FAILURE;
       }
+
+      /// check mass computation
+      Real total_mass = 0.;
+      for (UInt frag = 0; frag < nb_fragment_num; ++frag) {
+	total_mass += fragment_mass(frag);
+      }
+
+      if (std::abs(theoretical_mass - total_mass) > epsilon * theoretical_mass * 100) {
+	std::cout << "The fragments' mass is wrong!" << std::endl;
+	return EXIT_FAILURE;
+      }
+
+    }
+  }
+
+  /// check velocities
+  UInt nb_fragment = model.getNbFragment();
+  const Vector<Real> & fragment_velocity = model.getFragmentsVelocity();
+
+  for (UInt frag = 0; frag < nb_fragment; ++frag) {
+    Real velocity = ((frag + 0.5) / nb_fragment * 2 - 1) * disp_increment / time_step;
+
+    if (std::abs(fragment_velocity(frag) - velocity) > 100) {
+      std::cout << "The fragments' velocity is wrong!" << std::endl;
+      return EXIT_FAILURE;
     }
   }
 

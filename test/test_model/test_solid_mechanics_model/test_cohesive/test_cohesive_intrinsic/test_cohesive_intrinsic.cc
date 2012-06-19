@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
   // edis.close();
   // erev.close();
 
-  Real Ed = model.getDissipatedEnergy();
+  Real Ed = model.getEnergy("dissipated");
 
   Real Edt = 2 * sqrt(2);
 

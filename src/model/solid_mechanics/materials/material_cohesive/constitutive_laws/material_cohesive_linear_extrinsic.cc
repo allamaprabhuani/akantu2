@@ -50,6 +50,7 @@ MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrin
   G_cI      = 0;
   G_cII     = 0;
   rand      = 0;
+  penalty   = 0;
 
   initInternalVector(sigma_c_eff, 1, _ek_cohesive);
   initInternalVector(delta_c, 1, _ek_cohesive);
@@ -126,6 +127,7 @@ bool MaterialCohesiveLinearExtrinsic<spatial_dimension>::setParam(const std::str
   else if(key == "G_cI") { sstr >> G_cI; }
   else if(key == "G_cII") { sstr >> G_cII; }
   else if(key == "rand") { sstr >> rand; }
+  else if(key == "penalty") { sstr >> penalty; }
   else { return Material::setParam(key, value, id); }
   return true;
 }
@@ -249,6 +251,12 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
       *traction_it *= k;
     }
 
+    /// avoid penetration
+    if (normal_opening_norm < 0) {
+      normal_opening *= penalty;
+      *traction_it += normal_opening;
+    }
+
   }
 
   AKANTU_DEBUG_OUT();
@@ -267,6 +275,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::printself(std::ostream 
   stream << space << " + G_cI         : " << G_cI << std::endl;
   stream << space << " + G_cII        : " << G_cII << std::endl;
   stream << space << " + rand         : " << rand << std::endl;
+  stream << space << " + penalty      : " << penalty << std::endl;
   if(this->isInit()) {
     stream << space << " + kappa      : " << kappa << std::endl;
   }
