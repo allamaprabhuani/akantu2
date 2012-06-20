@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[0] == -0.25) facet_insertion.push_back(f);
+    if (bary_facet[0] > -0.30 && bary_facet[0] < -0.20) facet_insertion.push_back(f);
   }
   delete[] bary_facet;
 

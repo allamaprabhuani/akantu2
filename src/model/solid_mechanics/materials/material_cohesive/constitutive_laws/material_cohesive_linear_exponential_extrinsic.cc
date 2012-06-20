@@ -130,7 +130,9 @@ Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffec
 
   AKANTU_DEBUG_OUT();
 
-  if (beta == 0)
+  Real epsilon = std::numeric_limits<Real>::epsilon();
+
+  if (std::abs(beta) < epsilon)
     return normal_contrib;
   else
     return std::sqrt(normal_contrib*normal_contrib
@@ -189,6 +191,7 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTract
   Real beta2_kappa2 = beta*beta/kappa/kappa;
   Real beta2_kappa  = beta*beta/kappa;
 
+  Real epsilon = std::numeric_limits<Real>::epsilon();
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
@@ -223,7 +226,7 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTract
     *traction_it /= delta;
 
     /// crack opening case
-    if (delta == 0 || normal_opening_norm < 0) {
+    if (std::abs(delta) <= std::abs(delta) * epsilon || normal_opening_norm < 0) {
       (*traction_it).clear();
     }
     else if (delta > *delta_max_it) {

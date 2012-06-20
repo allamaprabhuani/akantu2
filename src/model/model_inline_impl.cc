@@ -102,12 +102,14 @@ inline void Model::registerFEMObject(const std::string & name,
 				     UInt spatial_dimension){
   if (fems.size() == 0) default_fem = name;
 
+#ifndef AKANTU_NDEBUG
   FEMMap::iterator it = fems.find(name);
   AKANTU_DEBUG_ASSERT(it == fems.end(), "FEM object with name "
 		      << name << " was already created");
+#endif
 
   std::stringstream sstr; sstr << id << ":fem:" << name;
-  it->second = new FEMClass(mesh, spatial_dimension, sstr.str(), memory_id);
+  fems[name] = new FEMClass(mesh, spatial_dimension, sstr.str(), memory_id);
 
   // MeshUtils::buildFacets(fems[name]->getMesh());
 

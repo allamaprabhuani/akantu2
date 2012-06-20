@@ -191,6 +191,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
   Real beta2_kappa2 = beta*beta/kappa/kappa;
   Real beta2_kappa  = beta*beta/kappa;
 
+  Real epsilon = std::numeric_limits<Real>::epsilon();
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
@@ -221,7 +222,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
 
     /// full damage case or zero displacement case
-    if (delta >= *delta_c_it || delta == 0) {
+    if (delta >= *delta_c_it || std::abs(delta) <= std::abs(delta) * epsilon) {
 
       /// set traction to zero
       (*traction_it).clear();

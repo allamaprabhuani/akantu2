@@ -89,11 +89,11 @@ int main(int argc, char *argv[]) {
 
   /// boundary conditions
   for (UInt n = 0; n < nb_nodes; ++n) {
-    if (position(n, 0) == L/2) {
+    if (std::abs((position(n, 0) - L/2) / (L/2)) < epsilon) {
       boundary(n, 0) = true;
       displacement(n, 0) += disp_increment;
     }
-    if (position(n, 0) == -1.* L/2) {
+    if (std::abs((position(n, 0) - (-1.) * L/2) / ( (-1) * L/2)) < epsilon) {
       boundary(n, 0) = true;
       displacement(n, 0) -= disp_increment;
     }
@@ -157,10 +157,10 @@ int main(int argc, char *argv[]) {
 
     /// apply boundary conditions
     for (UInt n = 0; n < nb_nodes; ++n) {
-      if (position(n, 0) == L/2) {
+      if (std::abs((position(n, 0) - L/2) / (L/2)) < epsilon) {
 	displacement(n, 0) += disp_increment;
       }
-      if (position(n, 0) == -1.* L/2) {
+      if (std::abs((position(n, 0) - (-1.) * L/2) / ( (-1) * L/2)) < epsilon) {
 	displacement(n, 0) -= disp_increment;
       }
     }
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
       for (UInt el = 0; el < nb_cohesive_elements; ++el) {
 	UInt q = 0;
 	while (q < nb_quad_per_facet &&
-	       damage(el * nb_quad_per_facet + q) == 1) ++q;
+	       std::abs(damage(el * nb_quad_per_facet + q) - 1) < epsilon) ++q;
 
 	if (q == nb_quad_per_facet) ++nb_fragment;
       }
@@ -233,9 +233,9 @@ int main(int argc, char *argv[]) {
   const Vector<Real> & fragment_velocity = model.getFragmentsVelocity();
 
   for (UInt frag = 0; frag < nb_fragment; ++frag) {
-    Real velocity = ((frag + 0.5) / nb_fragment * 2 - 1) * disp_increment / time_step;
+    Real vel = ((frag + 0.5) / nb_fragment * 2 - 1) * disp_increment / time_step;
 
-    if (std::abs(fragment_velocity(frag) - velocity) > 100) {
+    if (std::abs(fragment_velocity(frag) - vel) > 100) {
       std::cout << "The fragments' velocity is wrong!" << std::endl;
       return EXIT_FAILURE;
     }

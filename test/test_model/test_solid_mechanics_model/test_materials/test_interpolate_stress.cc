@@ -45,9 +45,7 @@
 
 using namespace akantu;
 
-Real plane(Real x, Real y) {
-  return 1. + 2. * x + 3. * y;
-}
+static Real plane(Real, Real);
 
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
@@ -172,4 +170,8 @@ int main(int argc, char *argv[]) {
 
   std::cout << "OK: Stress interpolation test passed." << std::endl;
   return EXIT_SUCCESS;
+}
+
+Real plane(Real x, Real y) {
+  return 1. + 2. * x + 3. * y;
 }

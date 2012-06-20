@@ -346,6 +346,8 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
   Vector<Vector<Element> > & element_to_facet
     = mesh_facets.getElementToSubelement(type_facet);
 
+  const Real epsilon = std::numeric_limits<Real>::epsilon();
+
   for (UInt f = 0; f < doubled_facets.getSize(); ++f) {
 
     UInt nb_cohesive_elements = conn_cohesive.getSize();
@@ -364,7 +366,8 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
     bool second_facet_inversion = false;
 
     for (UInt dim = 0; dim < mesh.getSpatialDimension(); ++dim) {
-      if (position(first_facet_node, dim) != position(second_facet_node, dim)) {
+      if (std::abs( (position(first_facet_node, dim) - position(second_facet_node, dim))
+		 / position(second_facet_node, dim)) >= epsilon) {
 	second_facet_inversion = true;
 	break;
       }
@@ -815,6 +818,8 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
   const Vector<Real> & damage = mat_cohesive->getDamage(type_cohesive);
   UInt nb_quad_cohesive = getFEM("CohesiveFEM").getNbQuadraturePoints(type_cohesive);
 
+  Real epsilon = std::numeric_limits<Real>::epsilon();
+
   for (; it != last; ++it) {
     Vector<UInt> & checked_el = fragment_to_element(*it);
     UInt nb_element = checked_el.getSize();
@@ -831,8 +836,8 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
 	  checked_el(el) = nb_fragment - 1;
 	  Vector<Element> elem_to_check;
 
-	  Element current_el(*it, el);
-	  elem_to_check.push_back(current_el);
+	  Element first_el(*it, el);
+	  elem_to_check.push_back(first_el);
 
 	  /// keep looping while there are elements to check
 	  while (elem_to_check.getSize() != 0) {
@@ -855,7 +860,8 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
 		  /// reached damage = 1 on every quadrature point
 		  UInt q = 0;
 		  while (q < nb_quad_cohesive &&
-			 damage(next_el.element * nb_quad_cohesive + q) == 1) ++q;
+			 std::abs(damage(next_el.element * nb_quad_cohesive + q) - 1)
+			 <= epsilon) ++q;
 
 		  if (q == nb_quad_cohesive)
 		    next_el = ElementNull;

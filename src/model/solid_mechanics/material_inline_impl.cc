@@ -131,8 +131,8 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void Material::buildInterpolationCoodinates(const types::Matrix & coordinates,
-						   types::Matrix & coordMatrix) {
+inline void Material::buildInterpolationCoodinates(__attribute__((unused)) const types::Matrix & coordinates,
+						   __attribute__((unused)) types::Matrix & coordMatrix) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

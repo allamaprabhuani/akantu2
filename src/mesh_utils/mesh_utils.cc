@@ -208,8 +208,10 @@ void MeshUtils::buildAllFacets(Mesh & mesh, Mesh & mesh_facets) {
     barycenter(*it).resize(nb_element);
 
     Vector<Real>::iterator<types::RVector> bary = barycenter(*it).begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> end = barycenter(*it).end(spatial_dimension);
-    for (UInt el = 0; bary != end; ++bary, ++el) {
+    Vector<Real>::iterator<types::RVector> bary_end
+      = barycenter(*it).end(spatial_dimension);
+
+    for (UInt el = 0; bary != bary_end; ++bary, ++el) {
       mesh_facets.getBarycenter(el, *it, bary->storage());
     }
   }
@@ -251,6 +253,8 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
   UInt nb_element[nb_types];
 
   ElementType facet_type;
+
+  Real epsilon = std::numeric_limits<Real>::epsilon();
 
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
@@ -419,7 +423,7 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 		  Real normal1[spatial_dimension];
 		  Real normal2[spatial_dimension];
 
-		  Vector<Real> & bary = barycenter(elements(0).type);
+		  Vector<Real> & bar = barycenter(elements(0).type);
 
 		  /// facet second node
 		  UInt second_node = facet_conn(facet_conn.getSize()-1, 1);
@@ -428,7 +432,7 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 		  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
 		    Real x1, x2;
 		    x1 = coord(second_node, dim);
-		    x2 = bary(elements(0).element, dim);
+		    x2 = bar(elements(0).element, dim);
 		    tangent[dim] = x1 - start_coord[dim];
 		    temp[dim] = x2 - start_coord[dim];
 		  }
@@ -473,7 +477,7 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 		  Real x = connected_nodes(n, 0);
 		  Real y = connected_nodes(n, 1);
 		  /// in order to avoid division by zero:
-		  if (y == 0 && x < 0)
+		  if (std::abs(y) <= std::abs(y) * epsilon && x < 0)
 		    y = Math::getTolerance();
 		  atan2[elements(n)] = y / (sqrt(x * x + y * y) + x);
 		}
@@ -491,12 +495,12 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 	    /// loop on every element connected to current facet and
 	    /// insert current facet in the first free spot of the
 	    /// subelement_to_element vector
-	    for (UInt el = 0; el < elements.getSize(); ++el) {
-	      if (elements(el).type != _not_defined) {
+	    for (UInt elem = 0; elem < elements.getSize(); ++elem) {
+	      if (elements(elem).type != _not_defined) {
 		for (UInt f_in = 0; f_in < nb_facets[t]; ++f_in) {
-		  if ((*subelement_to_element[t])(elements(el).element, f_in).type == _not_defined) {
-		    (*subelement_to_element[t])(elements(el).element, f_in).type = facet_type;
-		    (*subelement_to_element[t])(elements(el).element, f_in).element = current_facet;
+		  if ((*subelement_to_element[t])(elements(elem).element, f_in).type == _not_defined) {
+		    (*subelement_to_element[t])(elements(elem).element, f_in).type = facet_type;
+		    (*subelement_to_element[t])(elements(elem).element, f_in).element = current_facet;
 		    break;
 		  }
 		}

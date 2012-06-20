@@ -112,6 +112,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
   Real beta2_kappa2 = beta*beta/kappa/kappa;
   Real beta2_kappa  = beta*beta/kappa;
 
+  Real epsilon = std::numeric_limits<Real>::epsilon();
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
@@ -141,7 +142,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
 
 
     /// full damage case or zero displacement case
-    if (delta >= delta_c || delta == 0) {
+    if (delta >= delta_c || std::abs(delta) <= std::abs(delta) * epsilon) {
       /// set traction to zero
       (*traction_it).clear();
       *damage_it = delta >= delta_c;

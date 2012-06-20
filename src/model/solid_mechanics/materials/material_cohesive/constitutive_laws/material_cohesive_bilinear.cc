@@ -65,7 +65,10 @@ void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
    * \frac{{\sigma_c}_\textup{old} \delta_c} {\delta_c - \delta_0} @f$
    */
 
-  AKANTU_DEBUG_ASSERT(this->delta_c != delta_0, "Check your material.dat");
+  Real epsilon = std::numeric_limits<Real>::epsilon();
+
+  AKANTU_DEBUG_ASSERT(std::abs((this->delta_c - delta_0) / delta_0) >= epsilon,
+		      "Check your material.dat");
 
   this->sigma_c *= this->delta_c / (this->delta_c - delta_0);
 

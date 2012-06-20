@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] == 0.25) {
+    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20) {
       sigma_lim(f) = 100;
       facet_check(f) = true;
       std::cout << f << std::endl;
@@ -117,10 +117,10 @@ int main(int argc, char *argv[]) {
 
   /// boundary conditions
   for (UInt n = 0; n < nb_nodes; ++n) {
-    if (position(n, 1) == 1 || position(n, 1) == -1)
+    if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
-    if (position(n, 0) == 1 || position(n, 0) == -1)
+    if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
       boundary(n, 0) = true;
   }
 
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
 
     /// update displacement on extreme nodes
     for (UInt n = 0; n < nb_nodes; ++n) {
-      if (position(n, 1) == 1 || position(n, 1) == -1)
+      if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
 	displacement(n, 1) += disp_update * position(n, 1);
     }
 
