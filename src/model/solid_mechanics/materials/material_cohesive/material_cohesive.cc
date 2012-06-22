@@ -390,6 +390,10 @@ void MaterialCohesive::computeEnergies() {
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _not_ghost, _ek_cohesive);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _not_ghost, _ek_cohesive);
 
+  Real * memory_space = new Real[2*spatial_dimension];
+  types::RVector b(memory_space, spatial_dimension);
+  types::RVector h(memory_space + spatial_dimension, spatial_dimension);
+
   for(; it != last_type; ++it) {
     Vector<Real>::iterator<Real> erev =
       reversible_energy(*it, _not_ghost).begin();
@@ -414,11 +418,9 @@ void MaterialCohesive::computeEnergies() {
 	   ++erev, ++etot) {
 
       /// trapezoidal integration
-      types::RVector b(spatial_dimension);
       b  = *opening_it;
       b -= *opening_old_it;
 
-      types::RVector h(spatial_dimension);
       h  = *traction_old_it;
       h += *traction_it;
 
@@ -428,6 +430,8 @@ void MaterialCohesive::computeEnergies() {
 
 
   }
+
+  delete [] memory_space;
 
   AKANTU_DEBUG_OUT();
 }

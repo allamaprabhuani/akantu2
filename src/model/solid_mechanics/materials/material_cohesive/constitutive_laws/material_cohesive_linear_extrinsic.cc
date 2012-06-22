@@ -193,6 +193,11 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
   Real epsilon = std::numeric_limits<Real>::epsilon();
 
+  Real * memory_space = new Real[2*spatial_dimension];
+  types::Vector<Real> normal_opening(memory_space, spatial_dimension);
+  types::Vector<Real> tangential_opening(memory_space + spatial_dimension,
+					 spatial_dimension);
+
   /// loop on each quadrature point
   for (; traction_it != traction_end;
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it,
@@ -200,11 +205,9 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
-    types::Vector<Real> normal_opening(spatial_dimension);
     normal_opening  = (*normal_it);
     normal_opening *= normal_opening_norm;
 
-    types::Vector<Real> tangential_opening(spatial_dimension);
     tangential_opening  = *opening_it;
     tangential_opening -=  normal_opening;
 
@@ -260,6 +263,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
   }
 
+  delete [] memory_space;
   AKANTU_DEBUG_OUT();
 }
 

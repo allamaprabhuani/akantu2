@@ -269,7 +269,7 @@ namespace types {
       std::fill_n(values, n*m, def);
     };
 
-    Matrix(Real* data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
+    Matrix(Real * data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
 
     Matrix(const Matrix & src) {
       m = src.m;
@@ -287,6 +287,15 @@ namespace types {
     UInt rows() const { return m; };
     UInt cols() const { return n; };
     Real * storage() const { return values; };
+
+    /* ---------------------------------------------------------------------- */
+    void shallowCopy(const Matrix & src) {
+      if(!wrapped) delete [] values;
+      this->n = src.n;
+      this->m = src.m;
+      this->wrapped = true;
+      this->values = src.values;
+    }
 
     /* ---------------------------------------------------------------------- */
     inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };

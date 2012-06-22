@@ -167,7 +167,7 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
 			     nb_element,
 			     nb_points * nb_degree_of_freedom);
 
-  Vector<Real>::const_iterator<types::Matrix> shape =
+  Vector<Real>::const_iterator<types::Matrix> shape_beginning =
     shapes.begin_reinterpret(nb_points, nb_nodes_per_sub_element,
 			     nb_element,
 			     nb_points * nb_nodes_per_sub_element);
@@ -175,13 +175,12 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
   types::Matrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 
   ReduceFunction reduce_function;
+  Vector<Real>::const_iterator<types::Matrix> shape = shape_beginning;
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_sub_element;
     if(filter_elements != NULL) {
-      shape = shapes.begin_reinterpret(nb_points, nb_nodes_per_sub_element,
-				       nb_element,
-				       nb_points * nb_nodes_per_sub_element);
+      shape = shape_beginning;
       shape += filter_elem_val[el];
       el_offset = filter_elem_val[el] * nb_nodes_per_element;
     }
@@ -245,21 +244,20 @@ void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &
   Vector<Real>::iterator<types::Matrix> nablauq_it =
     nablauq.begin(element_dimension, nb_degree_of_freedom);
 
-  Vector<Real>::const_iterator<types::Matrix> shape_derivative =
+  Vector<Real>::const_iterator<types::Matrix> shape_derivative_beginning =
     shapes_derivatives.begin(element_dimension, nb_nodes_per_sub_element);
 
   types::Matrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 
   ReduceFunction reduce_function;
 
+  Vector<Real>::const_iterator<types::Matrix> shape_derivative = shape_derivative_beginning;
   for (UInt el = 0; el < nb_element; ++el) {
     // UInt el_offset = el * nb_nodes_per_element;
     UInt element = el;
     if(filter_elements != NULL) {
       element = *filter_elem;
-      shape_derivative  =
-	shapes_derivatives.begin(element_dimension, nb_nodes_per_sub_element);
-
+      shape_derivative = shape_derivative_beginning;
       shape_derivative += *filter_elem;
       ++filter_elem;
     }
