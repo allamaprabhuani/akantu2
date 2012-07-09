@@ -155,12 +155,16 @@ public:
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
     UInt quad = q2.global_num;
+
+    if(q1.global_num == quad) return 1.;
+
     Real D = (*selected_damage)(quad);
     Real w = 0.;
     if(D < damage_limit) {
       Real alpha = std::max(0., 1. - r*r / this->R2);
       w = alpha * alpha;
     }
+
     return w;
   }
 
