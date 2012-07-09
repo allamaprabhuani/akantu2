@@ -241,8 +241,9 @@ inline UInt Mesh::getNbElement(const ElementType & type,
 
   const ByElementTypeUInt & const_conn = connectivities;
 
+  const Vector<UInt> & conn = const_conn(type, ghost_type);
   AKANTU_DEBUG_OUT();
-  return const_conn(type, ghost_type).getSize();
+  return conn.getSize();
 }
 
 /* -------------------------------------------------------------------------- */

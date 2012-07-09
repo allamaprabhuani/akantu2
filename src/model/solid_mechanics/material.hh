@@ -99,8 +99,8 @@ public:
   void setToSteadyState(GhostType ghost_type = _not_ghost);
 
   /// compute the stiffness matrix
-  void assembleStiffnessMatrix(Vector<Real> & current_position,
-			       GhostType ghost_type);
+  virtual void assembleStiffnessMatrix(Vector<Real> & current_position,
+				       GhostType ghost_type);
 
   /// compute the stable time step for an element of size h
   virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
@@ -149,7 +149,9 @@ protected:
   /// compute the tangent stiffness matrix
   virtual void computeTangentStiffness(const ElementType & el_type,
 				       Vector<Real> & tangent_matrix,
-				       GhostType ghost_type = _not_ghost) = 0;
+				       GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /// compute the potential energy
   virtual void computePotentialEnergy(ElementType el_type,
@@ -404,11 +406,14 @@ __END_AKANTU__
   ((2, (elastic_caughey        , MaterialElasticCaughey       )))	\
   ((2, (neohookean             , MaterialNeohookean           )))
 
+
 #define AKANTU_COHESIVE_MATERIAL_LIST					\
   ((2, (cohesive_bilinear      , MaterialCohesiveBilinear     )))	\
   ((2, (cohesive_linear        , MaterialCohesiveLinear       )))	\
   ((2, (cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic )))	\
-  ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic )))
+  ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))) \
+  ((2, (cohesive_exponential   , MaterialCohesiveExponential  )))
+
 
 #define  AKANTU_DAMAGE_MATERIAL_LIST					\
   ((2, (damage_linear          , MaterialDamageLinear         )))	\
@@ -478,6 +483,7 @@ __END_AKANTU__
 #include "material_cohesive_linear.hh"
 #include "material_cohesive_bilinear.hh"
 #include "material_cohesive_linear_extrinsic.hh"
+#include "material_cohesive_exponential.hh"
 #include "material_cohesive_linear_exponential_extrinsic.hh"
 
 

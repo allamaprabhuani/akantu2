@@ -302,7 +302,165 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-/**
+void MaterialCohesive::assembleStiffnessMatrix(Vector<Real> & current_position, GhostType ghost_type) {
+ 
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = model->getSpatialDimension();
+
+  SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
+
+  Mesh & mesh = fem_cohesive->getMesh();
+ 
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
+
+  for(; it != last_type; ++it) {
+
+    
+    UInt nb_quadrature_points = fem_cohesive->getNbQuadraturePoints(*it, ghost_type);
+    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
+    const Vector<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
+    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    UInt nb_element = elem_filter.getSize();
+    UInt size_of_shapes       = shapes.getNbComponent();
+    Real * shapes_val       = shapes.storage();
+    UInt * elem_filter_val  = elem_filter.storage();
+    Vector<Real> * shapes_filtered =
+      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
+    Real * shapes_filtered_val = shapes_filtered->values;
+
+    for (UInt el = 0; el < nb_element; ++el) {
+      shapes_val = shapes.storage() + elem_filter_val[el] *
+	size_of_shapes * nb_quadrature_points;
+      memcpy(shapes_filtered_val, shapes_val,
+	     size_of_shapes * nb_quadrature_points * sizeof(Real));
+      shapes_filtered_val += size_of_shapes * nb_quadrature_points;
+    }
+
+    shapes_filtered_val = shapes_filtered->values;
+
+    /**
+     * compute A matrix @f$ \mathbf{A} = \left[\begin{array}{c c c c c c c c c c c c}
+     * 1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0 \\
+     * 0 &1& 0&0 &0 &0 &0 & -1& 0& 0 & 0 &0 \\
+     * 0 &0& 1&0 &0 &0 &0 & 0& -1& 0 & 0 &0 \\
+     * 0 &0& 0&1 &0 &0 &0 & 0& 0& -1 & 0 &0 \\
+     * 0 &0& 0&0 &1 &0 &0 & 0& 0& 0 & -1 &0 \\
+     * 0 &0& 0&0 &0 &1 &0 & 0& 0& 0 & 0 &-1
+     * \end{array} \right]@f$
+     **/
+    UInt size_of_A =  spatial_dimension*size_of_shapes*spatial_dimension*nb_nodes_per_element;
+    Real * A = new Real[size_of_A];
+    memset(A, 0, size_of_A*sizeof(Real));
+
+    for ( UInt i = 0; i < spatial_dimension*size_of_shapes; ++i) {
+      A[ spatial_dimension * nb_nodes_per_element * i + i ] = 1;
+      A[ spatial_dimension * nb_nodes_per_element * i + i + spatial_dimension * size_of_shapes ] = -1;
+    }
+
+    /// compute traction
+    computeTraction(ghost_type);
+
+
+    /// get the tangent matrix @f$\frac{\partial{(t/\delta)}}{\partial{\delta}} @f$
+    Vector<Real> * tangent_stiffness_matrix =
+      new Vector<Real>(nb_element*nb_quadrature_points, spatial_dimension*
+		       spatial_dimension, "tangent_stiffness_matrix");
+
+    computeTangentStiffness(*it, *tangent_stiffness_matrix, ghost_type);
+
+    UInt size_of_N =  spatial_dimension*size_of_shapes*spatial_dimension;
+    Real * N = new Real[size_of_N];
+    UInt size_of_N_A = spatial_dimension*nb_nodes_per_element*spatial_dimension;
+    Real * N_A = new Real[size_of_N_A];
+    Real * D_N_A = new Real[size_of_N_A];
+    UInt offset_At_Nt_D_N_A = spatial_dimension*nb_nodes_per_element*
+      spatial_dimension*nb_nodes_per_element;
+    Vector<Real> * at_nt_d_n_a = new Vector<Real> (nb_element*nb_quadrature_points,
+						   offset_At_Nt_D_N_A, "A^t*N^t*D*N*A");
+    Real * At_Nt_D_N_A = at_nt_d_n_a->storage();
+
+    Real * D = tangent_stiffness_matrix->storage();
+   
+    /**
+     * compute the N matrix @f$ \mathbf{N} = \begin{array}{cccccc}
+     * N_0(\xi) & 0 & N_1(\xi) &0 & N_2(\xi) & 0 \\
+     * 0 & N_0(\xi)& 0 &N_1(\xi)& 0 & N_2(\xi)
+     * \end{array} @f$
+     **/
+    
+    for (UInt e = 0; e < nb_element; ++e) {
+      Real * shapes_val =  shapes_filtered_val +
+	e * nb_quadrature_points * size_of_shapes;
+  
+      for (UInt q = 0; q < nb_quadrature_points; ++q) {
+	memset(N, 0, size_of_N * sizeof(Real));
+    
+	for (UInt i = 0; i < spatial_dimension ; ++i) {
+	  Real * Nvoigt_tmp = N  + i * (size_of_shapes * spatial_dimension) + i;
+	  Real * Nregular   = shapes_val + q * (size_of_shapes) ;
+
+	  for (UInt n = 0; n < size_of_shapes; ++n) {
+	    *Nvoigt_tmp = *Nregular;
+	    Nvoigt_tmp += spatial_dimension;
+	    Nregular ++;
+	  }
+	}
+
+	/**
+	 * compute stiffness matrix  @f$   \mathbf{K}    =    \delta    \mathbf{U}^T   
+	 * \int_{\Gamma_c}    {\mathbf{P}^t \frac{\partial{\mathbf{t}}} {\partial{\delta}}
+	 * \mathbf{P} d\Gamma \Delta \mathbf{U}}  @f$
+	 **/
+
+	Math::matrix_matrix (spatial_dimension, spatial_dimension*nb_nodes_per_element, size_of_shapes*spatial_dimension, N, A, N_A);
+	Math::matrix_matrix (spatial_dimension, spatial_dimension*nb_nodes_per_element, spatial_dimension, D, N_A, D_N_A);
+	Math::matrixt_matrix(spatial_dimension*nb_nodes_per_element, spatial_dimension*nb_nodes_per_element, spatial_dimension, N_A, D_N_A, At_Nt_D_N_A);
+	At_Nt_D_N_A += offset_At_Nt_D_N_A;
+	D += spatial_dimension * spatial_dimension;	
+      }
+    }
+
+    delete [] N;
+    delete [] N_A;
+    delete [] D_N_A;
+    delete tangent_stiffness_matrix;
+
+    Vector<Real> * K_e = new Vector<Real>(nb_element, offset_At_Nt_D_N_A
+					  , "K_e");
+
+    fem_cohesive->integrate(*at_nt_d_n_a, *K_e,
+			    offset_At_Nt_D_N_A,
+			    *it, ghost_type,
+			    &elem_filter);
+
+
+    delete at_nt_d_n_a;
+
+    model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, *it, ghost_type, &elem_filter);
+    delete K_e;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesive::computeTangentStiffness(const ElementType & el_type,
+					       Vector<Real> & tangent_matrix,
+					       GhostType ghost_type) {
+
+  UInt nb_quadrature_points = fem_cohesive->getNbQuadraturePoints(el_type, ghost_type);
+
+  Vector<Real> normal(nb_quadrature_points, spatial_dimension,
+		      "normal");
+  computeNormal(model->getCurrentPosition(), normal, el_type, ghost_type);
+
+  computeTangentStiffness(el_type, tangent_matrix, normal, ghost_type);
+}
+
+
+/* -------------------------------------------------------------------------- *
  * Compute traction from displacements
  *
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element

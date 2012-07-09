@@ -28,6 +28,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.cc
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.cc
   model/solid_mechanics/materials/material_elastic.cc
   model/solid_mechanics/materials/material_elastic_orthotropic.cc
@@ -119,6 +120,7 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/material_cohesive.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.hh
+  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
   model/solid_mechanics/materials/material_damage.hh

@@ -106,12 +106,17 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
-  /// compute the tangent stiffness matrix
-  virtual void computeTangentStiffness(__attribute__((unused)) const ElementType & el_type,
-				       __attribute__((unused)) Vector<Real> & tangent_matrix,
-				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
+ // virtual  void computeTangentStiffness( Vector<Real> & tangent_matrix,
+ // 					const Vector<Real> & normal,
+ // 					const ElementType & el_type,
+ // 					 GhostType ghost_type = _not_ghost); 
+
+  // void computeTangentStiffness(const ElementType & el_type,
+  //                                       Vector<Real> & tangent_matrix,
+  // 					 GhostType ghost_type = _not_ghost){
+  //   AKANTU_DEBUG_TO_IMPLEMENT();
+  // }
+
 
 
   void computeNormal(const Vector<Real> & position,
@@ -133,6 +138,15 @@ protected:
   /// assemble residual
   void assembleResidual(GhostType ghost_type = _not_ghost);
 
+  /// assemble stiffness
+  void assembleStiffnessMatrix(Vector<Real> & current_position,
+			       GhostType ghost_type);
+
+ // template<UInt dim>
+ //  void assembleStiffnessMatrix(Vector<Real> & current_position,
+ // 			       const ElementType & type,
+ // 			       GhostType ghost_type);
+
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);
 
@@ -144,12 +158,6 @@ protected:
   /// compute reversible and total energies by element
   void computeEnergies();
 
-  /// compute reversible energy
-  Real getReversibleEnergy();
-
-  /// compute dissipated energy
-  Real getDissipatedEnergy();
-
   /// compute effective stress norm for insertion check
   virtual Real computeEffectiveNorm(__attribute__((unused)) const types::Matrix & stress,
 				    __attribute__((unused)) const types::RVector & normal,
@@ -157,10 +165,36 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
+protected:
+
+  /// compute the tangent stiffness matrix for an element type
+  virtual void computeTangentStiffness(const ElementType & el_type,
+				       Vector<Real> & tangent_matrix,
+				       GhostType ghost_type = _not_ghost);
+
+  virtual void computeTangentStiffness(const ElementType & el_type,
+				       Vector<Real> & tangent_matrix,
+				       const Vector<Real> & normal,
+				       GhostType ghost_type = _not_ghost) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+ }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// get the opening
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening, Real);
+
+  /// get the traction
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Traction, tractions, Real);
+
+  /// compute reversible energy
+  Real getReversibleEnergy();
+
+  /// compute dissipated energy
+  Real getDissipatedEnergy();
 
   /// get energy
   virtual Real getEnergy(std::string type);

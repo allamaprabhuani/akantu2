@@ -485,7 +485,7 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   displacement          ->resize(nb_new_nodes);
   velocity              ->resize(nb_new_nodes);
   acceleration          ->resize(nb_new_nodes);
-  increment_acceleration->resize(nb_new_nodes);
+  // increment_acceleration->resize(nb_new_nodes);
   force                 ->resize(nb_new_nodes);
   residual              ->resize(nb_new_nodes);
   boundary              ->resize(nb_new_nodes);
@@ -493,6 +493,9 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   if (increment)
     increment->resize(nb_new_nodes);
 
+  
+
+  //initsolver();
   /**
    * @todo temporary patch, should be done in a better way that works
    * always (pbc, parallel, ...)
@@ -501,6 +504,17 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
   dof_synchronizer->initLocalDOFEquationNumbers();
   dof_synchronizer->initGlobalDOFEquationNumbers();
+
+  if (method != _explicit_dynamic) {
+    if(method == _implicit_dynamic)
+      delete stiffness_matrix;
+    
+    delete jacobian_matrix;
+    delete solver;
+
+    SolverOptions  solver_options;
+    initImplicit((method == _implicit_dynamic), solver_options);
+  }
 
   for (UInt n = 0; n < doubled_nodes.getSize(); ++n) {
 
@@ -519,10 +533,10 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
       (*acceleration)(new_node, dim) = (*acceleration)(old_node, dim);
     }
 
-    for (UInt dim = 0; dim < increment_acceleration->getNbComponent(); ++dim) {
-      (*increment_acceleration)(new_node, dim)
-	= (*increment_acceleration)(old_node, dim);
-    }
+    // for (UInt dim = 0; dim < increment_acceleration->getNbComponent(); ++dim) {
+    //   (*increment_acceleration)(new_node, dim)
+    // 	= (*increment_acceleration)(old_node, dim);
+    // }
   }
 
   if (increment) {

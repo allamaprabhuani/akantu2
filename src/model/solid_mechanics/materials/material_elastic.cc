@@ -163,6 +163,7 @@ void MaterialElastic<spatial_dimension>::printself(std::ostream & stream,
   Material::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
+
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialElastic);

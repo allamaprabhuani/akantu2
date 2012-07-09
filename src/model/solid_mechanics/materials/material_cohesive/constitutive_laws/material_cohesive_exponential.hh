@@ -1,10 +1,10 @@
 /**
- * @file   material_cohesive_linear.hh
+ * @file   material_cohesive_exponential.hh
+ * @author Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Mon Feb 20 12:00:34 2012
  *
- * @brief Linear irreversible cohesive law of mixed mode loading with
- * random stress definition for extrinsic type
+ * @brief  Exponential irreversible cohesive law of mixed mode loading
  *
  * @section LICENSE
  *
@@ -31,8 +31,9 @@
 #include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_EXTRINSIC_HH__
-#define __AKANTU_MATERIAL_COHESIVE_LINEAR_EXTRINSIC_HH__
+
+#ifndef __AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH__
+#define __AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH__
 
 /* -------------------------------------------------------------------------- */
 
@@ -40,26 +41,24 @@
 __BEGIN_AKANTU__
 
 /**
- * Cohesive material linear damage for extrinsic case
+ * Cohesive material Exponential damage
  *
  * parameters in the material files :
  *   - sigma_c   : critical stress sigma_c  (default: 0)
  *   - beta      : weighting parameter for sliding and normal opening (default: 0)
  *   - G_cI      : fracture energy for mode I (default: 0)
  *   - G_cII     : fracture energy for mode II (default: 0)
- *   - rand      : randomness factor (default: 0)
- *   - penalty   : stiffness in compression to prevent penetration
  */
 template<UInt spatial_dimension>
-class MaterialCohesiveLinearExtrinsic : public MaterialCohesive {
+class MaterialCohesiveExponential : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  MaterialCohesiveLinearExtrinsic(SolidMechanicsModel & model, const ID & id = "");
-  virtual ~MaterialCohesiveLinearExtrinsic();
-
+  
+  MaterialCohesiveExponential(SolidMechanicsModel & model, const ID & id = "");
+  virtual ~MaterialCohesiveExponential();
+  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -78,10 +77,7 @@ public:
   /// resize vectors for new cohesive elements
   virtual void resizeCohesiveVectors();
 
-  /// compute effective stress norm for insertion check
-  virtual Real computeEffectiveNorm(const types::Matrix & stress,
-				    const types::RVector & normal,
-				    const types::RVector & tangent);
+
 
 protected:
 
@@ -90,31 +86,24 @@ protected:
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 
-
-void computeTangentStiffness(	__attribute__((unused))	const ElementType & el_type,                         __attribute__((unused)) Vector<Real> & tangent_matrix,
-			        __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-
-// void computeTangentStiffness(__attribute__((unused)) Vector<Real> & tangent_matrix,
-// 				       __attribute__((unused)) const Vector<Real> & normal,
-// 			         	__attribute__((unused))	const ElementType & el_type,
-//   				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-//     AKANTU_DEBUG_TO_IMPLEMENT();
-//   }
+  /// compute the tangent stiffness matrix for an element type
+  void computeTangentStiffness(const ElementType & el_type,
+			      Vector<Real> & tangent_matrix,
+			      const Vector<Real> & normal,
+			      GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
 
-  /// critical effective stress
-  ByElementTypeReal sigma_c_eff;
+  /// critical stress
+  Real sigma_c;
 
   /// beta parameter
   Real beta;
@@ -128,17 +117,11 @@ protected:
   /// kappa parameter
   Real kappa;
 
-  /// penalty coefficient
-  Real penalty;
+  // /// maximum displacement
+  // ByElementTypeReal delta_max;
 
   /// critical displacement
-  ByElementTypeReal delta_c;
-
-  /// vector to temporarily store the normal stress for the norm
-  types::RVector normal_stress;
-
-  /// vector to temporarily store the tangential stress for the norm
-  types::RVector tangential_stress;
+  Real delta_c;
 
 };
 
@@ -147,8 +130,9 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "material_cohesive_linear_inline_impl.cc"
+#include "material_cohesive_exponential_inline_impl.cc"
+
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_EXTRINSIC_HH__ */
+#endif /* __AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH__ */

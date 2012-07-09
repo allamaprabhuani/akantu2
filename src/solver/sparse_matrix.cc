@@ -108,10 +108,10 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
 
   Int * eq_nb_val = dof_synchronizer.getGlobalDOFEquationNumbers().values;
 
-  Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension());
-  Mesh::type_iterator end = mesh.lastType(mesh.getSpatialDimension());
+  Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension(), _not_ghost, _ek_not_defined);
+  Mesh::type_iterator end = mesh.lastType (mesh.getSpatialDimension(), _not_ghost, _ek_not_defined);
   for(; it != end; ++it) {
-
+  
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom;

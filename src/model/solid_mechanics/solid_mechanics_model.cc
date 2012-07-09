@@ -69,7 +69,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   element_index_by_material("element index by material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
-  spatial_dimension(dim), mesh(mesh), dynamic(false), implicit(false) {
+  spatial_dimension(dim),
+  mesh(mesh) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
@@ -137,7 +138,9 @@ SolidMechanicsModel::~SolidMechanicsModel() {
  * the different possibilites
  */
 void SolidMechanicsModel::initFull(std::string material_file,
-				   AnalysisMethod method) {
+				   AnalysisMethod analysis_method) {
+  method = analysis_method;
+
   // initialize the model
   initModel();
 
@@ -205,6 +208,8 @@ void SolidMechanicsModel::initFEMBoundary(bool create_surface) {
 void SolidMechanicsModel::initExplicit() {
   AKANTU_DEBUG_IN();
 
+  method = _explicit_dynamic;
+
   if (integrator) delete integrator;
   integrator = new CentralDifference();
 
@@ -213,9 +218,6 @@ void SolidMechanicsModel::initExplicit() {
 
   std::stringstream sstr; sstr << id << ":increment_acceleration";
   increment_acceleration = &(alloc<Real>(sstr.str(), nb_nodes, nb_degree_of_freedom, Real()));
-
-  dynamic = true;
-  implicit = false;
 
   AKANTU_DEBUG_OUT();
 }
@@ -389,7 +391,7 @@ void SolidMechanicsModel::updateResidualInternal() {
 
   // f = f_ext - f_int - Ma - Cv = r - Ma - Cv;
 
-  if(dynamic) {
+  if(method != _static) {
     // f -= Ma
     if(mass_matrix) {
       // if full mass_matrix
@@ -438,7 +440,7 @@ void SolidMechanicsModel::updateAcceleration() {
 
   updateResidualInternal();
 
-  if(!implicit && !mass_matrix) {
+  if(method == _explicit_dynamic && !mass_matrix) {
     /* residual = residual_{n+1} - M * acceleration_n therefore
        solution = increment acceleration not acceleration */
     solveLumped(*increment_acceleration,
@@ -570,12 +572,11 @@ void SolidMechanicsModel::initSolver(SolverOptions & options) {
 void SolidMechanicsModel::initImplicit(bool dynamic, SolverOptions & solver_options) {
   AKANTU_DEBUG_IN();
 
-  this->dynamic = dynamic;
-  implicit = true;
+  method = dynamic ? _implicit_dynamic : _static;
 
   initSolver(solver_options);
 
-  if(dynamic) {
+  if(method == _implicit_dynamic) {
     if(integrator) delete integrator;
     integrator = new TrapezoidalRule2();
 
@@ -668,7 +669,7 @@ void SolidMechanicsModel::solveStatic() {
 
   stiffness_matrix->applyBoundary(*boundary);
 
-  if(dynamic)
+  if(method != _static)
     jacobian_matrix->copyContent(*stiffness_matrix);
 
   solver->setRHS(*residual);

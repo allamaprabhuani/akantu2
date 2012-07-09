@@ -332,13 +332,14 @@ namespace types {
       return C;
     };
 
-    /* -------------------------------------------------------------------------- */
-    inline Matrix & operator+= (const Matrix & B) {
-      for (UInt i = 0; i < m*n; ++i) {
-	values[i] += B[i];
-      }
-      return *this;
-    };
+    /* ---------------------------------------------------------------------- */
+     inline Matrix & operator+=(const Matrix & A) {
+       Real * a = this->storage();
+       Real * b = A.storage();
+       for (UInt i = 0; i < n*m; ++i)
+	 *(a++) += *(b++);
+       return *this;
+     }
 
     /* ---------------------------------------------------------------------- */
     inline Matrix & operator+=(Real x) {
@@ -360,7 +361,6 @@ namespace types {
       for (UInt i = 0; i < n*m; ++i) *(a++) /= x;
       return *this;
     }
-
 
     /* ---------------------------------------------------------------------- */
     template<bool tr_A, bool tr_B>
@@ -387,6 +387,18 @@ namespace types {
 
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
+    
+    /* ---------------------------------------------------------------------- */
+    inline void outerProduct(const types::Vector<Real> & A,
+			     const types::Vector<Real> & B) {
+      AKANTU_DEBUG_ASSERT(A.size() == m && B.size() == n, "A and B are not compatible with the size of the matrix");
+      for (UInt i = 0; i < m; ++i) {
+	for (UInt j = 0; j < n; ++j) {
+	  values[i * m + j] += A[i] * B[j];
+	}
+      }
+    }
+
     /* ---------------------------------------------------------------------- */
     inline void eig(types::Vector<Real> & eigenvalues, Matrix & eigenvectors) const {
       AKANTU_DEBUG_ASSERT(n == m, "eig is not a valid operation on a rectangular matrix");

@@ -422,7 +422,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   delete bt_d_b;
 
-  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
+   model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();

@@ -1,7 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
-# @date   Fri Feb 24 14:30:59 2012
+# @date   Thu Apr 26 15:14:00 2012
 #
 # @section LICENSE
 #
@@ -25,26 +25,15 @@
 #
 #===============================================================================
 
-add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
-add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
-add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
-add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl")
-add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
+register_test(test_cohesive_intrinsic_impl test_cohesive_intrinsic_impl.cc)
+
+add_mesh(test_cohesive_intrinsic_impl_mesh mesh.geo 2 2)
+add_dependencies(test_cohesive_intrinsic_impl test_cohesive_intrinsic_impl_mesh)
 
 #===============================================================================
-
-#register_test(test_cohesive test_cohesive.cc)
-#
-##===============================================================================
-#configure_file(
-#  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-#  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-#  COPYONLY
-#  )
-#configure_file(
-#  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
-#  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
-#  COPYONLY
-#  )
-#file(COPY run DESTINATION .)
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
+  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
+  COPYONLY
+  )
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

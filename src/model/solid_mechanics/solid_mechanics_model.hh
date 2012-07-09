@@ -507,9 +507,7 @@ protected:
   /// Mesh
   Mesh & mesh;
 
-  bool dynamic;
-
-  bool implicit;
+  AnalysisMethod method;
 };
 
 __END_AKANTU__
