@@ -158,10 +158,9 @@ protected:
   /// compute reversible and total energies by element
   void computeEnergies();
 
-  /// compute effective stress norm for insertion check
-  virtual Real computeEffectiveNorm(__attribute__((unused)) const types::Matrix & stress,
-				    __attribute__((unused)) const types::RVector & normal,
-				    __attribute__((unused)) const types::RVector & tangent){
+  /// compute stress norms on quadrature points for each facet for stress check
+  virtual void computeStressNorms(__attribute__((unused)) const Vector<Real> & facet_stress,
+				  __attribute__((unused)) types::RVector & stress_check) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 

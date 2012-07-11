@@ -78,10 +78,9 @@ public:
   /// resize vectors for new cohesive elements
   virtual void resizeCohesiveVectors();
 
-  /// compute effective stress norm for insertion check
-  virtual Real computeEffectiveNorm(const types::Matrix & stress,
-				    const types::RVector & normal,
-				    const types::RVector & tangent);
+  /// compute stress norms on quadrature points for each facet for stress check
+  virtual void computeStressNorms(const Vector<Real> & facet_stress,
+				  types::RVector & stress_check);
 
 protected:
 
@@ -90,18 +89,22 @@ protected:
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 
+  /// compute effective stress norm for insertion check
+  inline Real computeEffectiveNorm(const types::Matrix & stress,
+				   const types::RVector & normal,
+				   const types::RVector & tangent);
 
-void computeTangentStiffness(	__attribute__((unused))	const ElementType & el_type,                         __attribute__((unused)) Vector<Real> & tangent_matrix,
+  void computeTangentStiffness(	__attribute__((unused))	const ElementType & el_type,                         __attribute__((unused)) Vector<Real> & tangent_matrix,
 			        __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
-// void computeTangentStiffness(__attribute__((unused)) Vector<Real> & tangent_matrix,
-// 				       __attribute__((unused)) const Vector<Real> & normal,
-// 			         	__attribute__((unused))	const ElementType & el_type,
-//   				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-//     AKANTU_DEBUG_TO_IMPLEMENT();
-//   }
+  // void computeTangentStiffness(__attribute__((unused)) Vector<Real> & tangent_matrix,
+  // 				       __attribute__((unused)) const Vector<Real> & normal,
+  // 			         	__attribute__((unused))	const ElementType & el_type,
+  //   				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
+  //     AKANTU_DEBUG_TO_IMPLEMENT();
+  //   }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

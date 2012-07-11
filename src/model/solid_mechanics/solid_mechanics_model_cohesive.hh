@@ -187,6 +187,12 @@ private:
   /// list of facet quadrature points positions by element
   ByElementTypeReal elements_quad_facets;
 
+  /// list of stresses on facet quadrature points for every element
+  ByElementTypeReal stress_on_facet;
+
+  /// already counted facets in stress check
+  Vector<bool> facet_stress_count;
+
   /// stress on facets on the two sides by quadrature point
   Vector<Real> facet_stress;
 

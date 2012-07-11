@@ -134,9 +134,58 @@ bool MaterialCohesiveLinearExtrinsic<spatial_dimension>::setParam(const std::str
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress,
-									      const types::RVector & normal,
-									      const types::RVector & tangent) {
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(const Vector<Real> & facet_stress,
+									    types::RVector & stress_check) {
+  AKANTU_DEBUG_IN();
+
+  sigma_insertion.resize(0);
+
+  Vector<bool> & facets_check = model->getFacetsCheck();
+  ElementType type_facet = model->getFacetType();
+
+  UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
+  UInt nb_facet = facets_check.getSize();
+
+  const Vector<Real> & tangents = model->getTangents();
+  const Vector<Real> & normals
+    = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
+
+  UInt sp2 = spatial_dimension * spatial_dimension;
+
+  for (UInt f = 0; f < nb_facet; ++f) {
+    if (facets_check(f) == true) {
+
+      stress_check.clear();
+
+      for (UInt e = 0; e < 2; ++e) {
+  	for (UInt q = 0; q < nb_quad_facet; ++q) {
+	  types::Matrix stress_edge(facet_stress.storage()
+				    + f * 2 * nb_quad_facet * sp2
+				    + e * nb_quad_facet * sp2
+				    + q * sp2,
+				    spatial_dimension, spatial_dimension);
+
+	  types::RVector normal(normals.storage() + f*nb_quad_facet*spatial_dimension,
+				spatial_dimension);
+
+	  types::RVector tangent(tangents.storage() + f*nb_quad_facet*spatial_dimension,
+				 spatial_dimension);
+
+	  stress_check(q) = std::max(stress_check(q),
+				     computeEffectiveNorm(stress_edge, normal, tangent));
+	}
+      }
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress,
+										     const types::RVector & normal,
+										     const types::RVector & tangent) {
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;
@@ -220,9 +269,12 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
      */
     Real delta = tangential_opening_norm;
     delta *= delta * beta2_kappa2;
-    delta += normal_opening_norm * normal_opening_norm;
-    delta = sqrt(delta);
 
+    /// don't consider penetration contribution
+    if (normal_opening_norm > 0)
+      delta += normal_opening_norm * normal_opening_norm;
+
+    delta = sqrt(delta);
 
     /// full damage case or zero displacement case
     if (delta >= *delta_c_it || std::abs(delta) <= std::abs(delta) * epsilon) {
@@ -245,7 +297,6 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
       *traction_it  = tangential_opening;
       *traction_it *= beta2_kappa;
-      *traction_it += normal_opening;
 
       /// update maximum displacement
       *delta_max_it = std::max(*delta_max_it, delta);
@@ -253,14 +304,13 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
       Real k = *sigma_c_it / *delta_max_it * (1. - *damage_it);
       *traction_it *= k;
-    }
 
-    /// avoid penetration
-    if (normal_opening_norm < 0) {
-      normal_opening *= penalty;
+      /// use penalty coefficient in case of penetration
+      if (normal_opening_norm < 0) k = penalty;
+
+      normal_opening *= k;
       *traction_it += normal_opening;
     }
-
   }
 
   delete [] memory_space;

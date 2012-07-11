@@ -47,6 +47,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
 		mesh.getNodes().getID(),
 		id, memory_id),
     elements_quad_facets("elements_quad_facets", id),
+    stress_on_facet("stress_on_facet", id),
     facet_stress(0, spatial_dimension * spatial_dimension, "facet_stress"),
     facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
     fragment_to_element("fragment_to_element", id),
@@ -213,6 +214,10 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
 
     Vector<Real> & el_q_facet = elements_quad_facets(*it);
 
+    stress_on_facet.alloc(el_q_facet.getSize(),
+			  spatial_dimension * spatial_dimension,
+			  *it);
+
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt f = 0; f < nb_facet_per_elem; ++f) {
 	UInt global_facet = facet_to_element(el, f).element;
@@ -246,13 +251,10 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
   UInt nb_quad_per_facet = getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
 
-  /// list of stresses on facet quadrature points for every element
-  ByElementTypeReal stress_on_facet;
-
   /// vector containing stresses coming from the two elements of each facets
   facet_stress.resize(2 * nb_facet * nb_quad_per_facet);
 
-  Vector<bool> facet_stress_count(nb_facet);
+  facet_stress_count.resize(nb_facet);
   facet_stress_count.clear();
 
   /// loop over materials
@@ -268,11 +270,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
       if (nb_element == 0) continue;
 
       const Vector<Real> & el_q_facet = elements_quad_facets(*it);
-
-      stress_on_facet.alloc(el_q_facet.getSize(),
-			    spatial_dimension * spatial_dimension,
-			    *it);
-
       Vector<Real> & stress_on_f = stress_on_facet(*it);
 
       /// interpolate stress on facet quadrature points positions
@@ -494,7 +491,8 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   displacement          ->resize(nb_new_nodes);
   velocity              ->resize(nb_new_nodes);
   acceleration          ->resize(nb_new_nodes);
-  // increment_acceleration->resize(nb_new_nodes);
+  if (increment_acceleration)
+    increment_acceleration->resize(nb_new_nodes);
   force                 ->resize(nb_new_nodes);
   residual              ->resize(nb_new_nodes);
   boundary              ->resize(nb_new_nodes);
@@ -542,10 +540,12 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
       (*acceleration)(new_node, dim) = (*acceleration)(old_node, dim);
     }
 
-    // for (UInt dim = 0; dim < increment_acceleration->getNbComponent(); ++dim) {
-    //   (*increment_acceleration)(new_node, dim)
-    // 	= (*increment_acceleration)(old_node, dim);
-    // }
+    if (increment_acceleration) {
+      for (UInt dim = 0; dim < increment_acceleration->getNbComponent(); ++dim) {
+	(*increment_acceleration)(new_node, dim)
+	  = (*increment_acceleration)(old_node, dim);
+      }
+    }
   }
 
   if (increment) {

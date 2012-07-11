@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
-  //  UInt nb_element = mesh.getNbElement(type);
+  // UInt nb_element = mesh.getNbElement(type);
 
   // /// initialize the paraview output
   // iohelper::DumperParaview dumper;
