@@ -110,6 +110,23 @@ Vector<char> & Vector<char>::operator+=(__attribute__((unused)) const Vector<cha
 
 
 /* -------------------------------------------------------------------------- */
+#define AKANTU_DESTRUCTOR_SPEC(type)					\
+  template <> Vector<type>::~Vector () {				\
+    AKANTU_DEBUG_IN();							\
+    AKANTU_DEBUG(dblAccessory, "Freeing "				\
+		 << allocated_size*nb_component*sizeof(type) / 1024.	\
+		 << "kB (" << id <<")");				\
+    if(values)  free(values);						\
+    size = allocated_size = 0;						\
+    AKANTU_DEBUG_OUT();							\
+  }
+AKANTU_DESTRUCTOR_SPEC(Real)
+AKANTU_DESTRUCTOR_SPEC(UInt)
+AKANTU_DESTRUCTOR_SPEC(Int)
+AKANTU_DESTRUCTOR_SPEC(bool)
+
+
+/* -------------------------------------------------------------------------- */
 // template class Vector<Int>;
 // template class Vector<UInt>;
 // template class Vector<UInt64>;
