@@ -80,18 +80,19 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
+  inline void computeStressOnQuad(const types::Matrix & grad_u,
 				  types::Matrix & sigma,
 				  Real & damage,
 				  Real & Ehat);
 
-  inline void computeDamageAndStressOnQuad(types::Matrix & grad_u,
+  inline void computeDamageAndStressOnQuad(const types::Matrix & grad_u,
 					   types::Matrix & sigma,
 					   Real & damage,
 					   Real & Ehat);
 
   inline void computeDamageOnQuad(const Real & Ehat,
-				  const types::RVector & FDiag,
+				  const types::Matrix & sigma,
+				  const types::RVector & epsilon_principal,
 				  Real & dam);
 
   /* ------------------------------------------------------------------------ */
@@ -103,20 +104,21 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// damage threshold
+  /// initial damage threshold
   Real K0;
   ///parameter damage traction 1
-  Real At ;
+  Real At;
   ///parameter damage traction 2
-  Real Bt ;
+  Real Bt;
   ///parameter damage compression 1
-  Real Ac ;
+  Real Ac;
   ///parameter damage compression 2
-  Real Bc ;
+  Real Bc;
   ///parameter for shear
-  Real beta ;
+  Real beta;
 
-  /// specify the variable to average false = ehat, true = damage (only valid for non local version)
+  /// specify the  variable to average false  = ehat, true =  damage (only valid
+  /// for non local version)
   bool damage_in_compute_stress;
 };
 

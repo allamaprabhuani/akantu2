@@ -317,9 +317,19 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 }
 
 /* -------------------------------------------------------------------------- */
-
 void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & facet_insertion) {
+  AKANTU_DEBUG_IN();
+  if(facet_insertion.getSize() == 0) return;
 
+  Vector<UInt> facet_material(facet_insertion.getSize(), 1, cohesive_index);
+  insertCohesiveElements(facet_insertion, facet_material);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & facet_insertion,
+							 const Vector<UInt> & facet_material) {
   AKANTU_DEBUG_IN();
 
   if(facet_insertion.getSize() == 0) return;
@@ -349,7 +359,6 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
   const Real epsilon = std::numeric_limits<Real>::epsilon();
 
   for (UInt f = 0; f < doubled_facets.getSize(); ++f) {
-
     UInt nb_cohesive_elements = conn_cohesive.getSize();
     conn_cohesive.resize(nb_cohesive_elements + 1);
 
@@ -388,7 +397,7 @@ void SolidMechanicsModelCohesive::insertCohesiveElements(const Vector<UInt> & fa
 
     /// assign the cohesive material to the new element
     element_mat.resize(nb_cohesive_elements + 1);
-    element_mat(nb_cohesive_elements) = cohesive_index;
+    element_mat(nb_cohesive_elements) = facet_material(f);
     materials[cohesive_index]->addElement(type_cohesive, nb_cohesive_elements, _not_ghost);
 
     /// update element_to_facet vectors
