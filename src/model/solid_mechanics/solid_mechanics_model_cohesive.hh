@@ -65,6 +65,12 @@ public:
   /// function to insert cohesive elements on the selected facets
   void insertCohesiveElements(const Vector<UInt> & facet_insertion);
 
+  /// function to insert cohesive elements on the selected facets by specifying
+  /// the material
+  void insertCohesiveElements(const Vector<UInt> & facet_insertion,
+			      const Vector<UInt> & facet_material);
+
+
   /// initialize completely the model
   void initFull(std::string material_file,
                 AnalysisMethod method = _explicit_dynamic);
