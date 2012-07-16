@@ -131,15 +131,15 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, 
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void Material::buildInterpolationCoodinates(__attribute__((unused)) const types::Matrix & coordinates,
-						   __attribute__((unused)) types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const types::Matrix & coordinates,
+								 __attribute__((unused)) types::Matrix & coordMatrix) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildInterpolationCoodinates<_triangle_3>(const types::Matrix & coordinates,
-								types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::Matrix & coordinates,
+									      types::Matrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i)
     coordMatrix(i, 0) = 1;
@@ -147,8 +147,8 @@ inline void Material::buildInterpolationCoodinates<_triangle_3>(const types::Mat
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildInterpolationCoodinates<_triangle_6>(const types::Matrix & coordinates,
-								types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const types::Matrix & coordinates,
+									      types::Matrix & coordMatrix) {
 
   UInt nb_quadrature_points = 3;
 
@@ -158,3 +158,23 @@ inline void Material::buildInterpolationCoodinates<_triangle_6>(const types::Mat
       coordMatrix(i, j) = coordinates(i, j-1);
   }
 }
+
+__END_AKANTU__
+
+#include "solid_mechanics_model.hh"
+
+__BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
+template<ElementType type>
+inline UInt Material::getSizeElementalFieldInterpolationCoodinates() {
+  return model->getFEM().getNbQuadraturePoints(type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <ElementType type>
+inline void Material::extractElementalFieldForInterplation(const Vector<Real> & field,
+							   Vector<Real> & filtered_field) {
+  filtered_field.copy(field);
+}
+

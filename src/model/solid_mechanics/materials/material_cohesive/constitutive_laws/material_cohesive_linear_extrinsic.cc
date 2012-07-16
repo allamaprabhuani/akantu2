@@ -134,8 +134,29 @@ bool MaterialCohesiveLinearExtrinsic<spatial_dimension>::setParam(const std::str
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
+inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress,
+										     const types::RVector & normal,
+										     const types::RVector & tangent) {
+  AKANTU_DEBUG_IN();
+
+  normal_stress.mul<false>(stress, normal);
+  tangential_stress.mul<false>(stress, tangent);
+
+  Real normal_contrib = normal_stress.dot(normal);
+  Real tangent_contrib = tangential_stress.dot(tangent);
+
+  normal_contrib = std::max(0., normal_contrib);
+
+  AKANTU_DEBUG_OUT();
+
+  return std::sqrt(normal_contrib*normal_contrib
+		   + tangent_contrib*tangent_contrib/beta/beta);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
 void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(const Vector<Real> & facet_stress,
-									    types::RVector & stress_check) {
+									    Vector<Real> & stress_check) {
   AKANTU_DEBUG_IN();
 
   sigma_insertion.resize(0);
@@ -150,58 +171,35 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(cons
   const Vector<Real> & normals
     = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
 
-  UInt sp2 = spatial_dimension * spatial_dimension;
+  Vector<Real>::iterator<types::RVector> stress_check_it =
+    stress_check.begin(nb_quad_facet);
 
-  for (UInt f = 0; f < nb_facet; ++f) {
-    if (facets_check(f) == true) {
+  Vector<Real>::const_iterator<types::RVector> normal_it =
+    normals.begin(spatial_dimension);
 
-      stress_check.clear();
+  Vector<Real>::const_iterator<types::RVector> tangent_it =
+    tangents.begin(spatial_dimension);
 
-      for (UInt e = 0; e < 2; ++e) {
-  	for (UInt q = 0; q < nb_quad_facet; ++q) {
-	  types::Matrix stress_edge(facet_stress.storage()
-				    + f * 2 * nb_quad_facet * sp2
-				    + e * nb_quad_facet * sp2
-				    + q * sp2,
-				    spatial_dimension, spatial_dimension);
+  Vector<Real>::const_iterator<types::Matrix> facet_stress_it =
+    facet_stress.begin(spatial_dimension, spatial_dimension);
 
-	  types::RVector normal(normals.storage() + f*nb_quad_facet*spatial_dimension,
-				spatial_dimension);
+  for (UInt f = 0; f < nb_facet; ++f, ++stress_check_it) {
+    for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it) {
+      for (UInt e = 0; e < 2; ++e, ++facet_stress_it) {
 
-	  types::RVector tangent(tangents.storage() + f*nb_quad_facet*spatial_dimension,
-				 spatial_dimension);
+	if (facets_check(f) == true) {
+	  Real effective_norm =
+	    computeEffectiveNorm(*facet_stress_it, *normal_it, *tangent_it);
 
-	  stress_check(q) = std::max(stress_check(q),
-				     computeEffectiveNorm(stress_edge, normal, tangent));
+	  (*stress_check_it)(q) =
+	    std::max((*stress_check_it)(q), effective_norm);
 	}
+
       }
     }
   }
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress,
-										     const types::RVector & normal,
-										     const types::RVector & tangent) {
-  AKANTU_DEBUG_IN();
-
-  Real normal_contrib, tangent_contrib;
-
-  normal_stress.mul<false>(stress, normal);
-  tangential_stress.mul<false>(stress, tangent);
-
-  normal_contrib = normal_stress.dot(normal);
-  tangent_contrib = tangential_stress.dot(tangent);
-
-  if (normal_contrib < 0) normal_contrib = 0;
-
-  AKANTU_DEBUG_OUT();
-
-  return std::sqrt(normal_contrib*normal_contrib
-		   + tangent_contrib*tangent_contrib/beta/beta);
 }
 
 /* -------------------------------------------------------------------------- */

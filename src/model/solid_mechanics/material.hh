@@ -119,15 +119,18 @@ public:
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  /// interpolate stress on given positions for each element by means
-  /// of a geometrical interpolation on quadrature points
+  /**
+   * interpolate stress on given positions for each element by means
+   * of a geometrical interpolation on quadrature points
+   */
   virtual void interpolateStress(const ElementType type,
-				 const Vector<Real> & coordinates,
 				 Vector<Real> & result);
 
-  /// function to initialize the elemental field interpolation
-  /// function by inverting the quadrature points' coordinates
-  virtual void initInterpolateElementalField();
+  /**
+   * function to initialize the elemental field interpolation
+   * function by inverting the quadrature points' coordinates
+   */
+  virtual void initElementalFieldInterpolation(ByElementTypeReal & interpolation_points_coordinates);
 
 protected:
 
@@ -139,12 +142,6 @@ protected:
   /// set the material to steady state (to be implemented for materials that need it)
   virtual void setToSteadyState(__attribute__((unused)) ElementType el_type,
 				__attribute__((unused)) GhostType ghost_type = _not_ghost) {};
-
-  // /// constitutive law
-  // virtual void computeNonLocalStress(ElementType el_type,
-  // 				     GhostType ghost_type = _not_ghost) {
-  //   AKANTU_DEBUG_TO_IMPLEMENT();
-  // };
 
   /// compute the tangent stiffness matrix
   virtual void computeTangentStiffness(const ElementType & el_type,
@@ -172,24 +169,32 @@ protected:
   /// compute the potential energy by element
   void computePotentialEnergyByElement();
 
-
+  /// compute the coordinates of the quadrature points
   void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const;
 
   /// interpolate an elemental field on given points for each element
   template <ElementType type>
   void interpolateElementalField(const Vector<Real> & field,
-				 const Vector<Real> & coordinates,
 				 Vector<Real> & result);
 
   /// template function to initialize the elemental field interpolation
   template <ElementType type>
-  void initInterpolation(const Vector<Real> & quad_coordinates,
-			 Vector<Real> & interp_inv_coord);
+  void initElementalFieldInterpolation(const Vector<Real> & quad_coordinates,
+				       const Vector<Real> & interpolation_points_coordinates);
 
   /// build the coordinate matrix for the interpolation on elemental field
   template <ElementType type>
-  inline void buildInterpolationCoodinates(const types::Matrix & coordinates,
-					   types::Matrix & coordMatrix);
+  inline void buildElementalFieldInterpolationCoodinates(const types::Matrix & coordinates,
+							 types::Matrix & coordMatrix);
+
+  /// get the size of the coordiante matrix used in the interpolation
+  template <ElementType type>
+  inline UInt getSizeElementalFieldInterpolationCoodinates();
+  
+  /// extract the field values corresponding to the quadrature points used for the interpolation
+  template <ElementType type>
+  inline void extractElementalFieldForInterplation(const Vector<Real> & field,
+						   Vector<Real> & filtered_field);
 
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */
@@ -199,7 +204,7 @@ protected:
   inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
 					   types::Matrix & sigma,
 					   Real & epot);
-
+ 
 public:
   /// allocate an internal vector
   template<typename T>
@@ -325,8 +330,11 @@ protected:
   /// spatial dimension
   UInt spatial_dimension;
 
-  /// elemental field interpolation coefficients
-  ByElementTypeReal interpolationInvCoordinates;
+  /// elemental field interpolation coordinates
+  ByElementTypeReal interpolation_inverse_coordinates;
+
+  /// elemental field interpolation points
+  ByElementTypeReal interpolation_points_matrices;
 
 private:
   /// boolean to know if the material has been initialized

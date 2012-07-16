@@ -180,9 +180,9 @@ Vector<T> & Vector<T>::operator*=(const T & alpha) {
 /* -------------------------------------------------------------------------- */
 /* Functions Vector<T>                                                        */
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector (UInt size,
-				      UInt nb_component,
-				      const ID & id) :
+template<class T> inline Vector<T>::Vector (UInt size,
+					    UInt nb_component,
+					    const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -192,6 +192,24 @@ template <class T> Vector<T>::Vector (UInt size,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+#define AKANTU_CONSTRUCTOR_SPEC(type)				\
+  template<> inline Vector<type>::Vector (UInt size,		\
+					  UInt nb_component,	\
+					  const ID & id) :	\
+    VectorBase(id), values(NULL) {				\
+    AKANTU_DEBUG_IN();						\
+    allocate(size, nb_component);				\
+    AKANTU_DEBUG_OUT();						\
+  }
+
+AKANTU_CONSTRUCTOR_SPEC(Real)
+AKANTU_CONSTRUCTOR_SPEC(UInt)
+AKANTU_CONSTRUCTOR_SPEC(Int)
+AKANTU_CONSTRUCTOR_SPEC(bool)
+#undef AKANTU_CONSTRUCTOR_SPEC
+
 
 /* -------------------------------------------------------------------------- */
 template <class T> Vector<T>::Vector (UInt size,
@@ -272,7 +290,7 @@ template <class T> Vector<T>::Vector(const std::vector<T>& vect) {
 
 
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::~Vector () {
+template <class T> inline Vector<T>::~Vector () {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG(dblAccessory, "Freeing "
 	       << allocated_size*nb_component*sizeof(T) / 1024.
@@ -288,6 +306,22 @@ template <class T> Vector<T>::~Vector () {
   size = allocated_size = 0;
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+#define AKANTU_DESTRUCTOR_SPEC(type)					\
+  template<> inline Vector<type>::~Vector () {				\
+    AKANTU_DEBUG_IN();							\
+    AKANTU_DEBUG(dblAccessory, "Freeing "				\
+		 << allocated_size*nb_component*sizeof(type) / 1024.	\
+		 << "kB (" << id <<")");				\
+    if(values)  free(values);						\
+    size = allocated_size = 0;						\
+    AKANTU_DEBUG_OUT();							\
+  }
+AKANTU_DESTRUCTOR_SPEC(Real)
+AKANTU_DESTRUCTOR_SPEC(UInt)
+AKANTU_DESTRUCTOR_SPEC(Int)
+AKANTU_DESTRUCTOR_SPEC(bool)
+#undef AKANTU_DESTRUCTOR_SPEC
 
 /* -------------------------------------------------------------------------- */
 template <class T> void Vector<T>::allocate(UInt size,

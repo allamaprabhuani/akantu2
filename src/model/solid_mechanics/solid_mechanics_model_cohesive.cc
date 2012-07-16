@@ -46,7 +46,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
     mesh_facets(mesh.getSpatialDimension(),
 		mesh.getNodes().getID(),
 		id, memory_id),
-    elements_quad_facets("elements_quad_facets", id),
     stress_on_facet("stress_on_facet", id),
     facet_stress(0, spatial_dimension * spatial_dimension, "facet_stress"),
     facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
@@ -196,6 +195,8 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
 
   /// compute elements quadrature point positions and build
   /// element-facet quadrature points data structure
+  ByElementTypeReal elements_quad_facets;
+
   Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last = mesh.lastType(spatial_dimension);
 
@@ -234,7 +235,7 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
   }
 
   /// initialize the interpolation function
-  materials[0]->initInterpolateElementalField();
+  materials[0]->initElementalFieldInterpolation(elements_quad_facets);
 
   AKANTU_DEBUG_OUT();
 }
@@ -269,32 +270,40 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
       UInt nb_element = mesh.getNbElement(*it);
       if (nb_element == 0) continue;
 
-      const Vector<Real> & el_q_facet = elements_quad_facets(*it);
       Vector<Real> & stress_on_f = stress_on_facet(*it);
 
       /// interpolate stress on facet quadrature points positions
       materials[m]->interpolateStress(*it,
-				      el_q_facet,
 				      stress_on_f);
 
       /// store the interpolated stresses on the facet_stress vector
       Vector<Element> & facet_to_element = mesh_facets.getSubelementToElement(*it);
       UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-      for (UInt el = 0; el < nb_element; ++el) {
+      Vector<Element>::iterator<types::Vector<Element> > facet_to_el_it =
+	facet_to_element.begin(nb_facet_per_elem);
+
+      Vector<Real>::iterator<types::Matrix> stress_on_f_it =
+	stress_on_f.begin(spatial_dimension, spatial_dimension);
+
+      UInt sp2 = spatial_dimension * spatial_dimension;
+      UInt nb_quad_f_two = nb_quad_per_facet * 2;
+
+      for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
 	for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	  UInt global_facet = facet_to_element(el, f).element;
+	  UInt global_facet = (*facet_to_el_it)(f).element;
 
-	  for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-	    for (UInt s = 0; s < spatial_dimension * spatial_dimension; ++s) {
-	      facet_stress(2 * global_facet * nb_quad_per_facet
-			   + facet_stress_count(global_facet) * nb_quad_per_facet
-			   + q, s)
-		= stress_on_f(el * nb_facet_per_elem * nb_quad_per_facet
-			      + f * nb_quad_per_facet + q, s);
-	    }
+	  for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
+	    types::Matrix facet_stress_local(facet_stress.storage()
+					     + (global_facet * nb_quad_f_two
+						+ q * 2
+						+ facet_stress_count(global_facet))
+					     * sp2,
+					     spatial_dimension,
+					     spatial_dimension);
+
+	    facet_stress_local = *stress_on_f_it;
 	  }
-
 	  facet_stress_count(global_facet) = true;
 	}
       }
@@ -607,6 +616,9 @@ void SolidMechanicsModelCohesive::doubleFacet(Element & facet,
   element_to_facet.push_back(first_facet_list);
 
   /// set new and original facets as boundary facets
+  AKANTU_DEBUG_ASSERT(element_to_facet(f_index)(1) != ElementNull,
+		      "can't double a facet on the boundary!");
+
   element_to_facet(f_index)(1) = ElementNull;
 
   element_to_facet(nb_facet)(0) = element_to_facet(nb_facet)(1);

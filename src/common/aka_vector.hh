@@ -121,8 +121,8 @@ public:
   typedef const value_type & const_reference;
 
   /// Allocation of a new vector
-  Vector(UInt size = 0, UInt nb_component = 1,
-	 const ID & id = "");
+  inline Vector(UInt size = 0, UInt nb_component = 1,
+		const ID & id = "");
 
   /// Allocation of a new vector with a default value
   Vector(UInt size, UInt nb_component,
@@ -139,7 +139,7 @@ public:
   Vector(const std::vector<value_type>& vect);
 
 
-  virtual ~Vector();
+  virtual inline ~Vector();
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
@@ -324,7 +324,6 @@ public:
 __END_AKANTU__
 
 #include "aka_types.hh"
-
 __BEGIN_AKANTU__
 
 #include "aka_vector_tmpl.hh"

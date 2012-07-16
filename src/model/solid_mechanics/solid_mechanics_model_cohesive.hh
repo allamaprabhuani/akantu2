@@ -184,9 +184,6 @@ private:
   /// @todo store tangents when normals are computed:
   Vector<Real> tangents;
 
-  /// list of facet quadrature points positions by element
-  ByElementTypeReal elements_quad_facets;
-
   /// list of stresses on facet quadrature points for every element
   ByElementTypeReal stress_on_facet;
 

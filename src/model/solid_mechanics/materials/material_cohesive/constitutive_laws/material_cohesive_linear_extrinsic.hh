@@ -80,7 +80,7 @@ public:
 
   /// compute stress norms on quadrature points for each facet for stress check
   virtual void computeStressNorms(const Vector<Real> & facet_stress,
-				  types::RVector & stress_check);
+				  Vector<Real> & stress_check);
 
 protected:
 

@@ -90,8 +90,12 @@ int main(int argc, char *argv[]) {
   Vector<Element> & facet_to_element = mesh.getSubelementToElement(type);
   UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-  Vector<Real> el_q_facet(nb_element * nb_facet_per_elem * nb_quad_per_facet,
-			  spatial_dimension);
+  ByElementTypeReal element_quad_facet;
+  element_quad_facet.alloc(nb_element * nb_facet_per_elem * nb_quad_per_facet,
+			   spatial_dimension,
+			   type);
+
+  Vector<Real> & el_q_facet = element_quad_facet(type);
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt f = 0; f < nb_facet_per_elem; ++f) {
@@ -131,12 +135,11 @@ int main(int argc, char *argv[]) {
   }
 
   /// interpolate stresses on facets' quadrature points
-  model.getMaterial(0).initInterpolateElementalField();
+  model.getMaterial(0).initElementalFieldInterpolation(element_quad_facet);
 
   Vector<Real> interpolated_stress(nb_element * nb_facet_per_elem * nb_quad_per_facet,
 				   stress.getNbComponent());
   model.getMaterial(0).interpolateStress(type,
-					 el_q_facet,
 					 interpolated_stress);
 
   /// check results

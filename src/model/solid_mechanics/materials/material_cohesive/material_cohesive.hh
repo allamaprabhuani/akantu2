@@ -160,7 +160,7 @@ protected:
 
   /// compute stress norms on quadrature points for each facet for stress check
   virtual void computeStressNorms(__attribute__((unused)) const Vector<Real> & facet_stress,
-				  __attribute__((unused)) types::RVector & stress_check) {
+				  __attribute__((unused)) Vector<Real> & stress_check) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 

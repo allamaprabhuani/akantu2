@@ -127,19 +127,27 @@ void MaterialCohesive::checkInsertion(const Vector<Real> & facet_stress,
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   UInt nb_facet = facets_check.getSize();
 
-  types::RVector stress_check(nb_quad_facet);
+  Vector<Real> stress_check(nb_facet, nb_quad_facet);
+  stress_check.clear();
 
   computeStressNorms(facet_stress, stress_check);
 
-  for (UInt f = 0; f < nb_facet; ++f) {
-    if (facets_check(f) == true) {
+  bool * facet_check_it = facets_check.storage();
+  Vector<Real>::iterator<types::RVector> stress_check_it =
+    stress_check.begin(nb_quad_facet);
+
+  Real * sigma_limit_it = model->getSigmaLimit().storage();
+
+  for (UInt f = 0; f < nb_facet;
+       ++f, ++facet_check_it, ++stress_check_it, ++sigma_limit_it) {
+    if (*facet_check_it == true) {
 
       for (UInt q = 0; q < nb_quad_facet; ++q) {
-  	if (stress_check(q) > model->getSigmaLimit()(f)) {
+  	if ((*stress_check_it)(q) > *sigma_limit_it) {
   	  facet_insertion.push_back(f);
   	  for (UInt qs = 0; qs < nb_quad_facet; ++qs)
-  	    sigma_insertion.push_back(stress_check(qs));
-  	  facets_check(f) = false;
+  	    sigma_insertion.push_back((*stress_check_it)(qs));
+  	  *facet_check_it = false;
   	  break;
   	}
       }
@@ -226,10 +234,10 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 
     // multiply traction by shapes
 
-    Vector<Real> traction_cpy(traction);
-    traction_cpy.extendComponentsInterlaced(size_of_shapes, spatial_dimension);
+    Vector<Real> * traction_cpy = new Vector<Real>(traction);
+    traction_cpy->extendComponentsInterlaced(size_of_shapes, spatial_dimension);
 
-    Real * traction_cpy_val = traction_cpy.storage();
+    Real * traction_cpy_val = traction_cpy->storage();
 
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -247,17 +255,19 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
      * compute @f$\int t \cdot N\, dS@f$ by  @f$ \sum_q \mathbf{N}^t
      * \mathbf{t}_q \overline w_q J_q@f$
      */
-    Vector<Real> int_t_N(nb_element, spatial_dimension*size_of_shapes,
-			 "int_t_N");
+    Vector<Real> * int_t_N = new Vector<Real>(nb_element, spatial_dimension*size_of_shapes,
+					      "int_t_N");
 
-    fem_cohesive->integrate(traction_cpy, int_t_N,
+    fem_cohesive->integrate(*traction_cpy, *int_t_N,
 			    spatial_dimension*size_of_shapes,
 			    *it, ghost_type,
 			    &elem_filter);
 
-    int_t_N.extendComponentsInterlaced(2, int_t_N.getNbComponent() );
+    delete traction_cpy;
 
-    Real * int_t_N_val = int_t_N.storage();
+    int_t_N->extendComponentsInterlaced(2, int_t_N->getNbComponent() );
+
+    Real * int_t_N_val = int_t_N->storage();
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt n = 0; n < size_of_shapes*spatial_dimension; ++n)
 	int_t_N_val[n] *= -1.;
@@ -265,11 +275,12 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     }
 
     /// assemble
-    model->getFEMBoundary().assembleVector(int_t_N, residual,
+    model->getFEMBoundary().assembleVector(*int_t_N, residual,
 					   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
 					   residual.getNbComponent(),
 					   *it, ghost_type, &elem_filter, 1);
 
+    delete int_t_N;
   }
 
   AKANTU_DEBUG_OUT();

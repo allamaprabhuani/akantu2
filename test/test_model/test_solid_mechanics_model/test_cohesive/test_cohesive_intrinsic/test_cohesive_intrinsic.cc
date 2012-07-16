@@ -51,7 +51,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  //  debug::setDebugLevel(dblDump);
+  debug::setDebugLevel(dblDump);
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 350;
@@ -77,9 +77,11 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  //  std::cout << mesh << std::endl;
+  std::cout << mesh << std::endl;
 
   const Mesh & mesh_facets = model.getMeshFacets();
+
+  std::cout << mesh_facets << std::endl;
 
   const ElementType type_facet = mesh.getFacetElementType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
@@ -91,7 +93,7 @@ int main(int argc, char *argv[]) {
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[0] > -0.30 && bary_facet[0] < -0.20) facet_insertion.push_back(f);
+    if (bary_facet[0] > -0.26 && bary_facet[0] < -0.24) facet_insertion.push_back(f);
   }
   delete[] bary_facet;
 
@@ -245,6 +247,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive & model,
   const Vector<UInt> & connectivity = mesh.getConnectivity(type);
   Vector<Real> & displacement = model.getDisplacement();
   Vector<bool> update(nb_nodes);
+  update.clear();
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
