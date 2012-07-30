@@ -32,6 +32,7 @@ __END_AKANTU__
 #include "aka_types.hh"
 #include "grid_synchronizer.hh"
 #include "synchronizer_registry.hh"
+#include "integrator.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <fstream>
@@ -265,7 +266,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
     UInt my_num_quad = 0;
 
     // loop over quad points
-
     for(;first_quad != last_quad; ++first_quad, ++my_num_quad) {
       RegularGrid<QuadraturePoint>::Cell cell = cell_list->getCell(*first_quad);
 
@@ -274,7 +274,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
       RegularGrid<QuadraturePoint>::neighbor_cells_iterator last_neigh_cell =
       cell_list->endNeighborCells(cell);
 
-      // loop over neighbor  cells of the one containing  the current quadrature
+      // loop over neighbors  cells of the one containing  the current quadrature
       // point
       for (; first_neigh_cell != last_neigh_cell; ++first_neigh_cell) {
         RegularGrid<QuadraturePoint>::iterator first_neigh_quad =
@@ -339,6 +339,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
 
   ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
   this->model->getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
+  const ByElementTypeReal & jacobians_by_type = this->model->getFEM().getIntegratorInterface().getJacobians();
 
   weight_func->updateInternals(quadrature_points_volumes);
 
@@ -366,6 +367,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
     Vector<Real> & weights = *tmp_weight;
     weights.resize(pairs.getSize());
     weights.clear();
+
+    const Vector<Real> & jacobians_1 = jacobians_by_type(type1, ghost_type1);
+    const Vector<Real> & jacobians_2 = jacobians_by_type(type2, ghost_type2);
 
     const Vector<UInt> & elem_filter = element_filter(type1, ghost_type1);
     UInt nb_quad1 = this->model->getFEM().getNbQuadraturePoints(type1);
@@ -397,10 +401,13 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       QuadraturePoint q2(_q2 / nb_quad2, _q2 % nb_quad2, _q2, pos2, type2, ghost_type2);
 
       Real r = pos1.distance(pos2);
-      (*weight)(0) = this->weight_func->operator()(r, q1, q2);
-      if(_q1 != _q2)
-	(*weight)(1) = this->weight_func->operator()(r, q2, q1);
-      else
+
+      Real w2J2 = jacobians_2(_q2);
+      (*weight)(0) = w2J2 * this->weight_func->operator()(r, q1, q2);
+      if(_q1 != _q2) {
+	Real w1J1 = jacobians_1(_q1);
+	(*weight)(1) = w1J1 * this->weight_func->operator()(r, q2, q1);
+      } else
 	(*weight)(1) = 0;
 
       quads_volumes(_q1) += (*weight)(0);

@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @date   Mon Jul 23 17:11:41 2012
+#
+# @brief  
 #
 # @section LICENSE
 #
@@ -21,9 +23,6 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-# @section DESCRIPTION
-#
 #===============================================================================
-
-REGISTER_TEST(test_vector test_vector.cc)
-REGISTER_TEST(test_matrix test_matrix.cc)
+add_akantu_test(test_vector "Test akantu vector")
+REGISTER_TEST(test_csr test_csr.cc)

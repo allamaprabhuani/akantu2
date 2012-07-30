@@ -130,13 +130,13 @@ void MaterialElastic<spatial_dimension>::setProperty(const ID & key,
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getPushWaveSpeed() {
+Real MaterialElastic<spatial_dimension>::getPushWaveSpeed() const {
   return sqrt((lambda + 2*mu)/rho);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getShearWaveSpeed() {
+Real MaterialElastic<spatial_dimension>::getShearWaveSpeed() const {
   return sqrt(mu/rho);
 }
 

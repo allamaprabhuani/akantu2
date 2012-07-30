@@ -157,7 +157,7 @@ bool MaterialElasticOrthotropic<spatial_dimension>::setParam(const std::string &
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElasticOrthotropic<spatial_dimension>::getPushWaveSpeed() {
+Real MaterialElasticOrthotropic<spatial_dimension>::getPushWaveSpeed() const {
   Real Et = (*S)(0,0);
   if(spatial_dimension >= 2)
     Et = std::max(Et, (*S)(1,1));
@@ -169,7 +169,7 @@ Real MaterialElasticOrthotropic<spatial_dimension>::getPushWaveSpeed() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElasticOrthotropic<spatial_dimension>::getShearWaveSpeed() {
+Real MaterialElasticOrthotropic<spatial_dimension>::getShearWaveSpeed() const {
   Real G = 0;
   if(spatial_dimension == 2)
     G = (*S)(2,2);

@@ -26,7 +26,7 @@
 #===============================================================================
 
 #===============================================================================
-register_test(test_interpolate_bernoulli_beam_2 test_interpolate_bernoulli_beam_2.cc)
+#register_test(test_interpolate_bernoulli_beam_2 test_interpolate_bernoulli_beam_2.cc)
 
 #===============================================================================
 set(LIST_TYPES

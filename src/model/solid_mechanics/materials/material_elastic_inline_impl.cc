@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types::Matrix & grad_u,
 								    types::Matrix & sigma) {
   Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
 
@@ -44,7 +44,7 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(types::Matri
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void MaterialElastic<1>::computeStressOnQuad(types::Matrix & grad_u,
+inline void MaterialElastic<1>::computeStressOnQuad(const types::Matrix & grad_u,
 						    types::Matrix & sigma) {
   sigma(0, 0) =  E*grad_u(0, 0);
 }
@@ -55,12 +55,17 @@ template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeTangentStiffnessOnQuad(types::Matrix & tangent) {
   UInt n = tangent.cols();
 
-  Real Ep = E/((1+nu)*(1-2*nu));
-  Real Miiii = Ep * (1-nu);
-  Real Miijj = Ep * nu;
-  Real Mijij = Ep * (1-2*nu) * .5;
+  tangent.clear();
 
-  tangent(0, 0) = Miiii;
+  //Real Ep = E/((1+nu)*(1-2*nu));
+  Real Miiii = lambda + 2*mu;
+  Real Miijj = lambda;
+  Real Mijij = mu;
+
+  if(spatial_dimension == 1)
+    tangent(0, 0) = E;
+  else
+    tangent(0, 0) = Miiii;
 
   // test of dimension should by optimized out by the compiler due to the template
   if(spatial_dimension >= 2) {

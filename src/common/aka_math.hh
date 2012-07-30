@@ -36,7 +36,7 @@
 __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 
-template<typename T>
+template<typename T, bool is_scal>
 class Vector;
 
 class Math {
@@ -55,9 +55,9 @@ public:
   /* ------------------------------------------------------------------------ */
   /// @f$ y = A*x @f$
   static void matrix_vector(UInt m, UInt n,
-			    const Vector<Real> & A,
-			    const Vector<Real> & x,
-			    Vector<Real> & y, Real alpha = 1.);
+			    const Vector<Real, true> & A,
+			    const Vector<Real, true> & x,
+			    Vector<Real, true> & y, Real alpha = 1.);
 
   /// @f$ y = A*x @f$
   static inline void matrix_vector(UInt m, UInt n,
@@ -73,15 +73,15 @@ public:
 
   /// @f$ C = A*B @f$
   static void matrix_matrix(UInt m, UInt n, UInt k,
-			   const Vector<Real> & A,
-			   const Vector<Real> & B,
-			   Vector<Real> & C, Real alpha = 1.);
+			   const Vector<Real, true> & A,
+			   const Vector<Real, true> & B,
+			   Vector<Real, true> & C, Real alpha = 1.);
 
   /// @f$ C = A*B^t @f$
   static void matrix_matrixt(UInt m, UInt n, UInt k,
-			     const Vector<Real> & A,
-			     const Vector<Real> & B,
-			     Vector<Real> & C, Real alpha = 1.);
+			     const Vector<Real, true> & A,
+			     const Vector<Real, true> & B,
+			     Vector<Real, true> & C, Real alpha = 1.);
 
   /// @f$ C = A*B @f$
   static inline void matrix_matrix(UInt m, UInt n, UInt k,

@@ -103,13 +103,16 @@ protected:
   std::string tag;
 };
 
-
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 namespace types {
   class Matrix;
   template<typename T> class Vector;
 }
+
 /* -------------------------------------------------------------------------- */
-template<typename T> class Vector : public VectorBase {
+template<typename T, bool is_scal = is_scalar<T>::value >
+class Vector : public VectorBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -133,10 +136,10 @@ public:
 	 const_reference value, const ID & id = "");
 
   /// Copy constructor (deep copy if deep=true)
-  Vector(const Vector<value_type>& vect, bool deep = true, const ID & id = "");
+  Vector(const Vector<value_type, is_scal>& vect, bool deep = true, const ID & id = "");
 
   /// Copy constructor (deep copy)
-  Vector(const std::vector<value_type>& vect);
+  Vector(const std::vector<value_type> & vect);
 
 
   virtual inline ~Vector();
@@ -146,71 +149,80 @@ public:
   /* ------------------------------------------------------------------------ */
   /// \todo protected: does not compile with intel  check why
 public:
-  template <class R, class IR = R, int fps = 0>
+  template <class R, class IR = R, bool issame = is_same<IR, T>::value >
   class iterator_internal;
 public:
   /* ------------------------------------------------------------------------ */
   // template<typename R, int fps = 0> class iterator : public iterator_internal<R> {};
   // template<typename R, int fps = 0> class const_iterator : public iterator_internal<const R> {};
   /* ------------------------------------------------------------------------ */
-  template<typename R, int fps = 0>
+  //template<class R> using iterator = iterator_internal<R>;
+
+  template<typename R>
   class iterator : public iterator_internal<R> {
   public:
     typedef iterator_internal<R> parent;
-    typedef typename parent::pointer pointer;
+    typedef typename parent::value_type	       value_type;
+    typedef typename parent::pointer	       pointer;
+    typedef typename parent::reference	       reference;
+    typedef typename parent::difference_type   difference_type;
+    typedef typename parent::iterator_category iterator_category;
   public:
     iterator() : parent() {};
     iterator(pointer_type data, UInt offset) : parent(data, offset) {};
     iterator(pointer warped) : parent(warped) {};
     iterator(const iterator & it) : parent(it) {};
+    iterator(const parent & it) : parent(it) {};
+
+    inline iterator operator+(difference_type n)
+    { return parent::operator+(n);; }
+    inline iterator operator-(difference_type n)
+    { return parent::operator-(n);; }
+    inline difference_type operator-(const iterator & b)
+    { return parent::operator-(b); }
+
+    inline iterator & operator++()
+    { parent::operator++(); return *this; };
+    inline iterator & operator--()
+    { parent::operator--(); return *this; };
+    inline iterator & operator+=(const UInt n)
+    { parent::operator+=(n); return *this; }
   };
 
   /* ------------------------------------------------------------------------ */
-  template<typename R, int fps = 0>
+  //template<class R> using const_iterator = iterator_internal<const R, R>;
+
+  template<typename R>
   class const_iterator : public iterator_internal<const R, R> {
   public:
     typedef iterator_internal<const R, R> parent;
-    typedef typename parent::pointer pointer;
+    typedef typename parent::value_type	       value_type;
+    typedef typename parent::pointer	       pointer;
+    typedef typename parent::reference	       reference;
+    typedef typename parent::difference_type   difference_type;
+    typedef typename parent::iterator_category iterator_category;
   public:
     const_iterator() : parent() {};
     const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
     const_iterator(pointer warped) : parent(warped) {};
     const_iterator(const const_iterator & it) : parent(it) {};
+    const_iterator(const parent & it) : parent(it) {};
+
+    inline const_iterator operator+(difference_type n)
+    { return parent::operator+(n); }
+    inline const_iterator operator-(difference_type n)
+    { return parent::operator-(n); }
+    inline difference_type operator-(const const_iterator & b)
+    { return parent::operator-(b); }
+
+    inline const_iterator & operator++()
+    { parent::operator++(); return *this; };
+    inline const_iterator & operator--()
+    { parent::operator--(); return *this; };
+    inline const_iterator & operator+=(const UInt n)
+    { parent::operator+=(n); return *this; }
+
   };
-
-  /// specialization of the previous iterators for the scalar types
-  /* ------------------------------------------------------------------------ */
-  template<int fps>
-  class iterator<T, fps> : public iterator_internal<T> {
-  public:
-    typedef iterator_internal<T> parent;
-    typedef typename parent::pointer pointer;
-  public:
-    iterator() : parent() {};
-    iterator(pointer_type data, UInt offset) : parent(data, offset) {};
-    iterator(pointer warped) : parent(warped) {};
-    iterator(const iterator & it) : parent(it) {};
-  };
-
-  /* -------------------------------------------------------------------------- */
-  template<int fps>
-  class const_iterator<T, fps> : public iterator_internal<const T, T> {
-  public:
-    typedef iterator_internal<const T, T> parent;
-    typedef typename parent::pointer pointer;
-  public:
-    const_iterator() : parent() {};
-    const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
-    const_iterator(pointer warped) : parent(warped) {};
-    const_iterator(const const_iterator & it) : parent(it) {};
-  };
-
-
-  /* ------------------------------------------------------------------------ */
-  // template<typename Ret> inline iterator<Ret> begin();
-  // template<typename Ret> inline iterator<Ret> end();
-  // template<typename Ret> inline const_iterator<Ret> begin() const;
-  // template<typename Ret> inline const_iterator<Ret> end() const;
 
   inline iterator<T> begin();
   inline iterator<T> end();
@@ -252,6 +264,9 @@ public:
   /// add an element at the end of the vector
   inline void push_back(const value_type new_elem[]);
 
+  template<typename Ret>
+  inline void push_back(const iterator<Ret> & it);
+
   /**
    * remove an element and move the last one in the hole
    * /!\ change the order in the vector
@@ -271,7 +286,7 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  //  Vector<T>& operator=(const Vector<T>& vect);
+  //  Vector<T, is_scal>& operator=(const Vector<T, is_scal>& vect);
 
   /// search elem in the vector, return  the position of the first occurrence or
   /// -1 if not found
@@ -282,7 +297,7 @@ public:
   inline void clear() { std::fill_n(values, size*nb_component, T()); };
 
   /// copy the content of an other vector
-  void copy(const Vector<T> & vect);
+  void copy(const Vector<T, is_scal> & vect);
 
   /// give the address of the memory allocated for this vector
   T * storage() const { return values; };
@@ -299,9 +314,9 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  Vector<T> & operator-=(const Vector<T> & vect);
-  Vector<T> & operator+=(const Vector<T> & vect);
-  Vector<T> & operator*=(const T & alpha);
+  Vector<T, is_scal> & operator-=(const Vector<T, is_scal> & vect);
+  Vector<T, is_scal> & operator+=(const Vector<T, is_scal> & vect);
+  Vector<T, is_scal> & operator*=(const T & alpha);
 
   inline reference operator()(UInt i, UInt j = 0);
   inline const_reference operator()(UInt i, UInt j = 0) const;
@@ -328,12 +343,11 @@ __BEGIN_AKANTU__
 
 #include "aka_vector_tmpl.hh"
 
-
 /* -------------------------------------------------------------------------- */
-/* Inline Functions Vector<T>                                                 */
+/* Inline Functions Vector<T, is_scal>                                                 */
 /* -------------------------------------------------------------------------- */
-template <typename T>
-inline std::ostream & operator<<(std::ostream & stream, const Vector<T> & _this)
+template <typename T, bool is_scal>
+inline std::ostream & operator<<(std::ostream & stream, const Vector<T, is_scal> & _this)
 {
   _this.printself(stream);
   return stream;

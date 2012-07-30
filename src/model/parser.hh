@@ -40,6 +40,12 @@
 
 __BEGIN_AKANTU__
 
+class Parsable {
+public:
+  virtual bool setParam(const std::string & key, const std::string & value,
+			const ID & id) = 0;
+};
+
 class Parser {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -65,9 +71,8 @@ public:
   template <typename M>
   void readSection(M & model);
 
-  template <typename Obj, typename M>
-  Obj * readSection(M & model, std::string & obj_name);
-
+  /// read the properties in a section
+  void readSection(const std::string & obj_name, Parsable & obj);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

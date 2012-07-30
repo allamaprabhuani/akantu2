@@ -3,5 +3,5 @@ material elastic [
 	 rho = 7800   # density
 	 E   = 2.1e11 # young's modulus
 	 nu  = 0.3    # poisson's ratio
-         Plane_stress = 0 # plane stress
+         Plane_Stress = 1 # plane stress
 ]

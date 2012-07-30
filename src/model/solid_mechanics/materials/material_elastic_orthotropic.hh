@@ -84,10 +84,10 @@ public:
 			       GhostType ghost_type = _not_ghost);
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed();
+  virtual Real getPushWaveSpeed() const;
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed();
+  virtual Real getShearWaveSpeed() const;
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

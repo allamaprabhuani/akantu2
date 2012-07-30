@@ -28,7 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
-//#include "fem.hh"
+#include "parser.hh"
 //#include "mesh.hh"
 #include "data_accessor.hh"
 //#include "static_communicator.hh"
@@ -64,7 +64,7 @@ __BEGIN_AKANTU__
  * \endcode
  *
  */
-class Material : protected Memory, public DataAccessor {
+class Material : protected Memory, public DataAccessor, public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -106,10 +106,10 @@ public:
   virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed() { AKANTU_DEBUG_TO_IMPLEMENT(); };
+  virtual Real getPushWaveSpeed() const { AKANTU_DEBUG_TO_IMPLEMENT(); };
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed() { AKANTU_DEBUG_TO_IMPLEMENT(); };
+  virtual Real getShearWaveSpeed() const { AKANTU_DEBUG_TO_IMPLEMENT(); };
 
   /// add an element to the local mesh filter
   inline UInt addElement(const ElementType & type,
@@ -436,10 +436,12 @@ __END_AKANTU__
   ((remove_wf, RemoveDamagedWeightFunction))				\
   ((base_wf,   BaseWeightFunction         ))
 
-#  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST				\
-  ((3, (marigo_non_local       , MaterialMarigoNonLocal, AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST))) \
-  ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
-  ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal, AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
+#define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST				\
+  ((3, (marigo_non_local       , MaterialMarigoNonLocal,		\
+	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))			\
+  ((2, (mazars_non_local       , MaterialMazarsNonLocal)))		\
+  ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal,		\
+	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
 #else
 #  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
 #endif

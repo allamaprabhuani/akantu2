@@ -84,7 +84,8 @@ public:
 public:
 
   /// access to the jacobians
-  ByElementTypeReal & getJacobians(){return jacobians;};
+  ByElementTypeReal & getJacobians() { return jacobians; };
+  const ByElementTypeReal & getJacobians() const { return jacobians; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

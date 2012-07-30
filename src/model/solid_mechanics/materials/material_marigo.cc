@@ -125,6 +125,22 @@ bool MaterialMarigo<spatial_dimension>::setParam(const std::string & key,
   return true;
 }
 
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+Real MaterialMarigo<spatial_dimension>::getProperty(const ID & key) const {
+  if(key == "Yd") { return this->Yd; }
+  else if(key == "Sd") { return this->Sd; }
+  else return MaterialElastic<spatial_dimension>::getProperty(key);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialMarigo<spatial_dimension>::setProperty(const ID & key,
+						     Real value) {
+  if(key == "Yd") { this->Yd = value; }
+  else if(key == "Sd") { this->Sd = value; }
+  else MaterialElastic<spatial_dimension>::setProperty(key, value);
+}
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>

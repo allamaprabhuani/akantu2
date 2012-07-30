@@ -32,27 +32,31 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
+MaterialMazars<spatial_dimension>::computeStressOnQuad(const types::Matrix & grad_u,
 						       types::Matrix & sigma,
 						       Real & dam,
 						       Real & Ehat) {
+  types::Matrix epsilon(3, 3);
+  epsilon.clear();
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      epsilon(i,j) = .5*(grad_u(i,j) + grad_u(j,i));
+
   types::RVector Fdiag(3);
-  Fdiag.clear();
-  types::RVector Fdiagp(3);
-  Fdiagp.clear();
+  Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
 
-  Math::eigenvalues<spatial_dimension>(grad_u.storage(), Fdiag.storage());
-
-  Fdiagp(0) = std::max(0., Fdiag(0));
-  Fdiagp(1) = std::max(0., Fdiag(1));
-  Fdiagp(2) = std::max(0., Fdiag(2));
-
-  Ehat = sqrt(Fdiagp(0)*Fdiagp(0) + Fdiagp(1)*Fdiagp(1) + Fdiagp(2)*Fdiagp(2));
+  Ehat = 0.;
+  for (UInt i = 0; i < 3; ++i) {
+    Real epsilon_p = std::max(0., Fdiag(i));
+    Ehat += epsilon_p * epsilon_p;
+  }
+  Ehat = sqrt(Ehat);
 
   MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
   if(damage_in_compute_stress) {
-    computeDamageOnQuad(Ehat, Fdiag, dam);
+    computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
   }
 
   if(!this->is_non_local) {
@@ -63,16 +67,23 @@ MaterialMazars<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & grad_u,
+MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::Matrix & grad_u,
 								types::Matrix & sigma,
 								Real & dam,
 								Real & Ehat) {
   if(!damage_in_compute_stress) {
     types::RVector Fdiag(3);
     Fdiag.clear();
-    Math::eigenvalues<spatial_dimension>(grad_u.storage(), Fdiag.storage());
 
-    computeDamageOnQuad(Ehat, Fdiag, dam);
+    types::Matrix epsilon(3, 3);
+    epsilon.clear();
+    for (UInt i = 0; i < spatial_dimension; ++i)
+      for (UInt j = 0; j < spatial_dimension; ++j)
+	epsilon(i,j) = .5*(grad_u(i,j) + grad_u(j,i));
+
+    Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
+
+    computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
   }
 
   sigma *= 1 - dam;
@@ -81,60 +92,89 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & Ehat,
-						       const types::RVector & Fdiag,
+MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & epsilon_equ,
+						       const types::Matrix & sigma,
+						       const types::RVector & epsilon_princ,
 						       Real & dam) {
-  Real Fs = Ehat - K0;
+//  if (epsilon_equ > K0) {
+//    Real dam_t;
+//    Real dam_c;
+//    dam_t = 1 - K0*(1 - At)/epsilon_equ - At / exp(Bt*(epsilon_equ - K0));
+//    dam_c = 1 - K0*(1 - Ac)/epsilon_equ - Ac / exp(Bc*(epsilon_equ - K0));
+//
+//    dam_t = std::min(1., std::max(0., dam_t));
+//    dam_c = std::min(1., std::max(0., dam_c));
+//
+//    types::RVector sigma_diag(3);
+//    Math::matrixEig(3, sigma.storage(), sigma_diag.storage());
+//
+//    types::RVector sigma_p(3);
+//    for (UInt i = 0; i < 3; ++i) sigma_p(i) = std::max(0., sigma_diag(i));
+//
+//    sigma_p *= 1-dam;
+//
+//    Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
+//
+//    Real alpha_t = 0;
+//    for (UInt i = 0; i < 3; ++i) {
+//      Real epsilon_t = (1 + this->nu)/this->E * sigma_p(i) - trace_p;
+//      Real epsilon_p = std::max(0., epsilon_princ(i));
+//      alpha_t += epsilon_t * epsilon_p;
+//    }
+//
+//    alpha_t /= epsilon_equ * epsilon_equ;
+//    alpha_t = std::max(0., std::min(alpha_t, 1.));
+//
+//    Real alpha_c = 1 - alpha_t;
+//
+//    alpha_t = std::pow(alpha_t, beta);
+//    alpha_c = std::pow(alpha_c, beta);
+//
+//    Real damtemp;
+//    damtemp = alpha_t * dam_t + alpha_c * dam_c;
+//    dam = std::max(damtemp, dam);
+//    dam = std::min(dam,1.);
+//  }
+  Real Fs = epsilon_equ - K0;
   if (Fs > 0.) {
-    types::RVector Fdiagp(3);
-    Fdiagp.clear();
-
-    Fdiagp(0) = std::max(0., Fdiag(0));
-    Fdiagp(1) = std::max(0., Fdiag(1));
-    Fdiagp(2) = std::max(0., Fdiag(2));
-
-    Real damt;
-    Real damc;
-    damt = 1 - K0*(1 - At)/Ehat - At*(exp(-Bt*(Ehat - K0)));
-    damc = 1 - K0*(1 - Ac)/Ehat - Ac*(exp(-Bc*(Ehat - K0)));
+    Real dam_t;
+    Real dam_c;
+    dam_t = 1 - K0*(1 - At)/epsilon_equ - At*(exp(-Bt*(epsilon_equ - K0)));
+    dam_c = 1 - K0*(1 - Ac)/epsilon_equ - Ac*(exp(-Bc*(epsilon_equ - K0)));
 
     Real Cdiag;
     Cdiag = this->E*(1-this->nu)/((1+this->nu)*(1-2*this->nu));
-    
-    types::RVector SigDiag(3);
-    SigDiag(0) = Cdiag*Fdiag(0) + this->lambda*(Fdiag(1) + Fdiag(2));
-    SigDiag(1) = Cdiag*Fdiag(1) + this->lambda*(Fdiag(0) + Fdiag(2));
-    SigDiag(2) = Cdiag*Fdiag(2) + this->lambda*(Fdiag(1) + Fdiag(0));
 
-    types::RVector SigDiagT(3);
-    for (UInt i = 0; i < 3; i++) {
-      if(SigDiag(i) >= 0.) {
-	SigDiagT(i) = SigDiag(i);
-      } else {
-	SigDiagT(i) = 0.;
-      }
+    types::RVector sigma_princ(3);
+    sigma_princ(0) = Cdiag*epsilon_princ(0) + this->lambda*(epsilon_princ(1) + epsilon_princ(2));
+    sigma_princ(1) = Cdiag*epsilon_princ(1) + this->lambda*(epsilon_princ(0) + epsilon_princ(2));
+    sigma_princ(2) = Cdiag*epsilon_princ(2) + this->lambda*(epsilon_princ(1) + epsilon_princ(0));
+
+    types::RVector sigma_p(3);
+    for (UInt i = 0; i < 3; i++) sigma_p(i) = std::max(0., sigma_princ(i));
+    sigma_p *= 1-dam;
+
+    Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
+
+    Real alpha_t = 0;
+    for (UInt i = 0; i < 3; ++i) {
+      Real epsilon_t = (1 + this->nu)/this->E * sigma_p(i) - trace_p;
+      Real epsilon_p = std::max(0., epsilon_princ(i));
+      alpha_t += epsilon_t * epsilon_p;
     }
 
-    Real TraSigT;
-    TraSigT = SigDiagT(0) + SigDiagT(1) + SigDiagT(2);
+    alpha_t /= epsilon_equ * epsilon_equ;
+    alpha_t = std::min(alpha_t, 1.);
 
-    types::RVector FDiagT(3);
-    for (UInt i = 0; i < 3; i++){
-      FDiagT (i)=  (SigDiagT(i)*(1 + this->nu) - TraSigT*this->nu)/this->E;
-    }
+    Real alpha_c = 1 - alpha_t;
 
-    Real alphat;
-    alphat = (FDiagT(0)*Fdiagp(0) + FDiagT(1)*Fdiagp(1) + FDiagT(2)*Fdiagp(2))/(Ehat*Ehat);
-    alphat = std::min(alphat, 1.);
-
-    Real alphac;
-    alphac = 1 - alphat;
+    alpha_t = std::pow(alpha_t, beta);
+    alpha_c = std::pow(alpha_c, beta);
 
     Real damtemp;
-    damtemp = pow(alphat,beta)*damt + pow(alphac,beta)*damc;
+    damtemp = alpha_t * dam_t + alpha_c * dam_c;
 
     dam = std::max(damtemp, dam);
+    dam = std::min(dam,1.);
   }
-
-  dam = std::min(dam,1.);
 }

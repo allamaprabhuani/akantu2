@@ -216,7 +216,11 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
+  const ShapeFunctions & getShapeFunctionsInterface() const { return shape_functions; };
   const Shape & getShapeFunctions() const { return shape_functions; };
+
+  const Integrator & getIntegratorInterface() const { return integrator; };
+  const Integ & getIntegrator() const { return integrator; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

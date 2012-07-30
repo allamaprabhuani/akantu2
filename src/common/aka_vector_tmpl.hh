@@ -36,7 +36,8 @@ __END_AKANTU__
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline T & Vector<T>::operator()(UInt i, UInt j) {
+template <class T, bool is_scal>
+inline T & Vector<T, is_scal>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
@@ -46,7 +47,8 @@ template <typename T> inline T & Vector<T>::operator()(UInt i, UInt j) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline const T & Vector<T>::operator()(UInt i, UInt j) const {
+template <class T, bool is_scal>
+inline const T & Vector<T, is_scal>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
@@ -57,7 +59,8 @@ template <typename T> inline const T & Vector<T>::operator()(UInt i, UInt j) con
 
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline T & Vector<T>::at(UInt i, UInt j) {
+template <class T, bool is_scal>
+inline T & Vector<T, is_scal>::at(UInt i, UInt j) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector is empty");
@@ -70,7 +73,8 @@ template <typename T> inline T & Vector<T>::at(UInt i, UInt j) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline const T & Vector<T>::get(UInt i, UInt j) const{
+template <class T, bool is_scal>
+inline const T & Vector<T, is_scal>::get(UInt i, UInt j) const{
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(size > 0,
 		      "The vector is empty");
@@ -83,7 +87,8 @@ template <typename T> inline const T & Vector<T>::get(UInt i, UInt j) const{
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void Vector<T>::push_back(const T & value) {
+template <class T, bool is_scal>
+inline void Vector<T, is_scal>::push_back(const T & value) {
   //  AKANTU_DEBUG_IN();
   UInt pos = size;
 
@@ -101,7 +106,8 @@ template <typename T> inline void Vector<T>::push_back(const T & value) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void Vector<T>::push_back(const T new_elem[]) {
+template <class T, bool is_scal>
+inline void Vector<T, is_scal>::push_back(const T new_elem[]) {
   //  AKANTU_DEBUG_IN();
   UInt pos = size;
 
@@ -117,7 +123,26 @@ template <typename T> inline void Vector<T>::push_back(const T new_elem[]) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T> inline void Vector<T>::erase(UInt i){
+template <class T, bool is_scal>
+template<class Ret>
+inline void Vector<T, is_scal>::push_back(const Vector<T, is_scal>::iterator<Ret> & it) {
+  UInt pos = size;
+
+  resizeUnitialized(size+1);
+
+  T * tmp = values + nb_component * pos;
+  T * new_elem = it.data();
+  std::uninitialized_copy(new_elem, new_elem + nb_component, tmp);
+}
+
+/* -------------------------------------------------------------------------- */
+
+
+
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+inline void Vector<T, is_scal>::erase(UInt i){
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT((size > 0),
 		      "The vector is empty");
@@ -136,8 +161,8 @@ template <typename T> inline void Vector<T>::erase(UInt i){
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-Vector<T> & Vector<T>::operator-=(const Vector<T> & vect) {
+template <class T, bool is_scal>
+Vector<T, is_scal> & Vector<T, is_scal>::operator-=(const Vector<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
 		      "The too vector don't have the same sizes");
 
@@ -152,8 +177,8 @@ Vector<T> & Vector<T>::operator-=(const Vector<T> & vect) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-Vector<T> & Vector<T>::operator+=(const Vector<T> & vect) {
+template <class T, bool is_scal>
+Vector<T, is_scal> & Vector<T, is_scal>::operator+=(const Vector<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
 		      "The too vector don't have the same sizes");
 
@@ -167,8 +192,8 @@ Vector<T> & Vector<T>::operator+=(const Vector<T> & vect) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
-Vector<T> & Vector<T>::operator*=(const T & alpha) {
+template <class T, bool is_scal>
+Vector<T, is_scal> & Vector<T, is_scal>::operator*=(const T & alpha) {
   T * a = values;
   for (UInt i = 0; i < size*nb_component; ++i) {
     *a++ *= alpha;
@@ -178,44 +203,30 @@ Vector<T> & Vector<T>::operator*=(const T & alpha) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Functions Vector<T>                                                        */
+/* Functions Vector<T, is_scal>                                                        */
 /* -------------------------------------------------------------------------- */
-template<class T> inline Vector<T>::Vector (UInt size,
-					    UInt nb_component,
-					    const ID & id) :
+template <class T, bool is_scal>
+Vector<T, is_scal>::Vector (UInt size,
+			    UInt nb_component,
+			    const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
 
-  T val = T();
-  std::uninitialized_fill(values, values + size*nb_component, val);
+  if(!is_scal) {
+    T val = T();
+    std::uninitialized_fill(values, values + size*nb_component, val);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_CONSTRUCTOR_SPEC(type)				\
-  template<> inline Vector<type>::Vector (UInt size,		\
-					  UInt nb_component,	\
-					  const ID & id) :	\
-    VectorBase(id), values(NULL) {				\
-    AKANTU_DEBUG_IN();						\
-    allocate(size, nb_component);				\
-    AKANTU_DEBUG_OUT();						\
-  }
-
-AKANTU_CONSTRUCTOR_SPEC(Real)
-AKANTU_CONSTRUCTOR_SPEC(UInt)
-AKANTU_CONSTRUCTOR_SPEC(Int)
-AKANTU_CONSTRUCTOR_SPEC(bool)
-#undef AKANTU_CONSTRUCTOR_SPEC
-
-
-/* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector (UInt size,
-				      UInt nb_component,
-				      const T def_values[],
-				      const ID & id) :
+template <class T, bool is_scal>
+Vector<T, is_scal>::Vector (UInt size,
+			    UInt nb_component,
+			    const T def_values[],
+			    const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -233,10 +244,11 @@ template <class T> Vector<T>::Vector (UInt size,
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector (UInt size,
-				      UInt nb_component,
-				      const T & value,
-				      const ID & id) :
+template <class T, bool is_scal>
+Vector<T, is_scal>::Vector (UInt size,
+			    UInt nb_component,
+			    const T & value,
+			    const ID & id) :
   VectorBase(id), values(NULL) {
   AKANTU_DEBUG_IN();
   allocate(size, nb_component);
@@ -252,7 +264,10 @@ template <class T> Vector<T>::Vector (UInt size,
 
 
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep, const ID & id) {
+template <class T, bool is_scal>
+Vector<T, is_scal>::Vector(const Vector<T, is_scal> & vect,
+			   bool deep,
+			   const ID & id) {
   AKANTU_DEBUG_IN();
   this->id = (id == "") ? vect.id : id;
 
@@ -277,7 +292,8 @@ template <class T> Vector<T>::Vector(const Vector<T>& vect, bool deep, const ID 
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> Vector<T>::Vector(const std::vector<T>& vect) {
+template <class T, bool is_scal>
+Vector<T, is_scal>::Vector(const std::vector<T>& vect) {
   AKANTU_DEBUG_IN();
   this->id = "";
 
@@ -290,42 +306,29 @@ template <class T> Vector<T>::Vector(const std::vector<T>& vect) {
 
 
 /* -------------------------------------------------------------------------- */
-template <class T> inline Vector<T>::~Vector () {
+template <class T, bool is_scal>
+Vector<T, is_scal>::~Vector () {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG(dblAccessory, "Freeing "
 	       << allocated_size*nb_component*sizeof(T) / 1024.
 	       << "kB (" << id <<")");
 
   if(values){
-    for (UInt i = 0; i < size * nb_component; ++i) {
-      T * obj = values+i;
-      obj->~T();
-    }
+    if(!is_scal)
+      for (UInt i = 0; i < size * nb_component; ++i) {
+	T * obj = values+i;
+	obj->~T();
+      }
     free(values);
   }
   size = allocated_size = 0;
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
-#define AKANTU_DESTRUCTOR_SPEC(type)					\
-  template<> inline Vector<type>::~Vector () {				\
-    AKANTU_DEBUG_IN();							\
-    AKANTU_DEBUG(dblAccessory, "Freeing "				\
-		 << allocated_size*nb_component*sizeof(type) / 1024.	\
-		 << "kB (" << id <<")");				\
-    if(values)  free(values);						\
-    size = allocated_size = 0;						\
-    AKANTU_DEBUG_OUT();							\
-  }
-AKANTU_DESTRUCTOR_SPEC(Real)
-AKANTU_DESTRUCTOR_SPEC(UInt)
-AKANTU_DESTRUCTOR_SPEC(Int)
-AKANTU_DESTRUCTOR_SPEC(bool)
-#undef AKANTU_DESTRUCTOR_SPEC
 
 /* -------------------------------------------------------------------------- */
-template <class T> void Vector<T>::allocate(UInt size,
-					    UInt nb_component) {
+template <class T, bool is_scal>
+void Vector<T, is_scal>::allocate(UInt size,
+				  UInt nb_component) {
   AKANTU_DEBUG_IN();
   if (size == 0){
     values = NULL;
@@ -353,8 +356,8 @@ template <class T> void Vector<T>::allocate(UInt size,
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T>
-void Vector<T>::resize(UInt new_size) {
+template <class T, bool is_scal>
+void Vector<T, is_scal>::resize(UInt new_size) {
   UInt old_size = size;
 
   T * old_values = values;
@@ -374,8 +377,8 @@ void Vector<T>::resize(UInt new_size) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T>
-void Vector<T>::resizeUnitialized(UInt new_size) {
+template <class T, bool is_scal>
+void Vector<T, is_scal>::resizeUnitialized(UInt new_size) {
   //  AKANTU_DEBUG_IN();
   // free some memory
   if(new_size <= allocated_size) {
@@ -428,8 +431,9 @@ void Vector<T>::resizeUnitialized(UInt new_size) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> void Vector<T>::extendComponentsInterlaced(UInt multiplicator,
-							      UInt block_size) {
+template <class T, bool is_scal>
+void Vector<T, is_scal>::extendComponentsInterlaced(UInt multiplicator,
+						    UInt block_size) {
   AKANTU_DEBUG_IN();
 
   if (multiplicator == 1) return;
@@ -460,7 +464,8 @@ template <class T> void Vector<T>::extendComponentsInterlaced(UInt multiplicator
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> Int Vector<T>::find(const T & elem) const {
+template <class T, bool is_scal>
+Int Vector<T, is_scal>::find(const T & elem) const {
   AKANTU_DEBUG_IN();
   UInt i = 0;
   for (; (i < size) && (values[i] != elem); ++i);
@@ -470,7 +475,8 @@ template <class T> Int Vector<T>::find(const T & elem) const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T> Int Vector<T>::find(T elem[]) const {
+template <class T, bool is_scal>
+Int Vector<T, is_scal>::find(T elem[]) const {
   AKANTU_DEBUG_IN();
   T * it = values;
   UInt i = 0;
@@ -488,7 +494,8 @@ template <class T> Int Vector<T>::find(T elem[]) const {
 
 
 /* -------------------------------------------------------------------------- */
-template <class T> void Vector<T>::copy(const Vector<T>& vect) {
+template <class T, bool is_scal>
+void Vector<T, is_scal>::copy(const Vector<T, is_scal>& vect) {
   AKANTU_DEBUG_IN();
 
   if(AKANTU_DEBUG_TEST(dblWarning))
@@ -506,8 +513,8 @@ template <class T> void Vector<T>::copy(const Vector<T>& vect) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T>
-void Vector<T>::printself(std::ostream & stream, int indent) const {
+template <class T, bool is_scal>
+void Vector<T, is_scal>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
@@ -562,35 +569,20 @@ inline void VectorBase::empty() {
   size = 0;
 }
 
-/** \todo change definition of iterators
-    template<class T>
-    template<class R, class IR, bool value >
-
-    template<class T>
-    template<class R, class IR, bool = TypeTraits<R>::isScalar >
-    class Vector<T>::iterator_internal : public std::iterator<std::random_access_iterator_tag, R> {
-*/
-
 /* -------------------------------------------------------------------------- */
 /* Iterators                                                                  */
 /* -------------------------------------------------------------------------- */
-template<class T>
-template<class R, class IR, int fps>
-//class Vector<T>::iterator_internal : public virtual std::iterator<std::random_access_iterator_tag, R> {
-class Vector<T>::iterator_internal {
+template <class T, bool is_scal>
+template<class R, class IR, bool is_r_scal>
+class Vector<T, is_scal>::iterator_internal {
 public:
-  typedef R   value_type;
-  typedef R*  pointer;
-  typedef R&  reference;
-  typedef IR  internal_value_type;
-  typedef IR* internal_pointer;
-protected:
-  iterator_internal(UInt offset, pointer_type data, pointer ret) : offset(offset),
-								   initial(data),
-								   ret(ret) {
-  }
-
-  virtual ~iterator_internal() { delete ret; };
+  typedef R                               value_type;
+  typedef R*                              pointer;
+  typedef R&                              reference;
+  typedef IR                              internal_value_type;
+  typedef IR*                             internal_pointer;
+  typedef std::ptrdiff_t                  difference_type;
+  typedef std::random_access_iterator_tag iterator_category;
 
 public:
   iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
@@ -617,6 +609,8 @@ public:
     }
   }
 
+  virtual ~iterator_internal() { delete ret; };
+
   inline iterator_internal & operator=(const iterator_internal & it) {
     if(this != &it) {
       this->offset = it.offset;
@@ -630,25 +624,28 @@ public:
   inline reference operator*() { return *ret; };
   inline pointer operator->() { return ret; };
   inline iterator_internal & operator++() { ret->values += offset; return *this; };
+  inline iterator_internal & operator--() { ret->values -= offset; return *this; };
 
-  inline iterator_internal & operator+=(const UInt n) {
-    ret->values += offset * n;
-    return *this;
-  }
+  inline iterator_internal & operator+=(const UInt n) { ret->values += offset * n; return *this; }
+  inline iterator_internal & operator-=(const UInt n) { ret->values -= offset * n; return *this; }
 
-  inline reference operator[](const UInt n) {
-    ret->values = initial + n*offset;
-    return *ret;
-  }
+  inline reference operator[](const UInt n) { ret->values = initial + n*offset; return *ret; }
 
-  inline bool operator==(const iterator_internal & other) {
-    return (*this).ret->values == other.ret->values;
-  }
-  inline bool operator!=(const iterator_internal & other) {
-    return (*this).ret->values != other.ret->values;
-  }
+  inline bool operator==(const iterator_internal & other) { return (*this).ret->values == other.ret->values; }
+  inline bool operator!=(const iterator_internal & other) { return (*this).ret->values != other.ret->values; }
+  inline bool operator <(const iterator_internal & other) { return (*this).ret->values  < other.ret->values; }
+  inline bool operator<=(const iterator_internal & other) { return (*this).ret->values <= other.ret->values; }
+  inline bool operator> (const iterator_internal & other) { return (*this).ret->values >  other.ret->values; }
+  inline bool operator>=(const iterator_internal & other) { return (*this).ret->values >= other.ret->values; }
 
-  inline pointer_type getCurrentStorage() const {
+  inline iterator_internal operator+(difference_type n) { iterator_internal tmp(*this); tmp += n; return tmp; }
+  inline iterator_internal operator-(difference_type n) { iterator_internal tmp(*this); tmp -= n; return tmp; }
+
+
+  inline difference_type operator-(const iterator_internal & b) { return ret->values - b.ret->values; }
+
+
+  inline pointer_type data() const {
     return ret->storage();
   }
 
@@ -658,24 +655,9 @@ protected:
   internal_pointer ret;
 };
 
-
-// /* -------------------------------------------------------------------------- */
-// template<typename T>
-// template<typename Ret>
-// inline Vector<T>::iterator<Ret> Vector<T>::begin() {
-//   return iterator<Ret>(values, nb_component);
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template<typename T>
-// template<typename Ret>
-// inline Vector<T>::iterator<Ret> Vector<T>::end() {
-//   return iterator<Ret>(values + nb_component * size, nb_component);
-// }
-
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::iterator< types::Vector<T> > Vector<T>::begin(UInt n) {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Vector<T> > Vector<T, is_scal>::begin(UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n,
 		      "The iterator is not compatible with the type Vector("
 		      << n<< ")");
@@ -683,8 +665,8 @@ inline Vector<T>::iterator< types::Vector<T> > Vector<T>::begin(UInt n) {
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::iterator< types::Vector<T> > Vector<T>::end(UInt n) {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Vector<T> > Vector<T, is_scal>::end(UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n,
 		      "The iterator is not compatible with the type Vector("
 		      << n<< ")");
@@ -693,8 +675,8 @@ inline Vector<T>::iterator< types::Vector<T> > Vector<T>::end(UInt n) {
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::const_iterator< types::Vector<T> > Vector<T>::begin(UInt n) const {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Vector<T> > Vector<T, is_scal>::begin(UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n,
 		      "The iterator is not compatible with the type Vector("
 		      << n<< ")");
@@ -702,8 +684,8 @@ inline Vector<T>::const_iterator< types::Vector<T> > Vector<T>::begin(UInt n) co
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::const_iterator< types::Vector<T> > Vector<T>::end(UInt n) const {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Vector<T> > Vector<T, is_scal>::end(UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n,
 		      "The iterator is not compatible with the type Vector("
 		      << n<< ")");
@@ -821,265 +803,93 @@ Vector<Real>::end_reinterpret(UInt m, UInt n,
   return const_iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
 }
 
-// template<typename T>
-// template<int fps>
-// inline typename Vector<T>::template iterator_internal<T> & Vector<T>::iterator_internal<T>::operator++() {
-//   ret += offset;
-//   return *this;
-// }
-
-// inline iterator_internal & operator+=(const UInt n) {
-//   ret->values += offset * n;
-//   return *this;
-// }
 
 /* -------------------------------------------------------------------------- */
 /**
  * Specialization for scalar types
  */
-
-/* If gcc <  4.4 some problem with detection of specialization  of a template by
- * an other template so I have copied the code, that is really ugly just to help
- * the compiler. This part of code should  be removed if version of gcc before *
- * 4.4 are note supported anymore. Problems  for know appears on Mac OS with gcc
- * version is 4.2.1
- */
-#if (__GNUC__  < 4)  ||				\
-  ((__GNUC__ ==  4) && (__GNUC_MINOR__ < 4))
-
-#define specialize_internal_iterator_for_scalar(T)			\
-  template <>								\
-  template <>								\
-  class Vector<T>::iterator_internal<T,T,0> {				\
-  public:								\
-  typedef T   value_type;						\
-  typedef T*  pointer;							\
-  typedef T&  reference;						\
-  typedef T   internal_value_type;					\
-  typedef T*  internal_pointer;						\
-  protected:								\
-  iterator_internal(__attribute__((unused)) UInt offset,		\
-		    pointer data, pointer ret) :			\
-    initial(data),							\
-    ret(ret) {								\
-    AKANTU_DEBUG_ASSERT(offset == 1,					\
-			"The iterator is not compatible with the type "	\
-			<< typeid(value_type).name());			\
-  }									\
-  									\
-  public:								\
-  iterator_internal() : initial(NULL), ret(NULL) {};			\
-  									\
-  iterator_internal(pointer data,					\
-		    __attribute__((unused)) UInt offset)  :		\
-    initial(data),							\
-    ret(data) {								\
-    AKANTU_DEBUG_ASSERT(offset == 1,					\
-			"The iterator is not compatible with the type "	\
-			<< typeid(value_type).name());			\
-  };									\
-  									\
-  iterator_internal(const iterator_internal & it) {			\
-    if(this != &it) {							\
-      this->initial = it.initial;					\
-      this->ret = new internal_value_type(*it.ret);			\
-    }									\
-  }									\
-  									\
-  virtual ~iterator_internal() { };					\
-  									\
-  inline iterator_internal & operator=(const iterator_internal & it) {	\
-    if(this != &it) {							\
-      this->initial = it.initial;					\
-      this->ret = it.ret;						\
-    }									\
-    return *this;							\
-  }									\
-  									\
-  inline reference operator*() { return *ret; };			\
-  inline pointer operator->() { return ret; };				\
-  inline iterator_internal & operator++() { ++ret; return *this; };	\
-  									\
-  inline iterator_internal & operator+=(const UInt n) {			\
-    ret += n;								\
-    return *this;							\
-  }									\
-  									\
-  inline reference operator[](const UInt n) {				\
-    ret = initial + n;							\
-    return *ret;							\
-  }									\
-  									\
-  inline bool operator==(const iterator_internal & other) {		\
-    return (*this).ret == other.ret;					\
-  }									\
-  inline bool operator!=(const iterator_internal & other) {		\
-    return (*this).ret != other.ret;					\
-  }									\
-  									\
-  inline iterator_internal & operator-(size_t n) {			\
-    ret -= n;                                                           \
-    return *this;							\
-  }									\
-									\
-  inline size_t operator-(const iterator_internal & b) {		\
-    return ret - b.getCurrentStorage();					\
-  }									\
-                                                                        \
-  inline pointer getCurrentStorage() const {				\
-    return ret;								\
-  }									\
-  									\
-  protected:								\
-  pointer initial;							\
-  pointer ret;								\
-  }
-
-specialize_internal_iterator_for_scalar(Real);
-specialize_internal_iterator_for_scalar(UInt);
-
-#else
-template <typename T>
-template <int fps>
-class Vector<T>::iterator_internal<T,T,fps> : public std::iterator<std::random_access_iterator_tag, T>{
+template <class T, bool is_scal>
+template <class R, class IR>
+class Vector<T, is_scal>::iterator_internal<R, IR, true> {
 public:
-  typedef T   value_type;
-  typedef T*  pointer;
-  typedef T&  reference;
-  typedef T   internal_value_type;
-  typedef T*  internal_pointer;
-protected:
-  iterator_internal(UInt offset, pointer data, pointer ret) :
-    initial(data),
-    ret(ret) { }
+  typedef R                               value_type;
+  typedef R*                              pointer;
+  typedef R&                              reference;
+  typedef IR                              internal_value_type;
+  typedef IR*                             internal_pointer;
+  typedef std::ptrdiff_t                  difference_type;
+  typedef std::random_access_iterator_tag iterator_category;
 
 public:
-  iterator_internal() : initial(NULL), ret(NULL) {};
-
-  iterator_internal(pointer data, UInt offset)  :
-    initial(data),
-    ret(data) {
-    AKANTU_DEBUG_ASSERT(offset == 1,
-			"The iterator_internal is not compatible with the type "
-			<< typeid(value_type).name());
-  };
-
+  iterator_internal(pointer data = NULL, UInt offset = 1) : ret(data), initial(data) { };
   iterator_internal(const iterator_internal & it) {
-    if(this != &it) {
-      this->initial = it.initial;
-      this->ret = new internal_value_type(*it.ret);
-    }
+    if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }
 
   virtual ~iterator_internal() { };
 
-  inline iterator_internal & operator=(const iterator_internal & it) {
-    if(this != &it) {
-      this->initial = it.initial;
-      this->ret = it.ret;
-    }
-    return *this;
-  }
+  inline iterator_internal & operator=(const iterator_internal & it)
+  { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
 
   inline reference operator*() { return *ret; };
   inline pointer operator->() { return ret; };
   inline iterator_internal & operator++() { ++ret; return *this; };
   inline iterator_internal & operator--() { --ret; return *this; };
 
-  inline iterator_internal & operator+=(const UInt n) {
-    ret += n;
-    return *this;
-  }
+  inline iterator_internal & operator+=(const UInt n) { ret += n; return *this; }
+  inline iterator_internal & operator-=(const UInt n) { ret -= n; return *this; }
 
-  inline reference operator[](const UInt n) {
-    ret = initial + n;
-    return *ret;
-  }
+  inline reference operator[](const UInt n) { ret = initial + n; return *ret; }
 
-  inline bool operator==(const iterator_internal & other) {
-    return (*this).ret == other.ret;
-  }
-  inline bool operator!=(const iterator_internal & other) {
-    return (*this).ret != other.ret;
-  }
+  inline bool operator==(const iterator_internal & other) { return ret == other.ret; }
+  inline bool operator!=(const iterator_internal & other) { return ret != other.ret; }
+  inline bool operator< (const iterator_internal & other) { return ret <  other.ret; }
+  inline bool operator<=(const iterator_internal & other) { return ret <= other.ret; }
+  inline bool operator> (const iterator_internal & other) { return ret >  other.ret; }
+  inline bool operator>=(const iterator_internal & other) { return ret >= other.ret; }
 
-  inline bool operator<(const iterator_internal & other) {
-    return ret < other.ret;
-  }
+  inline iterator_internal operator-(difference_type n) { return iterator_internal(ret - n); }
+  inline iterator_internal operator+(difference_type n) { return iterator_internal(ret + n); }
 
-  inline bool operator<=(const iterator_internal & other) {
-    return ret <= other.ret;
-  }
+  inline difference_type operator-(const iterator_internal & b) { return ret - b.ret; }
 
-  inline bool operator>(const iterator_internal & other) {
-    return ret > other.ret;
-  }
-
-  inline bool operator>=(const iterator_internal & other) {
-    return ret >= other.ret;
-  }
-
-
-  inline iterator_internal & operator-(size_t n) {
-    ret -= n;
-    return *this;
-  }
-
-  inline size_t operator-(const iterator_internal & b) {
-    return ret - b.getCurrentStorage();
-  }
-
-  inline iterator_internal & operator+(size_t n) {
-    ret += n;
-    return *this;
-  }
-
-  inline pointer getCurrentStorage() const {
-    return ret;
-  }
+  inline pointer data() const { return ret; }
 
 protected:
-  pointer initial;
   pointer ret;
+  pointer initial;
 };
-#endif
 
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
+template <class T, bool is_scal>
 template<typename R>
-inline void Vector<T>::erase(const iterator<R> & it) {
+inline void Vector<T, is_scal>::erase(const iterator<R> & it) {
   T * curr = it.getCurrentStorage();
   UInt pos = (curr - values) / nb_component;
   erase(pos);
 }
 
-// inline reference operator[](const UInt n) {
-//   ret->values = initial + n*offset;
-//   return *ret;
-// }
-
-
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::iterator<T> Vector<T>::begin() {
-  return iterator<T>(values, 1);
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator<T> Vector<T, is_scal>::begin() {
+  return iterator<T>(values);
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::iterator<T> Vector<T>::end() {
-  return iterator<T>(values + nb_component * size, 1);
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator<T> Vector<T, is_scal>::end() {
+  return iterator<T>(values + size);
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::const_iterator<T> Vector<T>::begin() const {
-  return const_iterator<T>(values, 1);
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator<T> Vector<T, is_scal>::begin() const {
+  return const_iterator<T>(values);
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline Vector<T>::const_iterator<T> Vector<T>::end() const {
-  return const_iterator<T>(values + nb_component * size, 1);
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator<T> Vector<T, is_scal>::end() const {
+  return const_iterator<T>(values + size);
 }

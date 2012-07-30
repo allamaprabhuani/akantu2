@@ -572,27 +572,13 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   nodes_numbers.resize(0);
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-  UInt * conn = local_connectivities;
-
   std::map<UInt, UInt> renumbering_map;
 
   /// renumber the nodes
-  for (UInt el = 0; el < nb_local_element + nb_ghost_element; ++el) {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      std::map<UInt, UInt>::iterator it = renumbering_map.find(*conn);
-      //      Int nn = nodes_numbers.find(*conn);
-      if(it == renumbering_map.end()) {
-	UInt old_node = *conn;
-	nodes_numbers.push_back(old_node);
-	*conn = nodes_numbers.getSize() - 1;
-
-	renumbering_map[old_node] = *conn;
-      } else {
-	*conn = it->second;
-      }
-      conn++;
-    }
-  }
+  renumberNodesInConnectivity(local_connectivities,
+			      (nb_local_element + nb_ghost_element)*nb_nodes_per_element,
+			      renumbering_map,
+			      nodes_numbers);
 
   renumbering_map.clear();
 
@@ -611,6 +597,75 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::renumberNodesInConnectivity(UInt * list_nodes,
+					    UInt nb_nodes,
+					    std::map<UInt, UInt> & renumbering_map,
+					    Vector<UInt> & nodes_numbers) {
+  AKANTU_DEBUG_IN();
+
+  UInt * connectivity = list_nodes;
+  for (UInt n = 0; n < nb_nodes; ++n, ++connectivity) {
+    UInt & node = *connectivity;
+    std::map<UInt, UInt>::iterator it = renumbering_map.find(node);
+    if(it == renumbering_map.end()) {
+      UInt old_node = node;
+      nodes_numbers.push_back(old_node);
+      node = nodes_numbers.getSize() - 1;
+      renumbering_map[old_node] = node;
+    } else {
+      node = it->second;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void MeshUtils::purifyMesh(Mesh & mesh) {
+  AKANTU_DEBUG_IN();
+  
+  std::map<UInt, UInt> renumbering_map;
+  Vector<UInt> node_numbers;
+
+  for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
+    GhostType ghost_type = (GhostType) gt;
+
+    Mesh::type_iterator it  = mesh.firstType(0, ghost_type, _ek_not_defined);
+    Mesh::type_iterator end = mesh.lastType(0, ghost_type, _ek_not_defined);
+    for(; it != end; ++it) {
+
+      ElementType type(*it);
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+
+      const Vector<UInt> & connectivity_vect = mesh.getConnectivity(type, ghost_type);
+      UInt nb_element(connectivity_vect.getSize());
+      UInt * connectivity = connectivity_vect.storage();
+
+      renumberNodesInConnectivity (connectivity, nb_element*nb_nodes_per_element, renumbering_map, node_numbers);
+    }
+  }
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  Vector<Real>::iterator<types::RVector> nodes_it = nodes.begin(spatial_dimension);
+  Vector<Real> new_nodes(0, spatial_dimension);
+
+  for (UInt i = 0; i < node_numbers.getSize(); ++i) {
+    new_nodes.push_back(nodes_it + node_numbers(i));
+  }
+
+  std::copy(new_nodes.begin(spatial_dimension), new_nodes.end(spatial_dimension),
+	    nodes.begin(spatial_dimension));
+  
+  nodes.resize(node_numbers.getSize());
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type) {

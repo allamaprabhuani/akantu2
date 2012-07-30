@@ -138,11 +138,7 @@ void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect,
       UInt new_size = nb_element * nb_quadrature_points;
 
       Vector<T> & vect = by_el_type_vect(*it, gt);
-      UInt size = vect.getSize();
-      UInt nb_component = vect.getNbComponent();
-
       vect.resize(new_size);
-      memset(vect.storage() + size * nb_component, 0, (new_size - size) * nb_component * sizeof(T));
     }
   }
 

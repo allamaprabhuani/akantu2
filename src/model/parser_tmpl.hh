@@ -37,10 +37,10 @@ inline void Parser::readSection(M & model) {
       if(pos == std::string::npos)
 	AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
 			   << current_line);
-      
+
       std::string keyword = trim(line.substr(0, pos));
       std::string value   = trim(line.substr(pos + 1));
-      
+
       if(!model.setParam(keyword, value)) {
 	AKANTU_DEBUG_ERROR("Malformed file : error in setParam at line "
 			   << current_line <<"."
@@ -52,10 +52,8 @@ inline void Parser::readSection(M & model) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename Obj, typename ParentType>
-inline Obj * Parser::readSection(ParentType & parent, std::string & obj_name){
-  /// instanciate the material object
-  Obj * obj = new Obj(parent, obj_name);
+inline void Parser::readSection(const std::string & obj_name,
+				Parsable & obj){
   /// read the material properties
   my_getline();
 
@@ -65,17 +63,17 @@ inline Obj * Parser::readSection(ParentType & parent, std::string & obj_name){
       if(pos == std::string::npos)
 	AKANTU_DEBUG_ERROR("Malformed material file : line must be \"key = value\" at line"
 			   << current_line);
-      
+
       std::string keyword = trim(line.substr(0, pos));
       std::string value   = trim(line.substr(pos + 1));
 
-      if(!obj->setParam(keyword, value, obj_name)) {
-	AKANTU_DEBUG_ERROR("Malformed material file : error in setParam at line "
-			   << current_line <<"."
-			   << " Parameter (" << keyword << ") is not recognizedby " << obj_name << "!");
+      if(!obj.setParam(keyword, value, obj_name)) {
+	AKANTU_DEBUG_WARNING("Malformed material file : error in setParam at line "
+			     << current_line <<"."
+			     << " Parameter (" << keyword << ") is not recognized by " << obj_name << "!");
       }
     }
     my_getline();
   }
-  return obj;
 }
+

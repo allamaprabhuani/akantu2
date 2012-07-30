@@ -250,6 +250,13 @@ public:
   /* Materials (solid_mechanics_model_material.cc)                            */
   /* ------------------------------------------------------------------------ */
 public:
+  /// register a material in the dynamic database
+  Material & registerNewMaterial(const ID & mat_type,
+				 const std::string & opt_param = "");
+
+  template <typename M>
+  Material & registerNewCurtomMaterial(const ID & mat_type,
+				       const std::string & opt_param = "");
   /// read the material files to instantiate all the materials
   void readMaterials(const std::string & filename);
 
@@ -262,11 +269,11 @@ public:
   void setMaterialIDsFromIntData(const std::string & data_name);
 
 protected:
-  /// read properties part of a material file and create the material
-  template <typename M>
-  Material * readMaterialProperties(std::ifstream & infile,
-				    ID mat_id,
-				    UInt &current_line);
+  // /// read properties part of a material file and create the material
+  // template <typename M>
+  // Material * readMaterialProperties(std::ifstream & infile,
+  // 				    ID mat_id,
+  // 				    UInt &current_line);
 
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
@@ -382,9 +389,6 @@ public:
   inline Material & getMaterial(UInt mat_index);
   inline const Material & getMaterial(UInt mat_index) const;
 
-  /// push a new material object
-  void pushNewMaterial(Material * mat);
-
   /// give the number of materials
   inline UInt getNbMaterials() const { return materials.size(); };
 
@@ -396,6 +400,9 @@ public:
 
   /// compute the kinetic energy
   Real getKineticEnergy();
+
+  /// compute the external work (for impose displacement, the velocity should be given too)
+  Real getExternalWork();
 
   /// get the energies
   Real getEnergy(std::string id);

@@ -233,7 +233,8 @@ inline const Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & 
     AKANTU_EXCEPTION("No element of type "
                      << ByElementTypeVector<T>::printType(type, ghost_type)
                      << " in this ByElementTypeVector<"
-                     << debug::demangle(typeid(T).name()) << "> class");
+                     << debug::demangle(typeid(T).name()) << "> class(\""
+                     << this->id << "\")");
 
   return *(it->second);
 }

@@ -42,6 +42,7 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
   MaterialDamage<spatial_dimension>(model, id),
   damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
+
   K0   = 1e-4;
   At   = 0.8;
   Ac   = 1.4;
@@ -70,12 +71,11 @@ void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-  Real Ehat;
+  Real Ehat = 0;
   computeStressOnQuad(grad_u, sigma, *dam, Ehat);
   ++dam;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
 
   if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 

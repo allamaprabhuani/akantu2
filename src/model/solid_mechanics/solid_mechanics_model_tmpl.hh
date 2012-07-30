@@ -27,6 +27,25 @@
 
 /* -------------------------------------------------------------------------- */
 template <typename M>
+Material & SolidMechanicsModel::registerNewCurtomMaterial(const ID & mat_type,
+							  const std::string & opt_param) {
+  UInt mat_count = materials.size();
+
+  std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;
+  Material * material;
+  ID mat_id = sstr_mat.str();
+
+  // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
+  material = new M(*this, mat_id);
+  materials.push_back(material);
+
+  return *material;
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+template <typename M>
 UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					     const std::string & keyword) {
 
@@ -45,10 +64,10 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					  << key
 					  << " not found in file " << filename);
 
-  std::stringstream sstr_mat; sstr_mat << id << ":" << materials.size() << ":" << key;
-  ID mat_id = sstr_mat.str();
-  Material * mat = parser.readSection<M>(*this, mat_id);
-  materials.push_back(mat);
+  
+  Material & mat = registerNewCurtomMaterial<M>(key, opt_param);
+  parser.readSection(mat.getID(), mat);
+  materials.push_back(&mat);
   return materials.size();;
 }
 

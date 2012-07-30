@@ -120,6 +120,9 @@ public:
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  /// remove not connected nodes /!\ this functions renumbers the nodes.
+  static void purifyMesh(Mesh & mesh);
+
 private:
 
   /// match pairs that are on the associated pbc's
@@ -128,6 +131,12 @@ private:
 			    std::vector<UInt> & selected_left,
 			    std::vector<UInt> & selected_right,
 			    std::map<UInt,UInt> & pbc_pair);
+
+  /// function used by all the renumbering functions
+  static void renumberNodesInConnectivity(UInt * list_nodes,
+					  UInt nb_nodes,
+					  std::map<UInt, UInt> & renumbering_map,
+					  Vector<UInt> & nodes_numbers);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

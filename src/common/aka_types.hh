@@ -114,7 +114,7 @@ namespace types {
 	  memcpy(this->values, src.values, n * sizeof(T));
 	} else {
 	  n = src.n;
-	  delete []values;
+	  delete [] values;
 	  values = new T[n];
 	  memcpy(this->values, src.values, n * sizeof(T));
 	}

@@ -41,7 +41,7 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(SolidMechanics
   MaterialElastic<spatial_dimension>(model, id),
   MaterialMazars<spatial_dimension>(model, id),
   MaterialNonLocalParent(model, id),
-  Ehat("equistrain", id) {
+  Ehat("epsilon_equ", id) {
   AKANTU_DEBUG_IN();
 
   this->damage_in_compute_stress = false;
@@ -67,15 +67,16 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(ElementType el_typ
 							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Ehatt = this->Ehat(el_type, ghost_type).storage();
+  Real * damage      = this->damage(el_type, ghost_type).storage();
+  Real * epsilon_equ = this->Ehat(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
   MaterialMazars<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
-							 *dam, *Ehatt);
-  ++dam;
-  ++Ehatt;
+							 *damage,
+							 *epsilon_equ);
+  ++damage;
+  ++epsilon_equ;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -111,24 +112,21 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Rea
 								      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * not_averaged;
-  if(this->damage_in_compute_stress)
-    not_averaged = this->Ehat(el_type, ghost_type).storage();
-  else 
-    not_averaged = this->damage(el_type, ghost_type).storage();
-
-  Real * nl_var = non_loc_var.storage();
+  Real * damage;
+  Real * epsilon_equ;
+  if(this->damage_in_compute_stress){
+    damage      = non_loc_var.storage();
+    epsilon_equ = this->Ehat(el_type, ghost_type).storage();
+  } else {
+    damage      = this->damage(el_type, ghost_type).storage();
+    epsilon_equ = non_loc_var.storage();
+  }
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  this->computeDamageAndStressOnQuad(grad_u, sigma, *damage, *epsilon_equ);
 
-  if (this->damage_in_compute_stress)
-    this->computeDamageAndStressOnQuad(grad_u, sigma, *nl_var, *not_averaged);
-  else
-    this->computeDamageAndStressOnQuad(grad_u, sigma, *not_averaged, *nl_var);
-
-  ++not_averaged;
-  ++nl_var;
-
+  ++damage;
+  ++epsilon_equ;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   this->updateDissipatedEnergy(ghost_type);

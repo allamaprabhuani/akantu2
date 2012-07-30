@@ -150,7 +150,7 @@ public:
 			 ElementType type2,
 			 GhostType ghost_type2) {
     selected_damage =
-      &(dynamic_cast<const MaterialDamage<spatial_dimension> &>(this->material).getDamage(type2, ghost_type2));
+      &this->material.getVector("damage", type2, ghost_type2);
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {

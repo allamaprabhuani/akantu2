@@ -49,7 +49,7 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 
 
 /* -------------------------------------------------------------------------- */
-template<ElementType type>
+template<ElementType type, bool is_plane_strain>
 static types::Matrix prescribed_strain() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix strain(spatial_dimension, spatial_dimension);
@@ -62,14 +62,14 @@ static types::Matrix prescribed_strain() {
   return strain;
 }
 
-template<ElementType type>
+template<ElementType type, bool is_plane_strain>
 static types::Matrix prescribed_stress() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   types::Matrix stress(spatial_dimension, spatial_dimension);
 
   //plane strain in 2d
   types::Matrix strain(spatial_dimension, spatial_dimension);
-  types::Matrix pstrain; pstrain = prescribed_strain<type>();
+  types::Matrix pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
   Real nu = 0.3;
   Real E  = 2.1e11;
   Real trace = 0;
@@ -82,12 +82,22 @@ static types::Matrix prescribed_stress() {
 
   for (UInt i = 0; i < spatial_dimension; ++i) trace += strain(i,i);
 
-  Real Ep = E / (1 + nu);
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j) {
-      stress(i, j) = Ep * strain(i,j);
-      if(i == j) stress(i, j) += Ep * (nu / (1 - 2*nu)) * trace;
-    }
+  Real lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
+  Real mu       = E / (2 * (1 + nu));
+
+  if(!is_plane_strain) {
+    std::cout << "toto" << std::endl;
+    lambda = nu * E / (1 - nu*nu);
+  }
+
+  if(spatial_dimension == 1) {
+    stress(0, 0) = E * strain(0, 0);
+  } else {
+    for (UInt i = 0; i < spatial_dimension; ++i)
+      for (UInt j = 0; j < spatial_dimension; ++j) {
+	stress(i, j) =  (i == j)*lambda*trace + 2*mu*strain(i, j);
+      }
+  }
 
   return stress;
 }
@@ -113,23 +123,17 @@ int main(int argc, char *argv[])
   std::stringstream filename; filename << TYPE << ".msh";
   mesh_io.read(filename.str(), my_mesh);
 
+  MeshUtils::purifyMesh(my_mesh);
+
   UInt nb_nodes = my_mesh.getNbNodes();
 
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initVectors();
-  // initialize the vectors
-  my_model.getForce().clear();
-  my_model.getVelocity().clear();
-  my_model.getAcceleration().clear();
-  my_model.getDisplacement().clear();
-
-  my_model.initModel();
-  my_model.readMaterials("material_check_stress.dat");
-  my_model.initMaterials();
-
-  my_model.initImplicit();
+  if(PLANE_STRAIN)
+    my_model.initFull("material_check_stress_plane_strain.dat", _static);
+  else
+    my_model.initFull("material_check_stress_plane_stress.dat", _static);
 
   const Vector<Real> & coordinates = my_mesh.getNodes();
   Vector<Real> & displacement = my_model.getDisplacement();
@@ -196,8 +200,8 @@ int main(int argc, char *argv[])
   Vector<Real>::iterator<types::Matrix> stress_it = stress_vect.begin(dim, dim);
   Vector<Real>::iterator<types::Matrix> strain_it = strain_vect.begin(dim, dim);
 
-  types::Matrix presc_stress; presc_stress = prescribed_stress<TYPE>();
-  types::Matrix presc_strain; presc_strain = prescribed_strain<TYPE>();
+  types::Matrix presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
+  types::Matrix presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
 
@@ -208,7 +212,7 @@ int main(int argc, char *argv[])
 
       for (UInt i = 0; i < dim; ++i) {
 	for (UInt j = 0; j < dim; ++j) {
-	  if(!(std::abs(strain(i, j) - presc_strain(i, j)) < 1e-15)) {
+	  if(!(std::abs(strain(i, j) - presc_strain(i, j)) < 2e-15)) {
 	    std::cerr << "strain[" << i << "," << j << "] = " << strain(i, j) << " but should be = " << presc_strain(i, j) << " (-" << std::abs(strain(i, j) - presc_strain(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
 	    std::cerr << "computed : " << strain << "reference : " << presc_strain << std::endl;
 	    return EXIT_FAILURE;
@@ -235,7 +239,7 @@ int main(int argc, char *argv[])
 	disp += alpha[i][j + 1] * coordinates(n, j);
       }
 
-      if(!(std::abs(displacement(n,i) - disp) < 1e-15)) {
+      if(!(std::abs(displacement(n,i) - disp) < 2e-15)) {
 	std::cerr << "displacement(" << n << ", " << i <<")=" << displacement(n,i) << " should be equal to " << disp <<  std::endl;
 	return EXIT_FAILURE;
       }

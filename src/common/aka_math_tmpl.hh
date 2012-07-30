@@ -352,35 +352,35 @@ inline void Math::matrix22_eigenvalues(Real * A, Real *Adiag) {
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix33_eigenvalues(Real * A, Real *Adiag) {
-  ///d = determinant of Matrix A
-  Real d = det3(A);
-  ///b = trace of Matrix A
-  Real b = A[0]+A[4]+A[8];
-
-  Real a = -1 ;
-  /// c = 0.5*(trace(M^2)-trace(M)^2)
-  Real c =  A[3]*A[1] + A[2]*A[6] + A[5]*A[7] - A[0]*A[4] -
-    A[0]*A[8] - A[4]*A[8];
-  /// Define x, y, z
-  Real x = ((3*c/a) - ((b*b)/(a*a)))/3;
-  Real y=((2*(b*b*b)/(a*a*a)) - (9*b*c/(a*a)) + (27*d/a))/27;
-  Real z = (y*y)/4 + (x*x*x)/27;
-  /// Define I, j, k, m, n, p (so equations are not so cluttered)
-  Real i = sqrt(y*y/4 - z);
-  Real j = -pow(i,1./3.);
-  Real k;
-  if (fabs(i)<1e-12)
-     k = 0;
-     else
-     k = acos(-(y/(2*i)));
-
-  Real m = cos(k/3);
-  Real n = sqrt(3)*sin(k/3);
-  Real p = b/(3*a);
-
-  Adiag[0]=-(2*j*m + p);;
-  Adiag[1]=-(-j *(m + n) + p);
-  Adiag[2]=-(-j * (m - n) + p);
+  /// a L^3 + b L^2 + c L + d = 0
+  matrixEig(3, A, Adiag);
+//  Real a = -1 ;
+//  ///b = trace of Matrix A
+//  Real b = A[0]+A[4]+A[8];
+//  /// c = 0.5*(trace(M^2)-trace(M)^2)
+//  Real c =  A[1]*A[3] + A[2]*A[6] + A[5]*A[7] - A[0]*A[4] -
+//    A[0]*A[8] - A[4]*A[8];
+//  ///d = determinant of Matrix A
+//  Real d = det3(A);
+//
+//  /// Define x, y, z
+//  Real x = c/a - b*b/(3.*a*a);
+//  Real y = 2.*b*b*b/(27.*a*a*a) - b*c/(3.*a*a) + d/a;
+//  Real z = y*y/4. + x*x*x/27.;
+//  /// Define I, j, k, m, n, p (so equations are not so cluttered)
+//  Real i = sqrt(y*y/4. - z);
+//  Real j = pow(i,1./3.);
+//  Real k = 0;
+//  if (std::abs(i) > 1e-12)
+//    k = acos(-(y/(2.*i)));
+//
+//  Real m = cos(k/3);
+//  Real n = sqrt(3.)*sin(k/3);
+//  Real p = -b/(3.*a);
+//
+//  Adiag[0] = 2*j*m + p;
+//  Adiag[1] = -j *(m + n) + p;
+//  Adiag[2] = -j * (m - n) + p;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -388,7 +388,7 @@ template<UInt dim>
 inline void Math::eigenvalues(Real * A, Real * d) {
   if(dim == 1) { d[0] = A[0]; }
   else if(dim == 2) { matrix22_eigenvalues(A, d); }
-  else if(dim == 3) { matrix33_eigenvalues(A, d); }
+  // else if(dim == 3) { matrix33_eigenvalues(A, d); }
   else matrixEig(dim, A, d);
 }
 

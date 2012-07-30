@@ -177,6 +177,8 @@ void MaterialCohesive::updateResidual(__attribute__((unused)) Vector<Real> & dis
   /// compute energies
   computeEnergies();
 
+  
+
   /// update old values
   Mesh & mesh = fem_cohesive->getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);

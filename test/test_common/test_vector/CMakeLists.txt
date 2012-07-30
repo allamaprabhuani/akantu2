@@ -1,7 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Feb 2 14:46:59 2011
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @date   Fri Jun 11 09:46:59 2010
 #
 # @section LICENSE
 #
@@ -25,18 +25,6 @@
 #
 #===============================================================================
 
-#===============================================================================
-# List of tests
-#===============================================================================
-add_akantu_test(test_mesh_io "Test mesh io object")
-add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
-add_akantu_test(test_pbc_tweak "Test pbc facilities")
-
-register_test(test_purify_mesh test_purify_mesh.cc)
-file(COPY purify_mesh.msh DESTINATION .)
-
-if(AKANTU_SCOTCH)
-  add_akantu_test(test_mesh_partitionate "Test mesh partition creation")
-endif(AKANTU_SCOTCH)
-
-
+register_test(test_vector test_vector.cc)
+register_test(test_vector_iterator test_vector_iterator.cc)
+register_test(test_matrix test_matrix.cc)

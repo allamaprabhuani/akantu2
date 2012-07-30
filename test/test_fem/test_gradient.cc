@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   const ElementType type = TYPE;
   UInt dim = ElementClass<type>::getSpatialDimension();
 
-  Real eps = 3e-13;
+  Real eps = 1e-12;
   std::cout << "Epsilon : " << eps << std::endl;
 
   MeshIOMSH mesh_io;

@@ -50,6 +50,13 @@ int main(int argc, char *argv[]) {
   MeshIOMSH mesh_io;
   Mesh my_mesh(dim);
 
+  Real lower[dim];
+  Real upper[dim];
+
+  my_mesh.computeBoundingBox();
+  my_mesh.getLowerBounds(lower);
+  my_mesh.getUpperBounds(upper);
+
   std::stringstream meshfilename; meshfilename << type << ".msh";
   mesh_io.read(meshfilename.str(), my_mesh);
 
@@ -83,11 +90,11 @@ int main(int argc, char *argv[]) {
     for(UInt q = 0 ; q < nb_quad_points ; ++q){
       fem->inverseMap(*it, el, type, natural_coords);
       for (UInt i = 0; i < dim; ++i) {
-	const Real eps = 1e-15;
-	AKANTU_DEBUG_ASSERT(fabs(natural_coords[i] - quad[i]) < eps,
+	const Real eps = 1e-13;
+	AKANTU_DEBUG_ASSERT(std::abs((natural_coords[i] - quad[i])/(upper[i]-lower[i])) < eps,
 			    "real coordinates inversion test failed:"
 			    << natural_coords[i] << " - " << quad[i] 
-			    << " = " << natural_coords[i] - quad[i]);
+			    << " = " << (natural_coords[i] - quad[i])/(upper[i]-lower[i]));
       }
       ++it;
     }

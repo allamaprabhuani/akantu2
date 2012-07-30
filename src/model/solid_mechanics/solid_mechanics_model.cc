@@ -938,27 +938,6 @@ Real SolidMechanicsModel::getPotentialEnergy() {
   return energy;
 }
 
-/* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(std::string id) {
-  AKANTU_DEBUG_IN();
-
-  if (id == "kinetic") {
-    return getKineticEnergy();
-  }
-
-  Real energy = 0.;
-
-  std::vector<Material *>::iterator mat_it;
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    energy += (*mat_it)->getEnergy(id);
-  }
-
-  /// reduction sum over all processors
-  StaticCommunicator::getStaticCommunicator()->allReduce(&energy, 1, _so_sum);
-
-  AKANTU_DEBUG_OUT();
-  return energy;
-}
 
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getKineticEnergy() {
@@ -992,6 +971,66 @@ Real SolidMechanicsModel::getKineticEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getExternalWork() {
+  AKANTU_DEBUG_IN();
+  
+  Real * velo = velocity->storage();
+  Real * forc = force->storage();
+  Real * resi = residual->storage();
+  bool * boun = boundary->storage();
+
+  Real work = 0.;
+
+  UInt nb_nodes = mesh.getNbNodes();
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
+    bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
+    bool count_node = is_local_node && is_not_pbc_slave_node;
+
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      if(*boun)
+	work -= count_node * *resi * *velo * time_step;
+      else
+	work += count_node * *forc * *velo * time_step;
+
+      ++velo;
+      ++forc;
+      ++resi;
+      ++boun;
+    }
+  }
+  
+  StaticCommunicator::getStaticCommunicator()->allReduce(&work, 1, _so_sum);
+
+  AKANTU_DEBUG_OUT();
+  return work;
+}
+
+/* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getEnergy(std::string id) {
+  AKANTU_DEBUG_IN();
+
+  if (id == "kinetic") {
+    return getKineticEnergy();
+  } else if (id == "external work"){
+    return getExternalWork();
+  }
+
+  Real energy = 0.;
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    energy += (*mat_it)->getEnergy(id);
+  }
+
+  /// reduction sum over all processors
+  StaticCommunicator::getStaticCommunicator()->allReduce(&energy, 1, _so_sum);
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
@@ -999,7 +1038,6 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << "Solid Mechanics Model [" << std::endl;
   stream << space << " + id                : " << id << std::endl;
   stream << space << " + spatial dimension : " << spatial_dimension << std::endl;
-
   stream << space << " + fem [" << std::endl;
   getFEM().printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;

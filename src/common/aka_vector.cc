@@ -116,6 +116,6 @@ Vector<char> & Vector<char>::operator+=(__attribute__((unused)) const Vector<cha
 // template class Vector<bool>;
 // template class Vector<ElementType>;
 // template class Vector<char>;
-//template class Vector<QuadraturePoint>;
+// template class Vector<QuadraturePoint>;
 
 __END_AKANTU__

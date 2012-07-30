@@ -38,7 +38,10 @@
 #include "sparse_matrix.hh"
 
 /* -------------------------------------------------------------------------- */
-
+namespace akantu {
+  class Integrator;
+  class ShapeFunctions;
+}
 
 __BEGIN_AKANTU__
 
@@ -279,6 +282,8 @@ public:
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);
 
+  virtual const ShapeFunctions & getShapeFunctionsInterface() const = 0;
+  virtual const Integrator & getIntegratorInterface() const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

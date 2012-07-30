@@ -37,17 +37,16 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL(dim, elem)		\
-  material = parser.readSection< BOOST_PP_ARRAY_ELEM(1, elem)< dim >,	\
-				 SolidMechanicsModel >(*this, mat_id)
-
+  material =								\
+    &(registerNewCurtomMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(mat_type, \
+								      opt_param))
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL_EACH(r, data, i, elem)	\
   BOOST_PP_EXPR_IF(BOOST_PP_NOT_EQUAL(0, i), else )			\
     if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
       material =							\
-	parser.readSection< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
-	BOOST_PP_TUPLE_ELEM(2, 1, elem) >,				\
-	SolidMechanicsModel >(*this, mat_id);				\
+    &(registerNewCurtomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
+							       BOOST_PP_TUPLE_ELEM(2, 1, elem) > >(mat_type, opt_param)); \
     }
 
 
@@ -58,14 +57,6 @@ __BEGIN_AKANTU__
   else {								\
     AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL(dim, elem);		\
   }
-
-// #define AKANTU_INTANTIATE_MATERIAL_BY_DIM(dim, elem)			
-//   material =								
-//     parser.readSection<BOOST_PP_ARRAY_ELEM(1, elem)< dim		
-// 						     BOOST_PP_COMMA_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem))) 
-//       BOOST_PP_EXPR_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem)),	
-// 		       BOOST_PP_APPLY(BOOST_PP_ARRAY_ELEM(2, elem))) >, 
-// 		       SolidMechanicsModel>(*this, mat_id)
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM(dim, elem)			\
   BOOST_PP_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem) ),		\
@@ -106,21 +97,32 @@ void SolidMechanicsModel::readMaterials(const std::string & filename) {
   parser.open(filename);
   std::string opt_param;
   std::string mat_type = parser.getNextSection("material", opt_param);
-  UInt mat_count = 0;
 
   while (mat_type != ""){
-    std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count++ << ":" << mat_type;
-    Material * material;
-    ID mat_id = sstr_mat.str();
-    /// read the material properties
-
-    // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
-    AKANTU_INSTANTIATE_MATERIALS();
-
-    materials.push_back(material);
+    Material & mat = registerNewMaterial(mat_type, opt_param);
+    parser.readSection(mat.getID(), mat);
     mat_type = parser.getNextSection("material", opt_param);
   }
   parser.close();
+}
+
+/* -------------------------------------------------------------------------- */
+Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_type,
+						    const std::string & opt_param) {
+  // UInt mat_count = materials.size();
+
+  // std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;
+  // Material * material;
+  // ID mat_id = sstr_mat.str();
+
+  // // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
+  // AKANTU_INSTANTIATE_MATERIALS();
+  // materials.push_back(material);
+  Material * material;
+
+  AKANTU_INSTANTIATE_MATERIALS();
+
+  return *material;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -187,13 +189,5 @@ void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_nam
 }
 
 /* -------------------------------------------------------------------------- */
-
-void SolidMechanicsModel::pushNewMaterial(Material * mat){
-  materials.push_back(mat);
-}
-/* -------------------------------------------------------------------------- */
-
-
-
 
 __END_AKANTU__

@@ -31,7 +31,7 @@ INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 #===============================================================================
 # List of tests
 #===============================================================================
-add_akantu_test(test_vector "Test akantu vector")
+add_akantu_test(test_common "Test the common part of Akantu")
 add_akantu_test(test_static_memory "Test static memory")
 add_akantu_test(test_fem "Test finite element functionalties")
 add_akantu_test(test_mesh_utils "Test mesh utils")

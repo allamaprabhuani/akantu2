@@ -44,14 +44,17 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/test_weight_tetra)
 set(LIST_TYPES
   segment_2
   segment_3
-  triangle_3
-  triangle_6
-  quadrangle_4
-  quadrangle_8
   tetrahedron_4
   tetrahedron_10
   hexahedron_8
   )
+
+set(LIST_TYPES_2D
+  triangle_3
+  triangle_6
+  quadrangle_4
+  quadrangle_8
+)
 
 add_subdirectory(explicit)
 
