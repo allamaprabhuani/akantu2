@@ -27,8 +27,6 @@
 
 register_test(test_cohesive_intrinsic_impl test_cohesive_intrinsic_impl.cc)
 
-add_mesh(test_cohesive_intrinsic_impl_mesh mesh.geo 2 2)
-add_dependencies(test_cohesive_intrinsic_impl test_cohesive_intrinsic_impl_mesh)
 
 #===============================================================================
 configure_file(
@@ -37,3 +35,4 @@ configure_file(
   COPYONLY
   )
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+file(COPY simple.msh DESTINATION .)
