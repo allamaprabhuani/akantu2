@@ -28,7 +28,7 @@
 /* -------------------------------------------------------------------------- */
 template <typename M>
 Material & SolidMechanicsModel::registerNewCurtomMaterial(const ID & mat_type,
-							  const std::string & opt_param) {
+							  __attribute__((unused)) const std::string & opt_param) {
   UInt mat_count = materials.size();
 
   std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;

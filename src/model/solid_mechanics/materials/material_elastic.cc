@@ -83,13 +83,13 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentStiffness(__attribute__((unused)) const ElementType & el_type,
-								 Vector<Real> & tangent_matrix,
-								 __attribute__((unused)) GhostType ghost_type) {
+void MaterialElastic<spatial_dimension>::computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
+							      Vector<Real> & tangent_matrix,
+							      __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  computeTangentStiffnessOnQuad(tangent);
+  computeTangentModuliOnQuad(tangent);
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();

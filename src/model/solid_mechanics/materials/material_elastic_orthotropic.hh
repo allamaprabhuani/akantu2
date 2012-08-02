@@ -79,9 +79,9 @@ public:
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentStiffness(const ElementType & el_type,
-			       Vector<Real> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost);
+  void computeTangentModuli(const ElementType & el_type,
+			    Vector<Real> & tangent_matrix,
+			    GhostType ghost_type = _not_ghost);
 
   /// compute the p-wave speed in the material
   virtual Real getPushWaveSpeed() const;
@@ -113,7 +113,6 @@ public:
   AKANTU_GET_MACRO(G12, G12, Real);
   AKANTU_GET_MACRO(G13, G13, Real);
   AKANTU_GET_MACRO(G23, G23, Real);
-
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -52,10 +52,8 @@ inline void MaterialElastic<1>::computeStressOnQuad(const types::Matrix & grad_u
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentStiffnessOnQuad(types::Matrix & tangent) {
+void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::Matrix & tangent) {
   UInt n = tangent.cols();
-
-  tangent.clear();
 
   //Real Ep = E/((1+nu)*(1-2*nu));
   Real Miiii = lambda + 2*mu;

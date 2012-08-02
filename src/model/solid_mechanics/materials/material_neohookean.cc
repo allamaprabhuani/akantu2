@@ -81,13 +81,13 @@ void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(ElementType e
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialNeohookean<spatial_dimension>::computeTangentStiffness(const ElementType & el_type,
-								    Vector<Real> & tangent_matrix,
-								    GhostType ghost_type) {
+void MaterialNeohookean<spatial_dimension>::computeTangentModuli(const ElementType & el_type,
+								 Vector<Real> & tangent_matrix,
+								 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  computeTangentStiffnessOnQuad(grad_u, tangent);
+  computeTangentModuliOnQuad(grad_u, tangent);
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();

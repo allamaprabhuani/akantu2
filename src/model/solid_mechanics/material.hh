@@ -103,7 +103,10 @@ public:
 				       GhostType ghost_type);
 
   /// compute the stable time step for an element of size h
-  virtual Real getStableTimeStep(Real h, const Element & element = ElementNull) = 0;
+  virtual Real getStableTimeStep(__attribute__((unused)) Real h,
+				 __attribute__((unused)) const Element & element = ElementNull)  {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /// compute the p-wave speed in the material
   virtual Real getPushWaveSpeed() const { AKANTU_DEBUG_TO_IMPLEMENT(); };
@@ -135,18 +138,20 @@ public:
 protected:
 
   /// constitutive law
-  virtual void computeStress(ElementType el_type,
-			     GhostType ghost_type = _not_ghost) = 0;
+  virtual void computeStress(__attribute__((unused)) ElementType el_type,
+			     __attribute__((unused)) GhostType ghost_type = _not_ghost)  {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
 
   /// set the material to steady state (to be implemented for materials that need it)
   virtual void setToSteadyState(__attribute__((unused)) ElementType el_type,
-				__attribute__((unused)) GhostType ghost_type = _not_ghost) {};
+				__attribute__((unused)) GhostType ghost_type = _not_ghost) {}
 
   /// compute the tangent stiffness matrix
-  virtual void computeTangentStiffness(const ElementType & el_type,
-				       Vector<Real> & tangent_matrix,
-				       GhostType ghost_type = _not_ghost) {
+  virtual void computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
+				    __attribute__((unused)) Vector<Real> & tangent_matrix,
+				    __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -161,7 +166,9 @@ protected:
 
   /// transfer the B matrix to a Voigt notation B matrix
   template<UInt dim>
-  inline void transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const;
+  inline void transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
+					       types::Matrix & Bvoigt,
+					       UInt nb_nodes_per_element) const;
 
   inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
 

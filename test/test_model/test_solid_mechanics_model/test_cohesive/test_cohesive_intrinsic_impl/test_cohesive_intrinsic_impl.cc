@@ -40,7 +40,9 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#include "io_helper.hh"
+#if defined(AKANTU_USE_IOHELPER)
+#  include "io_helper.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -105,7 +107,7 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  
+#if defined(AKANTU_USE_IOHELPER)  
   iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
 
   /// initialize the paraview output
@@ -134,7 +136,7 @@ int main(int argc, char *argv[]) {
   dumper.SetPrefix("paraview");
   dumper.Init();
   dumper.Dump();
-
+#endif
 
   const MaterialCohesive & mat_coh = dynamic_cast< const MaterialCohesive &> (model.getMaterial(1));
 
@@ -172,7 +174,11 @@ int main(int argc, char *argv[]) {
     } while(!model.testConvergenceResidual(1e-5, norm) && (count < 100))  ;
 
     std::cout << "Step : " << nstep << " - residual norm : " << norm << std::endl;
+
+#if defined(AKANTU_USE_IOHELPER)
     dumper.Dump(); 
+#endif
+
     Real resid = 0;
     for (UInt n = 0; n < nb_nodes; ++n) {
       if (std::abs(position(n,1)-2)< Math::getTolerance()){

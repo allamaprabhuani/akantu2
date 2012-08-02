@@ -64,8 +64,8 @@ MaterialNeohookean<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computeTangentStiffnessOnQuad(types::Matrix & grad_u,
-								     types::Matrix & tangent) {
+MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(types::Matrix & grad_u,
+								  types::Matrix & tangent) {
   UInt n = tangent.cols();
   types::Matrix F(3, 3);
   this->template gradUToF<spatial_dimension>(grad_u, F);

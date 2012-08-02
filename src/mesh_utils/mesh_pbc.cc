@@ -250,15 +250,21 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   }
 
   // find direction of pbc
-  Int first_dir=-1, second_dir=-2;
+  Int first_dir = -1;
+#ifndef AKANTU_NDEBUG
+  Int second_dir = -2;
+#endif
   for (UInt i=0; i<dim; ++i) {
     if (Math::are_float_equal(first_min[i], first_max[i])) {
       first_dir = i;
     }
+#ifndef AKANTU_NDEBUG
     if (Math::are_float_equal(second_min[i], second_max[i])) {
       second_dir = i;
     }
+#endif
   }
+
   AKANTU_DEBUG_ASSERT(first_dir == second_dir, "Surface pair has not same direction. Surface " 
 		      << surface_pair.first << " dir=" << first_dir << " ; Surface " 
 		      << surface_pair.second << " dir=" << second_dir);

@@ -87,7 +87,7 @@ protected:
 		       GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentStiffness(const ElementType & el_type,
+  void computeTangentTraction(const ElementType & el_type,
 			      Vector<Real> & tangent_matrix,
 			      const Vector<Real> & normal,
 			      GhostType ghost_type = _not_ghost);

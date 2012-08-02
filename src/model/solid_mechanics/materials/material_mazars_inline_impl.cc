@@ -93,48 +93,9 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::Mat
 template<UInt spatial_dimension>
 inline void
 MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & epsilon_equ,
-						       const types::Matrix & sigma,
+						       __attribute__((unused)) const types::Matrix & sigma,
 						       const types::RVector & epsilon_princ,
 						       Real & dam) {
-//  if (epsilon_equ > K0) {
-//    Real dam_t;
-//    Real dam_c;
-//    dam_t = 1 - K0*(1 - At)/epsilon_equ - At / exp(Bt*(epsilon_equ - K0));
-//    dam_c = 1 - K0*(1 - Ac)/epsilon_equ - Ac / exp(Bc*(epsilon_equ - K0));
-//
-//    dam_t = std::min(1., std::max(0., dam_t));
-//    dam_c = std::min(1., std::max(0., dam_c));
-//
-//    types::RVector sigma_diag(3);
-//    Math::matrixEig(3, sigma.storage(), sigma_diag.storage());
-//
-//    types::RVector sigma_p(3);
-//    for (UInt i = 0; i < 3; ++i) sigma_p(i) = std::max(0., sigma_diag(i));
-//
-//    sigma_p *= 1-dam;
-//
-//    Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
-//
-//    Real alpha_t = 0;
-//    for (UInt i = 0; i < 3; ++i) {
-//      Real epsilon_t = (1 + this->nu)/this->E * sigma_p(i) - trace_p;
-//      Real epsilon_p = std::max(0., epsilon_princ(i));
-//      alpha_t += epsilon_t * epsilon_p;
-//    }
-//
-//    alpha_t /= epsilon_equ * epsilon_equ;
-//    alpha_t = std::max(0., std::min(alpha_t, 1.));
-//
-//    Real alpha_c = 1 - alpha_t;
-//
-//    alpha_t = std::pow(alpha_t, beta);
-//    alpha_c = std::pow(alpha_c, beta);
-//
-//    Real damtemp;
-//    damtemp = alpha_t * dam_t + alpha_c * dam_c;
-//    dam = std::max(damtemp, dam);
-//    dam = std::min(dam,1.);
-//  }
   Real Fs = epsilon_equ - K0;
   if (Fs > 0.) {
     Real dam_t;

@@ -205,7 +205,6 @@ void Material::assembleResidual(GhostType ghost_type) {
       shapesd_filtered_val += size_of_shapes_derivatives * nb_quadrature_points;
     }
 
-
     Vector<Real> & stress_vect = stress(*it, ghost_type);
     // Vector<Real>::iterator<types::Matrix> sigma = stress_vect.begin(spatial_dimension, spatial_dimension);
     // Vector<Real>::iterator<types::Matrix> sigma_end = stress_vect.end(spatial_dimension, spatial_dimension);
@@ -351,10 +350,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
   Vector<UInt> & elem_filter = element_filter(type, ghost_type);
   Vector<Real> & strain_vect = strain(type, ghost_type);
 
-  UInt * elem_filter_val = elem_filter.storage();
-
   UInt nb_element                 = elem_filter.getSize();
-  UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type, ghost_type);
 
@@ -369,7 +365,25 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
     new Vector<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
 		     "tangent_stiffness_matrix");
 
-  computeTangentStiffness(type, *tangent_stiffness_matrix, ghost_type);
+  tangent_stiffness_matrix->clear();
+
+  computeTangentModuli(type, *tangent_stiffness_matrix, ghost_type);
+
+
+  Vector<Real> * shapes_derivatives_filtered = new Vector<Real>(nb_element * nb_quadrature_points,
+								dim * nb_nodes_per_element,
+								"shapes derivatives filtered");
+
+
+  Vector<Real>::const_iterator<types::Matrix> shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
+											       nb_nodes_per_element);
+
+  Vector<Real>::iterator<types::Matrix> shapes_derivatives_filtered_it  = shapes_derivatives_filtered->begin(spatial_dimension,
+													     nb_nodes_per_element);
+  UInt * elem_filter_val = elem_filter.storage();
+  for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
+    for (UInt q = 0; q < nb_quadrature_points; ++q, ++shapes_derivatives_filtered_it)
+      *shapes_derivatives_filtered_it = shapes_derivatives_it[*elem_filter_val * nb_quadrature_points + q];
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   UInt bt_d_b_size = dim * nb_nodes_per_element;
@@ -378,34 +392,31 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 					   bt_d_b_size * bt_d_b_size,
 					   "B^t*D*B");
 
-  UInt size_of_b = tangent_size * bt_d_b_size;
-  Real * B = new Real[size_of_b];
-  Real * Bt_D = new Real[size_of_b];
-  Real * Bt_D_B = bt_d_b->storage();
-  Real * D = tangent_stiffness_matrix->storage();
+  types::Matrix B(tangent_size, dim * nb_nodes_per_element);
+  types::Matrix Bt_D(dim * nb_nodes_per_element, tangent_size);
 
-  UInt offset_bt_d_b = bt_d_b_size * bt_d_b_size;
-  UInt offset_d      = tangent_size * tangent_size;
+  shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
 
-  for (UInt e = 0; e < nb_element; ++e) {
-    Real * shapes_derivatives_val =
-      shapes_derivatives.values + elem_filter_val[e]*size_of_shapes_derivatives*nb_quadrature_points;
+  Vector<Real>::iterator<types::Matrix> Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
+								  dim*nb_nodes_per_element);
 
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      transferBMatrixToSymVoigtBMatrix<dim>(shapes_derivatives_val, B, nb_nodes_per_element);
-      Math::matrixt_matrix(bt_d_b_size, tangent_size, tangent_size, B, D, Bt_D);
-      Math::matrix_matrix(bt_d_b_size, bt_d_b_size, tangent_size, Bt_D, B, Bt_D_B);
+  Vector<Real>::iterator<types::Matrix> D_it  = tangent_stiffness_matrix->begin(tangent_size,
+										tangent_size);
+  Vector<Real>::iterator<types::Matrix> D_end = tangent_stiffness_matrix->end  (tangent_size,
+										tangent_size);
+  
 
-      shapes_derivatives_val += size_of_shapes_derivatives;
-      D      += offset_d;
-      Bt_D_B += offset_bt_d_b;
-    }
+  for(; D_it != D_end; ++D_it, ++Bt_D_B_it, ++shapes_derivatives_filtered_it) {
+    types::Matrix & D = *D_it;
+    types::Matrix & Bt_D_B = *Bt_D_B_it;
+    
+    transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+    Bt_D.mul<true, false>(B, D);
+    Bt_D_B.mul<false, false>(Bt_D, B);
   }
 
-  delete [] B;
-  delete [] Bt_D;
-
   delete tangent_stiffness_matrix;
+  delete shapes_derivatives_filtered;
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   Vector<Real> * K_e = new Vector<Real>(nb_element,
@@ -419,7 +430,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   delete bt_d_b;
 
-   model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
+  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();

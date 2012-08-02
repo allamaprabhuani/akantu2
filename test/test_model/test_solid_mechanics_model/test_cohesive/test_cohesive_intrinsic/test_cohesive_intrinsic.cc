@@ -38,7 +38,7 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#include "io_helper.hh"
+//#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

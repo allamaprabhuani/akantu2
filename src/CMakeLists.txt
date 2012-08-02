@@ -63,6 +63,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   foreach(_header ${AKANTU_COMMON_HDR_TO_PRECOMPILE})
     add_pch_rule(${_header} AKANTU_LIBRARY_SRCS)
   endforeach()
+elseif(CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 #===============================================================================

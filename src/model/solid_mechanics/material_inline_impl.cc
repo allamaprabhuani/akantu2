@@ -80,51 +80,41 @@ inline void Material::computePotentialEnergyOnQuad(types::Matrix & grad_u,
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::transferBMatrixToSymVoigtBMatrix(Real * B, Real * Bvoigt, UInt nb_nodes_per_element) const {
-  UInt size = getTangentStiffnessVoigtSize(dim) * nb_nodes_per_element * dim;
-  memset(Bvoigt, 0, size * sizeof(Real));
+inline void Material::transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
+						       types::Matrix & Bvoigt,
+						       UInt nb_nodes_per_element) const {
+  Bvoigt.clear();
 
-  for (UInt i = 0; i < dim; ++i) {
-    Real * Bvoigt_tmp = Bvoigt + i * (dim * nb_nodes_per_element + 1);
-    Real * Btmp = B + i;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      *Bvoigt_tmp = *Btmp;
-      Btmp += dim;
-      Bvoigt_tmp += dim;
-    }
-  }
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt n = 0; n < nb_nodes_per_element; ++n)
+      Bvoigt(i, i + n*dim) = B(n, i);
 
   if(dim == 2) {
     ///in 2D, fill the @f$ [\frac{\partial N_i}{\partial x}, \frac{\partial N_i}{\partial y}]@f$ row
-    Real * Bvoigt_tmp = Bvoigt + dim * nb_nodes_per_element * 2;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Bvoigt_tmp[1] = B[n * dim + 0];
-      Bvoigt_tmp[0] = B[n * dim + 1];
-      Bvoigt_tmp += dim;
+      Bvoigt(2, 1 + n*2) = B(n, 0);
+      Bvoigt(2, 0 + n*2) = B(n, 1);
     }
   }
 
 
   if(dim == 3) {
-    UInt Bvoigt_wcol = dim * nb_nodes_per_element;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Real dndx = B[n * dim + 0];
-      Real dndy = B[n * dim + 1];
-      Real dndz = B[n * dim + 2];
-
-      UInt Bni_off = n * dim;
+      Real dndx = B(n, 0);
+      Real dndy = B(n, 1);
+      Real dndz = B(n, 2);
 
       ///in 3D, fill the @f$ [0, \frac{\partial N_i}{\partial y}, \frac{N_i}{\partial z}]@f$ row
-      Bvoigt[3 * Bvoigt_wcol + Bni_off + 1] = dndz;
-      Bvoigt[3 * Bvoigt_wcol + Bni_off + 2] = dndy;
+      Bvoigt(3, 1 + n*3) = dndz;
+      Bvoigt(3, 2 + n*3) = dndy;
 
       ///in 3D, fill the @f$ [\frac{\partial N_i}{\partial x}, 0, \frac{N_i}{\partial z}]@f$ row
-      Bvoigt[4 * Bvoigt_wcol + Bni_off + 0] = dndz;
-      Bvoigt[4 * Bvoigt_wcol + Bni_off + 2] = dndx;
+      Bvoigt(4, 0 + n*3) = dndz;
+      Bvoigt(4, 2 + n*3) = dndx;
 
       ///in 3D, fill the @f$ [\frac{\partial N_i}{\partial x}, \frac{N_i}{\partial y}, 0]@f$ row
-      Bvoigt[5 * Bvoigt_wcol + Bni_off + 0] = dndy;
-      Bvoigt[5 * Bvoigt_wcol + Bni_off + 1] = dndx;
+      Bvoigt(5, 0 + n*3) = dndy;
+      Bvoigt(5, 1 + n*3) = dndx;
     }
   }
 }

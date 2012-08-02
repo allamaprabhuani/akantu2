@@ -26,8 +26,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "solid_mechanics_model.hh"
 #include "aka_math.hh"
+#include "aka_common.hh"
+#pragma hdrstop
+#include "solid_mechanics_model.hh"
 #include "integration_scheme_2nd_order.hh"
 
 #include "static_communicator.hh"
@@ -537,7 +539,7 @@ void SolidMechanicsModel::explicitCorr() {
  * Initialize the solver and create the sparse matrices needed.
  *
  */
-void SolidMechanicsModel::initSolver(SolverOptions & options) {
+void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & options) {
 #if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #else

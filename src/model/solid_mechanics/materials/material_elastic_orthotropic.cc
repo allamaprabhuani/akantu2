@@ -123,9 +123,9 @@ void MaterialElasticOrthotropic<spatial_dimension>::computeStress(ElementType el
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticOrthotropic<spatial_dimension>::computeTangentStiffness(const ElementType & el_type,
-									    Vector<Real> & tangent_matrix,
-									    GhostType ghost_type) {
+void MaterialElasticOrthotropic<spatial_dimension>::computeTangentModuli(const ElementType & el_type,
+									 Vector<Real> & tangent_matrix,
+									 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);

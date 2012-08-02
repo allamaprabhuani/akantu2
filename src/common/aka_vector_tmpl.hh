@@ -821,7 +821,7 @@ public:
   typedef std::random_access_iterator_tag iterator_category;
 
 public:
-  iterator_internal(pointer data = NULL, UInt offset = 1) : ret(data), initial(data) { };
+  iterator_internal(pointer data = NULL, __attribute__ ((unused)) UInt offset = 1) : ret(data), initial(data) { };
   iterator_internal(const iterator_internal & it) {
     if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }

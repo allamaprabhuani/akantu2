@@ -40,7 +40,9 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#include "io_helper.hh"
+#if defined(AKANTU_USE_IOHELPER)
+#  include "io_helper.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -126,10 +128,11 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
+  /// initialize the paraview output
+#if defined(AKANTU_USE_IOHELPER)
   iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
   UInt nb_element = mesh.getNbElement(type);
 
-  /// initialize the paraview output
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
   dumper.SetPoints(mesh.getNodes().values,
@@ -156,7 +159,7 @@ int main(int argc, char *argv[]) {
   dumper.SetPrefix("paraview/");
   dumper.Init();
   dumper.Dump();
-
+#endif
 
   /// initial conditions
   Real loading_rate = 0.5;
@@ -189,6 +192,7 @@ int main(int argc, char *argv[]) {
     model.explicitCorr();
 
     if(s % 1 == 0) {
+#if defined(AKANTU_USE_IOHELPER)
       dumper.SetPoints(mesh.getNodes().values,
       		       spatial_dimension, mesh.getNbNodes(), "explicit");
       dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
@@ -213,6 +217,7 @@ int main(int argc, char *argv[]) {
       dumper.SetPrefix("paraview/");
       dumper.Init();
       dumper.Dump();
+#endif
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }

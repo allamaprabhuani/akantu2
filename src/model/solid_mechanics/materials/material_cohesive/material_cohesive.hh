@@ -74,18 +74,6 @@ public:
   virtual void updateResidual(Vector<Real> & current_position,
 			      GhostType ghost_type = _not_ghost);
 
-
-  /// compute the stable time step for an element of size h
-  virtual Real getStableTimeStep(__attribute__((unused)) Real h,
-				 __attribute__((unused)) const Element & element = ElementNull) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-
-  // /// add an element to the local mesh filter
-  // __aka_inline__ void addElement(const ElementType & type,
-  // 			 UInt element,
-  // 			 const GhostType & ghost_type);
-
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -93,30 +81,19 @@ public:
   virtual void checkInsertion(const Vector<Real> & facet_stress,
 			      Vector<UInt> & facet_insertion);
 
-  /// interpolate stress on given positions for each element
+  /// interpolate   stress  on   given   positions  for   each  element   (empty
+  /// implemantation to avoid the generic call to be done on cohesive elements)
   virtual void interpolateStress(__attribute__((unused)) const ElementType type,
-				 __attribute__((unused)) const Vector<Real> & coordinates,
-				 __attribute__((unused)) Vector<Real> & result) {};
+				 __attribute__((unused)) Vector<Real> & result) { };
 
 protected:
-
-  /// constitutive law
-  virtual void computeStress(__attribute__((unused)) ElementType el_type,
-			     __attribute__((unused)) GhostType ghost_type = _not_ghost) {
+  
+  virtual void computeTangentTraction(__attribute__((unused)) const ElementType & el_type,
+				      __attribute__((unused)) Vector<Real> & tangent_matrix,
+				      __attribute__((unused)) const Vector<Real> & normal,
+				      __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
-
- // virtual  void computeTangentStiffness( Vector<Real> & tangent_matrix,
- // 					const Vector<Real> & normal,
- // 					const ElementType & el_type,
- // 					 GhostType ghost_type = _not_ghost); 
-
-  // void computeTangentStiffness(const ElementType & el_type,
-  //                                       Vector<Real> & tangent_matrix,
-  // 					 GhostType ghost_type = _not_ghost){
-  //   AKANTU_DEBUG_TO_IMPLEMENT();
-  // }
-
 
 
   void computeNormal(const Vector<Real> & position,
@@ -142,11 +119,6 @@ protected:
   void assembleStiffnessMatrix(Vector<Real> & current_position,
 			       GhostType ghost_type);
 
- // template<UInt dim>
- //  void assembleStiffnessMatrix(Vector<Real> & current_position,
- // 			       const ElementType & type,
- // 			       GhostType ghost_type);
-
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);
 
@@ -164,19 +136,6 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
-protected:
-
-  /// compute the tangent stiffness matrix for an element type
-  virtual void computeTangentStiffness(const ElementType & el_type,
-				       Vector<Real> & tangent_matrix,
-				       GhostType ghost_type = _not_ghost);
-
-  virtual void computeTangentStiffness(const ElementType & el_type,
-				       Vector<Real> & tangent_matrix,
-				       const Vector<Real> & normal,
-				       GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
- }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

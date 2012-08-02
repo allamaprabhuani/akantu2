@@ -69,9 +69,9 @@ public:
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentStiffness(const ElementType & el_type,
-			       Vector<Real> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost);
+  void computeTangentModuli(const ElementType & el_type,
+			    Vector<Real> & tangent_matrix,
+			    GhostType ghost_type = _not_ghost);
 
   /// compute the p-wave speed in the material
   virtual Real getPushWaveSpeed() const;
@@ -88,7 +88,7 @@ protected:
 				  types::Matrix & sigma);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentStiffnessOnQuad(types::Matrix & tangent);
+  void computeTangentModuliOnQuad(types::Matrix & tangent);
 
   /// recompute the lame coefficient if E or nu changes
   void recomputeLameCoefficient();

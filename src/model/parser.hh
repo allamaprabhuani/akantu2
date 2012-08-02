@@ -42,6 +42,7 @@ __BEGIN_AKANTU__
 
 class Parsable {
 public:
+  virtual ~Parsable() {};
   virtual bool setParam(const std::string & key, const std::string & value,
 			const ID & id) = 0;
 };

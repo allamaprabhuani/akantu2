@@ -134,6 +134,8 @@ mark_as_advanced(CMAKE_CXX_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_EXE_LINKER_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_SHARED_LINKER_FLAGS_PROFILING)
 
+include(${AKANTU_CMAKE_DIR}/AkantuDetermineCCompiler.cmake)
+
 #===============================================================================
 # Dependencies
 #===============================================================================

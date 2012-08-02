@@ -27,12 +27,13 @@
 
 register_test(test_cohesive_intrinsic_impl test_cohesive_intrinsic_impl.cc)
 
-
 #===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
   COPYONLY
   )
+
+file(COPY simple.msh DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 file(COPY simple.msh DESTINATION .)

@@ -69,9 +69,9 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentStiffness(const ElementType & el_type,
-			       Vector<Real> & tangent_matrix,
-			       GhostType ghost_type = _not_ghost);
+  void computeTangentModuli(const ElementType & el_type,
+			    Vector<Real> & tangent_matrix,
+			    GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
   virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
@@ -92,8 +92,8 @@ protected:
 				  types::Matrix & sigma);
 
   // /// compute the tangent stiffness matrix for an element
-  void computeTangentStiffnessOnQuad(types::Matrix & grad_u,
-				     types::Matrix & tangent);
+  void computeTangentModuliOnQuad(types::Matrix & grad_u,
+				  types::Matrix & tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
