@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
     do{
       std::cout << "Iter : " << ++count << " - residual norm : " << norm << std::endl;
       model.assembleStiffnessMatrix();
+      model.getStiffnessMatrix().saveMatrix("K.mtx");
       model.solveStatic();
       model.updateResidual();
      
@@ -193,13 +194,13 @@ int main(int argc, char *argv[]) {
 
     fout << nstep << " " << -resid << " " << analytical << " " << error_tol << std::endl;
  
-    if (error_tol > 2e-5) 
+    if (error_tol > 1e-4) 
       return EXIT_FAILURE;
-  }
+   }
 
   fout.close();
 
-  finalize();
+  //  finalize();
 
   return EXIT_SUCCESS;
 }
