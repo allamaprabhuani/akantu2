@@ -26,6 +26,8 @@
 #
 #===============================================================================
 
+set(AKANTU_DIFF_SCRIPT ${AKANTU_CMAKE_DIR}/akantu_diff.sh)
+
 #===============================================================================
 macro(manage_test_and_example et_name desc build_all label)
   string(TOUPPER ${et_name} upper_name)
@@ -75,9 +77,11 @@ macro(register_test test_name)
 
   if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
     add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
-  else(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
+  elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
+    add_test(${test_name} ${AKANTU_DIFF_SCRIPT} ${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
+  else()
     add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
-  endif(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
+  endif()
 endmacro()
 
 #===============================================================================

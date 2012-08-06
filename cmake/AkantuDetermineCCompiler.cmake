@@ -26,6 +26,21 @@
 #===============================================================================
 
 
+macro(determine_compiler_version COMPILER)
+  exec_program(${CMAKE_CXX_COMPILER}
+    ARGS --version
+    OUTPUT_VARIABLE _temp
+    )
+  
+  set(${COMPILER}_COMPILER_VERSION "" CACHE STRING "Vesion of ${COMPILER} compiler.")
+  string(REGEX MATCH "([0-9\\.]+)"
+    ${COMPILER}_COMPILER_VERSION
+    ${_temp}
+    )
+  
+  mark_as_advanced(${COMPILER}_COMPILER_VERSION)
+endmacro()
+
 # Code from James Bigler (http://www.cmake.org/pipermail/cmake/2007-June/014460.html)
 set(MANTA_COMPILER_NAME_REGEXPR "icc.*$")
 if(NOT CMAKE_COMPILER_IS_GNUCC)
@@ -39,33 +54,12 @@ endif(NOT CMAKE_COMPILER_IS_GNUCC)
 
 set(MANTA_COMPILER_NAME_REGEXPR "icpc.*$")
 if(NOT CMAKE_COMPILER_IS_GNUCXX)
-   if(CMAKE_CXX_COMPILER MATCHES ${MANTA_COMPILER_NAME_REGEXPR})
-     set(AKANTU_USING_ICPC TRUE)
-
-     exec_program(${CMAKE_CXX_COMPILER}
-       ARGS --version
-       OUTPUT_VARIABLE TEMP)
-
-     set(GCC_COMPILER_VERSION "" CACHE STRING "Vesion of icc/icpc.")
-     string(REGEX MATCH "([0-9\\.]+)"
-       INTEL_COMPILER_VERSION
-       ${TEMP})
-
-     mark_as_advanced(INTEL_COMPILER_VERSION)
-   endif(CMAKE_CXX_COMPILER MATCHES ${MANTA_COMPILER_NAME_REGEXPR})
+  if(CMAKE_CXX_COMPILER MATCHES ${MANTA_COMPILER_NAME_REGEXPR})
+    set(AKANTU_USING_ICPC TRUE)
+    determine_compiler_version(INTEL)
+    #else mvsc/clang/ibm/... ?
+  endif(CMAKE_CXX_COMPILER MATCHES ${MANTA_COMPILER_NAME_REGEXPR})
 else(NOT CMAKE_COMPILER_IS_GNUCXX)
   set(AKANTU_USING_GNUCXX TRUE)
-  exec_program(${CMAKE_CXX_COMPILER}
-    ARGS --version
-    OUTPUT_VARIABLE TEMP)
-
-  set(GCC_COMPILER_VERSION "" CACHE STRING "Vesion of gcc/g++.")
-  string(REGEX MATCH "([0-9\\.]+)"
-    GCC_COMPILER_VERSION
-    ${TEMP})
-
-  mark_as_advanced(GCC_COMPILER_VERSION)
+  determine_compiler_version(GCC)
 endif(NOT CMAKE_COMPILER_IS_GNUCXX)
-
-message("GNUCXX ${AKANTU_USING_GNUCXX}")
-message("ICPC ${AKANTU_USING_ICPC}")

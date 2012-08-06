@@ -233,12 +233,12 @@ int main(int argc, char *argv[]) {
     Vector<Real> & barycenter = barycenters(*it);
     barycenter.resize(nb_element);
 
-    Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
-    for (UInt elem = 0; elem < nb_element; ++elem) {
-      mesh.getBarycenter(elem, *it, bary_it->storage());
-      grid.count(*bary_it);
-      ++bary_it;
-    }
+    //     Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
+    // for (UInt elem = 0; elem < nb_element; ++elem) {
+    //   mesh.getBarycenter(elem, *it, bary_it->storage());
+    //   grid.count(*bary_it);
+    //   ++bary_it;
+    // }
   }
 
   Element e;
@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
   std::cout << prank <<  " TTTTTTTOOOOOOOOOOOOOTTTTTTTTTTTTTTTTOOOOOOOOOOOOO" << std::endl;
 
   // second insert the point in the cells
-  grid.beginInsertions();
+  //  grid.beginInsertions();
   it = mesh.firstType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     UInt nb_element = mesh.getNbElement(*it);
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
       ++bary_it;
     }
   }
-  grid.endInsertions();
+  //  grid.endInsertions();
 
   MeshIOMSH mesh_io;
 

@@ -40,13 +40,9 @@ if (AKANTU_SCOTCH OR AKANTU_PTSCOTCH)
   add_dependencies(test_grid_synchronizer
     test_synchronizer_communication_mesh)
 
-
-
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/test_synchronizer_communication.sh
-    ${CMAKE_CURRENT_BINARY_DIR}/test_synchronizer_communication.sh
-    COPYONLY
-    )
+  file(COPY test_synchronizer_communication.sh DESTINATION .)
+  file(COPY test_grid_synchronizer.sh DESTINATION .)
+  file(COPY test_dof_synchronizer.sh DESTINATION .)
 
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 

@@ -25,4 +25,6 @@
 #
 #===============================================================================
 add_akantu_test(test_vector "Test akantu vector")
-REGISTER_TEST(test_csr test_csr.cc)
+
+register_test(test_csr test_csr.cc)
+register_test(test_grid test_grid.cc)

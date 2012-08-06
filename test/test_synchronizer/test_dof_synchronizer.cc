@@ -43,7 +43,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  const UInt spatial_dimension = 3;
+  const UInt spatial_dimension = 2;
 
   debug::setDebugLevel(dblDebug);
 

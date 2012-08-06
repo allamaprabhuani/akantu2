@@ -172,7 +172,6 @@ int main(int argc, char *argv[])
 #endif
 
   my_model.assembleStiffnessMatrix();
-  my_model.getStiffnessMatrix().saveMatrix("K.mtx");
 
   while(!my_model.testConvergenceResidual(2e-4) && (count < 100)) {
     std::cout << "Iter : " << ++count << std::endl;
