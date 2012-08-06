@@ -107,14 +107,14 @@ template <> inline void ElementClass<_hexahedron_8>::computeShapes(const Real * 
   /// Natural coordinates
   const Real * c = natural_coords;
 
-  shapes[0] = .125 * (1 - c[0]) * (1 - c[1]) * (1 - c[3]); /// N1(q_0)
-  shapes[1] = .125 * (1 + c[0]) * (1 - c[1]) * (1 - c[3]); /// N2(q_0)
-  shapes[2] = .125 * (1 + c[0]) * (1 + c[1]) * (1 - c[3]); /// N3(q_0)
-  shapes[3] = .125 * (1 - c[0]) * (1 + c[1]) * (1 - c[3]); /// N4(q_0)
-  shapes[4] = .125 * (1 - c[0]) * (1 - c[1]) * (1 + c[3]); /// N5(q_0)
-  shapes[5] = .125 * (1 + c[0]) * (1 - c[1]) * (1 + c[3]); /// N6(q_0)
-  shapes[6] = .125 * (1 + c[0]) * (1 + c[1]) * (1 + c[3]); /// N7(q_0)
-  shapes[7] = .125 * (1 - c[0]) * (1 + c[1]) * (1 + c[3]); /// N8(q_0)
+  shapes[0] = .125 * (1 - c[0]) * (1 - c[1]) * (1 - c[2]); /// N1(q_0)
+  shapes[1] = .125 * (1 + c[0]) * (1 - c[1]) * (1 - c[2]); /// N2(q_0)
+  shapes[2] = .125 * (1 + c[0]) * (1 + c[1]) * (1 - c[2]); /// N3(q_0)
+  shapes[3] = .125 * (1 - c[0]) * (1 + c[1]) * (1 - c[2]); /// N4(q_0)
+  shapes[4] = .125 * (1 - c[0]) * (1 - c[1]) * (1 + c[2]); /// N5(q_0)
+  shapes[5] = .125 * (1 + c[0]) * (1 - c[1]) * (1 + c[2]); /// N6(q_0)
+  shapes[6] = .125 * (1 + c[0]) * (1 + c[1]) * (1 + c[2]); /// N7(q_0)
+  shapes[7] = .125 * (1 - c[0]) * (1 + c[1]) * (1 + c[2]); /// N8(q_0)
 }
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_hexahedron_8>::computeDNDS(const Real * natural_coords,
