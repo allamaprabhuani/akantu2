@@ -74,10 +74,10 @@ template<> UInt ElementClass<_tetrahedron_4>::spatial_dimension;
 /* -------------------------------------------------------------------------- */
 template <> inline void ElementClass<_tetrahedron_4>::computeShapes(const Real * natural_coords, 
 								   Real * shapes){
-  Real c0 = natural_coords[1]; /// @f$ c0 = \eta @f$
-  Real c1 = natural_coords[2]; /// @f$ c1 = \zeta @f$
-  Real c2 = 1 - natural_coords[0] -  natural_coords[1] -  natural_coords[2];/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
-  Real c3 = natural_coords[0]; /// @f$ c2 = \xi @f$
+  Real c0 = 1 - natural_coords[0] -  natural_coords[1] -  natural_coords[2];/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
+  Real c1 = natural_coords[1]; /// @f$ c0 = \xi @f$
+  Real c2 = natural_coords[2]; /// @f$ c1 = \eta @f$
+  Real c3 = natural_coords[0]; /// @f$ c2 = \zeta @f$
   
   shapes[0] = c0;
   shapes[1] = c1;
