@@ -173,8 +173,8 @@ Int main(int argc, char *argv[])
 
   /// read and initialize material
   model->readMaterials("material_elastic_caughey.dat");
-  MaterialElasticCaughey<spatial_dimension> & my_mat = dynamic_cast<MaterialElasticCaughey<spatial_dimension> & > (model->getMaterial(0));
-  my_mat.setAlpha(viscous_factor);
+  Material & my_mat = model->getMaterial(0);
+  my_mat.setProperty("Alpha", viscous_factor);
   model->initMaterials();
 
   Real stable_time_step = model->getStableTimeStep();

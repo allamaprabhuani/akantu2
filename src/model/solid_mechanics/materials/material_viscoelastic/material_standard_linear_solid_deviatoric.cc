@@ -1,6 +1,6 @@
 /**
- * @file   material_viscoelastic.hh
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch> 
+ * @file   material_standard_linear_solid_deviatoric.hh
+ * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Thu Feb 7 2012
@@ -28,22 +28,22 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_viscoelastic.hh"
+#include "material_standard_linear_solid_deviatoric.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-MaterialViscoElastic<spatial_dimension>::MaterialViscoElastic(SolidMechanicsModel & model, const ID & id)  :
+MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   stress_dev("stress_dev", id),
-  history_integral("history_integral", id) { 
+  history_integral("history_integral", id) {
   AKANTU_DEBUG_IN();
 
-  eta   = 1.;
-  E_inf = 1.;
-  Ev    = 1.;
+  this->registerParam("Eta",  eta,   1., ParamAccessType(_pat_parsable | _pat_modifiable), "Viscosity");
+  this->registerParam("Ev",   Ev,    1., ParamAccessType(_pat_parsable | _pat_modifiable), "Stiffness of the viscous element");
+  this->registerParam("Einf", E_inf, 1., ParamAccessType(_pat_readable | _pat_modifiable), "Stiffness of the elastic element");
 
   UInt stress_size = spatial_dimension * spatial_dimension;
 
@@ -55,10 +55,10 @@ MaterialViscoElastic<spatial_dimension>::MaterialViscoElastic(SolidMechanicsMode
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialViscoElastic<spatial_dimension>::initMaterial() {
+void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  E_inf = this->E - this->Ev;
+  updateInternalParameters();
 
   MaterialElastic<spatial_dimension>::initMaterial();
 
@@ -70,9 +70,16 @@ void MaterialViscoElastic<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialViscoElastic<spatial_dimension>::setToSteadyState(ElementType el_type, GhostType ghost_type) {
+void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::updateInternalParameters() {
+  MaterialElastic<spatial_dimension>::updateInternalParameters();
+  E_inf = this->E - this->Ev;
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::setToSteadyState(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  
+
   Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
@@ -105,7 +112,7 @@ void MaterialViscoElastic<spatial_dimension>::setToSteadyState(ElementType el_ty
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
+void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Real tau = 0.;
@@ -160,31 +167,8 @@ void MaterialViscoElastic<spatial_dimension>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialViscoElastic<spatial_dimension>::setParam(const std::string & key, const std::string & value,
- 						       const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "eta") { sstr >> eta; }
-  else if(key == "Ev") { sstr >> Ev; }
-  else { return MaterialElastic<spatial_dimension>::setParam(key, value, id); }
-  return true;
-}
 
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialViscoElastic<spatial_dimension>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "MaterialViscoElastic [" << std::endl;
-  MaterialElastic<spatial_dimension>::printself(stream, indent + 1);
-  stream << space << " + Eta : " << eta << std::endl;
-  stream << space << " + Ev  : " << Ev << std::endl;
-  stream << space << "]" << std::endl;
-}
-/* -------------------------------------------------------------------------- */
-
-INSTANSIATE_MATERIAL(MaterialViscoElastic);
+INSTANSIATE_MATERIAL(MaterialStandardLinearSolidDeviatoric);
 
 __END_AKANTU__

@@ -71,8 +71,7 @@ public:
   virtual void resizeCohesiveVectors();
 
   /// compute the residual for this material
-  virtual void updateResidual(Vector<Real> & current_position,
-			      GhostType ghost_type = _not_ghost);
+  virtual void updateResidual(GhostType ghost_type = _not_ghost);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -87,7 +86,6 @@ public:
 				 __attribute__((unused)) Vector<Real> & result) { };
 
 protected:
-  
   virtual void computeTangentTraction(__attribute__((unused)) const ElementType & el_type,
 				      __attribute__((unused)) Vector<Real> & tangent_matrix,
 				      __attribute__((unused)) const Vector<Real> & normal,
@@ -116,8 +114,7 @@ protected:
   void assembleResidual(GhostType ghost_type = _not_ghost);
 
   /// assemble stiffness
-  void assembleStiffnessMatrix(Vector<Real> & current_position,
-			       GhostType ghost_type);
+  void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);

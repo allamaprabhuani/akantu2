@@ -118,7 +118,7 @@ Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_type,
   // // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
   // AKANTU_INSTANTIATE_MATERIALS();
   // materials.push_back(material);
-  Material * material;
+  Material * material = NULL;
 
   AKANTU_INSTANTIATE_MATERIALS();
 

@@ -51,12 +51,12 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   interpolation_inverse_coordinates("interpolation inverse coordinates", id),
   interpolation_points_matrices("interpolation points matrices", id),
   is_init(false) {
-
   AKANTU_DEBUG_IN();
 
-  rho = 0;
+  registerParam("rho",  rho,      0., ParamAccessType(_pat_parsable | _pat_readable), "Density");
+  registerParam("id",   this->id,     _pat_readable);
+  registerParam("name", name,         ParamAccessType(_pat_parsable | _pat_readable));
 
-  AKANTU_DEBUG_ASSERT(this->model,"model has wrong type: cannot proceed");
   spatial_dimension = this->model->getSpatialDimension();
 
   /// allocate strain stress for local elements
@@ -79,12 +79,9 @@ Material::~Material() {
 /* -------------------------------------------------------------------------- */
 bool Material::setParam(const std::string & key, const std::string & value,
 			__attribute__ ((unused)) const ID & id) {
-  std::stringstream sstr(value);
-
-  if(key == "name") name = std::string(value);
-  else if(key == "rho") { sstr >> rho; }
-  else return false;
-
+  try {
+    params.setParam(key, value);
+  } catch(...) { return false; }
   return true;
 }
 /* -------------------------------------------------------------------------- */
@@ -153,10 +150,10 @@ void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect,
  * @param[in] displacements nodes displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void Material::updateResidual(Vector<Real> & displacement, GhostType ghost_type) {
+void Material::updateResidual(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  computeAllStresses(displacement, ghost_type);
+  computeAllStresses(ghost_type);
 
   assembleResidual(ghost_type);
 
@@ -253,7 +250,7 @@ void Material::assembleResidual(GhostType ghost_type) {
  * @param[in] current_position nodes postition + displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void Material::computeAllStresses(Vector<Real> & displacement, GhostType ghost_type) {
+void Material::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   resizeInternalVector(stress);
@@ -269,9 +266,9 @@ void Material::computeAllStresses(Vector<Real> & displacement, GhostType ghost_t
     Vector<Real> & strain_vect = strain(*it, ghost_type);
 
     /// compute @f$\nabla u@f$
-    model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
-					      spatial_dimension,
-					      *it, ghost_type, &elem_filter);
+    model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
+					       spatial_dimension,
+					       *it, ghost_type, &elem_filter);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
@@ -746,20 +743,13 @@ const Vector<Real> & Material::getVector(const ID & vect_id, const ElementType &
 
 /* -------------------------------------------------------------------------- */
 Real Material::getProperty(const ID & param) const {
-  if(param == "rho") {
-    return rho;
-  } else {
-    AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")");
-  }
+  return params.get<Real>(param);
 }
 
 /* -------------------------------------------------------------------------- */
 void Material::setProperty(const ID & param, Real value) {
-  if(param == "rho") {
-    rho = value;
-  } else {
-    AKANTU_EXCEPTION("No parameter named " << param << " in the material " << name << " (" << id << ")");
-  }
+  params.set(param, value);
+  updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -768,9 +758,10 @@ void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "Material [" << std::endl;
-  stream << space << " + id    : " << id << std::endl;
-  stream << space << " + name  : " << name << std::endl;
+  std::string type = id.substr(id.find_last_of(":") + 1);
+
+  stream << space << "Material " << type << " [" << std::endl;
+  params.printself(stream, indent);
   stream << space << "]" << std::endl;
 }
 

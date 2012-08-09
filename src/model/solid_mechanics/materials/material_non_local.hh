@@ -74,12 +74,13 @@ public:
   template<typename T>
   void weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
 				    ByElementTypeVector<T> & accumulated,
-				    UInt nb_degree_of_freedom) const;
+				    UInt nb_degree_of_freedom,
+				    GhostType ghost_type2 = _not_ghost) const;
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  virtual void updateResidual(Vector<Real> & displacement, GhostType ghost_type);
+  virtual void updateResidual(GhostType ghost_type);
 
   /// constitutive law
   virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;

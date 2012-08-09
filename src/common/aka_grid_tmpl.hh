@@ -52,8 +52,7 @@ RegularGrid<T>::RegularGrid(UInt dimension, Real * lower_bounds,
 
     total_nb_cells *= this->nb_cells[i];
   }
-
-  this->data.resizeRows(total_nb_cells);
+  this->data.resize(total_nb_cells);
 }
 
 
@@ -114,25 +113,25 @@ private:
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::iterator RegularGrid<T>::beginCell(const typename RegularGrid<T>::Cell & cell) {
-  return data.begin(cell.id);
+  return data(cell.id).begin();
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::iterator RegularGrid<T>::endCell(const typename RegularGrid<T>::Cell cell) {
-  return data.end(cell.id);
+  return data(cell.id).end();
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::const_iterator RegularGrid<T>::beginCell(const typename RegularGrid<T>::Cell & cell) const {
-  return data.begin(cell.id);
+  return data(cell.id).begin();
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline typename RegularGrid<T>::const_iterator RegularGrid<T>::endCell(const typename RegularGrid<T>::Cell & cell) const {
-  return data.end(cell.id);
+  return data(cell.id).end();
 }
 
 
@@ -140,20 +139,23 @@ inline typename RegularGrid<T>::const_iterator RegularGrid<T>::endCell(const typ
 template<typename T>
 void RegularGrid<T>::insert(const T & d, const types::RVector & position) {
   UInt num_cell = getCell(position).id;
-  data.insertInRow(num_cell, d);
+  AKANTU_DEBUG_ASSERT(num_cell < total_nb_cells,
+		      "The position is not in the grid (" << num_cell
+		      << " > " << total_nb_cells << ") : " << position);
+  data(num_cell).push_back(d);
 }
 
-/* -------------------------------------------------------------------------- */
-template<typename T>
-void RegularGrid<T>::count(const types::RVector & position) {
-  Cell cell = getCell(position);
-  UInt num_cell = cell.id;
-  // std::cout << num_cell << " - "
-  // 	    << cell.position[0] << ", " << cell.position[1] << ", " << cell.position[2] << " : "
-  // 	    << position[0] << ", " << position[1] << ", " << position[2]
-  // 	    << std::endl;
-  data.rowOffset(num_cell)++;
-}
+// /* -------------------------------------------------------------------------- */
+// template<typename T>
+// void RegularGrid<T>::count(const types::RVector & position) {
+//   Cell cell = getCell(position);
+//   UInt num_cell = cell.id;
+//   // std::cout << num_cell << " - "
+//   // 	    << cell.position[0] << ", " << cell.position[1] << ", " << cell.position[2] << " : "
+//   // 	    << position[0] << ", " << position[1] << ", " << position[2]
+//   // 	    << std::endl;
+//   data.rowOffset(num_cell)++;
+// }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -372,8 +374,8 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
       }
     }
 
-    mesh.addConnectivityType(_quadrangle_4);
-    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_quadrangle_4));
+    mesh.addConnectivityType(_hexahedron_8);
+    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_hexahedron_8));
     connectivity.resize(total_nb_cells);
     for (UInt ex = 0; ex < nb_cells[0]; ++ex) {
       for (UInt ey = 0; ey < nb_cells[1]; ++ey) {

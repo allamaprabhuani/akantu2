@@ -1,5 +1,5 @@
 /**
- * @file   material_elastic_caughey.cc
+ * @file   material_stiffness_proportional.cc
  * @author David Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed May  4 15:25:52 2011
@@ -27,21 +27,21 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_elastic_caughey.hh"
+#include "material_stiffness_proportional.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-MaterialElasticCaughey<spatial_dimension>::MaterialElasticCaughey(SolidMechanicsModel & model,
-								  const ID & id)  :
+MaterialStiffnessProportional<spatial_dimension>::MaterialStiffnessProportional(SolidMechanicsModel & model,
+										const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   stress_viscosity("stress_viscosity", id),
   stress_elastic("stress_elastic", id) {
   AKANTU_DEBUG_IN();
 
-  alpha = 0.;
+  this->registerParam("Alpha", alpha, 0., ParamAccessType(_pat_parsable | _pat_modifiable), "Artificial viscous ratio");
 
   this->initInternalVector(this->stress_viscosity, spatial_dimension * spatial_dimension);
   this->initInternalVector(this->stress_elastic  , spatial_dimension * spatial_dimension);
@@ -52,7 +52,7 @@ MaterialElasticCaughey<spatial_dimension>::MaterialElasticCaughey(SolidMechanics
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticCaughey<spatial_dimension>::initMaterial() {
+void MaterialStiffnessProportional<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic<spatial_dimension>::initMaterial();
 
@@ -64,7 +64,7 @@ void MaterialElasticCaughey<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticCaughey<spatial_dimension>::computeStress(ElementType el_type,
+void MaterialStiffnessProportional<spatial_dimension>::computeStress(ElementType el_type,
 							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   Vector<UInt> & elem_filter = this->element_filter  (el_type, ghost_type);
@@ -74,10 +74,6 @@ void MaterialElasticCaughey<spatial_dimension>::computeStress(ElementType el_typ
   MaterialElastic<spatial_dimension>::computeStress(el_type, ghost_type);
 
   Vector<Real> & velocity = this->model->getVelocity();
-//  UInt nb_elem = this->element_filter(el_type, ghost_type).getSize();
-//  UInt nb_quad_points_per_elem =
-//    this->model->getFEM().getNbQuadraturePoints(el_type, ghost_type);
-//  UInt nb_quad_points = nb_quad_points_per_elem * nb_elem;
 
   Vector<Real> strain_rate(0, spatial_dimension * spatial_dimension,
 			   "strain_rate");
@@ -115,7 +111,7 @@ void MaterialElasticCaughey<spatial_dimension>::computeStress(ElementType el_typ
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticCaughey<spatial_dimension>::computePotentialEnergy(ElementType el_type,
+void MaterialStiffnessProportional<spatial_dimension>::computePotentialEnergy(ElementType el_type,
 								       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -140,48 +136,9 @@ void MaterialElasticCaughey<spatial_dimension>::computePotentialEnergy(ElementTy
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialElasticCaughey<spatial_dimension>::setParam(const std::string & key,
-							 const std::string & value,
-				      const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "alpha") { sstr >> alpha; }
-  else { return MaterialElastic<spatial_dimension>::setParam(key, value, id); }
-  return true;
-}
 
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-Real MaterialElasticCaughey<spatial_dimension>::getProperty(const ID & param) const {
-  if(param == "alpha") { return alpha; }
-  else return Material::getProperty(param);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialElasticCaughey<spatial_dimension>::setProperty(const ID & param,
-							    Real value) {
-  if(param == "alpha") { alpha = value; }
-  else Material::setProperty(param, value);
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialElasticCaughey<spatial_dimension>::printself(std::ostream & stream,
-							  int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "MaterialElasticCaughey [" << std::endl;
-  MaterialElastic<spatial_dimension>::printself(stream, indent + 1);
-  stream << space << " + artifical viscous ratio : " << alpha << std::endl;
-  stream << space << "]" << std::endl;
-}
-/* -------------------------------------------------------------------------- */
-
-INSTANSIATE_MATERIAL(MaterialElasticCaughey);
+INSTANSIATE_MATERIAL(MaterialStiffnessProportional);
 
 
 __END_AKANTU__

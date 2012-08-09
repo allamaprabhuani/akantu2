@@ -62,9 +62,6 @@ public:
 
   virtual void initMaterial();
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
-
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
@@ -79,9 +76,6 @@ public:
   /// compute the s-wave speed in the material
   virtual Real getShearWaveSpeed() const;
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-
 protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(const types::Matrix & grad_u,
@@ -91,7 +85,7 @@ protected:
   void computeTangentModuliOnQuad(types::Matrix & tangent);
 
   /// recompute the lame coefficient if E or nu changes
-  void recomputeLameCoefficient();
+  virtual void updateInternalParameters();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -99,20 +93,6 @@ protected:
 public:
   /// get the stable time step
   inline Real getStableTimeStep(Real h, const Element & element);
-
-  AKANTU_GET_MACRO(E, E, Real);
-  AKANTU_GET_MACRO(Nu, nu, Real);
-  AKANTU_GET_MACRO(Mu, mu, Real);
-  AKANTU_GET_MACRO(Lambda, lambda, Real);
-  AKANTU_GET_MACRO(Kpa, kpa, Real);
-
-  AKANTU_GET_MACRO(PlaneStress, plane_stress, bool);
-
-  void setE(Real E) { this->E = E; recomputeLameCoefficient(); };
-  void setNu(Real nu) { this->nu = nu; recomputeLameCoefficient(); };
-
-  virtual Real getProperty(const ID & param) const;
-  virtual void setProperty(const ID & param, Real value);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

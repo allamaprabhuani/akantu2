@@ -1,8 +1,0 @@
-material viscoelastic [
-	 name = viscous_steel
-	 rho = 7800     # density
-	 E   = 2.1e11   # young's modulus
-	 nu  = 0.3      # poisson's ratio
-	 eta = 1e-6     # viscosity
-         Ev  = 1e11     # viscous stiffness
-]

@@ -158,7 +158,7 @@ public:
   /* ------------------------------------------------------------------------ */
   //template<class R> using iterator = iterator_internal<R>;
 
-  template<typename R>
+  template<typename R = T>
   class iterator : public iterator_internal<R> {
   public:
     typedef iterator_internal<R> parent;
@@ -192,7 +192,7 @@ public:
   /* ------------------------------------------------------------------------ */
   //template<class R> using const_iterator = iterator_internal<const R, R>;
 
-  template<typename R>
+  template<typename R = T>
   class const_iterator : public iterator_internal<const R, R> {
   public:
     typedef iterator_internal<const R, R> parent;
@@ -205,7 +205,6 @@ public:
     const_iterator() : parent() {};
     const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
     const_iterator(pointer warped) : parent(warped) {};
-    const_iterator(const const_iterator & it) : parent(it) {};
     const_iterator(const parent & it) : parent(it) {};
 
     inline const_iterator operator+(difference_type n)
@@ -239,6 +238,7 @@ public:
   inline const_iterator< types::Matrix > begin(UInt m, UInt n) const;
   inline const_iterator< types::Matrix > end(UInt m, UInt n) const;
 
+  /// /!\ to use with caution
   inline iterator< types::Matrix > begin_reinterpret(UInt m, UInt n,
 						     UInt size, UInt nb_component);
   inline iterator< types::Matrix > end_reinterpret(UInt m, UInt n, UInt size, UInt nb_component);

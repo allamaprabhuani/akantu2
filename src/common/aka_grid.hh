@@ -59,19 +59,19 @@ public:
 public:
   void saveAsMesh(Mesh & mesh) const;
 
-  void beginInsertions() { data.countToCSR(); data.resizeCols(); data.beginInsertions(); }
-  void endInsertions() { data.endInsertions(); }
+  // void beginInsertions() { data.countToCSR(); data.resizeCols(); data.beginInsertions(); }
+  // void endInsertions() { data.endInsertions(); }
   void insert(const T & d, const types::RVector & position);
 
-  inline void count(const types::RVector & position);
+  // inline void count(const types::RVector & position);
   inline Cell getCell(const types::RVector & position) const;
   inline UInt getCell(Real position, UInt direction) const;
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  typedef typename CSR<T>::iterator iterator;
-  typedef typename CSR<T>::const_iterator const_iterator;
+  typedef typename Vector<T>::template iterator<T> iterator;
+  typedef typename Vector<T>::template const_iterator<T> const_iterator;
 
   inline iterator beginCell(const Cell & cell);
   inline iterator endCell(const Cell cell);
@@ -97,7 +97,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  CSR<T> data;
+
+  Vector< Vector<T> > data;
+  //  CSR<T> data;
 
   UInt dimension;
 

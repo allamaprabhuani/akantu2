@@ -77,9 +77,9 @@ to $0.1$ and $1$ respectively.
 \end{cpp}
 
 \subsubsection{Setting boundary conditions\label{sect:smm:boundary}}
-This section explains how to  impose Dirichlet or Neumann boundary conditions. A
+This section explains how to impose Dirichlet or Neumann boundary conditions. A
 Dirichlet boundary condition specifies the values that the displacement needs to
-take for every point $x$ at    the    boundary     ($\Gamma_u$)    of    the    problem    domain
+take for every point $x$ at the boundary ($\Gamma_u$) of the problem domain
 (Fig.~\ref{fig:smm:boundaries}):
 \begin{equation}
   \vec{u} = \vec{\bar u} \quad \forall \vec{x}\in \Gamma_{u}
@@ -705,10 +705,17 @@ total  energies are  computed.  The  time factor  is equal  to $0.1$.  The total
 simulated time is \unit{0.01}{\second}.
 
 \subsection{Constitutive laws \label{sect:smm:CL}}
-In order to compute an element's response to deformation, one needs to use an appropriate constitutive relationship for every element in the mesh. The constitutive law enables to compute the element's stresses from the element's strains. In the finite element discretization, the constitutive formulation is applied to every quadrature point of each element.
+In order to compute an element's response to deformation, one needs to use an
+appropriate constitutive relationship for every element in the mesh. The
+constitutive law enables to compute the element's stresses from the element's
+strains. In the finite element discretization, the constitutive formulation is
+applied to every quadrature point of each element.
 
-The chosen materials for the virtual simulation have to be specified in the mesh file or as an alternative they can be assigned using the \code{element\_material} vector.
-For every material assigned to the problem one has to specify the material characteristics (constitutive behavior and material properties) in a text file (\eg material.dat) as follows:
+The chosen materials for the virtual simulation have to be specified in the mesh
+file or as an alternative they can be assigned using the
+\code{element\_material} vector.  For every material assigned to the problem one
+has to specify the material characteristics (constitutive behavior and material
+properties) in a text file (\eg material.dat) as follows:
 \begin{cpp}
   material %\emph{constitutive\_law}% [
   name = %\emph{XXX}%
@@ -716,8 +723,10 @@ For every material assigned to the problem one has to specify the material chara
   ...
   ]
 \end{cpp}
-\index{Constitutive\_laws}
-where \emph{constitutive\_law} is the adopted constitutive law, followed by the material properties listed one by line in the bracket (\eg \code{name} and density \code{rho}). The file needs to be loaded in \akantu using the \code{readMaterials} method
+\index{Constitutive\_laws} where \emph{constitutive\_law} is the adopted
+constitutive law, followed by the material properties listed one by line in the
+bracket (\eg \code{name} and density \code{rho}). The file needs to be loaded in
+\akantu using the \code{readMaterials} method
 \begin{cpp}
   model.readMaterials("material.dat");
 \end{cpp}
@@ -728,7 +737,13 @@ or in alternative the \code{initFull} method.
 The following subsections describe the constitutive models implemented in \akantu.
 
 \subsubsection{Elastic}
-The elastic law is a commonly used constitutive relationship that can be used for a wide range of engineering materials (\eg metals, concrete, rock, wood, glass, rubber, etc.) provided that the strains remain small (\ie small deformation and stress lower than yield strength). The linear elastic behavior is described by Hooke's law, which states that the stress is linearly proportional to the applied strain (material behaves like an ideal spring), as illustrated in Figure~\ref{fig:smm:cl:elastic}.
+The elastic law is a commonly used constitutive relationship that can be used
+for a wide range of engineering materials (\eg metals, concrete, rock, wood,
+glass, rubber, etc.) provided that the strains remain small (\ie small
+deformation and stress lower than yield strength). The linear elastic behavior
+is described by Hooke's law, which states that the stress is linearly
+proportional to the applied strain (material behaves like an ideal spring), as
+illustrated in Figure~\ref{fig:smm:cl:elastic}.
 \begin{figure}[!htb]
   \begin{center}
 
@@ -750,11 +765,19 @@ The equation that relates the strains to the displacements is:
 \begin{equation}\label{eqn:smm:strain_inf}
   \mat{\epsilon} = \frac{1}{2} \left[ \mat{F}-\mat{I}+(\mat{F}-\mat{I})^T \right]
 \end{equation}
-where $\mat{\epsilon}$ represents the infinitesimal strain tensor, $\mat{F} = \nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient tensor and $\mat{I}$ the identity matrix. The constitutive equation for isotropic homogeneous media can be expressed as:
+where $\mat{\epsilon}$ represents the infinitesimal strain tensor, $\mat{F} =
+\nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient tensor and $\mat{I}$ the
+identity matrix. The constitutive equation for isotropic homogeneous media can
+be expressed as:
 \begin{equation}\label{eqn:smm:material:constitutive_elastic}
   \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu \mat{\epsilon}
 \end{equation}
-where $\mat{\sigma}$ is the Cauchy stress tensor ($\lambda$ and $\mu$ are the the first  and second Lame's coefficients). Besides the name and density, one has to specify the following properties in the material file: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set to zero or not specified plane strain conditions are assumed for a plain analysis, otherwise plane stress conditions are applied).
+where $\mat{\sigma}$ is the Cauchy stress tensor ($\lambda$ and $\mu$ are the
+the first and second Lame's coefficients). Besides the name and density, one has
+to specify the following properties in the material file: \code{E} (Young's
+modulus), \code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set
+to zero or not specified plane strain conditions are assumed for a plain
+analysis, otherwise plane stress conditions are applied).
 
 % \subsubsection{Caughey}
 % ** Not in  release ** The model  is a particular case of  the Rayleigh damping
@@ -762,7 +785,10 @@ where $\mat{\sigma}$ is the Cauchy stress tensor ($\lambda$ and $\mu$ are the th
 % matrix. Substitute with complete Rayleigh damping model for release?
 
 \subsubsection{Neo-Hookean}
-The Neo-Hookean constitutive law is a hyperelastic material formulation, which results from an extension of the linear elastic relationship (Hooke's Law) for large deformation. Thus, the model predicts nonlinear stress-strain behavior for bodies undergoing large deformations.
+The Neo-Hookean constitutive law is a hyperelastic material formulation, which
+results from an extension of the linear elastic relationship (Hooke's Law) for
+large deformation. Thus, the model predicts nonlinear stress-strain behavior for
+bodies undergoing large deformations.
 
 \begin{figure}[!htb]
   \begin{center}
@@ -772,18 +798,31 @@ The Neo-Hookean constitutive law is a hyperelastic material formulation, which r
   \end{center}
 \end{figure}
 
-As illustrated in Figure~\ref{fig:smm:cl:neo_hookean}, the behavior is initially linear but at a certain point it will start to converge to a plateau.
-This constitutive relationship has been proposed by Ronald Rivlin\cite{ronald-neohooken} and is suitable to simulate rubber-like (\eg polymers) material behavior. The constitutive equation is
+As illustrated in Figure~\ref{fig:smm:cl:neo_hookean}, the behavior is initially
+linear but at a certain point it will start to converge to a plateau.  This
+constitutive relationship has been proposed by Ronald
+Rivlin\cite{ronald-neohooken} and is suitable to simulate rubber-like (\eg
+polymers) material behavior. The constitutive equation is
 \begin{equation}
   \mat{\sigma } = -p \mat{I} + \mu \mat{B}
 \end{equation}
-where $p$ is the pressure and $\mat{B}$ is the Finger deformation tensor ($\mat{B}=\mat{F}^{-1}\mat{F}^{-T}$) and $\mat{F}$, as before, the deformation gradient tensor.
-The parameters to indicate in the material file are the same as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's ratio) and \code{Plane\_Stress} (if set to zero plane strain, else plane stress).
+where $p$ is the pressure and $\mat{B}$ is the Finger deformation tensor
+($\mat{B}=\mat{F}^{-1}\mat{F}^{-T}$) and $\mat{F}$, as before, the deformation
+gradient tensor.  The parameters to indicate in the material file are the same
+as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's
+ratio) and \code{Plane\_Stress} (if set to zero plane strain, else plane
+stress).
 
 \subsubsection{Visco-elastic (IMPLEMENTATION TO VERIFY!!)}
 
-% Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes, "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
-Visco-elasticity is characterized by time dependent strain behavior. Moreover, when such a material undergoes a deformation it dissipates some energy. This dissipation results in a hysteresis loop in the stress-strain curve at every loading cycle (see Figure~\ref{fig:smm:cl:visco-elastic:hyst}). In principle, it can be applied to many materials, since all materials exhibit a visco-elastic behavior if subjected to particular conditions (such as high temperatures).
+% Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes,
+% "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
+Visco-elasticity is characterized by time dependent strain behavior. Moreover,
+when such a material undergoes a deformation it dissipates some energy. This
+dissipation results in a hysteresis loop in the stress-strain curve at every
+loading cycle (see Figure~\ref{fig:smm:cl:visco-elastic:hyst}). In principle, it
+can be applied to many materials, since all materials exhibit a visco-elastic
+behavior if subjected to particular conditions (such as high temperatures).
 \begin{figure}[!htb]
   \begin{center}
 
@@ -800,12 +839,23 @@ Visco-elasticity is characterized by time dependent strain behavior. Moreover, w
     \label{fig:smm:cl:visco-elastic}
   \end{center}
 \end{figure}
-The standard rheological linear solid model (see Sections 10.2 and 10.3 of~\cite{simo92}) has been implemented in \akantu. This model results from the combination of a spring mounted in parallel with a spring and a dashpot connected in series, as illustrated in Figure~\ref{fig:smm:cl:visco-elastic:model}. The advantage of this model is that it allows to account for creep and stress relaxation. The equation that relates the stress to the strain is (in 1D):
+The standard rheological linear solid model (see Sections 10.2 and 10.3
+of~\cite{simo92}) has been implemented in \akantu. This model results from the
+combination of a spring mounted in parallel with a spring and a dashpot
+connected in series, as illustrated in
+Figure~\ref{fig:smm:cl:visco-elastic:model}. The advantage of this model is that
+it allows to account for creep and stress relaxation. The equation that relates
+the stress to the strain is (in 1D):
 \begin{equation}
   \frac{d\epsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\epsilon(t) \right ]
 \end{equation}
-where $\eta$ is the viscosity. The equilibrium condition is unique and is attained in the limit, as $t \to \infty $. At this stage, the response is elastic and depends on the Young's modulus $E$.
-The parameters requested in the material file are the following: \code{rho} (density), \code{E} (Young's modulus), \code{nu} (Poisson's ratio), \code{Plane\_Stress} (if set to zero plane strain, otherwise plane stress), \code{eta} (dashpot viscosity) and \code{Ev} (stiffness of the viscous element).
+where $\eta$ is the viscosity. The equilibrium condition is unique and is
+attained in the limit, as $t \to \infty $. At this stage, the response is
+elastic and depends on the Young's modulus $E$.  The parameters requested in the
+material file are the following: \code{rho} (density), \code{E} (Young's
+modulus), \code{nu} (Poisson's ratio), \code{Plane\_Stress} (if set to zero
+plane strain, otherwise plane stress), \code{eta} (dashpot viscosity) and
+\code{Ev} (stiffness of the viscous element).
 
 \subsubsection{Damage Marigo}
 \subsubsection{Damage Mazars}
@@ -813,17 +863,16 @@ The parameters requested in the material file are the following: \code{rho} (den
 \subsection{Adding a new constitutive law}
 
 
-There are  several existing constitutive laws in  \akantu as described
-in the  previous Section \ref{sect:smm:CL};  it is also  possible to
-add a new constitutive relationship which indicates a new material to the
-current ones. To define a new plugin material, two files (\code {material\_XXX.cc} and
-\code{material\_XXX.hh}) should be provided where \code{XXX} is the name of
-the new material. In the \code{material\_XXX.hh} the interface of the custom material
-should be given and in the \code{material\_XXX.cc} the implementation of
-the functions should be presented.  The new law has to inherit from
-the material class or any other existing \code{Material} class and the
-following functions have to be redefined for the new constitutive law.
-
+There are several existing constitutive laws in \akantu as described in the
+previous Section \ref{sect:smm:CL}; it is also possible to add a new
+constitutive relationship which indicates a new material to the current ones. To
+define a new plugin material, two files (\code {material\_XXX.cc} and
+\code{material\_XXX.hh}) should be provided where \code{XXX} is the name of the
+new material. In the \code{material\_XXX.hh} the interface of the custom
+material should be given and in the \code{material\_XXX.cc} the implementation
+of the functions should be presented.  The new law has to inherit from the
+material class or any other existing \code{Material} class and the following
+functions have to be redefined for the new constitutive law.
 
 \begin{cpp}
   void initMaterial();
@@ -843,37 +892,35 @@ following functions have to be redefined for the new constitutive law.
 \end{cpp}
 
 
-For each material, the minimum required parameters has to be defined in
-a material file.  For existing materials, as mentioned in section
-\ref{sect:smm:CL}, one can use a \code{readMaterials}
-or \code{initFull} function for reading a material file. However, for reading the parameters of
-the  \textbf{plugin} material  law  \code{readCustomMaterial} function
-should be used. Some of  these parameters can  be initialized  in the
-constructor. Moreover, some internal values can be considered
-for  each  quadrature  point,  which   can  be  also  initialized  in  the
-constructor of the new law with the
-function \code{initInternalVector}. These internal
-members have a \code{ByElementTypeReal} type which means they are
-real values that are considered for each of the quadrature points of the elements.
+For each material, the minimum required parameters has to be defined in a
+material file.  For existing materials, as mentioned in section
+\ref{sect:smm:CL}, one can use a \code{readMaterials} or \code{initFull}
+function for reading a material file. However, for reading the parameters of the
+\textbf{plugin} material law \code{readCustomMaterial} function should be
+used. Some of these parameters can be initialized in the constructor. Moreover,
+some internal values can be considered for each quadrature point, which can be
+also initialized in the constructor of the new law with the function
+\code{initInternalVector}. These internal members have a
+\code{ByElementTypeReal} type which means they are real values that are
+considered for each of the quadrature points of the elements.
 
 
 
-Finally,    the    class   members    should    be    declared   in    the
-\code{material\_XXX.hh} file. In the following, each required function is described.
+Finally, the class members should be declared in the \code{material\_XXX.hh}
+file. In the following, each required function is described.
 
 
 \begin{itemize}
 
-\item \code{setParam}  This function  is called for each  line of the material  file. As described before, the lines of
-  this file is as following:
+\item \code{setParam} This function is called for each line of the material
+  file. As described before, the lines of this file is as following:
   \begin {cpp}
     key = value;
   \end{cpp}
-  If the key of the parameter is known in
-  this  function  it  will  be   stored  otherwise  it  will  call  the
-  \code{setParam} of the parent class to set it.
-  Therefore, the parameters which are specially made for the new material
-  can be stored as following.
+  If the key of the parameter is known in this function it will be stored
+  otherwise it will call the \code{setParam} of the parent class to set it.
+  Therefore, the parameters which are specially made for the new material can be
+  stored as following.
 
   \begin{cpp}
     stringstream sstr(value);
@@ -883,18 +930,17 @@ Finally,    the    class   members    should    be    declared   in    the
     else { return Material::setParam(key, value, id); }
   \end{cpp}
 
-\item \code{initMaterial} This function is called after the material file is fully read and the
-  elements  corresponding  to  each  material are  assigned.  In  this
-  function, some of the constant parameters which
-  are frequently used are calculated. For example, for the
-  elastic material the Lame's constants  can be considered as these kinds
-  of parameters.  Moreover, the  internal members can  be resized  with
-  \code{resizeInternalVector} function to the number of the quadrature
-  points handled by the material.
+\item \code{initMaterial} This function is called after the material file is
+  fully read and the elements corresponding to each material are assigned.  In
+  this function, some of the constant parameters which are frequently used are
+  calculated. For example, for the elastic material the Lame's constants can be
+  considered as these kinds of parameters.  Moreover, the internal members can
+  be resized with \code{resizeInternalVector} function to the number of the
+  quadrature points handled by the material.
 
-\item \code{computeStress}  In this function the stresses are computed based on the constitutive
-  law knowing the  strains for the quadrature points.  For example, for
-  the  elastic  material the  stresses  are  calculated  based on  the
+\item \code{computeStress} In this function the stresses are computed based on
+  the constitutive law knowing the strains for the quadrature points.  For
+  example, for the elastic material the stresses are calculated based on the
   following formula:
 
  \begin{equation}\label{eqn:smm:constitutive_elastic}
@@ -910,31 +956,33 @@ Therefore, this
   \begin{cpp}
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
 
-// stress_val <- f(strain_val)
+    // sigma <- f(grad_u)
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   \end{cpp}
 
- \note{ This  function can be split  in two functions.  In other words,
-   the calculation of the stress for a quadrature point can be done in
-   an inline function which is stored in a file such as \code{material\_XXX\_inline.cc}.}
+  \note{ This function can be split in two functions.  In other words, the
+    calculation of the stress for a quadrature point can be done in an inline
+    function which is stored in a file such as \code{material\_XXX\_inline.cc}.}
 
-\note{  The strain  vector  in  \akantu contains  the  values of  the
-  $\nabla \vec{u}$.}
+  \note{ The strain vector in \akantu contains the values of the $\nabla
+    \vec{u}$.}
 
 
-\item \code{computeTangentStiffness}  This function is called when  the tangent to the stress-strain curve
-  is desired (see Fig \ref {fig:smm:AL:K}).  For example, it is called in the implicit solver when
-  the stiffness matrix for the regular elements is assembled based on the following formula:
+\item \code{computeTangentStiffness} This function is called when the tangent to
+  the stress-strain curve is desired (see Fig \ref {fig:smm:AL:K}).  For
+  example, it is called in the implicit solver when the stiffness matrix for the
+  regular elements is assembled based on the following formula:
 
   \begin{equation} \label{eqn:smm:constitutive_elasc}
     \mat{K } =\int{\mat{B^T}\mat{D(\epsilon)}\mat{B}}
   \end{equation}
 
-Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for a given strain.
+  Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed
+  for a given strain.
 
-\note{ The \code{tangent}  matrix is a $4^{th}$ order  tensor which is
-  stored as a matrix in the Voigt notation.}
+  \note{ The \code{tangent} matrix is a $4^{th}$ order tensor which is stored as
+    a matrix in the Voigt notation.}
 
   \begin{figure}[!htb]
     \begin{center}
@@ -945,27 +993,25 @@ Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for 
   \end{figure}
 
 
-\item \code{getStableTimeStep} For the dynamic methods the stable
-  time     step    should     be    calculated     based     on    the
-  equation \ref{eqn:smm:explicit:stabletime}.  This function depends
-  on longitudinal wave speed which changes for different materials and strains. Therefore, the  value of
-  this  velocity should  be  defined  in this  function  for each  new
-  material.
+\item \code{getStableTimeStep} For the dynamic methods the stable time step
+  should be calculated based on the equation \ref{eqn:smm:explicit:stabletime}.
+  This function depends on longitudinal wave speed which changes for different
+  materials and strains. Therefore, the value of this velocity should be defined
+  in this function for each new material.
 
-  \note  {In case  of need,  the calculation  of the  longitudinal and
-    shear wave speeds can be done in separate functions (\code{getPushWaveSpeed} and
-  \code{getShearWaveSpeed}).  Therefore,  the  first  function  can  be
-  called for calculation of the stable time step.}
+  \note {In case of need, the calculation of the longitudinal and shear wave
+    speeds can be done in separate functions (\code{getPushWaveSpeed} and
+    \code{getShearWaveSpeed}).  Therefore, the first function can be called for
+    calculation of the stable time step.}
 
-\item \code{printself} The final function which should be redefined is
-  a function to print out
-  the information of the material law. The interface of this function
-  is similar to the one for existing laws. This function will write on
-  the output the required material information.
+\item \code{printself} The final function which should be redefined is a
+  function to print out the information of the material law. The interface of
+  this function is similar to the one for existing laws. This function will
+  write on the output the required material information.
 \end{itemize}
 
-  A full example for adding a new damage law can be
-  found in \code{example/manual/new\_material}.
+A full example for adding a new damage law can be found in
+\code{example/manual/new\_material}.
 
 
 \subsection{Contact \todo{Alejendro, David, Vlad}}
@@ -974,8 +1020,8 @@ Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed for 
 
 \subsubsection{Exponential cohesive law}
 
-Ortiz and Pandolfi proposed this cohesive law in 1999 \ref{ortiz1999}.
-The traction-opening equation for this law is as following:
+Ortiz and Pandolfi proposed this cohesive law in 1999 \ref{ortiz1999}.  The
+traction-opening equation for this law is as following:
 
 \begin{equation}
   \label{eq:exponential_law}
@@ -1001,21 +1047,21 @@ For  the  static  analysis   of  the  structures  containing  cohesive
 elements, the stiffness of the cohesive elements should also be added to the
 total      stiffness       of      the      structure.      Therefore,
 the  function  \code{assembleStiffnessMatrix}  is written  in  the
-\code{MaterialCohesive}.  
+\code{MaterialCohesive}.
 
 Considering a typical cohesive element as explained in figure ???, the opening
 displacement along the mid-surface can be written as:
 
 \begin{equation}
   \label{eq:opening}
-  \delta(\xi) = [[\mat{u}]] \mat{N}(\xi) = 
-\begin{bmatrix} 
+  \delta(\xi) = [[\mat{u}]] \mat{N}(\xi) =
+\begin{bmatrix}
 u_3-u_0 & u_4-u_1 & u_5-u_2\\
 v_3-v_0 & v_4-v_1 & v_5-v_2
-\end{bmatrix} 
+\end{bmatrix}
 \begin{bmatrix}
 N_0(\xi) \\ N_1(\xi) \\ N_2(\xi)
-\end{bmatrix} = 
+\end{bmatrix} =
 \mat{N A U}
 \end{equation}
 
@@ -1070,7 +1116,7 @@ performing necessary derivation:
 \end{equation}
 
  In which $\frac{\partial{(t/\delta)}}{\partial{\delta}}$ in the first
- term is 
+ term is
 
 \begin{equation}
  \frac{\partial{(t/ \delta)}}{\partial{\delta}} = \left\{\begin{array} {l l}
@@ -1082,12 +1128,12 @@ performing necessary derivation:
 
 This      tangent      matrix      is     implemented      in      the
 \code{computeTangentStiffness} function for
-the exponential law. 
+the exponential law.
 
 A full example for the static analysis of the cohesive elements can be
 found in \code{example/manual/static\_cohesive}.
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"
-%%% End: 
+%%% End:

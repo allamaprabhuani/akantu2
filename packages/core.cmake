@@ -24,6 +24,7 @@ set(CORE_FILES
   model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
+  model/solid_mechanics/material_parameters.cc
   model/solid_mechanics/materials/material_cohesive/material_cohesive.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
@@ -31,16 +32,15 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.cc
   model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic.cc
-  model/solid_mechanics/materials/material_elastic_caughey.cc
-  model/solid_mechanics/materials/material_viscoelastic.cc
-  model/solid_mechanics/materials/material_damage.cc
-  model/solid_mechanics/materials/material_marigo.cc
-  model/solid_mechanics/materials/material_mazars.cc
   model/solid_mechanics/materials/material_neohookean.cc
-  model/solid_mechanics/materials/weight_function.cc
-  model/solid_mechanics/materials/material_damage_linear.cc
-  model/solid_mechanics/materials/material_vreepeerlings.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
+  model/solid_mechanics/materials/material_damage/material_damage.cc
+  model/solid_mechanics/materials/material_damage/material_marigo.cc
+  model/solid_mechanics/materials/material_damage/material_mazars.cc
+  model/solid_mechanics/materials/material_damage/material_damage_linear.cc
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
@@ -123,21 +123,22 @@ set(CORE_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
-  model/solid_mechanics/materials/material_damage.hh
-  model/solid_mechanics/materials/material_marigo.hh
-  model/solid_mechanics/materials/material_elastic_caughey.hh
-  model/solid_mechanics/materials/material_viscoelastic.hh
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
+  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
   model/solid_mechanics/materials/material_elastic.hh
   model/solid_mechanics/materials/material_elastic_orthotropic.hh
-  model/solid_mechanics/materials/material_non_local.hh
-  model/solid_mechanics/materials/material_mazars.hh
-  model/solid_mechanics/materials/material_damage_linear.hh
   model/solid_mechanics/materials/material_neohookean.hh
-  model/solid_mechanics/materials/material_vreepeerlings.hh
+  model/solid_mechanics/materials/material_damage/material_damage.hh
+  model/solid_mechanics/materials/material_damage/material_marigo.hh
+  model/solid_mechanics/materials/material_damage/material_mazars.hh
+  model/solid_mechanics/materials/material_damage/material_damage_linear.hh
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings.hh
   model/solid_mechanics/solid_mechanics_model.hh
   model/solid_mechanics/solid_mechanics_model_cohesive.hh
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/material.hh
+  model/solid_mechanics/material_parameters.hh
+  model/solid_mechanics/material_parameters_tmpl.hh
   model/heat_transfer/heat_transfer_model.hh
 
   #inline implementation files
@@ -172,13 +173,12 @@ set(CORE_FILES
   model/integration_scheme/newmark-beta_inline_impl.cc
   model/solid_mechanics/solid_mechanics_model_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
-  model/solid_mechanics/materials/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
-  model/solid_mechanics/materials/material_non_local_inline_impl.cc
   model/solid_mechanics/materials/material_neohookean_inline_impl.cc
-  model/solid_mechanics/materials/material_marigo_inline_impl.cc
-  model/solid_mechanics/materials/material_damage_linear_inline_impl.cc
-  model/solid_mechanics/materials/material_vreepeerlings_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
   )

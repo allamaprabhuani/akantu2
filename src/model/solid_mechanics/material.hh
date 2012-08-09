@@ -32,6 +32,7 @@
 //#include "mesh.hh"
 #include "data_accessor.hh"
 //#include "static_communicator.hh"
+#include "material_parameters.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -78,22 +79,36 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// register a material parameter
+  template<class T>
+  void registerParam(std::string name, T & variable, T default_value,
+		     ParamAccessType type,
+		     std::string description = "");
+
+  template<class T>
+  void registerParam(std::string name, T & variable, ParamAccessType type,
+		     std::string description = "");
+
+
   /// read properties
   virtual bool setParam(const std::string & key, const std::string & value,
 			const ID & id);
+
+  /// function called to update the internal parameters when the modifiable
+  /// parameters are modified
+  virtual void updateInternalParameters() {}
 
   /// initialize the material computed parameter
   virtual void initMaterial();
 
   /// compute the residual for this material
-  virtual void updateResidual(Vector<Real> & displacement,
-			      GhostType ghost_type = _not_ghost);
+  virtual void updateResidual(GhostType ghost_type = _not_ghost);
+
 
   void assembleResidual(GhostType ghost_type);
 
   /// compute the residual for this material
-  virtual void computeAllStresses(Vector<Real> & current_position,
-				  GhostType ghost_type = _not_ghost);
+  virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
 
   /// set material to steady state
   void setToSteadyState(GhostType ghost_type = _not_ghost);
@@ -197,7 +212,7 @@ protected:
   /// get the size of the coordiante matrix used in the interpolation
   template <ElementType type>
   inline UInt getSizeElementalFieldInterpolationCoodinates();
-  
+
   /// extract the field values corresponding to the quadrature points used for the interpolation
   template <ElementType type>
   inline void extractElementalFieldForInterplation(const Vector<Real> & field,
@@ -211,7 +226,7 @@ protected:
   inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
 					   types::Matrix & sigma,
 					   Real & epot);
- 
+
 public:
   /// allocate an internal vector
   template<typename T>
@@ -343,6 +358,9 @@ protected:
   /// elemental field interpolation points
   ByElementTypeReal interpolation_points_matrices;
 
+  /// list of the paramters
+  MaterialParameters params;
+
 private:
   /// boolean to know if the material has been initialized
   bool is_init;
@@ -415,11 +433,11 @@ __END_AKANTU__
 /* Material list                                                              */
 /* -------------------------------------------------------------------------- */
 #define AKANTU_CORE_MATERIAL_LIST					\
-  ((2, (elastic                , MaterialElastic              )))	\
-  ((2, (viscoelastic           , MaterialViscoElastic         )))	\
-  ((2, (elastic_orthotropic    , MaterialElasticOrthotropic   )))	\
-  ((2, (elastic_caughey        , MaterialElasticCaughey       )))	\
-  ((2, (neohookean             , MaterialNeohookean           )))
+  ((2, (elastic            , MaterialElastic                      )))	\
+  ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
+  ((2, (neohookean         , MaterialNeohookean                   )))	\
+  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))	\
+  ((2, (ve_stiffness_prop  , MaterialStiffnessProportional        )))
 
 
 #define AKANTU_COHESIVE_MATERIAL_LIST					\
@@ -477,10 +495,13 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 // elastic materials
 #include "material_elastic.hh"
-#include "material_elastic_caughey.hh"
-#include "material_viscoelastic.hh"
 #include "material_neohookean.hh"
 #include "material_elastic_orthotropic.hh"
+
+// visco-elastic materials
+#include "material_stiffness_proportional.hh"
+#include "material_standard_linear_solid_deviatoric.hh"
+
 
 // damage materials
 #include "material_damage.hh"

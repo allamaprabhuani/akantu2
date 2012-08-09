@@ -168,3 +168,21 @@ inline void Material::extractElementalFieldForInterplation(const Vector<Real> & 
   filtered_field.copy(field);
 }
 
+/* -------------------------------------------------------------------------- */
+template<typename T>
+void Material::registerParam(std::string name, T & variable, T default_value,
+			     ParamAccessType type,
+			     std::string description) {
+  AKANTU_DEBUG_IN();
+  params.registerParam<T>(name, variable, default_value, type, description);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+void Material::registerParam(std::string name, T & variable, ParamAccessType type,
+			     std::string description) {
+  AKANTU_DEBUG_IN();
+  params.registerParam<T>(name, variable, type, description);
+  AKANTU_DEBUG_OUT();
+}

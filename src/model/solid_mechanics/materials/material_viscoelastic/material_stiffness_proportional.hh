@@ -1,10 +1,11 @@
 /**
- * @file   material_elastic_caughey.hh
+ * @file   material_stiffness_proportional.hh
  * @author David Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed May  4 15:16:59 2011
  *
- * @brief  Material isotropic viscoelastic (according to the Caughey condition)
+ * @brief Material isotropic visco-elastic with viscosity proportional to the
+ * stiffness
  *
  * @section LICENSE
  *
@@ -32,13 +33,19 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__
-#define __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__
+
+#ifndef __AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH__
+#define __AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Material viscoelastic (caughey condition) isotropic
+ * Material visco-elastic @f[\sigma = E\epsilon + \alpha E* \frac{d\epsilon}{dt}@f]
+ * it can be seen as a Kelvin-Voigt solid with @f[\eta = \alpha E @f]
+ *
+ * The material satisfies the Caughey condition, the visco-elastic solid has the
+ * same eigen-modes as the elastic one. (T.K. Caughey 1960 - Journal of Applied
+ * Mechanics 27, 269-271. Classical normal modes in damped linear systems.)
  *
  * parameters in the material files :
  *   - rho : density (default: 0)
@@ -48,15 +55,15 @@ __BEGIN_AKANTU__
  *   - alpha : viscous ratio
  */
 template<UInt spatial_dimension>
-class MaterialElasticCaughey : public MaterialElastic<spatial_dimension> {
+class MaterialStiffnessProportional : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElasticCaughey(SolidMechanicsModel & model, const ID & id = "");
+  MaterialStiffnessProportional(SolidMechanicsModel & model, const ID & id = "");
 
-  virtual ~MaterialElasticCaughey() {};
+  virtual ~MaterialStiffnessProportional() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -65,17 +72,11 @@ public:
 
   void initMaterial();
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
   virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
   /// constitutive law for a given quadrature point
@@ -85,15 +86,6 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressViscosity, stress_viscosity, Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressElastic,   stress_elastic, Real);
-
-  AKANTU_GET_MACRO(Alpha, alpha, Real);
-  AKANTU_SET_MACRO(Alpha, alpha, Real);
-
-  virtual Real getProperty(const ID & param) const;
-  virtual void setProperty(const ID & param, Real value);
-
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -119,4 +111,4 @@ private:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_ELASTIC_CAUGHEY_HH__ */
+#endif /* __AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH__ */

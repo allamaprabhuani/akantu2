@@ -1,5 +1,5 @@
 /**
- * @file   material_viscoelastic.hh
+ * @file   material_standard_linear_solid_deviatoric.hh
  * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Kammer <david.kammer@epfl.ch>
@@ -34,13 +34,13 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VISCOELASTIC_HH__
-#define __AKANTU_MATERIAL_VISCOELASTIC_HH__
+#ifndef __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__
+#define __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Material viscoelastic 
+ * Material standard linear solid deviatoric
  *
  *
  * @verbatim
@@ -55,21 +55,24 @@ __BEGIN_AKANTU__
 
  @endverbatim
  *
+ * keyword : sls_deviatoric
+ *
  * parameters in the material files :
  *   - E   : Initial Young's modulus @f$ E = E_i + E_v @f$
  *   - eta : viscosity
  *   - Ev  : stiffness of the viscous element
  */
+
 template<UInt spatial_dimension>
-class MaterialViscoElastic : public MaterialElastic<spatial_dimension> {
+class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialViscoElastic(SolidMechanicsModel & model, const ID & id = "");
+  MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model, const ID & id = "");
 
-  virtual ~MaterialViscoElastic() {};
+  virtual ~MaterialStandardLinearSolidDeviatoric() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -78,16 +81,12 @@ public:
 
   void initMaterial();
 
-  void setToSteadyState(ElementType el_type, GhostType ghost_type = _not_ghost);
+  virtual void updateInternalParameters();
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-   			const ID & id);
+  void setToSteadyState(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
 
@@ -95,16 +94,6 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(HistoryIntegral, history_integral, Real);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(DeviatoricStress,  stress_dev, Real);
-
-  AKANTU_GET_MACRO(Ev, Ev, Real);
-  AKANTU_SET_MACRO(Ev, Ev, Real);
-  AKANTU_GET_MACRO(Einf, E_inf, Real);
-  //  AKANTU_SET_MACRO(Einf, E_inf, Real); // Einf is computed in initMaterial based on E and Ev
-
-  AKANTU_GET_MACRO(Eta, eta, Real);
-  AKANTU_SET_MACRO(Eta, eta, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -119,8 +108,12 @@ private:
 
   /// Internal variable: history integral
   ByElementTypeReal history_integral;
+
+  std::map<std::string, MaterialParam> params;
 };
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_VISCOELASTIC_HH__ */
+#endif /* __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__ */
+
+

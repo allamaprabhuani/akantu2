@@ -37,9 +37,12 @@ MaterialElastic<spatial_dimension>::MaterialElastic(SolidMechanicsModel & model,
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
-  E   = 0;
-  nu  = 1./2.;
-  plane_stress = false;
+  this->registerParam("E"           ,E           , 0.   , _pat_parsable, "Young's modulus"        );
+  this->registerParam("nu"          ,nu          , 0.5  , _pat_parsable, "Poisson's ratio"        );
+  this->registerParam("Plane_Stress",plane_stress, false, _pat_parsable, "Is plane stress"        );
+  this->registerParam("lambda"      ,lambda             , _pat_readable, "First Lamé coefficient" );
+  this->registerParam("mu"          ,mu                 , _pat_readable, "Second Lamé coefficient");
+  this->registerParam("kapa"        ,kpa                , _pat_readable, "Bulk coefficient"       );
 
   AKANTU_DEBUG_OUT();
 }
@@ -51,18 +54,17 @@ void MaterialElastic<spatial_dimension>::initMaterial() {
   Material::initMaterial();
   if (spatial_dimension == 1) nu = 0.;
 
-  recomputeLameCoefficient();
+  updateInternalParameters();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::recomputeLameCoefficient() {
+void MaterialElastic<spatial_dimension>::updateInternalParameters() {
   lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
   mu       = E / (2 * (1 + nu));
 
   if(plane_stress) {
-    //lambda = 2 * lambda * mu / (lambda + 2 * mu);
     lambda = nu * E / ((1 + nu)*(1 - nu));
   }
 
@@ -97,39 +99,6 @@ void MaterialElastic<spatial_dimension>::computeTangentModuli(__attribute__((unu
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-bool MaterialElastic<spatial_dimension>::setParam(const std::string & key, const std::string & value,
-			       const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "E") { sstr >> E; }
-  else if(key == "nu") { sstr >> nu; }
-  else if(key == "Plane_Stress") { sstr >> plane_stress; }
-  else { return Material::setParam(key, value, id); }
-  return true;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getProperty(const ID & key) const {
-  if(key == "E") { return E; }
-  else if(key == "nu") { return nu; }
-  else if(key == "lambda") { return nu; }
-  else if(key == "mu") { return mu; }
-  else if(key == "kapa") { return kpa; }
-  else return Material::getProperty(key);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::setProperty(const ID & key,
-						     Real value) {
-  if(key == "E") { E = value; recomputeLameCoefficient(); }
-  else if(key == "nu") { nu = value; recomputeLameCoefficient(); }
-  else Material::setProperty(key, value);
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 Real MaterialElastic<spatial_dimension>::getPushWaveSpeed() const {
   return sqrt((lambda + 2*mu)/rho);
 }
@@ -138,30 +107,6 @@ Real MaterialElastic<spatial_dimension>::getPushWaveSpeed() const {
 template<UInt spatial_dimension>
 Real MaterialElastic<spatial_dimension>::getShearWaveSpeed() const {
   return sqrt(mu/rho);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::printself(std::ostream & stream,
-						   int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "MaterialElastic [" << std::endl;
-  if(!plane_stress)
-    stream << space << " + Plane strain" << std::endl;
-  else
-    stream << space << " + Plane stress" << std::endl;
-  stream << space << " + density                 : " << rho << std::endl;
-  stream << space << " + Young's modulus         : " << E << std::endl;
-  stream << space << " + Poisson's ratio         : " << nu << std::endl;
-  if(this->isInit()) {
-    stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
-    stream << space << " + Second Lamé coefficient : " << mu << std::endl;
-    stream << space << " + Bulk coefficient        : " << kpa << std::endl;
-  }
-  Material::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

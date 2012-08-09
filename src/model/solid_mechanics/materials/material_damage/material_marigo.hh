@@ -63,14 +63,10 @@ public:
 
   void initMaterial();
 
-  bool setParam(const std::string & key, const std::string & value,
-		const ID & id);
+  virtual void updateInternalParameters();
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
   /// constitutive law for a given quadrature point
@@ -117,9 +113,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
-  virtual Real getProperty(const ID & param) const;
-  virtual void setProperty(const ID & param, Real value);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

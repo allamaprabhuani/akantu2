@@ -1,6 +1,7 @@
 /**
- * @file   test_material_viscoelastic_relaxation_tension.cc
+ * @file   test_material_viscoelastic_relaxation.cc
  * @author David Kammer <david.kammer@epfl.ch>
+ * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch> 
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed May 23 15:54:01 2012
  *
@@ -50,55 +51,46 @@ int main(int argc, char *argv[])
   Real T = 10.;
   Real eps = 0.001;
 
-  //  const UInt dim = 3;
   const UInt dim = 2;
   Real sim_time = 25.;
-  //Real sim_time = 250.;
   Real time_factor = 0.1;
 
-  Real tolerance = 1e-5;
+  Real tolerance = 1e-7;
 
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
-  mesh_io.read("test_material_viscoelastic_relaxation.msh",mesh);
-  //  mesh_io.read("hexa_structured.msh",mesh);
-  //const ElementType element_type = _hexahedron_8;
+  mesh_io.read("test_material_standard_linear_solid_deviatoric_relaxation.msh",mesh);
   const ElementType element_type = _quadrangle_4;
   SolidMechanicsModel model(mesh);
 
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initFull("material_viscoelastic_relaxation.dat", _explicit_dynamic);
+  model.initFull("material_standard_linear_solid_deviatoric_relaxation.dat", _explicit_dynamic);
   std::cout << model.getMaterial(0) << std::endl;
 
   model.assembleMassLumped();
 
-  model.updateResidual();
-  model.getMaterial(0).setToSteadyState();
-
   std::stringstream filename_sstr;
-  filename_sstr << "test_material_viscoelastic_relaxation_tension.out";
+  filename_sstr << "test_material_standard_linear_solid_deviatoric_relaxation.out";
   std::ofstream output_data;
   output_data.open(filename_sstr.str().c_str());
   output_data << "#[1]-time [2]-sigma_analytic [3+]-sigma_measurements" << std::endl;
 
-  MaterialViscoElastic<dim> & mat = dynamic_cast<MaterialViscoElastic<dim> &>(model.getMaterial(0));
+  Material & mat = model.getMaterial(0);
+
   const Vector<Real> & stress = mat.getStress(element_type);
 
-  Real Eta = mat.getEta();
-  Real EV = mat.getEv();
-  Real Einf = mat.getEinf();
-  Real E0 = mat.getE();
-  
-  Real kpa = mat.getKpa();
-  Real mu = mat.getMu();
-
-  Real gamma = EV/E0;
-  Real gammainf = Einf/E0;
-
+  Real Eta  = mat.getProperty("Eta");
+  Real EV   = mat.getProperty("Ev");
+  Real Einf = mat.getProperty("Einf");
+  Real nu   = mat.getProperty("nu");
+  Real Ginf = Einf/(2*(1+nu));
+  Real G = EV/(2*(1+nu));
+  Real G0 = G + Ginf;
+  Real gamma = G/G0;
   Real tau = Eta / EV;
-  std::cout << "relaxation time = " << tau << std::endl;
+  Real gammainf = Ginf/G0;
 
   UInt nb_nodes = mesh.getNbNodes();
   const Vector<Real> & coordinate = mesh.getNodes();
@@ -131,10 +123,9 @@ int main(int argc, char *argv[])
     else {
       epsilon = eps;
     }
-
     for (UInt n=0; n<nb_nodes; ++n) {
-      for (UInt d=0; d<dim; ++d)
-	displacement(n,d) = epsilon * coordinate(n,d);
+      displacement(n,0) = epsilon * coordinate(n,1);
+      displacement(n,1) = epsilon * coordinate(n,0);
     }
 
     // compute stress
@@ -143,13 +134,12 @@ int main(int argc, char *argv[])
     // print output
     if(s % out_interval == 0) {
       // analytical solution
-      Real epskk = dim * eps;
       Real solution= 0.;
       if (time < T) {
-	solution = 2 * mu * (eps - epskk/3.) / T * (gammainf * time + gamma * tau * (1 - exp(-time/tau))) + gammainf * kpa * epskk * time / T;
+	solution = 2 * G0 * eps / T * (gammainf * time + gamma * tau * (1 - exp(-time/tau)));
       }
       else {
-	solution = 2 * mu * (eps - epskk/3.) * (gammainf + gamma * tau / T *(exp((T-time)/tau) - exp(-time/tau))) + gammainf * kpa * epskk;
+	solution = 2 * G0 * eps * (gammainf + gamma * tau / T * (exp((T-time)/tau) - exp(-time/tau)));
       }
       output_data << s*time_step << " " << solution;
 
@@ -157,12 +147,13 @@ int main(int argc, char *argv[])
       Vector<Real>::const_iterator<types::Matrix> stress_it = stress.begin(dim, dim);
       Vector<Real>::const_iterator<types::Matrix> stress_end = stress.end(dim, dim);
       for(;stress_it != stress_end; ++stress_it) {
-	output_data << " " << (*stress_it)(1,1);
+	output_data << " " << (*stress_it)(0,1) << " " << (*stress_it)(1,0);
 
 	// test error
-	Real rel_error_1 = std::abs(((*stress_it)(1,1) - solution) / solution);
-	if (rel_error_1 > tolerance) {
-	  std::cerr << "Relative error: " << rel_error_1 << std::endl;
+	Real rel_error_1 = std::abs(((*stress_it)(0,1) - solution) / solution);
+	Real rel_error_2 = std::abs(((*stress_it)(1,0) - solution) / solution);
+	if (rel_error_1 > tolerance || rel_error_2 > tolerance) {
+	  std::cerr << "Relative error: " << rel_error_1 << " " << rel_error_2 << std::endl;
 	  return EXIT_FAILURE;
 	}
       }

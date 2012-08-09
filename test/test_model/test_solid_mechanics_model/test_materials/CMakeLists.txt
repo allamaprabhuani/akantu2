@@ -25,6 +25,8 @@
 #
 #===============================================================================
 
+add_akantu_test(test_material_viscoelastic "test the visco elastic materials")
+
 add_mesh(test_local_material_square_mesh triangle.geo 2 2)
 add_mesh(test_local_material_circle_mesh circle.geo 2 2)
 add_mesh(test_local_material_bar_mesh bar.geo 2 1)
@@ -57,62 +59,6 @@ file(COPY material.dat DESTINATION .)
 file(COPY material_damage_non_local.dat DESTINATION .)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-
-#===============================================================================
-set(LIST_TYPES
-  triangle_3
-  quadrangle_4
-  )
-
-#===============================================================================
-foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER)
-    register_test(test_material_viscoelastic_${_type} test_material_viscoelastic.cc io_helper_tools.cc)
-  else()
-    register_test(test_material_viscoelastic_${_type} test_material_viscoelastic.cc)
-  endif()
-  set_target_properties(test_material_viscoelastic_${_type}
-    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-  file(COPY ./data/test_material_viscoelastic_${_type}.msh DESTINATION .)
-  file(COPY ./ref_files/test_material_viscoelastic_${_type}.ref DESTINATION .)
-endforeach()
-
-add_mesh(test_material_viscoelastic_relaxation_mesh test_material_viscoelastic_relaxation.geo 2 1)
-register_test(test_material_viscoelastic_relaxation test_material_viscoelastic_relaxation.cc)
-add_dependencies(test_material_viscoelastic_relaxation test_material_viscoelastic_relaxation_mesh)
-register_test(test_material_viscoelastic_relaxation_tension test_material_viscoelastic_relaxation_tension.cc)
-add_dependencies(test_material_viscoelastic_relaxation_tension test_material_viscoelastic_relaxation_mesh)
-file(COPY material_viscoelastic_relaxation.dat DESTINATION .)
-
-#===============================================================================
-foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER)
-    register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc io_helper_tools.cc)
-  else()
-    register_test(test_material_elastic_caughey_${_type} test_material_elastic_caughey.cc)
-  endif()
-  set_target_properties(test_material_elastic_caughey_${_type}
-    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-  file(COPY ./data/test_material_elastic_caughey_${_type}.msh DESTINATION .)
-  file(COPY ./ref_files/test_material_elastic_caughey_${_type}.ref DESTINATION .)
-endforeach()
-
-#===============================================================================
-foreach(_type ${LIST_TYPES})
-  if(AKANTU_IOHELPER)
-    register_test(test_material_elastic_caughey_damping_${_type} test_material_elastic_caughey_damping.cc io_helper_tools.cc)
-  else()
-    register_test(test_material_elastic_caughey_damping_${_type} test_material_elastic_caughey_damping.cc)
-  endif()
-  set_target_properties(test_material_elastic_caughey_damping_${_type}
-    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-  file(COPY ./data/single_${_type}.msh DESTINATION .)
-endforeach()
-
-#===============================================================================
-file(COPY material_viscoelastic.dat DESTINATION .)
-file(COPY material_elastic_caughey.dat DESTINATION .)
-file(COPY material_elastic_caughey_damping.dat DESTINATION .)
 
 #===============================================================================
 register_test(test_interpolate_stress test_interpolate_stress.cc)

@@ -88,7 +88,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(Vector<Real> & displacement, GhostType ghost_type) {
+void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   // Update the weights for the non local variable averaging
@@ -100,7 +100,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(Vector<
   if(ghost_type == _not_ghost) ++this->compute_stress_calls;
 
 
-  computeAllStresses(displacement, ghost_type);
+  computeAllStresses(ghost_type);
   computeNonLocalStress(ghost_type);
   assembleResidual(ghost_type);
 
@@ -111,15 +111,15 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(Vector<
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 template<typename T>
 void MaterialNonLocal<spatial_dimension, WeightFunction>::weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
-								    ByElementTypeVector<T> & accumulated,
-								    UInt nb_degree_of_freedom) const {
+										       ByElementTypeVector<T> & accumulated,
+										       UInt nb_degree_of_freedom,
+										       GhostType ghost_type2) const {
   AKANTU_DEBUG_IN();
 
   std::set< std::pair<ElementType, ElementType> >::const_iterator first_pair_types = existing_pairs.begin();
   std::set< std::pair<ElementType, ElementType> >::const_iterator last_pair_types = existing_pairs.end();
 
-  GhostType ghost_type1, ghost_type2;
-  ghost_type1 = ghost_type2 = _not_ghost;
+  GhostType ghost_type1 = _not_ghost; // does not make sens the ghost vs ghost so this should always by _not_ghost
 
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
     const Vector<UInt> & pairs =
@@ -175,55 +175,40 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(const B
                                                upper_bounds,
                                                spacing);
 
-  GhostType ghost_type = _not_ghost;
-
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
-
-  // first generate the quad points coordinate and count the number of points per cell
-  for(; it != last_type; ++it) {
-    const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
-    Vector<Real>::const_iterator<types::RVector> first_quad, last_quad;
-    first_quad = quads.begin(spatial_dimension);
-    last_quad = quads.end(spatial_dimension);
-
-    for(;first_quad != last_quad; ++first_quad) {
-      cell_list->count(*first_quad);
-    }
-  }
 
   QuadraturePoint q;
-  q.ghost_type = ghost_type;
 
-  // second insert the point in the cells
-  cell_list->beginInsertions();
-  it = mesh.firstType(spatial_dimension, ghost_type);
-  for(; it != last_type; ++it) {
+  for(UInt gt = _not_ghost; gt <= _ghost; ++gt) {
+    GhostType ghost_type = (GhostType) gt;
+    Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
+    Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
 
-    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
-    UInt nb_element = elem_filter.getSize();
-    UInt nb_quad    = this->model->getFEM().getNbQuadraturePoints(*it, ghost_type);
+    q.ghost_type = ghost_type;
+    for(; it != last_type; ++it) {
 
-    const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
+      Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+      UInt nb_element = elem_filter.getSize();
+      UInt nb_quad    = this->model->getFEM().getNbQuadraturePoints(*it, ghost_type);
 
-    q.type = *it;
+      const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
 
-    Vector<Real>::const_iterator<types::RVector> quad = quads.begin(spatial_dimension);
-    UInt * elem = elem_filter.storage();
+      q.type = *it;
 
-    for (UInt e = 0; e < nb_element; ++e) {
-      q.element = *elem;
-      for (UInt nq = 0; nq < nb_quad; ++nq) {
-        q.num_point = nq;
-        q.setPosition(*quad);
-        cell_list->insert(q, *quad);
-        ++quad;
+      Vector<Real>::const_iterator<types::RVector> quad = quads.begin(spatial_dimension);
+      UInt * elem = elem_filter.storage();
+
+      for (UInt e = 0; e < nb_element; ++e) {
+	q.element = *elem;
+	for (UInt nq = 0; nq < nb_quad; ++nq) {
+	  q.num_point = nq;
+	  q.setPosition(*quad);
+	  cell_list->insert(q, *quad);
+	  ++quad;
+	}
+	++elem;
       }
-      ++elem;
     }
   }
-
-  cell_list->endInsertions();
 
   SynchronizerRegistry & synch_registry = this->model->getSynchronizerRegistry();
   std::stringstream sstr; sstr << id << ":grid_synchronizer";

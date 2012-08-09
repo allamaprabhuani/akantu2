@@ -164,8 +164,7 @@ void MaterialCohesive::checkInsertion(const Vector<Real> & facet_stress,
  * @param[in] displacements nodes displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void MaterialCohesive::updateResidual(__attribute__((unused)) Vector<Real> & displacement,
-				      GhostType ghost_type) {
+void MaterialCohesive::updateResidual(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// compute traction
@@ -287,8 +286,8 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::assembleStiffnessMatrix(Vector<Real> & current_position, GhostType ghost_type) {
- 
+void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
+
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model->getSpatialDimension();
@@ -296,7 +295,7 @@ void MaterialCohesive::assembleStiffnessMatrix(Vector<Real> & current_position, 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
 
   Mesh & mesh = fem_cohesive->getMesh();
- 
+
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
 
@@ -328,7 +327,7 @@ void MaterialCohesive::assembleStiffnessMatrix(Vector<Real> & current_position, 
     for (UInt el = 0; el < nb_element; ++el) {
       *shapes_filtered_it = shapes_it[elem_filter_it[el]];
     }
-    
+
     /**
      * compute A matrix @f$ \mathbf{A} = \left[\begin{array}{c c c c c c c c c c c c}
      * 1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0 \\
@@ -361,14 +360,14 @@ void MaterialCohesive::assembleStiffnessMatrix(Vector<Real> & current_position, 
     Vector<Real> * normal = new Vector<Real>(nb_element * nb_quadrature_points,
 					     spatial_dimension,
 					     "normal");
-    computeNormal(current_position, *normal, *it, ghost_type);
+    computeNormal(model->getDisplacement(), *normal, *it, ghost_type);
 
     tangent_stiffness_matrix->clear();
 
     computeTangentTraction(*it, *tangent_stiffness_matrix, *normal, ghost_type);
 
     delete normal;
-  
+
     UInt size_at_nt_d_n_a = spatial_dimension*nb_nodes_per_element*spatial_dimension*nb_nodes_per_element;
     Vector<Real> * at_nt_d_n_a = new Vector<Real> (nb_element*nb_quadrature_points,
 						   size_at_nt_d_n_a,
@@ -401,7 +400,7 @@ void MaterialCohesive::assembleStiffnessMatrix(Vector<Real> & current_position, 
 	  N(i, i + n) = shapes_fil(n);
 
       /**
-       * compute stiffness matrix  @f$   \mathbf{K}    =    \delta    \mathbf{U}^T   
+       * compute stiffness matrix  @f$   \mathbf{K}    =    \delta    \mathbf{U}^T
        * \int_{\Gamma_c}    {\mathbf{P}^t \frac{\partial{\mathbf{t}}} {\partial{\delta}}
        * \mathbf{P} d\Gamma \Delta \mathbf{U}}  @f$
        **/

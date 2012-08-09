@@ -873,23 +873,27 @@ inline void Vector<T, is_scal>::erase(const iterator<R> & it) {
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::iterator<T> Vector<T, is_scal>::begin() {
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
   return iterator<T>(values);
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::iterator<T> Vector<T, is_scal>::end() {
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
   return iterator<T>(values + size);
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::const_iterator<T> Vector<T, is_scal>::begin() const {
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
   return const_iterator<T>(values);
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::const_iterator<T> Vector<T, is_scal>::end() const {
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
   return const_iterator<T>(values + size);
 }

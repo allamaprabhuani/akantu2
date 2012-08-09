@@ -28,7 +28,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_math.hh"
 #include "aka_common.hh"
-#pragma hdrstop
 #include "solid_mechanics_model.hh"
 #include "integration_scheme_2nd_order.hh"
 
@@ -372,7 +371,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     //(*mat_it)->updateResidual(*current_position, _not_ghost);
-    (*mat_it)->updateResidual(*displacement, _not_ghost);
+    (*mat_it)->updateResidual(_not_ghost);
   }
 
   // finalize communications
@@ -381,7 +380,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   // call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     //(*mat_it)->updateResidual(*current_position, _ghost);
-    (*mat_it)->updateResidual(*displacement, _ghost);
+    (*mat_it)->updateResidual(_ghost);
   }
 
   AKANTU_DEBUG_OUT();

@@ -270,7 +270,7 @@ inline void Math::matrixEig(UInt n, Real * A, Real * d, Real * V) {
   char jobvl;
   if(V != NULL)
     jobvl = 'V'; // compute left  eigenvectors
-  else 
+  else
     jobvl = 'N'; // compute left  eigenvectors
 
   char jobvr('N'); // compute right eigenvectors
