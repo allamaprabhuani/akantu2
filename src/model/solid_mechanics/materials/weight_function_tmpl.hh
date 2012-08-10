@@ -51,7 +51,7 @@ void StressBasedWeightFunction<spatial_dimension>::init() {
   this->material.resizeInternalVector(characteristic_size);
 
   const Mesh & mesh = this->material.getModel().getFEM().getMesh();
-  for (UInt g = _not_ghost; g < _casper; ++g) {
+  for (UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = GhostType(g);
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, gt);
     Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, gt);

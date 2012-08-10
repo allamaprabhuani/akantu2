@@ -78,34 +78,26 @@ int main(int argc, char *argv[])
     partition->partitionate(psize);
   }
 
- akantu::SolidMechanicsModel model(mesh);
- model.initParallel(partition);
-
-  akantu::UInt nb_nodes = mesh.getNbNodes();
-#ifdef AKANTU_USE_IOHELPER
-  akantu::UInt nb_element = mesh.getNbElement(type);
-#endif //AKANTU_USE_IOHELPER
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
+  akantu::SolidMechanicsModel model(mesh);
+
   /// model initialization
-  model.initVectors();
+  model.initParallel(partition);
 
-  /// set vectors to 0
-  model.getForce().clear();
-  model.getVelocity().clear();
-  model.getAcceleration().clear();
-  model.getDisplacement().clear();
-
-  model.initExplicit();
-  model.initModel();
-  model.readMaterials("material.dat");
-  model.initMaterials();
+  model.initFull("material.dat");
 
   if(prank == 0)
     std::cout << model.getMaterial(0) << std::endl;
 
   model.assembleMassLumped();
+
+
+  akantu::UInt nb_nodes = mesh.getNbNodes();
+#ifdef AKANTU_USE_IOHELPER
+  akantu::UInt nb_element = mesh.getNbElement(type);
+#endif //AKANTU_USE_IOHELPER
 
   /* ------------------------------------------------------------------------ */
   /* Boundary + initial conditions                                            */
@@ -122,6 +114,8 @@ int main(int argc, char *argv[])
   }
 
   model.synchronizeBoundaries();
+
+  model.updateResidual();
 
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;

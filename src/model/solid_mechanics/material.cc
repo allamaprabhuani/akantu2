@@ -314,7 +314,7 @@ void Material::setToSteadyState(GhostType ghost_type) {
  * @param[in] current_position nodes postition + displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
  */
-void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostType ghost_type) {
+void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model->getSpatialDimension();
@@ -324,9 +324,9 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostTyp
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     switch(spatial_dimension) {
-    case 1: { assembleStiffnessMatrix<1>(current_position, *it, ghost_type); break; }
-    case 2: { assembleStiffnessMatrix<2>(current_position, *it, ghost_type); break; }
-    case 3: { assembleStiffnessMatrix<3>(current_position, *it, ghost_type); break; }
+    case 1: { assembleStiffnessMatrix<1>(*it, ghost_type); break; }
+    case 2: { assembleStiffnessMatrix<2>(*it, ghost_type); break; }
+    case 3: { assembleStiffnessMatrix<3>(*it, ghost_type); break; }
     }
   }
 
@@ -335,8 +335,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position, GhostTyp
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
-				       const ElementType & type,
+void Material::assembleStiffnessMatrix(const ElementType & type,
 				       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -353,7 +352,7 @@ void Material::assembleStiffnessMatrix(Vector<Real> & current_position,
 
   strain_vect.resize(nb_quadrature_points * nb_element);
 
-  model->getFEM().gradientOnQuadraturePoints(current_position, strain_vect,
+  model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
 					     dim, type, ghost_type, &elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
@@ -513,7 +512,7 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
   Vector<Real> nodes_coordinates(mesh.getNodes(), true);
   nodes_coordinates += model->getDisplacement();
 
-  for(UInt gt =  (UInt) _not_ghost; gt < (UInt) _casper; ++gt) {
+  for(UInt gt =  (UInt) _not_ghost; gt <= (UInt) _ghost; ++gt) {
     GhostType ghost_type = (GhostType) gt;
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
     Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);

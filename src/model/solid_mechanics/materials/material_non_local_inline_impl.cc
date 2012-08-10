@@ -92,15 +92,17 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
   AKANTU_DEBUG_IN();
 
   // Update the weights for the non local variable averaging
-  if(ghost_type == _not_ghost && this->update_weigths && (this->compute_stress_calls % this->update_weigths == 0)) {
+  if(ghost_type == _not_ghost &&
+     this->update_weigths &&
+     (this->compute_stress_calls % this->update_weigths == 0)) {
     ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates);
     computeWeights(quadrature_points_coordinates);
   }
   if(ghost_type == _not_ghost) ++this->compute_stress_calls;
 
-
   computeAllStresses(ghost_type);
+
   computeNonLocalStress(ghost_type);
   assembleResidual(ghost_type);
 
@@ -215,7 +217,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(const B
   GridSynchronizer * synch = GridSynchronizer::createGridSynchronizer(mesh,
                                                                       *cell_list,
                                                                       sstr.str());
-  synch_registry.registerSynchronizer(*synch, _gst_mnl_damage);
+  synch_registry.registerSynchronizer(*synch, _gst_mnl_for_average);
 
   AKANTU_DEBUG_OUT();
 }

@@ -70,6 +70,8 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
     UInt mat = element_material(element.type, _not_ghost)(element.element);
+    // Element mat_element = element;
+    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
     size += materials[mat]->getNbDataToPack(element, tag);
     break;
   }
@@ -79,9 +81,10 @@ inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
     break;
   }
   default: {
-    UInt mat = element_material(element.type, _ghost)(element.element);
+    UInt mat = element_material(element.type, _not_ghost)(element.element);
+    // Element mat_element = element;
+    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
     size += materials[mat]->getNbDataToPack(element, tag);
-    //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 
@@ -110,7 +113,9 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
 
     UInt mat = element_material(element.type, _ghost)(element.element);
-    size += materials[mat]->getNbDataToPack(element, tag);
+    // Element mat_element = element;
+    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
+    size += materials[mat]->getNbDataToUnpack(element, tag);
     break;
   }
   case _gst_smm_boundary: {
@@ -120,8 +125,9 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
   }
   default: {
     UInt mat = element_material(element.type, _ghost)(element.element);
-    size += materials[mat]->getNbDataToPack(element, tag);
-    // AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
+    // Element mat_element = element;
+    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
+    size += materials[mat]->getNbDataToUnpack(element, tag);
   }
   }
 
@@ -164,7 +170,9 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
     }
 
     UInt mat = element_material(element.type, ghost_type)(element.element);
-    materials[mat]->packData(buffer, element, tag);
+    Element mat_element = element;
+    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    materials[mat]->packData(buffer, mat_element, tag);
     break;
   }
   case _gst_smm_boundary: {
@@ -183,7 +191,9 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
   }
   default: {
     UInt mat = element_material(element.type, ghost_type)(element.element);
-    materials[mat]->packData(buffer, element, tag);
+    Element mat_element = element;
+    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    materials[mat]->packData(buffer, mat_element, tag);
     //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
@@ -236,7 +246,9 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
     }
 
     UInt mat = element_material(element.type, ghost_type)(element.element);
-    materials[mat]->unpackData(buffer, element, tag);
+    Element mat_element = element;
+    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    materials[mat]->unpackData(buffer, mat_element, tag);
     break;
   }
   case _gst_smm_boundary: {
@@ -255,7 +267,9 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   }
   default: {
     UInt mat = element_material(element.type, ghost_type)(element.element);
-    materials[mat]->unpackData(buffer, element, tag);
+    Element mat_element = element;
+    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    materials[mat]->unpackData(buffer, mat_element, tag);
     //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }

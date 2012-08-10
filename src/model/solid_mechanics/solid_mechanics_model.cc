@@ -187,7 +187,8 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
   Synchronizer & synch_parallel = createParallelSynch(partition,data_accessor);
 
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_mass);
-  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_for_strain);
+  //  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_for_strain);
+  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_stress);
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_boundary);
 
   AKANTU_DEBUG_OUT();
@@ -365,23 +366,56 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   // start synchronization
   synch_registry->asynchronousSynchronize(_gst_smm_uv);
   synch_registry->waitEndSynchronize(_gst_smm_uv);
-  synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
+
+  // communicate the displacement
+  // synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
+
+  std::vector<Material *>::iterator mat_it;
 
   // call update residual on each local elements
-  std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    //(*mat_it)->updateResidual(*current_position, _not_ghost);
-    (*mat_it)->updateResidual(_not_ghost);
+    Material & mat = **mat_it;
+    mat.computeAllStresses(_not_ghost);
+  }
+
+  // communicate the strain
+  synch_registry->asynchronousSynchronize(_gst_smm_stress);
+
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    Material & mat = **mat_it;
+    mat.assembleResidual(_not_ghost);
   }
 
   // finalize communications
-  synch_registry->waitEndSynchronize(_gst_smm_for_strain);
+  synch_registry->waitEndSynchronize(_gst_smm_stress);
+  //  synch_registry->waitEndSynchronize(_gst_smm_for_strain);
 
-  // call update residual on each ghost elements
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    //(*mat_it)->updateResidual(*current_position, _ghost);
-    (*mat_it)->updateResidual(_ghost);
+    Material & mat = **mat_it;
+    mat.assembleResidual(_ghost);
   }
+
+  // // start communication for non local material
+  // synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
+
+  // // call update residual on each ghost elements
+  // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+  //   Material & mat = *mat_it;
+  //   mat.updateResidual(_ghost);
+  //   if(!mat.isNonLocal())
+  //     mat.assembleResidual(_ghost);
+  // }
+
+  // synch_registry->waitEndSynchronize(_gst_smm_for_strain);
+
+  // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+  //   mat.updateResidual(_ghost);
+  //   if(!mat.isNonLocal())
+  //     mat.assembleResidual(_ghost);
+  // }
+
+
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -633,7 +667,7 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
   // call compute stiffness matrix on each local elements
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    (*mat_it)->assembleStiffnessMatrix(*displacement, _not_ghost);
+    (*mat_it)->assembleStiffnessMatrix(_not_ghost);
   }
 
   AKANTU_DEBUG_OUT();

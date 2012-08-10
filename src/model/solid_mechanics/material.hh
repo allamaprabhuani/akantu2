@@ -114,8 +114,7 @@ public:
   void setToSteadyState(GhostType ghost_type = _not_ghost);
 
   /// compute the stiffness matrix
-  virtual void assembleStiffnessMatrix(Vector<Real> & current_position,
-				       GhostType ghost_type);
+  virtual void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// compute the stable time step for an element of size h
   virtual Real getStableTimeStep(__attribute__((unused)) Real h,
@@ -175,8 +174,7 @@ protected:
 				      GhostType ghost_type = _not_ghost);
 
   template<UInt dim>
-  void assembleStiffnessMatrix(Vector<Real> & current_position,
-			       const ElementType & type,
+  void assembleStiffnessMatrix(const ElementType & type,
 			       GhostType ghost_type);
 
   /// transfer the B matrix to a Voigt notation B matrix
@@ -249,15 +247,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual inline UInt getNbDataToPack(__attribute__((unused)) const Element & element,
-				      __attribute__((unused)) SynchronizationTag tag) const {
-    return 0;
-  }
-
-  virtual inline UInt getNbDataToUnpack(__attribute__((unused)) const Element & element,
-					__attribute__((unused)) SynchronizationTag tag) const {
-    return 0;
-  }
+  virtual inline UInt getNbDataToPack  (const Element & element, SynchronizationTag tag) const;
+  virtual inline UInt getNbDataToUnpack(const Element & element, SynchronizationTag tag) const;
 
   virtual UInt getNbDataToPack(__attribute__((unused)) SynchronizationTag tag) const {
     return 0;
@@ -268,20 +259,18 @@ public:
   }
 
 
-  virtual inline void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-			       __attribute__((unused)) const Element & element,
-			       __attribute__((unused)) SynchronizationTag tag) const {
-  }
+  virtual inline void packData(CommunicationBuffer & buffer,
+			       const Element & element,
+			       SynchronizationTag tag) const;
 
   virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
 			__attribute__((unused)) const UInt index,
 			__attribute__((unused)) SynchronizationTag tag) const {
   }
 
-  virtual inline void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-				 __attribute__((unused)) const Element & element,
-				 __attribute__((unused)) SynchronizationTag tag) {
-  }
+  virtual inline void unpackData(CommunicationBuffer & buffer,
+				 const Element & element,
+				 SynchronizationTag tag);
 
   virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
 			  __attribute__((unused)) const UInt index,
@@ -305,6 +294,8 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
+
+  bool isNonLocal() const { return is_non_local; }
 
   const Vector<Real> & getVector(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
 

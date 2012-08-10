@@ -206,12 +206,13 @@ enum SynchronizationTag {
   _gst_smm_uv,                    /// synchronization of the nodal velocities and displacement
   _gst_smm_res,                   /// synchronization of the nodal residual
   _gst_smm_init_mat,              /// synchronization of the data to initialize materials
+  _gst_smm_stress,
   /// HeatTransfer tags
   _gst_htm_capacity,              /// synchronization of the nodal heat capacity
   _gst_htm_temperature,           /// synchronization of the nodal temperature
   _gst_htm_gradient_temperature,  /// synchronization of the element gradient temperature
   /// Material non local
-  _gst_mnl_damage,                /// synchronization of data to average in non local material
+  _gst_mnl_for_average,           /// synchronization of data to average in non local material
   /// Test tag
   _gst_test
 };
