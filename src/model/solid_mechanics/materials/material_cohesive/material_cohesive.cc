@@ -188,7 +188,6 @@ void MaterialCohesive::updateResidual(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::assembleResidual(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -554,8 +553,6 @@ void MaterialCohesive::computeEnergies() {
       *etot += .5 * b.dot(h);
       *erev  = .5 * traction_it->dot(*opening_it);
     }
-
-
   }
 
   delete [] memory_space;

@@ -82,6 +82,24 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 
+void SolidMechanicsModelCohesive::updateResidual(bool need_initialize) {
+  AKANTU_DEBUG_IN();
+
+  // f = f_ext
+  if (need_initialize) initializeUpdateResidualData();
+
+  // f -= fint
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    Material & mat = **mat_it;
+    mat.updateResidual(_not_ghost);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+
 void SolidMechanicsModelCohesive::initFull(std::string material_file,
 					   AnalysisMethod method) {
 
@@ -161,7 +179,10 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
   getFEM("FacetsFEM").initShapeFunctions();
   getFEM("FacetsFEM").computeNormalsOnControlPoints();
 
-  /// THIS HAS TO BE CHANGED:
+  /**
+   *  @todo store tangents while computing normals instead of
+   *  recomputing them as follows:
+   */
   /* ------------------------------------------------------------------------ */
   const Vector<Real> & normals = getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
 
@@ -294,15 +315,19 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 	  UInt global_facet = (*facet_to_el_it)(f).element;
 
 	  for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
-	    types::Matrix facet_stress_local(facet_stress.storage()
-					     + (global_facet * nb_quad_f_two
-						+ q * 2
-						+ facet_stress_count(global_facet))
-					     * sp2,
-					     spatial_dimension,
-					     spatial_dimension);
 
-	    facet_stress_local = *stress_on_f_it;
+	    if (facets_check(global_facet) == true) {
+	      types::Matrix facet_stress_local(facet_stress.storage()
+					       + (global_facet * nb_quad_f_two
+						  + q * 2
+						  + facet_stress_count(global_facet))
+					       * sp2,
+					       spatial_dimension,
+					       spatial_dimension);
+
+	      facet_stress_local = *stress_on_f_it;
+	    }
+
 	  }
 	  facet_stress_count(global_facet) = true;
 	}
@@ -509,7 +534,6 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   if (increment)
     increment->resize(nb_new_nodes);
 
-  
 
   //initsolver();
   /**
@@ -524,7 +548,7 @@ void SolidMechanicsModelCohesive::updateDoubledNodes(const Vector<UInt> & double
   if (method != _explicit_dynamic) {
     if(method == _implicit_dynamic)
       delete stiffness_matrix;
-    
+
     delete jacobian_matrix;
     delete solver;
 
@@ -604,6 +628,13 @@ void SolidMechanicsModelCohesive::doubleFacet(Element & facet,
   conn_facet.resize(nb_facet + 1);
   for (UInt n = 0; n < conn_facet.getNbComponent(); ++n)
     conn_facet(nb_facet, n) = conn_facet(f_index, n);
+
+  /// update facets_check vector
+  if (facets_check.getSize() > 0) {
+    facets_check.resize(nb_facet + 1);
+    facets_check(nb_facet) = false;
+    facets_check(f_index) = false;
+  }
 
   /// store doubled facets
   UInt nb_doubled_facets = doubled_facets.getSize();
@@ -895,8 +926,8 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
 		  /// reached damage = 1 on every quadrature point
 		  UInt q = 0;
 		  while (q < nb_quad_cohesive &&
-			 std::abs(damage(next_el.element * nb_quad_cohesive + q) - 1)
-			 <= epsilon) ++q;
+		  	 std::abs(damage(next_el.element * nb_quad_cohesive + q) - 1)
+		  	 <= epsilon) ++q;
 
 		  if (q == nb_quad_cohesive)
 		    next_el = ElementNull;

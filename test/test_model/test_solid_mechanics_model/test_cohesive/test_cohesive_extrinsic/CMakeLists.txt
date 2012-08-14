@@ -27,13 +27,18 @@
 
 register_test(test_cohesive_extrinsic test_cohesive_extrinsic.cc)
 
-add_mesh(test_cohesive_extrinsic_mesh mesh.geo 2 2)
-add_dependencies(test_cohesive_extrinsic test_cohesive_extrinsic_mesh)
+#add_mesh(test_cohesive_extrinsic_mesh mesh.geo 2 2)
+#add_dependencies(test_cohesive_extrinsic test_cohesive_extrinsic_mesh)
 
 #===============================================================================
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
   ${CMAKE_CURRENT_BINARY_DIR}/material.dat
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
+  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
   COPYONLY
   )
 #file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

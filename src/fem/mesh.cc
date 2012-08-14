@@ -298,4 +298,11 @@ template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & ve
 						  const bool & flag_nb_elem_multiply,
 						  ElementKind element_kind) const;
 
+template void Mesh::initByElementTypeVector<bool>(ByElementTypeVector<bool> & vect,
+						  UInt nb_component,
+						  UInt dim,
+						  const bool & flag_nb_elem_multiply,
+						  ElementKind element_kind) const;
+
+
 __END_AKANTU__

@@ -151,6 +151,15 @@ namespace types {
       for (UInt i = 0; i < n; ++i) *(a++) *= scalar;
       return *this;
     }
+
+    /* ---------------------------------------------------------------------- */
+    inline Vector & operator*=(const Vector & vect) {
+      T * a = this->storage();
+      T * b = vect.storage();
+      for (UInt i = 0; i < n; ++i) *(a++) *= *(b++);
+      return *this;
+    }
+
     /* -------------------------------------------------------------------------- */
     inline Vector & operator=(T & scalar) {
       T * a = this->storage();
@@ -161,6 +170,14 @@ namespace types {
     inline Vector & operator/=(const T & x) {
       T * a = this->values;
       for (UInt i = 0; i < n; ++i) *(a++) /= x;
+      return *this;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    inline Vector & operator/=(const Vector & vect) {
+      T * a = this->storage();
+      T * b = vect.storage();
+      for (UInt i = 0; i < n; ++i) *(a++) /= *(b++);
       return *this;
     }
 

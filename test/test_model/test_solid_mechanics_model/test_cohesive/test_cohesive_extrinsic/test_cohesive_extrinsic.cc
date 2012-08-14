@@ -128,38 +128,36 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
-  /// initialize the paraview output
-#if defined(AKANTU_USE_IOHELPER)
-  iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
-  UInt nb_element = mesh.getNbElement(type);
+  // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
+  // UInt nb_element = mesh.getNbElement(type);
 
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(mesh.getNodes().values,
-  		   spatial_dimension, mesh.getNbNodes(), "explicit");
-  dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-  			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-  			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
-  			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
-  			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getForce().values,
-  			  spatial_dimension, "applied_force");
-  dumper.AddNodeDataField(model.getResidual().values,
-  			  spatial_dimension, "forces");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetEmbeddedValue("forces", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-#endif
+  // /// initialize the paraview output
+  // iohelper::DumperParaview dumper;
+  // dumper.SetMode(iohelper::TEXT);
+  // dumper.SetPoints(mesh.getNodes().values,
+  // 		   spatial_dimension, mesh.getNbNodes(), "explicit");
+  // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+  // 			 paraview_type, nb_element, iohelper::C_MODE);
+  // dumper.AddNodeDataField(model.getDisplacement().values,
+  // 			  spatial_dimension, "displacements");
+  // dumper.AddNodeDataField(model.getVelocity().values,
+  // 			  spatial_dimension, "velocity");
+  // dumper.AddNodeDataField(model.getAcceleration().values,
+  // 			  spatial_dimension, "acceleration");
+  // dumper.AddNodeDataField(model.getForce().values,
+  // 			  spatial_dimension, "applied_force");
+  // dumper.AddNodeDataField(model.getResidual().values,
+  // 			  spatial_dimension, "forces");
+  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+  // 			  spatial_dimension*spatial_dimension, "strain");
+  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+  // 			  spatial_dimension*spatial_dimension, "stress");
+  // dumper.SetEmbeddedValue("displacements", 1);
+  // dumper.SetEmbeddedValue("applied_force", 1);
+  // dumper.SetEmbeddedValue("forces", 1);
+  // dumper.SetPrefix("paraview/");
+  // dumper.Init();
+  // dumper.Dump();
 
   /// initial conditions
   Real loading_rate = 0.5;
@@ -192,32 +190,31 @@ int main(int argc, char *argv[]) {
     model.explicitCorr();
 
     if(s % 1 == 0) {
-#if defined(AKANTU_USE_IOHELPER)
-      dumper.SetPoints(mesh.getNodes().values,
-      		       spatial_dimension, mesh.getNbNodes(), "explicit");
-      dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-      			     paraview_type, nb_element, iohelper::C_MODE);
-      dumper.AddNodeDataField(model.getDisplacement().values,
-      			      spatial_dimension, "displacements");
-      dumper.AddNodeDataField(model.getVelocity().values,
-      			      spatial_dimension, "velocity");
-      dumper.AddNodeDataField(model.getAcceleration().values,
-      			      spatial_dimension, "acceleration");
-      dumper.AddNodeDataField(model.getForce().values,
-      			      spatial_dimension, "applied_force");
-      dumper.AddNodeDataField(model.getResidual().values,
-      			      spatial_dimension, "forces");
-      dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-      			      spatial_dimension*spatial_dimension, "strain");
-      dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-      			      spatial_dimension*spatial_dimension, "stress");
-      dumper.SetEmbeddedValue("displacements", 1);
-      dumper.SetEmbeddedValue("applied_force", 1);
-      dumper.SetEmbeddedValue("forces", 1);
-      dumper.SetPrefix("paraview/");
-      dumper.Init();
-      dumper.Dump();
-#endif
+
+      // dumper.SetPoints(mesh.getNodes().values,
+      // 		       spatial_dimension, mesh.getNbNodes(), "explicit");
+      // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+      // 			     paraview_type, nb_element, iohelper::C_MODE);
+      // dumper.AddNodeDataField(model.getDisplacement().values,
+      // 			      spatial_dimension, "displacements");
+      // dumper.AddNodeDataField(model.getVelocity().values,
+      // 			      spatial_dimension, "velocity");
+      // dumper.AddNodeDataField(model.getAcceleration().values,
+      // 			      spatial_dimension, "acceleration");
+      // dumper.AddNodeDataField(model.getForce().values,
+      // 			      spatial_dimension, "applied_force");
+      // dumper.AddNodeDataField(model.getResidual().values,
+      // 			      spatial_dimension, "forces");
+      // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+      // 			      spatial_dimension*spatial_dimension, "strain");
+      // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+      // 			      spatial_dimension*spatial_dimension, "stress");
+      // dumper.SetEmbeddedValue("displacements", 1);
+      // dumper.SetEmbeddedValue("applied_force", 1);
+      // dumper.SetEmbeddedValue("forces", 1);
+      // dumper.SetPrefix("paraview/");
+      // dumper.Init();
+      // dumper.Dump();
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }

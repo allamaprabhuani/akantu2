@@ -275,13 +275,19 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
     delta = sqrt(delta);
 
     /// full damage case or zero displacement case
-    if (delta >= *delta_c_it || std::abs(delta) <= std::abs(delta) * epsilon) {
+    if (delta >= *delta_c_it || delta <= epsilon) {
 
       /// set traction to zero
       (*traction_it).clear();
 
-      *damage_it = delta >= *delta_c_it;
-      *delta_max_it = *damage_it * (*delta_c_it);
+      if (normal_opening_norm < 0) {
+      	normal_opening *= penalty;
+      	*traction_it += normal_opening;
+      }
+      else {
+	*damage_it = delta >= *delta_c_it;
+	*delta_max_it = *damage_it * (*delta_c_it);
+      }
     }
     /// element not fully damaged
     else {

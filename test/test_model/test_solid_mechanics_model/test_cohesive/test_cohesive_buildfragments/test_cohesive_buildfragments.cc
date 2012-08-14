@@ -145,6 +145,19 @@ int main(int argc, char *argv[]) {
 
   const Vector<Real> & fragment_mass = model.getFragmentsMass();
 
+  /// assign sigma limit
+  const Mesh & mesh_facets = model.getMeshFacets();
+
+  const Real sigma_c = mat_cohesive.getSigmaC();
+  const Real rand = mat_cohesive.getRandFactor();
+  Vector<Real> & sigma_lim = model.getSigmaLimit();
+  const Vector<UInt> connectivity = mesh_facets.getConnectivity(type_facet);
+  UInt nb_facet = connectivity.getSize();
+  std::srand(1);
+
+  for (UInt f = 0; f < nb_facet; ++f)
+    sigma_lim(f) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
+
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 
@@ -206,7 +219,9 @@ int main(int argc, char *argv[]) {
 	while (q < nb_quad_per_facet &&
 	       std::abs(damage(el * nb_quad_per_facet + q) - 1) < epsilon) ++q;
 
-	if (q == nb_quad_per_facet) ++nb_fragment;
+	if (q == nb_quad_per_facet) {
+	  ++nb_fragment;
+	}
       }
 
       if (nb_fragment != nb_fragment_num) {

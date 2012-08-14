@@ -55,6 +55,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// assemble the residual for the explicit scheme
+  void updateResidual(bool need_initialize = true);
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

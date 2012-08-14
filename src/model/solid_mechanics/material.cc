@@ -778,6 +778,10 @@ template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
 						UInt nb_component,
 						ElementKind element_kind) const;
 
+template void Material::initInternalVector<bool>(ByElementTypeVector<bool> & vect,
+						 UInt nb_component,
+						 ElementKind element_kind) const;
+
 
 template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect,
 						   ElementKind element_kind) const;
@@ -787,6 +791,9 @@ template void Material::resizeInternalVector<UInt>(ByElementTypeVector<UInt> & v
 
 template void Material::resizeInternalVector<Int>(ByElementTypeVector<Int> & vect,
 						  ElementKind element_kind) const;
+
+template void Material::resizeInternalVector<bool>(ByElementTypeVector<bool> & vect,
+						   ElementKind element_kind) const;
 
 
 __END_AKANTU__
