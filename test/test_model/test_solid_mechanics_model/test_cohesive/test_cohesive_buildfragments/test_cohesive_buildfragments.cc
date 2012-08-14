@@ -148,8 +148,8 @@ int main(int argc, char *argv[]) {
   /// assign sigma limit
   const Mesh & mesh_facets = model.getMeshFacets();
 
-  const Real sigma_c = mat_cohesive.getSigmaC();
-  const Real rand = mat_cohesive.getRandFactor();
+  const Real sigma_c = mat_cohesive.getProperty("sigma_c");
+  const Real rand = mat_cohesive.getProperty("rand_factor");
   Vector<Real> & sigma_lim = model.getSigmaLimit();
   const Vector<UInt> connectivity = mesh_facets.getConnectivity(type_facet);
   UInt nb_facet = connectivity.getSize();

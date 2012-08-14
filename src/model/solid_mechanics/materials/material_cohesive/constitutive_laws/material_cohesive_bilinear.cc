@@ -39,7 +39,7 @@ MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(SolidMecha
   MaterialCohesiveLinear<spatial_dimension>(model,id) {
   AKANTU_DEBUG_IN();
 
-  delta_0   = 0;
+  this->registerParam("delta_0", delta_0, 0., _pat_parsable, "Elastic limit displacement");
 
   AKANTU_DEBUG_OUT();
 }
@@ -110,29 +110,6 @@ void MaterialCohesiveBilinear<spatial_dimension>::updateDeltaMax(GhostType ghost
   AKANTU_DEBUG_OUT();
 }
 
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialCohesiveBilinear<spatial_dimension>::setParam(const std::string & key,
-				       const std::string & value,
-				       const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "delta_0") { sstr >> delta_0; }
-  else { return MaterialCohesiveLinear<spatial_dimension>::setParam(key, value, id); }
-  return true;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveBilinear<spatial_dimension>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_cohesive_bilinear> [" << std::endl;
-  stream << space << " + delta_0      : " << delta_0 << std::endl;
-  MaterialCohesiveLinear<spatial_dimension>::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialCohesiveBilinear);

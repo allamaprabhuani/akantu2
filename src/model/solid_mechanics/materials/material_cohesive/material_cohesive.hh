@@ -60,10 +60,6 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// read properties
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
-
   /// initialize the material computed parameter
   virtual void initMaterial();
 
@@ -72,9 +68,6 @@ public:
 
   /// compute the residual for this material
   virtual void updateResidual(GhostType ghost_type = _not_ghost);
-
-  /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const Vector<Real> & facet_stress,
@@ -153,12 +146,6 @@ public:
 
   /// get energy
   virtual Real getEnergy(std::string type);
-
-  /// get sigma_c
-  AKANTU_GET_MACRO(SigmaC, sigma_c, Real);
-
-  /// get rand
-  AKANTU_GET_MACRO(RandFactor, rand, Real);
 
   /// get damage
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);

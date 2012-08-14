@@ -40,9 +40,11 @@ MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(SolidMechanics
   MaterialCohesive(model,id) {
   AKANTU_DEBUG_IN();
 
-  beta      = 0;
-  G_cI      = 0;
-  G_cII     = 0;
+  this->registerParam("beta"   , beta   , 0. , _pat_parsable, "Beta parameter"         );
+  this->registerParam("G_cI"   , G_cI   , 0. , _pat_parsable, "Mode I fracture energy" );
+  this->registerParam("G_cII"  , G_cII  , 0. , _pat_parsable, "Mode II fracture energy");
+  this->registerParam("kappa"  , kappa  , 0. , _pat_readable, "Kappa parameter"        );
+  this->registerParam("delta_c", delta_c, 0. , _pat_readable, "Critical displacement"  );
 
   AKANTU_DEBUG_OUT();
 }
@@ -66,20 +68,6 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   delta_c = 2 * G_cI / sigma_c;
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialCohesiveLinear<spatial_dimension>::setParam(const std::string & key, 
-							 const std::string & value,
-							 const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "sigma_c") { sstr >> sigma_c; }
-  else if(key == "beta") { sstr >> beta; }
-  else if(key == "G_cI") { sstr >> G_cI; }
-  else if(key == "G_cII") { sstr >> G_cII; }
-  else { return Material::setParam(key, value, id); }
-  return true;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -176,25 +164,6 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveLinear<spatial_dimension>::printself(std::ostream & stream,
-							  int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_cohesive_linear> [" << std::endl;
-  stream << space << " + sigma_c      : " << sigma_c << std::endl;
-  stream << space << " + beta         : " << beta << std::endl;
-  stream << space << " + G_cI         : " << G_cI << std::endl;
-  stream << space << " + G_cII        : " << G_cII << std::endl;
-  if(this->isInit()) {
-    stream << space << " + kappa      : " << kappa << std::endl;
-    stream << space << " + delta_c    : " << delta_c << std::endl;
-  }
-  MaterialCohesive::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialCohesiveLinear);

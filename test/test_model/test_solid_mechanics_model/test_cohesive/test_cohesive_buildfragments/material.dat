@@ -11,5 +11,5 @@ material cohesive_linear_extrinsic [
 	 beta = 1
 	 G_cI = 100
 	 G_cII = 100
-	 rand = 0.1
+	 rand_factor = 0.1
 ]

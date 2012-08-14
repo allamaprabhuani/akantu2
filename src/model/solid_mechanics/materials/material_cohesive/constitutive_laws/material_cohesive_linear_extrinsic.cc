@@ -45,12 +45,11 @@ MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrin
   tangential_stress(spatial_dimension) {
   AKANTU_DEBUG_IN();
 
-  sigma_c   = 0;
-  beta      = 0;
-  G_cI      = 0;
-  G_cII     = 0;
-  rand      = 0;
-  penalty   = 0;
+  this->registerParam("beta"   , beta   , 0. , _pat_parsable, "Beta parameter"         );
+  this->registerParam("G_cI"   , G_cI   , 0. , _pat_parsable, "Mode I fracture energy" );
+  this->registerParam("G_cII"  , G_cII  , 0. , _pat_parsable, "Mode II fracture energy");
+  this->registerParam("penalty", penalty, 0. , _pat_parsable, "Penalty coefficient"    );
+  this->registerParam("kappa"  , kappa  , 0. , _pat_readable, "Kappa parameter"        );
 
   initInternalVector(sigma_c_eff, 1, _ek_cohesive);
   initInternalVector(delta_c, 1, _ek_cohesive);
@@ -114,22 +113,6 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors()
     }
   }
 
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialCohesiveLinearExtrinsic<spatial_dimension>::setParam(const std::string & key,
-								  const std::string & value,
-								  const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "sigma_c") { sstr >> sigma_c; }
-  else if(key == "beta") { sstr >> beta; }
-  else if(key == "G_cI") { sstr >> G_cI; }
-  else if(key == "G_cII") { sstr >> G_cII; }
-  else if(key == "rand") { sstr >> rand; }
-  else if(key == "penalty") { sstr >> penalty; }
-  else { return Material::setParam(key, value, id); }
-  return true;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -321,26 +304,6 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveLinearExtrinsic<spatial_dimension>::printself(std::ostream & stream,
-								   int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_cohesive_linear> [" << std::endl;
-  stream << space << " + sigma_c      : " << sigma_c << std::endl;
-  stream << space << " + beta         : " << beta << std::endl;
-  stream << space << " + G_cI         : " << G_cI << std::endl;
-  stream << space << " + G_cII        : " << G_cII << std::endl;
-  stream << space << " + rand         : " << rand << std::endl;
-  stream << space << " + penalty      : " << penalty << std::endl;
-  if(this->isInit()) {
-    stream << space << " + kappa      : " << kappa << std::endl;
-  }
-  MaterialCohesive::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialCohesiveLinearExtrinsic);

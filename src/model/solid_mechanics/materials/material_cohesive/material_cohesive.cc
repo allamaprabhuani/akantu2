@@ -58,8 +58,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   initInternalVector(delta_max, 1, _ek_cohesive);
   initInternalVector(damage, 1, _ek_cohesive);
 
-  sigma_c = 0;
-  rand = 0;
+  this->registerParam("sigma_c"    , sigma_c, 0. , _pat_parsable, "Critical stress"  );
+  this->registerParam("rand_factor", rand   , 0. , _pat_parsable, "Randomness factor");
 
   AKANTU_DEBUG_OUT();
 }
@@ -69,12 +69,6 @@ MaterialCohesive::~MaterialCohesive() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-bool MaterialCohesive::setParam(const std::string & key, const std::string & value,
-				const ID & id) {
-  return Material::setParam(key,value,id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -609,16 +603,6 @@ Real MaterialCohesive::getEnergy(std::string type) {
 
   AKANTU_DEBUG_OUT();
   return 0.;
-}
-
-/* -------------------------------------------------------------------------- */
-void MaterialCohesive::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material Cohesive [" << std::endl;
-  Material::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
 }
 
 
