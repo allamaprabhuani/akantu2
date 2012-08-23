@@ -58,7 +58,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class SolidMechanicsModel : public Model, public DataAccessor {
+class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -211,17 +211,17 @@ protected:
 public:
   class SurfaceLoadFunctor {
   public:
-    virtual void operator()(__attribute__ ((unused)) const types::Vector<Real> & position,
-			    __attribute__ ((unused)) types::Vector<Real> & traction,
-			    __attribute__ ((unused)) const types::Vector<Real> & normal,
-			    __attribute__ ((unused)) Surface surface_id) {
+    virtual void traction(__attribute__ ((unused)) const types::Vector<Real> & position,
+			  __attribute__ ((unused)) types::Vector<Real> & traction,
+			  __attribute__ ((unused)) const types::Vector<Real> & normal,
+			  __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
 
-    virtual void operator()(__attribute__ ((unused)) const types::Vector<Real> & position,
-			    __attribute__ ((unused)) types::Matrix & stress,
-			    __attribute__ ((unused)) const types::Vector<Real> & normal,
-			    __attribute__ ((unused)) Surface surface_id) {
+    virtual void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
+			__attribute__ ((unused)) types::Matrix & stress,
+			__attribute__ ((unused)) const types::Vector<Real> & normal,
+			__attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
   };
@@ -329,6 +329,13 @@ public:
   inline virtual void unpackData(CommunicationBuffer & buffer,
 				 const UInt index,
 				 SynchronizationTag tag);
+
+
+  /* ------------------------------------------------------------------------ */
+  /* Mesh Event Handler inherited members                                     */
+  /* ------------------------------------------------------------------------ */
+protected:
+  virtual void onNodesAdded  (const Vector<UInt> & nodes_list);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

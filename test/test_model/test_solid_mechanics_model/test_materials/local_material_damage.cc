@@ -72,7 +72,7 @@ void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_typ
 
   Real * dam = damage(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   computeStressOnQuad(grad_u, sigma, *dam);
   ++dam;
@@ -89,7 +89,7 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
   if(ghost_type != _not_ghost) return;
   Real * epot = potential_energy(el_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);
   epot++;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;

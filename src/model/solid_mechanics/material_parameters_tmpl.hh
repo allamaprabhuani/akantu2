@@ -103,7 +103,6 @@ inline void MaterialParamTyped<std::string>::setParam(std::string value) {
   param = value;
 }
 
-
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline void MaterialParamTyped<T>::printself(std::ostream & stream) const {

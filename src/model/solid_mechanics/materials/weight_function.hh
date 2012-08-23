@@ -106,8 +106,7 @@ public:
 			 __attribute__((unused)) GhostType ghost_type1,
 			 ElementType type2,
 			 GhostType ghost_type2) {
-    selected_damage =
-      &(dynamic_cast<const MaterialDamage<spatial_dimension> &>(this->material).getDamage(type2, ghost_type2));
+    selected_damage = &this->material.getVector("damage", type2, ghost_type2);
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
@@ -149,8 +148,7 @@ public:
 			 __attribute__((unused)) GhostType ghost_type1,
 			 ElementType type2,
 			 GhostType ghost_type2) {
-    selected_damage =
-      &this->material.getVector("damage", type2, ghost_type2);
+    selected_damage = &this->material.getVector("damage", type2, ghost_type2);
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
@@ -256,6 +254,34 @@ inline std::ostream & operator <<(std::ostream & stream,
   _this.printself(stream);
   return stream;
 }
+
+
+template<UInt spatial_dimension>
+inline std::ostream & operator <<(std::ostream & stream,
+				  const BaseWeightFunction<spatial_dimension> * _this)
+{
+  _this->printself(stream);
+  return stream;
+}
+
+
+template<UInt d>
+inline std::ostream & operator >>(std::ostream & stream,
+				  __attribute__((unused)) const BaseWeightFunction<d> * _this)
+{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
+template<UInt d>
+inline std::ostream & operator >>(std::ostream & stream,
+				  __attribute__((unused)) const RemoveDamagedWeightFunction<d> * _this)
+{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
+template<UInt d>
+inline std::ostream & operator >>(std::ostream & stream,
+				  __attribute__((unused)) const DamagedWeightFunction<d> * _this)
+{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
+template<UInt d>
+inline std::ostream & operator >>(std::ostream & stream,
+				  __attribute__((unused)) const StressBasedWeightFunction<d> * _this)
+{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
+
 
 #include "weight_function_tmpl.hh"
 

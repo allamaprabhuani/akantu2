@@ -74,8 +74,8 @@ void paraviewInit(iohelper::Dumper & dumper,
 
   std::stringstream filename_sstr; filename_sstr << filename << "_" << type;
 
-  UInt whoami = StaticCommunicator::getStaticCommunicator()->whoAmI();
-  UInt nproc  = StaticCommunicator::getStaticCommunicator()->getNbProc();
+  UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
+  UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
 
   dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(whoami, nproc);

@@ -174,9 +174,9 @@ int main(int argc, char *argv[])
 
   Mesh mesh(dim);
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm->getNbProc();
-  Int prank = comm->whoAmI();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
 
   DistributedSynchronizer * communicator;
   if(prank == 0) {
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
     communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
   }
 
-  comm->barrier();
+  comm.barrier();
 
   AKANTU_DEBUG_INFO("Creating TestAccessor");
   TestAccessor test_accessor(mesh);

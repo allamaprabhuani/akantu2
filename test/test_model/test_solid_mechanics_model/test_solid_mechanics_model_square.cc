@@ -45,19 +45,15 @@ using iohelper::DumperParaview;
 
 using namespace akantu;
 
-static void trac(__attribute__ ((unused)) double * position,
-		 double * traction,
-		 __attribute__ ((unused)) Real * normal,
-		 __attribute__ ((unused)) UInt surface_id){
-  memset(traction,0,sizeof(Real)*4);
-  traction[0] = 1000;
-  traction[3] = 1000;
-
-  // if(fabs(position[0])< 1e-4){
-  //   traction[0] = -position[1];
-  // }
-
-}
+class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
+public:
+  inline void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
+		     types::Matrix & stress,
+		     __attribute__ ((unused)) const types::Vector<Real> & normal,
+		     __attribute__ ((unused)) Surface surface_id) {
+    stress.eye(1000);
+  }
+};
 
 int main(int argc, char *argv[])
 {
@@ -119,7 +115,9 @@ int main(int argc, char *argv[])
   FEM & fem_boundary = model.getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
-  model.computeForcesFromFunction(trac, akantu::_bft_stress);
+
+  MyStressFunctor func;
+  model.computeForcesFromFunction(func, akantu::_bft_stress);
 
 
 #ifdef AKANTU_USE_IOHELPER

@@ -38,7 +38,6 @@ template<UInt spatial_dimension>
 MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
 						  const ID & id)  :
   Material(model, id),
-  MaterialElastic<spatial_dimension>(model, id),
   MaterialDamage<spatial_dimension>(model, id),
   damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
@@ -69,15 +68,13 @@ void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
 
   Real * dam = this->damage(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real Ehat = 0;
   computeStressOnQuad(grad_u, sigma, *dam, Ehat);
   ++dam;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }

@@ -37,7 +37,7 @@
 
 __BEGIN_AKANTU__
 template<UInt spatial_dimension>
-class MaterialDamage : public virtual MaterialElastic<spatial_dimension> {
+class MaterialDamage : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -54,11 +54,7 @@ public:
 
   void initMaterial();
 
-  bool setParam(const std::string & key, const std::string & value,
-		const ID & id);
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  virtual void computeAllStresses(GhostType ghost_type);
 
 protected:
   /// update the dissipated energy, must be called after the stress have been computed
@@ -74,8 +70,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
-
   /// give the dissipated energy for the time step
   Real getDissipatedEnergy() const;
 
@@ -99,7 +93,6 @@ protected:
 
   /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega @f$ the dissipated energy
   ByElementTypeReal int_sigma;
-
 };
 
 

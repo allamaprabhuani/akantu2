@@ -43,19 +43,33 @@ MaterialParam::MaterialParam(std::string name, std::string description,
   }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialParam::isWritable() const { return param_type && _pat_writable; }
+bool MaterialParam::isWritable() const { return param_type & _pat_writable; }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialParam::isReadable() const { return param_type && _pat_readable; }
+bool MaterialParam::isReadable() const { return param_type & _pat_readable; }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialParam::isInternal() const { return param_type && _pat_internal; }
+bool MaterialParam::isInternal() const { return param_type & _pat_internal; }
 
 /* -------------------------------------------------------------------------- */
-bool MaterialParam::isParsable() const { return param_type && _pat_parsable; }
+bool MaterialParam::isParsable() const { return param_type & _pat_parsable; }
 
 /* -------------------------------------------------------------------------- */
 void MaterialParam::printself(std::ostream & stream) const {
+  stream << " ";
+  if(isInternal()) stream << "iii";
+  else {
+    if(isReadable()) stream << "r";
+    else stream << "-";
+
+    if(isWritable()) stream << "w";
+    else stream << "-";
+
+    if(isParsable()) stream << "p";
+    else stream << "-";
+  }
+  stream << " ";
+
   std::stringstream sstr;
   sstr << name;
   UInt width = std::max(int(10 - sstr.str().length()), 0);
@@ -73,7 +87,7 @@ void MaterialParam::printself(std::ostream & stream) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialParam::setParam(std::string value) {
+void MaterialParam::setParam(__attribute__((unused)) std::string value) {
   if(!isParsable()) AKANTU_EXCEPTION("The parameter named " << name << " is not parsable.");
 }
 
@@ -91,8 +105,14 @@ void MaterialParameters::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
   std::map<std::string, MaterialParam *>::const_iterator it, end;
   for(it = params.begin(); it != params.end(); ++it){
-    stream << space << " + ";
-    it->second->printself(stream);
+#ifdef AKANTU_NDEBUG
+    if(!it->second->isInternal()) {
+#endif
+      stream << space;
+      it->second->printself(stream);
+#ifdef AKANTU_NDEBUG
+    }
+#endif
   }
 }
 

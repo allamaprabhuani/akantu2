@@ -84,7 +84,7 @@ StaticCommunicator::StaticCommunicator(int & argc,
 }
 
 /* -------------------------------------------------------------------------- */
-StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType type) {
+StaticCommunicator & StaticCommunicator::getStaticCommunicator(CommunicatorType type) {
   AKANTU_DEBUG_IN();
 
   if (!static_communicator) {
@@ -101,11 +101,11 @@ StaticCommunicator * StaticCommunicator::getStaticCommunicator(CommunicatorType 
   is_instantiated = true;
 
   AKANTU_DEBUG_OUT();
-  return static_communicator;
+  return *static_communicator;
 }
 
 /* -------------------------------------------------------------------------- */
-StaticCommunicator * StaticCommunicator::getStaticCommunicator(int & argc,
+StaticCommunicator & StaticCommunicator::getStaticCommunicator(int & argc,
 							       char ** & argv,
   							       CommunicatorType type) {
   if (!static_communicator)

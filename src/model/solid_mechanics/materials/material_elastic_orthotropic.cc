@@ -114,7 +114,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::computeStress(ElementType el
 								  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   computeStressOnQuad(grad_u, sigma);
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 

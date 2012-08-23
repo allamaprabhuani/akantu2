@@ -1,10 +1,9 @@
 /**
- * @file   material_vreepeerlings_non_local.hh
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
+ * @file   aka_event_handler.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Feb 24 16:01:10 2012
+ * @date   Wed Aug 22 17:04:14 2012
  *
- * @brief  
+ * @brief  Base of Event Handler classes
  *
  * @section LICENSE
  *
@@ -28,49 +27,43 @@
 
 /* -------------------------------------------------------------------------- */
 
+#ifndef __AKANTU_AKA_EVENT_HANDLER_HH__
+#define __AKANTU_AKA_EVENT_HANDLER_HH__
+
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "material_vreepeerlings.hh"
-#include "material_non_local.hh"
+#include <set>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VREEPEERLINGS_NON_LOCAL_HH__
-#define __AKANTU_MATERIAL_VREEPEERLINGS_NON_LOCAL_HH__
 
 __BEGIN_AKANTU__
 
-/**
- * Material VreePeerlings Non local
- *
- * parameters in the material files :
- */
-template<UInt spatial_dimension, template <UInt> class WeightFunction = BaseWeightFunction>
-class MaterialVreePeerlingsNonLocal : public MaterialDamageNonLocal<spatial_dimension,
-								    MaterialVreePeerlings,
-								    WeightFunction> {
+template<class EventHandler>
+class EventHandlerManager {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialDamageNonLocal<spatial_dimension, MaterialVreePeerlings, WeightFunction> MaterialVreePeerlingsNonLocalParent;
-
-  MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model, const ID & id = "");
-
-  virtual ~MaterialVreePeerlingsNonLocal() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  void initMaterial();
+  void registerEventHandler(EventHandler & event_handler) {
+    event_handlers.insert(&event_handler);
+  }
 
-  /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void unregisterEventHandler(EventHandler & event_handler) {
+    event_handlers.erase(&event_handler);
+  }
 
-  /// constitutive law
-  virtual void computeNonLocalStress(ElementType el_type,
-				     GhostType ghost_type = _not_ghost);
+  template<class Event>
+  void sendEvent(const Event & event) {
+    typename std::set<EventHandler *>::iterator it = event_handlers.begin();
+    typename std::set<EventHandler *>::iterator end = event_handlers.end();
+    for(;it != end; ++it)
+      (*it)->sendEvent(event);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -81,20 +74,11 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// equivalent strain used to compute the criteria for damage evolution
-  ByElementTypeReal equi_strain;
 
-  /// non local version of equivalent strain
-  ByElementTypeReal equi_strain_non_local;
-
+  /// list of the event handlers
+  std::set<EventHandler *> event_handlers;
 };
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#include "material_vreepeerlings_non_local_inline_impl.cc"
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_VREEPEERLINGS_NON_LOCAL_HH__ */
+#endif /* __AKANTU_AKA_EVENT_HANDLER_HH__ */

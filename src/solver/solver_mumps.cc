@@ -167,7 +167,7 @@ void SolverMumps::initialize(SolverOptions & options) {
   }
 
   mumps_data.sym = 2 * (matrix->getSparseMatrixType() == _symmetric);
-  communicator = StaticCommunicator::getStaticCommunicator();
+  communicator = &StaticCommunicator::getStaticCommunicator();
   prank = communicator->whoAmI();
 #ifdef AKANTU_USE_MPI
   mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator->getRealStaticCommunicator()).getMPICommunicator());

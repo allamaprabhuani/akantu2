@@ -38,11 +38,11 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 enum ParamAccessType {
-  _pat_internal   = 1,
-  _pat_writable   = 2,
-  _pat_readable   = 4,
-  _pat_modifiable = _pat_readable | _pat_writable,
-  _pat_parsable   = 8
+  _pat_internal   = 0x0001,
+  _pat_writable   = 0x0010,
+  _pat_readable   = 0x0100,
+  _pat_modifiable = 0x0110, //_pat_readable | _pat_writable,
+  _pat_parsable   = 0x1000
 };
 
 template<typename T> class MaterialParamTyped;

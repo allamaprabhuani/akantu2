@@ -133,9 +133,9 @@ public:
 
   AKANTU_GET_MACRO(RealStaticCommunicator, *real_static_communicator, const RealStaticCommunicator &);
 
-  static StaticCommunicator * getStaticCommunicator(CommunicatorType type = _communicator_mpi);
+  static StaticCommunicator & getStaticCommunicator(CommunicatorType type = _communicator_mpi);
 
-  static StaticCommunicator * getStaticCommunicator(int & argc, char ** & argv,
+  static StaticCommunicator & getStaticCommunicator(int & argc, char ** & argv,
 						    CommunicatorType type = _communicator_mpi);
 
   static bool isInstantiated() { return is_instantiated; };

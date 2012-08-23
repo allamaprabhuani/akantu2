@@ -38,7 +38,6 @@ template<UInt spatial_dimension>
 MaterialDamageLinear<spatial_dimension>::MaterialDamageLinear(SolidMechanicsModel & model,
 							      const ID & id)  :
   Material(model, id),
-  MaterialElastic<spatial_dimension>(model, id),
   MaterialDamage<spatial_dimension>(model, id) {
   AKANTU_DEBUG_IN();
 
@@ -82,7 +81,7 @@ void MaterialDamageLinear<spatial_dimension>::computeStress(ElementType el_type,
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * K = this->K(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   this->computeStressOnQuad(grad_u, sigma, *dam, *K);
   ++dam;

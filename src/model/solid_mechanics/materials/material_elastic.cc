@@ -53,7 +53,6 @@ void MaterialElastic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
   if (spatial_dimension == 1) nu = 0.;
-
   updateInternalParameters();
   AKANTU_DEBUG_OUT();
 }
@@ -64,9 +63,7 @@ void MaterialElastic<spatial_dimension>::updateInternalParameters() {
   lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
   mu       = E / (2 * (1 + nu));
 
-  if(plane_stress) {
-    lambda = nu * E / ((1 + nu)*(1 - nu));
-  }
+  if(plane_stress) lambda = nu * E / ((1 + nu)*(1 - nu));
 
   kpa      = lambda + 2./3. * mu;
 }
@@ -75,11 +72,9 @@ void MaterialElastic<spatial_dimension>::updateInternalParameters() {
 template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   computeStressOnQuad(grad_u, sigma);
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
   AKANTU_DEBUG_OUT();
 }
 

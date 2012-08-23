@@ -142,9 +142,9 @@ int main(int argc, char *argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm->getNbProc();
-  Int prank = comm->whoAmI();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
 
   if(prank == 0) {
     MeshIOMSH mesh_io;
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-  comm->barrier();
+  comm.barrier();
 
   mesh.computeBoundingBox();
 

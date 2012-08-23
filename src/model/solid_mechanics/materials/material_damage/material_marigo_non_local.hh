@@ -30,6 +30,7 @@
 #include "aka_common.hh"
 #include "material_marigo.hh"
 #include "material_non_local.hh"
+#include "material_damage_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MARIGO_NON_LOCAL_HH__
@@ -45,14 +46,12 @@ __BEGIN_AKANTU__
  * parameters in the material files :
  */
 template<UInt spatial_dimension, template <UInt> class WeightFunction = BaseWeightFunction>
-class MaterialMarigoNonLocal : public MaterialMarigo<spatial_dimension>,
-			       public MaterialNonLocal<spatial_dimension, WeightFunction> {
+class MaterialMarigoNonLocal : public MaterialDamageNonLocal<spatial_dimension, MaterialMarigo, WeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialNonLocal<spatial_dimension, WeightFunction> MaterialNonLocalParent;
-
+  typedef MaterialDamageNonLocal<spatial_dimension, MaterialMarigo, WeightFunction> MaterialMarigoNonLocalParent;
   MaterialMarigoNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialMarigoNonLocal() {};
@@ -64,22 +63,11 @@ public:
 
   void initMaterial();
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
-
-
+protected:
+  /// constitutive law
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  /// constitutive law
-  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost);
-
-  virtual void computeNonLocalStress(Vector<Real> & damage,
-				     ElementType el_type,
-				     GhostType ghost_type = _not_ghost);
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-
+  void computeNonLocalStress(ElementType type, GhostType ghost_type = _not_ghost);
 private:
 
   /* ------------------------------------------------------------------------ */
@@ -93,6 +81,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   ByElementTypeReal Y;
+  ByElementTypeReal Ynl;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -104,9 +104,9 @@ Synchronizer & Model::createParallelSynch(MeshPartition * partition,
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
   /* ------------------------------------------------------------------------ */
-  StaticCommunicator * comm =
+  StaticCommunicator & comm =
     StaticCommunicator::getStaticCommunicator();
-  Int prank = comm->whoAmI();
+  Int prank = comm.whoAmI();
 
   DistributedSynchronizer * synch = NULL;
   if(prank == 0)

@@ -64,7 +64,6 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					  << key
 					  << " not found in file " << filename);
 
-  
   Material & mat = registerNewCurtomMaterial<M>(key, opt_param);
   parser.readSection(mat.getID(), mat);
   materials.push_back(&mat);
@@ -131,7 +130,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
 	  ++surface_id;
 	}
 	for (UInt q = 0; q < nb_quad; ++q, ++stress, ++qcoord, ++normals) {
-	  functor(*qcoord, *stress, *normals, surf_id);
+	  functor.stress(*qcoord, *stress, *normals, surf_id);
 	}
       }
     } else if (function_type == _bft_traction) {
@@ -144,7 +143,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
 	  ++surface_id;
 	}
 	for (UInt q = 0; q < nb_quad; ++q, ++force, ++qcoord, ++normals) {
-	  functor(*qcoord, *force, *normals, surf_id);
+	  functor.traction(*qcoord, *force, *normals, surf_id);
 	}
       }
     }

@@ -54,7 +54,7 @@ template<UInt spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   computeStressOnQuad(grad_u, sigma);
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -69,7 +69,7 @@ void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(ElementType e
   if(ghost_type != _not_ghost) return;
   Real * epot = this->potential_energy(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   computePotentialEnergyOnQuad(grad_u, *epot);
   epot++;

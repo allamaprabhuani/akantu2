@@ -37,11 +37,11 @@ int main(int argc, char *argv[])
 
   //  akantu::debug::setDebugLevel(akantu::dblDump);
 
-  akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
-  akantu::UInt n = 10 * comm->getNbProc();
+  akantu::StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::UInt n = 10 * comm.getNbProc();
 
   akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(n, akantu::_symmetric, 1, "hand");
-  akantu::UInt i_start = comm->whoAmI() * 10;
+  akantu::UInt i_start = comm.whoAmI() * 10;
   for(akantu::UInt i = i_start; i < i_start + 10; ++i) {
     sparse_matrix->addToProfile(i, i);
     sparse_matrix->addToMatrix (i, i, 1./((i+1) * 10.));
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
   akantu::Solver * solver = new akantu::SolverMumps(*sparse_matrix);
 
   akantu::Vector<akantu::Real> * rhs = NULL;
-  if(comm->whoAmI() == 0) {
+  if(comm.whoAmI() == 0) {
     rhs = new akantu::Vector<akantu::Real>(n, 1);
     rhs->clear();
     for(akantu::UInt i = 0; i < n; ++i) {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
   solver->solve(*rhs);
 
-  if(comm->whoAmI() == 0) {
+  if(comm.whoAmI() == 0) {
     akantu::debug::setDebugLevel(akantu::dblDump);
     std::cout << *rhs << std::endl;
     akantu::debug::setDebugLevel(akantu::dblWarning);

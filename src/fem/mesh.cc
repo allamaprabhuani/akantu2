@@ -201,7 +201,7 @@ void Mesh::computeBoundingBox(){
       }
   }
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
 
   Real reduce_bounds[2 * spatial_dimension];
   for (UInt k = 0; k < spatial_dimension; ++k) {
@@ -209,7 +209,7 @@ void Mesh::computeBoundingBox(){
     reduce_bounds[2*k + 1] = - local_upper_bounds[k];
   }
 
-  comm->allReduce(reduce_bounds, 2 * spatial_dimension, _so_min);
+  comm.allReduce(reduce_bounds, 2 * spatial_dimension, _so_min);
 
   for (UInt k = 0; k < spatial_dimension; ++k) {
     lower_bounds[k] =   reduce_bounds[2*k];

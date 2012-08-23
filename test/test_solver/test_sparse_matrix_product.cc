@@ -46,9 +46,9 @@ int main(int argc, char *argv[])
   const UInt spatial_dimension = 2;
   const UInt nb_dof = 3;
 
-  StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
-  Int psize = comm->getNbProc();
-  Int prank = comm->whoAmI();
+  StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
 
   Mesh mesh(spatial_dimension);
 

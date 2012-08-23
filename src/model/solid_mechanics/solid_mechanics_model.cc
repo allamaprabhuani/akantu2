@@ -94,6 +94,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   materials.clear();
 
+  mesh.registerEventHandler(*this);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -362,63 +364,87 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   // f = f_ext
   if (need_initialize) initializeUpdateResidualData();
 
-  // f -= fint
-  // start synchronization
-  synch_registry->asynchronousSynchronize(_gst_smm_uv);
-  synch_registry->waitEndSynchronize(_gst_smm_uv);
+  if (method == _explicit_dynamic) {
+    // f -= fint
+    // start synchronization
+    synch_registry->asynchronousSynchronize(_gst_smm_uv);
+    synch_registry->waitEndSynchronize(_gst_smm_uv);
 
-  // communicate the displacement
-  // synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
+    // communicate the displacement
+    // synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
 
-  std::vector<Material *>::iterator mat_it;
+    std::vector<Material *>::iterator mat_it;
 
-  // call update residual on each local elements
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    Material & mat = **mat_it;
-    mat.computeAllStresses(_not_ghost);
+    // call update residual on each local elements
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllStresses(_not_ghost);
+    }
+
+#ifdef AKANTU_DAMAGE_NON_LOCAL
+    /* ------------------------------------------------------------------------ */
+    /* Computation of the non local part */
+    synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
+
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllNonLocalStresses(_not_ghost);
+    }
+
+    synch_registry->waitEndSynchronize(_gst_mnl_for_average);
+
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllNonLocalStresses(_ghost);
+    }
+#endif
+
+    /* ------------------------------------------------------------------------ */
+    /* assembling the forces internal */
+    // communicate the strain
+    synch_registry->asynchronousSynchronize(_gst_smm_stress);
+
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.assembleResidual(_not_ghost);
+    }
+
+    // finalize communications
+    synch_registry->waitEndSynchronize(_gst_smm_stress);
+    //  synch_registry->waitEndSynchronize(_gst_smm_for_strain);
+
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.assembleResidual(_ghost);
+    }
+  } else {
+    //    updateSupportReaction();
+
+    Vector<Real> * Ku = new Vector<Real>(*displacement, true, "Ku");
+    *Ku *= *stiffness_matrix;
+    *residual -= *Ku;
+    delete Ku;
   }
-
-  // communicate the strain
-  synch_registry->asynchronousSynchronize(_gst_smm_stress);
-
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    Material & mat = **mat_it;
-    mat.assembleResidual(_not_ghost);
-  }
-
-  // finalize communications
-  synch_registry->waitEndSynchronize(_gst_smm_stress);
-  //  synch_registry->waitEndSynchronize(_gst_smm_for_strain);
-
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    Material & mat = **mat_it;
-    mat.assembleResidual(_ghost);
-  }
-
-  // // start communication for non local material
-  // synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
-
-  // // call update residual on each ghost elements
-  // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-  //   Material & mat = *mat_it;
-  //   mat.updateResidual(_ghost);
-  //   if(!mat.isNonLocal())
-  //     mat.assembleResidual(_ghost);
-  // }
-
-  // synch_registry->waitEndSynchronize(_gst_smm_for_strain);
-
-  // for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-  //   mat.updateResidual(_ghost);
-  //   if(!mat.isNonLocal())
-  //     mat.assembleResidual(_ghost);
-  // }
-
-
-
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+//void SolidMechanicsModel::updateSupportReaction() {
+//  const Vector<Int> & irn = stiffness_matrix->getIRN();
+//  const Vector<Int> & jcn = stiffness_matrix->getJCN();
+//  const Vector<Real> & A = stiffness_matrix->getA();
+//
+//  Real * residual = residual->storage();
+//  Real * displacement = displacement->storage();
+//  bool * boundary = boundary->storage();
+//
+//  UInt n = stiffness_matrix->getNbNonZero();
+//
+//  for (UInt i = 0; i < n; ++i) {
+//
+//  }
+//}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidualInternal() {
@@ -500,9 +526,9 @@ void SolidMechanicsModel::solveLumped(Vector<Real> & x,
   Real * b_val = b.storage();
   Real * x_val = x.storage();
   bool * boundary_val = boundary.storage();
-  
+
   UInt nb_degrees_of_freedom = x.getSize() * x.getNbComponent();
-  
+
   for (UInt n = 0; n < nb_degrees_of_freedom; ++n) {
     if(!(*boundary_val)) {
       *x_val = alpha * (*b_val / *A_val);
@@ -600,7 +626,7 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
 
 /* -------------------------------------------------------------------------- */
 /**
- * Initialize the implicit solver, either for dynamic or static cases, 
+ * Initialize the implicit solver, either for dynamic or static cases,
  *
  * @param dynamic
  */
@@ -766,7 +792,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
     }
   }
 
-  StaticCommunicator::getStaticCommunicator()->allReduce(norm, 2, _so_sum);
+  StaticCommunicator::getStaticCommunicator().allReduce(norm, 2, _so_sum);
 
   norm[0] = sqrt(norm[0]);
   norm[1] = sqrt(norm[1]);
@@ -814,7 +840,7 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & norm) {
     }
   }
 
-  StaticCommunicator::getStaticCommunicator()->allReduce(&norm, 1, _so_sum);
+  StaticCommunicator::getStaticCommunicator().allReduce(&norm, 1, _so_sum);
 
   norm = sqrt(norm);
 
@@ -898,7 +924,7 @@ Real SolidMechanicsModel::getStableTimeStep() {
   Real min_dt = getStableTimeStep(_not_ghost);
 
   /// reduction min over all processors
-  StaticCommunicator::getStaticCommunicator()->allReduce(&min_dt, 1, _so_min);
+  StaticCommunicator::getStaticCommunicator().allReduce(&min_dt, 1, _so_min);
 
   AKANTU_DEBUG_OUT();
   return min_dt;
@@ -967,7 +993,7 @@ Real SolidMechanicsModel::getPotentialEnergy() {
   }
 
   /// reduction sum over all processors
-  StaticCommunicator::getStaticCommunicator()->allReduce(&energy, 1, _so_sum);
+  StaticCommunicator::getStaticCommunicator().allReduce(&energy, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -999,7 +1025,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     ekin += mv2;
   }
 
-  StaticCommunicator::getStaticCommunicator()->allReduce(&ekin, 1, _so_sum);
+  StaticCommunicator::getStaticCommunicator().allReduce(&ekin, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return ekin * .5;
@@ -1008,7 +1034,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getExternalWork() {
   AKANTU_DEBUG_IN();
-  
+
   Real * velo = velocity->storage();
   Real * forc = force->storage();
   Real * resi = residual->storage();
@@ -1035,8 +1061,8 @@ Real SolidMechanicsModel::getExternalWork() {
       ++boun;
     }
   }
-  
-  StaticCommunicator::getStaticCommunicator()->allReduce(&work, 1, _so_sum);
+
+  StaticCommunicator::getStaticCommunicator().allReduce(&work, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return work;
@@ -1059,10 +1085,28 @@ Real SolidMechanicsModel::getEnergy(std::string id) {
   }
 
   /// reduction sum over all processors
-  StaticCommunicator::getStaticCommunicator()->allReduce(&energy, 1, _so_sum);
+  StaticCommunicator::getStaticCommunicator().allReduce(&energy, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return energy;
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list) {
+  AKANTU_DEBUG_IN();
+  UInt nb_nodes = mesh.getNbNodes();
+
+  if(displacement) displacement->resize(nb_nodes);
+  if(mass        ) mass        ->resize(nb_nodes);
+  if(velocity    ) velocity    ->resize(nb_nodes);
+  if(acceleration) acceleration->resize(nb_nodes);
+  if(force       ) force       ->resize(nb_nodes);
+  if(residual    ) residual    ->resize(nb_nodes);
+  if(boundary    ) boundary    ->resize(nb_nodes);
+
+  if(method != _explicit_dynamic) AKANTU_DEBUG_TO_IMPLEMENT();
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

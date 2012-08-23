@@ -31,7 +31,6 @@
 #include "mesh.hh"
 #include "fem.hh"
 #include "static_communicator.hh"
-
 #include "mesh_io.hh"
 
 
@@ -57,9 +56,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                                                             MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  UInt nb_proc = comm->getNbProc();
-  UInt my_rank = comm->whoAmI();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  UInt nb_proc = comm.getNbProc();
+  UInt my_rank = comm.whoAmI();
 
   GridSynchronizer * communicator = new GridSynchronizer(id, memory_id);
   if(nb_proc == 1) return communicator;
@@ -74,7 +73,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
   AKANTU_DEBUG_INFO("Exchange of bounding box to detect the overlapping regions.");
 
-  comm->allGather(bounding_boxes, spatial_dimension * 2);
+  comm.allGather(bounding_boxes, spatial_dimension * 2);
 
   bool * intersects_proc = new bool[nb_proc];
   std::fill_n(intersects_proc, nb_proc, true);
@@ -267,8 +266,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                           << " to send to processor " << p
                           << " (communication tag : " << GEN_TAG(my_rank, count, DATA_TAG) << ")");
 
-        isend_requests.push_back(comm->asyncSend(info, 2, p, GEN_TAG(my_rank, count, SIZE_TAG)));
-        isend_requests.push_back(comm->asyncSend(conn.storage(),
+        isend_requests.push_back(comm.asyncSend(info, 2, p, GEN_TAG(my_rank, count, SIZE_TAG)));
+        isend_requests.push_back(comm.asyncSend(conn.storage(),
                                                 conn.getSize() * conn.getNbComponent(),
                                                 p, GEN_TAG(my_rank, count, DATA_TAG)));
 
@@ -278,18 +277,22 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       UInt info[2];
       info[0] = (UInt) _not_defined;
       info[1] = 0;
-      isend_requests.push_back(comm->asyncSend(info, 2, p, GEN_TAG(my_rank, count, SIZE_TAG)));
+      isend_requests.push_back(comm.asyncSend(info, 2, p, GEN_TAG(my_rank, count, SIZE_TAG)));
     }
   }
 
   /**
    * Receives the connectivity and store them in the ghosts elements
    */
-  Vector<UInt> global_nodes_ids = mesh.getGlobalNodesIds();
+  Vector<UInt> & global_nodes_ids = const_cast<Vector<UInt> &>(mesh.getGlobalNodesIds());
+  Vector<Int> & nodes_type = const_cast<Vector<Int> &>(mesh.getNodesType());
   std::vector<CommunicationRequest *> isend_nodes_requests;
   UInt nb_nodes_to_recv[nb_proc];
   UInt nb_total_nodes_to_recv = 0;
   UInt nb_current_nodes = global_nodes_ids.getSize();
+
+  NewNodesEvent new_nodes;
+  NewElementEvent new_elements;
 
   for (UInt p = 0; p < nb_proc; ++p) {
     nb_nodes_to_recv[p] = 0;
@@ -301,7 +304,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       ElementType type = _not_defined;
       do {
         UInt info[2] = { 0 };
-        comm->receive(info, 2, p, GEN_TAG(p, count, SIZE_TAG));
+        comm.receive(info, 2, p, GEN_TAG(p, count, SIZE_TAG));
 
         type = (ElementType) info[0];
         if(type != _not_defined) {
@@ -310,7 +313,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
           Vector<UInt> tmp_conn(nb_element, nb_nodes_per_element);
 
-          comm->receive(tmp_conn.storage(), info[1], p, GEN_TAG(p, count, DATA_TAG));
+          comm.receive(tmp_conn.storage(), info[1], p, GEN_TAG(p, count, DATA_TAG));
 
           AKANTU_DEBUG_INFO("I will receive " << nb_element << " elements of type " << ElementType(info[0])
                           << " from processor " << p
@@ -318,6 +321,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
 
           Vector<UInt> & ghost_connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _ghost));
+
           UInt nb_ghost_element = ghost_connectivity.getSize();
           Element element(type, 0, _ghost);
 
@@ -330,7 +334,10 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
               UInt ln = global_nodes_ids.find(gn);
               if(ln == UInt(-1)) {
                 global_nodes_ids.push_back(gn);
+		nodes_type.push_back(-3); // pure ghost node
                 ln = nb_current_nodes;
+
+		new_nodes.getList().push_back(ln);
                 ++nb_current_nodes;
                 ask_nodes.push_back(gn);
                 ++nb_node_to_ask_for_elem;
@@ -349,6 +356,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
               element.element = nb_ghost_element;
               ++nb_ghost_element;
               ghost_connectivity.push_back(conn);
+	      new_elements.getList().push_back(element);
             }
             communicator->recv_element[p].push_back(element);
           }
@@ -361,7 +369,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                         << " (communication tag : " << GEN_TAG(my_rank, 0, ASK_NODES_TAG) << ")");
 
 
-      isend_nodes_requests.push_back(comm->asyncSend(ask_nodes.storage(), ask_nodes.getSize(),
+      isend_nodes_requests.push_back(comm.asyncSend(ask_nodes.storage(), ask_nodes.getSize(),
                                                      p, GEN_TAG(my_rank, 0, ASK_NODES_TAG)));
       nb_nodes_to_recv[p] = ask_nodes.getSize();
       nb_total_nodes_to_recv += ask_nodes.getSize();
@@ -375,7 +383,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   nodes.resize(nb_total_nodes_to_recv + nb_nodes);
   for (UInt p = 0; p < nb_proc; ++p) {
     if((p != my_rank) && (nb_nodes_to_recv[p] > 0)) {
-      irecv_nodes_requests.push_back(comm->asyncReceive(nodes.storage() + nb_nodes * spatial_dimension,
+      irecv_nodes_requests.push_back(comm.asyncReceive(nodes.storage() + nb_nodes * spatial_dimension,
                                                         nb_nodes_to_recv[p] * spatial_dimension,
                                                         p, GEN_TAG(p, 0, SEND_NODES_TAG)));
       nb_nodes += nb_nodes_to_recv[p];
@@ -383,8 +391,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   }
 
 
-  comm->waitAll(isend_requests);
-  comm->freeCommunicationRequest(isend_requests);
+  comm.waitAll(isend_requests);
+  comm.freeCommunicationRequest(isend_requests);
 
   for (UInt p = 0; p < nb_proc; ++p) {
     if(element_per_proc[p]) delete element_per_proc[p];
@@ -399,7 +407,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
     Vector<UInt> asked_nodes;
     CommunicationStatus status;
-    comm->probe<UInt>(p, GEN_TAG(p, 0, ASK_NODES_TAG), status);
+    comm.probe<UInt>(p, GEN_TAG(p, 0, ASK_NODES_TAG), status);
     UInt nb_nodes_to_send = status.getSize();
     asked_nodes.resize(nb_nodes_to_send);
 
@@ -407,20 +415,22 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                       << " to send to processor " << p
                       << "(communication tag : " << GEN_TAG(p, 0, ASK_NODES_TAG) << ")");
 
-    comm->receive(asked_nodes.storage(), nb_nodes_to_send, p, GEN_TAG(p, 0, ASK_NODES_TAG));
+    comm.receive(asked_nodes.storage(), nb_nodes_to_send, p, GEN_TAG(p, 0, ASK_NODES_TAG));
     Vector<Real> nodes_to_send(0, spatial_dimension);
     for (UInt n = 0; n < nb_nodes_to_send; ++n) {
       UInt ln = global_nodes_ids.find(asked_nodes(n));
       nodes_to_send.push_back(nodes.storage() + ln * spatial_dimension);
     }
-    comm->send(nodes_to_send.storage(), nb_nodes_to_send * spatial_dimension, p, GEN_TAG(my_rank, 0, SEND_NODES_TAG));
+    comm.send(nodes_to_send.storage(), nb_nodes_to_send * spatial_dimension, p, GEN_TAG(my_rank, 0, SEND_NODES_TAG));
   }
 
-  comm->waitAll(isend_nodes_requests);
-  comm->freeCommunicationRequest(isend_nodes_requests);
+  comm.waitAll(isend_nodes_requests);
+  comm.freeCommunicationRequest(isend_nodes_requests);
 
-  comm->waitAll(irecv_nodes_requests);
-  comm->freeCommunicationRequest(irecv_nodes_requests);
+  comm.waitAll(irecv_nodes_requests);
+  comm.freeCommunicationRequest(irecv_nodes_requests);
+
+  mesh.sendEvent(new_nodes);
 
 
   AKANTU_DEBUG_OUT();

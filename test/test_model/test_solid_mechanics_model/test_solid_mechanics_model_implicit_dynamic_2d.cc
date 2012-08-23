@@ -91,9 +91,9 @@ int main(int argc, char *argv[])
 
   Mesh mesh(spatial_dimension);
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm->getNbProc();
-  Int prank = comm->whoAmI();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
 
   MeshPartition * partition = NULL;
   if(prank == 0) {
@@ -294,7 +294,7 @@ void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) 
   std::stringstream filename; filename << "dynamic_implicit_beam_" << TYPE;
 
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetParallelContext(StaticCommunicator::getStaticCommunicator()->whoAmI(), StaticCommunicator::getStaticCommunicator()->getNbProc());
+  dumper.SetParallelContext(StaticCommunicator::getStaticCommunicator().whoAmI(), StaticCommunicator::getStaticCommunicator().getNbProc());
   dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
 		   spatial_dimension, nb_nodes, filename.str().c_str());
   dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,

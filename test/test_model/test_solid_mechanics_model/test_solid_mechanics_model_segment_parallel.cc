@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
   akantu::initialize(argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
-  akantu::StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
-  akantu::Int psize = comm->getNbProc();
-  akantu::Int prank = comm->whoAmI();
+  akantu::StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm.getNbProc();
+  akantu::Int prank = comm.whoAmI();
 
   akantu::debug::setDebugLevel(akantu::dblWarning);
 

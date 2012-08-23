@@ -48,9 +48,9 @@ int main(int argc, char *argv[])
   debug::setDebugLevel(dblDebug);
 
   initialize(argc, argv);
-  StaticCommunicator * comm = akantu::StaticCommunicator::getStaticCommunicator();
-  Int psize = comm->getNbProc();
-  Int prank = comm->whoAmI();
+  StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
 
   Mesh mesh(spatial_dimension);
 

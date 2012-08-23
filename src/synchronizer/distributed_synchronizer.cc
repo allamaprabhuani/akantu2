@@ -43,7 +43,7 @@ __BEGIN_AKANTU__
 DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
                            MemoryID memory_id) :
   Synchronizer(id, memory_id),
-  static_communicator(StaticCommunicator::getStaticCommunicator())
+  static_communicator(&StaticCommunicator::getStaticCommunicator())
 {
   AKANTU_DEBUG_IN();
 
@@ -102,9 +102,9 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   const UInt TAG_COORDINATES  = 6;
   const UInt TAG_NODES_TYPE   = 7;
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  UInt nb_proc = comm->getNbProc();
-  UInt my_rank = comm->whoAmI();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  UInt nb_proc = comm.getNbProc();
+  UInt my_rank = comm.whoAmI();
 
   DistributedSynchronizer * communicator = new DistributedSynchronizer(id, memory_id);
 
@@ -214,10 +214,10 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           size[3] = nb_element_to_send[p];
           size[4] = nb_tags;
           size[5] = names_size;
-          comm->send(size, 6, p, TAG_SIZES);
+          comm.send(size, 6, p, TAG_SIZES);
 
           AKANTU_DEBUG_INFO("Sending connectivities to proc " << p);
-          requests.push_back(comm->asyncSend(buffers[p],
+          requests.push_back(comm.asyncSend(buffers[p],
                                             nb_nodes_per_element * (nb_local_element[p] +
                                                                     nb_ghost_element[p]),
                                             p, TAG_CONNECTIVITY));
@@ -235,8 +235,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
                                    type,
                                    *old_nodes);
 
-      comm->waitAll(requests);
-      comm->freeCommunicationRequest(requests);
+      comm.waitAll(requests);
+      comm.freeCommunicationRequest(requests);
       requests.clear();
 
       for (UInt p = 0; p < nb_proc; ++p) {
@@ -274,7 +274,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       for (UInt p = 0; p < nb_proc; ++p) {
         if(p != root) {
           AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
-          requests.push_back(comm->asyncSend(buffers[p],
+          requests.push_back(comm.asyncSend(buffers[p],
                                              nb_element_to_send[p] + nb_ghost_element[p],
                                              p, TAG_PARTITIONS));
         } else {
@@ -288,8 +288,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
                                             nb_ghost_element[root],
                                             type);
 
-      comm->waitAll(requests);
-      comm->freeCommunicationRequest(requests);
+      comm.waitAll(requests);
+      comm.freeCommunicationRequest(requests);
       requests.clear();
 
       for (UInt p = 0; p < nb_proc; ++p) {
@@ -343,15 +343,15 @@ createDistributedSynchronizerMesh(Mesh & mesh,
             UInt size = nb_tags * (nb_local_element[p] + nb_ghost_element[p])
               + uint_names_size;
             AKANTU_DEBUG_INFO("Sending associated data to proc " << p);
-            requests.push_back(comm->asyncSend(buffers[p], size, p, TAG_DATA));
+            requests.push_back(comm.asyncSend(buffers[p], size, p, TAG_DATA));
           } else {
             local_data = buffers[p];
           }
         }
         MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
 
-        comm->waitAll(requests);
-        comm->freeCommunicationRequest(requests);
+        comm.waitAll(requests);
+        comm.freeCommunicationRequest(requests);
         requests.clear();
 
         for (UInt p = 0; p < nb_proc; ++p) delete [] buffers[p];
@@ -369,7 +369,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         size[3] = 0;
         size[4] = 0;
         size[5] = 0;
-        comm->send(size, 6, p, TAG_SIZES);
+        comm.send(size, 6, p, TAG_SIZES);
       }
     }
 
@@ -390,10 +390,10 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       //      UInt * buffer;
       if(p != root) {
         AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
-        comm->receive(&nb_nodes, 1, p, TAG_NB_NODES);
+        comm.receive(&nb_nodes, 1, p, TAG_NB_NODES);
         nodes_per_proc[p] = new UInt[nb_nodes];
         nb_nodes_per_proc[p] = nb_nodes;
-        comm->receive(nodes_per_proc[p], nb_nodes, p, TAG_NODES);
+        comm.receive(nodes_per_proc[p], nb_nodes, p, TAG_NODES);
       } else {
         nb_nodes = old_nodes->getSize();
         nb_nodes_per_proc[p] = nb_nodes;
@@ -414,7 +414,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       /* -------->>>>-COORDINATES-------------------------------------------- */
       if(p != root) { /// send them for distant processors
         AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
-        comm->send(nodes_to_send, nb_nodes * spatial_dimension, p, TAG_COORDINATES);
+        comm.send(nodes_to_send, nb_nodes * spatial_dimension, p, TAG_COORDINATES);
         delete [] nodes_to_send;
       } else { /// save them for local processor
         local_nodes = nodes_to_send;
@@ -439,7 +439,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
         AKANTU_DEBUG_INFO("Receiving first nodes types from proc " << p);
-        comm->receive(nodes_type_per_proc[p]->values,
+        comm.receive(nodes_type_per_proc[p]->values,
                       nb_nodes_per_proc[p], p, TAG_NODES_TYPE);
       } else {
         nodes_type_per_proc[p]->copy(mesh.getNodesType());
@@ -471,15 +471,15 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
         AKANTU_DEBUG_INFO("Sending nodes types to proc " << p);
-        requests.push_back(comm->asyncSend(nodes_type_per_proc[p]->values,
+        requests.push_back(comm.asyncSend(nodes_type_per_proc[p]->values,
                                            nb_nodes_per_proc[p], p, TAG_NODES_TYPE));
       } else {
         mesh.getNodesTypePointer()->copy(*nodes_type_per_proc[p]);
       }
     }
 
-    comm->waitAll(requests);
-    comm->freeCommunicationRequest(requests);
+    comm.waitAll(requests);
+    comm.freeCommunicationRequest(requests);
     requests.clear();
 
     for (UInt p = 0; p < nb_proc; ++p) {
@@ -498,7 +498,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     do {
       /* --------<<<<-SIZE--------------------------------------------------- */
       UInt size[6] = { 0 };
-      comm->receive(size, 6, root, TAG_SIZES);
+      comm.receive(size, 6, root, TAG_SIZES);
 
       type          = (ElementType) size[0];
       UInt nb_local_element     = size[1];
@@ -514,7 +514,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         local_connectivity = new UInt[(nb_local_element + nb_ghost_element) *
                                       nb_nodes_per_element];
         AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
-        comm->receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
+        comm.receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
                                                                   nb_ghost_element),
                            root, TAG_CONNECTIVITY);
 
@@ -531,7 +531,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         /* --------<<<<-PARTITIONS--------------------------------------------- */
         local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
         AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
-        comm->receive(local_partitions,
+        comm.receive(local_partitions,
                            nb_element_to_send + nb_ghost_element * 2,
                            root, TAG_PARTITIONS);
 
@@ -549,7 +549,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           UInt size_data = (nb_local_element + nb_ghost_element) * nb_tags
             + uint_names_size;
           local_data = new UInt[size_data];
-          comm->receive(local_data, size_data, root, TAG_DATA);
+          comm.receive(local_data, size_data, root, TAG_DATA);
 
           MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
 
@@ -564,28 +564,28 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /* -------->>>>-NB_NODES + NODES----------------------------------------- */
     AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
     UInt nb_nodes = old_nodes->getSize();
-    comm->send(&nb_nodes, 1, root, TAG_NB_NODES);
-    comm->send(old_nodes->values, nb_nodes, root, TAG_NODES);
+    comm.send(&nb_nodes, 1, root, TAG_NB_NODES);
+    comm.send(old_nodes->values, nb_nodes, root, TAG_NODES);
 
     /* --------<<<<-COORDINATES---------------------------------------------- */
     nodes->resize(nb_nodes);
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
-    comm->receive(nodes->values, nb_nodes * spatial_dimension, root, TAG_COORDINATES);
+    comm.receive(nodes->values, nb_nodes * spatial_dimension, root, TAG_COORDINATES);
 
     communicator->fillNodesType(mesh);
     /* --------<<<<-NODES_TYPE-2--------------------------------------------- */
     Int * nodes_types = mesh.getNodesTypePointer()->values;
     AKANTU_DEBUG_INFO("Sending first nodes types to proc " << root);
-    comm->send(nodes_types, nb_nodes,
+    comm.send(nodes_types, nb_nodes,
                root, TAG_NODES_TYPE);
 
     /* --------<<<<-NODES_TYPE-2--------------------------------------------- */
     AKANTU_DEBUG_INFO("Receiving nodes types from proc " << root);
-    comm->receive(nodes_types, nb_nodes,
+    comm.receive(nodes_types, nb_nodes,
                   root, TAG_NODES_TYPE);
   }
 
-  comm->broadcast(&(mesh.nb_global_nodes), 1, root);
+  comm.broadcast(&(mesh.nb_global_nodes), 1, root);
 
   AKANTU_DEBUG_OUT();
   return communicator;
@@ -596,7 +596,7 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   //  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  //  UInt my_rank = comm->whoAmI();
+  //  UInt my_rank = comm.whoAmI();
 
   UInt nb_nodes = mesh.getNbNodes();
   //  std::cout << nb_nodes << std::endl;

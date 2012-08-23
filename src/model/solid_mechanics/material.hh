@@ -109,6 +109,7 @@ public:
 
   /// compute the residual for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
+  virtual void computeAllNonLocalStresses(GhostType ghost_type = _not_ghost) {};
 
   /// set material to steady state
   void setToSteadyState(GhostType ghost_type = _not_ghost);
@@ -378,7 +379,7 @@ __END_AKANTU__
 /* Auto loop                                                                  */
 /* -------------------------------------------------------------------------- */
 
-#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN			\
+#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type) \
   Vector<Real>::iterator<types::Matrix> strain_it =			\
     this->strain(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\

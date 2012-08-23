@@ -51,11 +51,8 @@ using namespace akantu;
 
 //static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap);
 static void setBoundaryConditions(SolidMechanicsModel & model);
-static void my_force(Real * coord, Real * T, Real * normal, UInt surface_id);
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio);
 static void initParaview(SolidMechanicsModel & model);
-
-Real y_min, y_max;
 
 #ifdef AKANTU_USE_IOHELPER
 iohelper::DumperParaview dumper;
@@ -191,11 +188,28 @@ int main(int argc, char *argv[])
 //   }
 // }
 
+class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
+public:
+  MyStressFunctor(Real y_max) : y_max(y_max) {};
+
+  inline void stress(const types::Vector<Real> & position,
+		     types::Matrix & stress,
+		     __attribute__ ((unused)) const types::Vector<Real> & normal,
+		     __attribute__ ((unused)) Surface surface_id) {
+    stress.clear();
+    if(position(1) > y_max - 1.e-5)
+      stress(1,1) = NORMAL_PRESSURE;
+  }
+private:
+  Real y_max;
+};
+
 /* -------------------------------------------------------------------------- */
 static void setBoundaryConditions(SolidMechanicsModel & model) {
 
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   Real * coord = model.getFEM().getMesh().getNodes().values;
+  Real y_min = std::numeric_limits<Real>::max(), y_max = -std::numeric_limits<Real>::max();
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (coord[2*n+1] > y_max)
       y_max = coord[2*n+1];
@@ -217,17 +231,8 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
   }
   std::cout << "are blocked" << std::endl;
 
-  model.computeForcesFromFunction(my_force, _bft_stress);
-}
-
-/* -------------------------------------------------------------------------- */
-void my_force(Real * coord, Real * T,
-	      __attribute__ ((unused)) Real * normal,
-	      __attribute__ ((unused)) UInt surface_id) {
-
-  memset(T, 0, 4*sizeof(double));
-  if(*(coord+1) > y_max-1.e-5)
-    T[3] = NORMAL_PRESSURE;
+  MyStressFunctor func(y_max);
+  model.computeForcesFromFunction(func, _bft_stress);
 }
 
 /* -------------------------------------------------------------------------- */

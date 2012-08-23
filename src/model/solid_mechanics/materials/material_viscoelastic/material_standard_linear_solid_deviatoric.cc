@@ -87,7 +87,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::setToSteadyState(
   Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
   /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   types::Matrix & dev_s = *stress_d;
   types::Matrix & h = *history_int;
@@ -132,7 +132,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Real exp_dt_tau_2 = exp( -.5*dt/tau );
 
   /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   types::Matrix & dev_s = *stress_d;
   types::Matrix & h = *history_int;

@@ -65,25 +65,11 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
-
-  void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
-
   // void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
-
-  template<typename T>
-  void weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
-				    ByElementTypeVector<T> & accumulated,
-				    UInt nb_degree_of_freedom,
-				    GhostType ghost_type2 = _not_ghost) const;
-
-  /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   virtual void updateResidual(GhostType ghost_type);
 
-  /// constitutive law
-  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;
+  virtual void computeAllNonLocalStresses(GhostType ghost_type = _not_ghost);
 
   // void removeDamaged(const ByElementTypeReal & damage, Real thresold);
 
@@ -91,17 +77,55 @@ public:
   void neighbourhoodStatistics(const std::string & filename) const;
 
 protected:
+  void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
+
+  void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
+
   void createCellList(const ByElementTypeReal & quadrature_points_coordinates);
+
+  /// constitutive law
+  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;
+
+  template<typename T>
+  void weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
+				    ByElementTypeVector<T> & accumulated,
+				    UInt nb_degree_of_freedom,
+				    GhostType ghost_type2 = _not_ghost) const;
+
 
   // template<typename T>
   // void accumulateOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
   // 			      ByElementTypeVector<T> & accumulated,
   // 			      UInt nb_degree_of_freedom) const;
 
+
+  inline UInt getNbDataToPack(const Element & element,
+					SynchronizationTag tag) const;
+
+  inline UInt getNbDataToUnpack(const Element & element,
+				SynchronizationTag tag) const;
+
+  inline void packData(CommunicationBuffer & buffer,
+		       const Element & element,
+		       SynchronizationTag tag) const;
+
+  inline void unpackData(CommunicationBuffer & buffer,
+			 const Element & element,
+			 SynchronizationTag tag);
+
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  void registerNonLocalVariable(ByElementTypeReal & local,
+				ByElementTypeReal & non_local,
+				UInt nb_degree_of_freedom) {
+    local_variable = &local;
+    non_local_variable = &non_local;
+    non_local_variable_nb_component = nb_degree_of_freedom;
+  }
 
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
 
@@ -127,13 +151,18 @@ private:
   RegularGrid<QuadraturePoint> * cell_list;
 
   /// the types of the existing pairs
-  std::set< std::pair<ElementType, ElementType> > existing_pairs;
+  typedef std::set< std::pair<ElementType, ElementType> > pair_type;
+  pair_type existing_pairs[2];
 
   /// specify if the weights should be updated and at which rate
-  UInt update_weigths;
+  UInt update_weights;
 
   /// count the number of calls of computeStress
   UInt compute_stress_calls;
+
+  ByElementTypeVector<Real> * local_variable;
+  ByElementTypeVector<Real> * non_local_variable;
+  UInt non_local_variable_nb_component;
 };
 
 

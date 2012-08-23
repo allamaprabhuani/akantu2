@@ -440,7 +440,7 @@ void Material::computePotentialEnergy(ElementType el_type, GhostType ghost_type)
   if(ghost_type != _not_ghost) return;
   Real * epot = potential_energy(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);
   epot++;

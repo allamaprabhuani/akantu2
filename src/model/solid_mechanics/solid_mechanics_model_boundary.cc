@@ -41,19 +41,19 @@ class WarppingSurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFuncto
 public:
   WarppingSurfaceLoadFunctor(BoundaryFunction function) : function(function) {}
 
-  void operator()(const types::Vector<Real> & position,
-		  types::Vector<Real> & force,
-		  const types::Vector<Real> & normal,
-		  Surface surface_id) {
+  void traction(const types::Vector<Real> & position,
+		types::Vector<Real> & force,
+		const types::Vector<Real> & normal,
+		Surface surface_id) {
     function(position.storage(),
 	     force.storage(),
 	     normal.storage(),
 	     surface_id);
   }
-  void operator()(const types::Vector<Real> & position,
-		  types::Matrix & stress,
-		  const types::Vector<Real> & normal,
-		  Surface surface_id) {
+  void stress(const types::Vector<Real> & position,
+	      types::Matrix & stress,
+	      const types::Vector<Real> & normal,
+	      Surface surface_id) {
     function(position.storage(),
 	     stress.storage(),
 	     normal.storage(),

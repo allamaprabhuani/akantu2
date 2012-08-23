@@ -36,7 +36,6 @@ template<UInt spatial_dimension>
 MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsModel & model,
 					     const ID & id)  :
   Material(model, id),
-  MaterialElastic<spatial_dimension>(model, id),
   MaterialDamage<spatial_dimension>(model, id),
   Kapa("Kapa",id) {
   AKANTU_DEBUG_IN();
@@ -85,7 +84,7 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
   Real * Kapaq = Kapa(el_type, ghost_type).storage();
 
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real Equistrain;
   computeStressOnQuad(grad_u, sigma, *dam, Equistrain, *Kapaq);
@@ -93,8 +92,6 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
   ++Kapaq;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }

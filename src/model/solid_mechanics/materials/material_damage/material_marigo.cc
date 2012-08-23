@@ -38,16 +38,16 @@ template<UInt spatial_dimension>
 MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
 						  const ID & id)  :
   Material(model, id),
-  MaterialElastic<spatial_dimension>(model, id),
   MaterialDamage<spatial_dimension>(model, id),
   Yd_rand("Yd_rand",id), damage_in_y(false), yc_limit(false) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("Yd",            Yd,              50., ParamAccessType(_pat_parsable | _pat_modifiable));
-  this->registerParam("Sd",            Sd,            5000., ParamAccessType(_pat_parsable | _pat_modifiable));
+  this->registerParam("Yd",                       Yd,   50., ParamAccessType(_pat_parsable | _pat_modifiable));
+  this->registerParam("Sd",                       Sd, 5000., ParamAccessType(_pat_parsable | _pat_modifiable));
   this->registerParam("Yd_randomness", Yd_randomness,    0., _pat_parsable, "Randomness in Yd");
-  this->registerParam("epsilon_c",     epsilon_c,        0., _pat_parsable, "Critical strain");
-  this->registerParam("damage_in_y",   damage_in_y,   false, _pat_parsable, "Non-local var Y or D");
+  this->registerParam("epsilon_c",         epsilon_c,    0., _pat_parsable, "Critical strain");
+  this->registerParam("Yc limit",           yc_limit, false, _pat_internal, "As the material a critical Y");
+  this->registerParam("damage_in_y",   damage_in_y,   false, _pat_parsable, "Use threshold (1-D)Y");
 
   this->initInternalVector(this->Yd_rand, 1);
   AKANTU_DEBUG_OUT();
@@ -103,7 +103,7 @@ void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Yd_q = Yd_rand(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real Y = 0;
 
@@ -113,8 +113,6 @@ void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
   ++Yd_q;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }

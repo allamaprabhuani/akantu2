@@ -38,7 +38,6 @@ template<UInt spatial_dimension>
 MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(SolidMechanicsModel & model,
 								  const ID & id)  :
   Material(model, id),
-  MaterialElastic<spatial_dimension>(model, id),
   MaterialMazars<spatial_dimension>(model, id),
   MaterialNonLocalParent(model, id),
   Ehat("epsilon_equ", id) {
@@ -70,7 +69,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(ElementType el_typ
   Real * damage      = this->damage(el_type, ghost_type).storage();
   Real * epsilon_equ = this->Ehat(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   MaterialMazars<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
 							 *damage,
@@ -102,6 +101,8 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(GhostType 
     this->computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
   }
 
+  this->updateDissipatedEnergy(ghost_type);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -122,14 +123,12 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Rea
     epsilon_equ = non_loc_var.storage();
   }
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   this->computeDamageAndStressOnQuad(grad_u, sigma, *damage, *epsilon_equ);
 
   ++damage;
   ++epsilon_equ;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  this->updateDissipatedEnergy(ghost_type);
 
   AKANTU_DEBUG_OUT();
 }

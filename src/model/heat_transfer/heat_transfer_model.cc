@@ -569,7 +569,7 @@ Real HeatTransferModel::getStableTimeStep()
   Real min_dt = 2 * min_el_size * min_el_size * density
     * capacity/conductivitymax;
 
-  StaticCommunicator::getStaticCommunicator()->allReduce(&min_dt, 1, _so_min);
+  StaticCommunicator::getStaticCommunicator().allReduce(&min_dt, 1, _so_min);
 
   AKANTU_DEBUG_OUT();
 

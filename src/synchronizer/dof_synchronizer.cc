@@ -42,7 +42,7 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
   dof_types(0, 1, "types") {
   gather_scatter_scheme_initialized = false;
 
-  communicator = StaticCommunicator::getStaticCommunicator();
+  communicator = &StaticCommunicator::getStaticCommunicator();
 
   prank = communicator->whoAmI();
   psize = communicator->getNbProc();

@@ -50,8 +50,8 @@ SparseMatrix::SparseMatrix(UInt size,
   irn(0,1,"irn"), jcn(0,1,"jcn"), a(0,1,"A") {
   AKANTU_DEBUG_IN();
 
-  StaticCommunicator * comm = StaticCommunicator::getStaticCommunicator();
-  nb_proc = comm->getNbProc();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  nb_proc = comm.getNbProc();
   dof_synchronizer = NULL;
 
   irn_save = NULL;

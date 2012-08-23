@@ -89,7 +89,7 @@ void MaterialStiffnessProportional<spatial_dimension>::computeStress(ElementType
   Vector<Real>::iterator<types::Matrix> stress_el_it =
     stress_el.begin(spatial_dimension, spatial_dimension);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   types::Matrix & grad_v     = *strain_rate_it;
   types::Matrix & sigma_visc = *stress_visc_it;
   types::Matrix & sigma_el   = *stress_el_it;
@@ -123,7 +123,7 @@ void MaterialStiffnessProportional<spatial_dimension>::computePotentialEnergy(El
 
   Real * epot = this->potential_energy(el_type, ghost_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   types::Matrix & sigma_el    = *stress_el_it;
   Material::computePotentialEnergyOnQuad(grad_u,
 					 sigma_el,
