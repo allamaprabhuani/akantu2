@@ -90,9 +90,13 @@ public:
 		     std::string description = "");
 
 
-  /// read properties
+  /// set properties
   virtual bool setParam(const std::string & key, const std::string & value,
 			const ID & id);
+
+  /// set properties
+  template <typename T>
+  bool setParamValue(const std::string & key, const T & value,const ID & id);
 
   /// function called to update the internal parameters when the modifiable
   /// parameters are modified

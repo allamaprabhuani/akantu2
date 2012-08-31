@@ -36,32 +36,32 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-#define AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL(dim, elem)		\
+#define AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL(dim, elem)		\
   material =								\
     &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(mat_type, \
 								      opt_param))
 
-#define AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL_EACH(r, data, i, elem)	\
+#define AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL_EACH(r, data, i, elem)	\
   BOOST_PP_EXPR_IF(BOOST_PP_NOT_EQUAL(0, i), else )			\
     if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
       material =							\
-    &(registerNewCurtomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
+    &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
 							       BOOST_PP_TUPLE_ELEM(2, 1, elem) > >(mat_type, opt_param)); \
     }
 
 
-#define AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL(dim, elem)		\
-  BOOST_PP_SEQ_FOR_EACH_I(AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL_EACH,	\
+#define AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL(dim, elem)		\
+  BOOST_PP_SEQ_FOR_EACH_I(AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL_EACH,	\
 			  (2, (dim, BOOST_PP_ARRAY_ELEM(1, elem))),	\
 			  BOOST_PP_ARRAY_ELEM(2, elem))			\
   else {								\
-    AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL(dim, elem);		\
+    AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL(dim, elem);		\
   }
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM(dim, elem)			\
   BOOST_PP_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem) ),		\
-   	      AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL,			\
-    	      AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL)(dim, elem)
+   	      AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL,			\
+    	      AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL)(dim, elem)
 
 
 #define AKANTU_INTANTIATE_MATERIAL(elem)				\

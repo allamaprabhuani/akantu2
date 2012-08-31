@@ -189,7 +189,6 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataToPack(const Element & element,
 				      SynchronizationTag tag) const {
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
@@ -230,5 +229,16 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
       buffer >> *stress_it;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline bool Material::setParamValue(const std::string & key, const T & value,
+				    __attribute__ ((unused)) const ID & id) {
+  try {
+    params.set(key, value);
+  } catch(...) { return false; }
+  return true;
+}
+/* -------------------------------------------------------------------------- */
 
 
