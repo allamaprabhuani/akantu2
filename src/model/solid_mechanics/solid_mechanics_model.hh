@@ -255,7 +255,7 @@ public:
 				 const std::string & opt_param = "");
 
   template <typename M>
-  Material & registerNewCurtomMaterial(const ID & mat_type,
+  Material & registerNewCustomMaterial(const ID & mat_type,
 				       const std::string & opt_param = "");
   /// read the material files to instantiate all the materials
   void readMaterials(const std::string & filename);

@@ -27,7 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 template <typename M>
-Material & SolidMechanicsModel::registerNewCurtomMaterial(const ID & mat_type,
+Material & SolidMechanicsModel::registerNewCustomMaterial(const ID & mat_type,
 							  __attribute__((unused)) const std::string & opt_param) {
   UInt mat_count = materials.size();
 
@@ -64,7 +64,7 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 					  << key
 					  << " not found in file " << filename);
 
-  Material & mat = registerNewCurtomMaterial<M>(key, opt_param);
+  Material & mat = registerNewCustomMaterial<M>(key, opt_param);
   parser.readSection(mat.getID(), mat);
   materials.push_back(&mat);
   return materials.size();;

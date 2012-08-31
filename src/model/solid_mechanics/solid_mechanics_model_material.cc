@@ -38,7 +38,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 #define AKANTU_INTANTIATE_MATERIAL_BY_DYM_NO_TMPL(dim, elem)		\
   material =								\
-    &(registerNewCurtomMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(mat_type, \
+    &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(mat_type, \
 								      opt_param))
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DYM_TMPL_EACH(r, data, i, elem)	\
