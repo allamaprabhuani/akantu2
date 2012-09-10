@@ -140,7 +140,8 @@ void SolidMechanicsModel::computeRho(Vector<Real> & rho,
 
   /// compute @f$ rho @f$ for each nodes of each element
   for (UInt el = 0; el < nb_element; ++el) {
-    Real mat_rho = mat_val[elem_mat_val[el]]->getRho(); /// here rho is constant in an element
+    Real mat_rho = mat_val[elem_mat_val[el]]->getParam<Real>("rho"); /// here rho is constant in an element
+
     for (UInt n = 0; n < nb_quadrature_points; ++n) {
       *rho_1_val++ = mat_rho;
     }

@@ -54,9 +54,6 @@ public:
 
   void initMaterial();
 
-  bool setParam(const std::string & key, const std::string & value,
-		const ID & id);
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
@@ -80,9 +77,6 @@ public:
 
   /// compute the celerity of wave in the material
   inline Real celerity();
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -127,16 +121,7 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
 #include "local_material_damage_inline_impl.cc"
-
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const LocalMaterialDamage & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
 
 __END_AKANTU__
 

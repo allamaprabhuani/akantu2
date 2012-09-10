@@ -42,7 +42,8 @@ enum ParamAccessType {
   _pat_writable   = 0x0010,
   _pat_readable   = 0x0100,
   _pat_modifiable = 0x0110, //_pat_readable | _pat_writable,
-  _pat_parsable   = 0x1000
+  _pat_parsable   = 0x1000,
+  _pat_parsmod    = 0x1110
 };
 
 template<typename T> class MaterialParamTyped;
@@ -64,7 +65,7 @@ public:
   template<typename T> void set(T & value);
   template<typename T> const T & get() const;
 
-  virtual void setParam(std::string value);
+  virtual void parseParam(std::string value);
 
   /* ------------------------------------------------------------------------ */
   virtual void printself(std::ostream & stream) const;
@@ -95,7 +96,7 @@ public:
   void setTyped(T & value);
   const T & getTyped() const;
 
-  void setParam(std::string value);
+  void parseParam(std::string value);
 
   virtual void printself(std::ostream & stream) const;
 private:
@@ -123,7 +124,7 @@ public:
   template<typename T> void set(std::string name, T value);
   template<typename T> const T & get(std::string name) const;
 
-  void setParam(std::string name, std::string value);
+  void parseParam(std::string name, std::string value);
 
   /* ------------------------------------------------------------------------ */
   void printself(std::ostream & stream, int indent) const;

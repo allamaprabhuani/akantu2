@@ -295,6 +295,10 @@ int main(int argc, char *argv[]) {
     UInt nb_ghost_element = mesh.getNbElement(type, _ghost);
     UInt nb_nodes = mesh.getNbNodes();
 
+    iohelper::DumperParaview dumper_ghost;
+    dumper_ghost.SetMode(iohelper::TEXT);
+    dumper_ghost.SetParallelContext(prank, psize);
+
     dumper_ghost.SetMode(iohelper::TEXT);
     dumper_ghost.SetParallelContext(prank, psize);
     dumper_ghost.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");

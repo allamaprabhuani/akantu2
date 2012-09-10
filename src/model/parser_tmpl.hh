@@ -67,7 +67,7 @@ inline void Parser::readSection(const std::string & obj_name,
       std::string keyword = trim(line.substr(0, pos));
       std::string value   = trim(line.substr(pos + 1));
 
-      if(!obj.setParam(keyword, value, obj_name)) {
+      if(!obj.parseParam(keyword, value, obj_name)) {
 	AKANTU_DEBUG_WARNING("Malformed material file : error in setParam at line "
 			     << current_line <<"."
 			     << " Parameter (" << keyword << ") is not recognized by " << obj_name << "!");

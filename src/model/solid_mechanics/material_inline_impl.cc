@@ -230,15 +230,39 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
   }
 }
 
+
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline bool Material::setParamValue(const std::string & key, const T & value,
-				    __attribute__ ((unused)) const ID & id) {
+inline T Material::getParam(const ID & param) const {
   try {
-    params.set(key, value);
-  } catch(...) { return false; }
-  return true;
+    return params.get<T>(param);
+  } catch (...) {
+    AKANTU_EXCEPTION("No parameter " << param << " in the material " << id);
+  }
 }
+
 /* -------------------------------------------------------------------------- */
+template <typename T>
+inline void Material::setParam(const ID & param, T value) {
+  try {
+    params.set<T>(param, value);
+  } catch(...) {
+    AKANTU_EXCEPTION("No parameter " << param << " in the material " << id);
+  }
+  updateInternalParameters();
+}
 
+/* -------------------------------------------------------------------------- */
+inline void Material::onElementsAdded(const Vector<Element> & element_list) {
+  for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
+       it != internal_vectors_real.end();
+       ++it) {
+    resizeInternalVector(*(it->second));
+  }
 
+  for (std::map<ID, ByElementTypeUInt *>::iterator it = internal_vectors_uint.begin();
+       it != internal_vectors_uint.end();
+       ++it) {
+    resizeInternalVector(*(it->second));
+  }
+}

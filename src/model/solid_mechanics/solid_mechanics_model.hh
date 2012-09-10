@@ -337,6 +337,8 @@ public:
 protected:
   virtual void onNodesAdded  (const Vector<UInt> & nodes_list);
 
+  virtual void onElementsAdded  (const Vector<Element> & nodes_list);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -398,6 +400,9 @@ public:
 
   /// give the number of materials
   inline UInt getNbMaterials() const { return materials.size(); };
+
+  /// give the material internal index from its id
+  Int getInternalIndexFromID(const ID & id) const;
 
   /// compute the stable time step
   Real getStableTimeStep();

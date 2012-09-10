@@ -69,10 +69,10 @@ protected:
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual bool setParam(const std::string & key, const std::string & value,
+  virtual bool parseParam(const std::string & key, const std::string & value,
 			const ID & id) {
-    return MaterialNonLocalParent::setParam(key, value, id) ||
-      MaterialDamageParent::setParam(key, value, id);
+    return MaterialNonLocalParent::parseParam(key, value, id) ||
+      MaterialDamageParent::parseParam(key, value, id);
   }
 
 public:

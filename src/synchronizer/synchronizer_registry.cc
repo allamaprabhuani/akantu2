@@ -106,4 +106,20 @@ void SynchronizerRegistry::registerSynchronizer(Synchronizer & synchronizer,
 }
 
 /* -------------------------------------------------------------------------- */
+void SynchronizerRegistry::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << space << "SynchronizerRegistry [" << std::endl;
+  Tag2Sync::const_iterator it;
+  for (it = synchronizers.begin(); it != synchronizers.end(); it++) {
+    stream << space << " + Synchronizers for tag " << (*it).first << " [" <<  std::endl;
+    (*it).second->printself(stream, indent + 1);
+    stream << space << " ]" <<  std::endl;
+  }
+
+  stream << space << "]" << std::endl;
+}
+
+
 __END_AKANTU__

@@ -66,6 +66,9 @@ public:
   /// register a new synchronization
   void registerSynchronizer(Synchronizer & synchronizer,SynchronizationTag tag);
 
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -78,7 +81,6 @@ private:
 
   // /// number of tags registered
   // UInt nb_synchronization_tags;
-
 
   typedef std::multimap<SynchronizationTag, Synchronizer *> Tag2Sync;
   /// list of registered synchronization
@@ -95,12 +97,12 @@ private:
 
 // #include "synchronizer_registry_inline_impl.cc"
 
-// /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const SynchronizerRegistry & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+/// standard output stream operator
+inline std::ostream & operator <<(std::ostream & stream, const SynchronizerRegistry & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__

@@ -72,9 +72,6 @@ public:
 
   virtual void initMaterial();
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-		const ID & id);
-
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
@@ -89,9 +86,7 @@ public:
   /// compute the s-wave speed in the material
   virtual Real getShearWaveSpeed() const;
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-
+  virtual void updateInternalParameters();
 protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(types::Matrix & grad_u,

@@ -68,8 +68,14 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   Real * bounding_boxes = new Real[2 * spatial_dimension * nb_proc];
   Real * my_bounding_box = bounding_boxes + 2 * spatial_dimension * my_rank;
 
-  mesh.getLocalLowerBounds(my_bounding_box);
-  mesh.getLocalUpperBounds(my_bounding_box + spatial_dimension);
+  // mesh.getLocalLowerBounds(my_bounding_box);
+  // mesh.getLocalUpperBounds(my_bounding_box + spatial_dimension);
+
+  grid.getLocalLowerBounds(my_bounding_box);
+  grid.getLocalUpperBounds(my_bounding_box + spatial_dimension);
+
+  Real spacing[spatial_dimension];
+  grid.getSpacing(spacing);
 
   AKANTU_DEBUG_INFO("Exchange of bounding box to detect the overlapping regions.");
 
@@ -142,8 +148,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         }
 
 
-        first_cell_p[s] = grid.getCell(start, s);
-        last_cell_p [s] = grid.getCell(end, s);
+        first_cell_p[s] = grid.getCell(start + spacing[s]/100., s);
+        last_cell_p [s] = grid.getCell(end - spacing[s]/100., s);
       }
     }
 
@@ -156,25 +162,25 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
       Cell cell(grid);
 
-      for (UInt i = 0; i < spatial_dimension; ++i) {
-        if(first_cell_p[i] != 0) --first_cell_p[i];
-        if(last_cell_p[i] != 0) ++last_cell_p[i];
-      }
+      // for (UInt i = 0; i < spatial_dimension; ++i) {
+      //   if(first_cell_p[i] != 0) --first_cell_p[i];
+      //   if(last_cell_p[i] != 0) ++last_cell_p[i];
+      // }
 
-      for (UInt fd = first_cell_p[0]; fd < last_cell_p[0]; ++fd) {
+      for (UInt fd = first_cell_p[0]; fd <= last_cell_p[0]; ++fd) {
         cell.position[0] = fd;
         if(spatial_dimension == 1) {
 	  cell.updateID();
           cells->push_back(cell);
 	}
         else {
-          for (UInt sd = first_cell_p[1]; sd < last_cell_p[1] ; ++sd) {
+          for (UInt sd = first_cell_p[1]; sd <= last_cell_p[1] ; ++sd) {
             cell.position[1] = sd;
             if(spatial_dimension == 2) {
 	      cell.updateID();
               cells->push_back(cell);
             } else {
-              for (UInt ld = first_cell_p[2]; fd < last_cell_p[2] ; ++ld) {
+              for (UInt ld = first_cell_p[2]; fd <= last_cell_p[2] ; ++ld) {
                 cell.position[2] = ld;
 		cell.updateID();
                 cells->push_back(cell);
@@ -241,7 +247,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   /* tag = |__________21_________|___8____|_3_|
    *       |          proc       | num mes| ct|
    */
-#define GEN_TAG(proc, msg_count, tag) (((proc & 0x1FFFFF) << 11) + ((msg_count & 0xFF)<< 3) + (tag & 0x7))
+#define GEN_TAG(proc, msg_count, tag) (((proc & 0x1FFFFF) << 11) + ((msg_count & 0xFF) << 3) + (tag & 0x7))
 
   /**
    * Sending loop, sends the connectivity asynchronously to all concerned proc
@@ -292,7 +298,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   UInt nb_current_nodes = global_nodes_ids.getSize();
 
   NewNodesEvent new_nodes;
-  NewElementEvent new_elements;
+  NewElementsEvent new_elements;
 
   for (UInt p = 0; p < nb_proc; ++p) {
     nb_nodes_to_recv[p] = 0;
@@ -348,8 +354,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
             // all the nodes are already known locally, the element should already exists
             UInt c = UInt(-1);
-            if(nb_node_to_ask_for_elem != 0) {
+            if(nb_node_to_ask_for_elem == 0) {
               c = ghost_connectivity.find(conn);
+	      element.element = c;
             }
 
             if(c == UInt(-1)) {
@@ -431,14 +438,26 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   comm.freeCommunicationRequest(irecv_nodes_requests);
 
   mesh.sendEvent(new_nodes);
+  mesh.sendEvent(new_elements);
 
 
   AKANTU_DEBUG_OUT();
   return communicator;
 }
+
 /* -------------------------------------------------------------------------- */
+// template <class E>
+// GridSynchronizer * GridSynchronizer::cleanupExtraElement(const Vector<Element> & element_to_remove) {
+//   AKANTU_DEBUG_IN();
+
+  
 
 
+
+//   AKANTU_DEBUG_OUT();
+// }
+
+/* -------------------------------------------------------------------------- */
 template GridSynchronizer *
 GridSynchronizer::createGridSynchronizer<QuadraturePoint>(Mesh & mesh,
                                                           const RegularGrid<QuadraturePoint> & grid,

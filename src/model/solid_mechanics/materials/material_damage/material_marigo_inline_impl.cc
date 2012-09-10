@@ -76,8 +76,10 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbDataToPack(const Element & e
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  if(tag == _gst_smm_init_mat)
-    size += sizeof(Real);
+  if(tag == _gst_smm_init_mat) {
+    UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
+    size += sizeof(Real) * nb_quadrature_points;
+  }
 
   size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
 
@@ -92,8 +94,10 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbDataToUnpack(const Element &
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  if(tag == _gst_smm_init_mat)
-    size += sizeof(Real);
+  if(tag == _gst_smm_init_mat) {
+    UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
+    size += sizeof(Real) * nb_quadrature_points;
+  }
 
   size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
 
@@ -108,8 +112,13 @@ inline void MaterialMarigo<spatial_dimension>::packData(CommunicationBuffer & bu
 				     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  if(tag == _gst_smm_init_mat)
-    buffer << Yd_rand(element.type, _not_ghost)(element.element);
+  if(tag == _gst_smm_init_mat) {
+    UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
+    Vector<Real>::const_iterator<Real> Yds = Yd_rand(element.type, _not_ghost).begin();
+    Yds += element.element * nb_quadrature_points;
+    for (UInt q = 0; q < nb_quadrature_points; ++q, ++Yds)
+      buffer << *Yds;
+  }
 
   MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
 
@@ -123,10 +132,15 @@ inline void MaterialMarigo<spatial_dimension>::unpackData(CommunicationBuffer & 
 				       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  if(tag == _gst_smm_init_mat)
-    buffer >> Yd_rand(element.type, _ghost)(element.element);
+  if(tag == _gst_smm_init_mat) {
+    UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
+    Vector<Real>::iterator<Real> Ydr = Yd_rand(element.type, _ghost).begin();
+    Ydr += element.element * nb_quadrature_points;
+    for (UInt q = 0; q < nb_quadrature_points; ++q, ++Ydr)
+      buffer << *Ydr;
+  }
 
-  MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
+  MaterialDamage<spatial_dimension>::unpackData(buffer, element, tag);
 
   AKANTU_DEBUG_OUT();
 }

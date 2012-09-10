@@ -87,7 +87,7 @@ void MaterialParam::printself(std::ostream & stream) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialParam::setParam(__attribute__((unused)) std::string value) {
+void MaterialParam::parseParam(__attribute__((unused)) std::string value) {
   if(!isParsable()) AKANTU_EXCEPTION("The parameter named " << name << " is not parsable.");
 }
 
@@ -117,12 +117,12 @@ void MaterialParameters::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialParameters::setParam(std::string name, std::string value) {
+void MaterialParameters::parseParam(std::string name, std::string value) {
   std::map<std::string, MaterialParam *>::iterator it = params.find(name);
   if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " registered.");
 
   MaterialParam & param = *(it->second);
-  param.setParam(value);
+  param.parseParam(value);
 }
 
 

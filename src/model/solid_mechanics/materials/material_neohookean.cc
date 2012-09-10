@@ -43,14 +43,6 @@ MaterialNeohookean<spatial_dimension>::MaterialNeohookean(SolidMechanicsModel & 
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialNeohookean<spatial_dimension>::initMaterial() {
-  AKANTU_DEBUG_IN();
-  MaterialElastic<spatial_dimension>::initMaterial();
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -128,24 +120,6 @@ Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
   }
 
   return cele;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialNeohookean<spatial_dimension>::setParam(const std::string & key, const std::string & value,
-				  const ID & id) {
-  return MaterialElastic<spatial_dimension>::setParam(key, value, id);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialNeohookean<spatial_dimension>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "MaterialNeohookean [" << std::endl;
-  MaterialElastic<spatial_dimension>::printself(stream, indent+1);
-  stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

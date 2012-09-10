@@ -93,6 +93,16 @@ public:
 
   friend class Cell;
 
+  void getLocalLowerBounds(Real * x_min) const
+  { for (UInt i = 0; i < dimension; ++i) x_min[i] = lower_bounds[i]; }
+  void getLocalUpperBounds(Real * x_max) const
+  { for (UInt i = 0; i < dimension; ++i) x_max[i] = upper_bounds[i]; }
+
+  void getSpacing(Real * sp) const
+  { for (UInt i = 0; i < dimension; ++i) sp[i] = spacing[i]; }
+
+
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

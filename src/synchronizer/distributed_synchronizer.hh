@@ -78,6 +78,8 @@ public:
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
+  virtual void printself(std::ostream & stream, int indent = 0) const;
+
 protected:
   /// fill the nodes type vector
   void fillNodesType(Mesh & mesh);
@@ -104,19 +106,42 @@ protected:
   /// the static memory instance
   StaticCommunicator * static_communicator;
 
-  /// size of data to send to each processor by communication tag
-  std::map< SynchronizationTag, Vector<UInt> > size_to_send;
+  class Communication {
+  public:
+    void resize(UInt size) {
+      send_buffer.resize(size);
+      recv_buffer.resize(size);
+      size_to_send   .resize(size);
+      size_to_receive.resize(size);
+    }
 
-  /// size of data to receive form each processor by communication tag
-  std::map< SynchronizationTag, Vector<UInt> > size_to_receive;
+  public:
+    /// size of data to send to each processor
+    std::vector<UInt> size_to_send;
+    /// size of data to recv to each processor
+    std::vector<UInt> size_to_receive;
+    std::vector<CommunicationBuffer> send_buffer;
+    std::vector<CommunicationBuffer> recv_buffer;
 
-  CommunicationBuffer * send_buffer;
-  CommunicationBuffer * recv_buffer;
+    std::vector<CommunicationRequest *> send_requests;
+    std::vector<CommunicationRequest *> recv_requests;
+  };
 
-  /// send requests
-  std::vector<CommunicationRequest *> send_requests;
-  /// receive requests
-  std::vector<CommunicationRequest *> recv_requests;
+  std::map<SynchronizationTag, Communication> communications;
+
+  // /// size of data to send to each processor by communication tag
+  // std::map< SynchronizationTag, Vector<UInt> > size_to_send;
+
+  // /// size of data to receive form each processor by communication tag
+  // std::map< SynchronizationTag, Vector<UInt> > size_to_receive;
+
+  // std::map<SynchronizationTag, CommunicationBuffer *> send_buffer;
+  // std::map<SynchronizationTag, CommunicationBuffer *> recv_buffer;
+
+  // /// send requests
+  // std::vector<CommunicationRequest *> send_requests;
+  // /// receive requests
+  // std::vector<CommunicationRequest *> recv_requests;
 
   // /// list of real element to send ordered by type then by receiver processors
   // ByElementTypeUInt element_to_send_offset;
@@ -132,12 +157,12 @@ protected:
   UInt nb_proc;
   UInt rank;
 
-  /// global node ids
-  Vector<UInt> * nodes_global_ids;
+  // /// global node ids
+  // Vector<UInt> * nodes_global_ids;
 
-  /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
-  /// [0-N] slave node and master is proc i
-  Vector<Int> * nodes_type;
+  // /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
+  // /// [0-N] slave node and master is proc i
+  // Vector<Int> * nodes_type;
 
 };
 

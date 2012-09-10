@@ -1092,7 +1092,7 @@ Real SolidMechanicsModel::getEnergy(std::string id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list) {
+void SolidMechanicsModel::onNodesAdded(const Vector<UInt> & nodes_list) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -1104,10 +1104,51 @@ void SolidMechanicsModel::onNodesAdded  (__attribute__((unused)) const Vector<UI
   if(residual    ) residual    ->resize(nb_nodes);
   if(boundary    ) boundary    ->resize(nb_nodes);
 
+  if(increment_acceleration) increment_acceleration->resize(nb_nodes);
+  if(increment) increment->resize(nb_nodes);
+
+  delete dof_synchronizer;
+  dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
+  dof_synchronizer->initLocalDOFEquationNumbers();
+  dof_synchronizer->initGlobalDOFEquationNumbers();
+
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->onNodesAdded(nodes_list);
+  }
+
   if(method != _explicit_dynamic) AKANTU_DEBUG_TO_IMPLEMENT();
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) {
+  AKANTU_DEBUG_IN();
+
+  getFEM().initShapeFunctions(_not_ghost);
+  getFEM().initShapeFunctions(_ghost);
+
+
+  Vector<Element>::const_iterator<Element> it  = element_list.begin();
+  Vector<Element>::const_iterator<Element> end = element_list.end();
+  for (; it != end; ++it) {
+    const Element & elem = *it;
+    element_material(elem.type, elem.ghost_type).push_back(UInt(0));
+    element_index_by_material(elem.type, elem.ghost_type).push_back(UInt(0));
+  }
+
+
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->onElementsAdded(element_list);
+  }
+
+  if(method != _explicit_dynamic) AKANTU_DEBUG_TO_IMPLEMENT();
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {

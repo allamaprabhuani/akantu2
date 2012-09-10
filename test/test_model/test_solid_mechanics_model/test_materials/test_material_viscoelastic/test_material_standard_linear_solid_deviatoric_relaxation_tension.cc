@@ -86,13 +86,13 @@ int main(int argc, char *argv[])
   Material & mat = model.getMaterial(0);
   const Vector<Real> & stress = mat.getStress(element_type);
 
-  Real Eta  = mat.getProperty("Eta");
-  Real EV   = mat.getProperty("Ev");
-  Real Einf = mat.getProperty("Einf");
-  Real E0   = mat.getProperty("E");
+  Real Eta  = mat.getParam<Real>("Eta");
+  Real EV   = mat.getParam<Real>("Ev");
+  Real Einf = mat.getParam<Real>("Einf");
+  Real E0   = mat.getParam<Real>("E");
   
-  Real kpa = mat.getProperty("kapa");
-  Real mu  = mat.getProperty("mu");
+  Real kpa = mat.getParam<Real>("kapa");
+  Real mu  = mat.getParam<Real>("mu");
 
   Real gamma = EV/E0;
   Real gammainf = Einf/E0;

@@ -97,7 +97,7 @@ CommunicationBuffer::operator>> <types::Matrix> (types::Matrix & to_unpack) {
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T> inline std::string 
+template<typename T> inline std::string
 CommunicationBuffer::extractStream(UInt block_size) {
   std::stringstream str;
   T * ptr = reinterpret_cast<T*>(buffer.values);
@@ -117,8 +117,8 @@ CommunicationBuffer::extractStream(UInt block_size) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void CommunicationBuffer::resize(UInt size) { 
-    buffer.resize(size); 
+inline void CommunicationBuffer::resize(UInt size) {
+    buffer.resize(size);
     reset();
 #ifndef AKANTU_NDEBUG
     clear();
@@ -126,12 +126,12 @@ inline void CommunicationBuffer::resize(UInt size) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void CommunicationBuffer::clear() { 
+inline void CommunicationBuffer::clear() {
   buffer.clear();
 }
 
 /* -------------------------------------------------------------------------- */
-inline void CommunicationBuffer::reset() { 
-  ptr_pack = buffer.values; 
-  ptr_unpack = buffer.values; 
+inline void CommunicationBuffer::reset() {
+  ptr_pack = buffer.values;
+  ptr_unpack = buffer.values;
 }

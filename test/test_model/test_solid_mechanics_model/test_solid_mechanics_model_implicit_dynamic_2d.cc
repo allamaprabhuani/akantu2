@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
   model->initModel();
   model->readMaterials("material_implicit_dynamic.dat");
   Material &mat = model->getMaterial(0);
-  mat.setProperty("E", E);
-  mat.setProperty("rho", rho);
+  mat.setParam("E", E);
+  mat.setParam("rho", rho);
 
   model->initMaterials();
 

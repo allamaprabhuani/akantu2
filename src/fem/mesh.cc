@@ -42,7 +42,7 @@ const Element ElementNull(_not_defined, 0);
 void Element::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-  stream << space << "Element [" << type << ", " << element << "]";
+  stream << space << "Element [" << type << ", " << element << ", " << ghost_type << "]";
 }
 
 

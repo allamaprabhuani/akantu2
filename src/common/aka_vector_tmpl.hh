@@ -480,16 +480,19 @@ Int Vector<T, is_scal>::find(T elem[]) const {
   AKANTU_DEBUG_IN();
   T * it = values;
   UInt i = 0;
-  UInt c = 0;
-  for (;i < size && (c != nb_component); ++i) {
-    c = 0;
-    T * cit = it;
-    T * celem = elem;
-    for(; (c < nb_component) && (*cit == *celem); ++c, ++cit, ++celem);
+  for (;i < size; ++i) {
+    if(*it == elem[0]) {
+      T * cit = it;
+      UInt c = 0;
+      for(; (c < nb_component) && (*cit == elem[c]); ++c, ++cit);
+      if(c == nb_component) {
+	AKANTU_DEBUG_OUT();
+	return i;
+      }
+    }
     it += nb_component;
   }
-  AKANTU_DEBUG_OUT();
-  return (i == size) ? -1 : (Int) i;
+  return -1;
 }
 
 

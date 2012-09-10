@@ -40,10 +40,13 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   damage("damage", id) {
   AKANTU_DEBUG_IN();
 
-  E   = 0;
-  nu  = 1./2.;
-  Yd  = 50;
-  Sd  = 5000;
+  this->registerParam("E"           , E           , 0.   , _pat_parsable, "Young's modulus"        );
+  this->registerParam("nu"          , nu          , 0.5  , _pat_parsable, "Poisson's ratio"        );
+  this->registerParam("lambda"      , lambda             , _pat_readable, "First Lamé coefficient" );
+  this->registerParam("mu"          , mu                 , _pat_readable, "Second Lamé coefficient");
+  this->registerParam("kapa"        , kpa                , _pat_readable, "Bulk coefficient"       );
+  this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
+  this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
 
   initInternalVector(this->damage, 1);
 
@@ -97,41 +100,6 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
   AKANTU_DEBUG_OUT();
 }
 
-
-/* -------------------------------------------------------------------------- */
-bool LocalMaterialDamage::setParam(const std::string & key, const std::string & value,
-			       const ID & id) {
-  std::stringstream sstr(value);
-
-  if(key == "E") { sstr >> E; }
-  else if(key == "nu") { sstr >> nu; }
-  else if(key == "Yd") { sstr >> Yd; }
-  else if(key == "Sd") { sstr >> Sd; }
-  else { return Material::setParam(key, value, id); }
-  return true;
-}
-
-
-/* -------------------------------------------------------------------------- */
-void LocalMaterialDamage::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_damage> [" << std::endl;
-  stream << space << " + id                      : " << id << std::endl;
-  stream << space << " + name                    : " << name << std::endl;
-  stream << space << " + density                 : " << rho << std::endl;
-  stream << space << " + Young's modulus         : " << E << std::endl;
-  stream << space << " + Poisson's ratio         : " << nu << std::endl;
-  stream << space << " + Yd                      : " << Yd << std::endl;
-  stream << space << " + Sd                      : " << Sd << std::endl;
-  if(this->isInit()) {
-    stream << space << " + First Lamé coefficient  : " << lambda << std::endl;
-    stream << space << " + Second Lamé coefficient : " << mu << std::endl;
-    stream << space << " + Bulk coefficient        : " << kpa << std::endl;
-  }
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__

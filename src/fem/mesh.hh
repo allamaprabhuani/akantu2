@@ -62,14 +62,14 @@ public:
 
   inline bool operator==(const Element & elem) const {
     return ((element == elem.element)
-	    && (type == elem.type) 
+	    && (type == elem.type)
 	    && (ghost_type == elem.ghost_type)
 	    && (kind == elem.kind));
   }
 
   inline bool operator!=(const Element & elem) const {
     return ((element != elem.element)
-	    || (type != elem.type) 
+	    || (type != elem.type)
 	    || (ghost_type != elem.ghost_type)
 	    || (kind != elem.kind));
   }
@@ -118,7 +118,8 @@ protected:
 
 class NewNodesEvent : public MeshEvent<UInt> { };
 class RemovedNodesEvent : public MeshEvent<UInt> { };
-class NewElementEvent : public MeshEvent<Element> { };
+class NewElementsEvent : public MeshEvent<Element> { };
+class RemovedElementsEvent : public MeshEvent<Element> { };
 
 /* -------------------------------------------------------------------------- */
 
@@ -127,8 +128,11 @@ class MeshEventHandler {
   /* Internal code                                                            */
   /* ------------------------------------------------------------------------ */
 public:
-  inline void sendEvent(const NewNodesEvent & event) { onNodesAdded(event.getList()); }
+  inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList()); }
   inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList()); }
+
+  inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList()); }
+  inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList()); }
 
   /* ------------------------------------------------------------------------ */
   /* Interface                                                                */
@@ -137,7 +141,8 @@ public:
   virtual void onNodesAdded  (const Vector<UInt> & nodes_list) {  }
   virtual void onNodesRemoved(const Vector<UInt> & nodes_list) {  }
 
-  virtual void onNewElementAdded(const Vector<UInt> & added_elements_list, const ElementType & element_type, const GhostType & ghost_type) { }
+  virtual void onElementsAdded  (const Vector<Element> & elements_list) { }
+  virtual void onElementsRemoved(const Vector<Element> & elements_list) { }
 };
 
 /* -------------------------------------------------------------------------- */

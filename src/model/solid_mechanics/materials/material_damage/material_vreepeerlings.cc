@@ -98,15 +98,16 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-bool MaterialVreePeerlings<spatial_dimension>::setParam(const std::string & key, const std::string & value,
-			       const ID & id) {
+bool MaterialVreePeerlings<spatial_dimension>::parseParam(const std::string & key,
+							  const std::string & value,
+							  const ID & id) {
   std::stringstream sstr(value);
   if(key == "Kapa0") { sstr >> Kapa0; }
   else if(key == "Alpha") { sstr >> Alpha; }
   else if(key == "Beta") { sstr >> Beta; }
   else if(key == "Kct") { sstr >> Kct; }
   else if(key == "Kapa0_randomness") { sstr >> Kapa0_randomness; }
-  else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
+  else { return MaterialDamage<spatial_dimension>::parseParam(key, value, id); }
   return true;
 }
 

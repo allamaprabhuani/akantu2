@@ -135,14 +135,14 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Rea
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-bool MaterialMazarsNonLocal<spatial_dimension>::setParam(const std::string & key,
+bool MaterialMazarsNonLocal<spatial_dimension>::parseParam(const std::string & key,
 							 const std::string & value,
 							 const ID & id) {
   std::stringstream sstr(value);
   if(key == "average_on_damage") { sstr >> this->damage_in_compute_stress; }
   else {
-  return MaterialNonLocalParent::setParam(key, value, id) ||
-    MaterialMazars<spatial_dimension>::setParam(key, value, id);
+  return MaterialNonLocalParent::parseParam(key, value, id) ||
+    MaterialMazars<spatial_dimension>::parseParam(key, value, id);
   }
 
   return true;

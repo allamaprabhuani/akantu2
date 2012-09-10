@@ -58,9 +58,9 @@ Surface impactor = 0;
 Surface master = 1;
 UInt the_node = 0;
 
-const ElementType element_type = _triangle_3; 
+const ElementType element_type = _triangle_3;
 #ifdef AKANTU_USE_IOHELPER
-const iohelper::ElemType paraview_type = iohelper::TRIANGLE1; 
+const iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 #endif //AKANTU_USE_IOHELPER
 const char* mesh_name = "single_triangle.msh";
 const char* folder_name = "single_spring_friction_w_visco";
@@ -93,7 +93,7 @@ bool patch_test = false;
 const Real tolerance = std::numeric_limits<Real>::epsilon() * 10.;
 
 // variables of model
-Real * coordinates; 
+Real * coordinates;
 Real * displacement;
 Real * current_position;
 Real * velocity;
@@ -110,10 +110,10 @@ static void paraviewInit(iohelper::Dumper & dumper);
 #endif //AKANTU_USE_IOHELPER
 
 static void loadRestartInformation(ContactRigid * contact);
-static void printPredictor(UInt step, 
+static void printPredictor(UInt step,
 			   std::ofstream & out_stream);
-static void printCorrector(UInt step, 
-			   ContactRigid * contact, 
+static void printCorrector(UInt step,
+			   ContactRigid * contact,
 			   std::ofstream & out_stream);
 static void getStickInfo(ContactRigid * contact);
 static bool testFloat(Real a, Real b, Real adm_error);
@@ -141,7 +141,7 @@ Int main(int argc, char *argv[])
   else {
     result_name = "patch_test_output";
     patch_test = true;
-  //    return EXIT_FAILURE;    
+  //    return EXIT_FAILURE;
   }
 
   /// load mesh
@@ -167,14 +167,14 @@ Int main(int argc, char *argv[])
   model->getVelocity().clear();
   model->getAcceleration().clear();
   model->getDisplacement().clear();
-  
+
   model->initExplicit();
   model->initModel();
 
   /// read and initialize material
   model->readMaterials("material_elastic_caughey.dat");
   Material & my_mat = model->getMaterial(0);
-  my_mat.setProperty("Alpha", viscous_factor);
+  my_mat.setParam("Alpha", viscous_factor);
   model->initMaterials();
 
   Real stable_time_step = model->getStableTimeStep();
@@ -190,25 +190,25 @@ Int main(int argc, char *argv[])
   boundary         = model->getBoundary().values;
   residual         = model->getResidual().values;
   model->updateCurrentPosition();
-  current_position = model->getCurrentPosition().values; 
+  current_position = model->getCurrentPosition().values;
   force            = model->getForce().values;
   mass             = model->getMass().values;
-    
+
   model->assembleMassLumped();
 
   UInt nb_surfaces = mesh->getNbSurfaces();
   nb_surfaces += 1;
 
   /// contact declaration
-  Contact * contact_structure = Contact::newContact(*model, 
-						    _ct_rigid, 
-						    _cst_expli, 
+  Contact * contact_structure = Contact::newContact(*model,
+						    _ct_rigid,
+						    _cst_expli,
 						    _cnst_regular_grid);
   ContactRigid * contact = dynamic_cast<ContactRigid *>(contact_structure);
   //contact->initContact(false);
 
   contact->addMasterSurface(master);
-  contact->addImpactorSurfaceToMasterSurface(impactor, master);  
+  contact->addImpactorSurfaceToMasterSurface(impactor, master);
 
   /// define the friction law
   FrictionCoefficient *fric_coef;
@@ -241,18 +241,18 @@ Int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
 #endif //AKANTU_USE_IOHELPER
-  std::ofstream out_info;  
+  std::ofstream out_info;
   if (!patch_test) {
     model->updateResidual();
 #ifdef AKANTU_USE_IOHELPER
     paraviewInit(dumper);
 #endif //AKANTU_USE_IOHELPER
-      
+
     /// output files
     std::stringstream name_info;
     name_info << "output_files/" << folder_name << "/global_info.dat";
     out_info.open(name_info.str().c_str());
-    out_info << "%id time fnorm fres ffric ftot mu disp vel stick ekin epot etot" << std::endl; 
+    out_info << "%id time fnorm fres ffric ftot mu disp vel stick ekin epot etot" << std::endl;
   }
 
   UInt step = 0;
@@ -263,7 +263,7 @@ Int main(int argc, char *argv[])
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   while(stick_counter <= stick_stop && step <= max_steps) {
-    
+
     // increase step
     step += 1;
 
@@ -271,7 +271,7 @@ Int main(int argc, char *argv[])
       std::cout << "passing step " << step << "/" << max_steps << "\r";
       std::cout.flush();
     }
-    
+
     model->explicitPred();
     model->updateResidual();
 
@@ -287,9 +287,9 @@ Int main(int argc, char *argv[])
 
     // see if node sticks
     getStickInfo(contact);
-    
+
     // count numbers of cycles
-    if (Math::are_float_equal(velocity[the_node * spatial_dimension], 0.) && 
+    if (Math::are_float_equal(velocity[the_node * spatial_dimension], 0.) &&
    	!Math::are_float_equal(previous_vel, 0.))
       count_cycle++;
     previous_vel = velocity[the_node * spatial_dimension];
@@ -336,14 +336,14 @@ Int main(int argc, char *argv[])
     out_result << start_displacement << " " << final_displacement << " " << count_cycle << std::endl;
     out_result.close();
   }
-  
+
   out_info.close();
 
   delete fric_coef;
   delete contact;
   delete model;
   delete mesh;
-  
+
   finalize();
 
   return EXIT_SUCCESS;
@@ -370,12 +370,12 @@ void paraviewInit(iohelper::Dumper & dumper) {
 			  spatial_dimension, "mass");
   dumper.AddNodeDataField(model->getForce().values,
 			  spatial_dimension, "applied_force");
-    
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(element_type).values, 
+
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(element_type).values,
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(element_type).values, 
+  dumper.AddElemDataField(model->getMaterial(0).getStress(element_type).values,
 			  spatial_dimension*spatial_dimension, "stress");
-    
+
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
   dumper.SetPrefix(name.str().c_str());
@@ -386,7 +386,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
 
 /* -------------------------------------------------------------------------- */
 void loadRestartInformation(ContactRigid * contact) {
-    
+
   // boundary conditions
   Vector<bool> * boundary_r = new Vector<bool>(nb_nodes, spatial_dimension, false);
   // sticked nodes
@@ -404,18 +404,18 @@ void loadRestartInformation(ContactRigid * contact) {
   // not defined master type, because won't use solve contact
   Vector<ElementType> * et_nodes = new Vector<ElementType>(nb_nodes, 1, _not_defined);
   restart_map["master_element_type"] = et_nodes;
-  
+
   // master normal x=0; y=1
   Vector<Real> * mn_nodes = new Vector<Real>(0, spatial_dimension);
   Real normal[spatial_dimension];
   normal[0] = 0.; normal[1] = 1.;
   mn_nodes->push_back(normal);
-  restart_map["master_normals"] = mn_nodes; 
-  
+  restart_map["master_normals"] = mn_nodes;
+
   // node is sticking
   Vector<bool> * is_nodes = new Vector<bool>(nb_nodes, 2, false);
-  (*is_nodes)(0,0) = true;  
-  (*is_nodes)(0,1) = true;  
+  (*is_nodes)(0,0) = true;
+  (*is_nodes)(0,1) = true;
   restart_map["node_is_sticking"] = is_nodes;
 
   // no friction force
@@ -478,32 +478,32 @@ void printCorrector(UInt step, ContactRigid * contact, std::ofstream & out_strea
 
   Real epot = model->getPotentialEnergy();
   Real ekin = model->getKineticEnergy();
-  
-  // find index of master surface in impactors_information 
+
+  // find index of master surface in impactors_information
   ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp;
   it_imp = contact->getImpactorsInformation().find(master);
-  
+
   // find the total contact force and contact area
   ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
 
-  Real * friction_forces_val = imp_info->friction_forces->values;  
+  Real * friction_forces_val = imp_info->friction_forces->values;
   bool * sticking_nodes_val = imp_info->node_is_sticking->values;
-  
+
   out_stream << " " << friction_forces_val[0] << " " << residual[the_node * spatial_dimension] << " " << friction_forces_val[0] / residual[the_node * spatial_dimension + 1] << " " << displacement[the_node * spatial_dimension] << " " << velocity[the_node * spatial_dimension] << " " << sticking_nodes_val[0] << " " << ekin << " " << epot << " " << ekin+epot << std::endl;
 
   if (sticking_nodes_val[0])
     stick_counter++;
-  else 
+  else
     stick_counter = 0;
 }
 
 /* -------------------------------------------------------------------------- */
 void getStickInfo(ContactRigid * contact) {
 
-  // find index of master surface in impactors_information 
+  // find index of master surface in impactors_information
   ContactRigid::SurfaceToImpactInfoMap::const_iterator it_imp;
   it_imp = contact->getImpactorsInformation().find(master);
-  
+
   // find the total contact force and contact area
   ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
 
@@ -511,15 +511,15 @@ void getStickInfo(ContactRigid * contact) {
 
   if (sticking_nodes_val[the_node*2])
     stick_counter++;
-  else 
+  else
     stick_counter = 0;
 }
 
 /* -------------------------------------------------------------------------- */
 bool testFloat(Real a, Real b, Real adm_error) {
-  
+
   if (fabs(a-b) < adm_error)
     return true;
-  else 
+  else
     return false;
 }

@@ -81,10 +81,10 @@ int main(int argc, char *argv[])
 
   const Vector<Real> & stress = mat.getStress(element_type);
 
-  Real Eta  = mat.getProperty("Eta");
-  Real EV   = mat.getProperty("Ev");
-  Real Einf = mat.getProperty("Einf");
-  Real nu   = mat.getProperty("nu");
+  Real Eta  = mat.getParam<Real>("Eta");
+  Real EV   = mat.getParam<Real>("Ev");
+  Real Einf = mat.getParam<Real>("Einf");
+  Real nu   = mat.getParam<Real>("nu");
   Real Ginf = Einf/(2*(1+nu));
   Real G = EV/(2*(1+nu));
   Real G0 = G + Ginf;

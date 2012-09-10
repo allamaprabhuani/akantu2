@@ -39,14 +39,14 @@ __BEGIN_AKANTU__
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL(dim, elem)		\
   material =								\
     &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(mat_type, \
-								      opt_param))
+								       opt_param))
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL_EACH(r, data, i, elem)	\
   BOOST_PP_EXPR_IF(BOOST_PP_NOT_EQUAL(0, i), else )			\
-    if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
-      material =							\
-    &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
-							       BOOST_PP_TUPLE_ELEM(2, 1, elem) > >(mat_type, opt_param)); \
+  if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
+    material =								\
+      &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
+	BOOST_PP_TUPLE_ELEM(2, 1, elem) > >(mat_type, opt_param));	\
     }
 
 
@@ -72,8 +72,8 @@ __BEGIN_AKANTU__
   }
 
 
-#define AKANTU_INTANTIATE_MATERIAL_IF(elem)			\
-  if (mat_type == BOOST_PP_STRINGIZE(BOOST_PP_ARRAY_ELEM(0, elem))) { \
+#define AKANTU_INTANTIATE_MATERIAL_IF(elem)				\
+  if (mat_type == BOOST_PP_STRINGIZE(BOOST_PP_ARRAY_ELEM(0, elem))) {	\
     AKANTU_INTANTIATE_MATERIAL(elem);					\
   }
 
@@ -189,5 +189,19 @@ void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_nam
 }
 
 /* -------------------------------------------------------------------------- */
+Int SolidMechanicsModel::getInternalIndexFromID(const ID & id) const {
+  AKANTU_DEBUG_IN();
 
+  std::vector<Material *>::const_iterator first = materials.begin();
+  std::vector<Material *>::const_iterator last  = materials.end();
+
+  for (; first != last; ++first)
+    if ((*first)->getID() == id) {
+      AKANTU_DEBUG_OUT();
+      return (first - materials.begin());
+    }
+
+  AKANTU_DEBUG_OUT();
+  return -1;
+}
 __END_AKANTU__

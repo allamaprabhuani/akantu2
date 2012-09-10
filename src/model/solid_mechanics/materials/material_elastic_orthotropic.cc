@@ -41,15 +41,15 @@ MaterialElasticOrthotropic<spatial_dimension>::MaterialElasticOrthotropic(SolidM
   Material(model, id) {
   AKANTU_DEBUG_IN();
 
-  E1 = 0;
-  E2 = 0;
-  E3 = 0;
-  nu12 = 0;
-  nu13 = 0;
-  nu23 = 0;
-  G12 = 0;
-  G13 = 0;
-  G23 = 0;
+  this->registerParam("E1"  , E1  , 0., _pat_parsmod, "Young's modulus (x)");
+  this->registerParam("E2"  , E2  , 0., _pat_parsmod, "Young's modulus (y)");
+  this->registerParam("E3"  , E3  , 0., _pat_parsmod, "Young's modulus (z)");
+  this->registerParam("nu12", nu12, 0., _pat_parsmod, "Poisson's ratio (xy)");
+  this->registerParam("nu13", nu13, 0., _pat_parsmod, "Poisson's ratio (xz)");
+  this->registerParam("nu23", nu23, 0., _pat_parsmod, "Poisson's ratio (yz)");
+  this->registerParam("G12" , G12 , 0., _pat_parsmod, "Shear modulus (xy)");
+  this->registerParam("G13" , G13 , 0., _pat_parsmod, "Shear modulus (xz)");
+  this->registerParam("G23" , G23 , 0., _pat_parsmod, "Shear modulus (yz)");
 
   plane_stress = false;
 
@@ -70,6 +70,17 @@ void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
 
   UInt size = this->getTangentStiffnessVoigtSize(spatial_dimension);
   S = new types::Matrix(size, size);
+
+  updateInternalParameters();
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::updateInternalParameters() {
+  UInt size = this->getTangentStiffnessVoigtSize(spatial_dimension);
   Real Delta;
 
   Real nu21 = nu12 * E2 / E1;
@@ -104,8 +115,6 @@ void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
       (*S)(5,5) = G13;
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -137,26 +146,6 @@ void MaterialElasticOrthotropic<spatial_dimension>::computeTangentModuli(const E
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-bool MaterialElasticOrthotropic<spatial_dimension>::setParam(const std::string & key,
-							     const std::string & value,
-							     const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "E1") { sstr >> E1; }
-  else if(key == "E2") { sstr >> E2; }
-  else if(key == "E3") { sstr >> E3; }
-  else if(key == "nu12") { sstr >> nu12; }
-  else if(key == "nu13") { sstr >> nu13; }
-  else if(key == "nu23") { sstr >> nu23; }
-  else if(key == "G12") { sstr >> G12; }
-  else if(key == "G13") { sstr >> G13; }
-  else if(key == "G23") { sstr >> G23; }
-  else if(key == "Plane_Stress") { sstr >> plane_stress; }
-  else { return Material::setParam(key, value, id); }
-  return true;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 Real MaterialElasticOrthotropic<spatial_dimension>::getPushWaveSpeed() const {
   Real Et = (*S)(0,0);
   if(spatial_dimension >= 2)
@@ -181,32 +170,6 @@ Real MaterialElasticOrthotropic<spatial_dimension>::getShearWaveSpeed() const {
   return sqrt( G / rho);
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialElasticOrthotropic<spatial_dimension>::printself(std::ostream & stream,
-							      int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_elastic<_orthotropic> [" << std::endl;
-  if(!plane_stress)
-    stream << space << " + Plane strain" << std::endl;
-  else
-    stream << space << " + Plane stress" << std::endl;
-  stream << space << " + density                 : " << rho << std::endl;
-  stream << space << " + Young's modulus (x)     : " << E1 << std::endl;
-  stream << space << " + Young's modulus (y)     : " << E2 << std::endl;
-  stream << space << " + Young's modulus (z)     : " << E3 << std::endl;
-  stream << space << " + Poisson's ratio (xy)    : " << nu12 << std::endl;
-  stream << space << " + Poisson's ratio (xz)    : " << nu13 << std::endl;
-  stream << space << " + Poisson's ratio (yz)    : " << nu23 << std::endl;
-  stream << space << " + Shear modulus (xy)      : " << G12 << std::endl;
-  stream << space << " + Shear modulus (xz)      : " << G13 << std::endl;
-  stream << space << " + Shear modulus (yz)      : " << G23 << std::endl;
-
-  Material::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialElasticOrthotropic);

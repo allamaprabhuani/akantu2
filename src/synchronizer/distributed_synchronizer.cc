@@ -50,14 +50,8 @@ DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
   nb_proc = static_communicator->getNbProc();
   rank    = static_communicator->whoAmI();
 
-  send_buffer = new CommunicationBuffer[nb_proc];
-  recv_buffer = new CommunicationBuffer[nb_proc];
-
   send_element = new std::vector<Element>[nb_proc];
   recv_element = new std::vector<Element>[nb_proc];
-
-  size_to_send.clear();
-  size_to_receive.clear();
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,19 +61,18 @@ DistributedSynchronizer::~DistributedSynchronizer() {
   AKANTU_DEBUG_IN();
 
   for (UInt p = 0; p < nb_proc; ++p) {
-    send_buffer[p].resize(0);
-    recv_buffer[p].resize(0);
+  //   send_buffer[p].resize(0);
+  //   recv_buffer[p].resize(0);
 
     send_element[p].clear();
     recv_element[p].clear();
   }
 
-  delete [] send_buffer;
-  delete [] recv_buffer;
+  // delete [] send_buffer;
+  // delete [] recv_buffer;
 
   delete [] send_element;
   delete [] recv_element;
-
 
   AKANTU_DEBUG_OUT();
 }
@@ -672,6 +665,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
     UInt nb_send = *part; part++;
     element.element = lel;
+    element.ghost_type = _ghost;
     for (UInt p = 0; p < nb_send; ++p) {
       UInt proc = *part; part++;
 
@@ -683,7 +677,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
   for (UInt gel = 0; gel < nb_ghost_element; ++gel) {
     UInt proc = *part; part++;
     element.element = gel;
-
+    element.ghost_type = _not_ghost;
     AKANTU_DEBUG(dblAccessory, "Must recv : " << element << " from proc " << proc);
     recv_element[proc].push_back(element);
   }
@@ -697,19 +691,25 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
                                 		      SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(send_requests.size() == 0,
+  if (communications.find(tag) == communications.end()) {
+    communications[tag].resize(nb_proc);
+    computeBufferSize(data_accessor, tag);
+  }
+
+  Communication & communication = communications[tag];
+
+  AKANTU_DEBUG_ASSERT(communication.send_requests.size() == 0,
 		      "There must be some pending sending communications. Tag is " << tag);
 
-  if (size_to_send.count(tag) == 0 ||
-      size_to_receive.count(tag) == 0) computeBufferSize(data_accessor,tag);
 
   for (UInt p = 0; p < nb_proc; ++p) {
-    UInt ssize = (size_to_send[tag]).values[p];
+    UInt ssize = communication.size_to_send[p];
     if(p == rank || ssize == 0) continue;
 
-    CommunicationBuffer & buffer = send_buffer[p];
+    CommunicationBuffer & buffer = communication.send_buffer[p];
     buffer.resize(ssize);
-
+#ifndef AKANTU_NDEBUG
+#endif
     Element * elements = &(send_element[p].at(0));
     UInt nb_elements   =  send_element[p].size();
     AKANTU_DEBUG_INFO("Packing data for proc " << p
@@ -734,26 +734,26 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
 			<< buffer.getPackedSize() << " != " << ssize);
     std::cerr << std::dec;
     AKANTU_DEBUG_INFO("Posting send to proc " << p);
-    send_requests.push_back(static_communicator->asyncSend(buffer.storage(),
-							   ssize,
-							   p,
-							   (Int) tag));
+    communication.send_requests.push_back(static_communicator->asyncSend(buffer.storage(),
+									 ssize,
+									 p,
+									 (Int) tag));
   }
 
-  AKANTU_DEBUG_ASSERT(recv_requests.size() == 0,
+  AKANTU_DEBUG_ASSERT(communication.recv_requests.size() == 0,
 		      "There must be some pending receive communications");
 
   for (UInt p = 0; p < nb_proc; ++p) {
-    UInt rsize = (size_to_receive[tag]).values[p];
+    UInt rsize = communication.size_to_receive[p];
     if(p == rank || rsize == 0) continue;
-    CommunicationBuffer & buffer = recv_buffer[p];
+    CommunicationBuffer & buffer = communication.recv_buffer[p];
     buffer.resize(rsize);
 
     AKANTU_DEBUG_INFO("Posting receive from proc " << p << " (" << rsize << " data to receive)");
-    recv_requests.push_back(static_communicator->asyncReceive(buffer.storage(),
-							      rsize,
-							      p,
-							      (Int) tag));
+    communication.recv_requests.push_back(static_communicator->asyncReceive(buffer.storage(),
+									    rsize,
+									    p,
+									    (Int) tag));
   }
 
   AKANTU_DEBUG_OUT();
@@ -764,11 +764,16 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 						 SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
+  AKANTU_DEBUG_ASSERT(communications.find(tag) != communications.end(), "No communication with the tag \""
+		      << tag <<"\" started");
+
+  Communication & communication = communications[tag];
+
   std::vector<CommunicationRequest *> req_not_finished;
   std::vector<CommunicationRequest *> * req_not_finished_tmp = &req_not_finished;
-  std::vector<CommunicationRequest *> * recv_requests_tmp = &recv_requests;
+  std::vector<CommunicationRequest *> * recv_requests_tmp = &(communication.recv_requests);
 
-  static_communicator->waitAll(recv_requests);
+  //  static_communicator->waitAll(recv_requests);
 
   while(!recv_requests_tmp->empty()) {
 
@@ -779,7 +784,7 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
       if(static_communicator->testRequest(req)) {
 	UInt proc = req->getSource();
 	AKANTU_DEBUG_INFO("Unpacking data coming from proc " << proc);
-	CommunicationBuffer & buffer = recv_buffer[proc];
+	CommunicationBuffer & buffer = communication.recv_buffer[proc];
 
 	Element * elements = &recv_element[proc].at(0);
 	UInt nb_elements   =  recv_element[proc].size();
@@ -798,6 +803,8 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 			     << "buffer size " << buffer.getSize() << std::endl
 			     << buffer.extractStream<Real>(block_size));
 	}
+
+	buffer.resize(0);
 	AKANTU_DEBUG_ASSERT(buffer.getLeftToUnpack() == 0,
 			    "all data have not been unpacked: "
 			    << buffer.getLeftToUnpack() << " bytes left");
@@ -815,9 +822,19 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
   }
 
 
-  static_communicator->waitAll(send_requests);
-  static_communicator->freeCommunicationRequest(send_requests);
-  send_requests.clear();
+  static_communicator->waitAll(communication.send_requests);
+  for (std::vector<CommunicationRequest *>::iterator req_it = communication.send_requests.begin();
+       req_it != communication.send_requests.end() ; ++req_it) {
+    CommunicationRequest & req = *(*req_it);
+
+    if(static_communicator->testRequest(&req)) {
+      UInt proc = req.getDestination();
+      CommunicationBuffer & buffer = communication.send_buffer[proc];
+      buffer.resize(0);
+      static_communicator->freeCommunicationRequest(&req);
+    }
+  }
+  communication.send_requests.clear();
 
   AKANTU_DEBUG_OUT();
 }
@@ -827,12 +844,9 @@ void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 						SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(size_to_send.find(tag) == size_to_send.end(),
-		      "The SynchronizationTag< " << tag
-		      << "is already registered in " << id);
-
-  size_to_send   [tag].resize(nb_proc);
-  size_to_receive[tag].resize(nb_proc);
+  // AKANTU_DEBUG_ASSERT(size_to_send.find(tag) == size_to_send.end(),
+  // 		      "The SynchronizationTag< " << tag
+  // 		      << "is already registered in " << id);
 
   for (UInt p = 0; p < nb_proc; ++p) {
     UInt ssend    = 0;
@@ -856,12 +870,56 @@ void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
 			<< "kB) data to receive for tag " << tag);
     }
 
-    size_to_send   [tag].values[p] = ssend;
-    size_to_receive[tag].values[p] = sreceive;
+    communications[tag].size_to_send   [p] = ssend;
+    communications[tag].size_to_receive[p] = sreceive;
   }
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void DistributedSynchronizer::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  Int prank = StaticCommunicator::getStaticCommunicator().whoAmI();
+  Int psize = StaticCommunicator::getStaticCommunicator().getNbProc();
+  stream << "[" << prank << "/" << psize << "]" << space << "DistributedSynchronizer [" << std::endl;
+  for (UInt p = 0; p < nb_proc; ++p) {
+    if (p == UInt(prank)) continue;
+    stream << "[" << prank << "/" << psize << "]" << space << " + Communication to proc " << p << " [" << std::endl;
+    if(AKANTU_DEBUG_TEST(dblDump)) {
+      stream << "[" << prank << "/" << psize << "]" << space << "    - Element to send to proc " << p << " [" << std::endl;
+
+      std::vector<Element>::const_iterator it_el  = send_element[p].begin();
+      std::vector<Element>::const_iterator end_el = send_element[p].end();
+      for(;it_el != end_el; ++it_el)
+	stream << "[" << prank << "/" << psize << "]" << space << "       " << *it_el << std::endl;
+      stream << "[" << prank << "/" << psize << "]" << space << "   ]" << std::endl;
+
+      stream << "[" << prank << "/" << psize << "]" << space << "    - Element to recv from proc " << p << " [" << std::endl;
+
+      it_el  = recv_element[p].begin();
+      end_el = recv_element[p].end();
+      for(;it_el != end_el; ++it_el)
+	stream << "[" << prank << "/" << psize << "]" << space << "       " << *it_el << std::endl;stream << "[" << prank << "/" << psize << "]" << space << "   ]" << std::endl;
+    }
+
+    std::map< SynchronizationTag, Communication>::const_iterator it = communications.begin();
+    std::map< SynchronizationTag, Communication>::const_iterator end = communications.end();
+    for (; it != end; ++it) {
+      const SynchronizationTag & tag = it->first;
+      const Communication & communication = it->second;
+      UInt ssend    = communication.size_to_send[p];
+      UInt sreceive = communication.size_to_receive[p];
+      stream << "[" << prank << "/" << psize << "]" << space << "     - Tag " << tag << " -> " << ssend << "byte(s) -- <- " << sreceive << "byte(s)" << std::endl;
+    }
+
+    std::cout << "[" << prank << "/" << psize << "]" << space << " ]" << std::endl;
+  }
+  std::cout << "[" << prank << "/" << psize << "]" << space << "]" << std::endl;
+}
+
 
 /* -------------------------------------------------------------------------- */
 

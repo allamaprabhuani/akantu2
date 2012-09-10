@@ -60,8 +60,8 @@ public:
 
   void initMaterial();
 
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
+  virtual bool parseParam(const std::string & key, const std::string & value,
+			  const ID & id);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);

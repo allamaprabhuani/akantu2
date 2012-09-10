@@ -63,7 +63,7 @@ public:
 
   void initMaterial();
 
-  bool setParam(const std::string & key, const std::string & value,
+  bool parseParam(const std::string & key, const std::string & value,
 		const ID & id);
 
   /// constitutive law for all element of a type

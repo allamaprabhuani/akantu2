@@ -41,8 +41,8 @@ MaterialDamageLinear<spatial_dimension>::MaterialDamageLinear(SolidMechanicsMode
   MaterialDamage<spatial_dimension>(model, id) {
   AKANTU_DEBUG_IN();
 
-  Sigc = 1e5;
-  Gc  = 2;
+  this->registerParam("Sigc", Sigc, 1e5, _pat_parsable, "Sigma Critique");
+  this->registerParam("Gc"  , Gc  , 2. , _pat_parsable, "Gc");
 
   this->initInternalVector(this->K, 1);
 
@@ -91,32 +91,6 @@ void MaterialDamageLinear<spatial_dimension>::computeStress(ElementType el_type,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialDamageLinear<spatial_dimension>::setParam(const std::string & key,
-						       const std::string & value,
-			       const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "Sigc") { sstr >> Sigc; }
-  else if(key == "Gc") { sstr >> Gc; }
-  else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
-  return true;
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialDamageLinear<spatial_dimension>::printself(std::ostream & stream,
-							int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_damage_linear> [" << std::endl;
-  stream << space << " + SigmaC : " << Sigc << std::endl;
-  stream << space << " + GC     : " << Gc << std::endl;
-  MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialDamageLinear);

@@ -141,9 +141,9 @@ Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffec
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-bool MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::setParam(const std::string & key, 
-							  const std::string & value,
-							  const ID & id) {
+bool MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::parseParam(const std::string & key, 
+									       const std::string & value,
+									       const ID & id) {
   std::stringstream sstr(value);
   if(key == "sigma_c") { sstr >> sigma_c; }
   else if(key == "beta") { sstr >> beta; }
@@ -154,7 +154,7 @@ bool MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::setParam(con
   else if(key == "rand") { sstr >> rand; }
   else if(key == "gamma") { sstr >> gamma; }
   else if(key == "z_max") { sstr >> z_max; }
-  else { return Material::setParam(key, value, id); }
+  else { return Material::parseParam(key, value, id); }
   return true;
 }
 

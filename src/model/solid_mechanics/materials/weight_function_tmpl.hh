@@ -31,16 +31,17 @@
 /* Stress based weight function                                               */
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-StressBasedWeightFunction<spatial_dimension>::StressBasedWeightFunction(const Material & material) :
+StressBasedWeightFunction<spatial_dimension>::StressBasedWeightFunction(Material & material) :
   BaseWeightFunction<spatial_dimension>(material),
   ft(0.),
   stress_diag("stress_diag", material.getID()), selected_stress_diag(NULL),
   stress_base("stress_base", material.getID()), selected_stress_base(NULL),
   characteristic_size("lc", material.getID()),  selected_characteristic_size(NULL)
 {
-  material.initInternalVector(stress_diag, spatial_dimension);
-  material.initInternalVector(stress_base, spatial_dimension * spatial_dimension);
-  material.initInternalVector(characteristic_size, 1);
+  const Mesh & mesh = material.getModel().getFEM().getMesh();
+  mesh.initByElementTypeVector(stress_diag, spatial_dimension, spatial_dimension);
+  mesh.initByElementTypeVector(stress_base, spatial_dimension * spatial_dimension, spatial_dimension);
+  mesh.initByElementTypeVector(characteristic_size, 1, spatial_dimension);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -33,6 +33,9 @@
 
 #include "weight_function.hh"
 
+namespace akantu {
+  class GridSynchronizer;
+}
 
 /* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_MATERIAL_NON_LOCAL_HH__
@@ -59,8 +62,8 @@ public:
 public:
 
   /// read properties
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
+  virtual bool parseParam(const std::string & key, const std::string & value,
+			  const ID & id);
 
   /// initialize the material computed parameter
   virtual void initMaterial();
@@ -81,7 +84,10 @@ protected:
 
   void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
 
-  void createCellList(const ByElementTypeReal & quadrature_points_coordinates);
+  void createCellList(ByElementTypeReal & quadrature_points_coordinates);
+
+  void fillCellList(const ByElementTypeReal & quadrature_points_coordinates,
+		    const GhostType & ghost_type);
 
   /// constitutive law
   virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;
@@ -99,20 +105,22 @@ protected:
   // 			      UInt nb_degree_of_freedom) const;
 
 
-  inline UInt getNbDataToPack(const Element & element,
+  virtual inline UInt getNbDataToPack(const Element & element,
+				      SynchronizationTag tag) const;
+
+  virtual inline UInt getNbDataToUnpack(const Element & element,
 					SynchronizationTag tag) const;
 
-  inline UInt getNbDataToUnpack(const Element & element,
-				SynchronizationTag tag) const;
+  virtual inline void packData(CommunicationBuffer & buffer,
+			       const Element & element,
+			       SynchronizationTag tag) const;
 
-  inline void packData(CommunicationBuffer & buffer,
-		       const Element & element,
-		       SynchronizationTag tag) const;
+  virtual inline void unpackData(CommunicationBuffer & buffer,
+				 const Element & element,
+				 SynchronizationTag tag);
 
-  inline void unpackData(CommunicationBuffer & buffer,
-			 const Element & element,
-			 SynchronizationTag tag);
 
+  virtual inline void onElementsAdded(const Vector<Element> & element_list);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -130,6 +138,8 @@ public:
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
 
   AKANTU_GET_MACRO(Radius, radius, Real);
+
+  AKANTU_GET_MACRO(CellList, *cell_list, const RegularGrid<QuadraturePoint> &)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -163,6 +173,11 @@ private:
   ByElementTypeVector<Real> * local_variable;
   ByElementTypeVector<Real> * non_local_variable;
   UInt non_local_variable_nb_component;
+
+  bool is_creating_grid;
+
+  GridSynchronizer * grid_synchronizer;
+
 };
 
 

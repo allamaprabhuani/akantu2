@@ -77,10 +77,10 @@ Material::~Material() {
 }
 
 /* -------------------------------------------------------------------------- */
-bool Material::setParam(const std::string & key, const std::string & value,
+bool Material::parseParam(const std::string & key, const std::string & value,
 			__attribute__ ((unused)) const ID & id) {
   try {
-    params.setParam(key, value);
+    params.parseParam(key, value);
   } catch(...) { return false; }
   return true;
 }
@@ -99,7 +99,7 @@ void Material::initMaterial() {
 template<typename T>
 void Material::initInternalVector(ByElementTypeVector<T> & vect,
 				  UInt nb_component,
-				  ElementKind element_kind) const {
+				  ElementKind element_kind) {
   AKANTU_DEBUG_IN();
 
   model->getFEM().getMesh().initByElementTypeVector(vect,
@@ -108,8 +108,20 @@ void Material::initInternalVector(ByElementTypeVector<T> & vect,
 						    false,
 						    element_kind);
 
+  registerInternal(vect);
+
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+template<> void Material::registerInternal<Real>(ByElementTypeVector<Real> & vect) {
+  internal_vectors_real[vect.getID()] = &vect;
+}
+template<> void Material::registerInternal<UInt>(ByElementTypeVector<UInt> & vect) {
+  internal_vectors_uint[vect.getID()] = &vect;
+}
+
+
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::resizeInternalVector(ByElementTypeVector<T> & by_el_type_vect,
@@ -400,12 +412,12 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 										tangent_size);
   Vector<Real>::iterator<types::Matrix> D_end = tangent_stiffness_matrix->end  (tangent_size,
 										tangent_size);
-  
+
 
   for(; D_it != D_end; ++D_it, ++Bt_D_B_it, ++shapes_derivatives_filtered_it) {
     types::Matrix & D = *D_it;
     types::Matrix & Bt_D_B = *Bt_D_B_it;
-    
+
     transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
     Bt_D.mul<true, false>(B, D);
     Bt_D_B.mul<false, false>(Bt_D, B);
@@ -504,31 +516,28 @@ Real Material::getEnergy(std::string type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const {
+void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates, const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = model->getFEM().getMesh();
-  mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
+
   Vector<Real> nodes_coordinates(mesh.getNodes(), true);
   nodes_coordinates += model->getDisplacement();
 
-  for(UInt gt =  (UInt) _not_ghost; gt <= (UInt) _ghost; ++gt) {
-    GhostType ghost_type = (GhostType) gt;
-    Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
-    Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
-    for(; it != last_type; ++it) {
-      const Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != last_type; ++it) {
+    const Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
 
-      UInt nb_element  = elem_filter.getSize();
-      UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(*it, ghost_type) * nb_element;
+    UInt nb_element  = elem_filter.getSize();
+    UInt nb_tot_quad = model->getFEM().getNbQuadraturePoints(*it, ghost_type) * nb_element;
 
-      Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
-      quads.resize(nb_tot_quad);
+    Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
+    quads.resize(nb_tot_quad);
 
-      model->getFEM().interpolateOnQuadraturePoints(nodes_coordinates,
-						    quads, spatial_dimension,
-						    *it, ghost_type, &elem_filter);
-    }
+    model->getFEM().interpolateOnQuadraturePoints(nodes_coordinates,
+						  quads, spatial_dimension,
+						  *it, ghost_type, &elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -540,7 +549,9 @@ void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation
   const Mesh & mesh = model->getFEM().getMesh();
 
   ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
-  computeQuadraturePointsCoordinates(quadrature_points_coordinates);
+  mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
+  computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
+  computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
 
   Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last = mesh.lastType(spatial_dimension);
@@ -607,7 +618,7 @@ void Material::initElementalFieldInterpolation(const Vector<Real> & quad_coordin
 
   Vector<Real>::iterator<types::Matrix> inv_points_mat_it =
     interp_points_mat.begin(nb_interpolation_points_per_elem, size_inverse_coords);
-  
+
   /// loop over the elements of the current material and element type
   for (UInt el = 0; el < nb_element; ++el) {
     /// matrix containing the quadrature points coordinates
@@ -741,14 +752,18 @@ const Vector<Real> & Material::getVector(const ID & vect_id, const ElementType &
 }
 
 /* -------------------------------------------------------------------------- */
-Real Material::getProperty(const ID & param) const {
-  return params.get<Real>(param);
-}
+Vector<Real> & Material::getVector(const ID & vect_id, const ElementType & type, const GhostType & ghost_type) {
+  std::stringstream sstr;
+  std::string ghost_id = "";
+  if (ghost_type == _ghost) ghost_id = ":ghost";
+  sstr << id << ":" << vect_id << ":" << type << ghost_id;
 
-/* -------------------------------------------------------------------------- */
-void Material::setProperty(const ID & param, Real value) {
-  params.set(param, value);
-  updateInternalParameters();
+  ID fvect_id = sstr.str();
+  try {
+    return Memory::getVector<Real>(fvect_id);
+  } catch(debug::Exception & e) {
+    AKANTU_EXCEPTION("The material " << name << "(" <<id << ") does not contain a vector " << vect_id << "(" << fvect_id << ") [" << e << "]");
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -768,19 +783,19 @@ void Material::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalVector<Real>(ByElementTypeVector<Real> & vect,
 						 UInt nb_component,
-						 ElementKind element_kind) const;
+						 ElementKind element_kind);
 
 template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
 						 UInt nb_component,
-						 ElementKind element_kind) const;
+						 ElementKind element_kind);
 
 template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
 						UInt nb_component,
-						ElementKind element_kind) const;
+						ElementKind element_kind);
 
 template void Material::initInternalVector<bool>(ByElementTypeVector<bool> & vect,
 						 UInt nb_component,
-						 ElementKind element_kind) const;
+						 ElementKind element_kind);
 
 
 template void Material::resizeInternalVector<Real>(ByElementTypeVector<Real> & vect,

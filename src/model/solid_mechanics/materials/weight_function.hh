@@ -45,7 +45,7 @@ __BEGIN_AKANTU__
 template<UInt spatial_dimension>
 class BaseWeightFunction {
 public:
-  BaseWeightFunction(const Material & material) : material(material) {}
+  BaseWeightFunction(Material & material) : material(material) {}
 
   virtual ~BaseWeightFunction() {}
 
@@ -77,7 +77,7 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  bool setParam(__attribute__((unused)) const std::string & key,
+  bool parseParam(__attribute__((unused)) const std::string & key,
 		__attribute__((unused)) const std::string & value) {
     return false;
   }
@@ -87,8 +87,22 @@ public:
     stream << "BaseWeightFunction";
   }
 
+public:
+  virtual UInt getNbData(__attribute__((unused)) const Element & element,
+			 __attribute__((unused)) SynchronizationTag tag) const {
+    return 0;
+  }
+
+  virtual inline void packData(CommunicationBuffer & buffer,
+   			       const Element & element,
+   			       SynchronizationTag tag) const {}
+
+  virtual inline void unpackData(CommunicationBuffer & buffer,
+   				 const Element & element,
+   				 SynchronizationTag tag) {}
+
 protected:
-  const Material & material;
+  Material & material;
 
   Real R;
   Real R2;
@@ -100,7 +114,7 @@ protected:
 template<UInt spatial_dimension>
 class DamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  DamagedWeightFunction(const Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+  DamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
 
   inline void selectType(__attribute__((unused)) ElementType type1,
 			 __attribute__((unused)) GhostType ghost_type1,
@@ -122,7 +136,7 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  bool setParam(__attribute__((unused)) const std::string & key,
+  bool parseParam(__attribute__((unused)) const std::string & key,
 		__attribute__((unused)) const std::string & value) {
     return false;
   }
@@ -142,7 +156,7 @@ private:
 template<UInt spatial_dimension>
 class RemoveDamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  RemoveDamagedWeightFunction(const Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+  RemoveDamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
 
   inline void selectType(__attribute__((unused)) ElementType type1,
 			 __attribute__((unused)) GhostType ghost_type1,
@@ -167,11 +181,11 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  bool setParam(const std::string & key,
+  bool parseParam(const std::string & key,
 		const std::string & value) {
     std::stringstream sstr(value);
     if(key == "damage_limit") { sstr >> damage_limit; }
-    else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
+    else return BaseWeightFunction<spatial_dimension>::parseParam(key, value);
     return true;
   }
 
@@ -179,6 +193,37 @@ public:
   virtual void printself(std::ostream & stream) const {
     stream << "RemoveDamagedWeightFunction [damage_limit: " << damage_limit << "]";
   }
+
+  virtual UInt getNbData(const Element & element,
+			 __attribute__((unused)) SynchronizationTag tag) const {
+    UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
+    UInt size = sizeof(Real) * nb_quadrature_points;
+    return size;
+  }
+
+  virtual inline void packData(CommunicationBuffer & buffer,
+   			       const Element & element,
+   			       __attribute__((unused)) SynchronizationTag tag) const {
+    UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
+    const Vector<Real> & dam_vect = this->material.getVector("damage", element.type, _not_ghost);
+    Vector<Real>::const_iterator<Real> damage = dam_vect.begin();
+
+    damage += element.element * nb_quadrature_points;
+    for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
+      buffer << *damage;
+  }
+
+  virtual inline void unpackData(CommunicationBuffer & buffer,
+   				 const Element & element,
+   				 __attribute__((unused)) SynchronizationTag tag) {
+    UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
+    Vector<Real>::iterator<Real> damage =
+      this->material.getVector("damage", element.type, _ghost).begin();
+    damage += element.element * nb_quadrature_points;
+    for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
+      buffer >> *damage;
+  }
+
 
 private:
   /// limit at which a point is considered as complitely broken
@@ -194,7 +239,7 @@ private:
 template<UInt spatial_dimension>
 class StressBasedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  StressBasedWeightFunction(const Material & material);
+  StressBasedWeightFunction(Material & material);
 
   void init();
 
@@ -218,10 +263,10 @@ public:
 			       types::RVector & x_s);
 
   /* ------------------------------------------------------------------------ */
-  bool setParam(const std::string & key, const std::string & value) {
+  bool parseParam(const std::string & key, const std::string & value) {
     std::stringstream sstr(value);
     if(key == "ft") { sstr >> ft; }
-    else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
+    else return BaseWeightFunction<spatial_dimension>::parseParam(key, value);
     return true;
   }
 

@@ -153,8 +153,8 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
 
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   sigma_lim.resize(nb_facet);
-  const Real sigma_c = mat_cohesive->getProperty("sigma_c");
-  const Real rand = mat_cohesive->getProperty("rand_factor");
+  const Real sigma_c = mat_cohesive->getParam<Real>("sigma_c");
+  const Real rand = mat_cohesive->getParam<Real>("rand_factor");
   std::srand(time(NULL));
 
   if (facets_check.getSize() < 1) {

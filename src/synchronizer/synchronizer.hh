@@ -51,6 +51,7 @@ public:
 
   virtual ~Synchronizer() { };
 
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -84,6 +85,14 @@ protected:
   SynchronizerID id;
 
 };
+
+
+/// standard output stream operator
+inline std::ostream & operator <<(std::ostream & stream, const Synchronizer & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 
 __END_AKANTU__

@@ -69,8 +69,8 @@ public:
 public:
 
   /// set patameters
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
+  virtual bool parseParam(const std::string & key, const std::string & value,
+			  const ID & id);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

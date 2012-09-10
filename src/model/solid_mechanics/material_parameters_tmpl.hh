@@ -90,16 +90,16 @@ const T & MaterialParamTyped<T>::getTyped() const { return param;}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void MaterialParamTyped<T>::setParam(std::string value) {
-  MaterialParam::setParam(value);
+inline void MaterialParamTyped<T>::parseParam(std::string value) {
+  MaterialParam::parseParam(value);
   std::stringstream sstr(value);
   sstr >> param;
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void MaterialParamTyped<std::string>::setParam(std::string value) {
-  MaterialParam::setParam(value);
+inline void MaterialParamTyped<std::string>::parseParam(std::string value) {
+  MaterialParam::parseParam(value);
   param = value;
 }
 

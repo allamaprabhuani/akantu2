@@ -104,7 +104,7 @@ typedef std::list< SurfacePair > SurfacePairList;
   (_cohesive_2d_6)
 
 #define AKANTU_ALL_ELEMENT_TYPE					\
-  AKANTU_REGULAR_ELEMENT_TYPE AKANTU_COHESIVE_ELEMENT_TYPE 
+  AKANTU_REGULAR_ELEMENT_TYPE AKANTU_COHESIVE_ELEMENT_TYPE
 
 /// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
@@ -213,6 +213,7 @@ enum SynchronizationTag {
   _gst_htm_gradient_temperature,  /// synchronization of the element gradient temperature
   /// Material non local
   _gst_mnl_for_average,           /// synchronization of data to average in non local material
+  _gst_mnl_weight,                /// synchronization of data for the weight computations
   /// Test tag
   _gst_test
 };
@@ -251,7 +252,7 @@ struct is_scalar {
   template<>					\
   struct is_scalar<type> {			\
     enum { value = true };			\
-  }						
+  }
 
 
 AKANTU_SPECIFY_IS_SCALAR(Real);
@@ -314,19 +315,19 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
   switch(type)
     {
-    case _segment_2        : stream << "segment_2"     ; break;
-    case _segment_3        : stream << "segment_3"     ; break;
-    case _triangle_3       : stream << "triangle_3"    ; break;
-    case _triangle_6       : stream << "triangle_6"    ; break;
-    case _tetrahedron_4    : stream << "tetrahedron_4" ; break;
-    case _tetrahedron_10   : stream << "tetrahedron_10"; break;
-    case _quadrangle_4     : stream << "quadrangle_4"  ; break;
-    case _quadrangle_8     : stream << "quadrangle_8"  ; break;
-    case _hexahedron_8     : stream << "hexahedron_8"  ; break;
-    case _bernoulli_beam_2 : stream << "bernoulli_beam_2"; break;
-    case _cohesive_2d_4    : stream << "cohesive_2d_4" ; break;
-    case _cohesive_2d_6    : stream << "cohesive_2d_6" ; break;
-    case _not_defined      : stream << "undefined"     ; break;
+    case _segment_2        : stream << "_segment_2"       ; break;
+    case _segment_3        : stream << "_segment_3"       ; break;
+    case _triangle_3       : stream << "_triangle_3"      ; break;
+    case _triangle_6       : stream << "_triangle_6"      ; break;
+    case _tetrahedron_4    : stream << "_tetrahedron_4"   ; break;
+    case _tetrahedron_10   : stream << "_tetrahedron_10"  ; break;
+    case _quadrangle_4     : stream << "_quadrangle_4"    ; break;
+    case _quadrangle_8     : stream << "_quadrangle_8"    ; break;
+    case _hexahedron_8     : stream << "_hexahedron_8"    ; break;
+    case _bernoulli_beam_2 : stream << "_bernoulli_beam_2"; break;
+    case _cohesive_2d_4    : stream << "_cohesive_2d_4"   ; break;
+    case _cohesive_2d_6    : stream << "_cohesive_2d_6"   ; break;
+    case _not_defined      : stream << "_not_defined"     ; break;
     case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
     case _point            : stream << "point"; break;
     }
@@ -341,6 +342,28 @@ inline std::ostream & operator <<(std::ostream & stream, GhostType type)
     case _not_ghost : stream << "not_ghost"; break;
     case _ghost     : stream << "ghost"    ; break;
     case _casper    : stream << "Casper the friendly ghost"; break;
+    }
+  return stream;
+}
+
+/// standard output stream operator for SynchronizationTag
+inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type)
+{
+  switch(type)
+    {
+    case _gst_smm_mass                 : stream << "_gst_smm_mass"                ; break;
+    case _gst_smm_for_strain	       : stream << "_gst_smm_for_strain"	  ; break;
+    case _gst_smm_boundary	       : stream << "_gst_smm_boundary"	      	  ; break;
+    case _gst_smm_uv		       : stream << "_gst_smm_uv"		  ; break;
+    case _gst_smm_res		       : stream << "_gst_smm_res"		  ; break;
+    case _gst_smm_init_mat	       : stream << "_gst_smm_init_mat"	      	  ; break;
+    case _gst_smm_stress	       : stream << "_gst_smm_stress"	      	  ; break;
+    case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
+    case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
+    case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;
+    case _gst_mnl_for_average	       : stream << "_gst_mnl_for_average"	  ; break;
+    case _gst_mnl_weight               : stream << "_gst_mnl_weight"       	  ; break;
+    case _gst_test                     : stream << "_gst_test"                    ; break;
     }
   return stream;
 }

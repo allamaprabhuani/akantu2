@@ -107,6 +107,8 @@ protected:
   inline DataMap & getData(GhostType ghost_type);
   inline const DataMap & getData(GhostType ghost_type) const;
 
+public:
+  AKANTU_GET_MACRO(ID, id, ID);
 /* -------------------------------------------------------------------------- */
 protected:
   ID id;

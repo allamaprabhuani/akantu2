@@ -29,9 +29,7 @@
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "parser.hh"
-//#include "mesh.hh"
 #include "data_accessor.hh"
-//#include "static_communicator.hh"
 #include "material_parameters.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -65,7 +63,7 @@ __BEGIN_AKANTU__
  * \endcode
  *
  */
-class Material : protected Memory, public DataAccessor, public Parsable {
+class Material : protected Memory, public DataAccessor, public Parsable, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -90,13 +88,12 @@ public:
 		     std::string description = "");
 
 
-  /// set properties
-  virtual bool setParam(const std::string & key, const std::string & value,
-			const ID & id);
+  template<typename T>
+  void registerInternal(ByElementTypeVector<T> & vect) { AKANTU_DEBUG_TO_IMPLEMENT(); };
 
-  /// set properties
-  template <typename T>
-  bool setParamValue(const std::string & key, const T & value,const ID & id);
+  /// read parameter from file
+  virtual bool parseParam(const std::string & key, const std::string & value,
+			  const ID & id);
 
   /// function called to update the internal parameters when the modifiable
   /// parameters are modified
@@ -195,7 +192,8 @@ protected:
   void computePotentialEnergyByElement();
 
   /// compute the coordinates of the quadrature points
-  void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates) const;
+  void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates,
+					  const GhostType & ghost_type) const;
 
   /// interpolate an elemental field on given points for each element
   template <ElementType type>
@@ -230,13 +228,14 @@ protected:
 					   types::Matrix & sigma,
 					   Real & epot);
 
-public:
+protected:
   /// allocate an internal vector
   template<typename T>
   void initInternalVector(ByElementTypeVector<T> & vect,
 			  UInt nb_component,
-			  ElementKind element_kind = _ek_regular) const;
+			  ElementKind element_kind = _ek_regular);
 
+public:
   /// resize an internal vector
   template<typename T>
   void resizeInternalVector(ByElementTypeVector<T> & vect,
@@ -283,6 +282,10 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
+  virtual inline void onElementsAdded(const Vector<Element> & element_list);
+
+
+  /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
@@ -303,9 +306,13 @@ public:
   bool isNonLocal() const { return is_non_local; }
 
   const Vector<Real> & getVector(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
+  Vector<Real> & getVector(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
-  virtual Real getProperty(const ID & param) const;
-  virtual void setProperty(const ID & param, Real value);
+  template<typename T>
+  inline T getParam(const ID & param) const;
+
+  template<typename T>
+  inline void setParam(const ID & param, T value);
 
 protected:
 
@@ -360,6 +367,9 @@ protected:
 private:
   /// boolean to know if the material has been initialized
   bool is_init;
+
+  std::map<ID, ByElementTypeReal *> internal_vectors_real;
+  std::map<ID, ByElementTypeUInt *> internal_vectors_uint;
 };
 
 /* -------------------------------------------------------------------------- */

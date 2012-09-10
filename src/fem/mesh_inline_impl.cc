@@ -49,7 +49,7 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) {
   for (t = _not_defined;
        t != _max_element_type && linearized_element >= types_offsets(t);
        ++t);
-    
+
   AKANTU_DEBUG_ASSERT(t != _max_element_type,
    		      "The linearized element " << linearized_element
    		      << "does not exists in the mesh " << id);

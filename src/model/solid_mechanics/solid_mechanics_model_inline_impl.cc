@@ -222,10 +222,10 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   Real tolerance = 1e-15;
   for (UInt i = 0; i < spatial_dimension; ++i) {
     if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
-      AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element : "
+      AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
 			 << element
 			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
-			 << " and buffer[" << i << "] = " << barycenter(i) << ")");
+			 << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
   }
 #endif
 

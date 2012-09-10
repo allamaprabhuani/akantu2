@@ -42,21 +42,13 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
   damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
 
-  K0   = 1e-4;
-  At   = 0.8;
-  Ac   = 1.4;
-  Bc   = 1900;
-  Bt   = 12000;
-  beta = 1.06;
+  this->registerParam("K0"  , K0  , 1e-4  , _pat_parsable, "K0");
+  this->registerParam("At"  , At  , 0.8   , _pat_parsable, "At");
+  this->registerParam("Ac"  , Ac  , 1.4   , _pat_parsable, "Ac");
+  this->registerParam("Bc"  , Bc  , 1900. , _pat_parsable, "Bc");
+  this->registerParam("Bt"  , Bt  , 12000., _pat_parsable, "Bt");
+  this->registerParam("beta", beta, 1.06  , _pat_parsable, "beta");
 
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialMazars<spatial_dimension>::initMaterial() {
-  AKANTU_DEBUG_IN();
-  MaterialDamage<spatial_dimension>::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 
@@ -77,41 +69,6 @@ void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialMazars<spatial_dimension>::setParam(const std::string & key,
-						 const std::string & value,
-						 const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "K0") { sstr >> K0; }
-  else if(key == "At") { sstr >> At; }
-  else if(key == "Bt") { sstr >> Bt; }
-  else if(key == "Ac") { sstr >> Ac; }
-  else if(key == "Bc") { sstr >> Bc; }
-  else if(key == "beta") { sstr >> beta; }
-  else { return MaterialDamage<spatial_dimension>::setParam(key, value, id); }
-  return true;
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialMazars<spatial_dimension>::printself(std::ostream & stream,
-						  int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "MaterialMazars [" << std::endl;
-  stream << space << " + K0    : " << K0 << std::endl;
-  stream << space << " + At    : " << At << std::endl;
-  stream << space << " + Bt    : " << Bt << std::endl;
-  stream << space << " + Ac    : " << Ac << std::endl;
-  stream << space << " + Bc    : " << Bc << std::endl;
-  stream << space << " + beta  : " << beta << std::endl;
-  MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
 }
 /* -------------------------------------------------------------------------- */
 
