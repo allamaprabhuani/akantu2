@@ -56,7 +56,7 @@ protected:
   virtual void computeNonLocalStress(ElementType type, GhostType ghost_type = _not_ghost) = 0;
 
   /* ------------------------------------------------------------------------ */
-  void computeNonLocalStress(GhostType ghost_type) {
+  void computeNonLocalStresses(GhostType ghost_type) {
     AKANTU_DEBUG_IN();
     Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
     Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
@@ -89,6 +89,16 @@ public:
       MaterialDamageParent::getNbDataToUnpack(element, tag);
   }
 
+  virtual inline UInt getNbDataToPack(SynchronizationTag tag) const {
+    return MaterialNonLocalParent::getNbDataToPack(tag) +
+      MaterialDamageParent::getNbDataToPack(tag);
+  }
+
+  virtual inline UInt getNbDataToUnpack(SynchronizationTag tag) const {
+    return MaterialNonLocalParent::getNbDataToUnpack(tag) +
+      MaterialDamageParent::getNbDataToUnpack(tag);
+  }
+
 
   virtual inline void packData(CommunicationBuffer & buffer,
 			       const Element & element,
@@ -103,6 +113,22 @@ public:
     MaterialNonLocalParent::unpackData(buffer, element, tag);
     MaterialDamageParent::unpackData(buffer, element, tag);
   }
+
+  virtual void packData(CommunicationBuffer & buffer,
+			const UInt index,
+			SynchronizationTag tag) const {
+    MaterialNonLocalParent::packData(buffer, index, tag);
+    MaterialDamageParent::packData(buffer, index, tag);
+  }
+
+  virtual void unpackData(CommunicationBuffer & buffer,
+			const UInt index,
+			SynchronizationTag tag) {
+    MaterialNonLocalParent::unpackData(buffer, index, tag);
+    MaterialDamageParent::unpackData(buffer, index, tag);
+  }
+
+
 };
 
 __END_AKANTU__

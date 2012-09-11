@@ -84,7 +84,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(ElementType el_typ
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(GhostType ghost_type) {
+void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   ByElementTypeReal nl_var("Non local variable", this->id);
   this->initInternalVector(nl_var, 1);

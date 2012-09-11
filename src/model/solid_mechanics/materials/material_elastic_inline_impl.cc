@@ -40,6 +40,7 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types:
       sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i));
     }
   }
+
 }
 
 /* -------------------------------------------------------------------------- */

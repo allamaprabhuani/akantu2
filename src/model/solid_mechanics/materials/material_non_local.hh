@@ -90,7 +90,7 @@ protected:
 		    const GhostType & ghost_type);
 
   /// constitutive law
-  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost) = 0;
+  virtual void computeNonLocalStresses(GhostType ghost_type = _not_ghost) = 0;
 
   template<typename T>
   void weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
@@ -118,6 +118,21 @@ protected:
   virtual inline void unpackData(CommunicationBuffer & buffer,
 				 const Element & element,
 				 SynchronizationTag tag);
+
+  virtual UInt getNbDataToPack(SynchronizationTag tag) const { return Material::getNbDataToPack(tag); }
+  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const { return Material::getNbDataToUnpack(tag); }
+
+  virtual void packData(CommunicationBuffer & buffer,
+			const UInt index,
+			SynchronizationTag tag) const {
+    Material::packData(buffer, index, tag);
+  }
+
+  virtual void unpackData(CommunicationBuffer & buffer,
+			const UInt index,
+			SynchronizationTag tag) {
+    Material::unpackData(buffer, index, tag);
+  }
 
 
   virtual inline void onElementsAdded(const Vector<Element> & element_list);

@@ -124,6 +124,8 @@ class RemovedElementsEvent : public MeshEvent<Element> { };
 /* -------------------------------------------------------------------------- */
 
 class MeshEventHandler {
+public:
+  virtual ~MeshEventHandler() {};
   /* ------------------------------------------------------------------------ */
   /* Internal code                                                            */
   /* ------------------------------------------------------------------------ */
@@ -138,11 +140,11 @@ public:
   /* Interface                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void onNodesAdded  (const Vector<UInt> & nodes_list) {  }
-  virtual void onNodesRemoved(const Vector<UInt> & nodes_list) {  }
+  virtual void onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list) {  }
+  virtual void onNodesRemoved(__attribute__((unused)) const Vector<UInt> & nodes_list) {  }
 
-  virtual void onElementsAdded  (const Vector<Element> & elements_list) { }
-  virtual void onElementsRemoved(const Vector<Element> & elements_list) { }
+  virtual void onElementsAdded  (__attribute__((unused)) const Vector<Element> & elements_list) { }
+  virtual void onElementsRemoved(__attribute__((unused)) const Vector<Element> & elements_list) { }
 };
 
 /* -------------------------------------------------------------------------- */

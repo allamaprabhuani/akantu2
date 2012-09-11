@@ -39,7 +39,8 @@ __BEGIN_AKANTU__
  * Material vreepeerlings
  *
  * parameters in the material files :
- *   - Kapa0  : (default: 50) Initial threshold (of the equivalent strain)
+ *   - Kapa0i  : (default: 0.0001) Initial threshold (of the equivalent strain) for the initial step
+ *   - Kapa0  : (default: 0.0001) Initial threshold (of the equivalent strain)
  *   - Alpha  : (default: 0.99) Fitting parameter (must be close to 1 to do tend to 0 the stress in the damaged element)
  *   - Beta   : (default: 300) This parameter determines the rate at which the damage grows 
  *   - Kct    : (default: 1) Ratio between compressive and tensile strength
@@ -63,27 +64,28 @@ public:
 
   void initMaterial();
 
-  bool parseParam(const std::string & key, const std::string & value,
-		const ID & id);
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
 
 protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(types::Matrix & F,
 				  types::Matrix & sigma,
 				  Real & dam,
+				  Real & Equistrain_rate,
 				  Real & Equistrain,
-				  Real & Kapaq);
+				  Real & Kapaq,
+				  Real dt,
+				  types::Matrix & strain_rate_vrpgls,
+				  Real & crit_strain);
 
   inline void computeDamageAndStressOnQuad(types::Matrix & sigma,
 					   Real & dam,
+					   Real & Equistrain_rate,
 					   Real & Equistrain,
-					   Real & Kapaq);
+					   Real & Kapaq,
+					   Real dt,
+					   Real & crit_strain);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -104,14 +106,14 @@ public:
 			  const Element & element,
 			  SynchronizationTag tag);
 
-  virtual UInt getNbDataToPack(__attribute__((unused)) SynchronizationTag tag) const { return 0; }
-  virtual UInt getNbDataToUnpack(__attribute__((unused)) SynchronizationTag tag) const { return 0; }
-  virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-			__attribute__((unused)) const UInt index,
-			__attribute__((unused)) SynchronizationTag tag) const { }
-  virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-			  __attribute__((unused)) const UInt index,
-			  __attribute__((unused)) SynchronizationTag tag) { }
+  virtual UInt getNbDataToPack(SynchronizationTag tag) const { return MaterialDamage<spatial_dimension>::getNbDataToPack(tag); }
+  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const { return MaterialDamage<spatial_dimension>::getNbDataToUnpack(tag); }
+  virtual void packData(CommunicationBuffer & buffer,
+			const UInt index,
+			SynchronizationTag tag) const { MaterialDamage<spatial_dimension>::packData(buffer, index, tag); }
+  virtual void unpackData(CommunicationBuffer & buffer,
+			  const UInt index,
+			  SynchronizationTag tag) { MaterialDamage<spatial_dimension>::unpackData(buffer, index, tag); }
 
 
   /* ------------------------------------------------------------------------ */
@@ -123,6 +125,8 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// Initial threshold (of the equivalent strain) (used in the initial step)
+  Real Kapa0i;
 
   /// Initial threshold (of the equivalent strain)
   Real Kapa0;
@@ -142,6 +146,17 @@ protected:
   /// Kapa random internal variable
   ByElementTypeReal Kapa;
 
+  /// strain_rate_vreepeerlings
+  ByElementTypeReal strain_rate_vreepeerlings;
+
+ /// strain_critical_vreepeerlings
+  ByElementTypeReal critical_strain;
+
+  /// Booleen to check the first step
+  bool firststep;
+
+  /// counter for initial step
+  Int countforinitialstep;
 };
 
 /* -------------------------------------------------------------------------- */

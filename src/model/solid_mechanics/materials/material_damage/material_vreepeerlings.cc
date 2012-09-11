@@ -37,16 +37,26 @@ MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsMo
 					     const ID & id)  :
   Material(model, id),
   MaterialDamage<spatial_dimension>(model, id),
-  Kapa("Kapa",id) {
+  Kapa("Kapa",id),
+  strain_rate_vreepeerlings("strain-rate-vreepeerlings", id),
+  critical_strain("critical-strain", id)
+ {
   AKANTU_DEBUG_IN();
 
-  Kapa0  = 0.0001;
-  Alpha  = 0.99;
-  Beta   = 300.;
-  Kct    = 1.;
-  Kapa0_randomness = 0.;
+  this->registerParam("Kapa0i"          , Kapa0i          , 0.0001, _pat_parsable);
+  this->registerParam("Kapa0"           , Kapa0           , 0.0001, _pat_parsable);
+  this->registerParam("Alpha"           , Alpha           , 0.99  , _pat_parsable);
+  this->registerParam("Beta"            , Beta            , 300.  , _pat_parsable);
+  this->registerParam("Kct"             , Kct             , 1.    , _pat_parsable);
+  this->registerParam("Kapa0_randomness", Kapa0_randomness, 0.    , _pat_parsable);
+
+  firststep = true;
+  countforinitialstep= 0;
 
   this->initInternalVector(this->Kapa, 1);
+  this->initInternalVector(this->critical_strain, 1);
+  this->initInternalVector(this->strain_rate_vreepeerlings, spatial_dimension * spatial_dimension);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -57,6 +67,8 @@ void MaterialVreePeerlings<spatial_dimension>::initMaterial() {
   MaterialDamage<spatial_dimension>::initMaterial();
 
   this->resizeInternalVector(this->Kapa);
+  this->resizeInternalVector(this->critical_strain);
+  this->resizeInternalVector(this->strain_rate_vreepeerlings);
 
   const Mesh & mesh = this->model->getFEM().getMesh();
 
@@ -68,8 +80,8 @@ void MaterialVreePeerlings<spatial_dimension>::initMaterial() {
     Vector <Real>::iterator<Real> kapa_end = Kapa(*it).end();
 
     for(; kapa_it != kapa_end; ++kapa_it) {
-      Real rand_part = (2 * drand48()-1) * Kapa0_randomness * Kapa0;
-      *kapa_it = Kapa0 + rand_part;
+      Real rand_part = (2 * drand48()-1) * Kapa0_randomness * Kapa0i;
+      *kapa_it = Kapa0i + rand_part;
     }
   }
   AKANTU_DEBUG_OUT();
@@ -82,50 +94,37 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Kapaq = Kapa(el_type, ghost_type).storage();
+  Real * crit_strain = critical_strain(el_type, ghost_type).storage();
+  Real dt = this->model->getTimeStep();
 
+  Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Vector<Real> & velocity = this->model->getVelocity();
+  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type); 
+
+  this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
+						   spatial_dimension,
+						   el_type, ghost_type, &elem_filter);
+
+  Vector<Real>::iterator<types::Matrix> strain_rate_vrplgs_it =
+        strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real Equistrain;
-  computeStressOnQuad(grad_u, sigma, *dam, Equistrain, *Kapaq);
+  Real Equistrain_rate;
+  types::Matrix & strain_rate = *strain_rate_vrplgs_it;
+
+  computeStressOnQuad(grad_u, sigma, *dam, Equistrain, Equistrain_rate, *Kapaq, dt, strain_rate, *crit_strain);
   ++dam;
   ++Kapaq;
+  ++strain_rate_vrplgs_it;
+  ++crit_strain;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
+  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
+
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialVreePeerlings<spatial_dimension>::parseParam(const std::string & key,
-							  const std::string & value,
-							  const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "Kapa0") { sstr >> Kapa0; }
-  else if(key == "Alpha") { sstr >> Alpha; }
-  else if(key == "Beta") { sstr >> Beta; }
-  else if(key == "Kct") { sstr >> Kct; }
-  else if(key == "Kapa0_randomness") { sstr >> Kapa0_randomness; }
-  else { return MaterialDamage<spatial_dimension>::parseParam(key, value, id); }
-  return true;
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialVreePeerlings<spatial_dimension>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_vreepeerlings> [" << std::endl;
-  stream << space << " + Kapa0            : " << Kapa0 << std::endl;
-  stream << space << " + Alpha            : " << Alpha << std::endl;
-  stream << space << " + Beta             : " << Beta << std::endl;
-  stream << space << " + Kct              : " << Kct << std::endl;
-  stream << space << " + Kapa0 randomness : " << Kapa0_randomness << std::endl;
-  MaterialDamage<spatial_dimension>::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

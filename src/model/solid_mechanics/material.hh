@@ -89,7 +89,7 @@ public:
 
 
   template<typename T>
-  void registerInternal(ByElementTypeVector<T> & vect) { AKANTU_DEBUG_TO_IMPLEMENT(); };
+  void registerInternal(__attribute__((unused)) ByElementTypeVector<T> & vect) { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   /// read parameter from file
   virtual bool parseParam(const std::string & key, const std::string & value,
@@ -110,7 +110,7 @@ public:
 
   /// compute the residual for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
-  virtual void computeAllNonLocalStresses(GhostType ghost_type = _not_ghost) {};
+  virtual void computeAllNonLocalStresses(__attribute__((unused)) GhostType ghost_type = _not_ghost) {};
 
   /// set material to steady state
   void setToSteadyState(GhostType ghost_type = _not_ghost);
@@ -467,12 +467,18 @@ __END_AKANTU__
   ((remove_wf, RemoveDamagedWeightFunction))				\
   ((base_wf,   BaseWeightFunction         ))
 
+
+#define AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST		\
+  AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST				\
+  ((removed_damrate_wf, RemoveDamagedWithDamageRateWeightFunction))
+
 #define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST				\
   ((3, (marigo_non_local       , MaterialMarigoNonLocal,		\
 	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))			\
-  ((2, (mazars_non_local       , MaterialMazarsNonLocal)))		\
+  ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
   ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal,		\
-	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
+	AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST)))
+
 #else
 #  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
 #endif

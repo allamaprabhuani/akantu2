@@ -87,6 +87,12 @@ private:
   /// non local version of equivalent strain
   ByElementTypeReal equi_strain_non_local;
 
+  /// equivalent strain rate used to compute the criteria for damage evolution
+  ByElementTypeReal equi_strain_rate;
+
+  /// non local version of equivalent strain rate
+  ByElementTypeReal equi_strain_rate_non_local;
+
 };
 
 /* -------------------------------------------------------------------------- */

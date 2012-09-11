@@ -67,10 +67,10 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law
-  virtual void computeNonLocalStress(GhostType ghost_type = _not_ghost);
-  virtual void computeNonLocalStress(Vector<Real> & Ehatnl,
-				     ElementType el_type,
-				     GhostType ghost_type = _not_ghost);
+  void computeNonLocalStresses(GhostType ghost_type = _not_ghost);
+  void computeNonLocalStress(Vector<Real> & Ehatnl,
+			     ElementType el_type,
+			     GhostType ghost_type = _not_ghost);
 
   inline Real getStableTimeStep(Real h, const Element & element) {
     return MaterialMazars<spatial_dimension>::getStableTimeStep(h, element);

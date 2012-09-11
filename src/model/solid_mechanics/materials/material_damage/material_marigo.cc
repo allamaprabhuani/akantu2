@@ -90,7 +90,7 @@ template<UInt spatial_dimension>
 void MaterialMarigo<spatial_dimension>::updateInternalParameters() {
   MaterialDamage<spatial_dimension>::updateInternalParameters();
   Yc = .5 * epsilon_c * this->E * epsilon_c;
-  if(epsilon_c != 0.) yc_limit = true;
+  if(std::abs(epsilon_c) > std::numeric_limits<Real>::epsilon()) yc_limit = true;
   else yc_limit = false;
 }
 

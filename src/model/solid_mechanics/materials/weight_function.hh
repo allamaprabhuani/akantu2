@@ -29,6 +29,7 @@
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "solid_mechanics_model.hh"
+#include <cmath>
 
 /* -------------------------------------------------------------------------- */
 #include <vector>
@@ -93,13 +94,13 @@ public:
     return 0;
   }
 
-  virtual inline void packData(CommunicationBuffer & buffer,
-   			       const Element & element,
-   			       SynchronizationTag tag) const {}
+  virtual inline void packData(__attribute__((unused)) CommunicationBuffer & buffer,
+   			       __attribute__((unused)) const Element & element,
+   			       __attribute__((unused)) SynchronizationTag tag) const {}
 
-  virtual inline void unpackData(CommunicationBuffer & buffer,
-   				 const Element & element,
-   				 SynchronizationTag tag) {}
+  virtual inline void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
+   				 __attribute__((unused)) const Element & element,
+   				 __attribute__((unused)) SynchronizationTag tag) {}
 
 protected:
   Material & material;
@@ -173,8 +174,30 @@ public:
     Real D = (*selected_damage)(quad);
     Real w = 0.;
     if(D < damage_limit) {
-      Real alpha = std::max(0., 1. - r*r / this->R2);
-      w = alpha * alpha;
+
+      ////alpha2beta6////
+      // Real alpha = std::max(0., 1. - r*r / this->R2);
+      //  w = alpha * alpha * alpha * alpha * alpha * alpha;
+
+      ////alpha4beta6////
+        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2));
+        //w = alpha * alpha * alpha * alpha * alpha * alpha;
+
+      ////alpha6beta6////
+        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2));
+        //w = alpha * alpha * alpha * alpha * alpha * alpha;
+
+      ////alpha8beta6////
+        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2));
+        //w = alpha * alpha * alpha * alpha * alpha * alpha; 
+
+      ////alpha10beta6////
+        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2));
+        //w = alpha * alpha * alpha * alpha * alpha * alpha;
+
+      ////alpha2beta2////
+        Real alpha = std::max(0., 1. - r*r / this->R2);
+        w = alpha * alpha;
     }
 
     return w;
@@ -231,6 +254,63 @@ private:
 
   /// internal pointer to the current damage vector
   const Vector<Real> * selected_damage;
+};
+/* -------------------------------------------------------------------------- */
+/* Remove damaged with damage rate weight function                                             */
+/* -------------------------------------------------------------------------- */
+
+template<UInt spatial_dimension>
+class RemoveDamagedWithDamageRateWeightFunction : public BaseWeightFunction<spatial_dimension> {
+public:
+  RemoveDamagedWithDamageRateWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+
+  inline void selectType(__attribute__((unused)) ElementType type1,
+			 __attribute__((unused)) GhostType ghost_type1,
+			 ElementType type2,
+			 GhostType ghost_type2) {
+    selected_damage_with_damage_rate = &(this->material.getVector("damage",type2, ghost_type2));
+    selected_damage_rate_with_damage_rate = &(this->material.getVector("damage-rate",type2, ghost_type2));
+  }
+
+  inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
+    UInt quad = q2.global_num;
+
+    if(q1.global_num == quad) return 1.;
+
+    Real D = (*selected_damage_with_damage_rate)(quad);
+    Real w = 0.;
+    Real alphaexp = 1.;
+    Real betaexp = 2.;
+    if(D < damage_limit_with_damage_rate) {
+      Real alpha = std::max(0., 1. - pow((r*r / this->R2),alphaexp));
+      w = pow(alpha, betaexp);
+    }
+
+    return w;
+  }
+  /* ------------------------------------------------------------------------ */
+  bool setParam(const std::string & key,
+		const std::string & value) {
+    std::stringstream sstr(value);
+    if(key == "damage_limit") { sstr >> damage_limit_with_damage_rate; }
+    else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
+    return true;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  virtual void printself(std::ostream & stream) const {
+    stream << "RemoveDamagedWithDamageRateWeightFunction [damage_limit: " << damage_limit_with_damage_rate << "]";
+  }
+
+private:
+  /// limit at which a point is considered as complitely broken
+  Real damage_limit_with_damage_rate;
+
+  /// internal pointer to the current damage vector
+  const Vector<Real> * selected_damage_with_damage_rate;
+
+  /// internal pointer to the current damage rate vector
+  const Vector<Real> * selected_damage_rate_with_damage_rate;
 };
 
 /* -------------------------------------------------------------------------- */

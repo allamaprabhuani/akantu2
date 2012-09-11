@@ -253,7 +253,7 @@ inline void Material::setParam(const ID & param, T value) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::onElementsAdded(const Vector<Element> & element_list) {
+inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Element> & element_list) {
   for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
        ++it) {

@@ -114,7 +114,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
 
   computeAllStresses(ghost_type);
 
-  computeNonLocalStress(ghost_type);
+  computeNonLocalStresses(ghost_type);
   assembleResidual(ghost_type);
 
   AKANTU_DEBUG_OUT();
@@ -160,7 +160,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
 					 non_local_variable.non_local_variable_nb_component, _ghost);
     }
 
-    computeNonLocalStress(_not_ghost);
+    computeNonLocalStresses(_not_ghost);
   }
 }
 
