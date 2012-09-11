@@ -130,9 +130,12 @@ public:
   void registerNonLocalVariable(ByElementTypeReal & local,
 				ByElementTypeReal & non_local,
 				UInt nb_degree_of_freedom) {
-    local_variable = &local;
-    non_local_variable = &non_local;
-    non_local_variable_nb_component = nb_degree_of_freedom;
+    ID id = local.getID();
+    NonLocalVariable & non_local_variable = non_local_variables[id];
+
+    non_local_variable.local_variable = &local;
+    non_local_variable.non_local_variable = &non_local;
+    non_local_variable.non_local_variable_nb_component = nb_degree_of_freedom;
   }
 
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
@@ -170,9 +173,13 @@ private:
   /// count the number of calls of computeStress
   UInt compute_stress_calls;
 
-  ByElementTypeVector<Real> * local_variable;
-  ByElementTypeVector<Real> * non_local_variable;
-  UInt non_local_variable_nb_component;
+  struct NonLocalVariable {
+    ByElementTypeVector<Real> * local_variable;
+    ByElementTypeVector<Real> * non_local_variable;
+    UInt non_local_variable_nb_component;
+  };
+
+  std::map<ID, NonLocalVariable> non_local_variables;
 
   bool is_creating_grid;
 

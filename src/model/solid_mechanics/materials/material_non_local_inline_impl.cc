@@ -139,15 +139,27 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
       computeWeights(quadrature_points_coordinates);
     }
 
-    resizeInternalVector(*non_local_variable);
-    this->weightedAvergageOnNeighbours(*local_variable, *non_local_variable,
-				       non_local_variable_nb_component, _not_ghost);
+    typename std::map<ID, NonLocalVariable>::iterator it = non_local_variables.begin();
+    typename std::map<ID, NonLocalVariable>::iterator end = non_local_variables.end();
+    for(;it != end; ++it) {
+      NonLocalVariable & non_local_variable = it->second;
+
+      resizeInternalVector(*non_local_variable.non_local_variable);
+      this->weightedAvergageOnNeighbours(*non_local_variable.local_variable, *non_local_variable.non_local_variable,
+					 non_local_variable.non_local_variable_nb_component, _not_ghost);
+    }
 
     ++this->compute_stress_calls;
   } else {
 
-    this->weightedAvergageOnNeighbours(*local_variable, *non_local_variable,
-				       non_local_variable_nb_component, _ghost);
+    typename std::map<ID, NonLocalVariable>::iterator it = non_local_variables.begin();
+    typename std::map<ID, NonLocalVariable>::iterator end = non_local_variables.end();
+    for(;it != end; ++it) {
+      NonLocalVariable & non_local_variable = it->second;
+      this->weightedAvergageOnNeighbours(*non_local_variable.local_variable, *non_local_variable.non_local_variable,
+					 non_local_variable.non_local_variable_nb_component, _ghost);
+    }
+
     computeNonLocalStress(_not_ghost);
   }
 }
@@ -650,8 +662,16 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataToPack(const Element & element,
 										 SynchronizationTag tag) const {
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-  if(tag == _gst_mnl_for_average) return  non_local_variable_nb_component * sizeof(Real) * nb_quadrature_points;
-  else if(tag == _gst_mnl_weight) return weight_func->getNbData(element, tag);
+  if(tag == _gst_mnl_for_average) {
+    typename std::map<ID, NonLocalVariable>::const_iterator it = non_local_variables.begin();
+    typename std::map<ID, NonLocalVariable>::const_iterator end = non_local_variables.end();
+    UInt size = 0;
+    for(;it != end; ++it) {
+      const NonLocalVariable & non_local_variable = it->second;
+      size += non_local_variable.non_local_variable_nb_component;
+    }
+    return size * sizeof(Real) * nb_quadrature_points;
+  } else if(tag == _gst_mnl_weight) return weight_func->getNbData(element, tag);
   return 0;
 }
 
@@ -660,8 +680,16 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataToUnpack(const Element & element,
 										   SynchronizationTag tag) const {
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-  if(tag == _gst_mnl_for_average) return non_local_variable_nb_component  * sizeof(Real) * nb_quadrature_points;
-  else if(tag == _gst_mnl_weight) return weight_func->getNbData(element, tag);
+  if(tag == _gst_mnl_for_average) {
+    typename std::map<ID, NonLocalVariable>::const_iterator it = non_local_variables.begin();
+    typename std::map<ID, NonLocalVariable>::const_iterator end = non_local_variables.end();
+    UInt size = 0;
+    for(;it != end; ++it) {
+      const NonLocalVariable & non_local_variable = it->second;
+      size += non_local_variable.non_local_variable_nb_component;
+    }
+    return size * sizeof(Real) * nb_quadrature_points;
+  } else if(tag == _gst_mnl_weight) return weight_func->getNbData(element, tag);
   return 0;
 }
 
@@ -672,10 +700,17 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::packData(Commun
 									  SynchronizationTag tag) const {
   if(tag == _gst_mnl_for_average) {
     UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    Vector<Real>::iterator<types::RVector> local_var = (*local_variable)(element.type, _not_ghost).begin(non_local_variable_nb_component);
-    local_var += element.element * nb_quadrature_points;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++local_var)
-      buffer << *local_var;
+
+    typename std::map<ID, NonLocalVariable>::const_iterator it = non_local_variables.begin();
+    typename std::map<ID, NonLocalVariable>::const_iterator end = non_local_variables.end();
+
+    for(;it != end; ++it) {
+      const NonLocalVariable & non_local_variable = it->second;
+      Vector<Real>::iterator<types::RVector> local_var = (*non_local_variable.local_variable)(element.type, _not_ghost).begin(non_local_variable.non_local_variable_nb_component);
+      local_var += element.element * nb_quadrature_points;
+      for (UInt q = 0; q < nb_quadrature_points; ++q, ++local_var)
+	buffer << *local_var;
+    }
   } else if(tag == _gst_mnl_weight) return weight_func->packData(buffer, element, tag);
 }
 
@@ -686,10 +721,17 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackData(Comm
 									    SynchronizationTag tag) {
   if(tag == _gst_mnl_for_average) {
     UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    Vector<Real>::iterator<types::RVector> local_var = (*local_variable)(element.type, _ghost).begin(non_local_variable_nb_component);
-    local_var += element.element * nb_quadrature_points;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++local_var)
-      buffer >> *local_var;
+    typename std::map<ID, NonLocalVariable>::iterator it = non_local_variables.begin();
+    typename std::map<ID, NonLocalVariable>::iterator end = non_local_variables.end();
+
+    for(;it != end; ++it) {
+      NonLocalVariable & non_local_variable = it->second;
+      Vector<Real>::iterator<types::RVector> local_var =
+	(*non_local_variable.local_variable)(element.type, _ghost).begin(non_local_variable.non_local_variable_nb_component);
+      local_var += element.element * nb_quadrature_points;
+      for (UInt q = 0; q < nb_quadrature_points; ++q, ++local_var)
+	buffer >> *local_var;
+    }
   } else if(tag == _gst_mnl_weight) return weight_func->unpackData(buffer, element, tag);
 }
 
