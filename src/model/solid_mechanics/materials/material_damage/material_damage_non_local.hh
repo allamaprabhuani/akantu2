@@ -77,57 +77,24 @@ public:
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual inline UInt getNbDataToPack(const Element & element,
+  virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
+					   SynchronizationTag tag) const {
+    return MaterialNonLocalParent::getNbDataForElements(elements, tag) +
+      MaterialDamageParent::getNbDataForElements(elements, tag);
+  }
+  virtual inline void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
 				      SynchronizationTag tag) const {
-    return MaterialNonLocalParent::getNbDataToPack(element, tag) +
-      MaterialDamageParent::getNbDataToPack(element, tag);
+    MaterialNonLocalParent::packElementData(buffer, elements, tag);
+    MaterialDamageParent::packElementData(buffer, elements, tag);
   }
 
-  virtual inline UInt getNbDataToUnpack(const Element & element,
-					SynchronizationTag tag) const {
-    return MaterialNonLocalParent::getNbDataToUnpack(element, tag) +
-      MaterialDamageParent::getNbDataToUnpack(element, tag);
-  }
-
-  virtual inline UInt getNbDataToPack(SynchronizationTag tag) const {
-    return MaterialNonLocalParent::getNbDataToPack(tag) +
-      MaterialDamageParent::getNbDataToPack(tag);
-  }
-
-  virtual inline UInt getNbDataToUnpack(SynchronizationTag tag) const {
-    return MaterialNonLocalParent::getNbDataToUnpack(tag) +
-      MaterialDamageParent::getNbDataToUnpack(tag);
-  }
-
-
-  virtual inline void packData(CommunicationBuffer & buffer,
-			       const Element & element,
-			       SynchronizationTag tag) const {
-    MaterialNonLocalParent::packData(buffer, element, tag);
-    MaterialDamageParent::packData(buffer, element, tag);
-  }
-
-  virtual inline void unpackData(CommunicationBuffer & buffer,
-				 const Element & element,
+  virtual inline void unpackElementData(CommunicationBuffer & buffer,
+				 const Vector<Element> & elements,
 				 SynchronizationTag tag) {
-    MaterialNonLocalParent::unpackData(buffer, element, tag);
-    MaterialDamageParent::unpackData(buffer, element, tag);
+    MaterialNonLocalParent::unpackElementData(buffer, elements, tag);
+    MaterialDamageParent::unpackElementData(buffer, elements, tag);
   }
-
-  virtual void packData(CommunicationBuffer & buffer,
-			const UInt index,
-			SynchronizationTag tag) const {
-    MaterialNonLocalParent::packData(buffer, index, tag);
-    MaterialDamageParent::packData(buffer, index, tag);
-  }
-
-  virtual void unpackData(CommunicationBuffer & buffer,
-			const UInt index,
-			SynchronizationTag tag) {
-    MaterialNonLocalParent::unpackData(buffer, index, tag);
-    MaterialDamageParent::unpackData(buffer, index, tag);
-  }
-
 
 };
 

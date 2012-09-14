@@ -70,6 +70,28 @@ public:
   /// compute buffer size for a given tag and data accessor
   virtual void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag)=0;
 
+  /**
+   * tag = |__________20_________|___8____|_4_|
+   *       |          proc       | num mes| ct|
+   */
+  class Tag {
+  public:
+    operator int() { return int(tag); }
+
+    static inline Tag genTag(int proc, UInt msg_count, UInt tag) {
+      Tag t;
+      t.tag = (((proc & 0xFFFFF) << 12) + ((msg_count & 0xFF) << 4) + (tag & 0xF));
+      return t;
+    }
+
+    virtual void printself(std::ostream & stream, int indent = 0) const {
+      stream << (tag >> 12) << ":" << (tag >> 4 & 0xFF) << ":" << (tag & 0xF);
+    }
+
+  private:
+    UInt tag;
+  };
+
 protected:
 
   /* ------------------------------------------------------------------------ */
@@ -90,6 +112,12 @@ protected:
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Synchronizer & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
+
+inline std::ostream & operator <<(std::ostream & stream, const Synchronizer::Tag & _this)
 {
   _this.printself(stream);
   return stream;

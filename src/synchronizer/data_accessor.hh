@@ -55,11 +55,11 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /**
-   * @brief get  the number of  data to send  for a given akantu::Element  and a
+   * @brief get  the number of  data to exchange  for a given akantu::Element  and a
    * given akantu::SynchronizationTag
    */
-  virtual UInt getNbDataToPack(__attribute__((unused)) const Element & element,
-                               __attribute__((unused)) SynchronizationTag tag) const {
+  virtual UInt getNbDataForElements(__attribute__((unused)) const Vector<Element> & elements,
+				    __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -68,15 +68,6 @@ public:
    * akantu::SynchronizationTag
    */
   virtual UInt getNbDataToPack(__attribute__((unused)) SynchronizationTag tag) const {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-
-  /**
-   * @brief get the number of data  to receive for a given akantu::Element and a
-   * given akantu::SynchronizationTag
-   */
-  virtual UInt getNbDataToUnpack(__attribute__((unused)) const Element & element,
-				 __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -92,9 +83,9 @@ public:
    * @brief   pack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::SynchronizationTag
    */
-  virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-                        __attribute__((unused)) const Element & element,
-                        __attribute__((unused)) SynchronizationTag tag) const {
+  virtual void packElementData(__attribute__((unused)) CommunicationBuffer & buffer,
+			       __attribute__((unused)) const Vector<Element> & element,
+			       __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -112,9 +103,9 @@ public:
    * @brief   unpack  the   data  for   a  given   akantu::Element  and   a  given
    * akantu::SynchronizationTag
    */
-  virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-                          __attribute__((unused)) const Element & element,
-                          __attribute__((unused)) SynchronizationTag tag) {
+  virtual void unpackElementData(__attribute__((unused)) CommunicationBuffer & buffer,
+				 __attribute__((unused)) const Vector<Element> & element,
+				 __attribute__((unused)) SynchronizationTag tag) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

@@ -233,11 +233,11 @@ Real FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
   UInt nb_element = mesh->getNbElement(type, ghost_type);
   if(filter_elements != NULL) nb_element = filter_elements->getSize();
 
-  UInt nb_quadrature_points  = getNbQuadraturePoints(type);
+  UInt nb_quadrature_points  = getNbQuadraturePoints(type, ghost_type);
 
   AKANTU_DEBUG_ASSERT(f.getSize() == nb_element * nb_quadrature_points,
 		      "The vector f(" << f.getID()
-		      << ") has not the good size.");
+		      << ") has not the good size. (" << f.getSize() << "!=" << nb_quadrature_points * nb_element << ")");
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == 1,
 		      "The vector f(" << f.getID()
 		      << ") has not the good number of component.");

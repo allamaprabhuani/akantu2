@@ -122,8 +122,8 @@ int main(int argc, char *argv[])
   // }
 
   //  model->getForce().at(0) = -1000;
-  model->getBoundary().at(0,0) = true;
-  model->getForce().at(1,0) = 1000;
+  model->getBoundary()(0,0) = true;
+  model->getForce()(1,0) = 1000;
 
   model->initializeUpdateResidualData();
 

@@ -155,6 +155,9 @@ public:
 			const Vector<T> & vect);
 
   inline void free();
+
+  inline void onElementsRemoved(const ByElementTypeVector<UInt> & new_numbering);
+
 };
 
 /// to store data Vector<Real> by element type

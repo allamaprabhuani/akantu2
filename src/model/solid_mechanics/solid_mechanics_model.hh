@@ -304,22 +304,18 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataToPack(const Element & element,
+  inline virtual UInt getNbDataForElements(const Vector<Element> & elements,
+					   SynchronizationTag tag) const;
+
+  inline virtual void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
 				      SynchronizationTag tag) const;
 
-  inline virtual UInt getNbDataToUnpack(const Element & element,
-					SynchronizationTag tag) const;
-
-  inline virtual void packData(CommunicationBuffer & buffer,
-			       const Element & element,
-			       SynchronizationTag tag) const;
-
-  inline virtual void unpackData(CommunicationBuffer & buffer,
-				 const Element & element,
-				 SynchronizationTag tag);
+  inline virtual void unpackElementData(CommunicationBuffer & buffer,
+					const Vector<Element> & elements,
+					SynchronizationTag tag);
 
   inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
-
   inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
 
   inline virtual void packData(CommunicationBuffer & buffer,
@@ -330,14 +326,40 @@ public:
 				 const UInt index,
 				 SynchronizationTag tag);
 
+protected:
+  inline void splitElementByMaterial(const Vector<Element> & elements,
+				     Vector<Element> * elements_per_mat) const;
+
+
+  template<typename T>
+  inline void packElementDataHelper(Vector<T> & data_to_pack,
+				    CommunicationBuffer & buffer,
+				    const Vector<Element> & element) const;
+
+  /* -------------------------------------------------------------------------- */
+  template<typename T>
+  inline void unpackElementDataHelper(Vector<T> & data_to_unpack,
+				      CommunicationBuffer & buffer,
+				      const Vector<Element> & element) const;
+
+  /* -------------------------------------------------------------------------- */
+  template<typename T, bool pack_helper>
+  inline void packUnpackElementDataHelper(Vector<T> & data,
+					  CommunicationBuffer & buffer,
+					  const Vector<Element> & element) const;
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
   virtual void onNodesAdded  (const Vector<UInt> & nodes_list);
+  virtual void onNodesRemoved(const Vector<UInt> & element_list,
+			      const Vector<UInt> & new_numbering);
 
   virtual void onElementsAdded  (const Vector<Element> & nodes_list);
+  virtual void onElementsRemoved(const Vector<Element> & element_list,
+				 const ByElementTypeUInt & new_numbering);
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -233,6 +233,7 @@ protected:
   template<typename T>
   void initInternalVector(ByElementTypeVector<T> & vect,
 			  UInt nb_component,
+			  bool temporary = false,
 			  ElementKind element_kind = _ek_regular);
 
 public:
@@ -251,39 +252,46 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual inline UInt getNbDataToPack  (const Element & element, SynchronizationTag tag) const;
-  virtual inline UInt getNbDataToUnpack(const Element & element, SynchronizationTag tag) const;
+  virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
+					   SynchronizationTag tag) const;
 
-  virtual UInt getNbDataToPack(__attribute__((unused)) SynchronizationTag tag) const {
-    return 0;
-  }
+  virtual inline void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
+				      SynchronizationTag tag) const;
 
-  virtual UInt getNbDataToUnpack(__attribute__((unused)) SynchronizationTag tag) const {
-    return 0;
-  }
+  virtual inline void unpackElementData(CommunicationBuffer & buffer,
+					const Vector<Element> & elements,
+					SynchronizationTag tag);
 
+  template<typename T>
+  inline void packElementDataHelper(const ByElementTypeVector<T> & data_to_pack,
+				    CommunicationBuffer & buffer,
+				    const Vector<Element> & elements) const;
 
-  virtual inline void packData(CommunicationBuffer & buffer,
-			       const Element & element,
-			       SynchronizationTag tag) const;
+  template<typename T>
+  inline void unpackElementDataHelper(ByElementTypeVector<T> & data_to_unpack,
+				      CommunicationBuffer & buffer,
+				      const Vector<Element> & elements) const;
 
-  virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-			__attribute__((unused)) const UInt index,
-			__attribute__((unused)) SynchronizationTag tag) const {
-  }
+protected:
+  template<typename T, bool pack_helper>
+  inline void packUnpackElementDataHelper(ByElementTypeVector<T> & data_to_pack,
+					  CommunicationBuffer & buffer,
+					  const Vector<Element> & elements) const;
+public:
+  inline UInt getNbQuadraturePoints(const Vector<Element> & elements) const;
 
-  virtual inline void unpackData(CommunicationBuffer & buffer,
-				 const Element & element,
-				 SynchronizationTag tag);
-
-  virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-			  __attribute__((unused)) const UInt index,
-			  __attribute__((unused)) SynchronizationTag tag) {
-  }
-
+public:
   /* ------------------------------------------------------------------------ */
   virtual inline void onElementsAdded(const Vector<Element> & element_list);
 
+  virtual inline void onElementsRemoved(const Vector<Element> & element_list,
+					const ByElementTypeUInt & new_numbering);
+
+protected:
+  template<typename T>
+  void removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
+					 const ByElementTypeUInt & new_numbering);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

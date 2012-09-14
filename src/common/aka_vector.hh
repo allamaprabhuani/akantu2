@@ -252,11 +252,6 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// get jth componemt of the ith tuple in read-only
-  inline const_reference get(UInt i, UInt j = 0) const;
-  /// get jth component of the ith tuple
-  inline reference at(UInt i, UInt j = 0);
-
   /// add an  element at  the end  of the vector  with the  value value  for all
   /// component
   inline void push_back(const_reference value);

@@ -89,19 +89,18 @@ public:
   }
 
 public:
-  virtual UInt getNbData(__attribute__((unused)) const Element & element,
-			 __attribute__((unused)) SynchronizationTag tag) const {
+  virtual UInt getNbDataForElements(__attribute__((unused)) const Vector<Element> & elements,
+				    __attribute__((unused)) SynchronizationTag tag) const {
     return 0;
   }
 
-  virtual inline void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-   			       __attribute__((unused)) const Element & element,
-   			       __attribute__((unused)) SynchronizationTag tag) const {}
+  virtual inline void packElementData(__attribute__((unused)) CommunicationBuffer & buffer,
+				      __attribute__((unused)) const Vector<Element> & elements,
+				      __attribute__((unused)) SynchronizationTag tag) const {}
 
-  virtual inline void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-   				 __attribute__((unused)) const Element & element,
-   				 __attribute__((unused)) SynchronizationTag tag) {}
-
+  virtual inline void unpackElementData(__attribute__((unused)) CommunicationBuffer & buffer,
+					__attribute__((unused)) const Vector<Element> & elements,
+					__attribute__((unused)) SynchronizationTag tag) {}
 protected:
   Material & material;
 
@@ -199,7 +198,6 @@ public:
         Real alpha = std::max(0., 1. - r*r / this->R2);
         w = alpha * alpha;
     }
-
     return w;
   }
 
@@ -217,34 +215,44 @@ public:
     stream << "RemoveDamagedWeightFunction [damage_limit: " << damage_limit << "]";
   }
 
-  virtual UInt getNbData(const Element & element,
-			 __attribute__((unused)) SynchronizationTag tag) const {
-    UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
-    UInt size = sizeof(Real) * nb_quadrature_points;
-    return size;
+  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+				    SynchronizationTag tag) const {
+    if(tag == _gst_mnl_weight)
+      return this->material.getNbQuadraturePoints(elements) * sizeof(Real);
+
+    return 0;
   }
 
-  virtual inline void packData(CommunicationBuffer & buffer,
-   			       const Element & element,
-   			       __attribute__((unused)) SynchronizationTag tag) const {
-    UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
-    const Vector<Real> & dam_vect = this->material.getVector("damage", element.type, _not_ghost);
-    Vector<Real>::const_iterator<Real> damage = dam_vect.begin();
+  virtual inline void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
+				      SynchronizationTag tag) const {
+    if(tag == _gst_mnl_weight)
+      this->material.packElementDataHelper(dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
+					   buffer,
+					   elements);
+    // UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
+    // const Vector<Real> & dam_vect = this->material.getVector("damage", element.type, _not_ghost);
+    // Vector<Real>::const_iterator<Real> damage = dam_vect.begin();
 
-    damage += element.element * nb_quadrature_points;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
-      buffer << *damage;
+    // damage += element.element * nb_quadrature_points;
+    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
+    //   buffer << *damage;
   }
 
-  virtual inline void unpackData(CommunicationBuffer & buffer,
-   				 const Element & element,
-   				 __attribute__((unused)) SynchronizationTag tag) {
-    UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
-    Vector<Real>::iterator<Real> damage =
-      this->material.getVector("damage", element.type, _ghost).begin();
-    damage += element.element * nb_quadrature_points;
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
-      buffer >> *damage;
+  virtual inline void unpackElementData(CommunicationBuffer & buffer,
+					const Vector<Element> & elements,
+					SynchronizationTag tag) {
+    if(tag == _gst_mnl_weight)
+      this->material.unpackElementDataHelper(dynamic_cast< MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
+					   buffer,
+					   elements);
+
+    // UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
+    // Vector<Real>::iterator<Real> damage =
+    //   this->material.getVector("damage", element.type, _ghost).begin();
+    // damage += element.element * nb_quadrature_points;
+    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
+    //   buffer >> *damage;
   }
 
 

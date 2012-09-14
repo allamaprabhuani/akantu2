@@ -58,10 +58,13 @@ void IntegratorGauss::checkJacobians(const GhostType & ghost_type) const {
   Real * jacobians_val = jacobians(type, ghost_type).storage();
 
   for (UInt i = 0; i < nb_element*nb_quadrature_points; ++i,++jacobians_val){
-    AKANTU_DEBUG_ASSERT(*jacobians_val >0,
-			"Negative jacobian computed,"
-			<< " possible problem in the element node ordering (element " << i
-/nb_quadrature_points << ")");
+    if(*jacobians_val < 0)
+      AKANTU_DEBUG_ERROR("Negative jacobian computed,"
+			 << " possible problem in the element node ordering (Quadrature Point "
+			 << i % nb_quadrature_points << ":"
+			 << i / nb_quadrature_points << ":"
+			 << type << ":"
+			 << ghost_type << ")");
   }
   AKANTU_DEBUG_OUT();
 }

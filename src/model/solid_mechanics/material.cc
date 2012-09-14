@@ -64,7 +64,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   initInternalVector(stress, spatial_dimension * spatial_dimension);
 
   /// for each connectivity types allocate the element filer array of the material
-  initInternalVector(element_filter, 1);
+  initInternalVector(element_filter, 1, true);
 
   AKANTU_DEBUG_OUT();
 }
@@ -99,6 +99,7 @@ void Material::initMaterial() {
 template<typename T>
 void Material::initInternalVector(ByElementTypeVector<T> & vect,
 				  UInt nb_component,
+				  bool temporary,
 				  ElementKind element_kind) {
   AKANTU_DEBUG_IN();
 
@@ -108,7 +109,8 @@ void Material::initInternalVector(ByElementTypeVector<T> & vect,
 						    false,
 						    element_kind);
 
-  registerInternal(vect);
+  if(!temporary)
+    registerInternal(vect);
 
   AKANTU_DEBUG_OUT();
 }
@@ -767,7 +769,6 @@ Vector<Real> & Material::getVector(const ID & vect_id, const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-
 void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
@@ -783,18 +784,22 @@ void Material::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalVector<Real>(ByElementTypeVector<Real> & vect,
 						 UInt nb_component,
+						 bool temporary,
 						 ElementKind element_kind);
 
 template void Material::initInternalVector<UInt>(ByElementTypeVector<UInt> & vect,
 						 UInt nb_component,
+						 bool temporary,
 						 ElementKind element_kind);
 
 template void Material::initInternalVector<Int>(ByElementTypeVector<Int> & vect,
 						UInt nb_component,
+						bool temporary,
 						ElementKind element_kind);
 
 template void Material::initInternalVector<bool>(ByElementTypeVector<bool> & vect,
 						 UInt nb_component,
+						 bool temporary,
 						 ElementKind element_kind);
 
 

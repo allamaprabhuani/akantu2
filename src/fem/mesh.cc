@@ -261,7 +261,8 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 				   UInt nb_component,
 				   UInt dim,
 				   const bool & flag_nb_node_per_elem_multiply,
-				   ElementKind element_kind) const {
+				   ElementKind element_kind,
+				   bool size_to_nb_element) const {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -272,7 +273,9 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
     for(; it != end; ++it) {
       ElementType type = *it;
       if (flag_nb_node_per_elem_multiply) nb_component *= Mesh::getNbNodesPerElement(*it);
-      vect.alloc(0, nb_component, type);
+      UInt size = 0;
+      if (size_to_nb_element) size = this->getNbElement(type, gt);
+      vect.alloc(size, nb_component, type);
     }
   }
 
@@ -284,25 +287,29 @@ template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & ve
 						  UInt nb_component,
 						  UInt dim,
 						  const bool & flag_nb_elem_multiply,
-						  ElementKind element_kind) const;
+						  ElementKind element_kind,
+						  bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeVector<Int>(ByElementTypeVector<Int> & vect,
 						 UInt nb_component,
 						 UInt dim,
 						 const bool & flag_nb_elem_multiply,
-						 ElementKind element_kind) const;
+						 ElementKind element_kind,
+						 bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & vect,
 						  UInt nb_component,
 						  UInt dim,
 						  const bool & flag_nb_elem_multiply,
-						  ElementKind element_kind) const;
+						  ElementKind element_kind,
+						  bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeVector<bool>(ByElementTypeVector<bool> & vect,
 						  UInt nb_component,
 						  UInt dim,
 						  const bool & flag_nb_elem_multiply,
-						  ElementKind element_kind) const;
+						  ElementKind element_kind,
+						  bool size_to_nb_element) const;
 
 
 __END_AKANTU__

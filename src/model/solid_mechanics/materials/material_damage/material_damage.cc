@@ -39,10 +39,10 @@ MaterialDamage<spatial_dimension>::MaterialDamage(SolidMechanicsModel & model,
 						  const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   damage("damage", id),
-  dissipated_energy("Dissipated Energy", id),
-  strain_prev("Previous Strain", id),
-  stress_prev("Previous Stress", id),
-  int_sigma("Integral of sigma", id) {
+  dissipated_energy("dissipated energy", id),
+  strain_prev("previous strain", id),
+  stress_prev("previous stress", id),
+  int_sigma("integral of sigma", id) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = false;

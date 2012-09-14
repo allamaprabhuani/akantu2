@@ -74,6 +74,16 @@ public:
 	    || (kind != elem.kind));
   }
 
+  bool operator<(const Element& rhs) const {
+    bool res = ((this->kind < rhs.kind) ||
+		((this->kind == rhs.kind) &&
+		 ((this->ghost_type < rhs.ghost_type) ||
+		  ((this->ghost_type == rhs.ghost_type) &&
+		   ((this->type < rhs.type) ||
+		    ((this->type == rhs.type) &&
+		     (this->element < rhs.element)))))));
+    return res;
+  }
 
   virtual ~Element() {};
 
@@ -88,14 +98,7 @@ public:
 
 struct CompElementLess {
   bool operator() (const Element& lhs, const Element& rhs) const {
-    bool res = ((lhs.kind < rhs.kind) ||
-		((lhs.kind == rhs.kind) &&
-		 ((lhs.ghost_type < rhs.ghost_type) ||
-		  ((lhs.ghost_type == rhs.ghost_type) &&
-		   ((lhs.type < rhs.type) ||
-		    ((lhs.type == rhs.type) &&
-		     (lhs.element < rhs.element)))))));
-    return res;
+    return lhs < rhs;
   }
 };
 
@@ -116,10 +119,31 @@ protected:
   Vector<Entity> list;
 };
 
+
+
+class Mesh;
+
 class NewNodesEvent : public MeshEvent<UInt> { };
-class RemovedNodesEvent : public MeshEvent<UInt> { };
+class RemovedNodesEvent : public MeshEvent<UInt> {
+public:
+  inline RemovedNodesEvent(const Mesh & mesh);
+  AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, Vector<UInt> &);
+  AKANTU_GET_MACRO(NewNumbering, new_numbering, const Vector<UInt> &);
+private:
+  Vector<UInt> new_numbering;
+};
+
 class NewElementsEvent : public MeshEvent<Element> { };
-class RemovedElementsEvent : public MeshEvent<Element> { };
+class RemovedElementsEvent : public MeshEvent<Element> {
+public:
+  inline RemovedElementsEvent(const Mesh & mesh);
+  AKANTU_GET_MACRO(NewNumbering, new_numbering, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, ByElementTypeUInt &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NewNumbering, new_numbering, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NewNumbering, new_numbering, UInt);
+protected:
+  ByElementTypeUInt new_numbering;
+};
 
 /* -------------------------------------------------------------------------- */
 
@@ -131,20 +155,25 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList()); }
-  inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList()); }
+  inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList(),
+									  event.getNewNumbering()); }
 
   inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList()); }
-  inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList()); }
+  inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList(),
+										event.getNewNumbering()); }
 
   /* ------------------------------------------------------------------------ */
   /* Interface                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   virtual void onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list) {  }
-  virtual void onNodesRemoved(__attribute__((unused)) const Vector<UInt> & nodes_list) {  }
+  virtual void onNodesRemoved(__attribute__((unused)) const Vector<UInt> & nodes_list,
+			      __attribute__((unused)) const Vector<UInt> & new_numbering) {  }
+
 
   virtual void onElementsAdded  (__attribute__((unused)) const Vector<Element> & elements_list) { }
-  virtual void onElementsRemoved(__attribute__((unused)) const Vector<Element> & elements_list) { }
+  virtual void onElementsRemoved(__attribute__((unused)) const Vector<Element> & elements_list,
+				 __attribute__((unused)) const ByElementTypeUInt & new_numbering) { }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -227,9 +256,10 @@ public:
   template<typename T>
   void initByElementTypeVector(ByElementTypeVector<T> & v,
  			       UInt nb_component,
-			       UInt size,
+			       UInt spatial_dimension,
 			       const bool & flag_nb_node_per_elem_multiply = false,
-			       ElementKind element_kind = _ek_regular) const; /// @todo: think about nicer way to do it
+			       ElementKind element_kind = _ek_regular,
+			       bool size_to_nb_element = false) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
   template<typename T>
@@ -255,6 +285,18 @@ public:
 
   /// add a Vector of connectivity for the type <type>.
   inline void addConnectivityType(const ElementType & type);
+
+  /* ------------------------------------------------------------------------ */
+  template <class Event>
+  inline void sendEvent(Event & event) {
+    if(event.getList().getSize() != 0)
+      EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template<typename T>
+  inline void removeNodesFromVector(Vector<T> & vect, const Vector<UInt> & new_numbering);
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

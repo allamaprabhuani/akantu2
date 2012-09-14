@@ -57,69 +57,25 @@ inline const T & Vector<T, is_scal>::operator()(UInt i, UInt j) const {
   return values[i*nb_component + j];
 }
 
-
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-inline T & Vector<T, is_scal>::at(UInt i, UInt j) {
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(size > 0,
-		      "The vector is empty");
-  AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
-		      "The value at position [" << i << "," << j
-		      << "] is out of range");
-
-  AKANTU_DEBUG_OUT();
-  return values[i*nb_component + j];
-}
-
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-inline const T & Vector<T, is_scal>::get(UInt i, UInt j) const{
-  AKANTU_DEBUG_IN();
-  AKANTU_DEBUG_ASSERT(size > 0,
-		      "The vector is empty");
-  AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
-		      "The value at position [" << i << "," << j
-		      << "] is out of range");
-
-  AKANTU_DEBUG_OUT();
-  return values[i*nb_component + j];
-}
-
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline void Vector<T, is_scal>::push_back(const T & value) {
-  //  AKANTU_DEBUG_IN();
   UInt pos = size;
 
   resizeUnitialized(size+1);
 
-  /// @todo see if with std::uninitialized_fill it allow to build vector of objects
-
   std::uninitialized_fill_n(values + pos * nb_component, nb_component, value);
-
-  // for (UInt i = 0; i < nb_component; ++i) {
-  //   values[pos*nb_component + i] = value;
-  // }
-
-  //  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline void Vector<T, is_scal>::push_back(const T new_elem[]) {
-  //  AKANTU_DEBUG_IN();
   UInt pos = size;
 
   resizeUnitialized(size+1);
 
   T * tmp = values + nb_component * pos;
   std::uninitialized_copy(new_elem, new_elem + nb_component, tmp);
-
-  // for (UInt i = 0; i < nb_component; ++i) {
-  //   values[pos*nb_component + i] = new_elem[i];
-  // }
-  //  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -147,7 +103,7 @@ inline void Vector<T, is_scal>::erase(UInt i){
   AKANTU_DEBUG_ASSERT((size > 0),
 		      "The vector is empty");
   AKANTU_DEBUG_ASSERT((i < size),
-		      "The element at position [" << i << "] is out of range");
+		      "The element at position [" << i << "] is out of range (" << i << ">=" << size << ")");
 
 
   if(i != (size - 1)) {
@@ -203,7 +159,7 @@ Vector<T, is_scal> & Vector<T, is_scal>::operator*=(const T & alpha) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Functions Vector<T, is_scal>                                                        */
+/* Functions Vector<T, is_scal>                                               */
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 Vector<T, is_scal>::Vector (UInt size,
@@ -236,9 +192,6 @@ Vector<T, is_scal>::Vector (UInt size,
   for (UInt i = 0; i < size; ++i) {
     tmp = values + nb_component * i;
     std::uninitialized_copy(def_values, def_values + nb_component, tmp);
-    // for (UInt j = 0; j < nb_component; ++j) {
-    //   values[i*nb_component + j] = def_values[j];
-    // }
   }
   AKANTU_DEBUG_OUT();
 }
@@ -254,10 +207,6 @@ Vector<T, is_scal>::Vector (UInt size,
   allocate(size, nb_component);
 
   std::uninitialized_fill_n(values, size*nb_component, value);
-
-  // for (UInt i = 0; i < nb_component*size; ++i) {
-  //   values[i] = value;
-  // }
 
   AKANTU_DEBUG_OUT();
 }
@@ -275,11 +224,6 @@ Vector<T, is_scal>::Vector(const Vector<T, is_scal> & vect,
     allocate(vect.size, vect.nb_component);
     T * tmp = values;
     std::uninitialized_copy(vect.values, vect.values + size * nb_component, tmp);
-    // for (UInt i = 0; i < size; ++i) {
-    //   for (UInt j = 0; j < nb_component; ++j) {
-    // 	values[i*nb_component + j] = vect.values[i*nb_component + j];
-    //   }
-    // }
   } else {
     this->values = vect.values;
     this->size = vect.size;

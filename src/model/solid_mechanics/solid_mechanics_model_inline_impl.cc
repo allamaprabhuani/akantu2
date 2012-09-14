@@ -50,229 +50,307 @@ inline FEM & SolidMechanicsModel::getFEMBoundary(std::string name) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt SolidMechanicsModel::getNbDataToPack(const Element & element,
+inline void SolidMechanicsModel::splitElementByMaterial(const Vector<Element> & elements,
+						 Vector<Element> * elements_per_mat) const {
+  ElementType current_element_type = _not_defined;
+  GhostType current_ghost_type = _casper;
+  UInt * elem_mat = NULL;
+
+  Vector<Element>::const_iterator<Element> it  = elements.begin();
+  Vector<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
+      current_element_type = el.type;
+      current_ghost_type   = el.ghost_type;
+      elem_mat = element_material(el.type, el.ghost_type).storage();
+    }
+    elements_per_mat[elem_mat[el.element]].push_back(el);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void SolidMechanicsModel::packElementDataHelper(Vector<T> & data_to_pack,
+						       CommunicationBuffer & buffer,
+						       const Vector<Element> & element) const {
+  packUnpackElementDataHelper<T, true>(data_to_pack, buffer, element);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void SolidMechanicsModel::unpackElementDataHelper(Vector<T> & data_to_unpack,
+							 CommunicationBuffer & buffer,
+							 const Vector<Element> & element) const {
+  packUnpackElementDataHelper<T, false>(data_to_unpack, buffer, element);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T, bool pack_helper>
+inline void SolidMechanicsModel::packUnpackElementDataHelper(Vector<T> & data,
+							     CommunicationBuffer & buffer,
+							     const Vector<Element> & elements) const {
+  UInt nb_component = data.getNbComponent();
+  UInt nb_nodes_per_element = 0;
+
+  ElementType current_element_type = _not_defined;
+  GhostType current_ghost_type = _casper;
+  UInt * conn = NULL;
+
+  Vector<Element>::const_iterator<Element> it  = elements.begin();
+  Vector<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
+      current_element_type = el.type;
+      current_ghost_type   = el.ghost_type;
+      conn = mesh.getConnectivity(el.type, el.ghost_type).storage();
+      nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+    }
+
+    UInt el_offset  = el.element * nb_nodes_per_element;
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n];
+      types::Vector<T> data_vect(data.storage() + offset_conn * nb_component,
+				 nb_component);
+
+      if(pack_helper)
+	buffer << data_vect;
+      else
+	buffer >> data_vect;
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & elements,
+						      SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+
+#ifndef AKANTU_NDEBUG
+  size += elements.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
+#endif
+
+  UInt nb_nodes_per_element = 0;
+
+  Vector<Element>::const_iterator<Element> it  = elements.begin();
+  Vector<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  }
+
+  switch(tag) {
+  case _gst_smm_mass: {
+    size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
+    break;
+  }
+  case _gst_smm_for_strain: {
+    size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
+
+    //UInt mat = element_material(element.type, _not_ghost)(element.element);
+    //size += materials[mat]->getNbDataToPack(element, tag);
+   break;
+  }
+  case _gst_smm_boundary: {
+    // force, displacement, boundary
+    size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
+    break;
+  }
+  default: {  }
+  }
+
+
+  Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+  this->splitElementByMaterial(elements, elements_per_mat);
+
+  for (UInt i = 0; i < materials.size(); ++i) {
+    size += materials[i]->getNbDataForElements(elements_per_mat[i], tag);
+  }
+  delete [] elements_per_mat;
+
+  AKANTU_DEBUG_OUT();
+  return size;
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
+						 const Vector<Element> & elements,
 						 SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  // GhostType ghost_type = _not_ghost;
+
+  // UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  // UInt el_offset  = element.element * nb_nodes_per_element;
+  // UInt * conn  = mesh.getConnectivity(element.type, ghost_type).storage();
 
 #ifndef AKANTU_NDEBUG
-  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+    types::RVector barycenter(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
+    buffer << barycenter;
+  }
 #endif
 
   switch(tag) {
   case _gst_smm_mass: {
-    size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
+    packElementDataHelper(*mass, buffer, elements);
+    // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //   UInt offset_conn = conn[el_offset + n];
+    //   Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+    //   buffer << it_mass[offset_conn];
+    // }
     break;
   }
   case _gst_smm_for_strain: {
-    size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
+    packElementDataHelper(*displacement, buffer, elements);
+    // Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
+    // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //   UInt offset_conn = conn[el_offset + n];
+    //   buffer << it_disp[offset_conn];
+    // }
 
-    UInt mat = element_material(element.type, _not_ghost)(element.element);
+    // UInt mat = element_material(element.type, ghost_type)(element.element);
     // Element mat_element = element;
-    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
-    size += materials[mat]->getNbDataToPack(element, tag);
+    // mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    // materials[mat]->packData(buffer, mat_element, tag);
     break;
   }
   case _gst_smm_boundary: {
-    // force, displacement, boundary
-    size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
+    packElementDataHelper(*force, buffer, elements);
+    packElementDataHelper(*velocity, buffer, elements);
+    packElementDataHelper(*boundary, buffer, elements);
+    // Vector<Real>::iterator<types::RVector> it_force = force->begin(spatial_dimension);
+    // Vector<Real>::iterator<types::RVector> it_velocity = velocity->begin(spatial_dimension);
+    // Vector<bool>::iterator<types::Vector<bool> > it_boundary = boundary->begin(spatial_dimension);
+
+    // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //   UInt offset_conn = conn[el_offset + n];
+
+    //   buffer << it_force   [offset_conn];
+    //   buffer << it_velocity[offset_conn];
+    //   buffer << it_boundary[offset_conn];
+    // }
     break;
   }
   default: {
-    UInt mat = element_material(element.type, _not_ghost)(element.element);
+    // UInt mat = element_material(element.type, ghost_type)(element.element);
     // Element mat_element = element;
-    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
-    size += materials[mat]->getNbDataToPack(element, tag);
-  }
-  }
-
-  AKANTU_DEBUG_OUT();
-  return size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt SolidMechanicsModel::getNbDataToUnpack(const Element & element,
-						   SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
-
-  UInt size = 0;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
-
-#ifndef AKANTU_NDEBUG
-  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-#endif
-
-  switch(tag) {
-  case _gst_smm_mass: {
-    size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
-    break;
-  }
-  case _gst_smm_for_strain: {
-    size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
-
-    UInt mat = element_material(element.type, _ghost)(element.element);
-    // Element mat_element = element;
-    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
-    size += materials[mat]->getNbDataToUnpack(element, tag);
-    break;
-  }
-  case _gst_smm_boundary: {
-    // force, displacement, boundary
-    size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
-    break;
-  }
-  default: {
-    UInt mat = element_material(element.type, _ghost)(element.element);
-    // Element mat_element = element;
-    // mat_element.element = element_index_by_material(element.type, _not_ghost)(element.element);
-    size += materials[mat]->getNbDataToUnpack(element, tag);
-  }
-  }
-
-  AKANTU_DEBUG_OUT();
-  return size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
-					  const Element & element,
-					  SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
-
-  GhostType ghost_type = _not_ghost;
-
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
-  UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = mesh.getConnectivity(element.type, ghost_type).storage();
-
-#ifndef AKANTU_NDEBUG
-  types::RVector barycenter(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, barycenter.storage(), ghost_type);
-  buffer << barycenter;
-#endif
-
-  switch(tag) {
-  case _gst_smm_mass: {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
-      buffer << it_mass[offset_conn];
-    }
-    break;
-  }
-  case _gst_smm_for_strain: {
-    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      buffer << it_disp[offset_conn];
-    }
-
-    UInt mat = element_material(element.type, ghost_type)(element.element);
-    Element mat_element = element;
-    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
-    materials[mat]->packData(buffer, mat_element, tag);
-    break;
-  }
-  case _gst_smm_boundary: {
-    Vector<Real>::iterator<types::RVector> it_force = force->begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> it_velocity = velocity->begin(spatial_dimension);
-    Vector<bool>::iterator<types::Vector<bool> > it_boundary = boundary->begin(spatial_dimension);
-
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-
-      buffer << it_force   [offset_conn];
-      buffer << it_velocity[offset_conn];
-      buffer << it_boundary[offset_conn];
-    }
-    break;
-  }
-  default: {
-    UInt mat = element_material(element.type, ghost_type)(element.element);
-    Element mat_element = element;
-    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
-    materials[mat]->packData(buffer, mat_element, tag);
+    // mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    // materials[mat]->packData(buffer, mat_element, tag);
     //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
 
+  Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+  splitElementByMaterial(elements, elements_per_mat);
+
+  for (UInt i = 0; i < materials.size(); ++i) {
+    materials[i]->packElementData(buffer, elements_per_mat[i], tag);
+  }
+
+  delete [] elements_per_mat;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
-					    const Element & element,
-					    SynchronizationTag tag) {
+inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
+						   const Vector<Element> & elements,
+						   SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  GhostType ghost_type = _ghost;
+  // GhostType ghost_type = _ghost;
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
-  UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = mesh.getConnectivity(element.type, ghost_type).values;
+  // UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  // UInt el_offset  = element.element * nb_nodes_per_element;
+  // UInt * conn  = mesh.getConnectivity(element.type, ghost_type).values;
 
 #ifndef AKANTU_NDEBUG
-  types::RVector barycenter_loc(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), ghost_type);
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
 
-  types::RVector barycenter(spatial_dimension);
-  buffer >> barycenter;
-  Real tolerance = 1e-15;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
-      AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
-			 << element
-			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
-			 << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
+    types::RVector barycenter_loc(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
+
+    types::RVector barycenter(spatial_dimension);
+    buffer >> barycenter;
+    Real tolerance = 1e-15;
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
+	AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
+			   << element
+			   << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			   << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
+    }
   }
 #endif
 
   switch(tag) {
   case _gst_smm_mass: {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
-      buffer >> it_mass[offset_conn];
-    }
+    unpackElementDataHelper(*mass, buffer, elements);
+    // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //   UInt offset_conn = conn[el_offset + n];
+    //   Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+    //   buffer >> it_mass[offset_conn];
+    // }
     break;
   }
   case _gst_smm_for_strain: {
-    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      buffer >> it_disp[offset_conn];
-    }
+    unpackElementDataHelper(*displacement, buffer, elements);
+    // Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
+    // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //   UInt offset_conn = conn[el_offset + n];
+    //   buffer >> it_disp[offset_conn];
+    // }
 
-    UInt mat = element_material(element.type, ghost_type)(element.element);
-    Element mat_element = element;
-    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
-    materials[mat]->unpackData(buffer, mat_element, tag);
+    // UInt mat = element_material(element.type, ghost_type)(element.element);
+    // Element mat_element = element;
+    // mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    // materials[mat]->unpackData(buffer, mat_element, tag);
     break;
   }
   case _gst_smm_boundary: {
-    Vector<Real>::iterator<types::RVector> it_force = force->begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> it_velocity = velocity->begin(spatial_dimension);
-    Vector<bool>::iterator<types::Vector<bool> > it_boundary = boundary->begin(spatial_dimension);
+    unpackElementDataHelper(*force, buffer, elements);
+    unpackElementDataHelper(*velocity, buffer, elements);
+    unpackElementDataHelper(*boundary, buffer, elements);
+    // Vector<Real>::iterator<types::RVector> it_force = force->begin(spatial_dimension);
+    // Vector<Real>::iterator<types::RVector> it_velocity = velocity->begin(spatial_dimension);
+    // Vector<bool>::iterator<types::Vector<bool> > it_boundary = boundary->begin(spatial_dimension);
 
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
+    // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //   UInt offset_conn = conn[el_offset + n];
 
-      buffer >> it_force   [offset_conn];
-      buffer >> it_velocity[offset_conn];
-      buffer >> it_boundary[offset_conn];
-    }
+    //   buffer >> it_force   [offset_conn];
+    //   buffer >> it_velocity[offset_conn];
+    //   buffer >> it_boundary[offset_conn];
+    // }
     break;
   }
   default: {
-    UInt mat = element_material(element.type, ghost_type)(element.element);
-    Element mat_element = element;
-    mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
-    materials[mat]->unpackData(buffer, mat_element, tag);
+    // UInt mat = element_material(element.type, ghost_type)(element.element);
+    // Element mat_element = element;
+    // mat_element.element = element_index_by_material(element.type, ghost_type)(element.element);
+    // materials[mat]->unpackData(buffer, mat_element, tag);
     //AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
+
+  Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+  splitElementByMaterial(elements, elements_per_mat);
+
+  for (UInt i = 0; i < materials.size(); ++i) {
+    materials[i]->unpackElementData(buffer, elements_per_mat[i], tag);
+  }
+
+  delete [] elements_per_mat;
 
   AKANTU_DEBUG_OUT();
 }
@@ -302,7 +380,7 @@ inline UInt SolidMechanicsModel::getNbDataToPack(SynchronizationTag tag) const {
     AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
   }
-  
+
   AKANTU_DEBUG_OUT();
   return size;
 }

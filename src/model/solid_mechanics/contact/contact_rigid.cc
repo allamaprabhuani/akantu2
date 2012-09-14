@@ -369,10 +369,10 @@ bool ContactRigid::isAlreadyActiveImpactor(const Surface master,
   Vector<Real> * master_normals = impactor_info->master_normals;
 
   for (UInt i=0; i<active_nodes->getSize(); ++i) {
-    if(active_nodes->at(i) == impactor_node) {
+    if((*active_nodes)(i) == impactor_node) {
       UInt count = 0;
       for (UInt d=0; d<this->spatial_dimension; ++d) {
-	if(Math::are_float_equal(master_normals->at(i,d),normal[d]))
+	if(Math::are_float_equal((*master_normals)(i,d),normal[d]))
 	  count++;
       }
       if(count == this->spatial_dimension)
@@ -502,10 +502,10 @@ void ContactRigid::avoidAdhesion() {
     ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
     for (UInt n=0; n < impactor_info->active_impactor_nodes->getSize(); ++n) {
-      UInt current_node = impactor_info->active_impactor_nodes->at(n);
+      UInt current_node = (*impactor_info->active_impactor_nodes)(n);
 
       for (UInt i=0; i < spatial_dimension; ++i) {
-	Int direction = Int(impactor_info->master_normals->at(n,i));
+	Int direction = Int((*impactor_info->master_normals)(n,i));
 	Real force = residual_val[current_node * spatial_dimension + i];
 	if(force * direction > 0.) {
 	  bound_val[current_node * spatial_dimension + i] = false;

@@ -319,7 +319,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
 
   if(dimension == 1) {
     for (UInt n = 0; n < nb_nodes; ++n) {
-      nodes.at(n, 0) = n * spacing[0] + lower_bounds[0];
+      nodes(n, 0) = n * spacing[0] + lower_bounds[0];
     }
 
     mesh.addConnectivityType(_segment_2);

@@ -45,14 +45,16 @@ __BEGIN_AKANTU__
 
 class CommunicationBuffer;
 
-class DistributedSynchronizer : public Synchronizer {
+class DistributedSynchronizer : public Synchronizer, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-public:
-
-  DistributedSynchronizer(SynchronizerID id = "distributed_synchronizer",
+protected:
+  DistributedSynchronizer(Mesh & mesh,
+			  SynchronizerID id = "distributed_synchronizer",
 			  MemoryID memory_id = 0);
+
+public:
   virtual ~DistributedSynchronizer();
 
   /* ------------------------------------------------------------------------ */
@@ -80,6 +82,10 @@ public:
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  /// mesh event handler onRemovedElement
+  virtual void onElementsRemoved(const Vector<Element> & element_list,
+				 const ByElementTypeUInt & new_numbering);
+
 protected:
   /// fill the nodes type vector
   void fillNodesType(Mesh & mesh);
@@ -103,6 +109,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// reference to the underlying mesh
+  Mesh & mesh;
+
   /// the static memory instance
   StaticCommunicator * static_communicator;
 
@@ -129,40 +138,13 @@ protected:
 
   std::map<SynchronizationTag, Communication> communications;
 
-  // /// size of data to send to each processor by communication tag
-  // std::map< SynchronizationTag, Vector<UInt> > size_to_send;
-
-  // /// size of data to receive form each processor by communication tag
-  // std::map< SynchronizationTag, Vector<UInt> > size_to_receive;
-
-  // std::map<SynchronizationTag, CommunicationBuffer *> send_buffer;
-  // std::map<SynchronizationTag, CommunicationBuffer *> recv_buffer;
-
-  // /// send requests
-  // std::vector<CommunicationRequest *> send_requests;
-  // /// receive requests
-  // std::vector<CommunicationRequest *> recv_requests;
-
-  // /// list of real element to send ordered by type then by receiver processors
-  // ByElementTypeUInt element_to_send_offset;
-  // ByElementTypeUInt element_to_send;
-
-  std::vector<Element> * send_element;
-  std::vector<Element> * recv_element;
-
-  // /// list of ghost element to receive ordered by type then by sender processors
-  // ByElementTypeUInt element_to_receive_offset;
-  // ByElementTypeUInt element_to_receive;
+  /// list of element to sent to proc p
+  Vector<Element> * send_element;
+  /// list of element to receive from proc p
+  Vector<Element> * recv_element;
 
   UInt nb_proc;
   UInt rank;
-
-  // /// global node ids
-  // Vector<UInt> * nodes_global_ids;
-
-  // /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
-  // /// [0-N] slave node and master is proc i
-  // Vector<Int> * nodes_type;
 
 };
 

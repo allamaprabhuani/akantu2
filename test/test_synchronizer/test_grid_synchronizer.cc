@@ -53,16 +53,14 @@ public:
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual UInt getNbDataToPack(const Element & element,
-				       SynchronizationTag tag) const;
-  virtual UInt getNbDataToUnpack(const Element & element,
-					 SynchronizationTag tag) const;
-  virtual void packData(CommunicationBuffer & buffer,
-			const Element & element,
+  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+				    SynchronizationTag tag) const;
+  virtual void packElementData(CommunicationBuffer & buffer,
+			const Vector<Element> & elements,
 			SynchronizationTag tag) const;
-  virtual void unpackData(CommunicationBuffer & buffer,
-			  const Element & element,
-			  SynchronizationTag tag);
+  virtual void unpackElementData(CommunicationBuffer & buffer,
+				 const Vector<Element> & elements,
+				 SynchronizationTag tag);
 
 
   /* ------------------------------------------------------------------------ */
@@ -101,33 +99,50 @@ TestAccessor::~TestAccessor() {
 
 }
 
-UInt TestAccessor::getNbDataToPack(const Element & element,
-					       __attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(element.type) * sizeof(Real);
+UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
+					__attribute__ ((unused)) SynchronizationTag tag) const {
+  return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
 }
 
-UInt TestAccessor::getNbDataToUnpack(const Element & element,
-						 __attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(element.type) * sizeof(Real);
+void TestAccessor::packElementData(CommunicationBuffer & buffer,
+				   const Vector<Element> & elements,
+				   __attribute__ ((unused)) SynchronizationTag tag) const {
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+
+    types::RVector bary(barycenter(element.type,
+				   element.ghost_type).storage() + element.element * spatial_dimension,
+			spatial_dimension);;
+    buffer << barycenter;
+  }
 }
 
-void TestAccessor::packData(CommunicationBuffer & buffer,
-				const Element & element,
-				__attribute__ ((unused)) SynchronizationTag tag) const {
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  types::RVector bary(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, bary.storage());
+void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
+				     const Vector<Element> & elements,
+				     __attribute__ ((unused)) SynchronizationTag tag) {
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
 
-  buffer << bary;
-}
+    types::RVector barycenter_loc(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
 
-void TestAccessor::unpackData(CommunicationBuffer & buffer,
-				  const Element & element,
-				  __attribute__ ((unused)) SynchronizationTag tag) {
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  Vector<Real>::iterator<types::RVector> bary =
-    barycenter(element.type).begin(spatial_dimension);
-  buffer >> bary[element.element];
+    types::RVector barycenter(spatial_dimension);
+    buffer >> barycenter;
+    Real tolerance = 1e-15;
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
+	AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
+			   << element
+			   << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			   << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
+    }
+  }
 }
 
 

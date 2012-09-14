@@ -32,6 +32,57 @@ __END_AKANTU__
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+inline RemovedNodesEvent::RemovedNodesEvent(const Mesh & mesh) :
+  new_numbering(mesh.getNbNodes(), 1, "new_numbering") {
+}
+
+/* -------------------------------------------------------------------------- */
+inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh) :
+  new_numbering("new_numbering", mesh.getID()) {
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline void Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
+  if(event.getList().getSize() != 0) {
+    connectivities.onElementsRemoved(event.getNewNumbering());
+    EventHandlerManager<MeshEventHandler>::sendEvent(event);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
+  if(event.getList().getSize() != 0) {
+    if(created_nodes)    removeNodesFromVector(*nodes           , event.getNewNumbering());
+    if(nodes_global_ids) removeNodesFromVector(*nodes_global_ids, event.getNewNumbering());
+    if(nodes_type)       removeNodesFromVector(*nodes_type      , event.getNewNumbering());
+
+    EventHandlerManager<MeshEventHandler>::sendEvent(event);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void Mesh::removeNodesFromVector(Vector<T> & vect, const Vector<UInt> & new_numbering) {
+  Vector<T> tmp(vect.getSize(), vect.getNbComponent());
+  UInt nb_component = vect.getNbComponent();
+  UInt new_nb_nodes = 0;
+  for (UInt i = 0; i < new_numbering.getSize(); ++i) {
+    UInt new_i = new_numbering(i);
+    if(new_i != UInt(-1)) {
+      memcpy(tmp.storage() + new_i * nb_component,
+	     vect.storage() + i * nb_component,
+	     nb_component * sizeof(T));
+      ++new_nb_nodes;
+    }
+  }
+
+  tmp.resize(new_nb_nodes);
+  vect.copy(tmp);
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::elementToLinearized(const Element & elem) {
   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
 		      elem.element < types_offsets.values[elem.type+1],
@@ -239,11 +290,14 @@ inline UInt Mesh::getNbElement(const ElementType & type,
 			       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  const ByElementTypeUInt & const_conn = connectivities;
-
-  const Vector<UInt> & conn = const_conn(type, ghost_type);
-  AKANTU_DEBUG_OUT();
-  return conn.getSize();
+  try {
+    const Vector<UInt> & conn = connectivities(type, ghost_type);
+    AKANTU_DEBUG_OUT();
+    return conn.getSize();
+  } catch (...) {
+    AKANTU_DEBUG_OUT();
+    return 0;
+  }
 }
 
 /* -------------------------------------------------------------------------- */

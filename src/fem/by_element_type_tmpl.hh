@@ -232,7 +232,7 @@ inline const Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & 
   if(it == this->getData(ghost_type).end())
     AKANTU_EXCEPTION("No element of type "
                      << ByElementTypeVector<T>::printType(type, ghost_type)
-                     << " in this ByElementTypeVector<"
+                     << " in this const ByElementTypeVector<"
                      << debug::demangle(typeid(T).name()) << "> class(\""
                      << this->id << "\")");
 
@@ -270,6 +270,37 @@ inline void ByElementTypeVector<T>::setVector(const ElementType & type,
   }
 
   this->getData(ghost_type)[type] = &(const_cast<Vector<T> &>(vect));
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline void ByElementTypeVector<T>::onElementsRemoved(const ByElementTypeVector<UInt> & new_numbering) {
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+    ByElementTypeVector<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
+    ByElementTypeVector<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    for (; it != end; ++it) {
+      ElementType type = *it;
+      if(this->exists(type, gt)){
+	const Vector<UInt> & renumbering = new_numbering(type, gt);
+	Vector<T> & vect = this->operator()(type, gt);
+	UInt nb_component = vect.getNbComponent();
+	Vector<T> tmp(renumbering.getSize(), nb_component);
+	UInt new_size = 0;
+	for (UInt i = 0; i < vect.getSize(); ++i) {
+	  UInt new_i = renumbering(i);
+	  if(new_i != UInt(-1)) {
+	    memcpy(tmp.storage() + new_i * nb_component,
+		   vect.storage() + i *nb_component,
+		   nb_component * sizeof(T));
+	    ++new_size;
+	  }
+	}
+	tmp.resize(new_size);
+	vect.copy(tmp);
+      }
+    }
+  }
 }
 
 

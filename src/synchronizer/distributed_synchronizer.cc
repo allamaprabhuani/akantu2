@@ -40,18 +40,21 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-DistributedSynchronizer::DistributedSynchronizer(SynchronizerID id,
-                           MemoryID memory_id) :
+DistributedSynchronizer::DistributedSynchronizer(Mesh & mesh,
+						 SynchronizerID id,
+						 MemoryID memory_id) :
   Synchronizer(id, memory_id),
-  static_communicator(&StaticCommunicator::getStaticCommunicator())
+  mesh(mesh), static_communicator(&StaticCommunicator::getStaticCommunicator())
 {
   AKANTU_DEBUG_IN();
 
   nb_proc = static_communicator->getNbProc();
   rank    = static_communicator->whoAmI();
 
-  send_element = new std::vector<Element>[nb_proc];
-  recv_element = new std::vector<Element>[nb_proc];
+  send_element = new Vector<Element>[nb_proc];
+  recv_element = new Vector<Element>[nb_proc];
+
+  mesh.registerEventHandler(*this);
 
   AKANTU_DEBUG_OUT();
 }
@@ -99,9 +102,9 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   UInt nb_proc = comm.getNbProc();
   UInt my_rank = comm.whoAmI();
 
-  DistributedSynchronizer * communicator = new DistributedSynchronizer(id, memory_id);
+  DistributedSynchronizer & communicator = *(new DistributedSynchronizer(mesh, id, memory_id));
 
-  if(nb_proc == 1) return communicator;
+  if(nb_proc == 1) return &communicator;
 
   UInt * local_connectivity = NULL;
   UInt * local_partitions = NULL;
@@ -123,6 +126,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
      */
     Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension());
     Mesh::type_iterator end = mesh.lastType(mesh.getSpatialDimension());
+    UInt count = 0;
     for(; it != end; ++it) {
       ElementType type = *it;
 
@@ -207,13 +211,14 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           size[3] = nb_element_to_send[p];
           size[4] = nb_tags;
           size[5] = names_size;
-          comm.send(size, 6, p, TAG_SIZES);
+          AKANTU_DEBUG_INFO("Sending connectivities informations to proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_SIZES) <<")");
+          comm.send(size, 6, p, Tag::genTag(my_rank, count, TAG_SIZES));
 
-          AKANTU_DEBUG_INFO("Sending connectivities to proc " << p);
+          AKANTU_DEBUG_INFO("Sending connectivities to proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_CONNECTIVITY) <<")");
           requests.push_back(comm.asyncSend(buffers[p],
                                             nb_nodes_per_element * (nb_local_element[p] +
                                                                     nb_ghost_element[p]),
-                                            p, TAG_CONNECTIVITY));
+                                            p, Tag::genTag(my_rank, count, TAG_CONNECTIVITY)));
         } else {
           local_connectivity = buffers[p];
         }
@@ -266,20 +271,20 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       /// last data to compute the communication scheme
       for (UInt p = 0; p < nb_proc; ++p) {
         if(p != root) {
-          AKANTU_DEBUG_INFO("Sending partition informations to proc " << p);
+          AKANTU_DEBUG_INFO("Sending partition informations to proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_PARTITIONS) <<")");
           requests.push_back(comm.asyncSend(buffers[p],
                                              nb_element_to_send[p] + nb_ghost_element[p],
-                                             p, TAG_PARTITIONS));
+					    p, Tag::genTag(my_rank, count, TAG_PARTITIONS)));
         } else {
           local_partitions = buffers[p];
         }
       }
 
       AKANTU_DEBUG_INFO("Creating communications scheme");
-      communicator->fillCommunicationScheme(local_partitions,
-                                            nb_local_element[root],
-                                            nb_ghost_element[root],
-                                            type);
+      communicator.fillCommunicationScheme(local_partitions,
+					   nb_local_element[root],
+					   nb_ghost_element[root],
+					   type);
 
       comm.waitAll(requests);
       comm.freeCommunicationRequest(requests);
@@ -335,8 +340,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           if(p != root) {
             UInt size = nb_tags * (nb_local_element[p] + nb_ghost_element[p])
               + uint_names_size;
-            AKANTU_DEBUG_INFO("Sending associated data to proc " << p);
-            requests.push_back(comm.asyncSend(buffers[p], size, p, TAG_DATA));
+            AKANTU_DEBUG_INFO("Sending associated data to proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_DATA) <<")");
+            requests.push_back(comm.asyncSend(buffers[p], size, p, Tag::genTag(my_rank, count, TAG_DATA)));
           } else {
             local_data = buffers[p];
           }
@@ -350,6 +355,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         for (UInt p = 0; p < nb_proc; ++p) delete [] buffers[p];
         delete [] names;
       }
+      ++count;
     }
 
     /* -------->>>>-SIZE----------------------------------------------------- */
@@ -362,7 +368,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         size[3] = 0;
         size[4] = 0;
         size[5] = 0;
-        comm.send(size, 6, p, TAG_SIZES);
+	AKANTU_DEBUG_INFO("Sending empty connectivities informations to proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_SIZES) <<")");
+        comm.send(size, 6, p, Tag::genTag(my_rank, count, TAG_SIZES));
       }
     }
 
@@ -382,11 +389,12 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       UInt nb_nodes = 0;
       //      UInt * buffer;
       if(p != root) {
-        AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p);
-        comm.receive(&nb_nodes, 1, p, TAG_NB_NODES);
+        AKANTU_DEBUG_INFO("Receiving number of nodes from proc " << p << " TAG("<< Tag::genTag(p, 0, TAG_NB_NODES) <<")");
+        comm.receive(&nb_nodes, 1, p, Tag::genTag(p, 0, TAG_NB_NODES));
         nodes_per_proc[p] = new UInt[nb_nodes];
         nb_nodes_per_proc[p] = nb_nodes;
-        comm.receive(nodes_per_proc[p], nb_nodes, p, TAG_NODES);
+        AKANTU_DEBUG_INFO("Receiving list of nodes from proc " << p << " TAG("<< Tag::genTag(p, 0, TAG_NODES) <<")");
+        comm.receive(nodes_per_proc[p], nb_nodes, p, Tag::genTag(p, 0, TAG_NODES));
       } else {
         nb_nodes = old_nodes->getSize();
         nb_nodes_per_proc[p] = nb_nodes;
@@ -406,8 +414,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
 
       /* -------->>>>-COORDINATES-------------------------------------------- */
       if(p != root) { /// send them for distant processors
-        AKANTU_DEBUG_INFO("Sending coordinates to proc " << p);
-        comm.send(nodes_to_send, nb_nodes * spatial_dimension, p, TAG_COORDINATES);
+        AKANTU_DEBUG_INFO("Sending coordinates to proc " << p << " TAG("<< Tag::genTag(my_rank, 0, TAG_COORDINATES) <<")");
+        comm.send(nodes_to_send, nb_nodes * spatial_dimension, p, Tag::genTag(my_rank, 0, TAG_COORDINATES));
         delete [] nodes_to_send;
       } else { /// save them for local processor
         local_nodes = nodes_to_send;
@@ -426,14 +434,14 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       nodes_type_per_proc[p] = new Vector<Int>(nb_nodes_per_proc[p]);
     }
 
-    communicator->fillNodesType(mesh);
+    communicator.fillNodesType(mesh);
 
     /* --------<<<<-NODES_TYPE-1--------------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
-        AKANTU_DEBUG_INFO("Receiving first nodes types from proc " << p);
+        AKANTU_DEBUG_INFO("Receiving first nodes types from proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_NODES_TYPE) <<")");
         comm.receive(nodes_type_per_proc[p]->values,
-                      nb_nodes_per_proc[p], p, TAG_NODES_TYPE);
+		     nb_nodes_per_proc[p], p, Tag::genTag(p, 0, TAG_NODES_TYPE));
       } else {
         nodes_type_per_proc[p]->copy(mesh.getNodesType());
       }
@@ -463,9 +471,9 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     std::vector<CommunicationRequest *> requests;
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
-        AKANTU_DEBUG_INFO("Sending nodes types to proc " << p);
+        AKANTU_DEBUG_INFO("Sending nodes types to proc " << p << " TAG("<< Tag::genTag(my_rank, 0, TAG_NODES_TYPE) <<")");
         requests.push_back(comm.asyncSend(nodes_type_per_proc[p]->values,
-                                           nb_nodes_per_proc[p], p, TAG_NODES_TYPE));
+					  nb_nodes_per_proc[p], p, Tag::genTag(my_rank, 0, TAG_NODES_TYPE)));
       } else {
         mesh.getNodesTypePointer()->copy(*nodes_type_per_proc[p]);
       }
@@ -488,10 +496,11 @@ createDistributedSynchronizerMesh(Mesh & mesh,
      * connectivity and communications scheme construction on distant processors
      */
     ElementType type = _not_defined;
+    UInt count = 0;
     do {
       /* --------<<<<-SIZE--------------------------------------------------- */
       UInt size[6] = { 0 };
-      comm.receive(size, 6, root, TAG_SIZES);
+      comm.receive(size, 6, root, Tag::genTag(root, count, TAG_SIZES));
 
       type          = (ElementType) size[0];
       UInt nb_local_element     = size[1];
@@ -509,7 +518,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         AKANTU_DEBUG_INFO("Receiving connectivities from proc " << root);
         comm.receive(local_connectivity, nb_nodes_per_element * (nb_local_element +
                                                                   nb_ghost_element),
-                           root, TAG_CONNECTIVITY);
+		     root, Tag::genTag(root, count, TAG_CONNECTIVITY));
 
         AKANTU_DEBUG_INFO("Renumbering local connectivities");
         MeshUtils::renumberMeshNodes(mesh,
@@ -525,11 +534,11 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         local_partitions = new UInt[nb_element_to_send + nb_ghost_element * 2];
         AKANTU_DEBUG_INFO("Receiving partition informations from proc " << root);
         comm.receive(local_partitions,
-                           nb_element_to_send + nb_ghost_element * 2,
-                           root, TAG_PARTITIONS);
+		     nb_element_to_send + nb_ghost_element * 2,
+		     root, Tag::genTag(root, count, TAG_PARTITIONS));
 
         AKANTU_DEBUG_INFO("Creating communications scheme");
-        communicator->fillCommunicationScheme(local_partitions,
+        communicator.fillCommunicationScheme(local_partitions,
                                              nb_local_element,
                                              nb_ghost_element,
                                              type);
@@ -542,13 +551,14 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           UInt size_data = (nb_local_element + nb_ghost_element) * nb_tags
             + uint_names_size;
           local_data = new UInt[size_data];
-          comm.receive(local_data, size_data, root, TAG_DATA);
+          comm.receive(local_data, size_data, root, Tag::genTag(root, count, TAG_DATA));
 
           MeshUtils::setUIntData(mesh, local_data, nb_tags, type);
 
           delete [] local_data;
         }
       }
+      ++count;
     } while(type != _not_defined);
 
     /**
@@ -557,31 +567,31 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /* -------->>>>-NB_NODES + NODES----------------------------------------- */
     AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
     UInt nb_nodes = old_nodes->getSize();
-    comm.send(&nb_nodes, 1, root, TAG_NB_NODES);
-    comm.send(old_nodes->values, nb_nodes, root, TAG_NODES);
+    comm.send(&nb_nodes, 1, root, Tag::genTag(my_rank, 0, TAG_NB_NODES));
+    comm.send(old_nodes->values, nb_nodes, root, Tag::genTag(my_rank, 0, TAG_NODES));
 
     /* --------<<<<-COORDINATES---------------------------------------------- */
     nodes->resize(nb_nodes);
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
-    comm.receive(nodes->values, nb_nodes * spatial_dimension, root, TAG_COORDINATES);
+    comm.receive(nodes->values, nb_nodes * spatial_dimension, root, Tag::genTag(root, 0, TAG_COORDINATES));
 
-    communicator->fillNodesType(mesh);
+    communicator.fillNodesType(mesh);
     /* --------<<<<-NODES_TYPE-2--------------------------------------------- */
     Int * nodes_types = mesh.getNodesTypePointer()->values;
     AKANTU_DEBUG_INFO("Sending first nodes types to proc " << root);
     comm.send(nodes_types, nb_nodes,
-               root, TAG_NODES_TYPE);
+	      root, Tag::genTag(my_rank, 0, TAG_NODES_TYPE));
 
     /* --------<<<<-NODES_TYPE-2--------------------------------------------- */
     AKANTU_DEBUG_INFO("Receiving nodes types from proc " << root);
     comm.receive(nodes_types, nb_nodes,
-                  root, TAG_NODES_TYPE);
+		 root, Tag::genTag(root, 0, TAG_NODES_TYPE));
   }
 
   comm.broadcast(&(mesh.nb_global_nodes), 1, root);
 
   AKANTU_DEBUG_OUT();
-  return communicator;
+  return &communicator;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -665,7 +675,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
     UInt nb_send = *part; part++;
     element.element = lel;
-    element.ghost_type = _ghost;
+    element.ghost_type = _not_ghost;
     for (UInt p = 0; p < nb_send; ++p) {
       UInt proc = *part; part++;
 
@@ -677,7 +687,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
   for (UInt gel = 0; gel < nb_ghost_element; ++gel) {
     UInt proc = *part; part++;
     element.element = gel;
-    element.ghost_type = _not_ghost;
+    element.ghost_type = _ghost;
     AKANTU_DEBUG(dblAccessory, "Must recv : " << element << " from proc " << proc);
     recv_element[proc].push_back(element);
   }
@@ -709,17 +719,18 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
     CommunicationBuffer & buffer = communication.send_buffer[p];
     buffer.resize(ssize);
 #ifndef AKANTU_NDEBUG
-#endif
-    Element * elements = &(send_element[p].at(0));
-    UInt nb_elements   =  send_element[p].size();
+    //Element * elements = &(send_element[p](0));
+    UInt nb_elements   =  send_element[p].getSize();
     AKANTU_DEBUG_INFO("Packing data for proc " << p
 		      << " (" << ssize << "/" << nb_elements
 		      <<" data to send/elements)");
+#endif
 
-    for (UInt el = 0; el < nb_elements; ++el) {
-      data_accessor.packData(buffer, *elements, tag);
-      elements++;
-    }
+    data_accessor.packElementData(buffer, send_element[p], tag);
+    // for (UInt el = 0; el < nb_elements; ++el) {
+    //   data_accessor.packData(buffer, *elements, tag);
+    //   elements++;
+    // }
 
 #ifndef AKANTU_NDEBUG
     // UInt block_size = data_accessor.getNbDataToPack(send_element[p][0], tag);
@@ -786,23 +797,24 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 	AKANTU_DEBUG_INFO("Unpacking data coming from proc " << proc);
 	CommunicationBuffer & buffer = communication.recv_buffer[proc];
 
-	Element * elements = &recv_element[proc].at(0);
-	UInt nb_elements   =  recv_element[proc].size();
-	UInt el = 0;
-	try {
-	  for (el = 0; el < nb_elements; ++el) {
-	    data_accessor.unpackData(buffer, *elements, tag);
-	    elements++;
-	  }
-	}
-	catch (debug::Exception & e){
-	  UInt block_size = data_accessor.getNbDataToPack(recv_element[proc][0], tag);
-	  AKANTU_DEBUG_ERROR("catched exception during unpack from proc " << proc
-			     << " buffer index is " << el << "/" << nb_elements
-			     << std::endl << e.what() << std::endl
-			     << "buffer size " << buffer.getSize() << std::endl
-			     << buffer.extractStream<Real>(block_size));
-	}
+	data_accessor.unpackElementData(buffer, recv_element[proc], tag);
+	// Element * elements = &recv_element[proc].at(0);
+	// UInt nb_elements   =  recv_element[proc].size();
+	// UInt el = 0;
+	// try {
+	//   for (el = 0; el < nb_elements; ++el) {
+	//     data_accessor.unpackData(buffer, *elements, tag);
+	//     elements++;
+	//   }
+	// }
+	// catch (debug::Exception & e){
+	//   UInt block_size = data_accessor.getNbDataToPack(recv_element[proc][0], tag);
+	//   AKANTU_DEBUG_ERROR("catched exception during unpack from proc " << proc
+	// 		     << " buffer index is " << el << "/" << nb_elements
+	// 		     << std::endl << e.what() << std::endl
+	// 		     << "buffer size " << buffer.getSize() << std::endl
+	// 		     << buffer.extractStream<Real>(block_size));
+	// }
 
 	buffer.resize(0);
 	AKANTU_DEBUG_ASSERT(buffer.getLeftToUnpack() == 0,
@@ -820,7 +832,6 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 
     req_not_finished_tmp->clear();
   }
-
 
   static_communicator->waitAll(communication.send_requests);
   for (std::vector<CommunicationRequest *>::iterator req_it = communication.send_requests.begin();
@@ -852,22 +863,24 @@ void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
     UInt ssend    = 0;
     UInt sreceive = 0;
     if(p != rank) {
-      for (std::vector<Element>::const_iterator sit = send_element[p].begin();
-	   sit != send_element[p].end();
-	   ++sit) {
-	ssend += data_accessor.getNbDataToPack(*sit, tag);
-      }
+      ssend    = data_accessor.getNbDataForElements(send_element[p], tag);
+      sreceive = data_accessor.getNbDataForElements(recv_element[p], tag);
+      // for (std::vector<Element>::const_iterator sit = send_element[p].begin();
+      // 	   sit != send_element[p].end();
+      // 	   ++sit) {
+      // 	ssend += data_accessor.getNbDataToPack(*sit, tag);
+      // }
 
-      for (std::vector<Element>::const_iterator rit = recv_element[p].begin();
-	   rit != recv_element[p].end();
-	   ++rit) {
-	sreceive += data_accessor.getNbDataToUnpack(*rit, tag);
-      }
+      // for (std::vector<Element>::const_iterator rit = recv_element[p].begin();
+      // 	   rit != recv_element[p].end();
+      // 	   ++rit) {
+      // 	sreceive += data_accessor.getNbDataToUnpack(*rit, tag);
+      // }
 
       AKANTU_DEBUG_INFO("I have " << ssend << "(" << ssend / 1024.
-			<< "kB) data to send to " << p
+			<< "kB - "<< send_element[p].getSize() <<" element(s)) data to send to " << p
 			<< " and " << sreceive << "(" << sreceive / 1024.
-			<< "kB) data to receive for tag " << tag);
+			<< "kB - "<< recv_element[p].getSize() <<" element(s)) data to receive for tag " << tag);
     }
 
     communications[tag].size_to_send   [p] = ssend;
@@ -891,8 +904,8 @@ void DistributedSynchronizer::printself(std::ostream & stream, int indent) const
     if(AKANTU_DEBUG_TEST(dblDump)) {
       stream << "[" << prank << "/" << psize << "]" << space << "    - Element to send to proc " << p << " [" << std::endl;
 
-      std::vector<Element>::const_iterator it_el  = send_element[p].begin();
-      std::vector<Element>::const_iterator end_el = send_element[p].end();
+      Vector<Element>::iterator<Element> it_el  = send_element[p].begin();
+      Vector<Element>::iterator<Element> end_el = send_element[p].end();
       for(;it_el != end_el; ++it_el)
 	stream << "[" << prank << "/" << psize << "]" << space << "       " << *it_el << std::endl;
       stream << "[" << prank << "/" << psize << "]" << space << "   ]" << std::endl;
@@ -920,8 +933,97 @@ void DistributedSynchronizer::printself(std::ostream & stream, int indent) const
   std::cout << "[" << prank << "/" << psize << "]" << space << "]" << std::endl;
 }
 
+/* -------------------------------------------------------------------------- */
+void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_to_remove,
+						const ByElementTypeUInt & new_numbering) {
+  AKANTU_DEBUG_IN();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  UInt psize = comm.getNbProc();
+  UInt prank = comm.whoAmI();
+
+  std::vector<CommunicationRequest *> isend_requests;
+  // Handling ghost elements
+  for (UInt p = 0; p < psize; ++p) {
+    if (p == prank) continue;
+
+    Vector<Element> & recv = recv_element[p];
+    Vector<UInt> list_of_el_to_remove;
+    list_of_el_to_remove.push_back(UInt(-1));
+
+    Vector<Element>::iterator<Element> recv_begin = recv.begin();
+    Vector<Element>::iterator<Element> recv_end   = recv.end();
+
+    Vector<Element>::const_iterator<Element> it  = element_to_remove.begin();
+    Vector<Element>::const_iterator<Element> end = element_to_remove.end();
+    for (;it != end; ++it) {
+      const Element & el = *it;
+      if(el.ghost_type == _ghost) {
+	Vector<Element>::iterator<Element> pos = std::find(recv_begin, recv_end, el);
+	if(pos != recv_end) {
+	  UInt i = pos - recv_begin;
+	  list_of_el_to_remove.push_back(i);
+	}
+      } else {
+	/// \todo handle the removal of element to send from the ghost of other procs
+	AKANTU_EXCEPTION("DistributedSynchronizer do not know how to remove _not_ghost element, ask a developer to finish is job");
+      }
+    }
+
+    std::sort(list_of_el_to_remove.begin(), list_of_el_to_remove.end());
+
+    isend_requests.push_back(comm.asyncSend(list_of_el_to_remove.storage(), list_of_el_to_remove.getSize(),
+					    p, Tag::genTag(prank, 0, 0)));
+
+    list_of_el_to_remove.resize(list_of_el_to_remove.getSize() - 1);
+
+    Vector<Element> new_recv;
+    for (UInt nr = 0; nr < recv.getSize(); ++nr) {
+      Vector<UInt>::iterator<UInt> it = std::find(list_of_el_to_remove.begin(), list_of_el_to_remove.end(), nr);
+      if(it == list_of_el_to_remove.end()) {
+	Element & el = recv(nr);
+	el.element = new_numbering(el.type, el.ghost_type)(el.element);
+
+	new_recv.push_back(el);
+      } else { list_of_el_to_remove.erase(it - list_of_el_to_remove.begin()); }
+    }
+
+    recv.resize(new_recv.getSize());
+    std::copy(new_recv.begin(), new_recv.end(), recv.begin());
+  }
+
+  for (UInt p = 0; p < psize; ++p) {
+    if (p == prank) continue;
+    CommunicationStatus status;
+    comm.probe<UInt>(p, Tag::genTag(p, 0, 0), status);
+    Vector<UInt> list_of_el_to_remove(status.getSize());
+
+    comm.receive(list_of_el_to_remove.storage(), list_of_el_to_remove.getSize(),
+		 p, Tag::genTag(p, 0, 0));
+
+    list_of_el_to_remove.resize(list_of_el_to_remove.getSize() - 1);
+
+    Vector<Element> & send = send_element[p];
+
+    Vector<Element> new_send;
+    for (UInt ns = 0; ns < send.getSize(); ++ns) {
+      Vector<UInt>::iterator<UInt> it = std::find(list_of_el_to_remove.begin(), list_of_el_to_remove.end(), ns);
+      if(it == list_of_el_to_remove.end()) {
+	new_send.push_back(send(ns));
+      } else { list_of_el_to_remove.erase(it - list_of_el_to_remove.begin()); }
+
+    }
+
+    send.resize(new_send.getSize());
+    std::copy(new_send.begin(), new_send.end(), send.begin());
+  }
+
+  comm.waitAll(isend_requests);
+  comm.freeCommunicationRequest(isend_requests);
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
-
 
 __END_AKANTU__

@@ -75,6 +75,9 @@ public:
 
   virtual Real getEnergy(std::string type);
 
+  AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ByElementTypeReal &);
+  AKANTU_GET_MACRO(Damage, damage, const ByElementTypeReal &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

@@ -223,14 +223,14 @@ void SparseMatrix::removeBoundary(const Vector<bool> & boundary) {
   }
 
   for (UInt i = 0; i < nb_non_zero;) {
-    if(boundary.values[irn.at(i) - 1] || boundary.values[jcn.at(i) - 1]) {
+    if(boundary.values[irn(i) - 1] || boundary.values[jcn(i) - 1]) {
       irn.erase(i);
       jcn.erase(i);
       a.erase(i);
       nb_non_zero--;
     } else {
-      irn.values[i] = perm[irn.values[i] - 1] + 1;
-      jcn.values[i] = perm[jcn.values[i] - 1] + 1;
+      irn(i) = perm[irn(i) - 1] + 1;
+      jcn(i) = perm[jcn(i) - 1] + 1;
       i++;
     }
   }

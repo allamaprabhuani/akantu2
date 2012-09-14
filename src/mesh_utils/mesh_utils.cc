@@ -626,7 +626,7 @@ void MeshUtils::renumberNodesInConnectivity(UInt * list_nodes,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::purifyMesh(Mesh & mesh) {
   AKANTU_DEBUG_IN();
-  
+
   std::map<UInt, UInt> renumbering_map;
   Vector<UInt> node_numbers;
 
@@ -648,20 +648,38 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
     }
   }
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
 
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
-  Vector<Real>::iterator<types::RVector> nodes_it = nodes.begin(spatial_dimension);
-  Vector<Real> new_nodes(0, spatial_dimension);
+
+  RemovedNodesEvent remove_nodes(mesh);
+  Vector<UInt> & nodes_removed = remove_nodes.getList();
+  Vector<UInt> & new_numbering = remove_nodes.getNewNumbering();
+
+  std::fill(new_numbering.begin(), new_numbering.end(), UInt(-1));
 
   for (UInt i = 0; i < node_numbers.getSize(); ++i) {
-    new_nodes.push_back(nodes_it + node_numbers(i));
+    new_numbering(node_numbers(i)) = i;
   }
 
-  std::copy(new_nodes.begin(spatial_dimension), new_nodes.end(spatial_dimension),
-	    nodes.begin(spatial_dimension));
-  
-  nodes.resize(node_numbers.getSize());
+  for (UInt i = 0; i < new_numbering.getSize(); ++i) {
+    if(new_numbering(i) == UInt(-1))
+      nodes_removed.push_back(i);
+  }
+
+  mesh.sendEvent(remove_nodes);
+
+  // UInt spatial_dimension = mesh.getSpatialDimension();
+  // Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  // Vector<Real>::iterator<types::RVector> nodes_it = nodes.begin(spatial_dimension);
+  // Vector<Real> new_nodes(0, spatial_dimension);
+
+  //  for (UInt i = 0; i < node_numbers.getSize(); ++i) {
+  //     new_nodes.push_back(nodes_it + node_numbers(i));
+  //  }
+
+  // std::copy(new_nodes.begin(spatial_dimension), new_nodes.end(spatial_dimension),
+  // 	    nodes.begin(spatial_dimension));
+
+  // nodes.resize(node_numbers.getSize());
 
   AKANTU_DEBUG_OUT();
 }

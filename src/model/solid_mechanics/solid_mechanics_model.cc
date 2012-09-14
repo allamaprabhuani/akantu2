@@ -1015,10 +1015,10 @@ Real SolidMechanicsModel::getKineticEnergy() {
     Real mv2 = 0;
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
+    bool count_node = is_local_node && is_not_pbc_slave_node;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      //      if(is_local_node) {
-      mv2 += is_local_node * is_not_pbc_slave_node * *vel_val * *vel_val * *mass_val;
-      //      }
+      mv2 += count_node * *vel_val * *vel_val * *mass_val;
+
       vel_val++;
       mass_val++;
     }
@@ -1127,8 +1127,8 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
   AKANTU_DEBUG_IN();
 
   getFEM().initShapeFunctions(_not_ghost);
-  getFEM().initShapeFunctions(_ghost);
 
+  getFEM().initShapeFunctions(_ghost);
 
   Vector<Element>::const_iterator<Element> it  = element_list.begin();
   Vector<Element>::const_iterator<Element> end = element_list.end();
@@ -1147,6 +1147,43 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
   if(method != _explicit_dynamic) AKANTU_DEBUG_TO_IMPLEMENT();
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list,
+					    const ByElementTypeUInt & new_numbering) {
+  element_material.onElementsRemoved(new_numbering);
+  //  element_index_by_material.onElementsRemoved(new_numbering);
+
+  std::cout << "NbNodes before purify " <<  mesh.getNbNodes() << std::endl;
+  //  MeshUtils::purifyMesh(mesh);
+  std::cout << "NbNodes after purify " <<  mesh.getNbNodes() << std::endl;
+
+  getFEM().initShapeFunctions(_not_ghost);
+  getFEM().initShapeFunctions(_ghost);
+
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::onNodesRemoved(const Vector<UInt> & element_list,
+					 const Vector<UInt> & new_numbering) {
+  std::cout << "NbNodes in u before purify " <<  displacement->getSize() << " " << element_list.getSize() << " " << mesh.getNbNodes() << std::endl;
+  if(displacement) mesh.removeNodesFromVector(*displacement, new_numbering);
+  std::cout << "NbNodes in u after purify " <<  displacement->getSize() << std::endl;
+  if(mass        ) mesh.removeNodesFromVector(*mass        , new_numbering);
+  if(velocity    ) mesh.removeNodesFromVector(*velocity    , new_numbering);
+  if(acceleration) mesh.removeNodesFromVector(*acceleration, new_numbering);
+  if(force       ) mesh.removeNodesFromVector(*force       , new_numbering);
+  if(residual    ) mesh.removeNodesFromVector(*residual    , new_numbering);
+  if(boundary    ) mesh.removeNodesFromVector(*boundary    , new_numbering);
+
+  if(increment_acceleration) mesh.removeNodesFromVector(*increment_acceleration, new_numbering);
+  if(increment)              mesh.removeNodesFromVector(*increment             , new_numbering);
+
+  delete dof_synchronizer;
+  dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
+  dof_synchronizer->initLocalDOFEquationNumbers();
+  dof_synchronizer->initGlobalDOFEquationNumbers();
 }
 
 

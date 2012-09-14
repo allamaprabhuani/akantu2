@@ -128,76 +128,74 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToPack(const Element & element,
-					    SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
+//UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToPack(const Element & element,
+//					    SynchronizationTag tag) const {
+//  AKANTU_DEBUG_IN();
+//   UInt size = 0;
+//   if(tag == _gst_smm_init_mat) {
+//     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
+//     size += sizeof(Real) + nb_quad;
+//   }
 
-  UInt size = 0;
-  if(tag == _gst_smm_init_mat) {
-    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
-    size += sizeof(Real) + nb_quad;
-  }
+//   size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
 
-  size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
+//   AKANTU_DEBUG_OUT();
+//   return size;
+// }
 
-  AKANTU_DEBUG_OUT();
-  return size;
-}
+// /* -------------------------------------------------------------------------- */
+// template<UInt spatial_dimension>
+// UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToUnpack(const Element & element,
+// 					      SynchronizationTag tag) const {
+//   AKANTU_DEBUG_IN();
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToUnpack(const Element & element,
-					      SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
+//   UInt size = 0;
+//   if(tag == _gst_smm_init_mat) {
+//     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
+//     size += sizeof(Real) + nb_quad;
+//   }
 
-  UInt size = 0;
-  if(tag == _gst_smm_init_mat) {
-    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
-    size += sizeof(Real) + nb_quad;
-  }
+//   size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
 
-  size += MaterialDamage<spatial_dimension>::getNbDataToPack(element, tag);
+//   AKANTU_DEBUG_OUT();
+//   return size;
+// }
 
-  AKANTU_DEBUG_OUT();
-  return size;
-}
+// /* -------------------------------------------------------------------------- */
+// template<UInt spatial_dimension>
+// void MaterialVreePeerlings<spatial_dimension>::packData(CommunicationBuffer & buffer,
+// 				     const Element & element,
+// 				     SynchronizationTag tag) const {
+//   AKANTU_DEBUG_IN();
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialVreePeerlings<spatial_dimension>::packData(CommunicationBuffer & buffer,
-				     const Element & element,
-				     SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
+//   if(tag == _gst_smm_init_mat){
+//     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
+//     const Vector<Real> & kapa = Kapa(element.type, _not_ghost);
+//     for(UInt q = 0; q < nb_quad; ++q)
+//       buffer << kapa(element.element * nb_quad + q);
+//   }
 
-  if(tag == _gst_smm_init_mat){
-    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
-    const Vector<Real> & kapa = Kapa(element.type, _not_ghost);
-    for(UInt q = 0; q < nb_quad; ++q)
-      buffer << kapa(element.element * nb_quad + q);
-  }
+//   MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
+//   AKANTU_DEBUG_OUT();
+// }
 
-  MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
-  AKANTU_DEBUG_OUT();
-}
+// /* -------------------------------------------------------------------------- */
+// template<UInt spatial_dimension>
+// void MaterialVreePeerlings<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
+// 				       const Element & element,
+// 				       SynchronizationTag tag) {
+//   AKANTU_DEBUG_IN();
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialVreePeerlings<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
-				       const Element & element,
-				       SynchronizationTag tag) {
-  AKANTU_DEBUG_IN();
+//   if(tag == _gst_smm_init_mat) {
+//     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
+//     Vector<Real> & kapa = Kapa(element.type, _not_ghost);
+//     for(UInt q = 0; q < nb_quad; ++q)
+//       buffer >> kapa(element.element * nb_quad + q);
+//   }
 
-  if(tag == _gst_smm_init_mat) {
-    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
-    Vector<Real> & kapa = Kapa(element.type, _not_ghost);
-    for(UInt q = 0; q < nb_quad; ++q)
-      buffer >> kapa(element.element * nb_quad + q);
-  }
-
-  MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
-  AKANTU_DEBUG_OUT();
-}
+//   MaterialDamage<spatial_dimension>::packData(buffer, element, tag);
+//   AKANTU_DEBUG_OUT();
+// }
 
 /* -------------------------------------------------------------------------- */
 INSTANSIATE_MATERIAL(MaterialVreePeerlings);

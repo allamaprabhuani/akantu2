@@ -45,10 +45,10 @@ class GridSynchronizer : public DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+protected:
+  GridSynchronizer(Mesh & mesh, const ID & id = "grid_synchronizer", MemoryID memory_id = 0);
+
 public:
-
-  GridSynchronizer(const ID & id = "grid_synchronizer", MemoryID memory_id = 0);
-
   virtual ~GridSynchronizer() { };
 
   /* ------------------------------------------------------------------------ */
@@ -62,8 +62,14 @@ public:
 			 SynchronizerID id = "grid_synchronizer",
 			 MemoryID memory_id = 0);
 
-  /// function to print the contain of the class
-  // virtual void printself(std::ostream & stream, int indent = 0) const;
+
+protected:
+  enum CommTags {
+    SIZE_TAG        = 0,
+    DATA_TAG        = 1,
+    ASK_NODES_TAG   = 2,
+    SEND_NODES_TAG  = 3
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -76,20 +82,6 @@ public:
 private:
 
 };
-
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-//#include "grid_synchronizer_inline_impl.cc"
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const GridSynchronizer & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
 
 
 __END_AKANTU__

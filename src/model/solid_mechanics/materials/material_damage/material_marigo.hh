@@ -86,28 +86,16 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataToPack(const Element & element,
- 				      SynchronizationTag tag) const;
+  inline virtual UInt getNbDataForElements(const Vector<Element> & elements,
+					   SynchronizationTag tag) const;
 
-  inline virtual UInt getNbDataToUnpack(const Element & element,
- 					SynchronizationTag tag) const;
+  inline virtual void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
+				      SynchronizationTag tag) const;
 
-  inline virtual void packData(CommunicationBuffer & buffer,
- 			       const Element & element,
- 			       SynchronizationTag tag) const;
-
-  inline virtual void unpackData(CommunicationBuffer & buffer,
-                                 const Element & element,
-                                 SynchronizationTag tag);
-
-  virtual UInt getNbDataToPack(__attribute__((unused)) SynchronizationTag tag) const { return 0; }
-  virtual UInt getNbDataToUnpack(__attribute__((unused)) SynchronizationTag tag) const { return 0; }
-  virtual void packData(__attribute__((unused)) CommunicationBuffer & buffer,
-			__attribute__((unused)) const UInt index,
-			__attribute__((unused)) SynchronizationTag tag) const { }
-  virtual void unpackData(__attribute__((unused)) CommunicationBuffer & buffer,
-			  __attribute__((unused)) const UInt index,
-			  __attribute__((unused)) SynchronizationTag tag) { }
+  inline virtual void unpackElementData(CommunicationBuffer & buffer,
+					const Vector<Element> & elements,
+					SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

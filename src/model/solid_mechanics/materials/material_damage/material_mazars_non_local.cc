@@ -87,7 +87,7 @@ template<UInt spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   ByElementTypeReal nl_var("Non local variable", this->id);
-  this->initInternalVector(nl_var, 1);
+  this->initInternalVector(nl_var, 1, true);
   this->resizeInternalVector(nl_var);
 
   if(this->damage_in_compute_stress)

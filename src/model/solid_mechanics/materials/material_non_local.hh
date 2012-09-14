@@ -86,6 +86,8 @@ protected:
 
   void createCellList(ByElementTypeReal & quadrature_points_coordinates);
 
+  void cleanupExtraGhostElement(const ByElementType<UInt> & nb_ghost_protected);
+
   void fillCellList(const ByElementTypeReal & quadrature_points_coordinates,
 		    const GhostType & ghost_type);
 
@@ -105,34 +107,16 @@ protected:
   // 			      UInt nb_degree_of_freedom) const;
 
 
-  virtual inline UInt getNbDataToPack(const Element & element,
+  virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
+					  SynchronizationTag tag) const;
+
+  virtual inline void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
 				      SynchronizationTag tag) const;
 
-  virtual inline UInt getNbDataToUnpack(const Element & element,
-					SynchronizationTag tag) const;
-
-  virtual inline void packData(CommunicationBuffer & buffer,
-			       const Element & element,
-			       SynchronizationTag tag) const;
-
-  virtual inline void unpackData(CommunicationBuffer & buffer,
-				 const Element & element,
-				 SynchronizationTag tag);
-
-  virtual UInt getNbDataToPack(SynchronizationTag tag) const { return Material::getNbDataToPack(tag); }
-  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const { return Material::getNbDataToUnpack(tag); }
-
-  virtual void packData(CommunicationBuffer & buffer,
-			const UInt index,
-			SynchronizationTag tag) const {
-    Material::packData(buffer, index, tag);
-  }
-
-  virtual void unpackData(CommunicationBuffer & buffer,
-			const UInt index,
-			SynchronizationTag tag) {
-    Material::unpackData(buffer, index, tag);
-  }
+  virtual inline void unpackElementData(CommunicationBuffer & buffer,
+					const Vector<Element> & elements,
+					SynchronizationTag tag);
 
 
   virtual inline void onElementsAdded(const Vector<Element> & element_list);

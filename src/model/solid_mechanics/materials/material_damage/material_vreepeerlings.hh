@@ -92,30 +92,6 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual UInt getNbDataToPack(const Element & element,
-			       SynchronizationTag tag) const;
-
-  virtual UInt getNbDataToUnpack(const Element & element,
-				 SynchronizationTag tag) const;
-
-  virtual void packData(CommunicationBuffer & buffer,
-			const Element & element,
-			SynchronizationTag tag) const;
-
-  virtual void unpackData(CommunicationBuffer & buffer,
-			  const Element & element,
-			  SynchronizationTag tag);
-
-  virtual UInt getNbDataToPack(SynchronizationTag tag) const { return MaterialDamage<spatial_dimension>::getNbDataToPack(tag); }
-  virtual UInt getNbDataToUnpack(SynchronizationTag tag) const { return MaterialDamage<spatial_dimension>::getNbDataToUnpack(tag); }
-  virtual void packData(CommunicationBuffer & buffer,
-			const UInt index,
-			SynchronizationTag tag) const { MaterialDamage<spatial_dimension>::packData(buffer, index, tag); }
-  virtual void unpackData(CommunicationBuffer & buffer,
-			  const UInt index,
-			  SynchronizationTag tag) { MaterialDamage<spatial_dimension>::unpackData(buffer, index, tag); }
-
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
