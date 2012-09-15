@@ -46,6 +46,7 @@ template <>
 inline void Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
   if(event.getList().getSize() != 0) {
     connectivities.onElementsRemoved(event.getNewNumbering());
+
     EventHandlerManager<MeshEventHandler>::sendEvent(event);
   }
 }

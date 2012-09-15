@@ -60,7 +60,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// read properties
   virtual bool parseParam(const std::string & key, const std::string & value,
 			  const ID & id);
@@ -68,13 +67,9 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  // void computeQuadraturePointsNeighborhoudVolumes(ByElementTypeReal & volumes) const;
-
   virtual void updateResidual(GhostType ghost_type);
 
   virtual void computeAllNonLocalStresses(GhostType ghost_type = _not_ghost);
-
-  // void removeDamaged(const ByElementTypeReal & damage, Real thresold);
 
   void savePairs(const std::string & filename) const;
   void neighbourhoodStatistics(const std::string & filename) const;
@@ -100,13 +95,6 @@ protected:
 				    UInt nb_degree_of_freedom,
 				    GhostType ghost_type2 = _not_ghost) const;
 
-
-  // template<typename T>
-  // void accumulateOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
-  // 			      ByElementTypeVector<T> & accumulated,
-  // 			      UInt nb_degree_of_freedom) const;
-
-
   virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
 					  SynchronizationTag tag) const;
 
@@ -118,8 +106,9 @@ protected:
 					const Vector<Element> & elements,
 					SynchronizationTag tag);
 
-
   virtual inline void onElementsAdded(const Vector<Element> & element_list);
+  virtual inline void onElementsRemoved(const Vector<Element> & element_list,
+					const ByElementTypeUInt & new_numbering);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -138,9 +127,7 @@ public:
   }
 
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
-
   AKANTU_GET_MACRO(Radius, radius, Real);
-
   AKANTU_GET_MACRO(CellList, *cell_list, const RegularGrid<QuadraturePoint> &)
 
   /* ------------------------------------------------------------------------ */
@@ -183,7 +170,6 @@ private:
   bool is_creating_grid;
 
   GridSynchronizer * grid_synchronizer;
-
 };
 
 

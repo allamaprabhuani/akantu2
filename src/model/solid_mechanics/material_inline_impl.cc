@@ -335,7 +335,7 @@ void Material::removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
 	UInt nb_quad_per_elem = this->model->getFEM().getNbQuadraturePoints(type, gt);
 	UInt nb_component = vect.getNbComponent();
 
-	Vector<T> tmp(renumbering.getSize(), nb_component);
+	Vector<T> tmp(renumbering.getSize()*nb_quad_per_elem, nb_component);
 	UInt new_size = 0;
 	for (UInt i = 0; i < vect.getSize(); ++i) {
 	  UInt new_i = renumbering(i);
@@ -370,9 +370,7 @@ inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Eleme
 
 /* -------------------------------------------------------------------------- */
 inline void Material::onElementsRemoved(const Vector<Element> & element_list, const ByElementTypeUInt & new_numbering) {
-  ByElementTypeUInt material_local_new_numbering;
-  initInternalVector(material_local_new_numbering, 1, true);
-  resizeInternalVector(material_local_new_numbering);
+  ByElementTypeUInt material_local_new_numbering("remove mat filter elem", id);
 
   Vector<Element>::const_iterator<Element> el_begin = element_list.begin();
   Vector<Element>::const_iterator<Element> el_end   = element_list.end();
@@ -389,18 +387,23 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
 	Vector<UInt> & element_index_material = model->getElementIndexByMaterial(type, gt);
 	element_index_material.resize(model->getFEM().getMesh().getNbElement(type, gt)); // all materials will resize of the same size...
 
+	if(!material_local_new_numbering.exists(type, gt))
+	  material_local_new_numbering.alloc(elem_filter.getSize(), 1, type, gt);
+
 	Vector<UInt> & mat_renumbering = material_local_new_numbering(type, gt);
+	const Vector<UInt> & renumbering = new_numbering(type, gt);
 	Vector<UInt> elem_filter_tmp;
-	UInt ni;
+	UInt ni = 0;
 	Element el;
 	el.type = type;
 	el.ghost_type = gt;
 	for (UInt i = 0; i < elem_filter.getSize(); ++i) {
 	  el.element = elem_filter(i);
 	  if(std::find(el_begin, el_end, el) == el_end) {
-	    elem_filter_tmp.push_back(elem_filter(i));
+	    UInt new_el = renumbering(el.element);
+	    elem_filter_tmp.push_back(new_el);
 	    mat_renumbering(i) = ni;
-	    element_index_material(el.element) = ni;
+	    element_index_material(new_el) = ni;
 	    ++ni;
 	  } else {
 	    mat_renumbering(i) = UInt(-1);
@@ -413,6 +416,7 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
     }
   }
 
+  std::cout << "a " << getVector("damage", _triangle_3, _ghost) << std::endl;
   for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
        ++it) {
@@ -424,4 +428,6 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
        ++it) {
     this->removeQuadraturePointsFromVectors(*(it->second), material_local_new_numbering);
   }
+
+  std::cout << "a " << getVector("damage", _triangle_3, _ghost) << std::endl;
 }

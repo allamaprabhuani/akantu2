@@ -1127,17 +1127,21 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
   AKANTU_DEBUG_IN();
 
   getFEM().initShapeFunctions(_not_ghost);
-
   getFEM().initShapeFunctions(_ghost);
 
   Vector<Element>::const_iterator<Element> it  = element_list.begin();
   Vector<Element>::const_iterator<Element> end = element_list.end();
+
+  /// \todo have rules to choose the correct material
+  Material & mat = *materials[0];
+
   for (; it != end; ++it) {
     const Element & elem = *it;
     element_material(elem.type, elem.ghost_type).push_back(UInt(0));
-    element_index_by_material(elem.type, elem.ghost_type).push_back(UInt(0));
-  }
 
+    UInt mat_index = mat.addElement(elem.type, elem.element, elem.ghost_type);
+    element_index_by_material(elem.type, elem.ghost_type).push_back(mat_index);
+  }
 
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
@@ -1152,8 +1156,8 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list,
 					    const ByElementTypeUInt & new_numbering) {
-  element_material.onElementsRemoved(new_numbering);
-  //  element_index_by_material.onElementsRemoved(new_numbering);
+  //element_material.onElementsRemoved(new_numbering);
+  //element_index_by_material.onElementsRemoved(new_numbering);
 
   std::cout << "NbNodes before purify " <<  mesh.getNbNodes() << std::endl;
   //  MeshUtils::purifyMesh(mesh);
@@ -1161,6 +1165,11 @@ void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list
 
   getFEM().initShapeFunctions(_not_ghost);
   getFEM().initShapeFunctions(_ghost);
+
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    (*mat_it)->onElementsRemoved(element_list, new_numbering);
+  }
 
 }
 

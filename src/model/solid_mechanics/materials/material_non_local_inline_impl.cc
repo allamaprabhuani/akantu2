@@ -174,27 +174,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
 
   mesh.sendEvent(remove_elem);
 
-  // Renumber element to keep
-  first_pair_types = existing_pairs[1].begin();
-  last_pair_types = existing_pairs[1].end();
-  for (; first_pair_types != last_pair_types; ++first_pair_types) {
-    ElementType type2 = first_pair_types->second;
-    GhostType ghost_type2 = _ghost;
-    UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
-
-    Vector<UInt> & pairs =
-      pair_list(first_pair_types->first, _not_ghost)(first_pair_types->second, ghost_type2);
-    Vector<UInt>::iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-    Vector<UInt>::iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-    for(;first_pair != last_pair; ++first_pair) {
-      UInt _q2 = (*first_pair)(1);
-      Vector<UInt> & new_numbering = remove_elem.getNewNumbering(type2, ghost_type2);
-      UInt el = _q2 / nb_quad2;
-      UInt new_el = new_numbering(el);
-      (*first_pair)(1) = new_el * nb_quad2 + _q2 % nb_quad2;
-    }
-  }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -255,6 +234,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByE
   for(; it != last_type; ++it) {
     Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
     UInt nb_element = elem_filter.getSize();
+    std::cout << nb_element << std::endl;
     UInt nb_quad    = this->model->getFEM().getNbQuadraturePoints(*it, ghost_type);
 
     const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
@@ -760,27 +740,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
 }
 
 /* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension, template <UInt> class WeightFunction>
-// inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataToPack(const Element & element,
-// 										 SynchronizationTag tag) const {
-//   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-//   UInt size = 0;
-//   if(tag == _gst_mnl_for_average) {
-//     typename std::map<ID, NonLocalVariable>::const_iterator it = non_local_variables.begin();
-//     typename std::map<ID, NonLocalVariable>::const_iterator end = non_local_variables.end();
-
-//     for(;it != end; ++it) {
-//       const NonLocalVariable & non_local_variable = it->second;
-//       size += non_local_variable.non_local_variable_nb_component * sizeof(Real) * nb_quadrature_points;
-//     }
-//   }
-
-//   size += weight_func->getNbData(element, tag);
-
-//   return size;
-// }
-
-/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataForElements(const Vector<Element> & elements,
 										      SynchronizationTag tag) const {
@@ -808,8 +767,6 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::packElementData
 										 const Vector<Element> & elements,
 										 SynchronizationTag tag) const {
   if(tag == _gst_mnl_for_average) {
-    // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-
     typename std::map<ID, NonLocalVariable>::const_iterator it = non_local_variables.begin();
     typename std::map<ID, NonLocalVariable>::const_iterator end = non_local_variables.end();
 
@@ -817,10 +774,6 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::packElementData
       const NonLocalVariable & non_local_variable = it->second;
       this->packElementDataHelper(*non_local_variable.local_variable,
 				  buffer, elements);
-      // Vector<Real>::iterator<types::RVector> local_var = (*non_local_variable.local_variable)(element.type, _not_ghost).begin(non_local_variable.non_local_variable_nb_component);
-      // local_var += element.element * nb_quadrature_points;
-      // for (UInt q = 0; q < nb_quadrature_points; ++q, ++local_var)
-      // 	buffer << *local_var;
     }
   }
 
@@ -833,7 +786,6 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementDa
 										   const Vector<Element> & elements,
 										   SynchronizationTag tag) {
   if(tag == _gst_mnl_for_average) {
-    // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
     typename std::map<ID, NonLocalVariable>::iterator it = non_local_variables.begin();
     typename std::map<ID, NonLocalVariable>::iterator end = non_local_variables.end();
 
@@ -841,11 +793,6 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementDa
       NonLocalVariable & non_local_variable = it->second;
       this->unpackElementDataHelper(*non_local_variable.local_variable,
 				    buffer, elements);
-      // Vector<Real>::iterator<types::RVector> local_var =
-      // 	(*non_local_variable.local_variable)(element.type, _ghost).begin(non_local_variable.non_local_variable_nb_component);
-      // local_var += element.element * nb_quadrature_points;
-      // for (UInt q = 0; q < nb_quadrature_points; ++q, ++local_var)
-      //   buffer >> *local_var;
     }
   }
 
@@ -857,21 +804,41 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsAdded(const Vector<Element> & element_list) {
   AKANTU_DEBUG_IN();
 
-  if(is_creating_grid) {
-    Int my_index = model->getInternalIndexFromID(id);
+  Material::onElementsAdded(element_list);
 
-    AKANTU_DEBUG_ASSERT(my_index != -1, "Something horrible happen, the model does not know the material " << id);
-    Vector<Element>::const_iterator<Element> it  = element_list.begin();
-    Vector<Element>::const_iterator<Element> end = element_list.end();
-    for (; it != end; ++it) {
-      const Element & elem = *it;
-      model->getElementIndexByMaterial(elem.type, elem.ghost_type)(elem.element) =
-	this->addElement(elem.type, elem.element, elem.ghost_type);
-      model->getElementMaterial(elem.type, elem.ghost_type)(elem.element) = UInt(my_index);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension, template <UInt> class WeightFunction>
+inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemoved(const Vector<Element> & element_list,
+										   const ByElementTypeUInt & new_numbering) {
+  AKANTU_DEBUG_IN();
+
+  Material::onElementsRemoved(element_list, new_numbering);
+
+  pair_type::const_iterator first_pair_types = existing_pairs[1].begin();
+  pair_type::const_iterator last_pair_types = existing_pairs[1].end();
+
+  // Renumber element to keep
+  for (; first_pair_types != last_pair_types; ++first_pair_types) {
+    ElementType type2 = first_pair_types->second;
+    GhostType ghost_type2 = _ghost;
+    UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
+
+    Vector<UInt> & pairs =
+      pair_list(first_pair_types->first, _not_ghost)(first_pair_types->second, ghost_type2);
+    Vector<UInt>::iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
+    Vector<UInt>::iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+    for(;first_pair != last_pair; ++first_pair) {
+      UInt _q2 = (*first_pair)(1);
+      const Vector<UInt> & renumbering = new_numbering(type2, ghost_type2);
+      UInt el = _q2 / nb_quad2;
+      UInt new_el = renumbering(el);
+
+      (*first_pair)(1) = new_el * nb_quad2 + _q2 % nb_quad2;
     }
   }
-
-  Material::onElementsAdded(element_list);
 
   AKANTU_DEBUG_OUT();
 }
