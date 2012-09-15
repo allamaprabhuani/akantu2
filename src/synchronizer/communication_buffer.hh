@@ -94,11 +94,11 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /// return the size in bytes of the stored values
-  inline UInt getPackedSize(){return ptr_pack-buffer.values;}; 
+  inline UInt getPackedSize(){ return ptr_pack - buffer.values; }; 
   /// return the size in bytes of data left to be unpacked
-  inline UInt getLeftToUnpack(){return buffer.getSize()-(ptr_unpack-buffer.values);}; 
+  inline UInt getLeftToUnpack(){ return buffer.getSize() - (ptr_unpack - buffer.values); }; 
   /// return the global size allocated
-  inline UInt getSize(){return buffer.getSize();}; 
+  inline UInt getSize(){ return buffer.getSize(); }; 
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
