@@ -28,6 +28,7 @@
 __END_AKANTU__
 
 #include "solid_mechanics_model.hh"
+#include <iostream>
 
 __BEGIN_AKANTU__
 

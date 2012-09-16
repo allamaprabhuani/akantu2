@@ -32,7 +32,7 @@
 #include "fem.hh"
 #include "static_communicator.hh"
 #include "mesh_io.hh"
-
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 
