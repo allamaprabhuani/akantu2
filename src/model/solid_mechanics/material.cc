@@ -53,7 +53,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   is_init(false) {
   AKANTU_DEBUG_IN();
 
-  registerParam("rho",  rho,      0., ParamAccessType(_pat_parsable | _pat_readable), "Density");
+  registerParam("rho",  rho,      0., ParamAccessType(_pat_parsable | _pat_modifiable), "Density");
   registerParam("id",   this->id,     _pat_readable);
   registerParam("name", name,         ParamAccessType(_pat_parsable | _pat_readable));
 
