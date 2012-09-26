@@ -122,6 +122,9 @@ public:
   template <typename FEMClass>
   inline FEMClass & getFEMClassBoundary(std::string name = "");
 
+  /// get the pbc pairs 
+  std::map<UInt,UInt> & getPBCPairs(){return pbc_pair;};
+
 protected:
   /// returns if node is slave in pbc
   inline bool getIsPBCSlaveNode(const UInt node);
