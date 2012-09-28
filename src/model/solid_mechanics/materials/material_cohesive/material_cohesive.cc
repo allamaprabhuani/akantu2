@@ -49,17 +49,17 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 
   this->model = dynamic_cast<SolidMechanicsModelCohesive*>(&model);
 
-  initInternalVector(reversible_energy, 1, _ek_cohesive);
-  initInternalVector(total_energy, 1, _ek_cohesive);
-  initInternalVector(tractions_old, spatial_dimension, _ek_cohesive);
-  initInternalVector(tractions, spatial_dimension, _ek_cohesive);
-  initInternalVector(opening_old, spatial_dimension, _ek_cohesive);
-  initInternalVector(opening, spatial_dimension, _ek_cohesive);
-  initInternalVector(delta_max, 1, _ek_cohesive);
-  initInternalVector(damage, 1, _ek_cohesive);
+  initInternalVector(reversible_energy,                 1, false, _ek_cohesive);
+  initInternalVector(     total_energy,                 1, false, _ek_cohesive);
+  initInternalVector(    tractions_old, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(        tractions, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(      opening_old, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(          opening, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(        delta_max,                 1, false, _ek_cohesive);
+  initInternalVector(           damage,                 1, false, _ek_cohesive);
 
-  this->registerParam("sigma_c"    , sigma_c, 0. , _pat_parsable, "Critical stress"  );
-  this->registerParam("rand_factor", rand   , 0. , _pat_parsable, "Randomness factor");
+  this->registerParam("sigma_c"    , sigma_c, 0. , ParamAccessType(_pat_parsable | _pat_readable), "Critical stress"  );
+  this->registerParam("rand_factor", rand   , 0. , ParamAccessType(_pat_parsable | _pat_readable), "Randomness factor");
 
   AKANTU_DEBUG_OUT();
 }

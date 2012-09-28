@@ -51,8 +51,8 @@ MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrin
   this->registerParam("penalty", penalty, 0. , _pat_parsable, "Penalty coefficient"    );
   this->registerParam("kappa"  , kappa  , 0. , _pat_readable, "Kappa parameter"        );
 
-  initInternalVector(sigma_c_eff, 1, _ek_cohesive);
-  initInternalVector(delta_c, 1, _ek_cohesive);
+  initInternalVector(sigma_c_eff, 1, false, _ek_cohesive);
+  initInternalVector(    delta_c, 1, false, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }

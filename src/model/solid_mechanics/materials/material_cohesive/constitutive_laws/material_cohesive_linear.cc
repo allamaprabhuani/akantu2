@@ -128,12 +128,16 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Vector<Rea
      */
     Real delta = tangential_opening_norm;
     delta *= delta * beta2_kappa2;
-    delta += normal_opening_norm * normal_opening_norm;
+
+    /// don't consider penetration contribution
+    if (normal_opening_norm > 0)
+      delta += normal_opening_norm * normal_opening_norm;
+
     delta = sqrt(delta);
 
 
     /// full damage case or zero displacement case
-    if (delta >= delta_c || std::abs(delta) <= std::abs(delta) * epsilon) {
+    if (delta >= delta_c || delta <= epsilon) {
       /// set traction to zero
       (*traction_it).clear();
       *damage_it = delta >= delta_c;
