@@ -689,9 +689,6 @@ void Material::interpolateElementalField(const Vector<Real> & field,
 
   UInt nb_interpolation_points_per_elem = interp_points_coord.getNbComponent() / size_inverse_coords;
 
-  Vector<Real> filtered_field(nb_element, nb_quad_per_element);
-  extractElementalFieldForInterplation<type>(field, filtered_field);
-
   Vector<Real>::const_iterator<types::Matrix> field_it
     = field.begin_reinterpret(nb_quad_per_element,
 			      field.getNbComponent(),

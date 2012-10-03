@@ -214,14 +214,11 @@ protected:
   template <ElementType type>
   inline UInt getSizeElementalFieldInterpolationCoodinates();
 
-  /// extract the field values corresponding to the quadrature points used for the interpolation
-  template <ElementType type>
-  inline void extractElementalFieldForInterplation(const Vector<Real> & field,
-						   Vector<Real> & filtered_field);
 
   /* ------------------------------------------------------------------------ */
   /* Function for all materials                                               */
   /* ------------------------------------------------------------------------ */
+
 protected:
   /// compute the potential energy for on element
   inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,

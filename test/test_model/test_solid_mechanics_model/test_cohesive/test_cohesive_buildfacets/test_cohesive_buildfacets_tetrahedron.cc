@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
-  mesh_io.read("mesh.msh", mesh);
+  mesh_io.read("tetrahedron.msh", mesh);
   Mesh mesh_facets(spatial_dimension, const_cast<Vector<Real> &>(mesh.getNodes()), "mesh_facets", 1);
 
   MeshUtils::buildAllFacets(mesh, mesh_facets);

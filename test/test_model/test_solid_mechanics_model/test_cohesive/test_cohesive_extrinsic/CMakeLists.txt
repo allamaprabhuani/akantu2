@@ -26,6 +26,7 @@
 #===============================================================================
 
 register_test(test_cohesive_extrinsic test_cohesive_extrinsic.cc)
+register_test(test_cohesive_extrinsic_quadrangle test_cohesive_extrinsic_quadrangle.cc)
 
 #add_mesh(test_cohesive_extrinsic_mesh mesh.geo 2 2)
 #add_dependencies(test_cohesive_extrinsic test_cohesive_extrinsic_mesh)
@@ -41,4 +42,9 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
   COPYONLY
   )
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/quadrangle.msh
+  ${CMAKE_CURRENT_BINARY_DIR}/quadrangle.msh
+  COPYONLY
+  )
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

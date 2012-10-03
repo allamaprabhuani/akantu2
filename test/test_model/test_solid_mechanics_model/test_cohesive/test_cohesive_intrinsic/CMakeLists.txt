@@ -26,6 +26,7 @@
 #===============================================================================
 
 register_test(test_cohesive_intrinsic test_cohesive_intrinsic.cc)
+register_test(test_cohesive_intrinsic_quadrangle test_cohesive_intrinsic_quadrangle.cc)
 
 #===============================================================================
 configure_file(
@@ -36,6 +37,11 @@ configure_file(
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
   ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
+  COPYONLY
+  )
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/quadrangle.msh
+  ${CMAKE_CURRENT_BINARY_DIR}/quadrangle.msh
   COPYONLY
   )
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

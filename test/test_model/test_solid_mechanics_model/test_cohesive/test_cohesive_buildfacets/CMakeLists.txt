@@ -24,8 +24,20 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-register_test(test_cohesive_buildfacets test_cohesive_buildfacets.cc)
-file(COPY mesh.msh DESTINATION .)
+register_test(test_cohesive_buildfacets_tetrahedron test_cohesive_buildfacets_tetrahedron.cc)
+register_test(test_cohesive_buildfacets_hexahedron test_cohesive_buildfacets_hexahedron.cc)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/tetrahedron.msh
+  ${CMAKE_CURRENT_BINARY_DIR}/tetrahedron.msh
+  COPYONLY
+  )
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/hexahedron.msh
+  ${CMAKE_CURRENT_BINARY_DIR}/hexahedron.msh
+  COPYONLY
+  )
 
 #add_mesh(test_cohesive_buildfacets_mesh mesh.geo 3 2)
 

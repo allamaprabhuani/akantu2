@@ -4,25 +4,12 @@ material elastic [
 	 E   = 1e3   # young's modulus
 	 nu  = 0.001 # poisson's ratio
 ]
-#
-#material cohesive_linear_exponential_extrinsic [
-#	 name = cohesive
-#	 sigma_c = 100
-#	 beta = 0
-#	 G_cI = 350
-#	 G_cII = 350
-#	 rand = 0
-#	 gamma = 0.128
-#	 z_max = 43
-#	 sigma_max = 1
-#	 delta_0 = 2
-#]
-#
+
 material cohesive_linear_extrinsic [
 	 name = cohesive
 	 sigma_c = 100
 	 beta = 1
 	 G_cI = 100
 	 G_cII = 100
-	 rand = 0
+	 rand_factor = 0
 ]

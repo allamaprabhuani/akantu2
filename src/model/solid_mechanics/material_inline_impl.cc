@@ -156,17 +156,53 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(co
   }
 }
 
+/**
+ * @todo Write a more efficient interpolation for quadrangles by
+ * dropping unnecessary quadrature points
+ * 
+ */
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::Matrix & coordinates,
+										types::Matrix & coordMatrix) {
+
+  for (UInt i = 0; i < coordinates.rows(); ++i) {
+    Real x = coordinates(i, 0);
+    Real y = coordinates(i, 1);
+
+    coordMatrix(i, 0) = 1;
+    coordMatrix(i, 1) = x;
+    coordMatrix(i, 2) = y;
+    coordMatrix(i, 3) = x * y;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::Matrix & coordinates,
+										types::Matrix & coordMatrix) {
+
+  for (UInt i = 0; i < coordinates.rows(); ++i) {
+
+    UInt j = 0;
+    Real x = coordinates(i, 0);
+    Real y = coordinates(i, 1);
+
+    for (UInt e = 0; e <= 2; ++e) {
+      for (UInt n = 0; n <= 2; ++n) {
+	coordMatrix(i, j) = std::pow(x, e) * std::pow(y, n);
+	++j;
+      }
+    }
+
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline UInt Material::getSizeElementalFieldInterpolationCoodinates() {
   return model->getFEM().getNbQuadraturePoints(type);
-}
-
-/* -------------------------------------------------------------------------- */
-template <ElementType type>
-inline void Material::extractElementalFieldForInterplation(const Vector<Real> & field,
-							   Vector<Real> & filtered_field) {
-  filtered_field.copy(field);
 }
 
 /* -------------------------------------------------------------------------- */
