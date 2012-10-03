@@ -58,8 +58,11 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   initInternalVector(        delta_max,                 1, false, _ek_cohesive);
   initInternalVector(           damage,                 1, false, _ek_cohesive);
 
-  this->registerParam("sigma_c"    , sigma_c, 0. , ParamAccessType(_pat_parsable | _pat_readable), "Critical stress"  );
-  this->registerParam("rand_factor", rand   , 0. , ParamAccessType(_pat_parsable | _pat_readable), "Randomness factor");
+  this->registerParam("sigma_c", sigma_c, 0. , _pat_parsable, "Critical stress");
+  this->registerParam("rand_factor", rand, 0. , _pat_parsable, "Randomness factor");
+  this->registerParam("distribution", distribution, std::string("uniform"),  _pat_parsable, "Distribution type");
+  this->registerParam("lambda", lambda, 0. , _pat_parsable, "Weibull modulus");
+  this->registerParam("m", m_scale, 1. , _pat_parsable, "Scale parameter");
 
   AKANTU_DEBUG_OUT();
 }
@@ -108,6 +111,30 @@ void MaterialCohesive::resizeCohesiveVectors() {
   resizeInternalVector(opening, _ek_cohesive);
   resizeInternalVector(delta_max, _ek_cohesive);
   resizeInternalVector(damage, _ek_cohesive);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void MaterialCohesive::generateRandomDistribution(Vector<Real> & sigma_lim) {
+  AKANTU_DEBUG_IN();
+
+  std::srand(time(NULL));
+  UInt nb_facet = sigma_lim.getSize();
+
+  if (distribution == "uniform") {
+    for (UInt i = 0; i < nb_facet; ++i)
+      sigma_lim(i) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
+  }
+  else if (distribution == "weibull") {
+    Real exponent = 1./m_scale;
+    for (UInt i = 0; i < nb_facet; ++i)
+      sigma_lim(i) = sigma_c + lambda * std::pow(-1.* std::log(std::rand()/(Real)RAND_MAX), exponent);
+  }
+  else {
+    AKANTU_DEBUG_ERROR("Unknown random distribution type for sigma_c");
+  }
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

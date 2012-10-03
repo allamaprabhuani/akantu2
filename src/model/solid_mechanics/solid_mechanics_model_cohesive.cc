@@ -26,9 +26,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <cstdlib>
-#include <algorithm>
-#include <ctime>
 
 #include "solid_mechanics_model_cohesive.hh"
 
@@ -153,9 +150,8 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
 
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   sigma_lim.resize(nb_facet);
-  const Real sigma_c = mat_cohesive->getParam<Real>("sigma_c");
-  const Real rand = mat_cohesive->getParam<Real>("rand_factor");
-  std::srand(time(NULL));
+
+  mat_cohesive->generateRandomDistribution(sigma_lim);
 
   if (facets_check.getSize() < 1) {
     const Vector<Vector<Element> > & element_to_facet
@@ -163,14 +159,8 @@ void SolidMechanicsModelCohesive::initExtrinsic() {
     facets_check.resize(nb_facet);
 
     for (UInt f = 0; f < nb_facet; ++f) {
-      if (element_to_facet(f)(1) != ElementNull) {
-	facets_check(f) = true;
-	sigma_lim(f) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
-      }
-      else {
-	facets_check(f) = false;
-	sigma_lim(f) = std::numeric_limits<Real>::max();
-      }
+      if (element_to_facet(f)(1) != ElementNull) facets_check(f) = true;
+      else facets_check(f) = false;
     }
   }
 

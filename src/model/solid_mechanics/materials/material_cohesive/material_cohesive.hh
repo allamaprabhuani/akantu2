@@ -78,6 +78,9 @@ public:
   virtual void interpolateStress(__attribute__((unused)) const ElementType type,
 				 __attribute__((unused)) Vector<Real> & result) { };
 
+  /// generate random sigma_c distributions
+  void generateRandomDistribution(Vector<Real> & sigma_lim);
+
 protected:
   virtual void computeTangentTraction(__attribute__((unused)) const ElementType & el_type,
 				      __attribute__((unused)) Vector<Real> & tangent_matrix,
@@ -181,8 +184,17 @@ protected:
   /// critical stress
   Real sigma_c;
 
-  /// randomness factor
+  /// distribution type
+  std::string distribution;
+
+  /// randomness factor for uniform distribution
   Real rand;
+
+  /// Weibull modulus
+  Real lambda;
+
+  /// scale parameter for Weibull distribution
+  Real m_scale;
 
   /// vector to store stresses on facets for element insertions
   Vector<Real> sigma_insertion;
