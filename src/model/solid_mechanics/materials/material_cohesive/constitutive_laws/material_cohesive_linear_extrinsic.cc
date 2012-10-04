@@ -49,7 +49,7 @@ MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrin
   this->registerParam("G_cI"   , G_cI   , 0. , _pat_parsable, "Mode I fracture energy" );
   this->registerParam("G_cII"  , G_cII  , 0. , _pat_parsable, "Mode II fracture energy");
   this->registerParam("penalty", penalty, 0. , _pat_parsable, "Penalty coefficient"    );
-  this->registerParam("kappa"  , kappa  , 0. , _pat_readable, "Kappa parameter"        );
+  this->registerParam("kappa"  , kappa  , 1. , _pat_readable, "Kappa parameter"        );
 
   initInternalVector(sigma_c_eff, 1, false, _ek_cohesive);
   initInternalVector(    delta_c, 1, false, _ek_cohesive);
@@ -72,7 +72,17 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::initMaterial() {
 
   MaterialCohesive::initMaterial();
 
-  kappa   = G_cII / G_cI;
+  if (G_cII != 0)
+    kappa = G_cII / G_cI;
+
+  /// compute scalars
+  beta2_kappa2 = beta * beta/kappa/kappa;
+  beta2_kappa  = beta * beta/kappa;
+
+  if (beta == 0)
+    beta2_inv = 0;
+  else
+    beta2_inv = 1./beta/beta;
 
   AKANTU_DEBUG_OUT();
 }
@@ -133,7 +143,7 @@ inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffective
   AKANTU_DEBUG_OUT();
 
   return std::sqrt(normal_contrib*normal_contrib
-		   + tangent_contrib*tangent_contrib/beta/beta);
+		   + tangent_contrib*tangent_contrib*beta2_inv);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -216,10 +226,6 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
 
   Vector<Real>::iterator<Real>damage_it =
     damage(el_type, ghost_type).begin();
-
-  /// compute scalars
-  Real beta2_kappa2 = beta*beta/kappa/kappa;
-  Real beta2_kappa  = beta*beta/kappa;
 
   Real epsilon = std::numeric_limits<Real>::epsilon();
 

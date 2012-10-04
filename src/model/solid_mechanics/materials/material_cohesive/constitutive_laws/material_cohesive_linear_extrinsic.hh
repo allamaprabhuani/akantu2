@@ -103,6 +103,9 @@ protected:
   /// beta parameter
   Real beta;
 
+  /// beta square inverse to compute effective norm
+  Real beta2_inv;
+
   /// mode I fracture energy
   Real G_cI;
 
@@ -111,6 +114,12 @@ protected:
 
   /// kappa parameter
   Real kappa;
+
+  /// constitutive law scalar to compute delta
+  Real beta2_kappa2;
+
+  /// constitutive law scalar to compute traction
+  Real beta2_kappa;
 
   /// penalty coefficient
   Real penalty;
