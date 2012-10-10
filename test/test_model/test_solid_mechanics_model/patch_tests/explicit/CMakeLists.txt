@@ -26,7 +26,7 @@
 #===============================================================================
 macro(register_patch_test name type plane_strain)
   register_test(patch_test_explicit_${name} patch_test_explicit.cc)
-  file(COPY ../data/${type}.msh DESTINATION .)
+  file(COPY ../data/_${type}.msh DESTINATION .)
   set_target_properties(patch_test_explicit_${name}
     PROPERTIES COMPILE_DEFINITIONS "TYPE=_${type};PLANE_STRAIN=${plane_strain}")
 endmacro()

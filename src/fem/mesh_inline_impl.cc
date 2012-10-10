@@ -54,13 +54,11 @@ inline void Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) 
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
-  if(event.getList().getSize() != 0) {
-    if(created_nodes)    removeNodesFromVector(*nodes           , event.getNewNumbering());
-    if(nodes_global_ids) removeNodesFromVector(*nodes_global_ids, event.getNewNumbering());
-    if(nodes_type)       removeNodesFromVector(*nodes_type      , event.getNewNumbering());
+  if(created_nodes)    removeNodesFromVector(*nodes           , event.getNewNumbering());
+  if(nodes_global_ids) removeNodesFromVector(*nodes_global_ids, event.getNewNumbering());
+  if(nodes_type)       removeNodesFromVector(*nodes_type      , event.getNewNumbering());
 
-    EventHandlerManager<MeshEventHandler>::sendEvent(event);
-  }
+  EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */

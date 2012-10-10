@@ -34,7 +34,6 @@ __END_AKANTU__
 #include "synchronizer_registry.hh"
 #include "integrator.hh"
 /* -------------------------------------------------------------------------- */
-#include <iostream>
 #include <fstream>
 /* -------------------------------------------------------------------------- */
 
@@ -234,11 +233,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByE
   for(; it != last_type; ++it) {
     Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
     UInt nb_element = elem_filter.getSize();
-    std::cout << nb_element << std::endl;
     UInt nb_quad    = this->model->getFEM().getNbQuadraturePoints(*it, ghost_type);
 
     const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
-
     q.type = *it;
 
     Vector<Real>::const_iterator<types::RVector> quad = quads.begin(spatial_dimension);
@@ -287,7 +284,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 
     Vector<UInt> * neighbors = NULL;
     Vector<UInt> * element_index_material2 = NULL;
-    //Vector<UInt> & element_index_material1 = this->model->getElementIndexByMaterial(*it, ghost_type);
 
     UInt my_num_quad = 0;
 
@@ -300,7 +296,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
       RegularGrid<QuadraturePoint>::neighbor_cells_iterator last_neigh_cell =
       cell_list->endNeighborCells(cell);
 
-      // loop over neighbors  cells of the one containing  the current quadrature
+      // loop over neighbors cells of the one containing the current quadrature
       // point
       for (; first_neigh_cell != last_neigh_cell; ++first_neigh_cell) {
 	RegularGrid<QuadraturePoint>::iterator first_neigh_quad =
@@ -311,10 +307,14 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 	// loop over the quadrature point in the current cell of the cell list
 	for (;first_neigh_quad != last_neigh_quad; ++first_neigh_quad){
 	  QuadraturePoint & quad = *first_neigh_quad;
-	  UInt nb_quad_per_elem =  this->model->getFEM().getNbQuadraturePoints(quad.type, quad.ghost_type);
+	  UInt nb_quad_per_elem =
+	    this->model->getFEM().getNbQuadraturePoints(quad.type,
+							quad.ghost_type);
 
 	  // little optimization to not search in the map at each quad points
-	  if(quad.type != current_element_type || quad.ghost_type != current_ghost_type) {
+	  if(quad.type != current_element_type ||
+	     quad.ghost_type != current_ghost_type) {
+
 	    current_element_type = quad.type;
 	    current_ghost_type   = quad.ghost_type;
 	    existing_pairs_num = quad.ghost_type == _not_ghost ? 0 : 1;
@@ -326,13 +326,18 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 	      neighbors = &(pairs(current_element_type,
 				  current_ghost_type));
 	    }
-	    existing_pairs[existing_pairs_num].insert(std::pair<ElementType, ElementType>(*it,
+	    existing_pairs[existing_pairs_num].insert(std::pair<ElementType,
+								ElementType>(*it,
 											  current_element_type));
-	    element_index_material2 = &(this->model->getElementIndexByMaterial(current_element_type, current_ghost_type));
+	    element_index_material2 =
+	      &(this->model->getElementIndexByMaterial(current_element_type,
+						       current_ghost_type));
 	  }
 
-	  UInt neigh_num_quad = (*element_index_material2)(quad.element) * nb_quad_per_elem +
+	  UInt neigh_num_quad =
+	    (*element_index_material2)(quad.element) * nb_quad_per_elem +
 	    quad.num_point;
+
 	  const types::RVector & neigh_quad = quad.getPosition();
 
 	  Real distance = first_quad->distance(neigh_quad);
@@ -835,7 +840,7 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemov
       const Vector<UInt> & renumbering = new_numbering(type2, ghost_type2);
       UInt el = _q2 / nb_quad2;
       UInt new_el = renumbering(el);
-
+      AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A local quad as been removed instead f just renumbered");
       (*first_pair)(1) = new_el * nb_quad2 + _q2 % nb_quad2;
     }
   }

@@ -418,33 +418,58 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
       mat.assembleResidual(_ghost);
     }
   } else {
-    //    updateSupportReaction();
-
     Vector<Real> * Ku = new Vector<Real>(*displacement, true, "Ku");
     *Ku *= *stiffness_matrix;
     *residual -= *Ku;
+
+    //   updateSupportReaction();
+
     delete Ku;
   }
 
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-//void SolidMechanicsModel::updateSupportReaction() {
-//  const Vector<Int> & irn = stiffness_matrix->getIRN();
-//  const Vector<Int> & jcn = stiffness_matrix->getJCN();
-//  const Vector<Real> & A = stiffness_matrix->getA();
-//
-//  Real * residual = residual->storage();
-//  Real * displacement = displacement->storage();
-//  bool * boundary = boundary->storage();
-//
-//  UInt n = stiffness_matrix->getNbNonZero();
-//
-//  for (UInt i = 0; i < n; ++i) {
-//
-//  }
-//}
+// /* -------------------------------------------------------------------------- */
+// void SolidMechanicsModel::computeStesses() {
+//   if (method == _explicit_dynamic) {
+//     // start synchronization
+//     synch_registry->asynchronousSynchronize(_gst_smm_uv);
+//     synch_registry->waitEndSynchronize(_gst_smm_uv);
+
+//     // compute stresses on all local elements for each materials
+//     std::vector<Material *>::iterator mat_it;
+//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+//       Material & mat = **mat_it;
+//       mat.computeAllStresses(_not_ghost);
+//     }
+
+
+//     /* ------------------------------------------------------------------------ */
+// #ifdef AKANTU_DAMAGE_NON_LOCAL
+//     /* Computation of the non local part */
+//     synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
+
+//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+//       Material & mat = **mat_it;
+//       mat.computeAllNonLocalStresses(_not_ghost);
+//     }
+
+//     synch_registry->waitEndSynchronize(_gst_mnl_for_average);
+
+//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+//       Material & mat = **mat_it;
+//       mat.computeAllNonLocalStresses(_ghost);
+//     }
+// #endif
+//   } else {
+//     std::vector<Material *>::iterator mat_it;
+//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+//       Material & mat = **mat_it;
+//       mat.computeAllStressesFromTangentModuli(_not_ghost);
+//     }
+//   }
+// }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidualInternal() {
@@ -640,12 +665,13 @@ void SolidMechanicsModel::initImplicit(bool dynamic, SolverOptions & solver_opti
   if(method == _implicit_dynamic) {
     if(integrator) delete integrator;
     integrator = new TrapezoidalRule2();
-
-    std::stringstream sstr; sstr << id << ":stiffness_matrix";
-    stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr.str(), memory_id);
-  } else {
-    stiffness_matrix = jacobian_matrix;
   }
+
+  std::stringstream sstr; sstr << id << ":stiffness_matrix";
+  stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr.str(), memory_id);
+  // } else {
+  //   stiffness_matrix = jacobian_matrix;
+  // }
 
   AKANTU_DEBUG_OUT();
 }
@@ -728,10 +754,10 @@ void SolidMechanicsModel::solveStatic() {
   UInt nb_nodes = displacement->getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent();
 
-  stiffness_matrix->applyBoundary(*boundary);
+  //  if(method != _static)
+  jacobian_matrix->copyContent(*stiffness_matrix);
 
-  if(method != _static)
-    jacobian_matrix->copyContent(*stiffness_matrix);
+  jacobian_matrix->applyBoundary(*boundary);
 
   solver->setRHS(*residual);
 

@@ -53,9 +53,9 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   is_init(false) {
   AKANTU_DEBUG_IN();
 
-  registerParam("rho",  rho,      0., ParamAccessType(_pat_parsable | _pat_modifiable), "Density");
-  registerParam("id",   this->id,     _pat_readable);
-  registerParam("name", name,         ParamAccessType(_pat_parsable | _pat_readable));
+  registerParam("rho",  rho,                 0., ParamAccessType(_pat_parsable | _pat_modifiable), "Density");
+  registerParam("id",   this->id,                _pat_readable);
+  registerParam("name", name,     std::string(), ParamAccessType(_pat_parsable | _pat_readable));
 
   spatial_dimension = this->model->getSpatialDimension();
 
@@ -445,6 +445,104 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   AKANTU_DEBUG_OUT();
 }
+
+
+// /* -------------------------------------------------------------------------- */
+// template<UInt dim>
+// void Material::assembleStiffnessMatrix(const ElementType & type,
+// 				       GhostType ghost_type) {
+//   AKANTU_DEBUG_IN();
+
+//   const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type,ghost_type);
+//   Vector<UInt> & elem_filter = element_filter(type, ghost_type);
+//   Vector<Real> & strain_vect = strain(type, ghost_type);
+
+//   UInt nb_element                 = elem_filter.getSize();
+//   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
+//   UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type, ghost_type);
+
+//   strain_vect.resize(nb_quadrature_points * nb_element);
+
+//   model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
+// 					     dim, type, ghost_type, &elem_filter);
+
+//   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
+
+//   Vector<Real> * tangent_moduli_tensors =
+//     new Vector<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
+// 		     "tangent_stiffness_tensors");
+
+//   tangent_moduli_tensors->clear();
+
+//   computeTangentModuli(type, *tangent_stiffness_matrix, ghost_type);
+
+
+//   Vector<Real> * shapes_derivatives_filtered = new Vector<Real>(nb_element * nb_quadrature_points,
+// 								dim * nb_nodes_per_element,
+// 								"shapes derivatives filtered");
+
+
+//   Vector<Real>::const_iterator<types::Matrix> shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
+// 											       nb_nodes_per_element);
+
+//   Vector<Real>::iterator<types::Matrix> shapes_derivatives_filtered_it  = shapes_derivatives_filtered->begin(spatial_dimension,
+// 													     nb_nodes_per_element);
+//   UInt * elem_filter_val = elem_filter.storage();
+//   for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
+//     for (UInt q = 0; q < nb_quadrature_points; ++q, ++shapes_derivatives_filtered_it)
+//       *shapes_derivatives_filtered_it = shapes_derivatives_it[*elem_filter_val * nb_quadrature_points + q];
+
+//   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+//   UInt bt_d_b_size = dim * nb_nodes_per_element;
+
+//   Vector<Real> * bt_d_b = new Vector<Real>(nb_element * nb_quadrature_points,
+// 					   bt_d_b_size * bt_d_b_size,
+// 					   "B^t*D*B");
+
+//   types::Matrix B(tangent_size, dim * nb_nodes_per_element);
+//   types::Matrix Bt_D(dim * nb_nodes_per_element, tangent_size);
+
+//   shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
+
+//   Vector<Real>::iterator<types::Matrix> Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
+// 								  dim*nb_nodes_per_element);
+
+//   Vector<Real>::iterator<types::Matrix> D_it  = tangent_stiffness_matrix->begin(tangent_size,
+// 										tangent_size);
+//   Vector<Real>::iterator<types::Matrix> D_end = tangent_stiffness_matrix->end  (tangent_size,
+// 										tangent_size);
+
+
+//   for(; D_it != D_end; ++D_it, ++Bt_D_B_it, ++shapes_derivatives_filtered_it) {
+//     types::Matrix & D = *D_it;
+//     types::Matrix & Bt_D_B = *Bt_D_B_it;
+
+//     transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+//     Bt_D.mul<true, false>(B, D);
+//     Bt_D_B.mul<false, false>(Bt_D, B);
+//   }
+
+//   delete tangent_stiffness_matrix;
+//   delete shapes_derivatives_filtered;
+
+//   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+//   Vector<Real> * K_e = new Vector<Real>(nb_element,
+// 					bt_d_b_size * bt_d_b_size,
+// 					"K_e");
+
+//   model->getFEM().integrate(*bt_d_b, *K_e,
+// 			    bt_d_b_size * bt_d_b_size,
+// 			    type, ghost_type,
+// 			    &elem_filter);
+
+//   delete bt_d_b;
+
+//   model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
+//   delete K_e;
+
+//   AKANTU_DEBUG_OUT();
+// }
+
 
 
 /* -------------------------------------------------------------------------- */

@@ -95,7 +95,7 @@ public:
 
 
   template<typename T> void synchronize(Vector<T> & vector) const ;
-  template<class Op, typename T> void reduceSynchronize(Vector<T> & vector) const;
+  template<template <class> class Op, typename T> void reduceSynchronize(Vector<T> & vector) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

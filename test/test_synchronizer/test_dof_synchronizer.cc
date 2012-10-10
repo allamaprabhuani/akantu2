@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
   }
 
   std::cout << "Reducing a dof vector" << std::endl;
-  dof_synchronizer.reduceSynchronize<AddOperation<Real> >(dof_vector);
+  dof_synchronizer.reduceSynchronize<AddOperation>(dof_vector);
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt d = 0; d < spatial_dimension; ++d) {

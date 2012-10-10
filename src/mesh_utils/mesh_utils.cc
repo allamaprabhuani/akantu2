@@ -606,14 +606,16 @@ void MeshUtils::renumberNodesInConnectivity(UInt * list_nodes,
   AKANTU_DEBUG_IN();
 
   UInt * connectivity = list_nodes;
+  UInt new_node_num = renumbering_map.size();
   for (UInt n = 0; n < nb_nodes; ++n, ++connectivity) {
     UInt & node = *connectivity;
     std::map<UInt, UInt>::iterator it = renumbering_map.find(node);
     if(it == renumbering_map.end()) {
       UInt old_node = node;
-      nodes_numbers.push_back(old_node);
-      node = nodes_numbers.getSize() - 1;
-      renumbering_map[old_node] = node;
+      nodes_numbers(node) = new_node_num;
+      node = new_node_num;
+      renumbering_map[old_node] = new_node_num;
+      ++new_node_num;
     } else {
       node = it->second;
     }
@@ -628,7 +630,12 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   std::map<UInt, UInt> renumbering_map;
-  Vector<UInt> node_numbers;
+
+
+  RemovedNodesEvent remove_nodes(mesh);
+  Vector<UInt> & nodes_removed = remove_nodes.getList();
+  Vector<UInt> & node_numbers  = remove_nodes.getNewNumbering();
+  std::fill(node_numbers.begin(), node_numbers.end(), UInt(-1));
 
   for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
     GhostType ghost_type = (GhostType) gt;
@@ -648,20 +655,8 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
     }
   }
 
-
-
-  RemovedNodesEvent remove_nodes(mesh);
-  Vector<UInt> & nodes_removed = remove_nodes.getList();
-  Vector<UInt> & new_numbering = remove_nodes.getNewNumbering();
-
-  std::fill(new_numbering.begin(), new_numbering.end(), UInt(-1));
-
   for (UInt i = 0; i < node_numbers.getSize(); ++i) {
-    new_numbering(node_numbers(i)) = i;
-  }
-
-  for (UInt i = 0; i < new_numbering.getSize(); ++i) {
-    if(new_numbering(i) == UInt(-1))
+    if(node_numbers(i) == UInt(-1))
       nodes_removed.push_back(i);
   }
 
