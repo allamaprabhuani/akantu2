@@ -384,11 +384,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   }
   delete [] element_per_proc;
 
-  std::cout << "Wait 1" << std::endl;
-
   comm.waitAll(isend_requests);
   comm.freeCommunicationRequest(isend_requests);
-
 
   /**
    * Sends requested nodes to proc
@@ -433,8 +430,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     isend_coordinates_requests.push_back(comm.asyncSend(nodes_to_send.storage(), nb_nodes_to_send * spatial_dimension, p, Tag::genTag(my_rank, 0, SEND_NODES_TAG)));
   }
 
-  std::cout << "Wait 2" << std::endl;
-
   comm.waitAll(isend_nodes_requests);
   comm.freeCommunicationRequest(isend_nodes_requests);
   delete [] ask_nodes_per_proc;
@@ -453,7 +448,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     }
   }
 
-  std::cout << "Wait 3" << std::endl;
   comm.waitAll(isend_coordinates_requests);
   comm.freeCommunicationRequest(isend_coordinates_requests);
   delete [] nodes_to_send_per_proc;

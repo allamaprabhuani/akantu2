@@ -12,3 +12,5 @@ Line Loop(5) = {3, 4, 1, 2};
 Plane Surface(6) = {5};
 Transfinite Surface "*";
 Recombine Surface "*";
+
+Mesh.SecondOrderIncomplete = 1;

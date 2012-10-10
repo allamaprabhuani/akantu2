@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
   std::stringstream filename; filename << TYPE << ".msh";
   mesh_io.read(filename.str(), my_mesh);
 
-  MeshUtils::purifyMesh(my_mesh);
+  //  MeshUtils::purifyMesh(my_mesh);
 
   UInt nb_nodes = my_mesh.getNbNodes();
 
@@ -164,6 +164,7 @@ int main(int argc, char *argv[])
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   akantu::UInt count = 0;
+  my_model.assembleStiffnessMatrix();
   my_model.updateResidual();
 
 #ifdef AKANTU_USE_IOHELPER
@@ -171,13 +172,16 @@ int main(int argc, char *argv[])
   paraviewInit(dumper, my_model);
 #endif
 
-  my_model.assembleStiffnessMatrix();
+
+  my_model.getStiffnessMatrix().saveMatrix("K.mtx");
 
   while(!my_model.testConvergenceResidual(2e-4) && (count < 100)) {
     std::cout << "Iter : " << ++count << std::endl;
     my_model.solveStatic();
     my_model.updateResidual();
   }
+
+  my_model.assembleStiffnessMatrix();
 
 #ifdef AKANTU_USE_IOHELPER
   paraviewDump(dumper);
@@ -187,7 +191,6 @@ int main(int argc, char *argv[])
     std::cerr << "The code did not converge in 1 step !" << std::endl;
     return EXIT_FAILURE;
   }
-
 
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */

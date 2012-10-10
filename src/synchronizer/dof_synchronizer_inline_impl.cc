@@ -236,7 +236,7 @@ template<typename T> void DOFSynchronizer::synchronize(Vector<T> & dof_vector) c
 
 
 /* -------------------------------------------------------------------------- */
-template<class Op, typename T> void DOFSynchronizer::reduceSynchronize(Vector<T> & dof_vector) const {
+template<template <class> class Op, typename T> void DOFSynchronizer::reduceSynchronize(Vector<T> & dof_vector) const {
   AKANTU_DEBUG_IN();
 
   if(psize == 1) {
@@ -265,7 +265,7 @@ template<class Op, typename T> void DOFSynchronizer::reduceSynchronize(Vector<T>
     if(nb_master_dofs != 0) request = communicator->asyncSend(send_buffer, nb_master_dofs, sendto  , 0);
     if(nb_slave_dofs  != 0) communicator->receive(recv_buffer, nb_slave_dofs,  recvfrom, 0);
 
-    Op oper;
+    Op<T> oper;
 
     for (UInt d = 0; d < nb_slave_dofs; ++d) {
       dof_vector.values[slave_dofs[d]] = oper(dof_vector.values[slave_dofs[d]], recv_buffer[d]);

@@ -41,15 +41,15 @@ set(LIST_TYPES
   hexahedron_8
   )
 
-add_mesh(test_fem_segment_2_mesh      line.geo              1 1 OUTPUT segment_2.msh)
-add_mesh(test_fem_segment_3_mesh      line.geo              1 2 OUTPUT segment_3.msh)
-add_mesh(test_fem_triangle_3_mesh     square.geo            2 1 OUTPUT triangle_3.msh)
-add_mesh(test_fem_triangle_6_mesh     square.geo            2 2 OUTPUT triangle_6.msh)
-add_mesh(test_fem_quadrangle_4_mesh   square_structured.geo 2 1 OUTPUT quadrangle_4.msh)
-add_mesh(test_fem_quadrangle_8_mesh   square_structured.geo 2 2 OUTPUT quadrangle_8.msh)
-add_mesh(test_fem_tetrahedron_4_mesh  cube.geo              3 1 OUTPUT tetrahedron_4.msh)
-add_mesh(test_fem_tetrahedron_10_mesh cube.geo              3 2 OUTPUT tetrahedron_10.msh)
-add_mesh(test_fem_hexahedron_8_mesh   hexa_structured.geo   3 1 OUTPUT hexahedron_8.msh)
+add_mesh(test_fem_segment_2_mesh      line.geo              1 1 OUTPUT _segment_2.msh)
+add_mesh(test_fem_segment_3_mesh      line.geo              1 2 OUTPUT _segment_3.msh)
+add_mesh(test_fem_triangle_3_mesh     square.geo            2 1 OUTPUT _triangle_3.msh)
+add_mesh(test_fem_triangle_6_mesh     square.geo            2 2 OUTPUT _triangle_6.msh)
+add_mesh(test_fem_quadrangle_4_mesh   square_structured.geo 2 1 OUTPUT _quadrangle_4.msh)
+add_mesh(test_fem_quadrangle_8_mesh   square_structured.geo 2 2 OUTPUT _quadrangle_8.msh)
+add_mesh(test_fem_tetrahedron_4_mesh  cube.geo              3 1 OUTPUT _tetrahedron_4.msh)
+add_mesh(test_fem_tetrahedron_10_mesh cube.geo              3 2 OUTPUT _tetrahedron_10.msh)
+add_mesh(test_fem_hexahedron_8_mesh   hexa_structured.geo   3 1 OUTPUT _hexahedron_8.msh)
 
 
 macro(register_fem_test operation type)
@@ -57,7 +57,7 @@ macro(register_fem_test operation type)
   register_test(${_target} test_${operation}.cc)
   set_target_properties(${_target}
     PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-  if(NOT EXISTS ${_type}.msh)
+  if(NOT EXISTS _${_type}.msh)
     add_dependencies(${_target} test_fem_${_type}_mesh)
   endif()
 endmacro()
@@ -70,7 +70,7 @@ foreach(_type ${LIST_TYPES})
   register_fem_test(inverse_map ${_type})
 
   if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
-    file(COPY ${_type}.msh DESTINATION .)
+    file(COPY _${_type}.msh DESTINATION .)
   endif()
 endforeach()
 

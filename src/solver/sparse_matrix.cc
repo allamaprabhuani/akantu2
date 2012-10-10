@@ -354,7 +354,7 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
   delete [] tmp;
 
   if(dof_synchronizer)
-    dof_synchronizer->reduceSynchronize<AddOperation<Real> >(vect);
+    dof_synchronizer->reduceSynchronize<AddOperation>(vect);
 
   AKANTU_DEBUG_OUT();
 
@@ -421,7 +421,7 @@ void SparseMatrix::lump(Vector<Real> & lumped) {
   }
 
   if(dof_synchronizer)
-    dof_synchronizer->reduceSynchronize<AddOperation<Real> >(lumped);
+    dof_synchronizer->reduceSynchronize<AddOperation>(lumped);
 
   AKANTU_DEBUG_OUT();
 }

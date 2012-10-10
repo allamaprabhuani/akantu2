@@ -438,6 +438,7 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
 	  el.element = elem_filter(i);
 	  if(std::find(el_begin, el_end, el) == el_end) {
 	    UInt new_el = renumbering(el.element);
+	    AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A not removed element as been badly renumbered");
 	    elem_filter_tmp.push_back(new_el);
 	    mat_renumbering(i) = ni;
 	    element_index_material(new_el) = ni;
@@ -453,7 +454,6 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
     }
   }
 
-  std::cout << "a " << getVector("damage", _triangle_3, _ghost) << std::endl;
   for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
        ++it) {
@@ -465,6 +465,4 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
        ++it) {
     this->removeQuadraturePointsFromVectors(*(it->second), material_local_new_numbering);
   }
-
-  std::cout << "a " << getVector("damage", _triangle_3, _ghost) << std::endl;
 }
