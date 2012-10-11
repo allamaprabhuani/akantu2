@@ -230,7 +230,9 @@ void MeshPartitionScotch::destroyMesh(SCOTCH_Mesh * meshptr) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshPartitionScotch::partitionate(UInt nb_part) {
+void MeshPartitionScotch::partitionate(UInt nb_part,
+				       const EdgeLoadFunctor & edge_load_func,
+				       const Vector<UInt> & pairs) {
   AKANTU_DEBUG_IN();
 
   nb_partitions = nb_part;
@@ -240,8 +242,8 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 
   Vector<Int> dxadj;
   Vector<Int> dadjncy;
-
-  buildDualGraph(dxadj, dadjncy);
+  Vector<Int> edge_loads;
+  buildDualGraph(dxadj, dadjncy, edge_loads, edge_load_func, pairs);
 
   /// variables that will hold our structures in scotch format
   SCOTCH_Graph   scotch_graph;
@@ -252,15 +254,15 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
 						//nodes (0 -> C , 1 -> fortran)
   SCOTCH_Num vertnbr = dxadj.getSize() - 1;     //number of vertexes
   SCOTCH_Num *parttab;                          //array of partitions
-  SCOTCH_Num edgenbr = dxadj.values[vertnbr];   //twice  the number  of "edges"
+  SCOTCH_Num edgenbr = dxadj(vertnbr);          //twice  the number  of "edges"
 						//(an "edge" bounds two nodes)
-  SCOTCH_Num * verttab = dxadj.values;          //array of start indices in edgetab
+  SCOTCH_Num * verttab = dxadj.storage();       //array of start indices in edgetab
   SCOTCH_Num * vendtab = NULL;                  //array of after-last indices in edgetab
   SCOTCH_Num * velotab = NULL;                  //integer  load  associated with
 						//every vertex ( optional )
-  SCOTCH_Num * edlotab = NULL;                  //integer  load  associated with
+  SCOTCH_Num * edlotab = edge_loads.storage();  //integer  load  associated with
 						//every edge ( optional )
-  SCOTCH_Num * edgetab = dadjncy.values;        // adjacency array of every vertex
+  SCOTCH_Num * edgetab = dadjncy.storage();     // adjacency array of every vertex
   SCOTCH_Num * vlbltab = NULL;                  // vertex label array (optional)
 
   /// Allocate space for Scotch arrays
@@ -282,7 +284,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part) {
   if (AKANTU_DEBUG_TEST(dblDump)) {
     /// save initial graph
     FILE *fgraphinit = fopen("GraphIniFile.grf", "w");
-    SCOTCH_graphSave(&scotch_graph,fgraphinit);
+    SCOTCH_graphSave(&scotch_graph, fgraphinit);
     fclose(fgraphinit);
 
     /// write geometry file

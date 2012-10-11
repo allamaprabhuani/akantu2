@@ -55,12 +55,16 @@ MeshPartition::~MeshPartition() {
 
 /* -------------------------------------------------------------------------- */
 /**
- * conversion in c++ of a the  GENDUALMETIS (mesh.c) function wrote by George in
+ * conversion in c++ of the GENDUALMETIS (mesh.c) function wrote by George in
  * Metis (University of Minnesota)
  */
-void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
+void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
+				   Vector<Int> edge_loads,
+				   const EdgeLoadFunctor & edge_load_func,
+				   const Vector<UInt> & pairs) {
   AKANTU_DEBUG_IN();
 
+  // tweak mesh;
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   UInt nb_types = type_list.size();
   UInt nb_good_types = 0;
@@ -70,8 +74,11 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 
   UInt magic_number[nb_types];
 
-  UInt * conn_val[nb_types];
+  //  UInt * conn_val[nb_types];
   UInt nb_element[nb_types];
+
+  Vector<UInt> * conn[nb_types];
+  Vector<UInt> * conn_tmp[nb_types];
 
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
@@ -82,25 +89,30 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 
     nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
     nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
-    conn_val[nb_good_types]                = mesh.getConnectivity(type, _not_ghost).values;
     nb_element[nb_good_types]              = mesh.getConnectivity(type, _not_ghost).getSize();
     magic_number[nb_good_types]            =
       Mesh::getNbNodesPerElement(Mesh::getFacetElementType(type_p1));
+
+    conn[nb_good_types] = &const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _not_ghost));
+
+    if(pairs.getSize() != 0) {
+      conn_tmp[nb_good_types] = new Vector<UInt>(mesh.getConnectivity(type, _not_ghost));
+      for (UInt i = 0; i < pairs.getSize(); ++i) {
+	for (UInt el = 0; el < nb_element[nb_good_types]; ++el) {
+	  for (UInt n = 0; n < nb_nodes_per_element[nb_good_types]; ++n) {
+	    if(pairs(i, 1) == (*conn[nb_good_types])(el, n))
+	      (*conn[nb_good_types])(el, n) = pairs(i, 0);
+	  }
+	}
+      }
+    }
+
     nb_good_types++;
   }
 
-
-  // Vector<UInt> node_offset;
-  // Vector<UInt> node_index;
-
   CSR<UInt> node_to_elem;
 
-  //  MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
   MeshUtils::buildNode2Elements(mesh, node_to_elem);
-
-  // UInt * node_offset_val = node_offset.values;
-  // UInt * node_index_val = node_index.values;
-
 
   UInt nb_total_element = 0;
   UInt nb_total_node_element = 0;
@@ -111,44 +123,30 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 
   dxadj.resize(nb_total_element + 1);
 
-  Int * dxadj_val = dxadj.values;
   /// initialize the dxadj array
   for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t)
     for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el)
-      dxadj_val[linerized_el] = nb_nodes_per_element_p1[t];
-
+      dxadj(linerized_el) = nb_nodes_per_element_p1[t];
 
   /// convert the dxadj_val array in a csr one
-  for (UInt i = 1; i < nb_total_element; ++i) dxadj_val[i] += dxadj_val[i-1];
-  for (UInt i = nb_total_element; i > 0; --i) dxadj_val[i]  = dxadj_val[i-1];
-  dxadj_val[0] = 0;
+  for (UInt i = 1; i < nb_total_element; ++i) dxadj(i) += dxadj(i-1);
+  for (UInt i = nb_total_element; i > 0; --i) dxadj(i)  = dxadj(i-1);
+  dxadj(0) = 0;
 
-  dadjncy.resize(2*dxadj_val[nb_total_element]);
-  Int * dadjncy_val = dadjncy.values;
+  dadjncy.resize(2*dxadj(nb_total_element));
+  edge_loads.resize(2*dxadj(nb_total_element));
 
   /// weight map to determine adjacency
   unordered_map<UInt, UInt>::type weight_map;
 
-  // UInt index[200], weight[200];   /// key, value
-  // UInt mask = (1 << 11) - 1;      /// hash function
-  // Int * mark = new Int[mask + 1]; /// collision detector
-  // for (UInt i = 0; i < mask + 1; ++i) mark[i] = -1;
-
-
   for (UInt t = 0, linerized_el = 0; t < nb_good_types; ++t) {
     for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el) {
-      UInt el_offset = el*nb_nodes_per_element[t];
-
       /// fill the weight map
-      //      UInt m = 0;
       for (UInt n = 0; n < nb_nodes_per_element_p1[t]; ++n) {
-  	UInt node = conn_val[t][el_offset + n];
+  	UInt node = (*conn[t])(el, n);
 	CSR<UInt>::iterator k;
 	for (k = node_to_elem.rbegin(node); k != node_to_elem.rend(node); --k) {
-  	// for (UInt k = node_offset_val[node + 1] - 1;
-  	//      k >= node_offset_val[node];
-  	//      --k) {
-  	  UInt current_el = *k;//node_index_val[k];
+  	  UInt current_el = *k;
   	  if(current_el <= linerized_el) break;
 
 	  unordered_map<UInt, UInt>::type::iterator it_w;
@@ -159,28 +157,6 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 	  } else {
 	    it_w->second++;
 	  }
-
-  	  // UInt mark_offset  = current_el & mask;
-  	  // Int current_mark = mark[mark_offset];
-  	  // if(current_mark == -1) { /// if element not in map
-  	  //   index[m] = current_el;
-  	  //   weight[m] = 1;
-  	  //   mark[mark_offset] = m++;
-  	  // } else if (index[current_mark] == current_el) { /// if element already in map
-  	  //   weight[current_mark]++;
-  	  // } else { /// if element already in map but collision in the keys
-  	  //   UInt i;
-  	  //   for (i = 0; i < m; ++i) {
-  	  //     if(index[i] == current_el) {
-  	  // 	weight[i]++;
-  	  // 	break;
-  	  //     }
-  	  //   }
-  	  //   if(i == m) {
-  	  //     index[m] = current_el;
-  	  //     weight[m++] = 1;
-  	  //   }
-  	  // }
   	}
       }
       /// each element with a weight of the size of a facet are adjacent
@@ -189,40 +165,50 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy) {
 	if(it_w->second == magic_number[t]) {
   	  UInt adjacent_el = it_w->first;
 
-	  UInt index_adj = dxadj_val[adjacent_el ]++;
-	  UInt index_lin = dxadj_val[linerized_el]++;
+	  UInt index_adj = dxadj(adjacent_el )++;
+	  UInt index_lin = dxadj(linerized_el)++;
 
-  	  dadjncy_val[index_lin] = adjacent_el;
-  	  dadjncy_val[index_adj] = linerized_el;
+  	  dadjncy(index_lin) = adjacent_el;
+  	  dadjncy(index_adj) = linerized_el;
 	}
       }
 
-      // for (UInt n = 0; n < m; ++n) {
-      // 	if(weight[n] == magic_number[t]) {
-      // 	  UInt adjacent_el = index[n];
-      // 	  dadjncy_val[dxadj_val[linerized_el]++] = adjacent_el;
-      // 	  dadjncy_val[dxadj_val[adjacent_el ]++] = linerized_el;
-      // 	}
-      // 	mark[index[n] & mask] = -1;
-      // }
-
       weight_map.clear();
+    }
+  }
+
+  if(pairs.getSize() != 0) {
+    for (UInt i = 0; i < nb_good_types; ++i) {
+      conn[i]->copy(*conn_tmp[i]);
+      delete conn_tmp[i];
     }
   }
 
   Int k_start = 0;
   for (UInt t = 0, linerized_el = 0, j = 0; t < nb_good_types; ++t)
     for (UInt el = 0; el < nb_element[t]; ++el, ++linerized_el) {
-      for (Int k = k_start; k < dxadj_val[linerized_el]; ++k, ++j)
-	dadjncy_val[j] = dadjncy_val[k];
-      dxadj_val[linerized_el] = j;
+      for (Int k = k_start; k < dxadj(linerized_el); ++k, ++j)
+	dadjncy(j) = dadjncy(k);
+      dxadj(linerized_el) = j;
       k_start += nb_nodes_per_element_p1[t];
     }
 
-  for (UInt i = nb_total_element; i > 0; --i) dxadj_val[i] = dxadj_val[i-1];
-  dxadj_val[0] = 0;
+  for (UInt i = nb_total_element; i > 0; --i) dxadj(i) = dxadj(i - 1);
+  dxadj(0) = 0;
 
-  //  delete [] mark;
+
+  for (UInt i = 0; i < nb_total_element; ++i) {
+    UInt nb_adj = dxadj(i + 1) - dxadj(i);
+    for (UInt j = 0; j < nb_adj; ++j) {
+      Int el_adj_id = dadjncy(dxadj(i) + j);
+      Element el     = mesh.linearizedToElement(i);
+      Element el_adj = mesh.linearizedToElement(el_adj_id);
+
+      Int load = edge_load_func(el, el_adj);
+      edge_loads(i)         = load;
+      edge_loads(el_adj_id) = load;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -232,14 +218,9 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
 					     const Int * linearized_partitions) {
   AKANTU_DEBUG_IN();
 
-  // Vector<UInt> node_offset;
-  // Vector<UInt> node_index;
   CSR<UInt> node_to_elem;
 
-  // MeshUtils::buildNode2Elements(mesh, node_offset, node_index);
   MeshUtils::buildNode2Elements(mesh, node_to_elem);
-  // UInt * node_offset_val = node_offset.values;
-  // UInt * node_index_val = node_index.values;
 
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension);
@@ -265,9 +246,8 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	UInt node = connectivity.values[el * nb_nodes_per_element + n];
 	CSR<UInt>::iterator ne;
-	//	for (UInt ne = node_offset_val[node]; ne < node_offset_val[node + 1]; ++ne) {
 	for (ne = node_to_elem.begin(node); ne != node_to_elem.end(node); ++ne) {
-	  UInt adj_el = *ne;//node_index_val[ne];
+	  UInt adj_el = *ne;
 	  UInt adj_part = linearized_partitions[adj_el];
 	  if(part != adj_part) {
 	    list_adj_part.push_back(adj_part);

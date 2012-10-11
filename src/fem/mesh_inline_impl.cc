@@ -44,11 +44,8 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh) :
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
-  if(event.getList().getSize() != 0) {
-    connectivities.onElementsRemoved(event.getNewNumbering());
-
-    EventHandlerManager<MeshEventHandler>::sendEvent(event);
-  }
+  connectivities.onElementsRemoved(event.getNewNumbering());
+  EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,7 +79,7 @@ inline void Mesh::removeNodesFromVector(Vector<T> & vect, const Vector<UInt> & n
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::elementToLinearized(const Element & elem) {
+inline UInt Mesh::elementToLinearized(const Element & elem) const {
   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
 		      elem.element < types_offsets.values[elem.type+1],
 		      "The element " << elem
@@ -92,7 +89,7 @@ inline UInt Mesh::elementToLinearized(const Element & elem) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Element Mesh::linearizedToElement (UInt linearized_element) {
+inline Element Mesh::linearizedToElement (UInt linearized_element) const {
 
   UInt t;
 
