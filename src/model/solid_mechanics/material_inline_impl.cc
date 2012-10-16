@@ -47,8 +47,8 @@ inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
 }
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::gradUToF(const types::Matrix & grad_u,
-			       types::Matrix & F) {
+inline void Material::gradUToF(const types::RMatrix & grad_u,
+			       types::RMatrix & F) {
   UInt size_F = F.size();
 
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim,
@@ -62,20 +62,20 @@ inline void Material::gradUToF(const types::Matrix & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::rightCauchy(const types::Matrix & F,
-				  types::Matrix & C) {
+inline void Material::rightCauchy(const types::RMatrix & F,
+				  types::RMatrix & C) {
   C.mul<true, false>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::leftCauchy(const types::Matrix & F,
-				 types::Matrix & B) {
+inline void Material::leftCauchy(const types::RMatrix & F,
+				 types::RMatrix & B) {
   B.mul<false, true>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::computePotentialEnergyOnQuad(types::Matrix & grad_u,
-						   types::Matrix & sigma,
+inline void Material::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+						   types::RMatrix & sigma,
 						   Real & epot) {
   epot = 0.;
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -87,8 +87,8 @@ inline void Material::computePotentialEnergyOnQuad(types::Matrix & grad_u,
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
-						       types::Matrix & Bvoigt,
+inline void Material::transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
+						       types::RMatrix & Bvoigt,
 						       UInt nb_nodes_per_element) const {
   Bvoigt.clear();
 
@@ -128,15 +128,15 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const types::Matrix & coordinates,
-								 __attribute__((unused)) types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const types::RMatrix & coordinates,
+								 __attribute__((unused)) types::RMatrix & coordMatrix) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::Matrix & coordinates,
-									      types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::RMatrix & coordinates,
+									      types::RMatrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i)
     coordMatrix(i, 0) = 1;
@@ -144,8 +144,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(co
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const types::Matrix & coordinates,
-									      types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const types::RMatrix & coordinates,
+									      types::RMatrix & coordMatrix) {
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(_triangle_6);
 
@@ -164,8 +164,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(co
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::Matrix & coordinates,
-										types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::RMatrix & coordinates,
+										types::RMatrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i) {
     Real x = coordinates(i, 0);
@@ -180,8 +180,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::Matrix & coordinates,
-										types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::RMatrix & coordinates,
+										types::RMatrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i) {
 
@@ -243,7 +243,7 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
   if(tag == _gst_smm_stress) {
     packElementDataHelper(stress, buffer, elements);
     // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::const_iterator<types::Matrix> stress_it = stress(element.type, _not_ghost).begin(spatial_dimension, spatial_dimension);
+    // Vector<Real>::const_iterator<types::RMatrix> stress_it = stress(element.type, _not_ghost).begin(spatial_dimension, spatial_dimension);
     // stress_it += element.element * nb_quadrature_points;
     // for (UInt q = 0; q < nb_quadrature_points; ++q, ++stress_it)
     //   buffer << *stress_it;

@@ -334,12 +334,12 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     Vector<Real> * shapes_filtered =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
 
-    Vector<Real>::iterator<types::Matrix> shapes_filtered_it =
+    Vector<Real>::iterator<types::RMatrix> shapes_filtered_it =
       shapes_filtered->begin_reinterpret(size_of_shapes, nb_quadrature_points,
 					 nb_element,
 					 size_of_shapes * nb_quadrature_points);
 
-    Vector<Real>::const_iterator<types::Matrix> shapes_it =
+    Vector<Real>::const_iterator<types::RMatrix> shapes_it =
       shapes.begin_reinterpret(size_of_shapes, nb_quadrature_points,
 			       mesh.getNbElement(*it, ghost_type),
 			       size_of_shapes * nb_quadrature_points);
@@ -362,7 +362,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     // UInt size_of_A =  spatial_dimension*size_of_shapes*spatial_dimension*nb_nodes_per_element;
     // Real * A = new Real[size_of_A];
     // memset(A, 0, size_of_A*sizeof(Real));
-    types::Matrix A(spatial_dimension*size_of_shapes, spatial_dimension*nb_nodes_per_element);
+    types::RMatrix A(spatial_dimension*size_of_shapes, spatial_dimension*nb_nodes_per_element);
 
     for ( UInt i = 0; i < spatial_dimension*size_of_shapes; ++i) {
       A(i, i);
@@ -394,19 +394,19 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 						   "A^t*N^t*D*N*A");
 
     Vector<Real>::iterator<types::Vector<Real> > shapes_filt_it = shapes_filtered->begin(size_of_shapes);
-    Vector<Real>::iterator<types::Matrix> D_it = tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::Matrix> At_Nt_D_N_A_it  = at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
+    Vector<Real>::iterator<types::RMatrix> D_it = tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
+    Vector<Real>::iterator<types::RMatrix> At_Nt_D_N_A_it  = at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
 									      spatial_dimension * nb_nodes_per_element);
-    Vector<Real>::iterator<types::Matrix> At_Nt_D_N_A_end = at_nt_d_n_a->end  (spatial_dimension * nb_nodes_per_element,
+    Vector<Real>::iterator<types::RMatrix> At_Nt_D_N_A_end = at_nt_d_n_a->end  (spatial_dimension * nb_nodes_per_element,
 									       spatial_dimension * nb_nodes_per_element);
 
-    types::Matrix N    (spatial_dimension, spatial_dimension * size_of_shapes);
-    types::Matrix N_A  (spatial_dimension, spatial_dimension * nb_nodes_per_element);
-    types::Matrix D_N_A(spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    types::RMatrix N    (spatial_dimension, spatial_dimension * size_of_shapes);
+    types::RMatrix N_A  (spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    types::RMatrix D_N_A(spatial_dimension, spatial_dimension * nb_nodes_per_element);
 
     for(; At_Nt_D_N_A_it != At_Nt_D_N_A_end; ++At_Nt_D_N_A_it, ++D_it, ++shapes_filt_it) {
-      types::Matrix & D = *D_it;
-      types::Matrix & At_Nt_D_N_A = *At_Nt_D_N_A_it;
+      types::RMatrix & D = *D_it;
+      types::RMatrix & At_Nt_D_N_A = *At_Nt_D_N_A_it;
       types::Vector<Real> & shapes_fil = *shapes_filt_it;
 
       N.clear();

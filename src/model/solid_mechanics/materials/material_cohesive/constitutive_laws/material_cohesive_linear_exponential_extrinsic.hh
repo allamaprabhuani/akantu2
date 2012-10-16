@@ -82,7 +82,7 @@ public:
   virtual void resizeCohesiveVectors();
 
   /// compute effective stress norm for insertion check
-  virtual Real computeEffectiveNorm(const types::Matrix & stress,
+  virtual Real computeEffectiveNorm(const types::RMatrix & stress,
 				    const types::RVector & normal,
 				    const types::RVector & tangent);
 

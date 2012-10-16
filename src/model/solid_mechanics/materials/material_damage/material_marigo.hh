@@ -70,13 +70,13 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & sigma,
 				  Real & dam,
 				  Real & Y,
 				  Real & Ydq);
 
-  inline void computeDamageAndStressOnQuad(types::Matrix & sigma,
+  inline void computeDamageAndStressOnQuad(types::RMatrix & sigma,
 					   Real & dam,
 					   Real & Y,
 					   Real & Ydq);

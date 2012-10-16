@@ -51,7 +51,7 @@ akantu::Real eps = 1e-10;
 class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
 public:
   inline void stress(const types::Vector<Real> & position,
-		     types::Matrix & stress,
+		     types::RMatrix & stress,
 		     __attribute__ ((unused)) const types::Vector<Real> & normal,
 		     __attribute__ ((unused)) Surface surface_id) {
     if (std::abs(position(0) - 10) < eps){

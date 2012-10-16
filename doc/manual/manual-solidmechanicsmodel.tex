@@ -167,7 +167,7 @@ the call operator need to be defined:
 
     // if a stress tensor is provided:
     void operator() (const types::Vector<Real> & position,
-    types::Matrix & stress,
+    types::Matrix<Real> & stress,
     const types::Vector<Real> & normal,
     Surface surface_id) {
       Real epsilon = Math::getTolerance();

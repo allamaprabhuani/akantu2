@@ -30,8 +30,8 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
-						       types::Matrix & sigma,
+MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
+						       types::RMatrix & sigma,
 						       Real & dam,
 						       Real & Y,
 						       Real &Ydq) {
@@ -57,7 +57,7 @@ MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & sigma,
+MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::RMatrix & sigma,
 								Real & dam,
 								Real & Y,
 								Real &Ydq) {

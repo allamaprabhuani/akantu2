@@ -29,7 +29,10 @@
 # Package Management
 #===============================================================================
 
-generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR} AKANTU_LIBRARY_SRCS AKANTU_LIBRARY_HDRS AKANTU_LIBRARY_INCLUDE_DIRS)
+generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR}
+  AKANTU_LIBRARY_SRCS
+  AKANTU_LIBRARY_HDRS
+  AKANTU_LIBRARY_INCLUDE_DIRS)
 
 #===========================================================================
 # header precompilation
@@ -75,9 +78,6 @@ list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
 
 add_library(akantu ${AKANTU_LIBRARY_SRCS})
 target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
-
-#add_definitions(-fkeep-inline-functions)
-#set_target_properties(akantu PROPERTIES COMPILE_DEFINITIONS __aka_inline__=inline)
 
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")

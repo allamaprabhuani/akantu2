@@ -1,5 +1,5 @@
-add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
 add_optional_package(Scotch "Add Scotch support in akantu" OFF)
+#add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
 
 if(SCOTCH_INCLUDE_DIR)
   file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
@@ -12,14 +12,13 @@ if(SCOTCH_INCLUDE_DIR)
   endif()
 endif()
 
-
-set(SCOTCH_FILES
+set(AKANTU_SCOTCH_FILES
   mesh_utils/mesh_partition/mesh_partition_scotch.cc
   )
 
-set(PTSCOTCH_FILES
-  mesh_utils/mesh_partition/mesh_partition_scotch.cc
-  )
+#set(AKANTU_PTSCOTCH_FILES
+#  mesh_utils/mesh_partition/mesh_partition_scotch.cc
+#  )
 
 if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
   set(AKANTU_PARTITIONER_ON ON)
@@ -27,7 +26,6 @@ else()
   set(AKANTU_PARTITIONER_ON OFF)
 endif()
 
-if(AKANTU_PTSCOTCH_ON)
-  add_definitions(-DAKANTU_USE_${_u_package})
-endif()
-
+#if(AKANTU_PTSCOTCH_ON)
+#  add_definitions(-DAKANTU_USE_${_u_package})
+#endif()

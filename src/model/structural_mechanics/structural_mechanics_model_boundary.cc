@@ -155,7 +155,7 @@ void StructuralMechanicsModel::computeForcesByTractionVector(const Vector<Real> 
   Real * Mp_val = Mp.values;
   Real * Lp_val = Lp.values;
 
-  types::Matrix N(nb_degree_of_freedom , nb_degree_of_freedom * nb_nodes_per_element);
+  types::RMatrix N(nb_degree_of_freedom , nb_degree_of_freedom * nb_nodes_per_element);
   Vector<Real>::iterator< types::RVector> Nt_T = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
   Vector<Real>::iterator<types::RVector> T = const_cast< Vector<Real> &>(tractions).begin(nb_degree_of_freedom);
 

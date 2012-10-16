@@ -1,7 +1,6 @@
 option(AKANTU_CONTACT "Use Contact package of Akantu" OFF)
-set(CONTACT_FILES
-#cc files
-
+set(AKANTU_CONTACT_FILES
+  #cc files
   model/solid_mechanics/contact.cc
   model/solid_mechanics/contact_search.cc
   model/solid_mechanics/contact_neighbor_structure.cc
@@ -22,8 +21,7 @@ set(CONTACT_FILES
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef.cc
   model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef/ruina_slowness_fric_coef.cc
   model/solid_mechanics/contact/friction_coefficient/historic_velocity_fric_coef.cc
-
-# include files
+  # include files
 
   model/solid_mechanics/contact.hh
   model/solid_mechanics/contact/contact_search_explicit.hh
@@ -46,7 +44,7 @@ set(CONTACT_FILES
   model/solid_mechanics/contact_search.hh
   model/solid_mechanics/contact_neighbor_structure.hh
 
-# inline implementation
+  # inline implementation
 
   model/solid_mechanics/contact/friction_coefficient/unique_constant_fric_coef_inline_impl.cc
   model/solid_mechanics/contact/friction_coefficient/velocity_weakening_coulomb_inline_impl.cc

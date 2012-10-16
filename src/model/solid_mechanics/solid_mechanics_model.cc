@@ -430,46 +430,46 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_OUT();
 }
 
-// /* -------------------------------------------------------------------------- */
-// void SolidMechanicsModel::computeStesses() {
-//   if (method == _explicit_dynamic) {
-//     // start synchronization
-//     synch_registry->asynchronousSynchronize(_gst_smm_uv);
-//     synch_registry->waitEndSynchronize(_gst_smm_uv);
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::computeStresses() {
+  if (method == _explicit_dynamic) {
+    // start synchronization
+    synch_registry->asynchronousSynchronize(_gst_smm_uv);
+    synch_registry->waitEndSynchronize(_gst_smm_uv);
 
-//     // compute stresses on all local elements for each materials
-//     std::vector<Material *>::iterator mat_it;
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllStresses(_not_ghost);
-//     }
+    // compute stresses on all local elements for each materials
+    std::vector<Material *>::iterator mat_it;
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllStresses(_not_ghost);
+    }
 
 
-//     /* ------------------------------------------------------------------------ */
-// #ifdef AKANTU_DAMAGE_NON_LOCAL
-//     /* Computation of the non local part */
-//     synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
+    /* ------------------------------------------------------------------------ */
+#ifdef AKANTU_DAMAGE_NON_LOCAL
+    /* Computation of the non local part */
+    synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
 
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllNonLocalStresses(_not_ghost);
-//     }
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllNonLocalStresses(_not_ghost);
+    }
 
-//     synch_registry->waitEndSynchronize(_gst_mnl_for_average);
+    synch_registry->waitEndSynchronize(_gst_mnl_for_average);
 
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllNonLocalStresses(_ghost);
-//     }
-// #endif
-//   } else {
-//     std::vector<Material *>::iterator mat_it;
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllStressesFromTangentModuli(_not_ghost);
-//     }
-//   }
-// }
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllNonLocalStresses(_ghost);
+    }
+#endif
+  } else {
+    std::vector<Material *>::iterator mat_it;
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllStressesFromTangentModuli(_not_ghost);
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidualInternal() {

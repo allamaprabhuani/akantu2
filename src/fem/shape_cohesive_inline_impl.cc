@@ -162,20 +162,20 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
 
   // Real * shape_val = shapes.storage();
   Real * u_val     = in_u.storage();
-  Vector<Real>::iterator<types::Matrix> uq_it =
+  Vector<Real>::iterator<types::RMatrix> uq_it =
     out_uq.begin_reinterpret(nb_points, nb_degree_of_freedom,
 			     nb_element,
 			     nb_points * nb_degree_of_freedom);
 
-  Vector<Real>::const_iterator<types::Matrix> shape_beginning =
+  Vector<Real>::const_iterator<types::RMatrix> shape_beginning =
     shapes.begin_reinterpret(nb_points, nb_nodes_per_sub_element,
 			     nb_element,
 			     nb_points * nb_nodes_per_sub_element);
 
-  types::Matrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
+  types::RMatrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 
   ReduceFunction reduce_function;
-  Vector<Real>::const_iterator<types::Matrix> shape = shape_beginning;
+  Vector<Real>::const_iterator<types::RMatrix> shape = shape_beginning;
 
   for (UInt el = 0; el < nb_element; ++el) {
     UInt el_offset = el * nb_nodes_per_sub_element;
@@ -241,17 +241,17 @@ void ShapeCohesive<ShapeFunction>::variationOnControlPoints(const Vector<Real> &
     filter_elem = const_cast<Vector<UInt> *>(filter_elements)->begin();
   }
 
-  Vector<Real>::iterator<types::Matrix> nablauq_it =
+  Vector<Real>::iterator<types::RMatrix> nablauq_it =
     nablauq.begin(element_dimension, nb_degree_of_freedom);
 
-  Vector<Real>::const_iterator<types::Matrix> shape_derivative_beginning =
+  Vector<Real>::const_iterator<types::RMatrix> shape_derivative_beginning =
     shapes_derivatives.begin(element_dimension, nb_nodes_per_sub_element);
 
-  types::Matrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
+  types::RMatrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 
   ReduceFunction reduce_function;
 
-  Vector<Real>::const_iterator<types::Matrix> shape_derivative = shape_derivative_beginning;
+  Vector<Real>::const_iterator<types::RMatrix> shape_derivative = shape_derivative_beginning;
   for (UInt el = 0; el < nb_element; ++el) {
     // UInt el_offset = el * nb_nodes_per_element;
     UInt element = el;

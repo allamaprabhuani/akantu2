@@ -102,8 +102,8 @@ int main(int argc, char *argv[]) {
   std::cout << grad_on_quad << std::endl;
 
   /// check the results
-  Vector<Real>::iterator<types::Matrix> it = grad_on_quad.begin(2,dim);
-  Vector<Real>::iterator<types::Matrix> it_end = grad_on_quad.end(2,dim);
+  Vector<Real>::iterator<types::RMatrix> it = grad_on_quad.begin(2,dim);
+  Vector<Real>::iterator<types::RMatrix> it_end = grad_on_quad.end(2,dim);
   for (;it != it_end; ++it) {
     for (UInt d = 0; d < dim; ++d) {
       if(!(std::abs((*it)(0, d) - alpha[0][d]) < eps) ||
@@ -126,8 +126,8 @@ int main(int argc, char *argv[]) {
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
 
-  Vector<Real>::iterator<types::Matrix> itp = grad_coord_on_quad.begin(dim, dim);
-  Vector<Real>::iterator<types::Matrix> itp_end = grad_coord_on_quad.end(dim, dim);
+  Vector<Real>::iterator<types::RMatrix> itp = grad_coord_on_quad.begin(dim, dim);
+  Vector<Real>::iterator<types::RMatrix> itp_end = grad_coord_on_quad.end(dim, dim);
 
   for (;itp != itp_end; ++itp) {
     for (UInt i = 0; i < dim; ++i) {

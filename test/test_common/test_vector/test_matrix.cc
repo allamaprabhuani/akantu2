@@ -76,9 +76,9 @@ int main(int argc, char *argv[]) {
   std::cout << "matrix_matrix : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<types::Matrix> itA = A.begin(n,n);
-  Vector<Real>::iterator<types::Matrix> itB = B.begin(n,n);
-  Vector<Real>::iterator<types::Matrix> itC = C2.begin(n,n);
+  Vector<Real>::iterator<types::RMatrix> itA = A.begin(n,n);
+  Vector<Real>::iterator<types::RMatrix> itB = B.begin(n,n);
+  Vector<Real>::iterator<types::RMatrix> itC = C2.begin(n,n);
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     *itC = *itA * *itB;
@@ -92,9 +92,9 @@ int main(int argc, char *argv[]) {
   std::cout << "it Mc() = it Ma() * it Mb() : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<types::Matrix> muitA = A.begin(n,n);
-  Vector<Real>::iterator<types::Matrix> muitB = B.begin(n,n);
-  Vector<Real>::iterator<types::Matrix> muitC = C4.begin(n,n);
+  Vector<Real>::iterator<types::RMatrix> muitA = A.begin(n,n);
+  Vector<Real>::iterator<types::RMatrix> muitB = B.begin(n,n);
+  Vector<Real>::iterator<types::RMatrix> muitC = C4.begin(n,n);
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     (*muitC).mul<false, false>(*muitA, *muitB);

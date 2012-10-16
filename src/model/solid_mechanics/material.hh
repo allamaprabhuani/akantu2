@@ -105,12 +105,13 @@ public:
   /// compute the residual for this material
   virtual void updateResidual(GhostType ghost_type = _not_ghost);
 
-
+  /// assemble the residual for this material
   void assembleResidual(GhostType ghost_type);
 
-  /// compute the residual for this material
+  /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
   virtual void computeAllNonLocalStresses(__attribute__((unused)) GhostType ghost_type = _not_ghost) {};
+  virtual void computeAllStressesFromTangentModuli(GhostType ghost_type = _not_ghost);
 
   /// set material to steady state
   void setToSteadyState(GhostType ghost_type = _not_ghost);
@@ -160,6 +161,9 @@ protected:
   }
 
 
+  template<UInt dim>
+  void computeAllStressesFromTangentModuli(const ElementType & type, GhostType ghost_type);
+
   /// set the material to steady state (to be implemented for materials that need it)
   virtual void setToSteadyState(__attribute__((unused)) ElementType el_type,
 				__attribute__((unused)) GhostType ghost_type = _not_ghost) {}
@@ -181,8 +185,8 @@ protected:
 
   /// transfer the B matrix to a Voigt notation B matrix
   template<UInt dim>
-  inline void transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
-					       types::Matrix & Bvoigt,
+  inline void transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
+					       types::RMatrix & Bvoigt,
 					       UInt nb_nodes_per_element) const;
 
   inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
@@ -207,8 +211,8 @@ protected:
 
   /// build the coordinate matrix for the interpolation on elemental field
   template <ElementType type>
-  inline void buildElementalFieldInterpolationCoodinates(const types::Matrix & coordinates,
-							 types::Matrix & coordMatrix);
+  inline void buildElementalFieldInterpolationCoodinates(const types::RMatrix & coordinates,
+							 types::RMatrix & coordMatrix);
 
   /// get the size of the coordiante matrix used in the interpolation
   template <ElementType type>
@@ -221,8 +225,8 @@ protected:
 
 protected:
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
-					   types::Matrix & sigma,
+  inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+					   types::RMatrix & sigma,
 					   Real & epot);
 
 protected:
@@ -241,9 +245,9 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template<UInt dim>
-  inline void gradUToF(const types::Matrix & grad_u, types::Matrix & F);
-  inline void rightCauchy(const types::Matrix & F, types::Matrix & C);
-  inline void leftCauchy (const types::Matrix & F, types::Matrix & B);
+  inline void gradUToF(const types::RMatrix & grad_u, types::RMatrix & F);
+  inline void rightCauchy(const types::RMatrix & F, types::RMatrix & C);
+  inline void leftCauchy (const types::RMatrix & F, types::RMatrix & B);
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
@@ -399,41 +403,41 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type) \
-  Vector<Real>::iterator<types::Matrix> strain_it =			\
+  Vector<Real>::iterator<types::RMatrix> strain_it =			\
     this->strain(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
-  Vector<Real>::iterator<types::Matrix> strain_end =			\
+  Vector<Real>::iterator<types::RMatrix> strain_end =			\
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
 					  spatial_dimension);		\
-  Vector<Real>::iterator<types::Matrix> stress_it =			\
+  Vector<Real>::iterator<types::RMatrix> stress_it =			\
     this->stress(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
   									\
   for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
-    types::Matrix & __attribute__((unused)) grad_u = *strain_it;	\
-    types::Matrix & __attribute__((unused)) sigma  = *stress_it
+    types::RMatrix & __attribute__((unused)) grad_u = *strain_it;	\
+    types::RMatrix & __attribute__((unused)) sigma  = *stress_it
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END			\
   }									\
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)	\
-  Vector<Real>::iterator<types::Matrix> strain_it =			\
+  Vector<Real>::iterator<types::RMatrix> strain_it =			\
     this->strain(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
-  Vector<Real>::iterator<types::Matrix> strain_end =			\
+  Vector<Real>::iterator<types::RMatrix> strain_end =			\
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
 					  spatial_dimension);		\
   									\
   UInt tangent_size =							\
     this->getTangentStiffnessVoigtSize(spatial_dimension);		\
-  Vector<Real>::iterator<types::Matrix> tangent_it =			\
+  Vector<Real>::iterator<types::RMatrix> tangent_it =			\
     tangent_mat.begin(tangent_size,					\
 		      tangent_size);					\
   									\
   for(;strain_it != strain_end; ++strain_it, ++tangent_it) {		\
-    types::Matrix & __attribute__((unused)) grad_u  = *strain_it;	\
-    types::Matrix & tangent = *tangent_it
+    types::RMatrix & __attribute__((unused)) grad_u  = *strain_it;	\
+    types::RMatrix & tangent = *tangent_it
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\

@@ -72,18 +72,18 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const types::Matrix & grad_u,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(const types::RMatrix & grad_u,
+				  types::RMatrix & sigma,
 				  Real & damage,
 				  Real & Ehat);
 
-  inline void computeDamageAndStressOnQuad(const types::Matrix & grad_u,
-					   types::Matrix & sigma,
+  inline void computeDamageAndStressOnQuad(const types::RMatrix & grad_u,
+					   types::RMatrix & sigma,
 					   Real & damage,
 					   Real & Ehat);
 
   inline void computeDamageOnQuad(const Real & epsilon_equ,
-				  const types::Matrix & sigma,
+				  const types::RMatrix & sigma,
 				  const types::RVector & epsilon_princ,
 				  Real & dam);
 

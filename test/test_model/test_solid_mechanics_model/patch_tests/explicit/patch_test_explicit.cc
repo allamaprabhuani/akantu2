@@ -54,9 +54,9 @@ static void paraviewDump(iohelper::Dumper & dumper);
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type, bool plane_strain>
-static types::Matrix prescribed_strain() {
+static types::RMatrix prescribed_strain() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
-  types::Matrix strain(spatial_dimension, spatial_dimension);
+  types::RMatrix strain(spatial_dimension, spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
@@ -67,13 +67,13 @@ static types::Matrix prescribed_strain() {
 }
 
 template<ElementType type, bool is_plane_strain>
-static types::Matrix prescribed_stress() {
+static types::RMatrix prescribed_stress() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
-  types::Matrix stress(spatial_dimension, spatial_dimension);
+  types::RMatrix stress(spatial_dimension, spatial_dimension);
 
   //plane strain in 2d
-  types::Matrix strain(spatial_dimension, spatial_dimension);
-  types::Matrix pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
+  types::RMatrix strain(spatial_dimension, spatial_dimension);
+  types::RMatrix pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
   Real nu = 0.3;
   Real E  = 2.1e11;
   Real trace = 0;
@@ -240,11 +240,11 @@ int main(int argc, char *argv[])
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
   Vector<Real> & strain_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStrain(element_type));
 
-  Vector<Real>::iterator<types::Matrix> stress_it = stress_vect.begin(dim, dim);
-  Vector<Real>::iterator<types::Matrix> strain_it = strain_vect.begin(dim, dim);
+  Vector<Real>::iterator<types::RMatrix> stress_it = stress_vect.begin(dim, dim);
+  Vector<Real>::iterator<types::RMatrix> strain_it = strain_vect.begin(dim, dim);
 
-  types::Matrix presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
-  types::Matrix presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
+  types::RMatrix presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
+  types::RMatrix presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
 
@@ -258,8 +258,8 @@ int main(int argc, char *argv[])
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      types::Matrix & stress = *stress_it;
-      types::Matrix & strain = *strain_it;
+      types::RMatrix & stress = *stress_it;
+      types::RMatrix & strain = *strain_it;
 
       for (UInt i = 0; i < dim; ++i) {
 	for (UInt j = 0; j < dim; ++j) {

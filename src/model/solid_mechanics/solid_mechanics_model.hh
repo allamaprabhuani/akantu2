@@ -207,6 +207,12 @@ protected:
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
   void solveDynamic(Vector<Real> & increment);
 
+  /* ------------------------------------------------------------------------ */
+  /* Explicit/Implicit                                                        */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// compute the stresses
+  void computeStresses();
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
@@ -222,7 +228,7 @@ public:
     }
 
     virtual void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
-			__attribute__ ((unused)) types::Matrix & stress,
+			__attribute__ ((unused)) types::RMatrix & stress,
 			__attribute__ ((unused)) const types::Vector<Real> & normal,
 			__attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();

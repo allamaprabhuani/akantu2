@@ -1,5 +1,6 @@
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
-set(CORE_FILES
+
+set(AKANTU_CORE_FILES
   # source files
   common/aka_common.cc
   common/aka_error.cc
@@ -183,6 +184,6 @@ set(CORE_FILES
   model/parser_inline_impl.cc
   )
 
-set(CORE_DEB_DEPEND
+set(AKANTU_CORE_DEB_DEPEND
   libboost-dev
   )

@@ -58,8 +58,8 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & sigma,
 				  Real & damage);
 
   /// compute tangent stiffness
@@ -71,8 +71,8 @@ public:
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
-					   types::Matrix & sigma,
+  inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+					   types::RMatrix & sigma,
 					   Real & epot);
 
   /// compute the celerity of wave in the material

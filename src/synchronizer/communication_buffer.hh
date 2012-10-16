@@ -81,6 +81,9 @@ public:
   template<typename T>
   inline CommunicationBuffer & operator<< (const types::Vector<T> & to_pack);
 
+  template<typename T>
+  inline CommunicationBuffer & operator<< (const types::Matrix<T> & to_pack);
+
 
   /// unpacking data
   template<typename T>
@@ -88,6 +91,9 @@ public:
 
   template<typename T>
   inline CommunicationBuffer & operator>> (types::Vector<T> & to_unpack);
+
+  template<typename T>
+  inline CommunicationBuffer & operator>> (types::Matrix<T> & to_unpack);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */

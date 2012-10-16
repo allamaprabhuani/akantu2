@@ -69,7 +69,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
   Material::initMaterial();
 
   UInt size = this->getTangentStiffnessVoigtSize(spatial_dimension);
-  S = new types::Matrix(size, size);
+  S = new types::RMatrix(size, size);
 
   updateInternalParameters();
 

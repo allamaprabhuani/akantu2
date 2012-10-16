@@ -85,13 +85,13 @@ void MaterialDamage<spatial_dimension>::updateDissipatedEnergy(GhostType ghost_t
 
   for(; it != end; ++it) {
     ElementType el_type = *it;
-    Vector<Real>::iterator<types::Matrix> sigma =
+    Vector<Real>::iterator<types::RMatrix> sigma =
       this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::Matrix> sigma_p =
+    Vector<Real>::iterator<types::RMatrix> sigma_p =
       stress_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::Matrix> epsilon =
+    Vector<Real>::iterator<types::RMatrix> epsilon =
       this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::Matrix> epsilon_p =
+    Vector<Real>::iterator<types::RMatrix> epsilon_p =
       strain_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 

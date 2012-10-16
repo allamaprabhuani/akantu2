@@ -82,17 +82,17 @@ void MaterialStiffnessProportional<spatial_dimension>::computeStress(ElementType
 						   spatial_dimension,
 						   el_type, ghost_type, &elem_filter);
 
-  Vector<Real>::iterator<types::Matrix> strain_rate_it =
+  Vector<Real>::iterator<types::RMatrix> strain_rate_it =
     strain_rate.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::Matrix> stress_visc_it =
+  Vector<Real>::iterator<types::RMatrix> stress_visc_it =
     stress_visc.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::Matrix> stress_el_it =
+  Vector<Real>::iterator<types::RMatrix> stress_el_it =
     stress_el.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  types::Matrix & grad_v     = *strain_rate_it;
-  types::Matrix & sigma_visc = *stress_visc_it;
-  types::Matrix & sigma_el   = *stress_el_it;
+  types::RMatrix & grad_v     = *strain_rate_it;
+  types::RMatrix & sigma_visc = *stress_visc_it;
+  types::RMatrix & sigma_el   = *stress_el_it;
 
   MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_v, sigma_visc);
 
@@ -118,13 +118,13 @@ void MaterialStiffnessProportional<spatial_dimension>::computePotentialEnergy(El
   if(ghost_type != _not_ghost) return;
 
   Vector<Real> & stress_el = stress_elastic(el_type, ghost_type);
-  Vector<Real>::iterator<types::Matrix> stress_el_it =
+  Vector<Real>::iterator<types::RMatrix> stress_el_it =
     stress_el.begin(spatial_dimension, spatial_dimension);
 
   Real * epot = this->potential_energy(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  types::Matrix & sigma_el    = *stress_el_it;
+  types::RMatrix & sigma_el    = *stress_el_it;
   Material::computePotentialEnergyOnQuad(grad_u,
 					 sigma_el,
 					 *epot);

@@ -878,7 +878,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
   modified_shapes->clear();
   Vector<Real> * local_mat = new Vector<Real>(vect_size, lmat_size * lmat_size);
 
-  Vector<Real>::iterator<types::Matrix> shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
+  Vector<Real>::iterator<types::RMatrix> shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
   Real * sh  = shapes.values;
   for(UInt q = 0; q < vect_size; ++q) {
     Real * msh = shape_vect->storage();
@@ -894,7 +894,7 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
   }
 
   shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
-  Vector<Real>::iterator<types::Matrix> lmat = local_mat->begin(lmat_size, lmat_size);
+  Vector<Real>::iterator<types::RMatrix> lmat = local_mat->begin(lmat_size, lmat_size);
   Real * field_val = field_1.values;
 
   for(UInt q = 0; q < vect_size; ++q) {

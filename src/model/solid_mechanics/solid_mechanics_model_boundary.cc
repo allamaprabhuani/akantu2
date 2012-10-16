@@ -51,7 +51,7 @@ public:
 	     surface_id);
   }
   void stress(const types::Vector<Real> & position,
-	      types::Matrix & stress,
+	      types::RMatrix & stress,
 	      const types::Vector<Real> & normal,
 	      Surface surface_id) {
     function(position.storage(),

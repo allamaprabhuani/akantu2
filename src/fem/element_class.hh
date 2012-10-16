@@ -68,28 +68,28 @@ public:
    * @param[out] jacobian  jacobians * integration weights [nb_quad]
    */
   inline static void preComputeStandards(const Real * coord,
-					 const UInt dimension,
-					 Real * shape,
-					 Real * shape_deriv,
-					 Real * jacobian);
+                                         const UInt dimension,
+                                         Real * shape,
+                                         Real * shape_deriv,
+                                         Real * jacobian);
   /// compute the shape values for a point given in natural coordinates
   inline static void computeShapes(const Real * natural_coords, Real * shapes);
 
 
   /// compute the shape values for a set of points given in natural coordinates
   inline static void computeShapes(const Real * natural_coords,
-				   const UInt nb_points,
-				   Real * shapes);
+                                   const UInt nb_points,
+                                   Real * shapes);
 
   inline static void computeShapes(const Real * natural_coords,
-				   const UInt nb_points,
-				   Real * shapes,
-				   const Real * local_coord,
-				   UInt id = 0);
+                                   const UInt nb_points,
+                                   Real * shapes,
+                                   const Real * local_coord,
+                                   UInt id = 0);
   inline static void computeShapes(const Real * natural_coords,
-				   Real * shapes,
-				   const Real * local_coord,
-				   UInt id = 0);
+                                   Real * shapes,
+                                   const Real * local_coord,
+                                   UInt id = 0);
 
   /**
    * compute dxds the variation of real coordinates along with
@@ -97,9 +97,9 @@ public:
    * coordinates
    */
   inline static void computeDXDS(const Real * dnds,
-				 const Real * node_coords,
-				 const UInt dimension,
-				 Real * dxds);
+                                 const Real * node_coords,
+                                 const UInt dimension,
+                                 Real * dxds);
 
   /**
    * compute dxds the variation of real coordinates along with
@@ -107,9 +107,9 @@ public:
    * natural coordinates
    */
   inline static void computeDXDS(const Real * dnds,
-				 const UInt nb_points,
-				 const Real * node_coords,
-				 const UInt dimension, Real * dxds);
+                                 const UInt nb_points,
+                                 const Real * node_coords,
+                                 const UInt dimension, Real * dxds);
 
   /**
    * compute dnds the variation of real shape functions along with
@@ -117,7 +117,7 @@ public:
    * coordinates
    */
   inline static void computeDNDS(const Real * natural_coords,
-				 Real * dnds);
+                                 Real * dnds);
 
   /**
    * compute dnds the variation of shape functions along with
@@ -125,97 +125,97 @@ public:
    * natural coordinates
    */
   inline static void computeDNDS(const Real * natural_coords,
-				 const UInt nb_points,
-				 Real * dnds);
+                                 const UInt nb_points,
+                                 Real * dnds);
 
 
   /// compute jacobian (or integration variable change factor) for a set of points
   inline static void computeJacobian(const Real * dxds,
-				     const UInt nb_points,
-				     const UInt dimension,
-				     Real * jac);
+                                     const UInt nb_points,
+                                     const UInt dimension,
+                                     Real * jac);
 
   /// compute jacobian (or integration variable change factor) for a given point
   inline static void computeJacobian(const Real * dxds,
-				     const UInt dimension,
-				     Real & jac);
+                                     const UInt dimension,
+                                     Real & jac);
 
   /// compute shape derivatives (input is dxds) for a set of points
   inline static void computeShapeDerivatives(const Real * dxds,
-					     const Real * dnds,
-					     const UInt nb_points,
-					     const UInt dimension,
-					     Real * shape_deriv);
+                                             const Real * dnds,
+                                             const UInt nb_points,
+                                             const UInt dimension,
+                                             Real * shape_deriv);
   /// compute shape derivatives (input is dxds) for a given point
   inline static void computeShapeDerivatives(const Real * dxds,
-					     const Real * dnds,
-					     Real * shape_deriv);
+                                             const Real * dnds,
+                                             Real * shape_deriv);
 
   inline static void computeShapeDerivatives(const Real * natural_coords,
-					     const UInt  nb_points,
-					     const UInt dimension,
-					     Real * shape_deriv,
-					     const Real * local_coord,
-					     UInt id = 0);
+                                             const UInt  nb_points,
+                                             const UInt dimension,
+                                             Real * shape_deriv,
+                                             const Real * local_coord,
+                                             UInt id = 0);
 
   inline static void computeShapeDerivatives(const Real * natural_coords,
-					     Real * shape_deriv,
-					     const Real * local_coord,
-					     UInt id);
+                                             Real * shape_deriv,
+                                             const Real * local_coord,
+                                             UInt id);
 
   /// compute normals on quad points
   inline static void computeNormalsOnQuadPoint(const Real * dxds,
-					       const UInt dimension,
-					       Real * normals);
+                                               const UInt dimension,
+                                               Real * normals);
 
 
   /// interpolate a field given (arbitrary) natural coordinates
   inline static void interpolateOnNaturalCoordinates(const Real * natural_coords,
-						     const Real * nodal_values,
-						     UInt dimension,
-						     Real * interpolated);
+                                                     const Real * nodal_values,
+                                                     UInt dimension,
+                                                     Real * interpolated);
 
   /// inverse map: get natural coordinates from real coordinates
-/** 
- * In the non linear cases we need to iterate to find the natural coordinates @f$\xi@f$
- * provided real coordinates @f$x@f$. 
- * 
- * We want to solve: @f$ x- \phi(\xi) = 0@f$ with @f$\phi(\xi) = \sum_I N_I(\xi) x_I@f$ 
- * the mapping function which uses the nodal coordinates @f$x_I@f$. 
- * 
- * To that end we use the Newton method and the following series:
- * 
- * @f$ \frac{\partial \phi(x_k)}{\partial \xi} \left( \xi_{k+1} - \xi_k \right) = x - \phi(x_k)@f$
- * 
- * When we consider elements embedded in a dimension higher than them (2D triangle in a 3D space for example)
- * @f$ J = \frac{\partial \phi(\xi_k)}{\partial \xi}@f$ is of dimension @f$dim_{space} \times dim_{elem}@f$ which
- * is not invertible in most cases. Rather we can solve the problem:
- * 
- * @f$ J^T J \left( \xi_{k+1} - \xi_k \right) = J^T \left( x - \phi(\xi_k) \right) @f$
- * 
- * So that 
- * 
- * @f$ d\xi = \xi_{k+1} - \xi_k = (J^T J)^{-1} J^T \left( x - \phi(\xi_k) \right) @f$
- * 
- * So that if the series converges we have:
- * 
- * @f$ 0 = J^T \left( \phi(\xi_\infty) - x \right) @f$
- * 
- * And we see that this is ill-posed only if @f$ J^T x = 0@f$ which means that the vector provided
- * is normal to any tangent which means it is outside of the element itself.
- *
- * 
- * @param real_coords: the real coordinates the natural coordinates are sought for
- * @param node_coords: the coordinates of the nodes forming the element
- * @param natural_coords: output->the sought natural coordinates 
- * @param spatial_dimension: spatial dimension of the problem 
- */
+  /**
+   * In the non linear cases we need to iterate to find the natural coordinates @f$\xi@f$
+   * provided real coordinates @f$x@f$.
+   *
+   * We want to solve: @f$ x- \phi(\xi) = 0@f$ with @f$\phi(\xi) = \sum_I N_I(\xi) x_I@f$
+   * the mapping function which uses the nodal coordinates @f$x_I@f$.
+   *
+   * To that end we use the Newton method and the following series:
+   *
+   * @f$ \frac{\partial \phi(x_k)}{\partial \xi} \left( \xi_{k+1} - \xi_k \right) = x - \phi(x_k)@f$
+   *
+   * When we consider elements embedded in a dimension higher than them (2D triangle in a 3D space for example)
+   * @f$ J = \frac{\partial \phi(\xi_k)}{\partial \xi}@f$ is of dimension @f$dim_{space} \times dim_{elem}@f$ which
+   * is not invertible in most cases. Rather we can solve the problem:
+   *
+   * @f$ J^T J \left( \xi_{k+1} - \xi_k \right) = J^T \left( x - \phi(\xi_k) \right) @f$
+   *
+   * So that
+   *
+   * @f$ d\xi = \xi_{k+1} - \xi_k = (J^T J)^{-1} J^T \left( x - \phi(\xi_k) \right) @f$
+   *
+   * So that if the series converges we have:
+   *
+   * @f$ 0 = J^T \left( \phi(\xi_\infty) - x \right) @f$
+   *
+   * And we see that this is ill-posed only if @f$ J^T x = 0@f$ which means that the vector provided
+   * is normal to any tangent which means it is outside of the element itself.
+   *
+   *
+   * @param real_coords: the real coordinates the natural coordinates are sought for
+   * @param node_coords: the coordinates of the nodes forming the element
+   * @param natural_coords: output->the sought natural coordinates
+   * @param spatial_dimension: spatial dimension of the problem
+   **/
   inline static void inverseMap(const types::RVector & real_coords,
-				const types::Matrix & node_coords,
-				UInt spatial_dimension,			
-				types::RVector & natural_coords,
-				Real tolerance = 1e-8);
-  
+                                const types::RMatrix & node_coords,
+                                UInt spatial_dimension,
+                                types::RVector & natural_coords,
+                                Real tolerance = 1e-8);
+
 
   //! return true if the provided natural coordinates are with the element. False otherwise
   inline static bool contains(const types::RVector & natural_coords);
@@ -250,7 +250,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 
-public: 
+public:
   /// Number of nodes per element
   static UInt nb_nodes_per_element;
 

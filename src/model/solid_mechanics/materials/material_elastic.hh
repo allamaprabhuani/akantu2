@@ -78,11 +78,11 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const types::Matrix & grad_u,
-				  types::Matrix & sigma);
+  inline void computeStressOnQuad(const types::RMatrix & grad_u,
+				  types::RMatrix & sigma);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(types::Matrix & tangent);
+  void computeTangentModuliOnQuad(types::RMatrix & tangent);
 
   /// recompute the lame coefficient if E or nu changes
   virtual void updateInternalParameters();

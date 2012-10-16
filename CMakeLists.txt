@@ -1,6 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @date   Fri Jun 11 09:46:59 2010
 #
 # @section LICENSE
@@ -57,14 +58,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 
 include(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
+include(${AKANTU_CMAKE_DIR}/AkantuPackageSystem.cmake)
 
 #===============================================================================
 # Version Number
 #===============================================================================
 
 # AKANTU version number.  An even minor number corresponds to releases.
-set(AKANTU_MAJOR_VERSION 0)
-set(AKANTU_MINOR_VERSION 1)
+set(AKANTU_MAJOR_VERSION 1)
+set(AKANTU_MINOR_VERSION 0)
 set(AKANTU_PATCH_VERSION 0)
 
 find_package(Subversion)
@@ -100,33 +102,36 @@ endif(NOT AKANTU_NO_LIBRARY_VERSION)
 #===============================================================================
 # Options
 #===============================================================================
-option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
-option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
-
-# features
-add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF LANGUAGE Fortran)
-if(BLAS_mkl_core_LIBRARY)
-  set(AKANTU_USE_BLAS_MKL)
-endif()
-
-add_optional_package(LAPACK "Use LAPACK for arithmetic operations" OFF LANGUAGE Fortran)
-
 # Debug
-if(NOT AKANTU_DEBUG)
-  if(NOT CMAKE_CXX_FLAGS MATCHES "-Wno-return-type")
-    set(CMAKE_CXX_FLAGS "-Wno-return-type ${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
+mark_as_advanced(AKANTU_DEBUG)
+
+macro(add_cxx_flags flag)
+  if(NOT CMAKE_CXX_FLAGS MATCHES "${flag}")
+    set(CMAKE_CXX_FLAGS "${flag} ${CMAKE_CXX_FLAGS}"
+      CACHE STRING "Flags used by the compiler during all build types." FORCE)
   endif()
+endmacro()
+
+macro(remove_cxx_flags flag)
+  string(REPLACE "${flag} " "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
+    CACHE STRING "Flags used by the compiler during all build types." FORCE)
+endmacro()
+
+if(NOT AKANTU_DEBUG)
+  add_cxx_flags("-Wno-return-type")
   set(AKANTU_NDEBUG ON)
 else()
-  string(REPLACE "-Wno-return-type " "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
-endif(NOT AKANTU_DEBUG)
-
-
-if(NOT CMAKE_CXX_FLAGS MATCHES "-Wall")
-  set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
+  remove_cxx_flags("-Wno-return-type")
 endif()
 
+add_cxx_flags("-Wall")
+
+#Documentation
+option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
+
+#Profiling
 set(CMAKE_CXX_FLAGS_PROFILING "-g -pg" CACHE STRING "Flags used by the compiler during profiling builds")
 set(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg" CACHE STRING "Flags used by the linker during profiling builds")
 set(CMAKE_SHARED_LINKER_FLAGS_PROFILING "-pg" CACHE STRING "Flags used by the linker during profiling builds")
@@ -238,7 +243,7 @@ file(WRITE "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
 
 ")
 
-foreach(_option ${AKANTU_PACKAGE_NAMES_LIST_ALL})
+foreach(_option ${PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
   list(FIND AKANTU_OPTION_LIST ${_option} _index)
   if (_index EQUAL -1)
     if(NOT "${_option}" STREQUAL "CORE")
@@ -297,24 +302,26 @@ install(FILES
 #===============================================================================
 # Package builder target module of CPack
 #===============================================================================
+set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
+
 set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch")
-#message(${CPACK_DEBIAN_PACKAGE_DEPENDS})
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64" CACHE STRING "Architecture of debian package generation")
 else()
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
 endif()
-#message("CPACK_DEBIAN_PACKAGE_ARCHITECTURE = ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
 set(CPACK_PACKAGE_VENDOR "LSMS")
-set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
 set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-src")
 set(CPACK_PACKAGE_VERSION "${AKANTU_VERSION}")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/COPYING")
 list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_EXCLUDE_SOURCE_FILE})
-list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_UNACTIVATED_PACKAGE_FILE})
+foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_OFF})
+  list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${_pkg}.cmake)
+endforeach()
 list(APPEND CPACK_SOURCE_IGNORE_FILES "/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 include(CPack)
 

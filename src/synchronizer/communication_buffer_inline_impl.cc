@@ -79,8 +79,8 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Vector<T> &
  */
 
 /* -------------------------------------------------------------------------- */
-template<> inline CommunicationBuffer &
-CommunicationBuffer::operator<< <types::Matrix> (const types::Matrix & to_pack) {
+template<typename T>
+inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Matrix<T> & to_pack) {
   UInt size = to_pack.size() * sizeof(Real);
   memcpy(ptr_pack, to_pack.storage(), size);
   ptr_pack += size;
@@ -88,8 +88,8 @@ CommunicationBuffer::operator<< <types::Matrix> (const types::Matrix & to_pack) 
 }
 
 /* -------------------------------------------------------------------------- */
-template<> inline CommunicationBuffer &
-CommunicationBuffer::operator>> <types::Matrix> (types::Matrix & to_unpack) {
+template<typename T>
+inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Matrix<T> & to_unpack) {
   UInt size = to_unpack.size() * sizeof(Real);
   memcpy(to_unpack.storage(), ptr_unpack, size);
   ptr_unpack += size;

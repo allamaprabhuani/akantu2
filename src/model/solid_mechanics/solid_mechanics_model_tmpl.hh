@@ -121,7 +121,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
     }
 
     if(function_type == _bft_stress) {
-      Vector<Real>::iterator< types::Matrix > stress = funct.begin(spatial_dimension, spatial_dimension);
+      Vector<Real>::iterator< types::RMatrix > stress = funct.begin(spatial_dimension, spatial_dimension);
 
       for (UInt el = 0; el < nb_element; ++el) {
 	Surface surf_id = 0;

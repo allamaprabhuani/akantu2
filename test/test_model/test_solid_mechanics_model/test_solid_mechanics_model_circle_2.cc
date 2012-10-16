@@ -46,7 +46,7 @@ using namespace akantu;
 class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
 public:
   inline void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
-		     types::Matrix & stress,
+		     types::RMatrix & stress,
 		     __attribute__ ((unused)) const types::Vector<Real> & normal,
 		     __attribute__ ((unused)) Surface surface_id) {
     stress.eye(1000);

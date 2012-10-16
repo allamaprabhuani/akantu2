@@ -46,9 +46,9 @@ int main(int argc, char *argv[]) {
   RealVector mat_vect(N, 4, 0.);
 
   std::cout << "Iterating on a Matrix(2,2)" << std::endl;
-  RealVector::iterator<akantu::types::Matrix> itm;
+  RealVector::iterator<akantu::types::RMatrix> itm;
   itm = mat_vect.begin(2, 2);
-  RealVector::iterator<akantu::types::Matrix> endm = mat_vect.end(2, 2);
+  RealVector::iterator<akantu::types::RMatrix> endm = mat_vect.end(2, 2);
 
   for (; itm != endm; ++itm) {
     std::cout << *itm << std::endl;

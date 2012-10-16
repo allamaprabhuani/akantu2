@@ -113,7 +113,7 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesi
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress, const types::RVector & normal, const types::RVector & tangent) {
+Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::RMatrix & stress, const types::RVector & normal, const types::RVector & tangent) {
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;

@@ -1,5 +1,7 @@
-add_optional_package(IOHelper "Add IOHelper support in akantu" OFF)
+add_optional_package(IOHelper "Add IOHelper support in akantu" ON)
 
-set(IOHELPER_DEB_DEPEND
+mark_as_advanced(AKANTU_USE_IOHELPER)
+
+set(AKANTU_IOHELPER_DEB_DEPEND
   iohelper
   )

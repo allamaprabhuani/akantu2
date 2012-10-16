@@ -578,12 +578,12 @@ public:
 
   inline reference operator[](const UInt n) { ret->values = initial + n*offset; return *ret; }
 
-  inline bool operator==(const iterator_internal & other) { return (*this).ret->values == other.ret->values; }
-  inline bool operator!=(const iterator_internal & other) { return (*this).ret->values != other.ret->values; }
-  inline bool operator <(const iterator_internal & other) { return (*this).ret->values  < other.ret->values; }
-  inline bool operator<=(const iterator_internal & other) { return (*this).ret->values <= other.ret->values; }
-  inline bool operator> (const iterator_internal & other) { return (*this).ret->values >  other.ret->values; }
-  inline bool operator>=(const iterator_internal & other) { return (*this).ret->values >= other.ret->values; }
+  inline bool operator==(const iterator_internal & other) const { return (*this).ret->values == other.ret->values; }
+  inline bool operator!=(const iterator_internal & other) const { return (*this).ret->values != other.ret->values; }
+  inline bool operator <(const iterator_internal & other) const { return (*this).ret->values  < other.ret->values; }
+  inline bool operator<=(const iterator_internal & other) const { return (*this).ret->values <= other.ret->values; }
+  inline bool operator> (const iterator_internal & other) const { return (*this).ret->values >  other.ret->values; }
+  inline bool operator>=(const iterator_internal & other) const { return (*this).ret->values >= other.ret->values; }
 
   inline iterator_internal operator+(difference_type n) { iterator_internal tmp(*this); tmp += n; return tmp; }
   inline iterator_internal operator-(difference_type n) { iterator_internal tmp(*this); tmp -= n; return tmp; }
@@ -641,46 +641,46 @@ inline Vector<T, is_scal>::const_iterator< types::Vector<T> > Vector<T, is_scal>
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Matrix<T> > Vector<T, is_scal>::begin(UInt m, UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
-  return iterator< types::Matrix >(new types::Matrix(values, m, n));
+  return iterator< types::Matrix<T> >(new types::Matrix<T>(values, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Matrix<T> > Vector<T, is_scal>::end(UInt m, UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
-  return iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+  return iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * size, m, n));
 }
 
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::begin(UInt m, UInt n) const {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Matrix<T> > Vector<T, is_scal>::begin(UInt m, UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
-  return const_iterator< types::Matrix >(new types::Matrix(values, m, n));
+  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::const_iterator<types::Matrix> Vector<Real>::end(UInt m, UInt n) const {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Matrix<T> > Vector<T, is_scal>::end(UInt m, UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
-  return const_iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * size, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::iterator< types::Matrix >
-Vector<Real>::begin_reinterpret(UInt m, UInt n,
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Matrix<T> >
+Vector<T, is_scal>::begin_reinterpret(UInt m, UInt n,
 				__attribute__((unused)) UInt size,
 				__attribute__((unused)) UInt nb_component) {
   AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
@@ -692,15 +692,15 @@ Vector<Real>::begin_reinterpret(UInt m, UInt n,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
 
-  return iterator< types::Matrix >(new types::Matrix(values + nb_component * 0, m, n));
+  return iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * 0, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::iterator< types::Matrix >
-Vector<Real>::end_reinterpret(UInt m, UInt n,
-			      UInt size,
-			      UInt nb_component) {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Matrix<T> >
+Vector<T, is_scal>::end_reinterpret(UInt m, UInt n,
+                                    UInt size,
+                                    UInt nb_component) {
   AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
 		      "The new values for size (" << size
 		      << ") and nb_component (" << nb_component <<
@@ -710,16 +710,16 @@ Vector<Real>::end_reinterpret(UInt m, UInt n,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
 
-  return iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+  return iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * size, m, n));
 }
 
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::const_iterator< types::Matrix >
-Vector<Real>::begin_reinterpret(UInt m, UInt n,
-				__attribute__((unused)) UInt size,
-				__attribute__((unused)) UInt nb_component) const {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Matrix<T> >
+Vector<T, is_scal>::begin_reinterpret(UInt m, UInt n,
+                                      __attribute__((unused)) UInt size,
+                                      __attribute__((unused)) UInt nb_component) const {
   AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
 		      "The new values for size (" << size
 		      << ") and nb_component (" << nb_component <<
@@ -729,15 +729,15 @@ Vector<Real>::begin_reinterpret(UInt m, UInt n,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
 
-  return const_iterator< types::Matrix >(new types::Matrix(values + nb_component * 0, m, n));
+  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * 0, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline Vector<Real>::const_iterator< types::Matrix >
-Vector<Real>::end_reinterpret(UInt m, UInt n,
-			      UInt size,
-			      UInt nb_component) const {
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Matrix<T> >
+Vector<T, is_scal>::end_reinterpret(UInt m, UInt n,
+                                    UInt size,
+                                    UInt nb_component) const {
   AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
 		      "The new values for size (" << size
 		      << ") and nb_component (" << nb_component <<
@@ -747,7 +747,7 @@ Vector<Real>::end_reinterpret(UInt m, UInt n,
 		      "The iterator is not compatible with the type Matrix("
 		      << m << "," << n<< ")");
 
-  return const_iterator<types::Matrix>(new types::Matrix(values + nb_component * size, m, n));
+  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * size, m, n));
 }
 
 
@@ -788,12 +788,12 @@ public:
 
   inline reference operator[](const UInt n) { ret = initial + n; return *ret; }
 
-  inline bool operator==(const iterator_internal & other) { return ret == other.ret; }
-  inline bool operator!=(const iterator_internal & other) { return ret != other.ret; }
-  inline bool operator< (const iterator_internal & other) { return ret <  other.ret; }
-  inline bool operator<=(const iterator_internal & other) { return ret <= other.ret; }
-  inline bool operator> (const iterator_internal & other) { return ret >  other.ret; }
-  inline bool operator>=(const iterator_internal & other) { return ret >= other.ret; }
+  inline bool operator==(const iterator_internal & other) const { return ret == other.ret; }
+  inline bool operator!=(const iterator_internal & other) const { return ret != other.ret; }
+  inline bool operator< (const iterator_internal & other) const { return ret <  other.ret; }
+  inline bool operator<=(const iterator_internal & other) const { return ret <= other.ret; }
+  inline bool operator> (const iterator_internal & other) const { return ret >  other.ret; }
+  inline bool operator>=(const iterator_internal & other) const { return ret >= other.ret; }
 
   inline iterator_internal operator-(difference_type n) { return iterator_internal(ret - n); }
   inline iterator_internal operator+(difference_type n) { return iterator_internal(ret + n); }
