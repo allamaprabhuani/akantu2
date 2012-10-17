@@ -25,7 +25,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-set(AKANTU_CMAKE_DEBUG TRUE)
+set(AKANTU_CMAKE_DEBUG FALSE)
 macro(akantu_message)
   if(AKANTU_CMAKE_DEBUG)
     message(${ARGN})
@@ -33,8 +33,65 @@ macro(akantu_message)
 endmacro()
 
 #===============================================================================
+macro(add_cxx_flags flag)
+  if(NOT CMAKE_CXX_FLAGS MATCHES "${flag}")
+    set(CMAKE_CXX_FLAGS "${flag} ${CMAKE_CXX_FLAGS}"
+      CACHE STRING "Flags used by the compiler during all build types." FORCE)
+  endif()
+endmacro()
 
+#===============================================================================
+macro(remove_cxx_flags flag)
+  string(REPLACE "${flag} " "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
+    CACHE STRING "Flags used by the compiler during all build types." FORCE)
+endmacro()
 
+#===============================================================================
+macro(check_for_isnan result)
+  include(CheckFunctionExists)
+  check_function_exists(std::isnan HAVE_STD_ISNAN)
+  if(HAVE_STD_ISNAN)
+    set(result "std::isnan(x)")
+  else()
+    check_function_exists(isnan HAVE_ISNAN)
+    if(HAVE_ISNAN)
+      set(result "(::isnan(x))")
+    else()
+      check_function_exists(_isnan HAVE_ISNAN_MATH_H)
+      if(HAVE_ISNAN_MATH_H)
+        set(result "(_isnan(x))")
+      else()
+        set(result (x == std::numeric_limits<Real>::quiet_NAN()))
+      endif()
+    endif()
+  endif()
+endmacro()
+
+#===============================================================================
+macro(copy_files target_depend)
+  foreach(_file ${ARGN})
+    set(_target ${CMAKE_CURRENT_BINARY_DIR}/${_file})
+    set(_source ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+    add_custom_command(
+      OUTPUT ${_target}
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_source} ${_target}
+      DEPENDS ${_source}
+      )
+    set(_target_name ${target_depend}_${_file})
+    add_custom_target(${_target_name} DEPENDS ${_target})
+    add_dependencies(${target_depend} ${_target_name})
+  endforeach()
+endmacro()
+
+#===============================================================================
+macro(add_akantu_definitions)
+  foreach(_definition ${AKANTU_DEFINITIONS})
+    add_definitions(-D${_definition})
+  endforeach()
+endmacro()
+
+#===============================================================================
 if(__CMAKE_PARSE_ARGUMENTS_INCLUDED)
   return()
 endif()
@@ -95,47 +152,3 @@ function(CMAKE_PARSE_ARGUMENTS prefix _optionNames _singleArgNames _multiArgName
   endforeach(arg_name)
   set(${prefix}_UNPARSED_ARGUMENTS ${${prefix}_UNPARSED_ARGUMENTS} PARENT_SCOPE)
 endfunction(CMAKE_PARSE_ARGUMENTS _options _singleArgs _multiArgs)
-
-#===============================================================================
-macro(check_for_isnan result)
-  include(CheckFunctionExists)
-  check_function_exists(std::isnan HAVE_STD_ISNAN)
-  if(HAVE_STD_ISNAN)
-    set(result "std::isnan(x)")
-  else()
-    check_function_exists(isnan HAVE_ISNAN)
-    if(HAVE_ISNAN)
-      set(result "(::isnan(x))")
-    else()
-      check_function_exists(_isnan HAVE_ISNAN_MATH_H)
-      if(HAVE_ISNAN_MATH_H)
-        set(result "(_isnan(x))")
-      else()
-        set(result (x == std::numeric_limits<Real>::quiet_NAN()))
-      endif()
-    endif()
-  endif()
-endmacro()
-
-#===============================================================================
-macro(copy_files target_depend)
-  foreach(_file ${ARGN})
-    set(_target ${CMAKE_CURRENT_BINARY_DIR}/${_file})
-    set(_source ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
-    add_custom_command(
-      OUTPUT ${_target}
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_source} ${_target}
-      DEPENDS ${_source}
-      )
-    set(_target_name ${target_depend}_${_file})
-    add_custom_target(${_target_name} DEPENDS ${_target})
-    add_dependencies(${target_depend} ${_target_name})
-  endforeach()
-endmacro()
-
-#===============================================================================
-macro(add_akantu_definitions)
-  foreach(_definition ${AKANTU_DEFINITIONS})
-    add_definitions(-D${_definition})
-  endforeach()
-endmacro()

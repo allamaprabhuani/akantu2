@@ -1,9 +1,9 @@
 #===============================================================================
-# @file   AkantuUse.cmake
+# @file   CMakeLists.txt
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Nov 28 15:11:51 2011
+# @date   Wed Oct 17 2012
 #
-# @brief  CMake file for the library
+# @brief Build the documentation
 #
 # @section LICENSE
 #
@@ -25,27 +25,15 @@
 #
 #===============================================================================
 
-macro(include_package_if_needed PACKAGE)
-  string(TOUPPER ${PACKAGE} _package)
-  if(AKANTU_USE_${_package})
-    if(${PACKAGE} MATCHES BLAS)
-      enable_language(Fortran)
-    endif()
-    find_package(${PACKAGE} REQUIRED)
-    if(${_package}_FOUND)
-      if(DEFINED ${_package}_INCLUDE_DIR)
-        list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${${_package}_INCLUDE_DIR})
-      else()
-        list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${${_package}_INCLUDE_PATH})
-      endif()
-      list(APPEND AKANTU_EXTRA_LIBRARIES ${${_package}_LIBRARIES})
-    endif()
-  endif()
-endmacro()
+find_package(Doxygen REQUIRED)
 
-macro(find_akantu_dependencies)
-  include_package_if_needed(MPI)
-  include_package_if_needed(Mumps)
-  include_package_if_needed(Scotch)
-  include_package_if_needed(BLAS)
-endmacro()
+if(DOXYGEN_FOUND)
+  set(DOXYGEN_WARNINGS NO)
+  set(DOXYGEN_QUIET YES)
+  if(CMAKE_VERBOSE_MAKEFILE)
+    set(DOXYGEN_WARNINGS YES)
+    set(DOXYGEN_QUIET NO)
+  endif(CMAKE_VERBOSE_MAKEFILE)
+
+  add_subdirectory(doxygen)
+endif(DOXYGEN_FOUND)

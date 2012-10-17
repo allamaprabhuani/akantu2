@@ -82,12 +82,16 @@ target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")
 
-#===============================================================================
-# Install rules
-#===============================================================================
-
 install(TARGETS akantu
   EXPORT AkantuLibraryDepends
-  LIBRARY DESTINATION lib COMPONENT dev
+  LIBRARY DESTINATION lib COMPONENT shlib
   PUBLIC_HEADER DESTINATION include/akantu/ COMPONENT dev
   )
+
+install(EXPORT AkantuLibraryDepends DESTINATION  lib/akantu
+  COMPONENT dev)
+
+#Export for build tree
+#export(TARGETS akantu
+#  FILE "${CMAKE_BINARY_DIR}/AkantuLibraryDepends.cmake")
+#export(PACKAGE Akantu)

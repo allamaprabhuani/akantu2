@@ -28,6 +28,13 @@
 
 INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 
+include_directories(
+  ${AKANTU_INCLUDE_DIRS}
+  ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR}
+  )
+
+find_package(GMSH REQUIRED)
+
 #===============================================================================
 # List of tests
 #===============================================================================

@@ -267,7 +267,7 @@ inline void ElementClass<type>::inverseMap(const types::RVector & real_coords,
   //matric copy of the real_coords
   types::RMatrix mreal_coords(real_coords.storage(),1,spatial_dimension);
   //initial guess
-  types::RMatrix natural_guess(1,dimension,0.);
+  types::RMatrix natural_guess(1, dimension, 0.);
   // realspace coordinates provided by initial guess
   types::RMatrix physical_guess(1,dimension);
   // objective function f = real_coords - physical_guess
@@ -304,39 +304,37 @@ inline void ElementClass<type>::inverseMap(const types::RVector & real_coords,
   /* --------------------------- */
   // iteration loop
   /* --------------------------- */
+  while(tolerance < inverse_map_error) {
+    //compute dxds
+    computeDNDS(natural_guess.storage(), dnds.storage());
+    computeDXDS(dnds.storage(),node_coords.storage(),dimension,dxds.storage());
+    //compute G
+    dxds_t = dxds;
+    dxds_t.transpose();
+    G.mul<false,false>(dxds,dxds_t);
+    // inverse G
+    if      (spatial_dimension == 1) Ginv[0] = 1./G[0];
+    else if (spatial_dimension == 2) Math::inv2(G.storage(),Ginv.storage());
+    else if (spatial_dimension == 3) Math::inv3(G.storage(),Ginv.storage());
 
-  while(tolerance < inverse_map_error)
-    {
-      //compute dxds
-      computeDNDS(natural_guess.storage(), dnds.storage());
-      computeDXDS(dnds.storage(),node_coords.storage(),dimension,dxds.storage());
-      //compute G
-      dxds_t = dxds;
-      dxds_t.transpose();
-      G.mul<false,false>(dxds,dxds_t);
-      // inverse G
-      if      (spatial_dimension == 1) Ginv[0] = 1./G[0];
-      else if (spatial_dimension == 2) Math::inv2(G.storage(),Ginv.storage());
-      else if (spatial_dimension == 3) Math::inv3(G.storage(),Ginv.storage());
+    //compute J
+    J.mul<false,false>(Ginv,dxds);
 
-      //compute J
-      J.mul<false,false>(Ginv,dxds);
-
-      //compute increment
-      dxi.mul<false,false>(f,J);
+    //compute increment
+    dxi.mul<false,false>(f,J);
 
 
-      //update our guess
-      natural_guess += dxi;
-      //interpolate
-      interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
-      // compute error
-      f = physical_guess;
-      f*= -1.;
-      f+= mreal_coords;
-      inverse_map_error = f.norm();
-    }
-    memcpy(natural_coords.storage(),natural_guess.storage(),sizeof(Real)*natural_coords.size());
+    //update our guess
+    natural_guess += dxi;
+    //interpolate
+    interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
+    // compute error
+    f = physical_guess;
+    f*= -1.;
+    f+= mreal_coords;
+    inverse_map_error = f.norm();
+  }
+  memcpy(natural_coords.storage(), natural_guess.storage(), sizeof(Real) * natural_coords.size());
 }
 
 /* -------------------------------------------------------------------------- */
