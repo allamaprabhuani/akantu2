@@ -142,3 +142,14 @@ template<> inline Real ElementClass<_quadrangle_4>::getInradius(const Real * coo
 
   return h;
 }
+
+/* -------------------------------------------------------------------------- */
+
+template<> inline bool ElementClass<_quadrangle_4>::contains(const types::RVector & natural_coords) {
+  if (natural_coords[0] < -1.) return false;
+  if (natural_coords[0] > 1.) return false;
+  if (natural_coords[1] < -1.) return false;
+  if (natural_coords[1] > 1.) return false;
+  return true;
+}
+/* -------------------------------------------------------------------------- */
