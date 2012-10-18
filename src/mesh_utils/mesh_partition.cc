@@ -38,9 +38,9 @@ MeshPartition::MeshPartition(const Mesh & mesh, UInt spatial_dimension,
 			     const MemoryID & memory_id) :
   Memory(memory_id), id("MeshPartitioner"),
   mesh(mesh), spatial_dimension(spatial_dimension),
-  partitions             ("partition"             , id),
-  ghost_partitions       ("ghost_partition"       , id),
-  ghost_partitions_offset("ghost_partition_offset", id) {
+  partitions             ("partition"             , id, memory_id),
+  ghost_partitions       ("ghost_partition"       , id, memory_id),
+  ghost_partitions_offset("ghost_partition_offset", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -59,7 +59,7 @@ MeshPartition::~MeshPartition() {
  * Metis (University of Minnesota)
  */
 void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
-				   Vector<Int> edge_loads,
+				   Vector<Int> & edge_loads,
 				   const EdgeLoadFunctor & edge_load_func,
 				   const Vector<UInt> & pairs) {
   AKANTU_DEBUG_IN();
@@ -80,10 +80,16 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
   Vector<UInt> * conn[nb_types];
   Vector<UInt> * conn_tmp[nb_types];
 
+  Vector<Element> lin_to_element;
+
+  Element el;
+  el.ghost_type = _not_ghost;
+
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
+    el.type = type;
 
     ElementType type_p1 = Mesh::getP1ElementType(type);
 
@@ -94,6 +100,12 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
       Mesh::getNbNodesPerElement(Mesh::getFacetElementType(type_p1));
 
     conn[nb_good_types] = &const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _not_ghost));
+
+    for (UInt i = 0; i < nb_element[nb_good_types]; ++i) {
+      el.element = i;
+      lin_to_element.push_back(el);
+    }
+
 
     if(pairs.getSize() != 0) {
       conn_tmp[nb_good_types] = new Vector<UInt>(mesh.getConnectivity(type, _not_ghost));
@@ -196,17 +208,16 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
   for (UInt i = nb_total_element; i > 0; --i) dxadj(i) = dxadj(i - 1);
   dxadj(0) = 0;
 
-
+  UInt adj = 0;
   for (UInt i = 0; i < nb_total_element; ++i) {
     UInt nb_adj = dxadj(i + 1) - dxadj(i);
-    for (UInt j = 0; j < nb_adj; ++j) {
+    for (UInt j = 0; j < nb_adj; ++j, ++adj) {
       Int el_adj_id = dadjncy(dxadj(i) + j);
-      Element el     = mesh.linearizedToElement(i);
-      Element el_adj = mesh.linearizedToElement(el_adj_id);
+      Element el     = lin_to_element(i);
+      Element el_adj = lin_to_element(el_adj_id);
 
       Int load = edge_load_func(el, el_adj);
-      edge_loads(i)         = load;
-      edge_loads(el_adj_id) = load;
+      edge_loads(adj) = load;
     }
   }
 

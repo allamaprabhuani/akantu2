@@ -85,7 +85,7 @@ protected:
 
   /// build the dual graph of the mesh, for all element of spatial_dimension
   void buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
-		      Vector<Int> edge_loads,
+		      Vector<Int> & edge_loads,
 		      const EdgeLoadFunctor & edge_load_func,
 		      const Vector<UInt> & pairs);
 

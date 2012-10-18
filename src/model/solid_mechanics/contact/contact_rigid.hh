@@ -156,6 +156,7 @@ public:
 
   /// compute friction based on the simplified prakash clifton regularization (cochard & rice 2000)
   void setSimplifiedPrakashCliftonFriction(Real v_star, Real length);
+  void setSimplifiedPrakashCliftonFriction(Real t_star);
   void unsetSimplifiedPrakashCliftonFriction();
   void setPrakashCliftonToSteadyState(const Surface master);
 
@@ -211,10 +212,12 @@ private:
 
   // simplified prakash clifton regularization
   bool prakash;
+  bool dedontney;
 
   // parameters needed for fomulation of cochard and rice 2000
   Real ref_velocity;
   Real characterstic_length;
+  Real t_star;
 
   /// list of impactor nodes info for each master surface
   SurfaceToImpactInfoMap impactors_information;
