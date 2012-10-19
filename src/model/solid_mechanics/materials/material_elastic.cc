@@ -39,7 +39,7 @@ MaterialElastic<spatial_dimension>::MaterialElastic(SolidMechanicsModel & model,
 
   this->registerParam("E"           ,E           , 0.   , ParamAccessType(_pat_parsable | _pat_modifiable), "Young's modulus"        );
   this->registerParam("nu"          ,nu          , 0.5  , ParamAccessType(_pat_parsable | _pat_modifiable), "Poisson's ratio"        );
-  this->registerParam("Plane_Stress",plane_stress, false, _pat_parsable, "Is plane stress"        );
+  this->registerParam("Plane_Stress",plane_stress, false, _pat_parsmod, "Is plane stress"        ); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
   this->registerParam("lambda"      ,lambda             , _pat_readable, "First Lamé coefficient" );
   this->registerParam("mu"          ,mu                 , _pat_readable, "Second Lamé coefficient");
   this->registerParam("kapa"        ,kpa                , _pat_readable, "Bulk coefficient"       );

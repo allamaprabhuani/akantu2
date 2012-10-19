@@ -1,5 +1,5 @@
 /**
- * @file   material_standard_linear_solid_deviatoric.hh
+ * @file   material_standard_linear_solid_deviatoric.cc
  * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Kammer <david.kammer@epfl.ch>
@@ -43,7 +43,7 @@ MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinear
 
   this->registerParam("Eta",  eta,   1., ParamAccessType(_pat_parsable | _pat_modifiable), "Viscosity");
   this->registerParam("Ev",   Ev,    1., ParamAccessType(_pat_parsable | _pat_modifiable), "Stiffness of the viscous element");
-  this->registerParam("Einf", E_inf, 1., ParamAccessType(_pat_readable | _pat_modifiable), "Stiffness of the elastic element");
+  this->registerParam("Einf", E_inf, 1., ParamAccessType(_pat_readable), "Stiffness of the elastic element");
 
   UInt stress_size = spatial_dimension * spatial_dimension;
 

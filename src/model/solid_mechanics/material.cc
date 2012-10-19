@@ -55,7 +55,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
 
   registerParam("rho",  rho,                 0., ParamAccessType(_pat_parsable | _pat_modifiable), "Density");
   registerParam("id",   this->id,                _pat_readable);
-  registerParam("name", name,     std::string(), ParamAccessType(_pat_parsable | _pat_readable));
+  registerParam("name", name,     std::string(), ParamAccessType(_pat_parsable | _pat_readable | _pat_modifiable));
 
   spatial_dimension = this->model->getSpatialDimension();
 
