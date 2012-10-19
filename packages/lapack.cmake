@@ -1,0 +1,1 @@
+add_optional_package(LAPACK "Use LAPACK for arithmetic operations" OFF LANGUAGE Fortran)

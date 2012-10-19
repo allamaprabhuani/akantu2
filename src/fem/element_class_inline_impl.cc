@@ -269,7 +269,7 @@ inline void ElementClass<type>::inverseMap(const types::RVector & real_coords,
   //initial guess
   types::RMatrix natural_guess(1, dimension, 0.);
   // realspace coordinates provided by initial guess
-  types::RMatrix physical_guess(1,dimension);
+  types::RMatrix physical_guess(1, dimension);
   // objective function f = real_coords - physical_guess
   types::RMatrix f(1,dimension);
   // dnds computed on the natural_guess

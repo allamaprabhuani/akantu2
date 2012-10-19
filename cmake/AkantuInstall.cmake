@@ -63,7 +63,7 @@ file(WRITE "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
 ")
 
 foreach(_option ${PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
-  list(FIND AKANTU_OPTION_LIST ${_option} _index)
+  list(FIND AKANTU_OPTION_LIST ${_option_name} _index)
   if (_index EQUAL -1)
     if(NOT "${_option}" STREQUAL "CORE")
       if(NOT AKANTU_${_option})
@@ -80,17 +80,17 @@ file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake"
 
 set(AKANTU_HAS_PARTITIONER  ${AKANTU_PARTITIONER})
 set(AKANTU_HAS_SOLVER       ${AKANTU_SOLVER})
-
-set(AKANTU_OPTION_LIST ${AKANTU_OPTION_LIST})
 ")
 
 foreach(_option ${AKANTU_OPTION_LIST})
+  package_pkg_name(${_option} _pkg_name)
   file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+list(APPEND AKANTU_OPTION_LIST ${_option})
 set(AKANTU_USE_${_option} ${AKANTU_${_option}})")
-  if(${AKANTU_${_option}_LIBRARIES})
+  if(${_pkg_name}_LIBRARIES)
     file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
-set(AKANTU_${_option}_LIBRARIES ${AKANTU_${_option}_LIBRARIES})
-set(AKANTU_${_option}_INCLUDE_DIR ${AKANTU_${_option}_INCLUDE_DIR})
+set(${_pkg_name}_LIBRARIES ${${_pkg_name}_LIBRARIES})
+set(${_pkg_name}_INCLUDE_DIR ${${_pkg_name}_INCLUDE_DIR})
 ")
   endif()
 endforeach()

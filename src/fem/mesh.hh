@@ -356,6 +356,7 @@ public:
   /// get the connectivity Vector for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
+  AKANTU_GET_MACRO(Connectivities, connectivities, const ByElementTypeVector<UInt> &);
 
   /// @todo take out this set, if mesh can read surface id
   /// set the number of surfaces

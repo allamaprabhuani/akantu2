@@ -223,7 +223,7 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 inline Real Math::vectorDot(const Real * v1, const Real * v2, UInt n) {
 #ifdef AKANTU_USE_BLAS
   ///  d := v1 . v2
-  cblas_ddot(n, v1, 1, v2, 1);
+  Real d = cblas_ddot(n, v1, 1, v2, 1);
 #else
   Real d = 0;
   for (UInt i = 0; i < n; ++i) {

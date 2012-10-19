@@ -82,6 +82,8 @@ target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")
 
+list(APPEND AKANTU_EXPORT_LIST akantu)
+
 install(TARGETS akantu
   EXPORT AkantuLibraryDepends
   LIBRARY DESTINATION lib COMPONENT shlib
@@ -92,6 +94,6 @@ install(EXPORT AkantuLibraryDepends DESTINATION  lib/akantu
   COMPONENT dev)
 
 #Export for build tree
-#export(TARGETS akantu
-#  FILE "${CMAKE_BINARY_DIR}/AkantuLibraryDepends.cmake")
-#export(PACKAGE Akantu)
+export(TARGETS ${AKANTU_EXPORT_LIST}
+  FILE "${CMAKE_BINARY_DIR}/AkantuLibraryDepends.cmake")
+export(PACKAGE Akantu)

@@ -1166,7 +1166,9 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
     element_material(elem.type, elem.ghost_type).push_back(UInt(0));
 
     UInt mat_index = mat.addElement(elem.type, elem.element, elem.ghost_type);
-    element_index_by_material(elem.type, elem.ghost_type).push_back(mat_index);
+    UInt id[2];
+    id[0] = mat_index; id[1] = 0;
+    element_index_by_material(elem.type, elem.ghost_type).push_back(id);
   }
 
   std::vector<Material *>::iterator mat_it;
@@ -1182,9 +1184,6 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list,
 					    const ByElementTypeUInt & new_numbering) {
-  //element_material.onElementsRemoved(new_numbering);
-  //element_index_by_material.onElementsRemoved(new_numbering);
-
   std::cout << "NbNodes before purify " <<  mesh.getNbNodes() << std::endl;
   //  MeshUtils::purifyMesh(mesh);
   std::cout << "NbNodes after purify " <<  mesh.getNbNodes() << std::endl;

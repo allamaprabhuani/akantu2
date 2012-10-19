@@ -277,13 +277,6 @@ public:
   /// Use a UIntData in the mesh to specify the material to use per element
   void setMaterialIDsFromIntData(const std::string & data_name);
 
-protected:
-  // /// read properties part of a material file and create the material
-  // template <typename M>
-  // Material * readMaterialProperties(std::ifstream & infile,
-  // 				    ID mat_id,
-  // 				    UInt &current_line);
-
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
   /* ------------------------------------------------------------------------ */
@@ -420,10 +413,12 @@ public:
   /// given akantu::ElementType
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
+  AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeVector<UInt> &);
 
   /// vectors containing local material element index for each global element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
+  AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeVector<UInt> &);
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);

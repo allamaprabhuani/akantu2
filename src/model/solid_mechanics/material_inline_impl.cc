@@ -322,7 +322,7 @@ inline void Material::packUnpackElementDataHelper(ByElementTypeVector<T> & data_
       nb_component = vect->getNbComponent();
     }
 
-    UInt el_id = (*element_index_material)(el.element);
+    UInt el_id = (*element_index_material)(el.element, 0);
     types::Vector<T> data(vect->storage() + el_id * nb_component * nb_quad_per_elem,
 			  nb_component * nb_quad_per_elem);
     if(pack_helper)
@@ -407,6 +407,8 @@ inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Eleme
 
 /* -------------------------------------------------------------------------- */
 inline void Material::onElementsRemoved(const Vector<Element> & element_list, const ByElementTypeUInt & new_numbering) {
+  UInt my_num = model->getInternalIndexFromID(id);
+
   ByElementTypeUInt material_local_new_numbering("remove mat filter elem", id);
 
   Vector<Element>::const_iterator<Element> el_begin = element_list.begin();
@@ -441,7 +443,8 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
 	    AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A not removed element as been badly renumbered");
 	    elem_filter_tmp.push_back(new_el);
 	    mat_renumbering(i) = ni;
-	    element_index_material(new_el) = ni;
+	    element_index_material(new_el, 0) = ni;
+	    element_index_material(new_el, 1) = my_num;
 	    ++ni;
 	  } else {
 	    mat_renumbering(i) = UInt(-1);

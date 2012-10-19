@@ -331,6 +331,13 @@ ByElementType<Stored>::type_iterator::operator*() {
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
+inline typename ByElementType<Stored>::type_iterator::reference
+ByElementType<Stored>::type_iterator::operator*() const {
+  return list_begin->first;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
 inline typename ByElementType<Stored>::type_iterator &
 ByElementType<Stored>::type_iterator::operator++() {
   ++list_begin;
@@ -351,13 +358,13 @@ typename ByElementType<Stored>::type_iterator ByElementType<Stored>::type_iterat
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
-inline bool ByElementType<Stored>::type_iterator::operator==(const type_iterator & other) {
+inline bool ByElementType<Stored>::type_iterator::operator==(const type_iterator & other) const {
   return this->list_begin == other.list_begin;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
-inline bool ByElementType<Stored>::type_iterator::operator!=(const type_iterator & other) {
+inline bool ByElementType<Stored>::type_iterator::operator!=(const type_iterator & other) const {
   return this->list_begin != other.list_begin;
 }
 

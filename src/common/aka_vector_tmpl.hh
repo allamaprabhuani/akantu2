@@ -532,25 +532,25 @@ public:
   typedef std::random_access_iterator_tag iterator_category;
 
 public:
-  iterator_internal() : offset(0), initial(NULL), ret(NULL) {};
+  iterator_internal() : _offset(0), initial(NULL), ret(NULL) {};
 
-  iterator_internal(pointer_type data, UInt offset)  :
-    offset(offset),
+  iterator_internal(pointer_type data, UInt _offset)  :
+    _offset(_offset),
     initial(data),
     ret(new value_type(data)) {
-    AKANTU_DEBUG_ASSERT(offset == ret->size(),
+    AKANTU_DEBUG_ASSERT(_offset == ret->size(),
 			"The iterator_internal is not compatible with the type "
 			<< typeid(value_type).name());
   }
 
-  iterator_internal(pointer warped)  : offset(warped->size()),
+  iterator_internal(pointer warped)  : _offset(warped->size()),
 				       initial(warped->storage()),
 				       ret(const_cast<internal_pointer>(warped)) {
   }
 
   iterator_internal(const iterator_internal & it) {
     if(this != &it) {
-      this->offset = it.offset;
+      this->_offset = it._offset;
       this->initial = it.initial;
       this->ret = new internal_value_type(*it.ret);
     }
@@ -560,7 +560,7 @@ public:
 
   inline iterator_internal & operator=(const iterator_internal & it) {
     if(this != &it) {
-      this->offset = it.offset;
+      this->_offset = it._offset;
       this->initial = it.initial;
       if(this->ret) this->ret->shallowCopy(*it.ret);
       else this->ret = new internal_value_type(*it.ret);
@@ -570,20 +570,20 @@ public:
 
   inline reference operator*() { return *ret; };
   inline pointer operator->() { return ret; };
-  inline iterator_internal & operator++() { ret->values += offset; return *this; };
-  inline iterator_internal & operator--() { ret->values -= offset; return *this; };
+  inline iterator_internal & operator++() { ret->values += _offset; return *this; };
+  inline iterator_internal & operator--() { ret->values -= _offset; return *this; };
 
-  inline iterator_internal & operator+=(const UInt n) { ret->values += offset * n; return *this; }
-  inline iterator_internal & operator-=(const UInt n) { ret->values -= offset * n; return *this; }
+  inline iterator_internal & operator+=(const UInt n) { ret->values += _offset * n; return *this; }
+  inline iterator_internal & operator-=(const UInt n) { ret->values -= _offset * n; return *this; }
 
-  inline reference operator[](const UInt n) { ret->values = initial + n*offset; return *ret; }
+  inline reference operator[](const UInt n) { ret->values = initial + n*_offset; return *ret; }
 
-  inline bool operator==(const iterator_internal & other) const { return (*this).ret->values == other.ret->values; }
-  inline bool operator!=(const iterator_internal & other) const { return (*this).ret->values != other.ret->values; }
-  inline bool operator <(const iterator_internal & other) const { return (*this).ret->values  < other.ret->values; }
-  inline bool operator<=(const iterator_internal & other) const { return (*this).ret->values <= other.ret->values; }
-  inline bool operator> (const iterator_internal & other) const { return (*this).ret->values >  other.ret->values; }
-  inline bool operator>=(const iterator_internal & other) const { return (*this).ret->values >= other.ret->values; }
+  inline bool operator==(const iterator_internal & other) const { return (*this).ret->storage() == other.ret->storage(); }
+  inline bool operator!=(const iterator_internal & other) const { return (*this).ret->storage() != other.ret->storage(); }
+  inline bool operator <(const iterator_internal & other) const { return (*this).ret->storage()  < other.ret->storage(); }
+  inline bool operator<=(const iterator_internal & other) const { return (*this).ret->storage() <= other.ret->storage(); }
+  inline bool operator> (const iterator_internal & other) const { return (*this).ret->storage() >  other.ret->storage(); }
+  inline bool operator>=(const iterator_internal & other) const { return (*this).ret->storage() >= other.ret->storage(); }
 
   inline iterator_internal operator+(difference_type n) { iterator_internal tmp(*this); tmp += n; return tmp; }
   inline iterator_internal operator-(difference_type n) { iterator_internal tmp(*this); tmp -= n; return tmp; }
@@ -592,12 +592,11 @@ public:
   inline difference_type operator-(const iterator_internal & b) { return ret->values - b.ret->values; }
 
 
-  inline pointer_type data() const {
-    return ret->storage();
-  }
+  inline pointer_type data() const { return ret->storage(); }
+  inline difference_type offset() const { return _offset; }
 
 protected:
-  UInt offset;
+  UInt _offset;
   pointer_type initial;
   internal_pointer ret;
 };
@@ -768,7 +767,7 @@ public:
   typedef std::random_access_iterator_tag iterator_category;
 
 public:
-  iterator_internal(pointer data = NULL, __attribute__ ((unused)) UInt offset = 1) : ret(data), initial(data) { };
+  iterator_internal(pointer data = NULL, __attribute__ ((unused)) UInt _offset = 1) : _offset(_offset), ret(data), initial(data) { };
   iterator_internal(const iterator_internal & it) {
     if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }
@@ -801,8 +800,9 @@ public:
   inline difference_type operator-(const iterator_internal & b) { return ret - b.ret; }
 
   inline pointer data() const { return ret; }
-
+  inline difference_type offset() const { return _offset; }
 protected:
+  difference_type _offset;
   pointer ret;
   pointer initial;
 };
