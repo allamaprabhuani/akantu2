@@ -336,13 +336,11 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     Vector<Real>::iterator<types::RMatrix> shapes_filtered_it =
       shapes_filtered->begin_reinterpret(size_of_shapes, nb_quadrature_points,
-					 nb_element,
-					 size_of_shapes * nb_quadrature_points);
+					 nb_element);
 
     Vector<Real>::const_iterator<types::RMatrix> shapes_it =
       shapes.begin_reinterpret(size_of_shapes, nb_quadrature_points,
-			       mesh.getNbElement(*it, ghost_type),
-			       size_of_shapes * nb_quadrature_points);
+			       mesh.getNbElement(*it, ghost_type));
 
     for (UInt el = 0; el < nb_element; ++el) {
       *shapes_filtered_it = shapes_it[elem_filter_it[el]];
@@ -350,12 +348,12 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     /**
      * compute A matrix @f$ \mathbf{A} = \left[\begin{array}{c c c c c c c c c c c c}
-     * 1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0 \\
-     * 0 &1& 0&0 &0 &0 &0 & -1& 0& 0 & 0 &0 \\
-     * 0 &0& 1&0 &0 &0 &0 & 0& -1& 0 & 0 &0 \\
-     * 0 &0& 0&1 &0 &0 &0 & 0& 0& -1 & 0 &0 \\
-     * 0 &0& 0&0 &1 &0 &0 & 0& 0& 0 & -1 &0 \\
-     * 0 &0& 0&0 &0 &1 &0 & 0& 0& 0 & 0 &-1
+     * 1 & 0 & 0 & 0 & 0 & 0 & -1 &  0 &  0 &  0 &  0 &  0 \\
+     * 0 & 1 & 0 & 0 & 0 & 0 &  0 & -1 &  0 &  0 &  0 &  0 \\
+     * 0 & 0 & 1 & 0 & 0 & 0 &  0 &  0 & -1 &  0 &  0 &  0 \\
+     * 0 & 0 & 0 & 1 & 0 & 0 &  0 &  0 &  0 & -1 &  0 &  0 \\
+     * 0 & 0 & 0 & 0 & 1 & 0 &  0 &  0 &  0 &  0 & -1 &  0 \\
+     * 0 & 0 & 0 & 0 & 0 & 1 &  0 &  0 &  0 &  0 &  0 & -1
      * \end{array} \right]@f$
      **/
 

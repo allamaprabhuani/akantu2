@@ -641,6 +641,51 @@ inline Vector<T, is_scal>::const_iterator< types::Vector<T> > Vector<T, is_scal>
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Vector<T> >
+Vector<T, is_scal>::begin_reinterpret(UInt n, __attribute__((unused)) UInt size) {
+  AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << n <<
+		      ") are not compatible with the one of this vector");
+  return iterator< types::Vector<T> >(new types::Vector<T>(values, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::iterator< types::Vector<T> >
+Vector<T, is_scal>::end_reinterpret(UInt n, UInt size) {
+  AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << n <<
+		      ") are not compatible with the one of this vector");
+  return iterator< types::Vector<T> >(new types::Vector<T>(values + n * size, n));
+}
+
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Vector<T> >
+Vector<T, is_scal>::begin_reinterpret(UInt n, __attribute__((unused)) UInt size) const {
+  AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << n <<
+		      ") are not compatible with the one of this vector");
+  return const_iterator< types::Vector<T> >(new types::Vector<T>(values, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+inline Vector<T, is_scal>::const_iterator< types::Vector<T> >
+Vector<T, is_scal>::end_reinterpret(UInt n, UInt size) const {
+  AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
+		      "The new values for size (" << size
+		      << ") and nb_component (" << n <<
+		      ") are not compatible with the one of this vector");
+  return const_iterator< types::Vector<T> >(new types::Vector<T>(values + n * size, n));
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
 inline Vector<T, is_scal>::iterator< types::Matrix<T> > Vector<T, is_scal>::begin(UInt m, UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
 		      "The iterator is not compatible with the type Matrix("
@@ -679,74 +724,46 @@ inline Vector<T, is_scal>::const_iterator< types::Matrix<T> > Vector<T, is_scal>
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::iterator< types::Matrix<T> >
-Vector<T, is_scal>::begin_reinterpret(UInt m, UInt n,
-				__attribute__((unused)) UInt size,
-				__attribute__((unused)) UInt nb_component) {
-  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+Vector<T, is_scal>::begin_reinterpret(UInt m, UInt n, __attribute__((unused)) UInt size) {
+  AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << nb_component <<
+		      << ") and nb_component (" << n * m <<
 		      ") are not compatible with the one of this vector");
-
-  AKANTU_DEBUG_ASSERT(nb_component == n*m,
-		      "The iterator is not compatible with the type Matrix("
-		      << m << "," << n<< ")");
-
-  return iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * 0, m, n));
+  return iterator< types::Matrix<T> >(new types::Matrix<T>(values, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::iterator< types::Matrix<T> >
-Vector<T, is_scal>::end_reinterpret(UInt m, UInt n,
-                                    UInt size,
-                                    UInt nb_component) {
-  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+Vector<T, is_scal>::end_reinterpret(UInt m, UInt n, UInt size) {
+  AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << nb_component <<
+		      << ") and nb_component (" << n * m <<
 		      ") are not compatible with the one of this vector");
-
-  AKANTU_DEBUG_ASSERT(nb_component == n*m,
-		      "The iterator is not compatible with the type Matrix("
-		      << m << "," << n<< ")");
-
-  return iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * size, m, n));
+  return iterator< types::Matrix<T> >(new types::Matrix<T>(values + n * m * size, m, n));
 }
 
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::const_iterator< types::Matrix<T> >
-Vector<T, is_scal>::begin_reinterpret(UInt m, UInt n,
-                                      __attribute__((unused)) UInt size,
-                                      __attribute__((unused)) UInt nb_component) const {
-  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+Vector<T, is_scal>::begin_reinterpret(UInt m, UInt n, __attribute__((unused)) UInt size) const {
+  AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << nb_component <<
+		      << ") and nb_component (" << n * m <<
 		      ") are not compatible with the one of this vector");
-
-  AKANTU_DEBUG_ASSERT(nb_component == n*m,
-		      "The iterator is not compatible with the type Matrix("
-		      << m << "," << n<< ")");
-
-  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * 0, m, n));
+  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Vector<T, is_scal>::const_iterator< types::Matrix<T> >
-Vector<T, is_scal>::end_reinterpret(UInt m, UInt n,
-                                    UInt size,
-                                    UInt nb_component) const {
-  AKANTU_DEBUG_ASSERT(nb_component * size == this->nb_component * this->size,
+Vector<T, is_scal>::end_reinterpret(UInt m, UInt n, UInt size) const {
+  AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << nb_component <<
+		      << ") and nb_component (" << n * m <<
 		      ") are not compatible with the one of this vector");
-
-  AKANTU_DEBUG_ASSERT(nb_component == n*m,
-		      "The iterator is not compatible with the type Matrix("
-		      << m << "," << n<< ")");
-
-  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values + nb_component * size, m, n));
+  return const_iterator< types::Matrix<T> >(new types::Matrix<T>(values + n * m * size, m, n));
 }
 
 

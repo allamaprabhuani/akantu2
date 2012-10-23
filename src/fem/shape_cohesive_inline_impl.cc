@@ -164,13 +164,11 @@ void ShapeCohesive<ShapeFunction>::interpolateOnControlPoints(const Vector<Real>
   Real * u_val     = in_u.storage();
   Vector<Real>::iterator<types::RMatrix> uq_it =
     out_uq.begin_reinterpret(nb_points, nb_degree_of_freedom,
-			     nb_element,
-			     nb_points * nb_degree_of_freedom);
+			     nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> shape_beginning =
     shapes.begin_reinterpret(nb_points, nb_nodes_per_sub_element,
-			     nb_element,
-			     nb_points * nb_nodes_per_sub_element);
+			     nb_element);
 
   types::RMatrix u(nb_nodes_per_sub_element, nb_degree_of_freedom);
 

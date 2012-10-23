@@ -726,14 +726,12 @@ void Material::initElementalFieldInterpolation(const Vector<Real> & quad_coordin
   Vector<Real>::const_iterator<types::RMatrix> quad_coords_it =
     quad_coordinates.begin_reinterpret(nb_quad_per_element,
 				       spatial_dimension,
-				       nb_element,
-				       nb_quad_per_element * spatial_dimension);
+				       nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> points_coords_it =
     interpolation_points_coordinates.begin_reinterpret(nb_interpolation_points_per_elem,
 						       spatial_dimension,
-						       nb_element,
-						       nb_interpolation_points_per_elem * spatial_dimension);
+						       nb_element);
 
   Vector<Real>::iterator<types::RMatrix> inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
@@ -812,8 +810,7 @@ void Material::interpolateElementalField(const Vector<Real> & field,
   Vector<Real>::const_iterator<types::RMatrix> field_it
     = field.begin_reinterpret(nb_quad_per_element,
 			      field.getNbComponent(),
-			      nb_element,
-			      nb_quad_per_element * field.getNbComponent());
+			      nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> interpolation_points_coordinates_it =
     interp_points_coord.begin(nb_interpolation_points_per_elem, size_inverse_coords);
@@ -821,8 +818,7 @@ void Material::interpolateElementalField(const Vector<Real> & field,
   Vector<Real>::iterator<types::RMatrix> result_it
     = result.begin_reinterpret(nb_interpolation_points_per_elem,
 			       field.getNbComponent(),
-			       nb_element,
-			       nb_interpolation_points_per_elem * field.getNbComponent());
+			       nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
