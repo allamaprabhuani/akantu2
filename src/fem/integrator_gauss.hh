@@ -72,6 +72,13 @@ public:
 		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
+  /// integrate one element scalar value on all elements of type "type"
+  template <ElementType type>
+  Real integrate(const types::RVector & in_f,
+		 UInt index,
+		 const GhostType & ghost_type) const;
+
+
   /// integrate scalar field in_f
   template <ElementType type>
   Real integrate(const Vector<Real> & in_f,

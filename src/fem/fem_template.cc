@@ -259,6 +259,28 @@ Real FEMTemplate<Integ,Shape>::integrate(const Vector<Real> & f,
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
+Real FEMTemplate<Integ,Shape>::integrate(const types::RVector & f,
+					 const ElementType & type,
+					 UInt index, 
+					 const GhostType & ghost_type) const{
+
+
+  Real res = 0.;
+  
+#define INTEGRATE(type)							\
+  res = integrator.template integrate<type>(f,				\
+					    index,			\
+					    ghost_type);
+  
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
+#undef INTEGRATE
+  
+  return res;
+}
+
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
 void FEMTemplate<Integ,Shape>::integrateOnQuadraturePoints(const Vector<Real> & f,
 							   Vector<Real> &intf,
 							   UInt nb_degree_of_freedom,
@@ -929,7 +951,6 @@ gradientOnQuadraturePoints(__attribute__((unused)) const Vector<Real> &u,
 			   __attribute__((unused)) const Vector<UInt> * filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* template instanciation                                                     */

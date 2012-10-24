@@ -228,6 +228,8 @@ void FEM::printself(std::ostream & stream, int indent) const {
 
   stream << space << "]" << std::endl;
 }
+/* -------------------------------------------------------------------------- */
+
 
 
 __END_AKANTU__

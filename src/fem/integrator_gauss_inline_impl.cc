@@ -48,6 +48,29 @@ inline void IntegratorGauss::integrateOnElement(const Vector<Real> & f,
 
 
 /* -------------------------------------------------------------------------- */
+template <ElementType type>
+inline Real IntegratorGauss::integrate(const types::RVector & in_f,
+				       UInt index,
+				       const GhostType & ghost_type) const{
+
+  
+  const Vector<Real> & jac_loc = jacobians(type, ghost_type);
+
+  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
+  AKANTU_DEBUG_ASSERT(in_f.size() == nb_quadrature_points ,
+		      "The vector f do not have nb_quadrature_points entries.");
+
+  Real * jac_val  = jac_loc.storage() + index * nb_quadrature_points;
+  Real intf;
+
+  integrate(in_f.storage(), jac_val, &intf, 1, nb_quadrature_points);
+
+  return intf;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
 inline void IntegratorGauss::integrate(Real *f, Real *jac, Real * inte,
 			   UInt nb_degree_of_freedom,
 			   UInt nb_quadrature_points) const {
@@ -62,6 +85,9 @@ inline void IntegratorGauss::integrate(Real *f, Real *jac, Real * inte,
     ++cjac;
   }
 }
+
+
+
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>

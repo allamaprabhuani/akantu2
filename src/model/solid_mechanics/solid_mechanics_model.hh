@@ -443,7 +443,10 @@ public:
   Real getExternalWork();
 
   /// get the energies
-  Real getEnergy(std::string id);
+  Real getEnergy(const std::string & energy_id);
+
+  /// compute the energy for energy
+  Real getEnergy(const std::string & energy_id, ElementType & type, UInt index);
 
   /// set the Contact object
   AKANTU_SET_MACRO(Contact, contact, Contact *);

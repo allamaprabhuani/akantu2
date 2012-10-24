@@ -80,6 +80,12 @@ public:
    		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const;
 
+  /// integrate one element scalar value on all elements of type "type"
+  virtual Real integrate(const types::RVector & f,
+			 const ElementType & type,
+			 UInt index, const GhostType & ghost_type = _not_ghost) const;
+
+
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
   void integrateOnQuadraturePoints(const Vector<Real> & f,
 				   Vector<Real> &intf,

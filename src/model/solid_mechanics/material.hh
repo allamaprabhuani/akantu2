@@ -224,10 +224,14 @@ protected:
   /* ------------------------------------------------------------------------ */
 
 protected:
-  /// compute the potential energy for on element
+  /// compute the potential energy for a quadrature point
   inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
 					   types::RMatrix & sigma,
 					   Real & epot);
+
+  /// compute the potential energy for an element
+  virtual void computePotentialEnergyByElement(ElementType type, UInt index,
+					       types::RVector & epot_on_quad_points);
 
 protected:
   /// allocate an internal vector
@@ -304,8 +308,16 @@ public:
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
 
+  /// return the potential energy for the subset of elements contained by the material 
   Real getPotentialEnergy();
-  virtual Real getEnergy(std::string type);
+  /// return the potential energy for the provided element
+  Real getPotentialEnergy(ElementType & type, UInt index);
+
+  /// return the energy (identified by id) for the subset of elements contained by the material 
+  virtual Real getEnergy(std::string energy_id);
+  /// return the energy (identified by id) for the provided element
+  virtual Real getEnergy(std::string energy_id, ElementType type, UInt index);
+
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);

@@ -1095,7 +1095,7 @@ Real SolidMechanicsModel::getExternalWork() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(std::string id) {
+Real SolidMechanicsModel::getEnergy(const std::string & id) {
   AKANTU_DEBUG_IN();
 
   if (id == "kinetic") {
@@ -1116,6 +1116,20 @@ Real SolidMechanicsModel::getEnergy(std::string id) {
   AKANTU_DEBUG_OUT();
   return energy;
 }
+/* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getEnergy(const std::string & energy_id, 
+				    ElementType & type, 
+				    UInt index){
+  AKANTU_DEBUG_IN();
+
+  std::vector<Material *>::iterator mat_it;
+  types::Vector<UInt> mat = element_index_by_material(type,_not_ghost).begin(2)[index];
+  Real energy = materials[mat(1)]->getEnergy(energy_id,type,mat(0));
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onNodesAdded(const Vector<UInt> & nodes_list) {

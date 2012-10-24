@@ -606,6 +606,35 @@ void Material::computePotentialEnergyByElement() {
 
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+
+void Material::computePotentialEnergyByElement(ElementType type, UInt index,
+					       types::RVector & epot_on_quad_points){
+
+  Vector<Real>::iterator<types::RMatrix> strain_it =			
+    this->strain(type).begin(spatial_dimension,		
+			     spatial_dimension);		
+  Vector<Real>::iterator<types::RMatrix> strain_end =			
+    this->strain(type).begin(spatial_dimension,		
+			     spatial_dimension);		
+  Vector<Real>::iterator<types::RMatrix> stress_it =			
+    this->stress(type).begin(spatial_dimension,		
+			     spatial_dimension);		
+  
+  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
+
+  strain_it  += index*nb_quadrature_points;
+  strain_end += (index+1)*nb_quadrature_points;
+  stress_it  += index*nb_quadrature_points;
+  
+  Real * epot_quad = epot_on_quad_points.storage();
+
+  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++ epot_quad) {		
+    types::RMatrix & __attribute__((unused)) grad_u = *strain_it;	
+    types::RMatrix & __attribute__((unused)) sigma  = *stress_it;
+    computePotentialEnergyOnQuad(grad_u,sigma,*epot_quad);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 Real Material::getPotentialEnergy() {
@@ -627,12 +656,36 @@ Real Material::getPotentialEnergy() {
   AKANTU_DEBUG_OUT();
   return epot;
 }
+/* -------------------------------------------------------------------------- */
+
+Real Material::getPotentialEnergy(ElementType & type, UInt index) {
+  AKANTU_DEBUG_IN();
+  Real epot = 0.;
+
+  types::RVector epot_on_quad_points(model->getFEM().getNbQuadraturePoints(type));
+ 
+  computePotentialEnergyByElement(type,index,epot_on_quad_points);
+
+  epot = model->getFEM().integrate(epot_on_quad_points, type, element_filter(type)(index));
+
+  AKANTU_DEBUG_OUT();
+  return epot;
+}
 
 
 /* -------------------------------------------------------------------------- */
 Real Material::getEnergy(std::string type) {
   AKANTU_DEBUG_IN();
   if(type == "potential") return getPotentialEnergy();
+  AKANTU_DEBUG_OUT();
+  return 0.;
+}
+
+/* -------------------------------------------------------------------------- */
+
+Real Material::getEnergy(std::string energy_id, ElementType type, UInt index) {
+  AKANTU_DEBUG_IN();
+  if(energy_id == "potential") return getPotentialEnergy(type,index);
   AKANTU_DEBUG_OUT();
   return 0.;
 }

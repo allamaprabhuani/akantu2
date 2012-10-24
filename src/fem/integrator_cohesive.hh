@@ -81,6 +81,12 @@ public:
 		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
 
+  template <ElementType type>
+  Real integrate(const types::RVector & in_f,
+		 UInt index,
+		 const GhostType & ghost_type) const{AKANTU_DEBUG_TO_IMPLEMENT();};
+
+
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
   template <ElementType type>
   void integrateOnQuadraturePoints(const Vector<Real> & in_f,
