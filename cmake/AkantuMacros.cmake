@@ -25,7 +25,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-set(AKANTU_CMAKE_DEBUG TRUE)
+set(AKANTU_CMAKE_DEBUG FALSE)
 macro(akantu_message)
   if(AKANTU_CMAKE_DEBUG)
     message(${ARGN})

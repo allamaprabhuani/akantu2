@@ -18,6 +18,7 @@ set(AKANTU_CORE_FILES
   fem/element_class.cc
   fem/cohesive_element.cc
   fem/fem_template.cc
+  io/dumper/dumpable.hh
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model_cohesive.cc

@@ -1,5 +1,5 @@
 /**
- * @file   static_communicator_inline_impl.cc
+ * @file   static_communicator_inline_impl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Sep  6 00:16:19 2010
  *

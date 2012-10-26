@@ -32,7 +32,7 @@
 
 __BEGIN_AKANTU__
 
-MaterialParam::MaterialParam(): name(""), description(""), param_type(_pat_internal) {}
+MaterialParam::MaterialParam(): name(""), description(""), param_type(_pat_internal) { }
 
 /* -------------------------------------------------------------------------- */
 MaterialParam::MaterialParam(std::string name, std::string description,

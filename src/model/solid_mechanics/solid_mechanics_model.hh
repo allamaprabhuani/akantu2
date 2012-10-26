@@ -47,6 +47,7 @@
 #include "aka_types.hh"
 #include "integration_scheme_2nd_order.hh"
 #include "solver.hh"
+#include "dumpable.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -58,7 +59,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler {
+class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable<DumperParaview> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -362,6 +363,10 @@ protected:
   virtual void onElementsRemoved(const Vector<Element> & element_list,
 				 const ByElementTypeUInt & new_numbering);
 
+public:
+  virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -567,6 +572,12 @@ __END_AKANTU__
 #include "material.hh"
 
 __BEGIN_AKANTU__
+
+
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_iohelper_tmpl_material_internal_field.hh"
+#endif
 
 #include "solid_mechanics_model_tmpl.hh"
 

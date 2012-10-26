@@ -1,5 +1,5 @@
 /**
- * @file   material_standard_linear_solid_deviatoric.hh
+ * @file   material_standard_linear_solid_deviatoric.cc
  * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Kammer <david.kammer@epfl.ch>

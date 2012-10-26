@@ -60,7 +60,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt dim,
 					 const ID & id,
 					 const MemoryID & memory_id) :
-  Model(id, memory_id),
+  Model(id, memory_id), Dumpable<DumperParaview>(id),
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
@@ -95,6 +95,12 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   materials.clear();
 
   mesh.registerEventHandler(*this);
+
+#ifdef AKANTU_USE_IOHELPER
+  addDumpFieldToDumper("connectivities", new DumperIOHelper::ElementalField<UInt>(mesh.getConnectivities(), spatial_dimension, _not_ghost, _ek_regular));
+  addDumpFieldToDumper("element_type",   new DumperIOHelper::ElementTypeField(mesh, spatial_dimension, _not_ghost, _ek_regular));
+  addDumpFieldToDumper("positions",      new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
+#endif
 
   AKANTU_DEBUG_OUT();
 }
@@ -1233,6 +1239,91 @@ void SolidMechanicsModel::onNodesRemoved(const Vector<UInt> & element_list,
   dof_synchronizer->initLocalDOFEquationNumbers();
   dof_synchronizer->initGlobalDOFEquationNumbers();
 }
+
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpField(const std::string & field_id) {
+#ifdef AKANTU_USE_IOHELPER
+#define ADD_FIELD(field, type)						\
+  addDumpFieldToDumper(BOOST_PP_STRINGIZE(field),			\
+		       new DumperIOHelper::NodalField<type>(*field))
+
+  if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
+  else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
+  else if(field_id == "velocity"    ) { ADD_FIELD(velocity    , Real); }
+  else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
+  else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
+  else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
+  else if(field_id == "element_index_by_material") {
+    addDumpFieldToDumper(field_id,
+			 new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
+								  spatial_dimension,
+								  _not_ghost,
+								  _ek_regular));
+  } else {
+    addDumpFieldToDumper(field_id,
+			 new DumperIOHelper::HomogenizedField<Real,
+							      DumperIOHelper::InternalMaterialField>(*this,
+												     field_id,
+												     spatial_dimension,
+												     _not_ghost,
+												     _ek_regular));
+  }
+#undef ADD_FIELD
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
+#ifdef AKANTU_USE_IOHELPER
+#define ADD_FIELD(field, type)						\
+  DumperIOHelper::Field * f = new DumperIOHelper::NodalField<type,	\
+							     types::Vector>(*field, \
+									    spatial_dimension); \
+  f->setPadding(3);							\
+  addDumpFieldToDumper(BOOST_PP_STRINGIZE(field), f)
+
+  if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
+  else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
+  else if(field_id == "velocity"    ) { ADD_FIELD(velocity    , Real); }
+  else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
+  else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
+  else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3);
+    addDumpFieldToDumper(field_id, field);
+  }
+#undef ADD_FIELD
+#endif
+};
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
+#ifdef AKANTU_USE_IOHELPER
+  typedef DumperIOHelper::HomogenizedField<Real,
+					   DumperIOHelper::InternalMaterialField,
+					   DumperIOHelper::AvgHomogenizingFunctor,
+					   types::Matrix> Field;
+
+  Field * field = new Field(*this,
+			    field_id,
+			    spatial_dimension,
+			    spatial_dimension,
+			    _not_ghost,
+			    _ek_regular);
+  field->setPadding(3, 3);
+  addDumpFieldToDumper(field_id, field);
+#endif
+};
 
 
 /* -------------------------------------------------------------------------- */

@@ -1,9 +1,10 @@
 /**
- * @file   by_element_type_inline_impl.cc
+ * @file   by_element_type_tmpl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug  4 14:41:29 2011
  *
- * @brief
+ * @brief implementation of template functions of the ByElementType and
+ * ByElementTypeVector classes
  *
  * @section LICENSE
  *

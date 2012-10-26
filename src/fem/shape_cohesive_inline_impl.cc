@@ -1,5 +1,5 @@
 /**
- * @file   shape_cohesive.cc
+ * @file   shape_cohesive_inline_impl.cc
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb  2 15:55:15 2012

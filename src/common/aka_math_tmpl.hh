@@ -1,5 +1,5 @@
 /**
- * @file   aka_math_inline_impl.cc
+ * @file   aka_math_tmpl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Jul 28 13:20:35 2010
  *

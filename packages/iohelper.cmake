@@ -8,7 +8,7 @@ if(AKANTU_USE_IOHELPER)
   add_subdirectory(third-party/iohelper)
 
   list(APPEND AKANTU_EXTERNAL_LIBRARIES iohelper)
-  list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${AKANTU_BUILD_IOHELPER_INCLUDE_DIR})
+  list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third-party/iohelper/src)
 
   list(APPEND AKANTU_EXPORT_LIST iohelper)
 
@@ -17,3 +17,17 @@ if(AKANTU_USE_IOHELPER)
 else()
   set(AKANTU_IOHELPER OFF)
 endif()
+
+
+set(AKANTU_IOHELPER_FILES
+  io/dumper/dumper_iohelper.hh
+  io/dumper/dumper_iohelper.cc
+  io/dumper/dumper_iohelper_tmpl.hh
+  io/dumper/dumper_paraview.hh
+  io/dumper/dumper_paraview.cc
+  io/dumper/dumper_iohelper_tmpl_elemental_field.hh
+  io/dumper/dumper_iohelper_tmpl_homogenizing_field.hh
+  io/dumper/dumper_iohelper_tmpl_material_internal_field.hh
+  io/dumper/dumper_iohelper_tmpl_nodal_field.hh
+  io/dumper/dumper_iohelper_tmpl_quadrature_points_field.hh
+  )

@@ -55,6 +55,7 @@ public:
   MaterialParam();
   MaterialParam(std::string name, std::string description, ParamAccessType param_type);
 
+  virtual ~MaterialParam() {};
   /* ------------------------------------------------------------------------ */
   bool isInternal() const;
   bool isWritable() const;

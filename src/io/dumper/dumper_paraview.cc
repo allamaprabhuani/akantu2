@@ -1,11 +1,9 @@
 /**
- * @file   material_marigo.cc
+ * @file   dumper_paraview.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ * @date   Wed Oct 24 22:15:34 2012
  *
- * @brief  Specialization of the material class for the marigo material
+ * @brief  
  *
  * @section LICENSE
  *
@@ -27,3 +25,26 @@
  *
  */
 
+/* -------------------------------------------------------------------------- */
+#include "dumper_paraview.hh"
+#include "static_communicator.hh"
+
+__BEGIN_AKANTU__
+
+DumperParaview::DumperParaview(const std::string & filename,
+			       const std::string & directory) : DumperIOHelper() {
+  this->filename = filename;
+  iohelper::DumperParaview * dumper_para = new iohelper::DumperParaview();
+  dumper = dumper_para;
+
+  UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
+  UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
+  dumper_para->setMode(iohelper::TEXT);
+  dumper_para->setParallelContext(whoami, nproc);
+
+  dumper_para->setVTUSubDirectory(filename + "-VTU");
+  dumper_para->setPrefix(directory);
+  dumper_para->init();
+}
+
+__END_AKANTU__
