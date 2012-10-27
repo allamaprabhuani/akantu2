@@ -37,18 +37,9 @@
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-#endif //AKANTU_USE_IOHELPER
-
 using namespace akantu;
 
-//#define CHECK_STRESS
 akantu::ElementType type = akantu::_triangle_3;
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
-#endif //AKANTU_USE_IOHELPER
 
 akantu::SolidMechanicsModel * model;
 akantu::UInt spatial_dimension = 2;
@@ -56,11 +47,6 @@ akantu::UInt nb_nodes;
 akantu::UInt nb_element;
 
 akantu::Vector<akantu::Real> * lumped;
-
-#ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -82,27 +68,12 @@ int main(int argc, char *argv[])
   lumped = new akantu::Vector<akantu::Real>(nb_nodes, spatial_dimension);
 
   /// model initialization
-  model->initVectors();
-
-  /// set vectors to 0
-  model->getForce().clear();
-  model->getVelocity().clear();
-  model->getAcceleration().clear();
-  model->getDisplacement().clear();
-
-  model->initExplicit();
-  //model->initImplicit(true);
-  model->initModel();
-  model->readMaterials("material.dat");
-
+  model->initFull("material.dat");
   std::cout << model->getMaterial(0) << std::endl;
 
   model->initMaterials();
-
   model->initSolver();
-
   model->assembleMass();
-  //  model->assembleStiffnessMatrix();
 
   model->getMassMatrix().lump(*lumped);
 
@@ -126,29 +97,19 @@ int main(int argc, char *argv[])
   model->updateResidual();
   model->initialAcceleration();
 
-
-#ifdef AKANTU_USE_IOHELPER
-  /// initialize the paraview output
-  iohelper::DumperParaview dumper;
-  paraviewInit(dumper);
-#endif //AKANTU_USE_IOHELPER
+  model->setBaseName("bar2d_mass_not_lumped");
+  model->addDumpField("displacement");
+  model->addDumpField("velocity"    );
+  model->addDumpField("acceleration");
+  model->addDumpField("force"       );
+  model->addDumpField("residual"    );
+  model->dump();
 
   std::ofstream energy;
   energy.open("energy_bar_2d_not_lumped.csv");
   energy << "id,rtime,epot,ekin,tot" << std::endl;
 
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
-    //    model->implicitPred();
-    // /// convergence loop
-    // UInt count = 0;
-    // Real error = 0.;
-    // do {
-    // 	std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
-    //   model->updateResidual();
-    //   model->solveDynamic();
-    //   model->implicitCorr();
-    //   count++;
-    // } while(!model->testConvergenceIncrement(1e-12, error) && (count < 1000));
 
     model->explicitPred();
     model->updateResidual();
@@ -161,9 +122,7 @@ int main(int argc, char *argv[])
     energy << s << "," << (s-1)*time_step << "," << epot << "," << ekin << "," << epot + ekin
 	   << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 1 == 0) paraviewDump(dumper);
-#endif //AKANTU_USE_IOHELPER
+    if(s % 1 == 0) model->dump();
     if(s % 100 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 
@@ -175,41 +134,3 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-/* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper) {
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "bar2d_mass_not_lumped");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model->getAcceleration().values,
-			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model->getResidual().values,
-			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model->getForce().values,
-			  spatial_dimension, "applied_force");
-  dumper.AddNodeDataField(lumped->values,
-			  spatial_dimension, "mass");
-
-
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
-}
-#endif

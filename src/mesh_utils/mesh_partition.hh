@@ -73,6 +73,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(Partitions, partitions, const ByElementTypeUInt &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartition, ghost_partitions, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);

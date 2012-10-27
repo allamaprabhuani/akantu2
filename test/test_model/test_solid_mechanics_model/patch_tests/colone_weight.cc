@@ -36,21 +36,13 @@
 #include "aka_common.hh"
 #include "aka_vector.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
-
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-#endif //AKANTU_USE_IOHELPER
-
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-
   // chose if you use hexahedron elements
   bool use_hexa = false;
 
@@ -58,9 +50,6 @@ int main(int argc, char *argv[]) {
   std::stringstream output;
   std::stringstream energy_file;
   akantu::ElementType type;
-#ifdef AKANTU_USE_IOHELPER
-   iohelper::ElemType paraview_type;
-#endif //AKANTU_USE_IOHELPER
    UInt vel_damping_interval;
 
   if (use_hexa) {
@@ -68,9 +57,6 @@ int main(int argc, char *argv[]) {
     mesh_file << "colone_hexa.msh";
     output << "paraview/test_weight_hexa";
     energy_file << "energy_hexa.csv";
-#ifdef AKANTU_USE_IOHELPER
-    paraview_type = iohelper::HEX1;
-#endif //AKANTU_USE_IOHELPER
     vel_damping_interval =4;
   }
   else {
@@ -78,9 +64,6 @@ int main(int argc, char *argv[]) {
     mesh_file << "colone_tetra.msh";
     output << "paraview/test_weight_tetra";
     energy_file << "energy_tetra.csv";
-#ifdef AKANTU_USE_IOHELPER
-    paraview_type = iohelper::TETRA1;
-#endif //AKANTU_USE_IOHELPER
     vel_damping_interval = 8;
   }
 
@@ -97,52 +80,25 @@ int main(int argc, char *argv[]) {
   akantu::MeshIOMSH mesh_io;
   mesh_io.read(mesh_file.str().c_str(), mesh);
 
-  akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+  akantu::SolidMechanicsModel model(mesh);
 
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model->getFEM().getMesh().getNbElement(type);
+  akantu::UInt nb_nodes = mesh.getNbNodes();
+  akantu::UInt nb_element = mesh.getNbElement(type);
 
   std::cout << "Nb nodes : " << nb_nodes << " - nb elements : " << nb_element << std::endl;
 
   /// model initialization
-  model->initVectors();
+  model.initFull("material_colone.dat");
 
-  /// set vectors to 0
-  memset(model->getForce().values,        0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getVelocity().values,     0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getAcceleration().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getDisplacement().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
+  std::cout << model.getMaterial(0) << std::endl;
 
-  model->initModel();
-  model->initExplicit();
-  model->readMaterials("material_colone.dat");
-  model->initMaterials();
-
-  std::cout << model->getMaterial(0) << std::endl;
-
-  model->assembleMassLumped();
-
-
-#ifdef AKANTU_USE_IOHELPER
-  /// set to 0 only for the first paraview dump
-  //  memset(model->getResidual().values, 0,
-  //	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  // memset(model->getMaterial(0).getStrain(type).values, 0,
-  // 	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
-  // memset(model->getMaterial(0).getStress(type).values, 0,
-  // 	 spatial_dimension*spatial_dimension*nb_element*sizeof(akantu::Real));
-#endif //AKANTU_USE_IOHELPER
-
+  model.assembleMassLumped();
 
   /// boundary conditions
-  const akantu::Vector<Real> & position = model->getFEM().getMesh().getNodes();
-  akantu::Vector<bool> & boundary = model->getBoundary();
-  akantu::Vector<Real> & force = model->getForce();
-  const akantu::Vector<Real> & mass = model->getMass();
+  const akantu::Vector<Real> & position = model.getFEM().getMesh().getNodes();
+  akantu::Vector<bool> & boundary = model.getBoundary();
+  akantu::Vector<Real> & force = model.getForce();
+  const akantu::Vector<Real> & mass = model.getMass();
 
   akantu::Real z_min = position(0, 2);
   for (unsigned int i = 0; i < nb_nodes; ++i) {
@@ -158,38 +114,25 @@ int main(int argc, char *argv[]) {
       force(i,2) = -mass(i,0) * 9.81;
   }
 
-  akantu::Real time_step = model->getStableTimeStep() * time_factor;
+  akantu::Real time_step = model.getStableTimeStep() * time_factor;
   std::cout << "Time Step = " << time_step << "s" << std::endl;
-  model->setTimeStep(time_step);
-  //  model->setTimeStep(3.54379e-07);
+  model.setTimeStep(time_step);
 
-  model->updateResidual();
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model->getResidual().values,
-			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model->getForce().values,
-			  spatial_dimension, "applied_force");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values,
-   			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(type).values,
-   			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetPrefix(output.str().c_str());
-  dumper.Init();
-  dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+  model.updateResidual();
 
-  akantu::Vector<Real> & velocity = model->getVelocity();
+  model.setBaseName("colonne_weight");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("damage"      );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
+
+  akantu::Vector<Real> & velocity = model.getVelocity();
 
   std::ofstream energy;
   energy.open(energy_file.str().c_str());
@@ -197,13 +140,13 @@ int main(int argc, char *argv[]) {
 
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
 
-    model->explicitPred();
-    model->updateResidual();
-    model->updateAcceleration();
-    model->explicitCorr();
+    model.explicitPred();
+    model.updateResidual();
+    model.updateAcceleration();
+    model.explicitCorr();
 
-    akantu::Real epot = model->getPotentialEnergy();
-    akantu::Real ekin = model->getKineticEnergy();
+    akantu::Real epot = model.getPotentialEnergy();
+    akantu::Real ekin = model.getKineticEnergy();
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
 	   << std::endl;
 
@@ -215,9 +158,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 1 == 0) dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+    if(s % 1 == 0) model.dump();
     if(s % 10 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
 

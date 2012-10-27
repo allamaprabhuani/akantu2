@@ -56,12 +56,6 @@ akantu::UInt nb_quadrature_points;
 
 akantu::Vector<akantu::Real> * stress;
 akantu::Vector<akantu::Real> * strain;
-akantu::Vector<akantu::Real> * damage;
-
-#ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -81,17 +75,7 @@ int main(int argc, char *argv[])
   nb_element = model->getFEM().getMesh().getNbElement(type);
 
   /// model initialization
-  model->initVectors();
-
-  /// set vectors to 0
-  model->getForce().clear();
-  model->getVelocity().clear();
-  model->getAcceleration().clear();
-  model->getDisplacement().clear();
-
-  model->initExplicit();
-  model->initModel();
-  model->readMaterials("material.dat");
+  model->initFull("material.dat");
 
   std::cout << model->getMaterial(0) << std::endl;
 
@@ -99,7 +83,6 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
-
   stress = new akantu::Vector<akantu::Real>(nb_element * nb_quadrature_points,
 					    spatial_dimension* spatial_dimension);
   strain = new akantu::Vector<akantu::Real>(nb_element * nb_quadrature_points,
@@ -122,14 +105,16 @@ int main(int argc, char *argv[])
   std::cout << "Time Step = " << time_step << "s" << std::endl;
   model->setTimeStep(time_step);
 
-
-#ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   model->updateResidual();
-  iohelper::DumperParaview dumper;
-  paraviewInit(dumper);
-#endif //AKANTU_USE_IOHELPER
-
+  model->setBaseName("bar_traction_2d");
+  model->addDumpField("displacement");
+  model->addDumpField("mass"        );
+  model->addDumpField("velocity"    );
+  model->addDumpField("acceleration");
+  model->addDumpField("force"       );
+  model->addDumpField("residual"    );
+  model->dump();
 
 #ifdef CHECK_STRESS
   std::ofstream outfile;
@@ -196,7 +181,7 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) paraviewDump(dumper);
+    if(s % 100 == 0) model->dump();
 #endif //AKANTU_USE_IOHELPER
     if(s % 100 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }
@@ -213,83 +198,3 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-/* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper) {
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "bar2d");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model->getAcceleration().values,
-			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model->getResidual().values,
-			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model->getMass().values,
-			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model->getForce().values,
-			  spatial_dimension, "applied_force");
-
-  akantu::Real * mat = new akantu::Real[nb_element * nb_quadrature_points];
-  const akantu::Vector<akantu::UInt> & elem_mat = model->getElementMaterial(type);
-  for (akantu::UInt e = 0; e < nb_element; ++e) {
-    for (akantu::UInt q = 0; q < nb_quadrature_points; ++q) {
-      mat[e * nb_quadrature_points + q] = elem_mat(e, 0);
-    }
-  }
-
-  akantu::UInt offset = nb_quadrature_points * spatial_dimension * spatial_dimension;
-  akantu::UInt nb_mat = model->getNbMaterials();
-  for (akantu::UInt m = 0; m < nb_mat; ++m) {
-    akantu::Material & material = model->getMaterial(m);
-    const akantu::Vector<akantu::UInt> & elmat = material.getElementFilter(type);
-    for (akantu::UInt e = 0; e < elmat.getSize(); ++e) {
-      memcpy(stress->values + elmat(e, 0) * offset,
-	     material.getStress(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-      memcpy(strain->values + elmat(e, 0) * offset,
-	     material.getStrain(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-    }
-  }
-
-  dumper.AddElemDataField(mat, 1, "material");
-  dumper.AddElemDataField(strain->values,
-   			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(stress->values,
-   			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  akantu::UInt offset = nb_quadrature_points * spatial_dimension * spatial_dimension;
-  akantu::UInt nb_mat = model->getNbMaterials();
-  for (akantu::UInt m = 0; m < nb_mat; ++m) {
-    akantu::Material & material = model->getMaterial(m);
-    const akantu::Vector<akantu::UInt> & elmat = material.getElementFilter(type);
-    for (akantu::UInt e = 0; e < elmat.getSize(); ++e) {
-      memcpy(stress->values + elmat(e, 0) * offset,
-	     material.getStress(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-      memcpy(strain->values + elmat(e, 0) * offset,
-	     material.getStrain(type).values + e * offset,
-	     offset * sizeof(akantu::Real));
-    }
-  }
-
-  dumper.Dump();
-}
-#endif

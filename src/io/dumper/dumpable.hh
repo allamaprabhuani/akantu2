@@ -31,7 +31,10 @@
 #define __AKANTU_DUMPABLE_HH__
 
 #ifdef AKANTU_USE_IOHELPER
+
+#include "aka_common.hh"
 #include "dumper_paraview.hh"
+
 __BEGIN_AKANTU__
 
 template<class Dumper>
@@ -48,11 +51,24 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = 0,
+		   const GhostType & ghost_type = _not_ghost,
+		   const ElementKind & element_kind = _ek_not_defined) {
+    dumper.registerMesh(mesh,
+			spatial_dimension,
+			ghost_type,
+			element_kind);
+  }
 
   virtual void addDumpField(const std::string & field_id) = 0;
+
+  virtual void addDumpFieldExternal(const std::string & field_id, DumperIOHelper::Field * field) {
+    dumper.registerField(field_id, field);
+  }
+
   void removeDumpField(const std::string & field_id) {
     dumper.unRegisterField(field_id);
-  };
+  }
 
   void setDirectory(const std::string & directory) {
     dumper.setDirectory(directory);
@@ -70,7 +86,7 @@ public:
 protected:
   void addDumpFieldToDumper(const std::string & field_id, DumperIOHelper::Field * field) {
     dumper.registerField(field_id, field);
-  };
+  }
 
 protected:
   /* ------------------------------------------------------------------------ */
@@ -103,12 +119,20 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = 0,
+		   const GhostType & ghost_type = _not_ghost,
+		   const ElementKind & element_kind = _ek_not_defined) {
+  }
+
   virtual void addDumpField(const std::string & field_id) = 0;
+  virtual void addDumpFieldExternal(const std::string & field_id, DumperIOHelper::Field * field) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
   virtual void addDumpFieldVector(const std::string & field_id) {};
   virtual void addDumpFieldTensor(const std::string & field_id) {};
   void removeDumpField(const std::string & field_id) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
-  };
+  }
 
   void setDirectory(const std::string & directory) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
@@ -121,7 +145,7 @@ public:
 protected:
   void addDumpFieldToDumper(const std::string & field_id, Dumper::Field & field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
-  };
+  }
 
 protected:
   /* ------------------------------------------------------------------------ */

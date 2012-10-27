@@ -33,24 +33,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
-
-#ifdef AKANTU_USE_IOHELPER
-akantu::ElementType type = akantu::_quadrangle_4;
-iohelper::ElemType paraview_type = iohelper::QUAD1;
-#endif //AKANTU_USE_IOHELPER
-
-#ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel & model);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -67,32 +53,29 @@ int main(int argc, char *argv[])
 
   mesh_io.read("bar_structured1.msh", mesh);
 
-  akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+  akantu::SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model->initVectors();
-  
-  /// set vectors to 0
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  memset(model->getForce().values,        0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getVelocity().values,     0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getAcceleration().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getDisplacement().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
+  model.initFull("material.dat");
 
-  model->initExplicit();
-  model->initModel();
-  model->readMaterials("material.dat");
-  model->initMaterials();
+  std::cout << model.getMaterial(0) << std::endl;
 
-  std::cout << model->getMaterial(0) << std::endl;
+  model.setPBC(1,0,0);
+  model.initPBC();
+  model.assembleMassLumped();
 
-  model->setPBC(1,0,0);
-  model->initPBC();
-  model->assembleMassLumped();
+  model.setBaseName("bar2d_structured_pbc");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
+
+  akantu::UInt nb_nodes = mesh.getNbNodes();
 
   /// boundary conditions
   mesh.computeBoundingBox();
@@ -101,8 +84,8 @@ int main(int argc, char *argv[])
   akantu::Real signal_end = 0.7*mesh.getXMax();
   akantu::Real delta_d = signal_end - signal_start;
   akantu::Real signal = 1.;
-  const akantu::Vector<akantu::Real> & coords = model->getFEM().getMesh().getNodes();
-  akantu::Vector<akantu::Real> & disp = model->getDisplacement();
+  const akantu::Vector<akantu::Real> & coords = model.getFEM().getMesh().getNodes();
+  akantu::Vector<akantu::Real> & disp = model.getDisplacement();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(coords(i,0) >= signal_start && coords(i,0) <= signal_end) {
       if (coords(i,0) <= 0.5 * (signal_start + signal_end))
@@ -110,39 +93,30 @@ int main(int argc, char *argv[])
       else
 	disp(i,0) = (signal_end - coords(i,0)) * 2 * signal / delta_d;
     }
-    
+
     if(coords(i,1) <= eps || coords(i,1) >= 1 - eps ) {
-      model->getBoundary().values[spatial_dimension*i + 1] = true;
+      model.getBoundary().values[spatial_dimension*i + 1] = true;
     }
   }
 
-  akantu::Real time_step = model->getStableTimeStep() * time_factor;
+  akantu::Real time_step = model.getStableTimeStep() * time_factor;
   std::cout << "Time Step = " << time_step << "s" << std::endl;
-  model->setTimeStep(time_step);
+  model.setTimeStep(time_step);
 
   std::ofstream energy;
   energy.open("energy_2d_pbc.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-  /// initialize the paraview output
-  model->updateResidual();
-  iohelper::DumperParaview dumper;
-  paraviewInit(dumper, *model);
-#endif //AKANTU_USE_IOHELPER
-
   for(akantu::UInt s = 1; s <= max_steps; ++s) {
-    model->explicitPred();
-    model->updateResidual();
-    model->updateAcceleration();
-    model->explicitCorr();
+    model.explicitPred();
+    model.updateResidual();
+    model.updateAcceleration();
+    model.explicitCorr();
 
-    epot = model->getPotentialEnergy();
-    ekin = model->getKineticEnergy();
+    epot = model.getPotentialEnergy();
+    ekin = model.getKineticEnergy();
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 20 == 0) paraviewDump(dumper);
-#endif //AKANTU_USE_IOHELPER
+    if(s % 20 == 0) model.dump();
 
     std::cerr << "passing step " << s << "/" << max_steps << std::endl;
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
@@ -153,44 +127,3 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-/* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel & model) {
-  akantu::UInt spatial_dimension = model.getSpatialDimension();
-  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "bar_traction_2d_structured_pbc");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
-			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getResidual().values,
-			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model.getMass().values,
-			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model.getForce().values,
-			  spatial_dimension, "applied_force");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-   			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-   			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
-}
-#endif

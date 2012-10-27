@@ -3,7 +3,7 @@
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @date   Mon Oct 25 11:40:12 2010
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -51,36 +51,36 @@ int main(int argc, char *argv[])
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cubes.msh", mesh);
-  
+
   MeshUtils::buildFacets(mesh);
   MeshUtils::buildSurfaceID(mesh);
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
+  dumper.setMode(iohelper::TEXT);
 
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
+  dumper.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
+  dumper.setConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
    			 iohelper::TETRA1, mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  dumper.setPrefix("paraview/");
+  dumper.init();
+  dumper.dump();
 
   iohelper::DumperParaview dumper_surface;
-  dumper_surface.SetMode(iohelper::TEXT);
+  dumper_surface.setMode(iohelper::TEXT);
 
-  dumper_surface.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
-  
-  dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_triangle_3).values,
+  dumper_surface.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
+
+  dumper_surface.setConnectivity((int *)mesh.getConnectivity(_triangle_3).values,
   			       iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
   double * surf_id = new double [mesh.getSurfaceID(_triangle_3).getSize()];
   for (UInt i = 0; i < mesh.getSurfaceID(_triangle_3).getSize(); ++i)
     surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).values[i];
-  dumper_surface.AddElemDataField(surf_id, 1, "surface_id");
-  dumper_surface.SetPrefix("paraview/");
-  dumper_surface.Init();
-  dumper_surface.Dump();
+  dumper_surface.addElemDataField("surface_id", surf_id, 1, mesh.getNbElement(_triangle_3));
+  dumper_surface.setPrefix("paraview/");
+  dumper_surface.init();
+  dumper_surface.dump();
 
   delete [] surf_id;
 #endif //AKANTU_USE_IOHELPER

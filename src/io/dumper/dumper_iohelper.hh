@@ -52,6 +52,9 @@ public:
 public:
   class Field;
 
+  void registerMesh(const Mesh & mesh, UInt spatial_dimension = 0,
+		    const GhostType & ghost_type = _not_ghost,
+		    const ElementKind & element_kind = _ek_not_defined);
   void registerField(const std::string & field_id, Field * field);
   void unRegisterField(const std::string & field_id);
 

@@ -31,17 +31,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "fem.hh"
-#include "local_material_damage.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-#endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 
@@ -77,22 +71,9 @@ int main(int argc, char *argv[])
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initVectors();
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
 
-
-  model.initExplicit();
-  model.initModel();
-  model.readMaterials("material_damage_non_local.dat");
-  model.initMaterials();
-
-  /// set vectors to 0
-  model.getForce().clear();
-  model.getVelocity().clear();
-  model.getAcceleration().clear();
-  model.getDisplacement().clear();
-
-
+  model.initFull("material_damage_non_local.dat");
 
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);
@@ -121,38 +102,17 @@ int main(int argc, char *argv[])
   MyStressFunctor func;
   model.computeForcesFromFunction(func, akantu::_bft_stress);
 
-  MaterialDamage<spatial_dimension> & mat = dynamic_cast<MaterialDamage<spatial_dimension> &>((model.getMaterial(0)));
-
-#ifdef AKANTU_USE_IOHELPER
-  model.updateResidual();
-
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::BASE64);
-
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates_damage_nl");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_6).values,
-			 iohelper::TRIANGLE2, model.getFEM().getMesh().getNbElement(_triangle_6), iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values, 2, "velocity");
-  dumper.AddNodeDataField(model.getForce().values, 2, "force");
-  dumper.AddNodeDataField(model.getMass().values, 1, "Mass");
-  dumper.AddNodeDataField(model.getResidual().values, 2, "residual");
-  dumper.AddElemDataField(mat.getStrain(_triangle_6).values, 4, "strain");
-  dumper.AddElemDataField(mat.getStress(_triangle_6).values, 4, "stress");
-
-  Real * dam = mat.getVector("damage", _triangle_6).values;
-  dumper.AddElemDataField(dam, 1, "damage");
-
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("force", 1);
-  dumper.SetEmbeddedValue("residual", 1);
-  dumper.SetEmbeddedValue("velocity", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
-
-  //  mat.savePairs("cl_pairs");
+  model.setBaseName("damage_non_local");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("damage"      );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
 
   for(UInt s = 0; s < max_steps; ++s) {
     model.explicitPred();
@@ -163,9 +123,7 @@ int main(int argc, char *argv[])
 
     if(s % 100 == 0) std::cout << "Step " << s+1 << "/" << max_steps <<std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+    if(s % 100 == 0) model.dump();
   }
 
   akantu::finalize();

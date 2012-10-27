@@ -347,7 +347,7 @@ public:
 
   inline Real computeRhoSquare(Real r,
 			       types::RVector & eigs,
-			       types::Matrix & eigenvects,
+			       types::RMatrix & eigenvects,
 			       types::RVector & x_s);
 
   /* ------------------------------------------------------------------------ */

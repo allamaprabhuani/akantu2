@@ -54,6 +54,25 @@ void DumperIOHelper::dump() {
   ++count;
 }
 
+
+void DumperIOHelper::registerMesh(const Mesh & mesh,
+				  UInt spatial_dimension,
+				  const GhostType & ghost_type,
+				  const ElementKind & element_kind) {
+  registerField("connectivities",
+		new DumperIOHelper::ElementalField<UInt>(mesh.getConnectivities(),
+							 spatial_dimension,
+							 ghost_type,
+							 element_kind));
+  registerField("element_type",
+		new DumperIOHelper::ElementTypeField(mesh,
+						     spatial_dimension,
+						     ghost_type,
+						     element_kind));
+  registerField("positions",
+		new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
+}
+
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerField(const std::string & field_id,
 				   Field * field) {

@@ -31,16 +31,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "fem.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
-
 using namespace akantu;
 
 class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
@@ -63,78 +58,50 @@ int main(int argc, char *argv[])
   MeshIOMSH mesh_io;
   mesh_io.read("circle2.msh", mesh);
 
-  SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
+  SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model->initVectors();
-  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  memset(model->getForce().values,        0, 2*nb_nodes*sizeof(Real));
-  memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
-  memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
-  memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
-  memset(model->getResidual().values,     0, 2*nb_nodes*sizeof(Real));
-  memset(model->getMass().values,     1, nb_nodes*sizeof(Real));
+  model.initFull("material.dat");
 
-  model->initExplicit();
-  model->initModel();
-  model->readMaterials("material.dat");
-  model->initMaterials();
-
-
-  Real time_step = model->getStableTimeStep() / 10.;
-  model->setTimeStep(time_step);
+  Real time_step = model.getStableTimeStep() / 10.;
+  model.setTimeStep(time_step);
 
   std::cout << "-- Time step : " << time_step << " --" << std::endl;
 
-  model->assembleMassLumped();
+  model.assembleMassLumped();
 
-  FEM & fem_boundary = model->getFEMBoundary();
+  FEM & fem_boundary = model.getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
 
   MyStressFunctor func;
-  model->computeForcesFromFunction(func, akantu::_bft_stress);
+  model.computeForcesFromFunction(func, akantu::_bft_stress);
 
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::BASE64);
-
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_6).values,
-			 iohelper::TRIANGLE2, model->getFEM().getMesh().getNbElement(_triangle_6), 
-			 iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
-  dumper.AddNodeDataField(model->getForce().values, 2, "force");
-  dumper.AddNodeDataField(model->getMass().values, 1, "Mass");
-  dumper.AddNodeDataField(model->getResidual().values, 2, "residual");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_6).values, 4, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_6).values, 4, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("force", 1);
-  dumper.SetEmbeddedValue("residual", 1);
-  dumper.SetEmbeddedValue("velocity", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+  model.setBaseName("circle2");
+  model.addDumpFieldVector("displacement");
+  model.addDumpFieldVector("force"       );
+  model.addDumpFieldVector("residual"    );
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
 
   for(UInt s = 0; s < max_steps; ++s) {
-    model->explicitPred();
+    model.explicitPred();
 
-    model->updateResidual();
-    model->updateAcceleration();
-    model->explicitCorr();
+    model.updateResidual();
+    model.updateAcceleration();
+    model.explicitCorr();
 
-    epot = model->getPotentialEnergy();
-    ekin = model->getKineticEnergy();
+    epot = model.getPotentialEnergy();
+    ekin = model.getKineticEnergy();
 
     std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
 	      << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+    if(s % 100 == 0) model.dump();
   }
 
   return EXIT_SUCCESS;

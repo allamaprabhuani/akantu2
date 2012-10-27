@@ -1,5 +1,5 @@
 /**
- * @file   material_parameters_tmpl.cc
+ * @file   material_parameters_tmpl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Aug  8 17:36:54 2012
  *

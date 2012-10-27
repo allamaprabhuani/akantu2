@@ -32,25 +32,19 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
+#  include "dumper_iohelper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 int main(int argc, char *argv[])
 {
-#ifdef AKANTU_USE_IOHELPER
-  akantu::ElementType type = akantu::_triangle_6;
-#endif //AKANTU_USE_IOHELPER
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.8;
@@ -59,16 +53,12 @@ int main(int argc, char *argv[])
 
   akantu::Mesh mesh(spatial_dimension);
 
-  akantu::StaticCommunicator & comm = 
+  akantu::StaticCommunicator & comm =
     akantu::StaticCommunicator::getStaticCommunicator();
   akantu::Int psize = comm.getNbProc();
   akantu::Int prank = comm.whoAmI();
 
-  // std::stringstream filename;
-  // filename << "log-" << prank << ".txt";
-  // akantu::debug::setLogFile(filename.str());
   akantu::debug::setDebugLevel(akantu::dblWarning);
-
 
   akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
@@ -95,9 +85,6 @@ int main(int argc, char *argv[])
 
 
   akantu::UInt nb_nodes = mesh.getNbNodes();
-#ifdef AKANTU_USE_IOHELPER
-  akantu::UInt nb_element = mesh.getNbElement(type);
-#endif //AKANTU_USE_IOHELPER
 
   /* ------------------------------------------------------------------------ */
   /* Boundary + initial conditions                                            */
@@ -117,40 +104,18 @@ int main(int argc, char *argv[])
 
   model.updateResidual();
 
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(mesh.getNodes().values,
-		   spatial_dimension, nb_nodes, "bar2d_para");
-  dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-			 iohelper::TRIANGLE2, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getMass().values,
-			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model.getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getResidual().values,
-			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model.getAcceleration().values,
-			  spatial_dimension, "acceleration");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-			  spatial_dimension*spatial_dimension, "stress");
-  akantu::UInt  nb_quadrature_points = model.getFEM().getNbQuadraturePoints(type);
-  double * part = new double[nb_element*nb_quadrature_points];
-  for (unsigned int i = 0; i < nb_element; ++i)
-    for (unsigned int q = 0; q < nb_quadrature_points; ++q)
-      part[i*nb_quadrature_points + q] = prank;
-
-  dumper.AddElemDataField(part, 1, "partitions");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+  model.setBaseName("bar2d_parallel");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.addDumpFieldExternal("partition",
+			     new akantu::DumperIOHelper::ElementalField<akantu::UInt>(partition->getPartitions(), spatial_dimension));
+  model.dump();
 
   std::ofstream energy;
   if(prank == 0) {
@@ -192,18 +157,12 @@ int main(int argc, char *argv[])
     energy << s << "," << (s-1)*time_step << "," << epot << "," << ekin << "," << epot + ekin
 	     << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
     if(s % 100 == 0) {
-      dumper.Dump();
+      model.dump();
     }
-#endif //AKANTU_USE_IOHELPER
   }
 
   if(prank == 0) std::cout << "Time : " << psize << " " << total_time / max_steps << " " << total_time << std::endl;
-
-#ifdef AKANTU_USE_IOHELPER
-  delete [] part;
-#endif //AKANTU_USE_IOHELPER
 
   akantu::finalize();
   return EXIT_SUCCESS;

@@ -96,11 +96,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   mesh.registerEventHandler(*this);
 
-#ifdef AKANTU_USE_IOHELPER
-  addDumpFieldToDumper("connectivities", new DumperIOHelper::ElementalField<UInt>(mesh.getConnectivities(), spatial_dimension, _not_ghost, _ek_regular));
-  addDumpFieldToDumper("element_type",   new DumperIOHelper::ElementTypeField(mesh, spatial_dimension, _not_ghost, _ek_regular));
-  addDumpFieldToDumper("positions",      new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
-#endif
+  addDumpMesh(mesh);
 
   AKANTU_DEBUG_OUT();
 }

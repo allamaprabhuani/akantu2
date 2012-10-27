@@ -229,35 +229,36 @@ int main(int argc, char *argv[])
   unsigned int nb_element = mesh.getNbElement(type);
 
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
-  dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
+  dumper.setMode(iohelper::TEXT);
+  dumper.setParallelContext(prank, psize);
+  dumper.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
+  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
    			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
   double * part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
     part[i] = prank;
-  dumper.AddElemDataField(part, 1, "partitions");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  dumper.addElemDataField("partitions", part, 1, nb_element);
+  dumper.setPrefix("paraview/");
+  dumper.init();
+  dumper.dump();
 
   delete [] part;
 
   unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
   iohelper::DumperParaview dumper_ghost;
-  dumper_ghost.SetMode(iohelper::TEXT);
-  dumper_ghost.SetParallelContext(prank, psize);
-  dumper_ghost.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
-  dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
+  dumper_ghost.setMode(iohelper::TEXT);
+  dumper_ghost.setParallelContext(prank, psize);
+  dumper_ghost.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
+  dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
    			 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
   part = new double[nb_ghost_element];
   for (unsigned int i = 0; i < nb_ghost_element; ++i)
     part[i] = prank;
-  dumper_ghost.AddElemDataField(part, 1, "partitions");
-  dumper_ghost.SetPrefix("paraview/");
-  dumper_ghost.Init();
-  dumper_ghost.Dump();
+
+  dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
+  dumper_ghost.setPrefix("paraview/");
+  dumper_ghost.init();
+  dumper_ghost.dump();
 
   delete [] part;
 

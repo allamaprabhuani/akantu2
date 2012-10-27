@@ -36,7 +36,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/akantu.dox)
 
 add_custom_command(
-  OUTPUT ${DOXYGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
+  OUTPUT ${DOXYGEN_OUTPUT} #${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
   COMMAND ${CMAKE_COMMAND} -E echo "${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}"
   COMMAND ${CMAKE_COMMAND} -E echo_append "Building akantu Documentation..."
   COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
@@ -45,15 +45,15 @@ add_custom_command(
   )
 
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
   COMMAND ${CMAKE_COMMAND} -E echo "Building akantu RefMan..."
   COMMAND make -C ${CMAKE_CURRENT_BINARY_DIR}/latex
-  COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf
+  #COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
 )
 
-add_custom_target(akantu-doc-pdf ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf)
+#add_custom_target(akantu-doc-pdf ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf)
 
 add_custom_target(akantu-doc ALL DEPENDS ${DOXYGEN_OUTPUT})
 

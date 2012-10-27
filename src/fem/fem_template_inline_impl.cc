@@ -1,5 +1,5 @@
 /**
- * @file   fem_template_inline_impl.hh
+ * @file   fem_template_inline_impl.cc
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Tue May 22 11:21:40 2012
  *

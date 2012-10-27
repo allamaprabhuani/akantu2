@@ -42,7 +42,6 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
-
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -67,14 +66,14 @@ int main(int argc, char *argv[])
   /// dump facet information to paraview
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
+  dumper.setMode(iohelper::TEXT);
 
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-surface-extraction");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
+  dumper.setPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-surface-extraction");
+  dumper.setConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
    			 iohelper::TETRA1, my_mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  dumper.setPrefix("paraview/");
+  dumper.init();
+  dumper.dump();
 #endif //AKANTU_USE_IOHELPER
 
   /// declaration of model
@@ -141,9 +140,9 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper_neighbor;
-  dumper_neighbor.SetMode(iohelper::TEXT);
-  dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-neighbor-elements");
-  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
+  dumper_neighbor.setMode(iohelper::TEXT);
+  dumper_neighbor.setPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-neighbor-elements");
+  dumper_neighbor.setConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
 				 iohelper::TRIANGLE1, my_mesh.getNbElement(_triangle_3), iohelper::C_MODE);
 
   double * neigh_elem = new double [my_mesh.getNbElement(_triangle_3)];
@@ -156,11 +155,11 @@ int main(int argc, char *argv[])
   for (UInt i = node_to_elem_offset_val[visualize_node]; i < node_to_elem_offset_val[visualize_node+1]; ++i)
     neigh_elem[node_to_elem_val[i]] = 1.;
 
-  dumper_neighbor.AddElemDataField(neigh_elem, 1, "neighbor id");
+  dumper_neighbor.addElemDataField("neighbor id", neigh_elem, 1, my_mesh.getNbElement(_triangle_3));
 
-  dumper_neighbor.SetPrefix("paraview/");
-  dumper_neighbor.Init();
-  dumper_neighbor.Dump();
+  dumper_neighbor.setPrefix("paraview/");
+  dumper_neighbor.init();
+  dumper_neighbor.dump();
 
   delete [] neigh_elem;
 #endif //AKANTU_USE_IOHELPER
