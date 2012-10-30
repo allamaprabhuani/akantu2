@@ -34,6 +34,8 @@ configure_file(
   COPYONLY
   )
 
+
+file(COPY material.dat  DESTINATION .)
 file(COPY simple.msh DESTINATION .)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
 file(COPY simple.msh DESTINATION .)
