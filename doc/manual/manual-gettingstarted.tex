@@ -59,7 +59,7 @@ difference is that the \code{MeshIODiana} object should be used
 instead of the \code{MeshIOMSH} one. Additional mesh readers can be
 introduced in \akantu by coding new \code{MeshIO} objects.
 
-\subsection{Using \textit{Vectors}}
+\section{Using \code{Vectors}}
 
 Data in \akantu can be stored in data containers implemented by
 the \code{Vector} object. In its most basic usage the \code{Vector} class
@@ -74,7 +74,7 @@ where \texttt{type} usually is \texttt{Real}, \texttt{UInt} or
 accessed by typing
 
 \begin{cpp}
-  type & val = example\_vector(index)
+  type & val = example_vector(index)
 \end{cpp}
 
 \code{Vectors} can also contain a
@@ -102,14 +102,14 @@ in order to make the writing of loops easier and enhance readability.
 For instance a loop over the nodal coordinates can be performed like:
 \begin{cpp}
   //accessing the nodal coordinates Vector
-  Vector<Real> nodes = mesh.getNode();
+  Vector<Real> nodes = mesh.getNodes();
   
   //creating the iterators
-  Vector<Real>::iterator it = nodes.begin(spatial_dimension);
-  Vector<Real>::iterator end = nodes.end(spatial_dimension);
+  Vector<Real>::iterator<types::RVector> it  = nodes.begin(spatial_dimension);
+  Vector<Real>::iterator<types::RVector> end = nodes.end(spatial_dimension);
   
   for (; it != end; ++it){
-    RVector & coods = (*it);
+    RVector & coords = (*it);
     
     //do what you need
     ....
@@ -127,8 +127,8 @@ stresses we can loop over the stored tensors by:
 
 \begin{cpp}
   //creating the iterators
-  Vector<Real>::iterator<Matrix> it = stresses.begin(spatial_dimension,spatial_dimension);
-  Vector<Real>::iterator<Matrix> end = stresses.end(spatial_dimension,spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> it  = stresses.begin(spatial_dimension,spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> end = stresses.end(spatial_dimension,spatial_dimension);
   
   for (; it != end; ++it){
     Matrix<Real> & stress = (*it);
