@@ -20,6 +20,9 @@ Set the options that you need
   > make install
 \end{command}
 
+\section{Writing a main function\label{sect:common:main}}
+
+
 \section{Creating and loading a mesh\label{sect:common:mesh}}
 
 \akantu supports meshes generated with Gmsh~\cite{gmsh}, a free
@@ -116,7 +119,7 @@ For instance a loop over the nodal coordinates can be performed like:
     
   }
 \end{cpp}
-In that example, each RVector is a vector of size \textit{spatial\_dimension}
+In that example, each \code{RVector} is a geometrical vector of size \textit{spatial\_dimension}
 and the iteration is conveniently performed by the \code{Vector} iterator.
 
 The \code{Vector} object is intensively used to stored tensorial values.
