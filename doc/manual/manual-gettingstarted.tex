@@ -22,11 +22,25 @@ Set the options that you need
 
 \subsection{Creating and loading a mesh\label{sect:common:mesh}}
 
+\akantu supports meshes generate with Gmsh~\cite{gmsh}, a free
+software that is available in the
+internet\footnote{http://geuz.org/gmsh/}. Its documentation can be
+found in the website, so in this manual no directions for Gmsh usage
+will be provided. Gmsh outputs meshes in .msh format, that can be read
+by \akantu. In order to import a mesh, first it is necessary to create
+a Mesh object through the following commands:
 \begin{cpp}
   UInt spatial_dimension = 2;
-
   Mesh mesh(spatial_dimension);
-
+\end{cpp}
+The only parameter that has to be specified by the user is the spatial
+dimension of the problem. Now it is possible to read a .msh file
+with a MeshIOMSH object that takes care of mesh input and output. This
+step is carried out by:
+\begin{cpp}
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
 \end{cpp}
+where first the MeshIOMSH object is created and then it is used to
+read the .msh file. The mesh file name and Mesh object where to store
+it must be specified by the user.
