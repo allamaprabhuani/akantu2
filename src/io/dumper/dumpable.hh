@@ -104,6 +104,17 @@ private:
 #else
 
 __BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
+class DumperIOHelper {
+
+  class Field;
+};
+
+class DumperParaview;
+/* -------------------------------------------------------------------------- */
+
+
 template<class Dumper>
 class Dumpable {
   /* ------------------------------------------------------------------------ */
@@ -143,7 +154,7 @@ public:
   }
 
 protected:
-  void addDumpFieldToDumper(const std::string & field_id, Dumper::Field & field) {
+  void addDumpFieldToDumper(const std::string & field_id, DumperIOHelper::Field & field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
