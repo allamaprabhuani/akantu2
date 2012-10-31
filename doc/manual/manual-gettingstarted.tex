@@ -22,6 +22,26 @@ Set the options that you need
 
 \section{Writing a main function\label{sect:common:main}}
 
+First of all, \akantu needs to be initialized. 
+There is a memory management included in the core library
+which allows a correct allocation and de-allocation of 
+vectors, structures and/or objects. Also, in parallel computations
+the initialization procedure can perform communication 
+setup. This is achieved by a pair of functions \code{initialize}
+and \code{finalize} which are used as follows:
+\begin{cpp}
+int main(int argc, char *argv[])
+{
+  akantu::initialize(argc, argv);
+
+  // your code
+  ... 
+
+  akantu::finalize();
+}
+\end{cpp} 
+The \code{initialize} function takes the program parameters which 
+can be interpreted by \akantu in due form.
 
 \section{Creating and loading a mesh\label{sect:common:mesh}}
 
@@ -99,7 +119,7 @@ default value of 1 is used.
 
 It is very common in \akantu to loop over vectors to perform a specific 
 treatment. This ranges from geometric calculation on nodal quantities 
-to tensorial algebra (in constitutive laws for example).
+to tensor algebra (in constitutive laws for example).
 The \code{Vector} object has the possibility to request iterators 
 in order to make the writing of loops easier and enhance readability.
 For instance a loop over the nodal coordinates can be performed like:
@@ -122,7 +142,7 @@ For instance a loop over the nodal coordinates can be performed like:
 In that example, each \code{RVector} is a geometrical vector of size \textit{spatial\_dimension}
 and the iteration is conveniently performed by the \code{Vector} iterator.
 
-The \code{Vector} object is intensively used to stored tensorial values.
+The \code{Vector} object is intensively used to stored tensor values.
 In that case the iterator constructed should specify that the object type
 returned by the iterator should be a matrix. This is done at when calling the 
 begin function. For instance, assuming that we have a \code{Vector} storing 
@@ -143,16 +163,16 @@ stresses we can loop over the stored tensors by:
 \end{cpp}
 In that last example the Matrix objects are 
 $spatial\_dimension \times spatial\_dimension$ matrices.
-The light objects \code{Matrix} and \code{RVector} can be used and compined 
+The light objects \code{Matrix} and \code{RVector} can be used and combined 
 to do most common linear algebra.
 
 In general a mesh consists of several kinds of elements. Consequently the 
-amount of data to be stored can differ for each element type. The straigthforward 
+amount of data to be stored can differ for each element type. The straightforward 
 example is the connectivity array, namely the sequences of nodes belonging to
 each element. In order to easily manage this kind of data, a
 particular data structure called \code{ByElementTypeVector} is available. 
 It is just a group of \code{Vectors}, each associated to an element
-type. The following code can retreive the \code{ByElementTypeVector}
+type. The following code can retrieve the \code{ByElementTypeVector}
 which stores the connectivity arrays from a mesh:
 \begin{cpp}
   ByElementTypeVector<UInt> & connectivities = mesh.getConnectivities();
