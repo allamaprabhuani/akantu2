@@ -92,7 +92,56 @@ code is the following:
 In this case the $x$ position of node number 8 will be given by
 \texttt{position(7, 0)} (in C++ numbering is starting from 0 and not
 1). If the number of components for the sequences is not specified, a
-default value of 1 is used.
+default value of 1 is used. 
+
+It is very common in \akantu to loop over vectors to perform a specific 
+treatment. This ranges from geometric calculation on nodal quantities 
+to tensorial algebra (in constitutive laws for example).
+The \code{Vector} object has the possibility to request iterators 
+in order to make the writing of loops easier and enhance readability.
+For instance a loop over the nodal coordinates can be performed like:
+\begin{cpp}
+  //accessing the nodal coordinates Vector
+  Vector<Real> nodes = mesh.getNode();
+  
+  //creating the iterators
+  Vector<Real>::iterator it = nodes.begin(spatial_dimension);
+  Vector<Real>::iterator end = nodes.end(spatial_dimension);
+  
+  for (; it != end; ++it){
+    RVector & coods = (*it);
+    
+    //do what you need
+    ....
+    
+  }
+\end{cpp}
+In that example, each RVector is a vector of size \textit{spatial\_dimension}
+and the iteration is conveniently performed by the \code{Vector} iterator.
+
+The \code{Vector} object is intensively used to stored tensorial values.
+In that case the iterator constructed should specify that the object type
+returned by the iterator should be a matrix. This is done at when calling the 
+begin function. For instance, assuming that we have a \code{Vector} storing 
+stresses we can loop over the stored tensors by:
+
+\begin{cpp}
+  //creating the iterators
+  Vector<Real>::iterator<Matrix> it = stresses.begin(spatial_dimension,spatial_dimension);
+  Vector<Real>::iterator<Matrix> end = stresses.end(spatial_dimension,spatial_dimension);
+  
+  for (; it != end; ++it){
+    Matrix<Real> & stress = (*it);
+    
+    //do what you need
+    ....
+    
+  }
+\end{cpp}
+In that last example the Matrix objects are 
+$spatial\_dimension \times spatial\_dimension$ matrices.
+The light objects \code{Matrix} and \code{RVector} can be used and compined 
+to do most common linear algebra.
 
 In general a mesh consists of several kinds of elements. Consequently the 
 amount of data to be stored can differ for each element type. The straigthforward 
@@ -100,13 +149,18 @@ example is the connectivity array, namely the sequences of nodes belonging to
 each element. In order to easily manage this kind of data, a
 particular data structure called \code{ByElementTypeVector} is available. 
 It is just a group of \code{Vectors}, each associated to an element
-type. The following code creates a \code{ByElementTypeVector}
-object:
+type. The following code can retreive the \code{ByElementTypeVector}
+which stores the connectivity arrays from a mesh:
 \begin{cpp}
-  ByElementTypeVector<UInt> connectivity;
+  ByElementTypeVector<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}
-where \texttt{UInt} can be substituted by any other type. 
-Before being able to use \texttt{connectivity} it is
-necessary to initialize it, that is allocating the appropriate memory
-according to the number of elements in the mesh. This operation can be
-automatically carried out
+Then the specific vector associated with a given element type can be 
+obtained by
+\begin{cpp}
+  Vector<UInt> & connectivity_triangle = connectivities[_triangle_3];
+\end{cpp}
+where the first order 3-node triangular element was used in the presented 
+piece of code.
+
+
+
