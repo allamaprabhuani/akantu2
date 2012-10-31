@@ -1,0 +1,110 @@
+\newpage
+\section{Parallel Computation}
+
+This section explains how to launch a parallel computation.
+The strategy adopted by \akantu uses a mesh partitioning 
+where elements are mapped to processors. Mesh partitions are
+then distributed to available processors by adequate routines
+as will be described below.  
+The sequence of additional operations to be performed by the user are:
+
+\begin{itemize}
+\item Initializing the parallel context
+\item Partitioning the mesh
+\item Distributing mesh partitions
+\end{itemize}
+
+After these steps, the \code{Model}
+object will proceed to the inter processes communications automatically
+without the user having to explicitly take care of them.
+In what follows we demonstrate applicability on a 
+\code{SolidMechanics} model.
+
+\subsection{Initializing the parallel context}
+
+In the flavor of the \textbf{Message Passing Interface} (MPI) 
+the user must initialize \akantu by forwarding the arguments passed to the program
+by using the function \code{initialize}. At the end of the program the 
+\akantu should be finalized by calling the function \code{finalize}.  
+
+The initialize function builds a \code{StaticCommunicator} object 
+responsible of handling later the inter processes communications.
+Amongst various tasks the user can claim the total number of declared 
+processors available for computations as well as the process rank through 
+the functions \code{getNbProc} and \code{whoAmI} respectively.
+
+An example of the initializing sequence and basic usage of the 
+\code{StaticCommunicator} is:
+
+\begin{cpp}
+int main(int argc, char *argv[])
+{
+  akantu::initialize(argc, argv);
+
+  akantu::StaticCommunicator & comm =
+  akantu::StaticCommunicator::getStaticCommunicator();
+  akantu::Int psize = comm.getNbProc();
+  akantu::Int prank = comm.whoAmI();
+
+  ... 
+
+  akantu::finalize();
+}
+\end{cpp} 
+
+\section{Partitioning the mesh}
+
+After a correct initialization of the processes playing a role in the 
+computation the mesh shall be partitioned. We assume that a \code{Mesh} object 
+is constructed as presented in section \ref{sect:common:mesh}.
+Then a \code{MeshPartition} object must be computed which can be achieved 
+by using an appropriate mesh partitioner. At present time the only partitioner 
+available is \code{MeshPartitionScotch} which implements the function
+\code{partitionate} using the \textbf{Scotch} program 
+(\url{http://www.labri.fr/perso/pelegrin/scotch/}). 
+This is achieved by the following code
+
+\begin{cpp}
+  akantu::Mesh mesh(spatial_dimension);
+  akantu::MeshPartition * partition = NULL;
+  
+  if(prank == 0) {
+    akantu::MeshIOMSH mesh_io;
+    mesh_io.read("my_mesh.msh", mesh);
+    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition->partitionate(psize);
+  }
+\end{cpp} 
+
+\note{Only the processor of rank $0$ should perform the loading of the mesh file 
+  as well as the partitioning operation. Nevertheless the mesh object must by declared 
+  for all processors since the mesh distribution will store mesh pieces to that object.}
+
+\section{Distributing mesh partitions}
+
+The distribution of the mesh is done be the \code{SolidMechanicsModel}
+automatically through the \code{initParallel} function. 
+Thus, after creating a \code{SolidMechanicsModel} with our mesh 
+as the initial parameter, the \code{initParallel} method must be called 
+receiving the partition as a parameter.
+
+\begin{cpp}
+  akantu::SolidMechanicsModel model(mesh);
+  model.initParallel(partition);
+\end{cpp} 
+
+At that point everything remains as in the sequential case from 
+the user point of view. This allows the user to care only 
+about his simulation without concern for the parallelism.
+
+An example of explicit dynamic 2d bar in traction in a parallel
+context can be found in \code{example/manual/??.cc}.\todo{set the right example file}
+
+\section{Launching a parallel program}
+
+Using \textbf{MPI} a parallel run can be launched from a shell 
+using the command 
+
+\begin{cpp}
+  mpirun -np #procs program_name parameter1 paramter2 ...
+\end{cpp} 
