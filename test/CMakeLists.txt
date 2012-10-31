@@ -25,8 +25,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-
-INCLUDE(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
+include(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
 
 include_directories(
   ${AKANTU_INCLUDE_DIRS}

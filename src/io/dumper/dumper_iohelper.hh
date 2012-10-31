@@ -93,6 +93,9 @@ public:
   template<class T, template<class> class R>
   class iterator_helper;
 
+  template<class T, template<class> class R>
+  class PaddingHelper;
+
   /* ------------------------------------------------------------------------ */
   /* Nodal field wrapper */
   template<typename T, template<typename> class return_type = types::Vector>
@@ -119,22 +122,47 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Elemental Fields wrapper */
   class element_type_field_iterator;
+  class element_partition_field_iterator;
 
   template<typename T, template<class> class ret_type>
   class elemental_field_iterator;
 
   class ElementTypeField;
 
+  class ElementPartitionField;
+
   template<typename T, template<typename> class ret_type = types::Vector>
   class ElementalField;
 
   /* ------------------------------------------------------------------------ */
   /* Material Field wrapper */
+  template<typename T,
+	   template<class> class ret_type,
+	   template<typename, template<class> class> class padding_helper_type,
+	   template<typename, template<class> class> class int_iterator>
+  class generic_internal_material_field_iterator;
+
   template<typename T, template<class> class ret_type>
   class internal_material_field_iterator;
 
-  template<typename T, template<class> class ret_type = types::Vector>
+  template<typename T, template<class> class ret_type>
+  class material_stress_field_iterator;
+
+  template<typename T, template<class> class ret_type>
+  class material_strain_field_iterator;
+
+  template<typename T, template<class> class ret_type = types::Vector,
+	   template<typename, template<class> class> class iterator_type = internal_material_field_iterator>
   class InternalMaterialField;
+
+  template<class T, template<class> class R>
+  class MaterialPaddingHelper;
+
+  template<class T, template<class> class R>
+  class StressPaddingHelper;
+
+  template<class T, template<class> class R>
+  class StrainPaddingHelper;
 
   /* ------------------------------------------------------------------------ */
   /* Field homogenizing wrapper */
@@ -144,9 +172,12 @@ public:
   template<typename T, class Container, template<class> class sub_type>
   class AvgHomogenizingFunctor;
 
-  template<typename T, template< typename, template<class> class> class Container,
+  template<typename T, template< typename,
+				 template<class> class,
+				 template<typename, template<class> class> class > class Container,
 	   template<typename, class, template<class> class> class Funct = AvgHomogenizingFunctor,
-	   template<typename> class ret_type = types::Vector>
+	   template<typename> class ret_type = types::Vector,
+	   template<typename, template<class> class> class sub_iterator = internal_material_field_iterator>
   class HomogenizedField;
 
   /* ------------------------------------------------------------------------ */

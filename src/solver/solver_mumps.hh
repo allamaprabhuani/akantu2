@@ -26,13 +26,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-
 #ifndef __AKANTU_SOLVER_MUMPS_HH__
 #define __AKANTU_SOLVER_MUMPS_HH__
 #include <dmumps_c.h>
 
 #include "solver.hh"
+#include "static_communicator.hh"
 
 __BEGIN_AKANTU__
 
@@ -56,7 +55,7 @@ private:
   ParallelMethod parallel_method;
 };
 
-class SolverMumps : public Solver {
+class SolverMumps : public Solver, public CommunicatorEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -90,7 +89,11 @@ public:
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  virtual void onCommunicatorFinalize(const StaticCommunicator & communicator);
+
 private:
+
+  void destroyMumpsData();
 
   inline Int & icntl(UInt i) {
     return mumps_data.icntl[i - 1];
@@ -114,6 +117,9 @@ private:
 
   /// mumps data
   DMUMPS_STRUC_C mumps_data;
+
+  /// specify if the mumps_data are initialized or not
+  bool is_mumps_data_initialized;
 
   UInt prank;
 

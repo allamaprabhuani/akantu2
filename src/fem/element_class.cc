@@ -68,9 +68,10 @@ template<> ElementKind ElementClass<_hexahedron_8    >::kind = _ek_regular;
 template<> ElementKind ElementClass<_point           >::kind = _ek_regular;
 template<> ElementKind ElementClass<_bernoulli_beam_2>::kind = _ek_regular;
 /* -------------------------------------------------------------------------- */
+#if defined(AKANTU_COHESIVE_ELEMENT)
 template<> ElementKind ElementClass<_cohesive_2d_4   >::kind = _ek_cohesive;
 template<> ElementKind ElementClass<_cohesive_2d_6   >::kind = _ek_cohesive;
-
+#endif
 /* -------------------------------------------------------------------------- */
 /* Regular Elements                                                           */
 /* -------------------------------------------------------------------------- */

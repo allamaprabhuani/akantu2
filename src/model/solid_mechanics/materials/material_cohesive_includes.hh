@@ -1,9 +1,9 @@
 /**
- * @file   solver.cc
+ * @file   material_cohesive_includes.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Nov 17 16:19:27 2010
+ * @date   Tue Oct 30 15:32:47 2012
  *
- * @brief  Solver interface class
+ * @brief  List of includes for cohesive elements
  *
  * @section LICENSE
  *
@@ -26,31 +26,17 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "solver.hh"
 
-/* -------------------------------------------------------------------------- */
+#include "material_cohesive.hh"
+#include "material_cohesive_linear.hh"
+#include "material_cohesive_bilinear.hh"
+#include "material_cohesive_linear_extrinsic.hh"
+#include "material_cohesive_exponential.hh"
+#include "material_cohesive_linear_exponential_extrinsic.hh"
 
-__BEGIN_AKANTU__
-
-SolverOptions _solver_no_options(true);
-
-/* -------------------------------------------------------------------------- */
-Solver::Solver(SparseMatrix & matrix,
-	       const ID & id,
-	       const MemoryID & memory_id) :
-  Memory(memory_id), id(id), matrix(&matrix), is_matrix_allocated(false), mesh(NULL),
-  communicator(StaticCommunicator::getStaticCommunicator()){
-  AKANTU_DEBUG_IN();
-
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-Solver::~Solver() {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
-
-__END_AKANTU__
+#define AKANTU_COHESIVE_MATERIAL_LIST					\
+  ((2, (cohesive_bilinear      , MaterialCohesiveBilinear     )))	\
+  ((2, (cohesive_linear        , MaterialCohesiveLinear       )))	\
+  ((2, (cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic )))	\
+  ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))) \
+  ((2, (cohesive_exponential   , MaterialCohesiveExponential  )))

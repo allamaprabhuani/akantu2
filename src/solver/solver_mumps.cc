@@ -99,7 +99,7 @@ __BEGIN_AKANTU__
 SolverMumps::SolverMumps(SparseMatrix & matrix,
 			 const ID & id,
 			 const MemoryID & memory_id) :
-  Solver(matrix, id, memory_id), rhs_is_local(true) {
+  Solver(matrix, id, memory_id), is_mumps_data_initialized(false), rhs_is_local(true) {
   AKANTU_DEBUG_IN();
 
 #ifdef AKANTU_USE_MPI
@@ -108,10 +108,9 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
   parallel_method = SolverMumpsOptions::_master_slave_distributed;
 #endif //AKANTU_USE_MPI
 
-  //  UInt nb_degree_of_freedom = matrix.getNbDegreOfFreedom();
+  CommunicatorEventHandler & comm_event_handler = *this;
 
-  //  std::stringstream sstr; sstr << id << ":sparse_matrix";
-  //  matrix = new SparseMatrix(mesh, sparse_matrix_type, nb_degree_of_freedom, sstr_mat.str(), memory_id);
+  communicator.registerEventHandler(comm_event_handler);
 
   AKANTU_DEBUG_OUT();
 }
@@ -120,11 +119,35 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 SolverMumps::~SolverMumps() {
   AKANTU_DEBUG_IN();
 
-  mumps_data.job = _smj_destroy; // destroy
-  dmumps_c(&mumps_data);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolverMumps::destroyMumpsData() {
+  AKANTU_DEBUG_IN();
+
+  if(is_mumps_data_initialized) {
+    mumps_data.job = _smj_destroy; // destroy
+    dmumps_c(&mumps_data);
+    is_mumps_data_initialized = false;
+  }
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolverMumps::onCommunicatorFinalize(const StaticCommunicator & comm) {
+  AKANTU_DEBUG_IN();
+
+  try{
+    const StaticCommunicatorMPI & comm_mpi =
+      dynamic_cast<const StaticCommunicatorMPI &>(comm.getRealStaticCommunicator());
+    if(mumps_data.comm_fortran == MPI_Comm_c2f(comm_mpi.getMPICommunicator()))
+      destroyMumpsData();
+  } catch(...) {}
+
+  AKANTU_DEBUG_OUT();
+};
 
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_method) {
@@ -157,7 +180,7 @@ void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_meth
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initialize(SolverOptions & options) {
   AKANTU_DEBUG_IN();
-  
+
   mumps_data.par = 1;
 
   if(SolverMumpsOptions * opt = dynamic_cast<SolverMumpsOptions *>(&options)) {
@@ -167,10 +190,9 @@ void SolverMumps::initialize(SolverOptions & options) {
   }
 
   mumps_data.sym = 2 * (matrix->getSparseMatrixType() == _symmetric);
-  communicator = &StaticCommunicator::getStaticCommunicator();
-  prank = communicator->whoAmI();
+  prank = communicator.whoAmI();
 #ifdef AKANTU_USE_MPI
-  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator->getRealStaticCommunicator()).getMPICommunicator());
+  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator.getRealStaticCommunicator()).getMPICommunicator());
 #endif
 
   if(AKANTU_DEBUG_TEST(dblTrace)) {
@@ -182,6 +204,7 @@ void SolverMumps::initialize(SolverOptions & options) {
 
   mumps_data.job = _smj_initialize; //initialize
   dmumps_c(&mumps_data);
+  is_mumps_data_initialized = true;
 
   /* ------------------------------------------------------------------------ */
   UInt size = matrix->getSize();
@@ -213,7 +236,7 @@ void SolverMumps::initialize(SolverOptions & options) {
   icntl(8) = 77;
 
   icntl(5) = 0; // Assembled matrix
-  
+
   SolverMumpsOptions * opt = dynamic_cast<SolverMumpsOptions *>(&options);
   if(opt)
     parallel_method = opt->parallel_method;

@@ -27,7 +27,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
-
+#include "integrator_cohesive.hh"
+#include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__

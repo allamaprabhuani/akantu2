@@ -42,8 +42,6 @@
 #include "data_accessor.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-#include "integrator_cohesive.hh"
-#include "shape_cohesive.hh"
 #include "aka_types.hh"
 #include "integration_scheme_2nd_order.hh"
 #include "solver.hh"
@@ -67,7 +65,6 @@ class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventH
 public:
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
-  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
 
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = 0,

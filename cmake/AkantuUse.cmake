@@ -24,7 +24,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 macro(include_package_if_needed PACKAGE)
   string(TOUPPER ${PACKAGE} _package)
   if(AKANTU_USE_${_package})

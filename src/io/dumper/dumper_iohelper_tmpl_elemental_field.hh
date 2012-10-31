@@ -26,6 +26,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+
+__END_AKANTU__
+#include "static_communicator.hh"
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 template<typename i_type, typename d_type,
 	 template<typename> class ret_type, class daughter>
@@ -134,46 +139,10 @@ public:
     parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
 
   return_type operator*(){
-    return *this->vit;
+    return padding_helper.pad(*this->vit, this->padding_m, this->padding_n, this->getNbDataPerElem(*this->tit));
   }
-};
-
-/* specialization for matrix */
-template<typename T>
-class DumperIOHelper::elemental_field_iterator<T, types::Matrix> : public element_iterator< T, T, types::Matrix,
-											    elemental_field_iterator<T, types::Matrix> > {
-public:
-  typedef element_iterator< T, T, types::Matrix,
-			    elemental_field_iterator<T, types::Matrix> > parent;
-  typedef typename parent::it_type     it_type;
-  typedef typename parent::data_type   data_type;
-  typedef typename parent::return_type return_type;
-  typedef typename parent::field_type  field_type;
-  typedef typename parent::internal_iterator internal_iterator;
-public:
-  elemental_field_iterator(const field_type & field,
-			   UInt n,
-			   const typename field_type::type_iterator & t_it,
-			   const typename field_type::type_iterator & t_it_end,
-			   const internal_iterator & it,
-			   ElementType element_type,
-			   const GhostType ghost_type = _not_ghost) :
-    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
-
-  return_type operator*(){
-    types::Matrix<T> & ret = *this->vit;
-    if(this->padding_n <= ret.rows() || this->padding_m <= ret.cols())
-      return *this->vit;
-    else {
-      UInt nb_data = getNbDataPerElem(*this->tit);
-      types::Matrix<T> tmp(this->padding_n, this->padding_m * nb_data);
-      for (UInt d = 0; d < nb_data; ++d)
-	for (UInt i = 0; i < ret.rows(); ++i)
-	  for (UInt j = 0; j < ret.cols(); ++j)
-	    tmp(i, j + d * this->padding_m) = ret(i, j + d * ret->cols);
-      return tmp;
-    }
-  }
+private:
+  PaddingHelper<T, ret_type> padding_helper;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -203,6 +172,39 @@ public:
     data_type type = DumperIOHelper::getIOHelperType(*tit);
     return return_type(1, type);
   }
+};
+
+
+/* -------------------------------------------------------------------------- */
+class DumperIOHelper::element_partition_field_iterator : public element_iterator<UInt, UInt,
+										 types::Vector,
+										 element_partition_field_iterator> {
+public:
+  typedef element_iterator<UInt, UInt,
+			   types::Vector, element_partition_field_iterator> parent;
+
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
+public:
+  element_partition_field_iterator(const field_type & field,
+				   UInt n,
+				   const typename field_type::type_iterator & t_it,
+				   const typename field_type::type_iterator & t_it_end,
+				   const internal_iterator & it,
+				   ElementType element_type,
+				   const GhostType ghost_type = _not_ghost) :
+    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) {
+    prank = StaticCommunicator::getStaticCommunicator().whoAmI();
+  }
+
+  return_type operator*() {
+    return return_type(1, prank);
+  }
+protected:
+  UInt prank;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -379,3 +381,26 @@ public:
 
   UInt getDim() { return 1; }
 };
+
+
+/* -------------------------------------------------------------------------- */
+class DumperIOHelper::ElementPartitionField : public GenericElementalField<UInt,
+									   element_partition_field_iterator,
+									   types::Vector> {
+public:
+  typedef element_partition_field_iterator iterator;
+private:
+  typedef GenericElementalField<UInt, iterator, types::Vector> parent;
+public:
+  /* ------------------------------------------------------------------------ */
+  ElementPartitionField(const Mesh & mesh,
+			UInt spatial_dimension = 0,
+			GhostType ghost_type = _not_ghost,
+			ElementKind element_kind = _ek_not_defined) :
+    parent(mesh.getConnectivities(), spatial_dimension, ghost_type, element_kind) {
+    homogeneous = true;
+  }
+
+  UInt getDim() { return 1; }
+};
+

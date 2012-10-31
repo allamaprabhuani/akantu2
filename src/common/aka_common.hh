@@ -99,9 +99,13 @@ typedef std::list< SurfacePair > SurfacePairList;
   (_point)					\
   (_bernoulli_beam_2)
 
-#define AKANTU_COHESIVE_ELEMENT_TYPE		\
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  define AKANTU_COHESIVE_ELEMENT_TYPE		\
   (_cohesive_2d_4)				\
   (_cohesive_2d_6)
+#else
+#  define AKANTU_COHESIVE_ELEMENT_TYPE
+#endif
 
 #define AKANTU_ALL_ELEMENT_TYPE					\
   AKANTU_REGULAR_ELEMENT_TYPE AKANTU_COHESIVE_ELEMENT_TYPE
@@ -120,8 +124,10 @@ enum ElementType {
   _hexahedron_8,        /// first  order hexahedron
   _point,               /// point only for some algorithm to be generic like mesh partitioning
   _bernoulli_beam_2,    /// bernoulli beam 2D
+#if defined(AKANTU_COHESIVE_ELEMENT)
   _cohesive_2d_4,       /// first order 2D cohesive
   _cohesive_2d_6,       /// second order 2D cohesive
+#endif
   _max_element_type
 };
 
@@ -325,8 +331,10 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
     case _quadrangle_8     : stream << "_quadrangle_8"    ; break;
     case _hexahedron_8     : stream << "_hexahedron_8"    ; break;
     case _bernoulli_beam_2 : stream << "_bernoulli_beam_2"; break;
+#if defined(AKANTU_COHESIVE_ELEMENT)
     case _cohesive_2d_4    : stream << "_cohesive_2d_4"   ; break;
     case _cohesive_2d_6    : stream << "_cohesive_2d_6"   ; break;
+#endif
     case _not_defined      : stream << "_not_defined"     ; break;
     case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
     case _point            : stream << "point"; break;

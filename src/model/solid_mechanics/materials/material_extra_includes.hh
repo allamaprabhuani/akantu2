@@ -1,9 +1,9 @@
 /**
- * @file   material_non_local.cc
+ * @file   material_extra_includes.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Aug  2 11:21:58 2011
+ * @date   Tue Oct 30 15:35:33 2012
  *
- * @brief  implementation of the common parts for Non local materials
+ * @brief  Extra list of materials
  *
  * @section LICENSE
  *
@@ -26,16 +26,27 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_non_local.hh"
-#include "solid_mechanics_model.hh"
-#include "fem.hh"
+
+// damage materials
+#include "material_damage.hh"
+#include "material_marigo.hh"
+#include "material_mazars.hh"
+#include "material_damage_linear.hh"
+#include "material_vreepeerlings.hh"
+
+// visco-elastic materials
+#include "material_stiffness_proportional.hh"
+
+// elastic materials
+#include "material_elastic_orthotropic.hh"
+#include "material_neohookean.hh"
 
 
-
-/* -------------------------------------------------------------------------- */
-
-__BEGIN_AKANTU__
-
-
-__END_AKANTU__
-
+#define  AKANTU_EXTRA_MATERIAL_LIST					\
+  ((2, (damage_linear      , MaterialDamageLinear         )))		\
+  ((2, (marigo             , MaterialMarigo               )))		\
+  ((2, (mazars             , MaterialMazars               )))		\
+  ((2, (vreepeerlings      , MaterialVreePeerlings        )))		\
+  ((2, (ve_stiffness_prop  , MaterialStiffnessProportional)))		\
+  ((2, (elastic_orthotropic, MaterialElasticOrthotropic   )))		\
+  ((2, (neohookean         , MaterialNeohookean           )))

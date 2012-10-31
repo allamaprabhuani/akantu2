@@ -18,18 +18,18 @@ FEM [
    ]
    + connectivities [
     ByElementType<akantu::Vector<unsigned int, true>*> [
-        (not_ghost:segment_2) [
+        (not_ghost:_segment_2) [
        Vector<unsigned int> [
-        + id             : mesh:connectivities:segment_2
+        + id             : mesh:connectivities:_segment_2
         + size           : 8
         + nb_component   : 2
         + allocated size : 2000
         + memory size    : 16kB
         + values         : {{0, 4}, {4, 1}, {1, 5}, {5, 2}, {2, 6}, {6, 3}, {3, 7}, {7, 0}}
        ]
-        (not_ghost:triangle_3) [
+        (not_ghost:_triangle_3) [
        Vector<unsigned int> [
-        + id             : mesh:connectivities:triangle_3
+        + id             : mesh:connectivities:_triangle_3
         + size           : 16
         + nb_component   : 3
         + allocated size : 2000
@@ -55,18 +55,18 @@ FEM [
    ]
    + connectivities [
     ByElementType<akantu::Vector<unsigned int, true>*> [
-        (not_ghost:segment_2) [
+        (not_ghost:_segment_2) [
        Vector<unsigned int> [
-        + id             : mesh:connectivities:segment_2
+        + id             : mesh:connectivities:_segment_2
         + size           : 8
         + nb_component   : 2
         + allocated size : 2000
         + memory size    : 16kB
         + values         : {{0, 4}, {4, 1}, {1, 5}, {5, 2}, {2, 6}, {6, 3}, {3, 7}, {7, 0}}
        ]
-        (not_ghost:triangle_3) [
+        (not_ghost:_triangle_3) [
        Vector<unsigned int> [
-        + id             : mesh:connectivities:triangle_3
+        + id             : mesh:connectivities:_triangle_3
         + size           : 16
         + nb_component   : 3
         + allocated size : 2000
@@ -84,7 +84,7 @@ StaticMemory [
   + memory id   : 0
   + nb vectors  : 7
   Vector<unsigned int> [
-   + id             : mesh:connectivities:segment_2
+   + id             : mesh:connectivities:_segment_2
    + size           : 8
    + nb_component   : 2
    + allocated size : 2000
@@ -92,7 +92,7 @@ StaticMemory [
    + values         : {{0, 4}, {4, 1}, {1, 5}, {5, 2}, {2, 6}, {6, 3}, {3, 7}, {7, 0}}
   ]
   Vector<unsigned int> [
-   + id             : mesh:connectivities:triangle_3
+   + id             : mesh:connectivities:_triangle_3
    + size           : 16
    + nb_component   : 3
    + allocated size : 2000
@@ -108,7 +108,7 @@ StaticMemory [
    + values         : {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}, {0.5, 0.5}, {0.25, 0.75}, {0.75, 0.75}, {0.75, 0.25}, {0.25, 0.25}}
   ]
   Vector<double> [
-   + id             : my_fem:jacobians:triangle_3
+   + id             : my_fem:jacobians:_triangle_3
    + size           : 16
    + nb_component   : 1
    + allocated size : 16
@@ -116,7 +116,7 @@ StaticMemory [
    + values         : {{0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}}
   ]
   Vector<double> [
-   + id             : my_fem:quadrature_points:triangle_3
+   + id             : my_fem:quadrature_points:_triangle_3
    + size           : 1
    + nb_component   : 2
    + allocated size : 2000
@@ -124,7 +124,7 @@ StaticMemory [
    + values         : {{0.333333, 0.333333}}
   ]
   Vector<double> [
-   + id             : my_fem:shapes:triangle_3
+   + id             : my_fem:shapes:_triangle_3
    + size           : 16
    + nb_component   : 3
    + allocated size : 16
@@ -132,7 +132,7 @@ StaticMemory [
    + values         : {{0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}, {0.333333, 0.333333, 0.333333}}
   ]
   Vector<double> [
-   + id             : my_fem:shapes_derivatives:triangle_3
+   + id             : my_fem:shapes_derivatives:_triangle_3
    + size           : 16
    + nb_component   : 6
    + allocated size : 16

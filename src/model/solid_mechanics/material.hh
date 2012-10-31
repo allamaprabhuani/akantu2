@@ -457,110 +457,48 @@ __END_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
+#define INSTANSIATE_MATERIAL(mat_name)			\
+  template class mat_name<1>;				\
+  template class mat_name<2>;				\
+  template class mat_name<3>
+
+/* -------------------------------------------------------------------------- */
 /* Material list                                                              */
 /* -------------------------------------------------------------------------- */
+// elastic materials
+#include "material_elastic.hh"
+
+// visco-elastic materials
+#include "material_standard_linear_solid_deviatoric.hh"
+
 #define AKANTU_CORE_MATERIAL_LIST					\
   ((2, (elastic            , MaterialElastic                      )))	\
-  ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
-  ((2, (neohookean         , MaterialNeohookean                   )))	\
-  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))	\
-  ((2, (ve_stiffness_prop  , MaterialStiffnessProportional        )))
+  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))
 
 
-#define AKANTU_COHESIVE_MATERIAL_LIST					\
-  ((2, (cohesive_bilinear      , MaterialCohesiveBilinear     )))	\
-  ((2, (cohesive_linear        , MaterialCohesiveLinear       )))	\
-  ((2, (cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic )))	\
-  ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))) \
-  ((2, (cohesive_exponential   , MaterialCohesiveExponential  )))
+#if defined(AKANTU_EXTRA_MATERIALS)
+#  include "material_extra_includes.hh"
+#else
+#  define AKANTU_EXTRA_MATERIAL_LIST
+#endif
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  include "material_cohesive_includes.hh"
+#else
+#  define AKANTU_COHESIVE_MATERIAL_LIST
+#endif
 
-#define  AKANTU_DAMAGE_MATERIAL_LIST					\
-  ((2, (damage_linear          , MaterialDamageLinear         )))	\
-  ((2, (marigo                 , MaterialMarigo               )))	\
-  ((2, (mazars                 , MaterialMazars               )))	\
-  ((2, (vreepeerlings          , MaterialVreePeerlings        )))
-
-#ifdef AKANTU_DAMAGE_NON_LOCAL
-#define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
-  ((stress_wf, StressBasedWeightFunction  ))				\
-  ((damage_wf, DamagedWeightFunction      ))				\
-  ((remove_wf, RemoveDamagedWeightFunction))				\
-  ((base_wf,   BaseWeightFunction         ))
-
-
-#define AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST		\
-  AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST				\
-  ((removed_damrate_wf, RemoveDamagedWithDamageRateWeightFunction))
-
-#define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST				\
-  ((3, (marigo_non_local       , MaterialMarigoNonLocal,		\
-	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))			\
-  ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
-  ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal,		\
-	AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST)))
-
+#if defined(AKANTU_DAMAGE_NON_LOCAL)
+#  include "material_non_local_includes.hh"
 #else
 #  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
 #endif
 
 #define AKANTU_MATERIAL_LIST			\
   AKANTU_CORE_MATERIAL_LIST			\
+  AKANTU_EXTRA_MATERIAL_LIST			\
   AKANTU_COHESIVE_MATERIAL_LIST			\
-  AKANTU_DAMAGE_MATERIAL_LIST			\
   AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
-
-
-#define INSTANSIATE_MATERIAL(mat_name)			\
-  template class mat_name<1>;				\
-  template class mat_name<2>;				\
-  template class mat_name<3>
-
-#if defined(__INTEL_COMPILER)
-#pragma warning ( push )
-/* warning #654: overloaded virtual function
-   "akantu::Material::computeStress" is only partially overridden in
-   class "akantu::Material*" */
-
-#pragma warning ( disable : 654 )
-#endif //defined(__INTEL_COMPILER)
-
-/* -------------------------------------------------------------------------- */
-// elastic materials
-#include "material_elastic.hh"
-#include "material_neohookean.hh"
-#include "material_elastic_orthotropic.hh"
-
-// visco-elastic materials
-#include "material_stiffness_proportional.hh"
-#include "material_standard_linear_solid_deviatoric.hh"
-
-
-// damage materials
-#include "material_damage.hh"
-#include "material_marigo.hh"
-#include "material_mazars.hh"
-#include "material_damage_linear.hh"
-#include "material_vreepeerlings.hh"
-
-#if defined(AKANTU_DAMAGE_NON_LOCAL)
-#  include "material_marigo_non_local.hh"
-#  include "material_mazars_non_local.hh"
-#  include "material_vreepeerlings_non_local.hh"
-#endif
-
-// cohesive materials
-#include "material_cohesive.hh"
-#include "material_cohesive_linear.hh"
-#include "material_cohesive_bilinear.hh"
-#include "material_cohesive_linear_extrinsic.hh"
-#include "material_cohesive_exponential.hh"
-#include "material_cohesive_linear_exponential_extrinsic.hh"
-
-
-#if defined(__INTEL_COMPILER)
-#pragma warning ( pop )
-#endif //defined(__INTEL_COMPILER)
 
 
 #endif /* __AKANTU_MATERIAL_HH__ */

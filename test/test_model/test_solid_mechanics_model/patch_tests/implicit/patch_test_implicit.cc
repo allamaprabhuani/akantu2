@@ -164,12 +164,12 @@ int main(int argc, char *argv[])
     my_model.updateResidual();
   }
 
-  my_model.computeStresses();
-
   if(count > 1) {
     std::cerr << "The code did not converge in 1 step !" << std::endl;
     return EXIT_FAILURE;
   }
+
+  my_model.computeStresses();
 
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */

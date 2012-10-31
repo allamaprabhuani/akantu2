@@ -108,3 +108,98 @@ endmacro()
 macro(add_example example_name desc)
   manage_test_and_example(${example_name} ${desc} AKANTU_BUILD_ALL_EXAMPLES _EXAMPLE_)
 endmacro()
+
+#===============================================================================
+macro(register_test_new test_name)
+  set(multi_variables
+    SOURCES FILES_TO_COPY DEPENDENCIES DIRECTORIES_TO_CREATE COMPILE_OPTIONS
+    )
+
+  cmake_parse_arguments(register_test
+    ""
+    "PACKAGE"
+    "${multi_variables}"
+    ${ARGN}
+    )
+
+  message("register_test_SOURCES :               ${register_test_SOURCES}")
+  message("register_test_FILES_TO_COPY :         ${register_test_FILES_TO_COPY}")
+  message("register_test_DIRECTORIES_TO_CREATE : ${register_test_DIRECTORIES_TO_CREATE}")
+  message("register_test_DEPENDENCIES :          ${register_test_DEPENDENCIES}")
+  message("register_test_COMPILE_OPTIONS :       ${register_test_COMPILE_OPTIONS}")
+  message("register_test_PACKAGE :               ${register_test_PACKAGE}")
+
+  if(register_test_PACKAGE)
+    package_pkg_name(${register_test_PACKAGE} _package_name)
+    list(FIND ${_package_name}_TESTS ${test_name} _ret)
+    if(_ret EQUAL -1)
+      list(APPEND ${_package_name}_TESTS ${test_name})
+    endif()
+  endif()
+
+  # check if the test should be activated
+  set(_activate_test 0)
+  foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_ON})
+    package_pkg_name(${_pkg} _package_name)
+    list(FIND ${_package_name}_TESTS ${test_name} _ret)
+    if(NOT _ret EQUAL -1)
+      set(_activate_test 1)
+    endif()
+  endforeach()
+
+  # check if the package is registered in at least a package
+  set(_present_in_packages 0)
+  foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
+    package_pkg_name(${_pkg} _package_name)
+    list(FIND ${_package_name}_TESTS ${test_name} _ret)
+    if(NOT _ret EQUAL -1)
+      set(_present_in_packages 1)
+    endif()
+  endforeach()
+
+  if(NOT _present_in_packages)
+    message("The test ${test_name} is not registered in any packages")
+  endif()
+
+  message("TEST  ${test_name} active: ${_activate_test}")
+  if(_activate_test)
+    add_executable(${test_name} ${register_test_SOURCES})
+    if(register_test_COMPILE_OPTIONS)
+      set_target_properties(${test_name}
+	PROPERTIES COMPILE_DEFINITIONS ${register_test_COMPILE_OPTIONS})
+    endif()
+    target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
+
+    if(_test_option_FILES_TO_COPY)
+      foreach(_file ${register_test_FILES_TO_COPY})
+	file(COPY ${_file} DESTINATION .)
+      endforeach()
+    endif()
+
+    if(register_test_DIRECTORIES_TO_CREATE)
+      foreach(_dir ${register_test_DIRECTORIES_TO_CREATE})
+	if(IS_ABSOLUTE ${dir})
+	  file(MAKE_DIRECTORY ${_dir})
+	else()
+  	  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_dir})
+	endif()
+      endforeach()
+    endif()
+
+    if(register_test_DEPENDENCIES)
+      foreach(dep ${register_test_DEPENDENCIES})
+	add_dependencies(${test_name} ${dep})
+	get_target_property(dep_in_ressources ${dep} RESSOURCES)
+      endforeach()
+    endif()
+
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
+      file(COPY ${test_name}.sh DESTINATION .)
+      add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
+    elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
+      add_test(${test_name} ${AKANTU_DIFF_SCRIPT} ${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
+    else()
+      add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+    endif()
+  endif()
+endmacro(register_test_new)

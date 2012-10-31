@@ -25,10 +25,11 @@
  *
  */
 
+
 __END_AKANTU__
-
-#include "cohesive_element.hh"
-
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  include "cohesive_element.hh"
+#endif
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */

@@ -509,7 +509,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   Vector<Real>::iterator<types::RMatrix> shapes_derivatives_filtered_it  = shapes_derivatives_filtered->begin(spatial_dimension,
 													     nb_nodes_per_element);
 
-  Vector<Real> filtered_u(nb_element * nb_nodes_per_element, spatial_dimension);
+  Vector<Real> filtered_u(nb_element, nb_nodes_per_element * spatial_dimension);
 
   UInt * elem_filter_val = elem_filter.storage();
   Real * filtered_u_it = filtered_u.storage();
@@ -531,34 +531,34 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
 
   Vector<Real>::iterator<types::RMatrix> D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
                                                                                tangent_moduli_size);
-  Vector<Real>::iterator<types::RMatrix> D_end = tangent_moduli_tensors->end  (tangent_moduli_size,
-                                                                               tangent_moduli_size);
   Vector<Real>::iterator<types::RMatrix> sigma_it  = stress(type, ghost_type).begin(spatial_dimension,
                                                                                     spatial_dimension);
-  Vector<Real>::iterator<types::RVector> u_it = filtered_u.begin(spatial_dimension);
+  Vector<Real>::iterator<types::RVector> u_it = filtered_u.begin(spatial_dimension * nb_nodes_per_element);
 
-  types::RMatrix B(tangent_moduli_size, spatial_dimension);
-  types::RVector Bu(spatial_dimension);
-  types::RVector DBu(spatial_dimension);
+  types::RMatrix B(tangent_moduli_size, spatial_dimension * nb_nodes_per_element);
+  types::RVector Bu(tangent_moduli_size);
+  types::RVector DBu(tangent_moduli_size);
 
-  for(; D_it != D_end; ++D_it, ++u_it, ++shapes_derivatives_filtered_it) {
-    types::RVector & u = *u_it;
-    types::RMatrix & sigma = *sigma_it;
-    types::RMatrix & D = *D_it;
+  for (UInt e = 0; e < nb_element; ++e, ++u_it) {
+    for (UInt q = 0; q < nb_quadrature_points; ++q, ++D_it, ++shapes_derivatives_filtered_it, ++sigma_it) {
+      types::RVector & u = *u_it;
+      types::RMatrix & sigma = *sigma_it;
+      types::RMatrix & D = *D_it;
 
-    transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+      transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
 
-    Bu.mul<false>(B, u);
-    DBu.mul<false>(D, Bu);
+      Bu.mul<false>(B, u);
+      DBu.mul<false>(D, Bu);
 
-    // Voigt notation to full symmetric tensor
-    for (UInt i = 0; i < dim; ++i) sigma(i, i) = DBu(i);
-    if(dim == 2) {
-      sigma(0,1) = sigma(1,0) = DBu(2);
-    } else if(dim == 3) {
-      sigma(1,2) = sigma(2,1) = DBu(3);
-      sigma(0,2) = sigma(2,0) = DBu(4);
-      sigma(0,1) = sigma(1,0) = DBu(5);
+      // Voigt notation to full symmetric tensor
+      for (UInt i = 0; i < dim; ++i) sigma(i, i) = DBu(i);
+      if(dim == 2) {
+	sigma(0,1) = sigma(1,0) = DBu(2);
+      } else if(dim == 3) {
+	sigma(1,2) = sigma(2,1) = DBu(3);
+	sigma(0,2) = sigma(2,0) = DBu(4);
+	sigma(0,1) = sigma(1,0) = DBu(5);
+      }
     }
   }
 

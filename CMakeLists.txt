@@ -134,6 +134,8 @@ endif()
 #===============================================================================
 option(AKANTU_TESTS "Activate tests" OFF)
 if(AKANTU_TESTS)
+  enable_testing()
+  include(CTest)
   add_subdirectory(test)
 endif(AKANTU_TESTS)
 

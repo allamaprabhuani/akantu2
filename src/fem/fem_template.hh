@@ -33,10 +33,8 @@
 #include "integrator.hh"
 #include "shape_functions.hh"
 #include "shape_lagrange.hh"
-#include "shape_cohesive.hh"
 #include "shape_linked.hh"
 #include "integrator_gauss.hh"
-#include "integrator_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -256,5 +254,9 @@ private:
 
 __END_AKANTU__
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  include "shape_cohesive.hh"
+#  include "integrator_cohesive.hh"
+#endif
 
 #endif /* __AKANTU_FEM_TEMPLATE_HH__ */

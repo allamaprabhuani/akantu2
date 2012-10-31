@@ -153,7 +153,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Internal code                                                            */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList()); }
   inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList(),
 									  event.getNewNumbering()); }
@@ -161,6 +161,9 @@ public:
   inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList()); }
   inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList(),
 										event.getNewNumbering()); }
+
+  template<class EventHandler>
+  friend class EventHandlerManager;
 
   /* ------------------------------------------------------------------------ */
   /* Interface                                                                */

@@ -1119,8 +1119,8 @@ Real SolidMechanicsModel::getEnergy(const std::string & id) {
   return energy;
 }
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const std::string & energy_id, 
-				    ElementType & type, 
+Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
+				    ElementType & type,
 				    UInt index){
   AKANTU_DEBUG_IN();
 
@@ -1251,6 +1251,13 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
+  else if(field_id == "partition"   ) {
+    addDumpFieldToDumper(field_id,
+			 new DumperIOHelper::ElementPartitionField(mesh,
+								   spatial_dimension,
+								   _not_ghost,
+								   _ek_regular));
+  }
   else if(field_id == "element_index_by_material") {
     addDumpFieldToDumper(field_id,
 			 new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
@@ -1305,19 +1312,49 @@ void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-  typedef DumperIOHelper::HomogenizedField<Real,
-					   DumperIOHelper::InternalMaterialField,
-					   DumperIOHelper::AvgHomogenizingFunctor,
-					   types::Matrix> Field;
+  if(field_id == "stress") {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::AvgHomogenizingFunctor,
+					     types::Matrix,
+					     DumperIOHelper::material_stress_field_iterator> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3, 3);
+    addDumpFieldToDumper(field_id, field);
+  } else if(field_id == "strain") {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::AvgHomogenizingFunctor,
+					     types::Matrix,
+					     DumperIOHelper::material_strain_field_iterator> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3, 3);
+    addDumpFieldToDumper(field_id, field);
+  } else {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::AvgHomogenizingFunctor,
+					     types::Matrix> Field;
 
-  Field * field = new Field(*this,
-			    field_id,
-			    spatial_dimension,
-			    spatial_dimension,
-			    _not_ghost,
-			    _ek_regular);
-  field->setPadding(3, 3);
-  addDumpFieldToDumper(field_id, field);
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3, 3);
+    addDumpFieldToDumper(field_id, field);
+  }
 #endif
 };
 

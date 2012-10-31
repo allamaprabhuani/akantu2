@@ -18,9 +18,9 @@ FEM [
    ]
    + connectivities [
     ByElementType<akantu::Vector<unsigned int, true>*> [
-        (not_ghost:segment_2) [
+        (not_ghost:_segment_2) [
        Vector<unsigned int> [
-        + id             : mesh:connectivities:segment_2
+        + id             : mesh:connectivities:_segment_2
         + size           : 10
         + nb_component   : 2
         + allocated size : 2000
@@ -46,9 +46,9 @@ FEM [
    ]
    + connectivities [
     ByElementType<akantu::Vector<unsigned int, true>*> [
-        (not_ghost:segment_2) [
+        (not_ghost:_segment_2) [
        Vector<unsigned int> [
-        + id             : mesh:connectivities:segment_2
+        + id             : mesh:connectivities:_segment_2
         + size           : 10
         + nb_component   : 2
         + allocated size : 2000
@@ -66,7 +66,7 @@ StaticMemory [
   + memory id   : 0
   + nb vectors  : 6
   Vector<unsigned int> [
-   + id             : mesh:connectivities:segment_2
+   + id             : mesh:connectivities:_segment_2
    + size           : 10
    + nb_component   : 2
    + allocated size : 2000
@@ -82,7 +82,7 @@ StaticMemory [
    + values         : {{0}, {1}, {0.1}, {0.2}, {0.3}, {0.4}, {0.5}, {0.6}, {0.7}, {0.8}, {0.9}}
   ]
   Vector<double> [
-   + id             : my_fem:jacobians:segment_2
+   + id             : my_fem:jacobians:_segment_2
    + size           : 10
    + nb_component   : 1
    + allocated size : 10
@@ -90,7 +90,7 @@ StaticMemory [
    + values         : {{0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}}
   ]
   Vector<double> [
-   + id             : my_fem:quadrature_points:segment_2
+   + id             : my_fem:quadrature_points:_segment_2
    + size           : 1
    + nb_component   : 1
    + allocated size : 2000
@@ -98,7 +98,7 @@ StaticMemory [
    + values         : {{0}}
   ]
   Vector<double> [
-   + id             : my_fem:shapes:segment_2
+   + id             : my_fem:shapes:_segment_2
    + size           : 10
    + nb_component   : 2
    + allocated size : 10
@@ -106,7 +106,7 @@ StaticMemory [
    + values         : {{0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}}
   ]
   Vector<double> [
-   + id             : my_fem:shapes_derivatives:segment_2
+   + id             : my_fem:shapes_derivatives:_segment_2
    + size           : 10
    + nb_component   : 2
    + allocated size : 10

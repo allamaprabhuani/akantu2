@@ -25,14 +25,195 @@
  *
  */
 
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+template<class T, template<class> class R>
+class DumperIOHelper::MaterialPaddingHelper : public PaddingHelper<T, R> {
+public:
+  MaterialPaddingHelper(const SolidMechanicsModel & model) : model(model) { }
+
+  inline R<T> pad(const R<T> & in, UInt padding_m, UInt padding_n, UInt nb_data, UInt material_id) {
+    return PaddingHelper<T, R>::pad(in, padding_m, padding_n, nb_data);
+  }
+
+protected:
+  const SolidMechanicsModel & model;
+};
+
+/* -------------------------------------------------------------------------- */
+template<class T, template<class> class R>
+class DumperIOHelper::StressPaddingHelper : public MaterialPaddingHelper<T, R> {
+public:
+  StressPaddingHelper(const SolidMechanicsModel & model) : MaterialPaddingHelper<T, R>(model) {
+    AKANTU_DEBUG_ERROR("This class exists only to pad stress (types::Matrix<Real>) to 3D");
+  }
+
+  inline R<T> pad(const R<T> & in, UInt padding_m, UInt padding_n, UInt nb_data, UInt material_id) {}
+protected:
+  const Material & material;
+};
+
+
+template<>
+class DumperIOHelper::StressPaddingHelper<Real,
+					  types::Matrix> : public MaterialPaddingHelper<Real,
+											types::Matrix> {
+public:
+  StressPaddingHelper(const SolidMechanicsModel & model) :
+  MaterialPaddingHelper<Real, types::Matrix>(model) { }
+
+  inline types::Matrix<Real> pad(const types::Matrix<Real> & in,
+				 UInt padding_m, UInt padding_n, UInt nb_data,
+				 UInt material_id) {
+    if(padding_m <= in.rows() && padding_n * nb_data <= in.cols())
+      return in;
+    else {
+      AKANTU_DEBUG_ASSERT(padding_m == 3 && padding_n == 3, "This function can only pad to 3D");
+      types::Matrix<Real> stress =
+	MaterialPaddingHelper<Real, types::Matrix>::pad(in, 3, 3, nb_data, material_id);
+      if(in.rows() == 2 && in.cols() == 2 * nb_data) {
+	const Material & material = model.getMaterial(material_id);
+	bool plane_strain = !material.getParam<bool>("Plane_Stress");
+	if(plane_strain) {
+	  Real nu = material.getParam<Real>("nu");
+	  for (UInt d = 0; d < nb_data; ++d) {
+	    stress(2, 2 + 3*d) = nu * (stress(0, 0 + 3*d) + stress(1, 1 + 3*d));
+	  }
+	}
+      }
+      return stress;
+    }
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+template<class T, template<class> class R>
+class DumperIOHelper::StrainPaddingHelper : public MaterialPaddingHelper<T, R> {
+public:
+  StrainPaddingHelper(const SolidMechanicsModel & model) : MaterialPaddingHelper<T, R>(model) {
+    AKANTU_DEBUG_ERROR("This class exists only to pad strain (types::Matrix<Real>) to 3D");
+  }
+
+  inline R<T> pad(const R<T> & in, UInt padding_m, UInt padding_n, UInt nb_data, UInt material_id) {}
+};
+
+
+template<>
+class DumperIOHelper::StrainPaddingHelper<Real, types::Matrix> : public MaterialPaddingHelper<Real, types::Matrix> {
+public:
+  StrainPaddingHelper(const SolidMechanicsModel & model) :
+  MaterialPaddingHelper<Real, types::Matrix>(model) { }
+
+  inline types::Matrix<Real> pad(const types::Matrix<Real> & in,
+				 UInt padding_m, UInt padding_n, UInt nb_data,
+				 UInt material_id) {
+    if(padding_m <= in.rows() && padding_n * nb_data <= in.cols())
+      return in;
+    else {
+      AKANTU_DEBUG_ASSERT(padding_m == 3 && padding_n == 3, "This function can only pad to 3D");
+      types::Matrix<Real> strain =
+	MaterialPaddingHelper<Real, types::Matrix>::pad(in, 3, 3, nb_data, material_id);
+      if(in.rows() == 2 && in.cols() == 2 * nb_data) {
+	const Material & material = model.getMaterial(material_id);
+	bool plane_stress = material.getParam<bool>("Plane_Stress");
+	if(plane_stress) {
+	  Real nu = material.getParam<Real>("nu");
+	  for (UInt d = 0; d < nb_data; ++d) {
+	    strain(2, 2 + 3*d) = nu / (nu - 1) * (strain(0, 0 + 3*d) + strain(1, 1 + 3*d));
+	  }
+	}
+      }
+      return strain;
+    }
+  }
+};
+
+
 /* -------------------------------------------------------------------------- */
 /* Element material field iterator/container                                  */
 /* -------------------------------------------------------------------------- */
-template<typename T, template<class> class ret_type>
-class DumperIOHelper::internal_material_field_iterator : public quadrature_point_iterator< UInt, T, ret_type,
-											   internal_material_field_iterator<T, ret_type> > {
+template<typename T,
+	 template<class> class ret_type,
+	 template<typename, template<class> class> class padding_helper_type,
+	 template<typename, template<class> class> class int_iterator>
+class DumperIOHelper::generic_internal_material_field_iterator : public quadrature_point_iterator< UInt, T, ret_type,
+												   int_iterator<T, ret_type> > {
 public:
-  typedef quadrature_point_iterator<UInt, T, ret_type, internal_material_field_iterator<T, ret_type> > parent;
+  typedef quadrature_point_iterator<UInt, T, ret_type, int_iterator<T, ret_type> > parent;
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
+  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
+public:
+  generic_internal_material_field_iterator(const field_type & element_material,
+					   UInt n,
+					   const typename field_type::type_iterator & t_it,
+					   const typename field_type::type_iterator & t_it_end,
+					   const internal_iterator & it,
+					   ElementType element_type,
+					   const GhostType ghost_type = _not_ghost) :
+    parent(element_material, 2, t_it, t_it_end,
+	   it, element_type, ghost_type),
+    out_n(n), model(NULL), padding_helper(NULL) { }
+
+  ~generic_internal_material_field_iterator() { delete padding_helper; }
+
+  generic_internal_material_field_iterator(const generic_internal_material_field_iterator & it) : parent(it) {
+    out_n = it.out_n;
+    field_id = it.field_id;
+    if(it.model) {
+      model = it.model;
+      padding_helper = new padding_helper_type<T, ret_type>(*model);
+    }
+  }
+
+  return_type operator*() {
+    const ret_type<UInt> & material_id = *this->vit;
+    UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
+    try {
+      const Vector<T> & vect =
+	model->getMaterial(material_id[1]).getVector(field_id,
+						     *this->tit,
+						     this->ghost_type);
+      internal_material_iterator it
+	= iterator_helper<T, ret_type>::begin(vect, out_n,
+					      vect.getNbComponent() / out_n * nb_data,
+					      vect.getSize() / nb_data);
+      it += material_id[0];
+
+      return padding_helper->pad(*it, this->padding_m, this->padding_n, nb_data, material_id[1]);
+    } catch (...) {
+      return return_type();
+    }
+  }
+
+  void setModel(const SolidMechanicsModel & model) {
+    this->model = &model;
+    this->padding_helper = new padding_helper_type<T, ret_type>(model);
+  }
+  void setFieldID(const std::string & field_id) { this->field_id = field_id; }
+
+protected:
+  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
+protected:
+  UInt out_n;
+  const SolidMechanicsModel * model;
+  std::string field_id;
+  padding_helper_type<T, ret_type> * padding_helper;
+};
+
+/* -------------------------------------------------------------------------- */
+template<typename T, template<class> class ret_type>
+class DumperIOHelper::internal_material_field_iterator :
+  public generic_internal_material_field_iterator<T, ret_type,
+						  MaterialPaddingHelper,
+						  internal_material_field_iterator> {
+public:
+  typedef generic_internal_material_field_iterator<T, ret_type, MaterialPaddingHelper,
+						   internal_material_field_iterator> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -47,112 +228,70 @@ public:
 				   const internal_iterator & it,
 				   ElementType element_type,
 				   const GhostType ghost_type = _not_ghost) :
-    parent(element_material, 2, t_it, t_it_end,
-	   it, element_type, ghost_type), out_n(n) { }
-
-  return_type operator*() {
-    const ret_type<UInt> & material_id = *this->vit;
-    UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
-    try {
-      const Vector<T> & vect =
-	model->getMaterial(material_id(1)).getVector(field_id,
-						     *this->tit,
-						     this->ghost_type);
-      internal_material_iterator it
-	= iterator_helper<T, ret_type>::begin(vect, out_n,
-					      vect.getNbComponent() / out_n * nb_data,
-					      vect.getSize() / nb_data);
-      it += material_id(0);
-
-      return *it;
-    } catch (...) {
-      return return_type();
-    }
-  }
-
-  void setModel(const SolidMechanicsModel & model) { this->model = &model; }
-  void setFieldID(const std::string & field_id) { this->field_id = field_id; }
-
-protected:
-  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
-protected:
-  const SolidMechanicsModel * model;
-  std::string field_id;
-  UInt out_n;
+    parent(element_material, n, t_it, t_it_end,
+	   it, element_type, ghost_type) {  }
 };
 
-/* specialization */
-template<typename T>
-class DumperIOHelper::internal_material_field_iterator<T, types::Matrix> : public quadrature_point_iterator< UInt, T, types::Matrix,
-											   internal_material_field_iterator<T, types::Matrix> > {
+/* -------------------------------------------------------------------------- */
+template<typename T, template<class> class ret_type>
+class DumperIOHelper::material_stress_field_iterator :
+  public generic_internal_material_field_iterator<T, ret_type, StressPaddingHelper,
+						  material_stress_field_iterator> {
 public:
-  typedef quadrature_point_iterator<UInt, T, types::Matrix, internal_material_field_iterator<T, types::Matrix> > parent;
+  typedef generic_internal_material_field_iterator<T, ret_type, StressPaddingHelper,
+						   material_stress_field_iterator> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
   typedef typename parent::field_type  field_type;
   typedef typename parent::internal_iterator internal_iterator;
-  typedef typename Vector<T>::template const_iterator< types::Matrix<T> > internal_material_iterator;
+  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
 public:
-  internal_material_field_iterator(const field_type & element_material,
-				   UInt n,
-				   const typename field_type::type_iterator & t_it,
-				   const typename field_type::type_iterator & t_it_end,
-				   const internal_iterator & it,
-				   ElementType element_type,
-				   const GhostType ghost_type = _not_ghost) :
-    parent(element_material, 2, t_it, t_it_end,
-	   it, element_type, ghost_type), out_n(n) { }
-
-  types::Matrix<T> operator*() {
-    const types::Matrix<UInt> & material_id = *this->vit;
-    UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
-    try {
-      const Vector<T> & vect =
-	model->getMaterial(material_id(1, 0)).getVector(field_id,
-							*this->tit,
-							this->ghost_type);
-      UInt ln = out_n;
-      if(out_n == 0) ln = vect.getNbComponent();
-      internal_material_iterator it
-	= iterator_helper<T, types::Matrix>::begin(vect, ln, vect.getNbComponent() / ln * nb_data,
-						   vect.getSize() / nb_data);
-      it += material_id(0, 0);
-
-      const types::Matrix<T> & ret = *it;
-      if(this->padding_n <= ret.rows() || this->padding_m <= ret.cols())
-	return ret;
-      else {
-	types::Matrix<T> tmp(this->padding_n, this->padding_m * nb_data);
-	for (UInt d = 0; d < nb_data; ++d)
-	  for (UInt i = 0; i < ret.rows(); ++i)
-	    for (UInt j = 0; j < ret.cols(); ++j)
-	      tmp(i, j + d * this->padding_m) = ret(i, j + d * ret.cols());
-	return tmp;
-      }
-    } catch (...) {
-      return types::Matrix<T>();
-    }
-  }
-
-  void setModel(const SolidMechanicsModel & model) { this->model = &model; }
-  void setFieldID(const std::string & field_id) { this->field_id = field_id; }
-
-protected:
-  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
-protected:
-  const SolidMechanicsModel * model;
-  std::string field_id;
-  UInt out_n;
+  material_stress_field_iterator(const field_type & element_material,
+				 UInt n,
+				 const typename field_type::type_iterator & t_it,
+				 const typename field_type::type_iterator & t_it_end,
+				 const internal_iterator & it,
+				 ElementType element_type,
+				 const GhostType ghost_type = _not_ghost) :
+    parent(element_material, n, t_it, t_it_end,
+	   it, element_type, ghost_type) { }
 };
 
 /* -------------------------------------------------------------------------- */
 template<typename T, template<class> class ret_type>
+class DumperIOHelper::material_strain_field_iterator :
+  public generic_internal_material_field_iterator<T, ret_type, StrainPaddingHelper,
+						  material_strain_field_iterator> {
+public:
+  typedef generic_internal_material_field_iterator<T, ret_type, StrainPaddingHelper,
+						   material_strain_field_iterator> parent;
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
+  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
+public:
+  material_strain_field_iterator(const field_type & element_material,
+				 UInt n,
+				 const typename field_type::type_iterator & t_it,
+				 const typename field_type::type_iterator & t_it_end,
+				 const internal_iterator & it,
+				 ElementType element_type,
+				 const GhostType ghost_type = _not_ghost) :
+    parent(element_material, n, t_it, t_it_end,
+	   it, element_type, ghost_type) { }
+};
+
+/* -------------------------------------------------------------------------- */
+template<typename T, template<class> class ret_type,
+	 template<typename, template<class> class> class iterator_type>
 class DumperIOHelper::InternalMaterialField : public GenericQuadraturePointsField<UInt,
-								  internal_material_field_iterator<T, ret_type>,
+								  iterator_type<T, ret_type>,
 								  ret_type> {
 public:
-  typedef internal_material_field_iterator<T, ret_type> iterator;
+  typedef iterator_type<T, ret_type> iterator;
 private:
   typedef GenericQuadraturePointsField<UInt, iterator, ret_type> parent;
 public:

@@ -38,6 +38,8 @@
 #include "static_communicator.hh"
 #include "mesh_partition_scotch.hh"
 
+using namespace akantu;
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_iohelper.hh"
@@ -113,8 +115,8 @@ int main(int argc, char *argv[])
   model.addDumpField("residual"    );
   model.addDumpField("stress"      );
   model.addDumpField("strain"      );
-  model.addDumpFieldExternal("partition",
-			     new akantu::DumperIOHelper::ElementalField<akantu::UInt>(partition->getPartitions(), spatial_dimension));
+  model.addDumpFieldExternal("partitions",
+			     new akantu::DumperIOHelper::ElementalField<akantu::UInt>(partition->getPartitions(), spatial_dimension, _not_ghost));
   model.dump();
 
   std::ofstream energy;

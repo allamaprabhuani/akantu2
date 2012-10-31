@@ -11,38 +11,21 @@ set(AKANTU_CORE_FILES
   common/aka_math.cc
   fem/shape_lagrange.cc
   fem/shape_linked.cc
-  fem/shape_cohesive.cc
   fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
-  fem/cohesive_element.cc
   fem/fem_template.cc
   io/dumper/dumpable.hh
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
-  model/solid_mechanics/solid_mechanics_model_cohesive.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
   model/solid_mechanics/material_parameters.cc
-  model/solid_mechanics/materials/material_cohesive/material_cohesive.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.cc
   model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_neohookean.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
-  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
-  model/solid_mechanics/materials/material_damage/material_damage.cc
-  model/solid_mechanics/materials/material_damage/material_marigo.cc
-  model/solid_mechanics/materials/material_damage/material_mazars.cc
-  model/solid_mechanics/materials/material_damage/material_damage_linear.cc
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
@@ -62,7 +45,6 @@ set(AKANTU_CORE_FILES
   synchronizer/dof_synchronizer.cc
 
   #header files
-
   mesh_utils/mesh_io/mesh_io_msh.hh
   mesh_utils/mesh_io/mesh_io_msh_struct.hh
   mesh_utils/mesh_io/mesh_io_diana.hh
@@ -97,19 +79,17 @@ set(AKANTU_CORE_FILES
   common/aka_common.hh
   common/aka_vector.hh
   common/aka_vector_tmpl.hh
-#  common/aka_types_expression.hh
   common/aka_circular_vector.hh
+  common/aka_event_handler.hh
   fem/mesh.hh
   fem/fem.hh
   fem/by_element_type.hh
   fem/shape_functions.hh
   fem/shape_lagrange.hh
-  fem/shape_cohesive.hh
   fem/fem_template.hh
   fem/integrator_gauss.hh
   fem/integrator.hh
   fem/element_class.hh
-  fem/cohesive_element.hh
   fem/shape_linked.hh
   model/model.hh
   model/parser.hh
@@ -119,28 +99,13 @@ set(AKANTU_CORE_FILES
   model/integration_scheme/generalized_trapezoidal.hh
   model/integration_scheme/newmark-beta.hh
   model/integration_scheme/integration_scheme_1st_order.hh
-  model/solid_mechanics/materials/material_cohesive/material_cohesive.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
-  model/solid_mechanics/materials/material_elastic.hh
-  model/solid_mechanics/materials/material_elastic_orthotropic.hh
-  model/solid_mechanics/materials/material_neohookean.hh
-  model/solid_mechanics/materials/material_damage/material_damage.hh
-  model/solid_mechanics/materials/material_damage/material_marigo.hh
-  model/solid_mechanics/materials/material_damage/material_mazars.hh
-  model/solid_mechanics/materials/material_damage/material_damage_linear.hh
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings.hh
   model/solid_mechanics/solid_mechanics_model.hh
-  model/solid_mechanics/solid_mechanics_model_cohesive.hh
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/material.hh
   model/solid_mechanics/material_parameters.hh
   model/solid_mechanics/material_parameters_tmpl.hh
+  model/solid_mechanics/materials/material_elastic.hh
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
   model/heat_transfer/heat_transfer_model.hh
 
   #inline implementation files
@@ -175,16 +140,14 @@ set(AKANTU_CORE_FILES
   model/integration_scheme/newmark-beta_inline_impl.cc
   model/solid_mechanics/solid_mechanics_model_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
-  model/solid_mechanics/materials/material_neohookean_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
   )
 
 set(AKANTU_CORE_DEB_DEPEND
   libboost-dev
+  )
+
+set(AKANTU_CORE_TESTS
+  test_solid_mechanics_model_square
   )

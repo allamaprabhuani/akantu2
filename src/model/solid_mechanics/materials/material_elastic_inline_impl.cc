@@ -53,7 +53,7 @@ inline void MaterialElastic<1>::computeStressOnQuad(const types::RMatrix & grad_
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
+inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
   UInt n = tangent.cols();
 
   //Real Ep = E/((1+nu)*(1-2*nu));
@@ -85,6 +85,12 @@ void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::RMatr
     tangent(3, 3) = Mijij;
     tangent(4, 4) = Mijij;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void MaterialElastic<1>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
+  tangent(0, 0) = E;
 }
 
 /* -------------------------------------------------------------------------- */

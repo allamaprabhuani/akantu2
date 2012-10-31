@@ -37,14 +37,19 @@ add_mesh(test_solid_mechanics_model_square_mesh square.geo 2 1)
 add_mesh(test_solid_mechanics_model_circle_mesh1 circle.geo 2 1 OUTPUT circle1.msh)
 add_mesh(test_solid_mechanics_model_circle_mesh2 circle.geo 2 2 OUTPUT circle2.msh)
 
-register_test(test_solid_mechanics_model_square test_solid_mechanics_model_square.cc)
-add_dependencies(test_solid_mechanics_model_square
-  test_solid_mechanics_model_square_mesh
+register_test_new(test_solid_mechanics_model_square
+  SOURCES test_solid_mechanics_model_square.cc
+  DEPENDENCIES test_solid_mechanics_model_square_mesh
+  FILES_TO_COPY material.dat test_cst_energy.pl
+  DIRECTORIES_TO_CREATE paraview
   )
 
-register_test(test_solid_mechanics_model_circle_2 test_solid_mechanics_model_circle_2.cc)
-add_dependencies(test_solid_mechanics_model_circle_2
-  test_solid_mechanics_model_circle_mesh2)
+register_test_new(test_solid_mechanics_model_circle_2
+  SOURCES test_solid_mechanics_model_circle_2.cc
+  DEPENDENCIES test_solid_mechanics_model_circle_mesh2
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 #===============================================================================
 add_mesh(test_bar_traction_2d_mesh1 bar.geo 2 1 OUTPUT bar1.msh)

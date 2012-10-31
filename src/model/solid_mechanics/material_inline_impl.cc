@@ -159,7 +159,7 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(co
 /**
  * @todo Write a more efficient interpolation for quadrangles by
  * dropping unnecessary quadrature points
- * 
+ *
  */
 
 /* -------------------------------------------------------------------------- */
@@ -228,8 +228,6 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 /* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataForElements(const Vector<Element> & elements,
 					   SynchronizationTag tag) const {
-  //UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-  //UInt size = 0;
   if(tag == _gst_smm_stress) {
     return spatial_dimension * spatial_dimension * sizeof(Real) * this->getNbQuadraturePoints(elements);
   }
@@ -242,11 +240,6 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
 				      SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
     packElementDataHelper(stress, buffer, elements);
-    // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::const_iterator<types::RMatrix> stress_it = stress(element.type, _not_ghost).begin(spatial_dimension, spatial_dimension);
-    // stress_it += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++stress_it)
-    //   buffer << *stress_it;
   }
 }
 
@@ -256,11 +249,6 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 					SynchronizationTag tag) {
   if(tag == _gst_smm_stress) {
     unpackElementDataHelper(stress, buffer, elements);
-    // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::iterator<types::Matrix> stress_it = stress(element.type, _ghost).begin(spatial_dimension, spatial_dimension);
-    // stress_it += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++stress_it)
-    //   buffer >> *stress_it;
   }
 }
 

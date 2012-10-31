@@ -112,7 +112,7 @@ protected:
   const Mesh * mesh;
 
   /// pointer to the communicator
-  StaticCommunicator * communicator;
+  StaticCommunicator & communicator;
 };
 
 

@@ -128,13 +128,13 @@ public:
     if(nb_quad == 1) {
       return vect;
     } else {
-      UInt n = vect.rows();
-      UInt m = vect.cols() / nb_quad;
-      types::Matrix<T> v(n, m);
-      for (UInt i = 0; i < n; ++i)
-	for (UInt j = 0; j < m; ++j)
-	  for (UInt q = 0; q < nb_quad; ++q)
-	    v(i, j) += vect(i, j + q*m) / Real(nb_quad);
+      UInt m = vect.rows();
+      UInt n = vect.cols() / nb_quad;
+      types::Matrix<T> v(m, n);
+      for (UInt q = 0; q < nb_quad; ++q)
+	for (UInt i = 0; i < m; ++i)
+	  for (UInt j = 0; j < n; ++j)
+	    v(i, j) += vect(i, j + q*n) / Real(nb_quad);
       return v;
     }
   }
@@ -145,13 +145,14 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template<typename T, template< typename, template<class> class> class Container,
+template<typename T, template< typename, template<class> class, template<typename, template<class> class> class> class Container,
 	 template<typename, class, template<class> class> class Funct,
-	 template<typename> class ret_type>
+	 template<typename> class ret_type,
+	 template<typename, template<class> class> class int_sub_iterator>
 class DumperIOHelper::HomogenizedField : public Field {
 protected:
-  typedef typename Container<T, ret_type>::iterator sub_iterator;
-  typedef Funct<T, Container<T, ret_type>, ret_type> Functor;
+  typedef typename Container<T, ret_type, int_sub_iterator>::iterator sub_iterator;
+  typedef Funct<T, Container<T, ret_type, int_sub_iterator>, ret_type> Functor;
 public:
   class iterator {
   public:
@@ -213,7 +214,7 @@ public:
     cont.setPadding(n, m);
   }
 protected:
-  Container<T, ret_type> cont;
+  Container<T, ret_type, int_sub_iterator> cont;
   Functor funct;
   UInt nb_component;
 };

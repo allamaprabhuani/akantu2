@@ -64,6 +64,7 @@ macro(ADD_MESH MESH_TARGET GEO_FILE DIM ORDER)
 	)
       add_custom_target(${MESH_TARGET}
 	DEPENDS ${_msh_file})
+      set_target_properties(${MESH_TARGET} PROPERTIES RESSOURCES ${_geo_file})
     else(EXISTS ${_geo_file})
       message(FATAL_ERROR "File ${_geo_file} not found")
     endif(EXISTS ${_geo_file})
