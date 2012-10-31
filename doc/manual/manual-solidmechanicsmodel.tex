@@ -1,4 +1,4 @@
-\section{Solid Mechanics Model\index{SolidMechanicsModel}}
+\chapter{Solid Mechanics Model\index{SolidMechanicsModel}\label{sect:smm}}
 
 The  solid mechanics  model is  a  specific implementation  of the  \code{Model}
 interface  dedicated  to  handle  the   equations  of  motion  or  equations  of
@@ -24,9 +24,7 @@ This model contains at least the the following six \code{Vectors}:
   \textbf{displacement},   \textbf{velocity}   and   \textbf{acceleration}   are
   computed for all  degrees of freedom for which  the \textbf{boundary} value is
   set to \code{false}. For the  remaining degrees of freedom, the imposed values
-  (zero by default  after initialization) are kept. \todo{Till to  Nico: You need
-    to approve  my changes to  your part  and please tell  me if you're  not ok,
-    because I made the same changes to Guillaume's and my part}
+  (zero by default  after initialization) are kept. 
 \item[displacement] contains the displacements of all degrees of freedom. It can
   be either  a computed displacement for  free degrees of freedom  or an imposed
   displacement in case of blocked ones ($\vec{u}$ in the following).
@@ -47,9 +45,9 @@ This model contains at least the the following six \code{Vectors}:
 Some examples to help to understand  how to use this model will be presented
 in the next sections.
 
-\subsection{Model setup}
+\section{Model setup}
 
-\subsubsection{Setting   initial  conditions  \label{sect:smm:initial_condition}}
+\subsection{Setting   initial  conditions  \label{sect:smm:initial_condition}}
 
 For  a unique  solution of  the equations  of motion  initial  displacements and
 velocities at time $t=0$ at all degrees of freedom must be specified:
@@ -76,7 +74,7 @@ to $0.1$ and $1$ respectively.
   }
 \end{cpp}
 
-\subsubsection{Setting boundary conditions\label{sect:smm:boundary}}
+\subsection{Setting boundary conditions\label{sect:smm:boundary}}
 This section explains how to impose Dirichlet or Neumann boundary conditions. A
 Dirichlet boundary condition specifies the values that the displacement needs to
 take for every point $x$ at the boundary ($\Gamma_u$) of the problem domain
@@ -232,7 +230,7 @@ respectively.
 \end{figure}
 
 
-\subsection{Static analysis\label{sect:smm:static}}
+\section{Static analysis\label{sect:smm:static}}
 
 The \code{SolidMechanicsModel} class can  handle different analysis methods, the
 first one being presented is the static case.  In this case, the equation
@@ -351,7 +349,7 @@ The     results     of    this     analysis     is     depicted    in     Figure
   \label{fig:smm:implicit:static_solution}
 \end{figure}
 
-\subsection{Dynamic methods} \label{sect:smm:Dynamic_methods}
+\section{Dynamic methods} \label{sect:smm:Dynamic_methods}
 
 Different ways  to solve  the equations  of motion are  implemented in  the solid
 mechanics model.  The complete equations that should be solved are:
@@ -459,7 +457,7 @@ parameters depending on the method used to solve the equations
   with one sparse matrix solver such as Mumps\cite{mumps}.}
 
 
-\subsubsection{Implicit time integration}
+\subsection{Implicit time integration}
 To  solve  a  problem  with   an  implicit  time  integration  scheme,  first  a
 \code{SolidMechanicsModel} object  should be created and  initialized.  Then the
 initial and  boundary conditions have to  be set.  Everything is  similar to the
@@ -567,7 +565,7 @@ different times of the simulation, time steps 0, 1000 and 2000.
   \label{fig:smm:implicit:dynamic_solution}
 \end{figure}
 
-\subsubsection{Explicit dynamic}
+\subsection{Explicit dynamic}
 
 The explicit  dynamic time  integration scheme is  based on  the Newmark-$\beta$
 scheme            with            $\alpha=0$           (see            equations
@@ -704,7 +702,7 @@ is equal to  $\Delta u = \unit{0.05}{\metre}$. The  potential, kinetic and
 total  energies are  computed.  The  time factor  is equal  to $0.1$.  The total
 simulated time is \unit{0.01}{\second}.
 
-\subsection{Constitutive laws \label{sect:smm:CL}}
+\section{Constitutive laws \label{sect:smm:CL}}
 In order to compute an element's response to deformation, one needs to use an
 appropriate constitutive relationship for every element in the mesh. The
 constitutive law enables to compute the element's stresses from the element's
@@ -734,9 +732,9 @@ or in alternative the \code{initFull} method.
 \begin{cpp}
   model.initFull("material.dat");
 \end{cpp}
-The following subsections describe the constitutive models implemented in \akantu.
+The following sections describe the constitutive models implemented in \akantu.
 
-\subsubsection{Elastic}
+\subsection{Elastic}
 The elastic law is a commonly used constitutive relationship that can be used
 for a wide range of engineering materials (\eg metals, concrete, rock, wood,
 glass, rubber, etc.) provided that the strains remain small (\ie small
@@ -779,12 +777,12 @@ modulus), \code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set
 to zero or not specified plane strain conditions are assumed for a plain
 analysis, otherwise plane stress conditions are applied).
 
-% \subsubsection{Caughey}
+% \subsection{Caughey}
 % ** Not in  release ** The model  is a particular case of  the Rayleigh damping
 % model,   with    damping   being   proportional   only    to   the   stiffness
 % matrix. Substitute with complete Rayleigh damping model for release?
 
-\subsubsection{Neo-Hookean}
+\subsection{Neo-Hookean}
 The Neo-Hookean constitutive law is a hyperelastic material formulation, which
 results from an extension of the linear elastic relationship (Hooke's Law) for
 large deformation. Thus, the model predicts nonlinear stress-strain behavior for
@@ -813,7 +811,7 @@ as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's
 ratio) and \code{Plane\_Stress} (if set to zero plane strain, else plane
 stress).
 
-\subsubsection{Visco-elastic (IMPLEMENTATION TO VERIFY!!)}
+\subsection{Visco-elastic (IMPLEMENTATION TO VERIFY!!)}
 
 % Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes,
 % "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
@@ -857,10 +855,10 @@ modulus), \code{nu} (Poisson's ratio), \code{Plane\_Stress} (if set to zero
 plane strain, otherwise plane stress), \code{eta} (dashpot viscosity) and
 \code{Ev} (stiffness of the viscous element).
 
-\subsubsection{Damage Marigo}
-\subsubsection{Damage Mazars}
+\subsection{Damage Marigo}
+\subsection{Damage Mazars}
 
-\subsection{Adding a new constitutive law}
+\section{Adding a new constitutive law}
 
 
 There are several existing constitutive laws in \akantu as described in the
@@ -1014,11 +1012,11 @@ A full example for adding a new damage law can be found in
 \code{example/manual/new\_material}.
 
 
-\subsection{Contact \todo{Alejendro, David, Vlad}}
+\section{Contact \todo{Alejendro, David, Vlad}}
 
-\subsection{Cohesive laws\todo{Marco}}
+\section{Cohesive laws\todo{Marco}}
 
-\subsubsection{Exponential cohesive law}
+\subsection{Exponential cohesive law}
 
 Ortiz and Pandolfi proposed this cohesive law in 1999 \ref{ortiz1999}.  The
 traction-opening equation for this law is as following:
@@ -1041,7 +1039,7 @@ This equation is plotted in figure (\ref{fig:smm:CL:ECL}).
 
 
 
-\subsubsection{Static cohesive element}
+\subsection{Static cohesive element}
 
 For  the  static  analysis   of  the  structures  containing  cohesive
 elements, the stiffness of the cohesive elements should also be added to the

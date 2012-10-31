@@ -1,4 +1,4 @@
-\section{Structural  Mechanics   model}
+\chapter{Structural  Mechanics   model}
 Static    structural   mechanics    problems   can    be   handled    using   the
 \code{StructuralMechanicsModel}.  So far, \akantu\  provides 2D and 3D Bernoulli
 beam elements \cite{frey2009}.  Just  as for the \code{SolidMechanicsModel}, the
@@ -50,10 +50,10 @@ This model contains at least the following \code{Vectors}:
 An example to help understand how  to use this model will be presented in the
 next section.
 
-\subsection{Model setup}
+\section{Model setup}
 \label{sec:structMechMod:setup}
 
-\subsubsection{Initialization}
+\subsection{Initialization}
 The easiest way to initialize the structural mechanics model is:
 %\begin{cpp}
 %  model.initModel();
@@ -104,14 +104,14 @@ Materials can be added to the model's \code{element\_material} vector using
 
 They are used just like for the \code{SolidMechanicsModel}
 see Section~\ref{sect:smm:CL}.
-\subsubsection{Setting boundary conditions}\label{sect:structMechMod:boundary}
+\subsection{Setting boundary conditions}\label{sect:structMechMod:boundary}
 
 Both Dirichlet  and Neumann  type boundary conditions  are applied to  nodes the
 same     exact    way     as     for    \code{SolidMechanicsModel},     see
 Section~\ref{sect:smm:boundary}.   The  method  \code{computeForcesFromFunction}
 can still be used to apply Neumann boundary conditions.
 
-\subsection{Static analysis\label{sect:structMechMod:static}}
+\section{Static analysis\label{sect:structMechMod:static}}
 
 The  \code{StructuralMechanicsModel}  class   can  perform  static  analyses  of
 structures.  In  this case,  the  equation  to solve  is  the  same  as for  the
