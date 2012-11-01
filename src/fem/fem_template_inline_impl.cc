@@ -3,7 +3,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Tue May 22 11:21:40 2012
  *
- * @brief
+ * @brief FEMTemplate inline implementation
  *
  * @section LICENSE
  *

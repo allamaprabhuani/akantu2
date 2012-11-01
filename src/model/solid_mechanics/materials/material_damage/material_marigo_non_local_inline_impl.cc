@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue May  1 14:12:17 2012
  *
- * @brief  
+ * @brief  Marigo non-local inline function implementation
  *
  * @section LICENSE
  *

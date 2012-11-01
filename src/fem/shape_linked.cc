@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Apr  1 12:07:54 2011
  *
- * @brief
+ * @brief ShapeLinked implementation
  *
  * @section LICENSE
  *

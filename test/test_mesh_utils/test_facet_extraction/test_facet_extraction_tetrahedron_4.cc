@@ -1,6 +1,7 @@
 /**
  * @file   test_facet_extraction_tetra1.cc
  * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Thu Aug 19 13:05:27 2010
  *
  * @brief  test of internal facet extraction

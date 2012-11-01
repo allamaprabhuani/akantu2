@@ -1,6 +1,7 @@
 /**
  * @file   test_fem.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Mon Jul 19 10:55:49 2010
  *
  * @brief  test of the fem class

@@ -39,14 +39,14 @@ Contact3dExplicit::Contact3dExplicit(const SolidMechanicsModel & model,
 				     const MemoryID & memory_id) :
   Contact(model, type, id, memory_id) {
   AKANTU_DEBUG_IN();
-  
+
   AKANTU_DEBUG_OUT();
 }
 
 Contact3dExplicit::~Contact3dExplicit() {
   AKANTU_DEBUG_IN();
 
-  
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -55,7 +55,7 @@ Contact3dExplicit::~Contact3dExplicit() {
 /* -------------------------------------------------------------------------- */
 void Contact3dExplicit::solveContact() {
   AKANTU_DEBUG_IN();
-  
+
   AKANTU_DEBUG_OUT();
 }
 

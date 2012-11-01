@@ -44,34 +44,34 @@ class Contact3dExplicit : public Contact {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   Contact3dExplicit(const SolidMechanicsModel & model,
 		    const ContactType & type,
 		    const ContactID & id = "contact",
 		    const MemoryID & memory_id = 0);
-  
+
   virtual ~Contact3dExplicit();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// solve the contact
   void solveContact();
-  
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  
+
 };
 
 

@@ -2,7 +2,7 @@
 # @file   CMakeLists.txt
 # @author David Kammer <david.kammer@epfl.ch>
 # @date   Tue Oct 26 16:40:24 2010
-#
+# @brief configuration for 3D contact tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

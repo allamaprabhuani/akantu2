@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Sep  8 17:31:42 2011
  *
- * @brief  
+ * @brief  test for non-local damage materials
  *
  * @section LICENSE
  *

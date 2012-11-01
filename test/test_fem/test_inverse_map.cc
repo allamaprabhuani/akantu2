@@ -62,16 +62,16 @@ int main(int argc, char *argv[]) {
 
   UInt nb_elements = my_mesh.getNbElement(type);
   ///
-  FEMTemplate<IntegratorGauss,ShapeLagrange> *fem = 
+  FEMTemplate<IntegratorGauss,ShapeLagrange> *fem =
     new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
-  fem->initShapeFunctions();  
+  fem->initShapeFunctions();
 
   UInt nb_quad_points = fem->getNbQuadraturePoints(type);
 
   /// get the quadrature points coordinates
-  Vector<Real> coord_on_quad(nb_quad_points*nb_elements, 
-			     my_mesh.getSpatialDimension(), 
+  Vector<Real> coord_on_quad(nb_quad_points*nb_elements,
+			     my_mesh.getSpatialDimension(),
 			     "coord_on_quad");
 
   fem->interpolateOnQuadraturePoints(my_mesh.getNodes(),
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
   /// loop over the quadrature points
   Vector<Real>::iterator<types::RVector> it = coord_on_quad.begin(dim);
   types::RVector natural_coords(dim);
-  
+
   Real * quad = ElementClass<type>::getQuadraturePoints();
 
    for(UInt el = 0 ; el < nb_elements ; ++el){
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 	const Real eps = 1e-13;
 	AKANTU_DEBUG_ASSERT(std::abs((natural_coords[i] - quad[i])/(upper[i]-lower[i])) < eps,
 			    "real coordinates inversion test failed:"
-			    << natural_coords[i] << " - " << quad[i] 
+			    << natural_coords[i] << " - " << quad[i]
 			    << " = " << (natural_coords[i] - quad[i])/(upper[i]-lower[i]));
       }
       ++it;

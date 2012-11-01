@@ -2,7 +2,7 @@
 # @file   CMakeLists.txt
 # @author David Kammer <david.kammer@epfl.ch>
 # @date   Mon Jan 17 11:29:59 2011
-#
+# @brief configuration for explicit contact search tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

@@ -3,7 +3,7 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @date   Mon Jul 23 17:11:41 2012
 #
-# @brief  
+# @brief  configurations for common tests
 #
 # @section LICENSE
 #

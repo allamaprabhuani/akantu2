@@ -2,7 +2,7 @@
 # @file   CMakeLists.txt
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 # @date   Wed Apr 18 17:16:30 2012
-#
+# @brief configuration for build facets test
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

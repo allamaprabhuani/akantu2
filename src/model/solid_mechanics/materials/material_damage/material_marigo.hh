@@ -5,7 +5,7 @@
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *
- * @brief  Material isotropic elastic
+ * @brief  Marigo damage law
  *
  * @section LICENSE
  *

@@ -1,6 +1,8 @@
 /**
  * @file   mesh_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Wed Jul 14 23:58:08 2010
  *
  * @brief  Implementation of the inline functions of the mesh class

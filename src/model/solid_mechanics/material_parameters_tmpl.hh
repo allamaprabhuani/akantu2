@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Aug  8 17:36:54 2012
  *
- * @brief  
+ * @brief  handles material parameters
  *
  * @section LICENSE
  *

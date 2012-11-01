@@ -1,8 +1,9 @@
+#==============================================================================
 # @file   CMakeLists.txt
 # @author Fabian Barras <fabian.barras@epfl.ch>
 # @date   Thu May 12 19:05:02 2011
 #
-# @brief  
+# @brief  configuration for StructuralMechanicsModel tests
 #
 # @section LICENSE
 #
@@ -22,7 +23,7 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-#------------------------------------------------------------------------------
+#==============================================================================
 
 register_test(test_structural_mechanics_model_bernoulli_beam_2
   test_structural_mechanics_model_bernoulli_beam_2.cc

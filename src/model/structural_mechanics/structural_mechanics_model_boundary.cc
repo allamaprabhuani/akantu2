@@ -3,7 +3,7 @@
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @date   Wed May 25 15:21:50 2011
  *
- * @brief
+ * @brief StructuralMechanicsModel functions to set boundary conditions
  *
  * @section LICENSE
  *

@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Aug 31 17:08:23 2011
  *
- * @brief
+ * @brief Marigo non-local description
  *
  * @section LICENSE
  *

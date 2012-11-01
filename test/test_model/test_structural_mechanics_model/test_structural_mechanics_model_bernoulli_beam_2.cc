@@ -3,7 +3,7 @@
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @date   Thu May 12 16:34:09 2011
  *
- * @brief
+ * @brief tests of the StructuralMechanicsModel for 2d Bernoulli beams
  *
  * @section LICENSE
  *

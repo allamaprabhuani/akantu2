@@ -1,6 +1,7 @@
 /**
  * @file   mesh_partition_scotch.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Fri Aug 13 10:00:06 2010
  *
  * @brief  mesh partitioning based on libScotch

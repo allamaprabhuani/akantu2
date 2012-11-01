@@ -1,6 +1,7 @@
 /**
  * @file   material.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Fri Jul 23 09:06:29 2010
  *
  * @brief  Mother class for all materials

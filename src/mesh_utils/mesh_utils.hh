@@ -1,6 +1,10 @@
 /**
  * @file   mesh_utils.hh
  * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ * @author Richart Nicolas <nicolas.richart@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Wed Aug 18 14:03:39 2010
  *
  * @brief All mesh utils necessary for various tasks

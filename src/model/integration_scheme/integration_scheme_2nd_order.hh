@@ -1,6 +1,7 @@
 /**
  * @file   integration_scheme_2nd_order.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Mon Aug  2 12:22:05 2010
  *
  * @brief  Interface of the integrator of second order

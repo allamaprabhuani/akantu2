@@ -47,7 +47,7 @@ void PBCSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
     computeBufferSize(data_accessor, tag);
 
   buffer.resize(size_buffer[tag]);
-  
+
   for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
        it != pbc_pair.end();
        ++it) {

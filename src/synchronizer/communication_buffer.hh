@@ -1,6 +1,7 @@
 /**
  * @file   communication_buffer.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Wed Apr  6 21:23:16 2011
  *
  * @brief  Buffer for packing and unpacking data

@@ -2,7 +2,7 @@
 # @file   CMakeLists.txt
 # @author David Kammer <david.kammer@epfl.ch>
 # @date   Wed May 25 12:37:24 2011
-#
+# @brief configuration for friction law tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

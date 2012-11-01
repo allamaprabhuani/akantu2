@@ -1,6 +1,12 @@
 /**
  * @file   aka_math.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Peter Spijker <peter.spijker@epfl.ch>
  * @date   Wed Jul 28 11:51:56 2010
  *
  * @brief  mathematical operations

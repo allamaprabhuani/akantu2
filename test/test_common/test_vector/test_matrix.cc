@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Feb 18 22:29:00 2011
  *
- * @brief  
+ * @brief  tests for types::Matrix
  *
  * @section LICENSE
  *

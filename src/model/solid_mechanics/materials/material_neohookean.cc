@@ -1,5 +1,6 @@
 /**
  * @file   material_neohookean.cc
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue Jul 27 11:53:52 2010
  *

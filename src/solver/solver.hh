@@ -116,21 +116,6 @@ protected:
 };
 
 
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "solver_inline_impl.cc"
-#endif
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const Solver & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
-
 __END_AKANTU__
 
 #endif /* __AKANTU_SOLVER_HH__ */

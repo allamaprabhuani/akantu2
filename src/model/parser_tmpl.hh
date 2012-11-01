@@ -1,6 +1,7 @@
 /**
  * @file   parser_tmpl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
  * @date   Thu Nov 24 08:44:22 2011
  *
  * @brief  Template part of the parser

@@ -1,6 +1,6 @@
 /**
  * @file   element_class_tetrahedron_4_inline_impl.cc
- * @author Guillaume ANCIAUX <anciaux@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Mon Aug 16 18:09:53 2010
  *
  * @brief  Specialization of the element_class class for the type _tetrahedron_4

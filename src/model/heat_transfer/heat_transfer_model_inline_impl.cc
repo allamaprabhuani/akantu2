@@ -1,6 +1,7 @@
 /**
  * @file   heat_transfer_model_inline_impl.cc
  * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Fri Mar  4 17:04:25 2011
  *
  * @brief  Implementation of the inline functions of the HeatTransferModel class

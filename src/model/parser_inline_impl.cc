@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Nov 26 08:32:38 2010
  *
- * @brief
+ * @brief implementation of inline parser functions
  *
  * @section LICENSE
  *

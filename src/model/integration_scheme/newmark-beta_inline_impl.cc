@@ -1,6 +1,7 @@
 /**
  * @file   newmark-beta_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Thu Sep 30 11:45:20 2010
  *
  * @brief  implementation of the  newmark-@f$\beta@f$ integration  scheme.  This

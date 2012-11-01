@@ -2,7 +2,7 @@
 # @file   CMakeLists.txt
 # @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
 # @date   Mon Oct 25 09:40:24 2010
-#
+# @brief configuration for surface extraction tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

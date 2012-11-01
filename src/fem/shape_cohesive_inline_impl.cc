@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb  2 15:55:15 2012
  *
- * @brief
+ * @brief ShapeCohesive inline implementation
  *
  * @section LICENSE
  *

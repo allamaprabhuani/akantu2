@@ -27,6 +27,7 @@
  *
  * The class handling the memory, allocation/reallocation/desallocation
  * The objects can register their array and ask for allocation or realocation
+ *
  */
 
 /* -------------------------------------------------------------------------- */

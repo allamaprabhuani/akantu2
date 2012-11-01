@@ -1,6 +1,7 @@
 /**
  * @file   test_cohesive.cc
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @date   Fri Feb 24 14:32:31 2012
  *
  * @brief  Test for cohesive elements

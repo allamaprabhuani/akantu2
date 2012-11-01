@@ -5,7 +5,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Oct  8 12:42:26 2010
  *
- * @brief  
+ * @brief  ContactNeighborStructure implementation
  *
  * @section LICENSE
  *

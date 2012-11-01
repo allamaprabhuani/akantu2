@@ -59,15 +59,15 @@ public:
 
   /* ------------------------------------------------------------------------ */
   inline void selectType(__attribute__((unused)) ElementType type1,
-			 __attribute__((unused)) GhostType   ghost_type1,
-			 __attribute__((unused)) ElementType type2,
-			 __attribute__((unused)) GhostType   ghost_type2) {
+                         __attribute__((unused)) GhostType   ghost_type1,
+                         __attribute__((unused)) ElementType type2,
+                         __attribute__((unused)) GhostType   ghost_type2) {
   }
 
   /* ------------------------------------------------------------------------ */
   inline Real operator()(Real r,
-			 __attribute__((unused)) QuadraturePoint & q1,
-			 __attribute__((unused)) QuadraturePoint & q2) {
+                         __attribute__((unused)) QuadraturePoint & q1,
+                         __attribute__((unused)) QuadraturePoint & q2) {
     Real w = 0;
     if(r <= R) {
       Real alpha = (1. - r*r / R2);
@@ -79,7 +79,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   bool parseParam(__attribute__((unused)) const std::string & key,
-		__attribute__((unused)) const std::string & value) {
+                  __attribute__((unused)) const std::string & value) {
     return false;
   }
 
@@ -90,17 +90,17 @@ public:
 
 public:
   virtual UInt getNbDataForElements(__attribute__((unused)) const Vector<Element> & elements,
-				    __attribute__((unused)) SynchronizationTag tag) const {
+                                    __attribute__((unused)) SynchronizationTag tag) const {
     return 0;
   }
 
   virtual inline void packElementData(__attribute__((unused)) CommunicationBuffer & buffer,
-				      __attribute__((unused)) const Vector<Element> & elements,
-				      __attribute__((unused)) SynchronizationTag tag) const {}
+                                      __attribute__((unused)) const Vector<Element> & elements,
+                                      __attribute__((unused)) SynchronizationTag tag) const {}
 
   virtual inline void unpackElementData(__attribute__((unused)) CommunicationBuffer & buffer,
-					__attribute__((unused)) const Vector<Element> & elements,
-					__attribute__((unused)) SynchronizationTag tag) {}
+                                        __attribute__((unused)) const Vector<Element> & elements,
+                                        __attribute__((unused)) SynchronizationTag tag) {}
 protected:
   Material & material;
 
@@ -117,9 +117,9 @@ public:
   DamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
 
   inline void selectType(__attribute__((unused)) ElementType type1,
-			 __attribute__((unused)) GhostType ghost_type1,
-			 ElementType type2,
-			 GhostType ghost_type2) {
+                         __attribute__((unused)) GhostType ghost_type1,
+                         ElementType type2,
+                         GhostType ghost_type2) {
     selected_damage = &this->material.getVector("damage", type2, ghost_type2);
   }
 
@@ -137,7 +137,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   bool parseParam(__attribute__((unused)) const std::string & key,
-		__attribute__((unused)) const std::string & value) {
+                  __attribute__((unused)) const std::string & value) {
     return false;
   }
 
@@ -159,9 +159,9 @@ public:
   RemoveDamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
 
   inline void selectType(__attribute__((unused)) ElementType type1,
-			 __attribute__((unused)) GhostType ghost_type1,
-			 ElementType type2,
-			 GhostType ghost_type2) {
+                         __attribute__((unused)) GhostType ghost_type1,
+                         ElementType type2,
+                         GhostType ghost_type2) {
     selected_damage = &this->material.getVector("damage", type2, ghost_type2);
   }
 
@@ -174,36 +174,15 @@ public:
     Real w = 0.;
     if(D < damage_limit) {
 
-      ////alpha2beta6////
-      // Real alpha = std::max(0., 1. - r*r / this->R2);
-      //  w = alpha * alpha * alpha * alpha * alpha * alpha;
-
-      ////alpha4beta6////
-        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2));
-        //w = alpha * alpha * alpha * alpha * alpha * alpha;
-
-      ////alpha6beta6////
-        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2));
-        //w = alpha * alpha * alpha * alpha * alpha * alpha;
-
-      ////alpha8beta6////
-        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2));
-        //w = alpha * alpha * alpha * alpha * alpha * alpha; 
-
-      ////alpha10beta6////
-        //Real alpha = std::max(0., 1. - (r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2)*(r*r / this->R2));
-        //w = alpha * alpha * alpha * alpha * alpha * alpha;
-
-      ////alpha2beta2////
-        Real alpha = std::max(0., 1. - r*r / this->R2);
-        w = alpha * alpha;
+      Real alpha = std::max(0., 1. - r*r / this->R2);
+      w = alpha * alpha;
     }
     return w;
   }
 
   /* ------------------------------------------------------------------------ */
   bool parseParam(const std::string & key,
-		const std::string & value) {
+                  const std::string & value) {
     std::stringstream sstr(value);
     if(key == "damage_limit") { sstr >> damage_limit; }
     else return BaseWeightFunction<spatial_dimension>::parseParam(key, value);
@@ -216,7 +195,7 @@ public:
   }
 
   virtual UInt getNbDataForElements(const Vector<Element> & elements,
-				    SynchronizationTag tag) const {
+                                    SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight)
       return this->material.getNbQuadraturePoints(elements) * sizeof(Real);
 
@@ -224,35 +203,22 @@ public:
   }
 
   virtual inline void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
-				      SynchronizationTag tag) const {
+                                      const Vector<Element> & elements,
+                                      SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight)
       this->material.packElementDataHelper(dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
-					   buffer,
-					   elements);
-    // UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
-    // const Vector<Real> & dam_vect = this->material.getVector("damage", element.type, _not_ghost);
-    // Vector<Real>::const_iterator<Real> damage = dam_vect.begin();
-
-    // damage += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
-    //   buffer << *damage;
+                                           buffer,
+                                           elements);
   }
 
   virtual inline void unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
-					SynchronizationTag tag) {
+                                        const Vector<Element> & elements,
+                                        SynchronizationTag tag) {
     if(tag == _gst_mnl_weight)
       this->material.unpackElementDataHelper(dynamic_cast< MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
-					   buffer,
-					   elements);
+                                             buffer,
+                                             elements);
 
-    // UInt nb_quadrature_points = this->material.getModel().getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::iterator<Real> damage =
-    //   this->material.getVector("damage", element.type, _ghost).begin();
-    // damage += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++damage)
-    //   buffer >> *damage;
   }
 
 
@@ -273,9 +239,9 @@ public:
   RemoveDamagedWithDamageRateWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
 
   inline void selectType(__attribute__((unused)) ElementType type1,
-			 __attribute__((unused)) GhostType ghost_type1,
-			 ElementType type2,
-			 GhostType ghost_type2) {
+                         __attribute__((unused)) GhostType ghost_type1,
+                         ElementType type2,
+                         GhostType ghost_type2) {
     selected_damage_with_damage_rate = &(this->material.getVector("damage",type2, ghost_type2));
     selected_damage_rate_with_damage_rate = &(this->material.getVector("damage-rate",type2, ghost_type2));
   }
@@ -298,7 +264,7 @@ public:
   }
   /* ------------------------------------------------------------------------ */
   bool setParam(const std::string & key,
-		const std::string & value) {
+                const std::string & value) {
     std::stringstream sstr(value);
     if(key == "damage_limit") { sstr >> damage_limit_with_damage_rate; }
     else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
@@ -341,14 +307,14 @@ public:
   inline void updateQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates);
 
   inline void selectType(ElementType type1, GhostType ghost_type1,
-			 ElementType type2, GhostType ghost_type2);
+                         ElementType type2, GhostType ghost_type2);
 
   inline Real operator()(Real r, QuadraturePoint & q1, QuadraturePoint & q2);
 
   inline Real computeRhoSquare(Real r,
-			       types::RVector & eigs,
-			       types::RMatrix & eigenvects,
-			       types::RVector & x_s);
+                               types::RVector & eigs,
+                               types::RMatrix & eigenvects,
+                               types::RVector & x_s);
 
   /* ------------------------------------------------------------------------ */
   bool parseParam(const std::string & key, const std::string & value) {
@@ -382,7 +348,7 @@ private:
 
 template<UInt spatial_dimension>
 inline std::ostream & operator <<(std::ostream & stream,
-				  const BaseWeightFunction<spatial_dimension> & _this)
+                                  const BaseWeightFunction<spatial_dimension> & _this)
 {
   _this.printself(stream);
   return stream;
@@ -391,7 +357,7 @@ inline std::ostream & operator <<(std::ostream & stream,
 
 template<UInt spatial_dimension>
 inline std::ostream & operator <<(std::ostream & stream,
-				  const BaseWeightFunction<spatial_dimension> * _this)
+                                  const BaseWeightFunction<spatial_dimension> * _this)
 {
   _this->printself(stream);
   return stream;
@@ -400,19 +366,19 @@ inline std::ostream & operator <<(std::ostream & stream,
 
 template<UInt d>
 inline std::ostream & operator >>(std::ostream & stream,
-				  __attribute__((unused)) const BaseWeightFunction<d> * _this)
+                                  __attribute__((unused)) const BaseWeightFunction<d> * _this)
 {  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
 template<UInt d>
 inline std::ostream & operator >>(std::ostream & stream,
-				  __attribute__((unused)) const RemoveDamagedWeightFunction<d> * _this)
+                                  __attribute__((unused)) const RemoveDamagedWeightFunction<d> * _this)
 {  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
 template<UInt d>
 inline std::ostream & operator >>(std::ostream & stream,
-				  __attribute__((unused)) const DamagedWeightFunction<d> * _this)
+                                  __attribute__((unused)) const DamagedWeightFunction<d> * _this)
 {  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
 template<UInt d>
 inline std::ostream & operator >>(std::ostream & stream,
-				  __attribute__((unused)) const StressBasedWeightFunction<d> * _this)
+                                  __attribute__((unused)) const StressBasedWeightFunction<d> * _this)
 {  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
 
 

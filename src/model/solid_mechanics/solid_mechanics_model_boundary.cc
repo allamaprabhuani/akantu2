@@ -1,9 +1,10 @@
 /**
  * @file   solid_mechanics_model_boundary.cc
  * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
+ * @author Richart Nicolas <nicolas.richart@epfl.ch>
  * @date   Fri Nov 19 10:23:03 2010
  *
- * @brief
+ * @brief implementation of functions to impose boundary conditions
  *
  * @section LICENSE
  *

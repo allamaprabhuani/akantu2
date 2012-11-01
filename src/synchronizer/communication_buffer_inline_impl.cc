@@ -1,9 +1,10 @@
 /**
  * @file   communication_buffer_inline_impl.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Wed Apr  6 22:20:37 2011
  *
- * @brief
+ * @brief CommunicationBuffer inline implementation
  *
  * @section LICENSE
  *

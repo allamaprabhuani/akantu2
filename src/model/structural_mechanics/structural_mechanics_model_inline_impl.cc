@@ -3,7 +3,7 @@
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @date   Thu May  5 19:48:07 2011
  *
- * @brief
+ * @brief StructuralMechanicsModel implementation
  *
  * @section LICENSE
  *

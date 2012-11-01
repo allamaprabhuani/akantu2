@@ -3,7 +3,7 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @date   Fri Jun 11 09:46:59 2010
-#
+# @brief configuration for tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

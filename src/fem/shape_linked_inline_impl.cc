@@ -3,7 +3,7 @@
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @date   Thu Apr  7 18:15:24 2011
  *
- * @brief
+ * @brief ShapeLinked inline implementation
  *
  * @section LICENSE
  *

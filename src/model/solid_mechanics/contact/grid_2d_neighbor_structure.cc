@@ -3,7 +3,7 @@
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @date   Tue Dec  7 13:04:58 2010
  *
- * @brief
+ * @brief Grid2dNeighborStructure implementation
  *
  * @section LICENSE
  *

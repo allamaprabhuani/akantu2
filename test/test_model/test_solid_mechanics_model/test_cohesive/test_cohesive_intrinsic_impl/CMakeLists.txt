@@ -1,8 +1,9 @@
 #===============================================================================
 # @file   CMakeLists.txt
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
+# @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
 # @date   Thu Apr 26 15:14:00 2012
-#
+# @brief configuration for intrinsic implicit cohesive elements
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

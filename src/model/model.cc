@@ -1,9 +1,11 @@
 /**
  * @file   model.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
  * @date   Fri Sep 16 14:46:01 2011
  *
- * @brief  
+ * @brief  implementation of model common parts
  *
  * @section LICENSE
  *
@@ -58,7 +60,7 @@ void Model::setPBC(UInt x, UInt y, UInt z){
 void Model::setPBC(SurfacePairList & surface_pairs,
 		   ElementType surface_e_type){
   Mesh & mesh = getFEM().getMesh();
-  
+
   SurfacePairList::iterator s_it;
   for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
     MeshUtils::computePBCMap(mesh, *s_it, surface_e_type, pbc_pair);
@@ -68,7 +70,7 @@ void Model::setPBC(SurfacePairList & surface_pairs,
 /* -------------------------------------------------------------------------- */
 void Model::initPBC() {
   Mesh & mesh = getFEM().getMesh();
-   
+
   std::map<UInt,UInt>::iterator it = pbc_pair.begin();
   std::map<UInt,UInt>::iterator end = pbc_pair.end();
 
@@ -80,7 +82,7 @@ void Model::initPBC() {
   while(it != end){
     UInt i1 = (*it).first;
 
-    is_pbc_slave_node(i1) = true; 
+    is_pbc_slave_node(i1) = true;
 
 #ifndef AKANTU_NDEBUG
     UInt i2 = (*it).second;

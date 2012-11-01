@@ -2,7 +2,7 @@
 # @file   CMakeLists.txt
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 # @date   Fri Feb 24 14:30:59 2012
-#
+# @brief configuration for cohesive elements tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -29,9 +29,8 @@ add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
 add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
 add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
 add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
-if(AKANTU_MUMPS)
-  add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl")
-endif()
+add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl"
+  PACKAGE implicit)
 #===============================================================================
 
 #register_test(test_cohesive test_cohesive.cc)

@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb 23 12:27:13 2012
  *
- * @brief  
+ * @brief  MaterialCohesive inline implementation
  *
  * @section LICENSE
  *

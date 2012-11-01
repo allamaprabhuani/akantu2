@@ -1,6 +1,12 @@
 /**
  * @file   aka_math_tmpl.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ * @author Mathilde Radiguet <mathilde.radiguet@epfl.ch>
+ * @author Alejandro Marcos Aragon <alejandro.aragon@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Peter Spijker <peter.spijker@epfl.ch>
  * @date   Wed Jul 28 13:20:35 2010
  *
  * @brief  Implementation of the inline functions of the math toolkit

@@ -1,6 +1,7 @@
 /**
  * @file   test_heat_transfer_model_cube3d.cc
- * @author Rui WANG<rui.wang@epfl.ch>
+ * @author Rui WANG <rui.wang@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Tue May 17 11:31:22 2011
  *
  * @brief  test of the class HeatTransferModel on the 3d cube
@@ -61,10 +62,10 @@ akantu::Real capacity;
 
 
 int readMaterial () {
- 
+
   string str;
   ifstream myfile;
- 
+
 
   myfile.open("material.dat");
   if(!myfile) //Always test the file open.
@@ -74,13 +75,13 @@ int readMaterial () {
   }
 
 
-  
+
   getline(myfile, str);
   density=atof(str.c_str());
-    
+
   getline(myfile, str);
   capacity=atof(str.c_str());
-  
+
   getline(myfile, str);
   char * cstr, *p;
   char * tmp_cstr;
@@ -104,7 +105,7 @@ int readMaterial () {
 	conductivity[i][j]= atof(p);
 	cout<<conductivity[i][j]<<endl;
       }
- 
+
 
    return 0;
 }
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);
 
- 
+
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   model->getHeatFlux().clear();
   model->getLumped().clear();
@@ -147,15 +148,15 @@ int main(int argc, char *argv[])
   // std::cout << model->getTemperatureGradient(type) << std::endl;
   // akantu::debug::setDebugLevel(akantu::dblWarning);
 
- 
+
 
   model->setDensity(density);
   model->setCapacity(capacity);
   model->SetConductivityMatrix(conductivity);
- 
+
   //get stable time step
   akantu::Real time_step = model->getStableTimeStep()*0.8;
-  
+
   cout<<"time step is:"<<time_step<<endl;
   model->setTimeStep(time_step);
 
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
   akantu::Vector<akantu::Real> & temperature = model->getTemperature();
   akantu::Vector<akantu::Real> & heat_flux = model->getHeatFlux();
   akantu::Real eps = 1e-15;
- 
+
   double t1, t2, length;
 
   t1 = 300.;
@@ -192,7 +193,7 @@ int main(int argc, char *argv[])
      temperature(i) = 300.;
      }
 
-   
+
   }
 
   iohelper::DumperParaview dumper;
@@ -205,10 +206,10 @@ int main(int argc, char *argv[])
 
   for(int i=0; i<max_steps; i++)
     {
-     
+
       model->updateHeatFlux();
       model->updateTemperature();
-     
+
       if(i % 100 == 0)
 	paraviewDump(dumper);
       if(i % 10000 == 0)

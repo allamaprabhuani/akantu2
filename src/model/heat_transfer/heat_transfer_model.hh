@@ -1,6 +1,7 @@
 /**
  * @file   heat_transfer_model.hh
- * @author Rui WANG<rui.wang@epfl.ch>
+ * @author Rui WANG <rui.wang@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @date   Fri May  4 13:35:55 2011
  *
  * @brief  Model of Heat Transfer

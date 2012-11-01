@@ -1,6 +1,7 @@
 /**
  * @file   newmark-beta.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Thu Sep 30 11:35:15 2010
  *
  * @brief  implementation of the  newmark-@f$\beta@f$ integration  scheme.  This

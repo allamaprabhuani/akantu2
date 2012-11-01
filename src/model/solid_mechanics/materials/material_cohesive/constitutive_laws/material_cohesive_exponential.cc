@@ -1,5 +1,5 @@
 /**
- * @file   material_cohesive_Exponential.cc
+ * @file   material_cohesive_exponential.cc
  * @author Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Mon Feb 20 12:14:16 2012

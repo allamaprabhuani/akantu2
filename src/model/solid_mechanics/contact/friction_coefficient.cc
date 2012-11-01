@@ -3,7 +3,7 @@
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Tue Feb 22 11:08:40 2011
  *
- * @brief  
+ * @brief  FrictionCoefficient implementation
  *
  * @section LICENSE
  *

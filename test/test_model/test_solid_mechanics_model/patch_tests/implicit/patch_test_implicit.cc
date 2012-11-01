@@ -1,6 +1,6 @@
 /**
  * @file   test_check_stress.cc
- * @author David Kammer <david.kammer@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Feb 16 13:56:42 2011
  *
  * @brief  patch test for elastic material in solid mechanics model

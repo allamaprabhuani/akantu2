@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb  2 14:20:48 2012
  *
- * @brief  
+ * @brief  CohesiveElement implementation
  *
  * @section LICENSE
  *

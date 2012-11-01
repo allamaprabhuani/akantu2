@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue Sep 14 11:37:10 2010
  *
- * @brief  
+ * @brief  StaticCommunicatorMPI implementation
  *
  * @section LICENSE
  *

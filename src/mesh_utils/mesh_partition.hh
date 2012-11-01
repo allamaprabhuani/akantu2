@@ -1,6 +1,7 @@
 /**
  * @file   mesh_partition.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Thu Aug 12 16:24:40 2010
  *
  * @brief  tools to partitionate a mesh

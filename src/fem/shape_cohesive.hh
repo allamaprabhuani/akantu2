@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Feb  2 15:44:27 2012
  *
- * @brief
+ * @brief shape functions for cohesive elements description
  *
  * @section LICENSE
  *

@@ -4,7 +4,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Fri Feb 24 16:01:10 2012
  *
- * @brief  
+ * @brief  MaterialVreePeerlings header for non-local damage
  *
  * @section LICENSE
  *

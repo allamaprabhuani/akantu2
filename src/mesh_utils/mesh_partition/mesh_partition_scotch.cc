@@ -1,6 +1,7 @@
 /**
  * @file   mesh_partition_scotch.cc
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Fri Aug 13 11:54:11 2010
  *
  * @brief  implementation of the MeshPartitionScotch class

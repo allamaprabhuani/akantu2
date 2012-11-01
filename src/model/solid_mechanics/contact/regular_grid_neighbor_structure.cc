@@ -38,7 +38,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-NodesNeighborList::NodesNeighborList(const ID & id) : 
+NodesNeighborList::NodesNeighborList(const ID & id) :
   NeighborList(id),
   master_nodes_offset(Vector<UInt>(0, 1, "master_nodes_offset")),
   master_nodes       (Vector<UInt>(0, 1, "master_nodes")) {

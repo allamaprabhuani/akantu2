@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Wed Oct 24 22:15:34 2012
  *
- * @brief  
+ * @brief  implementations of DumperParaview
  *
  * @section LICENSE
  *

@@ -1,7 +1,5 @@
 /**
  * @file   material_damage_linear.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Tue Jul 27 11:53:52 2010
  *

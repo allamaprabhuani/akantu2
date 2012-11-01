@@ -3,6 +3,7 @@
  * @author Rui WANG <rui.wang@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Fri May  4 13:46:43 2011
  *
  * @brief  Implementation of HeatTransferModel class

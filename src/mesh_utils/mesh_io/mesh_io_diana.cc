@@ -4,7 +4,7 @@
  * @author David Kammer <david.kammer@epfl.ch>
  * @date   Thu Mar 10 15:42:24 2011
  *
- * @brief
+ * @brief handles diana meshes
  *
  * @section LICENSE
  *

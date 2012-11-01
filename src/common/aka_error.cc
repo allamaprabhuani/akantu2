@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Sun Sep  5 21:03:37 2010
  *
- * @brief
+ * @brief handling of errors
  *
  * @section LICENSE
  *

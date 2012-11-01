@@ -1,6 +1,8 @@
 /**
  * @file   mesh.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Wed Jun 16 11:53:53 2010
  *
  * @brief  the class representing the meshes

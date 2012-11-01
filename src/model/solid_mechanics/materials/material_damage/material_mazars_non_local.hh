@@ -1,9 +1,10 @@
 /**
  * @file   material_mazars_non_local.hh
- * @author  <chambart@lsmscluster1.epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *  @author Richart Nicolas <nicolas.richart@epfl.ch>
  * @date   Wed Aug 31 17:08:23 2011
- * 
- * @brief  
+ *
+ * @brief  Mazars non-local description
  *
  * @section LICENSE
  *

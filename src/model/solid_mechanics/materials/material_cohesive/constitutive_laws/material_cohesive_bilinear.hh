@@ -49,10 +49,10 @@ class MaterialCohesiveBilinear : public MaterialCohesiveLinear<spatial_dimension
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   MaterialCohesiveBilinear(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveBilinear();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -87,7 +87,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

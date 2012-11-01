@@ -1,8 +1,9 @@
 #===============================================================================
 # @file   CMakeLists.txt
 # @author David Kammer <david.kammer@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @date   Wed Feb 16 09:46:59 2010
-#
+# @brief configuration for patch tests
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

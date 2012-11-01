@@ -1,9 +1,10 @@
 /**
  * @file   test_surface_extraction_2d.cc
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Mon Oct 25 09:47:15 2010
  *
- * @brief
+ * @brief test for surface extractions
  *
  * @section LICENSE
  *

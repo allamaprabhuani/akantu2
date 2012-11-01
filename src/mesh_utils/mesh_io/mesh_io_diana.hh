@@ -1,9 +1,10 @@
 /**
  * @file   mesh_io_diana.hh
  * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Thu Mar 10 11:24:27 2011
  *
- * @brief
+ * @brief diana mesh reader description
  *
  * @section LICENSE
  *

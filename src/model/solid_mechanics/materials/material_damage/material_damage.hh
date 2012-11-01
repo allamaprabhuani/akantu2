@@ -1,7 +1,6 @@
 /**
  * @file   material_damage.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Chambart <marion.chambart@epfl.ch>
  * @date   Thu Jul 29 15:00:59 2010
  *

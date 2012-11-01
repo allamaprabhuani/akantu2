@@ -1,4 +1,3 @@
-
 /**
  * @file   contact.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>

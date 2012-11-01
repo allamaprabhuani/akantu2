@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Thu Aug 25 11:59:39 2011
  *
- * @brief
+ * @brief Non-local inline implementation
  *
  * @section LICENSE
  *

@@ -4,6 +4,7 @@
  * @date   Fri Jun 11 09:48:06 2010
  *
  * @namespace akantu
+ * @brief common type descriptions for akantu
  *
  * @section LICENSE
  *

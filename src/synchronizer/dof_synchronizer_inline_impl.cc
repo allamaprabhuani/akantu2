@@ -3,7 +3,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Tue May 31 11:24:22 2011
  *
- * @brief
+ * @brief DOFSynchronizer inline implementation
  *
  * @section LICENSE
  *

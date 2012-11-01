@@ -3,7 +3,7 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @date   Wed Aug  8 15:39:24 2012
 #
-# @brief  
+# @brief  configuration for viscoelastic materials tests
 #
 # @section LICENSE
 #

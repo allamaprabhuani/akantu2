@@ -55,12 +55,12 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
 
 //   UInt nb_quad_points = 0;
 
-// #define GET_NB_QUAD(type)					
+// #define GET_NB_QUAD(type)
 //   nb_quad_points = ElementClass<type>::getNbQuadraturePoints();
 
 //   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
 // #undef GET_NB_QUAD
-    
+
 //   AKANTU_DEBUG_OUT();
 //   return nb_quad_points;
 // }

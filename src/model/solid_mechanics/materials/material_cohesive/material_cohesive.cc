@@ -1,6 +1,7 @@
 /**
  * @file   material_cohesive.cc
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @date   Tue Feb  7 18:24:52 2012
  *
  * @brief  Specialization of the material class for cohesive elements

@@ -1,6 +1,7 @@
 /**
  * @file   dumpable.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
  * @date   Wed Oct 24 22:37:42 2012
  *
  * @brief  Interface for object who wants to dump themselves

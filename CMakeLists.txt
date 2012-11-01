@@ -2,8 +2,14 @@
 # @file   CMakeLists.txt
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Till Junge <till.junge@epfl.ch>
+# @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+# @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+# @author Alejandro Marcos Aragon <alejandro.aragon@epfl.ch>
+# @author Mathilde Radiguet <mathilde.radiguet@epfl.ch>
+# @author David Simon Kammer <david.kammer@epfl.ch>
 # @date   Fri Jun 11 09:46:59 2010
-#
+# @brief main configuration file
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,10 +29,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 # @section DESCRIPTION
-#
-#===============================================================================
-
-#===============================================================================
+#-------------------------------------------------------------------------------
 #                      _               _
 #                     | |             | |
 #                 __ _| | ____ _ _ __ | |_ _   _

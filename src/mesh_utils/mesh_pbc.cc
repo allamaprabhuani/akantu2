@@ -1,6 +1,7 @@
 /**
  * @file   mesh_pbc.cc
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @date   Tue Feb  8 10:48:01 2011
  *
  * @brief  periodic boundary condition connectivity tweak

@@ -4,6 +4,8 @@
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @date   Mon Oct 25 09:46:59 2010
 #
+# @brief macros for tests and examples
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

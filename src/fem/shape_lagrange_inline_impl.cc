@@ -1,9 +1,10 @@
 /**
  * @file   shape_lagrange_inline_impl.cc
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Richart Nicolas <nicolas.richart@epfl.ch>
  * @date   Thu Feb 10 21:12:54 2011
  *
- * @brief
+ * @brief ShapeLagrange inline implementation
  *
  * @section LICENSE
  *

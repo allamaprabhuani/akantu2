@@ -1,6 +1,6 @@
 /**
  * @file   test_heat_transfer_model_cube3d_istropic_conductivity.cc
- * @author Rui WANG<rui.wang@epfl.ch>
+ * @author Rui WANG <rui.wang@epfl.ch>
  * @date   Tue May 17 11:31:22 2011
  *
  * @brief  test of the class HeatTransferModel on the 3d cube
