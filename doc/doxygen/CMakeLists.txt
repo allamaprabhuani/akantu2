@@ -3,6 +3,7 @@
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @date   Mon Sep 27 17:35:59 2010
 #
+# @brief configuration file for doxygen
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -32,7 +33,7 @@ set(DOXYGEN_OUTPUT ${DOXYGEN_OUTPUT_DIR}/index.html)
 string(REGEX REPLACE ":" " " AKANTU_DOXYGEN_DEFINTIONS "${AKANTU_DEFINITIONS}")
 
 make_directory(${DOXYGEN_OUTPUT_DIR})
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.cmake
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.in
   ${CMAKE_CURRENT_BINARY_DIR}/akantu.dox)
 
 add_custom_command(
