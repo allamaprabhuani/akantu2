@@ -25,14 +25,10 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-include(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
-
 include_directories(
   ${AKANTU_INCLUDE_DIRS}
   ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR}
   )
-
-find_package(GMSH REQUIRED)
 
 #===============================================================================
 # List of tests
@@ -42,14 +38,9 @@ add_akantu_test(test_static_memory "Test static memory")
 add_akantu_test(test_fem "Test finite element functionalties")
 add_akantu_test(test_mesh_utils "Test mesh utils")
 add_akantu_test(test_model "Test model objects")
-add_akantu_test(test_solver "Test solver function")
+add_akantu_test(test_solver "Test solver function" PACKAGE solver)
 
-if(AKANTU_CONTACT)
-  #add_akantu_test(test_contact_neighbor_structure "Test contact neighbor structure")
-  add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
-endif(AKANTU_CONTACT)
+add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
+add_akantu_test(test_synchronizer "Test synchronizers" PACKAGE parallel)
 
-if(AKANTU_MPI)
-  add_akantu_test(test_synchronizer "Test synchronizers")
-endif(AKANTU_MPI)
-
+set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} PARENT_SCOPE)

@@ -24,12 +24,18 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-
 macro(register_patch_test name type plane_strain)
-  register_test(patch_test_implicit_${name} patch_test_implicit.cc)
-  file(COPY ../data/_${type}.msh DESTINATION .)
-  set_target_properties(patch_test_implicit_${name}
-    PROPERTIES COMPILE_DEFINITIONS "TYPE=_${type};PLANE_STRAIN=${plane_strain}")
+  if(plane_strain)
+    set(_mat ../data/material_check_stress_plane_strain.dat)
+  else()
+    set(_mat ../data/material_check_stress_plane_stress.dat)
+  endif()
+  register_test(patch_test_implicit_${name}
+    SOURCES patch_test_implicit.cc
+    FILES_TO_COPY ../data/_${type}.msh ${_mat}
+    COMPILE_OPTIONS "TYPE=_${type};PLANE_STRAIN=${plane_strain}"
+    PACKAGE implicit
+    )
 endmacro()
 
 foreach(_type ${LIST_TYPES})
@@ -40,9 +46,3 @@ foreach(_type ${LIST_TYPES_2D})
   register_patch_test(plane_strain_${_type} ${_type} true)
   register_patch_test(plane_stress_${_type} ${_type} false)
 endforeach()
-
-#===============================================================================
-file(COPY ../data/material_check_stress_plane_strain.dat DESTINATION .)
-file(COPY ../data/material_check_stress_plane_stress.dat DESTINATION .)
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

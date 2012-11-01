@@ -76,7 +76,6 @@ int main(int argc, char *argv[])
   model.readCustomMaterial<LocalMaterialDamage>("material.dat", "local_damage");
   model.initMaterials();
 
-
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);
 

@@ -37,3 +37,13 @@ if(DOXYGEN_FOUND)
 
   add_subdirectory(doxygen)
 endif(DOXYGEN_FOUND)
+
+
+foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_OFF})
+  package_pkg_name(${_pkg} _package_name)
+  foreach(_file ${${_package_name}_DOC})
+    list(APPEND AKANTU_DOC_EXCLUDE_FILES doc/${_file})
+  endforeach()
+endforeach()
+
+set(AKANTU_DOC_EXCLUDE_FILES ${AKANTU_DOC_EXCLUDE_FILES} PARENT_SCOPE)

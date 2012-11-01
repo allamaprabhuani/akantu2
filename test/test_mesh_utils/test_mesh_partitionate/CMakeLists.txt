@@ -29,8 +29,7 @@ add_mesh(test_mesh_partitionate_mesh
   triangle.geo 2 2)
 
 register_test(test_mesh_partitionate_scotch
-  test_mesh_partitionate_scotch.cc)
-add_dependencies(test_mesh_partitionate_scotch
-  test_mesh_partitionate_mesh)
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+  SOURCES test_mesh_partitionate_scotch.cc
+  DEPENDENCIES test_mesh_partitionate_mesh
+  DIRECTORIES_TO_CREATE paraview
+  )

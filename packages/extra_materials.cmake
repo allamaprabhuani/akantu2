@@ -27,4 +27,16 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
+
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
+  )
+
+set(AKANTU_EXTRA_MATERIALS_TESTS
+  test_material_standard_linear_solid_deviatoric_relaxation
+  test_material_standard_linear_solid_deviatoric_relaxation_tension
+  )
+
+set(AKANTU_EXTRA_MATERIALS_DOC
+  manual/manual-extra_materials.tex
   )

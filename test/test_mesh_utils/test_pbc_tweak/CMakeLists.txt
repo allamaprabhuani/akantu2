@@ -28,10 +28,9 @@
 #===============================================================================
 add_mesh(test_pbc_cube_mesh cube.geo 3 1)
 
-register_test(test_pbc_tweak test_pbc_tweak.cc)
-add_dependencies(test_pbc_tweak test_pbc_cube_mesh)
-
-#===============================================================================
-file(COPY material.dat DESTINATION .)
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+register_test(test_pbc_tweak
+  SOURCES test_pbc_tweak.cc
+  DEPENDENCIES test_pbc_cube_mesh
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )

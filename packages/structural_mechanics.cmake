@@ -4,3 +4,7 @@ set(AKANTU_STRUCTURAL_MECHANICS_FILES
   model/structural_mechanics/structural_mechanics_model_boundary.cc
   model/structural_mechanics/structural_mechanics_model_inline_impl.cc
   )
+
+set(AKANTU_STRUCTURAL_MECHANICS_DOC
+  manual/manual-structuralmechanicsmodel.tex
+  )

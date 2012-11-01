@@ -58,16 +58,14 @@ public:
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual UInt getNbDataToPack(const Element & element,
-				       SynchronizationTag tag) const;
-  virtual UInt getNbDataToUnpack(const Element & element,
-					 SynchronizationTag tag) const;
-  virtual void packData(CommunicationBuffer & buffer,
-			const Element & element,
-			SynchronizationTag tag) const;
-  virtual void unpackData(CommunicationBuffer & buffer,
-			  const Element & element,
-			  SynchronizationTag tag);
+  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+				    SynchronizationTag tag) const;
+  virtual void packElementData(CommunicationBuffer & buffer,
+			       const Vector<Element> & elements,
+			       SynchronizationTag tag) const;
+  virtual void unpackElementData(CommunicationBuffer & buffer,
+				 const Vector<Element> & elements,
+				 SynchronizationTag tag);
 
   virtual UInt getNbDataToPack(SynchronizationTag tag) const;
   virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
@@ -114,33 +112,38 @@ TestAccessor::~TestAccessor() {
 
 }
 
-UInt TestAccessor::getNbDataToPack(const Element & element,
-					       __attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(element.type) * sizeof(Real);
+UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
+					__attribute__ ((unused)) SynchronizationTag tag) const {
+  return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
 }
 
-UInt TestAccessor::getNbDataToUnpack(const Element & element,
-						 __attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(element.type) * sizeof(Real);
+void TestAccessor::packElementData(CommunicationBuffer & buffer,
+				   const Vector<Element> & elements,
+				   __attribute__ ((unused)) SynchronizationTag tag) const {
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+    UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
+    types::RVector bary(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, bary.storage());
+
+    buffer << bary;
+  }
 }
 
-void TestAccessor::packData(CommunicationBuffer & buffer,
-				const Element & element,
-				__attribute__ ((unused)) SynchronizationTag tag) const {
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  types::RVector bary(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, bary.storage());
-
-  buffer << bary;
-}
-
-void TestAccessor::unpackData(CommunicationBuffer & buffer,
-				  const Element & element,
-				  __attribute__ ((unused)) SynchronizationTag tag) {
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  Vector<Real>::iterator<types::RVector> bary =
-    ghost_barycenter(element.type).begin(spatial_dimension);
-  buffer >> bary[element.element];
+void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
+				     const Vector<Element> & elements,
+				     __attribute__ ((unused)) SynchronizationTag tag) {
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+    UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
+    Vector<Real>::iterator<types::RVector> bary =
+      ghost_barycenter(element.type).begin(spatial_dimension);
+    buffer >> bary[element.element];
+  }
 }
 
 UInt TestAccessor::getNbDataToPack(__attribute__ ((unused)) SynchronizationTag tag) const {

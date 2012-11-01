@@ -28,7 +28,7 @@
 #===============================================================================
 macro(register_fem_test operation type)
   set(_target test_${operation}_${_type})
-  register_test_new(${_target}
+  register_test(${_target}
     SOURCES test_${operation}.cc
     FILES_TO_COPY _${type}.msh
     COMPILE_OPTIONS TYPE=_${_type}

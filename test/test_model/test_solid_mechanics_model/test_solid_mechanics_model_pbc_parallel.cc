@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
   akantu::initialize(argc, argv);
 
-  akantu::StaticCommunicator * comm = 
+  akantu::StaticCommunicator & comm = 
     akantu::StaticCommunicator::getStaticCommunicator();
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();

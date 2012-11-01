@@ -28,13 +28,17 @@
 #===============================================================================
 add_mesh(test_facet_square_mesh square.geo 2 2)
 
-register_test(test_facet_extraction_triangle_3 test_facet_extraction_triangle_3.cc)
-add_dependencies(test_facet_extraction_triangle_3 test_facet_square_mesh)
+register_test(test_facet_extraction_triangle_3
+  SOURCES test_facet_extraction_triangle_3.cc
+  DEPENDENCIES test_facet_square_mesh
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 #===============================================================================
 add_mesh(test_facet_cube_mesh cube.geo 3 1)
 
-register_test(test_facet_extraction_tetrahedron_4 test_facet_extraction_tetrahedron_4.cc)
-add_dependencies(test_facet_extraction_tetrahedron_4 test_facet_cube_mesh)
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+register_test(test_facet_extraction_tetrahedron_4
+  SOURCES test_facet_extraction_tetrahedron_4.cc
+  DEPENDENCIES test_facet_cube_mesh
+  DIRECTORIES_TO_CREATE paraview
+  )

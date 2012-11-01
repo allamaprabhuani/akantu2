@@ -27,23 +27,19 @@
 
 add_mesh(test_solver_mesh triangle.geo 2 1)
 
-register_test(test_sparse_matrix_profile test_sparse_matrix_profile.cc)
-add_dependencies(test_sparse_matrix_profile test_solver_mesh)
+register_test(test_sparse_matrix_profile
+  SOURCES test_sparse_matrix_profile.cc
+  DEPENDENCIES test_solver_mesh
+  )
 
-register_test(test_sparse_matrix_assemble test_sparse_matrix_assemble.cc)
-add_dependencies(test_sparse_matrix_assemble test_solver_mesh)
+register_test(test_sparse_matrix_assemble
+  SOURCES test_sparse_matrix_assemble.cc
+  DEPENDENCIES test_solver_mesh
+  )
 
-#if(AKANTU_MPI)
-#  register_test(test_sparse_matrix_profile_parallel test_sparse_matrix_profile_parallel.cc)
-#  add_dependencies(test_sparse_matrix_profile_parallel test_solver_mesh)
-#endif(AKANTU_MPI)
+register_test(test_solver_mumps SOURCES test_solver_mumps.cc)
 
-if(AKANTU_MUMPS)
-  register_test(test_solver_mumps test_solver_mumps.cc)
-endif(AKANTU_MUMPS)
-
-#===============================================================================
-if(AKANTU_MPI AND (AKANTU_SCOTCH OR AKANTU_PTSCOTCH) )
-  register_test(test_sparse_matrix_product test_sparse_matrix_product.cc)
-  copy_files(test_sparse_matrix_product bar.msh)
-endif()
+register_test(test_sparse_matrix_product
+  SOURCES test_sparse_matrix_product.cc
+  FILES_TO_COPY bar.msh
+  )

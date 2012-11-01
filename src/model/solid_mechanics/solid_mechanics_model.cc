@@ -1251,7 +1251,7 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
-  else if(field_id == "partition"   ) {
+  else if(field_id == "partitions"  ) {
     addDumpFieldToDumper(field_id,
 			 new DumperIOHelper::ElementPartitionField(mesh,
 								   spatial_dimension,

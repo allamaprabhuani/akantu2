@@ -39,3 +39,7 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
 
 set(AKANTU_COHESIVE_ELEMENT_TESTS
   )
+
+set(AKANTU_COHESIVE_ELEMENT_DOC
+  manual/manual-cohesive_element.tex
+  )

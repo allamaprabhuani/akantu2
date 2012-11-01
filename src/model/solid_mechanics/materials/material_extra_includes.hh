@@ -36,6 +36,7 @@
 
 // visco-elastic materials
 #include "material_stiffness_proportional.hh"
+#include "material_standard_linear_solid_deviatoric.hh"
 
 // elastic materials
 #include "material_elastic_orthotropic.hh"
@@ -48,5 +49,6 @@
   ((2, (mazars             , MaterialMazars               )))		\
   ((2, (vreepeerlings      , MaterialVreePeerlings        )))		\
   ((2, (ve_stiffness_prop  , MaterialStiffnessProportional)))		\
+  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))	\
   ((2, (elastic_orthotropic, MaterialElasticOrthotropic   )))		\
   ((2, (neohookean         , MaterialNeohookean           )))

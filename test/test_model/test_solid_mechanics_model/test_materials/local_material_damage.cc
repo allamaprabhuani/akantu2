@@ -48,7 +48,7 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
   this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
 
-  initInternalVector(this->damage, 1);
+  initInternalVector(damage, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -58,7 +58,7 @@ void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  resizeInternalVector(this->damage);
+  resizeInternalVector(damage);
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));

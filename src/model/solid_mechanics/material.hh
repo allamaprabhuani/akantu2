@@ -308,12 +308,12 @@ public:
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
 
-  /// return the potential energy for the subset of elements contained by the material 
+  /// return the potential energy for the subset of elements contained by the material
   Real getPotentialEnergy();
   /// return the potential energy for the provided element
   Real getPotentialEnergy(ElementType & type, UInt index);
 
-  /// return the energy (identified by id) for the subset of elements contained by the material 
+  /// return the energy (identified by id) for the subset of elements contained by the material
   virtual Real getEnergy(std::string energy_id);
   /// return the energy (identified by id) for the provided element
   virtual Real getEnergy(std::string energy_id, ElementType type, UInt index);
@@ -468,12 +468,8 @@ __END_AKANTU__
 // elastic materials
 #include "material_elastic.hh"
 
-// visco-elastic materials
-#include "material_standard_linear_solid_deviatoric.hh"
-
 #define AKANTU_CORE_MATERIAL_LIST					\
-  ((2, (elastic            , MaterialElastic                      )))	\
-  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))
+  ((2, (elastic            , MaterialElastic                      )))
 
 
 #if defined(AKANTU_EXTRA_MATERIALS)

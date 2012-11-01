@@ -129,15 +129,28 @@ if(AKANTU_DOCUMENTATION)
   add_subdirectory(doc)
 endif()
 
+
 #===============================================================================
-# Tests
+# Examples and tests
 #===============================================================================
+option(AKANTU_EXAMPLES "Activate examples" OFF)
 option(AKANTU_TESTS "Activate tests" OFF)
+
+if(AKANTU_EXAMPLES OR AKANTU_TESTS)
+  include(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
+  find_package(GMSH REQUIRED)
+endif()
+
+if(AKANTU_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
 if(AKANTU_TESTS)
   enable_testing()
   include(CTest)
+  set(AKANTU_TESTS_EXCLUDE_FILES)
   add_subdirectory(test)
-endif(AKANTU_TESTS)
+endif()
 
 #===============================================================================
 # Install and Packaging

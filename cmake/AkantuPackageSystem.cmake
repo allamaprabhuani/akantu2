@@ -84,7 +84,14 @@ macro(add_all_packages package_dir)
   akantu_message("add_all_packages: ALL FILE LIST : ${_release_all_file}")
 
   #check if there are some file in the release that are not registered in a package
-  file(GLOB_RECURSE _all_files RELATIVE ${CMAKE_SOURCE_DIR}/src "*.cc" "*.hh")
+  file(GLOB_RECURSE __all_files "*.cc" "*.hh")
+  set(_all_files)
+  foreach(_file ${__all_files})
+    if("${_file}" MATCHES  "${CMAKE_SOURCE_DIR}/src")
+      file(RELATIVE_PATH __file ${CMAKE_SOURCE_DIR}/src ${_file})
+      list(APPEND _all_files ${__file})
+    endif()
+  endforeach()
 
   foreach(_file ${_all_files})
     if(NOT ${_file} MATCHES "test.*" AND NOT ${_file} MATCHES "third-party")

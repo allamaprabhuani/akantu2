@@ -115,8 +115,7 @@ int main(int argc, char *argv[])
   model.addDumpField("residual"    );
   model.addDumpField("stress"      );
   model.addDumpField("strain"      );
-  model.addDumpFieldExternal("partitions",
-			     new akantu::DumperIOHelper::ElementalField<akantu::UInt>(partition->getPartitions(), spatial_dimension, _not_ghost));
+  model.addDumpField("partitions"  );
   model.dump();
 
   std::ofstream energy;

@@ -45,7 +45,7 @@ public:
 
   LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
 
-  //  virtual ~LocalMaterialDamage() {};
+  virtual ~LocalMaterialDamage() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

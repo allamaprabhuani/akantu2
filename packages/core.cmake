@@ -25,7 +25,6 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material.cc
   model/solid_mechanics/material_parameters.cc
   model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
@@ -41,7 +40,6 @@ set(AKANTU_CORE_FILES
   synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
-  synchronizer/grid_synchronizer.cc
   synchronizer/dof_synchronizer.cc
 
   #header files
@@ -65,7 +63,6 @@ set(AKANTU_CORE_FILES
   synchronizer/real_static_communicator.hh
   synchronizer/data_accessor.hh
   synchronizer/communication_buffer.hh
-  synchronizer/grid_synchronizer.hh
   common/aka_grid.hh
   common/aka_grid_tmpl.hh
   common/aka_types.hh
@@ -105,8 +102,6 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material_parameters.hh
   model/solid_mechanics/material_parameters_tmpl.hh
   model/solid_mechanics/materials/material_elastic.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
-  model/heat_transfer/heat_transfer_model.hh
 
   #inline implementation files
   mesh_utils/mesh_utils_inline_impl.cc
@@ -150,4 +145,27 @@ set(AKANTU_CORE_DEB_DEPEND
 
 set(AKANTU_CORE_TESTS
   test_solid_mechanics_model_square
+  test_vector
+  test_vector_iterator
+  test_matrix
+  test_csr
+  test_grid
+  test_static_memory
+  test_mesh_io_msh
+  test_facet_extraction_triangle_3
+  test_facet_extraction_tetrahedron_4
+  test_pbc_tweak
+  test_purify_mesh
+  test_local_material
+  test_interpolate_stress
+  test_weight
+  test_solid_mechanics_model_circle_2
+  test_solid_mechanics_model_bar_traction2d
+  test_solid_mechanics_model_bar_traction2d_structured
+  test_solid_mechanics_model_bar_traction2d_structured_pbc
+  test_solid_mechanics_model_cube3d
+  test_solid_mechanics_model_cube3d_tetra10
+  test_solid_mechanics_model_cube3d_pbc
+  test_surface_extraction_triangle_3
+  test_surface_extraction_tetrahedron_4
   )

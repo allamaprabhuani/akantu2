@@ -24,40 +24,17 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
 
-add_mesh(test_material_standard_linear_solid_deviatoric_relaxation_mesh test_material_standard_linear_solid_deviatoric_relaxation.geo 2 1)
-register_test(test_material_standard_linear_solid_deviatoric_relaxation test_material_standard_linear_solid_deviatoric_relaxation.cc)
-add_dependencies(test_material_standard_linear_solid_deviatoric_relaxation test_material_standard_linear_solid_deviatoric_relaxation_mesh)
+add_mesh(test_material_standard_linear_solid_deviatoric_relaxation_mesh
+  test_material_standard_linear_solid_deviatoric_relaxation.geo 2 1)
 
-register_test(test_material_standard_linear_solid_deviatoric_relaxation_tension test_material_standard_linear_solid_deviatoric_relaxation_tension.cc)
-add_dependencies(test_material_standard_linear_solid_deviatoric_relaxation_tension test_material_standard_linear_solid_deviatoric_relaxation_mesh)
-file(COPY material_standard_linear_solid_deviatoric_relaxation.dat DESTINATION .)
+register_test(test_material_standard_linear_solid_deviatoric_relaxation
+  SOURCES test_material_standard_linear_solid_deviatoric_relaxation.cc
+  DEPENDENCIES test_material_standard_linear_solid_deviatoric_relaxation_mesh
+  FILES_TO_COPY material_standard_linear_solid_deviatoric_relaxation.dat
+  )
 
-#===============================================================================
-#foreach(_type ${LIST_TYPES})
-#  if(AKANTU_IOHELPER)
-#    register_test(test_material_stiffness_proportional_${_type} test_material_stiffness_proportional.cc io_helper_tools.cc)
-#  else()
-#    register_test(test_material_stiffness_proportional_${_type} test_material_stiffness_proportional.cc)
-#  endif()
-#  set_target_properties(test_material_stiffness_proportional_${_type}
-#    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-#  file(COPY ./data/test_material_stiffness_proportional_${_type}.msh DESTINATION .)
-#  file(COPY ./ref_files/test_material_stiffness_proportional_${_type}.ref DESTINATION .)
-#endforeach()
-#
-##===============================================================================
-#foreach(_type ${LIST_TYPES})
-#  if(AKANTU_IOHELPER)
-#    register_test(test_material_stiffness_proportional_damping_${_type} test_material_stiffness_proportional_damping.cc io_helper_tools.cc)
-#  else()
-#    register_test(test_material_stiffness_proportional_damping_${_type} test_material_stiffness_proportional_damping.cc)
-#  endif()
-#  set_target_properties(test_material_stiffness_proportional_damping_${_type}
-#    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-#  file(COPY ./data/single_${_type}.msh DESTINATION .)
-#endforeach()
-#
-##===============================================================================
-#
-#file(COPY material_stiffness_proportional.dat DESTINATION .)
-#file(COPY material_stiffness_proportional_damping.dat DESTINATION .)
+register_test(test_material_standard_linear_solid_deviatoric_relaxation_tension
+  SOURCES test_material_standard_linear_solid_deviatoric_relaxation_tension.cc
+  DEPENDENCIES test_material_standard_linear_solid_deviatoric_relaxation_mesh
+  FILES_TO_COPY material_standard_linear_solid_deviatoric_relaxation.dat
+  )

@@ -16,16 +16,12 @@ set(AKANTU_SCOTCH_FILES
   mesh_utils/mesh_partition/mesh_partition_scotch.cc
   )
 
-#set(AKANTU_PTSCOTCH_FILES
-#  mesh_utils/mesh_partition/mesh_partition_scotch.cc
-#  )
-
 if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
   set(AKANTU_PARTITIONER_ON ON)
 else()
   set(AKANTU_PARTITIONER_ON OFF)
 endif()
 
-#if(AKANTU_PTSCOTCH_ON)
-#  add_definitions(-DAKANTU_USE_${_u_package})
-#endif()
+set(AKANTU_SCOTCH_TESTS
+  test_mesh_partitionate_scotch
+  )

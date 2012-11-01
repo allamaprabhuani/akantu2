@@ -28,41 +28,43 @@
 #===============================================================================
 add_mesh(test_heat_cube3d_mesh1 cube.geo 3 1 OUTPUT cube1.msh)
 add_mesh(test_heat_square_mesh1 square.geo 2 1 OUTPUT square1.msh)
-#add_mesh(test_heat_bar1_mesh1 bar_structured.geo 2 1 OUTPUT bar1.msh)
+
 add_mesh(test_heat_line_mesh line.geo 1 1 OUTPUT line.msh)
 register_test(test_heat_transfer_model_cube3d
-  test_heat_transfer_model_cube3d.cc)
-add_dependencies(test_heat_transfer_model_cube3d test_heat_cube3d_mesh1 test_heat_square_mesh1 test_heat_line_mesh)
-
+  SOURCES test_heat_transfer_model_cube3d.cc
+  DEPENDENCIES test_heat_cube3d_mesh1 test_heat_square_mesh1 test_heat_line_mesh
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 add_mesh(test_heat_cube_tet4 cube_tet.geo 3 1 OUTPUT cube_tet4.msh)
 register_test(test_heat_transfer_model_cube3d_pbc
-  test_heat_transfer_model_cube3d_pbc.cc)
-add_dependencies(test_heat_transfer_model_cube3d_pbc test_heat_cube_tet4)
+  SOURCES test_heat_transfer_model_cube3d_pbc.cc
+  DEPENDENCIES test_heat_cube_tet4
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 add_mesh(test_heat_square_tri3 square_tri.geo 2 1 OUTPUT square_tri3.msh)
 register_test(test_heat_transfer_model_square2d_pbc
-  test_heat_transfer_model_square2d_pbc.cc)
-add_dependencies(test_heat_transfer_model_square2d_pbc test_heat_square_tri3)
+  SOURCES test_heat_transfer_model_square2d_pbc.cc
+  DEPENDENCIES test_heat_square_tri3
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )
+
 register_test(test_heat_transfer_model_square2d
-  test_heat_transfer_model_square2d.cc)
-add_dependencies(test_heat_transfer_model_square2d test_heat_square_tri3)
+  SOURCES test_heat_transfer_model_square2d.cc
+  DEPENDENCIES test_heat_square_tri3
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 
 register_test(test_heat_transfer_model_cube3d_istropic_conductivity
-  test_heat_transfer_model_cube3d_istropic_conductivity.cc)
-add_dependencies(test_heat_transfer_model_cube3d_istropic_conductivity test_heat_transfer_model_cube3d_istropic_conductivity_mesh1)
+  SOURCES test_heat_transfer_model_cube3d_istropic_conductivity.cc
+  DEPENDENCIES test_heat_transfer_model_cube3d_istropic_conductivity_mesh1
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview
+  )
 
-#register_test(test_heat_transfer_model_cube3d_istropic_conductivity
-#  test_heat_transfer_model_cube3d_anisotropy_conductivity.cc)
-#add_dependencies(test_heat_transfer_model_cube3d_anisotropy_conductivity test_heat_transfer_model_cube3d_anisotropy_conductivity_mesh1)
-#
-#register_test(test_heat_transfer_model_cube3d_tetra10
-#  test_heat_transfer_model_cube3d_tetra10.cc)
-#add_dependencies(test_heat_transfer_model_cube3d_tetra10 test_heat_cube3d_mesh2)
-
-#===============================================================================
-file(COPY material.dat DESTINATION .)
-
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

@@ -178,9 +178,13 @@ public:
 	model->getMaterial(material_id[1]).getVector(field_id,
 						     *this->tit,
 						     this->ghost_type);
+
+      UInt ln = out_n;
+      if(out_n == 0) ln = vect.getNbComponent();
+
       internal_material_iterator it
-	= iterator_helper<T, ret_type>::begin(vect, out_n,
-					      vect.getNbComponent() / out_n * nb_data,
+	= iterator_helper<T, ret_type>::begin(vect, ln,
+					      vect.getNbComponent() / ln * nb_data,
 					      vect.getSize() / nb_data);
       it += material_id[0];
 
@@ -301,7 +305,7 @@ public:
 			UInt spatial_dimension = 0,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined) :
-    parent(model.getFEM(), model.getElementIndexByMaterial(), spatial_dimension, ghost_type, element_kind),
+    parent(model.getFEM(), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind),
     model(model), field_id(field_id) {
     init();
   }
