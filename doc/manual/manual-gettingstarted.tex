@@ -1,7 +1,9 @@
 \chapter{Getting started}
 \section{Downloading the code}
 
-To get the code of \akantu go to this URL \url{http://lsms.epfl.ch/akantu}, and fill the little form.
+The \akantu source code must be requested to the LSMS by 
+filling the form accessible at the URL \url{http://lsms.epfl.ch/akantu}.
+There, you will be asked to accept the LGPL licence terms.
 
 \section{Compiling Akantu}
 \begin{command}
@@ -92,7 +94,7 @@ containing a sequence of \texttt{nb\_element} values can be generated with:
 \end{cpp}
 where \texttt{type} usually is \texttt{Real}, \texttt{UInt} or
 \texttt{bool}. Each value is associated to an index, so that data can be
-accessed by typing
+accessed by typing:
 
 \begin{cpp}
   type & val = example_vector(index)
@@ -142,7 +144,7 @@ and the iteration is conveniently performed by the \code{Vector} iterator.
 
 The \code{Vector} object is intensively used to stored tensor values.
 In that case the iterator constructed should specify that the object type
-returned by the iterator should be a matrix. This is done at when calling the 
+returned by the iterator is a matrix. This is done when calling the 
 begin function. For instance, assuming that we have a \code{Vector} storing 
 stresses we can loop over the stored tensors by:
 
