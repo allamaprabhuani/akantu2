@@ -1,13 +1,15 @@
 /**
  * @file   aka_math_tmpl.hh
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @author Mathilde Radiguet <mathilde.radiguet@epfl.ch>
- * @author Alejandro Marcos Aragon <alejandro.aragon@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Peter Spijker <peter.spijker@epfl.ch>
- * @date   Wed Jul 28 13:20:35 2010
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Alejandro Marcos Aragon <alejandro.aragon@epfl.ch>
+ * @author Mathilde Radiguet <mathilde.radiguet@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Implementation of the inline functions of the math toolkit
  *
@@ -30,7 +32,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 __END_AKANTU__
 

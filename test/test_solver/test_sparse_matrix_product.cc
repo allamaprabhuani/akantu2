@@ -1,7 +1,9 @@
 /**
  * @file   test_sparse_matrix_product.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Jun  6 15:06:47 2011
+ *
+ * @date   Fri Jun 17 17:28:22 2011
  *
  * @brief  test the matrix vector product in parallel
  *

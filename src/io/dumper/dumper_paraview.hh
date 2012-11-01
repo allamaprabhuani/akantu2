@@ -1,7 +1,9 @@
 /**
  * @file   dumper_paraview.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Oct 24 22:08:27 2012
+ *
+ * @date   Fri Oct 26 21:52:40 2012
  *
  * @brief  Dumper Paraview using IOHelper
  *

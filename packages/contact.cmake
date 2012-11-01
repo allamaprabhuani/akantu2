@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   contact.cmake
 #
-# @brief package description for contact
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Nov 21 18:19:15 2011
+#
+# @brief  package description for contact
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 option(AKANTU_CONTACT "Use Contact package of Akantu" OFF)
 set(AKANTU_CONTACT_FILES
   #cc files

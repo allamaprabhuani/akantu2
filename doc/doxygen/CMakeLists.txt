@@ -1,9 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Sep 27 17:35:59 2010
 #
-# @brief configuration file for doxygen
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Tue Sep 28 01:41:47 2010
+#
+# @brief  configuration file for doxygen
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

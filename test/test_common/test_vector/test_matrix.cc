@@ -1,7 +1,9 @@
 /**
  * @file   test_matrix.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Feb 18 22:29:00 2011
+ *
+ * @date   Thu Mar 03 16:09:49 2011
  *
  * @brief  tests for types::Matrix
  *

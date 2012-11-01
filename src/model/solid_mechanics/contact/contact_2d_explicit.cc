@@ -1,9 +1,11 @@
 /**
  * @file   contact_2d_explicit.cc
- * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Tue Oct  5 16:23:56 2010
  *
- * @brief Contact class for explicit contact in 2d based on DCR algorithm
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ *
+ * @date   Fri Nov 19 14:23:18 2010
+ *
+ * @brief  Contact class for explicit contact in 2d based on DCR algorithm
  *
  * @section LICENSE
  *

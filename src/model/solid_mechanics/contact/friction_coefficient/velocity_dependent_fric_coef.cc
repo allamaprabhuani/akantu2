@@ -1,7 +1,9 @@
 /**
  * @file   velocity_dependent_fric_coef.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jun 20 15:24:21 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Jun 21 15:14:39 2011
  *
  * @brief  implementation for velocity dependence of friction coefficient
  *

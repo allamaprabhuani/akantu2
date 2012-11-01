@@ -1,10 +1,12 @@
 /**
- * @file   test_surface_extraction_3d.cc
+ * @file   test_surface_extraction_tetrahedron_4.cc
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Oct 25 11:40:12 2010
  *
- * @brief 3d surface extraction tests
+ * @date   Tue Oct 26 10:02:47 2010
+ *
+ * @brief  3d surface extraction tests
  *
  * @section LICENSE
  *

@@ -1,13 +1,15 @@
 /**
  * @file   aka_math.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Peter Spijker <peter.spijker@epfl.ch>
- * @date   Wed Jul 28 12:13:46 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Implementation of the math toolbox
  *

@@ -1,8 +1,10 @@
 /**
  * @file   material_stiffness_proportional.cc
- * @author David Kammer <david.kammer@epfl.ch>
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed May  4 15:25:52 2011
+ *
+ * @date   Wed May 04 19:01:37 2011
  *
  * @brief  Special. of the material class for the caughey viscoelastic material
  *

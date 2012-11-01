@@ -1,9 +1,10 @@
 /**
  * @file   solid_mechanics_model.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
- * @date[creation]            Thu Jul 22 11:51:06 2010
- * @date[last modification]   Thu Oct 14 14:00:06 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Model of Solid Mechanics
  *

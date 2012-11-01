@@ -1,7 +1,9 @@
 /**
  * @file   rice_kuwano.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Nov  4 13:18:56 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 16:56:08 2011
  *
  * @brief  implementation of a modified rice-kuwano friction law (velocity
  * weakening-strenghening friction coefficient)
@@ -25,7 +27,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 

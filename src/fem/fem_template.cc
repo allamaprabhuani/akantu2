@@ -1,8 +1,10 @@
 /**
  * @file   fem_template.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Feb 11 11:37:47 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  implementation of the generic FEMTemplate class
  *

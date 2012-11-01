@@ -1,7 +1,9 @@
 /**
  * @file   by_element_type.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug  4 14:40:34 2011
+ *
+ * @date   Wed Aug 31 11:09:48 2011
  *
  * @brief  storage class by element type
  *

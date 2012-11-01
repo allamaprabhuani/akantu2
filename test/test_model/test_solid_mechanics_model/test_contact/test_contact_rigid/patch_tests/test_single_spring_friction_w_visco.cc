@@ -1,7 +1,9 @@
 /**
  * @file   test_single_spring_friction_w_visco.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon May 30 15:09:23 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue May 31 17:52:34 2011
  *
  * @brief  test for friction of elastic material with viscosity
  *

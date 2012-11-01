@@ -1,7 +1,9 @@
 /**
  * @file   friction_coefficient.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Feb 22 10:54:20 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  interface for friction coefficient computation
  *

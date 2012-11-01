@@ -1,9 +1,11 @@
 /**
  * @file   structural_mechanics_model_inline_impl.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May  5 19:48:07 2011
  *
- * @brief StructuralMechanicsModel implementation
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  StructuralMechanicsModel implementation
  *
  * @section LICENSE
  *
@@ -24,7 +26,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>

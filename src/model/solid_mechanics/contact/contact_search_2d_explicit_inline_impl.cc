@@ -1,7 +1,9 @@
 /**
  * @file   contact_search_2d_explicit_inline_impl.cc
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Fri Nov  5 11:01:52 2010
+ *
+ * @date   Fri Nov 19 14:23:18 2010
  *
  * @brief  Inline functions declaration of class ContactSearch2dExplicit
  *

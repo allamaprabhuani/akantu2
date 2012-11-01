@@ -1,7 +1,9 @@
 /**
  * @file   test_synchronizer_communication.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 19 13:05:27 2010
+ *
+ * @date   Sun Sep 12 23:37:43 2010
  *
  * @brief  test to synchronize barycenters
  *

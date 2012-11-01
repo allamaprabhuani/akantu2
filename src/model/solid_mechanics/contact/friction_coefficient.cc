@@ -1,7 +1,9 @@
 /**
  * @file   friction_coefficient.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Feb 22 11:08:40 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  FrictionCoefficient implementation
  *

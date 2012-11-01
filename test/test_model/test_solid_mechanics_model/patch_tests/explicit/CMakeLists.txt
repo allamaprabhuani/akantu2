@@ -1,9 +1,13 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Feb 16 09:46:59 2010
-# @brief configuration for the explicit patch test
+#
+# @date   Thu Feb 17 16:05:48 2011
+#
+# @brief  configuration for the explicit patch test
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -25,6 +29,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 macro(register_patch_test name type plane_strain)
   if(plane_strain)
     set(_mat ../data/material_check_stress_plane_strain.dat)

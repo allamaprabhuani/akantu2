@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
-# @brief configuration for FEM tests
+#
+# @date   Fri Sep 03 15:56:15 2010
+#
+# @brief  configuration for FEM tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

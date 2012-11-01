@@ -1,7 +1,9 @@
 /**
  * @file   material_cohesive_bilinear.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Feb 16 16:44:28 2012
+ *
+ * @date   Wed Feb 22 16:31:20 2012
  *
  * @brief  Bilinear cohesive constitutive law
  *

@@ -1,8 +1,10 @@
 /**
  * @file   parser.hh
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Nov 25 11:43:48 2010
+ *
+ * @date   Fri Nov 26 00:17:56 2010
  *
  * @brief  Common part of parser functionalities
  *

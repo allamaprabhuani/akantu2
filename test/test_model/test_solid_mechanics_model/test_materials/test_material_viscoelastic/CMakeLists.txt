@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Aug  8 15:39:24 2012
+#
+# @date   Thu Aug 09 21:06:34 2012
 #
 # @brief  configuration for viscoelastic materials tests
 #
@@ -22,6 +24,7 @@
 #
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
 #===============================================================================
 
 add_mesh(test_material_standard_linear_solid_deviatoric_relaxation_mesh

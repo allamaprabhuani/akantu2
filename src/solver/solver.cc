@@ -1,7 +1,9 @@
 /**
  * @file   solver.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Nov 17 16:19:27 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  Solver interface class
  *

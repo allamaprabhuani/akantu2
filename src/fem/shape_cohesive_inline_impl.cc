@@ -1,10 +1,12 @@
 /**
  * @file   shape_cohesive_inline_impl.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb  2 15:55:15 2012
  *
- * @brief ShapeCohesive inline implementation
+ * @date   Thu Feb 23 17:58:45 2012
+ *
+ * @brief  ShapeCohesive inline implementation
  *
  * @section LICENSE
  *

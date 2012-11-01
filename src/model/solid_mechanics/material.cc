@@ -1,8 +1,10 @@
 /**
  * @file   material.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Tue Jul 27 11:43:41 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Implementation of the common part of the material class
  *

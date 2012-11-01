@@ -1,7 +1,9 @@
 /**
  * @file   contact_search_2d_explicit.hh
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Wed Nov  3 15:09:36 2010
+ *
+ * @date   Fri Nov 19 14:23:18 2010
  *
  * @brief  contact search class for contact in 2d (only line1 elements)
  *

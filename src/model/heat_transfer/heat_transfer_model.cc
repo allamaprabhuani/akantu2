@@ -1,10 +1,12 @@
 /**
  * @file   heat_transfer_model.cc
- * @author Rui WANG <rui.wang@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Rui Wang <rui.wang@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
- * @date   Fri May  4 13:46:43 2011
+ *
+ * @date   Sun May 01 19:14:43 2011
  *
  * @brief  Implementation of HeatTransferModel class
  *

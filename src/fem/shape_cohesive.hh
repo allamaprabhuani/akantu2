@@ -1,10 +1,12 @@
 /**
  * @file   shape_cohesive.hh
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb  2 15:44:27 2012
  *
- * @brief shape functions for cohesive elements description
+ * @date   Fri Feb 03 16:28:03 2012
+ *
+ * @brief  shape functions for cohesive elements description
  *
  * @section LICENSE
  *

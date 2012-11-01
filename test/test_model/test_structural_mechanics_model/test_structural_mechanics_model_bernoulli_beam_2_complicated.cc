@@ -1,7 +1,9 @@
 /**
  * @file   test_structural_mechanics_model_bernoulli_beam_2_complicated.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Wed Jun  1 16:06:45 2011
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  A very complicated structure
  *

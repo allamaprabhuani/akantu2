@@ -1,9 +1,11 @@
 /**
  * @file   element_class_quadrangle_4_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Oct 27 17:27:44 2010
  *
- * @brief   Specialization of the element_class class for the type _quadrangle_4
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Dec 13 10:45:15 2010
+ *
+ * @brief  Specialization of the element_class class for the type _quadrangle_4
  *
  * @section LICENSE
  *
@@ -22,6 +24,8 @@
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @section DESCRIPTION
  *
  * @verbatim
          \eta
@@ -60,7 +64,6 @@
  * \xi_{q0}  &=& 0 \qquad  \eta_{q0} = 0
  * @f}
  */
-
 
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_quadrangle_4>::nb_nodes_per_element;

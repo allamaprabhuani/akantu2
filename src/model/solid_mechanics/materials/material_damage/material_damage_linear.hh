@@ -1,8 +1,10 @@
 /**
  * @file   material_damage_linear.hh
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ *
+ * @date   Mon Oct 03 11:53:09 2011
  *
  * @brief  Material isotropic elastic + linear softening
  *

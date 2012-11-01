@@ -1,7 +1,9 @@
 /**
  * @file   dumper_iohelper_tmpl_quadrature_points_field.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Oct 25 14:40:14 2012
+ *
+ * @date   Fri Oct 26 21:52:40 2012
  *
  * @brief  Description of quadrature points fields
  *

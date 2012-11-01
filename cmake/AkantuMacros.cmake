@@ -1,8 +1,10 @@
 #===============================================================================
 # @file   AkantuMacros.cmake
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Wed Feb  9 10:59:42 2011
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Thu Feb 17 17:28:21 2011
 #
 # @brief  Set of macros used by akantu cmake files
 #
@@ -25,6 +27,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 set(AKANTU_CMAKE_DEBUG FALSE)
 macro(akantu_message)
   if(AKANTU_CMAKE_DEBUG)

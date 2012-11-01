@@ -1,9 +1,11 @@
 /**
  * @file   test_gradient_bernoulli_beam_2.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Tue Apr  5 17:19:48 2011
  *
- * @brief Test of the gradient on the type _bernoulli_beam_2
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  Test of the gradient on the type _bernoulli_beam_2
  *
  * @section LICENSE
  *

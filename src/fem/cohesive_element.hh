@@ -1,8 +1,10 @@
 /**
  * @file   cohesive_element.hh
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb  2 14:07:49 2012
+ *
+ * @date   Fri Feb 03 16:28:03 2012
  *
  * @brief  Cohesive element class
  *

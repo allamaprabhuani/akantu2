@@ -1,7 +1,9 @@
 /**
  * @file   test_solid_mechanics_model_implicit_2d.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Feb 14 14:56:16 2011
+ *
+ * @date   Thu Mar 03 16:09:49 2011
  *
  * @brief  test of traction in implicit
  *

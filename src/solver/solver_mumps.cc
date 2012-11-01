@@ -1,7 +1,9 @@
 /**
  * @file   solver_mumps.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Nov 17 17:32:27 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  implem of SolverMumps class
  *

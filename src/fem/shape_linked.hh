@@ -1,8 +1,10 @@
 /**
  * @file   shape_linked.hh
- * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Apr  1 11:46:44 2011
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  shape class for element with different set of shapes functions
  *

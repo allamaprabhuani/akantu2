@@ -1,8 +1,10 @@
 /**
  * @file   integrator_cohesive_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Wed Feb 22 17:22:21 2012
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 23 17:58:45 2012
  *
  * @brief  IntegratorCohesive inline implementation
  *

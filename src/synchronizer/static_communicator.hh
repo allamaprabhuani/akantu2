@@ -1,7 +1,9 @@
 /**
  * @file   static_communicator.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 19 15:34:09 2010
+ *
+ * @date   Wed Sep 01 17:57:12 2010
  *
  * @brief  Class handling the parallel communications
  *

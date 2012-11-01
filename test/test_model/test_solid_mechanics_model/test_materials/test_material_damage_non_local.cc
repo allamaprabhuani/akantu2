@@ -1,7 +1,9 @@
 /**
  * @file   test_material_damage_non_local.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Sep  8 17:31:42 2011
+ *
+ * @date   Tue Sep 13 13:51:05 2011
  *
  * @brief  test for non-local damage materials
  *

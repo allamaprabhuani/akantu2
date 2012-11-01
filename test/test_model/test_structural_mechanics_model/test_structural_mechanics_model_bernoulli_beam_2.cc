@@ -1,9 +1,11 @@
 /**
  * @file   test_structural_mechanics_model_bernoulli_beam_2.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May 12 16:34:09 2011
  *
- * @brief tests of the StructuralMechanicsModel for 2d Bernoulli beams
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  tests of the StructuralMechanicsModel for 2d Bernoulli beams
  *
  * @section LICENSE
  *

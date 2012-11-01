@@ -1,9 +1,11 @@
 /**
  * @file   model.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
- * @date   Thu Jul 22 11:02:42 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Interface of a model
  *

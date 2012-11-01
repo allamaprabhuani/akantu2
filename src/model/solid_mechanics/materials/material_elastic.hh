@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Material isotropic elastic
  *

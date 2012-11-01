@@ -1,7 +1,9 @@
 /**
  * @file   mesh_utils_inline_impl.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Wed Apr  4 16:44:33 2012
+ *
+ * @date   Fri Aug 20 12:19:44 2010
  *
  * @brief  Mesh utils inline functions
  *

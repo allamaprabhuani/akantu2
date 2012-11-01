@@ -1,7 +1,9 @@
 /**
  * @file   sparse_matrix_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Oct  4 21:09:38 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  implementation of inline methods of the SparseMatrix class
  *

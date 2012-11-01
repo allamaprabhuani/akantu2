@@ -1,7 +1,9 @@
 #===============================================================================
-# @file   CMakeLists.txt
+# @file   AkantuDetermineCCompiler.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Jul 30 03:54:41 2012
+#
+# @date   Thu Aug 02 10:34:06 2012
 #
 # @brief  CMake file to determine the compiler
 #
@@ -24,7 +26,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 
 macro(determine_compiler_version COMPILER)
   exec_program(${CMAKE_CXX_COMPILER}

@@ -1,7 +1,9 @@
 /**
- * @file   test_cohesive.cc
+ * @file   test_cohesive_buildfragments.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Fri Feb 24 14:32:31 2012
+ *
+ * @date   Wed Jun 13 11:29:49 2012
  *
  * @brief  Test for cohesive elements
  *

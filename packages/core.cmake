@@ -1,10 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   core.cmake
 #
-# @brief package description for core
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Nov 21 18:19:15 2011
+#
+# @brief  package description for core
 #
 # @section LICENSE
 #
@@ -25,6 +27,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
 
 set(AKANTU_CORE_FILES

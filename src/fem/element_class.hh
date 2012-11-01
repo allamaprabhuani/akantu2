@@ -1,10 +1,12 @@
 /**
  * @file   element_class.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Wed Jun 16 18:48:25 2010
  *
- * @brief element class definition
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jun 18 11:47:19 2010
+ *
+ * @brief  element class definition
  *
  * @section LICENSE
  *

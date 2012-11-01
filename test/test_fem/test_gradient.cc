@@ -1,7 +1,9 @@
 /**
- * @file   test_gradient_XXXX.cc
+ * @file   test_gradient.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Jul 19 10:55:49 2010
+ *
+ * @date   Fri Jun 17 17:28:22 2011
  *
  * @brief  test of the fem class
  *

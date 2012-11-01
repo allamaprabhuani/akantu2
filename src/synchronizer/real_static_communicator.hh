@@ -1,7 +1,9 @@
 /**
  * @file   real_static_communicator.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Apr  7 12:19:34 2011
+ *
+ * @date   Thu Apr 14 18:22:18 2011
  *
  * @brief  empty class just for inheritance
  *

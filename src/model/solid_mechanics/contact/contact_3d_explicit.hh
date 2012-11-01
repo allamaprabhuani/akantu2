@@ -1,7 +1,9 @@
 /**
  * @file   contact_3d_explicit.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 18:13:05 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Oct 27 13:54:26 2010
  *
  * @brief  Structure that solves contact for 3 dimensions within an explicit time scheme
  *

@@ -1,7 +1,9 @@
 /**
- * @file   test_non_local_material.cc
+ * @file   test_material_non_local.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Aug 22 14:07:08 2011
+ *
+ * @date   Wed Aug 31 11:09:48 2011
  *
  * @brief  test of the main part of the non local materials
  *
@@ -24,6 +26,7 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 #include <iostream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"

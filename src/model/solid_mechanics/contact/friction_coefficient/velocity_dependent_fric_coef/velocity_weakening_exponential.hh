@@ -1,7 +1,9 @@
 /**
  * @file   velocity_weakening_exponential.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jun 20 14:46:57 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Jun 21 15:14:39 2011
  *
  * @brief  implementation of a exponential velocity weakening friction coeff.
  *

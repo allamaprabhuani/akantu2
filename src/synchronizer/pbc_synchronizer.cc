@@ -1,7 +1,9 @@
 /**
  * @file   pbc_synchronizer.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Jun 16 16:59:15 2011
+ *
+ * @date   Mon Jun 20 10:07:57 2011
  *
  * @brief  implementation of the synchronizer for the pbc conditions
  *

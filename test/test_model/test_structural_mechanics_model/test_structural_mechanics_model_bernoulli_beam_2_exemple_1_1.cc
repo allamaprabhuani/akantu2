@@ -1,9 +1,11 @@
 /**
  * @file   test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Tue May 31 19:10:26 2011
  *
- * @brief Computation of the analytical exemple 1.1 in the TGC vol 6
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
  *
  * @section LICENSE
  *

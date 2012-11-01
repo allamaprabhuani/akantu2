@@ -1,10 +1,12 @@
 /**
  * @file   solid_mechanics_model_material.cc
- * @author Richart Nicolas <nicolas.richart@epfl.ch>
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Thu Nov 25 10:48:53 2010
  *
- * @brief instatiation of materials
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
+ *
+ * @brief  instatiation of materials
  *
  * @section LICENSE
  *

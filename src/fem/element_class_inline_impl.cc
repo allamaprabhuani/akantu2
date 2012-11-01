@@ -1,8 +1,10 @@
 /**
  * @file   element_class_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Jul 15 10:28:28 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Implementation of the inline functions of the class element_class
  *

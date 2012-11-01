@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Feb 2 14:46:59 2011
-# @brief configuration for MeshUtils tests
+#
+# @date   Mon Feb 07 17:33:51 2011
+#
+# @brief  configuration for MeshUtils tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

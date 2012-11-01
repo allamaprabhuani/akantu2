@@ -1,7 +1,9 @@
 /**
  * @file   regular_grid_neighbor_structure.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 11 10:35:04 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon Oct 11 18:09:29 2010
  *
  * @brief  Structure that handles the neighbor lists by a regular grid
  *

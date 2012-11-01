@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Jul 23 17:11:41 2012
+#
+# @date   Mon Jul 30 09:41:27 2012
 #
 # @brief  configurations for common tests
 #
@@ -24,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 add_akantu_test(test_vector "Test akantu vector")
 
 register_test(test_csr   test_csr.cc)

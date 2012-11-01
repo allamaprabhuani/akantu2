@@ -1,8 +1,10 @@
 /**
  * @file   test_local_material.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 14:34:13 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
  *
  * @brief  test of the class SolidMechanicsModel
  *

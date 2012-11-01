@@ -1,7 +1,9 @@
 /**
  * @file   test_single_spring_friction.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Wed May 25 10:46:40 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu May 26 17:03:01 2011
  *
  * @brief  test with analytical solution for friction of a single spring
  *

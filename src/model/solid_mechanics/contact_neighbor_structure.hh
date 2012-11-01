@@ -1,9 +1,11 @@
 /**
  * @file   contact_neighbor_structure.hh
- * @author David Kammer <david.kammer@epfl.ch>
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Oct  8 12:36:15 2010
+ *
+ * @date   Fri Oct 08 15:20:20 2010
  *
  * @brief  Interface of the structure handling the neighbor lists
  *

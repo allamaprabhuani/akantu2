@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   mumps.cmake
 #
-# @brief package description for mumps support
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Nov 21 18:19:15 2011
+#
+# @brief  package description for mumps support
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 add_optional_package(Mumps "Add Mumps support in akantu" OFF)
 set(AKANTU_MUMPS_FILES
   solver/solver_mumps.cc

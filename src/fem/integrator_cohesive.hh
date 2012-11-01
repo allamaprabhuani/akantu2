@@ -1,11 +1,12 @@
 /**
  * @file   integrator_cohesive.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl>
- * @date   Mon Feb  6 13:05:50 2012
  *
- * @brief integrator for cohesive elements header
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 16 18:07:14 2012
+ *
+ * @brief  integrator for cohesive elements header
  *
  * @section LICENSE
  *

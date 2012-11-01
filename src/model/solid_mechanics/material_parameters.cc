@@ -1,7 +1,9 @@
 /**
  * @file   material_parameters.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Aug  8 17:33:32 2012
+ *
+ * @date   Thu Aug 09 21:06:34 2012
  *
  * @brief  handles material parameters
  *

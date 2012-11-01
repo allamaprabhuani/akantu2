@@ -1,7 +1,9 @@
 /**
  * @file   dumper_iohelper.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Oct 24 14:04:44 2012
+ *
+ * @date   Fri Oct 26 21:52:40 2012
  *
  * @brief  implementation of DumperIOHelper
  *

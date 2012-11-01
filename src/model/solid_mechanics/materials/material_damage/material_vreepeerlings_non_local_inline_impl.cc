@@ -1,8 +1,10 @@
 /**
  * @file   material_vreepeerlings_non_local_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- * @date   Fri Jun 15 14:33:40 2012
+ *
+ * @date   Fri Jun 15 13:48:37 2012
  *
  * @brief  Specialization of the material class for the non-local Vree-Peerlings material
  *

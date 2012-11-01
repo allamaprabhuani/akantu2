@@ -1,7 +1,9 @@
 /**
  * @file   fem_template_cohesive.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Oct 31 09:06:00 2012
+ *
+ * @date   Wed Oct 31 16:24:42 2012
  *
  * @brief  Specialization for cohesive element
  *

@@ -1,7 +1,9 @@
 /**
  * @file   historic_velocity_fric_coef.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Nov  1 10:48:22 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 16:56:08 2011
  *
  * @brief  friction coefficient that depends on the historic of velocity
  *

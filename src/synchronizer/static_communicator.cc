@@ -1,7 +1,9 @@
 /**
  * @file   static_communicator.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 19 15:39:47 2010
+ *
+ * @date   Wed Sep 01 17:57:12 2010
  *
  * @brief  implementation of the common part of the static communicator
  *

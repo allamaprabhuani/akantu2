@@ -1,7 +1,9 @@
 /**
- * @file   test_inverse_map_XXXX.cc
+ * @file   test_inverse_map.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Mon Jul 19 10:55:49 2010
+ *
+ * @date   Fri May 25 12:41:57 2012
  *
  * @brief  test of the fem class
  *

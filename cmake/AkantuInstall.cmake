@@ -1,9 +1,11 @@
 #===============================================================================
 # @file   AkantuInstall.cmake
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Oct 17 2012
 #
-# @brief Create the files that allows users to link with Akantu in an other
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Wed Oct 17 15:19:18 2012
+#
+# @brief  Create the files that allows users to link with Akantu in an other
 # cmake project
 #
 # @section LICENSE
@@ -25,7 +27,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 
 #===============================================================================
 # Config gen for external packages

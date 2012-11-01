@@ -1,8 +1,10 @@
 /**
- * @file   test_solid_mechanics_model_cube3d.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
+ * @file   test_solid_mechanics_model_cube3d_tetra10.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Peter Spijker <peter.spijker@epfl.ch>
- * @date   Tue Aug 17 11:31:22 2010
+ *
+ * @date   Mon Dec 06 14:43:53 2010
  *
  * @brief  test of the class SolidMechanicsModel on the 3d cube
  *

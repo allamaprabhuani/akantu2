@@ -1,7 +1,9 @@
 /**
  * @file   test_regular_grid_triangle_3.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 16:58:42 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu Nov 11 17:17:21 2010
  *
  * @brief  test regular grid neighbor structure for 3d case
  *

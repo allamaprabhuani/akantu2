@@ -1,7 +1,9 @@
 /**
  * @file   grid_2d_neighbor_structure.hh
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Tue Dec  7 12:54:48 2010
+ *
+ * @date   Thu Dec 09 16:55:22 2010
  *
  * @brief  Class which creates the neighbor lists (with a grid) to handle contact in 2d
  *

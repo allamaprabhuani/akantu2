@@ -1,8 +1,10 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Mon Nov 28 15:11:51 2011
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Nov 28 16:54:12 2011
 #
 # @brief  CMake file for the library
 #

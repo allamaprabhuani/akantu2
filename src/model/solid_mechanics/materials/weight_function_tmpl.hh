@@ -1,7 +1,9 @@
 /**
  * @file   weight_function_tmpl.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Mar 23 15:55:58 2012
+ *
+ * @date   Fri Apr 13 16:49:32 2012
  *
  * @brief  implementation of the weight function classes
  *

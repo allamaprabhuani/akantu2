@@ -1,7 +1,9 @@
 /**
  * @file   aka_vector.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jun 17 10:04:55 2010
+ *
+ * @date   Fri Jun 18 11:48:28 2010
  *
  * @brief  class of vectors
  *

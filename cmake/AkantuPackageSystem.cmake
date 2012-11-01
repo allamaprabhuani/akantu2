@@ -1,8 +1,10 @@
 #===============================================================================
-# @file   AkantuMacros.cmake
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @file   AkantuPackageSystem.cmake
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Wed Feb  9 10:59:42 2011
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Tue Oct 16 14:05:02 2012
 #
 # @brief  Set of macros used by akantu to handle the package system
 #
@@ -25,7 +27,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 
 #===============================================================================
 # Package Management

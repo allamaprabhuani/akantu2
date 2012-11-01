@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Wed May 25 12:37:24 2011
-# @brief configuration for friction law tests
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Thu May 26 17:03:01 2011
+#
+# @brief  configuration for friction law tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -24,6 +28,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 add_mesh(test_single_spring_mesh single_triangle.geo 2 1)
 
 register_test(test_single_spring_friction test_single_spring_friction.cc)

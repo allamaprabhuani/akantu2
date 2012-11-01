@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
-# @brief configuration for synchronizer tests
+#
+# @date   Sun Sep 12 23:37:43 2010
+#
+# @brief  configuration for synchronizer tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

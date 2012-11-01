@@ -1,7 +1,9 @@
 /**
  * @file   material_non_local_includes.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Oct 30 15:36:08 2012
+ *
+ * @date   Wed Oct 31 16:24:42 2012
  *
  * @brief  Non local materials includes
  *

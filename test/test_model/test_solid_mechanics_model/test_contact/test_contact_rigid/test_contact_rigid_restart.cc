@@ -1,7 +1,9 @@
 /**
- * @file   test_contact_rigid_restart_triangle_3.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Apr 29 11:19:46 2011
+ * @file   test_contact_rigid_restart.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon May 02 11:22:55 2011
  *
  * @brief  test restart functions for contact rigid
  *

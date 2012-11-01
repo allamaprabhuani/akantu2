@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindMumps.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Sun Dec 12 18:35:02 2010
+#
+# @date   Mon Dec 13 10:48:06 2010
 #
 # @brief  The find_package file for the Mumps solver
 #

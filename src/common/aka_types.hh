@@ -1,7 +1,9 @@
 /**
  * @file   aka_types.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Feb 16 20:28:13 2011
+ *
+ * @date   Thu Feb 17 17:27:24 2011
  *
  * @brief  description of the "simple" types
  *

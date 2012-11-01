@@ -1,7 +1,9 @@
 /**
  * @file   test_vector.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jun 29 17:32:23 2010
+ *
+ * @date   Fri Sep 03 15:56:15 2010
  *
  * @brief  test of the vector class
  *

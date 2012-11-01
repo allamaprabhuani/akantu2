@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   implicit.cmake
 #
-# @brief package description for the implicit solver
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Tue Oct 16 14:05:02 2012
+#
+# @brief  package description for the implicit solver
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 add_meta_package(IMPLICIT "Add support for implicit time scheme" OFF MUMPS MPI SCOTCH)
 
 set(AKANTU_IMPLICIT_TESTS

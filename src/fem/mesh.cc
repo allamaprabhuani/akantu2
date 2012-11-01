@@ -1,9 +1,11 @@
 /**
  * @file   mesh.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Wed Jun 16 12:02:26 2010
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jun 18 11:47:19 2010
  *
  * @brief  class handling meshes
  *

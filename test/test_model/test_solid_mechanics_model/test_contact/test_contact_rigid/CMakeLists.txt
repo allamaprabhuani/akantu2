@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Wed Jan 19 12:37:24 2011
-# @brief configuration for yet another friction test
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Wed Jan 19 14:45:41 2011
+#
+# @brief  configuration for yet another friction test
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -24,6 +28,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 add_subdirectory("patch_tests")
 
 #===============================================================================

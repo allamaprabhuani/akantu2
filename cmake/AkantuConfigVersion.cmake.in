@@ -1,9 +1,11 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+# @file   AkantuConfigVersion.cmake.in
 #
-# @brief configures akantu version for cmake
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Thu Dec 01 18:00:05 2011
+#
+# @brief  configures akantu version for cmake
 #
 # @section LICENSE
 #

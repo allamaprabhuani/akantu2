@@ -1,7 +1,9 @@
 /**
- * @file   test_solid_mechanics_model.cc
+ * @file   test_solid_mechanics_model_bar_traction2d_mass_not_lumped.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 14:34:13 2010
+ *
+ * @date   Tue Dec 20 15:37:09 2011
  *
  * @brief  test of the class SolidMechanicsModel
  *

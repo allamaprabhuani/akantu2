@@ -1,10 +1,12 @@
 /**
  * @file   shape_lagrange_inline_impl.cc
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Richart Nicolas <nicolas.richart@epfl.ch>
- * @date   Thu Feb 10 21:12:54 2011
  *
- * @brief ShapeLagrange inline implementation
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Feb 15 16:32:44 2011
+ *
+ * @brief  ShapeLagrange inline implementation
  *
  * @section LICENSE
  *
@@ -25,7 +27,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>

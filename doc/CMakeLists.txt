@@ -1,9 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Oct 17 2012
 #
-# @brief Build the documentation
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Wed Oct 17 15:19:18 2012
+#
+# @brief  Build the documentation
 #
 # @section LICENSE
 #

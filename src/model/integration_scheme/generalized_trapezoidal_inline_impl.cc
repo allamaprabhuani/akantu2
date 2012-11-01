@@ -1,7 +1,9 @@
 /**
  * @file   generalized_trapezoidal_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jul  1 14:35:20 2011
+ *
+ * @date   Mon Jul 04 15:07:57 2011
  *
  * @brief  implementation of inline functions
  *

@@ -1,9 +1,11 @@
 /**
  * @file   material_mazars.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Apr 06 10:09:38 2011
  *
  * @brief  Material Following the Mazars law for damage evolution
  *

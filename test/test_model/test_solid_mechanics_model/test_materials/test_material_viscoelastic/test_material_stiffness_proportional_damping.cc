@@ -1,7 +1,9 @@
 /**
- * @file   test_material_elastic_caughey_damping.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri May 27 14:36:55 2011
+ * @file   test_material_stiffness_proportional_damping.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon Nov 14 09:15:53 2011
  *
  * @brief  test of the material elastic caughey - physical aspecte
  *
@@ -24,6 +26,7 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 

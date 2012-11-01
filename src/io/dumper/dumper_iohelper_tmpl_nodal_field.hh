@@ -1,7 +1,9 @@
 /**
  * @file   dumper_iohelper_tmpl_nodal_field.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Oct 25 14:16:35 2012
+ *
+ * @date   Fri Oct 26 21:52:40 2012
  *
  * @brief  Description of nodal fields
  *

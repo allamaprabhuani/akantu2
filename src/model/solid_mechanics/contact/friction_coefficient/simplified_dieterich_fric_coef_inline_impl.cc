@@ -1,7 +1,9 @@
 /**
  * @file   simplified_dieterich_fric_coef_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Mar  7 11:08:41 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  implementation of simplified dieterich fric coef computation
  *

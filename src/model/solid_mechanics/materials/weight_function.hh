@@ -1,7 +1,9 @@
 /**
  * @file   weight_function.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Mar  8 16:17:00 2012
+ *
+ * @date   Fri Apr 13 16:49:32 2012
  *
  * @brief  Weight functions for non local materials
  *

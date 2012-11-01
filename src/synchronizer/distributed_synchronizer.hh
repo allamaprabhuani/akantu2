@@ -1,8 +1,10 @@
 /**
  * @file   distributed_synchronizer.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Aug 19 15:28:35 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Jun 16 16:36:52 2011
  *
  * @brief  wrapper to the static communicator
  *

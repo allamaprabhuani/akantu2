@@ -1,8 +1,10 @@
 /**
- * @file   test_integrate_XXXX.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @file   test_integrate.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Mon Jul 19 10:55:49 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jun 17 17:28:22 2011
  *
  * @brief  test of the fem class
  *

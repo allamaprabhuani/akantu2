@@ -1,7 +1,9 @@
 /**
  * @file   test_solid_mechanics_model_implicit_dynamic_2d.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Apr 29 11:32:25 2011
+ *
+ * @date   Wed May 11 17:26:46 2011
  *
  * @brief  test of the dynamic implicit code
  *

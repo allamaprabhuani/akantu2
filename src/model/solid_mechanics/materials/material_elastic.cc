@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Specialization of the material class for the elastic material
  *

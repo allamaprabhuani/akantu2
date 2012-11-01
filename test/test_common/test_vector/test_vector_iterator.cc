@@ -1,7 +1,9 @@
 /**
  * @file   test_vector_iterator.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jul 27 11:24:44 2012
+ *
+ * @date   Mon Jul 30 09:41:27 2012
  *
  * @brief  test the iterator present in the vector class
  *

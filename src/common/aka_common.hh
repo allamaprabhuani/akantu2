@@ -1,10 +1,11 @@
 /**
  * @file   aka_common.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 11 09:48:06 2010
  *
- * @namespace akantu
- * @brief common type descriptions for akantu
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Jun 14 19:12:20 2010
+ *
+ * @brief  common type descriptions for akantu
  *
  * @section LICENSE
  *

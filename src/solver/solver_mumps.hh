@@ -1,7 +1,9 @@
 /**
  * @file   solver_mumps.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Nov 17 17:28:56 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  Solver class implementation for the mumps solver
  *

@@ -1,9 +1,11 @@
 /**
  * @file   contact.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Mon Sep 27 09:47:27 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Sep 27 09:55:20 2010
  *
  * @brief  Interface for contact classes
  *

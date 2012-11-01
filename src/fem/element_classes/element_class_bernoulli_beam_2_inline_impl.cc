@@ -1,7 +1,9 @@
 /**
  * @file   element_class_bernoulli_beam_2_inline_impl.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu Mar 31 14:02:22 2011
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  Specialization of the element_class class for the type _bernoulli_beam_2
  *
@@ -26,7 +28,6 @@
  * @section DESCRIPTION
  *
  * @verbatim
-
    --x-----q1----|----q2-----x---> x
     -a          0            a
  @endverbatim
@@ -40,7 +41,6 @@
  * @f]
  *
  * @subsection shapes Shape functions
-
  * @f[
  *   \begin{array}{ll}
  *     N_1(x) &= \frac{1-x}{2a}\\

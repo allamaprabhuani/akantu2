@@ -1,10 +1,12 @@
 #===============================================================================
 # @file   AkantuTestAndExamples.cmake
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Mon Oct 25 09:46:59 2010
 #
-# @brief macros for tests and examples
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Oct 25 13:55:14 2010
+#
+# @brief  macros for tests and examples
 #
 # @section LICENSE
 #

@@ -1,8 +1,10 @@
 /**
- * @file   test_material_elastic_caughey.cc
- * @author David Kammer <david.kammer@epfl.ch>
+ * @file   test_material_stiffness_proportional.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed May  4 16:22:17 2011
+ *
+ * @date   Sun Sep 12 23:37:43 2010
  *
  * @brief  test of the material elastic caughey
  *
@@ -25,7 +27,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 #include <limits>

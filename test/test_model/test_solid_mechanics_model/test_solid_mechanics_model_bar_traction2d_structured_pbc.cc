@@ -1,7 +1,9 @@
 /**
  * @file   test_solid_mechanics_model_bar_traction2d_structured_pbc.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Dec 22 13:37:06 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu Dec 22 18:49:38 2011
  *
  * @brief  test of pbc class for SolidMechanicsModel
  *

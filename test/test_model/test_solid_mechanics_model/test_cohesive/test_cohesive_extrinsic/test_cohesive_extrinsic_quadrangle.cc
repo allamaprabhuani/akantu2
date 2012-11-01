@@ -1,7 +1,9 @@
 /**
  * @file   test_cohesive_extrinsic_quadrangle.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Tue Oct  2 11:45:54 2012
+ *
+ * @date   Wed Oct 03 10:20:53 2012
  *
  * @brief  Test for extrinsic cohesive elements and quadrangles
  *

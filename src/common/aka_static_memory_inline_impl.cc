@@ -1,7 +1,9 @@
 /**
  * @file   aka_static_memory_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 15 00:32:05 2010
+ *
+ * @date   Thu Jul 15 00:41:12 2010
  *
  * @brief  Implementation of inline functions of the class StaticMemory
  *

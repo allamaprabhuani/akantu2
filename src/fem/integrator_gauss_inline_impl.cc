@@ -1,8 +1,10 @@
 /**
  * @file   integrator_gauss_inline_impl.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb 10 20:43:52 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  inline function of gauss integrator
  *

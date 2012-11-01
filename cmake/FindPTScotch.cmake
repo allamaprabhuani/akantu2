@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindPTScotch.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Tue Aug  25 16:53:57 2010
+#
+# @date   Tue Apr 05 18:49:26 2011
 #
 # @brief  The find_package file for PT-Scotch
 #

@@ -1,7 +1,9 @@
 /**
  * @file   test_interpolate_stress.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Wed Jun  6 14:25:54 2012
+ *
+ * @date   Thu Jun 07 10:10:01 2012
  *
  * @brief  Test for the stress interpolation function
  *

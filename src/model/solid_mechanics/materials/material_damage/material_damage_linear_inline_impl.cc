@@ -1,8 +1,10 @@
 /**
  * @file   material_damage_linear_inline_impl.cc
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @date   Mon Oct 03 11:53:09 2011
  *
  * @brief  Implementation of the inline functions of the material damage linear
  *

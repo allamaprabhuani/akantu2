@@ -1,11 +1,13 @@
 /**
  * @file   mesh_utils.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @author Richart Nicolas <nicolas.richart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Wed Aug 18 14:21:00 2010
+ *
+ * @date   Fri Aug 20 12:19:44 2010
  *
  * @brief  All mesh utils necessary for various tasks
  *

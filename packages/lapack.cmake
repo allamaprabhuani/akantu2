@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   lapack.cmake
 #
-# @brief package description for lapack support
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Fri Oct 19 15:58:42 2012
+#
+# @brief  package description for lapack support
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

@@ -1,7 +1,9 @@
 /**
  * @file   aka_error.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Jun 14 11:43:22 2010
+ *
+ * @date   Mon Jun 14 19:12:20 2010
  *
  * @brief  error management and internal exceptions
  *

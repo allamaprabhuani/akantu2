@@ -1,8 +1,10 @@
 /**
  * @file   generalized_trapezoidal.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Jun 30 16:40:59 2011
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Jul 04 15:07:57 2011
  *
  * @brief  Generalized Trapezoidal  Method.  This implementation  is taken  from
  * Méthodes  numériques en mécanique  des solides  by Alain  Curnier \note{ISBN:

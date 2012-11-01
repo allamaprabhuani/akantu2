@@ -1,8 +1,10 @@
 /**
  * @file   fem_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Mon Jul 19 12:21:36 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Jul 20 23:40:43 2010
  *
  * @brief  Implementation of the inline functions of the FEM Class
  *
@@ -25,7 +27,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 inline Mesh & FEM::getMesh() const {

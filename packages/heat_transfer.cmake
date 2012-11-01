@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   heat_transfer.cmake
 #
-# @brief package description for heat transfer
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+#
+# @date   Mon Nov 21 18:19:15 2011
+#
+# @brief  package description for heat transfer
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 option(AKANTU_HEAT_TRANSFER "Use Heat Transfer package of Akantu" OFF)
 set(AKANTU_HEAT_TRANSFER_FILES
   model/heat_transfer/heat_transfer_model.cc

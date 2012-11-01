@@ -1,7 +1,9 @@
 /**
  * @file   material_extra_includes.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Oct 30 15:35:33 2012
+ *
+ * @date   Wed Oct 31 16:24:42 2012
  *
  * @brief  Extra list of materials
  *

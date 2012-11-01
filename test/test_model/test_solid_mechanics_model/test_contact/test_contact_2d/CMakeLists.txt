@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
-# @date   Mon Jan 17 11:48:11 2011
-# @brief configuration for explicit 2d contact tests
+#
+# @date   Mon Jan 17 12:17:38 2011
+#
+# @brief  configuration for explicit 2d contact tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

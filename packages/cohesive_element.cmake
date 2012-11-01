@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   cohesive_element.cmake
 #
-# @brief package description for cohesive elements
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Tue Oct 16 14:05:02 2012
+#
+# @brief  package description for cohesive elements
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 option(AKANTU_COHESIVE_ELEMENT "Use cohesive_element package of Akantu" OFF)
 set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive_includes.hh

@@ -1,8 +1,10 @@
 /**
  * @file   newmark-beta_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author David Simon Kammer <david.kammer@epfl.ch>
- * @date   Thu Sep 30 11:45:20 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Oct 05 18:04:10 2010
  *
  * @brief  implementation of the  newmark-@f$\beta@f$ integration  scheme.  This
  * implementation is taken from Méthodes  numériques en mécanique des solides by

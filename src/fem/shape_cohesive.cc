@@ -1,10 +1,12 @@
 /**
  * @file   shape_cohesive.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb  2 15:55:15 2012
  *
- * @brief implementation for ShapeCohesive
+ * @date   Fri Feb 03 16:28:03 2012
+ *
+ * @brief  implementation for ShapeCohesive
  *
  * @section LICENSE
  *

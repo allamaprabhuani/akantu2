@@ -1,7 +1,9 @@
 /**
  * @file   test_ruina_slowness_2d.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Mar 07 15:56:42 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  the slowness law of the simplified dieterich friction coefficient
  *

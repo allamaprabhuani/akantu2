@@ -1,8 +1,10 @@
 /**
  * @file   material_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Implementation of the inline functions of the class material
  *

@@ -1,8 +1,10 @@
 /**
  * @file   fem.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Fri Jul 16 10:24:24 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Jul 20 23:40:43 2010
  *
  * @brief  FEM class
  *

@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Implementation of the inline functions of the material elastic
  *

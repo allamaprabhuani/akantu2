@@ -1,7 +1,9 @@
 /**
- * @file   test_cohesive.cc
+ * @file   test_cohesive_buildfacets_hexahedron.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Fri Feb 24 14:32:31 2012
+ *
+ * @date   Wed Oct 03 10:20:53 2012
  *
  * @brief  Test for cohesive elements
  *

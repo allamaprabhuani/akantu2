@@ -1,9 +1,11 @@
 /**
  * @file   material_marigo_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 02 11:09:36 2012
  *
  * @brief  Implementation of the inline functions of the material marigo
  *

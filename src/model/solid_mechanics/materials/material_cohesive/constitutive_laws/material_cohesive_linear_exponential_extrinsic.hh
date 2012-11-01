@@ -1,9 +1,11 @@
 /**
- * @file   material_cohesive_linear.hh
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:00:34 2012
+ * @file   material_cohesive_linear_exponential_extrinsic.hh
  *
- * @brief Linear irreversible cohesive law of mixed mode loading with
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Thu May 24 10:46:59 2012
+ *
+ * @brief  Linear irreversible cohesive law of mixed mode loading with
  * random stress definition for extrinsic type
  *
  * @section LICENSE

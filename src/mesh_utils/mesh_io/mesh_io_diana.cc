@@ -1,10 +1,12 @@
 /**
  * @file   mesh_io_diana.cc
- * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Mar 10 15:42:24 2011
  *
- * @brief handles diana meshes
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
+ *
+ * @date   Sat Mar 26 20:43:38 2011
+ *
+ * @brief  handles diana meshes
  *
  * @section LICENSE
  *

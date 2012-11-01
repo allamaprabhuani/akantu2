@@ -1,9 +1,11 @@
 /**
  * @file   regular_grid_neighbor_structure_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 11 17:39:51 2010
  *
- * @brief Implementation of inline functions of the regular grid
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon Oct 11 18:09:29 2010
+ *
+ * @brief  Implementation of inline functions of the regular grid
  * neighbor structure class
  *
  * @section LICENSE

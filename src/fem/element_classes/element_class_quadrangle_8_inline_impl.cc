@@ -1,7 +1,9 @@
 /**
  * @file   element_class_quadrangle_8_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue May 17 18:35:04 2011
+ *
+ * @date   Wed May 18 13:27:32 2011
  *
  * @brief  Specialization of the ElementClass for the _quadrangle_8
  *
@@ -23,7 +25,9 @@
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
-  * @verbatim
+ * @section DESCRIPTION
+ *
+ * @verbatim
 	      \eta
    	       ^
 	       |

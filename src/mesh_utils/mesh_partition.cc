@@ -1,8 +1,10 @@
 /**
  * @file   mesh_partition.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author David Simon Kammer <david.kammer@epfl.ch>
- * @date   Mon Aug 16 17:16:59 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Aug 17 16:19:43 2010
  *
  * @brief  implementation of common part of all partitioner
  *

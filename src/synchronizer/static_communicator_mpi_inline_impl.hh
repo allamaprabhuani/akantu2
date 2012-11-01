@@ -1,7 +1,9 @@
 /**
  * @file   static_communicator_mpi_inline_impl.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Sep  2 15:10:51 2010
+ *
+ * @date   Sun Sep 05 16:01:51 2010
  *
  * @brief  implementation of the mpi communicator
  *

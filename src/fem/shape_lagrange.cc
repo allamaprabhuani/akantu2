@@ -1,8 +1,10 @@
 /**
  * @file   shape_lagrange.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb 10 11:45:51 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  lagrangian shape functions class
  *

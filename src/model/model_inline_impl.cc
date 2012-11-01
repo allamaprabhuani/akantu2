@@ -1,7 +1,9 @@
 /**
  * @file   model_inline_impl.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Fri Aug 20 17:18:08 2010
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date   Wed Aug 25 08:50:54 2010
  *
  * @brief  inline implementation of the model class
  *

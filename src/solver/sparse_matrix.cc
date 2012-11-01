@@ -1,7 +1,9 @@
 /**
  * @file   sparse_matrix.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Oct 26 18:25:07 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  implementation of the SparseMatrix class
  *

@@ -1,7 +1,9 @@
 /**
  * @file   aka_circular_vector.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 17 13:39:39 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 15:24:34 2011
  *
  * @brief  class of circular vector
  *

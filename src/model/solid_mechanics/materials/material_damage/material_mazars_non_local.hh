@@ -1,8 +1,10 @@
 /**
  * @file   material_mazars_non_local.hh
+ *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- *  @author Richart Nicolas <nicolas.richart@epfl.ch>
- * @date   Wed Aug 31 17:08:23 2011
+ *
+ * @date   Mon Oct 03 11:53:09 2011
  *
  * @brief  Mazars non-local description
  *
@@ -23,7 +25,7 @@
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 /* -------------------------------------------------------------------------- */

@@ -1,9 +1,11 @@
 /**
  * @file   material_elastic_orthotropic_inline_impl.cc
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 12 13:40:42 2012
  *
- * @brief Implementation of the inline functions of the orthotropic
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Tue May 08 13:01:18 2012
+ *
+ * @brief  Implementation of the inline functions of the orthotropic
  * elastic material
  *
  * @section LICENSE

@@ -1,7 +1,9 @@
 /**
  * @file   material_damage_linear.cc
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
+ * @date   Mon Oct 03 11:53:09 2011
  *
  * @brief  Specialization of the material class for the damage material
  *

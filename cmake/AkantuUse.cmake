@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   AkantuUse.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Nov 28 15:11:51 2011
+#
+# @date   Thu Dec 01 18:00:05 2011
 #
 # @brief  CMake file for the library
 #
@@ -24,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 macro(include_package_if_needed PACKAGE)
   string(TOUPPER ${PACKAGE} _package)
   if(AKANTU_USE_${_package})

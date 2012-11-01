@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
-# @date   Fri Feb 24 14:30:59 2012
-# @brief configuration for cohesive elements tests
+#
+# @date   Tue May 08 13:01:18 2012
+#
+# @brief  configuration for cohesive elements tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

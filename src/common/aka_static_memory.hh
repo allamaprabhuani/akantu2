@@ -1,9 +1,11 @@
 /**
- * @file aka_static_memory.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jun 10 14:19:25 2010
+ * @file   aka_static_memory.hh
  *
- * @brief Memory management
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Jun 14 19:12:20 2010
+ *
+ * @brief  Memory management
  *
  * @section LICENSE
  *

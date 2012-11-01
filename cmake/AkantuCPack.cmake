@@ -1,9 +1,11 @@
 #===============================================================================
 # @file   AkantuCPack.cmake
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Oct 17 2012
 #
-# @brief Configure the packaging system
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Wed Oct 17 15:19:18 2012
+#
+# @brief  Configure the packaging system
 #
 # @section LICENSE
 #
@@ -24,7 +26,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 
 set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
 mark_as_advanced(PACKAGE_FILE_NAME)

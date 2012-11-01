@@ -1,8 +1,10 @@
 /**
  * @file   material_neohookean.cc
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
+ * @date   Wed Jun 15 10:45:12 2011
  *
  * @brief  Specialization of the material class for the elastic material
  *

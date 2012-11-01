@@ -1,7 +1,9 @@
 /**
  * @file   dumper_iohelper_tmpl_material_internal_field.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Oct 25 14:41:17 2012
+ *
+ * @date   Fri Oct 26 21:52:40 2012
  *
  * @brief  description of material internal field
  *
@@ -24,7 +26,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */

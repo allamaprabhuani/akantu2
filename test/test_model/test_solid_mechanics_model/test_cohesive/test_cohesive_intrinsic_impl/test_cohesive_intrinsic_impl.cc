@@ -1,8 +1,10 @@
 /**
- * @file   test_cohesive.cc
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @file   test_cohesive_intrinsic_impl.cc
+ *
  * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
- * @date   Fri Feb 24 14:32:31 2012
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Mon Jul 09 14:13:56 2012
  *
  * @brief  Test for cohesive elements
  *

@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindQVIEW.cmake
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Mon Jun 27 16:29:57 2010
+#
+# @date   Mon Jun 27 17:56:45 2011
 #
 # @brief  The find_package file for libQVIEW
 #

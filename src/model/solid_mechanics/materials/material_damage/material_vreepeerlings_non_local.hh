@@ -1,8 +1,10 @@
 /**
  * @file   material_vreepeerlings_non_local.hh
- * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Feb 24 16:01:10 2012
+ * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
+ *
+ * @date   Tue Feb 28 18:18:29 2012
  *
  * @brief  MaterialVreePeerlings header for non-local damage
  *

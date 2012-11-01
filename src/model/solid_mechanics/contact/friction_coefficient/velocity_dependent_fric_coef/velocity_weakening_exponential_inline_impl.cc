@@ -1,7 +1,9 @@
 /**
  * @file   velocity_weakening_exponential_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jun 20 15:39:52 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Jun 21 15:14:39 2011
  *
  * @brief  implementation of exponential velocity weakening friction coefficient
  *
@@ -24,7 +26,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 inline Real VelocityWeakeningExponential::computeFricCoef(UInt impactor_node_index) {

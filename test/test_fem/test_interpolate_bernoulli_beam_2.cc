@@ -1,7 +1,9 @@
 /**
  * @file   test_interpolate_bernoulli_beam_2.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Mon Apr  4 15:10:22 2011
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  Test of the interpolation on the type _bernoulli_beam_2
  *

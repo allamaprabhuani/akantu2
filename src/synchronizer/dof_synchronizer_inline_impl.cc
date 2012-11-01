@@ -1,9 +1,11 @@
 /**
  * @file   dof_synchronizer_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue May 31 11:24:22 2011
  *
- * @brief DOFSynchronizer inline implementation
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jun 17 17:28:22 2011
+ *
+ * @brief  DOFSynchronizer inline implementation
  *
  * @section LICENSE
  *

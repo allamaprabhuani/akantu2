@@ -1,7 +1,9 @@
 /**
  * @file   aka_memory.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jun 15 09:30:23 2010
+ *
+ * @date   Fri Jun 18 11:48:28 2010
  *
  * @brief  wrapper for the static_memory, all object which wants
  * to access the ststic_memory as to inherit from the class memory

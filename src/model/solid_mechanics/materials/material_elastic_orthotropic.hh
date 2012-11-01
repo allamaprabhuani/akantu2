@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic_orthotropic.hh
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 12 10:57:52 2012
+ *
+ * @date   Tue May 08 13:01:18 2012
  *
  * @brief  Orthotropic elastic material
  *

@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindEPSN.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Tue Aug  25 16:53:57 2010
+#
+# @date   Mon Dec 13 10:44:16 2010
 #
 # @brief  The find_package file for EPSN
 #

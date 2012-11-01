@@ -1,7 +1,9 @@
 /**
  * @file   aka_event_handler.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Aug 22 17:04:14 2012
+ *
+ * @date   Thu Aug 23 16:39:04 2012
  *
  * @brief  Base of Event Handler classes
  *

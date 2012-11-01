@@ -1,9 +1,11 @@
 /**
  * @file   test_mesh_io_diana.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @date   Thu Mar 10 16:08:22 2011
+ *
+ * @date   Wed May 04 18:17:20 2011
  *
  * @brief  test reading mesh diana
  *

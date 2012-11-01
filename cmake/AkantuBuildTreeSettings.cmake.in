@@ -1,9 +1,11 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+# @file   AkantuBuildTreeSettings.cmake.in
 #
-# @brief Configuration for link with build tree
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Thu Dec 01 18:00:05 2011
+#
+# @brief  Configuration for link with build tree
 #
 # @section LICENSE
 #

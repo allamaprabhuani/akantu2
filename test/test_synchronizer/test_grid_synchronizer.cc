@@ -1,7 +1,9 @@
 /**
  * @file   test_grid_synchronizer.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Nov  7 11:58:02 2011
+ *
+ * @date   Fri Nov 25 17:00:17 2011
  *
  * @brief  test the GridSynchronizer object
  *

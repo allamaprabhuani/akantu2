@@ -1,7 +1,9 @@
 /**
  * @file   test_mesh_partitionate_scotch.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 19 13:05:27 2010
+ *
+ * @date   Wed Sep 01 17:57:12 2010
  *
  * @brief  test of internal facet extraction
  *

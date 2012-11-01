@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   damage_non_local.cmake
 #
-# @brief package description for non-local materials
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Fri Jun 15 13:48:37 2012
+#
+# @brief  package description for non-local materials
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 option(AKANTU_DAMAGE_NON_LOCAL "Package for Non-local damage constitutives laws Akantu" OFF)
 
 add_package_dependecies(damage_non_local extra_materials)

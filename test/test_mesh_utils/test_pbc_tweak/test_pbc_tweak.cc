@@ -1,7 +1,9 @@
 /**
- * @file   test_facet_extraction_tetra1.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Thu Aug 19 13:05:27 2010
+ * @file   test_pbc_tweak.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date   Wed Feb 09 13:28:38 2011
  *
  * @brief  test of internal facet extraction
  *

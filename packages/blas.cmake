@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   blas.cmake
 #
-# @brief package description for blas support
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Fri Oct 19 15:58:42 2012
+#
+# @brief  package description for blas support
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 add_optional_package(BLAS "Use BLAS for arithmetic operations" OFF LANGUAGE Fortran)
 if(BLAS_mkl_core_LIBRARY)
   set(AKANTU_USE_BLAS_MKL)

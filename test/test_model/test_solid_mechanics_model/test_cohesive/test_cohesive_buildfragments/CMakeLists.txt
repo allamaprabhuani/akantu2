@@ -1,9 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Marco Vocialta <marco.vocialta@epfl.ch>
-# @date   Thu Apr 26 15:14:00 2012
 #
-# @brief configuration for build fragments tests
+# @author Marco Vocialta <marco.vocialta@epfl.ch>
+#
+# @date   Wed Jun 13 11:29:49 2012
+#
+# @brief  configuration for build fragments tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

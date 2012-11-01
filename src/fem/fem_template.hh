@@ -1,7 +1,9 @@
 /**
  * @file   fem_template.hh
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 10:55:21 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  templated class that calls integration and shape objects
  *

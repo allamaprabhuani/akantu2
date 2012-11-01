@@ -1,7 +1,9 @@
 /**
  * @file   simplified_dieterich_fric_coef.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Mar  4 15:00:32 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  implementation of the simpliefied dieterich friction law
  *

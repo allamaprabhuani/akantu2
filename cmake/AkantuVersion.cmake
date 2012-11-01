@@ -1,9 +1,11 @@
 #===============================================================================
 # @file   AkantuVersion.cmake
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Wed Oct 17 2012
 #
-# @brief Handle the generation of version numbers
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+#
+# @date   Wed Oct 17 15:19:18 2012
+#
+# @brief  Handle the generation of version numbers
 #
 # @section LICENSE
 #
@@ -24,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 find_package(Subversion)
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/.svn)

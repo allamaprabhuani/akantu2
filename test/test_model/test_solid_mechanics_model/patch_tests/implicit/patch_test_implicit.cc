@@ -1,7 +1,9 @@
 /**
- * @file   test_check_stress.cc
+ * @file   patch_test_implicit.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Feb 16 13:56:42 2011
+ *
+ * @date   Thu Feb 17 16:05:48 2011
  *
  * @brief  patch test for elastic material in solid mechanics model
  *

@@ -1,10 +1,12 @@
 /**
  * @file   colone_weight.cc
- * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @date   Wed Mar 23 15:42:36 2011
  *
- * @brief column test
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  column test
  *
  * @section LICENSE
  *

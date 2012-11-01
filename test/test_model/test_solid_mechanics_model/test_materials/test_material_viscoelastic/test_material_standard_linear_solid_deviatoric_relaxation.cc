@@ -1,9 +1,11 @@
 /**
- * @file   test_material_viscoelastic_relaxation.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch> 
+ * @file   test_material_standard_linear_solid_deviatoric_relaxation.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed May 23 15:54:01 2012
+ * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
+ *
+ * @date   Wed May 23 17:42:48 2012
  *
  * @brief  test of the viscoelastic material: relaxation
  *

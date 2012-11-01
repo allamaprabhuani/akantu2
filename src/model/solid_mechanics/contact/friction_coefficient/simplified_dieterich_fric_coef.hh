@@ -1,7 +1,9 @@
 /**
  * @file   simplified_dieterich_fric_coef.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Mar  4 14:51:28 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  implementation of a friction coefficient based on the simpliefied dieterich law @f$\mu = \mu_0 + A \ln\left( \frac{V}{V^*} + 1\right) + B \ln \left( \frac{\theta}{\theta^*} + 1 \right)@f$ (see Dieterich & Kilgore 1994)
  *

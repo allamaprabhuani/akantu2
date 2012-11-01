@@ -1,7 +1,9 @@
 /**
  * @file   data_accessor.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Wed Jun 15 22:05:36 2011
+ *
+ * @date   Thu Jun 16 16:36:52 2011
  *
  * @brief  data accessors constructor functions
  *

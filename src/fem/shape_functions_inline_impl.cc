@@ -1,10 +1,12 @@
 /**
  * @file   shape_functions_inline_impl.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Richart Nicolas <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Fri Apr  1 13:57:05 2011
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  ShapeFunctions inline implementation
  *

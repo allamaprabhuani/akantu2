@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindGMSH.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Thu Oct 14 13:15:47 2010
+#
+# @date   Fri Oct 15 09:29:57 2010
 #
 # @brief  Find gmsh and delacre the add_mesh macro
 #

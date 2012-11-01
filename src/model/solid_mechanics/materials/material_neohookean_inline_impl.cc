@@ -1,7 +1,9 @@
 /**
  * @file   material_neohookean_inline_impl.cc
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
+ * @date   Wed Jun 15 10:45:12 2011
  *
  * @brief  Implementation of the inline functions of the material neohookean
  *

@@ -1,7 +1,9 @@
 /**
  * @file   regular_grid_neighbor_structure.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 11 16:03:17 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon Oct 11 18:09:29 2010
  *
  * @brief  Specialization of the contact neighbor structure for regular grid
  *

@@ -1,8 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
+# @file   CTestConfig.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
-# @brief configuration for ctest
+#
+# @date   Thu Jan 06 12:12:51 2011
+#
+# @brief  configuration for ctest
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

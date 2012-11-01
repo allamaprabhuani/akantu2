@@ -1,8 +1,10 @@
 /**
  * @file   synchronizer.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Aug 26 16:31:48 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Sep 01 17:57:12 2010
  *
  * @brief  implementation of the common part
  *

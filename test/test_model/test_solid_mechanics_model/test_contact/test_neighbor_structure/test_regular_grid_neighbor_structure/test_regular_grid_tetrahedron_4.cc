@@ -1,7 +1,9 @@
 /**
  * @file   test_regular_grid_tetrahedron_4.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 16:58:42 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu Dec 02 17:15:09 2010
  *
  * @brief  test regular grid neighbor structure for 3d case
  *

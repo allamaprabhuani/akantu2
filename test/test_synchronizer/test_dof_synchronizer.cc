@@ -1,7 +1,9 @@
 /**
  * @file   test_dof_synchronizer.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Jun  1 09:49:46 2011
+ *
+ * @date   Fri Jun 17 17:28:22 2011
  *
  * @brief  Test the functionality of the DOFSynchronizer class
  *

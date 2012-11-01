@@ -1,7 +1,9 @@
 /**
  * @file   mesh_io_msh.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 18 11:30:59 2010
+ *
+ * @date   Fri Jun 18 11:47:19 2010
  *
  * @brief  Read/Write for MSH files
  *

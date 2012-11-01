@@ -1,7 +1,9 @@
 /**
  * @file   contact_2d_explicit.hh
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Tue Oct 12 09:24:20 2010
+ *
+ * @date   Fri Nov 19 14:23:18 2010
  *
  * @brief  Interface for 2d explicit contact class
  *

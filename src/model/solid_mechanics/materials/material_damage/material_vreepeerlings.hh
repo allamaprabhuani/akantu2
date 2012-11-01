@@ -1,7 +1,9 @@
 /**
  * @file   material_vreepeerlings.hh
+ *
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- * @date   Fri Feb 17 14:00:00 2012
+ *
+ * @date   Fri Feb 24 14:27:15 2012
  *
  * @brief  Specialization of the material class for the VreePeerlings material
  *

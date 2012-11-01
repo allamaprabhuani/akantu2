@@ -1,7 +1,9 @@
 /**
- * @file   test_solid_mechanics_model.cc
+ * @file   test_solid_mechanics_model_circle_2.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 14:34:13 2010
+ *
+ * @date   Tue Oct 26 10:08:10 2010
  *
  * @brief  test of the class SolidMechanicsModel
  *

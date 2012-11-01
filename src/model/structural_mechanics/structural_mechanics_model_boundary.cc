@@ -1,9 +1,11 @@
 /**
  * @file   structural_mechanics_model_boundary.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Wed May 25 15:21:50 2011
  *
- * @brief StructuralMechanicsModel functions to set boundary conditions
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  StructuralMechanicsModel functions to set boundary conditions
  *
  * @section LICENSE
  *

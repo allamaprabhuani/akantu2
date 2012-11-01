@@ -1,10 +1,12 @@
 /**
- * @file   test_surface_extraction_2d.cc
+ * @file   test_surface_extraction_triangle_3.cc
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Oct 25 09:47:15 2010
  *
- * @brief test for surface extractions
+ * @date   Tue Oct 26 10:02:47 2010
+ *
+ * @brief  test for surface extractions
  *
  * @section LICENSE
  *

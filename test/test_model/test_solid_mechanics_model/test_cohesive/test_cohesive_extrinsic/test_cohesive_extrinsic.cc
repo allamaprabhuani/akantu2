@@ -1,7 +1,9 @@
 /**
- * @file   test_cohesive.cc
+ * @file   test_cohesive_extrinsic.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Fri Feb 24 14:32:31 2012
+ *
+ * @date   Tue May 08 13:01:18 2012
  *
  * @brief  Test for cohesive elements
  *

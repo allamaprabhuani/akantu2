@@ -1,9 +1,11 @@
 /**
  * @file   local_material_damage.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
  *
  * @brief  Material isotropic elastic
  *

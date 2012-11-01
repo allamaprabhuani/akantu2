@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   iohelper.cmake
 #
-# @brief package description for iohelper
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Tue Nov 29 15:16:35 2011
+#
+# @brief  package description for iohelper
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

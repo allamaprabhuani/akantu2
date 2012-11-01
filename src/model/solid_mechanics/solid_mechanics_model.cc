@@ -1,8 +1,10 @@
 /**
  * @file   solid_mechanics_model.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
- * @date   Thu Jul 22 14:35:38 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Implementation of the SolidMechanicsModel class
  *

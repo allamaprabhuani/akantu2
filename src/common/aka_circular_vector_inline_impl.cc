@@ -1,7 +1,9 @@
 /**
  * @file   aka_circular_vector_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 17 14:45:40 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 15:24:34 2011
  *
  * @brief  implementation of circular vector
  *

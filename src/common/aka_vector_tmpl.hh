@@ -1,7 +1,9 @@
 /**
  * @file   aka_vector_tmpl.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 15 00:09:33 2010
+ *
+ * @date   Thu Jul 15 00:41:12 2010
  *
  * @brief  Inline functions of the classes Vector<T> and VectorBase
  *

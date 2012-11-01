@@ -1,7 +1,9 @@
 /**
  * @file   test_grid.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Aug  6 10:37:19 2012
+ *
+ * @date   Mon Aug 06 14:09:13 2012
  *
  * @brief  Test the grid object
  *
@@ -24,7 +26,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 #include <iostream>

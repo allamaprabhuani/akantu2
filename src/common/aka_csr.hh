@@ -1,7 +1,9 @@
 /**
  * @file   aka_csr.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Apr 18 13:39:52 2011
+ *
+ * @date   Wed Apr 20 18:13:43 2011
  *
  * @brief  A compresed sparse row structure based on akantu Vectors
  *

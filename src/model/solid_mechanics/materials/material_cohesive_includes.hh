@@ -1,7 +1,9 @@
 /**
  * @file   material_cohesive_includes.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Oct 30 15:32:47 2012
+ *
+ * @date   Wed Oct 31 16:24:42 2012
  *
  * @brief  List of includes for cohesive elements
  *

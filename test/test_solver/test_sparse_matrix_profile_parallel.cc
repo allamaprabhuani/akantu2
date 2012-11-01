@@ -1,7 +1,9 @@
 /**
  * @file   test_sparse_matrix_profile_parallel.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb 3 13:05:27 2011
+ *
+ * @date   Mon Feb 07 17:33:51 2011
  *
  * @brief  test the sparse matrix class in parallel
  *

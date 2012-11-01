@@ -1,7 +1,9 @@
 /**
  * @file   test_solver_mumps.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Sun Dec 12 20:20:32 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  simple test of the mumps solver interface
  *

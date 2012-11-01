@@ -1,9 +1,11 @@
 /**
  * @file   material_standard_linear_solid_deviatoric.cc
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
+ *
+ * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Feb 7 2012
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Feb 08 16:53:31 2012
  *
  * @brief  Material Visco-elastic
  *

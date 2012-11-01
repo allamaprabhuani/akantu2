@@ -1,9 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
 #
-# @brief configuration for materials tests
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+#
+# @date   Fri Nov 26 00:17:56 2010
+#
+# @brief  configuration for materials tests
 #
 # @section LICENSE
 #

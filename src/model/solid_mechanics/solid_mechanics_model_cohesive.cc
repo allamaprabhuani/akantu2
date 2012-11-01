@@ -1,7 +1,9 @@
 /**
  * @file   solid_mechanics_model_cohesive.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 19 10:42:11 2012
+ *
+ * @date   Tue May 08 13:01:18 2012
  *
  * @brief  Solid mechanics model for cohesive elements
  *

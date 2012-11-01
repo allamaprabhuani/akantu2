@@ -1,9 +1,11 @@
 /**
  * @file   aka_error.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Sun Sep  5 21:03:37 2010
  *
- * @brief handling of errors
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Sep 06 00:18:58 2010
+ *
+ * @brief  handling of errors
  *
  * @section LICENSE
  *

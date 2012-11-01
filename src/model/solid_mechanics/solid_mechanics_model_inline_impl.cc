@@ -1,8 +1,10 @@
 /**
  * @file   solid_mechanics_model_inline_impl.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Anciaux Guillaume <guillaume.anciaux@epfl.ch>
- * @date   Thu Jul 29 12:07:04 2010
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Implementation of the inline functions of the SolidMechanicsModel class
  *

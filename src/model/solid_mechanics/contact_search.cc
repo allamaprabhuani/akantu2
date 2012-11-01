@@ -1,11 +1,13 @@
 /**
  * @file   contact_search.cc
+ *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Oct  8 11:46:34 2010
  *
- * @brief implements the ContactSearch
+ * @date   Fri Oct 08 15:20:20 2010
+ *
+ * @brief  implements the ContactSearch
  *
  * @section LICENSE
  *

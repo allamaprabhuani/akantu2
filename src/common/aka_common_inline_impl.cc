@@ -1,11 +1,12 @@
 /**
  * @file   aka_common_inline_impl.cc
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Richart Nicolas <nicolas.richart@epfl.ch>
- * @date   Fri Jun 11 09:48:06 2010
  *
- * @namespace akantu
- * @brief inline implementations of common akantu type descriptions
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Dec 01 12:54:29 2011
+ *
+ * @brief  inline implementations of common akantu type descriptions
  *
  * @section LICENSE
  *

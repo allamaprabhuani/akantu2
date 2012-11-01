@@ -1,8 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Mon Mar 07 12:37:24 2011
-# @brief configuration for rice ruina tests
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Tue Mar 22 13:18:24 2011
+#
+# @brief  configuration for rice ruina tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)

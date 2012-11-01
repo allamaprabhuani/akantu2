@@ -1,9 +1,11 @@
 /**
  * @file   model.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Fri Sep 16 14:46:01 2011
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Oct 03 12:24:07 2011
  *
  * @brief  implementation of model common parts
  *

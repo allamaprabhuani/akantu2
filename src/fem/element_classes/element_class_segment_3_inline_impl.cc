@@ -1,7 +1,9 @@
 /**
  * @file   element_class_segment_3_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Sun Oct 3 10:28:28 2010
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Specialization of the element_class class for the type _segment_3
  *
@@ -26,7 +28,6 @@
  * @section DESCRIPTION
  *
  * @verbatim
-
          -1         0         1
   	 -----x---------x---------x-----> x
 	      1         3         2
@@ -56,7 +57,6 @@
  * \end{array}
  * @f]
  */
-
 
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_segment_3>::nb_nodes_per_element;

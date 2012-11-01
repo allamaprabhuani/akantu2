@@ -1,9 +1,13 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Feb 16 09:46:59 2010
-# @brief configuration for patch tests
+#
+# @date   Wed Apr 20 18:08:58 2011
+#
+# @brief  configuration for patch tests
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -25,6 +29,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 add_mesh(test_weight_hexa_mesh colone_hexa.geo 3 1)
 add_mesh(test_weight_tetra_mesh colone_tetra.geo 3 1)
 

@@ -1,7 +1,9 @@
 /**
  * @file   contact_search_explicit_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Nov 25 15:22:31 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu Dec 02 15:30:07 2010
  *
  * @brief  Implementation of inline functions of the explicit 3d contact search algorithm
  *

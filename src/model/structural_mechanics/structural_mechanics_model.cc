@@ -1,9 +1,11 @@
 /**
  * @file   structural_mechanics_model.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May  5 15:52:38 2011
  *
- * @brief StructuralMechanicsModel implementation
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  StructuralMechanicsModel implementation
  *
  * @section LICENSE
  *

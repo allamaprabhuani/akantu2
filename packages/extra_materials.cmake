@@ -1,9 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
-# @author Richart Nicolas <nicolas.richart@epfl.ch>
-# @date   Fri Sep 29 16:46:30 2010 
+# @file   extra_materials.cmake
 #
-# @brief package description for extra materials list
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Wed Oct 31 16:24:42 2012
+#
+# @brief  package description for extra materials list
+#
 # @section LICENSE
 #
 # Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
@@ -23,6 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 option(AKANTU_EXTRA_MATERIALS "Add the extra list of materials in Akantu" OFF)
 
 set(AKANTU_EXTRA_MATERIALS_FILES

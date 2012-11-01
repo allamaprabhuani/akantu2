@@ -1,7 +1,9 @@
 /**
  * @file   static_communicator_inline_impl.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Sep  6 00:16:19 2010
+ *
+ * @date   Mon Sep 06 00:18:58 2010
  *
  * @brief  implementation of inline functions
  *
