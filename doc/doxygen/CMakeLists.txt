@@ -66,4 +66,4 @@ add_custom_target(akantu-doc-forced
   )
 
 install(DIRECTORY ${DOXYGEN_OUTPUT_DIR}
-  DESTINATION share/akantu-${akantu_VERSION}/doc)
+  DESTINATION share/akantu-${AKANTU_VERSION}/doc)
