@@ -51,7 +51,6 @@ set(AKANTU_EXTRA_MATERIALS_FILES
 
   model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   model/solid_mechanics/materials/material_neohookean_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_damage_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc

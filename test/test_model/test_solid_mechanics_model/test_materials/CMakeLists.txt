@@ -29,14 +29,16 @@
 #
 #===============================================================================
 
-add_akantu_test(test_material_viscoelastic "test the visco elastic materials")
+add_akantu_test(test_material_viscoelastic "test the visco elastic materials"
+  PACKAGE extra_materials)
 add_mesh(test_local_material_square_mesh triangle.geo 2 2)
 add_mesh(test_local_material_circle_mesh circle.geo 2 2)
 add_mesh(test_local_material_bar_mesh bar.geo 2 1)
 add_mesh(test_local_material_barre_trou_mesh barre_trou.geo 2 2)
 
 register_test(test_local_material
-  SOURCES local_material_damage.cc test_local_material.cc
+  SOURCES  test_local_material.cc local_material_damage.cc
+  EXTRA_FILES local_material_damage.hh local_material_damage_inline_impl.cc
   DEPENDENCIES test_local_material_square_mesh test_local_material_circle_mesh
   test_local_material_barre_trou_mesh
   FILES_TO_COPY material.dat

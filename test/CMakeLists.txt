@@ -35,6 +35,7 @@ include_directories(
   ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR}
   )
 
+set(AKANTU_TESTS_FILES CACHE INTERNAL "")
 #===============================================================================
 # List of tests
 #===============================================================================
@@ -47,5 +48,30 @@ add_akantu_test(test_solver "Test solver function" PACKAGE solver)
 
 add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
 add_akantu_test(test_synchronizer "Test synchronizers" PACKAGE parallel)
+
+file(GLOB_RECURSE __all_files "*.*")
+set(_all_files)
+foreach(_file ${__all_files})
+  if("${_file}" MATCHES  "${CMAKE_SOURCE_DIR}/test")
+    file(RELATIVE_PATH __file ${CMAKE_SOURCE_DIR} ${_file})
+    list(APPEND _all_files ${__file})
+  endif()
+endforeach()
+
+file(GLOB_RECURSE __all_files "*CMakeLists.txt")
+foreach(_file ${__all_files})
+  if("${_file}" MATCHES  "${CMAKE_SOURCE_DIR}/test")
+    file(RELATIVE_PATH __file ${CMAKE_SOURCE_DIR} ${_file})
+    list(APPEND _cmakes ${__file})
+  endif()
+endforeach()
+list(APPEND AKANTU_TESTS_FILES ${_cmakes})
+
+foreach(_file ${_all_files})
+  list(FIND AKANTU_TESTS_FILES ${_file} _ret)
+  if(_ret EQUAL -1)
+    list(APPEND AKANTU_TESTS_EXCLUDE_FILES ${_file})
+  endif()
+endforeach()
 
 set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} PARENT_SCOPE)

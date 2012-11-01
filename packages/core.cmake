@@ -136,13 +136,14 @@ set(AKANTU_CORE_FILES
   #inline implementation files
   mesh_utils/mesh_utils_inline_impl.cc
   solver/sparse_matrix_inline_impl.cc
-  solver/solver_inline_impl.cc
   synchronizer/dof_synchronizer_inline_impl.cc
   synchronizer/communication_buffer_inline_impl.cc
+  common/aka_common_inline_impl.cc
   common/aka_memory_inline_impl.cc
   common/aka_static_memory_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc
   fem/integrator_gauss_inline_impl.cc
+  fem/fem_template_inline_impl.cc
   fem/element_classes/element_class_triangle_3_inline_impl.cc
   fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_quadrangle_4_inline_impl.cc
@@ -198,4 +199,5 @@ set(AKANTU_CORE_TESTS
   test_solid_mechanics_model_cube3d_pbc
   test_surface_extraction_triangle_3
   test_surface_extraction_tetrahedron_4
+  test_material_damage_non_local
   )

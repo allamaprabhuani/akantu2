@@ -50,7 +50,7 @@ macro(manage_test_and_example et_name desc build_all label)
       set(_activated OFF)
       file(RELATIVE_PATH _dir ${CMAKE_SOURCE_DIR}  ${CMAKE_CURRENT_SOURCE_DIR}/${et_name})
       list(APPEND AKANTU_TESTS_EXCLUDE_FILES /${_dir})
-      set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} PARENT_SCOPE)
+      set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} CACHE INTERNAL "")
     endif()
   endif()
 
@@ -134,7 +134,7 @@ endmacro()
 #===============================================================================
 macro(register_test test_name)
   set(multi_variables
-    SOURCES FILES_TO_COPY DEPENDENCIES DIRECTORIES_TO_CREATE COMPILE_OPTIONS
+    SOURCES FILES_TO_COPY DEPENDENCIES DIRECTORIES_TO_CREATE COMPILE_OPTIONS EXTRA_FILES
     )
 
   cmake_parse_arguments(register_test
@@ -178,6 +178,11 @@ macro(register_test test_name)
   endif()
 
   if(_activate_test)
+    set(_source_file)
+    foreach(_file ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS} ${register_test_EXTRA_FILES})
+      list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+    endforeach()
+
     add_executable(${test_name} ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS})
 
     if(register_test_COMPILE_OPTIONS)
@@ -189,6 +194,7 @@ macro(register_test test_name)
     if(_test_option_FILES_TO_COPY)
       foreach(_file ${register_test_FILES_TO_COPY})
 	file(COPY ${_file} DESTINATION .)
+	list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
       endforeach()
     endif()
 
@@ -202,42 +208,28 @@ macro(register_test test_name)
       endforeach()
     endif()
 
-    foreach(dep ${register_test_DEPENDENCIES})
-      add_dependencies(${test_name} ${dep})
+    foreach(_dep ${register_test_DEPENDENCIES})
+      add_dependencies(${test_name} ${_dep})
+      get_target_property(_dep_in_ressources ${_dep} RESSOURCES)
+      list(APPEND _source_file ${_dep_in_ressources})
     endforeach()
 
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
       file(COPY ${test_name}.sh DESTINATION .)
+      list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
       add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
     elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
+      list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
       add_test(${test_name} ${AKANTU_DIFF_SCRIPT} ${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
     else()
       add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
     endif()
-  else()
-    set(_exclude_source_file)
-    foreach(_file ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS})
-      list(APPEND _exclude_source_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+
+    set(_tmp ${AKANTU_TESTS_FILES})
+    foreach(_file ${_source_file})
+      file(RELATIVE_PATH __file ${CMAKE_SOURCE_DIR} ${_file})
+      list(APPEND _tmp ${__file})
     endforeach()
-
-    foreach(_dep ${register_test_DEPENDENCIES})
-      get_target_property(_dep_in_ressources ${_dep} RESSOURCES)
-      list(APPEND _exclude_source_file ${_dep_in_ressources})
-    endforeach()
-
-    if(EXISTS ${test_name}.sh)
-      list(APPEND _exclude_source_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
-    endif()
-
-    if(EXISTS ${test_name}.verified)
-      list(APPEND _exclude_source_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
-    endif()
-
-    foreach(_file ${_exclude_source_file})
-      file(RELATIVE_PATH _ign_file ${CMAKE_SOURCE_DIR} ${_file})
-      list(APPEND AKANTU_TESTS_EXCLUDE_FILES ${_ign_file})
-    endforeach()
-
-    set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} PARENT_SCOPE)
-  endif()
+    set(AKANTU_TESTS_FILES ${_tmp} CACHE INTERNAL "")
+   endif()
 endmacro()
