@@ -1,32 +1,39 @@
 \chapter{Getting started}
 \section{Downloading the code}
 
-The \akantu source code must be requested to the LSMS by 
+The \akantu source code must be requested to the LSMS by
 filling the form accessible at the URL \url{http://lsms.epfl.ch/akantu}.
 There, you will be asked to accept the LGPL licence terms.
 
 \section{Compiling Akantu}
+
+Akantu is a \code{cmake} project, so to configure it you can either follow the usual way:
 \begin{command}
   > cd akantu
   > mkdir build
   > cd build
   > ccmake <path to akantu sources>
-\end{command}
-
-Set the options that you need
-
-\begin{command}
+  [ Set the options that you need ]
   > make
   > make install
 \end{command}
 
+Or we added an tool to help you. You can juste use the \code{Makefile} given and which handle the configuration of \code{cmake}
+
+\begin{command}
+  > cd akantu
+  > make config
+  > make
+  > make insall
+\end{command}
+
 \section{Writing a main function\label{sect:common:main}}
 
-First of all, \akantu needs to be initialized. 
+First of all, \akantu needs to be initialized.
 There is a memory management included in the core library
-which allows a correct allocation and de-allocation of 
+which allows a correct allocation and de-allocation of
 vectors, structures and/or objects. Also, in parallel computations
-the initialization procedure can perform communication 
+the initialization procedure can perform communication
 setup. This is achieved by a pair of functions \code{initialize}
 and \code{finalize} which are used as follows:
 \begin{cpp}
@@ -35,18 +42,18 @@ int main(int argc, char *argv[])
   akantu::initialize(argc, argv);
 
   // your code
-  ... 
+  ...
 
   akantu::finalize();
 }
-\end{cpp} 
-The \code{initialize} function takes the program parameters which 
+\end{cpp}
+The \code{initialize} function takes the program parameters which
 can be interpreted by \akantu in due form.
 
 \section{Creating and loading a mesh\label{sect:common:mesh}}
 
 \akantu supports meshes generated with Gmsh~\cite{gmsh}, a free
-software available at \url{http://geuz.org/gmsh/} where a detailed 
+software available at \url{http://geuz.org/gmsh/} where a detailed
 documentation can be found. Consequently this manual will not provide
 Gmsh usage directions. Gmsh outputs meshes in \textit{.msh} format, that can be read
 by \akantu. In order to import a mesh, it is necessary to create
@@ -57,15 +64,15 @@ a \code{Mesh} object through the following function calls:
 \end{cpp}
 The only parameter that has to be specified by the user is the spatial
 dimension of the problem. Now it is possible to read a \textit{.msh} file with
-a \textit{MeshIOMSH} object that takes care of loading a mesh to memory. 
+a \textit{MeshIOMSH} object that takes care of loading a mesh to memory.
 This step is carried out by:
 \begin{cpp}
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
 \end{cpp}
-where the \textit{MeshIOMSH} object is first created before being 
+where the \textit{MeshIOMSH} object is first created before being
 used to read the \text{.msh} file. The mesh file name as well as the \textit{Mesh}
-object must be specified by the user. 
+object must be specified by the user.
 
 The \textit{MeshIOMSH} object can also write mesh files. This
 feature is useful to save a mesh which have been modified during a
@@ -101,10 +108,10 @@ accessed by typing:
 \end{cpp}
 
 \code{Vectors} can also contain a
-sequence of values for each index. In that case the number of components 
-of each sequence is needed at the \code{Vector} creation. 
+sequence of values for each index. In that case the number of components
+of each sequence is needed at the \code{Vector} creation.
 For example if we want to create a \code{Vector} to store
-the coordinates (sequences of three values) of ten nodes, the appropriate 
+the coordinates (sequences of three values) of ten nodes, the appropriate
 code is the following:
 \begin{cpp}
   UInt nb_nodes = 10;
@@ -115,28 +122,28 @@ code is the following:
 In this case the $x$ position of node number 8 will be given by
 \texttt{position(7, 0)} (in C++ numbering is starting from 0 and not
 1). If the number of components for the sequences is not specified, a
-default value of 1 is used. 
+default value of 1 is used.
 
-It is very common in \akantu to loop over vectors to perform a specific 
-treatment. This ranges from geometric calculation on nodal quantities 
+It is very common in \akantu to loop over vectors to perform a specific
+treatment. This ranges from geometric calculation on nodal quantities
 to tensor algebra (in constitutive laws for example).
-The \code{Vector} object has the possibility to request iterators 
+The \code{Vector} object has the possibility to request iterators
 in order to make the writing of loops easier and enhance readability.
 For instance a loop over the nodal coordinates can be performed like:
 \begin{cpp}
   //accessing the nodal coordinates Vector
   Vector<Real> nodes = mesh.getNodes();
-  
+
   //creating the iterators
   Vector<Real>::iterator<types::RVector> it  = nodes.begin(spatial_dimension);
   Vector<Real>::iterator<types::RVector> end = nodes.end(spatial_dimension);
-  
+
   for (; it != end; ++it){
     RVector & coords = (*it);
-    
+
     //do what you need
     ....
-    
+
   }
 \end{cpp}
 In that example, each \code{RVector} is a geometrical vector of size \textit{spatial\_dimension}
@@ -144,46 +151,43 @@ and the iteration is conveniently performed by the \code{Vector} iterator.
 
 The \code{Vector} object is intensively used to stored tensor values.
 In that case the iterator constructed should specify that the object type
-returned by the iterator is a matrix. This is done when calling the 
-begin function. For instance, assuming that we have a \code{Vector} storing 
+returned by the iterator is a matrix. This is done when calling the
+begin function. For instance, assuming that we have a \code{Vector} storing
 stresses we can loop over the stored tensors by:
 
 \begin{cpp}
   //creating the iterators
   Vector<Real>::iterator<types::RMatrix> it  = stresses.begin(spatial_dimension,spatial_dimension);
   Vector<Real>::iterator<types::RMatrix> end = stresses.end(spatial_dimension,spatial_dimension);
-  
+
   for (; it != end; ++it){
     Matrix<Real> & stress = (*it);
-    
+
     //do what you need
     ....
-    
+
   }
 \end{cpp}
-In that last example the Matrix objects are 
+In that last example the Matrix objects are
 $spatial\_dimension \times spatial\_dimension$ matrices.
-The light objects \code{Matrix} and \code{RVector} can be used and combined 
+The light objects \code{Matrix} and \code{RVector} can be used and combined
 to do most common linear algebra.
 
-In general a mesh consists of several kinds of elements. Consequently the 
-amount of data to be stored can differ for each element type. The straightforward 
+In general a mesh consists of several kinds of elements. Consequently the
+amount of data to be stored can differ for each element type. The straightforward
 example is the connectivity array, namely the sequences of nodes belonging to
 each element. In order to easily manage this kind of data, a
-particular data structure called \code{ByElementTypeVector} is available. 
+particular data structure called \code{ByElementTypeVector} is available.
 It is just a group of \code{Vectors}, each associated to an element
 type. The following code can retrieve the \code{ByElementTypeVector}
 which stores the connectivity arrays from a mesh:
 \begin{cpp}
   ByElementTypeVector<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}
-Then the specific vector associated with a given element type can be 
+Then the specific vector associated with a given element type can be
 obtained by
 \begin{cpp}
   Vector<UInt> & connectivity_triangle = connectivities[_triangle_3];
 \end{cpp}
-where the first order 3-node triangular element was used in the presented 
+where the first order 3-node triangular element was used in the presented
 piece of code.
-
-
-

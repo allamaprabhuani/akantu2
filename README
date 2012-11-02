@@ -1,11 +1,12 @@
-===========================================
-          _               _
-         | |             | |
-     __ _| | ____ _ _ __ | |_ _   _
-    / _` | |/ / _` | '_ \| __| | | |
-   | (_| |   < (_| | | | | |_| |_| |
-    \__,_|_|\_\__,_|_| |_|\__|\__,_|
-===========================================
+==================================================
+               _               _
+              | |             | |
+          __ _| | ____ _ _ __ | |_ _   _
+         / _` | |/ / _` | '_ \| __| | | |
+        | (_| |   < (_| | | | | |_| |_| |
+         \__,_|_|\_\__,_|_| |_|\__|\__,_|
+
+==================================================
 
 Copyright (©) 2010-2012 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -23,15 +24,25 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 
-_____________
-CONFIGURATION
 
-To configure with default options the library, type
+___________
+COMPILATION
 
-  $ make config
+There are two ways to compile Akantu.
 
-Several options can be added to the configure script, they include:
+1. You can compile it directly using cmake
 
+ > mkdir build
+ > cd build
+ > ccmake ..
+ > make
+
+2. You can use the make file in Akantu's main directory. This make file
+configure the cmake for you
+
+ > make config
+
+  Several options can be added to the configure script, they include:
    - cc=[compiler]     The C compiler used in cmake tests, default: gcc
    - cxx=[compiler]    The C++ compiler to use, default: g++
    - prefix=[path]     Installation path, default: /usr/local
@@ -40,9 +51,14 @@ Several options can be added to the configure script, they include:
    - doc=[bool]        Configure to build the documentation, default: true
    - build=[string]    Build types: Debug, Release, RelWithDebInfo, MinSizeRel,
                        default: None
+________
+CONTACTS
+
+ If you need some help to use Akantu you can contact use akantu@akantu.ch
 
 
-Authors :
+_______
+AUTHORS
 
  - Nicolas Richart <nicolas.richart@epfl.ch>
  - Guillaume Anciaux <guillaume.anciaux@epfl.ch>
@@ -57,3 +73,10 @@ Authors :
  - Marco Vocialta <marco.vocialta@epfl.ch>
  - Rui Wang <rui.wang@epfl.ch>
  - Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
+ - Marco Vocialta <marco.vocialta@epfl.ch>
+ - Till Junge <till.junge@epfl.ch>
+ - Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ - Cyprien Wolff <cyprien.wolff@epfl.ch>
+ - Mathilde Radiguet <mathilde.radiguet@epfl.ch>
+ - Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
+ - Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>

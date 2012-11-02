@@ -2,6 +2,7 @@
  * @file   test_heat_transfer_model_bar2d_coarse_square_mesh.cc
  *
  * @author Rui Wang <rui.wang@epfl.ch>
+ * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
  *
  * @date   Sun May 01 19:14:43 2011
  *

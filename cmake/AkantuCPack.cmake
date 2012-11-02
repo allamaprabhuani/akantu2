@@ -48,6 +48,6 @@ list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_EXCLUDE_SOURCE_FILE} ${AKANTU_TES
 foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_OFF})
   list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${_pkg}.cmake)
 endforeach()
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/doc/manual/;/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 
 include(CPack)

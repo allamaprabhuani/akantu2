@@ -1,8 +1,9 @@
 /**
  * @file   heat_transfer_model.hh
  *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Rui Wang <rui.wang@epfl.ch>
+ * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  *
  * @date   Sun May 01 19:14:43 2011
  *
