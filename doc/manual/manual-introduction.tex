@@ -1,7 +1,7 @@
 \chapter{Introduction}
 
 \akantu means a little element in Kinyarwanda, a
-Bantu language. From now on it is also an opensource
+Bantu language. From now on it is also an open source
 object-oriented \textit{Finite Element} library which has the ambition
 to be generic and efficient.
 \akantu is developed within the LSMS (Computational Solid Mechanics Laboratory, \url{lsms.
@@ -22,15 +22,15 @@ In order to achieve these goals, we made noticeable choices in
 the architecture of \akantu. First we decided to use the object-oriented
 paradigm through C++. Then, in order to prevent extra cost associated 
 to virtual function calls we designed the library as
-an hybrid architecture with objects at high level layers and
-vectorization for low level layers. Thus, Akantu benefits the
+a hybrid architecture with objects at high level layers and
+vectorization for low level layers. Thus, Akantu benefits from
 inheritance and polymorphism mechanisms without the counter
 part of having virtual calls within critical loops. 
 This coding philosophy, which was demonstrated in the past to be really 
 efficient, is quite innovative in the field of \textit{Finite Element} software. \\
 
 This document is appropriate for people willing to use \akantu
-in order to perform a finite element calculation, for solid mechanics,
+in order to perform a finite element calculation for solid mechanics,
 structural mechanics, contact mechanics or heat transfer. The solid mechanics solver, 
 that is the most complete and functional part of \akantu, is presented in details throughout 
 this document in a step by step approach. 
