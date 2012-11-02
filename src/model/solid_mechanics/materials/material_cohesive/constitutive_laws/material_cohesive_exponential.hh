@@ -95,8 +95,6 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
 
-  /// critical stress
-  Real sigma_c;
 
   /// beta parameter
   Real beta;

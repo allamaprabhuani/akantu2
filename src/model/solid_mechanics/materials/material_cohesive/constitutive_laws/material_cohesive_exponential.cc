@@ -209,6 +209,7 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
     tangential_opening  = *opening_it;
     tangential_opening -=  normal_opening;
 
+
     Real tangential_opening_norm = tangential_opening.norm();
 
     Real delta = tangential_opening_norm;
@@ -255,10 +256,8 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
   }
 
   AKANTU_DEBUG_OUT();
-
 }
 
-/* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialCohesiveExponential);
 
