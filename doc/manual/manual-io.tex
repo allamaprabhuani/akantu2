@@ -1,19 +1,19 @@
 \chapter{Input/output}\index{I\/O}
 
-In this chapter the problem of getting the internal data in a human readable way
-willl be expressed. The models in \akantu handles the data associated to your
-mesh, but this data can be splitted in many \code{Vectors}. For examples the
-data stored per element type in a \code{ByElementTypeVector} are composed by as
+In this chapter, the problem of getting the internal data in a human readable way
+will be addressed. The models in \akantu handle data associated to your
+mesh, but this data can be split in many \code{Vectors}. For example, the
+data stored per element type in a \code{ByElementTypeVector} is composed by as
 many vectors as types in the mesh.
 
-To help you to get this data in a visualization software, the models contains a
-object to dump \code{VTK} files. This files can be visualized in software such
-as \code{ParaView}, \code{ViSit} or \code{Mayavi}.
+To help you get this data into a visualization software, the models contain a
+object to dump \code{VTK} files. These files can be visualized in software such
+as \code{ParaView}\cite{paraview}, \code{ViSit}\cite{visit} or \code{Mayavi}\cite{mayavi}.
 
-The internal dumper of the model can be configured to specify which data field
-need to be output. This is done with the
-\code{addDumpField}\index{I\/O!addDumpField} method. By default all the files are
-generated in a folder call \code{paraview/}
+The internal dumper of the model can be configured to specify which data fields
+are to be output. This is done with the
+\code{addDumpField}\index{I\/O!addDumpField} method. By default all the files
+are generated in a folder called \code{paraview/}
 
 \begin{cpp}
   model.setBaseName("output"); // prefix for all generated files
@@ -25,16 +25,16 @@ generated in a folder call \code{paraview/}
   model.dump()
 \end{cpp}
 
-The fields are dumped with the number of component they have in the memory, that
-is to say that for example in 2D vectors have 2 components and $2^{nd}$ order
-tensors have $2\times2$ component.  This can be changed by using
+The fields are dumped with the number of component they have in memory. In 2D, for
+example, vectors have 2 components and $2^{nd}$ order tensors have $2\times2$
+components.  This can be changed by using
 \code{addDumpFieldVector}\index{I\/O!addDumpFieldVector} which always dumps
 vectors with 3 components or
 \code{addDumpFieldTensor}\index{I\/O!addDumpFieldTensor} which dumps $2^{nd}$
 order tensors with $3\times3$ components.
 
-The field which are stored by quadrature points are modified to be seen in the
-\code{VTK} file as elemental data. to do this the default is to average the
+The fields which are stored by quadrature points are modified to be seen in the
+\code{VTK} file as elemental data. To do this, the default is to average the
 values of the quadrature points.
 
 The list of fields depends on the models.
@@ -78,3 +78,9 @@ The user can also register external fields which have the same mesh as the mesh 
   model.addDumpFieldExternal("my_field", field);
 \end{cpp}
 \end{itemize}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End: 

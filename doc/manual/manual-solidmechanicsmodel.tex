@@ -782,15 +782,13 @@ analysis, otherwise plane stress conditions are applied).
 
 \section{Adding a new constitutive law}\index{Material!create a new material}
 
-There are several existing constitutive laws in \akantu as described in the
+There are several constitutive laws in \akantu as described in the
 previous Section \ref{sect:smm:CL}; it is also possible to add a new
 constitutive relationship which indicates a new material to the current ones. To
 define a new plugin material, two files (\code {material\_XXX.cc} and
 \code{material\_XXX.hh}) should be provided where \code{XXX} is the name of the
-new material. In the \code{material\_XXX.hh} the interface of the custom
-material should be given and in the \code{material\_XXX.cc} the implementation
-of the functions should be presented.  The new law has to inherit from the
-material class or any other existing \code{Material} class and the following
+new material. Define the interface of your custom material  in \code{material\_XXX.hh} and its implementation in \code{material\_XXX.cc}.  The new law must inherit from the
+\code{Material} class or any other existing material class and the following
 functions have to be redefined for the new constitutive law.
 
 \begin{cpp}
@@ -799,7 +797,7 @@ functions have to be redefined for the new constitutive law.
   // for explicit simulations
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-  // for implicit simulaitons
+  // for implicit simulations
   void computeTangentStiffness(const ElementType & el_type,
                                Vector<Real> & tangent_matrix,
                                GhostType ghost_type = _not_ghost);
@@ -821,12 +819,12 @@ used. These parameters must have been defined in the constructor of the class wi
                      description);
 \end{cpp}
 
-Moreover, some internal values can be considered for each quadrature point,
-which can be also initialized in the constructor of the new law with the
-function \code{initInternalVector}\index{Material!initInternalVector}. These
+Moreover, some internal values can be considered for each quadrature point.
+These are initialized in the constructor of the new law with the
+function \code{initInternalVector}\index{Material!initInternalVector}. The
 internal members have a \code{ByElementTypeReal} type which means they are real
-values that are considered for each of the quadrature points of the
-elements. They can be resized to the current number of quadrature points a any
+values considered for each of the quadrature points of the
+elements. They can be resized to the current number of quadrature points at any
 time with the function
 \code{resizeInternalVector}\index{Material!resizeInternalVector}
 
@@ -835,25 +833,21 @@ file. In the following, each required function is described.
 
 \begin{itemize}
 
-\item \code{initMaterial} This function is called after the material file is
-  fully read and the elements corresponding to each material are assigned.  In
-  this function, some of the constant parameters which are frequently used are
-  calculated. For example, for the elastic material the Lame's constants can be
-  considered as these kinds of parameters.  Moreover, the internal members can
-  be resized with \code{resizeInternalVector} function to the number of the
-  quadrature points handled by the material.
+\item \code{initMaterial}:~ This function is called after the material file is
+  fully read and the elements corresponding to each material are assigned. Some
+  of the frequently used constant parameters are calculated in this
+  function. For example, the Lame's constants of elastic materials can be
+  considered as such parameters.
 
-\item \code{computeStress} In this function the stresses are computed based on
+\item \code{computeStress}:~ In this function, the stresses are computed based on
   the constitutive law knowing the strains for the quadrature points.  For
-  example, for the elastic material the stresses are calculated based on the
+  example, the stresses for the elastic material are calculated based on the
   following formula:
-
- \begin{equation}\label{eqn:smm:constitutive_elastic}
-    \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu \mat{\epsilon}
+  \begin{equation}\label{eqn:smm:constitutive_elastic}
+    \mat{\sigma } =\lambda\mathrm{tr}(\mat{\varepsilon})\mat{I}+2 \mu \mat{\varepsilon}
   \end{equation}
 
-Therefore, this
-  function contains  a loop on  all quadrature points assigned  to the
+  Therefore, this function contains  a loop on  all quadrature points assigned  to the
   material using the
   \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_BEGIN;} and
   \code{MATERIAL\_STRESS\_QUADRATURE\_POINT\_LOOP\_END;}  macros.
@@ -866,20 +860,14 @@ Therefore, this
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   \end{cpp}
 
-  \note{ This function can be split in two functions.  In other words, the
-    calculation of the stress for a quadrature point can be done in an inline
-    function which is stored in a file such as \code{material\_XXX\_inline.cc}.}
+  \note{The strain vector in \akantu contains the values of $\nabla \vec{u}$.}
 
-  \note{ The strain vector in \akantu contains the values of the $\nabla
-    \vec{u}$.}
-
-\item \code{computeTangentStiffness} This function is called when the tangent to
+\item \code{computeTangentStiffness}:~ This function is called when the tangent to
   the stress-strain curve is desired (see Fig \ref {fig:smm:AL:K}).  For
   example, it is called in the implicit solver when the stiffness matrix for the
   regular elements is assembled based on the following formula:
-
   \begin{equation} \label{eqn:smm:constitutive_elasc}
-    \mat{K } =\int{\mat{B^T}\mat{D(\epsilon)}\mat{B}}
+    \mat{K } =\int{\mat{B^T}\mat{D(\varepsilon)}\mat{B}}
   \end{equation}
 
   Therefore, in this function the \code{tangent} matrix (\mat{D}) is computed
@@ -897,9 +885,9 @@ Therefore, this
   \end{figure}
 
 
-\item \code{getStableTimeStep} For the dynamic methods the stable time step
-  should be calculated based on the equation \ref{eqn:smm:explicit:stabletime}.
-  This function depends on longitudinal wave speed which changes for different
+\item \code{getStableTimeStep}:~ The stable time step
+  should be calculated based on \eqref{eqn:smm:explicit:stabletime} for the explicit methods.
+  This function depends on the longitudinal wave speed which changes for different
   materials and strains. Therefore, the value of this velocity should be defined
   in this function for each new material.
 
