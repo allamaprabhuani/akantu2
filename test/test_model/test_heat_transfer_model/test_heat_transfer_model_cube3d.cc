@@ -145,31 +145,31 @@ void paraviewInit(HeatTransferModel & model, iohelper::Dumper & dumper) {
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_element = mesh.getNbElement(type);
 
-
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(mesh.getNodes().values,
+#pragma message "To change with new dumper"
+  dumper.setMode(iohelper::TEXT);
+  dumper.setPoints(mesh.getNodes().values,
 		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *) mesh.getConnectivity(type).values,
+  dumper.setConnectivity((int *) mesh.getConnectivity(type).values,
 			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getTemperature().values,
-			  1, "temperature");
-  dumper.AddNodeDataField(model.getTemperatureRate().values,
-			  1, "temperature_rate");
-  dumper.AddNodeDataField(model.getResidual().values,
-   			  1, "residual");
-  dumper.AddNodeDataField(model.getCapacityLumped().values,
-   			  1, "capacity_lumped");
-  dumper.AddElemDataField(model.getTemperatureGradient(type).values,
-    			  spatial_dimension, "temperature_gradient");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  // dumper.addNodeDataField(model.getTemperature().values,
+  // 			  1, "temperature");
+  // dumper.addNodeDataField(model.getTemperatureRate().values,
+  // 			  1, "temperature_rate");
+  // dumper.addNodeDataField(model.getResidual().values,
+  //  			  1, "residual");
+  // dumper.addNodeDataField(model.getCapacityLumped().values,
+  //  			  1, "capacity_lumped");
+  // dumper.addElemDataField(model.getTemperatureGradient(type).values,
+  //   			  spatial_dimension, "temperature_gradient");
+  dumper.setPrefix("paraview/");
+  dumper.init();
+  dumper.dump();
 }
 
 /* -------------------------------------------------------------------------- */
 
 void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
+  dumper.dump();
 }
 #endif
 /* -------------------------------------------------------------------------- */

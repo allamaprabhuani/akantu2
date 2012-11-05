@@ -37,3 +37,10 @@ set(AKANTU_STRUCTURAL_MECHANICS_FILES
 set(AKANTU_STRUCTURAL_MECHANICS_DOC
   manual/manual-structuralmechanicsmodel.tex
   )
+
+set(AKANTU_STRUCTURAL_MECHANICS_TESTS
+  test_structural_mechanics_model_bernoulli_beam_2
+  test_structural_mechanics_model_boundary_bernoulli_beam_2
+  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1
+  test_structural_mechanics_model_bernoulli_beam_2_complicated
+  )

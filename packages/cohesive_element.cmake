@@ -31,11 +31,13 @@ option(AKANTU_COHESIVE_ELEMENT "Use cohesive_element package of Akantu" OFF)
 set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive_includes.hh
 
-  fem/shape_cohesive.cc
   fem/cohesive_element.cc
   fem/shape_cohesive.hh
   fem/cohesive_element.hh
   fem/fem_template_cohesive.cc
+
+  fem/fem_template_cohesive_inline_impl.cc
+  fem/fem_template_cohesive_tmpl.hh
 
   fem/integrator_cohesive.hh
   fem/integrator_cohesive_inline_impl.cc
@@ -64,6 +66,14 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
 
 
 set(AKANTU_COHESIVE_ELEMENT_TESTS
+  test_cohesive_buildfacets_tetrahedron
+  test_cohesive_buildfacets_hexahedron
+  test_cohesive_intrinsic
+  test_cohesive_intrinsic_quadrangle
+  test_cohesive_extrinsic
+  test_cohesive_extrinsic_quadrangle
+  test_cohesive_buildfragments
+  test_cohesive_intrinsic_impl
   )
 
 set(AKANTU_COHESIVE_ELEMENT_DOC

@@ -244,6 +244,14 @@ private:
 /* -------------------------------------------------------------------------- */
 
 #include "fem_template_inline_impl.cc"
+#include "fem_template_tmpl.hh"
+
+/* -------------------------------------------------------------------------- */
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  include "fem_template_cohesive_inline_impl.cc"
+#  include "fem_template_cohesive_tmpl.hh"
+#endif
+
 
 /// standard output stream operator
 
@@ -256,9 +264,9 @@ private:
 
 __END_AKANTU__
 
-#if defined(AKANTU_COHESIVE_ELEMENT)
-#  include "shape_cohesive.hh"
-#  include "integrator_cohesive.hh"
-#endif
+// #if defined(AKANTU_COHESIVE_ELEMENT)
+// #  include "shape_cohesive.hh"
+// #  include "integrator_cohesive.hh"
+// #endif
 
 #endif /* __AKANTU_FEM_TEMPLATE_HH__ */

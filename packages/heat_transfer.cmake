@@ -37,3 +37,11 @@ set(AKANTU_HEAT_TRANSFER_FILES
 set(AKANTU_HEAT_TRANSFER_DOC
   manual/manual-heattransfermodel.tex
   )
+
+set(AKANTU_HEAT_TRANSFER_TESTS
+   test_heat_transfer_model_cube3d
+   test_heat_transfer_model_cube3d_pbc
+   test_heat_transfer_model_square2d_pbc
+   test_heat_transfer_model_square2d
+   test_heat_transfer_model_cube3d_istropic_conductivity
+   )

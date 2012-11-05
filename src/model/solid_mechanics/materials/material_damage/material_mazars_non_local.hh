@@ -30,7 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_mazars.hh"
+#include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH__

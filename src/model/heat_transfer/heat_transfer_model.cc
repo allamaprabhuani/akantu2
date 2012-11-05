@@ -331,7 +331,7 @@ void HeatTransferModel::computeConductivityOnQuadPoints(const GhostType & ghost_
                                                  temperature_on_qpoints(*it, ghost_type),
                                                  1 ,*it,ghost_type);
 
-    Vector<Real>::iterator<types::Matrix> c_iterator =
+    Vector<Real>::iterator<types::RMatrix> c_iterator =
       conductivity_on_qpoints(*it,ghost_type).begin(spatial_dimension,spatial_dimension);
 
     Real * T_val = temperature_on_qpoints(*it, ghost_type).values;
@@ -379,7 +379,7 @@ void HeatTransferModel::computeKgradT(const GhostType & ghost_type) {
                                               gradient,
                                               1 ,*it,ghost_type);
 
-    Vector<Real>::iterator<types::Matrix> c_iterator =
+    Vector<Real>::iterator<types::RMatrix> c_iterator =
       conductivity_on_qpoints(*it,ghost_type).begin(spatial_dimension,spatial_dimension);
 
     Vector<Real>::iterator<types::RVector> gT_iterator =
@@ -427,7 +427,7 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
     Vector<Real>::iterator<types::RVector> k_gT_iterator =
       k_gradt_on_qpoints(*it,ghost_type).begin(spatial_dimension);
 
-    Vector<Real>::iterator<types::Matrix> shapesd_iterator =
+    Vector<Real>::iterator<types::RMatrix> shapesd_iterator =
       shapes_derivatives.begin(nb_nodes_per_element,spatial_dimension);
 
     Vector<Real>::iterator<types::RVector> bt_k_gT_iterator =

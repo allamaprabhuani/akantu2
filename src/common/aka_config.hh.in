@@ -48,6 +48,8 @@
 #cmakedefine AKANTU_USE_IOHELPER
 #cmakedefine AKANTU_USE_QVIEW
 
+#cmakedefine AKANTU_EXTRA_MATERIALS
+#cmakedefine AKANTU_COHESIVE_ELEMENT
 #cmakedefine AKANTU_DAMAGE_NON_LOCAL
 
 #define __aka_inline__ inline

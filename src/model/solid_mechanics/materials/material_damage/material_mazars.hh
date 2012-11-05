@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material_damage.hh"
+#include "material.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MAZARS_HH__

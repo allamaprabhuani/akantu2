@@ -28,7 +28,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 template <typename Integ, typename Shape>
 inline void FEMTemplate<Integ,Shape>::inverseMap(const types::RVector & real_coords,
 						 UInt element,
@@ -49,7 +48,6 @@ inline void FEMTemplate<Integ,Shape>::inverseMap(const types::RVector & real_coo
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <typename Integ, typename Shape>
 inline bool FEMTemplate<Integ,Shape>::contains(const types::RVector & real_coords,
 					       UInt element,
@@ -92,6 +90,83 @@ inline void FEMTemplate<Integ,Shape>::computeShapes(const types::RVector & real_
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline UInt FEMTemplate<Integ,Shape>::getNbQuadraturePoints(const ElementType & type,
+							    const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_quad_points = 0;
+
+#define GET_NB_QUAD(type)						\
+  nb_quad_points =							\
+    integrator. template getQuadraturePoints<type>(ghost_type).getSize();
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
+#undef GET_NB_QUAD
+
+  AKANTU_DEBUG_OUT();
+  return nb_quad_points;
+}
+
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementType & type,
+								const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapes(type, ghost_type));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type,
+									   const GhostType & ghost_type,
+									   __attribute__((unused)) UInt id) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getQuadraturePoints(const ElementType & type,
+									  const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_QUADS(type)						\
+  ret = &(integrator. template getQuadraturePoints<type>(ghost_type));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_QUADS);
+#undef GET_QUADS
+
+    AKANTU_DEBUG_OUT();
+  return *ret;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shape Linked specialization                                                */
+/* -------------------------------------------------------------------------- */
+
+
+/* -------------------------------------------------------------------------- */
 template <>
 inline bool FEMTemplate<IntegratorGauss,ShapeLinked >
 ::contains(__attribute__((unused)) const types::RVector & real_coords,
@@ -126,3 +201,20 @@ inline void FEMTemplate<IntegratorGauss,ShapeLinked >
 }
 
 /* -------------------------------------------------------------------------- */
+template <>
+inline const Vector<Real> &
+FEMTemplate<IntegratorGauss, ShapeLinked>::getShapesDerivatives(const ElementType & type,
+								const GhostType & ghost_type,
+								UInt id) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
+}

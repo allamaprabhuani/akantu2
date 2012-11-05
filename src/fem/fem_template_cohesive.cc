@@ -32,45 +32,12 @@
 #include "shape_cohesive.hh"
 #include "integrator_cohesive.hh"
 
-/* -------------------------------------------------------------------------- */
-template <>
-inline void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::inverseMap(__attribute__((unused)) const types::RVector & real_coords,
-	     __attribute__((unused)) UInt element,
-	     __attribute__((unused)) const ElementType & type,
-	     __attribute__((unused)) types::RVector & natural_coords,
-	     __attribute__((unused)) const GhostType & ghost_type) const{
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline bool FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::contains(__attribute__((unused)) const types::RVector & real_coords,
-	   __attribute__((unused)) UInt element,
-	   __attribute__((unused)) const ElementType & type,
-	   __attribute__((unused)) const GhostType & ghost_type) const{
-
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::computeShapes(__attribute__((unused)) const types::RVector & real_coords,
-		__attribute__((unused)) UInt element,
-		__attribute__((unused)) const ElementType & type,
-		__attribute__((unused)) types::RVector & shapes,
-		__attribute__((unused)) const GhostType & ghost_type) const{
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
-
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-template <>
-void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::
-					       initShapeFunctions(const GhostType & ghost_type) {
+void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
+initShapeFunctions(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh->getSpatialDimension();
@@ -104,27 +71,6 @@ void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange
 
 /* -------------------------------------------------------------------------- */
 /* compatibility functions */
-/* -------------------------------------------------------------------------- */
-template <>
-inline UInt FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::getNbQuadraturePoints(const ElementType & type,
-			const GhostType & ghost_type) const {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_quad_points = 0;
-
-#define GET_NB_QUAD(type)						\
-  nb_quad_points =							\
-    integrator. getQuadraturePoints<type>(ghost_type).getSize();
-
-  //  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(GET_NB_QUAD);
-#undef GET_NB_QUAD
-
-  AKANTU_DEBUG_OUT();
-  return nb_quad_points;
-}
-
 /* -------------------------------------------------------------------------- */
 template <>
 Real FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::integrate(const Vector<Real> & f,
@@ -211,25 +157,6 @@ void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline const Vector<Real> & FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::getShapes(const ElementType & type,
-	    const GhostType & ghost_type) const {
-  AKANTU_DEBUG_IN();
-  const Vector<Real> * ret = NULL;
-
-#define GET_SHAPES(type)						\
-  ret = &(shape_functions.getShapes(type, ghost_type));
-
-  //  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(GET_SHAPES);
-#undef GET_SHAPES
-
-  AKANTU_DEBUG_OUT();
-  return *ret;
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
 void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
 gradientOnQuadraturePoints(__attribute__((unused)) const Vector<Real> &u,
 			   __attribute__((unused)) Vector<Real> &nablauq,
@@ -240,6 +167,4 @@ gradientOnQuadraturePoints(__attribute__((unused)) const Vector<Real> &u,
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-template class FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >;
+__END_AKANTU__

@@ -30,7 +30,6 @@
 /* -------------------------------------------------------------------------- */
 
 // damage materials
-#include "material_damage.hh"
 #include "material_marigo.hh"
 #include "material_mazars.hh"
 #include "material_damage_linear.hh"

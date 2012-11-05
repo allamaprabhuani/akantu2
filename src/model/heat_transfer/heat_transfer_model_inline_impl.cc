@@ -244,7 +244,7 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
       buffer << (*temperature)(offset_conn);
     }
 
-    Vector<Real>::const_iterator<types::Matrix> it_shaped =
+    Vector<Real>::const_iterator<types::RMatrix> it_shaped =
       getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
     buffer << it_shaped[element.element];
     break;
@@ -328,7 +328,7 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
       temperature_gradient(element.type, ghost_type).begin(spatial_dimension);
     types::RVector gtemp(spatial_dimension);
     types::RVector temp_nodes(nb_nodes_per_element);
-    types::Matrix shaped(nb_nodes_per_element,spatial_dimension);
+    types::RMatrix shaped(nb_nodes_per_element,spatial_dimension);
 
     buffer >> gtemp;
     buffer >> temp_nodes;
@@ -345,7 +345,7 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 	UInt offset_conn = conn[el_offset + n];
 	temperatures_str << (*temperature)(offset_conn) << " ";
       }
-      Vector<Real>::iterator<types::Matrix> it_shaped =
+      Vector<Real>::iterator<types::RMatrix> it_shaped =
 	const_cast<Vector<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
 	.begin(nb_nodes_per_element,spatial_dimension);
 

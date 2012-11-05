@@ -114,6 +114,7 @@ set(AKANTU_CORE_FILES
   fem/shape_functions.hh
   fem/shape_lagrange.hh
   fem/fem_template.hh
+  fem/fem_template_tmpl.hh
   fem/integrator_gauss.hh
   fem/integrator.hh
   fem/element_class.hh

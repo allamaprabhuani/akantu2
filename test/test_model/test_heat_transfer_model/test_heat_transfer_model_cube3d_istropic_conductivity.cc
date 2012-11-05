@@ -138,29 +138,30 @@ void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) 
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
 
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "coordinates_cube3d_istropic_conductivity");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getTemperature().values,
-			  1, "temperature");
-  dumper.AddNodeDataField(model.getResidual().values,
-   			  1, "residual");
-  dumper.AddNodeDataField(model.getTemperatureRate().values,
-   			  1, "temperature_rate");
-  dumper.AddNodeDataField(model.getCapacityLumped().values,
-   			  1, "capacity");
-  dumper.AddElemDataField(model.getTemperatureGradient(type).values,
-    			  spatial_dimension, "temperature_gradient");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+#pragma message "To change with new dumper"
+  // dumper.SetMode(iohelper::TEXT);
+  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
+  // 		   spatial_dimension, nb_nodes, "coordinates_cube3d_istropic_conductivity");
+  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
+  // 			 paraview_type, nb_element, iohelper::C_MODE);
+  // dumper.AddNodeDataField(model.getTemperature().values,
+  // 			  1, "temperature");
+  // dumper.AddNodeDataField(model.getResidual().values,
+  //  			  1, "residual");
+  // dumper.AddNodeDataField(model.getTemperatureRate().values,
+  //  			  1, "temperature_rate");
+  // dumper.AddNodeDataField(model.getCapacityLumped().values,
+  //  			  1, "capacity");
+  // dumper.AddElemDataField(model.getTemperatureGradient(type).values,
+  //   			  spatial_dimension, "temperature_gradient");
+  // dumper.SetPrefix("paraview/");
+  // dumper.Init();
+  // dumper.Dump();
 }
 /* -------------------------------------------------------------------------- */
 
 void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
+  // dumper.Dump();
 }
 /* -------------------------------------------------------------------------- */
 #endif
