@@ -12,7 +12,7 @@ Akantu is a \code{cmake} project, so to configure it you can either follow the u
   > cd akantu
   > mkdir build
   > cd build
-  > ccmake <path to akantu sources>
+  > ccmake ..
   [ Set the options that you need ]
   > make
   > make install
@@ -32,7 +32,7 @@ given \code{Makefile} that handles the \code{cmake} configuration
 
 First of all, \akantu needs to be initialized.  There is a memory
 management included in the core library which allows a correct
-allocation and de-allocation of vectors, structures and/or
+allocation and de-allocation of vectors, structures and
 objects. Moreover, in parallel computations the initialization
 procedure can perform the communication setup. This is achieved by
  a pair of functions (\code{initialize} and \code{finalize})
@@ -49,13 +49,13 @@ int main(int argc, char *argv[])
 }
 \end{cpp}
 The \code{initialize} function takes the program parameters which
-can be interpreted by \akantu in due form.
+can be interpreted by \akantu and given to the underlying libraries (\eg MPI).
 
 \section{Creating and loading a mesh\label{sect:common:mesh}}
 
-\akantu supports meshes generated with Gmsh~\cite{gmsh}, a free
-software available at \url{http://geuz.org/gmsh/} where a detailed
-documentation can be found. Consequently, this manual will not provide
+\akantu supports meshes generated with Gmsh~\cite{gmsh2009}, a free
+software available at \url{http://geuz.org/gmsh/}. A detailed
+documentation can be found at this URL, so this manual will not provide
 Gmsh usage directions. Gmsh outputs meshes in \code{.msh} format that can be read
 by \akantu. In order to import a mesh, it is necessary to create
 a \code{Mesh} object through the following function calls:
@@ -92,7 +92,7 @@ introduced into \akantu by coding new \code{MeshIO} classes.
 
 \section{Using \code{Vectors}}
 
-Data in \akantu can be stored in data containers implemented by
+Data in \akantu can be stored in the data structures implemented by
 the \code{Vector} class. In its most basic usage the \code{Vector} class
 implemented in \akantu is similar to the \code{vector} class of
 the Standard Template Library (STL) for C++. A simple \code{Vector}
@@ -110,8 +110,8 @@ accessed by typing:
 
 \code{Vectors} can also contain a sequence of values for each
 index. In that case the number of components of each sequence must be
-specified at the \code{Vector} creation.  For example if we want to
-create a \code{Vector} to store the coordinates (sequences of three
+specified during \code{Vector} creation.  For example, if we want to
+create a \code{Vector} to store the coordinates (sequence of three
 values) of ten nodes, the appropriate code is the following:
 \begin{cpp}
   UInt nb_nodes = 10;
@@ -120,19 +120,19 @@ values) of ten nodes, the appropriate code is the following:
   Vector<Real> position(nb_nodes, spatial_dimension);
 \end{cpp}
 In this case the $x$ position of node number 8 will be given by
-\code{position(7, 0)} (in C++, numbering starts at 0 and not
-1). If the number of components for the sequences is not specified, the
-default value of 1 is used.
+\code{position(7, 0)} (in C++, numbering starts from 0). If the number of
+components for the sequence is not specified, the default value of 1 is used.
 
 It is very common in \akantu to loop over vectors to perform a specific
-treatment. This ranges from geometric calculation on nodal quantities
+operation. This ranges from geometric calculation on nodal quantities
 to tensor algebra (in constitutive laws for example).
-The \code{Vector} object has the possibility to request iterators
+
+The \code{Vector} object provides iterators
 in order to make the writing of loops easier and enhance readability.
-For instance, a loop over the nodal coordinates can be performed like:
+For instance, a loop over the nodal coordinates can be performed as:
 \begin{cpp}
   //accessing the nodal coordinates Vector
-  Vector<Real> nodes = mesh.getNodes();
+  Vector<Real> & nodes = mesh.getNodes();
 
   //creating the iterators
   Vector<Real>::iterator<types::RVector> it  = nodes.begin(spatial_dimension);
@@ -143,11 +143,10 @@ For instance, a loop over the nodal coordinates can be performed like:
 
     //do what you need
     ....
-
   }
 \end{cpp}
-In that example, each \code{RVector} is a geometrical vector of size \code{spatial\_dimension}
-and the iteration is conveniently performed by the \code{Vector} iterator.
+In this example, each \code{RVector} is a geometrical vector of size \code{spatial\_dimension}
+and the iteration is conveniently performed by the \code{Vector} iterator \code{it}.
 
 The \code{Vector} object is intensively used to store tensor values.  In that
 case it should be specified that the returned object type is a matrix when
@@ -165,20 +164,19 @@ over the stored tensors by:
 
     //do what you need
     ....
-
   }
 \end{cpp}
-In that last example the Matrix objects are
-\code{spatial\_dimension} $\times$ \code{spatial\_dimension} matrices.
+In this last example, the \code{Matrix} objects have dimension
+\code{spatial\_dimension} $\times$ \code{spatial\_dimension}.
 The light objects \code{Matrix} and \code{RVector} can be used and combined
 to do most common linear algebra.
 
-In general, a mesh consists of several kinds of elements. Consequently the
+In general, a mesh consists of several kinds of elements. Consequently, the
 amount of data to be stored can differ for each element type. The straightforward
-example is the connectivity array, namely the sequences of nodes belonging to
+example is the connectivity array, \ie the sequences of nodes belonging to
 each element. In order to easily manage this kind of data, a
 particular data structure called \code{ByElementTypeVector} is available.
-It is just a group of \code{Vectors}, each associated to an element
+This structure is just a group of \code{Vector}, each associated to an element
 type. The following code can retrieve the \code{ByElementTypeVector}
 which stores the connectivity arrays for a mesh:
 \begin{cpp}
@@ -187,7 +185,7 @@ which stores the connectivity arrays for a mesh:
 Then the specific vector associated to a given element type can be
 obtained by
 \begin{cpp}
-  Vector<UInt> & connectivity_triangle = connectivities[_triangle_3];
+  Vector<UInt> & connectivity_triangle = connectivities(_triangle_3);
 \end{cpp}
 where the first order 3-node triangular element was used in the presented
 piece of code.

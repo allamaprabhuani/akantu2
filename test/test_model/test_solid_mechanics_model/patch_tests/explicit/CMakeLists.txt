@@ -31,10 +31,10 @@
 #===============================================================================
 
 macro(register_patch_test name type plane_strain)
-  if(plane_strain)
-    set(_mat ../data/material_check_stress_plane_strain.dat)
-  else()
+  if("${plane_strain}" STREQUAL "false")
     set(_mat ../data/material_check_stress_plane_stress.dat)
+  else()
+    set(_mat ../data/material_check_stress_plane_strain.dat)
   endif()
   register_test(patch_test_explicit_${name}
     SOURCES patch_test_explicit.cc

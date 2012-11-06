@@ -191,7 +191,7 @@ macro(register_test test_name)
     endif()
     target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
-    if(_test_option_FILES_TO_COPY)
+    if(register_test_FILES_TO_COPY)
       foreach(_file ${register_test_FILES_TO_COPY})
 	file(COPY ${_file} DESTINATION .)
 	list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})

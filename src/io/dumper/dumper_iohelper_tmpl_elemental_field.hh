@@ -235,7 +235,6 @@ public:
     ghost_type(ghost_type), element_kind(element_kind), n(n), itn(0) {
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
-    if(!homogeneous) AKANTU_DEBUG_ERROR("This constructor cannot be used on non homogeneous data.");
   }
 
   typedef iterator_type iterator;
