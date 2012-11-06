@@ -1,11 +1,10 @@
 \chapter{Parallel Computation}
 
-This section explains how to launch a parallel computation.
-The strategy adopted by \akantu uses a mesh partitioning
-where elements are mapped to processors. Mesh partitions are
-then distributed to available processors by adequate routines
-as will be described below.
-The sequence of additional operations to be performed by the user are:
+This section explains how to launch a parallel computation.  The strategy
+adopted by \akantu uses a mesh partitioning where elements are mapped to a
+partition. Mesh partitions are then distributed to available processors by
+adequate routines as will be described below.  The sequence of additional
+operations to be performed by the user are:
 
 \begin{itemize}
 \item Initializing the parallel context
@@ -31,7 +30,7 @@ The \code{initialize} function builds a \code{StaticCommunicator} object
 responsible of handling the interprocesse communications lateron.  The
 \code{StaticCommunicator} can, for instance, be used to ask the total number of
 declared processors available for computations as well as the process rank
-through the functions \code{getNbProc} and \code{whoAmI} respectively.
+through the functions \code{getNbProc()} and \code{whoAmI()} respectively.
 
 An example of the initializing sequence and basic usage of the
 \code{StaticCommunicator} is:
@@ -54,11 +53,11 @@ int main(int argc, char *argv[])
 
 \section{Partitioning the mesh}
 
-After a correct initialization of the processes playing a role in the
-computation the mesh shall be partitioned. We assume that a \code{Mesh} object
-is constructed as presented in section \ref{sect:common:mesh}.  Then a partition
-must be computed by using an appropriate mesh partitioner. At present time, the
-only partitioner available is \code{MeshPartitionScotch} which implements the
+After a correct initialization of the processes that participate in the
+computation, the mesh is partitioned. We assume that a \code{Mesh} object
+is constructed as presented in section \ref{sect:common:mesh}.  Then, a partition
+must be computed by using an appropriate mesh partitioner. Currently, the
+only partitioner available is \code{MeshPartitionScotch}, which implements the
 function \code{partitionate} using the \textbf{Scotch}\cite{scotch} program.
 This is achieved by the following code
 
@@ -74,7 +73,7 @@ This is achieved by the following code
   }
 \end{cpp}
 
-\note{Only the processor of rank $0$ should load the mesh file
+\note{Only the processor of rank $0$ should load the mesh file to
   partition it. Nevertheless, the \code{Mesh} object must by declared
   for all processors since the mesh distribution will store mesh pieces to that object.}
 
@@ -83,7 +82,7 @@ This is achieved by the following code
 The distribution of the mesh is automatically done by the
 \code{SolidMechanicsModel} through the \code{initParallel} function.  Thus,
 after creating a \code{SolidMechanicsModel} with our mesh as the initial
-parameter, the \code{initParallel} method must be called receiving the partition
+parameter, the \code{initParallel()} method must be called with the partition
 as a parameter.
 
 \begin{cpp}
@@ -95,8 +94,8 @@ After that point, everything remains as in the sequential case from
 the user point of view. This allows the user to care only
 about his simulation without concern for the parallelism.
 
-An example of an explicit dynamic 2D bar in compression in a parallel
-context can be found in \code{\examplesdir/parallel\_2d}.
+An example of an explicit dynamic 2D bar in compression, within a parallel
+context, can be found in \code{\examplesdir/parallel\_2d}.
 
 \section{Launching a parallel program}
 

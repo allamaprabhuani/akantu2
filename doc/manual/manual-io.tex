@@ -59,30 +59,30 @@ choose to add or remove any of this fields from a dump file, by calling
   stress & Matrix<Real> & quadrature points  \\
   strain & Matrix<Real> & quadrature points  \\
   \textit{material internals} & variable  & quadrature points  \\
-\bottomrule
+  \bottomrule\\
 \end{tabular}
 
 
-The user can also register external fields which have the same mesh as the mesh from the model as support. To do this an object of type \code{Field} as to be created.\index{I\/O!addDumpFieldExternal}
+The user can also register external fields that are associated to the same
+nodes, elements or quadrature points than the one in the model. To do this
+vectors can be registered to the model.
 
 \begin{itemize}
 \item For nodal fields :
 \begin{cpp}
-  Vector<T> vect(nb_nodes, nb_component);
-  Field field = new DumperIOHelper::NodalField<T>(vect));
+  Vector<T> field(nb_nodes, nb_component);
   model.addDumpFieldExternal("my_field", field);
 \end{cpp}
 
 \item For elemental fields :
 \begin{cpp}
-  ByElementTypeVector<T> vect;
-  Field field = new DumperIOHelper::ElementalField<T>(vect, spatial_displacement));
+  ByElementTypeVector<T> field;
   model.addDumpFieldExternal("my_field", field);
 \end{cpp}
 \end{itemize}
 
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"
-%%% End: 
+%%% End:
