@@ -1,7 +1,9 @@
 /**
  * @file   integrator.hh
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 11:09:12 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  interface for integrator classes
  *

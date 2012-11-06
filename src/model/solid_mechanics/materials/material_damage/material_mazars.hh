@@ -1,9 +1,11 @@
 /**
  * @file   material_mazars.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Apr 06 10:09:38 2011
  *
  * @brief  Material Following the Mazars law for damage evolution
  *
@@ -30,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material_damage.hh"
+#include "material.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MAZARS_HH__
@@ -72,18 +75,18 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const types::Matrix & grad_u,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(const types::RMatrix & grad_u,
+				  types::RMatrix & sigma,
 				  Real & damage,
 				  Real & Ehat);
 
-  inline void computeDamageAndStressOnQuad(const types::Matrix & grad_u,
-					   types::Matrix & sigma,
+  inline void computeDamageAndStressOnQuad(const types::RMatrix & grad_u,
+					   types::RMatrix & sigma,
 					   Real & damage,
 					   Real & Ehat);
 
   inline void computeDamageOnQuad(const Real & epsilon_equ,
-				  const types::Matrix & sigma,
+				  const types::RMatrix & sigma,
 				  const types::RVector & epsilon_princ,
 				  Real & dam);
 

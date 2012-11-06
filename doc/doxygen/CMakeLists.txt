@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Sep 27 17:35:59 2010
+#
+# @date   Tue Sep 28 01:41:47 2010
+#
+# @brief  configuration file for doxygen
 #
 # @section LICENSE
 #
@@ -32,11 +36,11 @@ set(DOXYGEN_OUTPUT ${DOXYGEN_OUTPUT_DIR}/index.html)
 string(REGEX REPLACE ":" " " AKANTU_DOXYGEN_DEFINTIONS "${AKANTU_DEFINITIONS}")
 
 make_directory(${DOXYGEN_OUTPUT_DIR})
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.cmake
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/akantu.dox.in
   ${CMAKE_CURRENT_BINARY_DIR}/akantu.dox)
 
 add_custom_command(
-  OUTPUT ${DOXYGEN_OUTPUT} ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
+  OUTPUT ${DOXYGEN_OUTPUT} #${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
   COMMAND ${CMAKE_COMMAND} -E echo "${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}"
   COMMAND ${CMAKE_COMMAND} -E echo_append "Building akantu Documentation..."
   COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
@@ -45,15 +49,15 @@ add_custom_command(
   )
 
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
   COMMAND ${CMAKE_COMMAND} -E echo "Building akantu RefMan..."
   COMMAND make -C ${CMAKE_CURRENT_BINARY_DIR}/latex
-  COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf
+  #COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf
   COMMAND ${CMAKE_COMMAND} -E echo "Done."
   DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
 )
 
-add_custom_target(akantu-doc-pdf ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/refman.pdf)
+#add_custom_target(akantu-doc-pdf ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf)
 
 add_custom_target(akantu-doc ALL DEPENDS ${DOXYGEN_OUTPUT})
 
@@ -62,4 +66,4 @@ add_custom_target(akantu-doc-forced
   )
 
 install(DIRECTORY ${DOXYGEN_OUTPUT_DIR}
-  DESTINATION share/akantu-${akantu_VERSION}/doc)
+  DESTINATION share/akantu-${AKANTU_VERSION}/doc)

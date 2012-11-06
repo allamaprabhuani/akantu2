@@ -1,7 +1,9 @@
 /**
  * @file   test_cohesive_intrinsic_quadrangle.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Oct  1 18:46:41 2012
+ *
+ * @date   Wed Oct 03 10:20:53 2012
  *
  * @brief  Intrinsic cohesive elements' test for quadrangles
  *

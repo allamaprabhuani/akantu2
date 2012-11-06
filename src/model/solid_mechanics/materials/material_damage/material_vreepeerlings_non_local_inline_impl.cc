@@ -1,8 +1,10 @@
 /**
  * @file   material_vreepeerlings_non_local_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- * @date   Fri Jun 15 14:33:40 2012
+ *
+ * @date   Fri Jun 15 13:48:37 2012
  *
  * @brief  Specialization of the material class for the non-local Vree-Peerlings material
  *
@@ -83,20 +85,20 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeSt
 
   Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
   Vector<Real> & velocity = this->model->getVelocity();
-  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type); 
+  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
 
   this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
 						   spatial_dimension,
 						   el_type, ghost_type, &elem_filter);
-  
-  Vector<Real>::iterator<types::Matrix> strain_rate_vrplgs_it =
+
+  Vector<Real>::iterator<types::RMatrix> strain_rate_vrplgs_it =
     strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
 
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  types::Matrix & strain_rate = *strain_rate_vrplgs_it;
-  
+  types::RMatrix & strain_rate = *strain_rate_vrplgs_it;
+
   MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
 								*dam,
 								*equi_straint,

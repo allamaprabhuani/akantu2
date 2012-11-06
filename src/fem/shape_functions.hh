@@ -1,9 +1,11 @@
 /**
  * @file   shape_functions.hh
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 11:35:29 2011
  *
- * @brief shape function class
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date   Tue Feb 15 16:32:44 2011
+ *
+ * @brief  shape function class
  *
  * @section LICENSE
  *

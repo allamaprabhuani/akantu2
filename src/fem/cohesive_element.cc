@@ -1,10 +1,12 @@
 /**
  * @file   cohesive_element.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb  2 14:20:48 2012
  *
- * @brief  
+ * @date   Fri Feb 03 16:28:03 2012
+ *
+ * @brief  CohesiveElement implementation
  *
  * @section LICENSE
  *

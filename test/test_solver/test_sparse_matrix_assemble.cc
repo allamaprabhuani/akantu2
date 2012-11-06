@@ -1,7 +1,9 @@
 /**
  * @file   test_sparse_matrix_assemble.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Nov  5 11:13:33 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  test the assembling method of the SparseMatrix class
  *

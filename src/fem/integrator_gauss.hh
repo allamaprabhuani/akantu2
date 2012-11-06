@@ -1,8 +1,10 @@
 /**
  * @file   integrator_gauss.hh
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb 10 16:42:34 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  Gauss integration facilities
  *
@@ -25,6 +27,7 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 #ifndef __AKANTU_INTEGRATOR_GAUSS_HH__
 #define __AKANTU_INTEGRATOR_GAUSS_HH__
 
@@ -71,6 +74,13 @@ public:
 		 UInt nb_degree_of_freedom,
 		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
+
+  /// integrate one element scalar value on all elements of type "type"
+  template <ElementType type>
+  Real integrate(const types::RVector & in_f,
+		 UInt index,
+		 const GhostType & ghost_type) const;
+
 
   /// integrate scalar field in_f
   template <ElementType type>

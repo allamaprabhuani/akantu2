@@ -1,7 +1,9 @@
 /**
- * @file   test_facet_extraction_tetra1.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Thu Aug 19 13:05:27 2010
+ * @file   test_pbc_tweak.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date   Wed Feb 09 13:28:38 2011
  *
  * @brief  test of internal facet extraction
  *
@@ -30,17 +32,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
-#include "pbc_synchronizer.hh"
-#include "material.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-#endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 
@@ -48,47 +43,27 @@ int main(int argc, char *argv[])
 {
   int dim = 3;
 
-  akantu::initialize(argc, argv);
-  akantu::debug::setDebugLevel(akantu::dblInfo);
+  initialize(argc, argv);
+  debug::setDebugLevel(akantu::dblInfo);
 
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
 
-
-  SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
+  SolidMechanicsModel model(mesh);
   /* -------------------------------------------------------------------------- */
-  model->initVectors();
-  model->getForce().clear();
-  model->getVelocity().clear();
-  model->getAcceleration().clear();
-  model->getDisplacement().clear();
-  /* ------------------------------------------------------------------------ */
-  model->initExplicit();
-  model->initModel();
-  model->readMaterials("material.dat");
-  model->initMaterials();
+  model.initFull("material.dat");
   /* -------------------------------------------------------------------------- */
-  model->setPBC(1,1,1);
-  model->initPBC();
-  model->assembleMassLumped();
+  model.setPBC(1,1,1);
+  model.initPBC();
+  model.assembleMassLumped();
   /* -------------------------------------------------------------------------- */
-  
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
 
-  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-pbc-tweak");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_hexahedron_8).values,
-			 iohelper::HEX1, mesh.getNbElement(_hexahedron_8), iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getMass().values,
-			  3, "mass");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  model.setBaseName("test-pbc-tweak");
+  model.addDumpField("mass");
+  model.dump();
 
-#endif //AKANTU_USE_IOHELPER
+  finalize();
 
   return EXIT_SUCCESS;
 }

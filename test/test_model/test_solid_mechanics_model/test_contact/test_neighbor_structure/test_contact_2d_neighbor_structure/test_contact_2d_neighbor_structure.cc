@@ -1,7 +1,9 @@
 /**
  * @file   test_contact_2d_neighbor_structure.cc
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Thu Dec  9 10:07:58 2010
+ *
+ * @date   Thu Dec 09 16:55:22 2010
  *
  * @brief  Test neighbor structure for 2d with linear triangles
  *

@@ -1,7 +1,9 @@
 /**
  * @file   solver.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Nov 17 16:19:27 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  Solver interface class
  *
@@ -38,7 +40,8 @@ SolverOptions _solver_no_options(true);
 Solver::Solver(SparseMatrix & matrix,
 	       const ID & id,
 	       const MemoryID & memory_id) :
-  Memory(memory_id), id(id), matrix(&matrix), is_matrix_allocated(false), mesh(NULL) {
+  Memory(memory_id), id(id), matrix(&matrix), is_matrix_allocated(false), mesh(NULL),
+  communicator(StaticCommunicator::getStaticCommunicator()){
   AKANTU_DEBUG_IN();
 
 

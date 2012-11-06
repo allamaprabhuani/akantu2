@@ -1,7 +1,9 @@
 /**
  * @file   rice_kuwano_modified.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Nov  4 13:27:09 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 04 14:28:28 2011
  *
  * @brief  implementation of the functions
  *

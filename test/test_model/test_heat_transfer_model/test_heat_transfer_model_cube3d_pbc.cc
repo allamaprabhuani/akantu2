@@ -1,7 +1,11 @@
 /**
- * @file   test_heat_transfer_model_cube3d.cc
- * @author Rui WANG<rui.wang@epfl.ch>
- * @date   Tue May 17 11:31:22 2011
+ * @file   test_heat_transfer_model_cube3d_pbc.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Rui Wang <rui.wang@epfl.ch>
+ * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
+ *
+ * @date   Sun May 01 19:14:43 2011
  *
  * @brief  test of the class HeatTransferModel on the 3d cube
  *
@@ -137,34 +141,34 @@ int main(int argc, char *argv[])
 /* -------------------------------------------------------------------------- */
 
 void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
-  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
+  // akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  // akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
 
-
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-   dumper.AddNodeDataField(model.getTemperature().values,
-    1, "temperature");
-  dumper.AddNodeDataField(model.getResidual().values,
-   			  1, "residual");
-  dumper.AddNodeDataField(model.getCapacityLumped().values,
-   			  1, "capacity_lumped");
-  // dumper.AddElemDataField(model.getTemperatureGradient(type).values,
-  //   			  spatial_dimension, "temperature_gradient");
-  // dumper.AddElemDataField(model.getbtkgt().values,
-  //   			  4, "btkgt");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+#pragma message "To change with new dumper"
+  // dumper.SetMode(iohelper::TEXT);
+  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
+  // 		   spatial_dimension, nb_nodes, "coordinates2");
+  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
+  // 			 paraview_type, nb_element, iohelper::C_MODE);
+  //  dumper.AddNodeDataField(model.getTemperature().values,
+  //   1, "temperature");
+  // dumper.AddNodeDataField(model.getResidual().values,
+  //  			  1, "residual");
+  // dumper.AddNodeDataField(model.getCapacityLumped().values,
+  //  			  1, "capacity_lumped");
+  // // dumper.AddElemDataField(model.getTemperatureGradient(type).values,
+  // //   			  spatial_dimension, "temperature_gradient");
+  // // dumper.AddElemDataField(model.getbtkgt().values,
+  // //   			  4, "btkgt");
+  // dumper.SetPrefix("paraview/");
+  // dumper.Init();
+  // dumper.Dump();
 }
 
 /* -------------------------------------------------------------------------- */
 
 void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
+  // dumper.Dump();
 }
 
 /* -------------------------------------------------------------------------- */

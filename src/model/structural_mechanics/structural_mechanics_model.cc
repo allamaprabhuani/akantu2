@@ -1,9 +1,11 @@
 /**
  * @file   structural_mechanics_model.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May  5 15:52:38 2011
  *
- * @brief
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  StructuralMechanicsModel implementation
  *
  * @section LICENSE
  *
@@ -299,7 +301,7 @@ void StructuralMechanicsModel::computeTangentStiffness<_bernoulli_beam_2>(Vector
   UInt tangent_size = 2;
 
   tangent_stiffness_matrix.clear();
-  Vector<Real>::iterator<types::Matrix> D = tangent_stiffness_matrix.begin(tangent_size, tangent_size);
+  Vector<Real>::iterator<types::RMatrix> D = tangent_stiffness_matrix.begin(tangent_size, tangent_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     UInt mat = element_material(_bernoulli_beam_2, _not_ghost)(e);
@@ -334,7 +336,7 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_
   UInt tangent_size = getTangentStiffnessVoigtSize<_bernoulli_beam_2>();
   UInt bt_d_b_size  = nb_nodes_per_element * nb_degree_of_freedom;
   b.clear();
-  Vector<Real>::iterator<types::Matrix> B = b.begin(tangent_size, bt_d_b_size);
+  Vector<Real>::iterator<types::RMatrix> B = b.begin(tangent_size, bt_d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {

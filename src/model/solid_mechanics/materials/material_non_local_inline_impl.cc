@@ -1,9 +1,11 @@
 /**
  * @file   material_non_local_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 25 11:59:39 2011
  *
- * @brief
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Aug 31 11:09:48 2011
+ *
+ * @brief  Non-local inline implementation
  *
  * @section LICENSE
  *

@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindGMSH.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Thu Oct 14 13:15:47 2010
+#
+# @date   Fri Oct 15 09:29:57 2010
 #
 # @brief  Find gmsh and delacre the add_mesh macro
 #
@@ -64,8 +66,9 @@ macro(ADD_MESH MESH_TARGET GEO_FILE DIM ORDER)
 	)
       add_custom_target(${MESH_TARGET}
 	DEPENDS ${_msh_file})
-    else(EXISTS ${_geo_file})
-      message(FATAL_ERROR "File ${_geo_file} not found")
+      set_target_properties(${MESH_TARGET} PROPERTIES RESSOURCES ${_geo_file})
+    #else(EXISTS ${_geo_file})
+    #  message("File ${_geo_file} not found")
     endif(EXISTS ${_geo_file})
   endif(GMSH_FOUND)
 endmacro(ADD_MESH)

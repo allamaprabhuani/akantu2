@@ -1,9 +1,11 @@
 /**
  * @file   material_marigo_non_local_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue May  1 14:12:17 2012
  *
- * @brief  
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jun 15 13:48:37 2012
+ *
+ * @brief  Marigo non-local inline function implementation
  *
  * @section LICENSE
  *

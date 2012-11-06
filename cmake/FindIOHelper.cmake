@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindIOHelper.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Tue Aug  3 16:29:57 2010
+#
+# @date   Wed Aug 04 10:58:42 2010
 #
 # @brief  The find_package file for IOHelper
 #

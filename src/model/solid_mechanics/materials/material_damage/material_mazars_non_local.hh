@@ -1,9 +1,12 @@
 /**
  * @file   material_mazars_non_local.hh
- * @author  <chambart@lsmscluster1.epfl.ch>
- * @date   Wed Aug 31 17:08:23 2011
- * 
- * @brief  
+ *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
+ * @date   Mon Oct 03 11:53:09 2011
+ *
+ * @brief  Mazars non-local description
  *
  * @section LICENSE
  *
@@ -22,12 +25,13 @@
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_mazars.hh"
+#include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MAZARS_NON_LOCAL_HH__

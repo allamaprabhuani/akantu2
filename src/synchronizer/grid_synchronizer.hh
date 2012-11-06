@@ -1,7 +1,9 @@
 /**
  * @file   grid_synchronizer.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Sep 16 15:05:52 2011
+ *
+ * @date   Mon Oct 03 12:24:07 2011
  *
  * @brief  synchronizer based in RegularGrid
  *

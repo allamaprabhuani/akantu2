@@ -1,9 +1,12 @@
 /**
  * @file   shape_lagrange_inline_impl.cc
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 21:12:54 2011
  *
- * @brief
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Feb 15 16:32:44 2011
+ *
+ * @brief  ShapeLagrange inline implementation
  *
  * @section LICENSE
  *
@@ -25,48 +28,47 @@
  *
  */
 
-
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ShapeLagrange::
 computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
-					  Real * node_coords,
-					  UInt nb_nodes_per_element,
-					  Real * natural_coords,
-					  UInt nb_points,
-					  Real * shapesd) {
+                                          Real * node_coords,
+                                          UInt nb_nodes_per_element,
+                                          Real * natural_coords,
+                                          UInt nb_points,
+                                          Real * shapesd) {
   // compute dnds
   Real dnds[nb_nodes_per_element * spatial_dimension * nb_points];
   ElementClass<type>::computeDNDS(natural_coords, nb_points, dnds);
   // compute dxds
   Real dxds[spatial_dimension * spatial_dimension * nb_points];
   ElementClass<type>::computeDXDS(dnds, nb_points, node_coords,
-				  spatial_dimension, dxds);
+                                  spatial_dimension, dxds);
   // compute shape derivatives
   ElementClass<type>::computeShapeDerivatives(dxds, dnds, nb_points,
-					      spatial_dimension, shapesd);
+                                              spatial_dimension, shapesd);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrange::inverseMap(const types::RVector & real_coords,
-			       UInt elem,
-			       types::RVector & natural_coords,
-			       const GhostType & ghost_type) const{
-  
+                               UInt elem,
+                               types::RVector & natural_coords,
+                               const GhostType & ghost_type) const{
+
   UInt spatial_dimension = mesh->getSpatialDimension();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  
+
   UInt * elem_val = mesh->getConnectivity(type, ghost_type).values;
-  types::Matrix local_coord(nb_nodes_per_element,spatial_dimension);
-  
+  types::RMatrix local_coord(nb_nodes_per_element,spatial_dimension);
+
   mesh->extractNodalValuesFromElement(mesh->getNodes(),
-				      local_coord.storage(),
-				      elem_val+elem*nb_nodes_per_element,
-				      nb_nodes_per_element,
-				      spatial_dimension);
-  
-  
+                                      local_coord.storage(),
+                                      elem_val+elem*nb_nodes_per_element,
+                                      nb_nodes_per_element,
+                                      spatial_dimension);
+
+
   ElementClass<type>::inverseMap(real_coords,local_coord,spatial_dimension,natural_coords);
 }
 
@@ -74,10 +76,10 @@ void ShapeLagrange::inverseMap(const types::RVector & real_coords,
 
 template <ElementType type>
 bool ShapeLagrange::contains(const types::RVector & real_coords,
-			     UInt elem,
-			     const GhostType & ghost_type) const{
+                             UInt elem,
+                             const GhostType & ghost_type) const{
 
-  UInt spatial_dimension = mesh->getSpatialDimension();  
+  UInt spatial_dimension = mesh->getSpatialDimension();
   types::RVector natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords,elem,natural_coords,ghost_type);
@@ -88,11 +90,11 @@ bool ShapeLagrange::contains(const types::RVector & real_coords,
 
 template <ElementType type>
 void ShapeLagrange::computeShapes(const types::RVector & real_coords,
-				  UInt elem,
-				  types::RVector & shapes,
-				  const GhostType & ghost_type) const{
+                                  UInt elem,
+                                  types::RVector & shapes,
+                                  const GhostType & ghost_type) const{
 
-  UInt spatial_dimension = mesh->getSpatialDimension();  
+  UInt spatial_dimension = mesh->getSpatialDimension();
   types::RVector natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords,elem,natural_coords,ghost_type);
@@ -100,5 +102,3 @@ void ShapeLagrange::computeShapes(const types::RVector & real_coords,
 }
 
 /* -------------------------------------------------------------------------- */
-
-

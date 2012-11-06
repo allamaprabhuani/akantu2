@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Implementation of the inline functions of the material elastic
  *
@@ -30,8 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types::Matrix & grad_u,
-								    types::Matrix & sigma) {
+inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types::RMatrix & grad_u,
+								    types::RMatrix & sigma) {
   Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
 
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
@@ -45,15 +47,15 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types:
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void MaterialElastic<1>::computeStressOnQuad(const types::Matrix & grad_u,
-						    types::Matrix & sigma) {
+inline void MaterialElastic<1>::computeStressOnQuad(const types::RMatrix & grad_u,
+						    types::RMatrix & sigma) {
   sigma(0, 0) =  E*grad_u(0, 0);
 }
 
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::Matrix & tangent) {
+inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
   UInt n = tangent.cols();
 
   //Real Ep = E/((1+nu)*(1-2*nu));
@@ -85,6 +87,12 @@ void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::Matri
     tangent(3, 3) = Mijij;
     tangent(4, 4) = Mijij;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void MaterialElastic<1>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
+  tangent(0, 0) = E;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1,8 +1,8 @@
-\section{Heat Transfer model}
+\chapter{Heat Transfer model}
 
 The heat transfer model is a specific implementation of the \code{Model} interface
 dedicated to handle the dynamic heat equation. 
-\subsection{Theory}
+\section{Theory}
 The strong form of the heat equation 
 can be expressed as
 \begin{equation}
@@ -31,7 +31,7 @@ so that the discrete system to solve can be written
   \mat{C} \cdot \vec{\dot{T}} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T}~, 
 \end{equation}
 with $Q^{ext}_i$ the consistent heat generated on node $i$.
-\subsection{Using the heat transfer model}
+\section{Using the heat transfer model}
 At the present time an explicit dynamic analysis is available by
 using the \code{HeatTransferModel}  object.
 It can simply be created like this:
@@ -90,10 +90,10 @@ A material file allows to give the material properties in a text file (\eg mater
 where \code{capacity} and \code{density} are scalars, and the \code{conductivity} is specified as a 
 full tensor with $3\times 3$ components.
 
-\subsubsection{Explicit dynamic}
+\subsection{Explicit dynamic}
 
 The implemented explicit  time integration scheme in \akantu  uses a lumped capacity
-matrix $\mat{C}$ (reducing the computational  cost, see Section \ref{section:smm}\todo{Guillaume, this ref is dead}). 
+matrix $\mat{C}$ (reducing the computational  cost, see Chapter \ref{sect:smm}). 
 This matrix is assembled by
 distributing the capacity of each element onto its nodes. The resulting $\mat{C}$ is
 therefore a diagonal matrix stored in the \code{capacity} vector of the model.
@@ -160,7 +160,7 @@ temperature\_rate  fields  following the previously described integration scheme
 \index{HeatTransferModel!solveExplicitLumped}
 
 An    example    of    explicit     dynamic    heat propagation is    presented    in
-\code{example/manual/??.cc}.\todo{set the right example file}  This example  consists of a square 2D plate of \unit{1}{\squaremetre} 
+\code{\examplesdir/??.cc}.\todo{set the right example file}  This example  consists of a square 2D plate of \unit{1}{\squaremetre} 
 having an initial temperature of \unit{100}{\kelvin} everywhere but a none centered hot point 
 maintained at \unit{300}{\kelvin}. Figure \ref{fig:htm:explicit:dynamic} presents the
 geometry of this case. The material used is a linear fictitious elastic material

@@ -1,7 +1,9 @@
 /**
  * @file   element_class_triangle_6_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 15 10:28:28 2010
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Specialization of the element_class class for the type _triangle_6
  *
@@ -35,10 +37,10 @@
 	      |  .  `
 	      |   q2  `
 	    5 x          x 4
-     	      |           `
-     	      |             `
-     	      |  .q0     q1.  `
-     	      |                 `
+ 	      |           `
+ 	      |             `
+ 	      |  .q0     q1.  `
+ 	      |                 `
   	      x---------x---------x-----> \xi
 	      0         3         1
  @endverbatim

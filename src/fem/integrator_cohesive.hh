@@ -1,10 +1,12 @@
 /**
  * @file   integrator_cohesive.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb  6 13:05:50 2012
  *
- * @brief
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 16 18:07:14 2012
+ *
+ * @brief  integrator for cohesive elements header
  *
  * @section LICENSE
  *
@@ -80,6 +82,12 @@ public:
   Real integrate(const Vector<Real> & in_f,
 		 const GhostType & ghost_type,
 		 const Vector<UInt> * filter_elements) const;
+
+  template <ElementType type>
+  Real integrate(const types::RVector & in_f,
+		 UInt index,
+		 const GhostType & ghost_type) const{AKANTU_DEBUG_TO_IMPLEMENT();};
+
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
   template <ElementType type>

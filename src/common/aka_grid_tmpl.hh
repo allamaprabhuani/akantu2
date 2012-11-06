@@ -1,9 +1,11 @@
 /**
- * @file   aka_grid_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 28 15:27:55 2011
+ * @file   aka_grid_tmpl.hh
  *
- * @brief
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Aug 31 11:09:48 2011
+ *
+ * @brief  implementation of template functions of the RegularGrid class
  *
  * @section LICENSE
  *

@@ -1,7 +1,9 @@
 /**
  * @file   ruina_slowness_fric_coef.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Mar  7 16:08:22 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  the friction law based on the slowness law of the theta state variable
  *

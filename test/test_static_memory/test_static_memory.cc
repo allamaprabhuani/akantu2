@@ -1,7 +1,9 @@
 /**
  * @file   test_static_memory.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 11 11:55:54 2010
+ *
+ * @date   Fri Sep 03 15:56:15 2010
  *
  * @brief  unit test for the StaticMemory class
  *

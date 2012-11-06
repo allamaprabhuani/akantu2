@@ -1,9 +1,11 @@
 /**
- * @file   material_parameters_tmpl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Aug  8 17:36:54 2012
+ * @file   material_parameters_tmpl.hh
  *
- * @brief  
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Aug 09 21:06:34 2012
+ *
+ * @brief  handles material parameters
  *
  * @section LICENSE
  *
@@ -24,7 +26,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 __END_AKANTU__
 #include <typeinfo>

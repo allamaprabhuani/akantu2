@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+#
+# @date   Sun Sep 12 23:37:43 2010
+#
+# @brief  configuration for synchronizer tests
 #
 # @section LICENSE
 #
@@ -25,28 +29,19 @@
 #
 #===============================================================================
 
-if (AKANTU_SCOTCH OR AKANTU_PTSCOTCH)
-  add_mesh(test_synchronizer_communication_mesh
-    triangle.geo 2 1)
+add_mesh(test_synchronizer_communication_mesh
+  triangle.geo 2 1)
 
-  register_test(test_synchronizer_communication
-    test_synchronizer_communication.cc)
-  add_dependencies(test_synchronizer_communication
-    test_synchronizer_communication_mesh)
+register_test(test_synchronizer_communication
+  SOURCES test_synchronizer_communication.cc
+  DEPENDENCIES test_synchronizer_communication_mesh
+  )
 
+register_test(test_grid_synchronizer
+  SOURCES test_grid_synchronizer.cc
+  DEPENDENCIES test_synchronizer_communication_mesh
+  )
 
-  register_test(test_grid_synchronizer
-    test_grid_synchronizer.cc)
-  add_dependencies(test_grid_synchronizer
-    test_synchronizer_communication_mesh)
-
-  file(COPY test_synchronizer_communication.sh DESTINATION .)
-  file(COPY test_grid_synchronizer.sh DESTINATION .)
-  file(COPY test_dof_synchronizer.sh DESTINATION .)
-
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-
-  #===============================================================================
-  register_test(test_dof_synchronizer test_dof_synchronizer.cc)
-  copy_files(test_dof_synchronizer bar.msh)
-endif()
+register_test(test_dof_synchronizer
+  SOURCES test_dof_synchronizer.cc
+  FILES_TO_COPY bar.msh)

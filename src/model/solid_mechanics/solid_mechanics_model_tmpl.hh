@@ -1,7 +1,10 @@
 /**
  * @file   solid_mechanics_model_tmpl.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Nov 24 08:45:57 2011
+ *
+ * @date   Thu Nov 24 09:36:33 2011
  *
  * @brief  template part of solid mechanics model
  *
@@ -121,7 +124,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
     }
 
     if(function_type == _bft_stress) {
-      Vector<Real>::iterator< types::Matrix > stress = funct.begin(spatial_dimension, spatial_dimension);
+      Vector<Real>::iterator< types::RMatrix > stress = funct.begin(spatial_dimension, spatial_dimension);
 
       for (UInt el = 0; el < nb_element; ++el) {
 	Surface surf_id = 0;

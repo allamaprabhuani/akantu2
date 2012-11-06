@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+#
+# @date   Fri Sep 03 15:56:15 2010
+#
+# @brief  configuration for static memory tests
 #
 # @section LICENSE
 #
@@ -25,4 +29,4 @@
 #
 #===============================================================================
 
-REGISTER_TEST(test_static_memory test_static_memory.cc)
+register_test(test_static_memory SOURCES test_static_memory.cc)

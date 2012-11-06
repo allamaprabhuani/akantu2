@@ -1,7 +1,10 @@
 /**
  * @file   material_inline_impl.cc
+ *
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Implementation of the inline functions of the class material
  *
@@ -47,8 +50,8 @@ inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
 }
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::gradUToF(const types::Matrix & grad_u,
-			       types::Matrix & F) {
+inline void Material::gradUToF(const types::RMatrix & grad_u,
+			       types::RMatrix & F) {
   UInt size_F = F.size();
 
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim,
@@ -62,20 +65,20 @@ inline void Material::gradUToF(const types::Matrix & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::rightCauchy(const types::Matrix & F,
-				  types::Matrix & C) {
+inline void Material::rightCauchy(const types::RMatrix & F,
+				  types::RMatrix & C) {
   C.mul<true, false>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::leftCauchy(const types::Matrix & F,
-				 types::Matrix & B) {
+inline void Material::leftCauchy(const types::RMatrix & F,
+				 types::RMatrix & B) {
   B.mul<false, true>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::computePotentialEnergyOnQuad(types::Matrix & grad_u,
-						   types::Matrix & sigma,
+inline void Material::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+						   types::RMatrix & sigma,
 						   Real & epot) {
   epot = 0.;
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -87,8 +90,8 @@ inline void Material::computePotentialEnergyOnQuad(types::Matrix & grad_u,
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
-						       types::Matrix & Bvoigt,
+inline void Material::transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
+						       types::RMatrix & Bvoigt,
 						       UInt nb_nodes_per_element) const {
   Bvoigt.clear();
 
@@ -128,15 +131,15 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(const types::Matrix & B,
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const types::Matrix & coordinates,
-								 __attribute__((unused)) types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const types::RMatrix & coordinates,
+								 __attribute__((unused)) types::RMatrix & coordMatrix) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::Matrix & coordinates,
-									      types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::RMatrix & coordinates,
+									      types::RMatrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i)
     coordMatrix(i, 0) = 1;
@@ -144,8 +147,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(co
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const types::Matrix & coordinates,
-									      types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const types::RMatrix & coordinates,
+									      types::RMatrix & coordMatrix) {
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(_triangle_6);
 
@@ -159,13 +162,13 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(co
 /**
  * @todo Write a more efficient interpolation for quadrangles by
  * dropping unnecessary quadrature points
- * 
+ *
  */
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::Matrix & coordinates,
-										types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::RMatrix & coordinates,
+										types::RMatrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i) {
     Real x = coordinates(i, 0);
@@ -180,8 +183,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::Matrix & coordinates,
-										types::Matrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::RMatrix & coordinates,
+										types::RMatrix & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.rows(); ++i) {
 
@@ -228,8 +231,6 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 /* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataForElements(const Vector<Element> & elements,
 					   SynchronizationTag tag) const {
-  //UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-  //UInt size = 0;
   if(tag == _gst_smm_stress) {
     return spatial_dimension * spatial_dimension * sizeof(Real) * this->getNbQuadraturePoints(elements);
   }
@@ -242,11 +243,6 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
 				      SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
     packElementDataHelper(stress, buffer, elements);
-    // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::const_iterator<types::Matrix> stress_it = stress(element.type, _not_ghost).begin(spatial_dimension, spatial_dimension);
-    // stress_it += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++stress_it)
-    //   buffer << *stress_it;
   }
 }
 
@@ -256,11 +252,6 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 					SynchronizationTag tag) {
   if(tag == _gst_smm_stress) {
     unpackElementDataHelper(stress, buffer, elements);
-    // UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::iterator<types::Matrix> stress_it = stress(element.type, _ghost).begin(spatial_dimension, spatial_dimension);
-    // stress_it += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++stress_it)
-    //   buffer >> *stress_it;
   }
 }
 
@@ -322,7 +313,7 @@ inline void Material::packUnpackElementDataHelper(ByElementTypeVector<T> & data_
       nb_component = vect->getNbComponent();
     }
 
-    UInt el_id = (*element_index_material)(el.element);
+    UInt el_id = (*element_index_material)(el.element, 0);
     types::Vector<T> data(vect->storage() + el_id * nb_component * nb_quad_per_elem,
 			  nb_component * nb_quad_per_elem);
     if(pack_helper)
@@ -407,6 +398,8 @@ inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Eleme
 
 /* -------------------------------------------------------------------------- */
 inline void Material::onElementsRemoved(const Vector<Element> & element_list, const ByElementTypeUInt & new_numbering) {
+  UInt my_num = model->getInternalIndexFromID(id);
+
   ByElementTypeUInt material_local_new_numbering("remove mat filter elem", id);
 
   Vector<Element>::const_iterator<Element> el_begin = element_list.begin();
@@ -441,7 +434,8 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list, co
 	    AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A not removed element as been badly renumbered");
 	    elem_filter_tmp.push_back(new_el);
 	    mat_renumbering(i) = ni;
-	    element_index_material(new_el) = ni;
+	    element_index_material(new_el, 0) = ni;
+	    element_index_material(new_el, 1) = my_num;
 	    ++ni;
 	  } else {
 	    mat_renumbering(i) = UInt(-1);

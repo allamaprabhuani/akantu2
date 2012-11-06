@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Tue Oct 26 16:40:24 2010
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Mon Jan 17 11:51:06 2011
+#
+# @brief  configuration for 3D contact tests
 #
 # @section LICENSE
 #
@@ -24,6 +28,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 add_mesh(test_regular_grid_2d_mesh squares.geo 2 1)
 
 register_test(test_regular_grid_triangle_3 test_regular_grid_triangle_3.cc)

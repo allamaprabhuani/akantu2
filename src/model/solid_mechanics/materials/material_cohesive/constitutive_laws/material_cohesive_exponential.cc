@@ -1,8 +1,10 @@
 /**
- * @file   material_cohesive_Exponential.cc
- * @author Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
+ * @file   material_cohesive_exponential.cc
+ *
+ * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:14:16 2012
+ *
+ * @date   Mon Jul 09 14:13:56 2012
  *
  * @brief  Exponential irreversible cohesive law of mixed mode loading
  *
@@ -82,8 +84,8 @@ void MaterialCohesiveExponential<spatial_dimension>::resizeCohesiveVectors() {
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Vector<Real> & normal,
-								     ElementType el_type,
-								     GhostType ghost_type) {
+                                                                     ElementType el_type,
+                                                                     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -138,11 +140,11 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Vecto
       traction_it->clear();
     } else { /// element not fully damaged
       /**
-       * Compute traction loading @f$ \mathbf{T} = 
+       * Compute traction loading @f$ \mathbf{T} =
        * e \sigma_c \frac{\delta}{\delta_c} e^{-\delta/ \delta_c}@f$
        */
       /**
-       * Compute traction unloading @f$ \mathbf{T} = 
+       * Compute traction unloading @f$ \mathbf{T} =
        *  \frac{t_{max}}{\delta_{max}} \delta @f$
        */
       *traction_it  = tangential_opening;
@@ -151,14 +153,14 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Vecto
 
       /// crack opening case
       if (delta > *delta_max_it) {
-	Real k = exp(1)*sigma_c*exp(- delta / delta_c)/delta_c;
-	*traction_it *= k;
+        Real k = exp(1)*sigma_c*exp(- delta / delta_c)/delta_c;
+        *traction_it *= k;
 
-	/// update maximum displacement
-	*delta_max_it = delta;
+        /// update maximum displacement
+        *delta_max_it = delta;
       } else { /// unloading-reloading case
-	Real k = exp(1)*sigma_c*exp(- *delta_max_it / delta_c)/delta_c;
-	*traction_it *= k;
+        Real k = exp(1)*sigma_c*exp(- *delta_max_it / delta_c)/delta_c;
+        *traction_it *= k;
       }
     }
   }
@@ -168,13 +170,13 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Vecto
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(const ElementType & el_type,
-									    Vector<Real> & tangent_matrix,
-									    const Vector<Real> & normal,
-									    GhostType ghost_type) { 
+                                                                            Vector<Real> & tangent_matrix,
+                                                                            const Vector<Real> & normal,
+                                                                            GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<Real>::iterator<types::Matrix> tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::Matrix> tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
   Vector<Real>::const_iterator<types::RVector> normal_it = normal.begin(spatial_dimension);
   Vector<Real>::iterator<types::RVector> opening_it = opening(el_type, ghost_type).begin(spatial_dimension);
   Vector<Real>::iterator<types::RVector> traction_it = tractions(el_type, ghost_type).begin(spatial_dimension);
@@ -182,7 +184,7 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
   Real beta2 = beta*beta;
 
   /**
-   * compute tangent matrix  @f$ \frac{\partial \mathbf{t}} 
+   * compute tangent matrix  @f$ \frac{\partial \mathbf{t}}
    * {\partial \delta} = \hat{\mathbf{t}} \otimes
    * \frac{\partial (t/\delta)}{\partial \delta}
    * \frac{\hat{\mathbf{t}}}{\delta}+ \frac{t}{\delta}  [ \beta^2 \mathbf{I} +
@@ -191,12 +193,12 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
 
   /**
    * In which @f$
-   *  \frac{\partial(t/ \delta)}{\partial \delta} = 
+   *  \frac{\partial(t/ \delta)}{\partial \delta} =
    * \left\{\begin{array} {l l}
    *  -e  \frac{\sigma_c}{\delta_c^2  }e^{-\delta  /  \delta_c} &  \quad  if
    *  \delta \geq \delta_{max} \\
    *  0 & \quad if \delta < \delta_{max}, \delta_n > 0
-   *  \end{array}\right. @f$ 
+   *  \end{array}\right. @f$
    **/
 
   for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it, ++traction_it) {
@@ -216,22 +218,22 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
     delta *= delta * beta2;
     delta += normal_opening_norm * normal_opening_norm;
     delta = sqrt(delta);
- 
+
     types::RVector t_hat(tangential_opening);
     t_hat *= beta2;
     t_hat += normal_opening;
- 
-    types::Matrix nn(spatial_dimension, spatial_dimension);
+
+    types::RMatrix nn(spatial_dimension, spatial_dimension);
     nn.outerProduct(*normal_it, *normal_it);
-   
-    types::Matrix I(spatial_dimension, spatial_dimension);
+
+    types::RMatrix I(spatial_dimension, spatial_dimension);
     I.eye(beta2);
     nn *= (1-beta2);
     I += nn;
 
     if(std::abs(delta) < Math::getTolerance()){
       *tangent_it += I;
-      *tangent_it *= exp(1)* sigma_c/delta_c; 
+      *tangent_it *= exp(1)* sigma_c/delta_c;
     } else {
       Real traction_norm = traction_it->norm();
 
@@ -241,13 +243,13 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
       Real temp_var = 0;
 
       if ((delta > *delta_max_it) || (std::abs(delta - *delta_max_it) < 1e-12)) {
-	temp_var = -exp(1- delta/delta_c) * sigma_c/(delta_c * delta_c);
+        temp_var = -exp(1- delta/delta_c) * sigma_c/(delta_c * delta_c);
       }
 
       temp_var /=  delta;
       t_hat_tmp *= temp_var;
 
-      types::Matrix t_var_t(spatial_dimension, spatial_dimension);
+      types::RMatrix t_var_t(spatial_dimension, spatial_dimension);
       t_var_t.outerProduct(t_hat, t_hat_tmp);
 
       *tangent_it += I;

@@ -1,9 +1,11 @@
 /**
  * @file   material_standard_linear_solid_deviatoric.cc
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
+ *
+ * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Feb 7 2012
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Feb 08 16:53:31 2012
  *
  * @brief  Material Visco-elastic
  *
@@ -83,14 +85,14 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::setToSteadyState(
   Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Vector<Real>::iterator<types::Matrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  types::Matrix & dev_s = *stress_d;
-  types::Matrix & h = *history_int;
+  types::RMatrix & dev_s = *stress_d;
+  types::RMatrix & h = *history_int;
 
   /// Compute the first invariant of strain
   Real Theta = grad_u.trace();
@@ -122,10 +124,10 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Vector<Real>::iterator<types::Matrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::Matrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
-  types::Matrix s(spatial_dimension, spatial_dimension);
+  types::RMatrix s(spatial_dimension, spatial_dimension);
 
   Real dt = this->model->getTimeStep();
   Real exp_dt_tau = exp( -dt/tau );
@@ -134,8 +136,8 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  types::Matrix & dev_s = *stress_d;
-  types::Matrix & h = *history_int;
+  types::RMatrix & dev_s = *stress_d;
+  types::RMatrix & h = *history_int;
 
   s.clear();
   sigma.clear();
@@ -146,7 +148,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Real gamma_inf = E_inf / this->E;
   Real gamma_v   = Ev    / this->E;
 
-  types::Matrix U_rond_prim(spatial_dimension, spatial_dimension);
+  types::RMatrix U_rond_prim(spatial_dimension, spatial_dimension);
   U_rond_prim.eye(gamma_inf * this->kpa * Theta);
 
   for (UInt i = 0; i < spatial_dimension; ++i)

@@ -1,7 +1,9 @@
 /**
  * @file   material_damage_non_local.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 16 18:28:00 2012
+ *
+ * @date   Thu Aug 23 16:39:04 2012
  *
  * @brief  interface for non local damage material
  *

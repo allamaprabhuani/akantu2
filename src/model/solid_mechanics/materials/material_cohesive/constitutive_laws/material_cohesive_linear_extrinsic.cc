@@ -1,9 +1,11 @@
 /**
- * @file   material_cohesive_linear.cc
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:14:16 2012
+ * @file   material_cohesive_linear_extrinsic.cc
  *
- * @brief Linear irreversible cohesive law of mixed mode loading with
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Tue May 08 13:01:18 2012
+ *
+ * @brief  Linear irreversible cohesive law of mixed mode loading with
  * random stress definition for extrinsic type
  *
  * @section LICENSE
@@ -127,7 +129,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors()
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress,
+inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::RMatrix & stress,
 										     const types::RVector & normal,
 										     const types::RVector & tangent) {
   AKANTU_DEBUG_IN();
@@ -173,7 +175,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(cons
   Vector<Real>::const_iterator<types::RVector> tangent_it =
     tangents.begin(spatial_dimension);
 
-  Vector<Real>::const_iterator<types::Matrix> facet_stress_it =
+  Vector<Real>::const_iterator<types::RMatrix> facet_stress_it =
     facet_stress.begin(spatial_dimension, spatial_dimension);
 
   for (UInt f = 0; f < nb_facet; ++f, ++stress_check_it) {

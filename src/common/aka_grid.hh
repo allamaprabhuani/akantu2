@@ -1,7 +1,9 @@
 /**
  * @file   aka_grid.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 28 11:44:18 2011
+ *
+ * @date   Wed Aug 31 11:09:48 2011
  *
  * @brief  A regular grid that can contain information per cells
  *

@@ -1,7 +1,9 @@
 /**
  * @file   synchronizer_registry.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Wed Jun 15 15:56:07 2011
+ *
+ * @date   Thu Jun 16 16:36:52 2011
  *
  * @brief  Registry of synchronizers
  *
@@ -34,7 +36,7 @@ SynchronizerRegistry::SynchronizerRegistry(DataAccessor & da) :
   // nb_synchronization_tags(0),
   data_accessor(da) {
   AKANTU_DEBUG_IN();
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -76,7 +78,7 @@ void SynchronizerRegistry::asynchronousSynchronize(SynchronizationTag tag) {
   for (Tag2Sync::iterator it = range.first; it != range.second;++it) {
     (*it).second->asynchronousSynchronize(data_accessor,tag);
   }
-  
+
   AKANTU_DEBUG_OUT();
 }
 

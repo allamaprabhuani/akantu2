@@ -1,7 +1,9 @@
 /**
  * @file   ruina_slowness_fric_coef_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Sun Mar 20 14:48:06 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  implementation of theta formulas
  *

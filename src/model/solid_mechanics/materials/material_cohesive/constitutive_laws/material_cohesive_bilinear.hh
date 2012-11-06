@@ -1,7 +1,9 @@
 /**
  * @file   material_cohesive_bilinear.hh
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Feb 16 14:14:34 2012
+ *
+ * @date   Wed Feb 22 16:31:20 2012
  *
  * @brief  Bilinear cohesive constitutive law
  *
@@ -49,10 +51,10 @@ class MaterialCohesiveBilinear : public MaterialCohesiveLinear<spatial_dimension
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   MaterialCohesiveBilinear(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveBilinear();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -87,7 +89,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

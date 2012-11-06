@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Wed Feb 2 14:46:59 2011
+#
+# @date   Mon Feb 07 17:33:51 2011
+#
+# @brief  configuration for MeshUtils tests
 #
 # @section LICENSE
 #
@@ -32,11 +36,11 @@ add_akantu_test(test_mesh_io "Test mesh io object")
 add_akantu_test(test_facet_extraction "Test mesh utils facet extraction")
 add_akantu_test(test_pbc_tweak "Test pbc facilities")
 
-register_test(test_purify_mesh test_purify_mesh.cc)
-file(COPY purify_mesh.msh DESTINATION .)
+register_test(test_purify_mesh
+  SOURCES test_purify_mesh.cc
+  FILES_TO_COPY purify_mesh.msh DESTINATION
+  )
 
-if(AKANTU_SCOTCH)
-  add_akantu_test(test_mesh_partitionate "Test mesh partition creation")
-endif(AKANTU_SCOTCH)
+add_akantu_test(test_mesh_partitionate "Test mesh partition creation" PACKAGE scotch)
 
 

@@ -1,7 +1,11 @@
 /**
  * @file   model.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 22 11:02:42 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Interface of a model
  *
@@ -122,7 +126,7 @@ public:
   template <typename FEMClass>
   inline FEMClass & getFEMClassBoundary(std::string name = "");
 
-  /// get the pbc pairs 
+  /// get the pbc pairs
   std::map<UInt,UInt> & getPBCPairs(){return pbc_pair;};
 
 protected:

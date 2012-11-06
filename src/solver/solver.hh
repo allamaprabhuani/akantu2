@@ -1,7 +1,9 @@
 /**
  * @file   solver.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Oct  4 20:27:42 2010
+ *
+ * @date   Mon Dec 13 10:48:06 2010
  *
  * @brief  interface for solvers
  *
@@ -112,24 +114,9 @@ protected:
   const Mesh * mesh;
 
   /// pointer to the communicator
-  StaticCommunicator * communicator;
+  StaticCommunicator & communicator;
 };
 
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "solver_inline_impl.cc"
-#endif
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const Solver & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
 
 __END_AKANTU__
 

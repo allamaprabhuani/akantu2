@@ -1,7 +1,9 @@
 /**
  * @file   aka_circular_vector_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 17 14:45:40 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 15:24:34 2011
  *
  * @brief  implementation of circular vector
  *
@@ -34,19 +36,19 @@ template<class T>
 inline  typename CircularVector<T>::reference CircularVector<T>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
 		      "The vector \"" << this->id << "\" is empty");
-  AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1) 
+  AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1)
 		      && (j < this->nb_component),
 		      "The value at position [" << i << "," << j
 		      << "] is out of range in vector \"" << this->id << "\"");
   return this->values[((i+start_position)%this->allocated_size)*this->nb_component + j];
 }
- 
+
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline typename CircularVector<T>::const_reference CircularVector<T>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
 		      "The vector \"" << this->id << "\" is empty");
-  AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1) 
+  AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1)
 		      && (j < this->nb_component),
 		      "The value at position [" << i << "," << j
 		      << "] is out of range in vector \"" << this->id << "\"");
@@ -57,7 +59,7 @@ inline typename CircularVector<T>::const_reference CircularVector<T>::operator()
 template <class T>
 inline void CircularVector<T>::makeStep() {
   AKANTU_DEBUG_IN();
- 
+
   start_position = (start_position+1) % this->allocated_size;
   end_position = (end_position+1) % this->allocated_size;
 

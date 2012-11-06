@@ -1,7 +1,9 @@
 /**
  * @file   pbc_synchronizer.cc
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Jun 16 16:59:15 2011
+ *
+ * @date   Mon Jun 20 10:07:57 2011
  *
  * @brief  implementation of the synchronizer for the pbc conditions
  *
@@ -47,7 +49,7 @@ void PBCSynchronizer::asynchronousSynchronize(DataAccessor & data_accessor,
     computeBufferSize(data_accessor, tag);
 
   buffer.resize(size_buffer[tag]);
-  
+
   for (std::map<UInt,UInt>::iterator it = pbc_pair.begin();
        it != pbc_pair.end();
        ++it) {

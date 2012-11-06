@@ -1,11 +1,13 @@
 /**
  * @file   material_standard_linear_solid_deviatoric.hh
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Feb 7 2012
  *
- * @brief Material Visco-elastic, based on Standard Solid rheological model, see
+ * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Feb 08 16:53:31 2012
+ *
+ * @brief  Material Visco-elastic, based on Standard Solid rheological model, see
  * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
  * see Sections 10.2 and 10.3
  *

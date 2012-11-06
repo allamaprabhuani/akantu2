@@ -1,7 +1,11 @@
 /**
- * @file   test_check_stress.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Wed Feb 16 13:56:42 2011
+ * @file   patch_test_explicit.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
+ *
+ * @date   Thu Feb 17 16:05:48 2011
  *
  * @brief  patch test for elastic material in solid mechanics model
  *
@@ -30,16 +34,11 @@
 
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "element_class.hh"
-
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
 
@@ -47,16 +46,11 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 		      { 0.05, 0.06, 0.07, 0.08 },
 		      { 0.09, 0.10, 0.11, 0.12 } };
 
-#ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif
-
 /* -------------------------------------------------------------------------- */
 template<ElementType type, bool plane_strain>
-static types::Matrix prescribed_strain() {
+static types::RMatrix prescribed_strain() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
-  types::Matrix strain(spatial_dimension, spatial_dimension);
+  types::RMatrix strain(spatial_dimension, spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
@@ -67,13 +61,13 @@ static types::Matrix prescribed_strain() {
 }
 
 template<ElementType type, bool is_plane_strain>
-static types::Matrix prescribed_stress() {
+static types::RMatrix prescribed_stress() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
-  types::Matrix stress(spatial_dimension, spatial_dimension);
+  types::RMatrix stress(spatial_dimension, spatial_dimension);
 
   //plane strain in 2d
-  types::Matrix strain(spatial_dimension, spatial_dimension);
-  types::Matrix pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
+  types::RMatrix strain(spatial_dimension, spatial_dimension);
+  types::RMatrix pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
   Real nu = 0.3;
   Real E  = 2.1e11;
   Real trace = 0;
@@ -179,11 +173,6 @@ int main(int argc, char *argv[])
 
   Vector<Real> & velocity = my_model.getVelocity();
 
-#ifdef AKANTU_USE_IOHELPER
-  my_model.updateResidual();
-  iohelper::DumperParaview dumper;
-  paraviewInit(dumper, my_model);
-#endif
   std::ofstream energy;
   std::stringstream energy_filename; energy_filename << "energy_" << TYPE << ".csv";
   energy.open(energy_filename.str().c_str());
@@ -222,29 +211,19 @@ int main(int argc, char *argv[])
 
     if(s % 1000 == 0)
       energy << s << "," << s*time_step  << "," << ekin << std::endl;
-
-
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 10000 == 0) paraviewDump(dumper);
-#endif
   }
-
-#ifdef AKANTU_USE_IOHELPER
-  paraviewDump(dumper);
-#endif
 
   energy.close();
 
   UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(TYPE);
-
   Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
   Vector<Real> & strain_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStrain(element_type));
 
-  Vector<Real>::iterator<types::Matrix> stress_it = stress_vect.begin(dim, dim);
-  Vector<Real>::iterator<types::Matrix> strain_it = strain_vect.begin(dim, dim);
+  Vector<Real>::iterator<types::RMatrix> stress_it = stress_vect.begin(dim, dim);
+  Vector<Real>::iterator<types::RMatrix> strain_it = strain_vect.begin(dim, dim);
 
-  types::Matrix presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
-  types::Matrix presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
+  types::RMatrix presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
+  types::RMatrix presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
 
@@ -258,8 +237,8 @@ int main(int argc, char *argv[])
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      types::Matrix & stress = *stress_it;
-      types::Matrix & strain = *strain_it;
+      types::RMatrix & stress = *stress_it;
+      types::RMatrix & strain = *strain_it;
 
       for (UInt i = 0; i < dim; ++i) {
 	for (UInt j = 0; j < dim; ++j) {
@@ -281,7 +260,7 @@ int main(int argc, char *argv[])
       ++strain_it;
     }
   }
-
+  
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt i = 0; i < dim; ++i) {
@@ -301,60 +280,3 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-/* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-template <ElementType type> static iohelper::ElemType paraviewType();
-
-template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; }
-template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; }
-template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
-template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
-template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; }
-template <> iohelper::ElemType paraviewType<_quadrangle_8>()   { return iohelper::QUAD2; }
-template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; }
-template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; }
-template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; }
-
-void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {
-  UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
-  UInt nb_nodes   = model.getFEM().getMesh().getNbNodes();
-  UInt nb_element = model.getFEM().getMesh().getNbElement(TYPE);
-
-  std::stringstream filename; filename << "out_" << TYPE;
-
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, filename.str().c_str());
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
-			 paraviewType<TYPE>(), nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getResidual().values,
-			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model.getMass().values,
-			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model.getForce().values,
-			  spatial_dimension, "applied_force");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
-   			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
-   			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
-}
-
-#endif

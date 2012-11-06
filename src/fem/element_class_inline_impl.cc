@@ -1,8 +1,10 @@
 /**
  * @file   element_class_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Jul 15 10:28:28 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Implementation of the inline functions of the class element_class
  *
@@ -44,10 +46,10 @@ template<ElementType type> inline UInt ElementClass<type>::getShapeDerivativesSi
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 void ElementClass<type>::preComputeStandards(const Real * coord,
-					     const UInt dimension,
-					     Real * shape,
-					     Real * dshape,
-					     Real * jacobians) {
+                                             const UInt dimension,
+                                             Real * shape,
+                                             Real * dshape,
+                                             Real * jacobians) {
   // ask for computation of shapes
   computeShapes(quad, nb_quadrature_points, shape);
 
@@ -70,8 +72,8 @@ void ElementClass<type>::preComputeStandards(const Real * coord,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeShapes(const Real * natural_coords,
-					      const UInt nb_points,
-					      Real * shapes) {
+                                              const UInt nb_points,
+                                              Real * shapes) {
   Real * cpoint = const_cast<Real *>(natural_coords);
   for (UInt p = 0; p < nb_points; ++p) {
     computeShapes(cpoint, shapes);
@@ -83,10 +85,10 @@ inline void ElementClass<type>::computeShapes(const Real * natural_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeShapes(const Real * natural_coords,
-					      const UInt nb_points, 
-					      Real * shapes,
-					      const Real * local_coord, 
-					      UInt id) {
+                                              const UInt nb_points,
+                                              Real * shapes,
+                                              const Real * local_coord,
+                                              UInt id) {
   Real * cpoint = const_cast<Real *>(natural_coords);
   for (UInt p = 0; p < nb_points; ++p) {
     computeShapes(cpoint, shapes, local_coord, id);
@@ -98,8 +100,8 @@ inline void ElementClass<type>::computeShapes(const Real * natural_coords,
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline void ElementClass<type>::computeDNDS(const Real * natural_coords,
-					    const UInt nb_points,
-					    Real * dnds) {
+                                            const UInt nb_points,
+                                            Real * dnds) {
   Real * cpoint = const_cast<Real *>(natural_coords);
   Real * cdnds = dnds;
   for (UInt p = 0; p < nb_points; ++p) {
@@ -112,10 +114,10 @@ inline void ElementClass<type>::computeDNDS(const Real * natural_coords,
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline void ElementClass<type>::computeDXDS(const Real * dnds,
-					    const UInt nb_points,
-					    const Real * node_coords,
-					    const UInt dimension,
-					    Real * dxds) {
+                                            const UInt nb_points,
+                                            const Real * node_coords,
+                                            const UInt dimension,
+                                            Real * dxds) {
   Real * cdnds = const_cast<Real *>(dnds);
   Real * cdxds = dxds;
   for (UInt p = 0; p < nb_points; ++p) {
@@ -127,26 +129,26 @@ inline void ElementClass<type>::computeDXDS(const Real * dnds,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeDXDS(const Real * dnds,
-					    const Real * node_coords,
-					    const UInt dimension,
-					    Real * dxds) {
+                                            const Real * node_coords,
+                                            const UInt dimension,
+                                            Real * dxds) {
   /// @f$ J = dxds = dnds * x @f$
   Math::matrix_matrix(spatial_dimension, dimension, nb_nodes_per_element,
-		      dnds, node_coords, dxds);
+                      dnds, node_coords, dxds);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeJacobian(const Real * dxds,
-						const UInt nb_points,
-						const UInt dimension,
-						Real * jac) {
+                                                const UInt nb_points,
+                                                const UInt dimension,
+                                                Real * jac) {
   Real * cdxds = const_cast<Real *>(dxds);
   Real * cjac = jac;
   for (UInt p = 0; p < nb_points; ++p) {
     computeJacobian(cdxds, dimension, *cjac);
     // AKANTU_DEBUG_ASSERT((cjac[0] > 0),
-    // 			"Negative jacobian computed, possible problem in the element node order.");
+    //                  "Negative jacobian computed, possible problem in the element node order.");
     cdxds += spatial_dimension * dimension;
     cjac++;
   }
@@ -154,14 +156,14 @@ inline void ElementClass<type>::computeJacobian(const Real * dxds,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
-							const Real * dnds,
-							const UInt nb_points,
-							__attribute__ ((unused)) const UInt dimension,
-							Real * shape_deriv) {
+                                                        const Real * dnds,
+                                                        const UInt nb_points,
+                                                        __attribute__ ((unused)) const UInt dimension,
+                                                        Real * shape_deriv) {
   AKANTU_DEBUG_ASSERT(dimension == spatial_dimension,"gradient in space "
-		      << dimension
-		      << " cannot be evaluated for element of dimension "
-		      << spatial_dimension);
+                      << dimension
+                      << " cannot be evaluated for element of dimension "
+                      << spatial_dimension);
 
   Real * cdxds = const_cast<Real *>(dxds);
   Real * cdnds = const_cast<Real *>(dnds);
@@ -175,17 +177,17 @@ inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
 
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
-inline void ElementClass<type>::computeShapeDerivatives(const Real * natural_coords, 
-							const UInt  nb_points,
-							const UInt dimension, 
-							Real * shape_deriv,
-							const Real * local_coord,
-							UInt id) {
-  AKANTU_DEBUG_ASSERT(dimension == spatial_dimension,"Gradient in space " 
-		      << dimension 
-		      << " cannot be evaluated for element of dimension "
-		      << spatial_dimension);
+template <ElementType type>
+inline void ElementClass<type>::computeShapeDerivatives(const Real * natural_coords,
+                                                        const UInt  nb_points,
+                                                        const UInt dimension,
+                                                        Real * shape_deriv,
+                                                        const Real * local_coord,
+                                                        UInt id) {
+  AKANTU_DEBUG_ASSERT(dimension == spatial_dimension,"Gradient in space "
+                      << dimension
+                      << " cannot be evaluated for element of dimension "
+                      << spatial_dimension);
 
   Real * cpoint = const_cast<Real *>(natural_coords);
   for (UInt p = 0; p < nb_points; ++p) {
@@ -198,8 +200,8 @@ inline void ElementClass<type>::computeShapeDerivatives(const Real * natural_coo
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
-							const Real * dnds,
-							Real * shape_deriv) {
+                                                        const Real * dnds,
+                                                        Real * shape_deriv) {
   /// @f$ dxds = J^{-1} @f$
   Real inv_dxds[spatial_dimension * spatial_dimension];
   if (spatial_dimension == 1) inv_dxds[0] = 1./dxds[0];
@@ -207,7 +209,7 @@ inline void ElementClass<type>::computeShapeDerivatives(const Real * dxds,
   if (spatial_dimension == 3) Math::inv3(dxds, inv_dxds);
 
   Math::matrixt_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			dnds, inv_dxds, shape_deriv);
+                        dnds, inv_dxds, shape_deriv);
 }
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
@@ -218,11 +220,11 @@ inline Real ElementClass<type>::getInradius(__attribute__ ((unused)) const Real 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord,
-							  const UInt dimension,
-							  Real * normals) {
+                                                          const UInt dimension,
+                                                          Real * normals) {
   AKANTU_DEBUG_ASSERT((dimension - 1) == spatial_dimension,
-		      "cannot extract a normal because of dimension mismatch "
-		      << dimension << " " << spatial_dimension);
+                      "cannot extract a normal because of dimension mismatch "
+                      << dimension << " " << spatial_dimension);
 
   Real * cpoint = const_cast<Real *>(quad);
   Real * cnormals = normals;
@@ -243,59 +245,59 @@ inline void ElementClass<type>::computeNormalsOnQuadPoint(const Real * coord,
   }
 }
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
+template <ElementType type>
 inline void ElementClass<type>::interpolateOnNaturalCoordinates(const Real * natural_coords,
-								const Real * nodal_values,
-								UInt dimension,
-								Real * interpolated){
+                                                                const Real * nodal_values,
+                                                                UInt dimension,
+                                                                Real * interpolated){
 
 
   Real shapes[nb_nodes_per_element];
   computeShapes(natural_coords,shapes);
   Math::matrix_matrix(1, dimension, nb_nodes_per_element,
-		      shapes, nodal_values, interpolated);
+                      shapes, nodal_values, interpolated);
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
+template <ElementType type>
 inline void ElementClass<type>::inverseMap(const types::RVector & real_coords,
-					   const types::Matrix & node_coords,
-					   UInt dimension,	
-					   types::RVector & natural_coords,
-					   Real tolerance){
+                                           const types::RMatrix & node_coords,
+                                           UInt dimension,
+                                           types::RVector & natural_coords,
+                                           Real tolerance){
 
   //matric copy of the real_coords
-  types::Matrix mreal_coords(real_coords.storage(),1,spatial_dimension);
+  types::RMatrix mreal_coords(real_coords.storage(),1,spatial_dimension);
   //initial guess
-  types::Matrix natural_guess(1,dimension,0.);
+  types::RMatrix natural_guess(1, dimension, 0.);
   // realspace coordinates provided by initial guess
-  types::Matrix physical_guess(1,dimension);
+  types::RMatrix physical_guess(1, dimension);
   // objective function f = real_coords - physical_guess
-  types::Matrix f(1,dimension);
+  types::RMatrix f(1,dimension);
   // dnds computed on the natural_guess
-  types::Matrix dnds(nb_nodes_per_element,spatial_dimension);
+  types::RMatrix dnds(nb_nodes_per_element,spatial_dimension);
   // dxds computed on the natural_guess
-  types::Matrix dxds(spatial_dimension,dimension);
+  types::RMatrix dxds(spatial_dimension,dimension);
   // transposed dxds computed on the natural_guess
-  types::Matrix dxds_t(dimension,spatial_dimension);
+  types::RMatrix dxds_t(dimension,spatial_dimension);
   // G = dxds * dxds_t
-  types::Matrix G(spatial_dimension,spatial_dimension);
+  types::RMatrix G(spatial_dimension,spatial_dimension);
   // Ginv = G^{-1}
-  types::Matrix Ginv(spatial_dimension,spatial_dimension);
+  types::RMatrix Ginv(spatial_dimension,spatial_dimension);
   // J = Ginv * dxds
-  types::Matrix J(spatial_dimension,dimension);
+  types::RMatrix J(spatial_dimension,dimension);
   // dxi = \xi_{k+1} - \xi in the iterative process
-  types::Matrix dxi(1,spatial_dimension);  
-  
+  types::RMatrix dxi(1,spatial_dimension);
+
   /* --------------------------- */
   // init before iteration loop
   /* --------------------------- */
-  
-  // do interpolation 
+
+  // do interpolation
   interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
   // compute initial objective function value f = real_coords - physical_guess
-  f = physical_guess; 
-  f*= -1.; 
+  f = physical_guess;
+  f*= -1.;
   f+= mreal_coords;
   // compute initial error
   Real inverse_map_error = f.norm();
@@ -304,68 +306,66 @@ inline void ElementClass<type>::inverseMap(const types::RVector & real_coords,
   /* --------------------------- */
   // iteration loop
   /* --------------------------- */
+  while(tolerance < inverse_map_error) {
+    //compute dxds
+    computeDNDS(natural_guess.storage(), dnds.storage());
+    computeDXDS(dnds.storage(),node_coords.storage(),dimension,dxds.storage());
+    //compute G
+    dxds_t = dxds;
+    dxds_t.transpose();
+    G.mul<false,false>(dxds,dxds_t);
+    // inverse G
+    if      (spatial_dimension == 1) Ginv[0] = 1./G[0];
+    else if (spatial_dimension == 2) Math::inv2(G.storage(),Ginv.storage());
+    else if (spatial_dimension == 3) Math::inv3(G.storage(),Ginv.storage());
 
-  while(tolerance < inverse_map_error)
-    {
-      //compute dxds 
-      computeDNDS(natural_guess.storage(), dnds.storage());
-      computeDXDS(dnds.storage(),node_coords.storage(),dimension,dxds.storage());
-      //compute G
-      dxds_t = dxds;
-      dxds_t.transpose();
-      G.mul<false,false>(dxds,dxds_t);
-      // inverse G
-      if      (spatial_dimension == 1) Ginv[0] = 1./G[0]; 
-      else if (spatial_dimension == 2) Math::inv2(G.storage(),Ginv.storage()); 
-      else if (spatial_dimension == 3) Math::inv3(G.storage(),Ginv.storage()); 
+    //compute J
+    J.mul<false,false>(Ginv,dxds);
 
-      //compute J
-      J.mul<false,false>(Ginv,dxds);
+    //compute increment
+    dxi.mul<false,false>(f,J);
 
-      //compute increment
-      dxi.mul<false,false>(f,J);
 
-      
-      //update our guess
-      natural_guess += dxi;
-      //interpolate
-      interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
-      // compute error
-      f = physical_guess;
-      f*= -1.;
-      f+= mreal_coords;
-      inverse_map_error = f.norm();
-    }
-    memcpy(natural_coords.storage(),natural_guess.storage(),sizeof(Real)*natural_coords.size());    
+    //update our guess
+    natural_guess += dxi;
+    //interpolate
+    interpolateOnNaturalCoordinates(natural_guess.storage(),node_coords.storage(),dimension,physical_guess.storage());
+    // compute error
+    f = physical_guess;
+    f*= -1.;
+    f+= mreal_coords;
+    inverse_map_error = f.norm();
+  }
+  memcpy(natural_coords.storage(), natural_guess.storage(), sizeof(Real) * natural_coords.size());
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
-inline void ElementClass<type>::computeShapes(const Real * natural_coords, 
-					      Real * shapes) {
+template <ElementType type>
+inline void ElementClass<type>::computeShapes(const Real * natural_coords,
+                                              Real * shapes) {
   computeShapes(natural_coords, shapes, NULL,0);
 }
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
+template <ElementType type>
 inline void ElementClass<type>::computeShapes(__attribute__ ((unused)) const Real * natural_coords,
-					      __attribute__ ((unused)) Real * shapes,
-					      __attribute__ ((unused)) const Real * local_coord, 
-					      __attribute__ ((unused)) UInt id) {
+                                              __attribute__ ((unused)) Real * shapes,
+                                              __attribute__ ((unused)) const Real * local_coord,
+                                              __attribute__ ((unused)) UInt id) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeDNDS(__attribute__((unused)) const Real * natural_coords,
- 					    __attribute__((unused)) Real * dnds){
+                                            __attribute__((unused)) Real * dnds){
   //  computeDNDS(natural_coords, dnds);
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 /* -------------------------------------------------------------------------- */
-template <ElementType type> 
-inline void ElementClass<type>::computeShapeDerivatives(__attribute__ ((unused)) const Real * natural_coords, 
-							__attribute__ ((unused)) Real * shape_deriv,
-							__attribute__ ((unused)) const Real * local_coord,
-							__attribute__ ((unused)) UInt id) {
+template <ElementType type>
+inline void ElementClass<type>::computeShapeDerivatives(__attribute__ ((unused)) const Real * natural_coords,
+                                                        __attribute__ ((unused)) Real * shape_deriv,
+                                                        __attribute__ ((unused)) const Real * local_coord,
+                                                        __attribute__ ((unused)) UInt id) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -373,8 +373,8 @@ inline void ElementClass<type>::computeShapeDerivatives(__attribute__ ((unused))
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ElementClass<type>::computeJacobian(__attribute__ ((unused)) const Real * dxds,
- 						__attribute__ ((unused)) const UInt dimension, 
-						__attribute__ ((unused)) Real & jac) {
+                                                __attribute__ ((unused)) const UInt dimension,
+                                                __attribute__ ((unused)) Real & jac) {
   //AKANTU_DEBUG_ERROR("Function not implemented for type : " << type);
 }
 
@@ -387,7 +387,7 @@ inline Real * ElementClass<type>::getGaussIntegrationWeights() {
 /* -------------------------------------------------------------------------- */
 
 
-template <ElementType type> 
+template <ElementType type>
 inline bool ElementClass<type>::contains(__attribute__ ((unused)) const types::RVector & natural_coords) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return false;

@@ -1,11 +1,13 @@
 /**
  * @file   test_material_viscoelastic.cc
- * @author Vlad Yastrebov <vladislav.yastrebov@epfl.ch> 
- * @author David Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Feb 9 2012 
  *
- * @brief  test of the material viscoelastic 
+ * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Feb 10 15:45:02 2012
+ *
+ * @brief  test of the material viscoelastic
  *
  * @section LICENSE
  *

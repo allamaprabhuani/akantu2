@@ -1,9 +1,11 @@
 /**
  * @file   contact_search_explicit.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 18:43:27 2010
  *
- * @brief Structure that finds contact  for 3 dimensions within an explicit time
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Oct 27 13:54:26 2010
+ *
+ * @brief  Structure that finds contact  for 3 dimensions within an explicit time
  * scheme
  *
  * @section LICENSE

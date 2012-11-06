@@ -1,7 +1,9 @@
 /**
  * @file   by_element_type.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug  4 14:40:34 2011
+ *
+ * @date   Wed Aug 31 11:09:48 2011
  *
  * @brief  storage class by element type
  *
@@ -82,10 +84,11 @@ public:
     type_iterator(const type_iterator & it);
 
     inline reference operator*();
+    inline const reference operator*() const;
     inline type_iterator & operator++();
     type_iterator operator++(int);
-    inline bool operator==(const type_iterator & other);
-    inline bool operator!=(const type_iterator & other);
+    inline bool operator==(const type_iterator & other) const;
+    inline bool operator!=(const type_iterator & other) const;
 
   private:
     DataMapIterator list_begin;

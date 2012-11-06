@@ -1,10 +1,12 @@
 /**
- * @file   material_parser_inline_impl.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Nov 26 08:32:38 2010
+ * @file   parser_inline_impl.cc
  *
- * @brief
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Jun 10 16:46:20 2011
+ *
+ * @brief  implementation of inline parser functions
  *
  * @section LICENSE
  *

@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+#
+# @date   Fri Sep 03 15:56:15 2010
+#
+# @brief  configuration for mesh partitioner tests
 #
 # @section LICENSE
 #
@@ -29,21 +33,13 @@ add_mesh(test_mesh_partitionate_mesh
   triangle.geo 2 2)
 
 register_test(test_mesh_partitionate_scotch
-  test_mesh_partitionate_scotch.cc)
-add_dependencies(test_mesh_partitionate_scotch
-  test_mesh_partitionate_mesh)
+  SOURCES test_mesh_partitionate_scotch.cc
+  DEPENDENCIES test_mesh_partitionate_mesh
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 register_test(test_mesh_partitionate_scotch_advanced
-  test_mesh_partitionate_scotch_advanced.cc)
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/squares_L.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/squares_L.msh
-  COPYONLY
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/squares_H.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/squares_H.msh
-  COPYONLY
-  )
+  SOURCE test_mesh_partitionate_scotch_advanced.cc
+  FILES_TO_COPY squares_L.msh squares_H.msh
+  DIRECTORIES_TO_CREATE paraview)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

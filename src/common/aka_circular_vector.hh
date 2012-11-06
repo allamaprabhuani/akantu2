@@ -1,7 +1,9 @@
 /**
  * @file   aka_circular_vector.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 17 13:39:39 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 15:24:34 2011
  *
  * @brief  class of circular vector
  *
@@ -54,21 +56,21 @@ public:
 
   /// Allocation of a new vector with a default value
   CircularVector(UInt size, UInt nb_component = 1,
-		 const_reference value = value_type(), const ID & id = "") : 
-    Vector<T>(size, nb_component, value, id), 
-    start_position(0), 
+		 const_reference value = value_type(), const ID & id = "") :
+    Vector<T>(size, nb_component, value, id),
+    start_position(0),
     end_position(size-1) {
     AKANTU_DEBUG_IN();
-    
+
     AKANTU_DEBUG_OUT();
   };
 
   virtual ~CircularVector() {
     AKANTU_DEBUG_IN();
-    
+
     AKANTU_DEBUG_OUT();
   };
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -87,13 +89,13 @@ private:
 public:
   inline reference operator()(UInt i, UInt j = 0);
   inline const_reference operator()(UInt i, UInt j = 0) const;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   UInt getSize() const{ return this->size; };
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

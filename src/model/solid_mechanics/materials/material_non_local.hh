@@ -1,7 +1,9 @@
 /**
  * @file   material_non_local.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 28 11:17:41 2011
+ *
+ * @date   Wed Aug 31 11:09:48 2011
  *
  * @brief  Material class that handle the non locality of a law for example damage.
  *

@@ -1,9 +1,11 @@
 /**
  * @file   local_material_damage.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
  *
  * @brief  Specialization of the material class for the damage material
  *
@@ -48,7 +50,7 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
   this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
 
-  initInternalVector(this->damage, 1);
+  initInternalVector(damage, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -58,7 +60,7 @@ void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  resizeInternalVector(this->damage);
+  resizeInternalVector(damage);
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));

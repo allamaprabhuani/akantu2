@@ -1,9 +1,12 @@
 /**
  * @file   solid_mechanics_model_material.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Thu Nov 25 10:48:53 2010
  *
- * @brief
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
+ *
+ * @brief  instatiation of materials
  *
  * @section LICENSE
  *
@@ -143,11 +146,14 @@ void SolidMechanicsModel::initMaterials() {
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
       UInt * elem_mat_val = element_material(*it, gt).storage();
-      element_index_by_material.alloc(nb_element, 1, *it, gt);
+      element_index_by_material.alloc(nb_element, 2, *it, gt);
 
+
+      Vector<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
       for (UInt el = 0; el < nb_element; ++el) {
 	UInt index = mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
-	element_index_by_material(*it, gt)(el) = index;
+	el_id_by_mat(el, 0) = index;
+	el_id_by_mat(el, 1) = elem_mat_val[el];
       }
     }
   }

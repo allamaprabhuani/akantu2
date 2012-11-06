@@ -1,7 +1,10 @@
 /**
- * @file   test_cohesive.cc
+ * @file   test_cohesive_intrinsic_impl.cc
+ *
+ * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Fri Feb 24 14:32:31 2012
+ *
+ * @date   Mon Jul 09 14:13:56 2012
  *
  * @brief  Test for cohesive elements
  *
@@ -26,23 +29,17 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include <limits>
 #include <fstream>
 #include <iostream>
 
-
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#if defined(AKANTU_USE_IOHELPER)
-#  include "io_helper.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -63,7 +60,7 @@ int main(int argc, char *argv[]) {
 
   /// model initialization
   model.initFull("material.dat", _static);
-  
+
   const Mesh & mesh_facets = model.getMeshFacets();
 
   const ElementType type_facet = mesh.getFacetElementType(type);
@@ -82,13 +79,12 @@ int main(int argc, char *argv[]) {
   /// boundary conditions
   Vector<bool> & boundary = model.getBoundary();
   UInt nb_nodes = mesh.getNbNodes();
-  UInt nb_element = mesh.getNbElement(type);
   Vector<Real> &position = const_cast <Vector<Real>&> (mesh.getNodes());
   Vector<Real> & displacement = model.getDisplacement();
-  
-  
+
+
   for (UInt n = 0; n < nb_nodes; ++n) {
-    
+
     if (std::abs(position(n,1))< Math::getTolerance()){
       boundary(n, 1) = true;
       displacement(n,1) = 0.0;
@@ -107,37 +103,18 @@ int main(int argc, char *argv[]) {
       boundary(n, 1) = true;
     }
   }
-  
-#if defined(AKANTU_USE_IOHELPER)  
-  iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
 
-  /// initialize the paraview output
-  iohelper::DumperParaview dumper;
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  		   spatial_dimension, nb_nodes, "implicit");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-  			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
-  			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
-  			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getForce().values,
-  			  spatial_dimension, "applied_force");
-  dumper.AddNodeDataField(model.getResidual().values,
-   			  spatial_dimension, "forces");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetEmbeddedValue("forces", 1);
-  dumper.SetPrefix("paraview");
-  dumper.Init();
-  dumper.Dump();
-#endif
+  model.setBaseName("intrinsic_impl");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("damage"      );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
 
   const MaterialCohesive & mat_coh = dynamic_cast< const MaterialCohesive &> (model.getMaterial(1));
 
@@ -155,10 +132,10 @@ int main(int argc, char *argv[]) {
   fout.open("output");
 
   /// Main loop
-  for ( UInt nstep = 0; nstep < max_step; ++nstep){ 
+  for ( UInt nstep = 0; nstep < max_step; ++nstep){
     Real norm = 10;
     UInt count = 0;
-    
+
     for (UInt n = 0; n < nb_nodes; ++n) {
       if (std::abs(position(n,1)-2)< Math::getTolerance()){
 	displacement(n,1) += increment;
@@ -173,14 +150,12 @@ int main(int argc, char *argv[]) {
       
       model.solveStatic();
       model.updateResidual();
-     
+
     } while(!model.testConvergenceResidual(1e-5, norm) && (count < 100))  ;
 
     std::cout << "Step : " << nstep << " - residual norm : " << norm << std::endl;
 
-#if defined(AKANTU_USE_IOHELPER)
-    dumper.Dump(); 
-#endif
+    model.dump();
 
     Real resid = 0;
     for (UInt n = 0; n < nb_nodes; ++n) {
@@ -195,8 +170,8 @@ int main(int argc, char *argv[]) {
     error_tol  = std::abs((- resid - analytical)/analytical);
 
     fout << nstep << " " << -resid << " " << analytical << " " << error_tol << std::endl;
- 
-    if (error_tol > 1e-4) 
+
+    if (error_tol > 1e-4)
       return EXIT_FAILURE;
   }
 
@@ -206,6 +181,3 @@ int main(int argc, char *argv[]) {
 
   return EXIT_SUCCESS;
 }
-
-
-

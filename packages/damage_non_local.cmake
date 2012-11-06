@@ -1,10 +1,42 @@
+#===============================================================================
+# @file   damage_non_local.cmake
+#
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Fri Jun 15 13:48:37 2012
+#
+# @brief  package description for non-local materials
+#
+# @section LICENSE
+#
+# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+#
+# Akantu is free  software: you can redistribute it and/or  modify it under the
+# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# details.
+#
+# You should  have received  a copy  of the GNU  Lesser General  Public License
+# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
+#===============================================================================
+
 option(AKANTU_DAMAGE_NON_LOCAL "Package for Non-local damage constitutives laws Akantu" OFF)
-set(DAMAGE_NON_LOCAL_FILES
+
+add_package_dependecies(damage_non_local extra_materials)
+
+set(AKANTU_DAMAGE_NON_LOCAL_FILES
   model/solid_mechanics/materials/weight_function.cc
   model/solid_mechanics/materials/material_damage/material_vreepeerlings_non_local.cc
-  model/solid_mechanics/materials/material_damage/material_marigo_non_local.cc
   model/solid_mechanics/materials/material_damage/material_mazars_non_local.cc
 
+  model/solid_mechanics/materials/material_non_local_includes.hh
   model/solid_mechanics/materials/weight_function.hh
   model/solid_mechanics/materials/material_damage/material_marigo_non_local.hh
   model/solid_mechanics/materials/material_damage/material_mazars_non_local.hh
@@ -12,4 +44,17 @@ set(DAMAGE_NON_LOCAL_FILES
 
   model/solid_mechanics/materials/material_non_local.hh
   model/solid_mechanics/materials/material_non_local_inline_impl.cc
+  model/solid_mechanics/materials/weight_function_tmpl.hh
+
+  model/solid_mechanics/materials/material_damage/material_marigo_non_local_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_damage_non_local.hh
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings_non_local_inline_impl.cc
+
+  synchronizer/grid_synchronizer.cc
+  synchronizer/grid_synchronizer.hh
+  )
+
+set(AKANTU_DAMAGE_NON_LOCAL_TESTS
+  test_material_damage_non_local
+  test_grid_synchronizer
   )

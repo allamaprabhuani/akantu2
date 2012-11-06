@@ -1,9 +1,12 @@
 /**
  * @file   solid_mechanics_model_boundary.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Fri Nov 19 10:23:03 2010
  *
- * @brief
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 19 15:27:01 2010
+ *
+ * @brief  implementation of functions to impose boundary conditions
  *
  * @section LICENSE
  *
@@ -51,7 +54,7 @@ public:
 	     surface_id);
   }
   void stress(const types::Vector<Real> & position,
-	      types::Matrix & stress,
+	      types::RMatrix & stress,
 	      const types::Vector<Real> & normal,
 	      Surface surface_id) {
     function(position.storage(),

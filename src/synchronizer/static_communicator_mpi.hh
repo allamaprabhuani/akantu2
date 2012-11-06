@@ -1,7 +1,9 @@
 /**
  * @file   static_communicator_mpi.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Sep  2 19:59:58 2010
+ *
+ * @date   Sun Sep 05 16:01:51 2010
  *
  * @brief  class handling parallel communication trough MPI
  *

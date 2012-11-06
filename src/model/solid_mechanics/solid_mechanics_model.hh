@@ -1,8 +1,10 @@
 /**
  * @file   solid_mechanics_model.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date[creation]            Thu Jul 22 11:51:06 2010
- * @date[last modification]   Thu Oct 14 14:00:06 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Model of Solid Mechanics
  *
@@ -42,11 +44,10 @@
 #include "data_accessor.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-#include "integrator_cohesive.hh"
-#include "shape_cohesive.hh"
 #include "aka_types.hh"
 #include "integration_scheme_2nd_order.hh"
 #include "solver.hh"
+#include "dumpable.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -58,7 +59,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler {
+class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable<DumperParaview> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -66,7 +67,6 @@ class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventH
 public:
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
-  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
 
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = 0,
@@ -207,6 +207,12 @@ protected:
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
   void solveDynamic(Vector<Real> & increment);
 
+  /* ------------------------------------------------------------------------ */
+  /* Explicit/Implicit                                                        */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// compute the stresses
+  void computeStresses();
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (solid_mechanics_model_boundary.cc)                           */
@@ -222,7 +228,7 @@ public:
     }
 
     virtual void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
-			__attribute__ ((unused)) types::Matrix & stress,
+			__attribute__ ((unused)) types::RMatrix & stress,
 			__attribute__ ((unused)) const types::Vector<Real> & normal,
 			__attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
@@ -270,13 +276,6 @@ public:
 
   /// Use a UIntData in the mesh to specify the material to use per element
   void setMaterialIDsFromIntData(const std::string & data_name);
-
-protected:
-  // /// read properties part of a material file and create the material
-  // template <typename M>
-  // Material * readMaterialProperties(std::ifstream & infile,
-  // 				    ID mat_id,
-  // 				    UInt &current_line);
 
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
@@ -363,6 +362,10 @@ protected:
   virtual void onElementsRemoved(const Vector<Element> & element_list,
 				 const ByElementTypeUInt & new_numbering);
 
+public:
+  virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -414,10 +417,12 @@ public:
   /// given akantu::ElementType
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
+  AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeVector<UInt> &);
 
   /// vectors containing local material element index for each global element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
+  AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeVector<UInt> &);
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
@@ -442,7 +447,10 @@ public:
   Real getExternalWork();
 
   /// get the energies
-  Real getEnergy(std::string id);
+  Real getEnergy(const std::string & energy_id);
+
+  /// compute the energy for energy
+  Real getEnergy(const std::string & energy_id, ElementType & type, UInt index);
 
   /// set the Contact object
   AKANTU_SET_MACRO(Contact, contact, Contact *);
@@ -563,6 +571,12 @@ __END_AKANTU__
 #include "material.hh"
 
 __BEGIN_AKANTU__
+
+
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_iohelper_tmpl_material_internal_field.hh"
+#endif
 
 #include "solid_mechanics_model_tmpl.hh"
 

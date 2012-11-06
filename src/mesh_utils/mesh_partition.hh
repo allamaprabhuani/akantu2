@@ -1,7 +1,10 @@
 /**
  * @file   mesh_partition.hh
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 12 16:24:40 2010
+ *
+ * @date   Mon Aug 16 13:17:22 2010
  *
  * @brief  tools to partitionate a mesh
  *
@@ -94,6 +97,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(Partitions, partitions, const ByElementTypeUInt &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartition, ghost_partitions, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);

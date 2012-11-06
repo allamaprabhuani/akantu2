@@ -1,7 +1,11 @@
 /**
  * @file   element_class.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Peter Spijker <peter.spijker@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 20 10:12:44 2010
+ *
+ * @date   Tue Jul 20 23:40:43 2010
  *
  * @brief  Common part of element_classes
  *
@@ -68,9 +72,10 @@ template<> ElementKind ElementClass<_hexahedron_8    >::kind = _ek_regular;
 template<> ElementKind ElementClass<_point           >::kind = _ek_regular;
 template<> ElementKind ElementClass<_bernoulli_beam_2>::kind = _ek_regular;
 /* -------------------------------------------------------------------------- */
+#if defined(AKANTU_COHESIVE_ELEMENT)
 template<> ElementKind ElementClass<_cohesive_2d_4   >::kind = _ek_cohesive;
 template<> ElementKind ElementClass<_cohesive_2d_6   >::kind = _ek_cohesive;
-
+#endif
 /* -------------------------------------------------------------------------- */
 /* Regular Elements                                                           */
 /* -------------------------------------------------------------------------- */

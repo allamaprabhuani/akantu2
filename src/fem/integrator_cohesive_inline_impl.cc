@@ -1,9 +1,12 @@
 /**
  * @file   integrator_cohesive_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Feb 22 17:22:21 2012
  *
- * @brief  
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 23 17:58:45 2012
+ *
+ * @brief  IntegratorCohesive inline implementation
  *
  * @section LICENSE
  *
@@ -49,7 +52,7 @@ void IntegratorCohesive<Inte>::precomputeJacobiansOnQuadraturePoints(const Ghost
   //  sub_type_integrator->precomputeJacobiansOnQuadraturePoints<sub_type>(ghost_type);
 
   /* ---------------------------------*/
-  
+
   UInt spatial_dimension = Inte::mesh->getSpatialDimension();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -63,7 +66,7 @@ void IntegratorCohesive<Inte>::precomputeJacobiansOnQuadraturePoints(const Ghost
 								      1,
 								      type,
 								      ghost_type);
-  
+
   Real * jacobians_val = jacobians_tmp.storage();
 
   Real local_coord[spatial_dimension * nb_nodes_per_element/2];
@@ -89,7 +92,7 @@ void IntegratorCohesive<Inte>::precomputeJacobiansOnQuadraturePoints(const Ghost
   }
 
 
-  /* ---------------------------------*/  
+  /* ---------------------------------*/
 
   AKANTU_DEBUG_OUT();
 }
@@ -159,11 +162,11 @@ void IntegratorCohesive<Inte>::integrate(const Vector<Real> & in_f,
   //  Inte::template integrate<sub_type>(in_f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
 
   /* ------------------------------------------------------------------------ */
-  
+
   AKANTU_DEBUG_ASSERT(Inte::jacobians.exists(type, ghost_type),
 		      "No jacobians for the type "
 		      << Inte::jacobians.printType(type, ghost_type));
-  
+
   UInt nb_element = Inte::mesh->getNbElement(type,ghost_type);
   const Vector<Real> & jac_loc = Inte::jacobians(type, ghost_type);
 
@@ -199,7 +202,7 @@ void IntegratorCohesive<Inte>::integrate(const Vector<Real> & in_f,
   }
 
   /* ------------------------------------------------------------------------ */
-  
+
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
@@ -293,11 +296,11 @@ void IntegratorCohesive<Inte>::checkJacobians(const GhostType & ghost_type) cons
   UInt nb_quadrature_points = CohesiveElement<type>::getNbQuadraturePoints();
 
   UInt nb_element;
-  
+
   nb_element = Inte::mesh->getConnectivity(type,ghost_type).getSize();
-  
+
   Real * jacobians_val = Inte::jacobians(type, ghost_type).storage();
-  
+
   for (UInt i = 0; i < nb_element*nb_quadrature_points; ++i,++jacobians_val){
     AKANTU_DEBUG_ASSERT(*jacobians_val >0,
 			"Negative jacobian computed,"

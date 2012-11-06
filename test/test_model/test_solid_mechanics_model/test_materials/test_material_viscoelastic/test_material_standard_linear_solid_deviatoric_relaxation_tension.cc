@@ -1,8 +1,10 @@
 /**
- * @file   test_material_viscoelastic_relaxation_tension.cc
- * @author David Kammer <david.kammer@epfl.ch>
+ * @file   test_material_standard_linear_solid_deviatoric_relaxation_tension.cc
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed May 23 15:54:01 2012
+ *
+ * @date   Wed May 30 17:16:16 2012
  *
  * @brief  test of the viscoelastic material: relaxation
  *
@@ -154,8 +156,8 @@ int main(int argc, char *argv[])
       output_data << s*time_step << " " << solution;
 
       // data output
-      Vector<Real>::const_iterator<types::Matrix> stress_it = stress.begin(dim, dim);
-      Vector<Real>::const_iterator<types::Matrix> stress_end = stress.end(dim, dim);
+      Vector<Real>::const_iterator<types::RMatrix> stress_it = stress.begin(dim, dim);
+      Vector<Real>::const_iterator<types::RMatrix> stress_end = stress.end(dim, dim);
       for(;stress_it != stress_end; ++stress_it) {
 	output_data << " " << (*stress_it)(1,1);
 

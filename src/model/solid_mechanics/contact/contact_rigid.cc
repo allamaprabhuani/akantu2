@@ -1,9 +1,11 @@
 /**
  * @file   contact_rigid.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 17:15:08 2010
  *
- * @brief Specialization  of the  contact structure for  3d contact  in explicit
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Jan 19 14:45:41 2011
+ *
+ * @brief  Specialization  of the  contact structure for  3d contact  in explicit
  * time scheme
  *
  * @section LICENSE

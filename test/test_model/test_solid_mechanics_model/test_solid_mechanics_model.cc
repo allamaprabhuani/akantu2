@@ -1,7 +1,9 @@
 /**
  * @file   test_solid_mechanics_model.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 14:34:13 2010
+ *
+ * @date   Fri Sep 03 15:56:56 2010
  *
  * @brief  test of the class SolidMechanicsModel
  *

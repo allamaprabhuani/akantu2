@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   AkantuUse.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Nov 28 15:11:51 2011
+#
+# @date   Thu Dec 01 18:00:05 2011
 #
 # @brief  CMake file for the library
 #
@@ -45,7 +47,6 @@ endmacro()
 
 macro(find_akantu_dependencies)
   include_package_if_needed(MPI)
-  include_package_if_needed(IOHelper)
   include_package_if_needed(Mumps)
   include_package_if_needed(Scotch)
   include_package_if_needed(BLAS)

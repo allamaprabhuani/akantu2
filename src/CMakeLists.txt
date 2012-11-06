@@ -1,7 +1,10 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Nov 28 15:11:51 2011
+#
+# @date   Mon Nov 28 16:54:12 2011
 #
 # @brief  CMake file for the library
 #
@@ -29,7 +32,10 @@
 # Package Management
 #===============================================================================
 
-generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR} AKANTU_LIBRARY_SRCS AKANTU_LIBRARY_HDRS AKANTU_LIBRARY_INCLUDE_DIRS)
+generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR}
+  AKANTU_LIBRARY_SRCS
+  AKANTU_LIBRARY_HDRS
+  AKANTU_LIBRARY_INCLUDE_DIRS)
 
 #===========================================================================
 # header precompilation
@@ -76,18 +82,21 @@ list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
 add_library(akantu ${AKANTU_LIBRARY_SRCS})
 target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
-#add_definitions(-fkeep-inline-functions)
-#set_target_properties(akantu PROPERTIES COMPILE_DEFINITIONS __aka_inline__=inline)
-
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
 set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")
 
-#===============================================================================
-# Install rules
-#===============================================================================
+list(APPEND AKANTU_EXPORT_LIST akantu)
 
 install(TARGETS akantu
   EXPORT AkantuLibraryDepends
-  LIBRARY DESTINATION lib COMPONENT dev
+  LIBRARY DESTINATION lib COMPONENT shlib
   PUBLIC_HEADER DESTINATION include/akantu/ COMPONENT dev
   )
+
+install(EXPORT AkantuLibraryDepends DESTINATION  lib/akantu
+  COMPONENT dev)
+
+#Export for build tree
+export(TARGETS ${AKANTU_EXPORT_LIST}
+  FILE "${CMAKE_BINARY_DIR}/AkantuLibraryDepends.cmake")
+export(PACKAGE Akantu)

@@ -1,7 +1,9 @@
 /**
  * @file   test_grid_synchronizer.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Nov  7 11:58:02 2011
+ *
+ * @date   Fri Nov 25 17:00:17 2011
  *
  * @brief  test the GridSynchronizer object
  *
@@ -178,36 +180,36 @@ int main(int argc, char *argv[]) {
   unsigned int nb_element = mesh.getNbElement(type);
 
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer");
-  dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
+  dumper.setMode(iohelper::TEXT);
+  dumper.setParallelContext(prank, psize);
+  dumper.setPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer");
+  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
    			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
   part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
     part[i] = prank;
-  dumper.AddElemDataField(part, 1, "partitions");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  dumper.addElemDataField("partitions", part, 1, nb_element);
+  dumper.setPrefix("paraview/");
+  dumper.init();
+  dumper.dump();
   delete [] part;
 
   iohelper::DumperParaview dumper_ghost;
-  dumper_ghost.SetMode(iohelper::TEXT);
-  dumper_ghost.SetParallelContext(prank, psize);
+  dumper_ghost.setMode(iohelper::TEXT);
+  dumper_ghost.setParallelContext(prank, psize);
 
   try {
     unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
-    dumper_ghost.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
-    dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
+    dumper_ghost.setPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
+    dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
 				 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
     part = new double[nb_ghost_element];
     for (unsigned int i = 0; i < nb_ghost_element; ++i)
       part[i] = prank;
-    dumper_ghost.AddElemDataField(part, 1, "partitions");
-    dumper_ghost.SetPrefix("paraview/");
-    dumper_ghost.Init();
-    dumper_ghost.Dump();
+    dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
+    dumper_ghost.setPrefix("paraview/");
+    dumper_ghost.init();
+    dumper_ghost.dump();
     delete [] part;
   } catch (debug::Exception & e) { std::cout << e << std::endl; }
 #endif
@@ -242,8 +244,6 @@ int main(int argc, char *argv[]) {
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
 
-  std::cout << prank <<  " TTTTTTTOOOOOOOOOOOOOTTTTTTTTTTTTTTTTOOOOOOOOOOOOO" << grid <<std::endl;
-
   ByElementTypeReal barycenters("", "", 0);
   mesh.initByElementTypeVector(barycenters, spatial_dimension, 0);
   // first generate the quad points coordinate and count the number of points per cell
@@ -251,22 +251,11 @@ int main(int argc, char *argv[]) {
     UInt nb_element = mesh.getNbElement(*it);
     Vector<Real> & barycenter = barycenters(*it);
     barycenter.resize(nb_element);
-
-    //     Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
-    // for (UInt elem = 0; elem < nb_element; ++elem) {
-    //   
-    //   grid.count(*bary_it);
-    //   ++bary_it;
-    // }
   }
 
   Element e;
   e.ghost_type = ghost_type;
 
-  std::cout << prank <<  " TTTTTTTOOOOOOOOOOOOOTTTTTTTTTTTTTTTTOOOOOOOOOOOOO" << std::endl;
-
-  // second insert the point in the cells
-  //  grid.beginInsertions();
   it = mesh.firstType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     UInt nb_element = mesh.getNbElement(*it);
@@ -292,7 +281,6 @@ int main(int argc, char *argv[]) {
   grid.saveAsMesh(grid_mesh);
   mesh_io.write(sstr_grid.str(), grid_mesh);
 
-  std::cout << "TTTTTTTOOOOOOOOOOOOOTTTTTTTTTTTTTTTTOOOOOOOOOOOOO" << std::endl;
   GridSynchronizer * grid_communicator = GridSynchronizer::createGridSynchronizer(mesh, grid);
 
   AKANTU_DEBUG_INFO("Creating TestAccessor");
@@ -311,38 +299,37 @@ int main(int argc, char *argv[]) {
     UInt nb_nodes = mesh.getNbNodes();
 
     iohelper::DumperParaview dumper_ghost;
-    dumper_ghost.SetMode(iohelper::TEXT);
-    dumper_ghost.SetParallelContext(prank, psize);
+    dumper_ghost.setMode(iohelper::TEXT);
+    dumper_ghost.setParallelContext(prank, psize);
 
-    dumper_ghost.SetMode(iohelper::TEXT);
-    dumper_ghost.SetParallelContext(prank, psize);
-    dumper_ghost.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
-    dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
+    dumper_ghost.setMode(iohelper::TEXT);
+    dumper_ghost.setParallelContext(prank, psize);
+    dumper_ghost.setPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
+    dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
 				 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
     part = new double[nb_ghost_element];
     for (unsigned int i = 0; i < nb_ghost_element; ++i)
       part[i] = prank;
-    dumper_ghost.AddElemDataField(part, 1, "partitions");
-    dumper_ghost.Dump();
+    dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
+    dumper_ghost.dump();
     delete [] part;
 
     unsigned int nb_grid_element = grid_mesh.getNbElement(_quadrangle_4);
-    unsigned int nb_quadrature_points = 4;
     iohelper::DumperParaview dumper_grid;
-    dumper_grid.SetMode(iohelper::TEXT);
-    dumper_grid.SetParallelContext(prank, psize);
-    dumper_grid.SetPoints(grid_mesh.getNodes().values, spatial_dimension,
+    dumper_grid.setMode(iohelper::TEXT);
+    dumper_grid.setParallelContext(prank, psize);
+    dumper_grid.setPoints(grid_mesh.getNodes().values, spatial_dimension,
 			  grid_mesh.getNbNodes(), "test-grid-synchronizer-grid");
-    dumper_grid.SetConnectivity((int*) grid_mesh.getConnectivity(_quadrangle_4).values,
+    dumper_grid.setConnectivity((int*) grid_mesh.getConnectivity(_quadrangle_4).values,
 				iohelper::QUAD1, nb_grid_element, iohelper::C_MODE);
 
-    part = new double[nb_grid_element * nb_quadrature_points];
-    std::fill_n(part, nb_grid_element * nb_quadrature_points, prank);
+    part = new double[nb_grid_element];
+    std::fill_n(part, nb_grid_element, prank);
 
-    dumper_grid.AddElemDataField(part, 1, "partitions");
-    dumper_grid.SetPrefix("paraview/");
-    dumper_grid.Init();
-    dumper_grid.Dump();
+    dumper_grid.addElemDataField("partitions", part, 1, nb_grid_element);
+    dumper_grid.setPrefix("paraview/");
+    dumper_grid.init();
+    dumper_grid.dump();
     delete [] part;
   } catch(debug::Exception & e) { std::cout << e << std::endl; }
 #endif //AKANTU_USE_IOHELPER

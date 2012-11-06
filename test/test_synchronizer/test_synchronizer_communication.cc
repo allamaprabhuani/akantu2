@@ -1,7 +1,9 @@
 /**
  * @file   test_synchronizer_communication.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 19 13:05:27 2010
+ *
+ * @date   Sun Sep 12 23:37:43 2010
  *
  * @brief  test to synchronize barycenters
  *
@@ -58,16 +60,14 @@ public:
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual UInt getNbDataToPack(const Element & element,
-				       SynchronizationTag tag) const;
-  virtual UInt getNbDataToUnpack(const Element & element,
-					 SynchronizationTag tag) const;
-  virtual void packData(CommunicationBuffer & buffer,
-			const Element & element,
-			SynchronizationTag tag) const;
-  virtual void unpackData(CommunicationBuffer & buffer,
-			  const Element & element,
-			  SynchronizationTag tag);
+  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+				    SynchronizationTag tag) const;
+  virtual void packElementData(CommunicationBuffer & buffer,
+			       const Vector<Element> & elements,
+			       SynchronizationTag tag) const;
+  virtual void unpackElementData(CommunicationBuffer & buffer,
+				 const Vector<Element> & elements,
+				 SynchronizationTag tag);
 
   virtual UInt getNbDataToPack(SynchronizationTag tag) const;
   virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
@@ -114,33 +114,38 @@ TestAccessor::~TestAccessor() {
 
 }
 
-UInt TestAccessor::getNbDataToPack(const Element & element,
-					       __attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(element.type) * sizeof(Real);
+UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
+					__attribute__ ((unused)) SynchronizationTag tag) const {
+  return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
 }
 
-UInt TestAccessor::getNbDataToUnpack(const Element & element,
-						 __attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(element.type) * sizeof(Real);
+void TestAccessor::packElementData(CommunicationBuffer & buffer,
+				   const Vector<Element> & elements,
+				   __attribute__ ((unused)) SynchronizationTag tag) const {
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+    UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
+    types::RVector bary(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, bary.storage());
+
+    buffer << bary;
+  }
 }
 
-void TestAccessor::packData(CommunicationBuffer & buffer,
-				const Element & element,
-				__attribute__ ((unused)) SynchronizationTag tag) const {
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  types::RVector bary(spatial_dimension);
-  mesh.getBarycenter(element.element, element.type, bary.storage());
-
-  buffer << bary;
-}
-
-void TestAccessor::unpackData(CommunicationBuffer & buffer,
-				  const Element & element,
-				  __attribute__ ((unused)) SynchronizationTag tag) {
-  UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-  Vector<Real>::iterator<types::RVector> bary =
-    ghost_barycenter(element.type).begin(spatial_dimension);
-  buffer >> bary[element.element];
+void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
+				     const Vector<Element> & elements,
+				     __attribute__ ((unused)) SynchronizationTag tag) {
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+    UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
+    Vector<Real>::iterator<types::RVector> bary =
+      ghost_barycenter(element.type).begin(spatial_dimension);
+    buffer >> bary[element.element];
+  }
 }
 
 UInt TestAccessor::getNbDataToPack(__attribute__ ((unused)) SynchronizationTag tag) const {
@@ -229,35 +234,36 @@ int main(int argc, char *argv[])
   unsigned int nb_element = mesh.getNbElement(type);
 
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
-  dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
+  dumper.setMode(iohelper::TEXT);
+  dumper.setParallelContext(prank, psize);
+  dumper.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
+  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
    			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
   double * part = new double[nb_element];
   for (unsigned int i = 0; i < nb_element; ++i)
     part[i] = prank;
-  dumper.AddElemDataField(part, 1, "partitions");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
+  dumper.addElemDataField("partitions", part, 1, nb_element);
+  dumper.setPrefix("paraview/");
+  dumper.init();
+  dumper.dump();
 
   delete [] part;
 
   unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
   iohelper::DumperParaview dumper_ghost;
-  dumper_ghost.SetMode(iohelper::TEXT);
-  dumper_ghost.SetParallelContext(prank, psize);
-  dumper_ghost.SetPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
-  dumper_ghost.SetConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
+  dumper_ghost.setMode(iohelper::TEXT);
+  dumper_ghost.setParallelContext(prank, psize);
+  dumper_ghost.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
+  dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
    			 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
   part = new double[nb_ghost_element];
   for (unsigned int i = 0; i < nb_ghost_element; ++i)
     part[i] = prank;
-  dumper_ghost.AddElemDataField(part, 1, "partitions");
-  dumper_ghost.SetPrefix("paraview/");
-  dumper_ghost.Init();
-  dumper_ghost.Dump();
+
+  dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
+  dumper_ghost.setPrefix("paraview/");
+  dumper_ghost.init();
+  dumper_ghost.dump();
 
   delete [] part;
 

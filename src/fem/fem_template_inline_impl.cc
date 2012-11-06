@@ -1,9 +1,11 @@
 /**
- * @file   fem_template_inline_impl.hh
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Tue May 22 11:21:40 2012
+ * @file   fem_template_inline_impl.cc
  *
- * @brief  
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date   Tue May 22 20:45:51 2012
+ *
+ * @brief  FEMTemplate inline implementation
  *
  * @section LICENSE
  *
@@ -26,14 +28,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 template <typename Integ, typename Shape>
 inline void FEMTemplate<Integ,Shape>::inverseMap(const types::RVector & real_coords,
 						 UInt element,
 						 const ElementType & type,
 						 types::RVector & natural_coords,
 						 const GhostType & ghost_type) const{
- 
+
   AKANTU_DEBUG_IN();
 
 #define INVERSE_MAP(type) \
@@ -47,45 +48,19 @@ inline void FEMTemplate<Integ,Shape>::inverseMap(const types::RVector & real_coo
 }
 
 /* -------------------------------------------------------------------------- */
-
-template <>
-inline void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::inverseMap(__attribute__((unused)) const types::RVector & real_coords,
-	     __attribute__((unused)) UInt element,
-	     __attribute__((unused)) const ElementType & type,
-	     __attribute__((unused)) types::RVector & natural_coords,
-	     __attribute__((unused)) const GhostType & ghost_type) const{
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-template <>
-inline void FEMTemplate<IntegratorGauss,ShapeLinked >
-::inverseMap(__attribute__((unused)) const types::RVector & real_coords,
-	     __attribute__((unused)) UInt element,
-	     __attribute__((unused)) const ElementType & type,
-	     __attribute__((unused)) types::RVector & natural_coords,
-	     __attribute__((unused)) const GhostType & ghost_type) const{
-  
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
-
-/* -------------------------------------------------------------------------- */
-
 template <typename Integ, typename Shape>
 inline bool FEMTemplate<Integ,Shape>::contains(const types::RVector & real_coords,
 					       UInt element,
 					       const ElementType & type,
 					       const GhostType & ghost_type) const{
- 
+
   AKANTU_DEBUG_IN();
 
   bool contain = false;
 
 #define CONTAINS(type)							\
-  contain = shape_functions.template contains<type>(real_coords,element,ghost_type); 
-    
+  contain = shape_functions.template contains<type>(real_coords,element,ghost_type);
+
   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(CONTAINS);
 
 #undef CONTAINS
@@ -93,30 +68,6 @@ inline bool FEMTemplate<Integ,Shape>::contains(const types::RVector & real_coord
   AKANTU_DEBUG_OUT();
   return contain;
 }
-/* -------------------------------------------------------------------------- */
-
-template <>
-inline bool FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::contains(__attribute__((unused)) const types::RVector & real_coords,
-	   __attribute__((unused)) UInt element,
-	   __attribute__((unused)) const ElementType & type,
-	   __attribute__((unused)) const GhostType & ghost_type) const{
-  
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-template <>
-inline bool FEMTemplate<IntegratorGauss,ShapeLinked >
-::contains(__attribute__((unused)) const types::RVector & real_coords,
-	   __attribute__((unused)) UInt element,
-	   __attribute__((unused)) const ElementType & type,
-	   __attribute__((unused)) const GhostType & ghost_type) const{
-  
-  AKANTU_DEBUG_TO_IMPLEMENT();
-}
-
 
 /* -------------------------------------------------------------------------- */
 template <typename Integ, typename Shape>
@@ -125,7 +76,7 @@ inline void FEMTemplate<Integ,Shape>::computeShapes(const types::RVector & real_
 						    const ElementType & type,
 						    types::RVector & shapes,
 						    const GhostType & ghost_type) const{
- 
+
   AKANTU_DEBUG_IN();
 
 #define COMPUTE_SHAPES(type) \
@@ -139,20 +90,94 @@ inline void FEMTemplate<Integ,Shape>::computeShapes(const types::RVector & real_
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline UInt FEMTemplate<Integ,Shape>::getNbQuadraturePoints(const ElementType & type,
+							    const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
 
+  UInt nb_quad_points = 0;
+
+#define GET_NB_QUAD(type)						\
+  nb_quad_points =							\
+    integrator. template getQuadraturePoints<type>(ghost_type).getSize();
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
+#undef GET_NB_QUAD
+
+  AKANTU_DEBUG_OUT();
+  return nb_quad_points;
+}
+
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapes(const ElementType & type,
+								const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapes(type, ghost_type));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getShapesDerivatives(const ElementType & type,
+									   const GhostType & ghost_type,
+									   __attribute__((unused)) UInt id) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename Integ, typename Shape>
+inline const Vector<Real> & FEMTemplate<Integ,Shape>::getQuadraturePoints(const ElementType & type,
+									  const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_QUADS(type)						\
+  ret = &(integrator. template getQuadraturePoints<type>(ghost_type));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_QUADS);
+#undef GET_QUADS
+
+    AKANTU_DEBUG_OUT();
+  return *ret;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shape Linked specialization                                                */
+/* -------------------------------------------------------------------------- */
+
+
+/* -------------------------------------------------------------------------- */
 template <>
-inline void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
-::computeShapes(__attribute__((unused)) const types::RVector & real_coords,
-		__attribute__((unused)) UInt element,
-		__attribute__((unused)) const ElementType & type,
-		__attribute__((unused)) types::RVector & shapes,
-		__attribute__((unused)) const GhostType & ghost_type) const{
-  
+inline bool FEMTemplate<IntegratorGauss,ShapeLinked >
+::contains(__attribute__((unused)) const types::RVector & real_coords,
+	   __attribute__((unused)) UInt element,
+	   __attribute__((unused)) const ElementType & type,
+	   __attribute__((unused)) const GhostType & ghost_type) const{
+
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
-
 template <>
 inline void FEMTemplate<IntegratorGauss,ShapeLinked >
 ::computeShapes(__attribute__((unused)) const types::RVector & real_coords,
@@ -160,7 +185,36 @@ inline void FEMTemplate<IntegratorGauss,ShapeLinked >
 		__attribute__((unused)) const ElementType & type,
 		__attribute__((unused)) types::RVector & shapes,
 		__attribute__((unused)) const GhostType & ghost_type) const{
-  
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
+/* -------------------------------------------------------------------------- */
+template <>
+inline void FEMTemplate<IntegratorGauss,ShapeLinked >
+::inverseMap(__attribute__((unused)) const types::RVector & real_coords,
+	     __attribute__((unused)) UInt element,
+	     __attribute__((unused)) const ElementType & type,
+	     __attribute__((unused)) types::RVector & natural_coords,
+	     __attribute__((unused)) const GhostType & ghost_type) const{
+
+  AKANTU_DEBUG_TO_IMPLEMENT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline const Vector<Real> &
+FEMTemplate<IntegratorGauss, ShapeLinked>::getShapesDerivatives(const ElementType & type,
+								const GhostType & ghost_type,
+								UInt id) const {
+  AKANTU_DEBUG_IN();
+  const Vector<Real> * ret = NULL;
+
+#define GET_SHAPES(type)						\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));
+
+  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_SHAPES);
+#undef GET_SHAPES
+
+  AKANTU_DEBUG_OUT();
+  return *ret;
+}

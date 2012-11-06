@@ -1,7 +1,9 @@
 /**
  * @file   data_accessor.hh
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Wed Jun 15 14:43:23 2011
+ *
+ * @date   Thu Jun 16 16:36:52 2011
  *
  * @brief  Interface of accessors for pack_unpack system
  *

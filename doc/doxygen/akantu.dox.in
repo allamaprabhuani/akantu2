@@ -82,6 +82,7 @@ TEMPLATE_RELATIONS     = YES
 CALL_GRAPH             = YES
 CALLER_GRAPH           = YES
 DOT_PATH               = @DOXYGEN_DOT_PATH@
+DOT_GRAPH_MAX_NODES    = 100
 
 #---------------------------------------------------------------------------
 # configuration options related to the man page output

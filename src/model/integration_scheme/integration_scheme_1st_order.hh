@@ -1,7 +1,9 @@
 /**
  * @file   integration_scheme_1st_order.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jun 30 16:28:13 2011
+ *
+ * @date   Mon Jul 04 15:07:57 2011
  *
  * @brief  Interface of the time integrator of first order
  *

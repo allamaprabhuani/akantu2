@@ -1,7 +1,9 @@
 /**
  * @file   element_class_triangle_3_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 15 10:28:28 2010
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Specialization of the element_class class for the type _triangle_3
  *
@@ -68,8 +70,8 @@ template <> inline void ElementClass<_triangle_3>::computeShapes(const Real * na
 
   /// Natural coordinates
   Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
-  Real c1 = natural_coords[0];                /// @f$ c1 = \xi @f$
-  Real c2 = natural_coords[1];                /// @f$ c2 = \eta @f$
+  Real c1 = natural_coords[0];                         /// @f$ c1 = \xi @f$
+  Real c2 = natural_coords[1];                         /// @f$ c2 = \eta @f$
 
   shapes[0] = c0; /// N1(q_0)
   shapes[1] = c1; /// N2(q_0)

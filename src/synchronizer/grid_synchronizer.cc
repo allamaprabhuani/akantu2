@@ -1,7 +1,9 @@
 /**
  * @file   grid_synchronizer.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Sep 20 10:30:37 2011
+ *
+ * @date   Mon Oct 03 12:24:07 2011
  *
  * @brief  implementation of the grid synchronizer
  *

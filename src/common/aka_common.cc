@@ -1,9 +1,11 @@
 /**
  * @file   aka_common.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 11 16:56:43 2010
  *
- * @brief Initialization of global variables
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Jun 14 19:12:20 2010
+ *
+ * @brief  Initialization of global variables
  *
  * @section LICENSE
  *
@@ -59,5 +61,6 @@ void finalize() {
 
   AKANTU_DEBUG_OUT();
 }
+
 
 __END_AKANTU__

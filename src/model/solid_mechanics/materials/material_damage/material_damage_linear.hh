@@ -1,8 +1,10 @@
 /**
  * @file   material_damage_linear.hh
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ *
+ * @date   Mon Oct 03 11:53:09 2011
  *
  * @brief  Material isotropic elastic + linear softening
  *
@@ -66,8 +68,8 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & F,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(types::RMatrix & F,
+				  types::RMatrix & sigma,
 				  Real & damage,
 				  Real &K);
 

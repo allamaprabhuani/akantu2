@@ -1,10 +1,12 @@
 /**
  * @file   material_marigo_non_local.hh
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Aug 31 17:08:23 2011
  *
- * @brief
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ *
+ * @date   Wed Aug 31 18:10:34 2011
+ *
+ * @brief  Marigo non-local description
  *
  * @section LICENSE
  *

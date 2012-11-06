@@ -1,7 +1,9 @@
 /**
  * @file   test_solid_mechanics_model_pbc_parallel.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Apr 13 16:13:14 2012
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Apr 13 16:31:38 2012
  *
  * @brief  test if pbc works in parallel if partition is strips
  *
@@ -59,7 +61,7 @@ int main(int argc, char *argv[])
   akantu::debug::setDebugLevel(akantu::dblWarning);
   akantu::initialize(argc, argv);
 
-  akantu::StaticCommunicator * comm = 
+  akantu::StaticCommunicator & comm = 
     akantu::StaticCommunicator::getStaticCommunicator();
   akantu::Int psize = comm->getNbProc();
   akantu::Int prank = comm->whoAmI();

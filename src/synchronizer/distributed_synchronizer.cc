@@ -1,9 +1,11 @@
 /**
  * @file   distributed_synchronizer.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 26 16:36:21 2010
  *
- * @brief implementation of a  communicator using a static_communicator for real
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Jun 16 16:36:52 2011
+ *
+ * @brief  implementation of a  communicator using a static_communicator for real
  * send/receive
  *
  * @section LICENSE

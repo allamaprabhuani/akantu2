@@ -1,7 +1,9 @@
 /**
  * @file   shape_lagrange.hh
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 11:44:29 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  lagrangian shape functions class
  *

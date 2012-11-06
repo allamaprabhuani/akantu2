@@ -1,7 +1,9 @@
 /**
  * @file   rice_kuwano_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Nov  4 13:39:02 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Nov 11 16:56:08 2011
  *
  * @brief  implementation of inlined functions
  *

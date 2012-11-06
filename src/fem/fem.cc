@@ -1,8 +1,10 @@
 /**
  * @file   fem.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Fri Jul 16 11:03:02 2010
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Tue Jul 20 23:40:43 2010
  *
  * @brief  Implementation of the FEM class
  *
@@ -228,6 +230,8 @@ void FEM::printself(std::ostream & stream, int indent) const {
 
   stream << space << "]" << std::endl;
 }
+/* -------------------------------------------------------------------------- */
+
 
 
 __END_AKANTU__

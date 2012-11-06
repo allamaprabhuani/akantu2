@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   FindScotch.cmake
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Tue Aug  25 16:53:57 2010
+#
+# @date   Wed Sep 01 17:57:12 2010
 #
 # @brief  The find_package file for Scotch
 #

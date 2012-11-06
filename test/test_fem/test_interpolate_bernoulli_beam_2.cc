@@ -1,7 +1,9 @@
 /**
  * @file   test_interpolate_bernoulli_beam_2.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Mon Apr  4 15:10:22 2011
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  Test of the interpolation on the type _bernoulli_beam_2
  *
@@ -43,9 +45,9 @@ using namespace akantu;
 
 int main(int argc, char *argv[]){
 
-  
+
   Mesh beams(2);
- 
+
 
 /* -------------------------------------------------------------------------- */
   // Defining the mesh
@@ -58,12 +60,12 @@ int main(int argc, char *argv[]){
     connectivity.resize(3);
 
     for(UInt i=0; i<4; ++i) {
-      
+
       nodes(i,0)=(i+1)*2;
       nodes(i,1)=1;
     }
     for(UInt i=0; i<3; ++i) {
-      
+
       connectivity(i,0)=i;
       connectivity(i,1)=i+1;
     }
@@ -80,20 +82,20 @@ int main(int argc, char *argv[]){
 
     Vector<Real> displ_on_nodes(4,3);
     Vector<Real> displ_on_quad(0,3);
- 
+
     for(UInt i=0; i<4; ++i) {
-      
+
       displ_on_nodes(i,0)=(i+1)*2;   // Definition of the displacement
       displ_on_nodes(i,1)=0;
       displ_on_nodes(i,2)=0;
     }
-    
+
     fem->getShapeFunctions().interpolateOnControlPoints<_bernoulli_beam_2>(displ_on_nodes,
 									   displ_on_quad,
 									   3,_not_ghost,
 									   NULL, false,
 									   0, 0, 0);
-   
+
     fem->getShapeFunctions().interpolateOnControlPoints<_bernoulli_beam_2>(displ_on_nodes,
 									   displ_on_quad,
 									   3, _not_ghost,
@@ -118,7 +120,7 @@ int main(int argc, char *argv[]){
 									   NULL, true,
 									   4, 3, 3);
 
-    Real * don= displ_on_nodes.values;    
+    Real * don= displ_on_nodes.values;
     Real * doq= displ_on_quad.values;
 
  std::ofstream my_file("out.txt");
@@ -127,4 +129,4 @@ int main(int argc, char *argv[]){
 
   return EXIT_SUCCESS;
 
-} 
+}

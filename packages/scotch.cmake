@@ -1,5 +1,34 @@
-add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
+#===============================================================================
+# @file   scotch.cmake
+#
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Nov 21 18:19:15 2011
+#
+# @brief  package description for scotch
+#
+# @section LICENSE
+#
+# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+#
+# Akantu is free  software: you can redistribute it and/or  modify it under the
+# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# details.
+#
+# You should  have received  a copy  of the GNU  Lesser General  Public License
+# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
+#===============================================================================
+
 add_optional_package(Scotch "Add Scotch support in akantu" OFF)
+#add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
 
 if(SCOTCH_INCLUDE_DIR)
   file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
@@ -12,12 +41,7 @@ if(SCOTCH_INCLUDE_DIR)
   endif()
 endif()
 
-
-set(SCOTCH_FILES
-  mesh_utils/mesh_partition/mesh_partition_scotch.cc
-  )
-
-set(PTSCOTCH_FILES
+set(AKANTU_SCOTCH_FILES
   mesh_utils/mesh_partition/mesh_partition_scotch.cc
   )
 
@@ -27,7 +51,6 @@ else()
   set(AKANTU_PARTITIONER_ON OFF)
 endif()
 
-if(AKANTU_PTSCOTCH_ON)
-  add_definitions(-DAKANTU_USE_${_u_package})
-endif()
-
+set(AKANTU_SCOTCH_TESTS
+  test_mesh_partitionate_scotch
+  )

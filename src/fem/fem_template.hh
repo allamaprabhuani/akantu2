@@ -1,7 +1,9 @@
 /**
  * @file   fem_template.hh
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @date   Thu Feb 10 10:55:21 2011
+ *
+ * @date   Tue Feb 15 16:32:44 2011
  *
  * @brief  templated class that calls integration and shape objects
  *
@@ -33,10 +35,8 @@
 #include "integrator.hh"
 #include "shape_functions.hh"
 #include "shape_lagrange.hh"
-#include "shape_cohesive.hh"
 #include "shape_linked.hh"
 #include "integrator_gauss.hh"
-#include "integrator_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -65,7 +65,6 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
   /* ------------------------------------------------------------------------ */
-
   /// integrate f for all elements of type "type"
   void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
@@ -79,6 +78,12 @@ public:
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
    		 const Vector<UInt> * filter_elements = NULL) const;
+
+  /// integrate one element scalar value on all elements of type "type"
+  virtual Real integrate(const types::RVector & f,
+			 const ElementType & type,
+			 UInt index, const GhostType & ghost_type = _not_ghost) const;
+
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
   void integrateOnQuadraturePoints(const Vector<Real> & f,
@@ -111,7 +116,7 @@ public:
   /* Shape method bridges                                                     */
   /* ------------------------------------------------------------------------ */
 
-
+  /// compute the gradient of a nodal field on the quadrature points
   void gradientOnQuadraturePoints(const Vector<Real> &u,
 				  Vector<Real> &nablauq,
 				  const UInt nb_degree_of_freedom,
@@ -119,6 +124,7 @@ public:
 				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
+  /// interpolate a nodal field on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degree_of_freedom,
@@ -238,6 +244,14 @@ private:
 /* -------------------------------------------------------------------------- */
 
 #include "fem_template_inline_impl.cc"
+#include "fem_template_tmpl.hh"
+
+/* -------------------------------------------------------------------------- */
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  include "fem_template_cohesive_inline_impl.cc"
+#  include "fem_template_cohesive_tmpl.hh"
+#endif
+
 
 /// standard output stream operator
 
@@ -250,5 +264,9 @@ private:
 
 __END_AKANTU__
 
+// #if defined(AKANTU_COHESIVE_ELEMENT)
+// #  include "shape_cohesive.hh"
+// #  include "integrator_cohesive.hh"
+// #endif
 
 #endif /* __AKANTU_FEM_TEMPLATE_HH__ */

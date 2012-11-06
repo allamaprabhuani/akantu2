@@ -1,7 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Wed Feb 16 09:46:59 2010
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Wed Apr 20 18:08:58 2011
+#
+# @brief  configuration for patch tests
 #
 # @section LICENSE
 #
@@ -24,23 +29,18 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 add_mesh(test_weight_hexa_mesh colone_hexa.geo 3 1)
 add_mesh(test_weight_tetra_mesh colone_tetra.geo 3 1)
 
-register_test(test_weight colone_weight.cc)
-add_dependencies(test_weight test_weight_hexa_mesh test_weight_tetra_mesh)
-
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material_colone.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material_colone.dat
-  COPYONLY
+register_test(test_weight
+  SOURCES colone_weight.cc
+  DEPENDENCIES test_weight_hexa_mesh test_weight_tetra_mesh
+  FILES_TO_COPY material_colone.dat
+  DIRECTORIES_TO_CREATE paraview/test_weight_hexa paraview/test_weight_tetra
   )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/test_weight_hexa)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/test_weight_tetra)
 #===============================================================================
-
 set(LIST_TYPES
   segment_2
   segment_3
@@ -56,8 +56,5 @@ set(LIST_TYPES_2D
   quadrangle_8
 )
 
-add_subdirectory(explicit)
-
-if(AKANTU_MUMPS)
-  add_subdirectory(implicit)
-endif()
+add_akantu_test(explicit "Explicit patch tests" PACKAGE core)
+add_akantu_test(implicit "Implicit patch tests" PACKAGE implicit)

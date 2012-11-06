@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic_orthotropic.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 12 11:28:23 2012
+ *
+ * @date   Tue May 08 13:01:18 2012
  *
  * @brief  Orthotropic elastic material
  *
@@ -69,7 +71,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
   Material::initMaterial();
 
   UInt size = this->getTangentStiffnessVoigtSize(spatial_dimension);
-  S = new types::Matrix(size, size);
+  S = new types::RMatrix(size, size);
 
   updateInternalParameters();
 

@@ -1,7 +1,10 @@
 /**
- * @file   test_solid_mechanics_model_cube3d.cc
- * @author Guillaume ANCIAUX <guillaume.anciaux@epfl.ch>
- * @date   Tue Aug 17 11:31:22 2010
+ * @file   test_solid_mechanics_model_cube3d_tetra10.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Peter Spijker <peter.spijker@epfl.ch>
+ *
+ * @date   Mon Dec 06 14:43:53 2010
  *
  * @brief  test of the class SolidMechanicsModel on the 3d cube
  *
@@ -31,15 +34,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
-
 
 int main(int argc, char *argv[])
 {
@@ -47,93 +45,68 @@ int main(int argc, char *argv[])
   akantu::UInt max_steps = 1000;
   akantu::Real epot, ekin;
 
-#ifdef AKANTU_USE_IOHELPER
-  akantu::ElementType type = akantu::_tetrahedron_10;
-  iohelper::ElemType paratype = iohelper::TETRA2;
-#endif //AKANTU_USE_IOHELPER
-
   akantu::Mesh mesh(3);
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("cube2.msh", mesh);
 
-  akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
+  akantu::SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model->initVectors();
-  /// initialize the vectors
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  memset(model->getForce().values,        0, 3*nb_nodes*sizeof(akantu::Real));
-  memset(model->getVelocity().values,     0, 3*nb_nodes*sizeof(akantu::Real));
-  memset(model->getAcceleration().values, 0, 3*nb_nodes*sizeof(akantu::Real));
-  memset(model->getDisplacement().values, 0, 3*nb_nodes*sizeof(akantu::Real));
+  model.initFull("material.dat");
 
-  model->initExplicit();
-  model->initModel();
-  model->readMaterials("material.dat");
-  model->initMaterials();
+  akantu::Real time_step = model.getStableTimeStep();
+  model.setTimeStep(time_step/10.);
 
-  akantu::Real time_step = model->getStableTimeStep();
-  model->setTimeStep(time_step/10.);
+  model.assembleMassLumped();
 
-  model->assembleMassLumped();
-
-  std::cout << *model << std::endl;
+  std::cout << model << std::endl;
 
 
   /// boundary conditions
   akantu::Real eps = 1e-2;
+  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    model->getDisplacement().values[3*i] = model->getFEM().getMesh().getNodes().values[3*i] / 100.;
+    model.getDisplacement().values[3*i] = model.getFEM().getMesh().getNodes().values[3*i] / 100.;
 
-    if(model->getFEM().getMesh().getNodes().values[3*i] <= eps) {
-      model->getBoundary().values[3*i    ] = true;
+    if(model.getFEM().getMesh().getNodes().values[3*i] <= eps) {
+      model.getBoundary().values[3*i    ] = true;
     }
 
-    if(model->getFEM().getMesh().getNodes().values[3*i + 1] <= eps) {
-      model->getBoundary().values[3*i + 1] = true;
+    if(model.getFEM().getMesh().getNodes().values[3*i + 1] <= eps) {
+      model.getBoundary().values[3*i + 1] = true;
     }
   }
-  //  model->getDisplacement().values[1] = 0.1;
-
-
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  //  dumper.SetMode(iohelper::TEXT);
-
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 3, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
-			 paratype, model->getFEM().getMesh().getNbElement(type), iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values, 3, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values, 3, "velocity");
-  dumper.AddNodeDataField(model->getMass().values, 3, "mass");
-  dumper.AddNodeDataField(model->getResidual().values, 3, "force");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(type).values, 9, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(type).values, 9, "stress");
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-#endif //AKANTU_USE_IOHELPER
+  //  model.getDisplacement().values[1] = 0.1;
+  model.setBaseName("cube3d_t10");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
 
   std::ofstream energy;
   energy.open("energy.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
   for(akantu::UInt s = 0; s < max_steps; ++s) {
-    model->explicitPred();
-    model->updateResidual();
-    model->updateAcceleration();
-    model->explicitCorr();
+    model.explicitPred();
+    model.updateResidual();
+    model.updateAcceleration();
+    model.explicitCorr();
 
 
-    epot = model->getPotentialEnergy();
-    ekin = model->getKineticEnergy();
+    epot = model.getPotentialEnergy();
+    ekin = model.getKineticEnergy();
 
     std::cerr << "passing step " << s << "/" << max_steps << std::endl;
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
 	   << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 10 == 0) dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+    if(s % 10 == 0) model.dump();
   }
 
   energy.close();

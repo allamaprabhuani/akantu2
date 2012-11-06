@@ -1,7 +1,9 @@
 /**
  * @file   contact_search_explicit.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 18:49:04 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Oct 27 13:54:26 2010
  *
  * @brief  Specialization of  the  contact  search structure  for  3D within  an
  * explicit time scheme

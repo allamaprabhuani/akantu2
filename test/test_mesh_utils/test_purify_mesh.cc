@@ -1,7 +1,9 @@
 /**
  * @file   test_purify_mesh.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jul 27 17:15:11 2012
+ *
+ * @date   Mon Jul 30 09:41:27 2012
  *
  * @brief  Test the purifyMesh function from MeshUtils
  *

@@ -1,9 +1,12 @@
 /**
- * @file   by_element_type_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug  4 14:41:29 2011
+ * @file   by_element_type_tmpl.hh
  *
- * @brief
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Aug 31 11:09:48 2011
+ *
+ * @brief  implementation of template functions of the ByElementType and
+ * ByElementTypeVector classes
  *
  * @section LICENSE
  *
@@ -331,6 +334,13 @@ ByElementType<Stored>::type_iterator::operator*() {
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
+inline typename ByElementType<Stored>::type_iterator::reference
+ByElementType<Stored>::type_iterator::operator*() const {
+  return list_begin->first;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class Stored>
 inline typename ByElementType<Stored>::type_iterator &
 ByElementType<Stored>::type_iterator::operator++() {
   ++list_begin;
@@ -351,13 +361,13 @@ typename ByElementType<Stored>::type_iterator ByElementType<Stored>::type_iterat
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
-inline bool ByElementType<Stored>::type_iterator::operator==(const type_iterator & other) {
+inline bool ByElementType<Stored>::type_iterator::operator==(const type_iterator & other) const {
   return this->list_begin == other.list_begin;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class Stored>
-inline bool ByElementType<Stored>::type_iterator::operator!=(const type_iterator & other) {
+inline bool ByElementType<Stored>::type_iterator::operator!=(const type_iterator & other) const {
   return this->list_begin != other.list_begin;
 }
 

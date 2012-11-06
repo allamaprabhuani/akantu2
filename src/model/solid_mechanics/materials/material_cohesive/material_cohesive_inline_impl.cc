@@ -1,9 +1,11 @@
 /**
  * @file   material_cohesive_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Feb 23 12:27:13 2012
  *
- * @brief  
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 23 17:58:45 2012
+ *
+ * @brief  MaterialCohesive inline implementation
  *
  * @section LICENSE
  *

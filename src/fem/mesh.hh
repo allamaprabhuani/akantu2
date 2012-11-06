@@ -1,7 +1,11 @@
 /**
  * @file   mesh.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Jun 16 11:53:53 2010
+ *
+ * @date   Fri Jun 18 11:47:19 2010
  *
  * @brief  the class representing the meshes
  *
@@ -153,7 +157,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Internal code                                                            */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList()); }
   inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList(),
 									  event.getNewNumbering()); }
@@ -161,6 +165,9 @@ public:
   inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList()); }
   inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList(),
 										event.getNewNumbering()); }
+
+  template<class EventHandler>
+  friend class EventHandlerManager;
 
   /* ------------------------------------------------------------------------ */
   /* Interface                                                                */
@@ -356,6 +363,7 @@ public:
   /// get the connectivity Vector for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
+  AKANTU_GET_MACRO(Connectivities, connectivities, const ByElementTypeVector<UInt> &);
 
   /// @todo take out this set, if mesh can read surface id
   /// set the number of surfaces

@@ -1,0 +1,122 @@
+
+\subsection{Cohesive laws\todo{Marco}}
+
+\subsubsection{Exponential cohesive law}
+
+Ortiz and Pandolfi proposed this cohesive law in 1999 \ref{ortiz1999}.  The
+traction-opening equation for this law is as following:
+
+\begin{equation}
+  \label{eq:exponential_law}
+  t = e \sigma_c \frac{\delta}{\delta_c}e^{-\delta/ \delta_c}
+\end{equation}
+
+
+This equation is plotted in figure (\ref{fig:smm:CL:ECL}).
+
+ \begin{figure}[!htb]
+    \begin{center}
+      \includegraphics[width=0.6\textwidth,keepaspectratio=true]{figures/cohesive_exponential.pdf}
+      \caption{Exponential cohesive law}
+      \label{fig:smm:CL:ECL}
+    \end{center}
+  \end{figure}
+
+
+
+\subsubsection{Static cohesive element}
+
+For  the  static  analysis   of  the  structures  containing  cohesive
+elements, the stiffness of the cohesive elements should also be added to the
+total      stiffness       of      the      structure.      Therefore,
+the  function  \code{assembleStiffnessMatrix}  is written  in  the
+\code{MaterialCohesive}.
+
+Considering a typical cohesive element as explained in figure ???, the opening
+displacement along the mid-surface can be written as:
+
+\begin{equation}
+  \label{eq:opening}
+  \delta(\xi) = [[\mat{u}]] \mat{N}(\xi) =
+\begin{bmatrix}
+u_3-u_0 & u_4-u_1 & u_5-u_2\\
+v_3-v_0 & v_4-v_1 & v_5-v_2
+\end{bmatrix}
+\begin{bmatrix}
+N_0(\xi) \\ N_1(\xi) \\ N_2(\xi)
+\end{bmatrix} =
+\mat{N A U}
+\end{equation}
+
+ The \mat{U} , \mat{A} and \mat{N} are as following:
+
+\begin{equation}
+  \mat{U} = \left [
+\begin{array}{c c c c c c c c c c c c}
+u_0 & v_0 & u_1 & v_1 & u_2 & v_2 & u_3 & v_3 & u_4 & v_4 & u_5 & v_5
+\end{array}\right ]
+\end{equation}
+
+
+\begin{equation}
+  \mat{A} = \left [\begin{array}{c c c c c c c c c c c c}
+1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0\\
+0 &1& 0&0 &0 &0 &0 & -1& 0& 0 & 0 &0\\
+0 &0& 1&0 &0 &0 &0 & 0& -1& 0 & 0 &0\\
+0 &0& 0&1 &0 &0 &0 & 0& 0& -1 & 0 &0\\
+0 &0& 0&0 &1 &0 &0 & 0& 0& 0 & -1 &0\\
+0 &0& 0&0 &0 &1 &0 & 0& 0& 0 & 0 &-1
+\end{array} \right ]
+\end{equation}
+
+
+ \begin{equation}
+ \mat{N} = \begin{bmatrix}
+N_0(\xi) & 0 & N_1(\xi) &0 & N_2(\xi) & 0\\
+0 & N_0(\xi)& 0 &N_1(\xi)& 0 & N_2(\xi)
+\end{bmatrix}
+\end{equation}
+
+The consistent stiffness matrix for the element is obtained as
+
+\begin{equation}
+  \label{eq:cohesive_stiffness}
+  \mat{K}    =    \delta    \mat{U}^T    \int_{\Gamma_c}    {\mat{P}^t
+    \frac{\partial{\mat{t}}} {\partial{\delta}} \mat{P} d
+    \Gamma \Delta \mat{U}}
+\end{equation}
+
+In which the  tangent matrix is calculated based  on the equation \ref
+{eq:tangent_cohesive} after
+performing necessary derivation:
+
+\begin{equation}
+  \label{eq:tangent_cohesive}
+   \frac{\partial{\mat{t}}} {\partial{\delta}} = \hat{\mat{t}} \otimes
+   \frac                       {\partial{(t/\delta)}}{\partial{\delta}}
+   \frac{\hat{\mat{t}}}{\delta}+ \frac{t}{\delta}  [ \beta^2 \mat{I} +
+   (1-\beta^2) (\mat{n} \otimes \mat{n})]
+\end{equation}
+
+ In which $\frac{\partial{(t/\delta)}}{\partial{\delta}}$ in the first
+ term is
+
+\begin{equation}
+ \frac{\partial{(t/ \delta)}}{\partial{\delta}} = \left\{\begin{array} {l l}
+-e  \frac{\sigma_c}{\delta_c^2  }e^{-\delta  /  \delta_c} &  \quad  if
+\delta \geq \delta_{max}\\
+ 0 & \quad if \delta < \delta_{max}, \delta_n > 0
+\end{array} \right.
+\end{equation}
+
+This      tangent      matrix      is     implemented      in      the
+\code{computeTangentStiffness} function for
+the exponential law.
+
+A full example for the static analysis of the cohesive elements can be
+found in \code{\examplesdir/static\_cohesive}.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End:

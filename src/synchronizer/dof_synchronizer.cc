@@ -1,7 +1,9 @@
 /**
  * @file   dof_synchronizer.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue May 24 12:04:04 2011
+ *
+ * @date   Fri Jun 17 17:28:22 2011
  *
  * @brief  DOF synchronizing object implementation
  *

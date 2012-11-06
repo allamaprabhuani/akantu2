@@ -1,8 +1,10 @@
 /**
  * @file   material_mazars_inline_impl.cc
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @date   Wed Apr 06 10:09:38 2011
  *
  * @brief  Implementation of the inline functions of the material damage
  *
@@ -32,11 +34,11 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeStressOnQuad(const types::Matrix & grad_u,
-						       types::Matrix & sigma,
+MaterialMazars<spatial_dimension>::computeStressOnQuad(const types::RMatrix & grad_u,
+						       types::RMatrix & sigma,
 						       Real & dam,
 						       Real & Ehat) {
-  types::Matrix epsilon(3, 3);
+  types::RMatrix epsilon(3, 3);
   epsilon.clear();
 
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -67,15 +69,15 @@ MaterialMazars<spatial_dimension>::computeStressOnQuad(const types::Matrix & gra
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::Matrix & grad_u,
-								types::Matrix & sigma,
+MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::RMatrix & grad_u,
+								types::RMatrix & sigma,
 								Real & dam,
 								Real & Ehat) {
   if(!damage_in_compute_stress) {
     types::RVector Fdiag(3);
     Fdiag.clear();
 
-    types::Matrix epsilon(3, 3);
+    types::RMatrix epsilon(3, 3);
     epsilon.clear();
     for (UInt i = 0; i < spatial_dimension; ++i)
       for (UInt j = 0; j < spatial_dimension; ++j)
@@ -93,7 +95,7 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::Mat
 template<UInt spatial_dimension>
 inline void
 MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & epsilon_equ,
-						       __attribute__((unused)) const types::Matrix & sigma,
+						       __attribute__((unused)) const types::RMatrix & sigma,
 						       const types::RVector & epsilon_princ,
 						       Real & dam) {
   Real Fs = epsilon_equ - K0;

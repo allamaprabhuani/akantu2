@@ -1,9 +1,11 @@
 /**
  * @file   grid_2d_neighbor_structure.hh
- * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Tue Dec  7 12:54:48 2010
  *
- * @brief  Class which creates the neighbor lists (with a grid) to handle contact in 2d 
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ *
+ * @date   Thu Dec 09 16:55:22 2010
+ *
+ * @brief  Class which creates the neighbor lists (with a grid) to handle contact in 2d
  *
  * @section LICENSE
  *
@@ -49,13 +51,13 @@ class Grid2dNeighborStructure : public ContactNeighborStructure{
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   Grid2dNeighborStructure(const ContactSearch & contact_search,
 			  const Surface & master_surface,
 			  const ContactNeighborStructureType & type,
 			  const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
   virtual ~Grid2dNeighborStructure();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -68,7 +70,7 @@ public:
 
   /// check if an update is needed
   bool check();
-  
+
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 private:
@@ -88,12 +90,12 @@ private:
   void traceSegments(Real * coord, Real * origin, UInt * nb_cells,
 		     UInt * cell_to_seg_off, Vector<UInt> & cell_to_segments);
 
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -106,7 +108,7 @@ private:
 
   /// maximal displacement for grid update
   Real max_increment[2];
-  
+
 };
 
 

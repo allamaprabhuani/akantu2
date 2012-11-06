@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+#
+# @date   Fri Nov 26 00:02:06 2010
+#
+# @brief  configuration for model tests
 #
 # @section LICENSE
 #
@@ -27,12 +31,6 @@
 
 #===============================================================================
 
-add_akantu_test(test_solid_mechanics_model "Test for the solid mechanics model")
-
-if(AKANTU_HEAT_TRANSFER)
-  add_akantu_test(test_heat_transfer_model "Test for the heat transfer model")
-endif()
-
-if(AKANTU_STRUCTURAL_MECHANICS)
-  add_akantu_test(test_structural_mechanics_model "Test for the structural mechanics model")
-endif()
+add_akantu_test(test_solid_mechanics_model "Test for the solid mechanics model" PACKAGE core)
+add_akantu_test(test_heat_transfer_model "Test for the heat transfer model" PACKAGE heat_transfer)
+add_akantu_test(test_structural_mechanics_model "Test for the structural mechanics model" PACKAGE structural_mechanics)

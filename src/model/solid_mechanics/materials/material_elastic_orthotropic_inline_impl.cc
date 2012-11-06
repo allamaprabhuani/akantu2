@@ -1,9 +1,11 @@
 /**
  * @file   material_elastic_orthotropic_inline_impl.cc
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 12 13:40:42 2012
  *
- * @brief Implementation of the inline functions of the orthotropic
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Tue May 08 13:01:18 2012
+ *
+ * @brief  Implementation of the inline functions of the orthotropic
  * elastic material
  *
  * @section LICENSE
@@ -32,8 +34,8 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialElasticOrthotropic<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
-								   types::Matrix & sigma) {
+MaterialElasticOrthotropic<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
+								   types::RMatrix & sigma) {
   /// \mathbf{\sigma} = \mathbf{S} \mathbf{F}
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)

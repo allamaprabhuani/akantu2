@@ -1,7 +1,9 @@
 #===============================================================================
 # @file   AkantuConfig.cmake.in
+#
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @date   Mon Nov 28 15:11:51 2011
+#
+# @date   Thu Dec 01 18:00:05 2011
 #
 # @brief  CMake file for the library
 #
@@ -50,7 +52,7 @@ endforeach()
 
 set(AKANTU_BUILD_TYPE @CMAKE_BUILD_TYPE@)
 
-#find_akantu_dependencies()
+# find_akantu_dependencies()
 
 set(AKANTU_LIBRARY akantu)
 list(APPEND AKANTU_LIBRARIES ${AKANTU_LIBRARY} ${AKANTU_EXTRA_LIBRARIES})

@@ -1,11 +1,11 @@
 /**
- * @file   material_damage_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ * @file   dumper_paraview.cc
  *
- * @brief  Implementation of the inline functions of the material damage
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Oct 26 21:52:40 2012
+ *
+ * @brief  implementations of DumperParaview
  *
  * @section LICENSE
  *
@@ -28,5 +28,25 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "dumper_paraview.hh"
+#include "static_communicator.hh"
 
+__BEGIN_AKANTU__
 
+DumperParaview::DumperParaview(const std::string & filename,
+			       const std::string & directory) : DumperIOHelper() {
+  this->filename = filename;
+  iohelper::DumperParaview * dumper_para = new iohelper::DumperParaview();
+  dumper = dumper_para;
+
+  UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
+  UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
+  dumper_para->setMode(iohelper::TEXT);
+  dumper_para->setParallelContext(whoami, nproc);
+
+  dumper_para->setVTUSubDirectory(filename + "-VTU");
+  dumper_para->setPrefix(directory);
+  dumper_para->init();
+}
+
+__END_AKANTU__

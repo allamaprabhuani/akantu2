@@ -1,9 +1,11 @@
 /**
  * @file   io_helper_tools.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Sep 30 11:13:01 2011
  *
- * @brief
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Oct 06 16:06:39 2011
+ *
+ * @brief  
  *
  * @section LICENSE
  *

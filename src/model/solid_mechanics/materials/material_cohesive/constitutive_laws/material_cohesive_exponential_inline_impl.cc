@@ -1,7 +1,9 @@
 /**
- * @file   material_exponential_inline_impl.cc
+ * @file   material_cohesive_exponential_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ *
+ * @date   Mon Jul 09 14:13:56 2012
  *
  * @brief  Implementation of the inline functions of the material exponential
  *

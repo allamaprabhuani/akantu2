@@ -1,7 +1,9 @@
 /**
  * @file   solid_mechanics_model_cohesive.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 19 10:42:11 2012
+ *
+ * @date   Tue May 08 13:01:18 2012
  *
  * @brief  Solid mechanics model for cohesive elements
  *
@@ -294,7 +296,7 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
       Vector<Element>::iterator<types::Vector<Element> > facet_to_el_it =
 	facet_to_element.begin(nb_facet_per_elem);
 
-      Vector<Real>::iterator<types::Matrix> stress_on_f_it =
+      Vector<Real>::iterator<types::RMatrix> stress_on_f_it =
 	stress_on_f.begin(spatial_dimension, spatial_dimension);
 
       UInt sp2 = spatial_dimension * spatial_dimension;
@@ -307,13 +309,13 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 	  for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
 
 	    if (facets_check(global_facet) == true) {
-	      types::Matrix facet_stress_local(facet_stress.storage()
-					       + (global_facet * nb_quad_f_two
-						  + q * 2
-						  + facet_stress_count(global_facet))
-					       * sp2,
-					       spatial_dimension,
-					       spatial_dimension);
+	      types::RMatrix facet_stress_local(facet_stress.storage()
+                                                + (global_facet * nb_quad_f_two
+                                                   + q * 2
+                                                   + facet_stress_count(global_facet))
+                                                * sp2,
+                                                spatial_dimension,
+                                                spatial_dimension);
 
 	      facet_stress_local = *stress_on_f_it;
 	    }

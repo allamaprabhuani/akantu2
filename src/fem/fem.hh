@@ -1,7 +1,10 @@
 /**
  * @file   fem.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jul 16 10:24:24 2010
+ *
+ * @date   Tue Jul 20 23:40:43 2010
  *
  * @brief  FEM class
  *
@@ -152,7 +155,14 @@ public:
 					   const ElementType & type,
 					   const GhostType & ghost_type = _not_ghost,
 					   const Vector<UInt> * filter_elements = NULL) const = 0;
+  
 
+  /// integrate one element scalar value on all elements of type "type"
+  virtual Real integrate(const types::RVector & f,
+			 const ElementType & type,
+			 UInt index, const GhostType & ghost_type = _not_ghost) const = 0;
+  
+  
   /* ------------------------------------------------------------------------ */
   /* compatibility with old FEM fashion */
   /* ------------------------------------------------------------------------ */

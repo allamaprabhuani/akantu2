@@ -1,7 +1,9 @@
 /**
  * @file   material_cohesive_linear.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:14:16 2012
+ *
+ * @date   Wed Feb 22 16:31:20 2012
  *
  * @brief  Linear irreversible cohesive law of mixed mode loading
  *

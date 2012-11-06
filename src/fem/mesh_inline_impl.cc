@@ -1,7 +1,11 @@
 /**
  * @file   mesh_inline_impl.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Jul 14 23:58:08 2010
+ *
+ * @date   Thu Jul 15 00:41:12 2010
  *
  * @brief  Implementation of the inline functions of the mesh class
  *
@@ -26,9 +30,9 @@
  */
 
 __END_AKANTU__
-
-#include "cohesive_element.hh"
-
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  include "cohesive_element.hh"
+#endif
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */

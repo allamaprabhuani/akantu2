@@ -1,7 +1,9 @@
 /**
- * @file   aka_config.hh 
+ * @file   aka_config.hh.in
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jan 13 11:23:25 2012
+ *
+ * @date   Fri Jan 13 12:34:54 2012
  *
  * @brief  Compilation time configuration of Akantu
  *
@@ -46,6 +48,8 @@
 #cmakedefine AKANTU_USE_IOHELPER
 #cmakedefine AKANTU_USE_QVIEW
 
+#cmakedefine AKANTU_EXTRA_MATERIALS
+#cmakedefine AKANTU_COHESIVE_ELEMENT
 #cmakedefine AKANTU_DAMAGE_NON_LOCAL
 
 #define __aka_inline__ inline

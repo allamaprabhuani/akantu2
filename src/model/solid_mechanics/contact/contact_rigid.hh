@@ -1,9 +1,11 @@
 /**
  * @file   contact_rigid.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Jan 17 14:10:05 2011
  *
- * @brief Structure that  solves contact for for a  rigid master surface without
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Jan 19 14:45:41 2011
+ *
+ * @brief  Structure that  solves contact for for a  rigid master surface without
  * friction within an explicit time scheme
  *
  * @section LICENSE

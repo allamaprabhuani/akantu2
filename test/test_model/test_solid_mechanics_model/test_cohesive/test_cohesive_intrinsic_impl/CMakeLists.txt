@@ -1,7 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
+# @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
-# @date   Thu Apr 26 15:14:00 2012
+#
+# @date   Mon Jul 09 14:13:56 2012
+#
+# @brief  configuration for intrinsic implicit cohesive elements
 #
 # @section LICENSE
 #

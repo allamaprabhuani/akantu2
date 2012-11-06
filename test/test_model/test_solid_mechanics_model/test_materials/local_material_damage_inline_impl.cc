@@ -1,9 +1,11 @@
 /**
  * @file   local_material_damage_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:57:43 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
  *
  * @brief  Implementation of the inline functions of the material damage
  *
@@ -31,8 +33,8 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(types::Matrix & grad_u,
-					       types::Matrix & sigma,
+inline void LocalMaterialDamage::computeStressOnQuad(types::RMatrix & grad_u,
+					       types::RMatrix & sigma,
 					       Real & dam) {
 
   Real trace = grad_u.trace();
@@ -61,8 +63,8 @@ inline void LocalMaterialDamage::computeStressOnQuad(types::Matrix & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computePotentialEnergyOnQuad(types::Matrix & grad_u,
-							      types::Matrix & sigma,
+inline void LocalMaterialDamage::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+							      types::RMatrix & sigma,
 							      Real & epot) {
   epot = 0.;
   for (UInt i = 0, t = 0; i < spatial_dimension; ++i)

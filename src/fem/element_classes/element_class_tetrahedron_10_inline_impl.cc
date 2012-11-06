@@ -1,7 +1,9 @@
 /**
  * @file   element_class_tetrahedron_10_inline_impl.cc
+ *
  * @author Peter Spijker <peter.spijker@epfl.ch>
- * @date   Thu Dec 1 10:28:28 2010
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Specialization of the element_class class for the type _tetrahedron_10
  *

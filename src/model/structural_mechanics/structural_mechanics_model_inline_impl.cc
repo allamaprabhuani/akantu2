@@ -1,9 +1,11 @@
 /**
  * @file   structural_mechanics_model_inline_impl.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May  5 19:48:07 2011
  *
- * @brief
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  StructuralMechanicsModel implementation
  *
  * @section LICENSE
  *
@@ -24,7 +26,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
@@ -72,11 +73,11 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   transferBMatrixToSymVoigtBMatrix<type>(*b);
 
-  types::Matrix Bt_D(bt_d_b_size, tangent_size);
+  types::RMatrix Bt_D(bt_d_b_size, tangent_size);
 
-  Vector<Real>::iterator<types::Matrix> B = b->begin(tangent_size, bt_d_b_size);
-  Vector<Real>::iterator<types::Matrix> D = tangent_stiffness_matrix->begin(tangent_size, tangent_size);
-  Vector<Real>::iterator<types::Matrix> Bt_D_B = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
+  Vector<Real>::iterator<types::RMatrix> B = b->begin(tangent_size, bt_d_b_size);
+  Vector<Real>::iterator<types::RMatrix> D = tangent_stiffness_matrix->begin(tangent_size, tangent_size);
+  Vector<Real>::iterator<types::RMatrix> Bt_D_B = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -158,9 +159,9 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   transferBMatrixToSymVoigtBMatrix<type>(*b);
 
-  Vector<Real>::iterator<types::Matrix> B = b->begin(tangent_size, d_b_size);
-  Vector<Real>::iterator<types::Matrix> D = tangent_stiffness_matrix->begin(tangent_size, tangent_size);
-  Vector<Real>::iterator<types::Matrix> D_B = d_b->begin(tangent_size, d_b_size);
+  Vector<Real>::iterator<types::RMatrix> B = b->begin(tangent_size, d_b_size);
+  Vector<Real>::iterator<types::RMatrix> D = tangent_stiffness_matrix->begin(tangent_size, tangent_size);
+  Vector<Real>::iterator<types::RMatrix> D_B = d_b->begin(tangent_size, d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {

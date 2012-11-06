@@ -1,7 +1,9 @@
 /**
  * @file   test_contact_rigid_no_friction.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Thu Oct  6 13:51:36 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu Oct 06 17:24:36 2011
  *
  * @brief  test rigid contact for all types
  *

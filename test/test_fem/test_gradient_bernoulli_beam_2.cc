@@ -1,9 +1,11 @@
 /**
  * @file   test_gradient_bernoulli_beam_2.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Tue Apr  5 17:19:48 2011
  *
- * @brief Test of the gradient on the type _bernoulli_beam_2
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  Test of the gradient on the type _bernoulli_beam_2
  *
  * @section LICENSE
  *
@@ -44,15 +46,15 @@ int main(int argc, char *argv[]){
   Vector<Real> grad_on_quad;
   UInt k=0;
 
-  
+
   displ_on_nodes=(2,0,0,4,0,0,6,0,0,8,0,0); // The displacement fields to interpolate
   UInt size =displ_on_nodes.getSize();
 
  // The gradient is only defined for du/dx and -d(dv)/dx^2 used in the definition of N and M stresses.
-   
+
 
   while (k<size) {
-    
+
     gradientOnControlPoints(displ_on_nodes,grad_on_quad,0,k,k,
 			       size,false,_bernoulli_beam_2);
     ++k;
@@ -62,7 +64,7 @@ int main(int argc, char *argv[]){
 
     gradientOnControlPoints(displ_on_nodes, grad_on_quad,2,k,k,
 				size,true,_bernoulli_beam_2);
- 
+
   }
 
  std::ofstream my_file("out.txt");
@@ -71,4 +73,4 @@ int main(int argc, char *argv[]){
 
   return EXIT_SUCCESS;
 
-} 
+}

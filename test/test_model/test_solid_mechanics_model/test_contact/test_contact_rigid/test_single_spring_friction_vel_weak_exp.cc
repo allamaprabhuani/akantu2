@@ -1,7 +1,9 @@
 /**
  * @file   test_single_spring_friction_vel_weak_exp.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 17 16:18:55 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon Oct 17 16:52:51 2011
  *
  * @brief  test friction of exponential velocity weakening law (not with analytical solution)
  *

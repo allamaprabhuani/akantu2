@@ -1,7 +1,9 @@
 /**
  * @file   solid_mechanics_model_mass.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Oct  4 15:21:23 2010
+ *
+ * @date   Tue Oct 05 18:04:10 2010
  *
  * @brief  function handling mass computation
  *

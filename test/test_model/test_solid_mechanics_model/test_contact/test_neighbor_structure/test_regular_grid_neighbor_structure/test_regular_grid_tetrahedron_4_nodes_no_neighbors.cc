@@ -1,7 +1,9 @@
 /**
  * @file   test_regular_grid_tetrahedron_4_nodes_no_neighbors.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Oct 26 16:58:42 2010
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Thu Feb 17 16:05:18 2011
  *
  * @brief  test regular grid neighbor structure for 3d case if there are no 
  *         neighbors

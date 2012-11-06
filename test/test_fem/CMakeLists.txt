@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+#
+# @date   Fri Sep 03 15:56:15 2010
+#
+# @brief  configuration for FEM tests
 #
 # @section LICENSE
 #
@@ -26,9 +30,17 @@
 #===============================================================================
 
 #===============================================================================
-#register_test(test_interpolate_bernoulli_beam_2 test_interpolate_bernoulli_beam_2.cc)
-
+macro(register_fem_test operation type)
+  set(_target test_${operation}_${_type})
+  register_test(${_target}
+    SOURCES test_${operation}.cc
+    FILES_TO_COPY _${type}.msh
+    COMPILE_OPTIONS TYPE=_${_type}
+    PACKAGE core
+    )
+endmacro()
 #===============================================================================
+
 set(LIST_TYPES
   segment_2
   segment_3
@@ -41,38 +53,13 @@ set(LIST_TYPES
   hexahedron_8
   )
 
-add_mesh(test_fem_segment_2_mesh      line.geo              1 1 OUTPUT _segment_2.msh)
-add_mesh(test_fem_segment_3_mesh      line.geo              1 2 OUTPUT _segment_3.msh)
-add_mesh(test_fem_triangle_3_mesh     square.geo            2 1 OUTPUT _triangle_3.msh)
-add_mesh(test_fem_triangle_6_mesh     square.geo            2 2 OUTPUT _triangle_6.msh)
-add_mesh(test_fem_quadrangle_4_mesh   square_structured.geo 2 1 OUTPUT _quadrangle_4.msh)
-add_mesh(test_fem_quadrangle_8_mesh   square_structured.geo 2 2 OUTPUT _quadrangle_8.msh)
-add_mesh(test_fem_tetrahedron_4_mesh  cube.geo              3 1 OUTPUT _tetrahedron_4.msh)
-add_mesh(test_fem_tetrahedron_10_mesh cube.geo              3 2 OUTPUT _tetrahedron_10.msh)
-add_mesh(test_fem_hexahedron_8_mesh   hexa_structured.geo   3 1 OUTPUT _hexahedron_8.msh)
-
-
-macro(register_fem_test operation type)
-  set(_target test_${operation}_${_type})
-  register_test(${_target} test_${operation}.cc)
-  set_target_properties(${_target}
-    PROPERTIES COMPILE_DEFINITIONS TYPE=_${_type})
-  if(NOT EXISTS _${_type}.msh)
-    add_dependencies(${_target} test_fem_${_type}_mesh)
-  endif()
-endmacro()
-
-
 foreach(_type ${LIST_TYPES})
   register_fem_test(interpolate ${_type})
   register_fem_test(gradient    ${_type})
   register_fem_test(integrate   ${_type})
   register_fem_test(inverse_map ${_type})
-
-  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_type}.msh)
-    file(COPY _${_type}.msh DESTINATION .)
-  endif()
 endforeach()
 
+#register_test(test_interpolate_bernoulli_beam_2 test_interpolate_bernoulli_beam_2.cc)
 #add_mesh(test_fem_circle_1_mesh circle.geo 2 1 OUTPUT circle1.msh)
 #add_mesh(test_fem_circle_2_mesh circle.geo 2 2 OUTPUT circle2.msh)

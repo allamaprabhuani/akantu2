@@ -1,7 +1,9 @@
 /**
  * @file   material_vreepeerlings.cc
+ *
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- * @date   Fri Feb 17 14:00:00 2012
+ *
+ * @date   Fri Feb 24 14:27:15 2012
  *
  * @brief  Specialization of the material class for the VreePeerlings material
  *
@@ -105,14 +107,14 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 						   spatial_dimension,
 						   el_type, ghost_type, &elem_filter);
 
-  Vector<Real>::iterator<types::Matrix> strain_rate_vrplgs_it =
+  Vector<Real>::iterator<types::RMatrix> strain_rate_vrplgs_it =
         strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real Equistrain;
   Real Equistrain_rate;
-  types::Matrix & strain_rate = *strain_rate_vrplgs_it;
+  types::RMatrix & strain_rate = *strain_rate_vrplgs_it;
 
   computeStressOnQuad(grad_u, sigma, *dam, Equistrain, Equistrain_rate, *Kapaq, dt, strain_rate, *crit_strain);
   ++dam;

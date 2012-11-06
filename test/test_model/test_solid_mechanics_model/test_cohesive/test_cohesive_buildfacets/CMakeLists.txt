@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
-# @date   Wed Apr 18 17:16:30 2012
+#
+# @date   Tue May 08 13:01:18 2012
+#
+# @brief  configuration for build facets test
 #
 # @section LICENSE
 #
@@ -24,6 +28,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 register_test(test_cohesive_buildfacets_tetrahedron test_cohesive_buildfacets_tetrahedron.cc)
 register_test(test_cohesive_buildfacets_hexahedron test_cohesive_buildfacets_hexahedron.cc)
 

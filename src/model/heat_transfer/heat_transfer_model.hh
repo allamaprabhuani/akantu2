@@ -1,7 +1,11 @@
 /**
  * @file   heat_transfer_model.hh
- * @author Rui WANG<rui.wang@epfl.ch>
- * @date   Fri May  4 13:35:55 2011
+ *
+ * @author Rui Wang <rui.wang@epfl.ch>
+ * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ *
+ * @date   Sun May 01 19:14:43 2011
  *
  * @brief  Model of Heat Transfer
  *

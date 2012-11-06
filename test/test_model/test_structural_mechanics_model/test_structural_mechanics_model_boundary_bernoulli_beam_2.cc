@@ -1,7 +1,9 @@
 /**
  * @file   test_structural_mechanics_model_boundary_bernoulli_beam_2.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May 26 12:52:54 2011
+ *
+ * @date   Fri Jul 15 19:41:58 2011
  *
  * @brief  Test the computation of linear load
  *

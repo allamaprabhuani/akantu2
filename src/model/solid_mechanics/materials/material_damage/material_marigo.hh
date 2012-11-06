@@ -1,11 +1,13 @@
 /**
  * @file   material_marigo.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
  *
- * @brief  Material isotropic elastic
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Thu Feb 02 11:09:36 2012
+ *
+ * @brief  Marigo damage law
  *
  * @section LICENSE
  *
@@ -29,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "material_damage.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -70,13 +73,13 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & sigma,
 				  Real & dam,
 				  Real & Y,
 				  Real & Ydq);
 
-  inline void computeDamageAndStressOnQuad(types::Matrix & sigma,
+  inline void computeDamageAndStressOnQuad(types::RMatrix & sigma,
 					   Real & dam,
 					   Real & Y,
 					   Real & Ydq);

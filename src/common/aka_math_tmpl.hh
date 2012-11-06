@@ -1,7 +1,15 @@
 /**
- * @file   aka_math_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Jul 28 13:20:35 2010
+ * @file   aka_math_tmpl.hh
+ *
+ * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
+ * @author Peter Spijker <peter.spijker@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Alejandro Marcos Aragon <alejandro.aragon@epfl.ch>
+ * @author Mathilde Radiguet <mathilde.radiguet@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed Aug 04 10:58:42 2010
  *
  * @brief  Implementation of the inline functions of the math toolkit
  *
@@ -24,7 +32,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 __END_AKANTU__
 
@@ -223,7 +230,7 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 inline Real Math::vectorDot(const Real * v1, const Real * v2, UInt n) {
 #ifdef AKANTU_USE_BLAS
   ///  d := v1 . v2
-  cblas_ddot(n, v1, 1, v2, 1);
+  Real d = cblas_ddot(n, v1, 1, v2, 1);
 #else
   Real d = 0;
   for (UInt i = 0; i < n; ++i) {

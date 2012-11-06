@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @date   Fri Jun 11 09:46:59 2010
+#
+# @date   Fri Sep 03 15:56:15 2010
+#
+# @brief  configuration for MeshIO tests
 #
 # @section LICENSE
 #
@@ -27,15 +31,14 @@
 
 add_mesh(test_mesh_io_mesh cube.geo 3 1)
 
-register_test(test_mesh_io_msh test_mesh_io_msh.cc)
-add_dependencies(test_mesh_io_msh test_mesh_io_mesh)
-
-#===============================================================================
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-
+register_test(test_mesh_io_msh
+  SOURCES test_mesh_io_msh.cc
+  DEPENDENCIES test_mesh_io_mesh
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 #===============================================================================
 #register_test(test_mesh_io_diana test_mesh_io_diana.cc)
 #copy_files(test_mesh_io_diana dam.dat)
 #file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview/mesh_io_diana)
-#
+

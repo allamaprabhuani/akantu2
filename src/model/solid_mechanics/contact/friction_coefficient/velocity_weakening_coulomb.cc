@@ -1,7 +1,9 @@
 /**
  * @file   velocity_weakening_coulomb.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Wed May 11 14:31:39 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Wed May 11 15:14:03 2011
  *
  * @brief  implementation of velocity weakening constant friction coefficient
  *

@@ -1,7 +1,9 @@
 /**
  * @file   element_class_segment_2_inline_impl.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 15 10:28:28 2010
+ *
+ * @date   Fri Jul 16 09:09:21 2010
  *
  * @brief  Specialization of the element_class class for the type _segment_2
  *

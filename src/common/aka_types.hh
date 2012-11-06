@@ -1,7 +1,9 @@
 /**
  * @file   aka_types.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Feb 16 20:28:13 2011
+ *
+ * @date   Thu Feb 17 17:27:24 2011
  *
  * @brief  description of the "simple" types
  *
@@ -58,6 +60,7 @@ struct unordered_map { typedef typename std::map<Key, Ty> type; };
 #endif
 
 namespace types {
+  template<typename T>
   class Matrix;
 
   /* ------------------------------------------------------------------------ */
@@ -206,7 +209,7 @@ namespace types {
     inline void clear() { memset(values, 0, n * sizeof(T)); };
 
     template<bool tr_A>
-    inline void mul(const Matrix & A, const Vector & x, Real alpha = 1.0);
+    inline void mul(const Matrix<T> & A, const Vector & x, Real alpha = 1.0);
 
     /* ---------------------------------------------------------------------- */
     inline Real norm() const {
@@ -278,15 +281,16 @@ namespace types {
   /* ------------------------------------------------------------------------ */
   /* Matrix                                                                   */
   /* ------------------------------------------------------------------------ */
+  template<typename T>
   class Matrix {
   public:
     Matrix() : m(0), n(0), values(NULL), wrapped(true) {};
 
-    Matrix(UInt m, UInt n, Real def = 0) : m(m), n(n), values(new Real[n*m]), wrapped(false) {
+    Matrix(UInt m, UInt n, T def = 0) : m(m), n(n), values(new T[n*m]), wrapped(false) {
       std::fill_n(values, n*m, def);
     };
 
-    Matrix(Real * data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
+    Matrix(T * data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
 
     Matrix(const Matrix & src) {
       m = src.m;
@@ -303,7 +307,7 @@ namespace types {
 
     UInt rows() const { return m; };
     UInt cols() const { return n; };
-    Real * storage() const { return values; };
+    T * storage() const { return values; };
 
     /* ---------------------------------------------------------------------- */
     void shallowCopy(const Matrix & src) {
@@ -315,14 +319,14 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
-    inline Real& operator()(UInt i, UInt j) { return *(values + i*n + j); };
-    inline const Real& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
-    inline Real& operator[](UInt idx) { return *(values + idx); };
-    inline const Real& operator[](UInt idx) const { return *(values + idx); };
+    inline T& operator()(UInt i, UInt j) { return *(values + i*n + j); };
+    inline const T& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
+    inline T& operator[](UInt idx) { return *(values + idx); };
+    inline const T& operator[](UInt idx) const { return *(values + idx); };
     inline Matrix & operator=(const Matrix & mat) {
       if(this != &mat) {
 	if(values != NULL) {
-	  memcpy(this->values, mat.values, m*n*sizeof(Real));
+	  memcpy(this->values, mat.values, m*n*sizeof(T));
 	} else {
 	  this->m = mat.m;
 	  this->n = mat.n;
@@ -336,8 +340,8 @@ namespace types {
     };
 
     /* ---------------------------------------------------------------------- */
-    inline Matrix & operator=(Real x) {
-      Real * a = this->values;
+    inline Matrix & operator=(T x) {
+      T * a = this->values;
       for (UInt i = 0; i < n*m; ++i) *(a++) = x;
       return *this;
     }
@@ -351,37 +355,37 @@ namespace types {
 
     /* ---------------------------------------------------------------------- */
      inline Matrix & operator+=(const Matrix & A) {
-       Real * a = this->storage();
-       Real * b = A.storage();
+       T * a = this->storage();
+       T * b = A.storage();
        for (UInt i = 0; i < n*m; ++i)
 	 *(a++) += *(b++);
        return *this;
      }
 
     /* ---------------------------------------------------------------------- */
-    inline Matrix & operator+=(Real x) {
-      Real * a = this->values;
+    inline Matrix & operator+=(T x) {
+      T * a = this->values;
       for (UInt i = 0; i < n*m; ++i) *(a++) += x;
       return *this;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline Matrix & operator*=(Real x) {
-      Real * a = this->storage();
+    inline Matrix & operator*=(T x) {
+      T * a = this->storage();
       for (UInt i = 0; i < n*m; ++i) *(a++) *= x;
       return *this;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline Matrix & operator/=(Real x) {
-      Real * a = this->values;
+    inline Matrix & operator/=(T x) {
+      T * a = this->values;
       for (UInt i = 0; i < n*m; ++i) *(a++) /= x;
       return *this;
     }
 
     /* ---------------------------------------------------------------------- */
     template<bool tr_A, bool tr_B>
-    inline void mul(const Matrix & A, const Matrix & B, Real alpha = 1.0) {
+    inline void mul(const Matrix & A, const Matrix & B, T alpha = 1.0) {
       UInt k = A.n;
       if(tr_A) k = A.m;
 
@@ -404,10 +408,10 @@ namespace types {
 
       Math::matMul<tr_A, tr_B>(m, n, k, alpha, A.storage(), B.storage(), 0., values);
     }
-    
+
     /* ---------------------------------------------------------------------- */
-    inline void outerProduct(const types::Vector<Real> & A,
-			     const types::Vector<Real> & B) {
+    inline void outerProduct(const types::Vector<T> & A,
+			     const types::Vector<T> & B) {
       AKANTU_DEBUG_ASSERT(A.size() == m && B.size() == n, "A and B are not compatible with the size of the matrix");
       for (UInt i = 0; i < m; ++i) {
 	for (UInt j = 0; j < n; ++j) {
@@ -417,7 +421,7 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void eig(types::Vector<Real> & eigenvalues, Matrix & eigenvectors) const {
+    inline void eig(types::Vector<T> & eigenvalues, Matrix & eigenvectors) const {
       AKANTU_DEBUG_ASSERT(n == m, "eig is not a valid operation on a rectangular matrix");
       Math::matrixEig(this->n, this->values, eigenvalues.storage(), eigenvectors.storage());
     }
@@ -427,11 +431,11 @@ namespace types {
 
     /* ---------------------------------------------------------------------- */
     inline void copy(const Matrix & src) {
-      memcpy(values, src.storage(), m * n * sizeof(Real));
+      memcpy(values, src.storage(), m * n * sizeof(T));
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void eye(Real alpha = 1.) {
+    inline void eye(T alpha = 1.) {
       AKANTU_DEBUG_ASSERT(n == m, "eye is not a valid operation on a rectangular matrix");
       clear();
       for (UInt i = 0; i < n; ++i) {
@@ -440,15 +444,15 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
-    inline Real trace() const {
+    inline T trace() const {
       AKANTU_DEBUG_ASSERT(n == m, "trace is not a valid operation on a rectangular matrix");
-      Real trace = 0.;
+      T trace = 0.;
       for (UInt i = 0; i < n; ++i)
 	trace += values[i*n + i];
       return trace;
     }
     /* -------------------------------------------------------------------------- */
-    inline Real norm() const {
+    inline T norm() const {
       return Math::norm(this->n*this->m, this->values);
     }
     /* ---------------------------------------------------------------------- */
@@ -485,18 +489,20 @@ namespace types {
       }
     };
 
-    friend class ::akantu::Vector<Real>;
+    friend class ::akantu::Vector<T>;
   protected:
     UInt m;
     UInt n;
-    Real* values;
+    T* values;
     bool wrapped;
   };
+
+  typedef Matrix<Real> RMatrix;
 
   /* ------------------------------------------------------------------------ */
   template<typename T>
   template<bool tr_A>
-  inline void Vector<T>::mul(const Matrix & A,
+  inline void Vector<T>::mul(const Matrix<T> & A,
 			     const Vector<T> & x,
 			     Real alpha) {
     UInt n = x.n;
@@ -505,7 +511,8 @@ namespace types {
 
 
   /* -------------------------------------------------------------------------- */
-  inline std::ostream & operator<<(std::ostream & stream, const Matrix & _this)
+  template<typename T>
+  inline std::ostream & operator<<(std::ostream & stream, const Matrix<T> & _this)
   {
     _this.printself(stream);
     return stream;

@@ -1,9 +1,11 @@
 /**
- * @file   material_cohesive_linear.cc
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:14:16 2012
+ * @file   material_cohesive_linear_exponential_extrinsic.cc
  *
- * @brief Linear irreversible cohesive law of mixed mode loading with
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Thu May 24 10:46:59 2012
+ *
+ * @brief  Linear irreversible cohesive law of mixed mode loading with
  * random stress definition for extrinsic type
  *
  * @section LICENSE
@@ -113,7 +115,7 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesi
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::Matrix & stress, const types::RVector & normal, const types::RVector & tangent) {
+Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::RMatrix & stress, const types::RVector & normal, const types::RVector & tangent) {
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;

@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Fri Dec 03 11:09:59 2010
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Tue Dec 07 13:24:06 2010
+#
+# @brief  configuration for contact tests
 #
 # @section LICENSE
 #
@@ -25,11 +29,9 @@
 #
 #===============================================================================
 
-#===============================================================================
-
-add_akantu_test(test_neighbor_structure   "test_neighbor_structure")
-add_akantu_test(test_contact_search	  "test_contact_search")
-add_akantu_test(test_contact_2d	          "test_contact_2d")
-add_akantu_test(test_contact_rigid	  "test_contact_rigid")
-add_akantu_test(test_friction_coefficient "test_friction_coefficient")
+add_akantu_test(test_neighbor_structure   "test_neighbor_structure"   PACKAGE contact)
+add_akantu_test(test_contact_search	  "test_contact_search"       PACKAGE contact)
+add_akantu_test(test_contact_2d	          "test_contact_2d"           PACKAGE contact)
+add_akantu_test(test_contact_rigid	  "test_contact_rigid"        PACKAGE contact)
+add_akantu_test(test_friction_coefficient "test_friction_coefficient" PACKAGE contact)
 

@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
+#
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
-# @date   Thu Apr 26 15:14:00 2012
+#
+# @date   Tue May 08 13:01:18 2012
+#
+# @brief  configuration for extrinsic cohesive elements tests
 #
 # @section LICENSE
 #

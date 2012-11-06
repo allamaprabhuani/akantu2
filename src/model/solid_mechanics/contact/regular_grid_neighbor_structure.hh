@@ -1,9 +1,11 @@
 /**
  * @file   regular_grid_neighbor_structure.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Oct 11 10:35:04 2010
  *
- * @brief  Structure that handles the neighbor lists by a regular grid 
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Mon Oct 11 18:09:29 2010
+ *
+ * @brief  Structure that handles the neighbor lists by a regular grid
  *
  * @section LICENSE
  *
@@ -54,7 +56,7 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension> 
+template<UInt spatial_dimension>
 class RegularGridNeighborStructure : public ContactNeighborStructure {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -67,7 +69,7 @@ public:
 			       const ContactNeighborStructureID & id = "contact_neighbor_structure_id");
 
   virtual ~RegularGridNeighborStructure();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -88,23 +90,23 @@ private:
   /// compute neighbor structure
   void update(Real * node_position);
 
-  /// construct neighbor list 
-  void constructNeighborList(Int directional_nb_cells[spatial_dimension], 
-			     UInt nb_cells, 
-			     Vector<Int> * cell, 
-			     UInt * impactor_nodes_cell_offset, 
-			     UInt * impactor_nodes_cell, 
-			     UInt * master_nodes_cell_offset, 
+  /// construct neighbor list
+  void constructNeighborList(Int directional_nb_cells[spatial_dimension],
+			     UInt nb_cells,
+			     Vector<Int> * cell,
+			     UInt * impactor_nodes_cell_offset,
+			     UInt * impactor_nodes_cell,
+			     UInt * master_nodes_cell_offset,
 			     UInt * master_nodes_cell);
 
 
-  /// construct nodes neighbor list 
-  void constructNodesNeighborList(Int directional_nb_cells[spatial_dimension], 
-				  UInt nb_cells, 
-				  Vector<Int> * cell, 
-				  UInt * impactor_nodes_cell_offset, 
-				  UInt * impactor_nodes_cell, 
-				  UInt * master_nodes_cell_offset, 
+  /// construct nodes neighbor list
+  void constructNodesNeighborList(Int directional_nb_cells[spatial_dimension],
+				  UInt nb_cells,
+				  Vector<Int> * cell,
+				  UInt * impactor_nodes_cell_offset,
+				  UInt * impactor_nodes_cell,
+				  UInt * master_nodes_cell_offset,
 				  UInt * master_nodes_cell);
 
 
@@ -119,7 +121,7 @@ private:
 
   /// compute minimal grid size and set it
   void setMinimalGridSpacing();
- 
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

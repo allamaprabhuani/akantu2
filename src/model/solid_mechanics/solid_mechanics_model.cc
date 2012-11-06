@@ -1,7 +1,10 @@
 /**
  * @file   solid_mechanics_model.cc
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 22 14:35:38 2010
+ *
+ * @date   Tue Jul 27 18:15:37 2010
  *
  * @brief  Implementation of the SolidMechanicsModel class
  *
@@ -60,7 +63,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt dim,
 					 const ID & id,
 					 const MemoryID & memory_id) :
-  Model(id, memory_id),
+  Model(id, memory_id), Dumpable<DumperParaview>(id),
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
@@ -95,6 +98,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   materials.clear();
 
   mesh.registerEventHandler(*this);
+
+  addDumpMesh(mesh);
 
   AKANTU_DEBUG_OUT();
 }
@@ -430,46 +435,46 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_OUT();
 }
 
-// /* -------------------------------------------------------------------------- */
-// void SolidMechanicsModel::computeStesses() {
-//   if (method == _explicit_dynamic) {
-//     // start synchronization
-//     synch_registry->asynchronousSynchronize(_gst_smm_uv);
-//     synch_registry->waitEndSynchronize(_gst_smm_uv);
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::computeStresses() {
+  if (method == _explicit_dynamic) {
+    // start synchronization
+    synch_registry->asynchronousSynchronize(_gst_smm_uv);
+    synch_registry->waitEndSynchronize(_gst_smm_uv);
 
-//     // compute stresses on all local elements for each materials
-//     std::vector<Material *>::iterator mat_it;
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllStresses(_not_ghost);
-//     }
+    // compute stresses on all local elements for each materials
+    std::vector<Material *>::iterator mat_it;
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllStresses(_not_ghost);
+    }
 
 
-//     /* ------------------------------------------------------------------------ */
-// #ifdef AKANTU_DAMAGE_NON_LOCAL
-//     /* Computation of the non local part */
-//     synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
+    /* ------------------------------------------------------------------------ */
+#ifdef AKANTU_DAMAGE_NON_LOCAL
+    /* Computation of the non local part */
+    synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
 
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllNonLocalStresses(_not_ghost);
-//     }
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllNonLocalStresses(_not_ghost);
+    }
 
-//     synch_registry->waitEndSynchronize(_gst_mnl_for_average);
+    synch_registry->waitEndSynchronize(_gst_mnl_for_average);
 
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllNonLocalStresses(_ghost);
-//     }
-// #endif
-//   } else {
-//     std::vector<Material *>::iterator mat_it;
-//     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-//       Material & mat = **mat_it;
-//       mat.computeAllStressesFromTangentModuli(_not_ghost);
-//     }
-//   }
-// }
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllNonLocalStresses(_ghost);
+    }
+#endif
+  } else {
+    std::vector<Material *>::iterator mat_it;
+    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.computeAllStressesFromTangentModuli(_not_ghost);
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::updateResidualInternal() {
@@ -1095,7 +1100,7 @@ Real SolidMechanicsModel::getExternalWork() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(std::string id) {
+Real SolidMechanicsModel::getEnergy(const std::string & id) {
   AKANTU_DEBUG_IN();
 
   if (id == "kinetic") {
@@ -1116,6 +1121,20 @@ Real SolidMechanicsModel::getEnergy(std::string id) {
   AKANTU_DEBUG_OUT();
   return energy;
 }
+/* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
+				    ElementType & type,
+				    UInt index){
+  AKANTU_DEBUG_IN();
+
+  std::vector<Material *>::iterator mat_it;
+  types::Vector<UInt> mat = element_index_by_material(type,_not_ghost).begin(2)[index];
+  Real energy = materials[mat(1)]->getEnergy(energy_id,type,mat(0));
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onNodesAdded(const Vector<UInt> & nodes_list) {
@@ -1166,7 +1185,9 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
     element_material(elem.type, elem.ghost_type).push_back(UInt(0));
 
     UInt mat_index = mat.addElement(elem.type, elem.element, elem.ghost_type);
-    element_index_by_material(elem.type, elem.ghost_type).push_back(mat_index);
+    UInt id[2];
+    id[0] = mat_index; id[1] = 0;
+    element_index_by_material(elem.type, elem.ghost_type).push_back(id);
   }
 
   std::vector<Material *>::iterator mat_it;
@@ -1182,9 +1203,6 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list,
 					    const ByElementTypeUInt & new_numbering) {
-  //element_material.onElementsRemoved(new_numbering);
-  //element_index_by_material.onElementsRemoved(new_numbering);
-
   std::cout << "NbNodes before purify " <<  mesh.getNbNodes() << std::endl;
   //  MeshUtils::purifyMesh(mesh);
   std::cout << "NbNodes after purify " <<  mesh.getNbNodes() << std::endl;
@@ -1220,6 +1238,128 @@ void SolidMechanicsModel::onNodesRemoved(const Vector<UInt> & element_list,
   dof_synchronizer->initLocalDOFEquationNumbers();
   dof_synchronizer->initGlobalDOFEquationNumbers();
 }
+
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpField(const std::string & field_id) {
+#ifdef AKANTU_USE_IOHELPER
+#define ADD_FIELD(field, type)						\
+  addDumpFieldToDumper(BOOST_PP_STRINGIZE(field),			\
+		       new DumperIOHelper::NodalField<type>(*field))
+
+  if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
+  else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
+  else if(field_id == "velocity"    ) { ADD_FIELD(velocity    , Real); }
+  else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
+  else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
+  else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
+  else if(field_id == "partitions"  ) {
+    addDumpFieldToDumper(field_id,
+			 new DumperIOHelper::ElementPartitionField(mesh,
+								   spatial_dimension,
+								   _not_ghost,
+								   _ek_regular));
+  }
+  else if(field_id == "element_index_by_material") {
+    addDumpFieldToDumper(field_id,
+			 new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
+								  spatial_dimension,
+								  _not_ghost,
+								  _ek_regular));
+  } else {
+    addDumpFieldToDumper(field_id,
+			 new DumperIOHelper::HomogenizedField<Real,
+							      DumperIOHelper::InternalMaterialField>(*this,
+												     field_id,
+												     spatial_dimension,
+												     _not_ghost,
+												     _ek_regular));
+  }
+#undef ADD_FIELD
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
+#ifdef AKANTU_USE_IOHELPER
+#define ADD_FIELD(field, type)						\
+  DumperIOHelper::Field * f = new DumperIOHelper::NodalField<type,	\
+							     types::Vector>(*field, \
+									    spatial_dimension); \
+  f->setPadding(3);							\
+  addDumpFieldToDumper(BOOST_PP_STRINGIZE(field), f)
+
+  if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
+  else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
+  else if(field_id == "velocity"    ) { ADD_FIELD(velocity    , Real); }
+  else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
+  else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
+  else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3);
+    addDumpFieldToDumper(field_id, field);
+  }
+#undef ADD_FIELD
+#endif
+};
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
+#ifdef AKANTU_USE_IOHELPER
+  if(field_id == "stress") {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::AvgHomogenizingFunctor,
+					     types::Matrix,
+					     DumperIOHelper::material_stress_field_iterator> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3, 3);
+    addDumpFieldToDumper(field_id, field);
+  } else if(field_id == "strain") {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::AvgHomogenizingFunctor,
+					     types::Matrix,
+					     DumperIOHelper::material_strain_field_iterator> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3, 3);
+    addDumpFieldToDumper(field_id, field);
+  } else {
+    typedef DumperIOHelper::HomogenizedField<Real,
+					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::AvgHomogenizingFunctor,
+					     types::Matrix> Field;
+
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular);
+    field->setPadding(3, 3);
+    addDumpFieldToDumper(field_id, field);
+  }
+#endif
+};
 
 
 /* -------------------------------------------------------------------------- */

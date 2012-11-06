@@ -1,11 +1,11 @@
 /**
- * @file   material_marigo.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ * @file   material_cohesive_includes.hh
  *
- * @brief  Specialization of the material class for the marigo material
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed Oct 31 16:24:42 2012
+ *
+ * @brief  List of includes for cohesive elements
  *
  * @section LICENSE
  *
@@ -27,3 +27,18 @@
  *
  */
 
+/* -------------------------------------------------------------------------- */
+
+#include "material_cohesive.hh"
+#include "material_cohesive_linear.hh"
+#include "material_cohesive_bilinear.hh"
+#include "material_cohesive_linear_extrinsic.hh"
+#include "material_cohesive_exponential.hh"
+#include "material_cohesive_linear_exponential_extrinsic.hh"
+
+#define AKANTU_COHESIVE_MATERIAL_LIST					\
+  ((2, (cohesive_bilinear      , MaterialCohesiveBilinear     )))	\
+  ((2, (cohesive_linear        , MaterialCohesiveLinear       )))	\
+  ((2, (cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic )))	\
+  ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))) \
+  ((2, (cohesive_exponential   , MaterialCohesiveExponential  )))

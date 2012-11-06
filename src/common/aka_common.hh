@@ -1,9 +1,11 @@
 /**
  * @file   aka_common.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Jun 11 09:48:06 2010
  *
- * @namespace akantu
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Jun 14 19:12:20 2010
+ *
+ * @brief  common type descriptions for akantu
  *
  * @section LICENSE
  *
@@ -99,9 +101,13 @@ typedef std::list< SurfacePair > SurfacePairList;
   (_point)					\
   (_bernoulli_beam_2)
 
-#define AKANTU_COHESIVE_ELEMENT_TYPE		\
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#  define AKANTU_COHESIVE_ELEMENT_TYPE		\
   (_cohesive_2d_4)				\
   (_cohesive_2d_6)
+#else
+#  define AKANTU_COHESIVE_ELEMENT_TYPE
+#endif
 
 #define AKANTU_ALL_ELEMENT_TYPE					\
   AKANTU_REGULAR_ELEMENT_TYPE AKANTU_COHESIVE_ELEMENT_TYPE
@@ -109,21 +115,40 @@ typedef std::list< SurfacePair > SurfacePairList;
 /// @enum ElementType type of element potentially contained in a Mesh
 enum ElementType {
   _not_defined     = 0,
-  _segment_2       = 1, /// first  order segment
-  _segment_3       = 2, /// second order segment
-  _triangle_3      = 3, /// first  order triangle
-  _triangle_6      = 4, /// second order triangle
-  _tetrahedron_4   = 5, /// first  order tetrahedron
-  _tetrahedron_10  = 6, /// second order tetrahedron @remark not implemented yet
-  _quadrangle_4,        /// first  order quadrangle
-  _quadrangle_8,        /// second order quadrangle
-  _hexahedron_8,        /// first  order hexahedron
-  _point,               /// point only for some algorithm to be generic like mesh partitioning
-  _bernoulli_beam_2,    /// bernoulli beam 2D
-  _cohesive_2d_4,       /// first order 2D cohesive
-  _cohesive_2d_6,       /// second order 2D cohesive
+  /// first  order segment
+  _segment_2       = 1,
+  /// second order segment
+  _segment_3       = 2,
+  /// first  order triangle
+  _triangle_3      = 3,
+  /// second order triangle
+  _triangle_6      = 4,
+  /// first  order tetrahedron
+  _tetrahedron_4   = 5,
+  /// second order tetrahedron @remark not implemented yet
+  _tetrahedron_10  = 6,
+  /// first  order quadrangle
+  _quadrangle_4,
+  /// second order quadrangle
+  _quadrangle_8,
+  /// first  order hexahedron
+  _hexahedron_8,
+  /// point only for some algorithm to be generic like mesh partitioning
+  _point,
+  /// bernoulli beam 2D
+  _bernoulli_beam_2,
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  /// first order 2D cohesive
+  _cohesive_2d_4,
+  /// second order 2D cohesive
+  _cohesive_2d_6,
+#endif
   _max_element_type
 };
+
+//! standard output stream operator for ElementType
+inline std::ostream & operator <<(std::ostream & stream, ElementType type);
+
 
 enum ElementKind {
   _ek_not_defined,
@@ -199,24 +224,38 @@ enum CommunicatorType {
 
 /// @enum SynchronizationTag type of synchronizations
 enum SynchronizationTag {
-  /// SolidMechanicsModel tags
-  _gst_smm_mass,                  /// synchronization of the SolidMechanicsModel.mass
-  _gst_smm_for_strain,            /// synchronization of the SolidMechanicsModel.current_position
-  _gst_smm_boundary,              /// synchronization of the boundary, forces, velocities and displacement
-  _gst_smm_uv,                    /// synchronization of the nodal velocities and displacement
-  _gst_smm_res,                   /// synchronization of the nodal residual
-  _gst_smm_init_mat,              /// synchronization of the data to initialize materials
+  //--- SolidMechanicsModel tags ---
+  /// synchronization of the SolidMechanicsModel.mass
+  _gst_smm_mass,
+  /// synchronization of the SolidMechanicsModel.current_position
+  _gst_smm_for_strain,
+  /// synchronization of the boundary, forces, velocities and displacement
+  _gst_smm_boundary,
+  /// synchronization of the nodal velocities and displacement
+  _gst_smm_uv,
+  /// synchronization of the nodal residual
+  _gst_smm_res,
+  /// synchronization of the data to initialize materials
+  _gst_smm_init_mat,
   _gst_smm_stress,
-  /// HeatTransfer tags
-  _gst_htm_capacity,              /// synchronization of the nodal heat capacity
-  _gst_htm_temperature,           /// synchronization of the nodal temperature
-  _gst_htm_gradient_temperature,  /// synchronization of the element gradient temperature
-  /// Material non local
-  _gst_mnl_for_average,           /// synchronization of data to average in non local material
-  _gst_mnl_weight,                /// synchronization of data for the weight computations
+  //--- HeatTransfer tags ---
+  /// synchronization of the nodal heat capacity
+  _gst_htm_capacity,
+  /// synchronization of the nodal temperature
+  _gst_htm_temperature,
+  /// synchronization of the element gradient temperature
+  _gst_htm_gradient_temperature,
+  //--- Material non local ---
+  /// synchronization of data to average in non local material
+  _gst_mnl_for_average,
+  /// synchronization of data for the weight computations
+  _gst_mnl_weight,
   /// Test tag
   _gst_test
 };
+/// standard output stream operator for SynchronizationTag
+inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type);
+
 
 /// @enum GhostType type of ghost
 enum GhostType {
@@ -224,6 +263,9 @@ enum GhostType {
   _ghost,
   _casper  // not used but a real cute ghost
 };
+/// standard output stream operator for GhostType
+inline std::ostream & operator <<(std::ostream & stream, GhostType type);
+
 
 /// @enum SynchronizerOperation reduce operation that the synchronizer can perform
 enum SynchronizerOperation {
@@ -305,68 +347,6 @@ struct is_same<T, T> {
     AKANTU_DEBUG_OUT();							\
     return variable(el_type, ghost_type);				\
   }
-
-
-
-
-/* -------------------------------------------------------------------------- */
-//! standard output stream operator for ElementType
-inline std::ostream & operator <<(std::ostream & stream, ElementType type)
-{
-  switch(type)
-    {
-    case _segment_2        : stream << "_segment_2"       ; break;
-    case _segment_3        : stream << "_segment_3"       ; break;
-    case _triangle_3       : stream << "_triangle_3"      ; break;
-    case _triangle_6       : stream << "_triangle_6"      ; break;
-    case _tetrahedron_4    : stream << "_tetrahedron_4"   ; break;
-    case _tetrahedron_10   : stream << "_tetrahedron_10"  ; break;
-    case _quadrangle_4     : stream << "_quadrangle_4"    ; break;
-    case _quadrangle_8     : stream << "_quadrangle_8"    ; break;
-    case _hexahedron_8     : stream << "_hexahedron_8"    ; break;
-    case _bernoulli_beam_2 : stream << "_bernoulli_beam_2"; break;
-    case _cohesive_2d_4    : stream << "_cohesive_2d_4"   ; break;
-    case _cohesive_2d_6    : stream << "_cohesive_2d_6"   ; break;
-    case _not_defined      : stream << "_not_defined"     ; break;
-    case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
-    case _point            : stream << "point"; break;
-    }
-  return stream;
-}
-
-/// standard output stream operator for GhostType
-inline std::ostream & operator <<(std::ostream & stream, GhostType type)
-{
-  switch(type)
-    {
-    case _not_ghost : stream << "not_ghost"; break;
-    case _ghost     : stream << "ghost"    ; break;
-    case _casper    : stream << "Casper the friendly ghost"; break;
-    }
-  return stream;
-}
-
-/// standard output stream operator for SynchronizationTag
-inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type)
-{
-  switch(type)
-    {
-    case _gst_smm_mass                 : stream << "_gst_smm_mass"                ; break;
-    case _gst_smm_for_strain	       : stream << "_gst_smm_for_strain"	  ; break;
-    case _gst_smm_boundary	       : stream << "_gst_smm_boundary"	      	  ; break;
-    case _gst_smm_uv		       : stream << "_gst_smm_uv"		  ; break;
-    case _gst_smm_res		       : stream << "_gst_smm_res"		  ; break;
-    case _gst_smm_init_mat	       : stream << "_gst_smm_init_mat"	      	  ; break;
-    case _gst_smm_stress	       : stream << "_gst_smm_stress"	      	  ; break;
-    case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
-    case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
-    case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;
-    case _gst_mnl_for_average	       : stream << "_gst_mnl_for_average"	  ; break;
-    case _gst_mnl_weight               : stream << "_gst_mnl_weight"       	  ; break;
-    case _gst_test                     : stream << "_gst_test"                    ; break;
-    }
-  return stream;
-}
 
 /* -------------------------------------------------------------------------- */
 void initialize(int & argc, char ** & argv);

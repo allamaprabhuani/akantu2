@@ -1,9 +1,11 @@
 /**
  * @file   static_communicator_mpi.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Sep 14 11:37:10 2010
  *
- * @brief  
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Sun Sep 26 13:39:16 2010
+ *
+ * @brief  StaticCommunicatorMPI implementation
  *
  * @section LICENSE
  *

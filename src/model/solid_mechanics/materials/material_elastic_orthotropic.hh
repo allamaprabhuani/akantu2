@@ -1,7 +1,9 @@
 /**
  * @file   material_elastic_orthotropic.hh
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Apr 12 10:57:52 2012
+ *
+ * @date   Tue May 08 13:01:18 2012
  *
  * @brief  Orthotropic elastic material
  *
@@ -89,8 +91,8 @@ public:
   virtual void updateInternalParameters();
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
-				  types::Matrix & sigma);
+  inline void computeStressOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & sigma);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -142,7 +144,7 @@ protected:
   Real G23;
 
   /// stiffness coefficients
-  types::Matrix * S;
+  types::RMatrix * S;
 
   /// Plane stress or plane strain
   bool plane_stress;

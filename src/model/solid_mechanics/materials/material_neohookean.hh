@@ -1,7 +1,10 @@
 /**
  * @file   material_neohookean.hh
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ *
+ * @date   Wed Jun 15 10:45:12 2011
  *
  * @brief  Material Neo Hookean
  *
@@ -76,16 +79,16 @@ private:
   Real celerity(const Element & element);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
+  inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
 					   Real & epot);
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
-				  types::Matrix & sigma);
+  inline void computeStressOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & sigma);
 
   // /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(types::Matrix & grad_u,
-				  types::Matrix & tangent);
+  void computeTangentModuliOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

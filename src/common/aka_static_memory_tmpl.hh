@@ -1,7 +1,9 @@
 /**
  * @file   aka_static_memory_tmpl.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Nov 25 13:53:08 2011
+ *
+ * @date   Fri Nov 25 17:00:17 2011
  *
  * @brief  template part of the StaticMemory
  *

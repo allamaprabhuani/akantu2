@@ -1,9 +1,11 @@
 /**
- * @file   material_cohesive_linear.hh
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:00:34 2012
+ * @file   material_cohesive_linear_extrinsic.hh
  *
- * @brief Linear irreversible cohesive law of mixed mode loading with
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ *
+ * @date   Tue May 08 13:01:18 2012
+ *
+ * @brief  Linear irreversible cohesive law of mixed mode loading with
  * random stress definition for extrinsic type
  *
  * @section LICENSE
@@ -83,7 +85,7 @@ protected:
 		       GhostType ghost_type = _not_ghost);
 
   /// compute effective stress norm for insertion check
-  inline Real computeEffectiveNorm(const types::Matrix & stress,
+  inline Real computeEffectiveNorm(const types::RMatrix & stress,
 				   const types::RVector & normal,
 				   const types::RVector & tangent);
 

@@ -1,9 +1,11 @@
 /**
  * @file   shape_linked_inline_impl.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu Apr  7 18:15:24 2011
  *
- * @brief
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  ShapeLinked inline implementation
  *
  * @section LICENSE
  *

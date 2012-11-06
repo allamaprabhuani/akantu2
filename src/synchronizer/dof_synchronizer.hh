@@ -1,7 +1,9 @@
 /**
  * @file   dof_synchronizer.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon May 23 16:50:47 2011
+ *
+ * @date   Fri Jun 17 17:28:22 2011
  *
  * @brief  Synchronize Vector of DOFs
  *

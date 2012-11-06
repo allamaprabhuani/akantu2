@@ -1,10 +1,12 @@
 /**
  * @file   shape_linked.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Apr  1 12:07:54 2011
  *
- * @brief
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date   Fri Jul 15 19:41:58 2011
+ *
+ * @brief  ShapeLinked implementation
  *
  * @section LICENSE
  *

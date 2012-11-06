@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Mon Jan 17 11:30:13 2011
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Wed Oct 27 13:54:26 2010
+#
+# @brief  configuration for contact tests
 #
 # @section LICENSE
 #
@@ -27,5 +31,5 @@
 
 #===============================================================================
 
-add_akantu_test(test_regular_grid_neighbor_structure "Regular grid neighbor structure tests")
-add_akantu_test(test_contact_2d_neighbor_structure "Contact 2D neighbor structure tests")
+add_akantu_test(test_regular_grid_neighbor_structure "Regular grid neighbor structure tests" PACKAGE contact)
+add_akantu_test(test_contact_2d_neighbor_structure "Contact 2D neighbor structure tests"     PACKAGE contact)

@@ -1,7 +1,9 @@
 /**
  * @file   aka_vector.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Jun 17 10:04:55 2010
+ *
+ * @date   Fri Jun 18 11:48:28 2010
  *
  * @brief  class of vectors
  *
@@ -106,7 +108,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 namespace types {
-  class Matrix;
+  template<typename T> class Matrix;
   template<typename T> class Vector;
 }
 
@@ -233,19 +235,22 @@ public:
   inline const_iterator< types::Vector<T> > begin(UInt n) const;
   inline const_iterator< types::Vector<T> > end(UInt n) const;
 
-  inline iterator< types::Matrix > begin(UInt m, UInt n);
-  inline iterator< types::Matrix > end(UInt m, UInt n);
-  inline const_iterator< types::Matrix > begin(UInt m, UInt n) const;
-  inline const_iterator< types::Matrix > end(UInt m, UInt n) const;
+  inline iterator< types::Matrix<T> > begin(UInt m, UInt n);
+  inline iterator< types::Matrix<T> > end(UInt m, UInt n);
+  inline const_iterator< types::Matrix<T> > begin(UInt m, UInt n) const;
+  inline const_iterator< types::Matrix<T> > end(UInt m, UInt n) const;
 
   /// /!\ to use with caution
-  inline iterator< types::Matrix > begin_reinterpret(UInt m, UInt n,
-						     UInt size, UInt nb_component);
-  inline iterator< types::Matrix > end_reinterpret(UInt m, UInt n, UInt size, UInt nb_component);
-  inline const_iterator< types::Matrix > begin_reinterpret(UInt m, UInt n,
-							   UInt size, UInt nb_component) const;
-  inline const_iterator< types::Matrix > end_reinterpret(UInt m, UInt n,
-							 UInt size, UInt nb_component) const;
+  inline iterator< types::Vector<T> > begin_reinterpret(UInt n, UInt size);
+  inline iterator< types::Vector<T> > end_reinterpret(UInt n, UInt size);
+  inline const_iterator< types::Vector<T> > begin_reinterpret(UInt n, UInt size) const;
+  inline const_iterator< types::Vector<T> > end_reinterpret(UInt n, UInt size) const;
+
+
+  inline iterator< types::Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size);
+  inline iterator< types::Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size);
+  inline const_iterator< types::Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size) const;
+  inline const_iterator< types::Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

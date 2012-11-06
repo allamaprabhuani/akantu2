@@ -1,8 +1,11 @@
+#===============================================================================
 # @file   CMakeLists.txt
-# @author Fabian Barras <fabian.barras@epfl.ch>
-# @date   Thu May 12 19:05:02 2011
 #
-# @brief  
+# @author Fabian Barras <fabian.barras@epfl.ch>
+#
+# @date   Fri Jul 15 19:41:58 2011
+#
+# @brief  configuration for StructuralMechanicsModel tests
 #
 # @section LICENSE
 #
@@ -22,21 +25,27 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-#------------------------------------------------------------------------------
+#===============================================================================
 
 register_test(test_structural_mechanics_model_bernoulli_beam_2
-  test_structural_mechanics_model_bernoulli_beam_2.cc)
+  test_structural_mechanics_model_bernoulli_beam_2.cc
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 register_test(test_structural_mechanics_model_boundary_bernoulli_beam_2
-  test_structural_mechanics_model_boundary_bernoulli_beam_2.cc)
+  test_structural_mechanics_model_boundary_bernoulli_beam_2.cc
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 register_test(test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1
-  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc)
-
+  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc
+  DIRECTORIES_TO_CREATE paraview
+  )
 
 add_mesh(complicated_mesh complicated.geo 1 1)
 register_test(test_structural_mechanics_model_bernoulli_beam_2_complicated
-  test_structural_mechanics_model_bernoulli_beam_2_complicated.cc)
-add_dependencies(test_structural_mechanics_model_bernoulli_beam_2_complicated complicated_mesh)
+  test_structural_mechanics_model_bernoulli_beam_2_complicated.cc
+  DEPENDENCIES complicated_mesh
+  DIRECTORIES_TO_CREATE paraview
+  )
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

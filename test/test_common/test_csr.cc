@@ -1,7 +1,9 @@
 /**
  * @file   test_csr.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Jul 23 16:40:06 2012
+ *
+ * @date   Mon Jul 30 09:41:27 2012
  *
  * @brief  Test the CSR (compressed sparse row) data structure
  *

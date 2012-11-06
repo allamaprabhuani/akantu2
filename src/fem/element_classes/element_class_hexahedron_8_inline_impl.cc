@@ -1,9 +1,11 @@
 /**
  * @file   element_class_hexahedron_8_inline_impl.cc
- * @author Peter Spijker <peter.spijker@epfl.ch>
- * @date   Mon Mar 14 17:27:44 2010
  *
- * @brief   Specialization of the element_class class for the type _hexahedron_8
+ * @author Peter Spijker <peter.spijker@epfl.ch>
+ *
+ * @date   Mon Mar 14 15:53:28 2011
+ *
+ * @brief  Specialization of the element_class class for the type _hexahedron_8
  *
  * @section LICENSE
  *
@@ -22,6 +24,8 @@
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @section DESCRIPTION
  *
  * @verbatim
                    \zeta
@@ -94,7 +98,6 @@
  * \xi_{q7}  &=& -1/\sqrt{3} \qquad  \eta_{q7} =  1/\sqrt{3} \qquad \zeta_{q7} =  1/\sqrt{3} \\
  * @f}
  */
-
 
 /* -------------------------------------------------------------------------- */
 template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element;

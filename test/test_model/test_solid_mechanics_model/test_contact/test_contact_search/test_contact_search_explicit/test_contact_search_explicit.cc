@@ -1,7 +1,9 @@
 /**
  * @file   test_contact_search_explicit.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri Oct  7 16:15:48 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Fri Oct 07 16:33:47 2011
  *
  * @brief  test contact search for all types
  *

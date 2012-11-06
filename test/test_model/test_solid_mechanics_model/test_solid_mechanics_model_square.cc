@@ -1,7 +1,9 @@
 /**
- * @file   test_solid_mechanics_model.cc
+ * @file   test_solid_mechanics_model_square.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Tue Jul 27 14:34:13 2010
+ *
+ * @date   Wed Sep 22 13:39:02 2010
  *
  * @brief  test of the class SolidMechanicsModel
  *
@@ -31,24 +33,17 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "fem.hh"
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-using iohelper::ElemType;
-using iohelper::DumperParaview;
-#endif //AKANTU_USE_IOHELPER
-
 using namespace akantu;
 
 class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
 public:
   inline void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
-		     types::Matrix & stress,
+		     types::RMatrix & stress,
 		     __attribute__ ((unused)) const types::Vector<Real> & normal,
 		     __attribute__ ((unused)) Surface surface_id) {
     stress.eye(1000);
@@ -61,11 +56,6 @@ int main(int argc, char *argv[])
   UInt max_steps = 1000;
   Real epot, ekin;
 
-#ifdef AKANTU_USE_IOHELPER
-  ElementType type  = _triangle_3;
-  iohelper::ElemType para_type = iohelper::TRIANGLE1;
-#endif //AKANTU_USE_IOHELPER
-
   Mesh mesh(2);
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
@@ -73,21 +63,7 @@ int main(int argc, char *argv[])
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initVectors();
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  memset(model.getForce().values,        0, 2*nb_nodes*sizeof(Real));
-  memset(model.getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
-  memset(model.getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
-  memset(model.getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
-  memset(model.getResidual().values,     0, 2*nb_nodes*sizeof(Real));
-  memset(model.getMass().values,     1, nb_nodes*sizeof(Real));
-
-  model.initExplicit();
-
-  model.initModel();
-  model.readMaterials("material.dat");
-  model.initMaterials();
-
+  model.initFull("material.dat");
 
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);
@@ -96,22 +72,6 @@ int main(int argc, char *argv[])
 
   std::cout << model << std::endl;
 
-  /// boundary conditions
-  // Real eps = 1e-16;
-  // for (UInt i = 0; i < nb_nodes; ++i) {
-  //   model.getDisplacement().values[2*i] = model.getFEM().getMesh().getNodes().values[2*i] / 100.;
-
-  //   if(model.getFEM().getMesh().getNodes().values[2*i] <= eps) {
-  //     model.getBoundary().values[2*i    ] = true;
-  //     if(model.getFEM().getMesh().getNodes().values[2*i + 1] <= eps)
-  // 	model.getBoundary().values[2*i + 1] = true;
-  //   }
-  //   if(model.getFEM().getMesh().getNodes().values[2*i + 1] <= eps) {
-  //     model.getBoundary().values[2*i + 1] = true;
-  //   }
-
-  // }
-
   FEM & fem_boundary = model.getFEMBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
@@ -119,29 +79,16 @@ int main(int argc, char *argv[])
   MyStressFunctor func;
   model.computeForcesFromFunction(func, akantu::_bft_stress);
 
-
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::BASE64);
-
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-			 para_type, model.getFEM().getMesh().getNbElement(type), iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values, 2, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values, 2, "velocity");
-  dumper.AddNodeDataField(model.getForce().values, 2, "force");
-  dumper.AddNodeDataField(model.getMass().values, 1, "Mass");
-  dumper.AddNodeDataField(model.getResidual().values, 2, "residual");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values, 4, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values, 4, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("force", 1);
-  dumper.SetEmbeddedValue("residual", 1);
-  dumper.SetEmbeddedValue("velocity", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+  model.setBaseName("square");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
+  model.dump();
 
   std::ofstream energy;
   energy.open("energy.csv");
@@ -161,9 +108,7 @@ int main(int argc, char *argv[])
     energy << s << "," << epot << "," << ekin << "," << epot + ekin
 	   << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) dumper.Dump();
-#endif //AKANTU_USE_IOHELPER
+    if(s % 100 == 0) model.dump();
   }
 
   energy.close();

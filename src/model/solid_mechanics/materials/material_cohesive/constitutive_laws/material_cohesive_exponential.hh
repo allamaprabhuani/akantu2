@@ -1,8 +1,10 @@
 /**
  * @file   material_cohesive_exponential.hh
- * @author Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
+ *
+ * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Feb 20 12:00:34 2012
+ *
+ * @date   Mon Jul 09 14:13:56 2012
  *
  * @brief  Exponential irreversible cohesive law of mixed mode loading
  *
@@ -55,10 +57,10 @@ class MaterialCohesiveExponential : public MaterialCohesive {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   MaterialCohesiveExponential(SolidMechanicsModel & model, const ID & id = "");
   virtual ~MaterialCohesiveExponential();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -89,7 +91,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

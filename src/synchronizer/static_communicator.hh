@@ -1,7 +1,9 @@
 /**
  * @file   static_communicator.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Thu Aug 19 15:34:09 2010
+ *
+ * @date   Wed Sep 01 17:57:12 2010
  *
  * @brief  Class handling the parallel communications
  *
@@ -32,6 +34,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_event_handler.hh"
+
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -59,7 +63,24 @@ __BEGIN_AKANTU__
 
 class RealStaticCommunicator;
 
-class StaticCommunicator {
+struct FinalizeCommunicatorEvent {
+  FinalizeCommunicatorEvent(const StaticCommunicator & comm) : communicator(comm) {}
+  const StaticCommunicator & communicator;
+};
+
+class CommunicatorEventHandler {
+public:
+  virtual ~CommunicatorEventHandler() {}
+  virtual void onCommunicatorFinalize(const StaticCommunicator & communicator) { };
+protected:
+  inline void sendEvent(const FinalizeCommunicatorEvent & event) { onCommunicatorFinalize(event.communicator); }
+
+  template<class EventHandler>
+  friend class EventHandlerManager;
+};
+
+
+class StaticCommunicator : public EventHandlerManager<CommunicatorEventHandler>{
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -68,7 +89,12 @@ protected:
 		     CommunicatorType type = _communicator_mpi);
 
 public:
-  virtual ~StaticCommunicator() { delete real_static_communicator; };
+  virtual ~StaticCommunicator() {
+    FinalizeCommunicatorEvent event(*this);
+    this->sendEvent(event);
+
+    delete real_static_communicator;
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

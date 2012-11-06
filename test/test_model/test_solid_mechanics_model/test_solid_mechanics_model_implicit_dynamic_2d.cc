@@ -1,7 +1,9 @@
 /**
  * @file   test_solid_mechanics_model_implicit_dynamic_2d.cc
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Apr 29 11:32:25 2011
+ *
+ * @date   Wed May 11 17:26:46 2011
  *
  * @brief  test of the dynamic implicit code
  *
@@ -34,12 +36,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
 #include "static_communicator.hh"
-#include "distributed_synchronizer.hh"
 #include "mesh_partition_scotch.hh"
 
 #ifdef AKANTU_USE_SCOTCH
@@ -47,15 +47,6 @@
 #endif
 
 using namespace akantu;
-
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif
 
 /* -------------------------------------------------------------------------- */
 #define bar_length 10.
@@ -101,54 +92,28 @@ int main(int argc, char *argv[])
     mesh_io.read("beam_2d_quad.msh", mesh);
 
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
-    //    partition->reorder();
     partition->partitionate(psize);
   }
 
-  SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
-  model->initParallel(partition);
-
-
-  //  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  SolidMechanicsModel model(mesh);
+  model.initParallel(partition);
 
   /// model initialization
-  model->initVectors();
-
-  model->initModel();
-  model->readMaterials("material_implicit_dynamic.dat");
-  Material &mat = model->getMaterial(0);
+  model.initFull("material_implicit_dynamic.dat", _implicit_dynamic);
+  Material &mat = model.getMaterial(0);
   mat.setParam("E", E);
   mat.setParam("rho", rho);
 
-  model->initMaterials();
-
-  model->initImplicit(true);
-
   // boundary conditions
   const Vector<Real> & position    = mesh.getNodes();
-  Vector<bool> & boundary    = model->getBoundary();
-  Vector<Real> & force       = model->getForce();
-  Vector<Real> & displacment = model->getDisplacement();
+  Vector<bool> & boundary    = model.getBoundary();
+  Vector<Real> & force       = model.getForce();
+  Vector<Real> & displacment = model.getDisplacement();
 
   //initial conditions
-  model->getForce().clear();
-  model->getDisplacement().clear();
-  model->getVelocity().clear();
-  model->getAcceleration().clear();
-
-  // MeshUtils::buildFacets(mesh);
-  // MeshUtils::buildSurfaceID(mesh);
-
-  // CSR<UInt> surface_nodes;
-  // MeshUtils::buildNodesPerSurface(mesh, surface_nodes);
-
   UInt node_to_print = UInt(-1);
   bool print_node = false;
 
-  // for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
-  //   CSR<UInt>::iterator snode = surface_nodes.begin(s);
-  //   for(; snode != surface_nodes.end(s); ++snode) {
-  //    UInt n = *snode;
   Vector<UInt> node_to_displace;
   for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
     Real x = position(n, 0);
@@ -186,19 +151,23 @@ int main(int argc, char *argv[])
       }
     }
   }
-  //  }
 
-  model->setTimeStep(time_step);
+  model.setTimeStep(time_step);
 
-  model->updateResidual();
+  model.updateResidual();
 
   std::stringstream out;
   out << "position-" << TYPE << "_" << std::scientific << time_step << ".csv";
 
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  paraviewInit(dumper, *model);
-#endif
+  model.setBaseName("implicit_dynamic");
+  model.addDumpField("displacement");
+  model.addDumpField("mass"        );
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("force"       );
+  model.addDumpField("residual"    );
+  model.addDumpField("stress"      );
+  model.addDumpField("strain"      );
 
   std::ofstream pos;
   if(print_node) {
@@ -212,119 +181,42 @@ int main(int argc, char *argv[])
 
   Real time = 0;
   UInt count = 0;
-  //  UInt print_freq = 1;
   Real error;
 
-  model->assembleStiffnessMatrix();
-  model->assembleMass();
+  model.assembleStiffnessMatrix();
+  model.assembleMass();
 
-  // model->assembleMassLumped();
-  // Vector<Real> lumped_mass(0,spatial_dimension);
-  // model->getMassMatrix().lump(lumped_mass);
-
-  // debug::setDebugLevel(dblTest);
-  // std::cout << model->getMass() << lumped_mass;
-  // debug::setDebugLevel(dblWarning);
-
-  model->getMassMatrix().saveMatrix("M.mtx");
-  model->getStiffnessMatrix().saveMatrix("K.mtx");
+  model.getMassMatrix().saveMatrix("M.mtx");
+  model.getStiffnessMatrix().saveMatrix("K.mtx");
 
   /// time loop
   for (UInt s = 1; time < 0.62; ++s) {
-    model->implicitPred();
+    model.implicitPred();
     /// convergence loop
     do {
       if(count > 0 && prank == 0)
     	std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
-      model->updateResidual();
-      model->solveDynamic();
-      model->implicitCorr();
+      model.updateResidual();
+      model.solveDynamic();
+      model.implicitCorr();
       count++;
-    } while(!model->testConvergenceIncrement(1e-12, error) && (count < 1000));
+    } while(!model.testConvergenceIncrement(1e-12, error) && (count < 1000));
     if(prank == 0) std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
     count = 0;
 
-    // if(s % print_freq == 0) {
-    //   std::cout << "passing step " << s << "/" << max_steps << " " << s * time_step << "s - " << count / print_freq << std::endl;
-    //   count = 0;
-    // }
-
     if(print_node) pos << s << "," << s * time_step << "," << displacment(node_to_print,  1) << "," << analytical_solution(s*time_step) << std::endl;
 
-#ifdef AKANTU_USE_IOHELPER
-    if(s % 10 == 0) paraviewDump(dumper);
-#endif
+    if(s % 10 == 0) {
+      model.computeStresses ();
+    }
 
     time += time_step;
   }
 
   if(print_node) pos.close();
 
-  delete model;
   finalize();
 
   return EXIT_SUCCESS;
 }
 
-
-
-/* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-
-/* -------------------------------------------------------------------------- */
-template <ElementType type> static iohelper::ElemType paraviewType();
-template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1;     }
-template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2;     }
-template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
-template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
-template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1;     }
-template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1;    }
-template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2;    }
-template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1;      }
-
-/* -------------------------------------------------------------------------- */
-void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {
-  UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
-  UInt nb_nodes   = model.getFEM().getMesh().getNbNodes();
-  UInt nb_element = model.getFEM().getMesh().getNbElement(TYPE);
-
-  std::stringstream filename; filename << "dynamic_implicit_beam_" << TYPE;
-
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetParallelContext(StaticCommunicator::getStaticCommunicator().whoAmI(), StaticCommunicator::getStaticCommunicator().getNbProc());
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-		   spatial_dimension, nb_nodes, filename.str().c_str());
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
-			 paraviewType<TYPE>(), nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
-			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
-			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
-			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getResidual().values,
-			  spatial_dimension, "residual");
-  dumper.AddNodeDataField(model.getForce().values,
-			  spatial_dimension, "applied_force");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
-   			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(TYPE).values,
-   			  spatial_dimension*spatial_dimension, "stress");
-  dumper.SetEmbeddedValue("displacements", 1);
-  dumper.SetEmbeddedValue("applied_force", 1);
-  dumper.SetPrefix("paraview/");
-  dumper.Init();
-  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-
-#endif

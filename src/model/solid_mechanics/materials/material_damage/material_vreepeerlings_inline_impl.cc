@@ -1,7 +1,9 @@
 /**
  * @file   material_vreepeerlings_inline_impl.cc
+ *
  * @author Cyprien Wolff <cyprien.wolff@epfl.ch>
- * @date   Fri Feb 17 14:00:00 2012
+ *
+ * @date   Fri Feb 24 14:27:15 2012
  *
  * @brief  Specialization of the material class for the VreePeerlings material
  *
@@ -31,14 +33,14 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(types::Matrix & grad_u,
-							      types::Matrix & sigma,
+MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
+							      types::RMatrix & sigma,
 							      Real & dam,
 							      Real & Equistrain,
 							      Real & Equistrain_rate,
 							      Real & Kapaq,
 							      Real dt,
-							      types::Matrix & strain_rate_vrplgs,
+							      types::RMatrix & strain_rate_vrplgs,
 							      Real & crit_strain) {
   Real I1=0.;
   Real J2=0.;
@@ -146,7 +148,7 @@ MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(types::Matrix & gr
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialVreePeerlings<spatial_dimension>::computeDamageAndStressOnQuad(types::Matrix & sigma,
+MaterialVreePeerlings<spatial_dimension>::computeDamageAndStressOnQuad(types::RMatrix & sigma,
 								       Real & dam,
 								       Real & Equistrain,
 								       Real & Equistrain_rate,

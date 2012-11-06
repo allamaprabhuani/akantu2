@@ -1,9 +1,11 @@
 /**
  * @file   local_material_damage.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Thu Jul 29 15:00:59 2010
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Nov 26 00:17:56 2010
  *
  * @brief  Material isotropic elastic
  *
@@ -45,7 +47,7 @@ public:
 
   LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
 
-  //  virtual ~LocalMaterialDamage() {};
+  virtual ~LocalMaterialDamage() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -58,8 +60,8 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::Matrix & grad_u,
-				  types::Matrix & sigma,
+  inline void computeStressOnQuad(types::RMatrix & grad_u,
+				  types::RMatrix & sigma,
 				  Real & damage);
 
   /// compute tangent stiffness
@@ -71,8 +73,8 @@ public:
   void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(types::Matrix & grad_u,
-					   types::Matrix & sigma,
+  inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+					   types::RMatrix & sigma,
 					   Real & epot);
 
   /// compute the celerity of wave in the material

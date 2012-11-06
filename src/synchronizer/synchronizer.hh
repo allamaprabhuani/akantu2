@@ -1,7 +1,10 @@
 /**
  * @file   synchronizer.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Mon Aug 23 13:48:37 2010
+ *
+ * @date   Wed Sep 01 17:57:12 2010
  *
  * @brief  interface for communicator and pbc synchronizers
  *

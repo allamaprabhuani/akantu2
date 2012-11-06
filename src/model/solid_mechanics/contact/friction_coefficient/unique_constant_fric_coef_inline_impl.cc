@@ -1,7 +1,9 @@
 /**
  * @file   unique_constant_fric_coef_inline_impl.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Mon Mar  7 10:43:14 2011
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date   Tue Mar 22 13:18:24 2011
  *
  * @brief  implementation of a unique constant friction coefficient
  *

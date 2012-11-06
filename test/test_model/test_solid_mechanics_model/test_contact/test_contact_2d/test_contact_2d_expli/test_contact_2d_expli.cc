@@ -1,7 +1,9 @@
 /**
- * @file  test_contact_2d_expli.cc
+ * @file   test_contact_2d_expli.cc
+ *
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @date   Fri Nov  26 07:43:47 2010
+ *
+ * @date   Mon Jan 17 12:17:38 2011
  *
  * @brief  test explicit DCR contact algorithm for 2d
  *

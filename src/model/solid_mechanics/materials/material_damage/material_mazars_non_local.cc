@@ -1,8 +1,10 @@
 /**
  * @file   material_mazars_non_local.cc
+ *
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Marion Chambart <marion.chambart@epfl.ch>
- * @date   Tue Jul 27 11:53:52 2010
+ *
+ * @date   Mon Oct 03 11:53:09 2011
  *
  * @brief  Specialization of the material class for the non-local mazars material
  *

@@ -1,5 +1,36 @@
+#===============================================================================
+# @file   core.cmake
+#
+# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
+#
+# @date   Mon Nov 21 18:19:15 2011
+#
+# @brief  package description for core
+#
+# @section LICENSE
+#
+# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+#
+# Akantu is free  software: you can redistribute it and/or  modify it under the
+# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Software Foundation, either version 3 of the License, or (at your option) any
+# later version.
+#
+# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# details.
+#
+# You should  have received  a copy  of the GNU  Lesser General  Public License
+# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+#
+#===============================================================================
+
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
-set(CORE_FILES
+
+set(AKANTU_CORE_FILES
   # source files
   common/aka_common.cc
   common/aka_error.cc
@@ -10,37 +41,20 @@ set(CORE_FILES
   common/aka_math.cc
   fem/shape_lagrange.cc
   fem/shape_linked.cc
-  fem/shape_cohesive.cc
   fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
-  fem/cohesive_element.cc
   fem/fem_template.cc
+  io/dumper/dumpable.hh
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
-  model/solid_mechanics/solid_mechanics_model_cohesive.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
   model/solid_mechanics/material_parameters.cc
-  model/solid_mechanics/materials/material_cohesive/material_cohesive.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.cc
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.cc
   model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_neohookean.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic.cc
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
-  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
-  model/solid_mechanics/materials/material_damage/material_damage.cc
-  model/solid_mechanics/materials/material_damage/material_marigo.cc
-  model/solid_mechanics/materials/material_damage/material_mazars.cc
-  model/solid_mechanics/materials/material_damage/material_damage_linear.cc
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings.cc
   mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_io/mesh_io_msh.cc
@@ -56,11 +70,9 @@ set(CORE_FILES
   synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
-  synchronizer/grid_synchronizer.cc
   synchronizer/dof_synchronizer.cc
 
   #header files
-
   mesh_utils/mesh_io/mesh_io_msh.hh
   mesh_utils/mesh_io/mesh_io_msh_struct.hh
   mesh_utils/mesh_io/mesh_io_diana.hh
@@ -81,7 +93,6 @@ set(CORE_FILES
   synchronizer/real_static_communicator.hh
   synchronizer/data_accessor.hh
   synchronizer/communication_buffer.hh
-  synchronizer/grid_synchronizer.hh
   common/aka_grid.hh
   common/aka_grid_tmpl.hh
   common/aka_types.hh
@@ -95,19 +106,18 @@ set(CORE_FILES
   common/aka_common.hh
   common/aka_vector.hh
   common/aka_vector_tmpl.hh
-#  common/aka_types_expression.hh
   common/aka_circular_vector.hh
+  common/aka_event_handler.hh
   fem/mesh.hh
   fem/fem.hh
   fem/by_element_type.hh
   fem/shape_functions.hh
   fem/shape_lagrange.hh
-  fem/shape_cohesive.hh
   fem/fem_template.hh
+  fem/fem_template_tmpl.hh
   fem/integrator_gauss.hh
   fem/integrator.hh
   fem/element_class.hh
-  fem/cohesive_element.hh
   fem/shape_linked.hh
   model/model.hh
   model/parser.hh
@@ -117,40 +127,24 @@ set(CORE_FILES
   model/integration_scheme/generalized_trapezoidal.hh
   model/integration_scheme/newmark-beta.hh
   model/integration_scheme/integration_scheme_1st_order.hh
-  model/solid_mechanics/materials/material_cohesive/material_cohesive.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
-  model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
-  model/solid_mechanics/materials/material_elastic.hh
-  model/solid_mechanics/materials/material_elastic_orthotropic.hh
-  model/solid_mechanics/materials/material_neohookean.hh
-  model/solid_mechanics/materials/material_damage/material_damage.hh
-  model/solid_mechanics/materials/material_damage/material_marigo.hh
-  model/solid_mechanics/materials/material_damage/material_mazars.hh
-  model/solid_mechanics/materials/material_damage/material_damage_linear.hh
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings.hh
   model/solid_mechanics/solid_mechanics_model.hh
-  model/solid_mechanics/solid_mechanics_model_cohesive.hh
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/material.hh
   model/solid_mechanics/material_parameters.hh
   model/solid_mechanics/material_parameters_tmpl.hh
-  model/heat_transfer/heat_transfer_model.hh
+  model/solid_mechanics/materials/material_elastic.hh
 
   #inline implementation files
   mesh_utils/mesh_utils_inline_impl.cc
   solver/sparse_matrix_inline_impl.cc
-  solver/solver_inline_impl.cc
   synchronizer/dof_synchronizer_inline_impl.cc
   synchronizer/communication_buffer_inline_impl.cc
+  common/aka_common_inline_impl.cc
   common/aka_memory_inline_impl.cc
   common/aka_static_memory_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc
   fem/integrator_gauss_inline_impl.cc
+  fem/fem_template_inline_impl.cc
   fem/element_classes/element_class_triangle_3_inline_impl.cc
   fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_quadrangle_4_inline_impl.cc
@@ -173,16 +167,38 @@ set(CORE_FILES
   model/integration_scheme/newmark-beta_inline_impl.cc
   model/solid_mechanics/solid_mechanics_model_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
-  model/solid_mechanics/materials/material_neohookean_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
   )
 
-set(CORE_DEB_DEPEND
+set(AKANTU_CORE_DEB_DEPEND
   libboost-dev
+  )
+
+set(AKANTU_CORE_TESTS
+  test_solid_mechanics_model_square
+  test_vector
+  test_vector_iterator
+  test_matrix
+  test_csr
+  test_grid
+  test_static_memory
+  test_mesh_io_msh
+  test_facet_extraction_triangle_3
+  test_facet_extraction_tetrahedron_4
+  test_pbc_tweak
+  test_purify_mesh
+  test_local_material
+  test_interpolate_stress
+  test_weight
+  test_solid_mechanics_model_circle_2
+  test_solid_mechanics_model_bar_traction2d
+  test_solid_mechanics_model_bar_traction2d_structured
+  test_solid_mechanics_model_bar_traction2d_structured_pbc
+  test_solid_mechanics_model_cube3d
+  test_solid_mechanics_model_cube3d_tetra10
+  test_solid_mechanics_model_cube3d_pbc
+  test_surface_extraction_triangle_3
+  test_surface_extraction_tetrahedron_4
+  test_material_damage_non_local
   )

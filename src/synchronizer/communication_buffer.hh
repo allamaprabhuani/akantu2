@@ -1,7 +1,10 @@
 /**
  * @file   communication_buffer.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Apr  6 21:23:16 2011
+ *
+ * @date   Thu Apr 14 18:22:18 2011
  *
  * @brief  Buffer for packing and unpacking data
  *
@@ -81,6 +84,9 @@ public:
   template<typename T>
   inline CommunicationBuffer & operator<< (const types::Vector<T> & to_pack);
 
+  template<typename T>
+  inline CommunicationBuffer & operator<< (const types::Matrix<T> & to_pack);
+
 
   /// unpacking data
   template<typename T>
@@ -88,6 +94,9 @@ public:
 
   template<typename T>
   inline CommunicationBuffer & operator>> (types::Vector<T> & to_unpack);
+
+  template<typename T>
+  inline CommunicationBuffer & operator>> (types::Matrix<T> & to_unpack);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */

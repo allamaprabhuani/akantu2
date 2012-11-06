@@ -1,7 +1,11 @@
 #===============================================================================
 # @file   CMakeLists.txt
-# @author David Kammer <david.kammer@epfl.ch>
-# @date   Fri Dec 03 12:02:24 2010
+#
+# @author David Simon Kammer <david.kammer@epfl.ch>
+#
+# @date   Mon Jan 17 11:53:13 2011
+#
+# @brief  configuration for explicit ContactSearch tests
 #
 # @section LICENSE
 #

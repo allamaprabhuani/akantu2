@@ -1,10 +1,12 @@
 /**
  * @file   material_stiffness_proportional.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed May  4 15:16:59 2011
  *
- * @brief Material isotropic visco-elastic with viscosity proportional to the
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Wed May 04 19:01:37 2011
+ *
+ * @brief  Material isotropic visco-elastic with viscosity proportional to the
  * stiffness
  *
  * @section LICENSE

@@ -1,7 +1,9 @@
 /**
  * @file   material_parameters.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Wed Aug  8 11:30:15 2012
+ *
+ * @date   Thu Aug 09 21:06:34 2012
  *
  * @brief  class to handle the material parameters
  *
@@ -46,6 +48,12 @@ enum ParamAccessType {
   _pat_parsmod    = 0x1110
 };
 
+
+inline ParamAccessType operator|(const ParamAccessType & a, const ParamAccessType & b) {
+  ParamAccessType tmp = ParamAccessType(UInt(a) | UInt(b));
+  return tmp;
+}
+
 template<typename T> class MaterialParamTyped;
 /* -------------------------------------------------------------------------- */
 
@@ -55,6 +63,7 @@ public:
   MaterialParam();
   MaterialParam(std::string name, std::string description, ParamAccessType param_type);
 
+  virtual ~MaterialParam() {};
   /* ------------------------------------------------------------------------ */
   bool isInternal() const;
   bool isWritable() const;

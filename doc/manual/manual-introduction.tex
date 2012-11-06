@@ -1,5 +1,42 @@
 \chapter{Introduction}
 
+\akantu means a little element in Kinyarwanda, a
+Bantu language. From now on it is also an open source
+object-oriented \textit{Finite Element} library which has the ambition
+to be generic and efficient.
+\akantu is developed within the LSMS (Computational Solid Mechanics Laboratory, \url{lsms.
+epfl.ch}), where research is conducted at the interface of mechanics, material
+science, and scientific computing. 
+The open-source philosophy is important for any
+scientific software project evolution. The collaboration
+permitted by shared codes enforces sanity when users (and not
+only developers) can criticize the implementation details.
+\akantu was born with the vision to associate genericity, robustness 
+and efficiency while benefiting the open-source visibility.\\
+
+Genericity is necessary to allow the easy exploration of mathematical
+formulations through algorithmic ideas. Robustness and reliability
+is naturally expected from any simulation software, even more 
+in the context of parallel computations. 
+In order to achieve these goals, we made noticeable choices in
+the architecture of \akantu. First we decided to use the object-oriented
+paradigm through C++. Then, in order to prevent extra cost associated 
+to virtual function calls we designed the library as
+a hybrid architecture with objects at high level layers and
+vectorization for low level layers. Thus, Akantu benefits from
+inheritance and polymorphism mechanisms without the counter
+part of having virtual calls within critical loops. 
+This coding philosophy, which was demonstrated in the past to be really 
+efficient, is quite innovative in the field of \textit{Finite Element} software. \\
+
+This document is appropriate for people willing to use \akantu
+in order to perform a finite element calculation for solid mechanics,
+structural mechanics, contact mechanics or heat transfer. The solid mechanics solver, 
+that is the most complete and functional part of \akantu, is presented in details throughout 
+this document in a step by step approach. 
+%If further help should be required 
+%requests can be addressed to \href{mailto:akantu@akantu.ch}{akantu@akantu.ch}. 
+
 % \section{Data structures\label{chap:data-structure}}
 
 % \subsection{Vectors\label{sec:vectors}}

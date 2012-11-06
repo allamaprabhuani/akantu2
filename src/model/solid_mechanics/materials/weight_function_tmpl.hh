@@ -1,7 +1,9 @@
 /**
- * @file   weight_function.cc
+ * @file   weight_function_tmpl.hh
+ *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @date   Fri Mar 23 15:55:58 2012
+ *
+ * @date   Fri Apr 13 16:49:32 2012
  *
  * @brief  implementation of the weight function classes
  *
@@ -89,13 +91,13 @@ void StressBasedWeightFunction<spatial_dimension>::updatePrincipalStress(GhostTy
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
-    Vector<Real>::const_iterator<types::Matrix> sigma =
+    Vector<Real>::const_iterator<types::RMatrix> sigma =
       this->material.getStress(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::RVector> eigenvalues =
       stress_diag(*it, ghost_type).begin(spatial_dimension);
     Vector<Real>::iterator<types::RVector> eigenvalues_end =
       stress_diag(*it, ghost_type).end(spatial_dimension);
-    Vector<Real>::iterator<types::Matrix> eigenvector =
+    Vector<Real>::iterator<types::RMatrix> eigenvector =
       stress_base(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 #ifndef __trick__
@@ -143,7 +145,7 @@ inline Real StressBasedWeightFunction<spatial_dimension>::operator()(Real r,
   types::RVector eigs =
     selected_stress_diag->begin(spatial_dimension)[q2.global_num];
 
-  types::Matrix eigenvects =
+  types::RMatrix eigenvects =
     selected_stress_base->begin(spatial_dimension, spatial_dimension)[q2.global_num];
 
   Real min_rho_lc = selected_characteristic_size->begin()[q1.global_num];
@@ -166,7 +168,7 @@ inline Real StressBasedWeightFunction<spatial_dimension>::operator()(Real r,
 template<>
 inline Real StressBasedWeightFunction<1>::computeRhoSquare(__attribute__ ((unused)) Real r,
 							   types::RVector & eigs,
-							   __attribute__ ((unused)) types::Matrix & eigenvects,
+							   __attribute__ ((unused)) types::RMatrix & eigenvects,
 							   __attribute__ ((unused)) types::RVector & x_s) {
   return eigs[0];
 }
@@ -175,7 +177,7 @@ inline Real StressBasedWeightFunction<1>::computeRhoSquare(__attribute__ ((unuse
 template<>
 inline Real StressBasedWeightFunction<2>::computeRhoSquare(__attribute__ ((unused)) Real r,
 							   types::RVector & eigs,
-							   types::Matrix & eigenvects,
+							   types::RMatrix & eigenvects,
 							   types::RVector & x_s) {
   types::RVector u1(eigenvects.storage(), 2);
   Real cos_t = x_s.dot(u1) / (x_s.norm() * u1.norm());
@@ -213,7 +215,7 @@ inline Real StressBasedWeightFunction<2>::computeRhoSquare(__attribute__ ((unuse
 template<>
 inline Real StressBasedWeightFunction<3>::computeRhoSquare(Real r,
 							   types::RVector & eigs,
-							   types::Matrix & eigenvects,
+							   types::RMatrix & eigenvects,
 							   types::RVector & x_s) {
   types::RVector u1(eigenvects.storage() + 0*3, 3);
 //types::RVector u2(eigenvects.storage() + 1*3, 3);
