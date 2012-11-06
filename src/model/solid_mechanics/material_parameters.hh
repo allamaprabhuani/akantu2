@@ -50,7 +50,7 @@ enum ParamAccessType {
 
 
 inline ParamAccessType operator|(const ParamAccessType & a, const ParamAccessType & b) {
-  ParamAccessType tmp = ParamAccessType(a | b);
+  ParamAccessType tmp = ParamAccessType(UInt(a) | UInt(b));
   return tmp;
 }
 
