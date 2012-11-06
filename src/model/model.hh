@@ -126,7 +126,7 @@ public:
   template <typename FEMClass>
   inline FEMClass & getFEMClassBoundary(std::string name = "");
 
-  /// get the pbc pairs 
+  /// get the pbc pairs
   std::map<UInt,UInt> & getPBCPairs(){return pbc_pair;};
 
 protected:

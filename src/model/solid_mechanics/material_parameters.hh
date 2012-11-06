@@ -49,7 +49,7 @@ enum ParamAccessType {
 };
 
 
-ParamAccessType opertator|(const ParamAccessType & a, const ParamAccessType & b) {
+inline ParamAccessType operator|(const ParamAccessType & a, const ParamAccessType & b) {
   ParamAccessType tmp = ParamAccessType(a | b);
   return tmp;
 }
