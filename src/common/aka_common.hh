@@ -157,6 +157,13 @@ enum ElementKind {
 };
 
 
+/// enum MeshIOType type of mesh reader/writer
+enum MeshIOType {
+  _miot_auto,
+  _miot_gmsh,
+  _miot_diana
+};
+
 /// enum AnalysisMethod type of solving method used to solve the equation of motion
 enum AnalysisMethod {
   _static,

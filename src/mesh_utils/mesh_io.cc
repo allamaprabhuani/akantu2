@@ -46,6 +46,44 @@ MeshIO::MeshIO() {
 MeshIO::~MeshIO() {
 
 }
+
 /* -------------------------------------------------------------------------- */
+MeshIO * MeshIO::getMeshIO(const std::string & filename, const MeshIOType & type) {
+  MeshIOType t = type;
+  if(type == _miot_auto) {
+    std::string::size_type idx = filename.rfind('.');
+    std::string ext;
+    if(idx != std::string::npos) {
+      ext = filename.substr(idx+1);
+    }
+
+    if(ext == "msh") t = _miot_gmsh;
+    else if(ext == "diana") t = _miot_diana;
+    else AKANTU_EXCEPTION("Cannot guess the type of file of "
+			  << filename << " (ext "<< ext <<"). "
+			  << "Please provide the MeshIOType to the read function");
+  }
+
+  switch(t) {
+  case _miot_gmsh: return new MeshIOMSH();
+  case _miot_diana: return new MeshIODiana();
+  default:
+    return NULL;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void MeshIO::read(const std::string & filename, Mesh & mesh, const MeshIOType & type) {
+  MeshIO * mesh_io = getMeshIO(filename, type);
+  mesh_io->read(filename, mesh);
+  delete mesh_io;
+}
+
+/* -------------------------------------------------------------------------- */
+void MeshIO::write(const std::string & filename, Mesh & mesh, const MeshIOType & type) {
+  MeshIO * mesh_io = getMeshIO(filename, type);
+  mesh_io->write(filename, mesh);
+  delete mesh_io;
+}
 
 __END_AKANTU__

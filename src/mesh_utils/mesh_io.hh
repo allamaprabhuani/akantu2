@@ -54,11 +54,17 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  void read(const std::string & filename, Mesh & mesh, const MeshIOType & type);
+  void write(const std::string & filename, Mesh & mesh, const MeshIOType & type);
+
   /// read a mesh from the file
-  virtual void read(const std::string & filename, Mesh & mesh) = 0;
+  virtual void read(const std::string & filename, Mesh & mesh) {};
 
   /// write a mesh to a file
-  virtual void write(const std::string & filename, const Mesh & mesh) = 0;
+  virtual void write(const std::string & filename, const Mesh & mesh) {};
+
+private:
+  MeshIO * getMeshIO(const std::string & filename, const MeshIOType & type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -83,3 +89,4 @@ __END_AKANTU__
 #endif /* __AKANTU_MESH_IO_HH__ */
 
 #include "mesh_io_msh.hh"
+#include "mesh_io_diana.hh"
