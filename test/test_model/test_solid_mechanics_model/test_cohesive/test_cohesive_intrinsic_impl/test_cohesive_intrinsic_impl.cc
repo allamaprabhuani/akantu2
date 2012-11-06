@@ -69,7 +69,8 @@ int main(int argc, char *argv[]) {
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] == 1) facet_insertion.push_back(f);
+    if (bary_facet[1] == 1){ 
+      facet_insertion.push_back(f);}
   }
   delete[] bary_facet;
 
@@ -120,7 +121,6 @@ int main(int argc, char *argv[]) {
   const Vector<Real> & opening = mat_coh.getOpening(_cohesive_2d_6);
   //const Vector<Real> & traction = mat_coh.getTraction(_cohesive_2d_6);
 
-  //model.getStiffnessMatrix().saveMatrix("K.mtx");
   model.updateResidual();
   const Vector<Real> & residual = model.getResidual();
 
@@ -145,7 +145,9 @@ int main(int argc, char *argv[]) {
     do{
       std::cout << "Iter : " << ++count << " - residual norm : " << norm << std::endl;
       model.assembleStiffnessMatrix();
-      model.getStiffnessMatrix().saveMatrix("K.mtx");
+      if ((nstep == 0)&&(count == 1))
+	model.getStiffnessMatrix().saveMatrix("stiffness_matrix.lastout");
+      
       model.solveStatic();
       model.updateResidual();
 
@@ -164,14 +166,14 @@ int main(int argc, char *argv[]) {
 
     Real analytical = exp(1) * std::abs(opening.values[3]) * exp (-std::abs(opening.values[3])/0.5)/0.5;
 
-    // the residual force is comparing with the theoretical value of the cohesive law
+    //the residual force is comparing with the theoretical value of the cohesive law
     error_tol  = std::abs((- resid - analytical)/analytical);
 
     fout << nstep << " " << -resid << " " << analytical << " " << error_tol << std::endl;
 
     if (error_tol > 1e-4)
       return EXIT_FAILURE;
-   }
+  }
 
   fout.close();
 

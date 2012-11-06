@@ -52,20 +52,13 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 
   this->model = dynamic_cast<SolidMechanicsModelCohesive*>(&model);
 
-  initInternalVector(reversible_energy,                 1, false, _ek_cohesive);
-  initInternalVector(     total_energy,                 1, false, _ek_cohesive);
-  initInternalVector(    tractions_old, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(        tractions, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(      opening_old, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(          opening, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(        delta_max,                 1, false, _ek_cohesive);
-  initInternalVector(           damage,                 1, false, _ek_cohesive);
 
-  this->registerParam("sigma_c", sigma_c, 0. , _pat_parsable, "Critical stress");
-  this->registerParam("rand_factor", rand, 0. , _pat_parsable, "Randomness factor");
+  this->registerParam("sigma_c",      sigma_c,      0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Critical stress");
+  this->registerParam("rand_factor",  rand,         0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Randomness factor");
   this->registerParam("distribution", distribution, std::string("uniform"),  _pat_parsable, "Distribution type");
-  this->registerParam("lambda", lambda, 0. , _pat_parsable, "Weibull modulus");
-  this->registerParam("m", m_scale, 1. , _pat_parsable, "Scale parameter");
+  this->registerParam("lambda",       lambda,       0. ,                     _pat_parsable, "Weibull modulus");
+  this->registerParam("m",            m_scale,      1. ,                     _pat_parsable, "Scale parameter");
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -83,6 +76,7 @@ void MaterialCohesive::initMaterial() {
 
   Material::initMaterial();
 
+
   fem_cohesive = &(model->getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
 
   Mesh & mesh = fem_cohesive->getMesh();
@@ -99,21 +93,29 @@ void MaterialCohesive::initMaterial() {
     }
   }
 
+  initInternalVector(reversible_energy,                 1, false, _ek_cohesive);
+  initInternalVector(     total_energy,                 1, false, _ek_cohesive);
+  initInternalVector(    tractions_old, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(        tractions, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(      opening_old, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(          opening, spatial_dimension, false, _ek_cohesive);
+  initInternalVector(        delta_max,                 1, false, _ek_cohesive);
+  initInternalVector(           damage,                 1, false, _ek_cohesive);
+ 
   resizeCohesiveVectors();
-
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::resizeCohesiveVectors() {
   resizeInternalVector(reversible_energy, _ek_cohesive);
-  resizeInternalVector(total_energy, _ek_cohesive);
-  resizeInternalVector(tractions_old, _ek_cohesive);
-  resizeInternalVector(tractions, _ek_cohesive);
-  resizeInternalVector(opening_old, _ek_cohesive);
-  resizeInternalVector(opening, _ek_cohesive);
-  resizeInternalVector(delta_max, _ek_cohesive);
-  resizeInternalVector(damage, _ek_cohesive);
+  resizeInternalVector(total_energy     , _ek_cohesive);
+  resizeInternalVector(tractions_old    , _ek_cohesive);
+  resizeInternalVector(tractions        , _ek_cohesive);
+  resizeInternalVector(opening_old      , _ek_cohesive);
+  resizeInternalVector(opening          , _ek_cohesive);
+  resizeInternalVector(delta_max        , _ek_cohesive);
+  resizeInternalVector(damage           , _ek_cohesive);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -345,7 +347,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
       shapes.begin_reinterpret(size_of_shapes, nb_quadrature_points,
 			       mesh.getNbElement(*it, ghost_type));
 
-    for (UInt el = 0; el < nb_element; ++el) {
+    for (UInt el = 0; el < nb_element; ++el, ++shapes_filtered_it) {
       *shapes_filtered_it = shapes_it[elem_filter_it[el]];
     }
 
@@ -366,7 +368,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     types::RMatrix A(spatial_dimension*size_of_shapes, spatial_dimension*nb_nodes_per_element);
 
     for ( UInt i = 0; i < spatial_dimension*size_of_shapes; ++i) {
-      A(i, i);
+      A(i, i) = 1;
       A(i, i + spatial_dimension*size_of_shapes) = -1;
     }
 
@@ -378,16 +380,17 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
       new Vector<Real>(nb_element*nb_quadrature_points, spatial_dimension*
 		       spatial_dimension, "tangent_stiffness_matrix");
 
-    Vector<Real> * normal = new Vector<Real>(nb_element * nb_quadrature_points,
-					     spatial_dimension,
-					     "normal");
-    computeNormal(model->getDisplacement(), *normal, *it, ghost_type);
+    //    Vector<Real> * normal = new Vector<Real>(nb_element * nb_quadrature_points, spatial_dimension, "normal");
+    Vector<Real> normal( nb_quadrature_points, spatial_dimension, "normal");
+
+
+    computeNormal(model->getCurrentPosition(), normal, *it, ghost_type);
 
     tangent_stiffness_matrix->clear();
 
-    computeTangentTraction(*it, *tangent_stiffness_matrix, *normal, ghost_type);
+    computeTangentTraction(*it, *tangent_stiffness_matrix, normal, ghost_type);
 
-    delete normal;
+    // delete normal;
 
     UInt size_at_nt_d_n_a = spatial_dimension*nb_nodes_per_element*spatial_dimension*nb_nodes_per_element;
     Vector<Real> * at_nt_d_n_a = new Vector<Real> (nb_element*nb_quadrature_points,
@@ -418,7 +421,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
        **/
       for (UInt i = 0; i < spatial_dimension ; ++i)
 	for (UInt n = 0; n < size_of_shapes; ++n)
-	  N(i, i + n) = shapes_fil(n);
+	  N(i, i + spatial_dimension * n) = shapes_fil(n);
 
       /**
        * compute stiffness matrix  @f$   \mathbf{K}    =    \delta    \mathbf{U}^T
@@ -428,7 +431,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
       N_A.mul<false, false>(N, A);
       D_N_A.mul<false, false>(D, N_A);
       At_Nt_D_N_A.mul<true, false>(N_A, D_N_A);
-    }
+        }
 
     delete tangent_stiffness_matrix;
     delete shapes_filtered;

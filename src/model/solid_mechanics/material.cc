@@ -469,11 +469,10 @@ void Material::computeAllStressesFromTangentModuli(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::computeAllStressesFromTangentModuli(const ElementType & type,
-                                                   GhostType ghost_type) {
+						   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type, ghost_type);
@@ -521,7 +520,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
     UInt el = *elem_filter_val;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       for (UInt s = 0; s < spatial_dimension; ++s, ++filtered_u_it) {
-        *filtered_u_it = u(connectivity(el,n), s);
+	*filtered_u_it = u(connectivity(el,n), s);
       }
     }
 
@@ -533,9 +532,9 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
 
   Vector<Real>::iterator<types::RMatrix> D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
-                                                                               tangent_moduli_size);
+									       tangent_moduli_size);
   Vector<Real>::iterator<types::RMatrix> sigma_it  = stress(type, ghost_type).begin(spatial_dimension,
-                                                                                    spatial_dimension);
+										    spatial_dimension);
   Vector<Real>::iterator<types::RVector> u_it = filtered_u.begin(spatial_dimension * nb_nodes_per_element);
 
   types::RMatrix B(tangent_moduli_size, spatial_dimension * nb_nodes_per_element);
@@ -614,26 +613,26 @@ void Material::computePotentialEnergyByElement() {
 void Material::computePotentialEnergyByElement(ElementType type, UInt index,
 					       types::RVector & epot_on_quad_points){
 
-  Vector<Real>::iterator<types::RMatrix> strain_it =			
-    this->strain(type).begin(spatial_dimension,		
-			     spatial_dimension);		
-  Vector<Real>::iterator<types::RMatrix> strain_end =			
-    this->strain(type).begin(spatial_dimension,		
-			     spatial_dimension);		
-  Vector<Real>::iterator<types::RMatrix> stress_it =			
-    this->stress(type).begin(spatial_dimension,		
-			     spatial_dimension);		
-  
+  Vector<Real>::iterator<types::RMatrix> strain_it =
+    this->strain(type).begin(spatial_dimension,
+			     spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> strain_end =
+    this->strain(type).begin(spatial_dimension,
+			     spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> stress_it =
+    this->stress(type).begin(spatial_dimension,
+			     spatial_dimension);
+
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
 
   strain_it  += index*nb_quadrature_points;
   strain_end += (index+1)*nb_quadrature_points;
   stress_it  += index*nb_quadrature_points;
-  
+
   Real * epot_quad = epot_on_quad_points.storage();
 
-  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++ epot_quad) {		
-    types::RMatrix & __attribute__((unused)) grad_u = *strain_it;	
+  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++ epot_quad) {
+    types::RMatrix & __attribute__((unused)) grad_u = *strain_it;
     types::RMatrix & __attribute__((unused)) sigma  = *stress_it;
     computePotentialEnergyOnQuad(grad_u,sigma,*epot_quad);
   }
@@ -666,7 +665,7 @@ Real Material::getPotentialEnergy(ElementType & type, UInt index) {
   Real epot = 0.;
 
   types::RVector epot_on_quad_points(model->getFEM().getNbQuadraturePoints(type));
- 
+
   computePotentialEnergyByElement(type,index,epot_on_quad_points);
 
   epot = model->getFEM().integrate(epot_on_quad_points, type, element_filter(type)(index));

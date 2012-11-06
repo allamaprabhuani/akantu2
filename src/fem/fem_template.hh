@@ -65,7 +65,6 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
   /* ------------------------------------------------------------------------ */
-
   /// integrate f for all elements of type "type"
   void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
@@ -117,7 +116,7 @@ public:
   /* Shape method bridges                                                     */
   /* ------------------------------------------------------------------------ */
 
-
+  /// compute the gradient of a nodal field on the quadrature points
   void gradientOnQuadraturePoints(const Vector<Real> &u,
 				  Vector<Real> &nablauq,
 				  const UInt nb_degree_of_freedom,
@@ -125,6 +124,7 @@ public:
 				  const GhostType & ghost_type = _not_ghost,
 				  const Vector<UInt> * filter_elements = NULL) const;
 
+  /// interpolate a nodal field on the quadrature points
   void interpolateOnQuadraturePoints(const Vector<Real> &u,
 				     Vector<Real> &uq,
 				     UInt nb_degree_of_freedom,

@@ -52,12 +52,29 @@ public:
 
   virtual ~MeshPartition();
 
+  class EdgeLoadFunctor {
+  public:
+    virtual inline Int operator()(__attribute__((unused)) const Element & el1,
+				  __attribute__((unused)) const Element & el2) const = 0;
+  };
+
+  class ConstEdgeLoadFunctor : public EdgeLoadFunctor {
+  public:
+    virtual inline Int operator()(__attribute__((unused)) const Element & el1,
+				  __attribute__((unused)) const Element & el2) const {
+      return 1;
+    }
+  };
+
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void partitionate(UInt nb_part) = 0;
+  virtual void partitionate(UInt nb_part,
+			    const EdgeLoadFunctor & edge_load_func = ConstEdgeLoadFunctor(),
+			    const Vector<UInt> & pairs = Vector<UInt>()) = 0;
 
   virtual void reorder() = 0;
 
@@ -70,7 +87,11 @@ public:
 protected:
 
   /// build the dual graph of the mesh, for all element of spatial_dimension
-  void buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy);
+  void buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
+		      Vector<Int> & edge_loads,
+		      const EdgeLoadFunctor & edge_load_func,
+		      const Vector<UInt> & pairs);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -81,7 +81,7 @@ ContactRigid::ContactRigid(const SolidMechanicsModel & model,
 			   const ContactType & type,
 			   const ContactID & id,
 			   const MemoryID & memory_id) :
-  Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()), prakash(false), ref_velocity(0.), characterstic_length(0.) {
+  Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()), prakash(false), ref_velocity(0.), characterstic_length(0.), dedontney(false), t_star(0.) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -602,6 +602,17 @@ void ContactRigid::frictionPredictor() {
 	v_L_term = sqrt(v_L_term);
 	v_L_term += this->ref_velocity;
 	v_L_term /= this->characterstic_length;
+
+	Real delta_t = this->model.getTimeStep();
+	
+	// compute friction resistance
+	friction_force *= v_L_term;
+	friction_force += friction_resistances_val[n]/delta_t;
+	friction_force /= (1/delta_t + v_L_term);
+      }
+      else if (this->dedontney) {
+	// compute 1/t*
+	Real v_L_term = 1/ this->t_star;
 
 	Real delta_t = this->model.getTimeStep();
 	
@@ -1170,6 +1181,13 @@ void ContactRigid::setSimplifiedPrakashCliftonFriction(Real v_star, Real length)
 /* -------------------------------------------------------------------------- */
 void ContactRigid::unsetSimplifiedPrakashCliftonFriction() {
   this->prakash = false;
+  this->dedontney = false;
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactRigid::setSimplifiedPrakashCliftonFriction(Real t_star) {
+  this->dedontney = true;
+  this->t_star = t_star;
 }
 
 /* -------------------------------------------------------------------------- */

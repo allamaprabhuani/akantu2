@@ -450,10 +450,14 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     ElementType type = *it;
     const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
+    const Vector<UInt> & data_tag_0 = mesh.getUIntData(type, "tag_0", _not_ghost);
+    const Vector<UInt> & data_tag_1 = mesh.getUIntData(type, "tag_1", _not_ghost);
 
     for(UInt i = 0; i < connectivity.getSize(); ++i) {
       UInt offset = i * connectivity.getNbComponent();
-      outfile << element_idx << " " << _akantu_to_msh_element_types[type] << " 3 1 1 0"; /// \todo write the real data in the file
+      outfile << element_idx << " " << _akantu_to_msh_element_types[type] 
+	      << " 3 " << data_tag_0(i) << " " << data_tag_1(i) 
+	      << " 0"; /// \todo write the real data in the file
 
       for(UInt j = 0; j < connectivity.getNbComponent(); ++j) {
 	outfile << " " << connectivity.values[offset + j] + 1;

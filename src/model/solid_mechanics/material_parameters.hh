@@ -48,6 +48,12 @@ enum ParamAccessType {
   _pat_parsmod    = 0x1110
 };
 
+
+ParamAccessType opertator|(const ParamAccessType & a, const ParamAccessType & b) {
+  ParamAccessType tmp = ParamAccessType(a | b);
+  return tmp;
+}
+
 template<typename T> class MaterialParamTyped;
 /* -------------------------------------------------------------------------- */
 

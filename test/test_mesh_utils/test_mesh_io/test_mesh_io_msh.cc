@@ -47,6 +47,8 @@ int main(int argc, char *argv[]) {
 
   std::cout << mesh << std::endl;
 
+  mesh_io.write("./cube.out", mesh);
+
   akantu::finalize();
   return EXIT_SUCCESS;
 }

@@ -94,8 +94,8 @@ template<UInt spatial_dimension>
 void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors() {
   MaterialCohesive::resizeCohesiveVectors();
 
-  resizeInternalVector(sigma_c_eff, _ek_cohesive);
-  resizeInternalVector(delta_c, _ek_cohesive);
+   resizeInternalVector(sigma_c_eff, _ek_cohesive);
+   resizeInternalVector(delta_c, _ek_cohesive);
 
   FEM & fem_cohesive = model->getFEM("CohesiveFEM");
   const Mesh & mesh = fem_cohesive.getMesh();

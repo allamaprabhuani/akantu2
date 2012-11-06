@@ -282,10 +282,10 @@ public:
 						    UInt n_nodes);
 
   /// convert a element to a linearized element
-  inline UInt elementToLinearized(const Element & elem);
+  inline UInt elementToLinearized(const Element & elem) const;
 
   /// convert a linearized element to an element
-  inline Element linearizedToElement (UInt linearized_element);
+  inline Element linearizedToElement (UInt linearized_element) const;
 
   /// update the types offsets array for the conversions
   inline void updateTypesOffsets(const GhostType & ghost_type);
