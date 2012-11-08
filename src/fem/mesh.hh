@@ -242,7 +242,11 @@ public:
   /// @typedef ConnectivityTypeList list of the types present in a Mesh
   typedef std::set<ElementType> ConnectivityTypeList;
 
-  //  typedef Vector<Real> * NormalsMap[_max_element_type];
+  /// read the mesh from a file
+  void read (const std::string & filename, const MeshIOType & mesh_io_type = _miot_auto);
+  /// write the mesh to a file
+  void write(const std::string & filename, const MeshIOType & mesh_io_type = _miot_auto);
+
 
 private:
   /// initialize the connectivity to NULL and other stuff
@@ -447,7 +451,6 @@ public:
 				ElementKind kind = _ek_regular) const {
     return connectivities.lastType(dim, ghost_type, kind);
   }
-
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */

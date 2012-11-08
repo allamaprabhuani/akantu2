@@ -34,6 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh.hh"
+#include "mesh_io.hh"
 #include "element_class.hh"
 #include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
@@ -170,6 +171,18 @@ Mesh::~Mesh() {
   }
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Mesh::read (const std::string & filename, const MeshIOType & mesh_io_type) {
+  MeshIO mesh_io;
+  mesh_io.read(filename, *this, mesh_io_type);
+}
+
+/* -------------------------------------------------------------------------- */
+void Mesh::write(const std::string & filename, const MeshIOType & mesh_io_type) {
+  MeshIO mesh_io;
+  mesh_io.write(filename, *this, mesh_io_type);
 }
 
 /* -------------------------------------------------------------------------- */

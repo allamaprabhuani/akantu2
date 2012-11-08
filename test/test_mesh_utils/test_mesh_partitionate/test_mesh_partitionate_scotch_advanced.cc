@@ -114,15 +114,14 @@ protected:
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
-  akantu::debug::setDebugLevel(akantu::dblDump);
+  //  akantu::debug::setDebugLevel(akantu::dblDump);
   akantu::debug::setDebugLevel(akantu::dblWarning);
 
   int dim = 2;
-  akantu::MeshIOMSH mesh_io;
 
   /* ---------- check if node pairs are considered with mesh_L --------- */
   akantu::Mesh mesh_l(dim);
-  mesh_io.read("squares_L.msh", mesh_l);
+  mesh_l.read("squares_L.msh");
 
   // get interface node pairs
   akantu::Vector<akantu::UInt> pairs_l(0,2);
@@ -201,7 +200,7 @@ int main(int argc, char *argv[])
 
   /* ---------- check if node pairs and functor are considered with mesh_H --------- */  
   akantu::Mesh mesh_h(dim,"mesh_h",1);
-  mesh_io.read("squares_H.msh", mesh_h);
+  mesh_h.read("squares_H.msh");
   akantu::Vector<akantu::UInt> pairs_h(0,2);
   getInterfaceNodePairs(mesh_h,pairs_h);
   
@@ -284,17 +283,17 @@ void dumpParaview(akantu::Mesh & mesh, std::string name,
   unsigned int nb_element = mesh.getNbElement(type);
 
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(mesh.getNodes().values, mesh.getSpatialDimension(), 
+  dumper.setMode(iohelper::TEXT);
+  dumper.setPoints(mesh.getNodes().values, mesh.getSpatialDimension(), 
 		   nb_nodes, name);
-  dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
+  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
    			 iohelper::QUAD1, nb_element, iohelper::C_MODE);
 
-  dumper.AddElemDataField(part_1, 1, "partition_1");
-  dumper.AddElemDataField(part_2, 1, "partition_2");
-  dumper.SetPrefix("paraview");
-  dumper.Init();
-  dumper.Dump();
+  dumper.addElemDataField("partition_1", part_1, 1, nb_element);
+  dumper.addElemDataField("partition_2", part_2, 1, nb_element);
+  dumper.setPrefix("paraview");
+  dumper.init();
+  dumper.dump();
 }
 
 /* -------------------------------------------------------------------------- */

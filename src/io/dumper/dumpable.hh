@@ -65,9 +65,30 @@ public:
 
   virtual void addDumpField(const std::string & field_id) = 0;
 
-  virtual void addDumpFieldExternal(const std::string & field_id, DumperIOHelper::Field * field) {
+  virtual void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
+				    __attribute__((unused)) DumperIOHelper::Field * field) {
     dumper.registerField(field_id, field);
   }
+
+  template<typename T>
+  void addDumpFieldExternal(const std::string & field_id, const Vector<T> & field) {
+    DumperIOHelper::Field * field_cont = new DumperIOHelper::NodalField<T>(field);
+    dumper.registerField(field_id, field_cont);
+  }
+
+  template<typename T>
+  void addDumpFieldExternal(const std::string & field_id,
+			    const ByElementTypeVector<T> & field,
+			    UInt spatial_dimension = 0,
+			    const GhostType & ghost_type = _not_ghost,
+			    const ElementKind & element_kind = _ek_not_defined) {
+    DumperIOHelper::Field * field_cont = new DumperIOHelper::ElementalField<T>(field,
+									       spatial_dimension,
+									       ghost_type,
+									       element_kind);
+    dumper.registerField(field_id, field_cont);
+  }
+
 
   void removeDumpField(const std::string & field_id) {
     dumper.unRegisterField(field_id);
@@ -133,31 +154,58 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = 0,
-		   const GhostType & ghost_type = _not_ghost,
-		   const ElementKind & element_kind = _ek_not_defined) {
+  void addDumpMesh(__attribute__((unused)) const Mesh & mesh,
+		   __attribute__((unused)) UInt spatial_dimension = 0,
+		   __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
+		   __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
   }
 
-  virtual void addDumpField(const std::string & field_id) = 0;
-  virtual void addDumpFieldExternal(const std::string & field_id, DumperIOHelper::Field * field) {
-    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
-  }
-  virtual void addDumpFieldVector(const std::string & field_id) {};
-  virtual void addDumpFieldTensor(const std::string & field_id) {};
-  void removeDumpField(const std::string & field_id) {
+  virtual void addDumpField(__attribute__((unused)) const std::string & field_id) = 0;
+  virtual void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
+				    __attribute__((unused)) DumperIOHelper::Field * field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
-  void setDirectory(const std::string & directory) {
+  template<typename T>
+  void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
+			    __attribute__((unused)) const Vector<T> & field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
-  void setBaseName(const std::string & basename) {
+  template<typename T>
+  void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
+			    __attribute__((unused)) const ByElementTypeVector<T> & field,
+			    __attribute__((unused)) UInt spatial_dimension = 0,
+			    __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
+			    __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
+
+  virtual void addDumpFieldVector(__attribute__((unused)) const std::string & field_id) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  };
+  virtual void addDumpFieldTensor(__attribute__((unused)) const std::string & field_id) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  };
+  void removeDumpField(__attribute__((unused)) const std::string & field_id) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
+
+  void setDirectory(__attribute__((unused)) const std::string & directory) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
+
+  void setBaseName(__attribute__((unused)) const std::string & basename) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
+
+  void dump() {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
 protected:
-  void addDumpFieldToDumper(const std::string & field_id, DumperIOHelper::Field & field) {
+  void addDumpFieldToDumper(__attribute__((unused)) const std::string & field_id,
+			    __attribute__((unused)) DumperIOHelper::Field & field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 

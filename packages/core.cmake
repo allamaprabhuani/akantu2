@@ -122,7 +122,6 @@ set(AKANTU_CORE_FILES
   model/model.hh
   model/parser.hh
   model/parser_tmpl.hh
-  model/structural_mechanics/structural_mechanics_model.hh
   model/integration_scheme/integration_scheme_2nd_order.hh
   model/integration_scheme/generalized_trapezoidal.hh
   model/integration_scheme/newmark-beta.hh
