@@ -90,7 +90,10 @@ list(APPEND AKANTU_OPTION_LIST ${_option})
 set(AKANTU_USE_${_option} ${AKANTU_${_option}})")
   if(${_pkg_name}_LIBRARIES)
     file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
-set(${_pkg_name}_LIBRARIES ${${_pkg_name}_LIBRARIES})
+set(${_pkg_name}_LIBRARIES ${${_pkg_name}_LIBRARIES})")
+  endif()
+  if(${_pkg_name}_INCLUDE_DIR)
+    file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
 set(${_pkg_name}_INCLUDE_DIR ${${_pkg_name}_INCLUDE_DIR})
 ")
   endif()
