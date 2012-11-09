@@ -36,10 +36,12 @@ template<UInt spatial_dimension>
 inline void
 MaterialElasticOrthotropic<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
 								   types::RMatrix & sigma) {
+
+  sigma.clear();
   /// \mathbf{\sigma} = \mathbf{S} \mathbf{F}
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
-      sigma(i,i) = (*S)(i,j) * grad_u(i,i);
+      sigma(i,i) += (*S)(i,j) * grad_u(i,i);
 
   if(spatial_dimension == 2)
     sigma(0,1) = sigma(1,0) = (*S)(2,2) * (grad_u(0,1) + grad_u(1,0)) / 2;
