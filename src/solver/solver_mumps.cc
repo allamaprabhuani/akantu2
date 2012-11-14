@@ -149,7 +149,7 @@ void SolverMumps::onCommunicatorFinalize(const StaticCommunicator & comm) {
   } catch(...) {}
 
   AKANTU_DEBUG_OUT();
-};
+}
 
 /* -------------------------------------------------------------------------- */
 void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_method) {

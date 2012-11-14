@@ -32,7 +32,7 @@ template< typename T, template<typename> class return_type>
 class DumperIOHelper::NodalField : public Field {
 public:
   /* -----------------------------------------------------------------------*/
-  class iterator : iohelper::iterator< T, iterator, return_type<T> > {
+  class iterator : public iohelper::iterator< T, iterator, return_type<T> > {
   protected:
     typedef typename Vector<T>::template const_iterator< return_type<T> > internal_iterator;
   public:
@@ -75,13 +75,13 @@ private:
 
 
 template<>
-inline typename DumperIOHelper::NodalField<Real, types::Matrix>::iterator
+inline DumperIOHelper::NodalField<Real, types::Matrix>::iterator
 DumperIOHelper::NodalField<Real, types::Matrix>::begin() {
   return iterator(field.begin(n, m));
 }
 
 template<>
-inline typename DumperIOHelper::NodalField<Real, types::Matrix>::iterator
+inline DumperIOHelper::NodalField<Real, types::Matrix>::iterator
 DumperIOHelper::NodalField<Real, types::Matrix>::end() {
   return iterator(field.end(n, m));
 }

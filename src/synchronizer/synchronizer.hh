@@ -87,7 +87,8 @@ public:
       return t;
     }
 
-    virtual void printself(std::ostream & stream, int indent = 0) const {
+    virtual void printself(std::ostream & stream,
+			   __attribute__((unused)) int indent = 0) const {
       stream << (tag >> 12) << ":" << (tag >> 4 & 0xFF) << ":" << (tag & 0xF);
     }
 

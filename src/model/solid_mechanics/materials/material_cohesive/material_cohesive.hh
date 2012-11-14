@@ -153,6 +153,13 @@ public:
   /// get energy
   virtual Real getEnergy(std::string type);
 
+
+  /// return the energy (identified by id) for the provided element
+  virtual Real getEnergy(std::string energy_id, ElementType type, UInt index) {
+    return Material::getEnergy(energy_id, type, index);
+  }
+
+
   /// get damage
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 

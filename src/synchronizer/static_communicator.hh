@@ -71,7 +71,7 @@ struct FinalizeCommunicatorEvent {
 class CommunicatorEventHandler {
 public:
   virtual ~CommunicatorEventHandler() {}
-  virtual void onCommunicatorFinalize(const StaticCommunicator & communicator) { };
+  virtual void onCommunicatorFinalize(__attribute__((unused)) const StaticCommunicator & communicator) { }
 protected:
   inline void sendEvent(const FinalizeCommunicatorEvent & event) { onCommunicatorFinalize(event.communicator); }
 

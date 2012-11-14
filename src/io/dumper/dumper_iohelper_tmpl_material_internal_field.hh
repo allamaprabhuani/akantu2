@@ -34,7 +34,10 @@ class DumperIOHelper::MaterialPaddingHelper : public PaddingHelper<T, R> {
 public:
   MaterialPaddingHelper(const SolidMechanicsModel & model) : model(model) { }
 
-  inline R<T> pad(const R<T> & in, UInt padding_m, UInt padding_n, UInt nb_data, UInt material_id) {
+  inline R<T> pad(const R<T> & in,
+		  UInt padding_m, UInt padding_n,
+		  UInt nb_data,
+		  __attribute__((unused)) UInt material_id) {
     return PaddingHelper<T, R>::pad(in, padding_m, padding_n, nb_data);
   }
 
@@ -202,7 +205,7 @@ public:
   void setFieldID(const std::string & field_id) { this->field_id = field_id; }
 
 protected:
-  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
+  virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 protected:
   UInt out_n;
   const SolidMechanicsModel * model;
@@ -217,8 +220,9 @@ class DumperIOHelper::internal_material_field_iterator :
 						  MaterialPaddingHelper,
 						  internal_material_field_iterator> {
 public:
-  typedef generic_internal_material_field_iterator<T, ret_type, MaterialPaddingHelper,
-						   internal_material_field_iterator> parent;
+  typedef generic_internal_material_field_iterator<T, ret_type,
+						   MaterialPaddingHelper,
+						   DumperIOHelper::internal_material_field_iterator> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -244,7 +248,7 @@ class DumperIOHelper::material_stress_field_iterator :
 						  material_stress_field_iterator> {
 public:
   typedef generic_internal_material_field_iterator<T, ret_type, StressPaddingHelper,
-						   material_stress_field_iterator> parent;
+						   DumperIOHelper::material_stress_field_iterator> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -270,7 +274,7 @@ class DumperIOHelper::material_strain_field_iterator :
 						  material_strain_field_iterator> {
 public:
   typedef generic_internal_material_field_iterator<T, ret_type, StrainPaddingHelper,
-						   material_strain_field_iterator> parent;
+						   DumperIOHelper::material_strain_field_iterator> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -361,7 +365,7 @@ protected:
     if(!found) AKANTU_DEBUG_ERROR("The field " << field_id << " does not exists in any materials");
   }
 
-  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
+  virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 
 protected:
   const SolidMechanicsModel & model;

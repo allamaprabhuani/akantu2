@@ -36,8 +36,8 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<typename i_type, typename d_type,
 	 template<typename> class ret_type, class daughter>
-class DumperIOHelper::element_iterator : iohelper::iterator< d_type, daughter,
-							     ret_type<d_type> > {
+class DumperIOHelper::element_iterator : public iohelper::iterator< d_type, daughter,
+								    ret_type<d_type> > {
 public:
   typedef i_type              it_type;
   typedef d_type              data_type;
@@ -104,7 +104,7 @@ public:
   void setItSize(UInt n, UInt m) { itn = n; itm = m; }
 
 protected:
-  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
+  virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 
 protected:
   const field_type & field;
@@ -155,16 +155,16 @@ public:
   typedef element_iterator<UInt, iohelper::ElemType,
 			   types::Vector, element_type_field_iterator> parent;
 
-  typedef typename parent::it_type     it_type;
-  typedef typename parent::data_type   data_type;
-  typedef typename parent::return_type return_type;
-  typedef typename parent::field_type  field_type;
-  typedef typename parent::internal_iterator internal_iterator;
+  typedef parent::it_type     it_type;
+  typedef parent::data_type   data_type;
+  typedef parent::return_type return_type;
+  typedef parent::field_type  field_type;
+  typedef parent::internal_iterator internal_iterator;
 public:
   element_type_field_iterator(const field_type & field,
-			      UInt n,
-			      const typename field_type::type_iterator & t_it,
-			      const typename field_type::type_iterator & t_it_end,
+			      __attribute__((unused)) UInt n,
+			      const field_type::type_iterator & t_it,
+			      const field_type::type_iterator & t_it_end,
 			      const internal_iterator & it,
 			      ElementType element_type,
 			      const GhostType ghost_type = _not_ghost) :
@@ -185,16 +185,16 @@ public:
   typedef element_iterator<UInt, UInt,
 			   types::Vector, element_partition_field_iterator> parent;
 
-  typedef typename parent::it_type     it_type;
-  typedef typename parent::data_type   data_type;
-  typedef typename parent::return_type return_type;
-  typedef typename parent::field_type  field_type;
-  typedef typename parent::internal_iterator internal_iterator;
+  typedef parent::it_type     it_type;
+  typedef parent::data_type   data_type;
+  typedef parent::return_type return_type;
+  typedef parent::field_type  field_type;
+  typedef parent::internal_iterator internal_iterator;
 public:
   element_partition_field_iterator(const field_type & field,
 				   UInt n,
-				   const typename field_type::type_iterator & t_it,
-				   const typename field_type::type_iterator & t_it_end,
+				   const field_type::type_iterator & t_it,
+				   const field_type::type_iterator & t_it_end,
 				   const internal_iterator & it,
 				   ElementType element_type,
 				   const GhostType ghost_type = _not_ghost) :
@@ -291,7 +291,7 @@ public:
   UInt size() { return nb_total_element; }
 
 protected:
-  virtual UInt getNbDataPerElem(const ElementType & type) { return 1; }
+  virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 
   virtual bool checkHomogeneity(const ByElementTypeVector<T> & field_to_check,
 				UInt & nb_comp, UInt & nb_elem) {

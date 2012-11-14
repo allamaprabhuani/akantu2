@@ -102,7 +102,7 @@ template <ElementType type>
 iohelper::ElemType DumperIOHelper::getIOHelperType() {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return iohelper::MAX_ELEM_TYPE;
-};
+}
 
 template <>
 iohelper::ElemType DumperIOHelper::getIOHelperType<_segment_2>() { return iohelper::LINE1; }

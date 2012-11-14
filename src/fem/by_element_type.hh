@@ -84,7 +84,7 @@ public:
     type_iterator(const type_iterator & it);
 
     inline reference operator*();
-    inline const reference operator*() const;
+    inline reference operator*() const;
     inline type_iterator & operator++();
     type_iterator operator++(int);
     inline bool operator==(const type_iterator & other) const;

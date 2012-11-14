@@ -1310,7 +1310,7 @@ void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
   }
 #undef ADD_FIELD
 #endif
-};
+}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
@@ -1359,7 +1359,7 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
     addDumpFieldToDumper(field_id, field);
   }
 #endif
-};
+}
 
 
 /* -------------------------------------------------------------------------- */

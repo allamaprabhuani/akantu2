@@ -487,9 +487,9 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
 
   strain_vect.resize(nb_quadrature_points * nb_element);
 
-  Vector<Real> & u = model->getDisplacement();
+  Vector<Real> & disp = model->getDisplacement();
 
-  model->getFEM().gradientOnQuadraturePoints(u, strain_vect,
+  model->getFEM().gradientOnQuadraturePoints(disp, strain_vect,
 					     dim, type, ghost_type, &elem_filter);
 
   UInt tangent_moduli_size = getTangentStiffnessVoigtSize(dim);
@@ -520,7 +520,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
     UInt el = *elem_filter_val;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       for (UInt s = 0; s < spatial_dimension; ++s, ++filtered_u_it) {
-	*filtered_u_it = u(connectivity(el,n), s);
+	*filtered_u_it = disp(connectivity(el,n), s);
       }
     }
 

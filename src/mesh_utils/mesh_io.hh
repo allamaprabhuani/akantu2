@@ -58,10 +58,16 @@ public:
   void write(const std::string & filename, Mesh & mesh, const MeshIOType & type);
 
   /// read a mesh from the file
-  virtual void read(const std::string & filename, Mesh & mesh) {};
+  virtual void read(__attribute__((unused)) const std::string & filename,
+		    __attribute__((unused)) Mesh & mesh) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
 
   /// write a mesh to a file
-  virtual void write(const std::string & filename, const Mesh & mesh) {};
+  virtual void write(__attribute__((unused)) const std::string & filename,
+		     __attribute__((unused)) const Mesh & mesh) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
 
 private:
   MeshIO * getMeshIO(const std::string & filename, const MeshIOType & type);

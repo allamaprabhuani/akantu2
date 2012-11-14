@@ -117,6 +117,7 @@ extern const Element ElementNull;
 template<class Entity>
 class MeshEvent {
 public:
+  virtual ~MeshEvent() {}
   const Vector<Entity> & getList() const { return list; }
   Vector<Entity> & getList() { return list; }
 protected:

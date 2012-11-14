@@ -84,9 +84,11 @@ public:
 		 const Vector<UInt> * filter_elements) const;
 
   template <ElementType type>
-  Real integrate(const types::RVector & in_f,
-		 UInt index,
-		 const GhostType & ghost_type) const{AKANTU_DEBUG_TO_IMPLEMENT();};
+  Real integrate(__attribute__((unused)) const types::RVector & in_f,
+		 __attribute__((unused)) UInt index,
+		 __attribute__((unused)) const GhostType & ghost_type) const {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
