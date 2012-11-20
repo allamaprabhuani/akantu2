@@ -37,8 +37,8 @@
 #define __AKANTU_MATERIAL_DAMAGE_HH__
 
 __BEGIN_AKANTU__
-template<UInt spatial_dimension>
-class MaterialDamage : public MaterialElastic<spatial_dimension> {
+template<UInt spatial_dimension, template<UInt> class Parent = MaterialElastic>
+class MaterialDamage : public Parent<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
