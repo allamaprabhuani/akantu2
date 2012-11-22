@@ -343,6 +343,10 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
   /// copy the forces in residual for boundary conditions
   memcpy(residual->values, force->values, nb_nodes*spatial_dimension*sizeof(Real));
 
+  // start synchronization
+  synch_registry->asynchronousSynchronize(_gst_smm_uv);
+  synch_registry->waitEndSynchronize(_gst_smm_uv);
+
   updateCurrentPosition();
 
   AKANTU_DEBUG_OUT();
@@ -370,10 +374,6 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   if (need_initialize) initializeUpdateResidualData();
 
   if (method == _explicit_dynamic) {
-    // f -= fint
-    // start synchronization
-    synch_registry->asynchronousSynchronize(_gst_smm_uv);
-    synch_registry->waitEndSynchronize(_gst_smm_uv);
 
     // communicate the displacement
     // synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
