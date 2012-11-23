@@ -45,7 +45,6 @@ set(AKANTU_CORE_FILES
   fem/mesh.cc
   fem/fem.cc
   fem/element_class.cc
-  fem/fem_template.cc
   io/dumper/dumpable.hh
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc

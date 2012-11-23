@@ -49,8 +49,8 @@ void DumperIOHelper::dump() {
 
   try {
     dumper->dump(filename_sstr.str());
-  } catch (...) {
-    AKANTU_DEBUG_ERROR("I was not able to dump your data with a Dumper");
+  } catch (iohelper::IOHelperException & e) {
+    AKANTU_DEBUG_ERROR("I was not able to dump your data with a Dumper: " << e.what());
   }
 
   ++count;

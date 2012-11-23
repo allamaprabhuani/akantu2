@@ -61,8 +61,7 @@ int main(int argc, char *argv[]) {
   const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("mesh.msh", mesh);
+  mesh.read("mesh.msh");
 
   SolidMechanicsModelCohesive model(mesh);
 
@@ -124,34 +123,14 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
-  // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
-
-  // /// initialize the paraview output
-  // iohelper::DumperParaview dumper;
-  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  // 		   spatial_dimension, nb_nodes, "explicit");
-  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getDisplacement().values,
-  // 			  spatial_dimension, "displacements");
-  // dumper.AddNodeDataField(model.getVelocity().values,
-  // 			  spatial_dimension, "velocity");
-  // dumper.AddNodeDataField(model.getAcceleration().values,
-  // 			  spatial_dimension, "acceleration");
-  // dumper.AddNodeDataField(model.getForce().values,
-  // 			  spatial_dimension, "applied_force");
-  // dumper.AddNodeDataField(model.getResidual().values,
-  // 			  spatial_dimension, "forces");
-  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  // 			  spatial_dimension*spatial_dimension, "strain");
-  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  // 			  spatial_dimension*spatial_dimension, "stress");
-  // dumper.SetEmbeddedValue("displacements", 1);
-  // dumper.SetEmbeddedValue("applied_force", 1);
-  // dumper.SetEmbeddedValue("forces", 1);
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-  // dumper.Dump();
+  // model.setBaseName("intrinsic");
+  // model.addDumpFieldVector("displacement");
+  // model.addDumpField("velocity"    );
+  // model.addDumpField("acceleration");
+  // model.addDumpField("residual"    );
+  // model.addDumpField("stress");
+  // model.addDumpField("strain");
+  // model.dump();
 
 
   /// update displacement
@@ -193,7 +172,7 @@ int main(int argc, char *argv[]) {
     updateDisplacement(model, elements, type, increment);
 
     if(s % 1 == 0) {
-      //      dumper.Dump();
+      //      model.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
@@ -224,7 +203,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.999 || Ed > Edt * 1.001) {
+  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
     return EXIT_FAILURE;
   }

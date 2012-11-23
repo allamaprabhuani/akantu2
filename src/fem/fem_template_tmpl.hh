@@ -452,7 +452,41 @@ void FEMTemplate<Integ,Shape>::assembleFieldMatrix(const Vector<Real> & field_1,
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+template <>
+template <>
+inline void FEMTemplate<IntegratorGauss,ShapeLagrange>::
+assembleLumpedTemplate<_triangle_6>(const Vector<Real> & field_1,
+				    UInt nb_degree_of_freedom,
+				    Vector<Real> & lumped,
+				    const Vector<Int> & equation_number,
+				    const GhostType & ghost_type) const {
+  assembleLumpedDiagonalScaling<_triangle_6>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
+}
 
+/* -------------------------------------------------------------------------- */
+template <>
+template <>
+inline void FEMTemplate<IntegratorGauss,ShapeLagrange>::
+assembleLumpedTemplate<_tetrahedron_10>(const Vector<Real> & field_1,
+					UInt nb_degree_of_freedom,
+					Vector<Real> & lumped,
+					const Vector<Int> & equation_number,
+					const GhostType & ghost_type) const {
+  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+template <>
+inline void
+FEMTemplate<IntegratorGauss,ShapeLagrange>::assembleLumpedTemplate<_quadrangle_8>(const Vector<Real> & field_1,
+										  UInt nb_degree_of_freedom,
+										  Vector<Real> & lumped,
+										  const Vector<Int> & equation_number,
+										  const GhostType & ghost_type) const {
+  assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, nb_degree_of_freedom,lumped, equation_number, ghost_type);
+}
 
 
 /* -------------------------------------------------------------------------- */

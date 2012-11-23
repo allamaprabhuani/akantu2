@@ -242,8 +242,8 @@ public:
   typedef typename ByElementTypeVector<T>::type_iterator type_iterator;
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
-    type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-    type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    type_iterator tit = field.firstType(spatial_dimension, ghost_type, _ek_regular);
+    type_iterator end = field.lastType(spatial_dimension, ghost_type, _ek_regular);
 
     const Vector<T> & vect = field(*tit, ghost_type);
     UInt nb_data = getNbDataPerElem(*tit);
@@ -259,8 +259,8 @@ public:
   }
 
   virtual iterator end  () {
-    type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-    type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    type_iterator tit = field.firstType(spatial_dimension, ghost_type, _ek_regular);
+    type_iterator end = field.lastType(spatial_dimension, ghost_type, _ek_regular);
 
     ElementType type = *tit;
     for (; tit != end; ++tit) type = *tit;

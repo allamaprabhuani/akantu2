@@ -42,9 +42,9 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#if defined(AKANTU_USE_IOHELPER)
-#  include "io_helper.hh"
-#endif
+// #if defined(AKANTU_USE_IOHELPER)
+// #  include "io_helper.hh"
+// #endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -242,7 +242,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.999 || Ed > Edt * 1.001) {
+  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
     return EXIT_FAILURE;
   }
