@@ -71,12 +71,6 @@ public:
   /// function to insert cohesive elements on the selected facets
   void insertCohesiveElements(const Vector<UInt> & facet_insertion);
 
-  /// function to insert cohesive elements on the selected facets by specifying
-  /// the material
-  void insertCohesiveElements(const Vector<UInt> & facet_insertion,
-			      const Vector<UInt> & facet_material);
-
-
   /// initialize completely the model
   void initFull(std::string material_file,
                 AnalysisMethod method = _explicit_dynamic);
@@ -94,21 +88,6 @@ public:
   void computeFragmentsData();
 
 private:
-
-  /// function to double a given facet and update the list of doubled
-  /// nodes
-  void doubleFacet(Element & facet, Vector<UInt> & doubled_nodes,
-		   Vector<UInt> & doubled_facets);
-
-  /// function to double a subfacet given start and end index for
-  /// local facet_to_subfacet vector, and update the list of doubled
-  /// nodes
-  void doubleSubfacet(const Element & subfacet, UInt start, UInt end,
-		      Vector<UInt> & doubled_nodes);
-
-  /// double middle nodes if facets are _segment_3
-  void doubleMiddleNode(Vector<UInt> & doubled_nodes,
-			const Vector<UInt> & doubled_facets);
 
   /// function to update nodal parameters for doubled nodes
   void updateDoubledNodes(const Vector<UInt> & doubled_nodes);
@@ -198,9 +177,6 @@ private:
 
   /// stress on facets on the two sides by quadrature point
   Vector<Real> facet_stress;
-
-  /// list of facets connected to each cohesive element
-  Vector<UInt> facets_to_cohesive_el;
 
   /// fragment number for each element
   ByElementTypeUInt fragment_to_element;

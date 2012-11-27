@@ -145,15 +145,15 @@ void SolidMechanicsModel::initMaterials() {
 
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      UInt * elem_mat_val = element_material(*it, gt).storage();
-      element_index_by_material.alloc(nb_element, 2, *it, gt);
-
+      // UInt * elem_mat_val = element_index_by_material(*it, gt).storage();
+      // element_index_by_material.alloc(nb_element, 2, *it, gt);
 
       Vector<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
       for (UInt el = 0; el < nb_element; ++el) {
-	UInt index = mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
+	//	UInt index = mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
+	UInt index = mat_val[el_id_by_mat(el, 1)]->addElement(*it, el, gt);
 	el_id_by_mat(el, 0) = index;
-	el_id_by_mat(el, 1) = elem_mat_val[el];
+	//	el_id_by_mat(el, 1) = elem_mat_val[el];
       }
     }
   }
@@ -180,11 +180,13 @@ void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_nam
       try {
 	const Vector<UInt> & data = mesh.getUIntData(*it, data_name, gt);
 
-	AKANTU_DEBUG_ASSERT(element_material.exists(*it, gt),
+	AKANTU_DEBUG_ASSERT(element_index_by_material.exists(*it, gt),
 			    "element_material for type (" << gt << ":" << *it
 			    << ") does not exists!");
+	for (UInt i = 0; i < data.getSize(); ++i) {
+	  element_index_by_material(*it, gt)(i, 1) = data(i);	  
+	}
 
-	element_material(*it, gt).copy(data);
       } catch(...) {
 	AKANTU_DEBUG_ERROR("No data named " << data_name
 			   << " present in the mesh " << id

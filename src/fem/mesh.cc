@@ -66,6 +66,7 @@ Mesh::Mesh(UInt spatial_dimension,
   surface_id("surface_id", id),
   element_to_subelement("element_to_subelement", id),
   subelement_to_element("subelement_to_element", id),
+  facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
   uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 

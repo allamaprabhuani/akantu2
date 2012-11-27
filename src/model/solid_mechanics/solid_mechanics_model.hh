@@ -415,9 +415,9 @@ public:
 
   /// get  the SolidMechanicsModel::element_material  vector corresponding  to a
   /// given akantu::ElementType
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
-  AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeVector<UInt> &);
+  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
+  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
+  //AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeVector<UInt> &);
 
   /// vectors containing local material element index for each global element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
@@ -529,8 +529,8 @@ protected:
   /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Delta t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
   SparseMatrix * jacobian_matrix;
 
-  /// materials of all elements
-  ByElementTypeUInt element_material;
+  // /// materials of all elements
+  // ByElementTypeUInt element_material;
 
   /// vectors containing local material element index for each global element index
   ByElementTypeUInt element_index_by_material;

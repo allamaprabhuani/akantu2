@@ -131,13 +131,20 @@ iohelper::ElemType DumperIOHelper::getIOHelperType<_tetrahedron_10>() { return i
 template <>
 iohelper::ElemType DumperIOHelper::getIOHelperType<_hexahedron_8>() { return iohelper::HEX1; }
 
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_4>() { return iohelper::COH2D4; }
+
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_6>() { return iohelper::COH2D6; }
+
+
 /* -------------------------------------------------------------------------- */
 iohelper::ElemType DumperIOHelper::getIOHelperType(ElementType type) {
   iohelper::ElemType ioh_type = iohelper::MAX_ELEM_TYPE;
 #define GET_IOHELPER_TYPE(type)			\
   ioh_type = DumperIOHelper::getIOHelperType<type>();
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
 #undef GET_IOHELPER_TYPE
   return ioh_type;
 }

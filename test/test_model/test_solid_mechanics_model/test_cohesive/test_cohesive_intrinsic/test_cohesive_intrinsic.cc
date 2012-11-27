@@ -123,14 +123,14 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
-  // model.setBaseName("intrinsic");
-  // model.addDumpFieldVector("displacement");
-  // model.addDumpField("velocity"    );
-  // model.addDumpField("acceleration");
-  // model.addDumpField("residual"    );
-  // model.addDumpField("stress");
-  // model.addDumpField("strain");
-  // model.dump();
+  model.setBaseName("intrinsic");
+  model.addDumpFieldVector("displacement");
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("residual"    );
+  model.addDumpField("stress");
+  model.addDumpField("strain");
+  model.dump();
 
 
   /// update displacement
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
     updateDisplacement(model, elements, type, increment);
 
     if(s % 1 == 0) {
-      //      model.dump();
+      model.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 

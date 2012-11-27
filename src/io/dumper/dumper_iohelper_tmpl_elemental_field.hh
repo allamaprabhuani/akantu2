@@ -70,12 +70,12 @@ public:
 
 public:
   bool operator!=(const daughter & it) const {
-    return (ghost_type != ghost_type) || (tit != it.tit || (vit != it.vit));
+    return (ghost_type != it.ghost_type) || (tit != it.tit || (vit != it.vit));
   }
 
   daughter & operator++() {
     ++vit;
-    if(vit == vit_end) {
+    while(vit == vit_end && tit != tit_end) {
       ++tit;
       if(tit != tit_end) {
 	UInt nb_data = getNbDataPerElem(*tit);
@@ -242,8 +242,8 @@ public:
   typedef typename ByElementTypeVector<T>::type_iterator type_iterator;
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
-    type_iterator tit = field.firstType(spatial_dimension, ghost_type, _ek_regular);
-    type_iterator end = field.lastType(spatial_dimension, ghost_type, _ek_regular);
+    type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+    type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
 
     const Vector<T> & vect = field(*tit, ghost_type);
     UInt nb_data = getNbDataPerElem(*tit);
@@ -259,8 +259,8 @@ public:
   }
 
   virtual iterator end  () {
-    type_iterator tit = field.firstType(spatial_dimension, ghost_type, _ek_regular);
-    type_iterator end = field.lastType(spatial_dimension, ghost_type, _ek_regular);
+    type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+    type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
 
     ElementType type = *tit;
     for (; tit != end; ++tit) type = *tit;
@@ -275,7 +275,6 @@ public:
     iterator rit =  iterator(field, n, end, end, it, type, ghost_type);
     rit.setPadding(padding_n, padding_m);
     return rit;
-
   }
 
   virtual void registerToDumper(const std::string & id, iohelper::Dumper & dupmer) {
@@ -288,7 +287,11 @@ public:
       return padding_m*padding_n;
     else return n;
   }
-  UInt size() { return nb_total_element; }
+  UInt size() {
+    UInt nb_component;
+    checkHomogeneity(field, nb_component, nb_total_element);
+    return nb_total_element;
+  }
 
 protected:
   virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }

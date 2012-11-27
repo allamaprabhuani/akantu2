@@ -69,7 +69,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   velocity_damping_matrix(NULL),
   stiffness_matrix(NULL),
   jacobian_matrix(NULL),
-  element_material("element_material", id),
+  //element_material("element_material", id),
   element_index_by_material("element index by material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
@@ -99,7 +99,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   mesh.registerEventHandler(*this);
 
-  addDumpMesh(mesh);
+  addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
 
   AKANTU_DEBUG_OUT();
 }
@@ -267,7 +267,7 @@ void SolidMechanicsModel::initVectors() {
     Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt, _ek_not_defined);
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      element_material.alloc(nb_element, 1, *it, gt);
+      element_index_by_material.alloc(nb_element, 2, *it, gt);
     }
   }
 
@@ -982,7 +982,7 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
     UInt nb_element           = mesh.getNbElement(*it);
 
     UInt * conn         = mesh.getConnectivity(*it, ghost_type).storage();
-    UInt * elem_mat_val = element_material(*it, ghost_type).storage();
+    UInt * elem_mat_val = element_index_by_material(*it, ghost_type).storage();
 
     Real * u = new Real[nb_nodes_per_element*spatial_dimension];
 
@@ -1001,7 +1001,7 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
       }
 
       Real el_size    = getFEM().getElementInradius(u, *it);
-      Real el_dt      = mat_val[elem_mat_val[el]]->getStableTimeStep(el_size, elem);
+      Real el_dt      = mat_val[elem_mat_val[2*el+1]]->getStableTimeStep(el_size, elem);
       min_dt = min_dt > el_dt ? el_dt : min_dt;
     }
 
@@ -1182,7 +1182,7 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list) 
 
   for (; it != end; ++it) {
     const Element & elem = *it;
-    element_material(elem.type, elem.ghost_type).push_back(UInt(0));
+    //    element_material(elem.type, elem.ghost_type).push_back(UInt(0));
 
     UInt mat_index = mat.addElement(elem.type, elem.element, elem.ghost_type);
     UInt id[2];
@@ -1384,7 +1384,7 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + connectivity type information [" << std::endl;
-  element_material.printself(stream, indent + 2);
+  element_index_by_material.printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << "]" << std::endl;

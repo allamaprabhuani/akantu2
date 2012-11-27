@@ -406,6 +406,10 @@ public:
 					  const std::string & data_name,
 					  const GhostType & ghost_type = _not_ghost) const;
 
+  /// get the facet to cohesive element vector
+  AKANTU_GET_MACRO(FacetsToCohesiveEl, facets_to_cohesive_el, const Vector<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(FacetsToCohesiveEl, facets_to_cohesive_el, Vector<UInt> &);
+
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */
@@ -564,6 +568,9 @@ private:
 
   /// List of subelements connected to elements
   ByElementTypeVector<Element > subelement_to_element;
+
+  /// list of facets connected to each cohesive element
+  Vector<UInt> facets_to_cohesive_el;
 
   // /// list of elements that are reversed due to pbc
   // ByElementTypeUInt reversed_elements_pbc;

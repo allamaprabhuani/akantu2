@@ -129,6 +129,16 @@ public:
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
 
+  /// function to insert cohesive elements on the selected facets by specifying
+  /// the material
+  static void insertCohesiveElements(Mesh & mesh,
+				     Mesh & mesh_facets,
+				     ElementType type_facet,
+				     ElementType type_cohesive,
+				     const Vector<UInt> & facet_insertion,
+				     Vector<UInt> & doubled_nodes,
+				     Vector<UInt> & doubled_facets);
+
 private:
 
   /// match pairs that are on the associated pbc's
@@ -143,6 +153,31 @@ private:
 					  UInt nb_nodes,
 					  std::map<UInt, UInt> & renumbering_map,
 					  Vector<UInt> & nodes_numbers);
+
+  /// function to double a given facet and update the list of doubled
+  /// nodes
+  static void doubleFacet(Mesh & mesh,
+			  Mesh & mesh_facets,
+			  Element & facet,
+			  Vector<UInt> & doubled_nodes,
+			  Vector<UInt> & doubled_facets);
+
+  /// function to double a subfacet given start and end index for
+  /// local facet_to_subfacet vector, and update the list of doubled
+  /// nodes
+  static void doubleSubfacet(Mesh & mesh,
+			     Mesh & mesh_facets,
+			     const Element & subfacet,
+			     UInt start,
+			     UInt end,
+			     Vector<UInt> & doubled_nodes);
+
+  /// double middle nodes if facets are _segment_3
+  static void doubleMiddleNode(Mesh & mesh,
+			       Mesh & mesh_facets,
+			       ElementType type_facet,
+			       Vector<UInt> & doubled_nodes,
+			       const Vector<UInt> & doubled_facets);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

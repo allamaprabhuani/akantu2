@@ -182,6 +182,8 @@ public:
 	model->getMaterial(material_id[1]).getVector(field_id,
 						     *this->tit,
 						     this->ghost_type);
+      if(vect.getSize() == 0 || vect.getSize() < material_id[0]) // vector exists but has a wrong size
+	return return_type();
 
       UInt ln = out_n;
       if(out_n == 0) ln = vect.getNbComponent();
