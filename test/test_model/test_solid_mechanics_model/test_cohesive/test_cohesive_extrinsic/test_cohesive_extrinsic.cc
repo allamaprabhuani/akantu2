@@ -85,7 +85,6 @@ int main(int argc, char *argv[]) {
   const ElementType type_facet = mesh.getFacetElementType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   Vector<Real> & position = mesh.getNodes();
-  const Vector<UInt> & connectivity = mesh.getConnectivity(_cohesive_2d_6);
 
   Vector<Real> & sigma_lim = model.getSigmaLimit();
   Vector<bool> & facet_check = model.getFacetsCheck();
