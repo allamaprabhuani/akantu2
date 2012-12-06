@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   csr.clearRows();
 
   for (UInt i = 0; i < N; ++i) {
-    UInt nb_cols(rand()*double(N)/(RAND_MAX+1.));
+    UInt nb_cols(UInt(rand()*double(N)/(RAND_MAX+1.)));
     nb_cols_per_row.push_back(nb_cols);
     for (UInt j = 0; j < nb_cols; ++j) {
       ++csr.rowOffset(i);

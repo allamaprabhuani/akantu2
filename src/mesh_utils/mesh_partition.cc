@@ -85,14 +85,14 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
 
   Vector<Element> lin_to_element;
 
-  Element el;
-  el.ghost_type = _not_ghost;
+  Element elem;
+  elem.ghost_type = _not_ghost;
 
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(Mesh::getSpatialDimension(type) != mesh.getSpatialDimension()) continue;
-    el.type = type;
+    elem.type = type;
 
     ElementType type_p1 = Mesh::getP1ElementType(type);
 
@@ -105,8 +105,8 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
     conn[nb_good_types] = &const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _not_ghost));
 
     for (UInt i = 0; i < nb_element[nb_good_types]; ++i) {
-      el.element = i;
-      lin_to_element.push_back(el);
+      elem.element = i;
+      lin_to_element.push_back(elem);
     }
 
 
