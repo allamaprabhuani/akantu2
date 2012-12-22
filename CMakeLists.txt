@@ -1,14 +1,7 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
-# @author Till Junge <till.junge@epfl.ch>
-# @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
-# @author Marion Estelle Chambart <marion.chambart@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Alejandro Marcos Aragon <alejandro.aragon@epfl.ch>
-# @author Mathilde Radiguet <mathilde.radiguet@epfl.ch>
-# @author David Simon Kammer <david.kammer@epfl.ch>
 #
 # @date   Mon Jun 14 19:12:20 2010
 #
@@ -66,7 +59,7 @@ include(CMakePackagesSystem)
 include(CMakeFlagsHandling)
 include(AkantuMacros)
 
-cmake_deactivate_debug_message()
+#cmake_activate_debug_message()
 
 #===============================================================================
 # Version Number
@@ -112,7 +105,7 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-add_all_packages(${PROJECT_SOURCE_DIR}/packages)
+add_all_packages(${PROJECT_SOURCE_DIR}/packages ${PROJECT_SOURCE_DIR}/src)
 
 ## meta option \todo better way to do it when multiple package give enable the
 ## same feature
@@ -136,7 +129,6 @@ add_subdirectory(src)
 #===============================================================================
 # Documentation
 #===============================================================================
-#Documentation
 option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 if(AKANTU_DOCUMENTATION)
   add_subdirectory(doc)
@@ -170,3 +162,7 @@ endif()
 #===============================================================================
 include(AkantuInstall)
 include(AkantuCPack)
+
+
+set(TMP ${AKANTU_INCLUDE_DIRS})
+set(AKANTU_INCLUDE_DIRS ${TMP} CACHE INTERNAL "Internal include directories to link with Akantu as a subproject")
