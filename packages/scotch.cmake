@@ -27,7 +27,7 @@
 #
 #===============================================================================
 
-add_optional_package(Scotch "Add Scotch support in akantu" OFF)
+add_optional_external_package(Scotch "Add Scotch support in akantu" OFF)
 #add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
 
 if(SCOTCH_INCLUDE_DIR)

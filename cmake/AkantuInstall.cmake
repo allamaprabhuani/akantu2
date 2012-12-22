@@ -31,9 +31,9 @@
 #===============================================================================
 # Config gen for external packages
 #===============================================================================
-configure_file(cmake/AkantuBuildTreeSettings.cmake.in  "${CMAKE_BINARY_DIR}/AkantuBuildTreeSettings.cmake" @ONLY)
+configure_file(cmake/AkantuBuildTreeSettings.cmake.in  "${PROJECT_BINARY_DIR}/AkantuBuildTreeSettings.cmake" @ONLY)
 
-file(WRITE "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+file(WRITE "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 #===============================================================================
 # @file   AkantuConfigInclude.cmake
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
@@ -70,13 +70,13 @@ foreach(_option ${PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
       if(NOT AKANTU_${_option})
         set(AKANTU_${_option} OFF)
       endif()
-      file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+      file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 set(AKANTU_HAS_${_option} ${AKANTU_${_option}})")
     endif()
   endif()
 endforeach()
 
-file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake"
+file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake"
 "
 
 set(AKANTU_HAS_PARTITIONER  ${AKANTU_PARTITIONER})
@@ -85,15 +85,15 @@ set(AKANTU_HAS_SOLVER       ${AKANTU_SOLVER})
 
 foreach(_option ${AKANTU_OPTION_LIST})
   package_pkg_name(${_option} _pkg_name)
-  file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+  file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 list(APPEND AKANTU_OPTION_LIST ${_option})
 set(AKANTU_USE_${_option} ${AKANTU_${_option}})")
   if(${_pkg_name}_LIBRARIES)
-    file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+    file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 set(${_pkg_name}_LIBRARIES ${${_pkg_name}_LIBRARIES})")
   endif()
   if(${_pkg_name}_INCLUDE_DIR)
-    file(APPEND "${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake" "
+    file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 set(${_pkg_name}_INCLUDE_DIR ${${_pkg_name}_INCLUDE_DIR})
 ")
   endif()
@@ -101,23 +101,23 @@ endforeach()
 
 # Create the AkantuConfig.cmake and AkantuConfigVersion files
 get_filename_component(CONF_REL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
-configure_file(cmake/AkantuConfig.cmake.in "${CMAKE_BINARY_DIR}/AkantuConfig.cmake" @ONLY)
-configure_file(cmake/AkantuConfigVersion.cmake.in "${CMAKE_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
-configure_file(cmake/AkantuUse.cmake "${CMAKE_BINARY_DIR}/AkantuUse.cmake" COPYONLY)
+configure_file(cmake/AkantuConfig.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfig.cmake" @ONLY)
+configure_file(cmake/AkantuConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
+configure_file(cmake/AkantuUse.cmake "${PROJECT_BINARY_DIR}/AkantuUse.cmake" COPYONLY)
 
 # Install the export set for use with the install-tree
-install(FILES ${CMAKE_BINARY_DIR}/AkantuConfig.cmake
-  ${CMAKE_BINARY_DIR}/AkantuConfigInclude.cmake
-  ${CMAKE_BINARY_DIR}/AkantuConfigVersion.cmake
-  ${CMAKE_SOURCE_DIR}/cmake/AkantuUse.cmake
+install(FILES ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
+  ${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake
+  ${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/AkantuUse.cmake
   DESTINATION  lib/akantu
   COMPONENT dev)
 
 install(FILES
-  ${CMAKE_SOURCE_DIR}/cmake/FindIOHelper.cmake
-  ${CMAKE_SOURCE_DIR}/cmake/FindQVIEW.cmake
-  ${CMAKE_SOURCE_DIR}/cmake/FindMumps.cmake
-  ${CMAKE_SOURCE_DIR}/cmake/FindScotch.cmake
-  ${CMAKE_SOURCE_DIR}/cmake/FindGMSH.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/FindIOHelper.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/FindQVIEW.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/FindMumps.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/FindScotch.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/FindGMSH.cmake
   DESTINATION  lib/akantu/cmake
   COMPONENT dev)

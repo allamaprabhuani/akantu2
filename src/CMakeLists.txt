@@ -34,6 +34,7 @@
 
 generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR}
   AKANTU_LIBRARY_SRCS
+  AKANTU_LIBRARY_INLINE_HDRS
   AKANTU_LIBRARY_HDRS
   AKANTU_LIBRARY_INCLUDE_DIRS)
 
@@ -65,7 +66,7 @@ include_directories(${AKANTU_INCLUDE_DIRS} ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR})
 
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-  include(${CMAKE_SOURCE_DIR}/cmake/PCHgcc.cmake)
+  include(${PROJECT_SOURCE_DIR}/cmake/PCHgcc.cmake)
   foreach(_header ${AKANTU_COMMON_HDR_TO_PRECOMPILE})
     add_pch_rule(${_header} AKANTU_LIBRARY_SRCS)
   endforeach()
@@ -75,7 +76,6 @@ endif()
 #===============================================================================
 # Library generation
 #===============================================================================
-
 configure_file(common/aka_config.hh.in "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
 list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
 
@@ -83,18 +83,22 @@ add_library(akantu ${AKANTU_LIBRARY_SRCS})
 target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
 set_target_properties(akantu PROPERTIES ${AKANTU_LIBRARY_PROPERTIES})
-set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}")
+set_target_properties(akantu PROPERTIES PUBLIC_HEADER "${AKANTU_LIBRARY_HDRS}:${AKANTU_LIBRARY_INLINE_HDRS}")
 
 list(APPEND AKANTU_EXPORT_LIST akantu)
 
+message("AKANTU_TARGETS_EXPORT: ${AKANTU_TARGETS_EXPORT}")
+
 install(TARGETS akantu
-  EXPORT AkantuLibraryDepends
+  EXPORT ${AKANTU_TARGETS_EXPORT}
   LIBRARY DESTINATION lib COMPONENT shlib
   PUBLIC_HEADER DESTINATION include/akantu/ COMPONENT dev
   )
 
-install(EXPORT AkantuLibraryDepends DESTINATION  lib/akantu
-  COMPONENT dev)
+if("${AKANTU_TARGETS_EXPORT}" STREQUAL "AkantuLibraryDepends")
+  install(EXPORT AkantuLibraryDepends DESTINATION  lib/akantu
+    COMPONENT dev)
+endif()
 
 #Export for build tree
 export(TARGETS ${AKANTU_EXPORT_LIST}

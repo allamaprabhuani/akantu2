@@ -27,4 +27,4 @@
 #
 #===============================================================================
 
-add_optional_package(LAPACK "Use LAPACK for arithmetic operations" OFF LANGUAGE Fortran)
+add_optional_external_package(LAPACK "Use LAPACK for arithmetic operations" OFF LANGUAGE Fortran)

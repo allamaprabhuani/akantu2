@@ -29,9 +29,9 @@
 
 find_package(Subversion)
 
-if(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
+if(EXISTS ${PROJECT_SOURCE_DIR}/.svn)
   if(SUBVERSION_FOUND)
-    subversion_wc_info(${CMAKE_SOURCE_DIR} MY)
+    subversion_wc_info(${PROJECT_SOURCE_DIR} MY)
     set(AKANTU_BUILD_VERSION ${MY_WC_REVISION})
     set(AKANTU_VERSION
       "${AKANTU_MAJOR_VERSION}.${AKANTU_MINOR_VERSION}.${AKANTU_PATCH_VERSION}.${AKANTU_BUILD_VERSION}"
@@ -41,13 +41,13 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
     message("SVN control files were found but no subversion executable is present... ")
     set(AKANTU_VERSION 0)
   endif(SUBVERSION_FOUND)
-else(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
-  if(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
+else(EXISTS ${PROJECT_SOURCE_DIR}/.svn)
+  if(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
     file(STRINGS VERSION AKANTU_VERSION)
-  else(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
+  else(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
     message("No SVN control file neither VERSION file could be found. How was this release made ?")
-  endif(EXISTS ${CMAKE_SOURCE_DIR}/VERSION)
-endif(EXISTS ${CMAKE_SOURCE_DIR}/.svn)
+  endif(EXISTS ${PROJECT_SOURCE_DIR}/VERSION)
+endif(EXISTS ${PROJECT_SOURCE_DIR}/.svn)
 
 
 # Append the library version information to the library target properties

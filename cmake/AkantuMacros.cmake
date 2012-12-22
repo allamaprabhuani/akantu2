@@ -28,28 +28,6 @@
 #
 #===============================================================================
 
-set(AKANTU_CMAKE_DEBUG FALSE)
-macro(akantu_message)
-  if(AKANTU_CMAKE_DEBUG)
-    message(${ARGN})
-  endif()
-endmacro()
-
-#===============================================================================
-macro(add_cxx_flags flag)
-  if(NOT CMAKE_CXX_FLAGS MATCHES "${flag}")
-    set(CMAKE_CXX_FLAGS "${flag} ${CMAKE_CXX_FLAGS}"
-      CACHE STRING "Flags used by the compiler during all build types." FORCE)
-  endif()
-endmacro()
-
-#===============================================================================
-macro(remove_cxx_flags flag)
-  string(REPLACE "${flag} " "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
-    CACHE STRING "Flags used by the compiler during all build types." FORCE)
-endmacro()
-
 #===============================================================================
 macro(check_for_isnan result)
   include(CheckFunctionExists)

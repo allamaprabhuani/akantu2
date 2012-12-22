@@ -27,7 +27,7 @@
 #
 #===============================================================================
 
-add_optional_package(Mumps "Add Mumps support in akantu" OFF)
+add_optional_external_package(Mumps "Add Mumps support in akantu" OFF)
 set(AKANTU_MUMPS_FILES
   solver/solver_mumps.cc
   solver/solver_mumps.hh

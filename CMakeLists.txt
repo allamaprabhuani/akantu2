@@ -46,21 +46,27 @@
 #===============================================================================
 # CMake Project
 #===============================================================================
-cmake_minimum_required(VERSION 2.6)
-
+cmake_minimum_required(VERSION 2.8)
 project(akantu)
-
 enable_language(CXX)
 
 #===============================================================================
 # Misc. config for cmake
 #===============================================================================
-set(AKANTU_CMAKE_DIR "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(AKANTU_CMAKE_DIR "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 
-include(${AKANTU_CMAKE_DIR}/AkantuMacros.cmake)
-include(${AKANTU_CMAKE_DIR}/AkantuPackageSystem.cmake)
+if(NOT AKANTU_TARGETS_EXPORT)
+  set(AKANTU_TARGETS_EXPORT AkantuLibraryDepends)
+endif()
+
+include(CMakeVersionGenerator)
+include(CMakePackagesSystem)
+include(CMakeFlagsHandling)
+include(AkantuMacros)
+
+cmake_deactivate_debug_message()
 
 #===============================================================================
 # Version Number
@@ -70,7 +76,7 @@ set(AKANTU_MAJOR_VERSION 1)
 set(AKANTU_MINOR_VERSION 0)
 set(AKANTU_PATCH_VERSION 0)
 
-include(${AKANTU_CMAKE_DIR}/AkantuVersion.cmake)
+define_project_version()
 
 #===============================================================================
 # Options
@@ -79,13 +85,13 @@ include(${AKANTU_CMAKE_DIR}/AkantuVersion.cmake)
 option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
 mark_as_advanced(AKANTU_DEBUG)
 
-add_cxx_flags("-Wall")
+add_flags(cxx "-Wall")
 
 if(NOT AKANTU_DEBUG)
-  add_cxx_flags("-Wno-return-type")
+  add_flags(cxx "-Wno-return-type")
   set(AKANTU_NDEBUG ON)
 else()
-  remove_cxx_flags("-Wno-return-type")
+  remove_flags(cxx "-Wno-return-type")
 endif()
 
 #Profiling
@@ -96,7 +102,7 @@ mark_as_advanced(CMAKE_CXX_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_EXE_LINKER_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_SHARED_LINKER_FLAGS_PROFILING)
 
-include(${AKANTU_CMAKE_DIR}/AkantuDetermineCCompiler.cmake)
+include(AkantuDetermineCCompiler)
 
 #===============================================================================
 # Dependencies
@@ -106,7 +112,7 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
-add_all_packages(${CMAKE_SOURCE_DIR}/packages)
+add_all_packages(${PROJECT_SOURCE_DIR}/packages)
 
 ## meta option \todo better way to do it when multiple package give enable the
 ## same feature
@@ -144,7 +150,7 @@ option(AKANTU_EXAMPLES "Activate examples" OFF)
 option(AKANTU_TESTS "Activate tests" OFF)
 
 if(AKANTU_EXAMPLES OR AKANTU_TESTS)
-  include(${AKANTU_CMAKE_DIR}/AkantuTestAndExamples.cmake)
+  include(AkantuTestAndExamples)
   find_package(GMSH REQUIRED)
 endif()
 
@@ -162,5 +168,5 @@ endif()
 #===============================================================================
 # Install and Packaging
 #===============================================================================
-include(${AKANTU_CMAKE_DIR}/AkantuInstall.cmake)
-include(${AKANTU_CMAKE_DIR}/AkantuCPack.cmake)
+include(AkantuInstall)
+include(AkantuCPack)
