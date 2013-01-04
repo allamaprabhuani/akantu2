@@ -28,6 +28,9 @@
 #===============================================================================
 
 option(AKANTU_STRUCTURAL_MECHANICS "Use Structural mechanics model package of Akantu" OFF)
+
+add_internal_package_dependencies(STRUCTURAL_MECHANICS IMPLICIT)
+
 set(AKANTU_STRUCTURAL_MECHANICS_FILES
   model/structural_mechanics/structural_mechanics_model.cc
   model/structural_mechanics/structural_mechanics_model_boundary.cc

@@ -31,7 +31,6 @@
 #===============================================================================
 # Package Management
 #===============================================================================
-
 generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR}
   AKANTU_LIBRARY_SRCS
   AKANTU_LIBRARY_INLINE_HDRS

@@ -45,7 +45,7 @@ macro(manage_test_and_example et_name desc build_all label)
 
   set(_activated ON)
   if(manage_test_and_example_PACKAGE)
-    list(FIND PACKAGE_SYSTEM_PACKAGES_ON ${manage_test_and_example_PACKAGE} _ret)
+    list(FIND ${_project}_PACKAGE_SYSTEM_PACKAGES_ON ${manage_test_and_example_PACKAGE} _ret)
     if(_ret EQUAL -1)
       set(_activated OFF)
       file(RELATIVE_PATH _dir ${PROJECT_SOURCE_DIR}  ${CMAKE_CURRENT_SOURCE_DIR}/${et_name})
@@ -155,7 +155,7 @@ macro(register_test test_name)
 
   # check if the test should be activated
   set(_activate_test 0)
-  foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_ON})
+  foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_ON})
     package_pkg_name(${_pkg} _package_name)
     list(FIND ${_package_name}_TESTS ${test_name} _ret)
     if(NOT _ret EQUAL -1)
@@ -165,7 +165,7 @@ macro(register_test test_name)
 
   # check if the package is registered in at least a package
   set(_present_in_packages 0)
-  foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
+  foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
     package_pkg_name(${_pkg} _package_name)
     list(FIND ${_package_name}_TESTS ${test_name} _ret)
     if(NOT _ret EQUAL -1)
