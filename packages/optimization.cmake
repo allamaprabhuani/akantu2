@@ -1,4 +1,4 @@
-option(AKANTU_OPTIMIZATION "Use optimization package in Akantu" ON)
+option(AKANTU_OPTIMIZATION "Use optimization package in Akantu" OFF)
 
 
 if (AKANTU_OPTIMIZATION)
