@@ -36,7 +36,10 @@
 #include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 #include <typeinfo>
+//#include <cstring>
+
 #include <vector>
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -113,7 +116,7 @@ namespace types {
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T, bool is_scal = is_scalar<T>::value >
+template<typename T, bool is_scal>
 class Vector : public VectorBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

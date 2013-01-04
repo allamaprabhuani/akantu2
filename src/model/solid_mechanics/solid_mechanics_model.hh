@@ -556,9 +556,6 @@ protected:
   /// the spatial dimension
   UInt spatial_dimension;
 
-  /// Mesh
-  Mesh & mesh;
-
   AnalysisMethod method;
 };
 

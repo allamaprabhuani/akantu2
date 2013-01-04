@@ -121,7 +121,7 @@ macro(add_all_packages package_dir src_dir)
     if(EXISTS ${PROJECT_BINARY_DIR}/missing_files_in_packages)
       file(REMOVE ${PROJECT_BINARY_DIR}/missing_files_in_packages)
     endif()
-    foreach(_file ${_missing_files_in_packages})
+    foreach(_file ${${_project}_missing_files_in_packages})
       file(APPEND ${PROJECT_BINARY_DIR}/missing_files_in_packages "${_file}
 ")
     endforeach()

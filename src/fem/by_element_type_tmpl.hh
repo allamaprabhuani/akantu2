@@ -238,7 +238,6 @@ inline const Vector<T> & ByElementTypeVector<T>::operator()(const ElementType & 
                      << " in this const ByElementTypeVector<"
                      << debug::demangle(typeid(T).name()) << "> class(\""
                      << this->id << "\")");
-
   return *(it->second);
 }
 

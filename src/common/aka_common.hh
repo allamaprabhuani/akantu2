@@ -447,4 +447,8 @@ __END_AKANTU__
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_COHESIVE_ELEMENT_TYPE)
 
 
+
+#include "aka_fwd.hh"
+
+
 #endif /* __AKANTU_COMMON_HH__ */

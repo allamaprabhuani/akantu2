@@ -1,11 +1,10 @@
 /**
- * @file   aka_config.hh.in
- *
+ * @file   aka_fwd.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ * @date   Thu Jan 3 15:15:00 2013
  *
- * @date   Fri Jan 13 12:34:54 2012
- *
- * @brief  Compilation time configuration of Akantu
+ * @brief  File containing forward declarations in akantu
  *
  * @section LICENSE
  *
@@ -27,32 +26,17 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_FWD_HH__
+#define __AKANTU_FWD_HH__
 
-#ifndef __AKANTU_AKA_CONFIG_HH__
-#define __AKANTU_AKA_CONFIG_HH__
 
-#cmakedefine AKANTU_NDEBUG
+__BEGIN_AKANTU__
 
-#cmakedefine AKANTU_USE_BLAS
-#cmakedefine AKANTU_USE_LAPACK
 
-#cmakedefine AKANTU_USE_MPI
+template<typename T, bool is_scal = is_scalar<T>::value > class Vector;
 
-#cmakedefine AKANTU_USE_SCOTCH
-#cmakedefine AKANTU_USE_PTSCOTCH
-#cmakedefine AKANTU_SCOTCH_NO_EXTERN
 
-#cmakedefine AKANTU_USE_MUMPS
+__END_AKANTU__
 
-#cmakedefine AKANTU_USE_IOHELPER
-#cmakedefine AKANTU_USE_QVIEW
 
-#cmakedefine AKANTU_USE_NLOPT
-#cmakedefine AKANTU_EXTRA_MATERIALS
-#cmakedefine AKANTU_COHESIVE_ELEMENT
-#cmakedefine AKANTU_DAMAGE_NON_LOCAL
-
-#define __aka_inline__ inline
-
-#endif /* __AKANTU_AKA_CONFIG_HH__ */
+#endif /* __AKANTU_FWD_HH__ */

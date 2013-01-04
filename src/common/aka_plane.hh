@@ -1,11 +1,9 @@
 /**
- * @file   aka_config.hh.in
+ * @file   aka_plane.hh
+ * @author Alejandro Aragon <alejandro.aragon@epfl.ch>
+ * @date   Tue Sep 04 15:33:00 2012
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date   Fri Jan 13 12:34:54 2012
- *
- * @brief  Compilation time configuration of Akantu
+ * @brief  class of a plane
  *
  * @section LICENSE
  *
@@ -29,30 +27,40 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_CONFIG_HH__
-#define __AKANTU_AKA_CONFIG_HH__
+#ifndef __AKANTU_AKA_PLANE_HH__
+#define __AKANTU_AKA_PLANE_HH__
 
-#cmakedefine AKANTU_NDEBUG
+#include "aka_point.hh"
 
-#cmakedefine AKANTU_USE_BLAS
-#cmakedefine AKANTU_USE_LAPACK
 
-#cmakedefine AKANTU_USE_MPI
+__BEGIN_AKANTU__
 
-#cmakedefine AKANTU_USE_SCOTCH
-#cmakedefine AKANTU_USE_PTSCOTCH
-#cmakedefine AKANTU_SCOTCH_NO_EXTERN
 
-#cmakedefine AKANTU_USE_MUMPS
+struct Plane {
+  
+  typedef Point<3> point_type;
+  typedef point_type::value_type value_type;
+  
+  Plane(const point_type& a, const point_type& b, const point_type& c) {
+    
+    n_ = cross(b - a, c - a).normalize();
+    d_ = n_*a;
+  }
+  
+  const point_type& normal() const
+  { return n_; }
+  
+  value_type distance() const
+  { return d_; }
+  
+private:
+  
+  point_type n_;     //!< Plane unit normal
+  value_type d_;     //!< Distance from the plane to the origin
+  
+};
 
-#cmakedefine AKANTU_USE_IOHELPER
-#cmakedefine AKANTU_USE_QVIEW
 
-#cmakedefine AKANTU_USE_NLOPT
-#cmakedefine AKANTU_EXTRA_MATERIALS
-#cmakedefine AKANTU_COHESIVE_ELEMENT
-#cmakedefine AKANTU_DAMAGE_NON_LOCAL
+__END_AKANTU__
 
-#define __aka_inline__ inline
-
-#endif /* __AKANTU_AKA_CONFIG_HH__ */
+#endif /* __AKANTU_AKA_PLANE_HH__ */

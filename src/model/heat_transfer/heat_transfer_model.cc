@@ -57,7 +57,7 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
                       UInt dim,
                       const ID & id,
                       const MemoryID & memory_id) :
-  Model(id, memory_id),
+  Model(mesh, id, memory_id),
   integrator(new ForwardEuler()),
   spatial_dimension(dim),
   temperature_gradient    ("temperature_gradient", id),

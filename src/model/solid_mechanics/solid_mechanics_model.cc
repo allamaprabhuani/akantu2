@@ -63,7 +63,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 					 UInt dim,
 					 const ID & id,
 					 const MemoryID & memory_id) :
-  Model(id, memory_id), Dumpable<DumperParaview>(id),
+  Model(mesh, id, memory_id), Dumpable<DumperParaview>(id),
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
@@ -73,8 +73,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   element_index_by_material("element index by material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
-  spatial_dimension(dim),
-  mesh(mesh) {
+  spatial_dimension(dim) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);

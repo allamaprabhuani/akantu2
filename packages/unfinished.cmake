@@ -1,7 +1,7 @@
 #===============================================================================
 # @file   contact.cmake
 #
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
 #
 # @date   Mon Nov 21 18:19:15 2011
 #
@@ -27,44 +27,15 @@
 #
 #===============================================================================
 
-option(AKANTU_CONTACT "Use Contact package of Akantu" ON)
+option(AKANTU_UNFINISHED "Use to continue work in progress within Akantu" OFF)
 
-set(AKANTU_CONTACT_FILES
+set(AKANTU_UNFINISHED_FILES
   #cc files
-  contact/discretization.cc
-  contact/element.cc
-  contact/friction.cc
-  contact/resolution.cc
-  contact/scheme.cc
-  contact/search.cc
-  contact/surface.cc
-  contact/zone.cc
-  model/model_manager.cc
+  analysis/analysis.cc
+  io/aka_abaqus_parser.hh
+  mesh_utils/mesh_io/mesh_io_abaqus.cc
 
   # include files
-
-  contact/contact_common.hh
-  contact/contact_manager.hh
-  contact/discretization.hh
-  contact/element.hh
-  contact/friction.hh
-  contact/resolution.hh
-  contact/scheme.hh
-  contact/search.hh
-  contact/surface.hh
-  contact/zone.hh
-  model/model_manager.hh
-
-  )
-
-
-if (AKANTU_CONTACT)
-
-  add_optional_external_package(CBLAS "Use CBLAS library" ON)
-  add_optional_external_package(CppArray "Use cpp-array library" ON)
-  
-  set(CONTACT_DEPENDS OPTIMIZATION)
-  
-endif(AKANTU_CONTACT)
-
-
+  analysis/analysis.hh
+  mesh_utils/mesh_io/mesh_io_abaqus.hh
+)

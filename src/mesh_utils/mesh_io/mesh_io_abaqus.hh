@@ -1,11 +1,9 @@
 /**
- * @file   aka_config.hh.in
+ * @file   mesh_io_abaqus.hh
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ * @date   Fri Oct  7 10:59:00 2011
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date   Fri Jan 13 12:34:54 2012
- *
- * @brief  Compilation time configuration of Akantu
+ * @brief  read a mesh from an abaqus input file
  *
  * @section LICENSE
  *
@@ -29,30 +27,34 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_CONFIG_HH__
-#define __AKANTU_AKA_CONFIG_HH__
+#ifndef __AKANTU_MESH_IO_ABAQUS_HH__
+#define __AKANTU_MESH_IO_ABAQUS_HH__
 
-#cmakedefine AKANTU_NDEBUG
 
-#cmakedefine AKANTU_USE_BLAS
-#cmakedefine AKANTU_USE_LAPACK
+#include "mesh_io.hh"
 
-#cmakedefine AKANTU_USE_MPI
 
-#cmakedefine AKANTU_USE_SCOTCH
-#cmakedefine AKANTU_USE_PTSCOTCH
-#cmakedefine AKANTU_SCOTCH_NO_EXTERN
+__BEGIN_AKANTU__
 
-#cmakedefine AKANTU_USE_MUMPS
+class MeshIOAbaqus : public MeshIO {
+  
+  
+public:
+  
+  MeshIOAbaqus() {}
+  virtual ~MeshIOAbaqus() {}
+  
+  /// read a mesh from the file
+  virtual void read(const std::string & filename, Mesh & mesh);
+  
+  /// write a mesh to a file
+  virtual void write(const std::string & filename, const Mesh & mesh) {}
 
-#cmakedefine AKANTU_USE_IOHELPER
-#cmakedefine AKANTU_USE_QVIEW
+};
 
-#cmakedefine AKANTU_USE_NLOPT
-#cmakedefine AKANTU_EXTRA_MATERIALS
-#cmakedefine AKANTU_COHESIVE_ELEMENT
-#cmakedefine AKANTU_DAMAGE_NON_LOCAL
 
-#define __aka_inline__ inline
 
-#endif /* __AKANTU_AKA_CONFIG_HH__ */
+
+__END_AKANTU__
+
+#endif /* __AKANTU_MESH_IO_ABAQUS_HH__ */

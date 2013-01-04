@@ -92,6 +92,7 @@ set(AKANTU_CORE_FILES
   synchronizer/real_static_communicator.hh
   synchronizer/data_accessor.hh
   synchronizer/communication_buffer.hh
+  common/aka_fwd.hh
   common/aka_grid.hh
   common/aka_grid_tmpl.hh
   common/aka_types.hh
@@ -107,6 +108,15 @@ set(AKANTU_CORE_FILES
   common/aka_vector_tmpl.hh
   common/aka_circular_vector.hh
   common/aka_event_handler.hh
+  common/aka_bounding_box.hh
+  common/aka_ci_string.hh
+  common/aka_plane.hh
+  common/aka_polytope.hh
+  common/aka_sphere.hh
+  common/aka_timer.hh
+  common/aka_tree.hh
+  common/aka_typelist.hh
+  common/aka_visitor.hh
   fem/mesh.hh
   fem/fem.hh
   fem/by_element_type.hh
@@ -169,6 +179,25 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
   )
+  
+  
+  
+ include(CheckCXXCompilerFlag)
+ check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
+ if (HAVE_NEW_STD)
+    list(APPEND AKANTU_CORE_FILES 
+    common/aka_point.hh 
+    common/aka_bounding_box.hh 
+    common/aka_bounding_box.cc 
+    common/aka_geometry.hh 
+    common/aka_geometry.cc
+)
+    add_definitions(-std=c++0x)
+  else()
+    message(WARNING "*** WARNING *** Compiler does not support c++11 set of requirements.")
+  endif()
+
+
 
 set(AKANTU_CORE_DEB_DEPEND
   libboost-dev

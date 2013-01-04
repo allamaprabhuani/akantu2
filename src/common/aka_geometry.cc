@@ -1,11 +1,9 @@
 /**
- * @file   aka_config.hh.in
+ * @file   aka_geometry.cc
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ * @date   Tue Oct 23 10:35:00 2012
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date   Fri Jan 13 12:34:54 2012
- *
- * @brief  Compilation time configuration of Akantu
+ * @brief  geometric operations
  *
  * @section LICENSE
  *
@@ -29,30 +27,24 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_CONFIG_HH__
-#define __AKANTU_AKA_CONFIG_HH__
 
-#cmakedefine AKANTU_NDEBUG
+#include "aka_geometry.hh"
 
-#cmakedefine AKANTU_USE_BLAS
-#cmakedefine AKANTU_USE_LAPACK
+__BEGIN_AKANTU__
 
-#cmakedefine AKANTU_USE_MPI
 
-#cmakedefine AKANTU_USE_SCOTCH
-#cmakedefine AKANTU_USE_PTSCOTCH
-#cmakedefine AKANTU_SCOTCH_NO_EXTERN
+/*! \param p - A constant reference to the first point that defines the line segment.
+ * \param q - A constant reference to the second point that defines the line segment.
+ * \param r - A constant reference to the point for which the predicate is computed.
+ * \return A double, being -1.0 if the point lines on one side of the line and 1.0 if it lies
+ * on the other side.
+ */
+Real left_turn(const Point<2>& p, const Point<2>& q, const Point<2>& r) {
+  if((q[0]-p[0]) * (r[1]-p[1]) > (r[0]-p[0]) * (q[1]-p[1]) )
+    return Real(1.0);
+  else
+    return Real(-1.0);
+}
 
-#cmakedefine AKANTU_USE_MUMPS
 
-#cmakedefine AKANTU_USE_IOHELPER
-#cmakedefine AKANTU_USE_QVIEW
-
-#cmakedefine AKANTU_USE_NLOPT
-#cmakedefine AKANTU_EXTRA_MATERIALS
-#cmakedefine AKANTU_COHESIVE_ELEMENT
-#cmakedefine AKANTU_DAMAGE_NON_LOCAL
-
-#define __aka_inline__ inline
-
-#endif /* __AKANTU_AKA_CONFIG_HH__ */
+__END_AKANTU__

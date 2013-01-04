@@ -48,7 +48,7 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 						   UInt dim,
 						   const ID & id,
 						   const MemoryID & memory_id) :
-  Model(id, memory_id),
+  Model(mesh, id, memory_id),
   stress("stress", id, memory_id),
   element_material("element_material", id, memory_id),
   stiffness_matrix(NULL),

@@ -1,11 +1,9 @@
 /**
- * @file   aka_config.hh.in
+ * @file   resolution.hh
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ * @date   Mon Jan 23 09:00:00 2012
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date   Fri Jan 13 12:34:54 2012
- *
- * @brief  Compilation time configuration of Akantu
+ * @brief  contact resolution classes
  *
  * @section LICENSE
  *
@@ -29,30 +27,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_CONFIG_HH__
-#define __AKANTU_AKA_CONFIG_HH__
+#ifndef __AKANTU_RESOLUTION_HH__
+#define __AKANTU_RESOLUTION_HH__
 
-#cmakedefine AKANTU_NDEBUG
+#include "aka_common.hh"
 
-#cmakedefine AKANTU_USE_BLAS
-#cmakedefine AKANTU_USE_LAPACK
 
-#cmakedefine AKANTU_USE_MPI
+__BEGIN_AKANTU__
 
-#cmakedefine AKANTU_USE_SCOTCH
-#cmakedefine AKANTU_USE_PTSCOTCH
-#cmakedefine AKANTU_SCOTCH_NO_EXTERN
 
-#cmakedefine AKANTU_USE_MUMPS
+__END_AKANTU__
 
-#cmakedefine AKANTU_USE_IOHELPER
-#cmakedefine AKANTU_USE_QVIEW
-
-#cmakedefine AKANTU_USE_NLOPT
-#cmakedefine AKANTU_EXTRA_MATERIALS
-#cmakedefine AKANTU_COHESIVE_ELEMENT
-#cmakedefine AKANTU_DAMAGE_NON_LOCAL
-
-#define __aka_inline__ inline
-
-#endif /* __AKANTU_AKA_CONFIG_HH__ */
+#endif /* __AKANTU_RESOLUTION_HH__ */

@@ -100,15 +100,22 @@ include(AkantuDetermineCCompiler)
 #===============================================================================
 # Dependencies
 #===============================================================================
-find_package(Boost REQUIRED)
+
+set(Boost_USE_STATIC_LIBS        ON)
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+find_package( Boost 1.36.0 COMPONENTS chrono system)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
+  set (AKANTU_EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
 endif()
+
 
 add_all_packages(${PROJECT_SOURCE_DIR}/packages ${PROJECT_SOURCE_DIR}/src)
 
 ## meta option \todo better way to do it when multiple package give enable the
 ## same feature
+
 if(AKANTU_SCOTCH)
   set(AKANTU_PARTITIONER ON)
 else()
