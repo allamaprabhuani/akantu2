@@ -28,7 +28,7 @@
 #===============================================================================
 
 add_optional_external_package(BLAS "Use BLAS for arithmetic operations" OFF LANGUAGE Fortran)
+
 if(BLAS_mkl_core_LIBRARY)
   set(AKANTU_USE_BLAS_MKL)
 endif()
-

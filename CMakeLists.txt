@@ -48,6 +48,7 @@ enable_language(CXX)
 #===============================================================================
 set(AKANTU_CMAKE_DIR "${PROJECT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/Modules")
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
 
 if(NOT AKANTU_TARGETS_EXPORT)
@@ -68,7 +69,6 @@ include(AkantuMacros)
 set(AKANTU_MAJOR_VERSION 1)
 set(AKANTU_MINOR_VERSION 0)
 set(AKANTU_PATCH_VERSION 0)
-
 define_project_version()
 
 #===============================================================================
@@ -81,10 +81,9 @@ mark_as_advanced(AKANTU_DEBUG)
 add_flags(cxx "-Wall")
 
 if(NOT AKANTU_DEBUG)
-  add_flags(cxx "-Wno-return-type")
   set(AKANTU_NDEBUG ON)
 else()
-  remove_flags(cxx "-Wno-return-type")
+  set(AKANTU_NDEBUG OFF)
 endif()
 
 #Profiling
@@ -95,7 +94,7 @@ mark_as_advanced(CMAKE_CXX_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_EXE_LINKER_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_SHARED_LINKER_FLAGS_PROFILING)
 
-include(AkantuDetermineCCompiler)
+include(CMakeDetermineCCompiler)
 
 #===============================================================================
 # Dependencies
@@ -109,7 +108,6 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
   set (AKANTU_EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
 endif()
-
 
 add_all_packages(${PROJECT_SOURCE_DIR}/packages ${PROJECT_SOURCE_DIR}/src)
 
@@ -140,7 +138,6 @@ option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 if(AKANTU_DOCUMENTATION)
   add_subdirectory(doc)
 endif()
-
 
 #===============================================================================
 # Examples and tests

@@ -114,10 +114,10 @@ install(FILES ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
   COMPONENT dev)
 
 install(FILES
-  ${PROJECT_SOURCE_DIR}/cmake/FindIOHelper.cmake
-  ${PROJECT_SOURCE_DIR}/cmake/FindQVIEW.cmake
-  ${PROJECT_SOURCE_DIR}/cmake/FindMumps.cmake
-  ${PROJECT_SOURCE_DIR}/cmake/FindScotch.cmake
-  ${PROJECT_SOURCE_DIR}/cmake/FindGMSH.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindIOHelper.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindQVIEW.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindMumps.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindScotch.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindGMSH.cmake
   DESTINATION  lib/akantu/cmake
   COMPONENT dev)
