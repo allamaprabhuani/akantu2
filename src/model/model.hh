@@ -56,6 +56,9 @@ class Model : public Memory {
   /* ------------------------------------------------------------------------ */
 public:
   
+  typedef Mesh mesh_type;
+
+  
   Model(Mesh& mesh, const ID & id = "model",
         const MemoryID & memory_id = 0);
   

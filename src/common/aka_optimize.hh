@@ -134,8 +134,8 @@ public:
     const Vector<Real> &X = model.getCurrentPosition();
     const Vector<UInt> &conn = mesh.getConnectivity(el->type);
     for (UInt i=0; i<nb_nodes; ++i) {
-      XX_(0,i) = X(conn(el->element,0),i);
-      XX_(1,i) = X(conn(el->element,1),i);
+      XX_(0u,i) = X(conn(el->element,0),i);
+      XX_(1u,i) = X(conn(el->element,1),i);
       p_(i) = r[i];
     }
     
