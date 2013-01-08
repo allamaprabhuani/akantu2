@@ -165,8 +165,11 @@ endif()
 # Install and Packaging
 #===============================================================================
 include(AkantuInstall)
-include(AkantuCPack)
 
+if(NOT AKANTU_DISABLE_CPACK)
+  message("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+  include(AkantuCPack)
+endif()
 
 set(TMP ${AKANTU_INCLUDE_DIRS})
 set(AKANTU_INCLUDE_DIRS ${TMP} CACHE INTERNAL "Internal include directories to link with Akantu as a subproject")
