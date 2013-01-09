@@ -32,6 +32,7 @@
 #define __AKANTU_AKA_POINT_HH__
 
 #include "aka_common.hh"
+#include <cmath>
 
 #include <cassert>
 
@@ -136,12 +137,12 @@ public:
   }
   
   Point& normalize()
-  { return (*this)*=(1/sqrt(sq_norm())); }
+  { return (*this)*=(1/std::sqrt(sq_norm())); }
   
   value_type sq_norm() {
     value_type r = value_type();
     for (int i=0; i<d; ++i)
-      r += pow(coord_[i],2);
+      r += std::pow(coord_[i],2);
     return r;
   }
   

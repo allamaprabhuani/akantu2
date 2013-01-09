@@ -172,3 +172,108 @@ inline bool Model::getIsPBCSlaveNode(const UInt node) {
   else
     return is_pbc_slave_node(node);
 }
+
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void Model::packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
+                                           CommunicationBuffer & buffer,
+                                           const Vector<Element> & elements) const {
+  packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeVector<T> &>(data_to_pack),
+                                         buffer,
+                                         elements);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void Model::unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
+                                             CommunicationBuffer & buffer,
+                                             const Vector<Element> & elements) const {
+  packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T, bool pack_helper>
+inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
+                                                 CommunicationBuffer & buffer,
+                                                 const Vector<Element> & element) const {
+  ElementType current_element_type = _not_defined;
+  GhostType current_ghost_type = _casper;
+  UInt nb_quad_per_elem = 0;
+  UInt nb_component = 0;
+
+  Vector<T> * vect = NULL;
+
+  Vector<Element>::const_iterator<Element> it  = element.begin();
+  Vector<Element>::const_iterator<Element> end = element.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
+      current_element_type = el.type;
+      current_ghost_type   = el.ghost_type;
+      vect = &data_to_pack(el.type, el.ghost_type);
+      nb_quad_per_elem = this->getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
+      nb_component = vect->getNbComponent();
+    }
+
+    types::Vector<T> data(vect->storage() + el.element * nb_component * nb_quad_per_elem,
+			  nb_component * nb_quad_per_elem);
+    if(pack_helper)
+      buffer << data;
+    else
+      buffer >> data;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void Model::packNodalDataHelper(Vector<T> & data_to_pack,
+                                       CommunicationBuffer & buffer,
+                                       const Vector<Element> & element) const {
+  packUnpackNodalDataHelper<T, true>(data_to_pack, buffer, element);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void Model::unpackNodalDataHelper(Vector<T> & data_to_unpack,
+                                         CommunicationBuffer & buffer,
+                                         const Vector<Element> & element) const {
+  packUnpackNodalDataHelper<T, false>(data_to_unpack, buffer, element);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T, bool pack_helper>
+inline void Model::packUnpackNodalDataHelper(Vector<T> & data,
+                                             CommunicationBuffer & buffer,
+                                             const Vector<Element> & elements) const {
+  UInt nb_component = data.getNbComponent();
+  UInt nb_nodes_per_element = 0;
+
+  ElementType current_element_type = _not_defined;
+  GhostType current_ghost_type = _casper;
+  UInt * conn = NULL;
+
+  Vector<Element>::const_iterator<Element> it  = elements.begin();
+  Vector<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
+      current_element_type = el.type;
+      current_ghost_type   = el.ghost_type;
+      conn = mesh.getConnectivity(el.type, el.ghost_type).storage();
+      nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+    }
+
+    UInt el_offset  = el.element * nb_nodes_per_element;
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      UInt offset_conn = conn[el_offset + n];
+      types::Vector<T> data_vect(data.storage() + offset_conn * nb_component,
+				 nb_component);
+
+      if(pack_helper)
+	buffer << data_vect;
+      else
+	buffer >> data_vect;
+    }
+  }
+}

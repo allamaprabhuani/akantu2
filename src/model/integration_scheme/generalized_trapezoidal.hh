@@ -40,7 +40,7 @@
 __BEGIN_AKANTU__
 
 /**
- * The two differentiate equation (thermal and cinematic) are :
+ * The two differentiate equation (thermal and kinematic) are :
  * @f{eqnarray*}{
  *  C\dot{u}_{n+1} + Ku_{n+1} = q_{n+1}\\
  *  u_{n+1} = u_{n} + (1-\alpha) \Delta t \dot{u}_{n} + \alpha \Delta t \dot{u}_{n+1}

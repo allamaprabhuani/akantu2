@@ -123,52 +123,22 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbDataToPack(const Element & element,
-					       SynchronizationTag tag) const {
+inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elements,
+                                                    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
-
-#ifndef AKANTU_NDEBUG
-  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-  size += spatial_dimension * nb_nodes_per_element * sizeof(Real); /// position of the nodes of the element
-#endif
-
-  switch(tag) {
-  case _gst_htm_capacity: {
-    size += nb_nodes_per_element * sizeof(Real); // capacity vector
-    break;
-  }
-  case _gst_htm_temperature: {
-    size += nb_nodes_per_element * sizeof(Real); // temperature
-    break;
-  }
-  case _gst_htm_gradient_temperature: {
-    size += spatial_dimension * sizeof(Real); // temperature gradient
-    size += nb_nodes_per_element * sizeof(Real); // nodal temperatures
-    size += spatial_dimension * nb_nodes_per_element * sizeof(Real); // shape derivatives
-    break;
-  }
-  default: {
-    AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
-  }
-  }
-
-  AKANTU_DEBUG_OUT();
-  return size;
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbDataToUnpack(const Element & element,
-						 SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  UInt nb_nodes_per_element = 0;
+  Vector<Element>::const_iterator<Element> it  = elements.begin();
+  Vector<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  }
 
 #ifndef AKANTU_NDEBUG
-  size += spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
+  size += elements.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
   size += spatial_dimension * nb_nodes_per_element * sizeof(Real); /// position of the nodes of the element
 #endif
 
@@ -198,55 +168,35 @@ inline UInt HeatTransferModel::getNbDataToUnpack(const Element & element,
 
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
-					const Element & element,
+					const Vector<Element> & elements,
 					SynchronizationTag tag) const {
-  GhostType ghost_type = _not_ghost;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
-  UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).values;
-
 #ifndef AKANTU_NDEBUG
-  types::RVector barycenter(spatial_dimension);
-  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter.storage(), ghost_type);
-  buffer << barycenter;
-  Real * nodes = getFEM().getMesh().getNodes().values;
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt offset_conn = conn[el_offset + n];
-    for (UInt s = 0; s < spatial_dimension; ++s) {
-    buffer << nodes[spatial_dimension*offset_conn+s];
-    }
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
+    types::RVector barycenter(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
+    buffer << barycenter;
   }
+  // packNodalDataHelper(mesh.getNodes(), buffer, elements);
 #endif
 
   switch (tag){
   case _gst_htm_capacity: {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      buffer << (*capacity_lumped)(offset_conn);
-    }
+    packNodalDataHelper(*capacity_lumped, buffer, elements);
     break;
   }
   case _gst_htm_temperature: {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      buffer << (*temperature)(offset_conn);
-    }
+    packNodalDataHelper(*temperature, buffer, elements);
     break;
   }
   case _gst_htm_gradient_temperature: {
-    Vector<Real>::const_iterator<types::RVector> it_gtemp =
-      temperature_gradient(element.type, ghost_type).begin(spatial_dimension);
-
-    buffer << it_gtemp[element.element];
-
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      buffer << (*temperature)(offset_conn);
-    }
-
-    Vector<Real>::const_iterator<types::RMatrix> it_shaped =
-      getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
-    buffer << it_shaped[element.element];
+    packElementalDataHelper(temperature_gradient, buffer, elements);
+    packNodalDataHelper(*temperature, buffer, elements);
+    // Vector<Real>::const_iterator<types::RMatrix> it_shaped =
+    //   getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
+    // buffer << it_shaped[element.element];
     break;
   }
   default: {
@@ -257,112 +207,87 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
-		       const Element & element,
-		       SynchronizationTag tag) {
-  GhostType ghost_type = _ghost;
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
-  UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).values;
-
+                                          const Vector<Element> & elements,
+                                          SynchronizationTag tag) {
 #ifndef AKANTU_NDEBUG
-  types::RVector barycenter_loc(spatial_dimension);
-  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter_loc.storage(), ghost_type);
+  Vector<Element>::const_iterator<Element> bit  = elements.begin();
+  Vector<Element>::const_iterator<Element> bend = elements.end();
+  for (; bit != bend; ++bit) {
+    const Element & element = *bit;
 
-  types::RVector barycenter(spatial_dimension);
-  buffer >> barycenter;
-  Real tolerance = 1e-15;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
-      AKANTU_EXCEPTION("Unpacking an unknown value for the element : "
-			     << element
-			     << "(barycenter[" << i << "] = " << barycenter_loc(i)
-			     << " and buffer[" << i << "] = " << barycenter(i) << ")");
-  }
+    types::RVector barycenter_loc(spatial_dimension);
+    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
 
-  types::RVector coords(spatial_dimension);
-  Real * nodes = getFEM().getMesh().getNodes().values;
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    buffer >> coords;
-    UInt offset_conn = conn[el_offset + n];
-    Real * coords_local = nodes+spatial_dimension*offset_conn;
+    types::RVector barycenter(spatial_dimension);
+    buffer >> barycenter;
+    Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if(!(std::abs(coords(i) - coords_local[i]) <= tolerance))
-	AKANTU_EXCEPTION("Unpacking to wrong node for the element : "
-			 << element
-			 << "(coords[" << i << "] = " << coords_local[i]
-			 << " and buffer[" << i << "] = " << coords(i) << ")");
+      if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
+	AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
+			   << element
+			   << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			   << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
     }
   }
+
+  // types::RVector coords(spatial_dimension);
+  // Real * nodes = getFEM().getMesh().getNodes().values;
+  // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+  //   buffer >> coords;
+  //   UInt offset_conn = conn[el_offset + n];
+  //   Real * coords_local = nodes+spatial_dimension*offset_conn;
+  //   for (UInt i = 0; i < spatial_dimension; ++i) {
+  //     if(!(std::abs(coords(i) - coords_local[i]) <= tolerance))
+  //       AKANTU_EXCEPTION("Unpacking to wrong node for the element : "
+  //       		 << element
+  //       		 << "(coords[" << i << "] = " << coords_local[i]
+  //       		 << " and buffer[" << i << "] = " << coords(i) << ")");
+  //   }
+  // }
 #endif
 
   switch (tag){
   case _gst_htm_capacity: {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      buffer >> (*capacity_lumped)(offset_conn);
-    }
+    unpackNodalDataHelper(*capacity_lumped, buffer, elements);
     break;
   }
   case _gst_htm_temperature: {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      Real tbuffer;
-      buffer >> tbuffer;
-#ifndef AKANTU_NDEBUG
-      // if (!getFEM().getMesh().isPureGhostNode(offset_conn)){
-      // 	if (std::abs(tbuffer - (*temperature)(offset_conn)) > 1e-15){
-      // 	  AKANTU_EXCEPTION(std::scientific << std::setprecision(20)
-      // 			   << "local node is impacted with a different value computed from a distant proc"
-      // 			   << " => divergence of trajectory detected " << std::endl
-      // 			   << tbuffer << " != " << (*temperature)(offset_conn)
-      // 			   << " diff is " << tbuffer - (*temperature)(offset_conn));
-      // 	}
-      // }
-#endif
-    (*temperature)(offset_conn) = tbuffer;
-    }
+    unpackNodalDataHelper(*temperature, buffer, elements);
     break;
   }
   case _gst_htm_gradient_temperature: {
-    Vector<Real>::iterator<types::RVector> it_gtemp =
-      temperature_gradient(element.type, ghost_type).begin(spatial_dimension);
-    types::RVector gtemp(spatial_dimension);
-    types::RVector temp_nodes(nb_nodes_per_element);
-    types::RMatrix shaped(nb_nodes_per_element,spatial_dimension);
+    unpackElementalDataHelper(temperature_gradient, buffer, elements);
+    unpackNodalDataHelper(*temperature, buffer, elements);
 
-    buffer >> gtemp;
-    buffer >> temp_nodes;
-    buffer >> shaped;
-
-    //    Real tolerance = 1e-15;
-    if (!Math::are_vector_equal(spatial_dimension,gtemp.storage(),it_gtemp[element.element].storage())){
-      Real dist = Math::distance_3d(gtemp.storage(), it_gtemp[element.element].storage());
-      debug::debugger.getOutputStream().precision(20);
-      std::stringstream temperatures_str;
-      temperatures_str.precision(20);
-      temperatures_str << std::scientific << "temperatures are ";
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	UInt offset_conn = conn[el_offset + n];
-	temperatures_str << (*temperature)(offset_conn) << " ";
-      }
-      Vector<Real>::iterator<types::RMatrix> it_shaped =
-	const_cast<Vector<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
-	.begin(nb_nodes_per_element,spatial_dimension);
+    // //    Real tolerance = 1e-15;
+    // if (!Math::are_vector_equal(spatial_dimension,gtemp.storage(),it_gtemp[element.element].storage())){
+    //   Real dist = Math::distance_3d(gtemp.storage(), it_gtemp[element.element].storage());
+    //   debug::debugger.getOutputStream().precision(20);
+    //   std::stringstream temperatures_str;
+    //   temperatures_str.precision(20);
+    //   temperatures_str << std::scientific << "temperatures are ";
+    //   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    //     UInt offset_conn = conn[el_offset + n];
+    //     temperatures_str << (*temperature)(offset_conn) << " ";
+    //   }
+    //   Vector<Real>::iterator<types::RMatrix> it_shaped =
+    //     const_cast<Vector<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
+    //     .begin(nb_nodes_per_element,spatial_dimension);
 
 
-      AKANTU_EXCEPTION("packed gradient do not match for element " << element.element << std::endl
-		       << "buffer is " << gtemp << " local is " << it_gtemp[element.element]
-		       << " dist is " << dist << std::endl
-		       << temperatures_str.str() << std::endl
-		       << std::scientific << std::setprecision(20)
-		       << " distant temperatures " << temp_nodes
-		       << "temperature gradient size " << temperature_gradient(element.type, ghost_type).getSize()
-		       << " number of ghost elements " << getFEM().getMesh().getNbElement(element.type,_ghost)
-		       << std::scientific << std::setprecision(20)
-		       << " shaped " << shaped
-		       << std::scientific << std::setprecision(20)
-		       << " local shaped " << it_shaped[element.element]);
-    }
+    //   AKANTU_EXCEPTION("packed gradient do not match for element " << element.element << std::endl
+    //     	       << "buffer is " << gtemp << " local is " << it_gtemp[element.element]
+    //     	       << " dist is " << dist << std::endl
+    //     	       << temperatures_str.str() << std::endl
+    //     	       << std::scientific << std::setprecision(20)
+    //     	       << " distant temperatures " << temp_nodes
+    //     	       << "temperature gradient size " << temperature_gradient(element.type, ghost_type).getSize()
+    //     	       << " number of ghost elements " << getFEM().getMesh().getNbElement(element.type,_ghost)
+    //     	       << std::scientific << std::setprecision(20)
+    //     	       << " shaped " << shaped
+    //     	       << std::scientific << std::setprecision(20)
+    //     	       << " local shaped " << it_shaped[element.element]);
+    // }
     break;
   }
   default: {

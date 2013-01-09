@@ -142,6 +142,32 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+  template<typename T>
+  inline void packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
+                                      CommunicationBuffer & buffer,
+                                      const Vector<Element> & elements) const;
+  template<typename T>
+  inline void unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
+                                        CommunicationBuffer & buffer,
+                                        const Vector<Element> & elements) const;
+  template<typename T, bool pack_helper>
+  inline void packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
+                                            CommunicationBuffer & buffer,
+                                            const Vector<Element> & element) const;
+
+  /* -------------------------------------------------------------------------- */
+  template<typename T>
+  inline void packNodalDataHelper(Vector<T> & data_to_pack,
+                                  CommunicationBuffer & buffer,
+                                  const Vector<Element> & element) const;
+  template<typename T>
+  inline void unpackNodalDataHelper(Vector<T> & data_to_unpack,
+                                    CommunicationBuffer & buffer,
+                                    const Vector<Element> & element) const;
+  template<typename T, bool pack_helper>
+  inline void packUnpackNodalDataHelper(Vector<T> & data,
+                                        CommunicationBuffer & buffer,
+                                        const Vector<Element> & elements) const;
   
   
   /* ------------------------------------------------------------------------ */

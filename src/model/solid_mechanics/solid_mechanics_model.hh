@@ -332,24 +332,6 @@ protected:
   inline void splitElementByMaterial(const Vector<Element> & elements,
 				     Vector<Element> * elements_per_mat) const;
 
-
-  template<typename T>
-  inline void packElementDataHelper(Vector<T> & data_to_pack,
-				    CommunicationBuffer & buffer,
-				    const Vector<Element> & element) const;
-
-  /* -------------------------------------------------------------------------- */
-  template<typename T>
-  inline void unpackElementDataHelper(Vector<T> & data_to_unpack,
-				      CommunicationBuffer & buffer,
-				      const Vector<Element> & element) const;
-
-  /* -------------------------------------------------------------------------- */
-  template<typename T, bool pack_helper>
-  inline void packUnpackElementDataHelper(Vector<T> & data,
-					  CommunicationBuffer & buffer,
-					  const Vector<Element> & element) const;
-
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */

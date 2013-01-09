@@ -63,7 +63,7 @@ file(WRITE "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 
 ")
 
-foreach(_option ${PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
+foreach(_option ${AKANTU_PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
   list(FIND AKANTU_OPTION_LIST ${_option_name} _index)
   if (_index EQUAL -1)
     if(NOT "${_option}" STREQUAL "CORE")

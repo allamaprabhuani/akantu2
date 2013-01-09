@@ -149,16 +149,13 @@ private:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-
-  inline UInt getNbDataToPack(const Element & element,
-			      SynchronizationTag tag) const;
-  inline UInt getNbDataToUnpack(const Element & element,
-				SynchronizationTag tag) const;
+  inline UInt getNbDataForElements(const Vector<Element> & elements,
+                                   SynchronizationTag tag) const;
   inline void packData(CommunicationBuffer & buffer,
-		       const Element & element,
+		       const Vector<Element> & elements,
 		       SynchronizationTag tag) const;
   inline void unpackData(CommunicationBuffer & buffer,
-			 const Element & element,
+			 const Vector<Element> & elements,
 			 SynchronizationTag tag);
 
   inline UInt getNbDataToPack(SynchronizationTag tag) const;

@@ -73,59 +73,6 @@ inline void SolidMechanicsModel::splitElementByMaterial(const Vector<Element> & 
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-inline void SolidMechanicsModel::packElementDataHelper(Vector<T> & data_to_pack,
-						       CommunicationBuffer & buffer,
-						       const Vector<Element> & element) const {
-  packUnpackElementDataHelper<T, true>(data_to_pack, buffer, element);
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-inline void SolidMechanicsModel::unpackElementDataHelper(Vector<T> & data_to_unpack,
-							 CommunicationBuffer & buffer,
-							 const Vector<Element> & element) const {
-  packUnpackElementDataHelper<T, false>(data_to_unpack, buffer, element);
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T, bool pack_helper>
-inline void SolidMechanicsModel::packUnpackElementDataHelper(Vector<T> & data,
-							     CommunicationBuffer & buffer,
-							     const Vector<Element> & elements) const {
-  UInt nb_component = data.getNbComponent();
-  UInt nb_nodes_per_element = 0;
-
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  UInt * conn = NULL;
-
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
-    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type   = el.ghost_type;
-      conn = mesh.getConnectivity(el.type, el.ghost_type).storage();
-      nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-    }
-
-    UInt el_offset  = el.element * nb_nodes_per_element;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      types::Vector<T> data_vect(data.storage() + offset_conn * nb_component,
-				 nb_component);
-
-      if(pack_helper)
-	buffer << data_vect;
-      else
-	buffer >> data_vect;
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & elements,
 						      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
@@ -194,17 +141,17 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_mass: {
-    packElementDataHelper(*mass, buffer, elements);
+    packNodalDataHelper(*mass, buffer, elements);
     break;
   }
   case _gst_smm_for_strain: {
-    packElementDataHelper(*displacement, buffer, elements);
+    packNodalDataHelper(*displacement, buffer, elements);
     break;
   }
   case _gst_smm_boundary: {
-    packElementDataHelper(*force, buffer, elements);
-    packElementDataHelper(*velocity, buffer, elements);
-    packElementDataHelper(*boundary, buffer, elements);
+    packNodalDataHelper(*force, buffer, elements);
+    packNodalDataHelper(*velocity, buffer, elements);
+    packNodalDataHelper(*boundary, buffer, elements);
     break;
   }
   default: {
@@ -252,17 +199,17 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_mass: {
-    unpackElementDataHelper(*mass, buffer, elements);
+    unpackNodalDataHelper(*mass, buffer, elements);
     break;
   }
   case _gst_smm_for_strain: {
-    unpackElementDataHelper(*displacement, buffer, elements);
+    unpackNodalDataHelper(*displacement, buffer, elements);
     break;
   }
   case _gst_smm_boundary: {
-    unpackElementDataHelper(*force, buffer, elements);
-    unpackElementDataHelper(*velocity, buffer, elements);
-    unpackElementDataHelper(*boundary, buffer, elements);
+    unpackNodalDataHelper(*force, buffer, elements);
+    unpackNodalDataHelper(*velocity, buffer, elements);
+    unpackNodalDataHelper(*boundary, buffer, elements);
     break;
   }
   default: {

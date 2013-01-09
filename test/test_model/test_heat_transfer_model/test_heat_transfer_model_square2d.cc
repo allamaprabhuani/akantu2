@@ -36,23 +36,22 @@
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <fstream>
-#include <string.h>
+#include <string>
 using namespace std;
 /* -------------------------------------------------------------------------- */
 
-#ifdef AKANTU_USE_IOHELPER
 #include "io_helper.hh"
 
 static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
 static void paraviewDump(iohelper::Dumper & dumper);
 iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 
-#endif //AKANTU_USE_IOHELPER
-
 /* -------------------------------------------------------------------------- */
 akantu::UInt spatial_dimension = 2;
 akantu:: ElementType type = akantu::_triangle_3;
 /* -------------------------------------------------------------------------- */
+
+std::string base_name;
 
 int main(int argc, char *argv[])
 {
@@ -100,10 +99,9 @@ int main(int argc, char *argv[])
     }
   }
 
-#ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
   paraviewInit(model,dumper);
-#endif
+
   //main loop
   int max_steps = 1000;
   for(int i=0; i<max_steps; i++)
@@ -123,45 +121,48 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-/* -------------------------------------------------------------------------- */
 
 void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
-  // akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  // akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
+  base_name =  "coordinates2";
+  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
 
 #pragma message "To change with new dumper"
-  // //  dumper.SetMode(iohelper::TEXT);
-  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  // 		   spatial_dimension, nb_nodes, "coordinates2");
-  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getTemperature().values,
-  // 			  1, "temperature");
-  // dumper.AddNodeDataField(model.getTemperatureRate().values,
+  //  dumper.SetMode(iohelper::TEXT);
+  dumper.setPoints(model.getFEM().getMesh().getNodes().values,
+  		   spatial_dimension, nb_nodes, base_name);
+  dumper.setConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
+  			 paraview_type, nb_element, iohelper::C_MODE);
+  dumper.addNodeDataField("temperature",model.getTemperature().values,
+  			  1,nb_nodes);
+  // dumper.addNodeDataField(model.getTemperatureRate().values,
   //  			  1, "temperature_rate");
-  // dumper.AddNodeDataField(model.getResidual().values,
+  // dumper.addNodeDataField(model.getResidual().values,
   //  			  1, "residual");
-  // dumper.AddNodeDataField(model.getCapacityLumped().values,
+  // dumper.addNodeDataField(model.getCapacityLumped().values,
   //  			  1, "capacity_lumped");
-  // dumper.AddElemDataField(model.getTemperatureGradient(type).values,
+  // dumper.addElemDataField(model.getTemperatureGradient(type).values,
   //   			  spatial_dimension, "temperature_gradient");
 
-  // dumper.AddElemDataField(model.getConductivityOnQpoints(type).values,
+  // dumper.addElemDataField(model.getConductivityOnQpoints(type).values,
   //   			  spatial_dimension*spatial_dimension, "conductivity_qpoints");
 
 
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
+  dumper.setPrefix("./");
+  dumper.init();
 }
 
 /* -------------------------------------------------------------------------- */
 
 void paraviewDump(iohelper::Dumper & dumper) {
-  //  dumper.Dump();
-}
+  static int dump_step = 0;
+  std::stringstream sstr;
+  sstr << base_name << "-";
+  sstr.width(5);
+  sstr.fill('0');
+  sstr << dump_step;
 
-/* -------------------------------------------------------------------------- */
-#endif
-/* -------------------------------------------------------------------------- */
+  dumper.dump(sstr.str());
+
+  ++dump_step;
+}
