@@ -173,6 +173,17 @@ inline bool Model::getIsPBCSlaveNode(const UInt node) {
     return is_pbc_slave_node(node);
 }
 
+/* -------------------------------------------------------------------------- */
+inline UInt Model::getNbQuadraturePoints(const Vector<Element> & elements) const {
+  UInt nb_quad = 0;
+  Vector<Element>::const_iterator<Element> it  = elements.begin();
+  Vector<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    nb_quad += getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
+  }
+  return nb_quad;
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

@@ -39,8 +39,9 @@
 #include <string>
 using namespace std;
 /* -------------------------------------------------------------------------- */
-
-#include "io_helper.hh"
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_paraview.hh"
+#endif //AKANTU_USE_IOHELPER
 
 static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
 static void paraviewDump(iohelper::Dumper & dumper);

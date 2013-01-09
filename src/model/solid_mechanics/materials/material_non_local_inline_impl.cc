@@ -750,7 +750,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataForElements(const Vector<Element> & elements,
 										      SynchronizationTag tag) const {
-  UInt nb_quadrature_points = this->getNbQuadraturePoints(elements);
+  UInt nb_quadrature_points = this->getModel().getNbQuadraturePoints(elements);
   UInt size = 0;
 
   if(tag == _gst_mnl_for_average) {

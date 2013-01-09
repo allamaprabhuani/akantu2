@@ -58,6 +58,7 @@ endif()
 include(CMakeVersionGenerator)
 include(CMakePackagesSystem)
 include(CMakeFlagsHandling)
+
 include(AkantuMacros)
 
 #cmake_activate_debug_message()
@@ -113,7 +114,6 @@ add_all_packages(${PROJECT_SOURCE_DIR}/packages ${PROJECT_SOURCE_DIR}/src)
 
 ## meta option \todo better way to do it when multiple package give enable the
 ## same feature
-
 if(AKANTU_SCOTCH)
   set(AKANTU_PARTITIONER ON)
 else()

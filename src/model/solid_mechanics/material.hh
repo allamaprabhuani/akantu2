@@ -287,9 +287,6 @@ protected:
 					  CommunicationBuffer & buffer,
 					  const Vector<Element> & elements) const;
 public:
-  inline UInt getNbQuadraturePoints(const Vector<Element> & elements) const;
-
-public:
   /* ------------------------------------------------------------------------ */
   virtual inline void onElementsAdded(const Vector<Element> & element_list);
 

@@ -151,12 +151,12 @@ private:
 public:
   inline UInt getNbDataForElements(const Vector<Element> & elements,
                                    SynchronizationTag tag) const;
-  inline void packData(CommunicationBuffer & buffer,
-		       const Vector<Element> & elements,
-		       SynchronizationTag tag) const;
-  inline void unpackData(CommunicationBuffer & buffer,
-			 const Vector<Element> & elements,
-			 SynchronizationTag tag);
+  inline void packElementData(CommunicationBuffer & buffer,
+                              const Vector<Element> & elements,
+                              SynchronizationTag tag) const;
+  inline void unpackElementData(CommunicationBuffer & buffer,
+                                const Vector<Element> & elements,
+                                SynchronizationTag tag);
 
   inline UInt getNbDataToPack(SynchronizationTag tag) const;
   inline UInt getNbDataToUnpack(SynchronizationTag tag) const;

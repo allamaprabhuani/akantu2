@@ -232,7 +232,7 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 inline UInt Material::getNbDataForElements(const Vector<Element> & elements,
 					   SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
-    return spatial_dimension * spatial_dimension * sizeof(Real) * this->getNbQuadraturePoints(elements);
+    return spatial_dimension * spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements);
   }
   return 0;
 }
@@ -253,18 +253,6 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
   if(tag == _gst_smm_stress) {
     unpackElementDataHelper(stress, buffer, elements);
   }
-}
-
-/* -------------------------------------------------------------------------- */
-inline UInt Material::getNbQuadraturePoints(const Vector<Element> & elements) const {
-  UInt nb_quad = 0;
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
-    nb_quad += this->model->getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
-  }
-  return nb_quad;
 }
 
 /* -------------------------------------------------------------------------- */

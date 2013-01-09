@@ -199,7 +199,7 @@ public:
   virtual UInt getNbDataForElements(const Vector<Element> & elements,
                                     SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight)
-      return this->material.getNbQuadraturePoints(elements) * sizeof(Real);
+      return this->material.getModel().getNbQuadraturePoints(elements) * sizeof(Real);
 
     return 0;
   }

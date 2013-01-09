@@ -127,7 +127,6 @@ inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elem
                                                     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-
   UInt size = 0;
   UInt nb_nodes_per_element = 0;
   Vector<Element>::const_iterator<Element> it  = elements.begin();
@@ -139,7 +138,7 @@ inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elem
 
 #ifndef AKANTU_NDEBUG
   size += elements.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-  size += spatial_dimension * nb_nodes_per_element * sizeof(Real); /// position of the nodes of the element
+  //  size += spatial_dimension * nb_nodes_per_element * sizeof(Real); /// position of the nodes of the element
 #endif
 
   switch(tag) {
@@ -152,9 +151,9 @@ inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elem
     break;
   }
   case _gst_htm_gradient_temperature: {
-    size += spatial_dimension * sizeof(Real); // temperature gradient
+    size += getNbQuadraturePoints(elements) * spatial_dimension * sizeof(Real); // temperature gradient
     size += nb_nodes_per_element * sizeof(Real); // nodal temperatures
-    size += spatial_dimension * nb_nodes_per_element * sizeof(Real); // shape derivatives
+    //    size += spatial_dimension * nb_nodes_per_element * sizeof(Real); // shape derivatives
     break;
   }
   default: {
@@ -167,9 +166,9 @@ inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elem
 }
 
 /* -------------------------------------------------------------------------- */
-inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
-					SynchronizationTag tag) const {
+inline void HeatTransferModel::packElementData(CommunicationBuffer & buffer,
+                                               const Vector<Element> & elements,
+                                               SynchronizationTag tag) const {
 #ifndef AKANTU_NDEBUG
   Vector<Element>::const_iterator<Element> bit  = elements.begin();
   Vector<Element>::const_iterator<Element> bend = elements.end();
@@ -206,9 +205,9 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
-                                          const Vector<Element> & elements,
-                                          SynchronizationTag tag) {
+inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
+                                                 const Vector<Element> & elements,
+                                                 SynchronizationTag tag) {
 #ifndef AKANTU_NDEBUG
   Vector<Element>::const_iterator<Element> bit  = elements.begin();
   Vector<Element>::const_iterator<Element> bend = elements.end();
