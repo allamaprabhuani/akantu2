@@ -578,15 +578,21 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
   std::map<UInt, UInt> renumbering_map;
-
-  old_nodes_numbers.resize(0);
+  for (UInt i = 0; i < old_nodes_numbers.getSize(); ++i) {
+    renumbering_map[old_nodes_numbers(i)] = i;
+  }
 
   /// renumber the nodes
   renumberNodesInConnectivity(local_connectivities,
 			      (nb_local_element + nb_ghost_element)*nb_nodes_per_element,
-			      renumbering_map,
-			      old_nodes_numbers);
+			      renumbering_map);
 
+  std::map<UInt, UInt>::iterator it = renumbering_map.begin();
+  std::map<UInt, UInt>::iterator end = renumbering_map.end();
+  old_nodes_numbers.resize(renumbering_map.size());
+  for (;it != end; ++it) {
+    old_nodes_numbers(it->second) = it->first;
+  }
   renumbering_map.clear();
 
   /// copy the renumbered connectivity to the right place
@@ -608,8 +614,7 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::renumberNodesInConnectivity(UInt * list_nodes,
 					    UInt nb_nodes,
-					    std::map<UInt, UInt> & renumbering_map,
-					    Vector<UInt> & nodes_numbers) {
+					    std::map<UInt, UInt> & renumbering_map) {
   AKANTU_DEBUG_IN();
 
   UInt * connectivity = list_nodes;
@@ -619,7 +624,6 @@ void MeshUtils::renumberNodesInConnectivity(UInt * list_nodes,
     std::map<UInt, UInt>::iterator it = renumbering_map.find(node);
     if(it == renumbering_map.end()) {
       UInt old_node = node;
-      nodes_numbers.push_back(old_node);
       renumbering_map[old_node] = new_node_num;
       node = new_node_num;
       ++new_node_num;
@@ -638,10 +642,8 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
 
   std::map<UInt, UInt> renumbering_map;
 
-
   RemovedNodesEvent remove_nodes(mesh);
   Vector<UInt> & nodes_removed = remove_nodes.getList();
-  Vector<UInt> node_numbers;
 
   for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
     GhostType ghost_type = (GhostType) gt;
@@ -657,7 +659,7 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
       UInt nb_element(connectivity_vect.getSize());
       UInt * connectivity = connectivity_vect.storage();
 
-      renumberNodesInConnectivity (connectivity, nb_element*nb_nodes_per_element, renumbering_map, node_numbers);
+      renumberNodesInConnectivity (connectivity, nb_element*nb_nodes_per_element, renumbering_map);
     }
   }
 

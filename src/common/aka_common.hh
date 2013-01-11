@@ -232,37 +232,27 @@ enum CommunicatorType {
 /// @enum SynchronizationTag type of synchronizations
 enum SynchronizationTag {
   //--- SolidMechanicsModel tags ---
-  /// synchronization of the SolidMechanicsModel.mass
-  _gst_smm_mass,
-  /// synchronization of the SolidMechanicsModel.current_position
-  _gst_smm_for_strain,
-  /// synchronization of the boundary, forces, velocities and displacement
-  _gst_smm_boundary,
-  /// synchronization of the nodal velocities and displacement
-  _gst_smm_uv,
-  /// synchronization of the nodal residual
-  _gst_smm_res,
-  /// synchronization of the data to initialize materials
-  _gst_smm_init_mat,
-  _gst_smm_stress,
+  _gst_smm_mass,         //< synchronization of the SolidMechanicsModel.mass
+  _gst_smm_for_strain,   //< synchronization of the SolidMechanicsModel.current_position
+  _gst_smm_boundary,     //< synchronization of the boundary, forces, velocities and displacement
+  _gst_smm_uv,           //< synchronization of the nodal velocities and displacement
+  _gst_smm_res,          //< synchronization of the nodal residual
+  _gst_smm_init_mat,     //< synchronization of the data to initialize materials
+  _gst_smm_stress,       //< synchronization of the stresses to compute the internal forces
   //--- HeatTransfer tags ---
-  /// synchronization of the nodal heat capacity
-  _gst_htm_capacity,
-  /// synchronization of the nodal temperature
-  _gst_htm_temperature,
-  /// synchronization of the element gradient temperature
-  _gst_htm_gradient_temperature,
+  _gst_htm_capacity,     //< synchronization of the nodal heat capacity
+  _gst_htm_temperature,  //< synchronization of the nodal temperature
+  _gst_htm_gradient_temperature,  //< synchronization of the element gradient temperature
   //--- Material non local ---
-  /// synchronization of data to average in non local material
-  _gst_mnl_for_average,
-  /// synchronization of data for the weight computations
-  _gst_mnl_weight,
-  /// Test tag
-  _gst_test
+  _gst_mnl_for_average,  //< synchronization of data to average in non local material
+  _gst_mnl_weight,       //< synchronization of data for the weight computations
+  //--- General tags ---
+  _gst_test,             //< Test tag
+  _gst_material_id       //< synchronization of the material ids
 };
+
 /// standard output stream operator for SynchronizationTag
 inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type);
-
 
 /// @enum GhostType type of ghost
 enum GhostType {

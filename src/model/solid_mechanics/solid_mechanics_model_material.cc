@@ -135,6 +135,7 @@ void SolidMechanicsModel::initMaterials() {
   Material ** mat_val = &(materials.at(0));
 
   /// @todo synchronize element material
+  synch_registry->synchronize(_gst_material_id);
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
@@ -145,15 +146,11 @@ void SolidMechanicsModel::initMaterials() {
 
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      // UInt * elem_mat_val = element_index_by_material(*it, gt).storage();
-      // element_index_by_material.alloc(nb_element, 2, *it, gt);
 
       Vector<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
       for (UInt el = 0; el < nb_element; ++el) {
-	//	UInt index = mat_val[elem_mat_val[el]]->addElement(*it, el, gt);
 	UInt index = mat_val[el_id_by_mat(el, 1)]->addElement(*it, el, gt);
 	el_id_by_mat(el, 0) = index;
-	//	el_id_by_mat(el, 1) = elem_mat_val[el];
       }
     }
   }

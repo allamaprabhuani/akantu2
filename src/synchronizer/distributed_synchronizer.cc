@@ -112,6 +112,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   UInt * local_partitions = NULL;
   UInt * local_data = NULL;
   Vector<UInt> * old_nodes = mesh.getNodesGlobalIdsPointer();
+  old_nodes->resize(0);
   Vector<Real> * nodes = mesh.getNodesPointer();
 
   UInt spatial_dimension = nodes->getNbComponent();

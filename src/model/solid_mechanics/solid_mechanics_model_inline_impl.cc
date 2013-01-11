@@ -93,6 +93,10 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & el
   }
 
   switch(tag) {
+  case _gst_material_id: {
+    size += elements.getSize() * 2 * sizeof(UInt);
+    break;
+  }
   case _gst_smm_mass: {
     size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
     break;
@@ -109,14 +113,15 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & el
   default: {  }
   }
 
+  if(tag != _gst_material_id) {
+    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    this->splitElementByMaterial(elements, elements_per_mat);
 
-  Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
-  this->splitElementByMaterial(elements, elements_per_mat);
-
-  for (UInt i = 0; i < materials.size(); ++i) {
-    size += materials[i]->getNbDataForElements(elements_per_mat[i], tag);
+    for (UInt i = 0; i < materials.size(); ++i) {
+      size += materials[i]->getNbDataForElements(elements_per_mat[i], tag);
+    }
+    delete [] elements_per_mat;
   }
-  delete [] elements_per_mat;
 
   AKANTU_DEBUG_OUT();
   return size;
@@ -140,6 +145,11 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 #endif
 
   switch(tag) {
+
+  case _gst_material_id: {
+    packElementalDataHelper(element_index_by_material, buffer, elements, false);
+    break;
+  }
   case _gst_smm_mass: {
     packNodalDataHelper(*mass, buffer, elements);
     break;
@@ -158,14 +168,16 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
   }
   }
 
-  Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
-  splitElementByMaterial(elements, elements_per_mat);
+  if(tag != _gst_material_id) {
+    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    splitElementByMaterial(elements, elements_per_mat);
 
-  for (UInt i = 0; i < materials.size(); ++i) {
-    materials[i]->packElementData(buffer, elements_per_mat[i], tag);
+    for (UInt i = 0; i < materials.size(); ++i) {
+      materials[i]->packElementData(buffer, elements_per_mat[i], tag);
+    }
+
+    delete [] elements_per_mat;
   }
-
-  delete [] elements_per_mat;
   AKANTU_DEBUG_OUT();
 }
 
@@ -198,6 +210,10 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
 #endif
 
   switch(tag) {
+  case _gst_material_id: {
+    unpackElementalDataHelper(element_index_by_material, buffer, elements, false);
+    break;
+  }
   case _gst_smm_mass: {
     unpackNodalDataHelper(*mass, buffer, elements);
     break;
@@ -216,14 +232,16 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
   }
   }
 
-  Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
-  splitElementByMaterial(elements, elements_per_mat);
+  if(tag != _gst_material_id) {
+    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    splitElementByMaterial(elements, elements_per_mat);
 
-  for (UInt i = 0; i < materials.size(); ++i) {
-    materials[i]->unpackElementData(buffer, elements_per_mat[i], tag);
+    for (UInt i = 0; i < materials.size(); ++i) {
+      materials[i]->unpackElementData(buffer, elements_per_mat[i], tag);
+    }
+
+    delete [] elements_per_mat;
   }
-
-  delete [] elements_per_mat;
 
   AKANTU_DEBUG_OUT();
 }

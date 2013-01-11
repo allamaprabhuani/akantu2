@@ -189,25 +189,29 @@ inline UInt Model::getNbQuadraturePoints(const Vector<Element> & elements) const
 template<typename T>
 inline void Model::packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
                                            CommunicationBuffer & buffer,
-                                           const Vector<Element> & elements) const {
+                                           const Vector<Element> & elements,
+                                           bool per_quadrature_point_data) const {
   packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeVector<T> &>(data_to_pack),
                                          buffer,
-                                         elements);
+                                         elements,
+                                         per_quadrature_point_data);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline void Model::unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
                                              CommunicationBuffer & buffer,
-                                             const Vector<Element> & elements) const {
-  packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements);
+                                             const Vector<Element> & elements,
+                                             bool per_quadrature_point_data) const {
+  packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements, per_quadrature_point_data);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T, bool pack_helper>
 inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
                                                  CommunicationBuffer & buffer,
-                                                 const Vector<Element> & element) const {
+                                                 const Vector<Element> & element,
+                                                 bool per_quadrature_point_data) const {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
   UInt nb_quad_per_elem = 0;
@@ -223,7 +227,9 @@ inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_t
       current_element_type = el.type;
       current_ghost_type   = el.ghost_type;
       vect = &data_to_pack(el.type, el.ghost_type);
-      nb_quad_per_elem = this->getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
+      if(per_quadrature_point_data)
+        nb_quad_per_elem = this->getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
+      else nb_quad_per_elem = 1;
       nb_component = vect->getNbComponent();
     }
 

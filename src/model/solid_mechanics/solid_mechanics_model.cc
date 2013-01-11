@@ -192,6 +192,7 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
   if (data_accessor == NULL) data_accessor = this;
   Synchronizer & synch_parallel = createParallelSynch(partition,data_accessor);
 
+  synch_registry->registerSynchronizer(synch_parallel,_gst_material_id);
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_mass);
   //  synch_registry->registerSynchronizer(synch_parallel,_gst_smm_for_strain);
   synch_registry->registerSynchronizer(synch_parallel,_gst_smm_stress);

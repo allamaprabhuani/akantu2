@@ -151,8 +151,7 @@ private:
   /// function used by all the renumbering functions
   static void renumberNodesInConnectivity(UInt * list_nodes,
 					  UInt nb_nodes,
-					  std::map<UInt, UInt> & renumbering_map,
-					  Vector<UInt> & nodes_numbers);
+					  std::map<UInt, UInt> & renumbering_map);
 
   /// function to double a given facet and update the list of doubled
   /// nodes
