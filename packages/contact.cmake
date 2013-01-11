@@ -27,7 +27,7 @@
 #
 #===============================================================================
 
-option(AKANTU_CONTACT "Use Contact package of Akantu" ON)
+option(AKANTU_CONTACT "Use Contact package of Akantu" OFF)
 
 set(AKANTU_CONTACT_FILES
   #cc files

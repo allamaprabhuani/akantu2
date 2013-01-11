@@ -137,6 +137,9 @@ add_subdirectory(src)
 option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
 if(AKANTU_DOCUMENTATION)
   add_subdirectory(doc)
+  set(AKANTU_DOC_EXCLUDE_FILES "" CACHE INTERNAL "")
+else()
+  set(AKANTU_DOC_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/doc/manual" CACHE INTERNAL "")
 endif()
 
 #===============================================================================
@@ -157,8 +160,10 @@ endif()
 if(AKANTU_TESTS)
   enable_testing()
   include(CTest)
-  set(AKANTU_TESTS_EXCLUDE_FILES)
+  set(AKANTU_TESTS_EXCLUDE_FILES "" CACHE INTERNAL "")
   add_subdirectory(test)
+else()
+  set(AKANTU_TESTS_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/test" CACHE INTERNAL "")
 endif()
 
 #===============================================================================
@@ -167,7 +172,6 @@ endif()
 include(AkantuInstall)
 
 if(NOT AKANTU_DISABLE_CPACK)
-  message("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
   include(AkantuCPack)
 endif()
 
