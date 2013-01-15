@@ -31,11 +31,11 @@ option(AKANTU_UNFINISHED "Use to continue work in progress within Akantu" OFF)
 
 set(AKANTU_UNFINISHED_FILES
   #cc files
-  analysis/analysis.cc
+  #  analysis/analysis.cc
   io/aka_abaqus_parser.hh
   mesh_utils/mesh_io/mesh_io_abaqus.cc
 
   # include files
-  analysis/analysis.hh
+  #analysis/analysis.hh
   mesh_utils/mesh_io/mesh_io_abaqus.hh
 )
