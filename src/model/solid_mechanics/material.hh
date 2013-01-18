@@ -274,18 +274,15 @@ public:
   template<typename T>
   inline void packElementDataHelper(const ByElementTypeVector<T> & data_to_pack,
 				    CommunicationBuffer & buffer,
-				    const Vector<Element> & elements) const;
+				    const Vector<Element> & elements,
+				    const ID & fem_id = ID()) const;
 
   template<typename T>
   inline void unpackElementDataHelper(ByElementTypeVector<T> & data_to_unpack,
 				      CommunicationBuffer & buffer,
-				      const Vector<Element> & elements) const;
+				      const Vector<Element> & elements,
+				      const ID & fem_id = ID()) const;
 
-protected:
-  template<typename T, bool pack_helper>
-  inline void packUnpackElementDataHelper(ByElementTypeVector<T> & data_to_pack,
-					  CommunicationBuffer & buffer,
-					  const Vector<Element> & elements) const;
 public:
   /* ------------------------------------------------------------------------ */
   virtual inline void onElementsAdded(const Vector<Element> & element_list);

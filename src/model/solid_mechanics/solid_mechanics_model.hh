@@ -332,6 +332,13 @@ protected:
   inline void splitElementByMaterial(const Vector<Element> & elements,
 				     Vector<Element> * elements_per_mat) const;
 
+  inline virtual void packBarycenter(CommunicationBuffer & buffer,
+				     const Vector<Element> & elements) const;
+
+  inline virtual void unpackBarycenter(CommunicationBuffer & buffer,
+				       const Vector<Element> & elements,
+				       SynchronizationTag tag);
+
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
@@ -539,6 +546,8 @@ protected:
   UInt spatial_dimension;
 
   AnalysisMethod method;
+
+  Synchronizer * synch_parallel;
 };
 
 __END_AKANTU__

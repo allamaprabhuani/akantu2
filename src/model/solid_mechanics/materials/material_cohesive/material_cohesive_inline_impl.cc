@@ -33,3 +33,36 @@ void MaterialCohesive::computeNormal(const Vector<Real> & position,
 				     Vector<Real> & normal,
 				     GhostType ghost_type) {
 }
+
+/* -------------------------------------------------------------------------- */
+inline UInt MaterialCohesive::getNbDataForElements(const Vector<Element> & elements,
+						   SynchronizationTag tag) const {
+
+  if(tag == _gst_smmc_tractions) {
+    return spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
+  }
+
+  return 0;
+}
+
+/* -------------------------------------------------------------------------- */
+inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
+					      const Vector<Element> & elements,
+					      SynchronizationTag tag) const {
+  if(tag == _gst_smm_stress) return;
+  else if(tag == _gst_smmc_tractions) {
+    packElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
+  }
+
+}
+
+/* -------------------------------------------------------------------------- */
+inline void MaterialCohesive::unpackElementData(CommunicationBuffer & buffer,
+						const Vector<Element> & elements,
+						SynchronizationTag tag) {
+  if(tag == _gst_smm_stress) return;
+  else if(tag == _gst_smmc_tractions) {
+    unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
+  }
+
+}

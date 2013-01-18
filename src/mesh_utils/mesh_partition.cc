@@ -180,6 +180,16 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
 	if(it_w->second == magic_number[t]) {
   	  UInt adjacent_el = it_w->first;
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
+	  /// Patch in order to prevent neighboring cohesive elements
+	  /// from detecting each other
+	  ElementKind linearized_el_kind = mesh.linearizedToElement(linerized_el).kind;
+	  ElementKind adjacent_el_kind = mesh.linearizedToElement(adjacent_el).kind;
+
+	  if (linearized_el_kind == adjacent_el_kind &&
+	      linearized_el_kind == _ek_cohesive) continue;
+#endif
+
 	  UInt index_adj = dxadj(adjacent_el )++;
 	  UInt index_lin = dxadj(linerized_el)++;
 
@@ -236,8 +246,12 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
 
   MeshUtils::buildNode2Elements(mesh, node_to_elem);
 
-  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension,
+					   _not_ghost,
+					   _ek_not_defined);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension,
+					   _not_ghost,
+					   _ek_not_defined);
 
   UInt linearized_el = 0;
   for(; it != end; ++it) {

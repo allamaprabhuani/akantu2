@@ -297,8 +297,8 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
 
     const Vector<Real> & nodes = mesh.getNodes();
 
-    Mesh::type_iterator f_it  = mesh.firstType(spatial_dimension);
-    Mesh::type_iterator f_end = mesh.lastType(spatial_dimension);
+    Mesh::type_iterator f_it  = mesh.firstType(spatial_dimension, _not_ghost, _ek_not_defined);
+    Mesh::type_iterator f_end = mesh.lastType(spatial_dimension, _not_ghost, _ek_not_defined);
 
     UInt out_linerized_el = 0;
     for(; f_it != f_end; ++f_it) {

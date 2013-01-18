@@ -52,6 +52,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 
   this->model = dynamic_cast<SolidMechanicsModelCohesive*>(&model);
 
+  fem_cohesive = &(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
 
   this->registerParam("sigma_c",      sigma_c,      0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Critical stress");
   this->registerParam("rand_factor",  rand,         0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Randomness factor");
@@ -76,23 +77,6 @@ void MaterialCohesive::initMaterial() {
 
   Material::initMaterial();
 
-
-  fem_cohesive = &(model->getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
-
-  Mesh & mesh = fem_cohesive->getMesh();
-
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-
-    Mesh::type_iterator it = mesh.firstType(spatial_dimension, gt, _ek_cohesive);
-    Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, gt, _ek_cohesive);
-
-    for(; it != last_type; ++it) {
-      ElementType type = *it;
-      element_filter.alloc(0, 1, type);
-    }
-  }
-
   initInternalVector(reversible_energy,                 1, false, _ek_cohesive);
   initInternalVector(     total_energy,                 1, false, _ek_cohesive);
   initInternalVector(    tractions_old, spatial_dimension, false, _ek_cohesive);
@@ -101,8 +85,8 @@ void MaterialCohesive::initMaterial() {
   initInternalVector(          opening, spatial_dimension, false, _ek_cohesive);
   initInternalVector(        delta_max,                 1, false, _ek_cohesive);
   initInternalVector(           damage,                 1, false, _ek_cohesive);
+  initInternalVector(   element_filter,                 1, false, _ek_cohesive);
  
-  resizeCohesiveVectors();
   AKANTU_DEBUG_OUT();
 }
 
@@ -178,37 +162,6 @@ void MaterialCohesive::checkInsertion(const Vector<Real> & facet_stress,
   	}
       }
     }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-/**
- * Compute  the  residual  by  assembling  @f$\int_{e}  t_e  N_e dS @f$
- *
- * @param[in] displacements nodes displacements
- * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
- */
-void MaterialCohesive::updateResidual(GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  /// compute traction
-  computeTraction(ghost_type);
-
-  /// update and assemble residual
-  assembleResidual(ghost_type);
-
-  /// compute energies
-  computeEnergies();
-
-  /// update old values
-  Mesh & mesh = fem_cohesive->getMesh();
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
-  for(; it != last_type; ++it) {
-    tractions_old(*it, ghost_type).copy(tractions(*it, ghost_type));
-    opening_old(*it, ghost_type).copy(opening(*it, ghost_type));
   }
 
   AKANTU_DEBUG_OUT();
@@ -581,6 +534,15 @@ void MaterialCohesive::computeEnergies() {
   }
 
   delete [] memory_space;
+
+  /// update old values
+  it = mesh.firstType(spatial_dimension, _not_ghost, _ek_cohesive);
+  GhostType ghost_type = _not_ghost;
+  for(; it != last_type; ++it) {
+    tractions_old(*it, ghost_type).copy(tractions(*it, ghost_type));
+    opening_old(*it, ghost_type).copy(opening(*it, ghost_type));
+  }
+
 
   AKANTU_DEBUG_OUT();
 }

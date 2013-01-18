@@ -56,14 +56,12 @@ int main(int argc, char *argv[]) {
   const UInt max_steps = 200;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("mesh.msh", mesh);
+  mesh.read("mesh.msh");
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat");
-  model.initExtrinsic();
+  model.initExtrinsic("material.dat");
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -103,38 +101,14 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
-  // iohelper::ElemType paraview_type = iohelper::TRIANGLE2;
-
-  // const ElementType type = _triangle_6;
-  // UInt nb_element = mesh.getNbElement(type);
-
-  // /// initialize the paraview output
-  // iohelper::DumperParaview dumper;
-  // dumper.SetMode(iohelper::TEXT);
-  // dumper.SetPoints(mesh.getNodes().values,
-  // 		   spatial_dimension, mesh.getNbNodes(), "explicit");
-  // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getDisplacement().values,
-  // 			  spatial_dimension, "displacements");
-  // dumper.AddNodeDataField(model.getVelocity().values,
-  // 			  spatial_dimension, "velocity");
-  // dumper.AddNodeDataField(model.getAcceleration().values,
-  // 			  spatial_dimension, "acceleration");
-  // dumper.AddNodeDataField(model.getForce().values,
-  // 			  spatial_dimension, "applied_force");
-  // dumper.AddNodeDataField(model.getResidual().values,
-  // 			  spatial_dimension, "forces");
-  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  // 			  spatial_dimension*spatial_dimension, "strain");
-  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  // 			  spatial_dimension*spatial_dimension, "stress");
-  // dumper.SetEmbeddedValue("displacements", 1);
-  // dumper.SetEmbeddedValue("applied_force", 1);
-  // dumper.SetEmbeddedValue("forces", 1);
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-  // dumper.Dump();
+  // model.setBaseName("extrinsic");
+  // model.addDumpFieldVector("displacement");
+  // model.addDumpField("velocity"    );
+  // model.addDumpField("acceleration");
+  // model.addDumpField("residual"    );
+  // model.addDumpField("stress");
+  // model.addDumpField("strain");
+  // model.dump();
 
   ElementType type_facet = model.getFacetType();
   ElementType type_cohesive = model.getCohesiveElementType();
@@ -181,30 +155,7 @@ int main(int argc, char *argv[]) {
     }
 
     if(s % 1 == 0) {
-      // dumper.SetPoints(mesh.getNodes().values,
-      // 		       spatial_dimension, mesh.getNbNodes(), "explicit");
-      // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-      // 			     paraview_type, nb_element, iohelper::C_MODE);
-      // dumper.AddNodeDataField(model.getDisplacement().values,
-      // 			      spatial_dimension, "displacements");
-      // dumper.AddNodeDataField(model.getVelocity().values,
-      // 			      spatial_dimension, "velocity");
-      // dumper.AddNodeDataField(model.getAcceleration().values,
-      // 			      spatial_dimension, "acceleration");
-      // dumper.AddNodeDataField(model.getForce().values,
-      // 			      spatial_dimension, "applied_force");
-      // dumper.AddNodeDataField(model.getResidual().values,
-      // 			      spatial_dimension, "forces");
-      // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-      // 			      spatial_dimension*spatial_dimension, "strain");
-      // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-      // 			      spatial_dimension*spatial_dimension, "stress");
-      // dumper.SetEmbeddedValue("displacements", 1);
-      // dumper.SetEmbeddedValue("applied_force", 1);
-      // dumper.SetEmbeddedValue("forces", 1);
-      // dumper.SetPrefix("paraview/");
-      // dumper.Init();
-      // dumper.Dump();
+      //      model.dump();
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
 

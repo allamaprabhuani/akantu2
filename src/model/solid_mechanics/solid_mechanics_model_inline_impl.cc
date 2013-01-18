@@ -128,12 +128,8 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & el
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
-						 const Vector<Element> & elements,
-						 SynchronizationTag tag) const {
-  AKANTU_DEBUG_IN();
-
-#ifndef AKANTU_NDEBUG
+inline void SolidMechanicsModel::packBarycenter(CommunicationBuffer & buffer,
+						const Vector<Element> & elements) const {
   Vector<Element>::const_iterator<Element> bit  = elements.begin();
   Vector<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
@@ -142,6 +138,16 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
     mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
     buffer << barycenter;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
+						 const Vector<Element> & elements,
+						 SynchronizationTag tag) const {
+  AKANTU_DEBUG_IN();
+
+#ifndef AKANTU_NDEBUG
+  packBarycenter(buffer, elements);
 #endif
 
   switch(tag) {
@@ -182,12 +188,9 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
-						   const Vector<Element> & elements,
-						   SynchronizationTag tag) {
-  AKANTU_DEBUG_IN();
-
-#ifndef AKANTU_NDEBUG
+inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
+						  const Vector<Element> & elements,
+						  SynchronizationTag tag) {
   Vector<Element>::const_iterator<Element> bit  = elements.begin();
   Vector<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
@@ -207,6 +210,16 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
 			   << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
+						   const Vector<Element> & elements,
+						   SynchronizationTag tag) {
+  AKANTU_DEBUG_IN();
+
+#ifndef AKANTU_NDEBUG
+  unpackBarycenter(buffer, elements, tag);
 #endif
 
   switch(tag) {

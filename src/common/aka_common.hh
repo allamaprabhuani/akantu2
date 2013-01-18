@@ -239,6 +239,7 @@ enum SynchronizationTag {
   _gst_smm_res,          //< synchronization of the nodal residual
   _gst_smm_init_mat,     //< synchronization of the data to initialize materials
   _gst_smm_stress,       //< synchronization of the stresses to compute the internal forces
+  _gst_smmc_tractions,   //< synchronitazion of cohesive elements' tractions
   //--- HeatTransfer tags ---
   _gst_htm_capacity,     //< synchronization of the nodal heat capacity
   _gst_htm_temperature,  //< synchronization of the nodal temperature

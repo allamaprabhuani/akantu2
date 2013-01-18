@@ -108,10 +108,10 @@ public:
   virtual void synchronizeBoundaries() {};
 
   /// return the fem object associated with a provided name
-  inline FEM & getFEM(std::string name = "") const;
+  inline FEM & getFEM(const ID & name = "") const;
 
   /// return the fem boundary object associated with a provided name
-  virtual FEM & getFEMBoundary(std::string name = "");
+  virtual FEM & getFEMBoundary(const ID & name = "");
 
   /// register a fem object associated with name
   template <typename FEMClass> inline void registerFEMObject(const std::string & name,
@@ -139,27 +139,34 @@ public:
   /* Pack and unpack helper functions                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbQuadraturePoints(const Vector<Element> & elements) const;
+  inline UInt getNbQuadraturePoints(const Vector<Element> & elements,
+				    const ID & fem_id = ID()) const;
 
 protected:
   /// returns if node is slave in pbc
   inline bool getIsPBCSlaveNode(const UInt node);
 
+public:
   template<typename T>
   inline void packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
                                       CommunicationBuffer & buffer,
                                       const Vector<Element> & elements,
-                                      bool per_quadrature_point = true) const;
+                                      bool per_quadrature_point = true,
+				      const ID & fem_id = ID()) const;
   template<typename T>
   inline void unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
                                         CommunicationBuffer & buffer,
                                         const Vector<Element> & elements,
-                                        bool per_quadrature_point = true) const;
+                                        bool per_quadrature_point = true,
+					const ID & fem_id = ID()) const;
+
+protected:
   template<typename T, bool pack_helper>
   inline void packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
                                             CommunicationBuffer & buffer,
                                             const Vector<Element> & element,
-                                            bool per_quadrature_point) const;
+                                            bool per_quadrature_point,
+					    const ID & fem_id) const;
 
   /* -------------------------------------------------------------------------- */
   template<typename T>

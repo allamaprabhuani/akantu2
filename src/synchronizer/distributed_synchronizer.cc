@@ -127,8 +127,12 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /**
      * connectivity and communications scheme construction
      */
-    Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension());
-    Mesh::type_iterator end = mesh.lastType(mesh.getSpatialDimension());
+    Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension(),
+					     _not_ghost,
+					     _ek_not_defined);
+    Mesh::type_iterator end = mesh.lastType(mesh.getSpatialDimension(),
+					     _not_ghost,
+					     _ek_not_defined);
     UInt count = 0;
     for(; it != end; ++it) {
       ElementType type = *it;
@@ -626,8 +630,8 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
     if (gt == _ghost) set = GHOST_SET;
 
     std::fill_n(already_seen, nb_nodes, false);
-    Mesh::type_iterator it  = mesh.firstType(0, gt);
-    Mesh::type_iterator end = mesh.lastType(0, gt);
+    Mesh::type_iterator it  = mesh.firstType(0, gt, _ek_not_defined);
+    Mesh::type_iterator end = mesh.lastType(0, gt, _ek_not_defined);
     for(; it != end; ++it) {
       ElementType type = *it;
 
@@ -671,6 +675,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
 
   Element element;
   element.type = type;
+  element.kind = Mesh::getKind(type);
 
   UInt * part = partition;
 

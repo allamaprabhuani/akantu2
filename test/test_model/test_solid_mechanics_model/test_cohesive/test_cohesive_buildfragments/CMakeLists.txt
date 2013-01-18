@@ -29,17 +29,11 @@
 #
 #===============================================================================
 
-register_test(test_cohesive_buildfragments test_cohesive_buildfragments.cc)
+add_mesh(test_cohesive_buildfragments_mesh mesh.geo 2 1)
 
-#===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
-  COPYONLY
-  )
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+register_test(test_cohesive_buildfragments
+  SOURCES test_cohesive_buildfragments.cc
+  DEPENDENCIES test_cohesive_buildfragments_mesh
+  PACKAGE cohesive_element
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview)

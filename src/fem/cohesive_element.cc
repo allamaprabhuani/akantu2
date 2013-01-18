@@ -37,12 +37,14 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* 2D cohesive elements                                                       */
 /* -------------------------------------------------------------------------- */
+template<> ElementType ElementClass<_cohesive_2d_4>::p1_element_type  = _cohesive_2d_4;
 template<> UInt CohesiveElement<_cohesive_2d_4>::vec_facet_connectivity[]= {0, 1,
 									    2, 3};
 template<> UInt * CohesiveElement<_cohesive_2d_4>::facet_connectivity[]  = {&vec_facet_connectivity[0],
 									    &vec_facet_connectivity[2]};
 
 /* -------------------------------------------------------------------------- */
+template<> ElementType ElementClass<_cohesive_2d_6>::p1_element_type  = _cohesive_2d_4;
 template<> UInt CohesiveElement<_cohesive_2d_6>::vec_facet_connectivity[]= {0, 1, 2,
 									    3, 4, 5};
 template<> UInt * CohesiveElement<_cohesive_2d_6>::facet_connectivity[]  = {&vec_facet_connectivity[0],

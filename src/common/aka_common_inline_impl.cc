@@ -87,6 +87,7 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
     case _gst_smm_res		       : stream << "_gst_smm_res"		  ; break;
     case _gst_smm_init_mat	       : stream << "_gst_smm_init_mat"	      	  ; break;
     case _gst_smm_stress	       : stream << "_gst_smm_stress"	      	  ; break;
+    case _gst_smmc_tractions	       : stream << "_gst_smmc_tractions"     	  ; break;
     case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
     case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
     case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;

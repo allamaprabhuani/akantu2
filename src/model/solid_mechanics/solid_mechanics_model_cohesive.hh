@@ -71,15 +71,20 @@ public:
   /// function to insert cohesive elements on the selected facets
   void insertCohesiveElements(const Vector<UInt> & facet_insertion);
 
-  /// initialize completely the model
-  void initFull(std::string material_file,
-                AnalysisMethod method = _explicit_dynamic);
+  /// initialize the model for intrinsic simulations
+  void initIntrinsic(std::string material_file,
+		     AnalysisMethod method = _explicit_dynamic);
 
   /// initialize completely the model for extrinsic elements
-  void initExtrinsic();
+  void initExtrinsic(std::string material_file,
+		     AnalysisMethod method = _explicit_dynamic);
 
   /// initialize the model
   void initModel();
+
+  /// register the tags associated with the parallel synchronizer for
+  /// cohesive elements
+  void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
 
   /// initialize cohesive material
   void initCohesiveMaterial();
@@ -98,37 +103,60 @@ private:
   /// compute fragments' mass and velocity
   void computeFragmentsMV();
 
+
+  /* ------------------------------------------------------------------------ */
+  /* Data Accessor inherited members                                          */
+  /* ------------------------------------------------------------------------ */
+public:
+
+  inline virtual UInt getNbDataForElements(const Vector<Element> & elements,
+					   SynchronizationTag tag) const;
+
+  inline virtual void packElementData(CommunicationBuffer & buffer,
+				      const Vector<Element> & elements,
+				      SynchronizationTag tag) const;
+
+  inline virtual void unpackElementData(CommunicationBuffer & buffer,
+					const Vector<Element> & elements,
+					SynchronizationTag tag);
+
+protected:
+
+  inline virtual void splitElementByKind(const Vector<Element> & elements,
+					 Vector<Element> & elements_regular,
+					 Vector<Element> & elements_cohesive) const;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// get the cohesive element type
+  /// get cohesive element type
   AKANTU_GET_MACRO(CohesiveElementType, type_cohesive, ElementType);
 
-  /// get the cohesive index
+  /// get cohesive index
   AKANTU_GET_MACRO(CohesiveIndex, cohesive_index, UInt);
 
-  /// get the facet type
+  /// get facet type
   AKANTU_GET_MACRO(FacetType, type_facet, ElementType);
 
-  /// get the facet mesh
+  /// get facet mesh
   AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
 
-  /// get the sigma limit vector for automatic insertion
+  /// get sigma limit vector for automatic insertion
   AKANTU_GET_MACRO(SigmaLimit, sigma_lim, const Vector<Real> &);
   AKANTU_GET_MACRO_NOT_CONST(SigmaLimit, sigma_lim, Vector<Real> &);
 
-  /// get the facets check vector
+  /// get facets check vector
   AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Vector<bool> &);
 
-  /// get the stress on facets vector
+  /// get stress on facets vector
   AKANTU_GET_MACRO(StressOnFacets, facet_stress, const Vector<Real> &);
 
-  /// get the number of fragments
+  /// get number of fragments
   AKANTU_GET_MACRO(NbFragment, nb_fragment, UInt);
 
-  /// get the fragment_to_element vectors
+  /// get fragment_to_element vectors
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FragmentToElement, fragment_to_element, UInt);
 
   /// get mass for each fragment
@@ -137,7 +165,7 @@ public:
   /// get average velocity for each fragment
   AKANTU_GET_MACRO(FragmentsVelocity, fragment_velocity, const Vector<Real> &);
 
-  /// get the center of mass coordinates for each fragment
+  /// get center of mass coordinates for each fragment
   AKANTU_GET_MACRO(FragmentsCenter, fragment_center, const Vector<Real> &);
 
   /// THIS HAS TO BE CHANGED
@@ -200,7 +228,9 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "solid_mechanics_model_cohesive_inline_impl.cc"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#include "solid_mechanics_model_cohesive_inline_impl.cc"
+#endif
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsModelCohesive & _this)

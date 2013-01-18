@@ -292,6 +292,9 @@ public:
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);
 
+  /// get cohesive element type for a given facet type
+  static inline ElementType getCohesiveElementType(const ElementType & type_facet);
+
   virtual const ShapeFunctions & getShapeFunctionsInterface() const = 0;
   virtual const Integrator & getIntegratorInterface() const = 0;
 

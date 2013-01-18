@@ -225,8 +225,8 @@ public:
   /// constructor that use an existing nodes coordinates array, by knowing its ID
   Mesh(UInt spatial_dimension,
        const ID & nodes_id,
-       const ID & id = "mesh",
-       const MemoryID & memory_id = 0);
+       const ID & id,
+       const MemoryID & memory_id);
 
   /**
    * constructor that use an existing nodes coordinates

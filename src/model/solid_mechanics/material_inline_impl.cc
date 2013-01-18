@@ -40,8 +40,9 @@ __BEGIN_AKANTU__
 inline UInt Material::addElement(const ElementType & type,
 				 UInt element,
 				 const GhostType & ghost_type) {
-  element_filter(type, ghost_type).push_back(element);
-  return element_filter(type, ghost_type).getSize()-1;
+  Vector<UInt> & el_filter = element_filter(type, ghost_type);
+  el_filter.push_back(element);
+  return el_filter.getSize()-1;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -259,56 +260,18 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 template<typename T>
 inline void Material::packElementDataHelper(const ByElementTypeVector<T> & data_to_pack,
 					    CommunicationBuffer & buffer,
-					    const Vector<Element> & elements) const {
-  packUnpackElementDataHelper<T, true>(const_cast<ByElementTypeVector<T> &>(data_to_pack),
-				       buffer,
-				       elements);
+					    const Vector<Element> & elements,
+					    const ID & fem_id) const {
+  model->packElementalDataHelper<T>(data_to_pack, buffer, elements, true, fem_id);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline void Material::unpackElementDataHelper(ByElementTypeVector<T> & data_to_unpack,
 					      CommunicationBuffer & buffer,
-					      const Vector<Element> & elements) const {
-  packUnpackElementDataHelper<T, false>(data_to_unpack, buffer, elements);
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T, bool pack_helper>
-inline void Material::packUnpackElementDataHelper(ByElementTypeVector<T> & data_to_pack,
-						  CommunicationBuffer & buffer,
-						  const Vector<Element> & element) const {
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  UInt nb_quad_per_elem = 0;
-  UInt nb_component = 0;
-
-  Vector<T> * vect = NULL;
-  Vector<UInt> * element_index_material = NULL;
-
-  Vector<Element>::const_iterator<Element> it  = element.begin();
-  Vector<Element>::const_iterator<Element> end = element.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
-    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type   = el.ghost_type;
-
-      vect = &data_to_pack(el.type, el.ghost_type);
-      element_index_material = &(this->model->getElementIndexByMaterial(current_element_type, current_ghost_type));
-
-      nb_quad_per_elem = this->model->getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
-      nb_component = vect->getNbComponent();
-    }
-
-    UInt el_id = (*element_index_material)(el.element, 0);
-    types::Vector<T> data(vect->storage() + el_id * nb_component * nb_quad_per_elem,
-			  nb_component * nb_quad_per_elem);
-    if(pack_helper)
-      buffer << data;
-    else
-      buffer >> data;
-  }
+					      const Vector<Element> & elements,
+					      const ID & fem_id) const {
+  model->unpackElementalDataHelper<T>(data_to_unpack, buffer, elements, true, fem_id);
 }
 
 /* -------------------------------------------------------------------------- */

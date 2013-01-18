@@ -129,12 +129,17 @@ public:
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
 
-  /// function to insert cohesive elements on the selected facets by specifying
-  /// the material
+  /// function to insert intrinsic cohesive elements on the selected
+  /// facets
+  static void insertIntrinsicCohesiveElements(Mesh & mesh,
+					      Mesh & mesh_facets,
+					      ElementType type_facet,
+					      const Vector<UInt> & facet_insertion);
+
+  /// function to insert cohesive elements on the selected facets
   static void insertCohesiveElements(Mesh & mesh,
 				     Mesh & mesh_facets,
 				     ElementType type_facet,
-				     ElementType type_cohesive,
 				     const Vector<UInt> & facet_insertion,
 				     Vector<UInt> & doubled_nodes,
 				     Vector<UInt> & doubled_facets);

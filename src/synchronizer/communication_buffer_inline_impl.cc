@@ -35,6 +35,8 @@
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator<< (const T & to_pack) {
   T * tmp = reinterpret_cast<T *>(ptr_pack);
+  AKANTU_DEBUG_ASSERT(buffer.storage() + buffer.getSize() >= ptr_pack + sizeof(T),
+		      "Packing too much data in the CommunicationBuffer");
   *tmp = to_pack;
   ptr_pack += sizeof(T);
   return *this;
@@ -63,6 +65,8 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (T & to_unpack) {
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Vector<T> & to_pack) {
   UInt size = to_pack.size() * sizeof(T);
+  AKANTU_DEBUG_ASSERT(buffer.storage() + buffer.getSize() >= ptr_pack + size,
+		      "Packing too much data in the CommunicationBuffer");
   memcpy(ptr_pack, to_pack.storage(), size);
   ptr_pack += size;
   return *this;
@@ -85,6 +89,8 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Vector<T> &
 template<typename T>
 inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Matrix<T> & to_pack) {
   UInt size = to_pack.size() * sizeof(Real);
+  AKANTU_DEBUG_ASSERT(buffer.storage() + buffer.getSize() >= ptr_pack + size,
+		      "Packing too much data in the CommunicationBuffer");
   memcpy(ptr_pack, to_pack.storage(), size);
   ptr_pack += size;
   return *this;

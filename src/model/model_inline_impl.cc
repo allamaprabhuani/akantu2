@@ -120,13 +120,15 @@ inline void Model::registerFEMObject(const std::string & name,
 }
 
 /* -------------------------------------------------------------------------- */
-inline FEM & Model::getFEM(std::string name) const{
+inline FEM & Model::getFEM(const ID & name) const{
   AKANTU_DEBUG_IN();
 
-  if (name == "") name = default_fem;
+  ID tmp_name = name;
+  if (name == "") tmp_name = default_fem;
 
-  FEMMap::const_iterator it = fems.find(name);
-  AKANTU_DEBUG_ASSERT(it != fems.end(),"The FEM " << name << " is not registered");
+  FEMMap::const_iterator it = fems.find(tmp_name);
+  AKANTU_DEBUG_ASSERT(it != fems.end(),
+		      "The FEM " << tmp_name << " is not registered");
 
   AKANTU_DEBUG_OUT();
   return *(it->second);
@@ -134,16 +136,17 @@ inline FEM & Model::getFEM(std::string name) const{
 
 
 /* -------------------------------------------------------------------------- */
-inline FEM & Model::getFEMBoundary(std::string name){
+inline FEM & Model::getFEMBoundary(const ID & name){
   AKANTU_DEBUG_IN();
 
-  if (name == "") name = default_fem;
+  ID tmp_name = name;
+  if (name == "") tmp_name = default_fem;
 
-  FEMMap::const_iterator it = fems_boundary.find(name);
+  FEMMap::const_iterator it = fems_boundary.find(tmp_name);
   AKANTU_DEBUG_ASSERT(it != fems_boundary.end(),
-		      "The FEM boundary  " << name << " is not registered");
+		      "The FEM boundary  " << tmp_name << " is not registered");
   AKANTU_DEBUG_ASSERT(it->second != NULL,
-		      "The FEM boundary " << name << " was not created");
+		      "The FEM boundary " << tmp_name << " was not created");
 
   AKANTU_DEBUG_OUT();
   return *(it->second);
@@ -174,13 +177,15 @@ inline bool Model::getIsPBCSlaveNode(const UInt node) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Model::getNbQuadraturePoints(const Vector<Element> & elements) const {
+inline UInt Model::getNbQuadraturePoints(const Vector<Element> & elements,
+					 const ID & fem_id) const {
   UInt nb_quad = 0;
   Vector<Element>::const_iterator<Element> it  = elements.begin();
   Vector<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     const Element & el = *it;
-    nb_quad += getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
+    nb_quad += getFEM(fem_id).getNbQuadraturePoints(el.type,
+						    el.ghost_type);
   }
   return nb_quad;
 }
@@ -190,11 +195,12 @@ template<typename T>
 inline void Model::packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
                                            CommunicationBuffer & buffer,
                                            const Vector<Element> & elements,
-                                           bool per_quadrature_point_data) const {
+                                           bool per_quadrature_point_data,
+					   const ID & fem_id) const {
   packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeVector<T> &>(data_to_pack),
                                          buffer,
                                          elements,
-                                         per_quadrature_point_data);
+                                         per_quadrature_point_data, fem_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -202,8 +208,12 @@ template<typename T>
 inline void Model::unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
                                              CommunicationBuffer & buffer,
                                              const Vector<Element> & elements,
-                                             bool per_quadrature_point_data) const {
-  packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements, per_quadrature_point_data);
+                                             bool per_quadrature_point_data,
+					     const ID & fem_id) const {
+  packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer,
+					  elements,
+					  per_quadrature_point_data,
+					  fem_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -211,7 +221,8 @@ template<typename T, bool pack_helper>
 inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
                                                  CommunicationBuffer & buffer,
                                                  const Vector<Element> & element,
-                                                 bool per_quadrature_point_data) const {
+                                                 bool per_quadrature_point_data,
+						 const ID & fem_id) const {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
   UInt nb_quad_per_elem = 0;
@@ -228,7 +239,8 @@ inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_t
       current_ghost_type   = el.ghost_type;
       vect = &data_to_pack(el.type, el.ghost_type);
       if(per_quadrature_point_data)
-        nb_quad_per_elem = this->getFEM().getNbQuadraturePoints(el.type, el.ghost_type);
+        nb_quad_per_elem = this->getFEM(fem_id).getNbQuadraturePoints(el.type,
+								      el.ghost_type);
       else nb_quad_per_elem = 1;
       nb_component = vect->getNbComponent();
     }

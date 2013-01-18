@@ -3,9 +3,9 @@
 #
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
-# @date   Tue May 08 13:01:18 2012
+# @date   Wed Nov 28 17:05:18 2012
 #
-# @brief  configuration for cohesive elements tests
+# @brief  configuration for parallel test for cohesive elements
 #
 # @section LICENSE
 #
@@ -28,29 +28,10 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-
-add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
-add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
-add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
-add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
-add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl"
-  PACKAGE implicit)
-add_akantu_test(test_cohesive_parallel "test_cohesive_parallel"
-  PACKAGE parallel)
-#===============================================================================
-
-#register_test(test_cohesive test_cohesive.cc)
-#
-##===============================================================================
-#configure_file(
-#  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-#  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-#  COPYONLY
-#  )
-#configure_file(
-#  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
-#  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
-#  COPYONLY
-#  )
-#file(COPY run DESTINATION .)
-#file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+if(AKANTU_PARALLEL)
+  register_test(test_cohesive_parallel 
+    SOURCES test_cohesive_parallel.cc
+    PACKAGE cohesive_element
+    FILES_TO_COPY mesh.msh material.dat
+    DIRECTORIES_TO_CREATE paraview)
+endif()

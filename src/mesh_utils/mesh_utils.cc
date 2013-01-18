@@ -34,6 +34,7 @@
 /* -------------------------------------------------------------------------- */
 
 #include "mesh_utils.hh"
+#include "fem.hh"
 
 
 __BEGIN_AKANTU__
@@ -917,16 +918,40 @@ void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_su
 }
 
 /* -------------------------------------------------------------------------- */
+void MeshUtils::insertIntrinsicCohesiveElements(Mesh & mesh,
+						Mesh & mesh_facets,
+						ElementType type_facet,
+						const Vector<UInt> & facet_insertion) {
+  AKANTU_DEBUG_IN();
+
+  Vector<UInt> doubled_nodes(0, 2);
+  Vector<UInt> doubled_facets(0, 2);
+
+  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+  mesh.addConnectivityType(type_cohesive);
+
+  insertCohesiveElements(mesh,
+			 mesh_facets,
+			 type_facet,
+			 facet_insertion,
+			 doubled_nodes,
+			 doubled_facets);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void MeshUtils::insertCohesiveElements(Mesh & mesh,
 				       Mesh & mesh_facets,
 				       ElementType type_facet,
-				       ElementType type_cohesive,
 				       const Vector<UInt> & facet_insertion,
 				       Vector<UInt> & doubled_nodes,
 				       Vector<UInt> & doubled_facets) {
   AKANTU_DEBUG_IN();
 
   if(facet_insertion.getSize() == 0) return;
+
+  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
 
   /// update mesh
   for (UInt f = 0; f < facet_insertion.getSize(); ++f) {
@@ -999,6 +1024,8 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
     facets_to_cohesive_el(nb_cohesive_elements, 0) = first_facet;
     facets_to_cohesive_el(nb_cohesive_elements, 1) = second_facet;
   }
+
+  mesh.updateTypesOffsets(_not_ghost);
 
   AKANTU_DEBUG_OUT();
 }

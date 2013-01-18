@@ -101,19 +101,23 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) const {
        t != _max_element_type && linearized_element >= types_offsets(t);
        ++t);
 
-  AKANTU_DEBUG_ASSERT(t != _max_element_type,
+  AKANTU_DEBUG_ASSERT(linearized_element < types_offsets(t),
    		      "The linearized element " << linearized_element
    		      << "does not exists in the mesh " << id);
 
   --t;
-  return Element(ElementType(t), linearized_element - types_offsets.values[t]);
+  ElementType type = ElementType(t);
+  return Element(type,
+		 linearized_element - types_offsets.values[t],
+		 _not_ghost,
+		 getKind(type));
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::updateTypesOffsets(const GhostType & ghost_type) {
   types_offsets.clear();
-  type_iterator it   = firstType(0, ghost_type);
-  type_iterator last = lastType(0, ghost_type);
+  type_iterator it   = firstType(0, ghost_type, _ek_not_defined);
+  type_iterator last = lastType(0, ghost_type, _ek_not_defined);
 
   for (; it != last; ++it)
     types_offsets(*it) = connectivities(*it, ghost_type).getSize();
@@ -354,7 +358,7 @@ inline ElementType Mesh::getP1ElementType(const ElementType & type) {
 #define GET_ELEMENT_P1(type)				\
   element_p1 = ElementClass<type>::getP1ElementType()
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_ELEMENT_P1);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_ELEMENT_P1);
 #undef GET_NB_NODES_PER_ELEMENT_P1
 
   AKANTU_DEBUG_OUT();

@@ -69,8 +69,14 @@ public:
   /// resize vectors for new cohesive elements
   virtual void resizeCohesiveVectors();
 
-  /// compute the residual for this material
-  virtual void updateResidual(GhostType ghost_type = _not_ghost);
+  /// compute tractions (including normals and openings)
+  void computeTraction(GhostType ghost_type = _not_ghost);
+
+  /// assemble residual
+  void assembleResidual(GhostType ghost_type = _not_ghost);
+
+  /// compute reversible and total energies by element
+  void computeEnergies();
 
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const Vector<Real> & facet_stress,
@@ -80,6 +86,8 @@ public:
   /// implemantation to avoid the generic call to be done on cohesive elements)
   virtual void interpolateStress(__attribute__((unused)) const ElementType type,
 				 __attribute__((unused)) Vector<Real> & result) { };
+
+  virtual void computeAllStresses(__attribute__((unused)) GhostType ghost_type = _not_ghost) { };
 
   /// generate random sigma_c distributions
   void generateRandomDistribution(Vector<Real> & sigma_lim);
@@ -108,23 +116,13 @@ protected:
 		     Vector<Real> & normal,
 		     GhostType ghost_type);
 
-
-  /// assemble residual
-  void assembleResidual(GhostType ghost_type = _not_ghost);
-
   /// assemble stiffness
   void assembleStiffnessMatrix(GhostType ghost_type);
-
-  /// compute tractions (including normals and openings)
-  void computeTraction(GhostType ghost_type = _not_ghost);
 
   /// constitutive law
   virtual void computeTraction(const Vector<Real> & normal,
 			       ElementType el_type,
 			       GhostType ghost_type = _not_ghost) = 0;
-
-  /// compute reversible and total energies by element
-  void computeEnergies();
 
   /// compute stress norms on quadrature points for each facet for stress check
   virtual void computeStressNorms(__attribute__((unused)) const Vector<Real> & facet_stress,
@@ -132,6 +130,18 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
+
+  /// parallelism functions
+  inline UInt getNbDataForElements(const Vector<Element> & elements,
+				   SynchronizationTag tag) const;
+
+  inline void packElementData(CommunicationBuffer & buffer,
+			      const Vector<Element> & elements,
+			      SynchronizationTag tag) const;
+
+  inline void unpackElementData(CommunicationBuffer & buffer,
+				const Vector<Element> & elements,
+				SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

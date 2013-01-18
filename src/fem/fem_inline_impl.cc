@@ -49,3 +49,18 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
   AKANTU_DEBUG_OUT();
   return inradius;
 }
+
+/* -------------------------------------------------------------------------- */
+/// @todo rewrite this function in order to get the cohesive element
+/// type directly from the facet
+inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
+  AKANTU_DEBUG_IN();
+
+  ElementType type_cohesive = _not_defined;
+
+  if (type_facet == _segment_2) type_cohesive = _cohesive_2d_4;
+  else if (type_facet == _segment_3) type_cohesive = _cohesive_2d_6;
+
+  AKANTU_DEBUG_OUT();
+  return type_cohesive;
+}

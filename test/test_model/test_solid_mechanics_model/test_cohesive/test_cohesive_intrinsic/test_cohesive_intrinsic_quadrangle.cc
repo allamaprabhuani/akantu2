@@ -63,18 +63,7 @@ int main(int argc, char *argv[]) {
   const ElementType type = _quadrangle_8;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("quadrangle.msh", mesh);
-
-  SolidMechanicsModelCohesive model(mesh);
-
-  /// model initialization
-  model.initFull("material.dat");
-  Real time_step = model.getStableTimeStep()*0.8;
-  model.setTimeStep(time_step);
-  //  std::cout << "Time step: " << time_step << std::endl;
-
-  model.assembleMassLumped();
+  mesh.read("quadrangle.msh");
 
 
   /* ------------------------------------------------------------------------ */
@@ -83,11 +72,12 @@ int main(int argc, char *argv[]) {
 
   std::cout << mesh << std::endl;
 
-  const Mesh & mesh_facets = model.getMeshFacets();
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
 
   std::cout << mesh_facets << std::endl;
 
-  const ElementType type_facet = mesh.getFacetElementType(type);
+  const ElementType type_facet = Mesh::getFacetElementType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   //  const Vector<Real> & position = mesh.getNodes();
   //  Vector<Real> & displacement = model.getDisplacement();
@@ -101,7 +91,10 @@ int main(int argc, char *argv[]) {
   }
   delete[] bary_facet;
 
-  model.insertCohesiveElements(facet_insertion);
+  MeshUtils::insertIntrinsicCohesiveElements(mesh,
+					     mesh_facets,
+					     type_facet,
+					     facet_insertion);
 
   //  mesh_io.write("mesh_cohesive.msh", mesh);
 
@@ -110,6 +103,18 @@ int main(int argc, char *argv[]) {
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
+
+
+  SolidMechanicsModelCohesive model(mesh);
+
+  /// model initialization
+  model.initIntrinsic("material.dat");
+  Real time_step = model.getStableTimeStep()*0.8;
+  model.setTimeStep(time_step);
+  //  std::cout << "Time step: " << time_step << std::endl;
+
+  model.assembleMassLumped();
+
 
   Vector<bool> & boundary = model.getBoundary();
   //  const Vector<Real> & residual = model.getResidual();
