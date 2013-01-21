@@ -47,6 +47,7 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential_inline_impl.cc
 
   model/solid_mechanics/solid_mechanics_model_cohesive.cc
+  model/solid_mechanics/solid_mechanics_model_cohesive_inline_impl.cc
   model/solid_mechanics/materials/material_cohesive/material_cohesive.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_bilinear.cc
