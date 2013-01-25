@@ -34,7 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "material_cohesive_linear.hh"
+#include "material_cohesive.hh"
 #include "aka_common.hh"
 
 __BEGIN_AKANTU__
@@ -44,9 +44,14 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  *   - delta_0   : elastic limit displacement (default: 0)
+ *   - sigma_c   : critical stress sigma_c  (default: 0)
+ *   - beta      : weighting parameter for sliding and normal opening (default: 0)
+ *   - G_cI      : fracture energy for mode I (default: 0)
+ *   - G_cII     : fracture energy for mode II (default: 0)
+ *   - penalty   : stiffness in compression to prevent penetration
  */
 template<UInt spatial_dimension>
-class MaterialCohesiveBilinear : public MaterialCohesiveLinear<spatial_dimension> {
+class MaterialCohesiveBilinear : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -70,6 +75,11 @@ public:
   virtual void resizeCohesiveVectors();
 
 protected:
+
+  /// constitutive law
+  void computeTraction(const Vector<Real> & normal,
+		       ElementType el_type,
+		       GhostType ghost_type = _not_ghost);
 
   void computeTangentStiffness(__attribute__((unused))	const ElementType & el_type,
 			       __attribute__((unused)) Vector<Real> & tangent_matrix,
@@ -97,6 +107,24 @@ protected:
 
   /// elastic limit displacement
   Real delta_0;
+
+  /// beta parameter
+  Real beta;
+
+  /// mode I fracture energy
+  Real G_cI;
+
+  /// mode II fracture energy
+  Real G_cII;
+
+  /// kappa parameter
+  Real kappa;
+
+  /// critical displacement
+  Real delta_c;
+
+  /// penalty coefficient
+  Real penalty;
 
 };
 

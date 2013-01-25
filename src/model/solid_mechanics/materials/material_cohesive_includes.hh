@@ -30,7 +30,6 @@
 /* -------------------------------------------------------------------------- */
 
 #include "material_cohesive.hh"
-#include "material_cohesive_linear.hh"
 #include "material_cohesive_bilinear.hh"
 #include "material_cohesive_linear_extrinsic.hh"
 #include "material_cohesive_exponential.hh"
@@ -38,7 +37,6 @@
 
 #define AKANTU_COHESIVE_MATERIAL_LIST					\
   ((2, (cohesive_bilinear      , MaterialCohesiveBilinear     )))	\
-  ((2, (cohesive_linear        , MaterialCohesiveLinear       )))	\
   ((2, (cohesive_linear_extrinsic, MaterialCohesiveLinearExtrinsic )))	\
   ((2, (cohesive_linear_exponential_extrinsic, MaterialCohesiveLinearExponentialExtrinsic ))) \
   ((2, (cohesive_exponential   , MaterialCohesiveExponential  )))
