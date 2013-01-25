@@ -127,13 +127,13 @@ void HeatTransferModel::initVectors() {
 
   UInt nb_nodes = getFEM().getMesh().getNbNodes();
 
-  std::stringstream sstr_temp;      sstr_temp     << id << ":temperature";
-  std::stringstream sstr_temp_rate; sstr_temp     << id << ":temperature_rate";
-  std::stringstream sstr_inc;       sstr_temp_rate<< id << ":increment";
-  std::stringstream sstr_ext_flx;   sstr_ext_flx  << id << ":external_flux";
-  std::stringstream sstr_residual;  sstr_residual << id << ":residual";
-  std::stringstream sstr_lump;      sstr_lump     << id << ":lumped";
-  std::stringstream sstr_boun;      sstr_boun     << id << ":boundary";
+  std::stringstream sstr_temp;      sstr_temp      << id << ":temperature";
+  std::stringstream sstr_temp_rate; sstr_temp_rate << id << ":temperature_rate";
+  std::stringstream sstr_inc;       sstr_inc       << id << ":increment";
+  std::stringstream sstr_ext_flx;   sstr_ext_flx   << id << ":external_flux";
+  std::stringstream sstr_residual;  sstr_residual  << id << ":residual";
+  std::stringstream sstr_lump;      sstr_lump      << id << ":lumped";
+  std::stringstream sstr_boun;      sstr_boun      << id << ":boundary";
 
   temperature      = &(alloc<Real>(sstr_temp.str(),      nb_nodes, 1, REAL_INIT_VALUE));
   temperature_rate = &(alloc<Real>(sstr_temp_rate.str(), nb_nodes, 1, REAL_INIT_VALUE));
