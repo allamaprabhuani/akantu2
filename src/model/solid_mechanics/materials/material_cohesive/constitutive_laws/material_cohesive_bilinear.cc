@@ -197,8 +197,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(const Vector<R
       	*traction_it += normal_opening;
       }
       else {
-	*damage_it = delta >= delta_c;
-	*delta_max_it = *damage_it * delta_c;
+      	*damage_it = delta >= delta_c;
       }
     }
     /// element not fully damaged

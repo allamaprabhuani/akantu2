@@ -277,7 +277,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const V
       }
       else {
 	*damage_it = delta >= *delta_c_it;
-	*delta_max_it = *damage_it * (*delta_c_it);
+	//	*delta_max_it = *damage_it * (*delta_c_it);
       }
     }
     /// element not fully damaged
