@@ -37,7 +37,7 @@
 #include "static_communicator.hh"
 
 #include "dof_synchronizer.hh"
-
+#include <cmath>
 
 #ifdef AKANTU_USE_MUMPS
 #include "solver_mumps.hh"
@@ -1048,7 +1048,8 @@ Real SolidMechanicsModel::getKineticEnergy() {
     bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
     bool count_node = is_local_node && is_not_pbc_slave_node;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      mv2 += count_node * *vel_val * *vel_val * *mass_val;
+      if (count_node)
+	mv2 += *vel_val * *vel_val * *mass_val;
 
       vel_val++;
       mass_val++;
@@ -1081,10 +1082,12 @@ Real SolidMechanicsModel::getExternalWork() {
     bool count_node = is_local_node && is_not_pbc_slave_node;
 
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if(*boun)
-	work -= count_node * *resi * *velo * time_step;
-      else
-	work += count_node * *forc * *velo * time_step;
+      if (count_node) {
+	if(*boun)
+	  work -= *resi * *velo * time_step;
+	else
+	  work += *forc * *velo * time_step;
+      }
 
       ++velo;
       ++forc;
