@@ -88,7 +88,6 @@ typedef std::list< SurfacePair > SurfacePairList;
 
 /// @boost sequence of element to loop on in global tasks
 #define AKANTU_REGULAR_ELEMENT_TYPE		\
-  (_not_defined)				\
   (_segment_2)					\
   (_segment_3)					\
   (_triangle_3)					\
@@ -391,6 +390,7 @@ __END_AKANTU__
     switch(type) {							\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)	\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro2, list2)	\
+    case _not_defined:                                                  \
     case _max_element_type:  {						\
       AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
       break;								\

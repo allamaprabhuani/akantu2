@@ -40,7 +40,7 @@ else()
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
 endif()
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "${PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${${_project}_PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
 
 # General configuration
 set(CPACK_PACKAGE_VENDOR "LSMS")
@@ -62,9 +62,20 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-src")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/COPYING")
 
 list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_EXCLUDE_SOURCE_FILES} ${AKANTU_TESTS_EXCLUDE_FILES} ${AKANTU_DOC_EXCLUDE_FILES})
-foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_OFF})
+foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_OFF})
   list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${_pkg}.cmake)
 endforeach()
 list(APPEND CPACK_SOURCE_IGNORE_FILES "/doc/manual/;/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 
 include(CPack)
+
+set(AKANTU_AUTHENTICATION_FILE "${PROJECT_SOURCE_DIR_ACL}" CACHE PATH "File to generate the authentication for svn")
+set(AKANTU_TRUNK "/akantu/trunk" CACHE PATH "Akantu repos")
+set(AKANTU_SVNAUTHZ_FILE "${PROJECT_BINARY_DIR}/svnauthz.akantu" CACHE PATH "Generated authz file")
+mark_as_advanced(AKANTU_AUTHENTICATION_FILE)
+mark_as_advanced(AKANTU_TRUNK)
+mark_as_advanced(AKANTU_SVNAUTHZ_FILE)
+
+if(AKANTU_AUTHENTICATION_FILE)
+  generate_svn_auth(${AKANTU_AUTHENTICATION_FILE} ${AKANTU_SVNAUTHZ_FILE})
+endif()
