@@ -186,8 +186,8 @@ public:
   AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Vector<Real>&);
   /// get the boundary vector
   AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
-  /// get the external flux vector
-  AKANTU_GET_MACRO(ExternalFlux, * external_flux, Vector<Real>&);
+  /// get the external heat rate vector
+  AKANTU_GET_MACRO(ExternalHeatRate, * external_heat_rate, Vector<Real>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient, temperature_gradient, Real);
   /// get the conductivity on q points
@@ -248,7 +248,7 @@ private:
   ByElementTypeReal bt_k_gT;
 
   //external flux vector
-  Vector<Real> * external_flux;
+  Vector<Real> * external_heat_rate;
 
   /// residuals array
   Vector<Real> * residual;

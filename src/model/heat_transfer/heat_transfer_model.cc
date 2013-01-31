@@ -135,13 +135,13 @@ void HeatTransferModel::initVectors() {
   std::stringstream sstr_lump;      sstr_lump      << id << ":lumped";
   std::stringstream sstr_boun;      sstr_boun      << id << ":boundary";
 
-  temperature      = &(alloc<Real>(sstr_temp.str(),      nb_nodes, 1, REAL_INIT_VALUE));
-  temperature_rate = &(alloc<Real>(sstr_temp_rate.str(), nb_nodes, 1, REAL_INIT_VALUE));
-  increment        = &(alloc<Real>(sstr_inc.str(),       nb_nodes, 1, REAL_INIT_VALUE));
-  external_flux    = &(alloc<Real>(sstr_ext_flx.str(),   nb_nodes, 1, REAL_INIT_VALUE));
-  residual         = &(alloc<Real>(sstr_residual.str(),  nb_nodes, 1, REAL_INIT_VALUE));
-  capacity_lumped  = &(alloc<Real>(sstr_lump.str(),      nb_nodes, 1, REAL_INIT_VALUE));
-  boundary         = &(alloc<bool>(sstr_boun.str(),      nb_nodes, 1, false));
+  temperature        = &(alloc<Real>(sstr_temp.str(),      nb_nodes, 1, REAL_INIT_VALUE));
+  temperature_rate   = &(alloc<Real>(sstr_temp_rate.str(), nb_nodes, 1, REAL_INIT_VALUE));
+  increment          = &(alloc<Real>(sstr_inc.str(),       nb_nodes, 1, REAL_INIT_VALUE));
+  external_heat_rate = &(alloc<Real>(sstr_ext_flx.str(),   nb_nodes, 1, REAL_INIT_VALUE));
+  residual           = &(alloc<Real>(sstr_residual.str(),  nb_nodes, 1, REAL_INIT_VALUE));
+  capacity_lumped    = &(alloc<Real>(sstr_lump.str(),      nb_nodes, 1, REAL_INIT_VALUE));
+  boundary           = &(alloc<bool>(sstr_boun.str(),      nb_nodes, 1, false));
 
   Mesh::ConnectivityTypeList::const_iterator it;
 
@@ -278,7 +278,7 @@ void HeatTransferModel::updateResidual() {
   //clear the array
   /// first @f$ r = q_{ext} @f$
   //  residual->clear();
-  residual->copy(*external_flux);
+  residual->copy(*external_heat_rate);
 
   /// then @f$ r -= q_{int} @f$
   // update the not ghost ones
@@ -643,7 +643,7 @@ void HeatTransferModel::initFull(const std::string & material_file){
   initVectors();
   temperature->clear();
   temperature_rate->clear();
-  external_flux->clear();
+  external_heat_rate->clear();
 }
 
 /* -------------------------------------------------------------------------- */
