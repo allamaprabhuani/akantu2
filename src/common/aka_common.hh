@@ -403,6 +403,7 @@ __END_AKANTU__
   do {									\
     switch(type) {							\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, AKANTU_ALL_ELEMENT_TYPE) \
+    case _not_defined:                                                  \
     case _max_element_type:  {						\
       AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
       break;								\
