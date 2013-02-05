@@ -178,18 +178,21 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
+
+  model/solid_mechanics/materials/material_elastic_orthotropic.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic.hh
+  model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   )
-  
-  
-  
+
+
  include(CheckCXXCompilerFlag)
  check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
  if (HAVE_NEW_STD)
-    list(APPEND AKANTU_CORE_FILES 
-    common/aka_point.hh 
-    common/aka_bounding_box.hh 
-    common/aka_bounding_box.cc 
-    common/aka_geometry.hh 
+    list(APPEND AKANTU_CORE_FILES
+    common/aka_point.hh
+    common/aka_bounding_box.hh
+    common/aka_bounding_box.cc
+    common/aka_geometry.hh
     common/aka_geometry.cc
 )
     add_definitions(-std=c++0x)
