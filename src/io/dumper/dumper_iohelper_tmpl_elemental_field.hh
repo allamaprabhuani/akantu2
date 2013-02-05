@@ -198,7 +198,7 @@ public:
 				   const internal_iterator & it,
 				   ElementType element_type,
 				   const GhostType ghost_type = _not_ghost) :
-    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) {
+    parent(field, 0, t_it, t_it_end, it, element_type, ghost_type) {
     prank = StaticCommunicator::getStaticCommunicator().whoAmI();
   }
 
@@ -292,6 +292,8 @@ public:
     checkHomogeneity(field, nb_component, nb_total_element);
     return nb_total_element;
   }
+
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
 protected:
   virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
@@ -401,7 +403,7 @@ public:
 			UInt spatial_dimension = 0,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined) :
-    parent(mesh.getConnectivities(), spatial_dimension, ghost_type, element_kind) {
+    parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind) {
     homogeneous = true;
   }
 

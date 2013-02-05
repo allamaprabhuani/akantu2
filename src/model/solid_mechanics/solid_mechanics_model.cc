@@ -1287,9 +1287,8 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
 void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
 #define ADD_FIELD(field, type)						\
-  DumperIOHelper::Field * f = new DumperIOHelper::NodalField<type,	\
-							     types::Vector>(*field, \
-									    spatial_dimension); \
+  DumperIOHelper::Field * f =						\
+    new DumperIOHelper::NodalField<type>(*field);			\
   f->setPadding(3);							\
   addDumpFieldToDumper(BOOST_PP_STRINGIZE(field), f)
 

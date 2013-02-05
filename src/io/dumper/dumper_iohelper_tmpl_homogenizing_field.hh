@@ -201,13 +201,15 @@ public:
     dupmer.addElemDataField(id, *this);
   }
 
-  UInt getDim() { 
+  UInt getDim() {
     if(padding_n && padding_m)
       return padding_m*padding_n;
     else return nb_component;
   }
 
   UInt size() { return cont.size(); }
+
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
   UInt isHomogeneous() { return true; }
 

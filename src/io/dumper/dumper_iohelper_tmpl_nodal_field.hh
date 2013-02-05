@@ -28,26 +28,29 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template< typename T, template<typename> class return_type>
+template<typename T>
 class DumperIOHelper::NodalField : public Field {
 public:
   /* -----------------------------------------------------------------------*/
-  class iterator : public iohelper::iterator< T, iterator, return_type<T> > {
+  class iterator : public iohelper::iterator< T, iterator, types::Vector<T> > {
   protected:
-    typedef typename Vector<T>::template const_iterator< return_type<T> > internal_iterator;
+    typedef typename Vector<T>::template const_iterator< types::Vector<T> > internal_iterator;
   public:
-    iterator(const internal_iterator & it) : vit(it) {}
+    iterator(T * vect, UInt offset, UInt n, UInt stride) :
+      internal_it(vect), offset(offset), n(n), stride(stride) {}
 
-    bool           operator!=(const iterator & it) const { return vit != it.vit; }
-    iterator &     operator++() { ++vit; return *this; };
-    return_type<T> operator* (){ return *vit; };
+    bool operator!=(const iterator & it) const { return internal_it != it.internal_it; }
+    iterator & operator++() { internal_it += offset; return *this; };
+    types::Vector<T> operator* (){ return types::Vector<T>(internal_it + stride, n); };
   private:
-    internal_iterator vit;
+    T * internal_it;
+    UInt offset, n, stride;
   };
 
   /* ---------------------------------------------------------------------- */
-  NodalField(const Vector<T> & field, UInt n = 0, UInt m = 1) : field(field), n(n), m(m) {
-    if(n == 0) { this->n = field.getNbComponent(); }
+  NodalField(const Vector<T> & field, UInt n = 0, UInt stride = 0) :
+    field(field), n(n), stride(stride) {
+    if(n == 0) { this->n = field.getNbComponent() - stride; }
   }
 
   virtual void registerToDumper(const std::string & id,
@@ -55,33 +58,29 @@ public:
     dumper.addNodeDataField(id, *this);
   }
 
+  inline iterator begin() {
+    return iterator(field.storage(), field.getNbComponent(), n, stride);
+  }
 
-  inline iterator begin() { return iterator_helper<T, return_type>::begin(field, n ,m, field.getSize()); }
-  inline iterator end  () { return iterator_helper<T, return_type>::end(field, n ,m, field.getSize()); }
+  inline iterator end  () {
+    return iterator(field.storage() + field.getNbComponent()*field.getSize(),
+		    field.getNbComponent(), n, stride);
+  }
 
   bool isHomogeneous() { return true; }
 
   virtual UInt getDim() {
-    if(padding_n && padding_m)
-      return padding_m*padding_n;
-    else return n*m;
+    if(this->padding_n && this->padding_m)
+      return this->padding_n * this->padding_m;
+    else return n;
   }
 
   UInt size() { return field.getSize(); }
+
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+
 private:
   const Vector<T> & field;
-  UInt n, m;
+  UInt n, stride;
 };
 
-
-template<>
-inline DumperIOHelper::NodalField<Real, types::Matrix>::iterator
-DumperIOHelper::NodalField<Real, types::Matrix>::begin() {
-  return iterator(field.begin(n, m));
-}
-
-template<>
-inline DumperIOHelper::NodalField<Real, types::Matrix>::iterator
-DumperIOHelper::NodalField<Real, types::Matrix>::end() {
-  return iterator(field.end(n, m));
-}

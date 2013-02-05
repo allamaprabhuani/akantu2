@@ -41,7 +41,7 @@ DumperParaview::DumperParaview(const std::string & filename,
 
   UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
   UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
-  dumper_para->setMode(iohelper::TEXT);
+  dumper_para->setMode(iohelper::BASE64);
   dumper_para->setParallelContext(whoami, nproc);
 
   dumper_para->setVTUSubDirectory(filename + "-VTU");

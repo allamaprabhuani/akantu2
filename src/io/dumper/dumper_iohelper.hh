@@ -100,7 +100,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   /* Nodal field wrapper */
-  template<typename T, template<typename> class return_type = types::Vector>
+  template<typename T>
   class NodalField;
 
   /* ------------------------------------------------------------------------ */
