@@ -53,9 +53,6 @@ MaterialCohesiveLinearExtrinsic<spatial_dimension>::MaterialCohesiveLinearExtrin
   this->registerParam("penalty", penalty, 0. , _pat_parsable, "Penalty coefficient"    );
   this->registerParam("kappa"  , kappa  , 1. , _pat_readable, "Kappa parameter"        );
 
-  initInternalVector(sigma_c_eff, 1, false, _ek_cohesive);
-  initInternalVector(    delta_c, 1, false, _ek_cohesive);
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -85,6 +82,9 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::initMaterial() {
     beta2_inv = 0;
   else
     beta2_inv = 1./beta/beta;
+
+  initInternalVector(sigma_c_eff, 1, false, _ek_cohesive);
+  initInternalVector(    delta_c, 1, false, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }

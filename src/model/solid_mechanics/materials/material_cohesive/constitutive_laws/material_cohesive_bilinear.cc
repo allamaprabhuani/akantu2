@@ -45,7 +45,7 @@ MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(SolidMecha
   this->registerParam("beta"   , beta   , 0. , _pat_parsable, "Beta parameter"         );
   this->registerParam("G_cI"   , G_cI   , 0. , _pat_parsable, "Mode I fracture energy" );
   this->registerParam("G_cII"  , G_cII  , 0. , _pat_parsable, "Mode II fracture energy");
-  this->registerParam("kappa"  , kappa  , 0. , _pat_readable, "Kappa parameter"        );
+  this->registerParam("kappa"  , kappa  , 1. , _pat_readable, "Kappa parameter"        );
   this->registerParam("delta_c", delta_c, 0. , _pat_readable, "Critical displacement"  );
   this->registerParam("penalty", penalty, 0. , _pat_parsable, "Penalty coefficient"    );
 
@@ -67,7 +67,8 @@ void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
 
   MaterialCohesive::initMaterial();
 
-  kappa   = G_cII / G_cI;
+  if (G_cII != 0)
+    kappa   = G_cII / G_cI;
   delta_c = 2 * G_cI / sigma_c;
 
   /**
@@ -76,14 +77,10 @@ void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
    * \frac{{\sigma_c}_\textup{old} \delta_c} {\delta_c - \delta_0} @f$
    */
 
-  AKANTU_DEBUG_ASSERT(std::abs((this->delta_c - delta_0) / delta_0)
-		      >= std::numeric_limits<Real>::epsilon(),
-		      "Check your material.dat");
+  AKANTU_DEBUG_ASSERT(this->delta_c > delta_0,
+		      "Check your material file");
 
   this->sigma_c *= this->delta_c / (this->delta_c - delta_0);
-
-  updateDeltaMax(_ghost);
-  updateDeltaMax(_not_ghost);
 
   AKANTU_DEBUG_OUT();
 }

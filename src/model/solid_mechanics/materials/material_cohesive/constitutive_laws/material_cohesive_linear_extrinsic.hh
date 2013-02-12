@@ -49,7 +49,6 @@ __BEGIN_AKANTU__
  *   - beta      : weighting parameter for sliding and normal opening (default: 0)
  *   - G_cI      : fracture energy for mode I (default: 0)
  *   - G_cII     : fracture energy for mode II (default: 0)
- *   - rand      : randomness factor (default: 0)
  *   - penalty   : stiffness in compression to prevent penetration
  */
 template<UInt spatial_dimension>
