@@ -205,6 +205,12 @@ public:
   /// get the equation number Vector<Int>
   AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
 
+
+  /// compute the thermal energy
+  Real getThermalEnergy();
+  /// get thermal energy
+  Real getEnergy(const std::string & energy_id);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

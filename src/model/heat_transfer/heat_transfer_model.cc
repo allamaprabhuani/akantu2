@@ -647,6 +647,7 @@ void HeatTransferModel::initFull(const std::string & material_file){
 }
 
 /* -------------------------------------------------------------------------- */
+
 void HeatTransferModel::initFEMBoundary(bool create_surface) {
 
   if(create_surface)
@@ -656,6 +657,56 @@ void HeatTransferModel::initFEMBoundary(bool create_surface) {
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
 }
+
+/* -------------------------------------------------------------------------- */
+
+Real HeatTransferModel::getThermalEnergy() {
+  AKANTU_DEBUG_IN();
+
+  Real ethermal = 0.;
+
+  UInt nb_nodes = mesh.getNbNodes();
+
+  Real * heat_rate  = residual->values;
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    Real heat = 0;
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
+    bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
+    bool count_node = is_local_node && is_not_pbc_slave_node;
+    for (UInt i = 0; i < spatial_dimension; ++i) {
+      if (count_node)
+	heat += *heat_rate * time_step;
+
+      heat_rate++;
+    }
+    ethermal += heat;
+  }
+
+  StaticCommunicator::getStaticCommunicator().allReduce(&ethermal, 1, _so_sum);
+
+  AKANTU_DEBUG_OUT();
+  return ethermal * .5;
+}
+
+/* -------------------------------------------------------------------------- */
+
+Real HeatTransferModel::getEnergy(const std::string & id) {
+  AKANTU_DEBUG_IN();
+
+  if (id == "thermal") {
+    return getThermalEnergy();
+  }
+
+  Real energy = 0.;
+  /// reduction sum over all processors
+  StaticCommunicator::getStaticCommunicator().allReduce(&energy, 1, _so_sum);
+
+  AKANTU_DEBUG_OUT();
+  return energy;
+}
+
+/* -------------------------------------------------------------------------- */
 
 
 __END_AKANTU__
