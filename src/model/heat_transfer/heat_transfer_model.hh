@@ -205,11 +205,14 @@ public:
   /// get the equation number Vector<Int>
   AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
 
-
   /// compute the thermal energy
-  Real getThermalEnergy();
+  Real computeThermalEnergyByNode();
+  /// get thermal energy by element
+  Real getEnergy(const std::string & energy_id, const ElementType & type, UInt index);
   /// get thermal energy
   Real getEnergy(const std::string & energy_id);
+  /// compute thermal energy by element
+  void computeThermalEnergyByElement();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -285,6 +288,9 @@ private:
 
   //the biggest parameter of conductivity matrix
   Real conductivitymax;
+
+  /// thermal energy by element
+  ByElementTypeReal thermal_energy;
 
 };
 

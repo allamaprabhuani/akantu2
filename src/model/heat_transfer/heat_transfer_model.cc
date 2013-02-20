@@ -65,7 +65,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   conductivity_on_qpoints ("conductivity_on_qpoints", id),
   k_gradt_on_qpoints      ("k_gradt_on_qpoints", id),
   int_bt_k_gT             ("int_bt_k_gT", id),
-  bt_k_gT                 ("bt_k_gT", id)
+  bt_k_gT                 ("bt_k_gT", id),
+  thermal_energy          ("thermal_energy", id)
 {
   AKANTU_DEBUG_IN();
 
@@ -171,6 +172,10 @@ void HeatTransferModel::initVectors() {
   getFEM().getMesh().initByElementTypeVector(int_bt_k_gT,
                                              1,
                                              spatial_dimension,true);
+  
+  getFEM().getMesh().initByElementTypeVector(thermal_energy,
+                                             1,
+                                             spatial_dimension);
 
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -201,6 +206,9 @@ void HeatTransferModel::initVectors() {
 
       int_bt_k_gT(*it, gt).resize(nb_element);
       int_bt_k_gT(*it, gt).clear();
+
+      thermal_energy(*it, gt).resize(nb_element);
+      thermal_energy(*it, gt).clear();
     }
   }
 
@@ -660,25 +668,29 @@ void HeatTransferModel::initFEMBoundary(bool create_surface) {
 
 /* -------------------------------------------------------------------------- */
 
-Real HeatTransferModel::getThermalEnergy() {
+Real HeatTransferModel::computeThermalEnergyByNode() {
   AKANTU_DEBUG_IN();
 
   Real ethermal = 0.;
 
-  UInt nb_nodes = mesh.getNbNodes();
+  Vector<Real>::iterator<types::RVector> heat_rate_it =
+    residual->begin(residual->getNbComponent());
 
-  Real * heat_rate  = residual->values;
+  Vector<Real>::iterator<types::RVector> heat_rate_end =
+    residual->end(residual->getNbComponent());
 
-  for (UInt n = 0; n < nb_nodes; ++n) {
+
+  UInt n = 0;
+  for(;heat_rate_it != heat_rate_end; ++heat_rate_it, ++n) {
     Real heat = 0;
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
     bool count_node = is_local_node && is_not_pbc_slave_node;
-    for (UInt i = 0; i < spatial_dimension; ++i) {
+    
+    types::RVector & heat_rate = *heat_rate_it;
+    for (UInt i = 0; i < heat_rate.size(); ++i) {
       if (count_node)
-	heat += *heat_rate * time_step;
-
-      heat_rate++;
+	heat += heat_rate[i] * time_step;
     }
     ethermal += heat;
   }
@@ -686,19 +698,56 @@ Real HeatTransferModel::getThermalEnergy() {
   StaticCommunicator::getStaticCommunicator().allReduce(&ethermal, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
-  return ethermal * .5;
+  return ethermal;
 }
 
 /* -------------------------------------------------------------------------- */
 
+void HeatTransferModel::computeThermalEnergyByElement() {
+  AKANTU_DEBUG_IN();
+
+  Mesh & mesh = getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  for(; it != last_type; ++it) {
+    if(!thermal_energy.exists(*it, _not_ghost)) {
+      UInt nb_element = getFEM().getMesh().getNbElement(*it, _not_ghost);
+      UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, _not_ghost);
+
+      thermal_energy.alloc(nb_element * nb_quadrature_points, 1,
+			     *it, _not_ghost);
+    }
+
+    Real * ethermal = thermal_energy(*it, _not_ghost).storage();
+    Vector<Real>::iterator<Real> temperature_it =
+      this->temperature_on_qpoints(*it).begin();
+    Vector<Real>::iterator<Real> temperature_end =
+      this->temperature_on_qpoints(*it).end();
+
+    for(;temperature_it != temperature_end; ++temperature_it, ++ ethermal) {
+      *ethermal = capacity * density * *temperature_it;
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
 Real HeatTransferModel::getEnergy(const std::string & id) {
   AKANTU_DEBUG_IN();
 
-  if (id == "thermal") {
-    return getThermalEnergy();
-  }
+  //return computeThermalEnergyByNode();
 
   Real energy = 0.;
+  computeThermalEnergyByElement();
+  /// integrate the thermal energy for each type of element
+  Mesh & mesh = getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  for(; it != last_type; ++it) {
+
+    energy += getFEM().integrate(thermal_energy(*it, _not_ghost), *it,
+                                 _not_ghost);
+  }
+
   /// reduction sum over all processors
   StaticCommunicator::getStaticCommunicator().allReduce(&energy, 1, _so_sum);
 
@@ -708,5 +757,33 @@ Real HeatTransferModel::getEnergy(const std::string & id) {
 
 /* -------------------------------------------------------------------------- */
 
+Real HeatTransferModel::getEnergy(const std::string & energy_id, const ElementType & type, UInt index) {
+  AKANTU_DEBUG_IN();
+  Real ethermal = 0.;
+
+  types::RVector ethermal_on_quad_points(getFEM().getNbQuadraturePoints(type));
+
+  Vector<Real>::iterator<Real> temperature_it =
+    this->temperature_on_qpoints(type).begin();
+  Vector<Real>::iterator<Real> temperature_end =
+    this->temperature_on_qpoints(type).begin();
+
+  UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
+
+  temperature_it  += index*nb_quadrature_points;
+  temperature_end += (index+1)*nb_quadrature_points;
+
+  Real * ethermal_quad = ethermal_on_quad_points.storage();
+  for(;temperature_it != temperature_end; ++temperature_it, ++ ethermal_quad) {    
+    *ethermal_quad = capacity * density * *temperature_it;
+  }
+  
+  ethermal = getFEM().integrate(ethermal_on_quad_points, type, index);
+
+  AKANTU_DEBUG_OUT();
+  return ethermal;
+}
+
+/* -------------------------------------------------------------------------- */
 
 __END_AKANTU__
