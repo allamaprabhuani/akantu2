@@ -86,7 +86,8 @@ public:
 
   /// mesh event handler onRemovedElement
   virtual void onElementsRemoved(const Vector<Element> & element_list,
-				 const ByElementTypeUInt & new_numbering);
+				 const ByElementTypeUInt & new_numbering,
+				 const RemovedElementsEvent & event);
 
 protected:
   /// fill the nodes type vector

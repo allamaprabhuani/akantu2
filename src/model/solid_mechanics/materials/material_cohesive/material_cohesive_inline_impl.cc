@@ -38,7 +38,7 @@ void MaterialCohesive::computeNormal(const Vector<Real> & position,
 inline UInt MaterialCohesive::getNbDataForElements(const Vector<Element> & elements,
 						   SynchronizationTag tag) const {
 
-  if(tag == _gst_smmc_tractions) {
+  if(tag == _gst_smm_stress) {
     return spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
   }
 
@@ -49,8 +49,7 @@ inline UInt MaterialCohesive::getNbDataForElements(const Vector<Element> & eleme
 inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
 					      const Vector<Element> & elements,
 					      SynchronizationTag tag) const {
-  if(tag == _gst_smm_stress) return;
-  else if(tag == _gst_smmc_tractions) {
+  if(tag == _gst_smm_stress) {
     packElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
   }
 
@@ -60,8 +59,7 @@ inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
 inline void MaterialCohesive::unpackElementData(CommunicationBuffer & buffer,
 						const Vector<Element> & elements,
 						SynchronizationTag tag) {
-  if(tag == _gst_smm_stress) return;
-  else if(tag == _gst_smmc_tractions) {
+  if(tag == _gst_smm_stress) {
     unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
   }
 

@@ -39,6 +39,7 @@ template<class Shape>
 class ShapeCohesive;
 
 
+template <ElementKind kind>
 class ShapeLagrange : public ShapeFunctions{
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -54,14 +55,20 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  inline void initShapeFunctions(const Vector<Real> & nodes,
+				 const types::Matrix<Real> & control_points,
+				 const ElementType & type,
+				 const GhostType & ghost_type);
+
+  /// pre compute all shapes on the element control points from natural coordinates
+  template<ElementType type>
+  void precomputeShapesOnControlPoints(const Vector<Real> & nodes,
+				       GhostType ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesOnControlPoints(GhostType ghost_type);
-
-  /// pre compute all shapes on the element control points from natural coordinates
-  template <ElementType type>
-  void precomputeShapeDerivativesOnControlPoints(GhostType ghost_type);
+  void precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes,
+						 GhostType ghost_type);
 
   /// interpolate nodal values on the control points
   template <ElementType type>
@@ -84,7 +91,6 @@ public:
   void fieldTimesShapes(const Vector<Real> & field,
 			Vector<Real> & fiedl_times_shapes,
 			GhostType ghost_type) const;
-
 
   /// find natural coords from real coords provided an element
   template <ElementType type>
@@ -112,53 +118,38 @@ public:
 protected:
   /// compute the shape derivatives on control points for a given element
   template <ElementType type>
-  inline void computeShapeDerivativesOnCPointsByElement(UInt spatial_dimension,
-							Real * node_coords,
-							UInt nb_nodes_per_element,
-							Real * natural_coords,
-							UInt nb_points,
-							Real * shapesd);
+  inline void computeShapeDerivativesOnCPointsByElement(const types::Matrix<Real> & node_coords,
+							const types::Matrix<Real> & natural_coords,
+							types::Tensor3<Real> & shapesd);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// get a the shapes vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Shapes, shapes, Real);
+  inline const Vector<Real> & getShapes(const ElementType & el_type,
+					const GhostType & ghost_type = _not_ghost) const;
 
   /// get a the shapes derivatives vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ShapesDerivatives, shapes_derivatives, Real);
+  inline const Vector<Real> & getShapesDerivatives(const ElementType & el_type,
+						   const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  friend class ShapeCohesive<ShapeLagrange>;
   /// shape functions for all elements
-  ByElementTypeReal shapes;
+  ByElementTypeVector<Real, InterpolationType> shapes;
 
   /// shape functions derivatives for all elements
-  ByElementTypeReal shapes_derivatives;
-
+  ByElementTypeVector<Real, InterpolationType> shapes_derivatives;
 };
 
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "shape_lagrange_inline_impl.cc"
-#endif
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const ShapeLagrange & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-
+#include "shape_lagrange_inline_impl.cc"
 
 __END_AKANTU__
 

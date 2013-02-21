@@ -86,17 +86,17 @@ int main(int argc, char *argv[]) {
   Vector<Real>::iterator<types::RVector> it = coord_on_quad.begin(dim);
   types::RVector natural_coords(dim);
 
-  Real * quad = ElementClass<type>::getQuadraturePoints();
+  types::Matrix<Real> quad = GaussIntegrationElement<type>::getQuadraturePoints();
 
    for(UInt el = 0 ; el < nb_elements ; ++el){
     for(UInt q = 0 ; q < nb_quad_points ; ++q){
       fem->inverseMap(*it, el, type, natural_coords);
       for (UInt i = 0; i < dim; ++i) {
 	const Real eps = 1e-13;
-	AKANTU_DEBUG_ASSERT(std::abs((natural_coords[i] - quad[i])/(upper[i]-lower[i])) < eps,
+	AKANTU_DEBUG_ASSERT(std::abs((natural_coords(i) - quad(i,q))/(upper[i]-lower[i])) < eps,
 			    "real coordinates inversion test failed:"
-			    << natural_coords[i] << " - " << quad[i]
-			    << " = " << (natural_coords[i] - quad[i])/(upper[i]-lower[i]));
+			    << natural_coords(i) << " - " << quad(i, q)
+			    << " = " << (natural_coords(i) - quad(i, q))/(upper[i]-lower[i]));
       }
       ++it;
     }

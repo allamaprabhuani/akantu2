@@ -34,7 +34,6 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-
 /* -------------------------------------------------------------------------- */
 IntegratorGauss::IntegratorGauss(const Mesh & mesh,
 				 const ID & id,
@@ -51,7 +50,7 @@ template <ElementType type>
 void IntegratorGauss::checkJacobians(const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
+  UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
   UInt nb_element;
 
@@ -79,9 +78,9 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const GhostType & gh
   UInt spatial_dimension = mesh->getSpatialDimension();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
+  UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
-  Real * weights = ElementClass<type>::getGaussIntegrationWeights();
+  types::Vector<Real> weights(GaussIntegrationElement<type>::getWeights(), nb_quadrature_points);
 
   UInt * elem_val = mesh->getConnectivity(type,ghost_type).storage();
   UInt nb_element = mesh->getConnectivity(type,ghost_type).getSize();
@@ -91,25 +90,22 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints(const GhostType & gh
 						 type,
 						 ghost_type);
 
-  Real * jacobians_val = jacobians_tmp.storage();
+  Vector<Real>::iterator< types::Vector<Real> > jacobians_it =
+    jacobians_tmp.begin_reinterpret(nb_quadrature_points, nb_element);
 
-  Real local_coord[spatial_dimension * nb_nodes_per_element];
+  types::Matrix<Real> local_coord(nb_nodes_per_element, spatial_dimension);
   for (UInt elem = 0; elem < nb_element; ++elem) {
     mesh->extractNodalValuesFromElement(mesh->getNodes(),
-					local_coord,
+					local_coord.storage(),
 					elem_val+elem*nb_nodes_per_element,
 					nb_nodes_per_element,
 					spatial_dimension);
 
-    computeJacobianOnQuadPointsByElement<type>(spatial_dimension,
-					       local_coord,
-					       nb_nodes_per_element,
-					       jacobians_val);
+    computeJacobianOnQuadPointsByElement<type>(local_coord,
+					       *jacobians_it);
 
-    for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      *jacobians_val++ *= weights[q];
-    }
-    //    jacobians_val += nb_quadrature_points;
+    *jacobians_it *= weights;
+    ++jacobians_it;
   }
 
   AKANTU_DEBUG_OUT();
@@ -131,7 +127,7 @@ void IntegratorGauss::integrate(const Vector<Real> & in_f,
   UInt nb_element = mesh->getNbElement(type,ghost_type);
   const Vector<Real> & jac_loc = jacobians(type, ghost_type);
 
-  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
+  UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
@@ -180,7 +176,7 @@ Real IntegratorGauss::integrate(const Vector<Real> & in_f,
   UInt nb_element = mesh->getNbElement(type, ghost_type);
   const Vector<Real> & jac_loc = jacobians(type, ghost_type);
 
-  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
+  UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
@@ -229,7 +225,7 @@ void IntegratorGauss::integrateOnQuadraturePoints(const Vector<Real> & in_f,
   UInt nb_element = mesh->getNbElement(type,ghost_type);
   const Vector<Real> & jac_loc = jacobians(type, ghost_type);
 
-  UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
+  UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {
@@ -262,42 +258,40 @@ void IntegratorGauss::integrateOnQuadraturePoints(const Vector<Real> & in_f,
 
 
 /* -------------------------------------------------------------------------- */
-template <>
-void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(const GhostType & ghost_type) {
-  AKANTU_DEBUG_IN();
+// template <>
+// void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(const GhostType & ghost_type) {
+//   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh->getSpatialDimension();
+//   UInt spatial_dimension = mesh->getSpatialDimension();
 
-  UInt nb_quadrature_points = ElementClass<_bernoulli_beam_2>::getNbQuadraturePoints();
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_bernoulli_beam_2);
+//   UInt nb_quadrature_points = GaussIntegrationElement<_bernoulli_beam_2>::getNbQuadraturePoints();
+//   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(_bernoulli_beam_2);
 
-  UInt * elem_val;
-  UInt nb_element;
+//   UInt * elem_val;
+//   UInt nb_element;
 
-  elem_val   = mesh->getConnectivity(_bernoulli_beam_2, ghost_type).storage();
-  nb_element = mesh->getConnectivity(_bernoulli_beam_2, ghost_type).getSize();
+//   elem_val   = mesh->getConnectivity(_bernoulli_beam_2, ghost_type).storage();
+//   nb_element = mesh->getConnectivity(_bernoulli_beam_2, ghost_type).getSize();
 
-  Vector<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
-						 1, _bernoulli_beam_2, ghost_type);
+//   Vector<Real> & jacobians_tmp = jacobians.alloc(nb_element * nb_quadrature_points,
+// 						 1, _bernoulli_beam_2, ghost_type);
 
-  Real local_coord[spatial_dimension * nb_nodes_per_element];
-  Real * jacobians_val = jacobians_tmp.storage();
-  for (UInt elem = 0; elem < nb_element; ++elem) {
-    mesh->extractNodalValuesFromElement(mesh->getNodes(),
-					local_coord,
-					elem_val+elem*nb_nodes_per_element,
-					nb_nodes_per_element,
-					spatial_dimension);
+//   types::Matrix<Real> local_coord(nb_nodes_per_element, spatial_dimension);
+//   Real * jacobians_val = jacobians_tmp.storage();
+//   for (UInt elem = 0; elem < nb_element; ++elem) {
+//     mesh->extractNodalValuesFromElement(mesh->getNodes(),
+// 					local_coord.storage(),
+// 					elem_val+elem*nb_nodes_per_element,
+// 					nb_nodes_per_element,
+// 					spatial_dimension);
 
-    ElementClass<_bernoulli_beam_2>::computeJacobian(local_coord,
-						     nb_quadrature_points,
-						     spatial_dimension,
-						     jacobians_val);
-    jacobians_val += nb_quadrature_points;
-  }
+//     ElementClass<_bernoulli_beam_2>::computeJacobian(local_coord,
+// 						     *jacobians_val);
+//     jacobians_val += nb_quadrature_points;
+//   }
 
-  AKANTU_DEBUG_OUT();
-}
+//   AKANTU_DEBUG_OUT();
+// }
 
 
 /* -------------------------------------------------------------------------- */
@@ -328,6 +322,5 @@ void IntegratorGauss::precomputeJacobiansOnQuadraturePoints<_bernoulli_beam_2>(c
 
 AKANTU_BOOST_REGULAR_ELEMENT_LIST(INSTANCIATE_TEMPLATE_CLASS)
 #undef INSTANCIATE_TEMPLATE_CLASS
-
 
 __END_AKANTU__

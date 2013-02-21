@@ -116,6 +116,8 @@ int main(int argc, char *argv[])
   model->addDumpField("acceleration");
   model->addDumpField("force"       );
   model->addDumpField("residual"    );
+  model->addDumpField("stress"      );
+  model->addDumpField("strain"      );
   model->dump();
 
 #ifdef CHECK_STRESS

@@ -42,37 +42,37 @@ __BEGIN_AKANTU__
 /* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
 
-template<class Stored> class ByElementType {
-protected:
-  typedef std::map<ElementType, Stored> DataMap;
+template<class Stored, typename SupportType = ElementType>
+class ByElementType {
 public:
   ByElementType(const ID & id = "by_element_type",
 		const ID & parent_id = "");
   ~ByElementType();
 
-  inline static std::string printType(const ElementType & type, const GhostType & ghost_type);
+  inline static std::string printType(const SupportType & type, const GhostType & ghost_type);
 
-  inline bool exists(ElementType type, GhostType ghost_type = _not_ghost) const;
+  inline bool exists(const SupportType & type, const GhostType & ghost_type = _not_ghost) const;
 
-  inline const Stored & operator()(const ElementType & type,
+  inline const Stored & operator()(const SupportType & type,
 				   const GhostType & ghost_type = _not_ghost) const;
-  inline Stored & operator()(const ElementType & type,
+  inline Stored & operator()(const SupportType & type,
 			     const GhostType & ghost_type = _not_ghost);
 
   inline Stored & operator()(const Stored & insert,
-			     const ElementType & type,
+			     const SupportType & type,
 			     const GhostType & ghost_type = _not_ghost);
 
-  void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  class type_iterator : private std::iterator<std::forward_iterator_tag, const ElementType> {
+  typedef std::map<SupportType, Stored> DataMap;
+  class type_iterator : private std::iterator<std::forward_iterator_tag, const SupportType> {
   public:
-    typedef const ElementType   value_type;
-    typedef const ElementType*  pointer;
-    typedef const ElementType&  reference;
+    typedef const SupportType   value_type;
+    typedef const SupportType*  pointer;
+    typedef const SupportType&  reference;
   protected:
     typedef typename ByElementType<Stored>::DataMap::const_iterator DataMapIterator;
   public:
@@ -124,36 +124,37 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* Some typedefs                                                              */
 /* -------------------------------------------------------------------------- */
-
-template <typename T>
-class ByElementTypeVector : public ByElementType<Vector<T> *>, protected Memory {
+template <typename T, typename SupportType = ElementType>
+class ByElementTypeVector : public ByElementType<Vector<T> *, SupportType>, protected Memory {
 protected:
-  typedef typename ByElementType<Vector<T> *>::DataMap DataMap;
+  typedef typename ByElementType<Vector<T> *, SupportType>::DataMap DataMap;
 public:
+  typedef typename ByElementType<Vector<T> *, SupportType>::type_iterator type_iterator;
+
   ByElementTypeVector() {};
   // ByElementTypeVector(const ID & id = "by_element_type_vector",
   // 		      const MemoryID & memory_id = 0) :
   //   ByElementType<Vector<T> *>(id, memory_id) {};
   ByElementTypeVector(const ID & id, const ID & parent_id,
 		      const MemoryID & memory_id = 0) :
-    ByElementType<Vector<T> *>(id, parent_id), Memory(memory_id) {};
+    ByElementType<Vector<T> *, SupportType>(id, parent_id), Memory(memory_id) {};
 
   inline Vector<T> & alloc(UInt size,
 			   UInt nb_component,
-			   const ElementType & type,
+			   const SupportType & type,
 			   const GhostType & ghost_type);
 
   inline void alloc(UInt size,
 		    UInt nb_component,
-		    const ElementType & type);
+		    const SupportType & type);
 
-  inline const Vector<T> & operator()(const ElementType & type,
+  inline const Vector<T> & operator()(const SupportType & type,
 				      const GhostType & ghost_type = _not_ghost) const;
 
-  inline Vector<T> & operator()(const ElementType & type,
+  inline Vector<T> & operator()(const SupportType & type,
 				const GhostType & ghost_type = _not_ghost);
 
-  inline void setVector(const ElementType & type,
+  inline void setVector(const SupportType & type,
 			const GhostType & ghost_type,
 			const Vector<T> & vect);
 
@@ -161,6 +162,7 @@ public:
 
   inline void onElementsRemoved(const ByElementTypeVector<UInt> & new_numbering);
 
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 };
 
 /// to store data Vector<Real> by element type
@@ -168,11 +170,11 @@ typedef ByElementTypeVector<Real> ByElementTypeReal;
 /// to store data Vector<Int> by element type
 typedef ByElementTypeVector<Int>  ByElementTypeInt;
 /// to store data Vector<UInt> by element type
-typedef ByElementTypeVector<UInt> ByElementTypeUInt;
+typedef ByElementTypeVector<UInt, ElementType> ByElementTypeUInt;
 
 /// Map of data of type UInt stored in a mesh
 typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
-typedef ByElementType<UIntDataMap> ByElementTypeUIntDataMap;
+typedef ByElementType<UIntDataMap, ElementType> ByElementTypeUIntDataMap;
 
 // /* -------------------------------------------------------------------------- */
 // /* inline functions                                                           */

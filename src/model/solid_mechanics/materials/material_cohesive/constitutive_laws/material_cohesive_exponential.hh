@@ -48,8 +48,7 @@ __BEGIN_AKANTU__
  * parameters in the material files :
  *   - sigma_c   : critical stress sigma_c  (default: 0)
  *   - beta      : weighting parameter for sliding and normal opening (default: 0)
- *   - G_cI      : fracture energy for mode I (default: 0)
- *   - G_cII     : fracture energy for mode II (default: 0)
+ *   - delta_c   : critical opening (default: 0)
  */
 template<UInt spatial_dimension>
 class MaterialCohesiveExponential : public MaterialCohesive {
@@ -100,15 +99,6 @@ protected:
 
   /// beta parameter
   Real beta;
-
-  /// mode I fracture energy
-  Real G_cI;
-
-  /// mode II fracture energy
-  Real G_cII;
-
-  /// kappa parameter
-  Real kappa;
 
   // /// maximum displacement
   // ByElementTypeReal delta_max;

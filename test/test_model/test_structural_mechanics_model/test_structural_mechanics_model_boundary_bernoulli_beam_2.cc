@@ -1,9 +1,7 @@
 /**
  * @file   test_structural_mechanics_model_boundary_bernoulli_beam_2.cc
- *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- *
- * @date   Fri Jul 15 19:41:58 2011
+ * @date   Thu May 26 12:52:54 2011
  *
  * @brief  Test the computation of linear load
  *
@@ -51,7 +49,6 @@ static void lin_load(double * position, double * load,
   }
 
 int main(int argc, char *argv[]){
-
   initialize(argc, argv);
   Mesh beams(2);
   debug::setDebugLevel(dblWarning);
@@ -64,50 +61,42 @@ int main(int argc, char *argv[]){
   UInt nb_nodes_h=2;
   UInt nb_nodes_v= nb_nodes-nb_nodes_h;
 
-    Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
-    nodes.resize(nb_nodes);
+  Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
+  nodes.resize(nb_nodes);
 
-    beams.addConnectivityType(_bernoulli_beam_2);
-    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
-    connectivity.resize(nb_element);
+  beams.addConnectivityType(_bernoulli_beam_2);
+  Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
+  connectivity.resize(nb_element);
 
-    for(UInt i=0; i<nb_nodes_h; ++i) {
+  for(UInt i=0; i<nb_nodes_h; ++i) {
 
-      nodes(i,0)=2./((Real)nb_nodes_h)*i;
-      nodes(i,1)=0;
-    }
-    for(UInt i=nb_nodes_h; i<nb_nodes; ++i) {
+    nodes(i,0)=2./((Real)nb_nodes_h)*i;
+    nodes(i,1)=0;
+  }
+  for(UInt i=nb_nodes_h; i<nb_nodes; ++i) {
 
-      nodes(i,0)=2;
-      nodes(i,1)=2./((Real)nb_nodes_v)*(i-nb_nodes_h);
-    }
+    nodes(i,0)=2;
+    nodes(i,1)=2./((Real)nb_nodes_v)*(i-nb_nodes_h);
+  }
 
-    for(UInt i=0; i<nb_element; ++i) {
+  for(UInt i=0; i<nb_element; ++i) {
 
-      connectivity(i,0)=i;
-      connectivity(i,1)=i+1;
-    }
-    akantu::MeshIOMSH mesh_io;
-    mesh_io.write("b_beam_2.msh", beams);
+    connectivity(i,0)=i;
+    connectivity(i,1)=i+1;
+  }
+  akantu::MeshIOMSH mesh_io;
+  mesh_io.write("b_beam_2.msh", beams);
 
-/* -------------------------------------------------------------------------- */
-    // Defining the forces
+  akantu::StructuralMechanicsModel model(beams);
 
+  model.initModel();
+  model.initVectors();
 
-    //  akantu::ElementType type = akantu::_bernoulli_beam_2;
-
-  akantu::StructuralMechanicsModel * model;
-
-  model = new akantu::StructuralMechanicsModel(beams);
-
-  model->initModel();
-  model->initVectors();
-
-  Vector<Real> & forces = model->getForce();
+  Vector<Real> & forces = model.getForce();
 
   forces.clear();
 
-  model->computeForcesFromFunction(lin_load, akantu::_bft_traction);
+  model.computeForcesFromFunction<_bernoulli_beam_2>(lin_load, akantu::_bft_traction);
 
 
 }

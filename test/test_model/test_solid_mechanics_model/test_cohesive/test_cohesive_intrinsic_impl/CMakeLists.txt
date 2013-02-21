@@ -1,8 +1,8 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
-# @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
+# @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
 #
 # @date   Mon Jul 09 14:13:56 2012
 #
@@ -30,17 +30,11 @@
 #
 #===============================================================================
 
-register_test(test_cohesive_intrinsic_impl test_cohesive_intrinsic_impl.cc)
+add_mesh(test_cohesive_intrinsic_impl_mesh implicit.geo 2 2)
 
-#===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-
-
-file(COPY material.dat  DESTINATION .)
-file(COPY simple.msh DESTINATION .)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
-file(COPY simple.msh DESTINATION .)
+register_test(test_cohesive_intrinsic_impl
+  SOURCES test_cohesive_intrinsic_impl.cc
+  DEPENDENCIES test_cohesive_intrinsic_impl_mesh
+  PACKAGE cohesive_element
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview)

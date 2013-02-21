@@ -448,7 +448,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(mesh.getSpatialDimension(type) == spatial_dimension) {
-      facet_type[nb_facet_types++] = mesh.getFacetElementType(type);
+      facet_type[nb_facet_types++] = mesh.getFacetType(type);
     }
   }
 
@@ -706,7 +706,7 @@ void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(mesh.getSpatialDimension(type) == spatial_dimension) {
-      facet_type[nb_facet_types++] = mesh.getFacetElementType(type);
+      facet_type[nb_facet_types++] = mesh.getFacetType(type);
     }
   }
 

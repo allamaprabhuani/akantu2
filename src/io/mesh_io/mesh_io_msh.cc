@@ -202,7 +202,7 @@ MeshIOMSH::MeshIOMSH() {
   _akantu_to_msh_element_types[_quadrangle_4    ] = _msh_quadrangle_4;
   _akantu_to_msh_element_types[_quadrangle_8    ] = _msh_quadrangle_8;
   _akantu_to_msh_element_types[_hexahedron_8    ] = _msh_hexahedron_8;
-  _akantu_to_msh_element_types[_point           ] = _msh_point;
+  _akantu_to_msh_element_types[_point_1         ] = _msh_point;
   _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
 
   std::map<ElementType, MSHElementType>::iterator it;
@@ -450,14 +450,26 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     ElementType type = *it;
     const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
-    const Vector<UInt> & data_tag_0 = mesh.getUIntData(type, "tag_0", _not_ghost);
-    const Vector<UInt> & data_tag_1 = mesh.getUIntData(type, "tag_1", _not_ghost);
+    UInt * tag[2] = {NULL, NULL};
+    try {
+      const Vector<UInt> & data_tag_0 = mesh.getUIntData(type, "tag_0", _not_ghost);
+      tag[0] = data_tag_0.storage();
+    } catch(...) {}
+
+    try {
+      const Vector<UInt> & data_tag_1 = mesh.getUIntData(type, "tag_1", _not_ghost);
+      tag[1] = data_tag_1.storage();
+    } catch(...) {}
 
     for(UInt i = 0; i < connectivity.getSize(); ++i) {
       UInt offset = i * connectivity.getNbComponent();
-      outfile << element_idx << " " << _akantu_to_msh_element_types[type] 
-	      << " 3 " << data_tag_0(i) << " " << data_tag_1(i) 
-	      << " 0"; /// \todo write the real data in the file
+      outfile << element_idx << " " << _akantu_to_msh_element_types[type] << " 3";
+
+      /// \todo write the real data in the file
+      for (UInt t = 0; t < 2; ++t)
+	if(tag[t]) outfile << " " << tag[t][i];
+	else outfile << " 0";
+      outfile << " 0";
 
       for(UInt j = 0; j < connectivity.getNbComponent(); ++j) {
 	outfile << " " << connectivity.values[offset + j] + 1;

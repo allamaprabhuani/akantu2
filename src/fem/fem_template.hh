@@ -34,20 +34,22 @@
 #include "fem.hh"
 #include "integrator.hh"
 #include "shape_functions.hh"
-#include "shape_lagrange.hh"
-#include "shape_linked.hh"
-#include "integrator_gauss.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template <typename Integ, typename Shape>
-class FEMTemplate : public FEM{
+template<template <ElementKind> class I,
+	 template <ElementKind> class S,
+	 ElementKind kind = _ek_regular>
+class FEMTemplate : public FEM {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  typedef I<kind> Integ;
+  typedef S<kind> Shape;
+
 
   FEMTemplate(Mesh & mesh, UInt spatial_dimension = 0,
 	      ID id = "fem", MemoryID memory_id = 0);
@@ -61,6 +63,8 @@ public:
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(const GhostType & ghost_type = _not_ghost);
+  void initShapeFunctions(const Vector<Real> & nodes,
+			  const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
@@ -108,9 +112,8 @@ public:
 					    UInt id=0) const;
 
   /// get quadrature points
-  const Vector<Real> & getQuadraturePoints(const ElementType & type,
-					   const GhostType & ghost_type = _not_ghost) const;
-
+  const inline types::Matrix<Real> & getQuadraturePoints(const ElementType & type,
+							 const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
@@ -166,6 +169,10 @@ public:
 				     Vector<Real> & normal,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost) const;
+  template<ElementType type>
+  void computeNormalsOnControlPoints(const Vector<Real> & field,
+				     Vector<Real> & normal,
+				     const GhostType & ghost_type) const;
 
 
   /// function to print the contain of the class
@@ -232,10 +239,8 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   Integ integrator;
   Shape shape_functions;
-
 };
 
 
@@ -243,24 +248,13 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "fem_template_inline_impl.cc"
 #include "fem_template_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_COHESIVE_ELEMENT)
-#  include "fem_template_cohesive_inline_impl.cc"
-#  include "fem_template_cohesive_tmpl.hh"
+//#  include "fem_template_cohesive_inline_impl.cc"
+//#  include "fem_template_cohesive_tmpl.hh"
 #endif
-
-
-/// standard output stream operator
-
-// inline std::ostream & operator <<(std::ostream & stream, const FEMTemplate & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
-
 
 __END_AKANTU__
 

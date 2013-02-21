@@ -82,6 +82,18 @@ inline void Vector<T, is_scal>::push_back(const T new_elem[]) {
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
+inline void Vector<T, is_scal>::push_back(const types::Vector<T> new_elem) {
+  AKANTU_DEBUG_ASSERT(nb_component == new_elem.size(),
+		      "The vector as not a size compatible with the Array.");
+  UInt pos = size;
+  resizeUnitialized(size+1);
+
+  T * tmp = values + nb_component * pos;
+  std::uninitialized_copy(new_elem.storage(), new_elem.storage() + nb_component, tmp);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
 template<class Ret>
 inline void Vector<T, is_scal>::push_back(const Vector<T, is_scal>::iterator<Ret> & it) {
   UInt pos = size;
@@ -462,6 +474,39 @@ void Vector<T, is_scal>::copy(const Vector<T, is_scal>& vect) {
 }
 
 /* -------------------------------------------------------------------------- */
+template<bool is_scal>
+class VectorPrintHelper {
+public:
+  template<typename T>
+  static void print_content(const Vector<T> & vect, std::ostream & stream, int indent) {
+    if(AKANTU_DEBUG_TEST(dblDump)) {
+      std::string space;
+      for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+      stream << space << " + values         : {";
+      for (UInt i = 0; i < vect.getSize(); ++i) {
+	stream << "{";
+	for (UInt j = 0; j < vect.getNbComponent(); ++j) {
+	  stream << vect(i, j);
+	  if(j != vect.getNbComponent() - 1) stream << ", ";
+	}
+	stream << "}";
+	if(i != vect.getSize() - 1) stream << ", ";
+      }
+      stream << "}" << std::endl;
+    }
+  }
+};
+
+template<>
+class VectorPrintHelper<false> {
+public:
+  template<typename T>
+  static void print_content(const Vector<T> & vect, std::ostream & stream, int indent) { }
+};
+
+
+/* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 void Vector<T, is_scal>::printself(std::ostream & stream, int indent) const {
   std::string space;
@@ -489,22 +534,10 @@ void Vector<T, is_scal>::printself(std::ostream & stream, int indent) const {
   stream.precision(prec);
   stream.flags(ff);
 
-  if(AKANTU_DEBUG_TEST(dblDump)) {
-    stream << space << " + values         : {";
-    for (UInt i = 0; i < this->size; ++i) {
-      stream << "{";
-      for (UInt j = 0; j < this->nb_component; ++j) {
-	stream << this->values[i*nb_component + j];
-	if(j != this->nb_component - 1) stream << ", ";
-      }
-      stream << "}";
-      if(i != this->size - 1) stream << ", ";
-    }
-    stream << "}" << std::endl;
-  }
+  VectorPrintHelper<is_scal>::print_content(*this, stream, indent);
+
   stream << space << "]" << std::endl;
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions VectorBase                                                */
@@ -558,6 +591,12 @@ public:
     }
   }
 
+  iterator_internal(const Vector<T, is_scal>::iterator<IR> & it) {
+    this->_offset = it.offset();
+    this->initial = it.data();
+    this->ret = new internal_value_type(*it);
+  }
+
   virtual ~iterator_internal() { delete ret; };
 
   inline iterator_internal & operator=(const iterator_internal & it) {
@@ -570,7 +609,16 @@ public:
     return *this;
   }
 
+  inline iterator_internal & operator=(const iterator<IR> & it) {
+    this->_offset = it.offset();
+    this->initial = it.data();
+    if(this->ret) this->ret->shallowCopy(*it);
+    else this->ret = new internal_value_type(*it);
+    return *this;
+  }
+
   inline reference operator*() { return *ret; };
+  inline const reference operator*() const { return *ret; };
   inline pointer operator->() { return ret; };
   inline iterator_internal & operator++() { ret->values += _offset; return *this; };
   inline iterator_internal & operator--() { ret->values -= _offset; return *this; };
@@ -579,6 +627,7 @@ public:
   inline iterator_internal & operator-=(const UInt n) { ret->values -= _offset * n; return *this; }
 
   inline reference operator[](const UInt n) { ret->values = initial + n*_offset; return *ret; }
+  inline const reference operator[](const UInt n) const { ret->values = initial + n*_offset; return *ret; }
 
   inline bool operator==(const iterator_internal & other) const { return (*this).ret->storage() == other.ret->storage(); }
   inline bool operator!=(const iterator_internal & other) const { return (*this).ret->storage() != other.ret->storage(); }
@@ -790,13 +839,20 @@ public:
   iterator_internal(const iterator_internal & it) {
     if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }
+  iterator_internal(const Vector<T, is_scal>::iterator<IR> & it) {
+    this->ret = it.data(); this->initial = it.data();
+  }
 
   virtual ~iterator_internal() { };
 
   inline iterator_internal & operator=(const iterator_internal & it)
   { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
 
+  inline iterator_internal & operator=(const Vector<T, is_scal>::iterator<IR> & it)
+  { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
+
   inline reference operator*() { return *ret; };
+  inline const reference operator*() const { return *ret; };
   inline pointer operator->() { return ret; };
   inline iterator_internal & operator++() { ++ret; return *this; };
   inline iterator_internal & operator--() { --ret; return *this; };

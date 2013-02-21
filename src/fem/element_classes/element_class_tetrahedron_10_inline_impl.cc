@@ -28,28 +28,28 @@
  * @section DESCRIPTION
  *
  * @verbatim
-	\zeta
-	  ^
-	  |
-       (0,0,1)
-	  x
-	  |` .
-	  |  `  .
-	  |    `   .
-	  |      `    .  (0,0.5,0.5)
-	  |        `    x.
-	  |     q4 o `      .                   \eta
-	  |            `       .             -,
-(0,0,0.5) x             ` x (0.5,0,0.5)  -
-	  |                `        x-(0,1,0)
-	  |              q3 o`   -   '
-	  |       (0,0.5,0)  - `      '
-	  |             x-       `     x (0.5,0.5,0)
-	  |     q1 o -         o q2`    '
-	  |      -                   `   '
-	  |  -                         `  '
-	  x---------------x--------------` x-----> \xi
-       (0,0,0)        (0.5,0,0)        (1,0,0)
+ \zeta
+ ^
+ |
+ (0,0,1)
+ x
+ |` .
+ |  `  .
+ |    `   .
+ |      `    .  (0,0.5,0.5)
+ |        `    x.
+ |     q4 o `      .                   \eta
+ |            `       .             -,
+ (0,0,0.5) x             ` x (0.5,0,0.5)  -
+ |                `        x-(0,1,0)
+ |              q3 o`   -   '
+ |       (0,0.5,0)  - `      '
+ |             x-       `     x (0.5,0.5,0)
+ |     q1 o -         o q2`    '
+ |      -                   `   '
+ |  -                         `  '
+ x---------------x--------------` x-----> \xi
+ (0,0,0)        (0.5,0,0)        (1,0,0)
  @endverbatim
  *
  * @subsection coords Nodes coordinates
@@ -129,17 +129,20 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_tetrahedron_10>::nb_nodes_per_element;
-template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points;
-template<> UInt ElementClass<_tetrahedron_10>::spatial_dimension;
+// template<> UInt ElementClass<_tetrahedron_10>::nb_nodes_per_element;
+// template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points;
+// template<> UInt ElementClass<_tetrahedron_10>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_10, _gt_tetrahedron_10, _itp_lagrange_tetrahedron_10, _ek_regular, 3);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_10>::computeShapes(const Real * natural_coords,
-								   Real * shapes){
+template <>
+inline void
+InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(const types::Vector<Real> & natural_coords,
+								  types::Vector<Real> & N) {
   /// Natural coordinates
-  Real xi = natural_coords[0];
-  Real eta = natural_coords[1];
-  Real zeta = natural_coords[2];
+  Real xi = natural_coords(0);
+  Real eta = natural_coords(1);
+  Real zeta = natural_coords(2);
   Real sum = xi + eta + zeta;
   Real c0  = 1 - sum;
   Real c1  = 1 - 2*sum;
@@ -148,22 +151,23 @@ template <> inline void ElementClass<_tetrahedron_10>::computeShapes(const Real 
   Real c4  = 2*zeta - 1;
 
   /// Shape functions
-  shapes[0] = c0  * c1;
-  shapes[1] = xi  * c2;
-  shapes[2] = eta  * c3;
-  shapes[3] = zeta * c4;
-  shapes[4] = 4 * xi  * c0;
-  shapes[5] = 4 * xi * eta;
-  shapes[6] = 4 * eta * c0;
-  shapes[7] = 4 * zeta * c0;
-  shapes[8] = 4 * xi * zeta;
-  shapes[9] = 4 * eta * zeta;
+  N(0) = c0  * c1;
+  N(1) = xi  * c2;
+  N(2) = eta  * c3;
+  N(3) = zeta * c4;
+  N(4) = 4 * xi  * c0;
+  N(5) = 4 * xi * eta;
+  N(6) = 4 * eta * c0;
+  N(7) = 4 * zeta * c0;
+  N(8) = 4 * xi * zeta;
+  N(9) = 4 * eta * zeta;
 }
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_10>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
-								 Real * dnds) {
-
+template <>
+inline void
+InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(const types::Vector<Real> & natural_coords,
+								types::Matrix<Real> & dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -189,66 +193,53 @@ template <> inline void ElementClass<_tetrahedron_10>::computeDNDS(__attribute__
    */
 
   /// Natural coordinates
-  Real xi = natural_coords[0];
-  Real eta = natural_coords[1];
-  Real zeta = natural_coords[2];
+  Real xi   = natural_coords(0);
+  Real eta  = natural_coords(1);
+  Real zeta = natural_coords(2);
   Real sum = xi + eta + zeta;
 
-  /// dN/dxi
-  dnds[0] = 4 * sum - 3;
-  dnds[1] = 4 * xi - 1;
-  dnds[2] = 0;
-  dnds[3] = 0;
-  dnds[4] = 4 * (1 - sum - xi);
-  dnds[5] = 4 * eta;
-  dnds[6] = -4 * eta;
-  dnds[7] = -4 * zeta;
-  dnds[8] = 4 * zeta;
-  dnds[9] = 0;
+  /// \frac{\partial N_i}{\partial \xi}
+  dnds(0, 0) =  4 * sum - 3;
+  dnds(0, 1) =  4 * xi - 1;
+  dnds(0, 2) =  0;
+  dnds(0, 3) =  0;
+  dnds(0, 4) =  4 * (1 - sum - xi);
+  dnds(0, 5) =  4 * eta;
+  dnds(0, 6) = -4 * eta;
+  dnds(0, 7) = -4 * zeta;
+  dnds(0, 8) =  4 * zeta;
+  dnds(0, 9) =  0;
 
-  /// dN/deta
-  dnds[10] = 4 * sum - 3;
-  dnds[11] = 0;
-  dnds[12] = 4 * eta - 1;
-  dnds[13] = 0;
-  dnds[14] = -4 * xi;
-  dnds[15] = 4 * xi;
-  dnds[16] = 4 * (1 - sum - eta);
-  dnds[17] = -4 * zeta;
-  dnds[18] = 0;
-  dnds[19] = 4 * zeta;
+  /// \frac{\partial N_i}{\partial \eta}
+  dnds(1, 0) =  4 * sum - 3;
+  dnds(1, 1) =  0;
+  dnds(1, 2) =  4 * eta - 1;
+  dnds(1, 3) =  0;
+  dnds(1, 4) = -4 * xi;
+  dnds(1, 5) =  4 * xi;
+  dnds(1, 6) =  4 * (1 - sum - eta);
+  dnds(1, 7) = -4 * zeta;
+  dnds(1, 8) =  0;
+  dnds(1, 9) =  4 * zeta;
 
-  /// dN/dzeta
-  dnds[20] = 4 * sum - 3;
-  dnds[21] = 0;
-  dnds[22] = 0;
-  dnds[23] = 4 * zeta - 1;
-  dnds[24] = -4 * xi;
-  dnds[25] = 0;
-  dnds[26] = -4 * eta;
-  dnds[27] = 4 * (1 - sum - zeta);
-  dnds[28] = 4 * xi;
-  dnds[29] = 4 * eta;
+  /// \frac{\partial N_i}{\partial \zeta}
+  dnds(2, 0) =  4 * sum - 3;
+  dnds(2, 1) =  0;
+  dnds(2, 2) =  0;
+  dnds(2, 3) =  4 * zeta - 1;
+  dnds(2, 4) = -4 * xi;
+  dnds(2, 5) =  0;
+  dnds(2, 6) = -4 * eta;
+  dnds(2, 7) =  4 * (1 - sum - zeta);
+  dnds(2, 8) =  4 * xi;
+  dnds(2, 9) =  4 * eta;
 
 }
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_10>::computeJacobian(const Real * dxds,
-								     const UInt dimension,
-								     Real & jac) {
-
-  if (dimension == spatial_dimension){
-    Real det_dxds = Math::det3(dxds);
-    jac = det_dxds;
-  }
-  else {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_tetrahedron_10>::getInradius(const Real * coord) {
-
+template<>
+inline Real
+GeometricalElement<_gt_tetrahedron_10>::getInradius(const types::Matrix<Real> & coord) {
   // Only take the four corner tetrahedra
   UInt tetrahedra[4][4] = {
     {0, 4, 6, 7},
@@ -259,11 +250,11 @@ template<> inline Real ElementClass<_tetrahedron_10>::getInradius(const Real * c
 
   Real inradius = std::numeric_limits<Real>::max();
   for (UInt t = 0; t < 4; t++) {
-    Real ir = Math::tetrahedron_inradius(coord + tetrahedra[t][0] * spatial_dimension,
-					 coord + tetrahedra[t][1] * spatial_dimension,
-					 coord + tetrahedra[t][2] * spatial_dimension,
-					 coord + tetrahedra[t][3] * spatial_dimension);
-    inradius = ir < inradius ? ir : inradius;
+    Real ir = Math::tetrahedron_inradius(coord(tetrahedra[t][0]).storage(),
+					 coord(tetrahedra[t][1]).storage(),
+					 coord(tetrahedra[t][2]).storage(),
+					 coord(tetrahedra[t][3]).storage());
+    inradius = std::min(ir, inradius);
   }
 
   return inradius;

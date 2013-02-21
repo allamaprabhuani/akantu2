@@ -147,20 +147,7 @@ void VelocityDependentFricCoef::computeTangentialMasterVelocity(UInt impactor_in
       AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type << " for computation of tangential velocity of master element");
       break;
     }
-    case _segment_2:
-    case _segment_3:
-    case _triangle_3:
-    case _triangle_6:
-    case _tetrahedron_4:
-    case _tetrahedron_10:
-    case _quadrangle_4:
-    case _quadrangle_8:
-    case _hexahedron_8:
-    case _point: 
-    case _bernoulli_beam_2:
-    case _cohesive_2d_4:
-    case _cohesive_2d_6:
-    case _max_element_type: {
+    default: {
       AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type << " for computation of tangential velocity of master element");
       break;
     }

@@ -37,6 +37,7 @@
 
 __BEGIN_AKANTU__
 
+template <ElementKind kind>
 class ShapeLinked : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -52,14 +53,20 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  inline void initShapeFunctions(const Vector<Real> & nodes,
+				 const types::Matrix<Real> & control_points,
+				 const ElementType & type,
+				 const GhostType & ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesOnControlPoints(const GhostType & ghost_type);
+  void precomputeShapesOnControlPoints(const Vector<Real> & nodes,
+				       const GhostType & ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapeDerivativesOnControlPoints(const GhostType & ghost_type);
+  void precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes,
+						 const GhostType & ghost_type);
 
   /// interpolate nodal values on the control points
   template <ElementType type>
@@ -93,6 +100,15 @@ public:
 			__attribute__((unused)) const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
+
+private:
+  template <ElementType type>
+  void extractNodalToElementField(const Vector<Real> & nodal_f,
+				  Vector<Real> & elemental_f,
+				  UInt num_degre_of_freedom_to_extract,
+				  const GhostType & ghost_type,
+				  const Vector<UInt> * filter_elements) const;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -1,9 +1,7 @@
 /**
  * @file   test_structural_mechanics_model_bernoulli_beam_2_complicated.cc
- *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- *
- * @date   Fri Jul 15 19:41:58 2011
+ * @date   Wed Jun  1 16:06:45 2011
  *
  * @brief  A very complicated structure
  *
@@ -44,17 +42,9 @@
 
 using namespace akantu;
 
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
-static void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif
-
 //Linear load function
 static void lin_load(double * position, double * load,
-		     __attribute__ ((unused)) Real * normal,
-                     __attribute__ ((unused)) UInt surface_id){
+		     __attribute__ ((unused)) Real * normal, __attribute__ ((unused)) UInt surface_id){
   memset(load,0,sizeof(Real)*3);
   if(position[1]>=0.-Math::getTolerance()) {
     if ((position[0]<=10.)){
@@ -83,9 +73,7 @@ int main(int argc, char *argv[]){
 
   const akantu::ElementType type = akantu::_bernoulli_beam_2;
 
-  akantu::StructuralMechanicsModel * model;
-
-  model = new akantu::StructuralMechanicsModel(beams);
+  akantu::StructuralMechanicsModel  model(beams);
 
   StructuralMaterial mat1;
   mat1.E=3e10;
@@ -93,40 +81,36 @@ int main(int argc, char *argv[]){
   mat1.A=0.01;
 
 
-  model->addMaterial(mat1);
+  model.addMaterial(mat1);
 
   StructuralMaterial mat2 ;
   mat2.E=3e10;
   mat2.I=0.003125;
   mat2.A=0.01;
 
-  model->addMaterial(mat2);
+  model.addMaterial(mat2);
 
   /* -------------------------------------------------------------------------- */
   // Defining the forces
-
-  model->initModel();
-
-  model->initVectors();
+  model.initFull();
 
   UInt nb_element = beams.getNbElement(type);
   for (unsigned int i = 0; i < nb_element; ++i) {
-    model->getElementMaterial(type)(i,0) = beams.getUIntData(type, "tag_0")(i,0) - 1;
+    model.getElementMaterial(type)(i,0) = beams.getUIntData(type, "tag_0")(i,0) - 1;
   }
 
 
-  Vector<Real> & forces = model->getForce();
-  Vector<Real> & displacement = model->getDisplacement();
-  Vector<bool> & boundary = model->getBoundary();
-  //  const Vector<Real> & N_M  = model->getStress(_bernoulli_beam_2);
+  Vector<Real> & forces = model.getForce();
+  Vector<Real> & displacement = model.getDisplacement();
+  Vector<bool> & boundary = model.getBoundary();
+  //  const Vector<Real> & N_M  = model.getStress(_bernoulli_beam_2);
 
-  //  Vector<UInt> & element_material = model->getElementMaterial(_bernoulli_beam_2);
+  //  Vector<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
 
   forces.clear();
   displacement.clear();
 
-
-  model->computeForcesFromFunction(lin_load, akantu::_bft_traction);
+  model.computeForcesFromFunction<_bernoulli_beam_2>(lin_load, akantu::_bft_traction);
 
   /* -------------------------------------------------------------------------- */
   // Defining the boundary conditions
@@ -149,91 +133,33 @@ int main(int argc, char *argv[]){
 
   /* -------------------------------------------------------------------------- */
   // Solve
-
-  model->initImplicitSolver();
-
   Real error;
 
-  model->assembleStiffnessMatrix();
-  model->getStiffnessMatrix().saveMatrix("Kb.mtx");
+  model.assembleStiffnessMatrix();
+  model.getStiffnessMatrix().saveMatrix("Kb.mtx");
   UInt count = 0;
 
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  paraviewInit(dumper, *model);
-#endif
+  model.addDumpField("displacememt");
+  model.addDumpField("rotation");
+  model.addDumpField("force");
+  model.addDumpField("momentum");
 
   do {
     if(count != 0) std::cerr << count << " - " << error << std::endl;
-    model->updateResidual();
-    model->solve();
+    model.updateResidual();
+    model.solve();
     count++;
-  } while (!model->testConvergenceIncrement(1e-10, error) && count < 10);
+  } while (!model.testConvergenceIncrement(1e-10, error) && count < 10);
   std::cerr << count << " - " << error << std::endl;
 
   /* -------------------------------------------------------------------------- */
   // Post-Processing
 
-  model->computeStressOnQuad();
+  model.computeStresses();
 
-  model->getStiffnessMatrix().saveMatrix("Ka.mtx");
+  model.getStiffnessMatrix().saveMatrix("Ka.mtx");
   std::cout<< " x1 = " << displacement(1,2) << std::endl;
   std::cout<< " x2 = " << displacement(2,2) << std::endl;
 
-
-#ifdef AKANTU_USE_IOHELPER
-  paraviewDump(dumper);
-#endif
+  model.dump();
 }
-
-
-
-/* -------------------------------------------------------------------------- */
-/* iohelper::Dumper vars                                                                */
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-
-/* -------------------------------------------------------------------------- */
-// template <ElementType type> static iohelper::ElemType paraviewType();
-// template <> iohelper::ElemType paraviewType<_segment_2>()      { return iohelper::LINE1; }
-// template <> iohelper::ElemType paraviewType<_segment_3>()      { return iohelper::LINE2; }
-// template <> iohelper::ElemType paraviewType<_triangle_3>()     { return iohelper::TRIANGLE1; }
-// template <> iohelper::ElemType paraviewType<_triangle_6>()     { return iohelper::TRIANGLE2; }
-// template <> iohelper::ElemType paraviewType<_quadrangle_4>()   { return iohelper::QUAD1; }
-// template <> iohelper::ElemType paraviewType<_tetrahedron_4>()  { return iohelper::TETRA1; }
-// template <> iohelper::ElemType paraviewType<_tetrahedron_10>() { return iohelper::TETRA2; }
-// template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper::HEX1; }
-// template <> iohelper::ElemType paraviewType<_bernoulli_beam_2>(){ return iohelper::BEAM2; }
-/* -------------------------------------------------------------------------- */
-void paraviewInit(iohelper::Dumper & dumper, const StructuralMechanicsModel & model) {
-  // UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
-  // UInt nb_nodes   = model.getFEM().getMesh().getNbNodes();
-  // UInt nb_element = model.getFEM().getMesh().getNbElement(TYPE);
-
-  // std::stringstream filename; filename << "beam";
-#pragma message "To change with new dumper"
-  // dumper.SetMode(iohelper::TEXT);
-  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  // 		   spatial_dimension, nb_nodes, filename.str().c_str());
-  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
-  // 			 paraviewType<TYPE>(), nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getDisplacement().values,
-  // 			  3, "displacements");
-  // dumper.AddNodeDataField(model.getForce().values,
-  // 			  3, "applied_force");
-  // dumper.AddElemDataField(model.getStress(_bernoulli_beam_2).values,
-  // 			  2, "stress");
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-  // dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void paraviewDump(iohelper::Dumper & dumper) {
-  // dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-
-#endif

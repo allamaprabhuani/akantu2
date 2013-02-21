@@ -130,25 +130,32 @@ public:
 
   static inline void matrix22_eigenvalues(Real * A,
 					  Real * Adiag);
-
-  /// solve @f$ A x = \Lambda x @f$ and return d and V such as @f$ A V[i:] = d[i] V[i:]@f$
-  static void matrixEig(UInt n, Real * A, Real * d, Real * V = NULL);
-
   template<UInt dim>
   static inline void eigenvalues(Real * A, Real * d);
 
-  /// determinent of a 3x3 matrix
-  static inline Real det3(const Real * mat);
+  /// solve @f$ A x = \Lambda x @f$ and return d and V such as @f$ A V[i:] = d[i] V[i:]@f$
+  template<typename T>
+  static void matrixEig(UInt n, T * A, T * d, T * V = NULL);
 
   /// determinent of a 2x2 matrix
   static inline Real det2(const Real * mat);
+  /// determinent of a 3x3 matrix
+  static inline Real det3(const Real * mat);
+  /// determinent of a nxn matrix
+  template<UInt n>
+  static inline Real det(const Real * mat);
+  /// determinent of a nxn matrix
+  template<typename T>
+  static inline T det(UInt n, const T * mat);
 
   /// inverse a nxn matrix
-  static inline void inv(UInt n, const Real * mat, Real * inv);
-
+  template<UInt n>
+  static inline void inv(const Real * mat, Real * inv);
+  /// inverse a nxn matrix
+  template<typename T>
+  static inline void inv(UInt n, const T * mat, T * inv);
   /// inverse a 3x3 matrix
   static inline void inv3(const Real * mat, Real * inv);
-
   /// inverse a 2x2 matrix
   static inline void inv2(const Real * mat, Real * inv);
 

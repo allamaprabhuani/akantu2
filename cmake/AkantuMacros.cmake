@@ -28,7 +28,6 @@
 #
 #===============================================================================
 
-#===============================================================================
 macro(check_for_isnan result)
   include(CheckFunctionExists)
   check_function_exists(std::isnan HAVE_STD_ISNAN)

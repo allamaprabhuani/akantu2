@@ -76,7 +76,7 @@ getNbQuadraturePoints(const ElementType & type,
 
 #define GET_NB_QUAD(type)						\
   nb_quad_points =							\
-    integrator. getQuadraturePoints<type>(ghost_type).getSize();
+    integrator. getQuadraturePoints<type>(ghost_type).cols();
 
   //  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_NB_QUAD);
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(GET_NB_QUAD);

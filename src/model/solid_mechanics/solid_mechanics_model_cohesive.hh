@@ -43,8 +43,15 @@ class SolidMechanicsModelCohesive : public SolidMechanicsModel {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  class NewCohesiveNodesEvent : public NewNodesEvent {
+  public:
+    AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Vector<UInt> &);
+    AKANTU_GET_MACRO(OldNodesList, old_nodes, const Vector<UInt> &);
+  protected:
+    Vector<UInt> old_nodes;
+  };
 
-  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> > MyFEMCohesiveType;
+  typedef FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive> MyFEMCohesiveType;
 
   SolidMechanicsModelCohesive(Mesh & mesh,
 			      UInt spatial_dimension = 0,
@@ -71,13 +78,10 @@ public:
   /// function to insert cohesive elements on the selected facets
   void insertCohesiveElements(const Vector<UInt> & facet_insertion);
 
-  /// initialize the model for intrinsic simulations
-  void initIntrinsic(std::string material_file,
-		     AnalysisMethod method = _explicit_dynamic);
-
-  /// initialize completely the model for extrinsic elements
-  void initExtrinsic(std::string material_file,
-		     AnalysisMethod method = _explicit_dynamic);
+  /// initialize the cohesive model
+  void initFull(std::string material_file,
+		AnalysisMethod method = _explicit_dynamic,
+		CohesiveMethod cohesive_method = _intrinsic);
 
   /// initialize the model
   void initModel();
@@ -94,6 +98,10 @@ public:
 
 private:
 
+  /// initialize completely the model for extrinsic elements
+  void initExtrinsic(std::string material_file,
+		     AnalysisMethod method = _explicit_dynamic);
+
   /// function to update nodal parameters for doubled nodes
   void updateDoubledNodes(const Vector<UInt> & doubled_nodes);
 
@@ -102,7 +110,6 @@ private:
 
   /// compute fragments' mass and velocity
   void computeFragmentsMV();
-
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */

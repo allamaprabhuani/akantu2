@@ -29,6 +29,7 @@
 
 __END_AKANTU__
 #include <typeinfo>
+#include "aka_random_generator.hh"
 __BEGIN_AKANTU__
 
 
@@ -105,6 +106,37 @@ inline void MaterialParamTyped<std::string>::parseParam(std::string value) {
 }
 
 /* -------------------------------------------------------------------------- */
+template<>
+inline void MaterialParamTyped<RandomGenerator<Real> *>::parseParam(std::string value) {
+  MaterialParam::parseParam(value);
+  std::stringstream sstr(value);
+  std::string generator; sstr >> generator;
+  UInt generator_size = generator.size();
+
+  long int seed = 0;
+  UInt pos = generator.find("(");
+  if(pos != std::string::npos){
+    std::string sseed = generator.substr(pos+1, generator.size() - 1);
+    std::stringstream sstrseed(sseed);
+    sstrseed >> seed;
+    generator = generator.substr(0, pos);
+  }
+
+  if(generator == "uniform")
+    param = new UniformRandomGenerator<Real>(seed);
+  else if(generator == "weibull")
+    param = new WeibullRandomGenerator<Real>(seed);
+  else {
+    AKANTU_EXCEPTION("The distribution given (" << generator << ") in \'" << value << "\'is unkown");
+  }
+  
+  std::string rg_param = value.substr(generator_size + 1);
+
+  param->setParams(rg_param);
+}
+
+
+/* -------------------------------------------------------------------------- */
 template<typename T>
 inline void MaterialParamTyped<T>::printself(std::ostream & stream) const {
   MaterialParam::printself(stream);
@@ -115,6 +147,16 @@ template<>
 inline void MaterialParamTyped<bool>::printself(std::ostream & stream) const {
   MaterialParam::printself(stream);
   stream << (param ? "true" : "false") << std::endl;
+}
+
+template<>
+inline void MaterialParamTyped<RandomGenerator<Real> *>::printself(std::ostream & stream) const {
+  MaterialParam::printself(stream);
+  if(param)
+    stream << *param << std::endl;
+  else {
+    stream << "NULL" << std::endl;
+  }
 }
 
 

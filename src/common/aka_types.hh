@@ -217,6 +217,17 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
+    inline void normalize() {
+      Real n = norm();
+      operator/=(n);
+    }
+
+    /* ---------------------------------------------------------------------- */
+    inline void copy(const Vector & src) {
+      memcpy(values, src.storage(), n * sizeof(T));
+    }
+
+    /* ---------------------------------------------------------------------- */
     /// norm of (*this - x)
     inline Real distance(const Vector & y) const {
       Real * vx = values; Real * vy = y.storage();
@@ -284,7 +295,7 @@ namespace types {
   template<typename T>
   class Matrix {
   public:
-    Matrix() : m(0), n(0), values(NULL), wrapped(true) {};
+    Matrix() : m(0), n(0), values(NULL), wrapped(false) {};
 
     Matrix(UInt m, UInt n, T def = 0) : m(m), n(n), values(new T[n*m]), wrapped(false) {
       std::fill_n(values, n*m, def);
@@ -293,12 +304,16 @@ namespace types {
     Matrix(T * data, UInt m, UInt n) : m(m), n(n), values(data), wrapped(true) {};
 
     Matrix(const Matrix & src) {
-      m = src.m;
-      n = src.n;
-      values = src.values;
       wrapped = src.wrapped;
-      const_cast<Matrix &>(src).wrapped = true;
-    };
+      n = src.n;
+      m = src.m;
+      if (src.wrapped) {
+	values = src.values;
+      } else {
+	values = new T[n*m];
+	memcpy(this->values, src.values, n*m * sizeof(T));
+      }
+    }
 
     virtual ~Matrix() { if(!wrapped) delete [] values; };
 
@@ -319,21 +334,26 @@ namespace types {
     }
 
     /* ---------------------------------------------------------------------- */
-    inline T& operator()(UInt i, UInt j) { return *(values + i*n + j); };
-    inline const T& operator()(UInt i, UInt j) const { return *(values + i*n + j); };
+    inline T& operator()(UInt i, UInt j) { return *(values + i + j*m); };
+    inline const T& operator()(UInt i, UInt j) const { return *(values + i + j*m); };
+
+    /// give a line vector wrapped on the column i
+    inline Vector<T> operator()(UInt j) { return types::Vector<T>(values + j*m, m); }
+    inline const Vector<T> operator()(UInt j) const { return types::Vector<T>(values + j*m, m); }
+
     inline T& operator[](UInt idx) { return *(values + idx); };
     inline const T& operator[](UInt idx) const { return *(values + idx); };
-    inline Matrix & operator=(const Matrix & mat) {
-      if(this != &mat) {
-	if(values != NULL) {
-	  memcpy(this->values, mat.values, m*n*sizeof(T));
+    inline Matrix & operator=(const Matrix & src) {
+      if(this != &src) {
+	if (wrapped) {
+	  AKANTU_DEBUG_ASSERT(n == src.n && m == src.m, "vectors of different size");
+	  memcpy(this->values, src.values, n*m * sizeof(T));
 	} else {
-	  this->m = mat.m;
-	  this->n = mat.n;
-
-	  this->values = mat.values;
-	  const_cast<Matrix &>(mat).wrapped = true;
-	  this->wrapped = false;
+	  n = src.n;
+	  m = src.m;
+	  delete [] values;
+	  values = new T[n*m];
+	  memcpy(this->values, src.values, n*m * sizeof(T));
 	}
       }
       return *this;
@@ -353,14 +373,31 @@ namespace types {
       return C;
     };
 
+    /* ----------------------------------------------------------------------- */
+    inline Matrix & operator*= (const Matrix & B) {
+      Matrix C(this->m, this->n);
+      C.mul<false, false>(*this, B);
+      this->copy(C);
+      return *this;
+    };
+
     /* ---------------------------------------------------------------------- */
-     inline Matrix & operator+=(const Matrix & A) {
-       T * a = this->storage();
-       T * b = A.storage();
-       for (UInt i = 0; i < n*m; ++i)
-	 *(a++) += *(b++);
-       return *this;
-     }
+    inline Matrix & operator+=(const Matrix & A) {
+      T * a = this->storage();
+      T * b = A.storage();
+      for (UInt i = 0; i < n*m; ++i)
+	*(a++) += *(b++);
+      return *this;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    inline Matrix & operator-=(const Matrix & A) {
+      T * a = this->storage();
+      T * b = A.storage();
+      for (UInt i = 0; i < n*m; ++i)
+	*(a++) -= *(b++);
+      return *this;
+    }
 
     /* ---------------------------------------------------------------------- */
     inline Matrix & operator+=(T x) {
@@ -415,7 +452,7 @@ namespace types {
       AKANTU_DEBUG_ASSERT(A.size() == m && B.size() == n, "A and B are not compatible with the size of the matrix");
       for (UInt i = 0; i < m; ++i) {
 	for (UInt j = 0; j < n; ++j) {
-	  values[i * m + j] += A[i] * B[j];
+	  values[i + j * m] += A[i] * B[j];
 	}
       }
     }
@@ -439,7 +476,7 @@ namespace types {
       AKANTU_DEBUG_ASSERT(n == m, "eye is not a valid operation on a rectangular matrix");
       clear();
       for (UInt i = 0; i < n; ++i) {
-	values[i*n + i] = alpha;
+	values[i + i * m] = alpha;
       }
     }
 
@@ -448,7 +485,7 @@ namespace types {
       AKANTU_DEBUG_ASSERT(n == m, "trace is not a valid operation on a rectangular matrix");
       T trace = 0.;
       for (UInt i = 0; i < n; ++i)
-	trace += values[i*n + i];
+	trace += values[i + i * m];
       return trace;
     }
     /* -------------------------------------------------------------------------- */
@@ -473,6 +510,14 @@ namespace types {
       Math::inv(A.n, A.values, this->values);
     }
 
+    inline T det() {
+      AKANTU_DEBUG_ASSERT(n == m, "inv is not a valid operation on a rectangular matrix");
+      if(n == 1) return *values;
+      else if(n == 2) return Math::det2(values);
+      else if(n == 3) return Math::det3(values);
+      else Math::det(values, n);
+    }
+
     /* ---------------------------------------------------------------------- */
     /// function to print the containt of the class
     virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -483,7 +528,7 @@ namespace types {
       for (UInt i = 0; i < m; ++i) {
 	stream << space << AKANTU_INDENT << "| ";
 	for (UInt j = 0; j < n; ++j) {
-	  stream << std::setw(10) << values[i*n +j] << " ";
+	  stream << std::setw(10) << operator()(i, j) << " ";
 	}
 	stream << "|" << std::endl;
       }
@@ -506,6 +551,15 @@ namespace types {
 			     const Vector<T> & x,
 			     Real alpha) {
     UInt n = x.n;
+#ifndef AKANTU_NDEBUG
+      if (tr_A){
+	AKANTU_DEBUG_ASSERT(n == A.rows(), "matrix and vector to multiply have no fit dimensions");
+	AKANTU_DEBUG_ASSERT(this->n == A.cols(), "matrix and vector to multiply have no fit dimensions");
+      } else {
+	AKANTU_DEBUG_ASSERT(n == A.cols(), "matrix and vector to multiply have no fit dimensions");
+	AKANTU_DEBUG_ASSERT(this->n == A.rows(), "matrix and vector to multiply have no fit dimensions");
+      }
+#endif
     Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
   }
 
@@ -526,6 +580,59 @@ namespace types {
     return stream;
   }
 
+  /* ------------------------------------------------------------------------ */
+  /* Tensor3                                                                  */
+  /* ------------------------------------------------------------------------ */
+  template<typename T>
+  class Tensor3 {
+  public:   
+  public:
+    Tensor3() : values(NULL), wrapped(true) { dim[0] = dim[1] = dim[2] = 0; };
+
+    Tensor3(UInt m, UInt n, UInt p, T def = 0) : values(new T[n*m*p]), wrapped(false) {
+      dim[0] = m; dim[1] = n; dim[2] = p;
+      std::fill_n(values, n*m*p, def);
+    };
+
+    Tensor3(T * data, UInt m, UInt n, UInt p) : values(data), wrapped(true) {
+      dim[0] = m; dim[1] = n; dim[2] = p;
+    };
+
+    Tensor3(const Tensor3 & src) {
+      wrapped = src.wrapped;
+      for (UInt i = 0; i < 3; ++i) dim[i] = src.dim[i];
+      if (src.wrapped) {
+	values = src.values;
+      } else {
+	values = new T[size()];
+	memcpy(this->values, src.values, size() * sizeof(T));
+      }
+    }
+
+    virtual ~Tensor3() { if(!wrapped) delete [] values; };
+    /* ---------------------------------------------------------------------- */
+    UInt size() const { return dim[0]*dim[1]*dim[2]; };
+    UInt size(UInt i) const { return dim[i]; };
+    T * storage() const { return values; };
+
+    /* ---------------------------------------------------------------------- */
+    void shallowCopy(const Tensor3 & src) {
+      if(!wrapped) delete [] values;
+      for (UInt i = 0; i < 3; ++i) dim[i] = src.dim[i];
+      this->wrapped = true;
+      this->values = src.values;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    inline T& operator()(UInt i, UInt j, UInt k) { return *(values + (k*dim[0] + i)*dim[1] + j); };
+    inline const T& operator()(UInt i, UInt j, UInt k) const { return *(values + (k*dim[0] + i)*dim[1] + j); };
+    inline Matrix<T> operator()(UInt k) { return types::Matrix<T>(values + k*dim[0]*dim[1], dim[0], dim[1]); }
+    inline const Matrix<T> operator()(UInt k) const { return types::Matrix<T>(values + k*dim[0]*dim[1], dim[0], dim[1]); }
+  protected:
+    UInt dim[3];
+    T* values;
+    bool wrapped;  
+  };
 }
 
 __END_AKANTU__

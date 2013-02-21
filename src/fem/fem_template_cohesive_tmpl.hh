@@ -37,10 +37,12 @@ gradientOnQuadraturePoints(const Vector<Real> &u,
 			   const ElementType & type,
 			   const GhostType & ghost_type,
 			   const Vector<UInt> * filter_elements) const;
+
 /* -------------------------------------------------------------------------- */
 template <>
 void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
 initShapeFunctions(const GhostType & ghost_type);
+
 /* -------------------------------------------------------------------------- */
 template <>
 Real FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::

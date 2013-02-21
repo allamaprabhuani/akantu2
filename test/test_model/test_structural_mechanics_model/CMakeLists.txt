@@ -1,11 +1,8 @@
-#===============================================================================
 # @file   CMakeLists.txt
-#
 # @author Fabian Barras <fabian.barras@epfl.ch>
+# @date   Thu May 12 19:05:02 2011
 #
-# @date   Fri Jul 15 19:41:58 2011
-#
-# @brief  configuration for StructuralMechanicsModel tests
+# @brief
 #
 # @section LICENSE
 #
@@ -25,27 +22,35 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-#===============================================================================
+#------------------------------------------------------------------------------
 
 register_test(test_structural_mechanics_model_bernoulli_beam_2
-  test_structural_mechanics_model_bernoulli_beam_2.cc
-  DIRECTORIES_TO_CREATE paraview
-  )
+  test_structural_mechanics_model_bernoulli_beam_2.cc)
 
 register_test(test_structural_mechanics_model_boundary_bernoulli_beam_2
-  test_structural_mechanics_model_boundary_bernoulli_beam_2.cc
-  DIRECTORIES_TO_CREATE paraview
-  )
+  test_structural_mechanics_model_boundary_bernoulli_beam_2.cc)
 
 register_test(test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1
-  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc
-  DIRECTORIES_TO_CREATE paraview
-  )
+  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc)
+
+register_test(test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1_y
+  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1_y.cc)
+
+register_test(test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_xy
+  test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_xy.cc)
+
+register_test(test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_zy
+  test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_zy.cc)
+
+register_test(test_structural_mechanics_model_bernoulli_beam_3_local_force
+  test_structural_mechanics_model_bernoulli_beam_local_force.cc)
+
+register_test(test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13
+  test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13.cc)
 
 add_mesh(complicated_mesh complicated.geo 1 1)
 register_test(test_structural_mechanics_model_bernoulli_beam_2_complicated
   test_structural_mechanics_model_bernoulli_beam_2_complicated.cc
-  DEPENDENCIES complicated_mesh
-  DIRECTORIES_TO_CREATE paraview
-  )
+  DEPENDENCIES complicated_mesh)
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)

@@ -143,25 +143,6 @@ Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffec
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-bool MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::parseParam(const std::string & key, 
-									       const std::string & value,
-									       const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "sigma_c") { sstr >> sigma_c; }
-  else if(key == "beta") { sstr >> beta; }
-  else if(key == "sigma_max") { sstr >> sigma_max; }
-  else if(key == "delta_0") { sstr >> delta_0; }
-  else if(key == "G_cI") { sstr >> G_cI; }
-  else if(key == "G_cII") { sstr >> G_cII; }
-  else if(key == "rand") { sstr >> rand; }
-  else if(key == "gamma") { sstr >> gamma; }
-  else if(key == "z_max") { sstr >> z_max; }
-  else { return Material::parseParam(key, value, id); }
-  return true;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTraction(const Vector<Real> & normal,
 								 ElementType el_type,
 								 GhostType ghost_type) {
@@ -260,28 +241,6 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTract
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "Material<_cohesive_linear> [" << std::endl;
-  stream << space << " + sigma_c      : " << sigma_c << std::endl;
-  stream << space << " + beta         : " << beta << std::endl;
-  stream << space << " + G_cI         : " << G_cI << std::endl;
-  stream << space << " + G_cII        : " << G_cII << std::endl;
-  stream << space << " + rand         : " << rand << std::endl;
-  stream << space << " + gamma        : " << gamma << std::endl;
-  stream << space << " + delta_0      : " << delta_0 << std::endl;
-  stream << space << " + z_max        : " << z_max << std::endl;
-  stream << space << " + sigma_max    : " << sigma_max << std::endl;
-  if(this->isInit()) {
-    stream << space << " + kappa      : " << kappa << std::endl;
-  }
-  MaterialCohesive::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialCohesiveLinearExponentialExtrinsic);

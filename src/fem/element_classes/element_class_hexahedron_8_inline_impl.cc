@@ -100,29 +100,35 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element;
-template<> UInt ElementClass<_hexahedron_8>::nb_quadrature_points;
-template<> UInt ElementClass<_hexahedron_8>::spatial_dimension;
+// template<> UInt ElementClass<_hexahedron_8>::nb_nodes_per_element;
+// template<> UInt ElementClass<_hexahedron_8>::nb_quadrature_points;
+// template<> UInt ElementClass<_hexahedron_8>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_hexahedron_8,
+				     _gt_hexahedron_8,
+				     _itp_lagrange_hexahedron_8,
+				     _ek_regular,
+				     3);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_hexahedron_8>::computeShapes(const Real * natural_coords,
-								   Real * shapes) {
+template <>
+inline void
+InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(const types::Vector<Real> & c,
+								types::Vector<Real> & N) {
   /// Natural coordinates
-  const Real * c = natural_coords;
-
-  shapes[0] = .125 * (1 - c[0]) * (1 - c[1]) * (1 - c[2]); /// N1(q_0)
-  shapes[1] = .125 * (1 + c[0]) * (1 - c[1]) * (1 - c[2]); /// N2(q_0)
-  shapes[2] = .125 * (1 + c[0]) * (1 + c[1]) * (1 - c[2]); /// N3(q_0)
-  shapes[3] = .125 * (1 - c[0]) * (1 + c[1]) * (1 - c[2]); /// N4(q_0)
-  shapes[4] = .125 * (1 - c[0]) * (1 - c[1]) * (1 + c[2]); /// N5(q_0)
-  shapes[5] = .125 * (1 + c[0]) * (1 - c[1]) * (1 + c[2]); /// N6(q_0)
-  shapes[6] = .125 * (1 + c[0]) * (1 + c[1]) * (1 + c[2]); /// N7(q_0)
-  shapes[7] = .125 * (1 - c[0]) * (1 + c[1]) * (1 + c[2]); /// N8(q_0)
+  N(0) = .125 * (1 - c(0)) * (1 - c(1)) * (1 - c(2)); /// N1(q_0)
+  N(1) = .125 * (1 + c(0)) * (1 - c(1)) * (1 - c(2)); /// N2(q_0)
+  N(2) = .125 * (1 + c(0)) * (1 + c(1)) * (1 - c(2)); /// N3(q_0)
+  N(3) = .125 * (1 - c(0)) * (1 + c(1)) * (1 - c(2)); /// N4(q_0)
+  N(4) = .125 * (1 - c(0)) * (1 - c(1)) * (1 + c(2)); /// N5(q_0)
+  N(5) = .125 * (1 + c(0)) * (1 - c(1)) * (1 + c(2)); /// N6(q_0)
+  N(6) = .125 * (1 + c(0)) * (1 + c(1)) * (1 + c(2)); /// N7(q_0)
+  N(7) = .125 * (1 - c(0)) * (1 + c(1)) * (1 + c(2)); /// N8(q_0)
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_hexahedron_8>::computeDNDS(const Real * natural_coords,
-								 Real * dnds) {
-
+template <>
+inline void
+InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(const types::Vector<Real> & c,
+							      types::Matrix<Real> & dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -143,66 +149,50 @@ template <> inline void ElementClass<_hexahedron_8>::computeDNDS(const Real * na
    *        \right)
    * @f]
    */
+  dnds(0, 0) = - .125 * (1 - c(1)) * (1 - c(2));;
+  dnds(0, 1) =   .125 * (1 - c(1)) * (1 - c(2));;
+  dnds(0, 2) =   .125 * (1 + c(1)) * (1 - c(2));;
+  dnds(0, 3) = - .125 * (1 + c(1)) * (1 - c(2));;
+  dnds(0, 4) = - .125 * (1 - c(1)) * (1 + c(2));;
+  dnds(0, 5) =   .125 * (1 - c(1)) * (1 + c(2));;
+  dnds(0, 6) =   .125 * (1 + c(1)) * (1 + c(2));;
+  dnds(0, 7) = - .125 * (1 + c(1)) * (1 + c(2));;
 
-  const Real * c = natural_coords;
+  dnds(1, 0) = - .125 * (1 - c(0)) * (1 - c(2));;
+  dnds(1, 1) = - .125 * (1 + c(0)) * (1 - c(2));;
+  dnds(1, 2) =   .125 * (1 + c(0)) * (1 - c(2));;
+  dnds(1, 3) =   .125 * (1 - c(0)) * (1 - c(2));;
+  dnds(1, 4) = - .125 * (1 - c(0)) * (1 + c(2));;
+  dnds(1, 5) = - .125 * (1 + c(0)) * (1 + c(2));;
+  dnds(1, 6) =   .125 * (1 + c(0)) * (1 + c(2));;
+  dnds(1, 7) =   .125 * (1 - c(0)) * (1 + c(2));;
 
-  dnds[0]  = - .125 * (1 - c[1]) * (1 - c[2]);;
-  dnds[1]  =   .125 * (1 - c[1]) * (1 - c[2]);;
-  dnds[2]  =   .125 * (1 + c[1]) * (1 - c[2]);;
-  dnds[3]  = - .125 * (1 + c[1]) * (1 - c[2]);;
-  dnds[4]  = - .125 * (1 - c[1]) * (1 + c[2]);;
-  dnds[5]  =   .125 * (1 - c[1]) * (1 + c[2]);;
-  dnds[6]  =   .125 * (1 + c[1]) * (1 + c[2]);;
-  dnds[7]  = - .125 * (1 + c[1]) * (1 + c[2]);;
-
-  dnds[8]  = - .125 * (1 - c[0]) * (1 - c[2]);;
-  dnds[9]  = - .125 * (1 + c[0]) * (1 - c[2]);;
-  dnds[10] =   .125 * (1 + c[0]) * (1 - c[2]);;
-  dnds[11] =   .125 * (1 - c[0]) * (1 - c[2]);;
-  dnds[12] = - .125 * (1 - c[0]) * (1 + c[2]);;
-  dnds[13] = - .125 * (1 + c[0]) * (1 + c[2]);;
-  dnds[14] =   .125 * (1 + c[0]) * (1 + c[2]);;
-  dnds[15] =   .125 * (1 - c[0]) * (1 + c[2]);;
-
-  dnds[16] = - .125 * (1 - c[0]) * (1 - c[1]);;
-  dnds[17] = - .125 * (1 + c[0]) * (1 - c[1]);;
-  dnds[18] = - .125 * (1 + c[0]) * (1 + c[1]);;
-  dnds[19] = - .125 * (1 - c[0]) * (1 + c[1]);;
-  dnds[20] =   .125 * (1 - c[0]) * (1 - c[1]);;
-  dnds[21] =   .125 * (1 + c[0]) * (1 - c[1]);;
-  dnds[22] =   .125 * (1 + c[0]) * (1 + c[1]);;
-  dnds[23] =   .125 * (1 - c[0]) * (1 + c[1]);;
+  dnds(2, 0) = - .125 * (1 - c(0)) * (1 - c(1));;
+  dnds(2, 1) = - .125 * (1 + c(0)) * (1 - c(1));;
+  dnds(2, 2) = - .125 * (1 + c(0)) * (1 + c(1));;
+  dnds(2, 3) = - .125 * (1 - c(0)) * (1 + c(1));;
+  dnds(2, 4) =   .125 * (1 - c(0)) * (1 - c(1));;
+  dnds(2, 5) =   .125 * (1 + c(0)) * (1 - c(1));;
+  dnds(2, 6) =   .125 * (1 + c(0)) * (1 + c(1));;
+  dnds(2, 7) =   .125 * (1 - c(0)) * (1 + c(1));;
 }
 
-
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_hexahedron_8>::computeJacobian(const Real * dxds,
-								   const UInt dimension,
-								   Real & jac){
-  if (dimension == spatial_dimension){
-    Real det_dxds = Math::det3(dxds);
-    jac = det_dxds;
-  } else {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-}
-
-
-
-/* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_hexahedron_8>::getInradius(const Real * coord) {
-  Real a = Math::distance_3d(coord +  0, coord +  3);
-  Real b = Math::distance_3d(coord +  3, coord +  6);
-  Real c = Math::distance_3d(coord +  6, coord +  9);
-  Real d = Math::distance_3d(coord +  9, coord +  0);
-  Real e = Math::distance_3d(coord +  0, coord + 12);
-  Real f = Math::distance_3d(coord +  3, coord + 15);
-  Real g = Math::distance_3d(coord +  6, coord + 18);
-  Real h = Math::distance_3d(coord +  9, coord + 21);
-  Real i = Math::distance_3d(coord + 12, coord + 15);
-  Real j = Math::distance_3d(coord + 15, coord + 18);
-  Real k = Math::distance_3d(coord + 18, coord + 21);
-  Real l = Math::distance_3d(coord + 21, coord + 12);
+template<>
+inline Real
+GeometricalElement<_gt_hexahedron_8>::getInradius(const types::Matrix<Real> & coord) {
+  Real a = coord(0).distance(coord(1));
+  Real b = coord(1).distance(coord(2));
+  Real c = coord(2).distance(coord(3));
+  Real d = coord(3).distance(coord(0));
+  Real e = coord(0).distance(coord(4));
+  Real f = coord(1).distance(coord(5));
+  Real g = coord(2).distance(coord(6));
+  Real h = coord(3).distance(coord(7));
+  Real i = coord(4).distance(coord(5));
+  Real j = coord(5).distance(coord(6));
+  Real k = coord(6).distance(coord(7));
+  Real l = coord(7).distance(coord(4));
 
   Real x = std::min(a, std::min(b, std::min(c, d)));
   Real y = std::min(e, std::min(f, std::min(g, h)));

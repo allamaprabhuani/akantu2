@@ -84,7 +84,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 
     if(mesh.getSpatialDimension(type) == spatial_dimension) {
 
-      ElementType current_facet_type = mesh.getFacetElementType(type);
+      ElementType current_facet_type = mesh.getFacetType(type);
       facet_type[nb_facet_types++] = current_facet_type;
 
       /// initialization of penetration list
@@ -199,7 +199,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 	ElementType type = *it;
 	if(mesh.getSpatialDimension(type) == spatial_dimension) {
 	  penetration_list.penetrating_nodes.push_back(current_impactor_node);
-	  ElementType current_facet_type = mesh.getFacetElementType(type);
+	  ElementType current_facet_type = mesh.getFacetType(type);
 	  penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).push_back(nb_elements_type[current_facet_type]);
 	}
       }
@@ -248,7 +248,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 	    ElementType type = *it;
 	    if(mesh.getSpatialDimension(type) == spatial_dimension) {
 	      penetration_list.penetrating_nodes.push_back(current_impactor_node);
-	      ElementType current_facet_type = mesh.getFacetElementType(type);
+	      ElementType current_facet_type = mesh.getFacetType(type);
 	      penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).push_back(nb_elements_type[current_facet_type]);
 	    }
 	  }
@@ -265,7 +265,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
     ElementType type = *it;
 
     if(mesh.getSpatialDimension(type) == spatial_dimension) {
-      ElementType current_facet_type = mesh.getFacetElementType(type);
+      ElementType current_facet_type = mesh.getFacetType(type);
 
       UInt tmp_nb_facets = penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).getSize();
       penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).resize(tmp_nb_facets+1);
@@ -362,18 +362,7 @@ void ContactSearchExplicit::computeComponentsOfProjection(const UInt impactor_no
     AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type);
     break;
   }
-  case _segment_3:
-  case _triangle_6:
-  case _tetrahedron_4:
-  case _tetrahedron_10:
-  case _quadrangle_4:
-  case _quadrangle_8:
-  case _hexahedron_8:
-  case _point:
-  case _bernoulli_beam_2:
-  case _cohesive_2d_4:
-  case _cohesive_2d_6:
-  case _max_element_type: {
+  default: {
     AKANTU_DEBUG_ERROR("Contact search is not implemented for this surface element type : " << type);
     break;
   }
@@ -404,18 +393,7 @@ void ContactSearchExplicit::checkPenetrationSituation(const UInt impactor_node,
     AKANTU_DEBUG_ERROR("Not a valid surface element type : " << type);
     break;
   }
-  case _segment_3:
-  case _triangle_6:
-  case _tetrahedron_4:
-  case _tetrahedron_10:
-  case _quadrangle_4:
-  case _quadrangle_8:
-  case _hexahedron_8:
-  case _point:
-  case _bernoulli_beam_2:
-  case _cohesive_2d_4:
-  case _cohesive_2d_6:
-  case _max_element_type: {
+  default: {
     AKANTU_DEBUG_ERROR("Contact search is not implemented for this surface element type : " << type);
     break;
   }

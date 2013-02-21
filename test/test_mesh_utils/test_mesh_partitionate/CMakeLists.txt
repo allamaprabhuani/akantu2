@@ -39,7 +39,7 @@ register_test(test_mesh_partitionate_scotch
   )
 
 register_test(test_mesh_partitionate_scotch_advanced
-  SOURCE test_mesh_partitionate_scotch_advanced.cc
+  SOURCES test_mesh_partitionate_scotch_advanced.cc
   FILES_TO_COPY squares_L.msh squares_H.msh
   DIRECTORIES_TO_CREATE paraview)
 

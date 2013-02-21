@@ -137,11 +137,11 @@ private:
 
   /// calculate the lumped capacity vector for heat transfer problem (w ghosttype)
   void assembleCapacityLumped(const GhostType & ghost_type);
-  
+
   /// compute the conductivity tensor for each quadrature point in an array
   void computeConductivityOnQuadPoints(const GhostType & ghost_type);
 
-  /// compute vector k \grad T for each quadrature point 
+  /// compute vector k \grad T for each quadrature point
   void computeKgradT(const GhostType & ghost_type);
 
 
@@ -256,7 +256,7 @@ private:
   /// vector \grad N k \grad T
   ByElementTypeReal bt_k_gT;
 
-  //external flux vector
+  /// external flux vector
   Vector<Real> * external_heat_rate;
 
   /// residuals array

@@ -87,6 +87,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
   switch(function_type) {
   case _bft_stress: nb_component = spatial_dimension * spatial_dimension; break;
   case _bft_traction: nb_component = spatial_dimension; break;
+  default: break;
   }
 
   Vector<Real> funct(0, nb_component, "traction_stress");
@@ -156,6 +157,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
       computeForcesByStressTensor(funct, *it, ghost_type); break;
     case _bft_traction:
       computeForcesByTractionVector(funct, *it, ghost_type); break;
+    default: break;
     }
   }
 }

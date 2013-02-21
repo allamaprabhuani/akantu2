@@ -6,7 +6,7 @@ rm energy.csv
 ret=$?
 if [ $ret -eq 0 ]
 then
-    ./test_cst_energy.pl energy.csv 1e-3
+    ./test_cst_energy.pl energy_bar_2d_structured.csv 1e-3
 else
     return $ret
 fi

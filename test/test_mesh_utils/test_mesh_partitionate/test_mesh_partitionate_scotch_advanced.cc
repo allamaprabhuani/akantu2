@@ -284,17 +284,17 @@ void dumpParaview(akantu::Mesh & mesh, std::string name,
   unsigned int nb_element = mesh.getNbElement(type);
 
   iohelper::DumperParaview dumper;
-  dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(mesh.getNodes().values, mesh.getSpatialDimension(), 
+  dumper.setMode(iohelper::TEXT);
+  dumper.setPoints(mesh.getNodes().values, mesh.getSpatialDimension(), 
 		   nb_nodes, name);
-  dumper.SetConnectivity((int*) mesh.getConnectivity(type).values,
+  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
    			 iohelper::QUAD1, nb_element, iohelper::C_MODE);
 
-  dumper.AddElemDataField(part_1, 1, "partition_1");
-  dumper.AddElemDataField(part_2, 1, "partition_2");
-  dumper.SetPrefix("paraview");
-  dumper.Init();
-  dumper.Dump();
+  dumper.addElemDataField("partition_1", part_1, 1, nb_element);
+  dumper.addElemDataField("partition_2", part_2, 1, nb_element);
+  dumper.setPrefix("paraview");
+  dumper.init();
+  dumper.dump();
 }
 
 /* -------------------------------------------------------------------------- */

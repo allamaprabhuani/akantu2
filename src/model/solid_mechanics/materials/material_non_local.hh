@@ -108,9 +108,10 @@ protected:
 					const Vector<Element> & elements,
 					SynchronizationTag tag);
 
-  virtual inline void onElementsAdded(const Vector<Element> & element_list);
+  //  virtual inline void onElementsAdded(const Vector<Element> & element_list);
   virtual inline void onElementsRemoved(const Vector<Element> & element_list,
-					const ByElementTypeUInt & new_numbering);
+					const ByElementTypeUInt & new_numbering,
+					const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

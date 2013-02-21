@@ -33,6 +33,8 @@
 #include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
 #include "dof_synchronizer.hh"
+#include "aka_random_generator.hh"
+
 
 __BEGIN_AKANTU__
 
@@ -55,11 +57,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   fem_cohesive = &(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
 
   this->registerParam("sigma_c",      sigma_c,      0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Critical stress");
-  this->registerParam("rand_factor",  rand,         0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Randomness factor");
-  this->registerParam("distribution", distribution, std::string("uniform"),  _pat_parsable, "Distribution type");
-  this->registerParam("lambda",       lambda,       0. ,                     _pat_parsable, "Weibull modulus");
-  this->registerParam("m",            m_scale,      1. ,                     _pat_parsable, "Scale parameter");
-
+  this->registerParam("random_generator", random_generator, _pat_parsable, "Random generator for facet parameters");
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,6 +65,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 /* -------------------------------------------------------------------------- */
 MaterialCohesive::~MaterialCohesive() {
   AKANTU_DEBUG_IN();
+
+  delete random_generator;
 
   AKANTU_DEBUG_OUT();
 }
@@ -86,7 +86,7 @@ void MaterialCohesive::initMaterial() {
   initInternalVector(        delta_max,                 1, false, _ek_cohesive);
   initInternalVector(           damage,                 1, false, _ek_cohesive);
   initInternalVector(   element_filter,                 1, false, _ek_cohesive);
- 
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -107,21 +107,8 @@ void MaterialCohesive::resizeCohesiveVectors() {
 void MaterialCohesive::generateRandomDistribution(Vector<Real> & sigma_lim) {
   AKANTU_DEBUG_IN();
 
-  std::srand(time(NULL));
-  UInt nb_facet = sigma_lim.getSize();
-
-  if (distribution == "uniform") {
-    for (UInt i = 0; i < nb_facet; ++i)
-      sigma_lim(i) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
-  }
-  else if (distribution == "weibull") {
-    Real exponent = 1./m_scale;
-    for (UInt i = 0; i < nb_facet; ++i)
-      sigma_lim(i) = sigma_c + lambda * std::pow(-1.* std::log(std::rand()/(Real)RAND_MAX), exponent);
-  }
-  else {
-    AKANTU_DEBUG_ERROR("Unknown random distribution type for sigma_c");
-  }
+  if (random_generator)
+    random_generator->generate(sigma_c, sigma_lim);
 
   AKANTU_DEBUG_OUT();
 }
@@ -287,21 +274,19 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     UInt nb_element = elem_filter.getSize();
     UInt size_of_shapes       = shapes.getNbComponent();
 
-    UInt * elem_filter_it  = elem_filter.storage();
-
     Vector<Real> * shapes_filtered =
       new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
 
-    Vector<Real>::iterator<types::RMatrix> shapes_filtered_it =
-      shapes_filtered->begin_reinterpret(size_of_shapes, nb_quadrature_points,
-					 nb_element);
+    Real * shapes_val       = shapes.storage();
+    Real * shapes_filtered_val = shapes_filtered->values;
+    UInt * elem_filter_val  = elem_filter.storage();
 
-    Vector<Real>::const_iterator<types::RMatrix> shapes_it =
-      shapes.begin_reinterpret(size_of_shapes, nb_quadrature_points,
-			       mesh.getNbElement(*it, ghost_type));
-
-    for (UInt el = 0; el < nb_element; ++el, ++shapes_filtered_it) {
-      *shapes_filtered_it = shapes_it[elem_filter_it[el]];
+    for (UInt el = 0; el < nb_element; ++el) {
+      shapes_val = shapes.storage() + elem_filter_val[el] *
+    	size_of_shapes * nb_quadrature_points;
+      memcpy(shapes_filtered_val, shapes_val,
+    	     size_of_shapes * nb_quadrature_points * sizeof(Real));
+      shapes_filtered_val += size_of_shapes * nb_quadrature_points;
     }
 
     /**
@@ -353,19 +338,15 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     Vector<Real>::iterator<types::Vector<Real> > shapes_filt_it = shapes_filtered->begin(size_of_shapes);
     Vector<Real>::iterator<types::RMatrix> D_it = tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
     Vector<Real>::iterator<types::RMatrix> At_Nt_D_N_A_it  = at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
-									      spatial_dimension * nb_nodes_per_element);
+										spatial_dimension * nb_nodes_per_element);
     Vector<Real>::iterator<types::RMatrix> At_Nt_D_N_A_end = at_nt_d_n_a->end  (spatial_dimension * nb_nodes_per_element,
-									       spatial_dimension * nb_nodes_per_element);
+										spatial_dimension * nb_nodes_per_element);
 
     types::RMatrix N    (spatial_dimension, spatial_dimension * size_of_shapes);
     types::RMatrix N_A  (spatial_dimension, spatial_dimension * nb_nodes_per_element);
     types::RMatrix D_N_A(spatial_dimension, spatial_dimension * nb_nodes_per_element);
 
     for(; At_Nt_D_N_A_it != At_Nt_D_N_A_end; ++At_Nt_D_N_A_it, ++D_it, ++shapes_filt_it) {
-      types::RMatrix & D = *D_it;
-      types::RMatrix & At_Nt_D_N_A = *At_Nt_D_N_A_it;
-      types::Vector<Real> & shapes_fil = *shapes_filt_it;
-
       N.clear();
       /**
        * store  the   shapes  in  voigt   notations  matrix  @f$\mathbf{N}  =
@@ -374,7 +355,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
        **/
       for (UInt i = 0; i < spatial_dimension ; ++i)
 	for (UInt n = 0; n < size_of_shapes; ++n)
-	  N(i, i + spatial_dimension * n) = shapes_fil(n);
+	  N(i, i + spatial_dimension * n) = (*shapes_filt_it)(n);
 
       /**
        * compute stiffness matrix  @f$   \mathbf{K}    =    \delta    \mathbf{U}^T
@@ -382,9 +363,9 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
        * \mathbf{P} d\Gamma \Delta \mathbf{U}}  @f$
        **/
       N_A.mul<false, false>(N, A);
-      D_N_A.mul<false, false>(D, N_A);
-      At_Nt_D_N_A.mul<true, false>(N_A, D_N_A);
-        }
+      D_N_A.mul<false, false>(*D_it, N_A);
+      (*At_Nt_D_N_A_it).mul<true, false>(D_N_A, N_A);
+    }
 
     delete tangent_stiffness_matrix;
     delete shapes_filtered;

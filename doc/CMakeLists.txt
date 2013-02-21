@@ -40,8 +40,9 @@ if(DOXYGEN_FOUND)
   add_subdirectory(doxygen)
 endif(DOXYGEN_FOUND)
 
+string(TOUPPER ${PROJECT_NAME} _project)
 
-foreach(_pkg ${PACKAGE_SYSTEM_PACKAGES_OFF})
+foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_OFF})
   package_pkg_name(${_pkg} _package_name)
   foreach(_file ${${_package_name}_DOC})
     list(APPEND _AKANTU_DOC_EXCLUDE_FILES doc/${_file})

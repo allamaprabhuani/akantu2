@@ -152,6 +152,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
 
     if(!remove_elem.getNewNumbering().exists(*it, _ghost))
       remove_elem.getNewNumbering().alloc(nb_ghost_elem, 1, *it, _ghost);
+    else remove_elem.getNewNumbering(*it, _ghost).resize(nb_ghost_elem);
 
     Vector<UInt> & elem_filter = element_filter(*it, _ghost);
     Vector<UInt> & new_numbering = remove_elem.getNewNumbering(*it, _ghost);
@@ -373,7 +374,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
   this->initInternalVector(quadrature_points_volumes, 1, true);
   resizeInternalVector(quadrature_points_volumes);
 
-  const ByElementTypeReal & jacobians_by_type = this->model->getFEM().getIntegratorInterface().getJacobians();
+  const FEM & fem = this->model->getFEM();
 
   weight_func->updateInternals(quadrature_points_volumes);
 
@@ -407,11 +408,11 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       weights.resize(pairs.getSize());
       weights.clear();
 
-      const Vector<Real> & jacobians_1 = jacobians_by_type(type1, ghost_type1);
-      const Vector<Real> & jacobians_2 = jacobians_by_type(type2, ghost_type2);
+      const Vector<Real> & jacobians_1 = fem.getIntegratorInterface().getJacobians(type1, ghost_type1);
+      const Vector<Real> & jacobians_2 = fem.getIntegratorInterface().getJacobians(type2, ghost_type2);
 
-      UInt nb_quad1 = this->model->getFEM().getNbQuadraturePoints(type1);
-      UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
+      UInt nb_quad1 = fem.getNbQuadraturePoints(type1);
+      UInt nb_quad2 = fem.getNbQuadraturePoints(type2);
 
       Vector<Real> & quads_volumes1 = quadrature_points_volumes(type1, ghost_type1);
       Vector<Real> & quads_volumes2 = quadrature_points_volumes(type2, ghost_type2);
@@ -807,22 +808,23 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementDa
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template <UInt> class WeightFunction>
-inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsAdded(const Vector<Element> & element_list) {
-  AKANTU_DEBUG_IN();
+// template<UInt spatial_dimension, template <UInt> class WeightFunction>
+// inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsAdded(const Vector<Element> & element_list) {
+//   AKANTU_DEBUG_IN();
 
-  Material::onElementsAdded(element_list);
+//   Material::onElementsAdded(element_list, event);
 
-  AKANTU_DEBUG_OUT();
-}
+//   AKANTU_DEBUG_OUT();
+// }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemoved(const Vector<Element> & element_list,
-										   const ByElementTypeUInt & new_numbering) {
+										   const ByElementTypeUInt & new_numbering,
+										   __attribute__((unused)) const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
-  Material::onElementsRemoved(element_list, new_numbering);
+  Material::onElementsRemoved(element_list, new_numbering, event);
 
   pair_type::const_iterator first_pair_types = existing_pairs[1].begin();
   pair_type::const_iterator last_pair_types = existing_pairs[1].end();

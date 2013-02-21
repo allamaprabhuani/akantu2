@@ -108,8 +108,9 @@ int main(int argc, char *argv[]) {
   Vector<Real>::iterator<types::RMatrix> it_end = grad_on_quad.end(2,dim);
   for (;it != it_end; ++it) {
     for (UInt d = 0; d < dim; ++d) {
-      if(!(std::abs((*it)(0, d) - alpha[0][d]) < eps) ||
-	 !(std::abs((*it)(1, d) - alpha[1][d]) < eps)) {
+      types::RMatrix & grad = *it;
+      if(!(std::abs(grad(0, d) - alpha[0][d]) < eps) ||
+	 !(std::abs(grad(1, d) - alpha[1][d]) < eps)) {
 	std::cout << "Error gradient is not correct "
 		  << (*it)(0, d) << " " << alpha[0][d] << " (" << std::abs((*it)(0, d) - alpha[0][d]) << ")"
 		  << " - "

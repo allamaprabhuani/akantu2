@@ -60,13 +60,12 @@ int main(int argc, char *argv[]) {
   const ElementType type = _quadrangle_8;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("quadrangle.msh", mesh);
+  mesh.read("quadrangle.msh");
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initExtrinsic("material.dat");
+  model.initFull("material.dat", _explicit_dynamic, _extrinsic);
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -82,7 +81,7 @@ int main(int argc, char *argv[]) {
 
   const Mesh & mesh_facets = model.getMeshFacets();
 
-  const ElementType type_facet = mesh.getFacetElementType(type);
+  const ElementType type_facet = mesh.getFacetType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   const Vector<Real> & position = mesh.getNodes();
   //  const Vector<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
@@ -229,6 +228,8 @@ int main(int argc, char *argv[]) {
 
   // edis.close();
   // erev.close();
+
+  mesh.write("mesh_final.msh");
 
   Real Ed = model.getEnergy("dissipated");
 

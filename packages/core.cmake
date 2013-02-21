@@ -41,11 +41,14 @@ set(AKANTU_CORE_FILES
   common/aka_math.cc
   fem/shape_lagrange.cc
   fem/shape_linked.cc
-  fem/integrator_gauss.cc
+  #fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
-  fem/element_class.cc
   io/dumper/dumpable.hh
+  io/mesh_io.cc
+  io/model_io.cc
+  io/mesh_io/mesh_io_msh.cc
+  io/mesh_io/mesh_io_diana.cc
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
@@ -54,11 +57,7 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material.cc
   model/solid_mechanics/material_parameters.cc
   model/solid_mechanics/materials/material_elastic.cc
-  mesh_utils/mesh_io.cc
   mesh_utils/mesh_pbc.cc
-  mesh_utils/mesh_io/mesh_io_msh.cc
-  mesh_utils/mesh_io/mesh_io_msh_struct.cc
-  mesh_utils/mesh_io/mesh_io_diana.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_utils.cc
   solver/sparse_matrix.cc
@@ -72,12 +71,12 @@ set(AKANTU_CORE_FILES
   synchronizer/dof_synchronizer.cc
 
   #header files
-  mesh_utils/mesh_io/mesh_io_msh.hh
-  mesh_utils/mesh_io/mesh_io_msh_struct.hh
-  mesh_utils/mesh_io/mesh_io_diana.hh
+  io/mesh_io.hh
+  io/model_io.hh
+  io/mesh_io/mesh_io_msh.hh
+  io/mesh_io/mesh_io_diana.hh
   mesh_utils/mesh_utils.hh
   mesh_utils/mesh_partition.hh
-  mesh_utils/mesh_io.hh
   mesh_utils/mesh_partition/mesh_partition_scotch.hh
   solver/sparse_matrix.hh
   solver/solver.hh
@@ -108,6 +107,7 @@ set(AKANTU_CORE_FILES
   common/aka_vector_tmpl.hh
   common/aka_circular_vector.hh
   common/aka_event_handler.hh
+  common/aka_random_generator.hh
   common/aka_bounding_box.hh
   common/aka_ci_string.hh
   common/aka_plane.hh
@@ -158,7 +158,6 @@ set(AKANTU_CORE_FILES
   fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_quadrangle_4_inline_impl.cc
   fem/element_classes/element_class_quadrangle_8_inline_impl.cc
-  fem/element_classes/element_class_bernoulli_beam_2_inline_impl.cc
   fem/element_classes/element_class_hexahedron_8_inline_impl.cc
   fem/element_classes/element_class_triangle_6_inline_impl.cc
   fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
@@ -166,7 +165,6 @@ set(AKANTU_CORE_FILES
   fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
   fem/shape_functions_inline_impl.cc
   fem/mesh_inline_impl.cc
-  fem/element_class_inline_impl.cc
   fem/by_element_type_tmpl.hh
   fem/fem_inline_impl.cc
   fem/shape_linked_inline_impl.cc
@@ -178,12 +176,15 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
-
+  fem/geometrical_element.cc
+  fem/element_class_tmpl.hh
+  fem/element_class.cc
+  fem/integration_element.cc
+  fem/interpolation_element.cc
   model/solid_mechanics/materials/material_elastic_orthotropic.cc
   model/solid_mechanics/materials/material_elastic_orthotropic.hh
   model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   )
-
 
  include(CheckCXXCompilerFlag)
  check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
@@ -199,8 +200,6 @@ set(AKANTU_CORE_FILES
   else()
     message(WARNING "*** WARNING *** Compiler does not support c++11 set of requirements.")
   endif()
-
-
 
 set(AKANTU_CORE_DEB_DEPEND
   libboost-dev

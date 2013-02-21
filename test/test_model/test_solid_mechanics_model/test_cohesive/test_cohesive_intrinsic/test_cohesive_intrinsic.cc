@@ -53,7 +53,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  debug::setDebugLevel(dblDump);
+  //  debug::setDebugLevel(dblDump);
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 350;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
-  mesh.read("mesh.msh");
+  mesh.read("triangle.msh");
 
 
   /* ------------------------------------------------------------------------ */
@@ -75,7 +75,8 @@ int main(int argc, char *argv[]) {
 
   std::cout << mesh_facets << std::endl;
 
-  const ElementType type_facet = Mesh::getFacetElementType(type);
+  const ElementType type_facet = Mesh::getFacetType(type);
+
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   //  const Vector<Real> & position = mesh.getNodes();
   //  Vector<Real> & displacement = model.getDisplacement();
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]) {
 					     type_facet,
 					     facet_insertion);
 
-  //  mesh_io.write("mesh_cohesive.msh", mesh);
+  mesh.write("mesh_cohesive.msh");
 
   //  std::cout << mesh << std::endl;
 
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initIntrinsic("material.dat");
+  model.initFull("material.dat");
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;

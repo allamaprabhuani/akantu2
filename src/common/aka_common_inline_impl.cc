@@ -40,28 +40,34 @@ __BEGIN_AKANTU__
 //! standard output stream operator for ElementType
 inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
+#define STRINGIFY(type)				\
+  stream << BOOST_PP_STRINGIZE(type);
+
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(STRINGIFY);
+#undef STRINGIFY
+  return stream;
+}
+
+/// standard output stream operator for InterpolationType
+inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
+{
   switch(type)
     {
-    case _segment_2        : stream << "_segment_2"       ; break;
-    case _segment_3        : stream << "_segment_3"       ; break;
-    case _triangle_3       : stream << "_triangle_3"      ; break;
-    case _triangle_6       : stream << "_triangle_6"      ; break;
-    case _tetrahedron_4    : stream << "_tetrahedron_4"   ; break;
-    case _tetrahedron_10   : stream << "_tetrahedron_10"  ; break;
-    case _quadrangle_4     : stream << "_quadrangle_4"    ; break;
-    case _quadrangle_8     : stream << "_quadrangle_8"    ; break;
-    case _hexahedron_8     : stream << "_hexahedron_8"    ; break;
-    case _bernoulli_beam_2 : stream << "_bernoulli_beam_2"; break;
-#if defined(AKANTU_COHESIVE_ELEMENT)
-    case _cohesive_2d_4    : stream << "_cohesive_2d_4"   ; break;
-    case _cohesive_2d_6    : stream << "_cohesive_2d_6"   ; break;
-#endif
-    case _not_defined      : stream << "_not_defined"     ; break;
-    case _max_element_type : stream << "ElementType(" << (int) type << ")"; break;
-    case _point            : stream << "point"; break;
+    case _itp_lagrange_segment_2      : stream << "_itp_lagrange_segment_2"     ; break;
+    case _itp_lagrange_segment_3      : stream << "_itp_lagrange_segment_3"     ; break;
+    case _itp_lagrange_triangle_3     : stream << "_itp_lagrange_triangle_3"    ; break;
+    case _itp_lagrange_triangle_6     : stream << "_itp_lagrange_triangle_6"    ; break;
+    case _itp_lagrange_quadrangle_4   : stream << "_itp_lagrange_quadrangle_4"  ; break;
+    case _itp_serendip_quadrangle_8   : stream << "_itp_serendip_quadrangle_8"  ; break;
+    case _itp_lagrange_tetrahedron_4  : stream << "_itp_lagrange_tetrahedron_4" ; break;
+    case _itp_lagrange_tetrahedron_10 : stream << "_itp_lagrange_tetrahedron_10"; break;
+    case _itp_lagrange_hexahedron_8   : stream << "_itp_lagrange_hexahedron_8"  ; break;
+    case _itp_bernoulli_beam          : stream << "_itp_bernoulli_beam"         ; break;
+    case _itp_not_defined             : stream << "_itp_not_defined"            ; break;
     }
   return stream;
 }
+
 
 /// standard output stream operator for GhostType
 inline std::ostream & operator <<(std::ostream & stream, GhostType type)
@@ -87,12 +93,11 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
     case _gst_smm_res		       : stream << "_gst_smm_res"		  ; break;
     case _gst_smm_init_mat	       : stream << "_gst_smm_init_mat"	      	  ; break;
     case _gst_smm_stress	       : stream << "_gst_smm_stress"	      	  ; break;
-    case _gst_smmc_tractions	       : stream << "_gst_smmc_tractions"     	  ; break;
     case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
     case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
     case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;
     case _gst_mnl_for_average	       : stream << "_gst_mnl_for_average"	  ; break;
-    case _gst_mnl_weight               : stream << "_gst_mnl_weight"       	  ; break;
+    case _gst_mnl_weight               : stream << "_gst_mnl_weight"	   	  ; break;
     case _gst_test                     : stream << "_gst_test"                    ; break;
     case _gst_material_id              : stream << "_gst_material_id"             ; break;
     }

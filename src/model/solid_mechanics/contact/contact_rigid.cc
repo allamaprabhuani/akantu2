@@ -81,7 +81,7 @@ ContactRigid::ContactRigid(const SolidMechanicsModel & model,
 			   const ContactType & type,
 			   const ContactID & id,
 			   const MemoryID & memory_id) :
-  Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()), prakash(false), ref_velocity(0.), characterstic_length(0.), dedontney(false), t_star(0.) {
+  Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()), prakash(false), dedontney(false), ref_velocity(0.), characterstic_length(0.), t_star(0.) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -305,7 +305,7 @@ void ContactRigid::solvePenetrationClosestProjection(const Surface master,
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(mesh.getSpatialDimension(type) == spatial_dimension) {
-      ElementType current_facet_type = mesh.getFacetElementType(type);
+      ElementType current_facet_type = mesh.getFacetType(type);
       facet_type[nb_facet_types++] = current_facet_type;
     }
   }

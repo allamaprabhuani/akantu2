@@ -1,9 +1,7 @@
 /**
- * @file   element_class_bernoulli_beam_2_inline_impl.cc
- *
+ * @file   element_class_bernoulli_beam_2.cc
  * @author Fabian Barras <fabian.barras@epfl.ch>
- *
- * @date   Fri Jul 15 19:41:58 2011
+ * @date   Thu Mar 31 14:02:22 2011
  *
  * @brief  Specialization of the element_class class for the type _bernoulli_beam_2
  *
@@ -28,6 +26,7 @@
  * @section DESCRIPTION
  *
  * @verbatim
+
    --x-----q1----|----q2-----x---> x
     -a          0            a
  @endverbatim
@@ -41,6 +40,7 @@
  * @f]
  *
  * @subsection shapes Shape functions
+
  * @f[
  *   \begin{array}{ll}
  *     N_1(x) &= \frac{1-x}{2a}\\
@@ -97,134 +97,102 @@
  */
 
 /* -------------------------------------------------------------------------- */
+// template<> UInt ElementClass<_bernoulli_beam_2>::nb_nodes_per_element;
+// template<> UInt ElementClass<_bernoulli_beam_2>::nb_quadrature_points;
+// template<> UInt ElementClass<_bernoulli_beam_2>::spatial_dimension;
 
-
-template<> UInt ElementClass<_bernoulli_beam_2>::nb_nodes_per_element;
-template<> UInt ElementClass<_bernoulli_beam_2>::nb_quadrature_points;
-template<> UInt ElementClass<_bernoulli_beam_2>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2, _gt_segment_2, _itp_bernoulli_beam, _ek_structural, 2);
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3, _gt_segment_2, _itp_bernoulli_beam, _ek_structural, 3);
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void ElementClass<_bernoulli_beam_2>::computeShapes(const Real * natural_coords,
-							   Real * shapes,
-							   const Real * local_coord,
-							   UInt id) {
+inline void
+InterpolationElement<_itp_bernoulli_beam>::computeShapes(const types::Vector<Real> & natural_coords,
+							 types::Vector<Real> & N,
+							 const types::Matrix<Real> & real_coord,
+							 UInt id) {
   /// Compute the dimension of the beam
-  Real a=.5 * Math::distance_2d(local_coord, local_coord+2);
-
+  Real a = .5 * real_coord(0).distance(real_coord(1));
   /// natural coordinate
-  Real c =(*natural_coords)*a;
-
+  Real c = natural_coords(0);
 
   switch (id) {
-
-  case 0:
-    shapes[0]=0.5*(1-c/a);
-    shapes[1]=0.5*(1+c/a);
+  case 0: { // N
+    N(0) = 0.5*(1 - c);
+    N(1) = 0.5*(1 + c);
     break;
-
-  case 1:
-    shapes[0]=0.25*(pow(c,3)/pow(a,3)-3*c/a+2);
-    shapes[1]=-0.25*(pow(c,3)/pow(a,3)-3*c/a-2);
+  }
+  case 1: { // M
+    N(0) =  0.25 * (c*c*c - 3*c + 2);
+    N(1) = -0.25 * (c*c*c - 3*c - 2);
     break;
-
-  case 2:
-    shapes[0]=0.25*a*(pow(c,3)/pow(a,3)-c*c/(a*a)-c/a+1);
-    shapes[1]=0.25*a*(pow(c,3)/pow(a,3)+c*c/(a*a)-c/a-1);
+  }
+  case 2: { // L
+    N(0) = 0.25*a * (c*c*c - c*c - c + 1);
+    N(1) = 0.25*a * (c*c*c + c*c - c - 1);
     break;
-
-  case 3:
-    shapes[0]=0.75/a*(c*c/(a*a)-1);
-    shapes[1]=-0.75/a*(c*c/(a*a)-1);
-  break;
-
-  case 4:
-    shapes[0]=0.25*(3*c*c/(a*a)-2*c/a-1);
-    shapes[1]=0.25*(3*c*c/(a*a)+2*c/a-1);
-  break;
+  }
+  case 3: { // M'
+    N(0) =  0.75/a * (c*c - 1);
+    N(1) = -0.75/a * (c*c - 1);
+    break;
+  }
+  case 4: { // L'
+    N(0) = 0.25 * (3*c*c - 2*c - 1);
+    N(1) = 0.25 * (3*c*c + 2*c - 1);
+    break;
+  }
   }
  }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void ElementClass<_bernoulli_beam_2>::computeShapeDerivatives(const Real * natural_coords,
-								     Real * shape_deriv,
-								     const Real * local_coord,
-								     UInt id) {
-
-
- /// Compute the dimension of the beam
-  Real a=0.5*Math::distance_2d(local_coord,local_coord+2);
-  Real x1=*local_coord;
-  Real y1=*(local_coord+1);
-  Real x2=*(local_coord+2);
-  Real y2=*(local_coord+3);
-  Real tetha=std::atan((y2-y1)/(x2-x1));
-  Real pi = std::atan(1.0)*4;
-
-  if ((x2-x1) < 0) {
-    tetha += pi;
-  }
-
+inline void
+InterpolationElement<_itp_bernoulli_beam>::computeDNDS(const types::Vector<Real> & natural_coords,
+						       types::Matrix<Real> & dnds,
+						       const types::Matrix<Real> & real_nodes_coord,
+						       UInt id) {
+  /// Compute the dimension of the beam
+  Real a = .5 * real_nodes_coord(0).distance(real_nodes_coord(1));
   /// natural coordinate
-  Real c = (*natural_coords)*a;
+  Real c = natural_coords(0)*a;
 
-  /// Definition of the rotation matrix
-  Real T[4];
-  T[0]= cos(tetha);
-  T[1]= sin(tetha);
-  T[2]=-T[1];
-  T[3]= T[0];
 
-  // B archetype
-  Real shape_deriv_arch[4];
   switch (id) {
-
-  case 0:
-    shape_deriv_arch[0]=-0.5/a;
-    shape_deriv_arch[1]= 0;
-    shape_deriv_arch[2]= 0.5/a;
-    shape_deriv_arch[3]= 0;
-
-    Math::matrix_matrix(2,2,2,shape_deriv_arch,T,shape_deriv);
-
-    break;
-
-  case 1:
-    shape_deriv_arch[0]= 0.;
-    shape_deriv_arch[1]=-3.*c/(2.*pow(a,3));
-    shape_deriv_arch[2]= 0.;
-    shape_deriv_arch[3]= 3.*c/(2.*pow(a,3));
-
-    Math::matrix_matrix(2,2,2,shape_deriv_arch,T,shape_deriv);
-
-    break;
-
-  case 2:
-    shape_deriv[0]=-0.5/a*(3*c/a-1);
-    shape_deriv[1]=-0.5/a*(3*c/a+1);
-    shape_deriv[2]=0;
-    shape_deriv[3]=0;
+  case 0: { // N'
+    dnds(0, 0) = -0.5/a;
+    dnds(0, 1) =  0.5/a;
     break;
   }
-
-}
-
-/* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_bernoulli_beam_2>::computeJacobian(const Real * coord,
-									 const UInt nb_points,
-									 __attribute__((unused)) const UInt dimension,
-									 Real * jac){
-  Real a=0.5*Math::distance_2d(coord,coord+2);
-
-  for (UInt p = 0; p < nb_points; ++p) {
-    jac[p]=a;
+  case 1: { // M''
+    dnds(0, 0) = -3.*c/(2.*pow(a,3));
+    dnds(0, 1) =  3.*c/(2.*pow(a,3));
+    break;
+  }
+  case 2: { // L''
+    dnds(0, 0) = -0.5/a * (3*c/a - 1);
+    dnds(0, 1) =- 0.5/a * (3*c/a + 1);
+    break;
+  }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_bernoulli_beam_2>::getInradius(const Real * coord) {
-   return Math::distance_2d(coord, coord+2);
+template <>
+inline void
+ElementClass<_bernoulli_beam_2>::computeJacobian(const types::Matrix<Real> & natural_coord,
+						 const types::Matrix<Real> & nodes_coords,
+						 types::Vector<Real> & jac){
+  Real a = 0.5 * nodes_coords(0).distance(nodes_coords(1));
+  for (UInt i = 0; i < jac.size(); ++i) jac(i) = a;
 }
 
 /* -------------------------------------------------------------------------- */
+template <>
+inline void
+ElementClass<_bernoulli_beam_3>::computeJacobian(const types::Matrix<Real> & natural_coord,
+						 const types::Matrix<Real> & nodes_coords,
+						 types::Vector<Real> & jac){
+  Real a = 0.5 * nodes_coords(0).distance(nodes_coords(1));
+  for (UInt i = 0; i < jac.size(); ++i) jac(i) = a;
+}

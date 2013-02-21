@@ -211,6 +211,7 @@ public:
     const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
     const_iterator(pointer warped) : parent(warped) {};
     const_iterator(const parent & it) : parent(it) {};
+    const_iterator(const iterator<R> & it) : parent(it) {};
 
     inline const_iterator operator+(difference_type n)
     { return parent::operator+(n); }
@@ -225,7 +226,6 @@ public:
     { parent::operator--(); return *this; };
     inline const_iterator & operator+=(const UInt n)
     { parent::operator+=(n); return *this; }
-
   };
 
   inline iterator<T> begin();
@@ -270,6 +270,7 @@ public:
   template<typename Ret>
   inline void push_back(const iterator<Ret> & it);
 
+  inline void push_back(const types::Vector<T> new_elem);
   /**
    * remove an element and move the last one in the hole
    * /!\ change the order in the vector

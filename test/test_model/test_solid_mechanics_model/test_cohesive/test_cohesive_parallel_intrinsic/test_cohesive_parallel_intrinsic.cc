@@ -1,9 +1,9 @@
 /**
- * @file   test_cohesive_parallel.cc
+ * @file   test_cohesive_parallel_intrinsic.cc
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Wed Nov 28 16:59:11 2012
  *
- * @brief  parallel test for cohesive elements
+ * @brief  parallel test for intrinsic cohesive elements
  *
  * @section LICENSE
  *
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
   Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
 
   ElementType type = _triangle_6;
-  ElementType type_facet = Mesh::getFacetElementType(type);
+  ElementType type_facet = Mesh::getFacetType(type);
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblInfo);
 
 
-  model.initIntrinsic("material.dat");
+  model.initFull("material.dat");
 
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
 
     if(s % 1 == 0) {
       model.dump();
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
     // // update displacement
@@ -177,14 +177,16 @@ int main(int argc, char *argv[]) {
   Real Edt = 2 * sqrt(2);
 
 
-  std::cout << Ed << " " << Edt << std::endl;
+  if(prank == 0) {
+    std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.99 || Ed > Edt * 1.01 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
-    return EXIT_FAILURE;
+    if (std::abs((Ed - Edt) / Edt) > 0.01 || std::isnan(Ed)) {
+      std::cout << "The dissipated energy is incorrect" << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
-
   finalize();
+  if(prank == 0) std::cout << "OK: Test passed!" << std::endl;
   return EXIT_SUCCESS;
 }

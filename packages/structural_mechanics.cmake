@@ -35,6 +35,12 @@ set(AKANTU_STRUCTURAL_MECHANICS_FILES
   model/structural_mechanics/structural_mechanics_model.cc
   model/structural_mechanics/structural_mechanics_model_boundary.cc
   model/structural_mechanics/structural_mechanics_model_inline_impl.cc
+  fem/element_class_structural.hh
+  fem/element_classes/element_class_bernoulli_beam_inline_impl.cc
+  io/model_io/model_io_ibarras.cc
+  io/model_io/model_io_ibarras.hh
+  io/mesh_io/mesh_io_msh_struct.cc
+  io/mesh_io/mesh_io_msh_struct.hh
   )
 
 set(AKANTU_STRUCTURAL_MECHANICS_DOC
@@ -46,4 +52,9 @@ set(AKANTU_STRUCTURAL_MECHANICS_TESTS
   test_structural_mechanics_model_boundary_bernoulli_beam_2
   test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1
   test_structural_mechanics_model_bernoulli_beam_2_complicated
+  test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1_y
+  test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_xy
+  test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_zy
+  test_structural_mechanics_model_bernoulli_beam_3_local_force
+  test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13
   )

@@ -122,18 +122,31 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// build the profile of the sparse matrix corresponding to the mesh
   void initSparseMatrixProfile(SparseMatrixType sparse_matrix_type = _unsymmetric);
-
 
   /// pre-compute all the shape functions, their derivatives and the jacobians
   virtual void initShapeFunctions(const GhostType & ghost_type = _not_ghost) = 0;
 
+  /// extract the nodal values and store them per element
+  static void extractNodalToElementField(const Mesh & mesh,
+					 const Vector<Real> & nodal_f,
+					 Vector<Real> & elemental_f,
+					 const ElementType & type,
+					 const GhostType & ghost_type = _not_ghost,
+					 const Vector<UInt> * filter_elements = NULL);
+
+  /// filter a field
+  static void filterQuadraturePointsData(const Mesh & mesh,
+					 const Vector<Real> & quad_f,
+					 Vector<Real> & filtered_f,
+					 const ElementType & type,
+					 const GhostType & ghost_type = _not_ghost,
+					 const Vector<UInt> * filter_elements = NULL);
+
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
   /* ------------------------------------------------------------------------ */
-
   /// integrate f for all elements of type "type"
   virtual void integrate(const Vector<Real> & f,
 		 Vector<Real> &intf,
@@ -155,18 +168,17 @@ public:
 					   const ElementType & type,
 					   const GhostType & ghost_type = _not_ghost,
 					   const Vector<UInt> * filter_elements = NULL) const = 0;
-  
+
 
   /// integrate one element scalar value on all elements of type "type"
   virtual Real integrate(const types::RVector & f,
 			 const ElementType & type,
 			 UInt index, const GhostType & ghost_type = _not_ghost) const = 0;
-  
-  
+
+
   /* ------------------------------------------------------------------------ */
   /* compatibility with old FEM fashion */
   /* ------------------------------------------------------------------------ */
-
   /// get the number of quadrature points
   virtual UInt getNbQuadraturePoints(const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost) const = 0;
@@ -180,13 +192,12 @@ public:
 						    UInt id = 0) const = 0;
 
   /// get quadrature points
-  const virtual Vector<Real> & getQuadraturePoints(const ElementType & type,
-						   const GhostType & ghost_type = _not_ghost) const = 0;
+  const virtual types::Matrix<Real> & getQuadraturePoints(const ElementType & type,
+							  const GhostType & ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
   /* ------------------------------------------------------------------------ */
-
   virtual
   void gradientOnQuadraturePoints(const Vector<Real> &u,
 				  Vector<Real> &nablauq,
@@ -203,7 +214,7 @@ public:
 				     const GhostType & ghost_type = _not_ghost,
 				     const Vector<UInt> * filter_elements = NULL) const =0;
 
-  
+
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
@@ -217,7 +228,7 @@ public:
 					     __attribute__((unused)) const GhostType & ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
-  
+
   /// pre-compute normals on control points
   virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Vector<Real> & field,
 					     __attribute__((unused)) Vector<Real> & normal,
@@ -287,7 +298,7 @@ public:
   inline Mesh & getMesh() const;
 
   /// get the in-radius of an element
-  static inline Real getElementInradius(Real * coord, const ElementType & type);
+  static inline Real getElementInradius(const types::Matrix<Real> & coord, const ElementType & type);
 
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);
@@ -297,6 +308,8 @@ public:
 
   virtual const ShapeFunctions & getShapeFunctionsInterface() const = 0;
   virtual const Integrator & getIntegratorInterface() const = 0;
+
+  static inline InterpolationType getInterpolationType(const ElementType & el_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

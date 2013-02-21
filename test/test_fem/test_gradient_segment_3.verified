@@ -17,7 +17,7 @@ FEM [
     ]
    ]
    + connectivities [
-    ByElementType<akantu::Vector<unsigned int, true>*> [
+    ByElementTypeVector<unsigned int> [
         (not_ghost:_segment_3) [
        Vector<unsigned int> [
         + id             : mesh:connectivities:_segment_3
@@ -27,6 +27,7 @@ FEM [
         + memory size    : 23kB
         + values         : {{0, 2, 11}, {2, 3, 12}, {3, 4, 13}, {4, 5, 14}, {5, 6, 15}, {6, 7, 16}, {7, 8, 17}, {8, 9, 18}, {9, 10, 19}, {10, 1, 20}}
        ]
+         ]
     ]
   ]
  ]
@@ -45,7 +46,7 @@ FEM [
     ]
    ]
    + connectivities [
-    ByElementType<akantu::Vector<unsigned int, true>*> [
+    ByElementTypeVector<unsigned int> [
         (not_ghost:_segment_3) [
        Vector<unsigned int> [
         + id             : mesh:connectivities:_segment_3
@@ -55,6 +56,7 @@ FEM [
         + memory size    : 23kB
         + values         : {{0, 2, 11}, {2, 3, 12}, {3, 4, 13}, {4, 5, 14}, {5, 6, 15}, {6, 7, 16}, {7, 8, 17}, {8, 9, 18}, {9, 10, 19}, {10, 1, 20}}
        ]
+         ]
     ]
   ]
  ]
@@ -64,7 +66,7 @@ StaticMemory [
  + nb memories : 1
  Memory [
   + memory id   : 0
-  + nb vectors  : 6
+  + nb vectors  : 5
   Vector<unsigned int> [
    + id             : mesh:connectivities:_segment_3
    + size           : 10
@@ -90,14 +92,6 @@ StaticMemory [
    + values         : {{0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}, {0.05}}
   ]
   Vector<double> [
-   + id             : my_fem:quadrature_points:_segment_3
-   + size           : 2
-   + nb_component   : 1
-   + allocated size : 2000
-   + memory size    : 16kB
-   + values         : {{-0.57735}, {0.57735}}
-  ]
-  Vector<double> [
    + id             : my_fem:shapes:_segment_3
    + size           : 20
    + nb_component   : 3
@@ -113,9 +107,9 @@ StaticMemory [
    + memory size    : 0.47kB
    + values         : {{-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}, {-21.547, -1.54701, 23.094}, {1.54701, 21.547, -23.094}}
   ]
-  + total size  : 56kB
+  + total size  : 40kB
  ]
- + total size  : 56kB
+ + total size  : 40kB
 ]
 
 Vector<double> [

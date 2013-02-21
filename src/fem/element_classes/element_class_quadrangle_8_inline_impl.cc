@@ -84,88 +84,81 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element;
-template<> UInt ElementClass<_quadrangle_8>::nb_quadrature_points;
-template<> UInt ElementClass<_quadrangle_8>::spatial_dimension;
+// template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element;
+// template<> UInt ElementClass<_quadrangle_8>::nb_quadrature_points;
+// template<> UInt ElementClass<_quadrangle_8>::spatial_dimension;
+
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8, _itp_serendip_quadrangle_8, _ek_regular, 2);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_quadrangle_8>::computeShapes(const Real * natural_coords,
-								   Real * shapes) {
+template <>
+inline void
+InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const types::Vector<Real> & c,
+								types::Vector<Real> & N) {
   /// Natural coordinates
-  const Real xi  = natural_coords[0];
-  const Real eta = natural_coords[1];
+  const Real xi  = c(0);
+  const Real eta = c(1);
 
-  shapes[0] = .25 * (1 - xi) * (1 - eta) * (- 1 - xi - eta);
-  shapes[1] = .25 * (1 + xi) * (1 - eta) * (- 1 + xi - eta);
-  shapes[2] = .25 * (1 + xi) * (1 + eta) * (- 1 + xi + eta);
-  shapes[3] = .25 * (1 - xi) * (1 + eta) * (- 1 - xi + eta);
-  shapes[4] =  .5 * (1 - xi * xi) * (1 - eta      );
-  shapes[5] =  .5 * (1 + xi     ) * (1 - eta * eta);
-  shapes[6] =  .5 * (1 - xi * xi) * (1 + eta      );
-  shapes[7] =  .5 * (1 - xi     ) * (1 - eta * eta);
+  N(0) = .25 * (1 - xi) * (1 - eta) * (- 1 - xi - eta);
+  N(1) = .25 * (1 + xi) * (1 - eta) * (- 1 + xi - eta);
+  N(2) = .25 * (1 + xi) * (1 + eta) * (- 1 + xi + eta);
+  N(3) = .25 * (1 - xi) * (1 + eta) * (- 1 - xi + eta);
+  N(4) =  .5 * (1 - xi * xi) * (1 - eta      );
+  N(5) =  .5 * (1 + xi     ) * (1 - eta * eta);
+  N(6) =  .5 * (1 - xi * xi) * (1 + eta      );
+  N(7) =  .5 * (1 - xi     ) * (1 - eta * eta);
 }
+
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_quadrangle_8>::computeDNDS(const Real * natural_coords,
-								 Real * dnds) {
-  const Real xi  = natural_coords[0];
-  const Real eta = natural_coords[1];
+template <>
+inline void
+InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(const types::Vector<Real> & c,
+							      types::Matrix<Real> & dnds) {
+  const Real xi  = c(0);
+  const Real eta = c(1);
 
   /// dN/dxi
-  dnds[0]  = .25 * (1 - eta) * (2 * xi + eta);
-  dnds[1]  = .25 * (1 - eta) * (2 * xi - eta);
-  dnds[2]  = .25 * (1 + eta) * (2 * xi + eta);
-  dnds[3]  = .25 * (1 + eta) * (2 * xi - eta);
-  dnds[4]  = - xi * (1 - eta);
-  dnds[5]  =   .5 * (1 - eta * eta);
-  dnds[6]  = - xi * (1 + eta);
-  dnds[7]  = - .5 * (1 - eta * eta);
+  dnds(0, 0) = .25 * (1 - eta) * (2 * xi + eta);
+  dnds(0, 1) = .25 * (1 - eta) * (2 * xi - eta);
+  dnds(0, 2) = .25 * (1 + eta) * (2 * xi + eta);
+  dnds(0, 3) = .25 * (1 + eta) * (2 * xi - eta);
+  dnds(0, 4) = - xi * (1 - eta);
+  dnds(0, 5) =   .5 * (1 - eta * eta);
+  dnds(0, 6) = - xi * (1 + eta);
+  dnds(0, 7) = - .5 * (1 - eta * eta);
 
   /// dN/deta
-  dnds[8]  = .25 * (1 - xi) * (2 * eta + xi);
-  dnds[9]  = .25 * (1 + xi) * (2 * eta - xi);
-  dnds[10] = .25 * (1 + xi) * (2 * eta + xi);
-  dnds[11] = .25 * (1 - xi) * (2 * eta - xi);
-  dnds[12] = -  .5 * (1 - xi * xi);
-  dnds[13] = - eta * (1 + xi);
-  dnds[14] =    .5 * (1 - xi * xi);
-  dnds[15] = - eta * (1 - xi);
+  dnds(1, 0) = .25 * (1 - xi) * (2 * eta + xi);
+  dnds(1, 1) = .25 * (1 + xi) * (2 * eta - xi);
+  dnds(1, 2) = .25 * (1 + xi) * (2 * eta + xi);
+  dnds(1, 3) = .25 * (1 - xi) * (2 * eta - xi);
+  dnds(1, 4) = -  .5 * (1 - xi * xi);
+  dnds(1, 5) = - eta * (1 + xi);
+  dnds(1, 6) =    .5 * (1 - xi * xi);
+  dnds(1, 7) = - eta * (1 - xi);
 }
 
-
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_quadrangle_8>::computeJacobian(const Real * dxds,
-								     const UInt dimension,
-								     Real & jac){
-  if (dimension == spatial_dimension){
-    Real det_dxds = Math::det2(dxds);
-    jac = det_dxds;
-  } else {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-}
-
-
-
-/* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_quadrangle_8>::getInradius(const Real * coord) {
+template<>
+inline Real
+GeometricalElement<_gt_quadrangle_8>::getInradius(const types::Matrix<Real> & coord) {
   Real a, b, h;
 
-  a = Math::distance_2d(coord + 0*2, coord + 4*2);
-  b = Math::distance_2d(coord + 4*2, coord + 1*2);
+  a = coord(0).distance(coord(4));
+  b = coord(4).distance(coord(1));
   h = std::min(a, b);
 
-  a = Math::distance_2d(coord + 1*2, coord + 5*2);
-  b = Math::distance_2d(coord + 5*2, coord + 2*2);
+  a = coord(1).distance(coord(5));
+  b = coord(5).distance(coord(2));
   h = std::min(h, std::min(a, b));
 
-  a = Math::distance_2d(coord + 2*2, coord + 6*2);
-  b = Math::distance_2d(coord + 6*2, coord + 3*2);
+  a = coord(2).distance(coord(6));
+  b = coord(6).distance(coord(3));
   h = std::min(h, std::min(a, b));
 
-  a = Math::distance_2d(coord + 3*2, coord + 7*2);
-  b = Math::distance_2d(coord + 7*2, coord + 0*2);
+  a = coord(3).distance(coord(7));
+  b = coord(7).distance(coord(0));
   h = std::min(h, std::min(a, b));
-
 
   return h;
 }

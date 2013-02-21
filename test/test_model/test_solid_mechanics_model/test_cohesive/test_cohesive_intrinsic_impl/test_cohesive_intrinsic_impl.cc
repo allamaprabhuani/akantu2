@@ -53,35 +53,39 @@ int main(int argc, char *argv[]) {
   const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("simple.msh", mesh);
+  mesh.read("implicit.msh");
+
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
+
+  const ElementType type_facet = mesh.getFacetType(type);
+  UInt nb_facet = mesh_facets.getNbElement(type_facet);
+  Vector<UInt> facet_insertion;
+  Real * bary_facet = new Real[spatial_dimension];
+  for (UInt f = 0; f < nb_facet; ++f) {
+    mesh_facets.getBarycenter(f, type_facet, bary_facet);
+    if (bary_facet[1] < 1.1 && bary_facet[1] > .9){
+      facet_insertion.push_back(f);}
+  }
+  delete[] bary_facet;
+
+  MeshUtils::insertIntrinsicCohesiveElements(mesh,
+					     mesh_facets,
+					     type_facet,
+					     facet_insertion);
+
+  //  mesh.write("implicit_cohesive.msh");
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
   model.initFull("material.dat", _static);
 
-  const Mesh & mesh_facets = model.getMeshFacets();
-
-  const ElementType type_facet = mesh.getFacetElementType(type);
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  Vector<UInt> facet_insertion;
-  Real * bary_facet = new Real[spatial_dimension];
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] == 1){ 
-      facet_insertion.push_back(f);}
-  }
-  delete[] bary_facet;
-
-  model.insertCohesiveElements(facet_insertion);
-
   /// boundary conditions
   Vector<bool> & boundary = model.getBoundary();
   UInt nb_nodes = mesh.getNbNodes();
-  Vector<Real> &position = const_cast <Vector<Real>&> (mesh.getNodes());
+  Vector<Real> & position = mesh.getNodes();
   Vector<Real> & displacement = model.getDisplacement();
-
 
   for (UInt n = 0; n < nb_nodes; ++n) {
 
@@ -111,15 +115,17 @@ int main(int argc, char *argv[]) {
   model.addDumpField("acceleration");
   model.addDumpField("force"       );
   model.addDumpField("residual"    );
-  model.addDumpField("damage"      );
+  //  model.addDumpField("damage"      );
   model.addDumpField("stress"      );
   model.addDumpField("strain"      );
   model.dump();
 
   const MaterialCohesive & mat_coh = dynamic_cast< const MaterialCohesive &> (model.getMaterial(1));
 
-  const Vector<Real> & opening = mat_coh.getOpening(_cohesive_2d_6);
-  //const Vector<Real> & traction = mat_coh.getTraction(_cohesive_2d_6);
+  ElementType type_cohesive = model.getCohesiveElementType();
+
+  const Vector<Real> & opening = mat_coh.getOpening(type_cohesive);
+  //const Vector<Real> & traction = mat_coh.getTraction(type_cohesive);
 
   model.updateResidual();
   const Vector<Real> & residual = model.getResidual();
@@ -145,9 +151,11 @@ int main(int argc, char *argv[]) {
     do{
       std::cout << "Iter : " << ++count << " - residual norm : " << norm << std::endl;
       model.assembleStiffnessMatrix();
-      if ((nstep == 0)&&(count == 1))
+      if ((nstep == 0)&&(count == 2)) {
 	model.getStiffnessMatrix().saveMatrix("stiffness_matrix.lastout");
-      
+	std::cout << "Count: " << count << std::endl;
+      }
+
       model.solveStatic();
       model.updateResidual();
 
@@ -159,25 +167,29 @@ int main(int argc, char *argv[]) {
 
     Real resid = 0;
     for (UInt n = 0; n < nb_nodes; ++n) {
-      if (std::abs(position(n,1)-2)< Math::getTolerance()){
-	resid += residual.values[spatial_dimension* n + 1];
+      if (std::abs(position(n, 1) - 2.) < Math::getTolerance()){
+	resid += residual(n, 1);
       }
     }
 
-    Real analytical = exp(1) * std::abs(opening.values[3]) * exp (-std::abs(opening.values[3])/0.5)/0.5;
+    Real analytical = exp(1) * std::abs(opening(0, 1)) * exp (-std::abs(opening(0, 1))/0.5)/0.5;
 
     //the residual force is comparing with the theoretical value of the cohesive law
-    error_tol  = std::abs((- resid - analytical)/analytical);
+    error_tol  = std::abs((std::abs(resid) - analytical)/analytical);
 
     fout << nstep << " " << -resid << " " << analytical << " " << error_tol << std::endl;
 
-    if (error_tol > 1e-4)
+    if (error_tol > 1e-3) {
+      std::cout << "Relative error: " << error_tol << std::endl;
+      std::cout << "Test failed!" << std::endl;
       return EXIT_FAILURE;
+    }
   }
 
   fout.close();
 
-  //  finalize();
+  finalize();
 
+  std::cout << "Test passed!" << std::endl;
   return EXIT_SUCCESS;
 }

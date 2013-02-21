@@ -35,27 +35,27 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/* 2D cohesive elements                                                       */
-/* -------------------------------------------------------------------------- */
-template<> ElementType ElementClass<_cohesive_2d_4>::p1_element_type  = _cohesive_2d_4;
-template<> UInt CohesiveElement<_cohesive_2d_4>::vec_facet_connectivity[]= {0, 1,
-									    2, 3};
-template<> UInt * CohesiveElement<_cohesive_2d_4>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-									    &vec_facet_connectivity[2]};
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::spatial_dimension    = 2;
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_nodes_per_element = 4;
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_facets            = 2;
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_nodes_per_facet   = 2;
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::facet_connectivity[] = {0, 2,
+									       1, 3};
+
+template<> ElementType ElementClass<_cohesive_2d_4>::facet_type = _segment_2;
+template<> ElementType ElementClass<_cohesive_2d_4>::p1_type    = _cohesive_2d_4;
 
 /* -------------------------------------------------------------------------- */
-template<> ElementType ElementClass<_cohesive_2d_6>::p1_element_type  = _cohesive_2d_4;
-template<> UInt CohesiveElement<_cohesive_2d_6>::vec_facet_connectivity[]= {0, 1, 2,
-									    3, 4, 5};
-template<> UInt * CohesiveElement<_cohesive_2d_6>::facet_connectivity[]  = {&vec_facet_connectivity[0],
-									    &vec_facet_connectivity[3]};
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::spatial_dimension    = 2;
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_nodes_per_element = 6;
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_facets            = 2;
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_nodes_per_facet   = 3;
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::facet_connectivity[] = {0, 3,
+									       1, 4,
+									       2, 5};
+
+template<> ElementType ElementClass<_cohesive_2d_6>::facet_type = _segment_3;
+template<> ElementType ElementClass<_cohesive_2d_6>::p1_type    = _cohesive_2d_4;
 /* -------------------------------------------------------------------------- */
-
-
-
-/* -------------------------------------------------------------------------- */
-/* 3D cohesive elements                                                       */
-/* -------------------------------------------------------------------------- */
-
 
 __END_AKANTU__

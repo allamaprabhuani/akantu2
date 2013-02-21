@@ -132,7 +132,7 @@ macro(add_example example_name desc)
 endmacro()
 
 #===============================================================================
-macro(register_test test_name)
+function(register_test test_name)
   set(multi_variables
     SOURCES FILES_TO_COPY DEPENDENCIES DIRECTORIES_TO_CREATE COMPILE_OPTIONS EXTRA_FILES
     )
@@ -145,6 +145,7 @@ macro(register_test test_name)
     )
 
   # add the test in a package if needed
+  set(_package_name AKANTU_CORE)
   if(register_test_PACKAGE)
     package_pkg_name(${register_test_PACKAGE} _package_name)
     list(FIND ${_package_name}_TESTS ${test_name} _ret)
@@ -231,7 +232,9 @@ macro(register_test test_name)
     foreach(_file ${_source_file})
       file(RELATIVE_PATH __file ${PROJECT_SOURCE_DIR} ${_file})
       list(APPEND _tmp ${__file})
+      list(APPEND _pkg_tmp ${__file})
     endforeach()
     set(AKANTU_TESTS_FILES ${_tmp} CACHE INTERNAL "")
+    set(${_package_name}_TESTS_FILES ${_pkg_tmp} CACHE INTERNAL "")
    endif()
-endmacro()
+endfunction()

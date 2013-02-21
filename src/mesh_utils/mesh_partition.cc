@@ -100,7 +100,7 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
     nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
     nb_element[nb_good_types]              = mesh.getConnectivity(type, _not_ghost).getSize();
     magic_number[nb_good_types]            =
-      Mesh::getNbNodesPerElement(Mesh::getFacetElementType(type_p1));
+      Mesh::getNbNodesPerElement(Mesh::getFacetType(type_p1));
 
     conn[nb_good_types] = &const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _not_ghost));
 

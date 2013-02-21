@@ -55,8 +55,6 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  //  debug::setDebugLevel(dblDump);
-
   const UInt spatial_dimension = 2;
   const UInt max_steps = 350;
 
@@ -70,14 +68,16 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  std::cout << mesh << std::endl;
-
   Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
   MeshUtils::buildAllFacets(mesh, mesh_facets);
 
+  debug::setDebugLevel(dblDump);
+  std::cout << mesh << std::endl;
   std::cout << mesh_facets << std::endl;
+  debug::setDebugLevel(dblWarning);
 
-  const ElementType type_facet = Mesh::getFacetElementType(type);
+  const ElementType type_facet = Mesh::getFacetType(type);
+
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   //  const Vector<Real> & position = mesh.getNodes();
   //  Vector<Real> & displacement = model.getDisplacement();
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 					     type_facet,
 					     facet_insertion);
 
-  //  mesh_io.write("mesh_cohesive.msh", mesh);
+  mesh.write("mesh_cohesive.msh");
 
   //  std::cout << mesh << std::endl;
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initIntrinsic("material.dat");
+  model.initFull("material.dat");
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -131,32 +131,15 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
-  // iohelper::ElemType paraview_type = iohelper::QUAD2;
-
-  // /// initialize the paraview output
-  // iohelper::DumperParaview dumper;
-  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  // 		   spatial_dimension, nb_nodes, "explicit");
-  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getDisplacement().values,
-  // 			  spatial_dimension, "displacements");
-  // dumper.AddNodeDataField(model.getVelocity().values,
-  // 			  spatial_dimension, "velocity");
-  // dumper.AddNodeDataField(model.getAcceleration().values,
-  // 			  spatial_dimension, "acceleration");
-  // dumper.AddNodeDataField(model.getResidual().values,
-  // 			  spatial_dimension, "forces");
-  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  // 			  spatial_dimension*spatial_dimension, "strain");
-  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  // 			  spatial_dimension*spatial_dimension, "stress");
-  // dumper.SetEmbeddedValue("displacements", 1);
-  // dumper.SetEmbeddedValue("forces", 1);
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-  // dumper.Dump();
-
+  model.setBaseName("intrinsic_quadrangle");
+  model.addDumpFieldVector("displacement");
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("residual"    );
+  model.addDumpField("stress");
+  model.addDumpField("strain");
+  model.addDumpField("force");
+  model.dump();
 
   /// update displacement
   Vector<UInt> elements;
@@ -196,7 +179,7 @@ int main(int argc, char *argv[]) {
     updateDisplacement(model, elements, type, increment);
 
     if(s % 1 == 0) {
-      //      dumper.Dump();
+      model.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 

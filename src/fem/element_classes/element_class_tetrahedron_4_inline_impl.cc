@@ -68,27 +68,31 @@
 
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_tetrahedron_4>::nb_nodes_per_element;
-template<> UInt ElementClass<_tetrahedron_4>::nb_quadrature_points;
-template<> UInt ElementClass<_tetrahedron_4>::spatial_dimension;
-
+// template<> UInt ElementClass<_tetrahedron_4>::nb_nodes_per_element;
+// template<> UInt ElementClass<_tetrahedron_4>::nb_quadrature_points;
+// template<> UInt ElementClass<_tetrahedron_4>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_4, _gt_tetrahedron_4, _itp_lagrange_tetrahedron_4, _ek_regular, 3);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_4>::computeShapes(const Real * natural_coords, 
-								   Real * shapes){
-  Real c0 = 1 - natural_coords[0] -  natural_coords[1] -  natural_coords[2];/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
-  Real c1 = natural_coords[1]; /// @f$ c0 = \xi @f$
-  Real c2 = natural_coords[2]; /// @f$ c1 = \eta @f$
-  Real c3 = natural_coords[0]; /// @f$ c2 = \zeta @f$
+template <>
+inline void
+InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const types::Vector<Real> & natural_coords,
+								 types::Vector<Real> & N) {
+  Real c0 = 1 - natural_coords(0) -  natural_coords(1) -  natural_coords(2);/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
+  Real c1 = natural_coords(1); /// @f$ c0 = \xi @f$
+  Real c2 = natural_coords(2); /// @f$ c1 = \eta @f$
+  Real c3 = natural_coords(0); /// @f$ c2 = \zeta @f$
   
-  shapes[0] = c0;
-  shapes[1] = c1;
-  shapes[2] = c2;
-  shapes[3] = c3;
+  N(0) = c0;
+  N(1) = c1;
+  N(2) = c2;
+  N(3) = c3;
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
-								 Real * dnds) {
+template <>
+inline void
+InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const types::Vector<Real> & natural_coords,
+							       types::Matrix<Real> & dnds) {
 
   /**
    * @f[
@@ -105,28 +109,19 @@ template <> inline void ElementClass<_tetrahedron_4>::computeDNDS(__attribute__ 
    * @f]
    */
 
-  dnds[0] = -1.; dnds[1] = 1.; dnds[2]  = 0.; dnds[3]  = 0.;
-  dnds[4] = -1.; dnds[5] = 0.; dnds[6]  = 1.; dnds[7]  = 0.;
-  dnds[8] = -1.; dnds[9] = 0.; dnds[10] = 0.; dnds[11] = 1.;
+  dnds(0, 0) = -1.; dnds(0, 1) = 1.; dnds(0, 2) = 0.; dnds(0, 3) = 0.;
+  dnds(1, 0) = -1.; dnds(1, 1) = 0.; dnds(1, 2) = 1.; dnds(1, 3) = 0.;
+  dnds(2, 0) = -1.; dnds(2, 1) = 0.; dnds(2, 2) = 0.; dnds(2, 3) = 1.;
 
 
-}
-
-
-/* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_tetrahedron_4>::computeJacobian(const Real * dxds,
-								     const UInt dimension, 
-								     Real & jac) {
-  if (dimension == spatial_dimension){
-    Real det_dxds = Math::det3(dxds);
-    jac = det_dxds;
-  }
-  else {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
 }
  
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_tetrahedron_4>::getInradius(const Real * coord) {
-  return Math::tetrahedron_inradius(coord, coord+3, coord+6, coord+9);
+template<>
+inline Real
+GeometricalElement<_gt_tetrahedron_4>::getInradius(const types::Matrix<Real> & coord) {
+  return Math::tetrahedron_inradius(coord(0).storage(),
+				    coord(1).storage(),
+				    coord(2).storage(),
+				    coord(3).storage());
 }

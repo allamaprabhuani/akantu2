@@ -35,7 +35,7 @@ inline Mesh & FEM::getMesh() const {
 
 
 /* -------------------------------------------------------------------------- */
-inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
+inline Real FEM::getElementInradius(const types::Matrix<Real> & coord, const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   Real inradius = 0;
@@ -43,11 +43,27 @@ inline Real FEM::getElementInradius(Real * coord, const ElementType & type) {
 #define GET_INRADIUS(type)						\
   inradius = ElementClass<type>::getInradius(coord);			\
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(GET_INRADIUS);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_INRADIUS);
 #undef GET_INRADIUS
 
   AKANTU_DEBUG_OUT();
   return inradius;
+}
+
+/* -------------------------------------------------------------------------- */
+inline InterpolationType FEM::getInterpolationType(const ElementType & type) {
+  AKANTU_DEBUG_IN();
+
+  InterpolationType itp_type = _itp_not_defined;
+
+#define GET_ITP(type)							\
+  itp_type = ElementClassProperty<type>::interpolation_type;		\
+
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_ITP);
+#undef GET_ITP
+
+  AKANTU_DEBUG_OUT();
+  return itp_type;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -70,3 +86,4 @@ inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
   return _not_defined;
 }
 #endif
+

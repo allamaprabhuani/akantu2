@@ -460,7 +460,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   mesh.sendEvent(new_nodes);
   mesh.sendEvent(new_elements);
 
-
   AKANTU_DEBUG_OUT();
   return &communicator;
 }

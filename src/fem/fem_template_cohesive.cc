@@ -35,48 +35,48 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template <>
-void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
-initShapeFunctions(const GhostType & ghost_type) {
-  AKANTU_DEBUG_IN();
+// template <>
+// void FEMTemplate< IntegratorGauss, ShapeLagrange, _ek_cohesive >::
+// initShapeFunctions(const GhostType & ghost_type) {
+//   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh->getSpatialDimension();
-  Mesh::type_iterator it  = mesh->firstType(element_dimension, ghost_type, _ek_cohesive);
-  Mesh::type_iterator end = mesh->lastType(element_dimension, ghost_type, _ek_cohesive);
-  for(; it != end; ++it) {
-    ElementType type = *it;
+//   UInt spatial_dimension = mesh->getSpatialDimension();
+//   Mesh::type_iterator it  = mesh->firstType(element_dimension, ghost_type, _ek_cohesive);
+//   Mesh::type_iterator end = mesh->lastType(element_dimension, ghost_type, _ek_cohesive);
+//   for(; it != end; ++it) {
+//     ElementType type = *it;
 
-#define INIT_SHAPE_FUNCTIONS(type)					\
-    integrator.computeQuadraturePoints<type>(ghost_type);		\
-    integrator.								\
-      precomputeJacobiansOnQuadraturePoints<type>(ghost_type);		\
-    integrator.								\
-      checkJacobians<type>(ghost_type);					\
-    const Vector<Real> & control_points =				\
-      integrator.getQuadraturePoints<type>(ghost_type);			\
-    shape_functions.							\
-      setControlPointsByType<type>(control_points, ghost_type);		\
-    shape_functions.							\
-      precomputeShapesOnControlPoints<type>(ghost_type);		\
-    if (element_dimension == spatial_dimension)				\
-      shape_functions.							\
-     	precomputeShapeDerivativesOnControlPoints<type>(ghost_type);
+// #define INIT_SHAPE_FUNCTIONS(type)					\
+//     integrator.computeQuadraturePoints<type>(ghost_type);		\
+//     integrator.								\
+//       precomputeJacobiansOnQuadraturePoints<type>(ghost_type);		\
+//     integrator.								\
+//       checkJacobians<type>(ghost_type);					\
+//     const Vector<Real> & control_points =				\
+//       integrator.getQuadraturePoints<type>(ghost_type);			\
+//     shape_functions.							\
+//       setControlPointsByType<type>(control_points, ghost_type);		\
+//     shape_functions.							\
+//       precomputeShapesOnControlPoints<type>(ghost_type);		\
+//     if (element_dimension == spatial_dimension)				\
+//       shape_functions.							\
+//      	precomputeShapeDerivativesOnControlPoints<type>(ghost_type);
 
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
-#undef INIT_SHAPE_FUNCTIONS
-  }
-  AKANTU_DEBUG_OUT();
-}
+//     AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
+// #undef INIT_SHAPE_FUNCTIONS
+//   }
+//   AKANTU_DEBUG_OUT();
+// }
 
 
 /* -------------------------------------------------------------------------- */
 /* compatibility functions */
 /* -------------------------------------------------------------------------- */
 template <>
-Real FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::integrate(const Vector<Real> & f,
-											       const ElementType & type,
-											       const GhostType & ghost_type,
-											       const Vector<UInt> * filter_elements) const{
+Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const Vector<Real> & f,
+									  const ElementType & type,
+									  const GhostType & ghost_type,
+									  const Vector<UInt> * filter_elements) const{
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
@@ -100,8 +100,8 @@ Real FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange
 
 #define INTEGRATE(type)							\
   integral = integrator. integrate<type>(f,				\
-						 ghost_type,		\
-						 filter_elements);
+					 ghost_type,			\
+					 filter_elements);
 
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
 #undef INTEGRATE
@@ -112,7 +112,7 @@ Real FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange
 
 /* -------------------------------------------------------------------------- */
 template <>
-void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >
+void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
 ::integrate(const Vector<Real> & f,
 	    Vector<Real> &intf,
 	    UInt nb_degree_of_freedom,
@@ -150,14 +150,13 @@ void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange
 			      ghost_type,		    \
 			      filter_elements);
 
-  //    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
 #undef INTEGRATE
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
+void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
 gradientOnQuadraturePoints(__attribute__((unused)) const Vector<Real> &u,
 			   __attribute__((unused)) Vector<Real> &nablauq,
 			   __attribute__((unused)) const UInt nb_degree_of_freedom,

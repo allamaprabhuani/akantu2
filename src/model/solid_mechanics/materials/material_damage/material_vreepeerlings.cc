@@ -124,8 +124,6 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
-
   AKANTU_DEBUG_OUT();
 }
 

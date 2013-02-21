@@ -53,4 +53,5 @@ endif()
 
 set(AKANTU_SCOTCH_TESTS
   test_mesh_partitionate_scotch
+  test_mesh_partitionate_scotch_advanced
   )

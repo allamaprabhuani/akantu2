@@ -98,22 +98,22 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
 
   for (UInt i = 0; i < dim; ++i)
     for (UInt n = 0; n < nb_nodes_per_element; ++n)
-      Bvoigt(i, i + n*dim) = B(n, i);
+      Bvoigt(i, i + n*dim) = B(i, n);
 
   if(dim == 2) {
     ///in 2D, fill the @f$ [\frac{\partial N_i}{\partial x}, \frac{\partial N_i}{\partial y}]@f$ row
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Bvoigt(2, 1 + n*2) = B(n, 0);
-      Bvoigt(2, 0 + n*2) = B(n, 1);
+      Bvoigt(2, 1 + n*2) = B(0, n);
+      Bvoigt(2, 0 + n*2) = B(1, n);
     }
   }
 
 
   if(dim == 3) {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Real dndx = B(n, 0);
-      Real dndy = B(n, 1);
-      Real dndz = B(n, 2);
+      Real dndx = B(0, n);
+      Real dndy = B(1, n);
+      Real dndz = B(2, n);
 
       ///in 3D, fill the @f$ [0, \frac{\partial N_i}{\partial y}, \frac{N_i}{\partial z}]@f$ row
       Bvoigt(3, 1 + n*3) = dndz;
@@ -142,7 +142,7 @@ template<>
 inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::RMatrix & coordinates,
 									      types::RMatrix & coordMatrix) {
 
-  for (UInt i = 0; i < coordinates.rows(); ++i)
+  for (UInt i = 0; i < coordinates.cols(); ++i)
     coordMatrix(i, 0) = 1;
 }
 
@@ -153,10 +153,10 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(co
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(_triangle_6);
 
-  for (UInt i = 0; i < coordinates.rows(); ++i) {
+  for (UInt i = 0; i < coordinates.cols(); ++i) {
     coordMatrix(i, 0) = 1;
     for (UInt j = 1; j < nb_quadrature_points; ++j)
-      coordMatrix(i, j) = coordinates(i, j-1);
+      coordMatrix(i, j) = coordinates(j-1, i);
   }
 }
 
@@ -171,9 +171,9 @@ template<>
 inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::RMatrix & coordinates,
 										types::RMatrix & coordMatrix) {
 
-  for (UInt i = 0; i < coordinates.rows(); ++i) {
-    Real x = coordinates(i, 0);
-    Real y = coordinates(i, 1);
+  for (UInt i = 0; i < coordinates.cols(); ++i) {
+    Real x = coordinates(0, i);
+    Real y = coordinates(1, i);
 
     coordMatrix(i, 0) = 1;
     coordMatrix(i, 1) = x;
@@ -187,11 +187,11 @@ template<>
 inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::RMatrix & coordinates,
 										types::RMatrix & coordMatrix) {
 
-  for (UInt i = 0; i < coordinates.rows(); ++i) {
+  for (UInt i = 0; i < coordinates.cols(); ++i) {
 
     UInt j = 0;
-    Real x = coordinates(i, 0);
-    Real y = coordinates(i, 1);
+    Real x = coordinates(0, i);
+    Real y = coordinates(1, i);
 
     for (UInt e = 0; e <= 2; ++e) {
       for (UInt n = 0; n <= 2; ++n) {
@@ -333,7 +333,8 @@ void Material::removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Element> & element_list) {
+inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Element> & element_list,
+				      __attribute__((unused)) const NewElementsEvent & event) {
   for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
        ++it) {
@@ -348,7 +349,9 @@ inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Eleme
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::onElementsRemoved(const Vector<Element> & element_list, const ByElementTypeUInt & new_numbering) {
+inline void Material::onElementsRemoved(const Vector<Element> & element_list,
+					const ByElementTypeUInt & new_numbering,
+					__attribute__((unused)) const RemovedElementsEvent & event) {
   UInt my_num = model->getInternalIndexFromID(id);
 
   ByElementTypeUInt material_local_new_numbering("remove mat filter elem", id);

@@ -28,24 +28,17 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+add_mesh(test_cohesive_intrinsic_mesh triangle.geo 2 2)
+add_mesh(test_cohesive_intrinsic_quadrangle_mesh quadrangle.geo 2 2)
 
-register_test(test_cohesive_intrinsic test_cohesive_intrinsic.cc)
-register_test(test_cohesive_intrinsic_quadrangle test_cohesive_intrinsic_quadrangle.cc)
+register_test(test_cohesive_intrinsic
+  SOURCES test_cohesive_intrinsic.cc
+  DEPENDENCIES test_cohesive_intrinsic_mesh
+  PACKAGE cohesive_element
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview)
 
-#===============================================================================
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/material.dat
-  ${CMAKE_CURRENT_BINARY_DIR}/material.dat
-  COPYONLY
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/mesh.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/mesh.msh
-  COPYONLY
-  )
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/quadrangle.msh
-  ${CMAKE_CURRENT_BINARY_DIR}/quadrangle.msh
-  COPYONLY
-  )
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/paraview)
+register_test(test_cohesive_intrinsic_quadrangle
+  SOURCES test_cohesive_intrinsic_quadrangle.cc
+  DEPENDENCIES test_cohesive_intrinsic_quadrangle_mesh
+  PACKAGE cohesive_element)

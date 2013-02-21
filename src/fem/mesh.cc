@@ -301,6 +301,11 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 }
 
 /* -------------------------------------------------------------------------- */
+void Mesh::initNormals() {
+  initByElementTypeVector(normals, spatial_dimension, spatial_dimension, false, _ek_not_defined);
+}
+
+/* -------------------------------------------------------------------------- */
 template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & vect,
 						  UInt nb_component,
 						  UInt dim,

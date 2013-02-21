@@ -109,7 +109,7 @@ public:
   virtual void updateResidual(GhostType ghost_type = _not_ghost);
 
   /// assemble the residual for this material
-  void assembleResidual(GhostType ghost_type);
+  virtual void assembleResidual(GhostType ghost_type);
 
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
@@ -285,10 +285,12 @@ public:
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual inline void onElementsAdded(const Vector<Element> & element_list);
+  virtual inline void onElementsAdded(const Vector<Element> & element_list,
+				      const NewElementsEvent & event);
 
   virtual inline void onElementsRemoved(const Vector<Element> & element_list,
-					const ByElementTypeUInt & new_numbering);
+					const ByElementTypeUInt & new_numbering,
+					const RemovedElementsEvent & event);
 
 protected:
   template<typename T>

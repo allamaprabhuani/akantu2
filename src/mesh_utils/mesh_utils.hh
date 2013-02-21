@@ -65,6 +65,7 @@ public:
 
   /// build map from nodes to elements
   static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = 0);
+  static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem, UInt spatial_dimension = 0);
 
   //  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem, UInt spatial_dimension = 0);
 

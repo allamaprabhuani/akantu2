@@ -59,15 +59,12 @@ public:
 
   /// read a mesh from the file
   virtual void read(__attribute__((unused)) const std::string & filename,
-		    __attribute__((unused)) Mesh & mesh) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+		    __attribute__((unused))  Mesh & mesh) {
+  }
 
   /// write a mesh to a file
   virtual void write(__attribute__((unused)) const std::string & filename,
-		     __attribute__((unused)) const Mesh & mesh) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+		     __attribute__((unused)) const Mesh & mesh) {}
 
 private:
   MeshIO * getMeshIO(const std::string & filename, const MeshIOType & type);

@@ -92,7 +92,7 @@ void Contact::initContact(bool add_surfaces_flag) {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;
     if(mesh.getSpatialDimension(type) != spatial_dimension) continue;
-    facet_type[nb_facet_types] = mesh.getFacetElementType(type);
+    facet_type[nb_facet_types] = mesh.getFacetType(type);
     nb_facet_types++;
   }
 

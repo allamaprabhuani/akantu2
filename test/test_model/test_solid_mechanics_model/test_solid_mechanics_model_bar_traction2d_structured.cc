@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
   model->setTimeStep(time_step);
 
   std::ofstream energy;
-  energy.open("energy.csv");
+  energy.open("energy_bar_2d_structured.csv");
   energy << "id,epot,ekin,tot" << std::endl;
 
 

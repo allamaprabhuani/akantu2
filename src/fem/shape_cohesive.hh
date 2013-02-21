@@ -32,8 +32,6 @@
 
 #include "aka_vector.hh"
 #include "shape_functions.hh"
-#include "shape_lagrange.hh"
-
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SHAPE_COHESIVE_HH__
@@ -53,33 +51,43 @@ struct CohesiveReduceFunctionOpening {
   }
 };
 
-
-
-template <class ShapeFunction>
-class ShapeCohesive : public ShapeFunctions {
+template<>
+class ShapeLagrange<_ek_cohesive> : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  ShapeCohesive(const Mesh & mesh,
+  ShapeLagrange(const Mesh & mesh,
 		const ID & id = "shape_cohesive",
 		const MemoryID & memory_id = 0);
 
-  virtual ~ShapeCohesive() { if(sub_type_shape_function) delete sub_type_shape_function; };
+  virtual ~ShapeLagrange() { }
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  inline void initShapeFunctions(const Vector<Real> & nodes,
+				 const types::Matrix<Real> & control_points,
+				 const ElementType & type,
+				 const GhostType & ghost_type);
+
+  /// extract the nodal values and store them per element
+  template <ElementType type, class ReduceFunction>
+  void extractNodalToElementField(const Vector<Real> & nodal_f,
+				  Vector<Real> & elemental_f,
+				  const GhostType & ghost_type = _not_ghost,
+				  const Vector<UInt> * filter_elements = NULL) const;
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesOnControlPoints(GhostType ghost_type);
+  void precomputeShapesOnControlPoints(const Vector<Real> & nodes,
+				       GhostType ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapeDerivativesOnControlPoints(GhostType ghost_type);
+  void precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes,
+						 GhostType ghost_type);
 
   /// interpolate nodal values on the control points
   template <ElementType type, class ReduceFunction>
@@ -98,6 +106,15 @@ public:
     interpolateOnControlPoints<type, CohesiveReduceFunctionMean>(u, uq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
 
+  /// compute the gradient of u on the control points in the natural coordinates
+  template <ElementType type>
+  void gradientOnControlPoints(const Vector<Real> &u,
+			       Vector<Real> &nablauq,
+			       UInt nb_degree_of_freedom,
+			       GhostType ghost_type = _not_ghost,
+			       const Vector<UInt> * filter_elements = NULL) const {
+    variationOnControlPoints<type, CohesiveReduceFunctionMean>(u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
+  }
 
   /// compute the gradient of u on the control points
   template <ElementType type, class ReduceFunction>
@@ -115,38 +132,52 @@ public:
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void fieldTimesShapes(__attribute__((unused)) const Vector<Real> & field,
-			__attribute__((unused)) Vector<Real> & fiedl_times_shapes,
-			__attribute__((unused)) GhostType ghost_type) const {
+  void fieldTimesShapes(const Vector<Real> & field,
+			Vector<Real> & fiedl_times_shapes,
+			GhostType ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const {};
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get a the shapes vector
+  inline const Vector<Real> & getShapes(const ElementType & el_type,
+					const GhostType & ghost_type = _not_ghost) const;
 
-  const Vector<Real> & getShapes(const ElementType & type,
-				 GhostType ghost_type = _not_ghost) const;
-
-  const Vector<Real> & getShapesDerivatives(const ElementType & type,
-					    GhostType ghost_type = _not_ghost) const;
+  /// get a the shapes derivatives vector
+  inline const Vector<Real> & getShapesDerivatives(const ElementType & el_type,
+						   const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
+  /// shape functions for all elements
+  ByElementTypeVector<Real, InterpolationType> shapes;
 
-  /// real shape function implementation
-  //\todo QUESTION!!!!!!! why having a member of the class you derive ? what do you gain ? containing the storage of the shapes 
-  ShapeFunction * sub_type_shape_function;
+  /// shape functions derivatives for all elements
+  ByElementTypeVector<Real, InterpolationType> shapes_derivatives;
+
 };
 
+// __END_AKANTU__
+// #include "shape_lagrange.hh"
+// __BEGIN_AKANTU__
 
-typedef ShapeCohesive<ShapeLagrange> ShapeCohesiveLagrange;
+// template<>
+// class ShapeLagrange<_ek_cohesive> : public ShapeCohesive< ShapeLagrange<_ek_regular> > {
+// public:
+//   ShapeLagrange(const Mesh & mesh,
+// 		const ID & id = "shape_cohesive",
+// 		const MemoryID & memory_id = 0) :
+//     ShapeCohesive< ShapeLagrange<_ek_regular> >(mesh, id, memory_id) { }
+
+//   virtual ~ShapeLagrange() { };
+// };
+
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

@@ -5,7 +5,7 @@
 #
 # @date   Wed Nov 28 17:05:18 2012
 #
-# @brief  configuration for parallel test for cohesive elements
+# @brief  configuration for parallel test for intrinsic cohesive elements
 #
 # @section LICENSE
 #
@@ -28,10 +28,13 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+add_mesh(test_cohesive_parallel_intrinsic_mesh mesh.geo 2 2)
+
 if(AKANTU_PARALLEL)
-  register_test(test_cohesive_parallel 
-    SOURCES test_cohesive_parallel.cc
+  register_test(test_cohesive_parallel_intrinsic
+    SOURCES test_cohesive_parallel_intrinsic.cc
+    DEPENDENCIES test_cohesive_parallel_intrinsic_mesh
     PACKAGE cohesive_element
-    FILES_TO_COPY mesh.msh material.dat
+    FILES_TO_COPY material.dat
     DIRECTORIES_TO_CREATE paraview)
 endif()

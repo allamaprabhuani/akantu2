@@ -50,6 +50,9 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
 /* -------------------------------------------------------------------------- */
+class Element;
+extern const Element ElementNull;
+
 class Element {
 public:
   Element(ElementType type = _not_defined, UInt element = 0,
@@ -79,7 +82,7 @@ public:
   }
 
   bool operator<(const Element& rhs) const {
-    bool res = ((this->kind < rhs.kind) ||
+    bool res = (rhs == ElementNull) || ((this->kind < rhs.kind) ||
 		((this->kind == rhs.kind) &&
 		 ((this->ghost_type < rhs.ghost_type) ||
 		  ((this->ghost_type == rhs.ghost_type) &&
@@ -106,7 +109,6 @@ struct CompElementLess {
   }
 };
 
-extern const Element ElementNull;
 
 
 
@@ -124,13 +126,15 @@ protected:
   Vector<Entity> list;
 };
 
-
-
 class Mesh;
 
-class NewNodesEvent : public MeshEvent<UInt> { };
+class NewNodesEvent : public MeshEvent<UInt> {
+public:
+  virtual ~NewNodesEvent() {};
+};
 class RemovedNodesEvent : public MeshEvent<UInt> {
 public:
+  virtual ~RemovedNodesEvent() {};
   inline RemovedNodesEvent(const Mesh & mesh);
   AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, Vector<UInt> &);
   AKANTU_GET_MACRO(NewNumbering, new_numbering, const Vector<UInt> &);
@@ -138,9 +142,13 @@ private:
   Vector<UInt> new_numbering;
 };
 
-class NewElementsEvent : public MeshEvent<Element> { };
+class NewElementsEvent : public MeshEvent<Element> {
+public:
+  virtual ~NewElementsEvent() {};
+};
 class RemovedElementsEvent : public MeshEvent<Element> {
 public:
+  virtual ~RemovedElementsEvent() {};
   inline RemovedElementsEvent(const Mesh & mesh);
   AKANTU_GET_MACRO(NewNumbering, new_numbering, const ByElementTypeUInt &);
   AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, ByElementTypeUInt &);
@@ -159,13 +167,17 @@ public:
   /* Internal code                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList()); }
+  inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList(),
+									  event); }
   inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList(),
-									  event.getNewNumbering()); }
+									  event.getNewNumbering(),
+									  event); }
 
-  inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList()); }
+  inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList(),
+										event); }
   inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList(),
-										event.getNewNumbering()); }
+										event.getNewNumbering(),
+										event); }
 
   template<class EventHandler>
   friend class EventHandlerManager;
@@ -174,14 +186,17 @@ protected:
   /* Interface                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list) {  }
+  virtual void onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list,
+			      __attribute__((unused)) const NewNodesEvent & event) {  }
   virtual void onNodesRemoved(__attribute__((unused)) const Vector<UInt> & nodes_list,
-			      __attribute__((unused)) const Vector<UInt> & new_numbering) {  }
+			      __attribute__((unused)) const Vector<UInt> & new_numbering,
+			      __attribute__((unused)) const RemovedNodesEvent & event) {  }
 
-
-  virtual void onElementsAdded  (__attribute__((unused)) const Vector<Element> & elements_list) { }
+  virtual void onElementsAdded  (__attribute__((unused)) const Vector<Element> & elements_list,
+				 __attribute__((unused)) const NewElementsEvent & event) { }
   virtual void onElementsRemoved(__attribute__((unused)) const Vector<Element> & elements_list,
-				 __attribute__((unused)) const ByElementTypeUInt & new_numbering) { }
+				 __attribute__((unused)) const ByElementTypeUInt & new_numbering,
+				 __attribute__((unused)) const RemovedElementsEvent & event) { }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -248,7 +263,6 @@ public:
   /// write the mesh to a file
   void write(const std::string & filename, const MeshIOType & mesh_io_type = _miot_auto);
 
-
 private:
   /// initialize the connectivity to NULL and other stuff
   void init();
@@ -309,6 +323,8 @@ public:
   template<typename T>
   inline void removeNodesFromVector(Vector<T> & vect, const Vector<UInt> & new_numbering);
 
+  /// initialize normals
+  void initNormals();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -322,6 +338,9 @@ public:
   /// get the nodes Vector aka coordinates
   AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
   AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Vector<Real> &);
+
+  /// get the normals for the elements
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, Real);
 
   /// get the number of nodes
   AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
@@ -377,9 +396,6 @@ public:
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
 
-  // /// get the number of ghost element of a type in the mesh
-  // inline UInt getNbGhostElement(const ElementType & type) const;
-
   /// get the connectivity list either for the elements or the ghost elements
   inline const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
 
@@ -388,8 +404,8 @@ public:
 			    GhostType ghost_type = _not_ghost) const;
 
   /// get the element connected to a subelement
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementToSubelement, element_to_subelement, Vector<Element>);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementToSubelement, element_to_subelement, Vector<Element>);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementToSubelement, element_to_subelement, std::vector<Element>);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementToSubelement, element_to_subelement, std::vector<Element>);
 
   /// get the subelement connected to an element
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SubelementToElement, subelement_to_element, Element);
@@ -431,19 +447,18 @@ public:
   static inline UInt getNbFacetsPerElement(const ElementType & type);
 
   /// get local connectivity of a facet for a given facet type
-  static inline UInt ** getFacetLocalConnectivity(const ElementType & type);
+  static inline types::Matrix<UInt> getFacetLocalConnectivity(const ElementType & type);
+
+  /// get connectivity of facets for a given element
+  inline types::Matrix<UInt> getFacetConnectivity(UInt element, const ElementType & type, const GhostType & ghost_type) const;
 
   /// get the type of the surface element associated to a given element
-  static inline ElementType getFacetElementType(const ElementType & type);
-
-  /// get the pointer to the list of elements for a given type
-  inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
-
+  static inline ElementType getFacetType(const ElementType & type);
 
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  typedef ByElementTypeUInt::type_iterator type_iterator;
+  typedef ByElementTypeVector<UInt, ElementType>::type_iterator type_iterator;
 
   inline type_iterator firstType(UInt dim = 0,
 				 GhostType ghost_type = _not_ghost,
@@ -479,6 +494,9 @@ private:
   inline Vector<UInt> * getConnectivityPointer(const ElementType & type,
 					       const GhostType & ghost_type = _not_ghost);
 
+  /// get the pointer to the list of elements for a given type
+  //  inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
+
   // inline Vector<Real> * getNormalsPointer(ElementType type) const;
 
   /// get a pointer to the surface_id Vector for the given type and create it if necessary
@@ -494,8 +512,8 @@ private:
 					   const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the element_to_subelement Vector for the given type and create it if necessary
-  inline Vector<Vector<Element> > * getElementToSubelementPointer(const ElementType & type,
-								  const GhostType & ghost_type = _not_ghost);
+  inline Vector< std::vector<Element> > * getElementToSubelementPointer(const ElementType & type,
+									const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the subelement_to_element Vector for the given type and create it if necessary
   inline Vector<Element > * getSubelementToElementPointer(const ElementType & type,
@@ -505,7 +523,6 @@ private:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// id of the mesh
   ID id;
 
@@ -564,7 +581,7 @@ private:
   Real local_upper_bounds[3];
 
   /// List of elements connected to subelements
-  ByElementTypeVector<Vector<Element> > element_to_subelement;
+  ByElementTypeVector< std::vector<Element> > element_to_subelement;
 
   /// List of subelements connected to elements
   ByElementTypeVector<Element > subelement_to_element;
@@ -579,7 +596,6 @@ private:
 
   /// list of the vectors corresponding to tags in the mesh
   ByElementTypeUIntDataMap uint_data;
-
 };
 
 /* -------------------------------------------------------------------------- */

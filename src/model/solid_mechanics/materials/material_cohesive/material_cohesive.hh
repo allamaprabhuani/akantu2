@@ -51,8 +51,8 @@ class MaterialCohesive : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef FEMTemplate< IntegratorCohesive<IntegratorGauss>,
-		       ShapeCohesive<ShapeLagrange> >         MyFEMCohesiveType;
+  typedef FEMTemplate<IntegratorGauss,
+		      ShapeLagrange, _ek_cohesive>         MyFEMCohesiveType;
 public:
 
   MaterialCohesive(SolidMechanicsModel& model, const ID & id = "");
@@ -204,17 +204,8 @@ protected:
   /// critical stress
   Real sigma_c;
 
-  /// distribution type
-  std::string distribution;
-
-  /// randomness factor for uniform distribution
-  Real rand;
-
-  /// Weibull modulus
-  Real lambda;
-
-  /// scale parameter for Weibull distribution
-  Real m_scale;
+  /// random generator
+  RandomGenerator<Real> * random_generator;
 
   /// vector to store stresses on facets for element insertions
   Vector<Real> sigma_insertion;
@@ -227,7 +218,6 @@ protected:
 
   /// pointer to the solid mechanics model for cohesive elements
   SolidMechanicsModelCohesive * model;
-
 };
 
 

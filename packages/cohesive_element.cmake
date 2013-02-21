@@ -43,6 +43,7 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   fem/integrator_cohesive_inline_impl.cc
   fem/shape_cohesive_inline_impl.cc
 
+  model/solid_mechanics/solid_mechanics_model_cohesive_inline_impl.cc
   model/solid_mechanics/materials/material_cohesive/material_cohesive_inline_impl.cc
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential_inline_impl.cc
 
@@ -60,7 +61,6 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
   )
 
 
@@ -73,6 +73,7 @@ set(AKANTU_COHESIVE_ELEMENT_TESTS
   test_cohesive_extrinsic_quadrangle
   test_cohesive_buildfragments
   test_cohesive_intrinsic_impl
+  test_cohesive_parallel_intrinsic
   )
 
 set(AKANTU_COHESIVE_ELEMENT_DOC

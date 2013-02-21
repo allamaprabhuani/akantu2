@@ -58,9 +58,8 @@ int main(int argc, char *argv[]) {
   const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("triangle.msh", mesh);
-  const ElementType type_facet = mesh.getFacetElementType(type);;
+  mesh.read("interpolation.msh");
+  const ElementType type_facet = mesh.getFacetType(type);;
 
   MeshUtils::buildAllFacets(mesh, mesh);
 

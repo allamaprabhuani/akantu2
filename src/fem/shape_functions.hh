@@ -50,7 +50,7 @@ public:
 		 const ID & id = "shape",
 		 const MemoryID & memory_id = 0) :
     Memory(memory_id), mesh(&mesh),
-    control_points("control_points", id, memory_id) {
+    control_points("control_points", id) {
   };
   virtual ~ShapeFunctions(){};
 
@@ -58,11 +58,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
-  /// multiply a field by shape functions
-  template <ElementType type>
-  void fieldTimesShapes(const Vector<Real> & field,
-			Vector<Real> & fieal_times_shapes) const;
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -75,8 +70,25 @@ public:
 
   /// set the control points for a given element
   template <ElementType type>
-  void setControlPointsByType(const Vector<Real> & control_points,
+  void setControlPointsByType(const types::Matrix<Real> & control_points,
 			      const GhostType & ghost_type);
+
+protected:
+  /// interpolate nodal values stored by element on the control points
+  template <ElementType type>
+  void interpolateElementalFieldOnControlPoints(const Vector<Real> &u_el,
+						Vector<Real> &uq,
+						GhostType ghost_type,
+						const Vector<Real> & shapes,
+						const Vector<UInt> * filter_elements) const;
+
+  /// gradient of nodal values stored by element on the control points
+  template <ElementType type>
+  void gradientElementalFieldOnControlPoints(const Vector<Real> &u_el,
+					     Vector<Real> &out_nablauq,
+					     GhostType ghost_type,
+					     const Vector<Real> & shapes_derivatives,
+					     const Vector<UInt> * filter_elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -88,20 +100,21 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ControlPoints, control_points, Real)
+  inline const types::Matrix<Real> & getControlPoints(const ElementType & type,
+						      const GhostType & ghost_type) const {
+    return control_points(type, ghost_type);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
-
 protected:
   const Mesh * mesh;
 
   ID id;
 
   /// shape functions for all elements
-  ByElementTypeReal control_points;
+  ByElementType< types::Matrix<Real> > control_points;
 };
 
 

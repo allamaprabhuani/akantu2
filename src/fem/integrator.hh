@@ -86,8 +86,16 @@ public:
 public:
 
   /// access to the jacobians
-  ByElementTypeReal & getJacobians() { return jacobians; };
-  const ByElementTypeReal & getJacobians() const { return jacobians; };
+  Vector<Real> & getJacobians(const ElementType & type,
+			      const GhostType & ghost_type = _not_ghost) {
+    return jacobians(type, ghost_type);
+  };
+
+  const Vector<Real> & getJacobians(const ElementType & type,
+			      const GhostType & ghost_type = _not_ghost) const {
+    return jacobians(type, ghost_type);
+  };
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -100,7 +108,7 @@ protected:
   ID id;
 
   /// jacobians for all elements
-  ByElementTypeReal jacobians;
+  ByElementTypeVector<Real> jacobians;
 };
 
 

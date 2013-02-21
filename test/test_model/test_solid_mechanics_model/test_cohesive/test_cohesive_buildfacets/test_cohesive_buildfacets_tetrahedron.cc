@@ -47,31 +47,30 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  //  debug::setDebugLevel(dblDump);
-
   const UInt spatial_dimension = 3;
   const ElementType type = _tetrahedron_10;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("tetrahedron.msh", mesh);
-  Mesh mesh_facets(spatial_dimension, const_cast<Vector<Real> &>(mesh.getNodes()), "mesh_facets", 1);
+  mesh.read("tetrahedron.msh");
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
 
   MeshUtils::buildAllFacets(mesh, mesh_facets);
 
-  //  std::cout << mesh << std::endl;
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh << std::endl;
+  // std::cout << mesh_facets << std::endl;
 
-  const ElementType type_facet = mesh.getFacetElementType(type);
-  const ElementType type_subfacet = mesh.getFacetElementType(type_facet);
-  const ElementType type_subsubfacet = mesh.getFacetElementType(type_subfacet);
+  const ElementType type_facet = mesh.getFacetType(type);
+  const ElementType type_subfacet = mesh.getFacetType(type_facet);
+  const ElementType type_subsubfacet = mesh.getFacetType(type_subfacet);
 
   /* ------------------------------------------------------------------------ */
   /* Element to Subelement testing                                            */
   /* ------------------------------------------------------------------------ */
 
-  const Vector<Vector<Element> > & el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
-  const Vector<Vector<Element> > & el_to_subel2 = mesh_facets.getElementToSubelement(type_subfacet);
-  const Vector<Vector<Element> > & el_to_subel1 = mesh_facets.getElementToSubelement(type_subsubfacet);
+  const Vector< std::vector<Element> > & el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
+  const Vector< std::vector<Element> > & el_to_subel2 = mesh_facets.getElementToSubelement(type_subfacet);
+  const Vector< std::vector<Element> > & el_to_subel1 = mesh_facets.getElementToSubelement(type_subsubfacet);
 
   /// build vectors for comparison
   Vector<Element> tetrahedron(2);
@@ -83,10 +82,10 @@ int main(int argc, char *argv[]) {
 
   Vector<Element> triangle(8);
   triangle(0).type = type_facet;
-  triangle(0).element = 2;
+  triangle(0).element = 0;
 
   triangle(1).type = type_facet;
-  triangle(1).element = 0;
+  triangle(1).element = 2;
 
   triangle(2).type = type_facet;
   triangle(2).element = 4;
@@ -95,16 +94,16 @@ int main(int argc, char *argv[]) {
   triangle(3).element = 7;
 
   triangle(4).type = type_facet;
-  triangle(4).element = 26;
+  triangle(4).element = 16;
 
   triangle(5).type = type_facet;
-  triangle(5).element = 24;
+  triangle(5).element = 18;
 
   triangle(6).type = type_facet;
-  triangle(6).element = 16;
+  triangle(6).element = 24;
 
   triangle(7).type = type_facet;
-  triangle(7).element = 18;
+  triangle(7).element = 26;
 
   Vector<Element> segment(13);
   segment(0).type = type_subfacet;
@@ -149,9 +148,9 @@ int main(int argc, char *argv[]) {
   /// comparison
 
   for (UInt i = 0; i < tetrahedron.getSize(); ++i) {
-    if (tetrahedron(i).type != el_to_subel3(4)(i).type ||
-	tetrahedron(i).element != el_to_subel3(4)(i).element) {
-      std::cout << tetrahedron(i).element << " " << el_to_subel3(4)(i).element << std::endl;
+    if (tetrahedron(i).type != el_to_subel3(4)[i].type ||
+	tetrahedron(i).element != el_to_subel3(4)[i].element) {
+      std::cout << tetrahedron(i).element << " " << el_to_subel3(4)[i].element << std::endl;
       std::cout << "The two tetrahedrons connected to triangle 4 are wrong"
 		<< std::endl;
       return EXIT_FAILURE;
@@ -159,8 +158,8 @@ int main(int argc, char *argv[]) {
   }
 
   for (UInt i = 0; i < triangle.getSize(); ++i) {
-    if (triangle(i).type != el_to_subel2(0)(i).type ||
-	triangle(i).element != el_to_subel2(0)(i).element) {
+    if (triangle(i).type != el_to_subel2(0)[i].type ||
+	triangle(i).element != el_to_subel2(0)[i].element) {
       std::cout << "The triangles connected to segment 0 are wrong"
 		<< std::endl;
       return EXIT_FAILURE;
@@ -168,8 +167,8 @@ int main(int argc, char *argv[]) {
   }
 
   for (UInt i = 0; i < segment.getSize(); ++i) {
-    if (segment(i).type != el_to_subel1(1)(i).type ||
-	segment(i).element != el_to_subel1(1)(i).element) {
+    if (segment(i).type != el_to_subel1(1)[i].type ||
+	segment(i).element != el_to_subel1(1)[i].element) {
       std::cout << "The segments connected to point 1 are wrong"
 		<< std::endl;
       return EXIT_FAILURE;
@@ -210,10 +209,10 @@ int main(int argc, char *argv[]) {
   segment2(2).element = 4;
 
   Vector<Element> point(2);
-  point(0).type = mesh.getFacetElementType(type_subfacet);
+  point(0).type = mesh.getFacetType(type_subfacet);
   point(0).element = 1;
 
-  point(1).type = mesh.getFacetElementType(type_subfacet);
+  point(1).type = mesh.getFacetType(type_subfacet);
   point(1).element = 2;
 
   /// comparison

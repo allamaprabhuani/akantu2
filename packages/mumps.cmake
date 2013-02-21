@@ -33,7 +33,6 @@ set(AKANTU_MUMPS_FILES
   solver/solver_mumps.hh
   )
 
-
 set(AKANTU_MUMPS_DEB_DEPEND
   libmumps-seq-dev
   )

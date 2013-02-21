@@ -112,7 +112,7 @@ void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType
 	  (*epsilon_p)(i,j) = (*epsilon)(i,j);
 	  (*sigma_p)(i,j) = (*sigma)(i,j);
 	}
-      }
+      } 
 
       epot *= .5;
 
@@ -153,8 +153,10 @@ Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template<UInt> class Parent>
 Real MaterialDamage<spatial_dimension, Parent>::getEnergy(std::string type) {
-  if(type == "dissipated") return getDissipatedEnergy();
-  else return Parent<spatial_dimension>::getEnergy(type);
+  Real energy = Parent<spatial_dimension>::getEnergy(type);
+  if(type == "dissipated") return (energy + getDissipatedEnergy());
+  if(type == "dissipated_damage") return getDissipatedEnergy();
+  else return energy;
 }
 
 /* -------------------------------------------------------------------------- */

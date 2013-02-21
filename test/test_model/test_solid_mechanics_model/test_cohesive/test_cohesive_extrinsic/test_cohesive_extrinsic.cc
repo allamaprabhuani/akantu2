@@ -60,12 +60,12 @@ int main(int argc, char *argv[]) {
   const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
-  mesh.read("mesh.msh");
+  mesh.read("triangle.msh");
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initExtrinsic("material.dat");
+  model.initFull("material.dat", _explicit_dynamic, _extrinsic);
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 
   const Mesh & mesh_facets = model.getMeshFacets();
 
-  const ElementType type_facet = mesh.getFacetElementType(type);
+  const ElementType type_facet = mesh.getFacetType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   Vector<Real> & position = mesh.getNodes();
 
@@ -187,6 +187,8 @@ int main(int argc, char *argv[]) {
   // edis.close();
   // erev.close();
 
+  //  mesh.write("mesh_final.msh");
+
   Real Ed = model.getEnergy("dissipated");
 
   Real Edt = 200*std::sqrt(2);
@@ -203,8 +205,6 @@ int main(int argc, char *argv[]) {
   //     position(n, s) += displacement(n, s);
   //   }
   // }
-
-  // mesh.write("mesh_final.msh");
 
 
   finalize();

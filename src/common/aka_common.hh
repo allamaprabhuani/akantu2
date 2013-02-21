@@ -47,6 +47,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 #include "aka_error.hh"
+#include "aka_safe_enum.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -88,17 +89,24 @@ typedef std::list< SurfacePair > SurfacePairList;
 
 /// @boost sequence of element to loop on in global tasks
 #define AKANTU_REGULAR_ELEMENT_TYPE		\
+  (_point_1)					\
   (_segment_2)					\
   (_segment_3)					\
   (_triangle_3)					\
   (_triangle_6)					\
-  (_tetrahedron_4)				\
-  (_tetrahedron_10)				\
   (_quadrangle_4)				\
   (_quadrangle_8)				\
-  (_hexahedron_8)                               \
-  (_point)					\
-  (_bernoulli_beam_2)
+  (_tetrahedron_4)				\
+  (_tetrahedron_10)				\
+  (_hexahedron_8)
+
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+#define AKANTU_STRUCTURAL_ELEMENT_TYPE		\
+  (_bernoulli_beam_2)				\
+  (_bernoulli_beam_3)
+#else
+#define AKANTU_STRUCTURAL_ELEMENT_TYPE
+#endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #  define AKANTU_COHESIVE_ELEMENT_TYPE		\
@@ -109,50 +117,88 @@ typedef std::list< SurfacePair > SurfacePairList;
 #endif
 
 #define AKANTU_ALL_ELEMENT_TYPE					\
-  AKANTU_REGULAR_ELEMENT_TYPE AKANTU_COHESIVE_ELEMENT_TYPE
+  AKANTU_REGULAR_ELEMENT_TYPE					\
+  AKANTU_COHESIVE_ELEMENT_TYPE					\
+  AKANTU_STRUCTURAL_ELEMENT_TYPE
 
-/// @enum ElementType type of element potentially contained in a Mesh
+#define AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE			\
+  AKANTU_REGULAR_ELEMENT_TYPE					\
+  AKANTU_COHESIVE_ELEMENT_TYPE
+
+/// @enum ElementType type of elements
 enum ElementType {
-  _not_defined     = 0,
-  /// first  order segment
-  _segment_2       = 1,
-  /// second order segment
-  _segment_3       = 2,
-  /// first  order triangle
-  _triangle_3      = 3,
-  /// second order triangle
-  _triangle_6      = 4,
-  /// first  order tetrahedron
-  _tetrahedron_4   = 5,
-  /// second order tetrahedron @remark not implemented yet
-  _tetrahedron_10  = 6,
-  /// first  order quadrangle
-  _quadrangle_4,
-  /// second order quadrangle
-  _quadrangle_8,
-  /// first  order hexahedron
-  _hexahedron_8,
-  /// point only for some algorithm to be generic like mesh partitioning
-  _point,
-  /// bernoulli beam 2D
-  _bernoulli_beam_2,
+  _not_defined,
+  _point_1,
+  _segment_2,         ///< first order segment
+  _segment_3,         ///< second order segment
+  _triangle_3,        ///< first order triangle
+  _triangle_6,        ///< second order triangle
+  _tetrahedron_4,     ///< first order tetrahedron
+  _tetrahedron_10,    ///< second order tetrahedron
+  _quadrangle_4,      ///< first order quadrangle
+  _quadrangle_8,      ///< second order quadrangle
+  _hexahedron_8,      ///< first order hexahedron
+  _bernoulli_beam_2,  ///< Bernoulli beam 2D
+  _bernoulli_beam_3,  ///< Bernoulli beam 3D
 #if defined(AKANTU_COHESIVE_ELEMENT)
-  /// first order 2D cohesive
-  _cohesive_2d_4,
-  /// second order 2D cohesive
-  _cohesive_2d_6,
+  _cohesive_2d_4,     ///< first order 2D cohesive
+  _cohesive_2d_6,     ///< second order 2D cohesive
 #endif
   _max_element_type
 };
+
+/// @enum GeometricalType type of element potentially contained in a Mesh
+enum GeometricalType {
+  _gt_point,             ///< point @remark only for some algorithm to be generic like mesh partitioning */
+  _gt_segment_2,         ///< 2 nodes segment
+  _gt_segment_3,         ///< 3 nodes segment
+  _gt_triangle_3,        ///< 3 nodes triangle
+  _gt_triangle_6,        ///< 6 nodes triangle
+  _gt_quadrangle_4,      ///< 4 nodes quadrangle
+  _gt_quadrangle_8,      ///< 8 nodes quadrangle
+  _gt_tetrahedron_4,     ///< 4 nodes tetrahedron
+  _gt_tetrahedron_10,    ///< 10 nodes tetrahedron
+  _gt_hexahedron_8,      ///< 8 nodes hexahedron
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  _gt_cohesive_2d_4,     ///< 4 nodes 2D cohesive
+  _gt_cohesive_2d_6,     ///< 6 nodes 2D cohesive
+#endif
+  _gt_not_defined,
+};
+
+/// @enum InterpolationType type of elements
+enum InterpolationType {
+  _itp_lagrange_segment_2,         ///< first order lagrangian segment
+  _itp_lagrange_segment_3,         ///< second order lagrangian segment
+  _itp_lagrange_triangle_3,        ///< first order lagrangian triangle
+  _itp_lagrange_triangle_6,        ///< second order lagrangian triangle
+  _itp_lagrange_quadrangle_4,      ///< first order lagrangian quadrangle
+  _itp_serendip_quadrangle_8,      /**< second order serendipian quadrangle
+				      @remark used insted of the 9 node
+				      lagrangian element */
+  _itp_lagrange_tetrahedron_4,     ///< first order lagrangian tetrahedron
+  _itp_lagrange_tetrahedron_10,    ///< second order lagrangian tetrahedron
+  _itp_lagrange_hexahedron_8,      ///< first order lagrangian hexahedron
+  _itp_bernoulli_beam,             ///< Bernoulli beam
+  _itp_not_defined
+};
+
+/// @enum InterpolationKind the familly of interpolation types
+enum InterpolationKind {
+  _itk_lagrangian,
+  _itk_structural
+};
+
 
 //! standard output stream operator for ElementType
 inline std::ostream & operator <<(std::ostream & stream, ElementType type);
 
 
 enum ElementKind {
-  _ek_not_defined,
   _ek_regular,
-  _ek_cohesive
+  _ek_cohesive,
+  _ek_structural,
+  _ek_not_defined
 };
 
 
@@ -170,13 +216,20 @@ enum AnalysisMethod {
   _explicit_dynamic
 };
 
+/// enum CohesiveMethod type of insertion of cohesive elements
+enum CohesiveMethod {
+  _intrinsic,
+  _extrinsic
+};
+
 /// myfunction(double * position, double * stress/force, double * normal, unsigned int material_id)
 typedef void (*BoundaryFunction)(double *,double *, double*, unsigned int);
 
 /// @enum BoundaryFunctionType type of function passed for boundary conditions
 enum BoundaryFunctionType {
   _bft_stress,
-  _bft_traction
+  _bft_traction,
+  _bft_traction_local
 };
 
 /// @enum SparseMatrixType type of sparse matrix used
@@ -238,7 +291,6 @@ enum SynchronizationTag {
   _gst_smm_res,          //< synchronization of the nodal residual
   _gst_smm_init_mat,     //< synchronization of the data to initialize materials
   _gst_smm_stress,       //< synchronization of the stresses to compute the internal forces
-  _gst_smmc_tractions,   //< synchronitazion of cohesive elements' tractions
   //--- HeatTransfer tags ---
   _gst_htm_capacity,     //< synchronization of the nodal heat capacity
   _gst_htm_temperature,  //< synchronization of the nodal temperature
@@ -260,6 +312,16 @@ enum GhostType {
   _ghost,
   _casper  // not used but a real cute ghost
 };
+
+/* -------------------------------------------------------------------------- */
+struct GhostType_def {
+  typedef GhostType type;
+  static const type _begin_ = _not_ghost;
+  static const type _end_   = _casper;
+};
+
+typedef safe_enum<GhostType_def> ghost_type_t;
+
 /// standard output stream operator for GhostType
 inline std::ostream & operator <<(std::ostream & stream, GhostType type);
 
@@ -325,25 +387,23 @@ struct is_same<T, T> {
     return variable;						\
   }
 
-#define AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(name, variable, type)	\
-  inline const Vector<type> &						\
-  get##name (const ::akantu::ElementType & el_type,			\
-	     const GhostType & ghost_type = _not_ghost) const {		\
-    AKANTU_DEBUG_IN();							\
-									\
-    AKANTU_DEBUG_OUT();							\
+#define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type,		\
+					 support, con)			\
+  inline con Vector<type> &						\
+  get##name (const support & el_type,					\
+	     const GhostType & ghost_type = _not_ghost) con {		\
     return variable(el_type, ghost_type);				\
   }
 
 #define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)		\
-  inline Vector<type> &							\
-  get##name (const ::akantu::ElementType & el_type,			\
-	     const GhostType & ghost_type = _not_ghost) {		\
-    AKANTU_DEBUG_IN();							\
-									\
-    AKANTU_DEBUG_OUT();							\
-    return variable(el_type, ghost_type);				\
-  }
+  AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, ElementType,)
+#define AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(name, variable, type)	\
+  AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, ElementType, const)
+
+#define AKANTU_GET_MACRO_BY_GEOMETRIE_TYPE(name, variable, type)	\
+  AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, GeometricalType,)
+#define AKANTU_GET_MACRO_BY_GEOMETRIE_TYPE_CONST(name, variable, type)	\
+  AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, GeometricalType, const)
 
 /* -------------------------------------------------------------------------- */
 void initialize(int & argc, char ** & argv);
@@ -373,71 +433,59 @@ inline std::string trim(const std::string & to_trim);
 
 __END_AKANTU__
 
-#include "aka_common_inline_impl.cc"
-
 /* -------------------------------------------------------------------------- */
 // BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
 #include <boost/preprocessor.hpp>
 
-#define AKANTU_EXCLUDE_ELEMENT_TYPE(type)			\
-  AKANTU_DEBUG_ERROR("Type (" << type << ") not handled by this function")
-
 #define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
   case type : { macro(type); break; }
 
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1, macro2, list2)	\
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1)			\
   do {									\
     switch(type) {							\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)	\
-      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro2, list2)	\
-    case _not_defined:                                                  \
-    case _max_element_type:  {						\
-      AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
-      break;								\
+    default: {								\
+      AKANTU_DEBUG_ERROR("Type (" << type << ") not handled by this function"); \
     }									\
     }									\
   } while(0)
 
 
-#define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro1)				\
-  do {									\
-    switch(type) {							\
-      BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, AKANTU_ALL_ELEMENT_TYPE) \
-    case _not_defined:                                                  \
-    case _max_element_type:  {						\
-      AKANTU_DEBUG_ERROR("Wrong type : " << type);			\
-      break;								\
-    }									\
-    }									\
-  } while(0)
+#define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro)				\
+  AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
+			      AKANTU_ALL_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-			      AKANTU_REGULAR_ELEMENT_TYPE,		\
-			      AKANTU_EXCLUDE_ELEMENT_TYPE,		\
-			      AKANTU_COHESIVE_ELEMENT_TYPE)
+			      AKANTU_REGULAR_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-			      AKANTU_COHESIVE_ELEMENT_TYPE,		\
-			      AKANTU_EXCLUDE_ELEMENT_TYPE,		\
-			      AKANTU_REGULAR_ELEMENT_TYPE)
+			      AKANTU_COHESIVE_ELEMENT_TYPE)
+
+#define AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(macro)			\
+  AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
+			      AKANTU_STRUCTURAL_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
   macro(type)
 
-#define AKANTU_BOOST_ELEMENT_LIST(macro,list)			\
+#define AKANTU_BOOST_ELEMENT_LIST(macro, list)			\
   BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,list)
 
-#define AKANTU_BOOST_ALL_ELEMENT_LIST(macro)	\
+#define AKANTU_BOOST_ALL_ELEMENT_LIST(macro)			\
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_ALL_ELEMENT_TYPE)
 
-#define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)	\
+#define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)		\
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_REGULAR_ELEMENT_TYPE)
 
-#define AKANTU_BOOST_COHESIVE_ELEMENT_LIST(macro)	\
+#define AKANTU_BOOST_STRUCTURAL_ELEMENT_LIST(macro)			\
+  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_STRUCTURAL_ELEMENT_TYPE)
+
+#define AKANTU_BOOST_COHESIVE_ELEMENT_LIST(macro)			\
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_COHESIVE_ELEMENT_TYPE)
 
+#include "aka_common_inline_impl.cc"
 
 
 #include "aka_fwd.hh"

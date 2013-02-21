@@ -60,26 +60,31 @@
 
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_triangle_3>::nb_nodes_per_element;
-template<> UInt ElementClass<_triangle_3>::nb_quadrature_points;
-template<> UInt ElementClass<_triangle_3>::spatial_dimension;
+// template<> UInt ElementClass<_triangle_3>::nb_nodes_per_element;
+// template<> UInt ElementClass<_triangle_3>::nb_quadrature_points;
+// template<> UInt ElementClass<_triangle_3>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_3, _gt_triangle_3, _itp_lagrange_triangle_3, _ek_regular, 2);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_3>::computeShapes(const Real * natural_coords,
-							    Real * shapes){
+template <>
+inline void
+InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(const types::Vector<Real> & natural_coords,
+							      types::Vector<Real> & N) {
 
   /// Natural coordinates
-  Real c0 = 1 - natural_coords[0] - natural_coords[1]; /// @f$ c0 = 1 - \xi - \eta @f$
-  Real c1 = natural_coords[0];                         /// @f$ c1 = \xi @f$
-  Real c2 = natural_coords[1];                         /// @f$ c2 = \eta @f$
+  Real c0 = 1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
+  Real c1 = natural_coords(0);                         /// @f$ c1 = \xi @f$
+  Real c2 = natural_coords(1);                         /// @f$ c2 = \eta @f$
 
-  shapes[0] = c0; /// N1(q_0)
-  shapes[1] = c1; /// N2(q_0)
-  shapes[2] = c2; /// N3(q_0)
+  N(0) = c0; /// N1(q_0)
+  N(1) = c1; /// N2(q_0)
+  N(2) = c2; /// N3(q_0)
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_3>::computeDNDS(__attribute__ ((unused)) const Real * natural_coords,
-							       Real * dnds){
+template <>
+inline void
+InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(__attribute__ ((unused)) const types::Vector<Real> & natural_coords,
+							    types::Matrix<Real> & dnds) {
 
   /**
    * @f[
@@ -91,44 +96,41 @@ template <> inline void ElementClass<_triangle_3>::computeDNDS(__attribute__ ((u
    *        \right)
    * @f]
    */
-
-  dnds[0] = -1.; dnds[1] =  1.; dnds[2] =  0.;
-  dnds[3] = -1.; dnds[4] =  0.; dnds[5] =  1.;
+  dnds(0, 0) = -1.; dnds(0, 1) =  1.; dnds(0, 2) =  0.;
+  dnds(1, 0) = -1.; dnds(1, 1) =  0.; dnds(1, 2) =  1.;
 }
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_triangle_3>::computeJacobian(const Real * dxds,
-								   const UInt dimension,
-								   Real & jac){
-  if (dimension == spatial_dimension){
-    Real det_dxds = Math::det2(dxds);
-    jac = det_dxds;
-  }
-  else {
-    Real vprod[dimension];
-    Math::vectorProduct3(dxds,dxds+3,vprod);
-    jac = Math::norm3(vprod);
-  }
+template <>
+inline void
+InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const types::Matrix<Real> & J,
+								       Real & jac){
+  types::Vector<Real> vprod(J.rows());
+  vprod.crossProduct(J(0), J(1));
+  jac = vprod.norm();
 }
 
 
 
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_triangle_3>::getInradius(const Real * coord) {
-  return Math::triangle_inradius(coord, coord+2, coord+4);
+template<>
+inline Real 
+GeometricalElement<_gt_triangle_3>::getInradius(const types::Matrix<Real> & coord) {
+  return Math::triangle_inradius(coord(0).storage(),
+				 coord(1).storage(),
+				 coord(2).storage());
 }
 
 /* -------------------------------------------------------------------------- */
-
-template<> inline bool ElementClass<_triangle_3>::contains(const types::RVector & natural_coords) {
-  if (natural_coords[0] < 0.) return false;
-  if (natural_coords[0] > 1.) return false;
-  if (natural_coords[1] < 0.) return false;
-  if (natural_coords[1] > 1.) return false;
-  if (natural_coords[0]+natural_coords[1] > 1.) return false;
-  return true;
-}
+// template<> inline bool ElementClass<_triangle_3>::contains(const types::RVector & natural_coords) {
+//   if (natural_coords[0] < 0.) return false;
+//   if (natural_coords[0] > 1.) return false;
+//   if (natural_coords[1] < 0.) return false;
+//   if (natural_coords[1] > 1.) return false;
+//   if (natural_coords[0]+natural_coords[1] > 1.) return false;
+//   return true;
+// }
 /* -------------------------------------------------------------------------- */
 
 

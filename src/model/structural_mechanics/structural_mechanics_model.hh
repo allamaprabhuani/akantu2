@@ -1,11 +1,9 @@
 /**
  * @file   structural_mechanics_model.hh
- *
  * @author Fabian Barras <fabian.barras@epfl.ch>
+ * @date   Thu May  5 15:31:11 2011
  *
- * @date   Fri Jul 15 19:41:58 2011
- *
- * @brief  StructuralMechanicsModel description
+ * @brief
  *
  * @section LICENSE
  *
@@ -38,10 +36,11 @@
 #include "integrator_gauss.hh"
 #include "shape_linked.hh"
 #include "aka_types.hh"
+#include "dumpable.hh"
+#include "solver.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-  class Solver;
   class SparseMatrix;
 }
 
@@ -52,19 +51,18 @@ struct StructuralMaterial {
   Real E;
   Real A;
   Real I;
+  Real Iz;
+  Real Iy;
+  Real GJ;
 };
 
-class StructuralMechanicsModel : public Model {
+class StructuralMechanicsModel : public Model, public Dumpable<DumperParaview> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  typedef FEMTemplate<IntegratorGauss,ShapeLinked> MyFEMType;
-
-  StructuralMechanicsModel(UInt spatial_dimension,
-		      const ID & id = "structural_mechanics_model",
-		      const MemoryID & memory_id = 0);
+  typedef FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural> MyFEMType;
 
   StructuralMechanicsModel(Mesh & mesh,
 			   UInt spatial_dimension = 0,
@@ -78,18 +76,44 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// initialize fully the model
+  void initFull(std::string material = "");
+
+  /// initialize the internal vectors
   void initVectors();
+
+  /// initialize the model
   void initModel();
-  void initImplicitSolver();
-  void computeStressOnQuad();
+
+  /// initialize the solver
+  void initSolver(SolverOptions & options = _solver_no_options);
+
+  /// compute the stresses per elements
+  void computeStresses();
+
+  /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
+
+  /// update the residual vector
   void updateResidual();
+
+  /// solve the system
   void solve();
+
+
   bool testConvergenceIncrement(Real tolerance);
   bool testConvergenceIncrement(Real tolerance, Real & error);
-  virtual void printself(__attribute__ ((unused)) std::ostream & stream,
-			 __attribute__ ((unused)) int indent = 0) const {};
+
+  virtual void printself(std::ostream & stream, int indent = 0) const {};
+
+  void computeRotationMatrix(const ElementType & type);
+
+protected:
   UInt getTangentStiffnessVoigtSize(const ElementType & type);
+
+  /// compute Rotation Matrices
+  template<const ElementType type>
+  void computeRotationMatrix(Vector<Real> & rotations) {};
 
   /* ------------------------------------------------------------------------ */
 
@@ -104,10 +128,20 @@ private:
   void computeStressOnQuad();
 
   template <ElementType type>
-  void computeTangentStiffness(Vector<Real> & tangent_stiffness_matrix);
+  void computeTangentModuli(Vector<Real> & tangent_moduli);
 
   template <ElementType type>
-  void transferBMatrixToSymVoigtBMatrix(Vector<Real> & B);
+  void transferBMatrixToSymVoigtBMatrix(Vector<Real> & B, bool local = false);
+
+  template <ElementType type>
+  void transferNMatrixToSymVoigtNMatrix(Vector<Real> & N_matrix);
+  /* ------------------------------------------------------------------------ */
+  /* Dumpable interface                                                       */
+  /* ------------------------------------------------------------------------ */
+public:
+  virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -127,11 +161,15 @@ public:
   /// get the StructuralMechanicsModel::boundary vector
   AKANTU_GET_MACRO(Boundary,     *boundary,              Vector<bool> &);
 
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
+
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, const SparseMatrix &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt)
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
+
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Set_ID, set_ID, UInt);
 
   void addMaterial(StructuralMaterial & material) { materials.push_back(material); }
 
@@ -139,15 +177,16 @@ public:
   /* Boundaries (structural_mechanics_model_boundary.cc)                      */
   /* ------------------------------------------------------------------------ */
 public:
-  /// !!NOT IMPLEMENTED YET!!
-  void computeForcesByStressTensor(const Vector<Real> & stresses,
-				   const ElementType & type);
+  /// Compute Linear load function set in global axis
+  template <ElementType type>
+  void computeForcesByGlobalTractionVector(const Vector<Real> & tractions);
 
-  /// integrate a force on the boundary by providing a traction vector
-  void computeForcesByTractionVector(const Vector<Real> & tractions,
-				     const ElementType & type);
+  /// Compute Linear load function set in local axis
+  template <ElementType type>
+  void computeForcesByLocalTractionVector(const Vector<Real> & tractions);
 
   /// compute force vector from a function(x,y,momentum) that describe stresses
+  template <ElementType type>
   void computeForcesFromFunction(BoundaryFunction in_function,
 				 BoundaryFunctionType function_type);
 
@@ -177,11 +216,17 @@ private:
 
   ByElementTypeUInt element_material;
 
+  // Define sets of beams
+  ByElementTypeUInt set_ID;
+
   /// local equation_number to global
   unordered_map<UInt, UInt>::type local_eq_num_to_global;
 
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;
+
+  /// jacobian matrix
+  SparseMatrix * jacobian_matrix;
 
   /// increment of displacement
   Vector<Real> * increment;
@@ -195,6 +240,10 @@ private:
   /// number of degre of freedom
   UInt nb_degree_of_freedom;
 
+  // Rotation matrix 
+  ByElementTypeReal rotation_matrix;
+
+
   /* -------------------------------------------------------------------------- */
   std::vector<StructuralMaterial> materials;
 };
@@ -204,9 +253,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "structural_mechanics_model_inline_impl.cc"
-#endif
+#include "structural_mechanics_model_inline_impl.cc"
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const StructuralMechanicsModel & _this)

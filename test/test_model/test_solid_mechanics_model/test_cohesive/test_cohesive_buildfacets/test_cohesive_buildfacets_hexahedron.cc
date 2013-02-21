@@ -47,33 +47,30 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  // debug::setDebugLevel(dblDump);
-
   const UInt spatial_dimension = 3;
   const ElementType type = _hexahedron_8;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("hexahedron.msh", mesh);
-  Mesh mesh_facets(spatial_dimension, const_cast<Vector<Real> &>(mesh.getNodes()), "mesh_facets", 1);
-
-  // std::cout << mesh << std::endl;
+  mesh.read("hexahedron.msh");
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
 
   MeshUtils::buildAllFacets(mesh, mesh_facets);
 
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh << std::endl;
   // std::cout << mesh_facets << std::endl;
 
-  const ElementType type_facet = mesh.getFacetElementType(type);
-  const ElementType type_subfacet = mesh.getFacetElementType(type_facet);
-  const ElementType type_subsubfacet = mesh.getFacetElementType(type_subfacet);
+  const ElementType type_facet = mesh.getFacetType(type);
+  const ElementType type_subfacet = mesh.getFacetType(type_facet);
+  const ElementType type_subsubfacet = mesh.getFacetType(type_subfacet);
 
   /* ------------------------------------------------------------------------ */
   /* Element to Subelement testing                                            */
   /* ------------------------------------------------------------------------ */
 
-  const Vector<Vector<Element> > & el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
-  const Vector<Vector<Element> > & el_to_subel2 = mesh_facets.getElementToSubelement(type_subfacet);
-  const Vector<Vector<Element> > & el_to_subel1 = mesh_facets.getElementToSubelement(type_subsubfacet);
+  const Vector< std::vector<Element> > & el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
+  const Vector< std::vector<Element> > & el_to_subel2 = mesh_facets.getElementToSubelement(type_subfacet);
+  const Vector< std::vector<Element> > & el_to_subel1 = mesh_facets.getElementToSubelement(type_subsubfacet);
 
   /// build vectors for comparison
   Vector<Element> hexahedron(2);
@@ -88,13 +85,13 @@ int main(int argc, char *argv[]) {
   quadrangle(0).element = 1;
 
   quadrangle(1).type = type_facet;
-  quadrangle(1).element = 11;
+  quadrangle(1).element = 2;
 
   quadrangle(2).type = type_facet;
   quadrangle(2).element = 7;
 
   quadrangle(3).type = type_facet;
-  quadrangle(3).element = 2;
+  quadrangle(3).element = 11;
 
   Vector<Element> segment(5);
   segment(0).type = type_subfacet;
@@ -116,9 +113,9 @@ int main(int argc, char *argv[]) {
   /// comparison
 
   for (UInt i = 0; i < hexahedron.getSize(); ++i) {
-    if (hexahedron(i).type != el_to_subel3(1)(i).type ||
-  	hexahedron(i).element != el_to_subel3(1)(i).element) {
-      std::cout << hexahedron(i).element << " " << el_to_subel3(4)(i).element << std::endl;
+    if (hexahedron(i).type != el_to_subel3(1)[i].type ||
+  	hexahedron(i).element != el_to_subel3(1)[i].element) {
+      std::cout << hexahedron(i).element << " " << el_to_subel3(4)[i].element << std::endl;
       std::cout << "The two hexahedrons connected to quadrangle 1 are wrong"
   		<< std::endl;
       return EXIT_FAILURE;
@@ -126,8 +123,8 @@ int main(int argc, char *argv[]) {
   }
 
   for (UInt i = 0; i < quadrangle.getSize(); ++i) {
-    if (quadrangle(i).type != el_to_subel2(4)(i).type ||
-  	quadrangle(i).element != el_to_subel2(4)(i).element) {
+    if (quadrangle(i).type != el_to_subel2(4)[i].type ||
+  	quadrangle(i).element != el_to_subel2(4)[i].element) {
       std::cout << "The quadrangles connected to segment 4 are wrong"
   		<< std::endl;
       return EXIT_FAILURE;
@@ -135,8 +132,8 @@ int main(int argc, char *argv[]) {
   }
 
   for (UInt i = 0; i < segment.getSize(); ++i) {
-    if (segment(i).type != el_to_subel1(1)(i).type ||
-  	segment(i).element != el_to_subel1(1)(i).element) {
+    if (segment(i).type != el_to_subel1(1)[i].type ||
+  	segment(i).element != el_to_subel1(1)[i].element) {
       std::cout << "The segments connected to point 1 are wrong"
   		<< std::endl;
       return EXIT_FAILURE;
@@ -186,10 +183,10 @@ int main(int argc, char *argv[]) {
   segment2(3).element = 11;
 
   Vector<Element> point(2);
-  point(0).type = mesh.getFacetElementType(type_subfacet);
+  point(0).type = mesh.getFacetType(type_subfacet);
   point(0).element = 5;
 
-  point(1).type = mesh.getFacetElementType(type_subfacet);
+  point(1).type = mesh.getFacetType(type_subfacet);
   point(1).element = 7;
 
 

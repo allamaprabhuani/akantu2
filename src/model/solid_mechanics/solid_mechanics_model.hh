@@ -65,6 +65,13 @@ class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventH
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  class NewMaterialElementsEvent : public NewElementsEvent {
+  public:
+    AKANTU_GET_MACRO_NOT_CONST(MaterialList, material, Vector<UInt> &);
+    AKANTU_GET_MACRO(MaterialList, material, const Vector<UInt> &);
+  protected:
+    Vector<UInt> material;
+  };
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
@@ -343,14 +350,20 @@ protected:
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual void onNodesAdded  (const Vector<UInt> & nodes_list);
+  virtual void onNodesAdded  (const Vector<UInt> & nodes_list,
+			      const NewNodesEvent & event);
   virtual void onNodesRemoved(const Vector<UInt> & element_list,
-			      const Vector<UInt> & new_numbering);
-
-  virtual void onElementsAdded  (const Vector<Element> & nodes_list);
+			      const Vector<UInt> & new_numbering,
+			      const RemovedNodesEvent & event);
+  virtual void onElementsAdded  (const Vector<Element> & nodes_list,
+				 const NewElementsEvent & event);
   virtual void onElementsRemoved(const Vector<Element> & element_list,
-				 const ByElementTypeUInt & new_numbering);
+				 const ByElementTypeUInt & new_numbering,
+				 const RemovedElementsEvent & event);
 
+  /* ------------------------------------------------------------------------ */
+  /* Dumpable interface                                                       */
+  /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpField(const std::string & field_id);
   virtual void addDumpFieldVector(const std::string & field_id);
@@ -517,9 +530,6 @@ protected:
 
   /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Delta t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
   SparseMatrix * jacobian_matrix;
-
-  // /// materials of all elements
-  // ByElementTypeUInt element_material;
 
   /// vectors containing local material element index for each global element index
   ByElementTypeUInt element_index_by_material;

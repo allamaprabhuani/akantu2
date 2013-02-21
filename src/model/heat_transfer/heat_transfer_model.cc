@@ -538,7 +538,6 @@ Real HeatTransferModel::getStableTimeStep()
   Real conductivitymax = -std::numeric_limits<Real>::max();
   Real el_size;
   Real min_el_size = std::numeric_limits<Real>::max();
-  Real * coord = getFEM().getMesh().getNodes().values;
 
   const Mesh::ConnectivityTypeList & type_list =
     getFEM().getMesh().getConnectivityTypeList();
@@ -548,28 +547,22 @@ Real HeatTransferModel::getStableTimeStep()
       continue;
 
     UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(*it);
+
+    Vector<Real> coord(0, nb_nodes_per_element*spatial_dimension);
+    FEM::extractNodalToElementField(getFEM().getMesh(), getFEM().getMesh().getNodes(),
+				    coord, *it, _not_ghost);
+
+    Vector<Real>::iterator< types::Matrix<Real> > el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
     UInt nb_element           = getFEM().getMesh().getNbElement(*it);
 
-    UInt * conn = getFEM().getMesh().getConnectivity(*it, _not_ghost).values;
-    Real * u = new Real[nb_nodes_per_element*spatial_dimension];
-
-    for (UInt el = 0; el < nb_element; ++el) {
-        UInt el_offset  = el * nb_nodes_per_element;
-        for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-          UInt offset_conn = conn[el_offset + n] * spatial_dimension;
-          memcpy(u + n * spatial_dimension,
-                 coord + offset_conn,
-                 spatial_dimension * sizeof(Real));
-        }
-
-        el_size    = getFEM().getElementInradius(u, *it);
+    for (UInt el = 0; el < nb_element; ++el, ++el_coord) {
+        el_size    = getFEM().getElementInradius(*el_coord, *it);
         min_el_size = std::min(min_el_size, el_size);
     }
 
     AKANTU_DEBUG_INFO("The minimum element size : " << min_el_size
                       << " and the max conductivity is : "
                       << conductivitymax);
-    delete [] u;
   }
 
   //get the biggest parameter from k11 until k33//

@@ -68,14 +68,3 @@ endforeach()
 list(APPEND CPACK_SOURCE_IGNORE_FILES "/doc/manual/;/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 
 include(CPack)
-
-set(AKANTU_AUTHENTICATION_FILE "${PROJECT_SOURCE_DIR_ACL}" CACHE PATH "File to generate the authentication for svn")
-set(AKANTU_TRUNK "/akantu/trunk" CACHE PATH "Akantu repos")
-set(AKANTU_SVNAUTHZ_FILE "${PROJECT_BINARY_DIR}/svnauthz.akantu" CACHE PATH "Generated authz file")
-mark_as_advanced(AKANTU_AUTHENTICATION_FILE)
-mark_as_advanced(AKANTU_TRUNK)
-mark_as_advanced(AKANTU_SVNAUTHZ_FILE)
-
-if(AKANTU_AUTHENTICATION_FILE)
-  generate_svn_auth(${AKANTU_AUTHENTICATION_FILE} ${AKANTU_SVNAUTHZ_FILE})
-endif()

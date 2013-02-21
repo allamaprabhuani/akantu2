@@ -191,7 +191,6 @@ void Material::assembleResidual(GhostType ghost_type) {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     const Vector<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(*it, ghost_type);
-
     Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
 
     UInt size_of_shapes_derivatives = shapes_derivatives.getNbComponent();
@@ -202,37 +201,26 @@ void Material::assembleResidual(GhostType ghost_type) {
 
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Vector<Real> * sigma_dphi_dx =
-      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
-
-    Real * shapesd           = shapes_derivatives.storage();
-    Real * shapesd_val;
-    UInt * elem_filter_val   = elem_filter.storage();
+      new Vector<Real>(nb_element*nb_quadrature_points,
+		       size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
     Vector<Real> * shapesd_filtered =
-      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes_derivatives, "filtered shapesd");
-    Real * shapesd_filtered_val = shapesd_filtered->values;
+      new Vector<Real>(0, size_of_shapes_derivatives, "filtered shapesd");
 
-    for (UInt el = 0; el < nb_element; ++el) {
-      shapesd_val = shapesd + elem_filter_val[el] * size_of_shapes_derivatives * nb_quadrature_points;
-      memcpy(shapesd_filtered_val, shapesd_val,
-	     size_of_shapes_derivatives * nb_quadrature_points * sizeof(Real));
-      shapesd_filtered_val += size_of_shapes_derivatives * nb_quadrature_points;
-    }
+    FEM::filterQuadraturePointsData(mesh, shapes_derivatives, *shapesd_filtered,
+				    *it, ghost_type, &elem_filter);
 
     Vector<Real> & stress_vect = stress(*it, ghost_type);
-    // Vector<Real>::iterator<types::Matrix> sigma = stress_vect.begin(spatial_dimension, spatial_dimension);
-    // Vector<Real>::iterator<types::Matrix> sigma_end = stress_vect.end(spatial_dimension, spatial_dimension);
-    // Vector<Real>::iterator<types::Matrix> nabla_B = shapesd_filtered->begin(nb_nodes_per_element, spatial_dimension);
-    // Vector<Real>::iterator<types::Matrix> sigma_dphi_dx_it = sigma_dphi_dx->begin(nb_nodes_per_element, spatial_dimension);
 
-    // for (; sigma != sigma_end; ++sigma, ++nabla_B, ++sigma_dphi_dx_it) {
-    //   sigma_dphi_dx_it->mul<true,false>(*nabla_B, *sigma);
-    // }
+    Vector<Real>::iterator< types::Matrix<Real> > sigma =
+      stress_vect.begin(spatial_dimension, spatial_dimension);
+    Vector<Real>::iterator< types::Matrix<Real> > B =
+      shapesd_filtered->begin(spatial_dimension, nb_nodes_per_element);
+    Vector<Real>::iterator< types::Matrix<Real> > Bt_sigma_it =
+      sigma_dphi_dx->begin(spatial_dimension, nb_nodes_per_element);
 
-    Math::matrix_matrixt(nb_nodes_per_element, spatial_dimension, spatial_dimension,
-			 *shapesd_filtered,
-			 stress_vect,
-			 *sigma_dphi_dx);
+    for (UInt q = 0; q < nb_element*nb_quadrature_points; ++q, ++sigma, ++B, ++Bt_sigma_it)
+      Bt_sigma_it->mul<false,false>(*sigma, *B);
 
     delete shapesd_filtered;
 
@@ -240,7 +228,8 @@ void Material::assembleResidual(GhostType ghost_type) {
      * compute @f$\int \sigma  * \frac{\partial \varphi}{\partial X}dX@f$ by  @f$ \sum_q \mathbf{B}^t
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
-    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element, nb_nodes_per_element * spatial_dimension,
+    Vector<Real> * int_sigma_dphi_dx = new Vector<Real>(nb_element,
+							nb_nodes_per_element * spatial_dimension,
 							"int_sigma_x_dphi_/_dX");
 
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
@@ -382,21 +371,11 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   computeTangentModuli(type, *tangent_stiffness_matrix, ghost_type);
 
+  Vector<Real> * shapesd_filtered =
+    new Vector<Real>(0, dim * nb_nodes_per_element, "filtered shapesd");
 
-  Vector<Real> * shapes_derivatives_filtered = new Vector<Real>(nb_element * nb_quadrature_points,
-								dim * nb_nodes_per_element,
-								"shapes derivatives filtered");
-
-
-  Vector<Real>::const_iterator<types::RMatrix> shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
-											       nb_nodes_per_element);
-
-  Vector<Real>::iterator<types::RMatrix> shapes_derivatives_filtered_it  = shapes_derivatives_filtered->begin(spatial_dimension,
-													     nb_nodes_per_element);
-  UInt * elem_filter_val = elem_filter.storage();
-  for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++shapes_derivatives_filtered_it)
-      *shapes_derivatives_filtered_it = shapes_derivatives_it[*elem_filter_val * nb_quadrature_points + q];
+  FEM::filterQuadraturePointsData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
+				  type, ghost_type, &elem_filter);
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   UInt bt_d_b_size = dim * nb_nodes_per_element;
@@ -408,7 +387,8 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   types::RMatrix B(tangent_size, dim * nb_nodes_per_element);
   types::RMatrix Bt_D(dim * nb_nodes_per_element, tangent_size);
 
-  shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> shapes_derivatives_filtered_it =
+    shapesd_filtered->begin(dim, nb_nodes_per_element);
 
   Vector<Real>::iterator<types::RMatrix> Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
 								  dim*nb_nodes_per_element);
@@ -429,7 +409,7 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   }
 
   delete tangent_stiffness_matrix;
-  delete shapes_derivatives_filtered;
+  delete shapesd_filtered;
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   Vector<Real> * K_e = new Vector<Real>(nb_element,
@@ -483,7 +463,6 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = model->getFEM().getNbQuadraturePoints(type, ghost_type);
 
-  const Vector<UInt> & connectivity = model->getFEM().getMesh().getConnectivity(type, ghost_type);
 
   strain_vect.resize(nb_quadrature_points * nb_element);
 
@@ -501,35 +480,20 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   tangent_moduli_tensors->clear();
   computeTangentModuli(type, *tangent_moduli_tensors, ghost_type);
 
-  Vector<Real> * shapes_derivatives_filtered = new Vector<Real>(nb_element * nb_quadrature_points,
-								dim * nb_nodes_per_element,
-								"shapes derivatives filtered");
+  Vector<Real> * shapesd_filtered =
+    new Vector<Real>(0, dim* nb_nodes_per_element, "filtered shapesd");
 
-  Vector<Real>::const_iterator<types::RMatrix> shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
-											       nb_nodes_per_element);
-
-  Vector<Real>::iterator<types::RMatrix> shapes_derivatives_filtered_it  = shapes_derivatives_filtered->begin(spatial_dimension,
-													     nb_nodes_per_element);
+  FEM::filterQuadraturePointsData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
+				  type, ghost_type, &elem_filter);
 
   Vector<Real> filtered_u(nb_element, nb_nodes_per_element * spatial_dimension);
 
-  UInt * elem_filter_val = elem_filter.storage();
-  Real * filtered_u_it = filtered_u.storage();
-
-  for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val) {
-    UInt el = *elem_filter_val;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      for (UInt s = 0; s < spatial_dimension; ++s, ++filtered_u_it) {
-	*filtered_u_it = disp(connectivity(el,n), s);
-      }
-    }
-
-    for (UInt q = 0; q < nb_quadrature_points; ++q, ++shapes_derivatives_filtered_it)
-      *shapes_derivatives_filtered_it = shapes_derivatives_it[el * nb_quadrature_points + q];
-  }
+  FEM::extractNodalToElementField(model->getFEM().getMesh(), disp, filtered_u,
+				  type, ghost_type, &elem_filter);
 
   /// compute @f$\mathbf{D} \mathbf{B} \mathbf{u}@f$
-  shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
+  Vector<Real>::iterator<types::RMatrix> shapes_derivatives_filtered_it =
+    shapesd_filtered->begin(dim, nb_nodes_per_element);
 
   Vector<Real>::iterator<types::RMatrix> D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
 									       tangent_moduli_size);
@@ -631,10 +595,10 @@ void Material::computePotentialEnergyByElement(ElementType type, UInt index,
 
   Real * epot_quad = epot_on_quad_points.storage();
 
-  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++ epot_quad) {
-    types::RMatrix & __attribute__((unused)) grad_u = *strain_it;
-    types::RMatrix & __attribute__((unused)) sigma  = *stress_it;
-    computePotentialEnergyOnQuad(grad_u,sigma,*epot_quad);
+  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++epot_quad) {
+    types::RMatrix & grad_u = *strain_it;
+    types::RMatrix & sigma  = *stress_it;
+    computePotentialEnergyOnQuad(grad_u, sigma, *epot_quad);
   }
 }
 
@@ -687,7 +651,7 @@ Real Material::getEnergy(std::string type) {
 
 Real Material::getEnergy(std::string energy_id, ElementType type, UInt index) {
   AKANTU_DEBUG_IN();
-  if(energy_id == "potential") return getPotentialEnergy(type,index);
+  if(energy_id == "potential") return getPotentialEnergy(type, index);
   AKANTU_DEBUG_OUT();
   return 0.;
 }
@@ -779,13 +743,13 @@ void Material::initElementalFieldInterpolation(const Vector<Real> & quad_coordin
   types::RMatrix quad_coord_matrix(size_inverse_coords, size_inverse_coords);
 
   Vector<Real>::const_iterator<types::RMatrix> quad_coords_it =
-    quad_coordinates.begin_reinterpret(nb_quad_per_element,
-				       spatial_dimension,
+    quad_coordinates.begin_reinterpret(spatial_dimension,
+				       nb_quad_per_element,
 				       nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> points_coords_it =
-    interpolation_points_coordinates.begin_reinterpret(nb_interpolation_points_per_elem,
-						       spatial_dimension,
+    interpolation_points_coordinates.begin_reinterpret(spatial_dimension,
+						       nb_interpolation_points_per_elem,
 						       nb_element);
 
   Vector<Real>::iterator<types::RMatrix> inv_quad_coord_it =
@@ -863,16 +827,16 @@ void Material::interpolateElementalField(const Vector<Real> & field,
   UInt nb_interpolation_points_per_elem = interp_points_coord.getNbComponent() / size_inverse_coords;
 
   Vector<Real>::const_iterator<types::RMatrix> field_it
-    = field.begin_reinterpret(nb_quad_per_element,
-			      field.getNbComponent(),
+    = field.begin_reinterpret(field.getNbComponent(),
+			      nb_quad_per_element,
 			      nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> interpolation_points_coordinates_it =
     interp_points_coord.begin(nb_interpolation_points_per_elem, size_inverse_coords);
 
   Vector<Real>::iterator<types::RMatrix> result_it
-    = result.begin_reinterpret(nb_interpolation_points_per_elem,
-			       field.getNbComponent(),
+    = result.begin_reinterpret(field.getNbComponent(),
+			       nb_interpolation_points_per_elem,
 			       nb_element);
 
   Vector<Real>::const_iterator<types::RMatrix> inv_quad_coord_it =
@@ -892,13 +856,13 @@ void Material::interpolateElementalField(const Vector<Real> & field,
      * multiply it by the field values over quadrature points to get
      * the interpolation coefficients
      */
-    coefficients.mul<false, false>(inv_quad_coord_matrix, *field_it);
+    coefficients.mul<false, true>(inv_quad_coord_matrix, *field_it);
 
     /// matrix containing the points' coordinates
     const types::RMatrix & coord = *interpolation_points_coordinates_it;
 
     /// multiply the coordinates matrix by the coefficients matrix and store the result
-    (*result_it).mul<false, false>(coord, coefficients);
+    (*result_it).mul<true, true>(coefficients, coord);
   }
 
 

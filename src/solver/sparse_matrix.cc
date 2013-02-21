@@ -348,7 +348,7 @@ Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
     }
 
     tmp[local_i] += a * vect_val[local_j];
-    if(sparse_matrix_type == _symmetric && (local_i != local_j))
+    if((sparse_matrix_type == _symmetric) && (local_i != local_j))
       tmp[local_j] += a * vect_val[local_i];
   }
 

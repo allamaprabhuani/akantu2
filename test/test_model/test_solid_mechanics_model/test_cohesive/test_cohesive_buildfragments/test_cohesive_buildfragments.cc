@@ -61,7 +61,8 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initExtrinsic("material.dat");
+  model.initFull("material.dat", _explicit_dynamic, _extrinsic);
+
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;

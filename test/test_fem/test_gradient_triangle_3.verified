@@ -17,7 +17,7 @@ FEM [
     ]
    ]
    + connectivities [
-    ByElementType<akantu::Vector<unsigned int, true>*> [
+    ByElementTypeVector<unsigned int> [
         (not_ghost:_segment_2) [
        Vector<unsigned int> [
         + id             : mesh:connectivities:_segment_2
@@ -27,6 +27,7 @@ FEM [
         + memory size    : 16kB
         + values         : {{0, 4}, {4, 1}, {1, 5}, {5, 2}, {2, 6}, {6, 3}, {3, 7}, {7, 0}}
        ]
+         ]
         (not_ghost:_triangle_3) [
        Vector<unsigned int> [
         + id             : mesh:connectivities:_triangle_3
@@ -36,6 +37,7 @@ FEM [
         + memory size    : 23kB
         + values         : {{3, 9, 6}, {0, 12, 7}, {2, 10, 5}, {1, 11, 4}, {7, 8, 9}, {6, 9, 8}, {6, 8, 10}, {7, 12, 8}, {5, 10, 8}, {4, 8, 12}, {4, 11, 8}, {5, 8, 11}, {0, 4, 12}, {3, 7, 9}, {1, 5, 11}, {2, 6, 10}}
        ]
+         ]
     ]
   ]
  ]
@@ -54,7 +56,7 @@ FEM [
     ]
    ]
    + connectivities [
-    ByElementType<akantu::Vector<unsigned int, true>*> [
+    ByElementTypeVector<unsigned int> [
         (not_ghost:_segment_2) [
        Vector<unsigned int> [
         + id             : mesh:connectivities:_segment_2
@@ -64,6 +66,7 @@ FEM [
         + memory size    : 16kB
         + values         : {{0, 4}, {4, 1}, {1, 5}, {5, 2}, {2, 6}, {6, 3}, {3, 7}, {7, 0}}
        ]
+         ]
         (not_ghost:_triangle_3) [
        Vector<unsigned int> [
         + id             : mesh:connectivities:_triangle_3
@@ -73,6 +76,7 @@ FEM [
         + memory size    : 23kB
         + values         : {{3, 9, 6}, {0, 12, 7}, {2, 10, 5}, {1, 11, 4}, {7, 8, 9}, {6, 9, 8}, {6, 8, 10}, {7, 12, 8}, {5, 10, 8}, {4, 8, 12}, {4, 11, 8}, {5, 8, 11}, {0, 4, 12}, {3, 7, 9}, {1, 5, 11}, {2, 6, 10}}
        ]
+         ]
     ]
   ]
  ]
@@ -82,7 +86,7 @@ StaticMemory [
  + nb memories : 1
  Memory [
   + memory id   : 0
-  + nb vectors  : 7
+  + nb vectors  : 6
   Vector<unsigned int> [
    + id             : mesh:connectivities:_segment_2
    + size           : 8
@@ -116,14 +120,6 @@ StaticMemory [
    + values         : {{0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}, {0.0625}}
   ]
   Vector<double> [
-   + id             : my_fem:quadrature_points:_triangle_3
-   + size           : 1
-   + nb_component   : 2
-   + allocated size : 2000
-   + memory size    : 31kB
-   + values         : {{0.333333, 0.333333}}
-  ]
-  Vector<double> [
    + id             : my_fem:shapes:_triangle_3
    + size           : 16
    + nb_component   : 3
@@ -139,9 +135,9 @@ StaticMemory [
    + memory size    : 0.75kB
    + values         : {{-2, 2, 0, -4, 2, 2}, {-2, -2, 4, 0, -2, 2}, {2, 2, -4, 0, 2, -2}, {2, -2, 0, 4, -2, -2}, {-2, -2, 2, -2, 1.04929e-11, 4}, {2, 2, -4, 1.08926e-11, 2, -2}, {-2, 2, -2, -2, 4, -1.08926e-11}, {-2, 2, -1.04929e-11, -4, 2, 2}, {2, -2, 8.43547e-12, 4, -2, -2}, {2, -2, 2, 2, -4, 8.03579e-12}, {-2, -2, 4, -8.03579e-12, -2, 2}, {2, 2, -2, 2, -8.43547e-12, -4}, {-2, -2, 2, -2, 0, 4}, {-2, 2, -2, -2, 4, 0}, {2, -2, 2, 2, -4, 0}, {2, 2, -2, 2, 0, -4}}
   ]
-  + total size  : 1e+02kB
+  + total size  : 72kB
  ]
- + total size  : 1e+02kB
+ + total size  : 72kB
 ]
 
 Vector<double> [
@@ -150,6 +146,6 @@ Vector<double> [
  + nb_component   : 4
  + allocated size : 16
  + memory size    : 0.5kB
- + values         : {{13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}, {13, 23, 11, 7}}
+ + values         : {{13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}, {13, 11, 23, 7}}
 ]
 

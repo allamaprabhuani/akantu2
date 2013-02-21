@@ -43,10 +43,7 @@ MaterialCohesiveExponential<spatial_dimension>::MaterialCohesiveExponential(Soli
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta"   , beta   , 0. , _pat_parsable, "Beta parameter"         );
-  this->registerParam("G_cI"   , G_cI   , 0. , _pat_parsable, "Mode I fracture energy" );
-  this->registerParam("G_cII"  , G_cII  , 0. , _pat_parsable, "Mode II fracture energy");
-  this->registerParam("kappa"  , kappa  , 0. , _pat_readable, "Kappa parameter"        );
-  this->registerParam("delta_c", delta_c, 0. , _pat_readable, "Critical displacement"  );
+  this->registerParam("delta_c", delta_c, 0. , _pat_parsable, "Critical displacement"  );
 
   // this->initInternalVector(delta_max, 1, _ek_cohesive);
 
@@ -67,9 +64,6 @@ void MaterialCohesiveExponential<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesive::initMaterial();
-
-  kappa   = G_cII / G_cI;
-  delta_c = 2 * G_cI / sigma_c;
 
   AKANTU_DEBUG_OUT();
 }
@@ -126,11 +120,12 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Vecto
     /**
      * compute effective opening displacement
      * @f$ \delta = \sqrt{
-     * \frac{\beta^2}{\kappa^2} \Delta_t^2 + \Delta_n^2 } @f$
+     * \beta^2 \Delta_t^2 + \Delta_n^2 } @f$
      */
     Real delta = tangential_opening_norm;
     delta *= delta * beta2;
     delta += normal_opening_norm * normal_opening_norm;
+
     delta = sqrt(delta);
 
 

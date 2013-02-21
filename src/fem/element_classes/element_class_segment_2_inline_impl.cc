@@ -46,57 +46,55 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_segment_2>::nb_nodes_per_element;
-template<> UInt ElementClass<_segment_2>::nb_quadrature_points;
-template<> UInt ElementClass<_segment_2>::spatial_dimension;
-
+// template<> UInt InterpolationElement<_itp_lagrange_segment_2>::nb_nodes_per_element;
+// template<> UInt ElementClass<_segment_2>::nb_quadrature_points;
+// template<> UInt ElementClass<_segment_2>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2, _itp_lagrange_segment_2, _ek_regular, 1);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_segment_2>::computeShapes(const Real * natural_coords, 
-								Real * shapes){
+template <>
+inline void
+InterpolationElement<_itp_lagrange_segment_2>::computeShapes(const types::Vector<Real> & natural_coords,
+							     types::Vector<Real> & N) {
 
   /// natural coordinate
-  Real c = natural_coords[0];
+  Real c = natural_coords(0);
   /// shape functions
-  shapes[0] = 0.5*(1-c);
-  shapes[1] =0.5*(1+c);
+  N(0) = 0.5*(1-c);
+  N(1) = 0.5*(1+c);
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_segment_2>::computeDNDS(__attribute__ ((unused)) 
-							   const Real * natural_coords,
-							      Real * dnds){
+template <> inline void
+InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(__attribute__ ((unused)) const types::Vector<Real> & natural_coords,
+							   types::Matrix<Real> & dnds){
   /// dN1/de
-  dnds[0] = - .5;
+  dnds(0, 0) = - .5;
   /// dN2/de
-  dnds[1] =   .5;
+  dnds(0, 1) =   .5;
 }
 
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_segment_2>::computeJacobian(const Real * dxds,
-								   const UInt dimension, 
-								   Real & jac){
-
-  if (dimension == spatial_dimension){
-    jac = dxds[0];
-  }
-  else {
-    jac = Math::norm2(dxds);
-  }
+template <>
+inline void
+InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(const types::Matrix<Real> & dxds,
+								      Real & jac) {
+  jac = Math::norm2(dxds.storage());
 }
  
 /* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_segment_2>::getInradius(const Real * coord) {
-  return sqrt((coord[0] - coord[1])*(coord[0] - coord[1]));
+template<>
+inline Real
+GeometricalElement<_gt_segment_2>::getInradius(const types::Matrix<Real> & coord) {
+  return std::abs(coord(0, 0) - coord(0, 1));
 }
 
-/* -------------------------------------------------------------------------- */
-
-template<> inline bool ElementClass<_segment_2>::contains(const types::RVector & natural_coords) {
-  if (natural_coords[0] < -1.) return false;
-  if (natural_coords[0] > 1.) return false;
-  return true;
-}
+// /* -------------------------------------------------------------------------- */
+// template<> inline bool ElementClass<_segment_2>::contains(const types::RVector & natural_coords) {
+//   if (natural_coords(0) < -1.) return false;
+//   if (natural_coords(0) > 1.) return false;
+//   return true;
+// }
 
 /* -------------------------------------------------------------------------- */
 

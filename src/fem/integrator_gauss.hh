@@ -37,6 +37,7 @@
 
 __BEGIN_AKANTU__
 
+template<ElementKind kind>
 class IntegratorGauss : public Integrator {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -53,10 +54,14 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  inline void initIntegrator(const Vector<Real> & nodes,
+			     const ElementType & type,
+			     const GhostType & ghost_type);
 
   /// precompute jacobians on elements of type "type"
   template <ElementType type>
-  void precomputeJacobiansOnQuadraturePoints(const GhostType & ghost_type);
+  void precomputeJacobiansOnQuadraturePoints(const Vector<Real> & nodes,
+					     const GhostType & ghost_type);
 
 
   /// integrate f on the element "elem" of type "type"
@@ -98,7 +103,7 @@ public:
 
   /// return a vector with quadrature points natural coordinates
   template <ElementType type>
-  const Vector<Real> & getQuadraturePoints(const GhostType & ghost_type) const;
+  const types::Matrix<Real> & getQuadraturePoints(const GhostType & ghost_type) const;
 
   /// compute the vector of quadrature points natural coordinates
   template <ElementType type> void computeQuadraturePoints(const GhostType & ghost_type);
@@ -110,10 +115,8 @@ public:
 
   /// compute the jacobians on quad points for a given element
   template <ElementType type>
-  void computeJacobianOnQuadPointsByElement(UInt spatial_dimension,
-					    Real * node_coords,
-					    UInt nb_nodes_per_element,
-					    Real * jacobians);
+  void computeJacobianOnQuadPointsByElement(const types::Matrix<Real> & node_coords,
+					    types::Vector<Real> & jacobians);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -132,7 +135,7 @@ protected:
 
 private:
 
-  ByElementTypeReal quadrature_points;
+  ByElementType< types::Matrix<Real> > quadrature_points;
 };
 
 

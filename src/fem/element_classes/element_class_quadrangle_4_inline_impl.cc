@@ -66,25 +66,26 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<> UInt ElementClass<_quadrangle_4>::nb_nodes_per_element;
-template<> UInt ElementClass<_quadrangle_4>::nb_quadrature_points;
-template<> UInt ElementClass<_quadrangle_4>::spatial_dimension;
+// template<> UInt ElementClass<_quadrangle_4>::nb_nodes_per_element;
+// template<> UInt ElementClass<_quadrangle_4>::nb_quadrature_points;
+// template<> UInt ElementClass<_quadrangle_4>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_4, _gt_quadrangle_4, _itp_lagrange_quadrangle_4, _ek_regular, 2);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_quadrangle_4>::computeShapes(const Real * natural_coords,
-								   Real * shapes) {
-  /// Natural coordinates
-  const Real * c = natural_coords;
-
-  shapes[0] = .25 * (1 - c[0]) * (1 - c[1]); /// N1(q_0)
-  shapes[1] = .25 * (1 + c[0]) * (1 - c[1]); /// N2(q_0)
-  shapes[2] = .25 * (1 + c[0]) * (1 + c[1]); /// N3(q_0)
-  shapes[3] = .25 * (1 - c[0]) * (1 + c[1]); /// N4(q_0)
+template <>
+inline void
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const types::Vector<Real> & c,
+								types::Vector<Real> & N) {
+  N(0) = .25 * (1 - c(0)) * (1 - c(1)); /// N1(q_0)
+  N(1) = .25 * (1 + c(0)) * (1 - c(1)); /// N2(q_0)
+  N(2) = .25 * (1 + c(0)) * (1 + c(1)); /// N3(q_0)
+  N(3) = .25 * (1 - c(0)) * (1 + c(1)); /// N4(q_0)
 }
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_quadrangle_4>::computeDNDS(const Real * natural_coords,
-								 Real * dnds) {
-
+template <>
+inline void
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const types::Vector<Real> & c,
+							      types::Matrix<Real> & dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -98,40 +99,25 @@ template <> inline void ElementClass<_quadrangle_4>::computeDNDS(const Real * na
    * @f]
    */
 
-  const Real * c = natural_coords;
+  dnds(0, 0) = - .25 * (1 - c(1));
+  dnds(0, 1) =   .25 * (1 - c(1));
+  dnds(0, 2) =   .25 * (1 + c(1));
+  dnds(0, 3) = - .25 * (1 + c(1));
 
-  dnds[0] = - .25 * (1 - c[1]);
-  dnds[1] =   .25 * (1 - c[1]);
-  dnds[2] =   .25 * (1 + c[1]);
-  dnds[3] = - .25 * (1 + c[1]);
-
-  dnds[4] = - .25 * (1 - c[0]);
-  dnds[5] = - .25 * (1 + c[0]);
-  dnds[6] =   .25 * (1 + c[0]);
-  dnds[7] =   .25 * (1 - c[0]);
+  dnds(1, 0) = - .25 * (1 - c(0));
+  dnds(1, 1) = - .25 * (1 + c(0));
+  dnds(1, 2) =   .25 * (1 + c(0));
+  dnds(1, 3) =   .25 * (1 - c(0));
 }
 
-
 /* -------------------------------------------------------------------------- */
-template <> inline void ElementClass<_quadrangle_4>::computeJacobian(const Real * dxds,
-								   const UInt dimension,
-								   Real & jac){
-  if (dimension == spatial_dimension){
-    Real det_dxds = Math::det2(dxds);
-    jac = det_dxds;
-  } else {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
-}
-
-
-
-/* -------------------------------------------------------------------------- */
-template<> inline Real ElementClass<_quadrangle_4>::getInradius(const Real * coord) {
-  Real a = Math::distance_2d(coord + 0, coord + 2);
-  Real b = Math::distance_2d(coord + 2, coord + 4);
-  Real c = Math::distance_2d(coord + 4, coord + 6);
-  Real d = Math::distance_2d(coord + 6, coord + 0);
+template<>
+inline Real
+GeometricalElement<_gt_quadrangle_4>::getInradius(const types::Matrix<Real> & coord) {
+  Real a = coord(0).distance(coord(1));
+  Real b = coord(1).distance(coord(2));
+  Real c = coord(2).distance(coord(3));
+  Real d = coord(3).distance(coord(0));
 
   // Real septimetre = (a + b + c + d) / 2.;
 
@@ -145,14 +131,3 @@ template<> inline Real ElementClass<_quadrangle_4>::getInradius(const Real * coo
 
   return h;
 }
-
-/* -------------------------------------------------------------------------- */
-
-template<> inline bool ElementClass<_quadrangle_4>::contains(const types::RVector & natural_coords) {
-  if (natural_coords[0] < -1.) return false;
-  if (natural_coords[0] > 1.) return false;
-  if (natural_coords[1] < -1.) return false;
-  if (natural_coords[1] > 1.) return false;
-  return true;
-}
-/* -------------------------------------------------------------------------- */

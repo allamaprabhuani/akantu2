@@ -26,26 +26,29 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/iohelper)
+  option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" ON)
+  mark_as_advanced(AKANTU_USE_IOHELPER)
 
-option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" ON)
-mark_as_advanced(AKANTU_USE_IOHELPER)
+  if(AKANTU_USE_IOHELPER)
+    set(IOHELPER_TARGETS_EXPORT ${AKANTU_TARGETS_EXPORT})
+    add_subdirectory(third-party/iohelper)
 
-if(AKANTU_USE_IOHELPER)
-  set(IOHELPER_TARGETS_EXPORT ${AKANTU_TARGETS_EXPORT})
-  add_subdirectory(third-party/iohelper)
+    list(APPEND AKANTU_EXTERNAL_LIBRARIES iohelper)
+    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/iohelper/src)
 
-  list(APPEND AKANTU_EXTERNAL_LIBRARIES iohelper)
-  list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/iohelper/src)
+    set(AKANTU_IOHELPER_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/iohelper/src)
 
-  set(AKANTU_IOHELPER_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/iohelper/src)
+    list(APPEND AKANTU_EXPORT_LIST iohelper)
+    list(APPEND AKANTU_OPTION_LIST IOHELPER)
 
-  list(APPEND AKANTU_EXPORT_LIST iohelper)
-  list(APPEND AKANTU_OPTION_LIST IOHELPER)
-
-  mark_as_advanced(IOHELPER_TESTS)
-  set(AKANTU_IOHELPER ON)
+    mark_as_advanced(IOHELPER_TESTS)
+    set(AKANTU_IOHELPER ON)
+  else()
+    set(AKANTU_IOHELPER OFF)
+  endif()
 else()
-  set(AKANTU_IOHELPER OFF)
+  add_optional_external_package(IOHelper "Add IOHelper support in akantu" ON)
 endif()
 
 

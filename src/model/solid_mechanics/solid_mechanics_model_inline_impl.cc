@@ -136,6 +136,7 @@ inline void SolidMechanicsModel::packBarycenter(CommunicationBuffer & buffer,
     const Element & element = *bit;
     types::RVector barycenter(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
+    //    std::cout << ">> " << element << " -> " << barycenter << std::endl;
     buffer << barycenter;
   }
 }
@@ -198,7 +199,7 @@ inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
 
     types::RVector barycenter_loc(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
-
+    //    std::cout << "<< " << element << " -> " << barycenter_loc << std::endl;
     types::RVector barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;
