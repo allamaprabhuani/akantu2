@@ -469,7 +469,7 @@ public:
   /// get the mass matrix
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
-  inline FEM & getFEMBoundary(std::string name = "");
+  inline FEM & getFEMBoundary(const ID & name = "");
 
   /// get integrator
   AKANTU_GET_MACRO(Integrator, *integrator, const IntegrationScheme2ndOrder &);

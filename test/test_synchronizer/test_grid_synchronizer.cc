@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_grid.hh"
+#include "aka_grid_dynamic.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "grid_synchronizer.hh"
@@ -225,19 +225,15 @@ int main(int argc, char *argv[]) {
   mesh.getLowerBounds(lower_bounds);
   mesh.getUpperBounds(upper_bounds);
 
-  Real spacing[spatial_dimension];
+  types::Vector<Real> spacing(spatial_dimension);
+  types::Vector<Real> center(spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
     spacing[i] = (upper_bounds[i] - lower_bounds[i]) / 10.;
+    center[i] = (upper_bounds[i] + lower_bounds[i]) / 2.;
   }
 
-  Real local_lower_bounds[spatial_dimension];
-  Real local_upper_bounds[spatial_dimension];
-
-  mesh.getLocalLowerBounds(local_lower_bounds);
-  mesh.getLocalUpperBounds(local_upper_bounds);
-
-  RegularGrid<Element> grid(spatial_dimension, local_lower_bounds, local_upper_bounds, spacing);
+  SpacingGrid<Element> grid(spatial_dimension, spacing, center);
 
   GhostType ghost_type = _not_ghost;
 
@@ -246,12 +242,6 @@ int main(int argc, char *argv[]) {
 
   ByElementTypeReal barycenters("", "", 0);
   mesh.initByElementTypeVector(barycenters, spatial_dimension, 0);
-  // first generate the quad points coordinate and count the number of points per cell
-  for(; it != last_type; ++it) {
-    UInt nb_element = mesh.getNbElement(*it);
-    Vector<Real> & barycenter = barycenters(*it);
-    barycenter.resize(nb_element);
-  }
 
   Element e;
   e.ghost_type = ghost_type;
@@ -261,6 +251,8 @@ int main(int argc, char *argv[]) {
     UInt nb_element = mesh.getNbElement(*it);
     e.type = *it;
     Vector<Real> & barycenter = barycenters(*it);
+    barycenter.resize(nb_element);
+
     Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
     for (UInt elem = 0; elem < nb_element; ++elem) {
       mesh.getBarycenter(elem, *it, bary_it->storage());
@@ -269,7 +261,6 @@ int main(int argc, char *argv[]) {
       ++bary_it;
     }
   }
-  //  grid.endInsertions();
 
   MeshIOMSH mesh_io;
 
@@ -291,7 +282,6 @@ int main(int argc, char *argv[]) {
 
   AKANTU_DEBUG_INFO("Synchronizing tag");
   synch_registry.synchronize(_gst_test);
-
 
 #ifdef AKANTU_USE_IOHELPER
   try {

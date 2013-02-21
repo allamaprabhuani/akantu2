@@ -46,7 +46,7 @@ RegularGrid<T>::RegularGrid(UInt dimension, Real * lower_bounds,
   for (UInt i = 0; i < dimension; ++i) {
     // +2 to add an extra cell on each side
 
-    this->nb_cells[i] = UInt(std::ceil((upper_bounds[i] - lower_bounds[i]) / spacing[i]) + 2);
+    this->nb_cells[i] = UInt(std::ceil((upper_bounds[i] - lower_bounds[i]) / spacing[i])) + 2;
     this->lower_bounds[i] = lower_bounds[i] - spacing[i];
     this->upper_bounds[i] = this->lower_bounds[i] + this->nb_cells[i] * spacing[i];
 
@@ -140,10 +140,13 @@ inline typename RegularGrid<T>::const_iterator RegularGrid<T>::endCell(const typ
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void RegularGrid<T>::insert(const T & d, const types::RVector & position) {
-  UInt num_cell = getCell(position).id;
+  Cell cell = getCell(position);
+  UInt num_cell = cell.id;
   AKANTU_DEBUG_ASSERT(num_cell < total_nb_cells,
-		      "The position is not in the grid (" << num_cell
-		      << " > " << total_nb_cells << ") : " << position);
+		      "The position of " << d << " is not in the grid (" << num_cell
+		      << " > " << total_nb_cells << ") ["
+		      << cell.position[0] << ", " << cell.position[1] << ", "<< cell.position[2] << "] : "
+		      << position << " -- grid info " << *this);
   data(num_cell).push_back(d);
 }
 
@@ -280,6 +283,13 @@ void RegularGrid<T>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
+  std::streamsize prec        = stream.precision();
+  std::ios_base::fmtflags ff  = stream.flags();
+
+  stream.setf (std::ios_base::showbase);
+  stream.precision(5);
+
+
   stream << space << "RegularGrid<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
   stream << space << " + dimension    : " << this->dimension << std::endl;
   stream << space << " + lower_bounds : {"
@@ -299,6 +309,9 @@ void RegularGrid<T>::printself(std::ostream & stream, int indent) const {
 	 << this->nb_cells[1] << ", "
 	 << this->nb_cells[2] << "}" << std::endl;
   stream << space << "]" << std::endl;
+
+  stream.precision(prec);
+  stream.flags(ff);
 
 }
 

@@ -901,7 +901,7 @@ void DistributedSynchronizer::printself(std::ostream & stream, int indent) const
 /* -------------------------------------------------------------------------- */
 void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_to_remove,
 						const ByElementTypeUInt & new_numbering,
-						const RemovedElementsEvent & event) {
+						__attribute__((unused)) const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();

@@ -212,7 +212,7 @@ void Mesh::computeBoundingBox(){
   }
 
   for (UInt i = 0; i < nodes->getSize(); ++i) {
-    if(!isPureGhostNode(i))
+    //    if(!isPureGhostNode(i))
       for (UInt k = 0; k < spatial_dimension; ++k) {
         local_lower_bounds[k] = std::min(local_lower_bounds[k], (*nodes)(i, k));
         local_upper_bounds[k] = std::max(local_upper_bounds[k], (*nodes)(i, k));

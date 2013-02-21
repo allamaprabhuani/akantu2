@@ -163,7 +163,7 @@ enum GeometricalType {
   _gt_cohesive_2d_4,     ///< 4 nodes 2D cohesive
   _gt_cohesive_2d_6,     ///< 6 nodes 2D cohesive
 #endif
-  _gt_not_defined,
+  _gt_not_defined
 };
 
 /// @enum InterpolationType type of elements

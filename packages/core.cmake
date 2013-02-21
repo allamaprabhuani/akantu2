@@ -186,20 +186,20 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   )
 
- include(CheckCXXCompilerFlag)
- check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
- if (HAVE_NEW_STD)
-    list(APPEND AKANTU_CORE_FILES
-    common/aka_point.hh
-    common/aka_bounding_box.hh
-    common/aka_bounding_box.cc
-    common/aka_geometry.hh
-    common/aka_geometry.cc
-)
-    add_definitions(-std=c++0x)
-  else()
-    message(WARNING "*** WARNING *** Compiler does not support c++11 set of requirements.")
-  endif()
+#include(CheckCXXCompilerFlag)
+#check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
+#if (HAVE_NEW_STD)
+#  list(APPEND AKANTU_CORE_FILES
+#    common/aka_point.hh
+#    common/aka_bounding_box.hh
+#    common/aka_bounding_box.cc
+#    common/aka_geometry.hh
+#    common/aka_geometry.cc
+#    )
+#  add_definitions(-std=c++0x)
+#else()
+#  message(WARNING "*** WARNING *** Compiler does not support c++11 set of requirements.")
+#endif()
 
 set(AKANTU_CORE_DEB_DEPEND
   libboost-dev

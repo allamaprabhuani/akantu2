@@ -35,6 +35,7 @@ __BEGIN_AKANTU__
 
 template<typename T, bool is_scal = is_scalar<T>::value > class Vector;
 
+template <class T> class SpatialGrid;
 
 __END_AKANTU__
 

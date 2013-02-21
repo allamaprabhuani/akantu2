@@ -48,7 +48,7 @@ inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
 
 
 /* -------------------------------------------------------------------------- */
-inline FEM & SolidMechanicsModel::getFEMBoundary(std::string name) {
+inline FEM & SolidMechanicsModel::getFEMBoundary(const ID & name) {
   return dynamic_cast<FEM &>(getFEMClassBoundary<MyFEMType>(name));
 }
 

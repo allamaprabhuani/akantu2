@@ -82,7 +82,7 @@ inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
   return type_cohesive;
 }
 #else
-inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
+inline ElementType FEM::getCohesiveElementType(__attribute__((unused)) const ElementType & type_facet) {
   return _not_defined;
 }
 #endif

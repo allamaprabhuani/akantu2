@@ -97,7 +97,7 @@ template< GeometricalType geometrical_type,
 class GeometricalElement {
 public:
   /// compute the in-radius
-  static inline Real getInradius(const types::Matrix<Real> & coord) {
+  static inline Real getInradius(__attribute__((unused)) const types::Matrix<Real> & coord) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -145,8 +145,8 @@ public:
 				   types::Matrix<Real> & N);
 
   /// compute the shape values for a given point in natural coordinates
-  static inline void computeShapes(const types::Vector<Real> & natural_coord,
-				   types::Vector<Real> & N) {
+  static inline void computeShapes(__attribute__((unused)) const types::Vector<Real> & natural_coord,
+				   __attribute__((unused)) types::Vector<Real> & N) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -162,15 +162,15 @@ public:
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  static inline void computeDNDS(const types::Vector<Real> & natural_coord,
-				 types::Matrix<Real> & dnds) {
+  static inline void computeDNDS(__attribute__((unused)) const types::Vector<Real> & natural_coord,
+				 __attribute__((unused)) types::Matrix<Real> & dnds) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
-  static inline void computeSpecialJacobian(const types::Matrix<Real> & J,
-					    Real & jacobians) {
+  static inline void computeSpecialJacobian(__attribute__((unused)) const types::Matrix<Real> & J,
+					    __attribute__((unused)) Real & jacobians) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

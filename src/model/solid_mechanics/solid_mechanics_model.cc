@@ -1199,12 +1199,10 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list,
+void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Vector<Element> & element_list,
 					    const ByElementTypeUInt & new_numbering,
 					    const RemovedElementsEvent & event) {
-  std::cout << "NbNodes before purify " <<  mesh.getNbNodes() << std::endl;
   //  MeshUtils::purifyMesh(mesh);
-  std::cout << "NbNodes after purify " <<  mesh.getNbNodes() << std::endl;
 
   getFEM().initShapeFunctions(_not_ghost);
   getFEM().initShapeFunctions(_ghost);
@@ -1216,12 +1214,10 @@ void SolidMechanicsModel::onElementsRemoved(const Vector<Element> & element_list
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onNodesRemoved(const Vector<UInt> & element_list,
+void SolidMechanicsModel::onNodesRemoved(__attribute__((unused)) const Vector<UInt> & element_list,
 					 const Vector<UInt> & new_numbering,
 					 __attribute__((unused)) const RemovedNodesEvent & event) {
-  std::cout << "NbNodes in u before purify " <<  displacement->getSize() << " " << element_list.getSize() << " " << mesh.getNbNodes() << std::endl;
   if(displacement) mesh.removeNodesFromVector(*displacement, new_numbering);
-  std::cout << "NbNodes in u after purify " <<  displacement->getSize() << std::endl;
   if(mass        ) mesh.removeNodesFromVector(*mass        , new_numbering);
   if(velocity    ) mesh.removeNodesFromVector(*velocity    , new_numbering);
   if(acceleration) mesh.removeNodesFromVector(*acceleration, new_numbering);

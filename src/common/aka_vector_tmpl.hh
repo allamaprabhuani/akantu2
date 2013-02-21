@@ -502,7 +502,9 @@ template<>
 class VectorPrintHelper<false> {
 public:
   template<typename T>
-  static void print_content(const Vector<T> & vect, std::ostream & stream, int indent) { }
+  static void print_content(__attribute__((unused)) const Vector<T> & vect,
+			    __attribute__((unused)) std::ostream & stream,
+			    __attribute__((unused)) int indent) { }
 };
 
 
@@ -561,6 +563,7 @@ public:
   typedef R                               value_type;
   typedef R*                              pointer;
   typedef R&                              reference;
+  typedef const R&                        const_reference;
   typedef IR                              internal_value_type;
   typedef IR*                             internal_pointer;
   typedef std::ptrdiff_t                  difference_type;
@@ -618,7 +621,7 @@ public:
   }
 
   inline reference operator*() { return *ret; };
-  inline const reference operator*() const { return *ret; };
+  inline const_reference operator*() const { return *ret; };
   inline pointer operator->() { return ret; };
   inline iterator_internal & operator++() { ret->values += _offset; return *this; };
   inline iterator_internal & operator--() { ret->values -= _offset; return *this; };
@@ -627,7 +630,7 @@ public:
   inline iterator_internal & operator-=(const UInt n) { ret->values -= _offset * n; return *this; }
 
   inline reference operator[](const UInt n) { ret->values = initial + n*_offset; return *ret; }
-  inline const reference operator[](const UInt n) const { ret->values = initial + n*_offset; return *ret; }
+  inline const_reference operator[](const UInt n) const { ret->values = initial + n*_offset; return *ret; }
 
   inline bool operator==(const iterator_internal & other) const { return (*this).ret->storage() == other.ret->storage(); }
   inline bool operator!=(const iterator_internal & other) const { return (*this).ret->storage() != other.ret->storage(); }
@@ -829,6 +832,7 @@ public:
   typedef R                               value_type;
   typedef R*                              pointer;
   typedef R&                              reference;
+  typedef const R&                        const_reference;
   typedef IR                              internal_value_type;
   typedef IR*                             internal_pointer;
   typedef std::ptrdiff_t                  difference_type;
@@ -852,7 +856,7 @@ public:
   { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
 
   inline reference operator*() { return *ret; };
-  inline const reference operator*() const { return *ret; };
+  inline const_reference operator*() const { return *ret; };
   inline pointer operator->() { return ret; };
   inline iterator_internal & operator++() { ++ret; return *this; };
   inline iterator_internal & operator--() { --ret; return *this; };

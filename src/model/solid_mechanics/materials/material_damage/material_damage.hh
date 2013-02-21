@@ -75,6 +75,9 @@ public:
   Real getDissipatedEnergy() const;
 
   virtual Real getEnergy(std::string type);
+  virtual Real getEnergy(std::string energy_id, ElementType type, UInt index) {
+    return Parent<spatial_dimension>::getEnergy(energy_id, type, index);
+  };
 
   AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ByElementTypeReal &);
   AKANTU_GET_MACRO(Damage, damage, const ByElementTypeReal &);

@@ -277,8 +277,8 @@ inline const Vector<UInt> & Mesh::getUIntData(const ElementType & el_type,
   const UIntDataMap & map = uint_data(el_type, ghost_type);
   UIntDataMap::const_iterator it = map.find(data_name);
 
-  AKANTU_DEBUG_ASSERT(it != map.end(),
-		      "No data named " << data_name << " in the mesh " << id);
+  if(it == map.end())
+    AKANTU_EXCEPTION("No data named " << data_name << " in the mesh " << id);
 
   AKANTU_DEBUG_OUT();
   return *(it->second);
@@ -402,15 +402,16 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
 inline types::Matrix<UInt> Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
+  types::Matrix<UInt> mat;
 
 #define GET_FACET_CON(type)						\
-  return ElementClass<type>::getFacetLocalConnectivityPerElement()
+  mat = ElementClass<type>::getFacetLocalConnectivityPerElement()
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_FACET_CON);
 #undef GET_FACET_CON
 
   AKANTU_DEBUG_OUT();
-  return types::Matrix<UInt>();
+  return mat;
 }
 
 /* -------------------------------------------------------------------------- */

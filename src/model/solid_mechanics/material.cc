@@ -622,8 +622,8 @@ Real Material::getPotentialEnergy() {
   AKANTU_DEBUG_OUT();
   return epot;
 }
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 Real Material::getPotentialEnergy(ElementType & type, UInt index) {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
@@ -638,7 +638,6 @@ Real Material::getPotentialEnergy(ElementType & type, UInt index) {
   return epot;
 }
 
-
 /* -------------------------------------------------------------------------- */
 Real Material::getEnergy(std::string type) {
   AKANTU_DEBUG_IN();
@@ -648,7 +647,6 @@ Real Material::getEnergy(std::string type) {
 }
 
 /* -------------------------------------------------------------------------- */
-
 Real Material::getEnergy(std::string energy_id, ElementType type, UInt index) {
   AKANTU_DEBUG_IN();
   if(energy_id == "potential") return getPotentialEnergy(type, index);

@@ -31,6 +31,7 @@
 #include "aka_common.hh"
 #include "material.hh"
 #include "aka_grid.hh"
+#include "aka_grid_dynamic.hh"
 #include "fem.hh"
 
 #include "weight_function.hh"
@@ -131,7 +132,7 @@ public:
 
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
   AKANTU_GET_MACRO(Radius, radius, Real);
-  AKANTU_GET_MACRO(CellList, *cell_list, const RegularGrid<QuadraturePoint> &)
+  AKANTU_GET_MACRO(CellList, *spatial_grid, const SpatialGrid<QuadraturePoint> &)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -150,7 +151,7 @@ private:
   PairList<Real> pair_weight;
 
   /// the regular grid to construct/update the pair lists
-  RegularGrid<QuadraturePoint> * cell_list;
+  SpatialGrid<QuadraturePoint> * spatial_grid;
 
   /// the types of the existing pairs
   typedef std::set< std::pair<ElementType, ElementType> > pair_type;

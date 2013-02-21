@@ -46,7 +46,7 @@ __BEGIN_AKANTU__
 template<UInt DIM, template <UInt> class WeightFunction>
 MaterialNonLocal<DIM, WeightFunction>::MaterialNonLocal(SolidMechanicsModel & model,
 							const ID & id)  :
-  Material(model, id), radius(100.), weight_func(NULL), cell_list(NULL),
+  Material(model, id), radius(100.), weight_func(NULL), spatial_grid(NULL),
   update_weights(0), compute_stress_calls(0), is_creating_grid(false), grid_synchronizer(NULL) {
   AKANTU_DEBUG_IN();
 
@@ -66,7 +66,7 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 MaterialNonLocal<spatial_dimension, WeightFunction>::~MaterialNonLocal() {
   AKANTU_DEBUG_IN();
 
-  delete cell_list;
+  delete spatial_grid;
   delete weight_func;
   delete grid_synchronizer;
 
@@ -82,7 +82,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
 
   ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
   this->initInternalVector(quadrature_points_coordinates, spatial_dimension, true);
-  computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
 
   ByElementType<UInt> nb_ghost_protected;
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost);
@@ -94,8 +93,11 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   createCellList(quadrature_points_coordinates);
   updatePairList(quadrature_points_coordinates);
 
-  cleanupExtraGhostElement(nb_ghost_protected);
+#if not defined(AKANTU_NDEBUG)
+  neighbourhoodStatistics("material_non_local.stats");
+#endif
 
+  //  cleanupExtraGhostElement(nb_ghost_protected);
   weight_func->setRadius(radius);
   weight_func->init();
 
@@ -193,31 +195,53 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
   mesh.getLocalLowerBounds(lower_bounds);
   mesh.getLocalUpperBounds(upper_bounds);
 
-  Real spacing[spatial_dimension];
+  types::Vector<Real> spacing(spatial_dimension, radius * safety_factor);
+
+  types::Vector<Real> center(spatial_dimension);
   for (UInt i = 0; i < spatial_dimension; ++i) {
-    spacing[i] = radius * safety_factor;
+    center(i) = (upper_bounds[i] + lower_bounds[i]) / 2.;
   }
 
-  cell_list = new RegularGrid<QuadraturePoint>(spatial_dimension,
-					       lower_bounds,
-					       upper_bounds,
-					       spacing);
+  spatial_grid = new SpatialGrid<QuadraturePoint>(spatial_dimension, spacing, center);
 
-
+  computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
   fillCellList(quadrature_points_coordinates, _not_ghost);
 
   is_creating_grid = true;
   SynchronizerRegistry & synch_registry = this->model->getSynchronizerRegistry();
   std::stringstream sstr; sstr << id << ":grid_synchronizer";
   grid_synchronizer = GridSynchronizer::createGridSynchronizer(mesh,
-							       *cell_list,
+							       *spatial_grid,
 							       sstr.str());
   synch_registry.registerSynchronizer(*grid_synchronizer, _gst_mnl_for_average);
   synch_registry.registerSynchronizer(*grid_synchronizer, _gst_mnl_weight);
   is_creating_grid = false;
 
+#if not defined(AKANTU_NDEBUG)
+  Mesh * mesh_tmp = new Mesh(spatial_dimension, "mnl_grid");
+  spatial_grid->saveAsMesh(*mesh_tmp);
+  std::stringstream sstr_grid;
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int prank = comm.whoAmI();
+
+  sstr_grid << "material_non_local_grid_" << std::setfill('0') << std::setw(4) << prank << ".msh";
+  mesh_tmp->write(sstr_grid.str());
+  delete mesh_tmp;
+#endif
+
   this->computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
   fillCellList(quadrature_points_coordinates, _ghost);
+
+#if not defined(AKANTU_NDEBUG)
+  mesh_tmp = new Mesh(spatial_dimension, "mnl_grid");
+  spatial_grid->saveAsMesh(*mesh_tmp);
+
+  sstr_grid.str(std::string());
+  sstr_grid << "material_non_local_grid_ghost_" << std::setfill('0') << std::setw(4) << prank << ".msh";
+
+  mesh_tmp->write(sstr_grid.str());
+  delete mesh_tmp;
+#endif
 
   AKANTU_DEBUG_OUT();
 }
@@ -249,7 +273,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByE
       for (UInt nq = 0; nq < nb_quad; ++nq) {
 	q.num_point = nq;
 	q.setPosition(*quad);
-	cell_list->insert(q, *quad);
+	spatial_grid->insert(q, *quad);
 	++quad;
       }
       ++elem;
@@ -270,7 +294,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
   // generate the pair of neighbor depending of the cell_list
   Mesh::type_iterator it        = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
-
   for(; it != last_type; ++it) {
     // Preparing datas
     const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
@@ -292,20 +315,20 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 
     // loop over quad points
     for(;first_quad != last_quad; ++first_quad, ++my_num_quad) {
-      RegularGrid<QuadraturePoint>::Cell cell = cell_list->getCell(*first_quad);
+      SpatialGrid<QuadraturePoint>::CellID cell_id = spatial_grid->getCellID(*first_quad);
 
-      RegularGrid<QuadraturePoint>::neighbor_cells_iterator first_neigh_cell =
-      cell_list->beginNeighborCells(cell);
-      RegularGrid<QuadraturePoint>::neighbor_cells_iterator last_neigh_cell =
-      cell_list->endNeighborCells(cell);
+      SpatialGrid<QuadraturePoint>::neighbor_cells_iterator first_neigh_cell =
+        spatial_grid->beginNeighborCells(cell_id);
+      SpatialGrid<QuadraturePoint>::neighbor_cells_iterator last_neigh_cell =
+        spatial_grid->endNeighborCells(cell_id);
 
       // loop over neighbors cells of the one containing the current quadrature
       // point
       for (; first_neigh_cell != last_neigh_cell; ++first_neigh_cell) {
-	RegularGrid<QuadraturePoint>::iterator first_neigh_quad =
-	cell_list->beginCell(*first_neigh_cell);
-	RegularGrid<QuadraturePoint>::iterator last_neigh_quad =
-	cell_list->endCell(*first_neigh_cell);
+	SpatialGrid<QuadraturePoint>::Cell::iterator first_neigh_quad =
+          spatial_grid->beginCell(*first_neigh_cell);
+	SpatialGrid<QuadraturePoint>::Cell::iterator last_neigh_quad =
+          spatial_grid->endCell(*first_neigh_cell);
 
 	// loop over the quadrature point in the current cell of the cell list
 	for (;first_neigh_quad != last_neigh_quad; ++first_neigh_quad){
@@ -330,8 +353,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 				  current_ghost_type));
 	    }
 	    existing_pairs[existing_pairs_num].insert(std::pair<ElementType,
-								ElementType>(*it,
-											  current_element_type));
+                                                      ElementType>(*it,
+                                                                   current_element_type));
 	    element_index_material2 =
 	      &(this->model->getElementIndexByMaterial(current_element_type,
 						       current_ghost_type));

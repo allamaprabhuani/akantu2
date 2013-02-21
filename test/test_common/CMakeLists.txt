@@ -26,8 +26,9 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
+add_mesh(test_grid_mesh circle.geo 2 1)
 add_akantu_test(test_vector "Test akantu vector")
 
 register_test(test_csr   test_csr.cc)
-register_test(test_grid test_grid.cc)
+register_test(test_grid test_grid.cc
+  DEPENDENCIES test_grid_mesh)

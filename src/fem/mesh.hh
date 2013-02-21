@@ -47,6 +47,8 @@
 
 __BEGIN_AKANTU__
 
+
+
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -481,6 +483,7 @@ private:
   friend class MeshIODiana;
   friend class MeshUtils;
   friend class DistributedSynchronizer;
+  template<class T> friend class SpatialGrid;
 
   AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
 

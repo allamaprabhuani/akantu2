@@ -192,7 +192,7 @@ public:
   typedef parent::internal_iterator internal_iterator;
 public:
   element_partition_field_iterator(const field_type & field,
-				   UInt n,
+				   __attribute__((unused)) UInt n,
 				   const field_type::type_iterator & t_it,
 				   const field_type::type_iterator & t_it_end,
 				   const internal_iterator & it,

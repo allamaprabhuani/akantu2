@@ -41,7 +41,7 @@ __BEGIN_AKANTU__
 
 class Mesh;
 template<class T>
-class RegularGrid;
+class SpatialGrid;
 
 class GridSynchronizer : public DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
@@ -60,7 +60,7 @@ public:
   template <class E>
   static GridSynchronizer *
   createGridSynchronizer(Mesh & mesh,
-			 const RegularGrid<E> & grid,
+			 const SpatialGrid<E> & grid,
 			 SynchronizerID id = "grid_synchronizer",
 			 MemoryID memory_id = 0);
 

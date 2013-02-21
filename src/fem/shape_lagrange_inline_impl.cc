@@ -68,10 +68,10 @@ ShapeLagrange<kind>::initShapeFunctions(const Vector<Real> & nodes,
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-ShapeLagrange<_ek_structural>::initShapeFunctions(const Vector<Real> & nodes,
-						  const types::Matrix<Real> & control_points,
-						  const ElementType & type,
-						  const GhostType & ghost_type) {
+ShapeLagrange<_ek_structural>::initShapeFunctions(__attribute__((unused)) const Vector<Real> & nodes,
+						  __attribute__((unused)) const types::Matrix<Real> & control_points,
+						  __attribute__((unused)) const ElementType & type,
+						  __attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

@@ -175,8 +175,8 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const types::Vector<
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(const types::Matrix<Real> & dxds,
-								       Real & jac){
+InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(__attribute__((unused)) const types::Matrix<Real> & dxds,
+								       __attribute__((unused)) Real & jac){
   AKANTU_DEBUG_ERROR("to implement");
 }
 

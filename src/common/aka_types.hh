@@ -75,7 +75,7 @@ namespace types {
       std::fill_n(values, n, def);
     }
 
-    Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {}
+    explicit Vector(T* data, UInt n) : n(n), values(data), wrapped(true) {}
 
     Vector(const Vector & src) {
       wrapped = src.wrapped;
@@ -242,12 +242,12 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << "types::Vector<" << debug::demangle(typeid(T).name()) << "> [" << n <<"] :" << std::endl;
-      stream << space << AKANTU_INDENT << "| ";
+      stream << space << "Vector<" << debug::demangle(typeid(T).name()) << ">(" << n <<") : [";
       for (UInt i = 0; i < n; ++i) {
-	stream << values[i] << " ";
+        if(i != 0) stream << ", ";
+	stream << values[i];
       }
-      stream << "|" << std::endl;
+      stream << "]";
     }
 
     friend class ::akantu::Vector<T>;
@@ -524,14 +524,18 @@ namespace types {
       std::string space;
       for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-      stream << space << "types::Matrix" << " [" << n << "," << m <<"] :" << std::endl;
+      stream << space << "Matrix<" << debug::demangle(typeid(T).name())
+             << ">(" << n << "," << m <<") :" << "[";
       for (UInt i = 0; i < m; ++i) {
-	stream << space << AKANTU_INDENT << "| ";
+        if(i != 0) stream << ", ";
+        stream << "[";
 	for (UInt j = 0; j < n; ++j) {
-	  stream << std::setw(10) << operator()(i, j) << " ";
+          if(j != 0) stream << ", ";
+	  stream << operator()(i, j);
 	}
-	stream << "|" << std::endl;
+	stream << "]";
       }
+      stream << "]";
     };
 
     friend class ::akantu::Vector<T>;

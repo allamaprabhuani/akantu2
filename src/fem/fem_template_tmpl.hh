@@ -902,6 +902,7 @@ __END_AKANTU__
 #include "shape_linked.hh"
 __BEGIN_AKANTU__
 
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
 /* -------------------------------------------------------------------------- */
 template <>
 inline const Vector<Real> &
@@ -920,3 +921,4 @@ FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(
   AKANTU_DEBUG_OUT();
   return *ret;
 }
+#endif

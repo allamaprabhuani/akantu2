@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "grid_synchronizer.hh"
-#include "aka_grid.hh"
+#include "aka_grid_dynamic.hh"
 #include "mesh.hh"
 #include "fem.hh"
 #include "static_communicator.hh"
@@ -54,7 +54,7 @@ GridSynchronizer::GridSynchronizer(Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <class E>
 GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
-                                                            const RegularGrid<E> & grid,
+                                                            const SpatialGrid<E> & grid,
                                                             SynchronizerID id,
                                                             MemoryID memory_id) {
   AKANTU_DEBUG_IN();
@@ -74,11 +74,15 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   // mesh.getLocalLowerBounds(my_bounding_box);
   // mesh.getLocalUpperBounds(my_bounding_box + spatial_dimension);
 
-  grid.getLocalLowerBounds(my_bounding_box);
-  grid.getLocalUpperBounds(my_bounding_box + spatial_dimension);
+  const types::Vector<Real> & lower = grid.getLowerBounds();
+  const types::Vector<Real> & upper = grid.getUpperBounds();
 
-  Real spacing[spatial_dimension];
-  grid.getSpacing(spacing);
+  for (UInt i = 0; i < spatial_dimension; ++i) {
+    my_bounding_box[i                    ] = lower(i);
+    my_bounding_box[spatial_dimension + i] = upper(i);
+  }
+
+  const types::Vector<Real> & spacing = grid.getSpacing();
 
   AKANTU_DEBUG_INFO("Exchange of bounding box to detect the overlapping regions.");
 
@@ -154,20 +158,20 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         }
 
 
-        first_cell_p[s] = grid.getCell(start + spacing[s]/100., s);
-        last_cell_p [s] = grid.getCell(end - spacing[s]/100., s);
+        first_cell_p[s] = grid.getCellID(start + spacing[s]/100., s);
+        last_cell_p [s] = grid.getCellID(end - spacing[s]/100., s);
       }
     }
 
     //create the list of cells in the overlapping
-    typedef typename RegularGrid<E>::Cell Cell;
+    typedef typename SpatialGrid<E>::CellID CellID;
 
-    std::vector<Cell> * cells = new std::vector<Cell>;
+    std::vector<CellID> * cell_ids = new std::vector<CellID>;
 
     if(intersects_proc[p]) {
       AKANTU_DEBUG_INFO("I intersects with processor " << p);
 
-      Cell cell(grid);
+      CellID cell_id(spatial_dimension);
 
       // for (UInt i = 0; i < spatial_dimension; ++i) {
       //   if(first_cell_p[i] != 0) --first_cell_p[i];
@@ -175,22 +179,19 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       // }
 
       for (UInt fd = first_cell_p[0]; fd <= last_cell_p[0]; ++fd) {
-        cell.position[0] = fd;
+        cell_id.setID(0, fd);
         if(spatial_dimension == 1) {
-	  cell.updateID();
-          cells->push_back(cell);
+          cell_ids->push_back(cell_id);
 	}
         else {
           for (UInt sd = first_cell_p[1]; sd <= last_cell_p[1] ; ++sd) {
-            cell.position[1] = sd;
+            cell_id.setID(1, sd);
             if(spatial_dimension == 2) {
-	      cell.updateID();
-              cells->push_back(cell);
+              cell_ids->push_back(cell_id);
             } else {
               for (UInt ld = first_cell_p[2]; fd <= last_cell_p[2] ; ++ld) {
-                cell.position[2] = ld;
-		cell.updateID();
-                cells->push_back(cell);
+                cell_id.setID(2, ld);
+                cell_ids->push_back(cell_id);
               }
             }
           }
@@ -198,13 +199,13 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       }
 
       // get the list of elements in the cells of the overlapping
-      typename std::vector<Cell>::iterator cur_cell = cells->begin();
-      typename std::vector<Cell>::iterator last_cell = cells->end();
-      std::set<Element, CompElementLess> * to_send = new std::set<Element, CompElementLess>();
+      typename std::vector<CellID>::iterator cur_cell_id = cell_ids->begin();
+      typename std::vector<CellID>::iterator last_cell_id = cell_ids->end();
+      std::set<Element> * to_send = new std::set<Element>();
 
-      for (; cur_cell != last_cell; ++cur_cell) {
-        typename RegularGrid<E>::const_iterator cur_elem = grid.beginCell(*cur_cell);
-        typename RegularGrid<E>::const_iterator last_elem = grid.endCell(*cur_cell);
+      for (; cur_cell_id != last_cell_id; ++cur_cell_id) {
+        typename SpatialGrid<E>::Cell::const_iterator cur_elem = grid.beginCell(*cur_cell_id);
+        typename SpatialGrid<E>::Cell::const_iterator last_elem = grid.endCell(*cur_cell_id);
 
         for (; cur_elem != last_elem; ++cur_elem) {
           to_send->insert(*cur_elem);
@@ -213,7 +214,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
       AKANTU_DEBUG_INFO("I have prepared " << to_send->size() << " elements to send to processor " << p);
 
-      delete cells;
+      delete cell_ids;
 
       std::stringstream sstr; sstr << "element_per_proc_" << p;
       element_per_proc[p] = new ByElementTypeUInt(sstr.str(), id);
@@ -467,12 +468,12 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template GridSynchronizer *
 GridSynchronizer::createGridSynchronizer<QuadraturePoint>(Mesh & mesh,
-                                                          const RegularGrid<QuadraturePoint> & grid,
+                                                          const SpatialGrid<QuadraturePoint> & grid,
                                                           SynchronizerID id,
                                                           MemoryID memory_id);
 template GridSynchronizer *
 GridSynchronizer::createGridSynchronizer<Element>(Mesh & mesh,
-                                                  const RegularGrid<Element> & grid,
+                                                  const SpatialGrid<Element> & grid,
                                                   SynchronizerID id,
                                                   MemoryID memory_id);
 

@@ -46,10 +46,10 @@ ShapeLinked<kind>::initShapeFunctions(const Vector<Real> & nodes,
 
 template <>
 inline void
-ShapeLinked<_ek_structural>::initShapeFunctions(const Vector<Real> & nodes,
-						const types::Matrix<Real> & control_points,
-						const ElementType & type,
-						const GhostType & ghost_type) {
+ShapeLinked<_ek_structural>::initShapeFunctions(__attribute__((unused)) const Vector<Real> & nodes,
+						__attribute__((unused)) const types::Matrix<Real> & control_points,
+						__attribute__((unused)) const ElementType & type,
+						__attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 }
 

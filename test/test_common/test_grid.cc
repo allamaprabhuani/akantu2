@@ -31,37 +31,79 @@
 #include <iostream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_grid.hh"
+#include "aka_grid_dynamic.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
+  const UInt spatial_dimension = 2;
   akantu::initialize(argc, argv);
 
-  Real lower[3] = {-1.1, 0.2, -2.};
-  Real upper[3] = {1.1, 1.9, 2.};
+  Mesh circle(spatial_dimension);
+  circle.read("circle.msh");
 
-  Real spacing[3] = {0.3, 0.05, 0.5};
+  Real lower[spatial_dimension];
+  Real upper[spatial_dimension];
 
-  RegularGrid<Real> grid(3, lower, upper, spacing);
+  circle.computeBoundingBox();
+  circle.getLocalLowerBounds(lower);
+  circle.getLocalUpperBounds(upper);
+
+  Real spacing[spatial_dimension] = {0.2, 0.2};
+
+  types::Vector<Real> l(lower, spatial_dimension);
+  types::Vector<Real> u(upper, spatial_dimension);
+
+  types::Vector<Real> s(spacing, spatial_dimension);
+
+  types::Vector<Real> c = u;
+  c += l;
+  c /= 2.;
+
+  SpatialGrid<Element> grid(spatial_dimension, s, c);
+
+  types::RVector bary(spatial_dimension);
+  Element el;
+  el.ghost_type = _not_ghost;
+
+  Mesh::type_iterator it        = circle.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = circle.lastType (spatial_dimension);
+  for(; it != last_type; ++it) {
+    UInt nb_element = circle.getNbElement(*it);
+    el.type = *it;
+
+    for (UInt e = 0; e < nb_element; ++e) {
+      circle.getBarycenter(e, el.type, bary.storage());
+      el.element = e;
+      grid.insert(el, bary);
+    }
+  }
 
   std::cout << grid << std::endl;
-
-  Mesh mesh(3);
-
+  Mesh mesh(spatial_dimension, "save");
   grid.saveAsMesh(mesh);
-  MeshIOMSH mesh_io;
-  mesh_io.write("grid.msh", mesh);
+  mesh.write("grid.msh");
 
-  types::Vector<Real> position(3);
+  types::Vector<Real> pos(spatial_dimension);
 
-  position(0) = 0.;
-  position(0) = 0.2;
-  position(0) = 0.;
+  const SpatialGrid<Element>::CellID & id = grid.getCellID(pos);
 
-  grid.insert(0., position);
+  SpatialGrid<Element>::neighbor_cells_iterator nit = grid.beginNeighborCells(id);
+  SpatialGrid<Element>::neighbor_cells_iterator nend = grid.endNeighborCells(id);
+
+  for(;nit != nend; ++nit) {
+    std::cout << std::endl;
+    const SpatialGrid<Element>::Cell & cell = grid.getCell(*nit);
+    SpatialGrid<Element>::Cell::const_iterator cit = cell.begin();
+    SpatialGrid<Element>::Cell::position_iterator pit = cell.begin_pos();
+    SpatialGrid<Element>::Cell::const_iterator cend = cell.end();
+    for (; cit != cend; ++cit, ++pit) {
+      std::cout << *cit << " " << *pit << std::endl;
+    }
+  }
+
 
 
   akantu::finalize();

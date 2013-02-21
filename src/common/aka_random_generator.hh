@@ -69,7 +69,10 @@ public:
   
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
-    stream << "seed=" << seed;
+    std::string space;
+    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+    stream << space << "seed=" << seed;
   }
   
   /* ------------------------------------------------------------------------ */
