@@ -37,6 +37,4 @@ add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl"
   PACKAGE implicit)
 add_akantu_test(test_cohesive_parallel_intrinsic "test_cohesive_parallel_intrinsic"
   PACKAGE parallel)
-add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic"
-  PACKAGE parallel)
 #===============================================================================

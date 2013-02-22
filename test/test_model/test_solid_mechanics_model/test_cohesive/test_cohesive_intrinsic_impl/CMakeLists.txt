@@ -30,11 +30,8 @@
 #
 #===============================================================================
 
-add_mesh(test_cohesive_intrinsic_impl_mesh implicit.geo 2 2)
-
 register_test(test_cohesive_intrinsic_impl
   SOURCES test_cohesive_intrinsic_impl.cc
-  DEPENDENCIES test_cohesive_intrinsic_impl_mesh
   PACKAGE cohesive_element
-  FILES_TO_COPY material.dat
+  FILES_TO_COPY material.dat implicit.msh
   DIRECTORIES_TO_CREATE paraview)
