@@ -33,9 +33,9 @@ set(AKANTU_UNFINISHED_FILES
   #cc files
   #  analysis/analysis.cc
   io/aka_abaqus_parser.hh
-  mesh_utils/mesh_io/mesh_io_abaqus.cc
+  io/mesh_io/mesh_io_abaqus.cc
 
   # include files
   #analysis/analysis.hh
-  mesh_utils/mesh_io/mesh_io_abaqus.hh
+  io/mesh_io/mesh_io_abaqus.hh
 )
