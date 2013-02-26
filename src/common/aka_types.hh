@@ -507,7 +507,11 @@ namespace types {
     inline void inverse(const Matrix & A) {
       AKANTU_DEBUG_ASSERT(A.n == A.m, "inv is not a valid operation on a rectangular matrix");
       AKANTU_DEBUG_ASSERT(n == A.n, "the matrix should have the same size as its inverse");
-      Math::inv(A.n, A.values, this->values);
+
+      if(n == 1) *this->values = 1./ *A.values;
+      else if(n == 2) Math::inv2(A.values, this->values);
+      else if(n == 3) Math::inv3(A.values, this->values);
+      else Math::inv(n, A.values, this->values);
     }
 
     inline T det() {

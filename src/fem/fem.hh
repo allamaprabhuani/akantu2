@@ -169,7 +169,6 @@ public:
 					   const GhostType & ghost_type = _not_ghost,
 					   const Vector<UInt> * filter_elements = NULL) const = 0;
 
-
   /// integrate one element scalar value on all elements of type "type"
   virtual Real integrate(const types::RVector & f,
 			 const ElementType & type,
