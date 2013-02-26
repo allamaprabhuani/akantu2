@@ -63,7 +63,7 @@ public:
 template<class T, template<class> class R>
 class DumperIOHelper::PaddingHelper {
 public:
-  inline R<T> pad(const R<T> & in,
+  static inline R<T> pad(const R<T> & in,
 		  __attribute__((unused)) UInt padding_m,
 		  __attribute__((unused)) UInt padding_n,
 		  __attribute__((unused)) UInt nb_data) {
@@ -74,7 +74,7 @@ public:
 template<class T>
 class DumperIOHelper::PaddingHelper<T, types::Matrix> {
 public:
-  inline types::Matrix<T> pad(const types::Matrix<T> & in, UInt padding_m, UInt padding_n, UInt nb_data) {
+  static inline types::Matrix<T> pad(const types::Matrix<T> & in, UInt padding_m, UInt padding_n, UInt nb_data) {
     if(padding_m <= in.rows() && padding_n*nb_data <= in.cols())
       return in;
     else {
@@ -90,7 +90,5 @@ public:
 
 
 #include "dumper_iohelper_tmpl_nodal_field.hh"
-
 #include "dumper_iohelper_tmpl_elemental_field.hh"
 #include "dumper_iohelper_tmpl_quadrature_points_field.hh"
-

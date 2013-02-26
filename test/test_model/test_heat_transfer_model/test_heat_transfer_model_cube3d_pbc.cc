@@ -108,11 +108,14 @@ int main(int argc, char *argv[])
     }
   }
 
-  /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  paraviewInit(model,dumper);
-#endif
+  model.updateResidual();
+  model.setBaseName("heat_transfer_cube3d_pbc");
+  model.addDumpField("temperature"     );
+  model.addDumpField("temperature_rate");
+  model.addDumpField("residual"        );
+  model.addDumpField("capacity_lumped" );
+  model.dump();
+
   /* ------------------------------------------------------------------------ */
   // //for testing
   int max_steps = 1000;
@@ -123,10 +126,8 @@ int main(int argc, char *argv[])
       model.updateResidual();
       model.explicitCorr();
 
-#ifdef AKANTU_USE_IOHELPER
-      if(i % 100 == 0)
-	paraviewDump(dumper);
-#endif
+      if(i % 100 == 0) model.dump();
+
       if(i % 10 == 0)
 	std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
@@ -134,43 +135,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-
-
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-/* -------------------------------------------------------------------------- */
-
-void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
-  // akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  // akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
-
-#pragma message "To change with new dumper"
-  // dumper.SetMode(iohelper::TEXT);
-  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  // 		   spatial_dimension, nb_nodes, "coordinates2");
-  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  //  dumper.AddNodeDataField(model.getTemperature().values,
-  //   1, "temperature");
-  // dumper.AddNodeDataField(model.getResidual().values,
-  //  			  1, "residual");
-  // dumper.AddNodeDataField(model.getCapacityLumped().values,
-  //  			  1, "capacity_lumped");
-  // // dumper.AddElemDataField(model.getTemperatureGradient(type).values,
-  // //   			  spatial_dimension, "temperature_gradient");
-  // // dumper.AddElemDataField(model.getbtkgt().values,
-  // //   			  4, "btkgt");
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-  // dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void paraviewDump(iohelper::Dumper & dumper) {
-  // dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-#endif
-/* -------------------------------------------------------------------------- */

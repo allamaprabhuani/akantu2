@@ -39,10 +39,40 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<typename i_type, typename d_type,
 	 template<typename> class ret_type, class daughter>
-class DumperIOHelper::quadrature_point_iterator : public element_iterator<i_type, d_type,
-									  ret_type, daughter> {
+class DumperIOHelper::generic_quadrature_point_iterator : public element_iterator<i_type, d_type,
+									      ret_type, daughter> {
 public:
   typedef element_iterator<i_type, d_type, ret_type, daughter> parent;
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
+public:
+  generic_quadrature_point_iterator(const field_type & field,
+				    UInt n,
+				    const typename field_type::type_iterator & t_it,
+				    const typename field_type::type_iterator & t_it_end,
+				    const internal_iterator & it,
+				    ElementType element_type,
+				    const GhostType ghost_type = _not_ghost) :
+    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
+
+  void setFEM(const FEM & fem) { this->fem = &fem; }
+
+protected:
+  virtual UInt getNbDataPerElem(const ElementType & type) { return fem->getNbQuadraturePoints(type); }
+
+protected:
+  const FEM * fem;
+};
+
+/* -------------------------------------------------------------------------- */
+template<typename T, template<typename> class ret_type>
+class DumperIOHelper::quadrature_point_iterator : public generic_quadrature_point_iterator<T, T,
+											   ret_type, quadrature_point_iterator<T, ret_type> > {
+ public:
+  typedef generic_quadrature_point_iterator<T, T, ret_type, quadrature_point_iterator> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -58,23 +88,23 @@ public:
 			    const GhostType ghost_type = _not_ghost) :
     parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
 
-  void setFEM(const FEM & fem) { this->fem = &fem; }
-
-protected:
-  virtual UInt getNbDataPerElem(const ElementType & type) { return fem->getNbQuadraturePoints(type); }
-
-protected:
-  const FEM * fem;
+  return_type operator*() {
+    UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
+    return PaddingHelper<T, ret_type>::pad(*this->vit, this->padding_m, this->padding_n, nb_data);
+  }
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* Fields type description                                                    */
 /* -------------------------------------------------------------------------- */
-template<typename T, class iterator_type, template<class> class ret_type>
+template<typename T,
+	 class iterator_type,
+	 template<class> class ret_type>
 class DumperIOHelper::GenericQuadraturePointsField : public GenericElementalField<T, iterator_type, ret_type> {
-  typedef GenericElementalField<T, iterator_type, ret_type> parent;
 public:
+  typedef iterator_type iterator;
+  typedef GenericElementalField<T, iterator, ret_type> parent;
+
   GenericQuadraturePointsField(const FEM & fem,
 			       const ByElementTypeVector<T> & field,
 			       UInt spatial_dimension = 0,
@@ -91,8 +121,6 @@ public:
 			       ElementKind element_kind = _ek_not_defined) :
     parent(field, n, spatial_dimension,
 	   ghost_type, element_kind), fem(fem) { }
-
-  typedef iterator_type iterator;
 
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
@@ -114,4 +142,31 @@ protected:
 
 protected:
   const FEM & fem;
+};
+
+/* -------------------------------------------------------------------------- */
+template<typename T,
+	 template<class> class ret_type,
+	 template<typename, template<class> class> class iterator_type>
+class DumperIOHelper::QuadraturePointsField : public GenericQuadraturePointsField<T, iterator_type<T, ret_type>, ret_type> {
+public:
+  typedef iterator_type<T, ret_type> iterator;
+  typedef GenericQuadraturePointsField<T, iterator, ret_type> parent;
+
+  QuadraturePointsField(const FEM & fem,
+			const ByElementTypeVector<T> & field,
+			UInt spatial_dimension = 0,
+			GhostType ghost_type = _not_ghost,
+			ElementKind element_kind = _ek_not_defined) :
+    parent(fem, field, spatial_dimension,
+	   ghost_type, element_kind) { }
+
+  QuadraturePointsField(const FEM & fem,
+			const ByElementTypeVector<T> & field,
+			UInt n,
+			UInt spatial_dimension = 0,
+			GhostType ghost_type = _not_ghost,
+			ElementKind element_kind = _ek_not_defined) :
+    parent(fem, field, n, spatial_dimension,
+	   ghost_type, element_kind) { }
 };

@@ -42,19 +42,6 @@ using namespace std;
 
 /* -------------------------------------------------------------------------- */
 akantu::UInt spatial_dimension = 3;
-akantu:: ElementType type = akantu::_tetrahedron_4;
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-#include "io_helper.hh"
-iohelper::ElemType paraview_type = iohelper::TETRA1;
-
-static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-#endif //AKANTU_USE_IOHELPER
-
-
-
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[])
@@ -105,10 +92,13 @@ int main(int argc, char *argv[])
     //  }
   }
 
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  paraviewInit(model,dumper);
-#endif
+  model.updateResidual();
+  model.setBaseName("heat_transfer_cube3d_istropic_conductivity");
+  model.addDumpField("temperature"     );
+  model.addDumpField("temperature_rate");
+  model.addDumpField("residual"        );
+  model.addDumpField("capacity_lumped" );
+  model.dump();
 
   // //for testing
   int max_steps = 1000;
@@ -119,10 +109,7 @@ int main(int argc, char *argv[])
       model.updateResidual();
       model.explicitCorr();
 
-#ifdef AKANTU_USE_IOHELPER
-      if(i % 100 == 0)
-	paraviewDump(dumper);
-#endif
+      if(i % 100 == 0) model.dump();
       if(i % 10000 == 0)
       std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
@@ -130,21 +117,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-/* -------------------------------------------------------------------------- */
-
-void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
-
-#pragma message "To change with new dumper"
-
-}
-/* -------------------------------------------------------------------------- */
-
-void paraviewDump(iohelper::Dumper & dumper) {
-  // dumper.Dump();
-}
-/* -------------------------------------------------------------------------- */
-#endif
-/* -------------------------------------------------------------------------- */
-

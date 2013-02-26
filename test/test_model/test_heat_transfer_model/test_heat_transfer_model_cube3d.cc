@@ -112,12 +112,16 @@ int main(int argc, char *argv[])
     }
   }
 
-#ifdef AKANTU_USE_IOHELPER
+
   model.updateResidual();
-  iohelper::DumperParaview dumper;
-  paraviewInit(model,dumper);
-#endif
-  
+  model.setBaseName("heat_transfer_cube3d");
+  model.addDumpField("temperature"     );
+  model.addDumpField("temperature_rate");
+  model.addDumpField("residual"        );
+  model.addDumpField("capacity_lumped" );
+  model.dump();
+
+
   // //for testing
   int max_steps = 1000;
 
@@ -127,9 +131,8 @@ int main(int argc, char *argv[])
       model.updateResidual();
       model.explicitCorr();
 
-#ifdef AKANTU_USE_IOHELPER
-      if(i % 100 == 0) paraviewDump(dumper);
-#endif
+
+      if(i % 100 == 0) model.dump();
 
       if(i % 10 == 0)  std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
@@ -138,38 +141,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-void paraviewInit(HeatTransferModel & model, iohelper::Dumper & dumper) {
-  Mesh & mesh = model.getFEM().getMesh();
-  UInt nb_nodes = mesh.getNbNodes();
-  UInt nb_element = mesh.getNbElement(type);
-
-#pragma message "To change with new dumper"
-  dumper.setMode(iohelper::TEXT);
-  dumper.setPoints(mesh.getNodes().values,
-		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.setConnectivity((int *) mesh.getConnectivity(type).values,
-			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.addNodeDataField(model.getTemperature().values,
-  // 			  1, "temperature");
-  // dumper.addNodeDataField(model.getTemperatureRate().values,
-  // 			  1, "temperature_rate");
-  // dumper.addNodeDataField(model.getResidual().values,
-  //  			  1, "residual");
-  // dumper.addNodeDataField(model.getCapacityLumped().values,
-  //  			  1, "capacity_lumped");
-  // dumper.addElemDataField(model.getTemperatureGradient(type).values,
-  //   			  spatial_dimension, "temperature_gradient");
-  dumper.setPrefix("paraview/");
-  dumper.init();
-  dumper.dump();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void paraviewDump(iohelper::Dumper & dumper) {
-  dumper.dump();
-}
-#endif
-/* -------------------------------------------------------------------------- */

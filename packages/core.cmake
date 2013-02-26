@@ -41,7 +41,6 @@ set(AKANTU_CORE_FILES
   common/aka_math.cc
   fem/shape_lagrange.cc
   fem/shape_linked.cc
-  #fem/integrator_gauss.cc
   fem/mesh.cc
   fem/fem.cc
   io/dumper/dumpable.hh
@@ -117,6 +116,8 @@ set(AKANTU_CORE_FILES
   common/aka_tree.hh
   common/aka_typelist.hh
   common/aka_visitor.hh
+  common/aka_grid_dynamic.hh
+  common/aka_safe_enum.hh
   fem/mesh.hh
   fem/fem.hh
   fem/by_element_type.hh
@@ -128,6 +129,7 @@ set(AKANTU_CORE_FILES
   fem/integrator.hh
   fem/element_class.hh
   fem/shape_linked.hh
+  fem/geometrical_data_tmpl.hh
   model/model.hh
   model/parser.hh
   model/parser_tmpl.hh
@@ -185,21 +187,6 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_elastic_orthotropic.hh
   model/solid_mechanics/materials/material_elastic_orthotropic_inline_impl.cc
   )
-
-#include(CheckCXXCompilerFlag)
-#check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
-#if (HAVE_NEW_STD)
-#  list(APPEND AKANTU_CORE_FILES
-#    common/aka_point.hh
-#    common/aka_bounding_box.hh
-#    common/aka_bounding_box.cc
-#    common/aka_geometry.hh
-#    common/aka_geometry.cc
-#    )
-#  add_definitions(-std=c++0x)
-#else()
-#  message(WARNING "*** WARNING *** Compiler does not support c++11 set of requirements.")
-#endif()
 
 set(AKANTU_CORE_DEB_DEPEND
   libboost-dev

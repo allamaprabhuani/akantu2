@@ -42,11 +42,14 @@
 #ifdef AKANTU_USE_MUMPS
 #include "solver_mumps.hh"
 #endif
+
 /* -------------------------------------------------------------------------- */
-
-
 __BEGIN_AKANTU__
 
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_iohelper_tmpl_material_internal_field.hh"
+#endif
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -1312,9 +1315,9 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
   if(field_id == "stress") {
     typedef DumperIOHelper::HomogenizedField<Real,
 					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::material_stress_field_iterator,
 					     DumperIOHelper::AvgHomogenizingFunctor,
-					     types::Matrix,
-					     DumperIOHelper::material_stress_field_iterator> Field;
+					     types::Matrix> Field;
     Field * field = new Field(*this,
 			      field_id,
 			      spatial_dimension,
@@ -1326,9 +1329,9 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
   } else if(field_id == "strain") {
     typedef DumperIOHelper::HomogenizedField<Real,
 					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::material_strain_field_iterator,
 					     DumperIOHelper::AvgHomogenizingFunctor,
-					     types::Matrix,
-					     DumperIOHelper::material_strain_field_iterator> Field;
+					     types::Matrix> Field;
     Field * field = new Field(*this,
 			      field_id,
 			      spatial_dimension,
@@ -1340,6 +1343,7 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
   } else {
     typedef DumperIOHelper::HomogenizedField<Real,
 					     DumperIOHelper::InternalMaterialField,
+					     DumperIOHelper::internal_material_field_iterator,
 					     DumperIOHelper::AvgHomogenizingFunctor,
 					     types::Matrix> Field;
 

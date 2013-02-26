@@ -40,16 +40,16 @@
 #include "model.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
+#include "dumpable.hh"
+
 
 namespace akantu {
   class IntegrationScheme1stOrder;
-//    class Solver;
-//    class SparseMatrix;
 }
 
 __BEGIN_AKANTU__
 
-class HeatTransferModel : public Model, public DataAccessor {
+class HeatTransferModel : public Model, public DataAccessor, public Dumpable<DumperParaview> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -144,6 +144,8 @@ private:
   /// compute vector k \grad T for each quadrature point
   void computeKgradT(const GhostType & ghost_type);
 
+  /// compute the thermal energy
+  Real computeThermalEnergyByNode();
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -166,6 +168,14 @@ public:
   inline void unpackData(CommunicationBuffer & buffer,
 			 const UInt index,
 			 SynchronizationTag tag);
+
+  /* ------------------------------------------------------------------------ */
+  /* Dumpable interface                                                       */
+  /* ------------------------------------------------------------------------ */
+public:
+  virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -205,14 +215,22 @@ public:
   /// get the equation number Vector<Int>
   AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
 
-  /// compute the thermal energy
-  Real computeThermalEnergyByNode();
-  /// get thermal energy by element
+  /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id, const ElementType & type, UInt index);
-  /// get thermal energy
+  /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id);
-  /// compute thermal energy by element
-  void computeThermalEnergyByElement();
+
+  /// get the thermal energy for a given element
+  Real getThermalEnergy(const ElementType & type, UInt index);
+  /// get the thermal energy for a given element
+  Real getThermalEnergy();
+
+protected:
+  /* ----------------------------------------------------------------------- */
+  template<class iterator>
+  void getThermalEnergy(iterator Eth,
+			Vector<Real>::const_iterator<Real> T_it,
+			Vector<Real>::const_iterator<Real> T_end) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -278,13 +296,13 @@ private:
   Real capacity;
 
   //conductivity matrix
-  Real* conductivity;
+  types::Matrix<Real> conductivity;
 
   //linear variation of the conductivity (for temperature dependent conductivity)
   Real conductivity_variation;
 
   // reference temperature for the interpretation of temperature variation
-  Real t_ref;
+  Real T_ref;
 
   //the biggest parameter of conductivity matrix
   Real conductivitymax;

@@ -47,9 +47,9 @@ struct GeometricalElementData<_gt_segment_2> {
   static const UInt nb_facets                  = 2;
   static const GeometricalType facet_type      = _gt_point;
   static const UInt vec_facet_connectivity[]   = {0,
-					    1};
+						  1};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[1]};
+						  &vec_facet_connectivity[1]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -61,9 +61,9 @@ struct GeometricalElementData<_gt_segment_3> {
   static const UInt nb_facets                  = 2;
   static const GeometricalType facet_type      = _gt_point;
   static const UInt vec_facet_connectivity[]   = {0,
-					    1};
+						  1};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[1]};
+						  &vec_facet_connectivity[1]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -75,11 +75,11 @@ struct GeometricalElementData<_gt_triangle_3> {
   static const UInt nb_facets                  = 3;
   static const GeometricalType facet_type      = _gt_segment_2;
   static const UInt vec_facet_connectivity[]   = {0, 1,
-					    1, 2,
-					    2, 0};
+						  1, 2,
+						  2, 0};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[2],
-					    &vec_facet_connectivity[4]};
+						  &vec_facet_connectivity[2],
+						  &vec_facet_connectivity[4]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -91,11 +91,11 @@ struct GeometricalElementData<_gt_triangle_6> {
   static const UInt nb_facets                  = 3;
   static const GeometricalType facet_type      = _gt_segment_3;
   static const UInt vec_facet_connectivity[]   = {0, 1, 3,
-					    1, 2, 4,
-					    2, 0, 5};
+						  1, 2, 4,
+						  2, 0, 5};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[3],
-					    &vec_facet_connectivity[6]};
+						  &vec_facet_connectivity[3],
+						  &vec_facet_connectivity[6]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -107,13 +107,13 @@ struct GeometricalElementData<_gt_tetrahedron_4> {
   static const UInt nb_facets                  = 4;
   static const GeometricalType facet_type      = _gt_triangle_3;
   static const UInt vec_facet_connectivity[]   = {0, 2, 1,
-					    1, 2, 3,
-					    2, 0, 3,
-					    0, 1, 3};
+						  1, 2, 3,
+						  2, 0, 3,
+						  0, 1, 3};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[3],
-					    &vec_facet_connectivity[6],
-					    &vec_facet_connectivity[9]};
+						  &vec_facet_connectivity[3],
+						  &vec_facet_connectivity[6],
+						  &vec_facet_connectivity[9]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -125,13 +125,13 @@ struct GeometricalElementData<_gt_tetrahedron_10> {
   static const UInt nb_facets                  = 4;
   static const GeometricalType facet_type      = _gt_triangle_6;
   static const UInt vec_facet_connectivity[]   = {0, 2, 1, 6, 5, 4,
-					    1, 2, 3, 5, 9, 8,
-					    2, 0, 3, 6, 7, 9,
-					    0, 1, 3, 4, 8, 7};
+						  1, 2, 3, 5, 9, 8,
+						  2, 0, 3, 6, 7, 9,
+						  0, 1, 3, 4, 8, 7};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[6],
-					    &vec_facet_connectivity[12],
-					    &vec_facet_connectivity[18]};
+						  &vec_facet_connectivity[6],
+						  &vec_facet_connectivity[12],
+						  &vec_facet_connectivity[18]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -143,13 +143,13 @@ struct GeometricalElementData<_gt_quadrangle_4> {
   static const UInt nb_facets                  = 4;
   static const GeometricalType facet_type      = _gt_segment_2;
   static const UInt vec_facet_connectivity[]   = {0, 1,
-					    1, 2,
-					    2, 3,
-					    3, 0};
+						  1, 2,
+						  2, 3,
+						  3, 0};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[2],
-					    &vec_facet_connectivity[4],
-					    &vec_facet_connectivity[6]};
+						  &vec_facet_connectivity[2],
+						  &vec_facet_connectivity[4],
+						  &vec_facet_connectivity[6]};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -161,13 +161,13 @@ struct GeometricalElementData<_gt_quadrangle_8> {
   static const UInt nb_facets                  = 4;
   static const GeometricalType facet_type      = _gt_segment_3;
   static const UInt vec_facet_connectivity[]   = {0, 1, 4,
-					    1, 2, 5,
-					    2, 3, 6,
-					    3, 0, 7};
+						  1, 2, 5,
+						  2, 3, 6,
+						  3, 0, 7};
   static const UInt * facet_connectivity[]     = {vec_facet_connectivity + 0,
-					    vec_facet_connectivity + 3,
-					    vec_facet_connectivity + 6,
-					    vec_facet_connectivity + 9};
+						  vec_facet_connectivity + 3,
+						  vec_facet_connectivity + 6,
+						  vec_facet_connectivity + 9};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -179,16 +179,16 @@ struct GeometricalElementData<_gt_hexahedron_8> {
   static const UInt nb_facets                  = 6;
   static const GeometricalType facet_type      = _gt_quadrangle_4;
   static const UInt vec_facet_connectivity[]   = {0, 1, 2, 3,
-					    0, 1, 5, 4,
-					    1, 2, 6, 5,
-					    2, 3, 7, 6,
-					    3, 0, 4, 7,
-					    4, 5, 6, 7};
+						  0, 1, 5, 4,
+						  1, 2, 6, 5,
+						  2, 3, 7, 6,
+						  3, 0, 4, 7,
+						  4, 5, 6, 7};
   static const UInt * facet_connectivity[]     = {&vec_facet_connectivity[0],
-					    &vec_facet_connectivity[4],
-					    &vec_facet_connectivity[8],
-					    &vec_facet_connectivity[12],
-					    &vec_facet_connectivity[16],
-					    &vec_facet_connectivity[20]};
+						  &vec_facet_connectivity[4],
+						  &vec_facet_connectivity[8],
+						  &vec_facet_connectivity[12],
+						  &vec_facet_connectivity[16],
+						  &vec_facet_connectivity[20]};
 };
 

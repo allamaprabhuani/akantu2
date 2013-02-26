@@ -111,15 +111,24 @@ public:
 
   template<typename i_type, typename d_type,
 	   template<typename> class ret_type, class daughter>
+  class generic_quadrature_point_iterator;
+
+  template<typename T, template<typename> class ret_type>
   class quadrature_point_iterator;
 
   template<typename T, class iterator_type,
 	   template<typename> class ret_type>
   class GenericElementalField;
 
-  template<typename T, class iterator_type,
+  template<typename T,
+	   class iterator_type,
 	   template<typename> class ret_type>
   class GenericQuadraturePointsField;
+
+  template<typename T,
+	   template<typename> class ret_type,
+	   template<typename, template<class> class> class iterator_type = quadrature_point_iterator>
+  class QuadraturePointsField;
 
   /* ------------------------------------------------------------------------ */
   /* Elemental Fields wrapper */
@@ -177,9 +186,9 @@ public:
   template<typename T, template< typename,
 				 template<class> class,
 				 template<typename, template<class> class> class > class Container,
+	   template<typename, template<class> class> class sub_iterator = internal_material_field_iterator,
 	   template<typename, class, template<class> class> class Funct = AvgHomogenizingFunctor,
-	   template<typename> class ret_type = types::Vector,
-	   template<typename, template<class> class> class sub_iterator = internal_material_field_iterator>
+	   template<typename> class ret_type = types::Vector>
   class HomogenizedField;
 
   /* ------------------------------------------------------------------------ */

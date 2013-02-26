@@ -236,7 +236,7 @@ public:
 #endif
 
       for (UInt i = 0; i < dimension; ++i) {
-        Real posl = cell_id.getID(i) * spacing(i);
+        Real posl = center(i) + cell_id.getID(i) * spacing(i);
         Real posu = posl + spacing(i);
         if(posl < lower(i)) lower(i) = posl;
         if(posu > upper(i)) upper(i) = posu;
@@ -262,7 +262,7 @@ public:
 
 
 
-  CellID getCellID(types::Vector<Real> position) {
+  CellID getCellID(types::Vector<Real> position) const {
     CellID cell_id(dimension);
     for (UInt i = 0; i < dimension; ++i) {
       cell_id.setID(i, getCellID(position(i), i));
@@ -368,6 +368,7 @@ void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
   case 2: type = _quadrangle_4; break;
   case 3: type = _hexahedron_8; break;
   }
+
   mesh.addConnectivityType(type);
   Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type));
   Vector<UInt> & uint_data = *mesh.getUIntDataPointer(type, "tag_1");

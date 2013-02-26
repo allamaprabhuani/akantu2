@@ -141,10 +141,10 @@ template<typename T,
 	 template<class> class ret_type,
 	 template<typename, template<class> class> class padding_helper_type,
 	 template<typename, template<class> class> class int_iterator>
-class DumperIOHelper::generic_internal_material_field_iterator : public quadrature_point_iterator< UInt, T, ret_type,
-												   int_iterator<T, ret_type> > {
+class DumperIOHelper::generic_internal_material_field_iterator : public generic_quadrature_point_iterator< UInt, T, ret_type,
+												       int_iterator<T, ret_type> > {
 public:
-  typedef quadrature_point_iterator<UInt, T, ret_type, int_iterator<T, ret_type> > parent;
+  typedef generic_quadrature_point_iterator<UInt, T, ret_type, int_iterator<T, ret_type> > parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -299,12 +299,12 @@ public:
 template<typename T, template<class> class ret_type,
 	 template<typename, template<class> class> class iterator_type>
 class DumperIOHelper::InternalMaterialField : public GenericQuadraturePointsField<UInt,
-								  iterator_type<T, ret_type>,
-								  ret_type> {
+										  iterator_type<T, ret_type>,
+										  ret_type> {
+
+  typedef GenericQuadraturePointsField<UInt, iterator_type<T, ret_type>, ret_type> parent;
 public:
-  typedef iterator_type<T, ret_type> iterator;
-private:
-  typedef GenericQuadraturePointsField<UInt, iterator, ret_type> parent;
+  typedef typename parent::iterator iterator;
 public:
   /* ------------------------------------------------------------------------ */
   InternalMaterialField(const SolidMechanicsModel & model,

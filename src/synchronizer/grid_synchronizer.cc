@@ -91,8 +91,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   bool * intersects_proc = new bool[nb_proc];
   std::fill_n(intersects_proc, nb_proc, true);
 
-  UInt * first_cells = new UInt[3 * nb_proc];
-  UInt * last_cells = new UInt[3 * nb_proc];
+  Int * first_cells = new Int[3 * nb_proc];
+  Int * last_cells = new Int[3 * nb_proc];
   std::fill_n(first_cells, 3 * nb_proc, 0);
   std::fill_n(first_cells, 3 * nb_proc, 0);
 
@@ -106,8 +106,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     Real * proc_bounding_box = bounding_boxes + 2 * spatial_dimension * p;
 
     bool intersects = false;
-    UInt * first_cell_p = first_cells + p * spatial_dimension;
-    UInt * last_cell_p =  last_cells  + p * spatial_dimension;
+    Int * first_cell_p = first_cells + p * spatial_dimension;
+    Int * last_cell_p =  last_cells  + p * spatial_dimension;
     for (UInt s = 0; s < spatial_dimension; ++s) {
 
       // check overlapping of grid
@@ -158,8 +158,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         }
 
 
-        first_cell_p[s] = grid.getCellID(start + spacing[s]/100., s);
-        last_cell_p [s] = grid.getCellID(end - spacing[s]/100., s);
+        first_cell_p[s] = grid.getCellID(start - spacing[s]/100., s);
+        last_cell_p [s] = grid.getCellID(end + spacing[s]/100., s);
       }
     }
 
@@ -178,18 +178,18 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       //   if(last_cell_p[i] != 0) ++last_cell_p[i];
       // }
 
-      for (UInt fd = first_cell_p[0]; fd <= last_cell_p[0]; ++fd) {
+      for (Int fd = first_cell_p[0]; fd <= last_cell_p[0]; ++fd) {
         cell_id.setID(0, fd);
         if(spatial_dimension == 1) {
           cell_ids->push_back(cell_id);
 	}
         else {
-          for (UInt sd = first_cell_p[1]; sd <= last_cell_p[1] ; ++sd) {
+          for (Int sd = first_cell_p[1]; sd <= last_cell_p[1] ; ++sd) {
             cell_id.setID(1, sd);
             if(spatial_dimension == 2) {
               cell_ids->push_back(cell_id);
             } else {
-              for (UInt ld = first_cell_p[2]; fd <= last_cell_p[2] ; ++ld) {
+              for (Int ld = first_cell_p[2]; fd <= last_cell_p[2] ; ++ld) {
                 cell_id.setID(2, ld);
                 cell_ids->push_back(cell_id);
               }

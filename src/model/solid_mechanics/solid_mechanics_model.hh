@@ -570,12 +570,6 @@ __END_AKANTU__
 
 __BEGIN_AKANTU__
 
-
-#ifdef AKANTU_USE_IOHELPER
-#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
-#  include "dumper_iohelper_tmpl_material_internal_field.hh"
-#endif
-
 #include "solid_mechanics_model_tmpl.hh"
 
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)

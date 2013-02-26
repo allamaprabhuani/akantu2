@@ -31,7 +31,6 @@
 #include "aka_common.hh"
 #include "aka_grid_dynamic.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
 #include "grid_synchronizer.hh"
 #include "mesh_partition.hh"
 #include "synchronizer_registry.hh"
@@ -41,15 +40,84 @@
 
 using namespace akantu;
 
+typedef std::map<std::pair<Element, Element>, Real> pair_list;
+
+static void updatePairList(const ByElementTypeReal & barycenter,
+			   const SpatialGrid<Element> & grid,
+			   Real radius,
+			   pair_list & neighbors) {
+  AKANTU_DEBUG_IN();
+
+  GhostType ghost_type = _not_ghost;
+
+  Element e;
+  e.ghost_type = ghost_type;
+
+  // generate the pair of neighbor depending of the cell_list
+  ByElementTypeReal::type_iterator it        = barycenter.firstType(0, ghost_type);
+  ByElementTypeReal::type_iterator last_type = barycenter.lastType(0, ghost_type);
+  for(; it != last_type; ++it) {
+    // loop over quad points
+
+    e.type = *it;
+    e.element = 0;
+
+    const Vector<Real> & barycenter_vect = barycenter(*it, ghost_type);
+    UInt sp = barycenter_vect.getNbComponent();
+
+    Vector<Real>::const_iterator< types::Vector<Real> > bary =
+      barycenter_vect.begin(sp);
+    Vector<Real>::const_iterator< types::Vector<Real> > bary_end =
+      barycenter_vect.end(sp);
+
+    for(;bary != bary_end; ++bary, e.element++) {
+      SpatialGrid<Element>::CellID cell_id = grid.getCellID(*bary);
+      SpatialGrid<Element>::neighbor_cells_iterator first_neigh_cell =
+        grid.beginNeighborCells(cell_id);
+      SpatialGrid<Element>::neighbor_cells_iterator last_neigh_cell =
+        grid.endNeighborCells(cell_id);
+
+      // loop over neighbors cells of the one containing the current element
+      for (; first_neigh_cell != last_neigh_cell; ++first_neigh_cell) {
+	SpatialGrid<Element>::Cell::const_iterator first_neigh_el =
+          grid.beginCell(*first_neigh_cell);
+	SpatialGrid<Element>::Cell::const_iterator last_neigh_el =
+          grid.endCell(*first_neigh_cell);
+
+	// loop over the quadrature point in the current cell of the cell list
+	for (;first_neigh_el != last_neigh_el; ++first_neigh_el){
+	  const Element & elem = *first_neigh_el;
+
+	  Vector<Real>::const_iterator< types::Vector<Real> > neigh_it =
+	    barycenter(elem.type, elem.ghost_type).begin(sp);
+
+	  const types::RVector & neigh_bary = neigh_it[elem.element];
+
+	  Real distance = bary->distance(neigh_bary);
+	  if(distance <= radius) {
+	    std::pair<Element, Element> pair = std::make_pair(e, elem);
+	    pair_list::iterator p = neighbors.find(pair);
+	    if(p != neighbors.end()) {
+	      AKANTU_DEBUG_ERROR("Pair already registered [" << e << " " << elem << "] -> " << p->second << " " << distance);
+	    } else {
+	      neighbors[pair] = distance;
+	    }
+	  }
+	}
+      }
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
 class TestAccessor : public DataAccessor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  TestAccessor(const Mesh & mesh);
-  ~TestAccessor();
+  TestAccessor(const Mesh & mesh, const ByElementTypeReal & barycenters);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Barycenter, barycenter, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Barycenter, barycenters, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Ghost Synchronizer inherited members                                     */
@@ -69,10 +137,7 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  std::string id;
-
-  ByElementTypeReal barycenter;
-
+  const ByElementTypeReal & barycenters;
   const Mesh & mesh;
 };
 
@@ -80,30 +145,15 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* TestSynchronizer implementation                                            */
 /* -------------------------------------------------------------------------- */
-TestAccessor::TestAccessor(const Mesh & mesh) : barycenter("barycenter", id), mesh(mesh) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
-
-  id = "test_synchronizer";
-
-  Mesh::ConnectivityTypeList::const_iterator it;
-  try {
-    const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
-    for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-      if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
-
-      UInt nb_ghost_element = mesh.getNbElement(*it,_ghost);
-      barycenter.alloc(nb_ghost_element, spatial_dimension, *it);
-    }
-  } catch (debug::Exception & e) { std::cout << e << std::endl; }
-}
-
-TestAccessor::~TestAccessor() {
-
-}
+TestAccessor::TestAccessor(const Mesh & mesh,
+			   const ByElementTypeReal & barycenters) : barycenters(barycenters), mesh(mesh) { }
 
 UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
 					__attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
+  if(elements.getSize())
+    return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
+  else
+    return 0;
 }
 
 void TestAccessor::packElementData(CommunicationBuffer & buffer,
@@ -115,10 +165,10 @@ void TestAccessor::packElementData(CommunicationBuffer & buffer,
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    types::RVector bary(barycenter(element.type,
-				   element.ghost_type).storage() + element.element * spatial_dimension,
-			spatial_dimension);;
-    buffer << barycenter;
+    types::RVector bary(this->barycenters(element.type, element.ghost_type).storage()
+			+ element.element * spatial_dimension,
+			spatial_dimension);
+    buffer << bary;
   }
 }
 
@@ -131,18 +181,19 @@ void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    types::RVector barycenter_loc(spatial_dimension);
-    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
+    types::RVector barycenter_loc(this->barycenters(element.type,element.ghost_type).storage()
+				  + element.element * spatial_dimension,
+				  spatial_dimension);
 
-    types::RVector barycenter(spatial_dimension);
-    buffer >> barycenter;
+    types::RVector bary(spatial_dimension);
+    buffer >> bary;
     Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if(!(std::abs(barycenter(i) - barycenter_loc(i)) <= tolerance))
+      if(!(std::abs(bary(i) - barycenter_loc(i)) <= tolerance))
 	AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
 			   << element
 			   << "(barycenter[" << i << "] = " << barycenter_loc(i)
-			   << " and buffer[" << i << "] = " << barycenter(i) << ") - tag: " << tag);
+			   << " and buffer[" << i << "] = " << bary(i) << ") - tag: " << tag);
     }
   }
 }
@@ -155,7 +206,7 @@ int main(int argc, char *argv[]) {
   akantu::initialize(argc, argv);
 
   UInt spatial_dimension = 2;
-  ElementType type = _triangle_3;
+  Real radius = 0.1;
 
   Mesh mesh(spatial_dimension);
 
@@ -164,8 +215,7 @@ int main(int argc, char *argv[]) {
   Int prank = comm.whoAmI();
 
   if(prank == 0) {
-    MeshIOMSH mesh_io;
-    mesh_io.read("triangle.msh", mesh);
+    mesh.read("triangle.msh");
     MeshPartition * partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
     DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
@@ -173,49 +223,6 @@ int main(int argc, char *argv[]) {
   } else {
     DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
   }
-
-#ifdef AKANTU_USE_IOHELPER
-  double * part;
-  unsigned int nb_nodes = mesh.getNbNodes();
-  unsigned int nb_element = mesh.getNbElement(type);
-
-  iohelper::DumperParaview dumper;
-  dumper.setMode(iohelper::TEXT);
-  dumper.setParallelContext(prank, psize);
-  dumper.setPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer");
-  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
-   			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
-  part = new double[nb_element];
-  for (unsigned int i = 0; i < nb_element; ++i)
-    part[i] = prank;
-  dumper.addElemDataField("partitions", part, 1, nb_element);
-  dumper.setPrefix("paraview/");
-  dumper.init();
-  dumper.dump();
-  delete [] part;
-
-  iohelper::DumperParaview dumper_ghost;
-  dumper_ghost.setMode(iohelper::TEXT);
-  dumper_ghost.setParallelContext(prank, psize);
-
-  try {
-    unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
-    dumper_ghost.setPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
-    dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
-				 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
-    part = new double[nb_ghost_element];
-    for (unsigned int i = 0; i < nb_ghost_element; ++i)
-      part[i] = prank;
-    dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
-    dumper_ghost.setPrefix("paraview/");
-    dumper_ghost.init();
-    dumper_ghost.dump();
-    delete [] part;
-  } catch (debug::Exception & e) { std::cout << e << std::endl; }
-#endif
-
-
-  comm.barrier();
 
   mesh.computeBoundingBox();
 
@@ -229,11 +236,11 @@ int main(int argc, char *argv[]) {
   types::Vector<Real> center(spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
-    spacing[i] = (upper_bounds[i] - lower_bounds[i]) / 10.;
+    spacing[i] = radius * 1.2;
     center[i] = (upper_bounds[i] + lower_bounds[i]) / 2.;
   }
 
-  SpacingGrid<Element> grid(spatial_dimension, spacing, center);
+  SpatialGrid<Element> grid(spatial_dimension, spacing, center);
 
   GhostType ghost_type = _not_ghost;
 
@@ -241,90 +248,86 @@ int main(int argc, char *argv[]) {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
 
   ByElementTypeReal barycenters("", "", 0);
-  mesh.initByElementTypeVector(barycenters, spatial_dimension, 0);
+  mesh.initByElementTypeVector(barycenters, spatial_dimension, spatial_dimension);
 
   Element e;
   e.ghost_type = ghost_type;
 
-  it = mesh.firstType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
-    UInt nb_element = mesh.getNbElement(*it);
+    UInt nb_element = mesh.getNbElement(*it, ghost_type);
     e.type = *it;
-    Vector<Real> & barycenter = barycenters(*it);
+    Vector<Real> & barycenter = barycenters(*it, ghost_type);
     barycenter.resize(nb_element);
 
     Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
     for (UInt elem = 0; elem < nb_element; ++elem) {
-      mesh.getBarycenter(elem, *it, bary_it->storage());
+      mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
       e.element = elem;
       grid.insert(e, *bary_it);
       ++bary_it;
     }
   }
 
-  MeshIOMSH mesh_io;
-
   std::stringstream sstr; sstr << "mesh_" << prank << ".msh";
-  mesh_io.write(sstr.str(), mesh);
+  mesh.write(sstr.str());
+
+  std::cout << "Pouet 1" << std::endl;
+
+  GridSynchronizer * grid_communicator = GridSynchronizer::createGridSynchronizer(mesh, grid);
+
+  std::cout << "Pouet 2" << std::endl;
+
+  ghost_type = _ghost;
+
+  it = mesh.firstType(spatial_dimension, ghost_type);
+  last_type = mesh.lastType(spatial_dimension, ghost_type);
+  e.ghost_type = ghost_type;
+  for(; it != last_type; ++it) {
+    UInt nb_element = mesh.getNbElement(*it, ghost_type);
+    e.type = *it;
+    Vector<Real> & barycenter = barycenters(*it, ghost_type);
+    barycenter.resize(nb_element);
+
+    Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
+    for (UInt elem = 0; elem < nb_element; ++elem) {
+      mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
+      e.element = elem;
+      grid.insert(e, *bary_it);
+      ++bary_it;
+    }
+  }
 
   Mesh grid_mesh(spatial_dimension, "grid_mesh", 0);
   std::stringstream sstr_grid; sstr_grid << "grid_mesh_" << prank << ".msh";
   grid.saveAsMesh(grid_mesh);
-  mesh_io.write(sstr_grid.str(), grid_mesh);
+  grid_mesh.write(sstr_grid.str());
 
-  GridSynchronizer * grid_communicator = GridSynchronizer::createGridSynchronizer(mesh, grid);
+  std::cout << "Pouet 3" << std::endl;
+
+  pair_list neighbors;
+  updatePairList(barycenters, grid, radius, neighbors);
+  pair_list::iterator nit  = neighbors.begin();
+  pair_list::iterator nend = neighbors.end();
+
+  std::stringstream sstrp; sstrp << "pairs_" << prank;
+  std::ofstream fout(sstrp.str().c_str());
+  for(;nit != nend; ++nit) {
+    fout << "[" << nit->first.first << "," << nit->first.second << "] -> "
+	 << nit->second << std::endl;
+  }
+
+  fout.close();
+
+  std::cout << "Pouet 4" << std::endl;
 
   AKANTU_DEBUG_INFO("Creating TestAccessor");
-  TestAccessor test_accessor(mesh);
+  TestAccessor test_accessor(mesh, barycenters);
   SynchronizerRegistry synch_registry(test_accessor);
 
   synch_registry.registerSynchronizer(*grid_communicator, _gst_test);
 
   AKANTU_DEBUG_INFO("Synchronizing tag");
   synch_registry.synchronize(_gst_test);
-
-#ifdef AKANTU_USE_IOHELPER
-  try {
-    UInt nb_ghost_element = mesh.getNbElement(type, _ghost);
-    UInt nb_nodes = mesh.getNbNodes();
-
-    iohelper::DumperParaview dumper_ghost;
-    dumper_ghost.setMode(iohelper::TEXT);
-    dumper_ghost.setParallelContext(prank, psize);
-
-    dumper_ghost.setMode(iohelper::TEXT);
-    dumper_ghost.setParallelContext(prank, psize);
-    dumper_ghost.setPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "test-grid-synchronizer-ghost");
-    dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
-				 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
-    part = new double[nb_ghost_element];
-    for (unsigned int i = 0; i < nb_ghost_element; ++i)
-      part[i] = prank;
-    dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
-    dumper_ghost.dump();
-    delete [] part;
-
-    unsigned int nb_grid_element = grid_mesh.getNbElement(_quadrangle_4);
-    iohelper::DumperParaview dumper_grid;
-    dumper_grid.setMode(iohelper::TEXT);
-    dumper_grid.setParallelContext(prank, psize);
-    dumper_grid.setPoints(grid_mesh.getNodes().values, spatial_dimension,
-			  grid_mesh.getNbNodes(), "test-grid-synchronizer-grid");
-    dumper_grid.setConnectivity((int*) grid_mesh.getConnectivity(_quadrangle_4).values,
-				iohelper::QUAD1, nb_grid_element, iohelper::C_MODE);
-
-    part = new double[nb_grid_element];
-    std::fill_n(part, nb_grid_element, prank);
-
-    dumper_grid.addElemDataField("partitions", part, 1, nb_grid_element);
-    dumper_grid.setPrefix("paraview/");
-    dumper_grid.init();
-    dumper_grid.dump();
-    delete [] part;
-  } catch(debug::Exception & e) { std::cout << e << std::endl; }
-#endif //AKANTU_USE_IOHELPER
-
-
   akantu::finalize();
 
   return EXIT_SUCCESS;

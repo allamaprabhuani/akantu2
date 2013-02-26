@@ -41,22 +41,9 @@
 using namespace std;
 /* -------------------------------------------------------------------------- */
 
-#ifdef AKANTU_USE_IOHELPER
-#include "io_helper.hh"
-
-static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
-
-#endif //AKANTU_USE_IOHELPER
-
-/* -------------------------------------------------------------------------- */
-akantu::UInt spatial_dimension = 2;
-akantu:: ElementType type = akantu::_triangle_3;
-/* -------------------------------------------------------------------------- */
-
 int main(int argc, char *argv[])
 {
+  akantu::UInt spatial_dimension = 2;
   akantu::debug::setDebugLevel(akantu::dblWarning);
   akantu::initialize(argc, argv);
 
@@ -64,23 +51,23 @@ int main(int argc, char *argv[])
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("square_tri3.msh", mesh);
-  
+
   akantu::HeatTransferModel model(mesh);
   //initialize everything
   model.initFull("material.dat");
-  
+
   //initialize PBC
   model.setPBC(1,1,1);
   model.initPBC();
-  
+
   //assemble the lumped capacity
   model.assembleCapacityLumped();
-  
+
   //get stable time step
   akantu::Real time_step = model.getStableTimeStep()*0.8;
   cout<<"time step is:" << time_step << endl;
   model.setTimeStep(time_step);
-  
+
   //boundary conditions
   const akantu::Vector<akantu::Real> & nodes = model.getFEM().getMesh().getNodes();
   akantu::Vector<bool> & boundary = model.getBoundary();
@@ -105,10 +92,14 @@ int main(int argc, char *argv[])
     }
   }
 
-#ifdef AKANTU_USE_IOHELPER
-  iohelper::DumperParaview dumper;
-  paraviewInit(model,dumper);
-#endif
+  model.updateResidual();
+  model.setBaseName("heat_transfer_square_2d_pbc");
+  model.addDumpField("temperature"     );
+  model.addDumpField("temperature_rate");
+  model.addDumpField("residual"        );
+  model.addDumpField("capacity_lumped" );
+  model.dump();
+
   //main loop
   int max_steps = 1000;
   for(int i=0; i<max_steps; i++)
@@ -116,11 +107,7 @@ int main(int argc, char *argv[])
       model.explicitPred();
       model.updateResidual();
       model.explicitCorr();
-      
-#ifdef AKANTU_USE_IOHELPER
-      if(i % 100 == 0)
-	paraviewDump(dumper);
-#endif
+      if(i % 100 == 0) model.dump();
       if(i % 10 == 0)
       std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
@@ -128,45 +115,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-/* -------------------------------------------------------------------------- */
-
-void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
-  // akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  // akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
-
-#pragma message "To change with new dumper"
-  // //  dumper.SetMode(iohelper::TEXT);
-  // dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
-  // 		   spatial_dimension, nb_nodes, "coordinates2");
-  // dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getTemperature().values,
-  // 			  1, "temperature");
-  // dumper.AddNodeDataField(model.getTemperatureRate().values,
-  //  			  1, "temperature_rate");
-  // dumper.AddNodeDataField(model.getResidual().values,
-  //  			  1, "residual");
-  // dumper.AddNodeDataField(model.getCapacityLumped().values,
-  //  			  1, "capacity_lumped");
-  // dumper.AddElemDataField(model.getTemperatureGradient(type).values,
-  //   			  spatial_dimension, "temperature_gradient");
-
-  // dumper.AddElemDataField(model.getConductivityOnQpoints(type).values,
-  //   			  spatial_dimension*spatial_dimension, "conductivity_qpoints");
-
-
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void paraviewDump(iohelper::Dumper & dumper) {
-  //  dumper.Dump();
-}
-
-/* -------------------------------------------------------------------------- */
-#endif
-/* -------------------------------------------------------------------------- */

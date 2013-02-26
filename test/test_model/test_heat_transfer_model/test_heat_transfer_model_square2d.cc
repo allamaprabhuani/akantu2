@@ -38,19 +38,9 @@
 #include <fstream>
 #include <string>
 using namespace std;
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "dumper_paraview.hh"
-#endif //AKANTU_USE_IOHELPER
-
-static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-iohelper::ElemType paraview_type = iohelper::TRIANGLE1;
 
 /* -------------------------------------------------------------------------- */
 akantu::UInt spatial_dimension = 2;
-akantu:: ElementType type = akantu::_triangle_3;
-/* -------------------------------------------------------------------------- */
 
 std::string base_name;
 
@@ -63,19 +53,19 @@ int main(int argc, char *argv[])
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("square_tri3.msh", mesh);
-  
+
   akantu::HeatTransferModel model(mesh);
   //initialize everything
   model.initFull("material.dat");
-  
+
   //assemble the lumped capacity
   model.assembleCapacityLumped();
-  
+
   //get stable time step
   akantu::Real time_step = model.getStableTimeStep()*0.8;
   cout<<"time step is:" << time_step << endl;
   model.setTimeStep(time_step);
-  
+
   //boundary conditions
   const akantu::Vector<akantu::Real> & nodes = model.getFEM().getMesh().getNodes();
   akantu::Vector<bool> & boundary = model.getBoundary();
@@ -100,70 +90,27 @@ int main(int argc, char *argv[])
     }
   }
 
-  iohelper::DumperParaview dumper;
-  paraviewInit(model,dumper);
+  model.updateResidual();
+  model.setBaseName("heat_transfer_square2d");
+  model.addDumpField("temperature"     );
+  model.addDumpField("temperature_rate");
+  model.addDumpField("residual"        );
+  model.addDumpField("capacity_lumped" );
+  model.dump();
 
   //main loop
-  int max_steps = 1000;
+  int max_steps = 1500;
   for(int i=0; i<max_steps; i++)
     {
       model.explicitPred();
       model.updateResidual();
       model.explicitCorr();
-      
-#ifdef AKANTU_USE_IOHELPER
-      if(i % 100 == 0)
-	paraviewDump(dumper);
-#endif
+
+      if(i % 100 == 0) model.dump();
       if(i % 10 == 0)
-      std::cout << "Step " << i << "/" << max_steps << std::endl;
+	std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
   cout<< "\n\n Stable Time Step is : " << time_step << "\n \n" <<endl;
 
   return 0;
-}
-
-void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper) {
-  base_name =  "coordinates2";
-  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
-
-#pragma message "To change with new dumper"
-  //  dumper.SetMode(iohelper::TEXT);
-  dumper.setPoints(model.getFEM().getMesh().getNodes().values,
-  		   spatial_dimension, nb_nodes, base_name);
-  dumper.setConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
-  			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.addNodeDataField("temperature",model.getTemperature().values,
-  			  1,nb_nodes);
-  // dumper.addNodeDataField(model.getTemperatureRate().values,
-  //  			  1, "temperature_rate");
-  // dumper.addNodeDataField(model.getResidual().values,
-  //  			  1, "residual");
-  // dumper.addNodeDataField(model.getCapacityLumped().values,
-  //  			  1, "capacity_lumped");
-  // dumper.addElemDataField(model.getTemperatureGradient(type).values,
-  //   			  spatial_dimension, "temperature_gradient");
-
-  // dumper.addElemDataField(model.getConductivityOnQpoints(type).values,
-  //   			  spatial_dimension*spatial_dimension, "conductivity_qpoints");
-
-
-  dumper.setPrefix("./");
-  dumper.init();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void paraviewDump(iohelper::Dumper & dumper) {
-  static int dump_step = 0;
-  std::stringstream sstr;
-  sstr << base_name << "-";
-  sstr.width(5);
-  sstr.fill('0');
-  sstr << dump_step;
-
-  dumper.dump(sstr.str());
-
-  ++dump_step;
 }

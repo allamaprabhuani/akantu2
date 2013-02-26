@@ -147,10 +147,13 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template<typename T, template< typename, template<class> class, template<typename, template<class> class> class> class Container,
+template<typename T,
+	 template< typename,
+		   template<class> class,
+		   template<typename, template<class> class> class> class Container,
+	 template<typename, template<class> class> class int_sub_iterator,
 	 template<typename, class, template<class> class> class Funct,
-	 template<typename> class ret_type,
-	 template<typename, template<class> class> class int_sub_iterator>
+	 template<typename> class ret_type>
 class DumperIOHelper::HomogenizedField : public Field {
 protected:
   typedef typename Container<T, ret_type, int_sub_iterator>::iterator sub_iterator;
@@ -192,6 +195,28 @@ public:
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
+
+  HomogenizedField(const FEM & fem,
+		   const ByElementTypeVector<T> & field,
+		   UInt spatial_dimension = 0,
+		   GhostType ghost_type = _not_ghost,
+		   ElementKind element_kind = _ek_not_defined) :
+    cont(fem, field, spatial_dimension, ghost_type, element_kind),
+    funct(cont) {
+    nb_component = funct.getNbComponent();
+  }
+
+  HomogenizedField(const FEM & fem,
+		   const ByElementTypeVector<T> & field,
+		   UInt n,
+		   UInt spatial_dimension = 0,
+		   GhostType ghost_type = _not_ghost,
+		   ElementKind element_kind = _ek_not_defined) :
+    cont(fem, field, n, spatial_dimension, ghost_type, element_kind),
+    funct(cont) {
+    nb_component = funct.getNbComponent();
+  }
+
 
   iterator begin() { return iterator(cont.begin(), funct); }
   iterator end  () { return iterator(cont.end(),   funct); }
