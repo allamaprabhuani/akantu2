@@ -134,6 +134,8 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper {
 
+public:
+
   class Field;
 };
 
