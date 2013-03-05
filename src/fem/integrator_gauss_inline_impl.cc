@@ -56,7 +56,6 @@ inline void IntegratorGauss<kind>::integrateOnElement(const Vector<Real> & f,
 						UInt nb_degree_of_freedom,
 						const UInt elem,
 						const GhostType & ghost_type) const {
-
   Vector<Real> * jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
@@ -75,9 +74,7 @@ template <ElementKind kind>
 template <ElementType type>
 inline Real IntegratorGauss<kind>::integrate(const types::RVector & in_f,
 					     UInt index,
-					     const GhostType & ghost_type) const{
-
-
+					     const GhostType & ghost_type) const {
   const Vector<Real> & jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
@@ -317,6 +314,8 @@ void IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
     inte_f.mul<false, false>(f, J);
   }
 
+  if(filter_elements) delete filtered_J;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -393,6 +392,8 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Vector<Real> & in_
     inte_f = f;
     inte_f *= J;
   }
+
+  if(filter_elements) delete filtered_J;
 
   AKANTU_DEBUG_OUT();
 }

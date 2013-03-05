@@ -316,7 +316,7 @@ void Material::removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
 
 	Vector<T> tmp(renumbering.getSize()*nb_quad_per_elem, nb_component);
 	UInt new_size = 0;
-	for (UInt i = 0; i < vect.getSize(); ++i) {
+	for (UInt i = 0; i < renumbering.getSize(); ++i) {
 	  UInt new_i = renumbering(i);
 	  if(new_i != UInt(-1)) {
 	    memcpy(tmp.storage() + new_i * nb_component * nb_quad_per_elem,
