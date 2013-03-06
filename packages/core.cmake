@@ -99,6 +99,7 @@ set(AKANTU_CORE_FILES
   common/aka_memory.hh
   common/aka_math.hh
   common/aka_math_tmpl.hh
+  common/aka_blas_lapack.hh
   common/aka_csr.hh
   common/aka_error.hh
   common/aka_common.hh

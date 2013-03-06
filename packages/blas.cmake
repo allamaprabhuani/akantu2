@@ -26,8 +26,8 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 add_optional_external_package(BLAS "Use BLAS for arithmetic operations" OFF LANGUAGE Fortran)
+mark_as_advanced(AKANTU_USE_BLAS)
 
 if(BLAS_mkl_core_LIBRARY)
   set(AKANTU_USE_BLAS_MKL)

@@ -30,6 +30,7 @@
 option(AKANTU_DAMAGE_NON_LOCAL "Package for Non-local damage constitutives laws Akantu" OFF)
 
 add_internal_package_dependencies(damage_non_local extra_materials)
+add_external_package_dependencies(damage_non_local lapack)
 
 set(AKANTU_DAMAGE_NON_LOCAL_FILES
   model/solid_mechanics/materials/weight_function.cc

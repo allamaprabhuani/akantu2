@@ -38,9 +38,18 @@ generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR}
   AKANTU_LIBRARY_INCLUDE_DIRS)
 
 #===========================================================================
+# header for blas/lapack (any other fortran libraries)
+#===========================================================================
+if(AKANTU_LAPACK OR AKANTU_BLAS)
+  include(FortranCInterface)
+  FortranCInterface_HEADER(
+    aka_fortran_mangling.hh
+    MACRO_NAMESPACE "AKA_FC_")
+endif()
+
+#===========================================================================
 # header precompilation
 #===========================================================================
-
 set(AKANTU_COMMON_HDR_TO_PRECOMPILE
   common/aka_vector.hh
   common/aka_math.hh

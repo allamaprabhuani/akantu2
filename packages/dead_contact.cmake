@@ -29,6 +29,8 @@
 
 option(AKANTU_DEAD_CONTACT "Use Contact package of Akantu" OFF)
 
+mark_as_advanced(AKANTU_DEAD_CONTACT)
+
 set(AKANTU_DEAD_CONTACT_FILES
   #cc files
   model/solid_mechanics/contact.cc

@@ -1,6 +1,7 @@
 /**
  * @file   aka_math_tmpl.hh
  *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Peter Spijker <peter.spijker@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
@@ -39,48 +40,32 @@ __END_AKANTU__
 #include <cstring>
 #include <typeinfo>
 
-#ifdef AKANTU_USE_BLAS
-# ifndef AKANTU_USE_BLAS_MKL
-#  include <cblas.h>
-# else // AKANTU_USE_BLAS_MKL
-#  include <mkl_cblas.h>
-# endif //AKANTU_USE_BLAS_MKL
-#endif //AKANTU_USE_BLAS
-
-#ifdef AKANTU_USE_LAPACK
-extern "C" {
-  void dgeev_(char* jobvl, char* jobvr, int* n, double* a,
-	      int* lda, double* wr, double* wi, double* vl, int* ldvl,
-	      double* vr, int* ldvr, double* work, int* lwork, int* info);
-
-  // LU decomposition of a general matrix
-  void dgetrf_(int* m, int *n,
-	       double* a, int* lda,
-	       int* ipiv, int* info);
-
-  // generate inverse of a matrix given its LU decomposition
-  void dgetri_(int* n, double* a, int* lda,
-	       int* ipiv, double* work, int* lwork, int* info);
-}
-#endif
+#include "aka_blas_lapack.hh"
 
 __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
-inline void Math::matrix_vector(UInt m, UInt n,
-				const Real * A,
-				const Real * x,
+inline void Math::matrix_vector(UInt im, UInt in,
+				Real * A,
+				Real * x,
 				Real * y, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   /// y = alpha*op(A)*x + beta*y
-  cblas_dgemv(CblasColMajor, CblasNoTrans,
-	      m, n, alpha, A, n, x, 1, 0, y, 1);
+  char tran_A = 'N';
+  int incx = 1;
+  int incy = 1;
+  double beta = 0.;
+  int m = im;
+  int n = in;
+
+  aka_dgemv(&tran_A, &m, &n, &alpha, A, &m, x, &incx, &beta, y, &incy);
+
 #else
-  memset(y, 0, m*sizeof(Real));
-  for (UInt i = 0; i < m; ++i) {
-    for (UInt j = 0; j < n; ++j) {
-      y[i] += A[i + j*m] * x[j];
+  memset(y, 0, im*sizeof(Real));
+  for (UInt i = 0; i < im; ++i) {
+    for (UInt j = 0; j < in; ++j) {
+      y[i] += A[i + j*im] * x[j];
     }
     y[i] *= alpha;
   }
@@ -89,19 +74,25 @@ inline void Math::matrix_vector(UInt m, UInt n,
 
 
 /* -------------------------------------------------------------------------- */
-inline void Math::matrixt_vector(UInt m, UInt n,
-				 const Real * A,
-				 const Real * x,
+inline void Math::matrixt_vector(UInt im, UInt in,
+				 Real * A,
+				 Real * x,
 				 Real * y, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   /// y = alpha*op(A)*x + beta*y
-  cblas_dgemv(CblasColMajor, CblasTrans,
-	      m, n, alpha, A, m, x, 1, 0, y, 1);
+  char tran_A = 'T';
+  int incx = 1;
+  int incy = 1;
+  double beta = 0.;
+  int m = im;
+  int n = in;
+
+  aka_dgemv(&tran_A, &m, &n, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #else
-  memset(y, 0, m*sizeof(Real));
-  for (UInt i = 0; i < m; ++i) {
-    for (UInt j = 0; j < n; ++j) {
-      y[i] += A[i * n + j] * x[j];
+  memset(y, 0, im*sizeof(Real));
+  for (UInt i = 0; i < im; ++i) {
+    for (UInt j = 0; j < in; ++j) {
+      y[i] += A[i * in + j] * x[j];
     }
     y[i] *= alpha;
   }
@@ -109,27 +100,31 @@ inline void Math::matrixt_vector(UInt m, UInt n,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
-				const Real * A,
-				const Real * B,
+inline void Math::matrix_matrix(UInt im, UInt in, UInt ik,
+				Real * A,
+				Real * B,
 				Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
-  cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-	      m, n, k,
-	      alpha,
-	      A, k,
-	      B, n,
-	      0,
-	      C, n);
+  char trans_a = 'N';
+  char trans_b = 'N';
+  double beta = 0.;
+  int m = im, n = in, k = ik;
+
+  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+            &alpha,
+            A, &m,
+            B, &k,
+            &beta,
+            C, &m);
 #else
-  memset(C, 0, m*n*sizeof(Real));
-  for (UInt j = 0; j < n; ++j) {
-    UInt _jb = j * k;
-    UInt _jc = j * m;
-    for (UInt i = 0; i < m; ++i) {
-      for (UInt l = 0; l < k; ++l) {
-	UInt _la = l * m;
+  memset(C, 0, im*in*sizeof(Real));
+  for (UInt j = 0; j < in; ++j) {
+    UInt _jb = j * ik;
+    UInt _jc = j * im;
+    for (UInt i = 0; i < im; ++i) {
+      for (UInt l = 0; l < ik; ++l) {
+	UInt _la = l * im;
 	C[i + _jc] += A[i + _la] * B[l + _jb];
       }
       C[i + _jc] *= alpha;
@@ -139,27 +134,31 @@ inline void Math::matrix_matrix(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
-				 const Real * A,
-				 const Real * B,
+inline void Math::matrixt_matrix(UInt im, UInt in, UInt ik,
+				 Real * A,
+				 Real * B,
 				 Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
-  cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans,
-	      m, n, k,
-	      alpha,
-	      A, m,
-	      B, n,
-	      0,
-	      C, n);
+  char trans_a = 'T';
+  char trans_b = 'N';
+  double beta = 0.;
+  int m = im, n = in, k = ik;
+
+  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+            &alpha,
+            A, &k,
+            B, &k,
+            &beta,
+            C, &m);
 #else
-  memset(C, 0, m*n*sizeof(Real));
-  for (UInt j = 0; j < n; ++j) {
-    UInt _jc = j*m;
-    UInt _jb = j*k;
-    for (UInt i = 0; i < m; ++i) {
-      UInt _ia = i*k;
-      for (UInt l = 0; l < k; ++l) {
+  memset(C, 0, im*in*sizeof(Real));
+  for (UInt j = 0; j < in; ++j) {
+    UInt _jc = j*im;
+    UInt _jb = j*ik;
+    for (UInt i = 0; i < im; ++i) {
+      UInt _ia = i*ik;
+      for (UInt l = 0; l < ik; ++l) {
 	C[i + _jc] += A[l + _ia] * B[l + _jb];
       }
       C[i + _jc] *= alpha;
@@ -169,27 +168,31 @@ inline void Math::matrixt_matrix(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
-				const Real * A,
-				const Real * B,
-				Real * C, Real alpha) {
+inline void Math::matrix_matrixt(UInt im, UInt in, UInt ik,
+				 Real * A,
+				 Real * B,
+                                 Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
-  cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasTrans,
-	      m, n, k,
-	      alpha,
-	      A, k,
-	      B, k,
-	      0,
-	      C, n);
+  char trans_a = 'N';
+  char trans_b = 'T';
+  double beta = 0.;
+  int m = im, n = in, k = ik;
+
+  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+            &alpha,
+            A, &m,
+            B, &n,
+            &beta,
+            C, &m);
 #else
-  memset(C, 0, m*n*sizeof(Real));
-  for (UInt j = 0; j < n; ++j) {
-    UInt _jc = j * m;
-    for (UInt i = 0; i < m; ++i) {
-      for (UInt l = 0; l < k; ++l) {
-	UInt _la = l * m;
-	UInt _lb = l * n;
+  memset(C, 0, im*in*sizeof(Real));
+  for (UInt j = 0; j < in; ++j) {
+    UInt _jc = j * im;
+    for (UInt i = 0; i < im; ++i) {
+      for (UInt l = 0; l < ik; ++l) {
+	UInt _la = l * im;
+	UInt _lb = l * in;
  	C[i + _jc] += A[i + _la] * B[j + _lb];
       }
       C[i + _jc] *= alpha;
@@ -199,27 +202,31 @@ inline void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
-				  const Real * A,
-				  const Real * B,
+inline void Math::matrixt_matrixt(UInt im, UInt in, UInt ik,
+				  Real * A,
+				  Real * B,
 				  Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
-  cblas_dgemm(CblasColMajor, CblasTrans, CblasTrans,
-	      m, n, k,
-	      alpha,
-	      A, m,
-	      B, k,
-	      0,
-	      C, n);
+  char trans_a = 'T';
+  char trans_b = 'T';
+  double beta = 0.;
+  int m = im, n = in, k = ik;
+
+  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+            &alpha,
+            A, &k,
+            B, &n,
+            &beta,
+            C, &m);
 #else
-  memset(C, 0, m * n * sizeof(Real));
-  for (UInt j = 0; j < n; ++j) {
-    UInt _jc = j*m;
-    for (UInt i = 0; i < m; ++i) {
-      UInt _ia = i*k;
-      for (UInt l = 0; l < k; ++l) {
-	UInt _lb = l * n;
+  memset(C, 0, im * in * sizeof(Real));
+  for (UInt j = 0; j < in; ++j) {
+    UInt _jc = j*im;
+    for (UInt i = 0; i < im; ++i) {
+      UInt _ia = i*ik;
+      for (UInt l = 0; l < ik; ++l) {
+	UInt _lb = l * in;
 	C[i + _jc] += A[l + _ia] * B[j + _lb];
       }
       C[i + _jc] *= alpha;
@@ -229,13 +236,14 @@ inline void Math::matrixt_matrixt(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::vectorDot(const Real * v1, const Real * v2, UInt n) {
+inline Real Math::vectorDot(Real * v1, Real * v2, UInt in) {
 #ifdef AKANTU_USE_BLAS
   ///  d := v1 . v2
-  Real d = cblas_ddot(n, v1, 1, v2, 1);
+  int incx = 1, incy = 1, n = in;
+  Real d = aka_ddot(&n, v1, &incx, v2, &incy);
 #else
   Real d = 0;
-  for (UInt i = 0; i < n; ++i) {
+  for (UInt i = 0; i < in; ++i) {
     d += v1[i] * v2[i];
   }
 #endif
@@ -246,7 +254,7 @@ inline Real Math::vectorDot(const Real * v1, const Real * v2, UInt n) {
 /* -------------------------------------------------------------------------- */
 template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
-			 Real alpha, const Real * A, const Real * B,
+			 Real alpha, Real * A, Real * B,
 			 __attribute__ ((unused)) Real beta,  Real * C) {
   if(tr_A) {
     if(tr_B) matrixt_matrixt(m, n, k, A, B, C, alpha);
@@ -260,7 +268,7 @@ inline void Math::matMul(UInt m, UInt n, UInt k,
 /* -------------------------------------------------------------------------- */
 template <bool tr_A>
 inline void Math::matVectMul(UInt m, UInt n,
-			     Real alpha, const Real * A, const Real * x,
+			     Real alpha, Real * A, Real * x,
 			     __attribute__ ((unused)) Real beta, Real * y) {
   if(tr_A) {
     matrixt_vector(m, n, A, x, y, alpha);
@@ -278,7 +286,6 @@ inline void Math::matrixEig(__attribute__((unused)) UInt n,
   AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function! Or implement it for the type " << debug::demangle(typeid(T).name()));
 }
 
-#ifdef AKANTU_USE_LAPACK
 template<>
 inline void Math::matrixEig<double>(UInt n, double * A, double * d, double * V) {
 
@@ -301,12 +308,12 @@ inline void Math::matrixEig<double>(UInt n, double * A, double * d, double * V) 
   double wkopt;
   int lwork = -1;
   // query and allocate the optimal workspace
-  dgeev_(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, &wkopt, &lwork, &info);
+  aka_dgeev(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, &wkopt, &lwork, &info);
 
   lwork = int(wkopt);
   double * work = new double[lwork];
   // solve the eigenproblem
-  dgeev_(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, work, &lwork, &info);
+  aka_dgeev(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, work, &lwork, &info);
 
   AKANTU_DEBUG_ASSERT(info == 0, "Problem computing eigenvalues/vectors. DGEEV exited with the value " << info);
 
@@ -314,7 +321,6 @@ inline void Math::matrixEig<double>(UInt n, double * A, double * d, double * V) 
   delete [] work;
   delete [] di; // I hope for you that there was no complex eigenvalues !!!
 }
-#endif
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix22_eigenvalues(Real * A, Real *Adiag) {
@@ -330,35 +336,7 @@ inline void Math::matrix22_eigenvalues(Real * A, Real *Adiag) {
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix33_eigenvalues(Real * A, Real *Adiag) {
-  /// a L^3 + b L^2 + c L + d = 0
   matrixEig(3, A, Adiag);
-//  Real a = -1 ;
-//  ///b = trace of Matrix A
-//  Real b = A[0]+A[4]+A[8];
-//  /// c = 0.5*(trace(M^2)-trace(M)^2)
-//  Real c =  A[1]*A[3] + A[2]*A[6] + A[5]*A[7] - A[0]*A[4] -
-//    A[0]*A[8] - A[4]*A[8];
-//  ///d = determinant of Matrix A
-//  Real d = det3(A);
-//
-//  /// Define x, y, z
-//  Real x = c/a - b*b/(3.*a*a);
-//  Real y = 2.*b*b*b/(27.*a*a*a) - b*c/(3.*a*a) + d/a;
-//  Real z = y*y/4. + x*x*x/27.;
-//  /// Define I, j, k, m, n, p (so equations are not so cluttered)
-//  Real i = sqrt(y*y/4. - z);
-//  Real j = pow(i,1./3.);
-//  Real k = 0;
-//  if (std::abs(i) > 1e-12)
-//    k = acos(-(y/(2.*i)));
-//
-//  Real m = cos(k/3);
-//  Real n = sqrt(3.)*sin(k/3);
-//  Real p = -b/(3.*a);
-//
-//  Adiag[0] = 2*j*m + p;
-//  Adiag[1] = -j *(m + n) + p;
-//  Adiag[2] = -j * (m - n) + p;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -400,7 +378,6 @@ inline T Math::det(__attribute__((unused)) UInt n,
   return T();
 }
 
-#ifdef AKANTU_USE_LAPACK
 template<>
 inline Real Math::det<double>(UInt n, const double * A) {
   int N = n;
@@ -411,7 +388,7 @@ inline Real Math::det<double>(UInt n, const double * A) {
   std::copy(A, A + N*N, LU);
 
   // LU factorization of A
-  dgetrf_(&N, &N, LU, &N, ipiv, &info);
+  aka_dgetrf(&N, &N, LU, &N, ipiv, &info);
   if(info > 0) {
     AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "
 		       << info <<" )");
@@ -425,7 +402,7 @@ inline Real Math::det<double>(UInt n, const double * A) {
   delete [] LU;
   return det;
 }
-#endif
+
 
 /* -------------------------------------------------------------------------- */
 inline void Math::normal2(const Real * vec,Real * normal) {

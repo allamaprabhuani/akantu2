@@ -29,6 +29,8 @@
 
 option(AKANTU_UNFINISHED "Use to continue work in progress within Akantu" OFF)
 
+mark_as_advanced(AKANTU_UNFINISHED)
+
 set(AKANTU_UNFINISHED_FILES
   #cc files
   #  analysis/analysis.cc

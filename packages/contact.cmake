@@ -54,17 +54,13 @@ set(AKANTU_CONTACT_FILES
   contact/surface.hh
   contact/zone.hh
   model/model_manager.hh
-
   )
 
+add_external_package_dependencies(contact cblas)
+add_external_package_dependencies(contact cpparray)
+add_internal_package_dependencies(contact optimization)
 
-if (AKANTU_CONTACT)
-
-  add_optional_external_package(CBLAS "Use CBLAS library" ON)
-  add_optional_external_package(CppArray "Use cpp-array library" ON)
-  
-  set(CONTACT_DEPENDS OPTIMIZATION)
-  
-endif(AKANTU_CONTACT)
-
-
+add_optional_external_package(CBLAS "Use CBLAS library" OFF)
+add_optional_external_package(CppArray "Use cpp-array library" OFF)
+mark_as_advanced(AKANTU_USE_CBLAS)
+mark_as_advanced(AKANTU_USE_CPPARRAY)

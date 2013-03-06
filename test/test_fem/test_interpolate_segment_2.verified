@@ -92,20 +92,20 @@ StaticMemory [
    + values         : {{0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}}
   ]
   Vector<double> [
-   + id             : my_fem:shapes:_segment_2
-   + size           : 10
-   + nb_component   : 2
-   + allocated size : 10
-   + memory size    : 0.16kB
-   + values         : {{0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}}
-  ]
-  Vector<double> [
-   + id             : my_fem:shapes_derivatives:_segment_2
+   + id             : my_fem:shapes_derivatives_generic:_itp_lagrange_segment_2
    + size           : 10
    + nb_component   : 2
    + allocated size : 10
    + memory size    : 0.16kB
    + values         : {{-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}}
+  ]
+  Vector<double> [
+   + id             : my_fem:shapes_generic:_itp_lagrange_segment_2
+   + size           : 10
+   + nb_component   : 2
+   + allocated size : 10
+   + memory size    : 0.16kB
+   + values         : {{0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}}
   ]
   + total size  : 32kB
  ]
