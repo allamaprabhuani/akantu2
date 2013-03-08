@@ -398,6 +398,9 @@ public:
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
 
+  /// get the number of element for a given ghost_type and a given dimension
+  inline UInt getNbElement(const UInt spatial_dimension = 0, const GhostType & ghost_type = _not_ghost) const;
+
   /// get the connectivity list either for the elements or the ghost elements
   inline const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
 

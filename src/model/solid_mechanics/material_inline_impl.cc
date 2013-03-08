@@ -315,6 +315,8 @@ void Material::removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
 	UInt nb_component = vect.getNbComponent();
 
 	Vector<T> tmp(renumbering.getSize()*nb_quad_per_elem, nb_component);
+	AKANTU_DEBUG_ASSERT(tmp.getSize() == vect.getSize(), "Something strange append some mater was created or disappeared in "<< vect.getID() << "("<< vect.getSize() <<"!=" << tmp.getSize() <<") ""!!");
+
 	UInt new_size = 0;
 	for (UInt i = 0; i < renumbering.getSize(); ++i) {
 	  UInt new_i = renumbering(i);

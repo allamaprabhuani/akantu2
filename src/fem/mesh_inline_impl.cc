@@ -308,6 +308,20 @@ inline UInt Mesh::getNbElement(const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNbElement(const UInt spatial_dimension, const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+  UInt nb_element = 0;
+
+  type_iterator it   = firstType(spatial_dimension, ghost_type, _ek_not_defined);
+  type_iterator last = lastType(spatial_dimension, ghost_type, _ek_not_defined);
+  for (; it != last; ++it) nb_element += getNbElement(*it, ghost_type);
+
+  AKANTU_DEBUG_OUT();
+  return nb_element;
+}
+
+
+/* -------------------------------------------------------------------------- */
 inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 				Real * barycenter,
 				GhostType ghost_type) const {

@@ -66,15 +66,9 @@ DistributedSynchronizer::~DistributedSynchronizer() {
   AKANTU_DEBUG_IN();
 
   for (UInt p = 0; p < nb_proc; ++p) {
-  //   send_buffer[p].resize(0);
-  //   recv_buffer[p].resize(0);
-
     send_element[p].clear();
     recv_element[p].clear();
   }
-
-  // delete [] send_buffer;
-  // delete [] recv_buffer;
 
   delete [] send_element;
   delete [] recv_element;

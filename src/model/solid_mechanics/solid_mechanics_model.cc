@@ -76,7 +76,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   element_index_by_material("element index by material", id),
   integrator(NULL),
   increment_flag(false), solver(NULL),
-  spatial_dimension(dim) {
+  spatial_dimension(dim),
+  synch_parallel(NULL) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);
@@ -130,6 +131,8 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   if(jacobian_matrix) delete jacobian_matrix;
 
   if(dof_synchronizer) delete dof_synchronizer;
+
+  if(synch_parallel) delete synch_parallel;
 
   AKANTU_DEBUG_OUT();
 }

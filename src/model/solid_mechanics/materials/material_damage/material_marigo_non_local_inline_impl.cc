@@ -48,6 +48,7 @@ void MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   this->resizeInternalVector(this->Y);
+  this->resizeInternalVector(this->Ynl);
   this->registerNonLocalVariable(Y, Ynl, 1);
 
   MaterialMarigoNonLocalParent::initMaterial();

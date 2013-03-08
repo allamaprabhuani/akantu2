@@ -40,6 +40,8 @@ DumperIOHelper::~DumperIOHelper() {
   for (Fields::iterator it = fields.begin(); it != fields.end(); ++it) {
     delete it->second;
   }
+
+  delete dumper;
 }
 
 /* -------------------------------------------------------------------------- */

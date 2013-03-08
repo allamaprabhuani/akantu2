@@ -163,6 +163,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       }
     }
 
+
     //create the list of cells in the overlapping
     typedef typename SpatialGrid<E>::CellID CellID;
 
@@ -214,8 +215,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
       AKANTU_DEBUG_INFO("I have prepared " << to_send->size() << " elements to send to processor " << p);
 
-      delete cell_ids;
-
       std::stringstream sstr; sstr << "element_per_proc_" << p;
       element_per_proc[p] = new ByElementTypeUInt(sstr.str(), id);
       ByElementTypeUInt & elempproc = *(element_per_proc[p]);
@@ -234,6 +233,10 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         UInt * local_connect = mesh.getConnectivity(type).storage() + elem->element * nb_nodes_per_element;
         for (UInt i = 0; i < nb_nodes_per_element; ++i) {
           global_connect[i] = mesh.getNodeGlobalId(local_connect[i]);
+          AKANTU_DEBUG_ASSERT(global_connect[i] < mesh.getNbGlobalNodes(),
+                              "This global node send in the connectivity does not seem correct "
+                              << global_connect[i] << " corresponding to "
+                              << local_connect[i] << " from element " << elem->element);
         }
 
         elempproc(type).push_back(global_connect);
@@ -242,7 +245,14 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
       delete to_send;
     }
+
+    delete cell_ids;
   }
+
+
+  delete [] first_cells;
+  delete [] last_cells;
+  delete [] bounding_boxes;
 
   AKANTU_DEBUG_INFO("I have finished to compute intersection,"
                     << " no it's time to communicate with my neighbors");
@@ -271,9 +281,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                           << " (communication tag : " << Tag::genTag(my_rank, count, DATA_TAG) << ")");
 
         isend_requests.push_back(comm.asyncSend(info, 2, p, Tag::genTag(my_rank, count, SIZE_TAG)));
-        isend_requests.push_back(comm.asyncSend(conn.storage(),
-                                                conn.getSize() * conn.getNbComponent(),
-                                                p, Tag::genTag(my_rank, count, DATA_TAG)));
+        isend_requests.push_back(comm.asyncSend<UInt>(conn.storage(),
+                                                      info[1],
+                                                      p, Tag::genTag(my_rank, count, DATA_TAG)));
 
         ++count;
       }
@@ -318,8 +328,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
           UInt nb_element = info[1] / nb_nodes_per_element;
 
           Vector<UInt> tmp_conn(nb_element, nb_nodes_per_element);
+          tmp_conn.clear();
 
-          comm.receive(tmp_conn.storage(), info[1], p, Tag::genTag(p, count, DATA_TAG));
+          comm.receive<UInt>(tmp_conn.storage(), info[1], p, Tag::genTag(p, count, DATA_TAG));
 
           AKANTU_DEBUG_INFO("I will receive " << nb_element << " elements of type " << ElementType(info[0])
                           << " from processor " << p
@@ -338,6 +349,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
             for (UInt n = 0; n < nb_nodes_per_element; ++n) {
               UInt gn = tmp_conn(el, n);
               UInt ln = global_nodes_ids.find(gn);
+
+              AKANTU_DEBUG_ASSERT(gn < mesh.getNbGlobalNodes(), "This global node seems not correct " << gn << " from element " << el << " node " << n);
+
               if(ln == UInt(-1)) {
                 global_nodes_ids.push_back(gn);
 		nodes_type.push_back(-3); // pure ghost node
@@ -382,13 +396,13 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     }
   }
 
+  comm.waitAll(isend_requests);
+  comm.freeCommunicationRequest(isend_requests);
+
   for (UInt p = 0; p < nb_proc; ++p) {
     if(element_per_proc[p]) delete element_per_proc[p];
   }
   delete [] element_per_proc;
-
-  comm.waitAll(isend_requests);
-  comm.freeCommunicationRequest(isend_requests);
 
   /**
    * Sends requested nodes to proc
@@ -460,6 +474,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
   mesh.sendEvent(new_nodes);
   mesh.sendEvent(new_elements);
+
+  delete [] intersects_proc;
 
   AKANTU_DEBUG_OUT();
   return &communicator;
