@@ -144,4 +144,3 @@ __END_AKANTU__
 
 
 #endif /* __AKANTU_AKA_BLAS_LAPACK_HH__ */
-
