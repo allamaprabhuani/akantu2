@@ -111,9 +111,8 @@ inline void aka_dgetrf(int* m, int *n,
   AKA_FC_GLOBAL(dgetrf, DGETRF)(m, n, a, lda, ipiv, info);
 }
 
-inline void aka_dgetri(int* m, int *n,
-                       double* a, int* lda,
-                       int* ipiv, int* info) {
+inline void aka_dgetri(int* n, double* a, int* lda,
+                       int* ipiv, double* work, int* lwork, int* info) {
   AKA_FC_GLOBAL(dgetri, DGETRI)(n, a, lda, ipiv, work, lwork, info);
 }
 #else
@@ -131,9 +130,8 @@ inline void aka_dgetrf(int* m, int *n,
   AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
 }
 
-inline void aka_dgetri(int* m, int *n,
-                double* a, int* lda,
-                int* ipiv, int* info) {
+inline void aka_dgetri(int* n, double* a, int* lda,
+                       int* ipiv, double* work, int* lwork, int* info) {
   AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
 }
 #pragma GCC diagnostic pop
