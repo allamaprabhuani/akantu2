@@ -37,9 +37,12 @@ register_test(test_synchronizer_communication
   DEPENDENCIES test_synchronizer_communication_mesh
   )
 
+add_executable(test_grid_synchronizer_check_neighbors test_grid_synchronizer_check_neighbors.cc)
+target_link_libraries(test_grid_synchronizer_check_neighbors akantu)
+
 register_test(test_grid_synchronizer
   SOURCES test_grid_synchronizer.cc
-  DEPENDENCIES test_synchronizer_communication_mesh
+  DEPENDENCIES test_synchronizer_communication_mesh test_grid_synchronizer_check_neighbors
   )
 
 register_test(test_dof_synchronizer

@@ -9,9 +9,8 @@ set(AKANTU_CORE_CXX11_FILES
   common/aka_geometry.cc
   )
 
-if (HAVE_NEW_STD)
+
+if(HAVE_NEW_STD)
   set(AKANTU_CORE_CXX11 ON CACHE INTERNAL "core package for Akantu" FORCE)
   add_definitions(-std=c++0x)
-else()
-  message(WARNING "*** WARNING *** Compiler does not support c++11 set of requirements.")
 endif()

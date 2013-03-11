@@ -97,7 +97,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   neighbourhoodStatistics("material_non_local.stats");
 #endif
 
-  //  cleanupExtraGhostElement(nb_ghost_protected);
+  cleanupExtraGhostElement(nb_ghost_protected);
   weight_func->setRadius(radius);
   weight_func->init();
 
@@ -218,29 +218,37 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
   is_creating_grid = false;
 
 #if not defined(AKANTU_NDEBUG)
-  Mesh * mesh_tmp = new Mesh(spatial_dimension, "mnl_grid");
-  spatial_grid->saveAsMesh(*mesh_tmp);
-  std::stringstream sstr_grid;
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  Int prank = comm.whoAmI();
+  Mesh * mesh_tmp = NULL;
+  if(AKANTU_DEBUG_TEST(dblDump)) {
+    mesh_tmp = new Mesh(spatial_dimension, "mnl_grid");
+    spatial_grid->saveAsMesh(*mesh_tmp);
+    std::stringstream sstr_grid;
+    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+    Int prank = comm.whoAmI();
 
-  sstr_grid << "material_non_local_grid_" << std::setfill('0') << std::setw(4) << prank << ".msh";
-  mesh_tmp->write(sstr_grid.str());
-  delete mesh_tmp;
+    sstr_grid << "material_non_local_grid_" << std::setfill('0') << std::setw(4) << prank << ".msh";
+    mesh_tmp->write(sstr_grid.str());
+    delete mesh_tmp;
+  }
 #endif
 
   this->computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
   fillCellList(quadrature_points_coordinates, _ghost);
 
 #if not defined(AKANTU_NDEBUG)
-  mesh_tmp = new Mesh(spatial_dimension, "mnl_grid");
-  spatial_grid->saveAsMesh(*mesh_tmp);
+  if(AKANTU_DEBUG_TEST(dblDump)) {
+    mesh_tmp = new Mesh(spatial_dimension, "mnl_grid");
+    spatial_grid->saveAsMesh(*mesh_tmp);
+    std::stringstream sstr_grid;
+    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+    Int prank = comm.whoAmI();
 
-  sstr_grid.str(std::string());
-  sstr_grid << "material_non_local_grid_ghost_" << std::setfill('0') << std::setw(4) << prank << ".msh";
+    sstr_grid.str(std::string());
+    sstr_grid << "material_non_local_grid_ghost_" << std::setfill('0') << std::setw(4) << prank << ".msh";
 
-  mesh_tmp->write(sstr_grid.str());
-  delete mesh_tmp;
+    mesh_tmp->write(sstr_grid.str());
+    delete mesh_tmp;
+  }
 #endif
 
   AKANTU_DEBUG_OUT();

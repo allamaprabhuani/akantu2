@@ -1046,6 +1046,37 @@ Real SolidMechanicsModel::getKineticEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
+Real SolidMechanicsModel::getKineticEnergy(ElementType & type, UInt index) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
+
+  Vector<Real> vel_on_quad(nb_quadrature_points, spatial_dimension);
+  Vector<UInt> filter_element(1, 1, index);
+
+  getFEM().interpolateOnQuadraturePoints(*velocity, vel_on_quad,
+                                         spatial_dimension,
+                                         type, _not_ghost,
+                                         &filter_element);
+
+  Vector<Real>::iterator< types::Vector<Real> > vit   = vel_on_quad.begin(spatial_dimension);
+  Vector<Real>::iterator< types::Vector<Real> > vend  = vel_on_quad.end(spatial_dimension);
+
+  types::Vector<Real> rho_v2(nb_quadrature_points);
+
+  Real rho = materials[element_index_by_material(type)(index, 1)]->getRho();
+
+  for (UInt q = 0; vit != vend; ++vit, ++q) {
+    rho_v2(q) = rho * vit->dot(*vit);
+  }
+
+  AKANTU_DEBUG_OUT();
+
+  return getFEM().integrate(rho_v2, type, index);
+}
+
+
+/* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getExternalWork() {
   AKANTU_DEBUG_IN();
 
@@ -1111,6 +1142,10 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 				    ElementType & type,
 				    UInt index){
   AKANTU_DEBUG_IN();
+
+  if (id == "kinetic") {
+    return getKineticEnergy(type, index);
+  }
 
   std::vector<Material *>::iterator mat_it;
   types::Vector<UInt> mat = element_index_by_material(type, _not_ghost).begin(2)[index];

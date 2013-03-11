@@ -444,6 +444,7 @@ public:
 
   /// compute the kinetic energy
   Real getKineticEnergy();
+  Real getKineticEnergy(ElementType & type, UInt index);
 
   /// compute the external work (for impose displacement, the velocity should be given too)
   Real getExternalWork();

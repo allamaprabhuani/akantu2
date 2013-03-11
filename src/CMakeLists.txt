@@ -43,7 +43,7 @@ generate_source_list_from_packages(${CMAKE_CURRENT_BINARY_DIR}
 if(AKANTU_LAPACK OR AKANTU_BLAS)
   include(FortranCInterface)
   FortranCInterface_HEADER(
-    aka_fortran_mangling.hh
+    ${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh
     MACRO_NAMESPACE "AKA_FC_")
 endif()
 

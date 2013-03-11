@@ -76,13 +76,12 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
   const types::Vector<Real> & lower = grid.getLowerBounds();
   const types::Vector<Real> & upper = grid.getUpperBounds();
+  const types::Vector<Real> & spacing = grid.getSpacing();
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
-    my_bounding_box[i                    ] = lower(i);
-    my_bounding_box[spatial_dimension + i] = upper(i);
+    my_bounding_box[i                    ] = lower(i) - spacing(i);
+    my_bounding_box[spatial_dimension + i] = upper(i) + spacing(i);
   }
-
-  const types::Vector<Real> & spacing = grid.getSpacing();
 
   AKANTU_DEBUG_INFO("Exchange of bounding box to detect the overlapping regions.");
 
@@ -141,6 +140,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
            */
           start = proc_bounding_box[s];
           end   = my_bounding_box[s+spatial_dimension];
+
+          AKANTU_DEBUG_INFO("Intersection scheme 1 in direction " << s << " with processor " << p << " [" << start << ", " << end <<"]");
         } else if(point1 && point2) {
           /* |-----------------|   my_bounding_box(i)
            *   |-----------|       proc_bounding_box(i)
@@ -148,18 +149,31 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
            */
           start = proc_bounding_box[s];
           end   = proc_bounding_box[s+spatial_dimension];
+
+          AKANTU_DEBUG_INFO("Intersection scheme 2 in direction " << s << " with processor " << p << " [" << start << ", " << end << "]");
         } else if(!point1 && point2) {
-          /*       |-----------|  my_bounding_box(i)
-           * |-----------|        proc_bounding_box(i)
+          /*       |-----------|   my_bounding_box(i)
+           * |-----------|         proc_bounding_box(i)
            * 1           2
            */
           start = my_bounding_box[s];
           end   = proc_bounding_box[s+spatial_dimension];
+
+          AKANTU_DEBUG_INFO("Intersection scheme 3 in direction " << s << " with processor " << p << " [" << start << ", " << end <<"]");
+        } else {
+          /*   |-----------|       my_bounding_box(i)
+           * |-----------------|   proc_bounding_box(i)
+           * 1                 2
+           */
+          start = my_bounding_box[s];
+          end   = my_bounding_box[s+spatial_dimension];
+
+          AKANTU_DEBUG_INFO("Intersection scheme 4 in direction " << s << " with processor " << p << " [" << start << ", " << end <<"]");
         }
 
 
-        first_cell_p[s] = grid.getCellID(start - spacing[s]/100., s);
-        last_cell_p [s] = grid.getCellID(end + spacing[s]/100., s);
+        first_cell_p[s] = grid.getCellID(start, s);
+        last_cell_p [s] = grid.getCellID(end, s);
       }
     }
 

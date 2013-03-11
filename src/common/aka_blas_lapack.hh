@@ -27,8 +27,12 @@
  *
  */
 
+/* -------------------------------------------------------------------------- */
+
 #ifndef __AKANTU_AKA_BLAS_LAPACK_HH__
 #define __AKANTU_AKA_BLAS_LAPACK_HH__
+
+/* -------------------------------------------------------------------------- */
 
 #if defined(AKANTU_USE_BLAS) || defined(AKANTU_USE_LAPACK)
 # include "aka_fortran_mangling.hh"

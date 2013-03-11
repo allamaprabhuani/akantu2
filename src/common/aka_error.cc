@@ -193,8 +193,9 @@ namespace debug {
   /* ------------------------------------------------------------------------ */
   void Debugger::setParallelContext(int rank, int size) {
     std::stringstream sstr;
-    sstr << "[" << std::setfill(' ') << std::right << std::setw(3)
-         << (rank + 1) << "/" << size << "] ";
+    UInt pad = std::ceil(std::log10(size));
+    sstr << "[R" << std::setfill(' ') << std::right << std::setw(pad)
+         << rank << "|S" << size << "] ";
     parallel_context = sstr.str();
   }
 
