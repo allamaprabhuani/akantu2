@@ -1072,7 +1072,7 @@ Real SolidMechanicsModel::getKineticEnergy(ElementType & type, UInt index) {
 
   AKANTU_DEBUG_OUT();
 
-  return getFEM().integrate(rho_v2, type, index);
+  return 0.5*getFEM().integrate(rho_v2, type, index);
 }
 
 
@@ -1116,12 +1116,12 @@ Real SolidMechanicsModel::getExternalWork() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const std::string & id) {
+Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
   AKANTU_DEBUG_IN();
 
-  if (id == "kinetic") {
+  if (energy_id == "kinetic") {
     return getKineticEnergy();
-  } else if (id == "external work"){
+  } else if (energy_id == "external work"){
     return getExternalWork();
   }
 
@@ -1143,7 +1143,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 				    UInt index){
   AKANTU_DEBUG_IN();
 
-  if (id == "kinetic") {
+  if (energy_id == "kinetic") {
     return getKineticEnergy(type, index);
   }
 
