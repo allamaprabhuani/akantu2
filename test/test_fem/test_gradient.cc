@@ -71,10 +71,6 @@ int main(int argc, char *argv[]) {
 
   std::cout << *fem << std::endl;
 
-  StaticMemory * st_mem = StaticMemory::getStaticMemory();
-  std::cout << *st_mem << std::endl;
-
-
   Real alpha[2][3] = {{13, 23, 31},
 		      {11,  7,  5}};
 

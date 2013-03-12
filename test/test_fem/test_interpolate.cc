@@ -68,9 +68,6 @@ int main(int argc, char *argv[]) {
 
   std::cout << *fem << std::endl;
 
-  StaticMemory * st_mem = StaticMemory::getStaticMemory();
-  std::cout << *st_mem << std::endl;
-
   Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
 
   UInt nb_element = my_mesh.getNbElement(type);

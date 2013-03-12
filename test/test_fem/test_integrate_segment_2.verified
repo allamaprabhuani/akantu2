@@ -1,3 +1,4 @@
+CMA: unable to open /dev/infiniband/rdma_cm
 Epsilon : 3e-13
 FEM [
  + id                : my_fem
@@ -60,55 +61,5 @@ FEM [
     ]
   ]
  ]
-]
-
-StaticMemory [
- + nb memories : 1
- Memory [
-  + memory id   : 0
-  + nb vectors  : 5
-  Vector<unsigned int> [
-   + id             : mesh:connectivities:_segment_2
-   + size           : 10
-   + nb_component   : 2
-   + allocated size : 2000
-   + memory size    : 16kB
-   + values         : {{0, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {9, 10}, {10, 1}}
-  ]
-  Vector<double> [
-   + id             : mesh:coordinates
-   + size           : 11
-   + nb_component   : 1
-   + allocated size : 2000
-   + memory size    : 16kB
-   + values         : {{0}, {1}, {0.1}, {0.2}, {0.3}, {0.4}, {0.5}, {0.6}, {0.7}, {0.8}, {0.9}}
-  ]
-  Vector<double> [
-   + id             : my_fem:jacobians:_segment_2
-   + size           : 10
-   + nb_component   : 1
-   + allocated size : 10
-   + memory size    : 0.078kB
-   + values         : {{0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}, {0.1}}
-  ]
-  Vector<double> [
-   + id             : my_fem:shapes_derivatives_generic:_itp_lagrange_segment_2
-   + size           : 10
-   + nb_component   : 2
-   + allocated size : 10
-   + memory size    : 0.16kB
-   + values         : {{-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}, {-10, 10}}
-  ]
-  Vector<double> [
-   + id             : my_fem:shapes_generic:_itp_lagrange_segment_2
-   + size           : 10
-   + nb_component   : 2
-   + allocated size : 10
-   + memory size    : 0.16kB
-   + values         : {{0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}, {0.5, 0.5}}
-  ]
-  + total size  : 32kB
- ]
- + total size  : 32kB
 ]
 

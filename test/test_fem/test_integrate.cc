@@ -68,9 +68,6 @@ int main(int argc, char *argv[]) {
 
   std::cout << *fem << std::endl;
 
-  StaticMemory * st_mem = StaticMemory::getStaticMemory();
-  std::cout << *st_mem << std::endl;
-
   UInt nb_element = my_mesh.getNbElement(type);
   UInt nb_quadrature_points = fem->getNbQuadraturePoints(type) * nb_element;
 
