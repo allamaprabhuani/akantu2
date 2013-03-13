@@ -40,13 +40,13 @@ set(AKANTU_BOOST_COMPONENTS
 find_package(Boost COMPONENTS ${AKANTU_BOOST_COMPONENTS})
 
 if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
+  list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
 endif()
 
 foreach(_comp ${AKANTU_BOOST_COMPONENTS})
   string(TOUPPER ${_comp} _u_comp)
   if(Boost_${_u_comp}_FOUND)
-    set(AKANTU_${_u_comp}_CHRONO TRUE)
+    set(AKANTU_BOOST_${_u_comp} TRUE CACHE INTERNAL "" FORCE)
     list(APPEND AKANTU_EXTERNAL_LIBRARIES ${Boost_${_u_comp}_LIBRARY})
   endif()
 endforeach()

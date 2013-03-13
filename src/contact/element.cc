@@ -25,14 +25,13 @@
  *
  */
 
-#if AKANTU_BOOST_CHRONO
-#  include <boost/chrono.hpp>
-#endif
-
 #include "element.hh"
 #include "aka_math.hh"
 #include "aka_geometry.hh"
 
+#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)
+#  include <boost/chrono.hpp>
+#endif
 
 __BEGIN_AKANTU__
 
