@@ -631,17 +631,17 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
 
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
       UInt nb_element = mesh.getNbElement(type, gt);
-      UInt * conn_val = mesh.getConnectivity(type, gt).values;
+      Vector<UInt>::iterator< types::Vector<UInt> > conn_it = mesh.getConnectivity(type, gt).begin(nb_nodes_per_element);
 
-      for (UInt e = 0; e < nb_element; ++e) {
+      for (UInt e = 0; e < nb_element; ++e, ++conn_it) {
+	types::Vector<UInt> & conn = *conn_it;
         for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-          AKANTU_DEBUG_ASSERT(*conn_val < nb_nodes, "Node " << *conn_val
+          AKANTU_DEBUG_ASSERT(conn(n) < nb_nodes, "Node " << conn(n)
                               << " bigger than number of nodes " << nb_nodes);
-          if(!already_seen[*conn_val]) {
-            nodes_set[*conn_val] += set;
-            already_seen[*conn_val] = true;
+          if(!already_seen[conn(n)]) {
+            nodes_set[conn(n)] += set;
+            already_seen[conn(n)] = true;
           }
-          conn_val++;
         }
       }
     }
