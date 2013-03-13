@@ -57,7 +57,7 @@ public:
 
   QuadraturePoint(UInt element, UInt num_point,
 		  UInt global_num,
-		  const types::RVector & position,
+		  const Vector<Real> & position,
 		  ElementType type,
 		  GhostType ghost_type = _not_ghost) :
     Element(type, element, ghost_type), num_point(num_point), global_num(global_num),
@@ -81,9 +81,9 @@ public:
     return *this;
   }
 
-  AKANTU_GET_MACRO(Position, position, const types::RVector &);
+  AKANTU_GET_MACRO(Position, position, const Vector<Real> &);
 
-  void setPosition(const types::RVector & position) {
+  void setPosition(const Vector<Real> & position) {
     this->position.shallowCopy(position);
   }
 
@@ -100,7 +100,7 @@ public:
   UInt num_point;
   UInt global_num;
 private:
-  types::RVector position;
+  Vector<Real> position;
 };
 
 /**
@@ -130,47 +130,47 @@ public:
 
   /// extract the nodal values and store them per element
   static void extractNodalToElementField(const Mesh & mesh,
-					 const Vector<Real> & nodal_f,
-					 Vector<Real> & elemental_f,
+					 const Array<Real> & nodal_f,
+					 Array<Real> & elemental_f,
 					 const ElementType & type,
 					 const GhostType & ghost_type = _not_ghost,
-					 const Vector<UInt> * filter_elements = NULL);
+					 const Array<UInt> * filter_elements = NULL);
 
   /// filter a field
   static void filterQuadraturePointsData(const Mesh & mesh,
-					 const Vector<Real> & quad_f,
-					 Vector<Real> & filtered_f,
+					 const Array<Real> & quad_f,
+					 Array<Real> & filtered_f,
 					 const ElementType & type,
 					 const GhostType & ghost_type = _not_ghost,
-					 const Vector<UInt> * filter_elements = NULL);
+					 const Array<UInt> * filter_elements = NULL);
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
   /* ------------------------------------------------------------------------ */
   /// integrate f for all elements of type "type"
-  virtual void integrate(const Vector<Real> & f,
-		 Vector<Real> &intf,
+  virtual void integrate(const Array<Real> & f,
+		 Array<Real> &intf,
 		 UInt nb_degree_of_freedom,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
-   		 const Vector<UInt> * filter_elements = NULL) const = 0;
+   		 const Array<UInt> * filter_elements = NULL) const = 0;
 
   /// integrate a scalar value on all elements of type "type"
-  virtual Real integrate(const Vector<Real> & f,
+  virtual Real integrate(const Array<Real> & f,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
-   		 const Vector<UInt> * filter_elements = NULL) const = 0;
+   		 const Array<UInt> * filter_elements = NULL) const = 0;
 
   /// integrate f for all quadrature points of type "type"
-  virtual void integrateOnQuadraturePoints(const Vector<Real> & f,
-					   Vector<Real> &intf,
+  virtual void integrateOnQuadraturePoints(const Array<Real> & f,
+					   Array<Real> &intf,
 					   UInt nb_degree_of_freedom,
 					   const ElementType & type,
 					   const GhostType & ghost_type = _not_ghost,
-					   const Vector<UInt> * filter_elements = NULL) const = 0;
+					   const Array<UInt> * filter_elements = NULL) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
-  virtual Real integrate(const types::RVector & f,
+  virtual Real integrate(const Vector<Real> & f,
 			 const ElementType & type,
 			 UInt index, const GhostType & ghost_type = _not_ghost) const = 0;
 
@@ -182,36 +182,36 @@ public:
   virtual UInt getNbQuadraturePoints(const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost) const = 0;
   /// get the precomputed shapes
-  const virtual Vector<Real> & getShapes(const ElementType & type,
+  const virtual Array<Real> & getShapes(const ElementType & type,
 					 const GhostType & ghost_type = _not_ghost) const = 0;
 
   /// get the derivatives of shapes
-  const virtual Vector<Real> & getShapesDerivatives(const ElementType & type,
+  const virtual Array<Real> & getShapesDerivatives(const ElementType & type,
 						    const GhostType & ghost_type = _not_ghost,
 						    UInt id = 0) const = 0;
 
   /// get quadrature points
-  const virtual types::Matrix<Real> & getQuadraturePoints(const ElementType & type,
+  const virtual Matrix<Real> & getQuadraturePoints(const ElementType & type,
 							  const GhostType & ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
   /* ------------------------------------------------------------------------ */
   virtual
-  void gradientOnQuadraturePoints(const Vector<Real> &u,
-				  Vector<Real> &nablauq,
+  void gradientOnQuadraturePoints(const Array<Real> &u,
+				  Array<Real> &nablauq,
 				  const UInt nb_degree_of_freedom,
 				  const ElementType & type,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const = 0;
+				  const Array<UInt> * filter_elements = NULL) const = 0;
 
   virtual
-  void interpolateOnQuadraturePoints(const Vector<Real> &u,
-				     Vector<Real> &uq,
+  void interpolateOnQuadraturePoints(const Array<Real> &u,
+				     Array<Real> &uq,
 				     UInt nb_degree_of_freedom,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
-				     const Vector<UInt> * filter_elements = NULL) const =0;
+				     const Array<UInt> * filter_elements = NULL) const =0;
 
 
 
@@ -223,14 +223,14 @@ public:
   virtual void computeNormalsOnControlPoints(const GhostType & ghost_type = _not_ghost) = 0;
 
   /// pre-compute normals on control points
-  virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Vector<Real> & field,
+  virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Array<Real> & field,
 					     __attribute__((unused)) const GhostType & ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// pre-compute normals on control points
-  virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Vector<Real> & field,
-					     __attribute__((unused)) Vector<Real> & normal,
+  virtual void computeNormalsOnControlPoints(__attribute__((unused)) const Array<Real> & field,
+					     __attribute__((unused)) Array<Real> & normal,
 					     __attribute__((unused)) const ElementType & type,
 					     __attribute__((unused)) const GhostType & ghost_type = _not_ghost) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
@@ -240,29 +240,29 @@ public:
 
 
   /// assemble vectors
-  void assembleVector(const Vector<Real> & elementary_vect,
-		      Vector<Real> & nodal_values,
-		      const Vector<Int> & equation_number,
+  void assembleArray(const Array<Real> & elementary_vect,
+		      Array<Real> & nodal_values,
+		      const Array<Int> & equation_number,
 		      UInt nb_degree_of_freedom,
 		      const ElementType & type,
 		      const GhostType & ghost_type = _not_ghost,
-		      const Vector<UInt> * filter_elements = NULL,
+		      const Array<UInt> * filter_elements = NULL,
 		      Real scale_factor = 1) const;
 
   /// assemble matrix in the complete sparse matrix
-  void assembleMatrix(const Vector<Real> & elementary_mat,
+  void assembleMatrix(const Array<Real> & elementary_mat,
 		      SparseMatrix & matrix,
 		      UInt nb_degree_of_freedom,
 		      const ElementType & type,
 		      const GhostType & ghost_type = _not_ghost,
-		      const Vector<UInt> * filter_elements = NULL) const;
+		      const Array<UInt> * filter_elements = NULL) const;
 
 
   /// assemble a field as a lumped matrix (ex. rho in lumped mass)
-  virtual void assembleFieldLumped(__attribute__ ((unused)) const Vector<Real> & field_1,
+  virtual void assembleFieldLumped(__attribute__ ((unused)) const Array<Real> & field_1,
 				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
-  				   __attribute__ ((unused)) Vector<Real> & lumped,
-  				   __attribute__ ((unused)) const Vector<Int> & equation_number,
+  				   __attribute__ ((unused)) Array<Real> & lumped,
+  				   __attribute__ ((unused)) const Array<Int> & equation_number,
   				   __attribute__ ((unused)) ElementType type,
   				   __attribute__ ((unused)) const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
@@ -270,7 +270,7 @@ public:
 
 
   /// assemble a field as a matrix (ex. rho to mass matrix)
-  virtual void assembleFieldMatrix(__attribute__ ((unused)) const Vector<Real> & field_1,
+  virtual void assembleFieldMatrix(__attribute__ ((unused)) const Array<Real> & field_1,
 				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
 				   __attribute__ ((unused)) SparseMatrix & matrix,
 				   __attribute__ ((unused)) ElementType type,
@@ -297,7 +297,7 @@ public:
   inline Mesh & getMesh() const;
 
   /// get the in-radius of an element
-  static inline Real getElementInradius(const types::Matrix<Real> & coord, const ElementType & type);
+  static inline Real getElementInradius(const Matrix<Real> & coord, const ElementType & type);
 
   /// get the normals on quadrature points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalsOnQuadPoints, normals_on_quad_points, Real);

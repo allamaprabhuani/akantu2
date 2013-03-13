@@ -110,8 +110,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_6, _gt_triangle_6, _itp_lagrange_
 
 /* -------------------------------------------------------------------------- */
 template <> inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(const types::Vector<Real> & natural_coords,
-							      types::Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(const Vector<Real> & natural_coords,
+							      Vector<Real> & N) {
   /// Natural coordinates
   Real c0 = 1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
   Real c1 = natural_coords(0);                         /// @f$ c1 = \xi @f$
@@ -127,8 +127,8 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(const types::Vecto
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const types::Vector<Real> & natural_coords,
-							    types::Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const Vector<Real> & natural_coords,
+							    Matrix<Real> & dnds) {
   /**
    * @f[
    * dnds =  \left(
@@ -175,7 +175,7 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const types::Vector<
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(__attribute__((unused)) const types::Matrix<Real> & dxds,
+InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(__attribute__((unused)) const Matrix<Real> & dxds,
 								       __attribute__((unused)) Real & jac){
   AKANTU_DEBUG_ERROR("to implement");
 }
@@ -183,7 +183,7 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(__attribu
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real
-GeometricalElement<_gt_triangle_6>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
   UInt triangles[4][3] = {
     {0, 3, 5},
     {3, 1, 4},
@@ -203,6 +203,6 @@ GeometricalElement<_gt_triangle_6>::getInradius(const types::Matrix<Real> & coor
 }
 
 /* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_triangle_6>::contains(const types::RVector & natural_coords) {
+// template<> inline bool ElementClass<_triangle_6>::contains(const Vector<Real> & natural_coords) {
 //   return ElementClass<_triangle_3>::contains(natural_coords);
 // }

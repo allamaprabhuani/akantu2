@@ -51,11 +51,11 @@
 using namespace akantu;
 
 static void restartReaderInit(iohelper::ReaderRestart & reader);
-static void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map);
-static void DumpRestart(SolidMechanicsModel  & my_model, std::map < std::string, VectorBase* > & map);
-static void printRestartMap(std::map < std::string, VectorBase* > & map);
+static void loadRestartInformation(ContactRigid * contact, std::map < std::string, ArrayBase* > & map);
+static void DumpRestart(SolidMechanicsModel  & my_model, std::map < std::string, ArrayBase* > & map);
+static void printRestartMap(std::map < std::string, ArrayBase* > & map);
 static void printContact(ContactRigid * contact);
-static void freeMap(std::map < std::string, VectorBase* > & map);
+static void freeMap(std::map < std::string, ArrayBase* > & map);
 
 UInt dim = 2;
 const ElementType element_type = _triangle_3;
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initVectors();
+  my_model.initArrays();
   my_model.getForce().clear();
   my_model.getVelocity().clear();
   my_model.getAcceleration().clear();
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
   printContact(my_contact);
 
   /// put restart information into a map
-  std::map < std::string, VectorBase* > output_map;
+  std::map < std::string, ArrayBase* > output_map;
   my_contact->getRestartInformation(output_map, master);
   DumpRestart(my_model, output_map);
 
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
   my_contact_restart->initContact(false);
   my_contact_restart->addMasterSurface(master);
   my_contact_restart->addImpactorSurfaceToMasterSurface(impactor, master);
-  std::map < std::string, VectorBase* > input_map;
+  std::map < std::string, ArrayBase* > input_map;
   loadRestartInformation(my_contact_restart, input_map);
 
   test_output << "RESTART MAP" << std::endl;
@@ -267,7 +267,7 @@ void restartReaderInit(iohelper::ReaderRestart & reader) {
 }
 
 /* -------------------------------------------------------------------------- */
-void loadRestartInformation(ContactRigid * contact, std::map < std::string, VectorBase* > & map) {
+void loadRestartInformation(ContactRigid * contact, std::map < std::string, ArrayBase* > & map) {
 
 #ifdef AKANTU_USE_IOHELPER
   // get the equilibrium state from the restart files
@@ -276,7 +276,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   memcpy(displacement,restart_reader->GetNodeDataField("displacements"),dim*nb_nodes*sizeof(Real));
 
   Real * tmp_r = restart_reader->GetNodeDataField("boundaries");
-  Vector<bool> * boundary_r = new Vector<bool>(nb_nodes, dim, false);
+  Array<bool> * boundary_r = new Array<bool>(nb_nodes, dim, false);
   for (UInt i=0; i<nb_nodes; ++i) {
     for (UInt j=0; j<dim; ++j) {
       if(tmp_r[i*dim+j] > 0.01) {
@@ -287,7 +287,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   memcpy(boundary, boundary_r->values, dim*nb_nodes*sizeof(bool));
 
   tmp_r = restart_reader->GetNodeDataField("active_impactor_nodes");
-  Vector<bool> * ai_nodes = new Vector<bool>(nb_nodes, 1, false, "a_imp_nodes");
+  Array<bool> * ai_nodes = new Array<bool>(nb_nodes, 1, false, "a_imp_nodes");
   for (UInt i=0; i<nb_nodes; ++i) {
     if(tmp_r[i] > 0.01)
       (*ai_nodes)(i) = true;
@@ -295,14 +295,14 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   map["active_impactor_nodes"] = ai_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("master_element_type");
-  Vector<ElementType> * et_nodes = new Vector<ElementType>(nb_nodes, 1, _not_defined);
+  Array<ElementType> * et_nodes = new Array<ElementType>(nb_nodes, 1, _not_defined);
   for (UInt i=0; i<nb_nodes; ++i) {
     (*et_nodes)(i) = (ElementType)(tmp_r[i]);
   }
   map["master_element_type"] = et_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("master_normals");
-  Vector<Real> * mn_nodes = new Vector<Real>(0, dim);
+  Array<Real> * mn_nodes = new Array<Real>(0, dim);
   for (UInt i=0; i<nb_nodes; ++i) {
     Real normal[dim];
     for (UInt j=0; j<dim; ++j) {
@@ -313,7 +313,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   map["master_normals"] = mn_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("node_is_sticking");
-  Vector<bool> * is_nodes = new Vector<bool>(nb_nodes, nb_components, false);
+  Array<bool> * is_nodes = new Array<bool>(nb_nodes, nb_components, false);
   for (UInt i=0; i<nb_nodes; ++i) {
     for (UInt j=0; j<nb_components; ++j) {
       if(tmp_r[i*nb_components+j] > 0.01)
@@ -323,7 +323,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   map["node_is_sticking"] = is_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("friction_forces");
-  Vector<Real> * ff_nodes = new Vector<Real>(0, dim);
+  Array<Real> * ff_nodes = new Array<Real>(0, dim);
   for (UInt i=0; i<nb_nodes; ++i) {
     Real normal[dim];
     for (UInt j=0; j<dim; ++j) {
@@ -334,7 +334,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   map["friction_forces"] = ff_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("stick_positions");
-  Vector<Real> * sp_nodes = new Vector<Real>(0, dim);
+  Array<Real> * sp_nodes = new Array<Real>(0, dim);
   for (UInt i=0; i<nb_nodes; ++i) {
     Real position[dim];
     for (UInt j=0; j<dim; ++j) {
@@ -345,7 +345,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   map["stick_positions"] = sp_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("residual_forces");
-  Vector<Real> * rf_nodes = new Vector<Real>(0, dim);
+  Array<Real> * rf_nodes = new Array<Real>(0, dim);
   for (UInt i=0; i<nb_nodes; ++i) {
     Real resid[dim];
     for (UInt j=0; j<dim; ++j) {
@@ -356,7 +356,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
   map["residual_forces"] = rf_nodes;
 
   tmp_r = restart_reader->GetNodeDataField("previous_velocities");
-  Vector<Real> * pv_nodes = new Vector<Real>(0, dim);
+  Array<Real> * pv_nodes = new Array<Real>(0, dim);
   for (UInt i=0; i<nb_nodes; ++i) {
     Real pr_vel[dim];
     for (UInt j=0; j<dim; ++j) {
@@ -381,7 +381,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Vect
 }
 
 /* -------------------------------------------------------------------------- */
-void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorBase* > & map) {
+void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBase* > & map) {
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperRestart dumper;
 
@@ -398,7 +398,7 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorB
   dumper.AddNodeDataField(my_model.getResidual().values,
                           dim, "forces");
 
-  Vector<Real> * boundary_r = new Vector<Real>(nb_nodes, dim, 0.);
+  Array<Real> * boundary_r = new Array<Real>(nb_nodes, dim, 0.);
   for (UInt i=0; i<nb_nodes; ++i) {
     for (UInt j=0; j<dim; ++j) {
       if (boundary[i*dim+j]) {
@@ -409,11 +409,11 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorB
   dumper.AddNodeDataField(boundary_r->values, dim, "boundaries");
 
   // contact information
-  std::map < std::string, VectorBase* >::iterator it;
+  std::map < std::string, ArrayBase* >::iterator it;
 
   it = map.find("active_impactor_nodes");
-  Vector<bool> * tmp_vec_b = (Vector<bool> *)(it->second);
-  Vector<Real> * active_impactor_nodes = new Vector<Real>(nb_nodes, 1, 0.);
+  Array<bool> * tmp_vec_b = (Array<bool> *)(it->second);
+  Array<Real> * active_impactor_nodes = new Array<Real>(nb_nodes, 1, 0.);
   for (UInt i=0; i<nb_nodes; ++i) {
     if((*tmp_vec_b)(i))
       (*active_impactor_nodes)(i) = 1.;
@@ -421,19 +421,19 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorB
   dumper.AddNodeDataField(active_impactor_nodes->values, 1, "active_impactor_nodes");
 
   it = map.find("master_element_type");
-  Vector<ElementType> * tmp_vec_t = (Vector<ElementType> *)(it->second);
-  Vector<Real> * master_element_type = new Vector<Real>(nb_nodes, 1, (Real)_not_defined);
+  Array<ElementType> * tmp_vec_t = (Array<ElementType> *)(it->second);
+  Array<Real> * master_element_type = new Array<Real>(nb_nodes, 1, (Real)_not_defined);
   for (UInt i=0; i<nb_nodes; ++i) {
     (*master_element_type)(i) = (Real)((*tmp_vec_t)(i));
   }
   dumper.AddNodeDataField(master_element_type->values, 1, "master_element_type");
 
   it = map.find("master_normals");
-  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "master_normals");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "master_normals");
 
   it = map.find("node_is_sticking");
-  tmp_vec_b = (Vector<bool> *)(it->second);
-  Vector<Real> * node_is_sticking = new Vector<Real>(nb_nodes, 2, 0.);
+  tmp_vec_b = (Array<bool> *)(it->second);
+  Array<Real> * node_is_sticking = new Array<Real>(nb_nodes, 2, 0.);
   for (UInt i=0; i<nb_nodes; ++i) {
     for (UInt j=0; j<2; ++j) {
       if((*tmp_vec_b)(i,j))
@@ -443,15 +443,15 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorB
   dumper.AddNodeDataField(node_is_sticking->values, 2, "node_is_sticking");
 
   it = map.find("friction_forces");
-  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "friction_forces");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "friction_forces");
 
   it = map.find("stick_positions");
-  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "stick_positions");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "stick_positions");
 
   it = map.find("residual_forces");
-  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "residual_forces");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "residual_forces");
   it = map.find("previous_velocities");
-  dumper.AddNodeDataField(((Vector<Real> *)it->second)->values, dim, "previous_velocities");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "previous_velocities");
 
   dumper.SetMode(iohelper::COMPRESSED);
   dumper.SetPrefix("restart");
@@ -467,54 +467,54 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, VectorB
 }
 
 /* -------------------------------------------------------------------------- */
-void printRestartMap(std::map < std::string, VectorBase* > & map) {
+void printRestartMap(std::map < std::string, ArrayBase* > & map) {
   /// access all vectors in the map
-  std::map < std::string, VectorBase* >::iterator it;
+  std::map < std::string, ArrayBase* >::iterator it;
 
   it = map.find("active_impactor_nodes");
-  Vector<bool> * ai_nodes = dynamic_cast<Vector<bool> *>(it->second);
+  Array<bool> * ai_nodes = dynamic_cast<Array<bool> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry for active impactor nodes" << std::endl;
   }
 
   it = map.find("master_element_type");
-  Vector<ElementType> * et_nodes = dynamic_cast<Vector<ElementType> *>(it->second);
+  Array<ElementType> * et_nodes = dynamic_cast<Array<ElementType> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry master element type" << std::endl;
   }
 
   it = map.find("master_normals");
-  Vector<Real> * mn_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  Array<Real> * mn_nodes = dynamic_cast<Array<Real> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry for master normals" << std::endl;
   }
 
   it = map.find("node_is_sticking");
-  Vector<bool> * is_nodes = dynamic_cast<Vector<bool> *>(it->second);
+  Array<bool> * is_nodes = dynamic_cast<Array<bool> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry node is sticking" << std::endl;
   }
 
   it = map.find("friction_forces");
-  Vector<Real> * ff_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  Array<Real> * ff_nodes = dynamic_cast<Array<Real> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry friction forces" << std::endl;
   }
 
   it = map.find("stick_positions");
-  Vector<Real> * sp_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  Array<Real> * sp_nodes = dynamic_cast<Array<Real> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry stick positions" << std::endl;
   }
 
   it = map.find("residual_forces");
-  Vector<Real> * rf_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  Array<Real> * rf_nodes = dynamic_cast<Array<Real> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry residual forces" << std::endl;
   }
 
   it = map.find("previous_velocities");
-  Vector<Real> * pv_nodes = dynamic_cast<Vector<Real> *>(it->second);
+  Array<Real> * pv_nodes = dynamic_cast<Array<Real> *>(it->second);
   if(it == map.end()) {
     test_output << "could not find map entry previous velocities" << std::endl;
   }
@@ -581,9 +581,9 @@ void printContact(ContactRigid * contact) {
 
 
 /* -------------------------------------------------------------------------- */
-void freeMap(std::map < std::string, VectorBase* > & map) {
-  std::map < std::string, VectorBase* >::iterator it = map.begin();
-  std::map < std::string, VectorBase* >::iterator end = map.end();
+void freeMap(std::map < std::string, ArrayBase* > & map) {
+  std::map < std::string, ArrayBase* >::iterator it = map.begin();
+  std::map < std::string, ArrayBase* >::iterator end = map.end();
 
   for (; it != end; ++it) {
     delete it->second;

@@ -81,21 +81,21 @@ public:
 public:
 
   virtual void integrationSchemePred(Real delta_t,
-				     Vector<Real> & u,
-				     Vector<Real> & u_dot,
-				     Vector<bool> & boundary);
+				     Array<Real> & u,
+				     Array<Real> & u_dot,
+				     Array<bool> & boundary);
 
   virtual void integrationSchemeCorrTemp(Real delta_t,
-					 Vector<Real> & u,
-					 Vector<Real> & u_dot,
-					 Vector<bool> & boundary,
-					 Vector<Real> & delta);
+					 Array<Real> & u,
+					 Array<Real> & u_dot,
+					 Array<bool> & boundary,
+					 Array<Real> & delta);
 
   virtual void integrationSchemeCorrTempRate(Real delta_t,
-					     Vector<Real> & u,
-					     Vector<Real> & u_dot,
-					     Vector<bool> & boundary,
-					     Vector<Real> & delta);
+					     Array<Real> & u,
+					     Array<Real> & u_dot,
+					     Array<bool> & boundary,
+					     Array<Real> & delta);
 
 public:
   /// the coeffichent @f{b@f} in the description
@@ -109,10 +109,10 @@ public:
 private:
   template<IntegrationSchemeCorrectorType type>
   void integrationSchemeCorr(Real delta_t,
-			     Vector<Real> & u,
-			     Vector<Real> & u_dot,
-			     Vector<bool> & boundary,
-			     Vector<Real> & delta);
+			     Array<Real> & u,
+			     Array<Real> & u_dot,
+			     Array<bool> & boundary,
+			     Array<Real> & delta);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

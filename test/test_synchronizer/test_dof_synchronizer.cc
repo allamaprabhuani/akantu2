@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
   UInt nb_nodes = mesh.getNbNodes();
 
-  Vector<Real> dof_vector(nb_nodes, spatial_dimension, "Test vector");
+  Array<Real> dof_vector(nb_nodes, spatial_dimension, "Test vector");
 
   std::cout << "Initializing the synchronizer" << std::endl;
   DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
   std::cout << "Gathering on proc 0" << std::endl;
   if(prank == 0) {
     UInt nb_global_nodes = mesh.getNbGlobalNodes();
-    Vector<Real> gathered(nb_global_nodes, spatial_dimension, "gathered information");
+    Array<Real> gathered(nb_global_nodes, spatial_dimension, "gathered information");
     dof_synchronizer.gather(dof_vector, 0, &gathered);
     for (UInt n = 0; n < nb_nodes; ++n) {
       for (UInt d = 0; d < spatial_dimension; ++d) {
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
   std::cout << "Scattering from proc 0" << std::endl;
   if(prank == 0) {
     UInt nb_global_nodes = mesh.getNbGlobalNodes();
-    Vector<Real> to_scatter(nb_global_nodes, spatial_dimension, "to scatter information");
+    Array<Real> to_scatter(nb_global_nodes, spatial_dimension, "to scatter information");
     for (UInt d = 0; d < nb_global_nodes * spatial_dimension; ++d) {
       to_scatter.values[d] = d;
     }

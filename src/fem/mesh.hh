@@ -122,10 +122,10 @@ template<class Entity>
 class MeshEvent {
 public:
   virtual ~MeshEvent() {}
-  const Vector<Entity> & getList() const { return list; }
-  Vector<Entity> & getList() { return list; }
+  const Array<Entity> & getList() const { return list; }
+  Array<Entity> & getList() { return list; }
 protected:
-  Vector<Entity> list;
+  Array<Entity> list;
 };
 
 class Mesh;
@@ -138,10 +138,10 @@ class RemovedNodesEvent : public MeshEvent<UInt> {
 public:
   virtual ~RemovedNodesEvent() {};
   inline RemovedNodesEvent(const Mesh & mesh);
-  AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, Vector<UInt> &);
-  AKANTU_GET_MACRO(NewNumbering, new_numbering, const Vector<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, Array<UInt> &);
+  AKANTU_GET_MACRO(NewNumbering, new_numbering, const Array<UInt> &);
 private:
-  Vector<UInt> new_numbering;
+  Array<UInt> new_numbering;
 };
 
 class NewElementsEvent : public MeshEvent<Element> {
@@ -188,15 +188,15 @@ protected:
   /* Interface                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void onNodesAdded  (__attribute__((unused)) const Vector<UInt> & nodes_list,
+  virtual void onNodesAdded  (__attribute__((unused)) const Array<UInt> & nodes_list,
 			      __attribute__((unused)) const NewNodesEvent & event) {  }
-  virtual void onNodesRemoved(__attribute__((unused)) const Vector<UInt> & nodes_list,
-			      __attribute__((unused)) const Vector<UInt> & new_numbering,
+  virtual void onNodesRemoved(__attribute__((unused)) const Array<UInt> & nodes_list,
+			      __attribute__((unused)) const Array<UInt> & new_numbering,
 			      __attribute__((unused)) const RemovedNodesEvent & event) {  }
 
-  virtual void onElementsAdded  (__attribute__((unused)) const Vector<Element> & elements_list,
+  virtual void onElementsAdded  (__attribute__((unused)) const Array<Element> & elements_list,
 				 __attribute__((unused)) const NewElementsEvent & event) { }
-  virtual void onElementsRemoved(__attribute__((unused)) const Vector<Element> & elements_list,
+  virtual void onElementsRemoved(__attribute__((unused)) const Array<Element> & elements_list,
 				 __attribute__((unused)) const ByElementTypeUInt & new_numbering,
 				 __attribute__((unused)) const RemovedElementsEvent & event) { }
 };
@@ -207,7 +207,7 @@ public:
 
 /**
  * @class  Mesh this  contain the  coordinates of  the nodes  in  the Mesh.nodes
- * Vector,  and the  connectivity. The  connectivity  are stored  in by  element
+ * Array,  and the  connectivity. The  connectivity  are stored  in by  element
  * types.
  *
  * To  know  all  the  element  types   present  in  a  mesh  you  can  get  the
@@ -220,7 +220,7 @@ public:
 
   for(; it != end; ++it) {
     UInt nb_element  = mesh.getNbElement(*it);
-    const Vector<UInt> & conn = mesh.getConnectivity(*it);
+    const Array<UInt> & conn = mesh.getConnectivity(*it);
 
     for(UInt e = 0; e < nb_element; ++e) {
        ...
@@ -250,7 +250,7 @@ public:
    * array, by getting the vector of coordinates
    */
   Mesh(UInt spatial_dimension,
-       Vector<Real> & nodes,
+       Array<Real> & nodes,
        const ID & id = "mesh",
        const MemoryID & memory_id = 0);
 
@@ -282,7 +282,7 @@ public:
 
   /// init a by-element-type real vector with provided ids
   template<typename T>
-  void initByElementTypeVector(ByElementTypeVector<T> & v,
+  void initByElementTypeArray(ByElementTypeArray<T> & v,
  			       UInt nb_component,
 			       UInt spatial_dimension,
 			       const bool & flag_nb_node_per_elem_multiply = false,
@@ -291,7 +291,7 @@ public:
 
   /// extract coordinates of nodes from an element
   template<typename T>
-  inline void extractNodalValuesFromElement(const Vector<T> & nodal_values,
+  inline void extractNodalValuesFromElement(const Array<T> & nodal_values,
 					    T * elemental_values,
 					    UInt * connectivity,
 					    UInt n_nodes,
@@ -311,7 +311,7 @@ public:
   /// update the types offsets array for the conversions
   inline void updateTypesOffsets(const GhostType & ghost_type);
 
-  /// add a Vector of connectivity for the type <type>.
+  /// add a Array of connectivity for the type <type>.
   inline void addConnectivityType(const ElementType & type);
 
   /* ------------------------------------------------------------------------ */
@@ -323,7 +323,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template<typename T>
-  inline void removeNodesFromVector(Vector<T> & vect, const Vector<UInt> & new_numbering);
+  inline void removeNodesFromArray(Array<T> & vect, const Array<UInt> & new_numbering);
 
   /// initialize normals
   void initNormals();
@@ -337,9 +337,9 @@ public:
   /// get the spatial dimension of the mesh = number of component of the coordinates
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
-  /// get the nodes Vector aka coordinates
-  AKANTU_GET_MACRO(Nodes, *nodes, const Vector<Real> &);
-  AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Vector<Real> &);
+  /// get the nodes Array aka coordinates
+  AKANTU_GET_MACRO(Nodes, *nodes, const Array<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Array<Real> &);
 
   /// get the normals for the elements
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, Real);
@@ -347,8 +347,8 @@ public:
   /// get the number of nodes
   AKANTU_GET_MACRO(NbNodes, nodes->getSize(), UInt);
 
-  /// get the Vector of global ids of the nodes (only used in parallel)
-  AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Vector<UInt> &);
+  /// get the Array of global ids of the nodes (only used in parallel)
+  AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Array<UInt> &);
 
   /// get the global id of a node
   inline UInt getNodeGlobalId(UInt local_id) const;
@@ -356,8 +356,8 @@ public:
   /// get the global number of nodes
   inline UInt getNbGlobalNodes() const;
 
-  /// get the nodes type Vector
-  AKANTU_GET_MACRO(NodesType, *nodes_type, const Vector<Int> &);
+  /// get the nodes type Array
+  AKANTU_GET_MACRO(NodesType, *nodes_type, const Array<Int> &);
   inline Int getNodeType(UInt local_id) const;
 
   /// say if a node is a pure ghost node
@@ -386,10 +386,10 @@ public:
   /// get the number of surfaces
   AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
 
-  /// get the connectivity Vector for a given type
+  /// get the connectivity Array for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
-  AKANTU_GET_MACRO(Connectivities, connectivities, const ByElementTypeVector<UInt> &);
+  AKANTU_GET_MACRO(Connectivities, connectivities, const ByElementTypeArray<UInt> &);
 
   /// @todo take out this set, if mesh can read surface id
   /// set the number of surfaces
@@ -423,13 +423,13 @@ public:
   /// set the int data to the surface id vectors
   void setSurfaceIDsFromIntData(const std::string & data_name);
 
-  inline const Vector<UInt> & getUIntData(const ElementType & el_type,
+  inline const Array<UInt> & getUIntData(const ElementType & el_type,
 					  const std::string & data_name,
 					  const GhostType & ghost_type = _not_ghost) const;
 
   /// get the facet to cohesive element vector
-  AKANTU_GET_MACRO(FacetsToCohesiveEl, facets_to_cohesive_el, const Vector<UInt> &);
-  AKANTU_GET_MACRO_NOT_CONST(FacetsToCohesiveEl, facets_to_cohesive_el, Vector<UInt> &);
+  AKANTU_GET_MACRO(FacetsToCohesiveEl, facets_to_cohesive_el, const Array<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(FacetsToCohesiveEl, facets_to_cohesive_el, Array<UInt> &);
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -452,10 +452,10 @@ public:
   static inline UInt getNbFacetsPerElement(const ElementType & type);
 
   /// get local connectivity of a facet for a given facet type
-  static inline types::Matrix<UInt> getFacetLocalConnectivity(const ElementType & type);
+  static inline Matrix<UInt> getFacetLocalConnectivity(const ElementType & type);
 
   /// get connectivity of facets for a given element
-  inline types::Matrix<UInt> getFacetConnectivity(UInt element, const ElementType & type, const GhostType & ghost_type) const;
+  inline Matrix<UInt> getFacetConnectivity(UInt element, const ElementType & type, const GhostType & ghost_type) const;
 
   /// get the type of the surface element associated to a given element
   static inline ElementType getFacetType(const ElementType & type);
@@ -463,7 +463,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  typedef ByElementTypeVector<UInt, ElementType>::type_iterator type_iterator;
+  typedef ByElementTypeArray<UInt, ElementType>::type_iterator type_iterator;
 
   inline type_iterator firstType(UInt dim = 0,
 				 GhostType ghost_type = _not_ghost,
@@ -488,41 +488,41 @@ private:
   friend class DistributedSynchronizer;
   template<class T> friend class SpatialGrid;
 
-  AKANTU_GET_MACRO(NodesPointer, nodes, Vector<Real> *);
+  AKANTU_GET_MACRO(NodesPointer, nodes, Array<Real> *);
 
-  /// get a pointer to the nodes_global_ids Vector<UInt> and create it if necessary
-  inline Vector<UInt> * getNodesGlobalIdsPointer();
+  /// get a pointer to the nodes_global_ids Array<UInt> and create it if necessary
+  inline Array<UInt> * getNodesGlobalIdsPointer();
 
-  /// get a pointer to the nodes_type Vector<Int> and create it if necessary
-  inline Vector<Int> * getNodesTypePointer();
+  /// get a pointer to the nodes_type Array<Int> and create it if necessary
+  inline Array<Int> * getNodesTypePointer();
 
-  /// get a pointer to the connectivity Vector for the given type and create it if necessary
-  inline Vector<UInt> * getConnectivityPointer(const ElementType & type,
+  /// get a pointer to the connectivity Array for the given type and create it if necessary
+  inline Array<UInt> * getConnectivityPointer(const ElementType & type,
 					       const GhostType & ghost_type = _not_ghost);
 
   /// get the pointer to the list of elements for a given type
-  //  inline Vector<UInt> * getReversedElementsPBCPointer(const ElementType & type);
+  //  inline Array<UInt> * getReversedElementsPBCPointer(const ElementType & type);
 
-  // inline Vector<Real> * getNormalsPointer(ElementType type) const;
+  // inline Array<Real> * getNormalsPointer(ElementType type) const;
 
-  /// get a pointer to the surface_id Vector for the given type and create it if necessary
-  inline Vector<UInt> * getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type = _not_ghost);
+  /// get a pointer to the surface_id Array for the given type and create it if necessary
+  inline Array<UInt> * getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
   /// get the UIntDataMap for a given ElementType
   inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
 				      const GhostType & ghost_type = _not_ghost);
 
   /// get the IntDataMap pointer (modifyable) for a given ElementType
-  inline Vector<UInt> * getUIntDataPointer(const ElementType & el_type,
+  inline Array<UInt> * getUIntDataPointer(const ElementType & el_type,
 					   const std::string & data_name,
 					   const GhostType & ghost_type = _not_ghost);
 
-  /// get a pointer to the element_to_subelement Vector for the given type and create it if necessary
-  inline Vector< std::vector<Element> > * getElementToSubelementPointer(const ElementType & type,
+  /// get a pointer to the element_to_subelement Array for the given type and create it if necessary
+  inline Array< std::vector<Element> > * getElementToSubelementPointer(const ElementType & type,
 									const GhostType & ghost_type = _not_ghost);
 
-  /// get a pointer to the subelement_to_element Vector for the given type and create it if necessary
-  inline Vector<Element > * getSubelementToElementPointer(const ElementType & type,
+  /// get a pointer to the subelement_to_element Array for the given type and create it if necessary
+  inline Array<Element > * getSubelementToElementPointer(const ElementType & type,
 							  const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
@@ -533,14 +533,14 @@ private:
   ID id;
 
   /// array of the nodes coordinates
-  Vector<Real> * nodes;
+  Array<Real> * nodes;
 
   /// global node ids
-  Vector<UInt> * nodes_global_ids;
+  Array<UInt> * nodes_global_ids;
 
   /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
   /// [0-N] slave node and master is proc i
-  Vector<Int> * nodes_type;
+  Array<Int> * nodes_type;
 
   /// global number of nodes;
   UInt nb_global_nodes;
@@ -561,12 +561,12 @@ private:
   UInt spatial_dimension;
 
   /// types offsets
-  Vector<UInt> types_offsets;
+  Array<UInt> types_offsets;
 
   /// list of all existing types in the mesh
   ConnectivityTypeList ghost_type_set;
   /// ghost types offsets
-  Vector<UInt> ghost_types_offsets;
+  Array<UInt> ghost_types_offsets;
 
   /// number of surfaces present in this mesh
   UInt nb_surfaces;
@@ -587,13 +587,13 @@ private:
   Real local_upper_bounds[3];
 
   /// List of elements connected to subelements
-  ByElementTypeVector< std::vector<Element> > element_to_subelement;
+  ByElementTypeArray< std::vector<Element> > element_to_subelement;
 
   /// List of subelements connected to elements
-  ByElementTypeVector<Element > subelement_to_element;
+  ByElementTypeArray<Element > subelement_to_element;
 
   /// list of facets connected to each cohesive element
-  Vector<UInt> facets_to_cohesive_el;
+  Array<UInt> facets_to_cohesive_el;
 
   // /// list of elements that are reversed due to pbc
   // ByElementTypeUInt reversed_elements_pbc;
@@ -615,9 +615,7 @@ inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
   return stream;
 }
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "mesh_inline_impl.cc"
-#endif
+#include "mesh_inline_impl.cc"
 
 #include "by_element_type_tmpl.hh"
 

@@ -62,7 +62,7 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
 
   FEM & fem = getFEM();
 
-  Vector<Real> rho_1(0,1);
+  Array<Real> rho_1(0,1);
 
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
@@ -106,7 +106,7 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
 
   MyFEMType & fem = getFEMClass<MyFEMType>();
 
-  Vector<Real> rho_1(0,1);
+  Array<Real> rho_1(0,1);
   //UInt nb_element;
   mass_matrix->clear();
 
@@ -123,7 +123,7 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::computeRho(Vector<Real> & rho,
+void SolidMechanicsModel::computeRho(Array<Real> & rho,
 				     ElementType type,
 				     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -133,7 +133,7 @@ void SolidMechanicsModel::computeRho(Vector<Real> & rho,
   FEM & fem = getFEM();
   UInt nb_element = fem.getMesh().getNbElement(type,ghost_type);
 
-  Vector<UInt> & elem_mat_val = element_index_by_material(type, ghost_type);
+  Array<UInt> & elem_mat_val = element_index_by_material(type, ghost_type);
 
   UInt nb_quadrature_points = fem.getNbQuadraturePoints(type, ghost_type);
 

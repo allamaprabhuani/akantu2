@@ -85,9 +85,9 @@ int main(int argc, char *argv[])
   model.setTimeStep(time_step);
 
   // boundary conditions
-  const akantu::Vector<akantu::Real> & nodes = model.getFEM().getMesh().getNodes();
-  akantu::Vector<bool> & boundary = model.getBoundary();
-  akantu::Vector<akantu::Real> & temperature = model.getTemperature();
+  const akantu::Array<akantu::Real> & nodes = model.getFEM().getMesh().getNodes();
+  akantu::Array<bool> & boundary = model.getBoundary();
+  akantu::Array<akantu::Real> & temperature = model.getTemperature();
 
   //  double t1, t2;
   double length;

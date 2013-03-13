@@ -61,10 +61,10 @@ MeshPartition::~MeshPartition() {
  * conversion in c++ of the GENDUALMETIS (mesh.c) function wrote by George in
  * Metis (University of Minnesota)
  */
-void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
-				   Vector<Int> & edge_loads,
+void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
+				   Array<Int> & edge_loads,
 				   const EdgeLoadFunctor & edge_load_func,
-				   const Vector<UInt> & pairs) {
+				   const Array<UInt> & pairs) {
   AKANTU_DEBUG_IN();
 
   // tweak mesh;
@@ -80,10 +80,10 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
   //  UInt * conn_val[nb_types];
   UInt nb_element[nb_types];
 
-  Vector<UInt> * conn[nb_types];
-  Vector<UInt> * conn_tmp[nb_types];
+  Array<UInt> * conn[nb_types];
+  Array<UInt> * conn_tmp[nb_types];
 
-  Vector<Element> lin_to_element;
+  Array<Element> lin_to_element;
 
   Element elem;
   elem.ghost_type = _not_ghost;
@@ -102,7 +102,7 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
     magic_number[nb_good_types]            =
       Mesh::getNbNodesPerElement(Mesh::getFacetType(type_p1));
 
-    conn[nb_good_types] = &const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _not_ghost));
+    conn[nb_good_types] = &const_cast<Array<UInt> &>(mesh.getConnectivity(type, _not_ghost));
 
     for (UInt i = 0; i < nb_element[nb_good_types]; ++i) {
       elem.element = i;
@@ -111,7 +111,7 @@ void MeshPartition::buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
 
 
     if(pairs.getSize() != 0) {
-      conn_tmp[nb_good_types] = new Vector<UInt>(mesh.getConnectivity(type, _not_ghost));
+      conn_tmp[nb_good_types] = new Array<UInt>(mesh.getConnectivity(type, _not_ghost));
       for (UInt i = 0; i < pairs.getSize(); ++i) {
 	for (UInt el = 0; el < nb_element[nb_good_types]; ++el) {
 	  for (UInt n = 0; n < nb_nodes_per_element[nb_good_types]; ++n) {
@@ -264,7 +264,7 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
     ghost_partitions_offset.alloc(nb_element + 1, 1, type, _ghost);
     ghost_partitions       .alloc(0,              1, type, _ghost);
 
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
+    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
       UInt part = linearized_partitions[linearized_el];
@@ -295,7 +295,7 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
     }
 
     /// convert the ghost_partitions_offset array in an offset array
-    Vector<UInt> & ghost_partitions_offset_ptr = ghost_partitions_offset(type, _ghost);
+    Array<UInt> & ghost_partitions_offset_ptr = ghost_partitions_offset(type, _ghost);
     for (UInt i = 1; i < nb_element; ++i)
       ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i-1);
     for (UInt i = nb_element; i > 0; --i)

@@ -44,18 +44,18 @@ class WarppingSurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFuncto
 public:
   WarppingSurfaceLoadFunctor(BoundaryFunction function) : function(function) {}
 
-  void traction(const types::Vector<Real> & position,
-		types::Vector<Real> & force,
-		const types::Vector<Real> & normal,
+  void traction(const Vector<Real> & position,
+		Vector<Real> & force,
+		const Vector<Real> & normal,
 		Surface surface_id) {
     function(position.storage(),
 	     force.storage(),
 	     normal.storage(),
 	     surface_id);
   }
-  void stress(const types::Vector<Real> & position,
-	      types::RMatrix & stress,
-	      const types::Vector<Real> & normal,
+  void stress(const Vector<Real> & position,
+	      Matrix<Real> & stress,
+	      const Vector<Real> & normal,
 	      Surface surface_id) {
     function(position.storage(),
 	     stress.storage(),
@@ -79,7 +79,7 @@ void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction function,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stresses,
+void SolidMechanicsModel::computeForcesByStressTensor(const Array<Real> & stresses,
 						      const ElementType & type,
 						      const GhostType & ghost_type){
   AKANTU_DEBUG_IN();
@@ -105,19 +105,19 @@ void SolidMechanicsModel::computeForcesByStressTensor(const Vector<Real> & stres
 
   std::stringstream name;
   name << id << ":traction_boundary:" << type;
-  Vector<Real> funct(nb_element*nb_quad, spatial_dimension,name.str());
+  Array<Real> funct(nb_element*nb_quad, spatial_dimension,name.str());
 
-  const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(type, ghost_type);
+  const Array<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(type, ghost_type);
 
   Math::matrix_vector(spatial_dimension, spatial_dimension,
 		      stresses,normals_on_quad, funct);
 
-  computeForcesByTractionVector(funct, type, ghost_type);
+  computeForcesByTractionArray(funct, type, ghost_type);
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::
-computeForcesByTractionVector(const Vector<Real> & tractions,
+computeForcesByTractionArray(const Array<Real> & tractions,
 			      const ElementType & type,
 			      const GhostType & ghost_type){
   AKANTU_DEBUG_IN();
@@ -146,7 +146,7 @@ computeForcesByTractionVector(const Vector<Real> & tractions,
 
 
   // do a complete copy of the vector
-  Vector<Real> funct(tractions, true);
+  Array<Real> funct(tractions, true);
 
   // extend the vector to multiply by the shapes (prepare to assembly)
   funct.extendComponentsInterlaced(nb_nodes_per_element,spatial_dimension);
@@ -167,13 +167,13 @@ computeForcesByTractionVector(const Vector<Real> & tractions,
   // allocate the vector that will contain the integrated values
   std::stringstream name;
   name << id << ":integral_boundary:" << type;
-  Vector<Real> int_funct(nb_element, spatial_dimension*nb_nodes_per_element,name.str());
+  Array<Real> int_funct(nb_element, spatial_dimension*nb_nodes_per_element,name.str());
 
   //do the integration
   getFEMBoundary().integrate(funct, int_funct, spatial_dimension*nb_nodes_per_element, type, ghost_type);
 
   // assemble the result into force vector
-  getFEMBoundary().assembleVector(int_funct,
+  getFEMBoundary().assembleArray(int_funct,
 				  *force,
 				  dof_synchronizer->getLocalDOFEquationNumbers(),
 				  spatial_dimension,

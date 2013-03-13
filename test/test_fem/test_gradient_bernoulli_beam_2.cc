@@ -42,8 +42,8 @@ using namespace akantu;
 
 int main(int argc, char *argv[]){
 
-  Vector<Real> displ_on_nodes;
-  Vector<Real> grad_on_quad;
+  Array<Real> displ_on_nodes;
+  Array<Real> grad_on_quad;
   UInt k=0;
 
 

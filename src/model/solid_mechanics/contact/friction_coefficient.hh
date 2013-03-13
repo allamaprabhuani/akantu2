@@ -70,7 +70,7 @@ public:
   virtual void removeImpactorSurface(__attribute__ ((unused)) const Surface & impactor_surface) {};
 
   /// fill table with friction coefficient
-  void computeFrictionCoefficient(Vector<Real> & fric_coef);
+  void computeFrictionCoefficient(Array<Real> & fric_coef);
   
   /// compute the friction coefficient for a given node
   virtual Real computeFricCoef(UInt impactor_node_index) = 0;

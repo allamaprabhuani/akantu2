@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initVectors();
+  my_model.initArrays();
   // initialize the vectors
   memset(my_model.getForce().values,        0, 3*nb_nodes*sizeof(Real));
   memset(my_model.getVelocity().values,     0, 3*nb_nodes*sizeof(Real));
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
   const NodesNeighborList & my_neighbor_list = dynamic_cast<const NodesNeighborList &>(my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList());
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
-  Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
+  Array<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
 
   /// print impactor nodes

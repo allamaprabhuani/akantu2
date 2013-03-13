@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   /// model initialization
-  model->initVectors();
+  model->initArrays();
 
   /// set vectors to 0
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();

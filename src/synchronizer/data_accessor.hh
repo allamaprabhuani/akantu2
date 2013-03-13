@@ -60,7 +60,7 @@ public:
    * @brief get  the number of  data to exchange  for a given akantu::Element  and a
    * given akantu::SynchronizationTag
    */
-  virtual UInt getNbDataForElements(__attribute__((unused)) const Vector<Element> & elements,
+  virtual UInt getNbDataForElements(__attribute__((unused)) const Array<Element> & elements,
 				    __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
@@ -86,7 +86,7 @@ public:
    * akantu::SynchronizationTag
    */
   virtual void packElementData(__attribute__((unused)) CommunicationBuffer & buffer,
-			       __attribute__((unused)) const Vector<Element> & element,
+			       __attribute__((unused)) const Array<Element> & element,
 			       __attribute__((unused)) SynchronizationTag tag) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
@@ -106,7 +106,7 @@ public:
    * akantu::SynchronizationTag
    */
   virtual void unpackElementData(__attribute__((unused)) CommunicationBuffer & buffer,
-				 __attribute__((unused)) const Vector<Element> & element,
+				 __attribute__((unused)) const Array<Element> & element,
 				 __attribute__((unused)) SynchronizationTag tag) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }

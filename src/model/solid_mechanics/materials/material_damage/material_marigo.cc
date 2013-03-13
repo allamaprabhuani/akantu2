@@ -51,7 +51,7 @@ MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
   this->registerParam("Yc limit",           yc_limit, false, _pat_internal, "As the material a critical Y");
   this->registerParam("damage_in_y",   damage_in_y,   false, _pat_parsable, "Use threshold (1-D)Y");
 
-  this->initInternalVector(this->Yd_rand, 1);
+  this->initInternalArray(this->Yd_rand, 1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -63,7 +63,7 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
 
   updateInternalParameters();
 
-  this->resizeInternalVector(this->Yd_rand);
+  this->resizeInternalArray(this->Yd_rand);
 
   const Mesh & mesh = this->model->getFEM().getMesh();
 
@@ -74,7 +74,7 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
     UInt nb_element  = this->element_filter(*it).getSize();
     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
 
-    Vector <Real> & Yd_rand_vec = Yd_rand(*it);
+    Array <Real> & Yd_rand_vec = Yd_rand(*it);
     for(UInt e = 0; e < nb_element; ++e) {
       Real rand_part = (2 * drand48()-1) * Yd_randomness * Yd;
 

@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
   output_data << "#[1]-time [2]-sigma_analytic [3+]-sigma_measurements" << std::endl;
 
   Material & mat = model.getMaterial(0);
-  const Vector<Real> & stress = mat.getStress(element_type);
+  const Array<Real> & stress = mat.getStress(element_type);
 
   Real Eta  = mat.getParam<Real>("Eta");
   Real EV   = mat.getParam<Real>("Ev");
@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
   std::cout << "relaxation time = " << tau << std::endl;
 
   UInt nb_nodes = mesh.getNbNodes();
-  const Vector<Real> & coordinate = mesh.getNodes();
-  Vector<Real> & displacement = model.getDisplacement();
+  const Array<Real> & coordinate = mesh.getNodes();
+  Array<Real> & displacement = model.getDisplacement();
 
   /// Setting time step
   Real time_step = model.getStableTimeStep() * time_factor;
@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
       output_data << s*time_step << " " << solution;
 
       // data output
-      Vector<Real>::const_iterator<types::RMatrix> stress_it = stress.begin(dim, dim);
-      Vector<Real>::const_iterator<types::RMatrix> stress_end = stress.end(dim, dim);
+      Array<Real>::const_iterator< Matrix<Real> > stress_it = stress.begin(dim, dim);
+      Array<Real>::const_iterator< Matrix<Real> > stress_end = stress.end(dim, dim);
       for(;stress_it != stress_end; ++stress_it) {
 	output_data << " " << (*stress_it)(1,1);
 

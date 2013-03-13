@@ -44,17 +44,16 @@
 
 __BEGIN_AKANTU__
 
-class Matrix;
 
 /// class that afford to store vectors in static memory
-class VectorBase {
+class ArrayBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  VectorBase(const ID & id = "");
+  ArrayBase(const ID & id = "");
 
-  virtual ~VectorBase();
+  virtual ~ArrayBase();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -110,14 +109,11 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-namespace types {
-  template<typename T> class Matrix;
-  template<typename T> class Vector;
-}
+
 
 /* -------------------------------------------------------------------------- */
 template<typename T, bool is_scal>
-class Vector : public VectorBase {
+class Array : public ArrayBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -129,25 +125,25 @@ public:
   typedef const value_type & const_reference;
 
   /// Allocation of a new vector
-  inline Vector(UInt size = 0, UInt nb_component = 1,
+  inline Array(UInt size = 0, UInt nb_component = 1,
 		const ID & id = "");
 
   /// Allocation of a new vector with a default value
-  Vector(UInt size, UInt nb_component,
+  Array(UInt size, UInt nb_component,
   	 const value_type def_values[], const ID & id = "");
 
   /// Allocation of a new vector with a default value
-  Vector(UInt size, UInt nb_component,
+  Array(UInt size, UInt nb_component,
 	 const_reference value, const ID & id = "");
 
   /// Copy constructor (deep copy if deep=true)
-  Vector(const Vector<value_type, is_scal>& vect, bool deep = true, const ID & id = "");
+  Array(const Array<value_type, is_scal>& vect, bool deep = true, const ID & id = "");
 
   /// Copy constructor (deep copy)
-  Vector(const std::vector<value_type> & vect);
+  Array(const std::vector<value_type> & vect);
 
 
-  virtual inline ~Vector();
+  virtual inline ~Array();
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
@@ -233,27 +229,27 @@ public:
   inline const_iterator<T> begin() const;
   inline const_iterator<T> end() const;
 
-  inline iterator< types::Vector<T> > begin(UInt n);
-  inline iterator< types::Vector<T> > end(UInt n);
-  inline const_iterator< types::Vector<T> > begin(UInt n) const;
-  inline const_iterator< types::Vector<T> > end(UInt n) const;
+  inline iterator< Vector<T> > begin(UInt n);
+  inline iterator< Vector<T> > end(UInt n);
+  inline const_iterator< Vector<T> > begin(UInt n) const;
+  inline const_iterator< Vector<T> > end(UInt n) const;
 
-  inline iterator< types::Matrix<T> > begin(UInt m, UInt n);
-  inline iterator< types::Matrix<T> > end(UInt m, UInt n);
-  inline const_iterator< types::Matrix<T> > begin(UInt m, UInt n) const;
-  inline const_iterator< types::Matrix<T> > end(UInt m, UInt n) const;
+  inline iterator< Matrix<T> > begin(UInt m, UInt n);
+  inline iterator< Matrix<T> > end(UInt m, UInt n);
+  inline const_iterator< Matrix<T> > begin(UInt m, UInt n) const;
+  inline const_iterator< Matrix<T> > end(UInt m, UInt n) const;
 
   /// /!\ to use with caution
-  inline iterator< types::Vector<T> > begin_reinterpret(UInt n, UInt size);
-  inline iterator< types::Vector<T> > end_reinterpret(UInt n, UInt size);
-  inline const_iterator< types::Vector<T> > begin_reinterpret(UInt n, UInt size) const;
-  inline const_iterator< types::Vector<T> > end_reinterpret(UInt n, UInt size) const;
+  inline iterator< Vector<T> > begin_reinterpret(UInt n, UInt size);
+  inline iterator< Vector<T> > end_reinterpret(UInt n, UInt size);
+  inline const_iterator< Vector<T> > begin_reinterpret(UInt n, UInt size) const;
+  inline const_iterator< Vector<T> > end_reinterpret(UInt n, UInt size) const;
 
 
-  inline iterator< types::Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size);
-  inline iterator< types::Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size);
-  inline const_iterator< types::Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size) const;
-  inline const_iterator< types::Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size) const;
+  inline iterator< Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size);
+  inline iterator< Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size);
+  inline const_iterator< Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size) const;
+  inline const_iterator< Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -270,7 +266,7 @@ public:
   template<typename Ret>
   inline void push_back(const iterator<Ret> & it);
 
-  inline void push_back(const types::Vector<T> new_elem);
+  inline void push_back(const Vector<T> new_elem);
   /**
    * remove an element and move the last one in the hole
    * /!\ change the order in the vector
@@ -290,7 +286,7 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  //  Vector<T, is_scal>& operator=(const Vector<T, is_scal>& vect);
+  //  Array<T, is_scal>& operator=(const Array<T, is_scal>& vect);
 
   /// search elem in the vector, return  the position of the first occurrence or
   /// -1 if not found
@@ -301,7 +297,7 @@ public:
   inline void clear() { std::fill_n(values, size*nb_component, T()); };
 
   /// copy the content of an other vector
-  void copy(const Vector<T, is_scal> & vect);
+  void copy(const Array<T, is_scal> & vect);
 
   /// give the address of the memory allocated for this vector
   T * storage() const { return values; };
@@ -318,9 +314,9 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  Vector<T, is_scal> & operator-=(const Vector<T, is_scal> & vect);
-  Vector<T, is_scal> & operator+=(const Vector<T, is_scal> & vect);
-  Vector<T, is_scal> & operator*=(const T & alpha);
+  Array<T, is_scal> & operator-=(const Array<T, is_scal> & vect);
+  Array<T, is_scal> & operator+=(const Array<T, is_scal> & vect);
+  Array<T, is_scal> & operator*=(const T & alpha);
 
   inline reference operator()(UInt i, UInt j = 0);
   inline const_reference operator()(UInt i, UInt j = 0) const;
@@ -348,19 +344,19 @@ __BEGIN_AKANTU__
 #include "aka_vector_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
-/* Inline Functions Vector<T, is_scal>                                                 */
+/* Inline Functions Array<T, is_scal>                                                 */
 /* -------------------------------------------------------------------------- */
 template <typename T, bool is_scal>
-inline std::ostream & operator<<(std::ostream & stream, const Vector<T, is_scal> & _this)
+inline std::ostream & operator<<(std::ostream & stream, const Array<T, is_scal> & _this)
 {
   _this.printself(stream);
   return stream;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Inline Functions VectorBase                                                */
+/* Inline Functions ArrayBase                                                */
 /* -------------------------------------------------------------------------- */
-inline std::ostream & operator<<(std::ostream & stream, const VectorBase & _this)
+inline std::ostream & operator<<(std::ostream & stream, const ArrayBase & _this)
 {
   _this.printself(stream);
   return stream;

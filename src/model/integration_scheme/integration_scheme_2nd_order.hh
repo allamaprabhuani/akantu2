@@ -60,24 +60,24 @@ public:
 public:
 
   virtual void integrationSchemePred(Real delta_t,
-				     Vector<Real> & u,
-				     Vector<Real> & u_dot,
-				     Vector<Real> & u_dot_dot,
-				     Vector<bool> & boundary) const = 0;
+				     Array<Real> & u,
+				     Array<Real> & u_dot,
+				     Array<Real> & u_dot_dot,
+				     Array<bool> & boundary) const = 0;
 
   virtual void integrationSchemeCorrDispl(Real delta_t,
-					  Vector<Real> & u,
-					  Vector<Real> & u_dot,
-					  Vector<Real> & u_dot_dot,
-					  Vector<bool> & boundary,
-					  Vector<Real> & delta) const = 0;
+					  Array<Real> & u,
+					  Array<Real> & u_dot,
+					  Array<Real> & u_dot_dot,
+					  Array<bool> & boundary,
+					  Array<Real> & delta) const = 0;
 
   virtual void integrationSchemeCorrAccel(Real delta_t,
-					  Vector<Real> & u,
-					  Vector<Real> & u_dot,
-					  Vector<Real> & u_dot_dot,
-					  Vector<bool> & boundary,
-					  Vector<Real> & delta) const = 0;
+					  Array<Real> & u,
+					  Array<Real> & u_dot,
+					  Array<Real> & u_dot_dot,
+					  Array<bool> & boundary,
+					  Array<Real> & delta) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

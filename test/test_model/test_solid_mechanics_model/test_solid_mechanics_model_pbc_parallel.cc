@@ -54,7 +54,7 @@ static void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanics
 static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
-akantu::Vector<akantu::Real> proc_rank(0,1);
+akantu::Array<akantu::Real> proc_rank(0,1);
 
 int main(int argc, char *argv[])
 {
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     partition->setNbPartition(psize);
 
     // create the partition
-    akantu::Vector<akantu::Int> part_tab(0,1);
+    akantu::Array<akantu::Int> part_tab(0,1);
     mesh.computeBoundingBox();
     akantu::Real rank_border = 0.5 * (mesh.getYMax() - mesh.getYMin());
     rank_border += 1e-10;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
   model->initParallel(partition);
 
   /// model initialization
-  model->initVectors();
+  model->initArrays();
   
   /// set vectors to 0
   model->getForce().clear();
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
   /// boundary conditions
   akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   akantu::Real eps = 1e-16;
-  akantu::Vector<akantu::Real> & coords = const_cast<akantu::Vector<akantu::Real> & >(model->getFEM().getMesh().getNodes());
+  akantu::Array<akantu::Real> & coords = const_cast<akantu::Array<akantu::Real> & >(model->getFEM().getMesh().getNodes());
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     // block top and bottom nodes
     if(std::abs(coords(i,1)-mesh.getYMax()) <= eps 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   // modify displacements
-  akantu::Vector<akantu::Real> & displacement = model->getDisplacement();
+  akantu::Array<akantu::Real> & displacement = model->getDisplacement();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     displacement(i,1) = std::abs(coords(i,1) - mesh.getYMin()) * 0.0001;
   }

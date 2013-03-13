@@ -53,8 +53,8 @@ DistributedSynchronizer::DistributedSynchronizer(Mesh & mesh,
   nb_proc = static_communicator->getNbProc();
   rank    = static_communicator->whoAmI();
 
-  send_element = new Vector<Element>[nb_proc];
-  recv_element = new Vector<Element>[nb_proc];
+  send_element = new Array<Element>[nb_proc];
+  recv_element = new Array<Element>[nb_proc];
 
   mesh.registerEventHandler(*this);
 
@@ -105,9 +105,9 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   UInt * local_connectivity = NULL;
   UInt * local_partitions = NULL;
   UInt * local_data = NULL;
-  Vector<UInt> * old_nodes = mesh.getNodesGlobalIdsPointer();
+  Array<UInt> * old_nodes = mesh.getNodesGlobalIdsPointer();
   old_nodes->resize(0);
-  Vector<Real> * nodes = mesh.getNodesPointer();
+  Array<Real> * nodes = mesh.getNodesPointer();
 
   UInt spatial_dimension = nodes->getNbComponent();
 
@@ -430,9 +430,9 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     memcpy(nodes->values, local_nodes, nb_nodes * spatial_dimension * sizeof(Real));
     delete [] local_nodes;
 
-    Vector<Int> * nodes_type_per_proc[nb_proc];
+    Array<Int> * nodes_type_per_proc[nb_proc];
     for (UInt p = 0; p < nb_proc; ++p) {
-      nodes_type_per_proc[p] = new Vector<Int>(nb_nodes_per_proc[p]);
+      nodes_type_per_proc[p] = new Array<Int>(nb_nodes_per_proc[p]);
     }
 
     communicator.fillNodesType(mesh);
@@ -631,10 +631,10 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
 
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
       UInt nb_element = mesh.getNbElement(type, gt);
-      Vector<UInt>::iterator< types::Vector<UInt> > conn_it = mesh.getConnectivity(type, gt).begin(nb_nodes_per_element);
+      Array<UInt>::iterator< Vector<UInt> > conn_it = mesh.getConnectivity(type, gt).begin(nb_nodes_per_element);
 
       for (UInt e = 0; e < nb_element; ++e, ++conn_it) {
-	types::Vector<UInt> & conn = *conn_it;
+	Vector<UInt> & conn = *conn_it;
         for (UInt n = 0; n < nb_nodes_per_element; ++n) {
           AKANTU_DEBUG_ASSERT(conn(n) < nb_nodes, "Node " << conn(n)
                               << " bigger than number of nodes " << nb_nodes);
@@ -863,8 +863,8 @@ void DistributedSynchronizer::printself(std::ostream & stream, int indent) const
     if(AKANTU_DEBUG_TEST(dblDump)) {
       stream << "[" << prank << "/" << psize << "]" << space << "    - Element to send to proc " << p << " [" << std::endl;
 
-      Vector<Element>::iterator<Element> it_el  = send_element[p].begin();
-      Vector<Element>::iterator<Element> end_el = send_element[p].end();
+      Array<Element>::iterator<Element> it_el  = send_element[p].begin();
+      Array<Element>::iterator<Element> end_el = send_element[p].end();
       for(;it_el != end_el; ++it_el)
 	stream << "[" << prank << "/" << psize << "]" << space << "       " << *it_el << std::endl;
       stream << "[" << prank << "/" << psize << "]" << space << "   ]" << std::endl;
@@ -893,7 +893,7 @@ void DistributedSynchronizer::printself(std::ostream & stream, int indent) const
 }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_to_remove,
+void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_to_remove,
 						const ByElementTypeUInt & new_numbering,
 						__attribute__((unused)) const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
@@ -903,23 +903,23 @@ void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_
   UInt prank = comm.whoAmI();
 
   std::vector<CommunicationRequest *> isend_requests;
-  Vector<UInt> * list_of_el = new Vector<UInt>[nb_proc];
+  Array<UInt> * list_of_el = new Array<UInt>[nb_proc];
   // Handling ghost elements
   for (UInt p = 0; p < psize; ++p) {
     if (p == prank) continue;
 
-    Vector<Element> & recv = recv_element[p];
+    Array<Element> & recv = recv_element[p];
     if(recv.getSize() == 0) continue;
 
-    Vector<Element>::iterator<Element> recv_begin = recv.begin();
-    Vector<Element>::iterator<Element> recv_end   = recv.end();
+    Array<Element>::iterator<Element> recv_begin = recv.begin();
+    Array<Element>::iterator<Element> recv_end   = recv.end();
 
-    Vector<Element>::const_iterator<Element> er_it  = element_to_remove.begin();
-    Vector<Element>::const_iterator<Element> er_end = element_to_remove.end();
+    Array<Element>::const_iterator<Element> er_it  = element_to_remove.begin();
+    Array<Element>::const_iterator<Element> er_end = element_to_remove.end();
     // for (;it != end; ++it) {
     //   const Element & el = *it;
     //   if(el.ghost_type == _ghost) {
-    // 	Vector<Element>::iterator<Element> pos = std::find(recv_begin, recv_end, el);
+    // 	Array<Element>::iterator<Element> pos = std::find(recv_begin, recv_end, el);
     // 	if(pos != recv_end) {
     // 	  UInt i = pos - recv_begin;
     // 	  AKANTU_DEBUG_ASSERT(i < recv.getSize(), "The element is out of the list");
@@ -931,10 +931,10 @@ void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_
     //   }
     // }
 
-    Vector<UInt> & list = list_of_el[p];
+    Array<UInt> & list = list_of_el[p];
     for (UInt i = 0; recv_begin != recv_end; ++i, ++recv_begin) {
       const Element & el = *recv_begin;
-      Vector<Element>::const_iterator<Element> pos = std::find(er_it, er_end, el);
+      Array<Element>::const_iterator<Element> pos = std::find(er_it, er_end, el);
       if(pos == er_end) {
 	list.push_back(i);
       }
@@ -964,7 +964,7 @@ void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_
     list.erase(list.getSize() - 1);
     if(list.getSize() == recv.getSize()) continue;
 
-    Vector<Element> new_recv;
+    Array<Element> new_recv;
     for (UInt nr = 0; nr < list.getSize(); ++nr) {
       Element & el = recv(list(nr));
       el.element = new_numbering(el.type, el.ghost_type)(el.element);
@@ -979,14 +979,14 @@ void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_
 
   for (UInt p = 0; p < psize; ++p) {
     if (p == prank) continue;
-    Vector<Element> & send = send_element[p];
+    Array<Element> & send = send_element[p];
 
     if(send.getSize() == 0) continue;
 
     CommunicationStatus status;
     AKANTU_DEBUG_INFO("Getting number of elements of proc " << p << " not needed anymore TAG("<< Tag::genTag(p, 0, 0) <<")");
     comm.probe<UInt>(p, Tag::genTag(p, 0, 0), status);
-    Vector<UInt> list(status.getSize());
+    Array<UInt> list(status.getSize());
 
     AKANTU_DEBUG_INFO("Receiving list of elements (" << status.getSize() - 1 << " elements) no longer needed by proc " << p << " TAG("<< Tag::genTag(p, 0, 0) <<")");
     comm.receive(list.storage(), list.getSize(),
@@ -996,7 +996,7 @@ void DistributedSynchronizer::onElementsRemoved(const Vector<Element> & element_
 
     list.erase(list.getSize() - 1);
 
-    Vector<Element> new_send;
+    Array<Element> new_send;
     for (UInt ns = 0; ns < list.getSize(); ++ns) {
       new_send.push_back(send(list(ns)));
     }

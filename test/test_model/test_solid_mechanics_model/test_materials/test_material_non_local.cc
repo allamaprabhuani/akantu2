@@ -60,11 +60,11 @@ int main(int argc, char *argv[]) {
 
   SolidMechanicsModel model(mesh);
   model.initModel();
-  model.initVectors();
+  model.initArrays();
   model.readMaterials("material_non_local.dat");
   model.initMaterials();
 
-  //  model.getFEM().getMesh().initByElementTypeVector(quadrature_points_volumes, 1, 0);
+  //  model.getFEM().getMesh().initByElementTypeArray(quadrature_points_volumes, 1, 0);
   const MaterialNonLocal<spatial_dimension, BaseWeightFunction> & mat =
     dynamic_cast<const MaterialNonLocal<spatial_dimension, BaseWeightFunction> &>(model.getMaterial(0));
   //  mat.computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
@@ -73,15 +73,15 @@ int main(int argc, char *argv[]) {
   UInt nb_element  = mesh.getNbElement(TYPE);
   UInt nb_tot_quad = model.getFEM().getNbQuadraturePoints(TYPE) * nb_element;
 
-  Vector<Real> quads(0, spatial_dimension);
+  Array<Real> quads(0, spatial_dimension);
   quads.resize(nb_tot_quad);
 
   model.getFEM().interpolateOnQuadraturePoints(mesh.getNodes(),
 					       quads, spatial_dimension,
 					       TYPE);
 
-  Vector<Real>::iterator<types::RVector> first_quad_1 = quads.begin(spatial_dimension);
-  Vector<Real>::iterator<types::RVector> last_quad_1 = quads.end(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > first_quad_1 = quads.begin(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > last_quad_1 = quads.end(spatial_dimension);
 
   std::ofstream pout;
   pout.open("bf_pairs");
@@ -90,8 +90,8 @@ int main(int argc, char *argv[]) {
   Real R = mat.getRadius();
 
   for(;first_quad_1 != last_quad_1; ++first_quad_1, ++q1) {
-    Vector<Real>::iterator<types::RVector> first_quad_2 = quads.begin(spatial_dimension);
-    //Vector<Real>::iterator<types::RVector> last_quad_2 = quads.end(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > first_quad_2 = quads.begin(spatial_dimension);
+    //Array<Real>::iterator< Vector<Real> > last_quad_2 = quads.end(spatial_dimension);
     UInt q2 = 0;
     for(;first_quad_2 != last_quad_1; ++first_quad_2, ++q2) {
       Real d = first_quad_2->distance(*first_quad_1);
@@ -107,21 +107,21 @@ int main(int argc, char *argv[]) {
   mat.savePairs("cl_pairs");
 
   ByElementTypeReal constant("constant_value", "test");
-  mesh.initByElementTypeVector(constant, 1, 0);
+  mesh.initByElementTypeArray(constant, 1, 0);
   Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
     UInt nb_quadrature_points = model.getFEM().getNbQuadraturePoints(*it);
     UInt _nb_element = mesh.getNbElement(*it);
 
-    Vector<Real> & constant_vect = constant(*it);
+    Array<Real> & constant_vect = constant(*it);
     constant_vect.resize(_nb_element * nb_quadrature_points);
 
     std::fill_n(constant_vect.storage(), nb_quadrature_points * _nb_element, 1.);
   }
 
   ByElementTypeReal constant_avg("constant_value_avg", "test");
-  mesh.initByElementTypeVector(constant_avg, 1, 0);
+  mesh.initByElementTypeArray(constant_avg, 1, 0);
 
   mat.weightedAvergageOnNeighbours(constant, constant_avg, 1);
 

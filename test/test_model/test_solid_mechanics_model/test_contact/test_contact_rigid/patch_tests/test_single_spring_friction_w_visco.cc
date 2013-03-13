@@ -105,7 +105,7 @@ bool * boundary;
 Real * force;
 Real * mass;
 
-std::map < std::string, VectorBase* > restart_map;
+std::map < std::string, ArrayBase* > restart_map;
 
 #ifdef AKANTU_USE_IOHELPER
 static void paraviewInit(iohelper::Dumper & dumper);
@@ -163,7 +163,7 @@ Int main(int argc, char *argv[])
   std::cout << "Nb nodes : " << nb_nodes << " - nb elements : " << nb_elements << std::endl;
 
   /// model initialization
-  model->initVectors();
+  model->initArrays();
   // initialize the vectors
   model->getForce().clear();
   model->getVelocity().clear();
@@ -390,7 +390,7 @@ void paraviewInit(iohelper::Dumper & dumper) {
 void loadRestartInformation(ContactRigid * contact) {
 
   // boundary conditions
-  Vector<bool> * boundary_r = new Vector<bool>(nb_nodes, spatial_dimension, false);
+  Array<bool> * boundary_r = new Array<bool>(nb_nodes, spatial_dimension, false);
   // sticked nodes
   (*boundary_r)(1,0) = true;  (*boundary_r)(1,1) = true;
   (*boundary_r)(2,0) = true;  (*boundary_r)(2,1) = true;
@@ -399,36 +399,36 @@ void loadRestartInformation(ContactRigid * contact) {
   memcpy(boundary, boundary_r->values, spatial_dimension*nb_nodes*sizeof(bool));
 
   // set the active impactor node
-  Vector<bool> * ai_nodes = new Vector<bool>(nb_nodes, 1, false);
+  Array<bool> * ai_nodes = new Array<bool>(nb_nodes, 1, false);
   (*ai_nodes)(the_node) = true;
   restart_map["active_impactor_nodes"] = ai_nodes;
 
   // not defined master type, because won't use solve contact
-  Vector<ElementType> * et_nodes = new Vector<ElementType>(nb_nodes, 1, _not_defined);
+  Array<ElementType> * et_nodes = new Array<ElementType>(nb_nodes, 1, _not_defined);
   restart_map["master_element_type"] = et_nodes;
 
   // master normal x=0; y=1
-  Vector<Real> * mn_nodes = new Vector<Real>(0, spatial_dimension);
+  Array<Real> * mn_nodes = new Array<Real>(0, spatial_dimension);
   Real normal[spatial_dimension];
   normal[0] = 0.; normal[1] = 1.;
   mn_nodes->push_back(normal);
   restart_map["master_normals"] = mn_nodes;
 
   // node is sticking
-  Vector<bool> * is_nodes = new Vector<bool>(nb_nodes, 2, false);
+  Array<bool> * is_nodes = new Array<bool>(nb_nodes, 2, false);
   (*is_nodes)(0,0) = true;
   (*is_nodes)(0,1) = true;
   restart_map["node_is_sticking"] = is_nodes;
 
   // no friction force
-  Vector<Real> * ff_nodes = new Vector<Real>(0, spatial_dimension);
+  Array<Real> * ff_nodes = new Array<Real>(0, spatial_dimension);
   Real force[spatial_dimension];
   force[0] = 0.; force[1] = 0.;
   ff_nodes->push_back(force);
   restart_map["friction_forces"] = ff_nodes;
 
   // the original stick position (for regularized friction)
-  Vector<Real> * sp_nodes = new Vector<Real>(0, spatial_dimension);
+  Array<Real> * sp_nodes = new Array<Real>(0, spatial_dimension);
   Real position[spatial_dimension];
   position[0] = 0.;
   position[1] = 0.;
@@ -436,21 +436,21 @@ void loadRestartInformation(ContactRigid * contact) {
   restart_map["stick_positions"] = sp_nodes;
 
   // no residual forces
-  Vector<Real> * rf_nodes = new Vector<Real>(0, spatial_dimension);
+  Array<Real> * rf_nodes = new Array<Real>(0, spatial_dimension);
   Real r_force[spatial_dimension];
   r_force[0] = 0.; r_force[1] = 0.;
   rf_nodes->push_back(r_force);
   restart_map["residual_forces"] = rf_nodes;
 
   // no previous velocities
-  Vector<Real> * pv_nodes = new Vector<Real>(0, spatial_dimension);
+  Array<Real> * pv_nodes = new Array<Real>(0, spatial_dimension);
   Real vel[spatial_dimension];
   vel[0] = 0.; vel[1] = 0.;
   pv_nodes->push_back(vel);
   restart_map["previous_velocities"] = pv_nodes;
 
   // no friction strength
-  Vector<Real> * fr_nodes = new Vector<Real>(0, 1);
+  Array<Real> * fr_nodes = new Array<Real>(0, 1);
   fr_nodes->push_back(0.);
   restart_map["friction_resistances"] = fr_nodes;
 

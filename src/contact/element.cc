@@ -25,7 +25,9 @@
  *
  */
 
-#include <boost/chrono.hpp>
+#if AKANTU_BOOST_CHRONO
+#  include <boost/chrono.hpp>
+#endif
 
 #include "element.hh"
 #include "aka_math.hh"
@@ -41,8 +43,8 @@ bool check_penetration<2>(UInt node, const Element* el, SolidMechanicsModel& mod
   typedef Point<2> point_type;
   
   Mesh& mesh = model.getMesh();
-  const Vector<Real> &x = model.getCurrentPosition();
-  const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+  const Array<Real> &x = model.getCurrentPosition();
+  const Array<UInt> &conn = mesh.getConnectivity(el->type);
   
   point_type r(&x(node));
   
@@ -77,8 +79,8 @@ bool check_penetration<3>(UInt node, const Element* el, SolidMechanicsModel& mod
   typedef Point<3> point_type;
   
   Mesh& mesh = model.getMesh();
-  const Vector<Real> &x = model.getCurrentPosition();
-  const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+  const Array<Real> &x = model.getCurrentPosition();
+  const Array<UInt> &conn = mesh.getConnectivity(el->type);
   
   point_type r(&x(node));
   
@@ -124,7 +126,7 @@ Point<2> minimize_distance<2>(UInt node, const Element* el, SolidMechanicsModel&
   const UInt d = 2;
   typedef Point<d> point_type;
   
-  const Vector<Real> &x = model.getCurrentPosition();
+  const Array<Real> &x = model.getCurrentPosition();
   
   point_type r(&x(node));
   
@@ -133,8 +135,13 @@ Point<2> minimize_distance<2>(UInt node, const Element* el, SolidMechanicsModel&
   switch (el->type) {
     case _segment_2:
     {
+#if AKANTU_OPTIMIZATION
       Distance_minimzer<_segment_2> data(&x(node), el, model);
       return data.point();
+#else 
+      AKANTU_DEBUG_ERROR("To use this function you should activate the optimization at compile time");
+      return Point<2>();
+#endif
     }
       break;
       
@@ -154,14 +161,14 @@ Point<2> minimize_distance<2>(UInt node, const Element* el, SolidMechanicsModel&
 
 template <>
 Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel& model) {
-  
+#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)
   typedef boost::chrono::high_resolution_clock clock_type;
   typedef typename clock_type::time_point time_type;
-
+#endif
   const UInt d = 3;
   typedef Point<d> point_type;
   
-  const Vector<Real> &x = model.getCurrentPosition();
+  const Array<Real> &x = model.getCurrentPosition();
   
   point_type r(&x(node));
   
@@ -171,15 +178,25 @@ Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel&
       
     case _triangle_3:
     {
+#if AKANTU_OPTIMIZATION
       Distance_minimzer<_triangle_3> data(&x(node), el, model);
-     
+
+#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)     
       time_type start = clock_type::now();
+#endif
       data.optimize();
 
+#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)
       boost::chrono::nanoseconds ns = clock_type::now() - start;
       cout<<data.iterations()<<"\t"<<ns.count()<<endl;
+#endif
 //      cout<<data.point()<<endl;
       return data.point();
+#else
+      AKANTU_DEBUG_ERROR("To use this function you should activate the optimization at compile time");
+      return Point<3>();
+#endif
+
       
       
 //      const UInt nb_nodes = 3;
@@ -188,7 +205,7 @@ Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel&
 //      Mesh& mesh = model.getMesh();
 //      std::vector<point_type> pts(nb_nodes);
 //      
-//      const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+//      const Array<UInt> &conn = mesh.getConnectivity(el->type);
 //      for (UInt i=0; i<nb_nodes; ++i)
 //        for (UInt j=0; j<d; ++j)
 //          pts.at(i)[j] = x(conn(el->element,i),j);
@@ -220,7 +237,7 @@ Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel&
 //      Mesh& mesh = model.getMesh();
 //      std::vector<point_type> pts(nb_nodes);
 //      
-//      const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+//      const Array<UInt> &conn = mesh.getConnectivity(el->type);
 //      for (UInt i=0; i<nb_nodes; ++i)
 //        for (UInt j=0; j<d; ++j)
 //          pts.at(i)[j] = x(conn(el->element,i),j);
@@ -252,15 +269,22 @@ Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel&
       
     case _triangle_6:
     {
+#if AKANTU_OPTIMIZATION
       Distance_minimzer<_triangle_6> data(&x(node), el, model);
-      
+#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)      
       time_type start = clock_type::now();
+#endif
       data.optimize();
       
+#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)
       boost::chrono::nanoseconds ns = clock_type::now() - start;
       cout<<data.iterations()<<"\t"<<ns.count()<<endl;
+#endif
       return data.point();
-
+#else
+      AKANTU_DEBUG_ERROR("To use this function you should activate the optimization at compile time");
+      return Point<3>();
+#endif
     }
       break;
       

@@ -45,7 +45,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 template<typename T, bool is_scal>
-class Vector;
+class Array;
 
 class Math {
   /* ------------------------------------------------------------------------ */
@@ -63,9 +63,9 @@ public:
   /* ------------------------------------------------------------------------ */
   /// @f$ y = A*x @f$
   static void matrix_vector(UInt m, UInt n,
-			    const Vector<Real, true> & A,
-			    const Vector<Real, true> & x,
-			    Vector<Real, true> & y, Real alpha = 1.);
+			    const Array<Real, true> & A,
+			    const Array<Real, true> & x,
+			    Array<Real, true> & y, Real alpha = 1.);
 
   /// @f$ y = A*x @f$
   static inline void matrix_vector(UInt m, UInt n,
@@ -81,15 +81,15 @@ public:
 
   /// @f$ C = A*B @f$
   static void matrix_matrix(UInt m, UInt n, UInt k,
-			   const Vector<Real, true> & A,
-			   const Vector<Real, true> & B,
-			   Vector<Real, true> & C, Real alpha = 1.);
+			   const Array<Real, true> & A,
+			   const Array<Real, true> & B,
+			   Array<Real, true> & C, Real alpha = 1.);
 
   /// @f$ C = A*B^t @f$
   static void matrix_matrixt(UInt m, UInt n, UInt k,
-			     const Vector<Real, true> & A,
-			     const Vector<Real, true> & B,
-			     Vector<Real, true> & C, Real alpha = 1.);
+			     const Array<Real, true> & A,
+			     const Array<Real, true> & B,
+			     Array<Real, true> & C, Real alpha = 1.);
 
   /// @f$ C = A*B @f$
   static inline void matrix_matrix(UInt m, UInt n, UInt k,
@@ -161,7 +161,7 @@ public:
 
 
   /* ------------------------------------------------------------------------ */
-  /* Vector algebra                                                           */
+  /* Array algebra                                                           */
   /* ------------------------------------------------------------------------ */
   /// vector cross product
   static inline void vectorProduct3(const Real * v1, const Real * v2, Real * res);

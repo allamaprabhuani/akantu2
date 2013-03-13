@@ -6,7 +6,7 @@
  * @date   Wed Aug 31 11:09:48 2011
  *
  * @brief  implementation of template functions of the ByElementType and
- * ByElementTypeVector classes
+ * ByElementTypeArray classes
  *
  * @section LICENSE
  *
@@ -165,19 +165,19 @@ ByElementType<Stored, SupportType>::~ByElementType() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* ByElementTypeVector                                                        */
+/* ByElementTypeArray                                                        */
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline Vector<T> & ByElementTypeVector<T, SupportType>::alloc(UInt size,
+inline Array<T> & ByElementTypeArray<T, SupportType>::alloc(UInt size,
                                                  UInt nb_component,
                                                  const SupportType & type,
                                                  const GhostType & ghost_type) {
   std::string ghost_id = "";
   if (ghost_type == _ghost) ghost_id = ":ghost";
 
-  Vector<T> * tmp;
+  Array<T> * tmp;
 
-  typename ByElementTypeVector<T, SupportType>::DataMap::iterator it =
+  typename ByElementTypeArray<T, SupportType>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   if(it == this->getData(ghost_type).end()) {
@@ -199,7 +199,7 @@ inline Vector<T> & ByElementTypeVector<T, SupportType>::alloc(UInt size,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline void ByElementTypeVector<T, SupportType>::alloc(UInt size,
+inline void ByElementTypeArray<T, SupportType>::alloc(UInt size,
                                           UInt nb_component,
                                           const SupportType & type) {
   this->alloc(size, nb_component, type, _not_ghost);
@@ -208,7 +208,7 @@ inline void ByElementTypeVector<T, SupportType>::alloc(UInt size,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline void ByElementTypeVector<T, SupportType>::free() {
+inline void ByElementTypeArray<T, SupportType>::free() {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -226,15 +226,15 @@ inline void ByElementTypeVector<T, SupportType>::free() {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline const Vector<T> & ByElementTypeVector<T, SupportType>::operator()(const SupportType & type,
+inline const Array<T> & ByElementTypeArray<T, SupportType>::operator()(const SupportType & type,
                                                             const GhostType & ghost_type) const {
-  typename ByElementTypeVector<T, SupportType>::DataMap::const_iterator it =
+  typename ByElementTypeArray<T, SupportType>::DataMap::const_iterator it =
     this->getData(ghost_type).find(type);
 
   if(it == this->getData(ghost_type).end())
     AKANTU_EXCEPTION("No element of type "
-                     << ByElementTypeVector::printType(type, ghost_type)
-                     << " in this const ByElementTypeVector<"
+                     << ByElementTypeArray::printType(type, ghost_type)
+                     << " in this const ByElementTypeArray<"
                      << debug::demangle(typeid(T).name()) << "> class(\""
                      << this->id << "\")");
   return *(it->second);
@@ -242,15 +242,15 @@ inline const Vector<T> & ByElementTypeVector<T, SupportType>::operator()(const S
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline Vector<T> & ByElementTypeVector<T, SupportType>::operator()(const SupportType & type,
+inline Array<T> & ByElementTypeArray<T, SupportType>::operator()(const SupportType & type,
                                                       const GhostType & ghost_type) {
-  typename ByElementTypeVector<T, SupportType>::DataMap::iterator it =
+  typename ByElementTypeArray<T, SupportType>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   if(it == this->getData(ghost_type).end())
     AKANTU_EXCEPTION("No element of type "
-                     << ByElementTypeVector::printType(type, ghost_type)
-                     << " in this ByElementTypeVector<"
+                     << ByElementTypeArray::printType(type, ghost_type)
+                     << " in this ByElementTypeArray<"
                      << debug::demangle(typeid(T).name()) << "> class (\""
                      << this->id << "\")");
 
@@ -259,34 +259,34 @@ inline Vector<T> & ByElementTypeVector<T, SupportType>::operator()(const Support
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline void ByElementTypeVector<T, SupportType>::setVector(const SupportType & type,
+inline void ByElementTypeArray<T, SupportType>::setArray(const SupportType & type,
                                               const GhostType & ghost_type,
-                                              const Vector<T> & vect) {
-  typename ByElementTypeVector<T, SupportType>::DataMap::iterator it =
+                                              const Array<T> & vect) {
+  typename ByElementTypeArray<T, SupportType>::DataMap::iterator it =
     this->getData(ghost_type).find(type);
 
   if(AKANTU_DEBUG_TEST(dblWarning) && it != this->getData(ghost_type).end() && it->second != &vect) {
-    AKANTU_DEBUG_WARNING("The Vector " << this->printType(type, ghost_type)
+    AKANTU_DEBUG_WARNING("The Array " << this->printType(type, ghost_type)
                          << " is already registred, this call can lead to a memory leak.");
   }
 
-  this->getData(ghost_type)[type] = &(const_cast<Vector<T> &>(vect));
+  this->getData(ghost_type)[type] = &(const_cast<Array<T> &>(vect));
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType>
-inline void ByElementTypeVector<T, SupportType>::onElementsRemoved(const ByElementTypeVector<UInt> & new_numbering) {
+inline void ByElementTypeArray<T, SupportType>::onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering) {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeVector<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
-    ByElementTypeVector<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
     for (; it != end; ++it) {
       SupportType type = *it;
       if(this->exists(type, gt)){
-	const Vector<UInt> & renumbering = new_numbering(type, gt);
-	Vector<T> & vect = this->operator()(type, gt);
+	const Array<UInt> & renumbering = new_numbering(type, gt);
+	Array<T> & vect = this->operator()(type, gt);
 	UInt nb_component = vect.getNbComponent();
-	Vector<T> tmp(renumbering.getSize(), nb_component);
+	Array<T> tmp(renumbering.getSize(), nb_component);
 	UInt new_size = 0;
 	for (UInt i = 0; i < vect.getSize(); ++i) {
 	  UInt new_i = renumbering(i);
@@ -306,18 +306,18 @@ inline void ByElementTypeVector<T, SupportType>::onElementsRemoved(const ByEleme
 
 /* -------------------------------------------------------------------------- */
 template<typename T, typename SupportType>
-void ByElementTypeVector<T, SupportType>::printself(std::ostream & stream, int indent) const {
+void ByElementTypeArray<T, SupportType>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "ByElementTypeVector<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
+  stream << space << "ByElementTypeArray<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
     const DataMap & data = this->getData(gt);
     typename DataMap::const_iterator it;
     for(it = data.begin(); it != data.end(); ++it) {
-      stream << space << space << ByElementTypeVector::printType(it->first, gt) << " [" << std::endl;
+      stream << space << space << ByElementTypeArray::printType(it->first, gt) << " [" << std::endl;
       it->second->printself(stream, indent + 3);
       stream << space << space << " ]" << std::endl;
     }

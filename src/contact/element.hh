@@ -37,8 +37,9 @@
 #include "solid_mechanics_model.hh"
 #include "mesh.hh"
 #include "contact_common.hh"
-#include "aka_optimize.hh"
-
+#if AKANTU_OPTIMIZATION
+#  include "aka_optimize.hh"
+#endif
 
 __BEGIN_AKANTU__
 
@@ -59,7 +60,7 @@ Real distance(UInt node, const Element* el, SolidMechanicsModel& model) {
 
   typedef Point<d> point_type;
   
-  const Vector<Real> &x = model.getCurrentPosition();
+  const Array<Real> &x = model.getCurrentPosition();
 
   // get point of node
   point_type o(&x(node));
@@ -108,8 +109,8 @@ public:
     cout<<"point obtained -> "<<o<<endl;
     
     // modify master node coordinates
-    Vector<Real> &X = model_.getDisplacement();
-    const Vector<Real> &coord = model_.getMesh().getNodes();
+    Array<Real> &X = model_.getDisplacement();
+    const Array<Real> &coord = model_.getMesh().getNodes();
     for (UInt i=0; i<d; ++i)
       X(master_, i) = o[i] - coord(master_, i);
     
@@ -121,10 +122,10 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const CElement& cel) {
     
     Mesh& mesh = cel.model_.getMesh();
-    const Vector<Real> &x = cel.model_.getCurrentPosition();
+    const Array<Real> &x = cel.model_.getCurrentPosition();
     
     UInt nb_nodes = mesh.getNbNodesPerElement((cel.element_)->type);
-    const Vector<UInt> &conn = mesh.getConnectivity((cel.element_)->type);
+    const Array<UInt> &conn = mesh.getConnectivity((cel.element_)->type);
     
     os<<"    Contact element: "<<endl;
     os<<"      slave node: "<<cel.master_<<", coordinates: "<<point_type(&x(cel.master_))<<endl;

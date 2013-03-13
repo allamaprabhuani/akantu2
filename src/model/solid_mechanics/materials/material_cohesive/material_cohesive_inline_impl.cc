@@ -29,13 +29,13 @@
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void MaterialCohesive::computeNormal(const Vector<Real> & position,
-				     Vector<Real> & normal,
+void MaterialCohesive::computeNormal(const Array<Real> & position,
+				     Array<Real> & normal,
 				     GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialCohesive::getNbDataForElements(const Vector<Element> & elements,
+inline UInt MaterialCohesive::getNbDataForElements(const Array<Element> & elements,
 						   SynchronizationTag tag) const {
 
   if(tag == _gst_smm_stress) {
@@ -47,7 +47,7 @@ inline UInt MaterialCohesive::getNbDataForElements(const Vector<Element> & eleme
 
 /* -------------------------------------------------------------------------- */
 inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
-					      const Vector<Element> & elements,
+					      const Array<Element> & elements,
 					      SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
     packElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
@@ -57,7 +57,7 @@ inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void MaterialCohesive::unpackElementData(CommunicationBuffer & buffer,
-						const Vector<Element> & elements,
+						const Array<Element> & elements,
 						SynchronizationTag tag) {
   if(tag == _gst_smm_stress) {
     unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEM");

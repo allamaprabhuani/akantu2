@@ -30,9 +30,9 @@
 /* -------------------------------------------------------------------------- */
 
 void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
-						   Vector<Real> & u,
-						   Vector<Real> & u_dot,
-						   Vector<bool> & boundary) {
+						   Array<Real> & u,
+						   Array<Real> & u_dot,
+						   Array<bool> & boundary) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -56,10 +56,10 @@ void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
-						       Vector<Real> & u,
-						       Vector<Real> & u_dot,
-						       Vector<bool> & boundary,
-						       Vector<Real> & delta) {
+						       Array<Real> & u,
+						       Array<Real> & u_dot,
+						       Array<bool> & boundary,
+						       Array<Real> & delta) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<GeneralizedTrapezoidal::_temperature_corrector>(delta_t,
@@ -73,10 +73,10 @@ void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 void GeneralizedTrapezoidal::integrationSchemeCorrTempRate(Real delta_t,
-							   Vector<Real> & u,
-							   Vector<Real> & u_dot,
-							   Vector<bool> & boundary,
-							   Vector<Real> & delta) {
+							   Array<Real> & u,
+							   Array<Real> & u_dot,
+							   Array<bool> & boundary,
+							   Array<Real> & delta) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<GeneralizedTrapezoidal::_temperature_rate_corrector>(delta_t,
@@ -113,10 +113,10 @@ Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoida
 /* -------------------------------------------------------------------------- */
 template<GeneralizedTrapezoidal::IntegrationSchemeCorrectorType type>
 void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
-						   Vector<Real> & u,
-						   Vector<Real> & u_dot,
-						   Vector<bool> & boundary,
-						   Vector<Real> & delta) {
+						   Array<Real> & u,
+						   Array<Real> & u_dot,
+						   Array<bool> & boundary,
+						   Array<Real> & delta) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();

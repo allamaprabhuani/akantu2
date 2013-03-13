@@ -94,7 +94,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
+    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     /// count number of occurrence of each node
     for (UInt el = 0; el < nb_element; ++el) {
@@ -122,7 +122,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
+    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
       UInt * conn_val = connectivity.values + el * nb_nodes_per_element;
@@ -144,7 +144,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
     UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
+    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el) {
       *verttab_tmp = *(verttab_tmp - 1) + nb_nodes_per_element;
@@ -184,7 +184,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
     fgeominit.open("ScotchMesh.xyz");
     fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
-    const Vector<Real> & nodes = mesh.getNodes();
+    const Array<Real> & nodes = mesh.getNodes();
     Real * nodes_val = nodes.values;
     for (UInt i = 0; i < nb_nodes; ++i) {
       fgeominit << i << " ";
@@ -235,7 +235,7 @@ void MeshPartitionScotch::destroyMesh(SCOTCH_Mesh * meshptr) {
 /* -------------------------------------------------------------------------- */
 void MeshPartitionScotch::partitionate(UInt nb_part,
 				       const EdgeLoadFunctor & edge_load_func,
-				       const Vector<UInt> & pairs) {
+				       const Array<UInt> & pairs) {
   AKANTU_DEBUG_IN();
 
   nb_partitions = nb_part;
@@ -243,9 +243,9 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
   AKANTU_DEBUG_INFO("Partitioning the mesh " << mesh.getID()
 		    << " in " << nb_part << " parts.");
 
-  Vector<Int> dxadj;
-  Vector<Int> dadjncy;
-  Vector<Int> edge_loads;
+  Array<Int> dxadj;
+  Array<Int> dadjncy;
+  Array<Int> edge_loads;
   buildDualGraph(dxadj, dadjncy, edge_loads, edge_load_func, pairs);
 
   /// variables that will hold our structures in scotch format
@@ -295,7 +295,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
     fgeominit.open("GeomIniFile.xyz");
     fgeominit << spatial_dimension << std::endl << vertnbr << std::endl;
 
-    const Vector<Real> & nodes = mesh.getNodes();
+    const Array<Real> & nodes = mesh.getNodes();
 
     Mesh::type_iterator f_it  = mesh.firstType(spatial_dimension, _not_ghost, _ek_not_defined);
     Mesh::type_iterator f_end = mesh.lastType(spatial_dimension, _not_ghost, _ek_not_defined);
@@ -306,7 +306,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
 
       UInt nb_element = mesh.getNbElement(*f_it);
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-      const Vector<UInt> & connectivity = mesh.getConnectivity(type);
+      const Array<UInt> & connectivity = mesh.getConnectivity(type);
 
       Real mid[spatial_dimension] ;
       for (UInt el = 0; el < nb_element; ++el) {
@@ -432,7 +432,7 @@ void MeshPartitionScotch::reorder() {
       UInt nb_element = mesh.getNbElement(type, gt);
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-      const Vector<UInt> & connectivity = mesh.getConnectivity(type, gt);
+      const Array<UInt> & connectivity = mesh.getConnectivity(type, gt);
 
       UInt * conn  = connectivity.values;
       for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {

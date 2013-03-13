@@ -72,7 +72,7 @@ public:
 
   /// constitutive law
   void computeNonLocalStresses(GhostType ghost_type = _not_ghost);
-  void computeNonLocalStress(Vector<Real> & Ehatnl,
+  void computeNonLocalStress(Array<Real> & Ehatnl,
 			     ElementType el_type,
 			     GhostType ghost_type = _not_ghost);
 

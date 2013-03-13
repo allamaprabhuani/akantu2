@@ -53,8 +53,8 @@ public:
                                 empty_cell() {}
 
   SpatialGrid(UInt dimension,
-              const types::Vector<Real> & spacing,
-              const types::Vector<Real> & center) : dimension(dimension),
+              const Vector<Real> & spacing,
+              const Vector<Real> & center) : dimension(dimension),
                                                     spacing(spacing),
                                                     center(center),
                                                     lower(dimension),
@@ -93,7 +93,7 @@ public:
 
   private:
     friend class neighbor_cells_iterator;
-    types::Vector<Int> ids;
+    Vector<Int> ids;
   };
 
   /* -------------------------------------------------------------------------- */
@@ -118,10 +118,10 @@ public:
     const_iterator end() const { return data.end(); }
 
 #if not defined(AKANTU_NDEBUG)
-    Cell & add(const T & d, const types::Vector<Real> & pos) {
+    Cell & add(const T & d, const Vector<Real> & pos) {
       data.push_back(d); positions.push_back(pos); return *this;
     }
-    typedef typename std::vector< types::Vector<Real> >::const_iterator position_iterator;
+    typedef typename std::vector< Vector<Real> >::const_iterator position_iterator;
     position_iterator begin_pos() const { return positions.begin(); }
     position_iterator end_pos() const { return positions.end(); }
 #endif
@@ -130,7 +130,7 @@ public:
     CellID id;
     std::vector<T> data;
 #if not defined(AKANTU_NDEBUG)
-    std::vector< types::Vector<Real> > positions;
+    std::vector< Vector<Real> > positions;
 #endif
   };
 
@@ -218,11 +218,11 @@ public:
     // number representing the current neighbor in base 3;
     UInt it;
 
-    types::Vector<Int> position;
+    Vector<Int> position;
   };
 
 public:
-  Cell & insert(const T & d, const types::Vector<Real> & position) {
+  Cell & insert(const T & d, const Vector<Real> & position) {
     CellID cell_id = getCellID(position);
 
     typename cells_container::iterator it = cells.find(cell_id);
@@ -262,7 +262,7 @@ public:
 
 
 
-  CellID getCellID(types::Vector<Real> position) const {
+  CellID getCellID(Vector<Real> position) const {
     CellID cell_id(dimension);
     for (UInt i = 0; i < dimension; ++i) {
       cell_id.setID(i, getCellID(position(i), i));
@@ -297,7 +297,7 @@ public:
     stream << "}" << std::endl;
 
     stream << space << " + nb_cells     : " << this->cells.size() << "/";
-    types::Vector<Real> dist(this->dimension);
+    Vector<Real> dist(this->dimension);
     dist = upper;
     dist -= lower;
     dist /= spacing;
@@ -327,20 +327,20 @@ private:
 
   friend class GridSynchronizer;
 public:
-  AKANTU_GET_MACRO(LowerBounds, lower, const types::Vector<Real> &);
-  AKANTU_GET_MACRO(UpperBounds, upper, const types::Vector<Real> &);
-  AKANTU_GET_MACRO(Spacing, spacing, const types::Vector<Real> &);
+  AKANTU_GET_MACRO(LowerBounds, lower, const Vector<Real> &);
+  AKANTU_GET_MACRO(UpperBounds, upper, const Vector<Real> &);
+  AKANTU_GET_MACRO(Spacing, spacing, const Vector<Real> &);
 
 protected:
   UInt dimension;
 
   cells_container cells;
 
-  types::Vector<Real> spacing;
-  types::Vector<Real> center;
+  Vector<Real> spacing;
+  Vector<Real> center;
 
-  types::Vector<Real> lower;
-  types::Vector<Real> upper;
+  Vector<Real> lower;
+  Vector<Real> upper;
 
   Cell empty_cell;
 };
@@ -360,7 +360,7 @@ __BEGIN_AKANTU__
 
 template<typename T>
 void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(mesh.getNodes());
 
   ElementType type;
   switch(dimension) {
@@ -370,13 +370,13 @@ void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
   }
 
   mesh.addConnectivityType(type);
-  Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type));
-  Vector<UInt> & uint_data = *mesh.getUIntDataPointer(type, "tag_1");
+  Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh.getConnectivity(type));
+  Array<UInt> & uint_data = *mesh.getUIntDataPointer(type, "tag_1");
 
   typename cells_container::const_iterator it  = cells.begin();
   typename cells_container::const_iterator end = cells.end();
 
-  types::Vector<Real> pos(dimension);
+  Vector<Real> pos(dimension);
 
   UInt global_id = 0;
   for (;it != end; ++it, ++global_id) {
@@ -425,9 +425,9 @@ void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
 
 #if not defined(AKANTU_NDEBUG)
   mesh.addConnectivityType(_point_1);
-  Vector<UInt> & connectivity_pos = const_cast<Vector<UInt> &>(mesh.getConnectivity(_point_1));
-  Vector<UInt> & uint_data_pos = *mesh.getUIntDataPointer(_point_1, "tag_1");
-  Vector<UInt> & uint_data_pos_ghost = *mesh.getUIntDataPointer(_point_1, "tag_0");
+  Array<UInt> & connectivity_pos = const_cast<Array<UInt> &>(mesh.getConnectivity(_point_1));
+  Array<UInt> & uint_data_pos = *mesh.getUIntDataPointer(_point_1, "tag_1");
+  Array<UInt> & uint_data_pos_ghost = *mesh.getUIntDataPointer(_point_1, "tag_0");
 
   it  = cells.begin();
   global_id = 0;

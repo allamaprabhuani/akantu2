@@ -48,51 +48,51 @@ inline ShapeLagrange<_ek_cohesive>::ShapeLagrange(const Mesh & mesh,
   precomputeShapeDerivativesOnControlPoints<type>(nodes, ghost_type);
 
 /* -------------------------------------------------------------------------- */
-inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(const Vector<Real> & nodes,
-						const types::Matrix<Real> & control_points,
+inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(const Array<Real> & nodes,
+						const Matrix<Real> & control_points,
 						const ElementType & type,
 						const GhostType & ghost_type) {
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Vector<Real> & ShapeLagrange<_ek_cohesive>::getShapes(const ElementType & el_type,
+inline const Array<Real> & ShapeLagrange<_ek_cohesive>::getShapes(const ElementType & el_type,
 								   const GhostType & ghost_type) const {
   return shapes(FEM::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Vector<Real> & ShapeLagrange<_ek_cohesive>::getShapesDerivatives(const ElementType & el_type,
+inline const Array<Real> & ShapeLagrange<_ek_cohesive>::getShapesDerivatives(const ElementType & el_type,
 									      const GhostType & ghost_type) const {
   return shapes_derivatives(FEM::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeLagrange<_ek_cohesive>::precomputeShapesOnControlPoints(__attribute__((unused)) const Vector<Real> & nodes,
+void ShapeLagrange<_ek_cohesive>::precomputeShapesOnControlPoints(__attribute__((unused)) const Array<Real> & nodes,
 								  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
-  types::Matrix<Real> & natural_coords = control_points(type, ghost_type);
+  Matrix<Real> & natural_coords = control_points(type, ghost_type);
   UInt nb_points = natural_coords.cols();
 
   UInt size_of_shapes = ElementClass<type>::getShapeSize();
 
   UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();;
 
-  Vector<Real> & shapes_tmp = shapes.alloc(nb_element*nb_points,
+  Array<Real> & shapes_tmp = shapes.alloc(nb_element*nb_points,
 					   size_of_shapes,
 					   itp_type,
 					   ghost_type);
 
-  Vector<Real>::iterator< types::Matrix<Real> > shapes_it =
+  Array<Real>::iterator< Matrix<Real> > shapes_it =
     shapes_tmp.begin_reinterpret(ElementClass<type>::getNbNodesPerInterpolationElement(), nb_points,
 				 nb_element);
 
   for (UInt elem = 0; elem < nb_element; ++elem, ++shapes_it) {
-    types::Matrix<Real> & N = *shapes_it;
+    Matrix<Real> & N = *shapes_it;
     ElementClass<type>::computeShapes(natural_coords,
 				      N);
   }
@@ -103,7 +103,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapesOnControlPoints(__attribute__(
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__attribute__((unused)) const Vector<Real> & nodes,
+void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__attribute__((unused)) const Array<Real> & nodes,
 									    GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -111,7 +111,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__at
   UInt spatial_dimension    = ElementClass<type>::getNaturalSpaceDimension();
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  types::Matrix<Real> natural_coords = this->control_points(type, ghost_type);
+  Matrix<Real> natural_coords = this->control_points(type, ghost_type);
   UInt nb_points = natural_coords.cols();
 
   // UInt * elem_val = this->mesh->getConnectivity(type, ghost_type).storage();;
@@ -119,7 +119,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__at
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
-  Vector<Real> & shapes_derivatives_tmp =
+  Array<Real> & shapes_derivatives_tmp =
     this->shapes_derivatives.alloc(nb_element*nb_points,
 				   size_of_shapesd,
 				   itp_type,
@@ -127,7 +127,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__at
 
   Real * shapesd_val = shapes_derivatives_tmp.storage();
   for (UInt elem = 0; elem < nb_element; ++elem) {
-    types::Tensor3<Real> B(shapesd_val,
+    Tensor3<Real> B(shapesd_val,
 			   spatial_dimension, nb_nodes_per_element, nb_points);
     ElementClass<type>::computeDNDS(natural_coords, B);
 
@@ -140,10 +140,10 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__at
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class ReduceFunction>
-void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Vector<Real> & nodal_f,
-							     Vector<Real> & elemental_f,
+void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Array<Real> & nodal_f,
+							     Array<Real> & elemental_f,
 							     const GhostType & ghost_type,
-							     const Vector<UInt> * filter_elements) const {
+							     const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_itp_element = ElementClass<type>::getNbNodesPerInterpolationElement();
@@ -160,14 +160,14 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Vector<Real> 
 
   elemental_f.resize(nb_element);
 
-  Vector<Real>::iterator<types::RMatrix> u_it = elemental_f.begin(nb_degree_of_freedom,
+  Array<Real>::iterator< Matrix<Real> > u_it = elemental_f.begin(nb_degree_of_freedom,
 								  nb_nodes_per_itp_element);
 
   UInt * el_conn;
   ReduceFunction reduce_function;
 
   for (UInt el = 0; el < nb_element; ++el, ++u_it) {
-    types::Matrix<Real> & u = *u_it;
+    Matrix<Real> & u = *u_it;
     if(filter_elements != NULL) el_conn = conn_val + filter_elem_val[el] * nb_nodes_per_element;
     else el_conn = conn_val + el * nb_nodes_per_element;
 
@@ -189,11 +189,11 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Vector<Real> 
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class ReduceFunction>
-void ShapeLagrange<_ek_cohesive>::interpolateOnControlPoints(const Vector<Real> &in_u,
-							     Vector<Real> &out_uq,
+void ShapeLagrange<_ek_cohesive>::interpolateOnControlPoints(const Array<Real> &in_u,
+							     Array<Real> &out_uq,
 							     UInt nb_degree_of_freedom,
 							     GhostType ghost_type,
-							     const Vector<UInt> * filter_elements) const {
+							     const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -203,7 +203,7 @@ void ShapeLagrange<_ek_cohesive>::interpolateOnControlPoints(const Vector<Real> 
 		      << this->shapes.printType(itp_type, ghost_type));
 
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
-  Vector<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
   this->extractNodalToElementField<type, ReduceFunction>(in_u, u_el, ghost_type, filter_elements);
 
   this->template interpolateElementalFieldOnControlPoints<type>(u_el, out_uq, ghost_type,
@@ -215,11 +215,11 @@ void ShapeLagrange<_ek_cohesive>::interpolateOnControlPoints(const Vector<Real> 
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class ReduceFunction>
-void ShapeLagrange<_ek_cohesive>::variationOnControlPoints(const Vector<Real> &in_u,
-							   Vector<Real> &nablauq,
+void ShapeLagrange<_ek_cohesive>::variationOnControlPoints(const Array<Real> &in_u,
+							   Array<Real> &nablauq,
 							   UInt nb_degree_of_freedom,
 							   GhostType ghost_type,
-							   const Vector<UInt> * filter_elements) const {
+							   const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -229,7 +229,7 @@ void ShapeLagrange<_ek_cohesive>::variationOnControlPoints(const Vector<Real> &i
 		      << this->shapes_derivatives.printType(itp_type, ghost_type));
 
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
-  Vector<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
   this->extractNodalToElementField<type, ReduceFunction>(in_u, u_el, ghost_type, filter_elements);
 
   this->template gradientElementalFieldOnControlPoints<type>(u_el, nablauq, ghost_type,
@@ -242,10 +242,10 @@ void ShapeLagrange<_ek_cohesive>::variationOnControlPoints(const Vector<Real> &i
 /* -------------------------------------------------------------------------- */
 
 template <ElementType type, class ReduceFunction>
-void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Vector<Real> &u,
-								Vector<Real> &normals_u,
+void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real> &u,
+								Array<Real> &normals_u,
 								GhostType ghost_type,
-								const Vector<UInt> * filter_elements) const {
+								const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_element = this->mesh->getNbElement(type, ghost_type);
@@ -256,7 +256,7 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Vector<Rea
     nb_element  = filter_elements->getSize();
   }
 
-  Vector<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  (spatial_dimension -1)));
+  Array<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  (spatial_dimension -1)));
 
   this->template variationOnControlPoints<type, ReduceFunction>(u,
 								tangents_u,
@@ -265,8 +265,8 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Vector<Rea
 								filter_elements);
 
   normals_u.resize(nb_points * nb_element);
-  Vector<Real>::iterator<types::RVector> normal     = normals_u.begin(spatial_dimension);
-  Vector<Real>::iterator<types::RVector> normal_end = normals_u.end(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > normal     = normals_u.begin(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > normal_end = normals_u.end(spatial_dimension);
 
   Real * tangent = tangents_u.storage();
 
@@ -280,7 +280,7 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Vector<Rea
     }
   else if(spatial_dimension == 2)
     for (; normal != normal_end; ++normal) {
-      types::RVector a1(tangent, spatial_dimension);
+      Vector<Real> a1(tangent, spatial_dimension);
 
       (*normal)(0) = -a1(1);
       (*normal)(1) = a1(0);

@@ -93,7 +93,7 @@ inline Real & SparseMatrix::operator()(UInt i, UInt j) {
 }
 
 /* -------------------------------------------------------------------------- */
-// inline void SparseMatrix::addToMatrixSym(const Vector<Real> & local_matrix,
+// inline void SparseMatrix::addToMatrixSym(const Array<Real> & local_matrix,
 // 					 const Element & element) {
 //   AKANTU_DEBUG_ASSERT(element_to_sparse_profile[element.type] != NULL,
 // 		      "No profile stored for this kind of element call first buildProfile()");

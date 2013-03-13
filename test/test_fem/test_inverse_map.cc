@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   UInt nb_quad_points = fem->getNbQuadraturePoints(type);
 
   /// get the quadrature points coordinates
-  Vector<Real> coord_on_quad(nb_quad_points*nb_elements,
+  Array<Real> coord_on_quad(nb_quad_points*nb_elements,
 			     my_mesh.getSpatialDimension(),
 			     "coord_on_quad");
 
@@ -83,10 +83,10 @@ int main(int argc, char *argv[]) {
 
 
   /// loop over the quadrature points
-  Vector<Real>::iterator<types::RVector> it = coord_on_quad.begin(dim);
-  types::RVector natural_coords(dim);
+  Array<Real>::iterator< Vector<Real> > it = coord_on_quad.begin(dim);
+  Vector<Real> natural_coords(dim);
 
-  types::Matrix<Real> quad = GaussIntegrationElement<type>::getQuadraturePoints();
+  Matrix<Real> quad = GaussIntegrationElement<type>::getQuadraturePoints();
 
    for(UInt el = 0 ; el < nb_elements ; ++el){
     for(UInt q = 0 ; q < nb_quad_points ; ++q){

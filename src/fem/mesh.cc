@@ -60,8 +60,8 @@ Mesh::Mesh(UInt spatial_dimension,
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
-  types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
+  types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
+  ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   nb_surfaces(0),
   surface_id("surface_id", id),
   element_to_subelement("element_to_subelement", id),
@@ -100,8 +100,8 @@ Mesh::Mesh(UInt spatial_dimension,
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
-  types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>((UInt) _max_element_type + 1, 1)),
+  types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
+  ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   nb_surfaces(0),
   surface_id("surface_id", id),
   element_to_subelement("element_to_subelement", id),
@@ -109,7 +109,7 @@ Mesh::Mesh(UInt spatial_dimension,
   uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
-  this->nodes = &(getVector<Real>(nodes_id));
+  this->nodes = &(getArray<Real>(nodes_id));
   nb_global_nodes = nodes->getSize();
 
   init();
@@ -119,7 +119,7 @@ Mesh::Mesh(UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   Vector<Real> & nodes,
+	   Array<Real> & nodes,
 	   const ID & id,
 	   const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
@@ -127,8 +127,8 @@ Mesh::Mesh(UInt spatial_dimension,
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
-  types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
-  ghost_types_offsets(Vector<UInt>(_max_element_type + 1, 1)),
+  types_offsets(Array<UInt>(_max_element_type + 1, 1)),
+  ghost_types_offsets(Array<UInt>(_max_element_type + 1, 1)),
   nb_surfaces(0),
   surface_id("surface_id", id),
   element_to_subelement("element_to_subelement", id),
@@ -261,7 +261,7 @@ void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
 			  "Surface id for type (" << gt << ":" << *it
 			  << ") already set to the vector " << surface_id(*it, gt).getID());
 
-      surface_id.setVector(*it, gt, *it_data->second);
+      surface_id.setArray(*it, gt, *it_data->second);
 
       for (UInt s = 0; s < it_data->second->getSize(); ++s) {
 	surface_ids.insert((*it_data->second)(s));
@@ -275,7 +275,7 @@ void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
+void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
 				   UInt nb_component,
 				   UInt dim,
 				   const bool & flag_nb_node_per_elem_multiply,
@@ -302,32 +302,32 @@ void Mesh::initByElementTypeVector(ByElementTypeVector<T> & vect,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::initNormals() {
-  initByElementTypeVector(normals, spatial_dimension, spatial_dimension, false, _ek_not_defined);
+  initByElementTypeArray(normals, spatial_dimension, spatial_dimension, false, _ek_not_defined);
 }
 
 /* -------------------------------------------------------------------------- */
-template void Mesh::initByElementTypeVector<Real>(ByElementTypeVector<Real> & vect,
+template void Mesh::initByElementTypeArray<Real>(ByElementTypeArray<Real> & vect,
 						  UInt nb_component,
 						  UInt dim,
 						  const bool & flag_nb_elem_multiply,
 						  ElementKind element_kind,
 						  bool size_to_nb_element) const;
 
-template void Mesh::initByElementTypeVector<Int>(ByElementTypeVector<Int> & vect,
+template void Mesh::initByElementTypeArray<Int>(ByElementTypeArray<Int> & vect,
 						 UInt nb_component,
 						 UInt dim,
 						 const bool & flag_nb_elem_multiply,
 						 ElementKind element_kind,
 						 bool size_to_nb_element) const;
 
-template void Mesh::initByElementTypeVector<UInt>(ByElementTypeVector<UInt> & vect,
+template void Mesh::initByElementTypeArray<UInt>(ByElementTypeArray<UInt> & vect,
 						  UInt nb_component,
 						  UInt dim,
 						  const bool & flag_nb_elem_multiply,
 						  ElementKind element_kind,
 						  bool size_to_nb_element) const;
 
-template void Mesh::initByElementTypeVector<bool>(ByElementTypeVector<bool> & vect,
+template void Mesh::initByElementTypeArray<bool>(ByElementTypeArray<bool> & vect,
 						  UInt nb_component,
 						  UInt dim,
 						  const bool & flag_nb_elem_multiply,

@@ -37,10 +37,10 @@
  * @f$ \tilde{\ddot{u}_{n}} = \ddot{u}_{n} @f$
  */
 inline void NewmarkBeta::integrationSchemePred(Real delta_t,
-					       Vector<Real> & u,
-					       Vector<Real> & u_dot,
-					       Vector<Real> & u_dot_dot,
-					       Vector<bool> & boundary) const {
+					       Array<Real> & u,
+					       Array<Real> & u_dot,
+					       Array<Real> & u_dot_dot,
+					       Array<bool> & boundary) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -75,11 +75,11 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
  * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \delta \ddot{u}_{n+1} @f$
  */
 inline void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
-						    Vector<Real> & u,
-						    Vector<Real> & u_dot,
-						    Vector<Real> & u_dot_dot,
-						    Vector<bool> & boundary,
-						    Vector<Real> & delta
+						    Array<Real> & u,
+						    Array<Real> & u_dot,
+						    Array<Real> & u_dot_dot,
+						    Array<bool> & boundary,
+						    Array<Real> & delta
 						    ) const {
   AKANTU_DEBUG_IN();
 
@@ -100,11 +100,11 @@ inline void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
  * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \frac{1}{\beta \Delta t} \delta \dot{u}_{n+1} @f$
  */
 inline void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
-						    Vector<Real> & u,
-						    Vector<Real> & u_dot,
-						    Vector<Real> & u_dot_dot,
-						    Vector<bool> & boundary,
-						    Vector<Real> & delta
+						    Array<Real> & u,
+						    Array<Real> & u_dot,
+						    Array<Real> & u_dot_dot,
+						    Array<bool> & boundary,
+						    Array<Real> & delta
 						    ) const {
   AKANTU_DEBUG_IN();
 
@@ -125,11 +125,11 @@ inline void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
  * @f$ \ddot{u}_{n+1} = \tilde{\ddot{u}_{n+1}} + \frac{1}{\alpha \beta \Delta t^2} \delta u_{n+1} @f$
  */
 inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
-						    Vector<Real> & u,
-						    Vector<Real> & u_dot,
-						    Vector<Real> & u_dot_dot,
-						    Vector<bool> & boundary,
-						    Vector<Real> & delta
+						    Array<Real> & u,
+						    Array<Real> & u_dot,
+						    Array<Real> & u_dot_dot,
+						    Array<bool> & boundary,
+						    Array<Real> & delta
 						    ) const {
   AKANTU_DEBUG_IN();
 
@@ -191,11 +191,11 @@ inline Real NewmarkBeta::getDisplacementCoefficient<NewmarkBeta::_displacement_c
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void NewmarkBeta::integrationSchemeCorr(Real delta_t,
-					Vector<Real> & u,
-					Vector<Real> & u_dot,
-					Vector<Real> & u_dot_dot,
-					Vector<bool> & boundary,
-					Vector<Real> & delta
+					Array<Real> & u,
+					Array<Real> & u_dot,
+					Array<Real> & u_dot_dot,
+					Array<bool> & boundary,
+					Array<Real> & delta
 					) const {
   AKANTU_DEBUG_IN();
 

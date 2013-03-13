@@ -16,7 +16,7 @@ public:
     for (UInt i = 0; i < dim; ++i) pos[i] = pt.pos[i];
   }
 
-  Point(const types::Vector<Real> & pt) : tol(TOLERANCE) {
+  Point(const Vector<Real> & pt) : tol(TOLERANCE) {
     for (UInt i = 0; i < dim; ++i) pos[i] = pt(i);
   }
 

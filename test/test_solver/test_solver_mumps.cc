@@ -55,9 +55,9 @@ int main(int argc, char *argv[])
 
   akantu::Solver * solver = new akantu::SolverMumps(*sparse_matrix);
 
-  akantu::Vector<akantu::Real> * rhs = NULL;
+  akantu::Array<akantu::Real> * rhs = NULL;
   if(comm.whoAmI() == 0) {
-    rhs = new akantu::Vector<akantu::Real>(n, 1);
+    rhs = new akantu::Array<akantu::Real>(n, 1);
     rhs->clear();
     for(akantu::UInt i = 0; i < n; ++i) {
       rhs->values[i] = 1.;

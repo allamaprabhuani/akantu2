@@ -63,17 +63,17 @@ public:
 
   // void beginInsertions() { data.countToCSR(); data.resizeCols(); data.beginInsertions(); }
   // void endInsertions() { data.endInsertions(); }
-  void insert(const T & d, const types::RVector & position);
+  void insert(const T & d, const Vector<Real> & position);
 
-  // inline void count(const types::RVector & position);
-  inline Cell getCell(const types::RVector & position) const;
+  // inline void count(const Vector<Real> & position);
+  inline Cell getCell(const Vector<Real> & position) const;
   inline UInt getCell(Real position, UInt direction) const;
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  typedef typename Vector<T>::template iterator<T> iterator;
-  typedef typename Vector<T>::template const_iterator<T> const_iterator;
+  typedef typename Array<T>::template iterator<T> iterator;
+  typedef typename Array<T>::template const_iterator<T> const_iterator;
 
   inline iterator beginCell(const Cell & cell);
   inline iterator endCell(const Cell cell);
@@ -110,7 +110,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  Vector< Vector<T> > data;
+  Array< Array<T> > data;
   //  CSR<T> data;
 
   UInt dimension;

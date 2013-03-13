@@ -101,10 +101,10 @@ public:
   void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer);
 
   /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(const Vector<bool> & boundary);
+  void applyBoundary(const Array<bool> & boundary);
 
   /// modify the matrix to "remove" the blocked dof
-  void removeBoundary(const Vector<bool> & boundary);
+  void removeBoundary(const Array<bool> & boundary);
 
   /// restore the profile that was before removing the boundaries
   void restoreProfile();
@@ -122,7 +122,7 @@ public:
   void add(const SparseMatrix & matrix, Real alpha);
 
   /// diagonal lumping
-  void lump(Vector<Real> & lumped);
+  void lump(Array<Real> & lumped);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -144,11 +144,11 @@ public:
   inline Real operator()(UInt i, UInt j) const;
   inline Real & operator()(UInt i, UInt j);
 
-  AKANTU_GET_MACRO(IRN, irn, const Vector<Int> &);
+  AKANTU_GET_MACRO(IRN, irn, const Array<Int> &);
 
-  AKANTU_GET_MACRO(JCN, jcn, const Vector<Int> &);
+  AKANTU_GET_MACRO(JCN, jcn, const Array<Int> &);
 
-  AKANTU_GET_MACRO(A, a, const Vector<Real> &);
+  AKANTU_GET_MACRO(A, a, const Array<Real> &);
 
   AKANTU_GET_MACRO(NbNonZero, nb_non_zero, UInt);
 
@@ -167,7 +167,7 @@ public:
 private:
   AKANTU_GET_MACRO(DOFSynchronizerPointer, dof_synchronizer, DOFSynchronizer *);
 
-  friend Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat);
+  friend Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -194,20 +194,20 @@ private:
   UInt nb_non_zero;
 
   /// row indexes
-  Vector<Int> irn;
+  Array<Int> irn;
 
   /// column indexes
-  Vector<Int> jcn;
+  Array<Int> jcn;
 
   /// values : A[k] = Matrix[irn[k]][jcn[k]]
-  Vector<Real> a;
+  Array<Real> a;
 
 
   /// saved row indexes
-  Vector<Int> * irn_save;
+  Array<Int> * irn_save;
 
   /// saved column indexes
-  Vector<Int> * jcn_save;
+  Array<Int> * jcn_save;
 
   /// saved size
   UInt size_save;
@@ -240,7 +240,7 @@ private:
 //   return stream;
 // }
 
-Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat);
+Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat);
 
 
 __END_AKANTU__

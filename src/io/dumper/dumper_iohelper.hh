@@ -142,7 +142,7 @@ public:
 
   class ElementPartitionField;
 
-  template<typename T, template<typename> class ret_type = types::Vector>
+  template<typename T, template<typename> class ret_type = Vector>
   class ElementalField;
 
   /* ------------------------------------------------------------------------ */
@@ -162,7 +162,7 @@ public:
   template<typename T, template<class> class ret_type>
   class material_strain_field_iterator;
 
-  template<typename T, template<class> class ret_type = types::Vector,
+  template<typename T, template<class> class ret_type = Vector,
 	   template<typename, template<class> class> class iterator_type = internal_material_field_iterator>
   class InternalMaterialField;
 
@@ -188,7 +188,7 @@ public:
 				 template<typename, template<class> class> class > class Container,
 	   template<typename, template<class> class> class sub_iterator = internal_material_field_iterator,
 	   template<typename, class, template<class> class> class Funct = AvgHomogenizingFunctor,
-	   template<typename> class ret_type = types::Vector>
+	   template<typename> class ret_type = Vector>
   class HomogenizedField;
 
   /* ------------------------------------------------------------------------ */

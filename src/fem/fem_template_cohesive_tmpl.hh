@@ -31,12 +31,12 @@
 /* -------------------------------------------------------------------------- */
 template <>
 void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
-gradientOnQuadraturePoints(const Vector<Real> &u,
-			   Vector<Real> &nablauq,
+gradientOnQuadraturePoints(const Array<Real> &u,
+			   Array<Real> &nablauq,
 			   const UInt nb_degree_of_freedom,
 			   const ElementType & type,
 			   const GhostType & ghost_type,
-			   const Vector<UInt> * filter_elements) const;
+			   const Array<UInt> * filter_elements) const;
 
 /* -------------------------------------------------------------------------- */
 template <>
@@ -46,16 +46,16 @@ initShapeFunctions(const GhostType & ghost_type);
 /* -------------------------------------------------------------------------- */
 template <>
 Real FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
-integrate(const Vector<Real> & f,
+integrate(const Array<Real> & f,
 	  const ElementType & type,
 	  const GhostType & ghost_type,
-	  const Vector<UInt> * filter_elements) const;
+	  const Array<UInt> * filter_elements) const;
 /* -------------------------------------------------------------------------- */
 template <>
 void FEMTemplate< IntegratorCohesive<IntegratorGauss>, ShapeCohesive<ShapeLagrange> >::
-integrate(const Vector<Real> & f,
-	  Vector<Real> &intf,
+integrate(const Array<Real> & f,
+	  Array<Real> &intf,
 	  UInt nb_degree_of_freedom,
 	  const ElementType & type,
 	  const GhostType & ghost_type,
-	  const Vector<UInt> * filter_elements) const;
+	  const Array<UInt> * filter_elements) const;

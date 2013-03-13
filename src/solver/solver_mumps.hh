@@ -81,12 +81,12 @@ public:
 
 
   /// factorize and solve the system
-  void solve(Vector<Real> & solution);
+  void solve(Array<Real> & solution);
   void solve();
 
   void solveSlave();
 
-  virtual void setRHS(Vector<Real> & rhs);
+  virtual void setRHS(Array<Real> & rhs);
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;

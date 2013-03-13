@@ -41,17 +41,17 @@ StressBasedWeightFunction<spatial_dimension>::StressBasedWeightFunction(Material
   characteristic_size("lc", material.getID()),  selected_characteristic_size(NULL)
 {
   const Mesh & mesh = material.getModel().getFEM().getMesh();
-  mesh.initByElementTypeVector(stress_diag, spatial_dimension, spatial_dimension);
-  mesh.initByElementTypeVector(stress_base, spatial_dimension * spatial_dimension, spatial_dimension);
-  mesh.initByElementTypeVector(characteristic_size, 1, spatial_dimension);
+  mesh.initByElementTypeArray(stress_diag, spatial_dimension, spatial_dimension);
+  mesh.initByElementTypeArray(stress_base, spatial_dimension * spatial_dimension, spatial_dimension);
+  mesh.initByElementTypeArray(characteristic_size, 1, spatial_dimension);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void StressBasedWeightFunction<spatial_dimension>::init() {
-  this->material.resizeInternalVector(stress_diag);
-  this->material.resizeInternalVector(stress_base);
-  this->material.resizeInternalVector(characteristic_size);
+  this->material.resizeInternalArray(stress_diag);
+  this->material.resizeInternalArray(stress_base);
+  this->material.resizeInternalArray(characteristic_size);
 
   const Mesh & mesh = this->material.getModel().getFEM().getMesh();
   for (UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -61,11 +61,11 @@ void StressBasedWeightFunction<spatial_dimension>::init() {
     for(; it != last_type; ++it) {
       UInt nb_quadrature_points =
 	this->material.getModel().getFEM().getNbQuadraturePoints(*it, gt);
-      const Vector<UInt> & element_filter = this->material.getElementFilter(*it, gt);
+      const Array<UInt> & element_filter = this->material.getElementFilter(*it, gt);
       UInt nb_element = element_filter.getSize();
 
-      Vector<Real> ones(nb_element*nb_quadrature_points, 1, 1.);
-      Vector<Real> & lc = characteristic_size(*it, gt);
+      Array<Real> ones(nb_element*nb_quadrature_points, 1, 1.);
+      Array<Real> & lc = characteristic_size(*it, gt);
       this->material.getModel().getFEM().integrateOnQuadraturePoints(ones,
 								     lc,
 								     1,
@@ -91,17 +91,17 @@ void StressBasedWeightFunction<spatial_dimension>::updatePrincipalStress(GhostTy
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
-    Vector<Real>::const_iterator<types::RMatrix> sigma =
+    Array<Real>::const_iterator< Matrix<Real> > sigma =
       this->material.getStress(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::RVector> eigenvalues =
+    Array<Real>::iterator< Vector<Real> > eigenvalues =
       stress_diag(*it, ghost_type).begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> eigenvalues_end =
+    Array<Real>::iterator< Vector<Real> > eigenvalues_end =
       stress_diag(*it, ghost_type).end(spatial_dimension);
-    Vector<Real>::iterator<types::RMatrix> eigenvector =
+    Array<Real>::iterator< Matrix<Real> > eigenvector =
       stress_base(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 #ifndef __trick__
-    Vector<Real>::iterator<Real> cl = characteristic_size(*it, ghost_type).begin();
+    Array<Real>::iterator<Real> cl = characteristic_size(*it, ghost_type).begin();
 #endif
     UInt q = 0;
     for(;eigenvalues != eigenvalues_end; ++sigma, ++eigenvalues, ++eigenvector, ++cl, ++q) {
@@ -139,18 +139,18 @@ inline Real StressBasedWeightFunction<spatial_dimension>::operator()(Real r,
 
   if(r < zero) return 1.; // means x and s are the same points
 
-  const types::RVector & x = q1.getPosition();
-  const types::RVector & s = q2.getPosition();
+  const Vector<Real> & x = q1.getPosition();
+  const Vector<Real> & s = q2.getPosition();
 
-  types::RVector eigs =
+  Vector<Real> eigs =
     selected_stress_diag->begin(spatial_dimension)[q2.global_num];
 
-  types::RMatrix eigenvects =
+  Matrix<Real> eigenvects =
     selected_stress_base->begin(spatial_dimension, spatial_dimension)[q2.global_num];
 
   Real min_rho_lc = selected_characteristic_size->begin()[q1.global_num];
 
-  types::RVector x_s(spatial_dimension);
+  Vector<Real> x_s(spatial_dimension);
   x_s  = x;
   x_s -= s;
 
@@ -167,19 +167,19 @@ inline Real StressBasedWeightFunction<spatial_dimension>::operator()(Real r,
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real StressBasedWeightFunction<1>::computeRhoSquare(__attribute__ ((unused)) Real r,
-							   types::RVector & eigs,
-							   __attribute__ ((unused)) types::RMatrix & eigenvects,
-							   __attribute__ ((unused)) types::RVector & x_s) {
+							   Vector<Real> & eigs,
+							   __attribute__ ((unused)) Matrix<Real> & eigenvects,
+							   __attribute__ ((unused)) Vector<Real> & x_s) {
   return eigs[0];
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real StressBasedWeightFunction<2>::computeRhoSquare(__attribute__ ((unused)) Real r,
-							   types::RVector & eigs,
-							   types::RMatrix & eigenvects,
-							   types::RVector & x_s) {
-  types::RVector u1(eigenvects.storage(), 2);
+							   Vector<Real> & eigs,
+							   Matrix<Real> & eigenvects,
+							   Vector<Real> & x_s) {
+  Vector<Real> u1(eigenvects.storage(), 2);
   Real cos_t = x_s.dot(u1) / (x_s.norm() * u1.norm());
 
   Real cos_t_2;
@@ -214,19 +214,19 @@ inline Real StressBasedWeightFunction<2>::computeRhoSquare(__attribute__ ((unuse
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real StressBasedWeightFunction<3>::computeRhoSquare(Real r,
-							   types::RVector & eigs,
-							   types::RMatrix & eigenvects,
-							   types::RVector & x_s) {
-  types::RVector u1(eigenvects.storage() + 0*3, 3);
-//types::RVector u2(eigenvects.storage() + 1*3, 3);
-  types::RVector u3(eigenvects.storage() + 2*3, 3);
+							   Vector<Real> & eigs,
+							   Matrix<Real> & eigenvects,
+							   Vector<Real> & x_s) {
+  Vector<Real> u1(eigenvects.storage() + 0*3, 3);
+//Vector<Real> u2(eigenvects.storage() + 1*3, 3);
+  Vector<Real> u3(eigenvects.storage() + 2*3, 3);
 
   Real zero = std::numeric_limits<Real>::epsilon();
 
-  types::RVector tmp(3);
+  Vector<Real> tmp(3);
   tmp.crossProduct(x_s, u3);
 
-  types::RVector u3_C_x_s_C_u3(3);
+  Vector<Real> u3_C_x_s_C_u3(3);
   u3_C_x_s_C_u3.crossProduct(u3, tmp);
 
   Real norm_u3_C_x_s_C_u3 = u3_C_x_s_C_u3.norm();

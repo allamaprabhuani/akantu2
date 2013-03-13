@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initVectors();
+  model.initArrays();
   model.getForce().clear();
   model.getVelocity().clear();
   model.getAcceleration().clear();
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 //  dumper.AddElemDataField(dam, 4, "damage");
 
   try{
-    const Vector<Real> & history = mat.getVector("history_integral", TYPE);
+    const Array<Real> & history = mat.getArray("history_integral", TYPE);
     dumper.AddElemDataField(history.storage(), 4, "history");
   } catch (...) {};
 

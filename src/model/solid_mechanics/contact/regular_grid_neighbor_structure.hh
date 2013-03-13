@@ -50,8 +50,8 @@ public:
 public:
   ID id;
   /// neighbor master nodes
-  Vector<UInt> master_nodes_offset;
-  Vector<UInt> master_nodes;
+  Array<UInt> master_nodes_offset;
+  Array<UInt> master_nodes;
 };
 
 
@@ -93,7 +93,7 @@ private:
   /// construct neighbor list
   void constructNeighborList(Int directional_nb_cells[spatial_dimension],
 			     UInt nb_cells,
-			     Vector<Int> * cell,
+			     Array<Int> * cell,
 			     UInt * impactor_nodes_cell_offset,
 			     UInt * impactor_nodes_cell,
 			     UInt * master_nodes_cell_offset,
@@ -103,7 +103,7 @@ private:
   /// construct nodes neighbor list
   void constructNodesNeighborList(Int directional_nb_cells[spatial_dimension],
 				  UInt nb_cells,
-				  Vector<Int> * cell,
+				  Array<Int> * cell,
 				  UInt * impactor_nodes_cell_offset,
 				  UInt * impactor_nodes_cell,
 				  UInt * master_nodes_cell_offset,

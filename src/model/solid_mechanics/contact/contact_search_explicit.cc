@@ -62,8 +62,8 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
   const NodesNeighborList & neighbor_list = dynamic_cast<const NodesNeighborList&>(it_surface->second->getNeighborList());
   UInt nb_impactor_nodes = neighbor_list.impactor_nodes.getSize();
 
-  Vector<UInt> * closest_master_nodes = new Vector<UInt>(nb_impactor_nodes, 1);
-  Vector<bool> * has_closest_master_node = new Vector<bool>(nb_impactor_nodes, 1, false);
+  Array<UInt> * closest_master_nodes = new Array<UInt>(nb_impactor_nodes, 1);
+  Array<bool> * has_closest_master_node = new Array<bool>(nb_impactor_nodes, 1, false);
   findClosestMasterNodes(master_surface, closest_master_nodes, has_closest_master_node);
   UInt * closest_master_nodes_val = closest_master_nodes->values;
   bool * has_closest_master_node_val = has_closest_master_node->values;
@@ -119,8 +119,8 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
     UInt closest_master_node = closest_master_nodes_val[in];
 
     std::vector<Element> surface_elements;
-    Vector<bool> * are_inside = new Vector<bool>(0, 1);
-    Vector<bool> * are_in_projection_area = new Vector<bool>(0, 1);
+    Array<bool> * are_inside = new Array<bool>(0, 1);
+    Array<bool> * are_in_projection_area = new Array<bool>(0, 1);
 
     Element considered_element;
 
@@ -129,8 +129,8 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 
       UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).values;
 
-      const Vector<UInt> & node_to_elements_offset = contact.getNodeToElementsOffset(type, _not_ghost);
-      const Vector<UInt> & node_to_elements = contact.getNodeToElements(type, _not_ghost);
+      const Array<UInt> & node_to_elements_offset = contact.getNodeToElementsOffset(type, _not_ghost);
+      const Array<UInt> & node_to_elements = contact.getNodeToElements(type, _not_ghost);
       UInt * node_to_elements_offset_val = node_to_elements_offset.values;
       UInt * node_to_elements_val        = node_to_elements.values;
 
@@ -270,7 +270,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
       UInt tmp_nb_facets = penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).getSize();
       penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).resize(tmp_nb_facets+1);
 
-      Vector<UInt> & tmp_penetrated_facets_offset = (penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost));
+      Array<UInt> & tmp_penetrated_facets_offset = (penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost));
       UInt * tmp_penetrated_facets_offset_val = tmp_penetrated_facets_offset.values;
 
       for (UInt i = 1; i < tmp_nb_facets; ++i)
@@ -289,8 +289,8 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
 
 /* -------------------------------------------------------------------------- */
 void ContactSearchExplicit::findClosestMasterNodes(const Surface & master_surface,
-						   Vector<UInt> * closest_master_nodes,
-						   Vector<bool> * has_closest_master_node) {
+						   Array<UInt> * closest_master_nodes,
+						   Array<bool> * has_closest_master_node) {
   AKANTU_DEBUG_IN();
 
   bool * has_closest_master_node_val = has_closest_master_node->values;

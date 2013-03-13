@@ -55,9 +55,9 @@ MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsMo
   firststep = true;
   countforinitialstep= 0;
 
-  this->initInternalVector(this->Kapa, 1);
-  this->initInternalVector(this->critical_strain, 1);
-  this->initInternalVector(this->strain_rate_vreepeerlings, spatial_dimension * spatial_dimension);
+  this->initInternalArray(this->Kapa, 1);
+  this->initInternalArray(this->critical_strain, 1);
+  this->initInternalArray(this->strain_rate_vreepeerlings, spatial_dimension * spatial_dimension);
 
   AKANTU_DEBUG_OUT();
 }
@@ -68,9 +68,9 @@ void MaterialVreePeerlings<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage<spatial_dimension>::initMaterial();
 
-  this->resizeInternalVector(this->Kapa);
-  this->resizeInternalVector(this->critical_strain);
-  this->resizeInternalVector(this->strain_rate_vreepeerlings);
+  this->resizeInternalArray(this->Kapa);
+  this->resizeInternalArray(this->critical_strain);
+  this->resizeInternalArray(this->strain_rate_vreepeerlings);
 
   const Mesh & mesh = this->model->getFEM().getMesh();
 
@@ -78,8 +78,8 @@ void MaterialVreePeerlings<spatial_dimension>::initMaterial() {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
 
   for(; it != last_type; ++it) {
-    Vector <Real>::iterator<Real> kapa_it  = Kapa(*it).begin();
-    Vector <Real>::iterator<Real> kapa_end = Kapa(*it).end();
+    Array <Real>::iterator<Real> kapa_it  = Kapa(*it).begin();
+    Array <Real>::iterator<Real> kapa_end = Kapa(*it).end();
 
     for(; kapa_it != kapa_end; ++kapa_it) {
       Real rand_part = (2 * drand48()-1) * Kapa0_randomness * Kapa0i;
@@ -99,22 +99,22 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
   Real * crit_strain = critical_strain(el_type, ghost_type).storage();
   Real dt = this->model->getTimeStep();
 
-  Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
-  Vector<Real> & velocity = this->model->getVelocity();
-  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type); 
+  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Real> & velocity = this->model->getVelocity();
+  Array<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type); 
 
   this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
 						   spatial_dimension,
 						   el_type, ghost_type, &elem_filter);
 
-  Vector<Real>::iterator<types::RMatrix> strain_rate_vrplgs_it =
+  Array<Real>::iterator< Matrix<Real> > strain_rate_vrplgs_it =
         strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real Equistrain;
   Real Equistrain_rate;
-  types::RMatrix & strain_rate = *strain_rate_vrplgs_it;
+  Matrix<Real> & strain_rate = *strain_rate_vrplgs_it;
 
   computeStressOnQuad(grad_u, sigma, *dam, Equistrain, Equistrain_rate, *Kapaq, dt, strain_rate, *crit_strain);
   ++dam;
@@ -170,7 +170,7 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
 //   if(tag == _gst_smm_init_mat){
 //     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
-//     const Vector<Real> & kapa = Kapa(element.type, _not_ghost);
+//     const Array<Real> & kapa = Kapa(element.type, _not_ghost);
 //     for(UInt q = 0; q < nb_quad; ++q)
 //       buffer << kapa(element.element * nb_quad + q);
 //   }
@@ -188,7 +188,7 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
 //   if(tag == _gst_smm_init_mat) {
 //     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(element.type);
-//     Vector<Real> & kapa = Kapa(element.type, _not_ghost);
+//     Array<Real> & kapa = Kapa(element.type, _not_ghost);
 //     for(UInt q = 0; q < nb_quad; ++q)
 //       buffer >> kapa(element.element * nb_quad + q);
 //   }

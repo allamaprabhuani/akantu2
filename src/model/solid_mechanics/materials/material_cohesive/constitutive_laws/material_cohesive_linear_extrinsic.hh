@@ -70,23 +70,23 @@ public:
   virtual void initMaterial();
 
   /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors();
+  virtual void resizeCohesiveArrays();
 
   /// compute stress norms on quadrature points for each facet for stress check
-  virtual void computeStressNorms(const Vector<Real> & facet_stress,
-				  Vector<Real> & stress_check);
+  virtual void computeStressNorms(const Array<Real> & facet_stress,
+				  Array<Real> & stress_check);
 
 protected:
 
   /// constitutive law
-  void computeTraction(const Vector<Real> & normal,
+  void computeTraction(const Array<Real> & normal,
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 
   /// compute effective stress norm for insertion check
-  inline Real computeEffectiveNorm(const types::RMatrix & stress,
-				   const types::RVector & normal,
-				   const types::RVector & tangent);
+  inline Real computeEffectiveNorm(const Matrix<Real> & stress,
+				   const Vector<Real> & normal,
+				   const Vector<Real> & tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -129,10 +129,10 @@ protected:
   ByElementTypeReal delta_c;
 
   /// vector to temporarily store the normal stress for the norm
-  types::RVector normal_stress;
+  Vector<Real> normal_stress;
 
   /// vector to temporarily store the tangential stress for the norm
-  types::RVector tangential_stress;
+  Vector<Real> tangential_stress;
 
 };
 

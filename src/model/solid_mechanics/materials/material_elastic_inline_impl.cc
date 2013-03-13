@@ -32,8 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types::RMatrix & grad_u,
-								    types::RMatrix & sigma) {
+inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
+								    Matrix<Real> & sigma) {
   Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
 
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
@@ -47,15 +47,15 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const types:
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void MaterialElastic<1>::computeStressOnQuad(const types::RMatrix & grad_u,
-						    types::RMatrix & sigma) {
+inline void MaterialElastic<1>::computeStressOnQuad(const Matrix<Real> & grad_u,
+						    Matrix<Real> & sigma) {
   sigma(0, 0) =  E*grad_u(0, 0);
 }
 
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
+inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> & tangent) {
   UInt n = tangent.cols();
 
   //Real Ep = E/((1+nu)*(1-2*nu));
@@ -91,7 +91,7 @@ inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(types
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void MaterialElastic<1>::computeTangentModuliOnQuad(types::RMatrix & tangent) {
+inline void MaterialElastic<1>::computeTangentModuliOnQuad(Matrix<Real> & tangent) {
   tangent(0, 0) = E;
 }
 

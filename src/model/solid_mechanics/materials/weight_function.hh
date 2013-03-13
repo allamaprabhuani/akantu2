@@ -91,17 +91,17 @@ public:
   }
 
 public:
-  virtual UInt getNbDataForElements(__attribute__((unused)) const Vector<Element> & elements,
+  virtual UInt getNbDataForElements(__attribute__((unused)) const Array<Element> & elements,
                                     __attribute__((unused)) SynchronizationTag tag) const {
     return 0;
   }
 
   virtual inline void packElementData(__attribute__((unused)) CommunicationBuffer & buffer,
-                                      __attribute__((unused)) const Vector<Element> & elements,
+                                      __attribute__((unused)) const Array<Element> & elements,
                                       __attribute__((unused)) SynchronizationTag tag) const {}
 
   virtual inline void unpackElementData(__attribute__((unused)) CommunicationBuffer & buffer,
-                                        __attribute__((unused)) const Vector<Element> & elements,
+                                        __attribute__((unused)) const Array<Element> & elements,
                                         __attribute__((unused)) SynchronizationTag tag) {}
 protected:
   Material & material;
@@ -122,7 +122,7 @@ public:
                          __attribute__((unused)) GhostType ghost_type1,
                          ElementType type2,
                          GhostType ghost_type2) {
-    selected_damage = &this->material.getVector("damage", type2, ghost_type2);
+    selected_damage = &this->material.getArray("damage", type2, ghost_type2);
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
@@ -149,7 +149,7 @@ public:
   }
 
 private:
-  const Vector<Real> * selected_damage;
+  const Array<Real> * selected_damage;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -164,7 +164,7 @@ public:
                          __attribute__((unused)) GhostType ghost_type1,
                          ElementType type2,
                          GhostType ghost_type2) {
-    selected_damage = &this->material.getVector("damage", type2, ghost_type2);
+    selected_damage = &this->material.getArray("damage", type2, ghost_type2);
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
@@ -196,7 +196,7 @@ public:
     stream << "RemoveDamagedWeightFunction [damage_limit: " << damage_limit << "]";
   }
 
-  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+  virtual UInt getNbDataForElements(const Array<Element> & elements,
                                     SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight)
       return this->material.getModel().getNbQuadraturePoints(elements) * sizeof(Real);
@@ -205,7 +205,7 @@ public:
   }
 
   virtual inline void packElementData(CommunicationBuffer & buffer,
-                                      const Vector<Element> & elements,
+                                      const Array<Element> & elements,
                                       SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight)
       this->material.packElementDataHelper(dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
@@ -214,7 +214,7 @@ public:
   }
 
   virtual inline void unpackElementData(CommunicationBuffer & buffer,
-                                        const Vector<Element> & elements,
+                                        const Array<Element> & elements,
                                         SynchronizationTag tag) {
     if(tag == _gst_mnl_weight)
       this->material.unpackElementDataHelper(dynamic_cast< MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
@@ -229,7 +229,7 @@ private:
   Real damage_limit;
 
   /// internal pointer to the current damage vector
-  const Vector<Real> * selected_damage;
+  const Array<Real> * selected_damage;
 };
 /* -------------------------------------------------------------------------- */
 /* Remove damaged with damage rate weight function                                             */
@@ -244,8 +244,8 @@ public:
                          __attribute__((unused)) GhostType ghost_type1,
                          ElementType type2,
                          GhostType ghost_type2) {
-    selected_damage_with_damage_rate = &(this->material.getVector("damage",type2, ghost_type2));
-    selected_damage_rate_with_damage_rate = &(this->material.getVector("damage-rate",type2, ghost_type2));
+    selected_damage_with_damage_rate = &(this->material.getArray("damage",type2, ghost_type2));
+    selected_damage_rate_with_damage_rate = &(this->material.getArray("damage-rate",type2, ghost_type2));
   }
 
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
@@ -283,10 +283,10 @@ private:
   Real damage_limit_with_damage_rate;
 
   /// internal pointer to the current damage vector
-  const Vector<Real> * selected_damage_with_damage_rate;
+  const Array<Real> * selected_damage_with_damage_rate;
 
   /// internal pointer to the current damage rate vector
-  const Vector<Real> * selected_damage_rate_with_damage_rate;
+  const Array<Real> * selected_damage_rate_with_damage_rate;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -314,9 +314,9 @@ public:
   inline Real operator()(Real r, QuadraturePoint & q1, QuadraturePoint & q2);
 
   inline Real computeRhoSquare(Real r,
-                               types::RVector & eigs,
-                               types::RMatrix & eigenvects,
-                               types::RVector & x_s);
+                               Vector<Real> & eigs,
+                               Matrix<Real> & eigenvects,
+                               Vector<Real> & x_s);
 
   /* ------------------------------------------------------------------------ */
   bool parseParam(const std::string & key, const std::string & value) {
@@ -335,17 +335,17 @@ private:
   Real ft;
 
   ByElementTypeReal stress_diag;
-  Vector<Real> * selected_stress_diag;
+  Array<Real> * selected_stress_diag;
   ByElementTypeReal stress_base;
-  Vector<Real> * selected_stress_base;
+  Array<Real> * selected_stress_base;
 
 
   ByElementTypeReal quadrature_points_coordinates;
-  Vector<Real> * selected_position_1;
-  Vector<Real> * selected_position_2;
+  Array<Real> * selected_position_1;
+  Array<Real> * selected_position_2;
 
   ByElementTypeReal characteristic_size;
-  Vector<Real> * selected_characteristic_size;
+  Array<Real> * selected_characteristic_size;
 };
 
 template<UInt spatial_dimension>

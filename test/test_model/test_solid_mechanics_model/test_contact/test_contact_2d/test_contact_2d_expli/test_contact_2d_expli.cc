@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
   /// model initialization
   model->initModel();
-  model->initVectors();
+  model->initArrays();
 
   model->readMaterials("materials.dat");
   model->initMaterials();
@@ -194,9 +194,9 @@ class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
 public:
   MyStressFunctor(Real y_max) : y_max(y_max) {};
 
-  inline void stress(const types::Vector<Real> & position,
-		     types::Matrix & stress,
-		     __attribute__ ((unused)) const types::Vector<Real> & normal,
+  inline void stress(const Vector<Real> & position,
+		     Matrix & stress,
+		     __attribute__ ((unused)) const Vector<Real> & normal,
 		     __attribute__ ((unused)) Surface surface_id) {
     stress.clear();
     if(position(1) > y_max - 1.e-5)

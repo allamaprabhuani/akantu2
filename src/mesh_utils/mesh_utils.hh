@@ -67,12 +67,12 @@ public:
   static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = 0);
   static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem, UInt spatial_dimension = 0);
 
-  //  static void buildNode2Elements(const Mesh & mesh, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem, UInt spatial_dimension = 0);
+  //  static void buildNode2Elements(const Mesh & mesh, Array<UInt> & node_offset, Array<UInt> & node_to_elem, UInt spatial_dimension = 0);
 
   /// build map from nodes to elements for a specific element type
   static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, CSR<UInt> & node_to_elem);
 
-  //  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Vector<UInt> & node_offset, Vector<UInt> & node_to_elem);
+  //  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Array<UInt> & node_offset, Array<UInt> & node_to_elem);
 
   /// build facets elements on boundary
   static void buildFacets(Mesh & mesh);
@@ -97,7 +97,7 @@ public:
 				UInt nb_local_element,
 				UInt nb_ghost_element,
 				ElementType type,
-				Vector<UInt> & old_nodes);
+				Array<UInt> & old_nodes);
 
   static void setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type);
 
@@ -135,15 +135,15 @@ public:
   static void insertIntrinsicCohesiveElements(Mesh & mesh,
 					      Mesh & mesh_facets,
 					      ElementType type_facet,
-					      const Vector<UInt> & facet_insertion);
+					      const Array<UInt> & facet_insertion);
 
   /// function to insert cohesive elements on the selected facets
   static void insertCohesiveElements(Mesh & mesh,
 				     Mesh & mesh_facets,
 				     ElementType type_facet,
-				     const Vector<UInt> & facet_insertion,
-				     Vector<UInt> & doubled_nodes,
-				     Vector<UInt> & doubled_facets);
+				     const Array<UInt> & facet_insertion,
+				     Array<UInt> & doubled_nodes,
+				     Array<UInt> & doubled_facets);
 
 private:
 
@@ -164,8 +164,8 @@ private:
   static void doubleFacet(Mesh & mesh,
 			  Mesh & mesh_facets,
 			  Element & facet,
-			  Vector<UInt> & doubled_nodes,
-			  Vector<UInt> & doubled_facets);
+			  Array<UInt> & doubled_nodes,
+			  Array<UInt> & doubled_facets);
 
   /// function to double a subfacet given start and end index for
   /// local facet_to_subfacet vector, and update the list of doubled
@@ -175,14 +175,14 @@ private:
 			     const Element & subfacet,
 			     UInt start,
 			     UInt end,
-			     Vector<UInt> & doubled_nodes);
+			     Array<UInt> & doubled_nodes);
 
   /// double middle nodes if facets are _segment_3
   static void doubleMiddleNode(Mesh & mesh,
 			       Mesh & mesh_facets,
 			       ElementType type_facet,
-			       Vector<UInt> & doubled_nodes,
-			       const Vector<UInt> & doubled_facets);
+			       Array<UInt> & doubled_nodes,
+			       const Array<UInt> & doubled_facets);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

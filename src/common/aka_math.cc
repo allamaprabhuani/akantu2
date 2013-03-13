@@ -43,9 +43,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 void Math::matrix_vector(UInt m, UInt n,
-			 const Vector<Real> & A,
-			 const Vector<Real> & x,
-			 Vector<Real> & y,
+			 const Array<Real> & A,
+			 const Array<Real> & x,
+			 Array<Real> & y,
 			 Real alpha) {
   AKANTU_DEBUG_IN();
 
@@ -90,9 +90,9 @@ void Math::matrix_vector(UInt m, UInt n,
 
 /* -------------------------------------------------------------------------- */
 void Math::matrix_matrix(UInt m, UInt n, UInt k,
-			 const Vector<Real> & A,
-			 const Vector<Real> & B,
-			 Vector<Real> & C,
+			 const Array<Real> & A,
+			 const Array<Real> & B,
+			 Array<Real> & C,
 			 Real alpha) {
   AKANTU_DEBUG_IN();
 
@@ -138,9 +138,9 @@ void Math::matrix_matrix(UInt m, UInt n, UInt k,
 
 /* -------------------------------------------------------------------------- */
 void Math::matrix_matrixt(UInt m, UInt n, UInt k,
-			  const Vector<Real> & A,
-			  const Vector<Real> & B,
-			  Vector<Real> & C,
+			  const Array<Real> & A,
+			  const Array<Real> & B,
+			  Array<Real> & C,
 			  Real alpha) {
   AKANTU_DEBUG_IN();
 

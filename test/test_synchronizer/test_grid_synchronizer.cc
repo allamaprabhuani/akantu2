@@ -67,12 +67,12 @@ static void updatePairList(const ByElementTypeReal & barycenter,
     e.type = *it;
     e.element = 0;
 
-    const Vector<Real> & barycenter_vect = barycenter(*it, ghost_type);
+    const Array<Real> & barycenter_vect = barycenter(*it, ghost_type);
     UInt sp = barycenter_vect.getNbComponent();
 
-    Vector<Real>::const_iterator< types::Vector<Real> > bary =
+    Array<Real>::const_iterator< Vector<Real> > bary =
       barycenter_vect.begin(sp);
-    Vector<Real>::const_iterator< types::Vector<Real> > bary_end =
+    Array<Real>::const_iterator< Vector<Real> > bary_end =
       barycenter_vect.end(sp);
 
     for(;bary != bary_end; ++bary, e.element++) {
@@ -95,10 +95,10 @@ static void updatePairList(const ByElementTypeReal & barycenter,
         for (;first_neigh_el != last_neigh_el; ++first_neigh_el){
           const Element & elem = *first_neigh_el;
 
-          Vector<Real>::const_iterator< types::Vector<Real> > neigh_it =
-            barycenter(elem.type, elem.ghost_type).begin(sp);
+	  Array<Real>::const_iterator< Vector<Real> > neigh_it =
+	    barycenter(elem.type, elem.ghost_type).begin(sp);
 
-          const types::RVector & neigh_bary = neigh_it[elem.element];
+	  const Vector<Real> & neigh_bary = neigh_it[elem.element];
 
           Real distance = bary->distance(neigh_bary);
           if(distance <= radius) {
@@ -133,15 +133,14 @@ public:
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+  virtual UInt getNbDataForElements(const Array<Element> & elements,
                                     SynchronizationTag tag) const;
   virtual void packElementData(CommunicationBuffer & buffer,
-                        const Vector<Element> & elements,
-                        SynchronizationTag tag) const;
+			const Array<Element> & elements,
+			SynchronizationTag tag) const;
   virtual void unpackElementData(CommunicationBuffer & buffer,
-                                 const Vector<Element> & elements,
-                                 SynchronizationTag tag);
-
+				 const Array<Element> & elements,
+				 SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -158,7 +157,7 @@ protected:
 TestAccessor::TestAccessor(const Mesh & mesh,
                            const ByElementTypeReal & barycenters) : barycenters(barycenters), mesh(mesh) { }
 
-UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
+UInt TestAccessor::getNbDataForElements(const Array<Element> & elements,
                                         __attribute__ ((unused)) SynchronizationTag tag) const {
   if(elements.getSize())
     return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
@@ -167,15 +166,15 @@ UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
 }
 
 void TestAccessor::packElementData(CommunicationBuffer & buffer,
-                                   const Vector<Element> & elements,
-                                   __attribute__ ((unused)) SynchronizationTag tag) const {
+				   const Array<Element> & elements,
+				   __attribute__ ((unused)) SynchronizationTag tag) const {
   UInt spatial_dimension = mesh.getSpatialDimension();
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    types::RVector bary(this->barycenters(element.type, element.ghost_type).storage()
+    Vector<Real> bary(this->barycenters(element.type, element.ghost_type).storage()
                         + element.element * spatial_dimension,
                         spatial_dimension);
     buffer << bary;
@@ -183,19 +182,19 @@ void TestAccessor::packElementData(CommunicationBuffer & buffer,
 }
 
 void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
-                                     const Vector<Element> & elements,
-                                     __attribute__ ((unused)) SynchronizationTag tag) {
+				     const Array<Element> & elements,
+				     __attribute__ ((unused)) SynchronizationTag tag) {
   UInt spatial_dimension = mesh.getSpatialDimension();
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    types::RVector barycenter_loc(this->barycenters(element.type,element.ghost_type).storage()
+    Vector<Real> barycenter_loc(this->barycenters(element.type,element.ghost_type).storage()
                                   + element.element * spatial_dimension,
                                   spatial_dimension);
 
-    types::RVector bary(spatial_dimension);
+    Vector<Real> bary(spatial_dimension);
     buffer >> bary;
     Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
@@ -214,7 +213,7 @@ void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
 int main(int argc, char *argv[]) {
   akantu::initialize(argc, argv);
 
-  Real radius = 0.1;
+  Real radius = 0.01;
 
   Mesh mesh(spatial_dimension);
 
@@ -241,8 +240,8 @@ int main(int argc, char *argv[]) {
   mesh.getLowerBounds(lower_bounds);
   mesh.getUpperBounds(upper_bounds);
 
-  types::Vector<Real> spacing(spatial_dimension);
-  types::Vector<Real> center(spatial_dimension);
+  Vector<Real> spacing(spatial_dimension);
+  Vector<Real> center(spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
     spacing[i] = radius * 1.2;
@@ -257,7 +256,7 @@ int main(int argc, char *argv[]) {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
 
   ByElementTypeReal barycenters("", "", 0);
-  mesh.initByElementTypeVector(barycenters, spatial_dimension, spatial_dimension);
+  mesh.initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension);
 
   Element e;
   e.ghost_type = ghost_type;
@@ -265,10 +264,10 @@ int main(int argc, char *argv[]) {
   for(; it != last_type; ++it) {
     UInt nb_element = mesh.getNbElement(*it, ghost_type);
     e.type = *it;
-    Vector<Real> & barycenter = barycenters(*it, ghost_type);
+    Array<Real> & barycenter = barycenters(*it, ghost_type);
     barycenter.resize(nb_element);
 
-    Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(spatial_dimension);
     for (UInt elem = 0; elem < nb_element; ++elem) {
       mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
       e.element = elem;
@@ -301,10 +300,10 @@ int main(int argc, char *argv[]) {
   for(; it != last_type; ++it) {
     UInt nb_element = mesh.getNbElement(*it, ghost_type);
     e.type = *it;
-    Vector<Real> & barycenter = barycenters(*it, ghost_type);
+    Array<Real> & barycenter = barycenters(*it, ghost_type);
     barycenter.resize(nb_element);
 
-    Vector<Real>::iterator<types::RVector> bary_it = barycenter.begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(spatial_dimension);
     for (UInt elem = 0; elem < nb_element; ++elem) {
       mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
       e.element = elem;

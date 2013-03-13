@@ -44,10 +44,10 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::MaterialVreePe
 
   this->is_non_local = true;
 
-  this->initInternalVector(this->equi_strain, 1);
-  this->initInternalVector(this->equi_strain_non_local, 1);
-  this->initInternalVector(this->equi_strain_rate, 1);
-  this->initInternalVector(this->equi_strain_rate_non_local, 1);
+  this->initInternalArray(this->equi_strain, 1);
+  this->initInternalArray(this->equi_strain_non_local, 1);
+  this->initInternalArray(this->equi_strain_rate, 1);
+  this->initInternalArray(this->equi_strain_rate_non_local, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -57,10 +57,10 @@ template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  this->resizeInternalVector(this->equi_strain);
-  this->resizeInternalVector(this->equi_strain_non_local);
-  this->resizeInternalVector(this->equi_strain_rate);
-  this->resizeInternalVector(this->equi_strain_rate_non_local);
+  this->resizeInternalArray(this->equi_strain);
+  this->resizeInternalArray(this->equi_strain_non_local);
+  this->resizeInternalArray(this->equi_strain_rate);
+  this->resizeInternalArray(this->equi_strain_rate_non_local);
 
   this->registerNonLocalVariable(this->equi_strain, this->equi_strain_non_local, 1);
   this->registerNonLocalVariable(this->equi_strain_rate, this->equi_strain_rate_non_local, 1);
@@ -83,21 +83,21 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeSt
   Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
   Real dt = this->model->getTimeStep();
 
-  Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
-  Vector<Real> & velocity = this->model->getVelocity();
-  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
+  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Real> & velocity = this->model->getVelocity();
+  Array<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
 
   this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
 						   spatial_dimension,
 						   el_type, ghost_type, &elem_filter);
 
-  Vector<Real>::iterator<types::RMatrix> strain_rate_vrplgs_it =
+  Array<Real>::iterator< Matrix<Real> > strain_rate_vrplgs_it =
     strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
 
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  types::RMatrix & strain_rate = *strain_rate_vrplgs_it;
+  Matrix<Real> & strain_rate = *strain_rate_vrplgs_it;
 
   MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
 								*dam,

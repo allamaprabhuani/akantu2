@@ -79,20 +79,20 @@ public:
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
+  virtual inline UInt getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const {
     return MaterialNonLocalParent::getNbDataForElements(elements, tag) +
       MaterialDamageParent::getNbDataForElements(elements, tag);
   }
   virtual inline void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const {
     MaterialNonLocalParent::packElementData(buffer, elements, tag);
     MaterialDamageParent::packElementData(buffer, elements, tag);
   }
 
   virtual inline void unpackElementData(CommunicationBuffer & buffer,
-				 const Vector<Element> & elements,
+				 const Array<Element> & elements,
 				 SynchronizationTag tag) {
     MaterialNonLocalParent::unpackElementData(buffer, elements, tag);
     MaterialDamageParent::unpackElementData(buffer, elements, tag);

@@ -73,13 +73,13 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::RMatrix & grad_u,
-				  types::RMatrix & sigma,
+  inline void computeStressOnQuad(Matrix<Real> & grad_u,
+				  Matrix<Real> & sigma,
 				  Real & dam,
 				  Real & Y,
 				  Real & Ydq);
 
-  inline void computeDamageAndStressOnQuad(types::RMatrix & sigma,
+  inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma,
 					   Real & dam,
 					   Real & Y,
 					   Real & Ydq);
@@ -89,15 +89,15 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataForElements(const Vector<Element> & elements,
+  inline virtual UInt getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const;
 
   inline virtual void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const;
 
   inline virtual void unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
+					const Array<Element> & elements,
 					SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */

@@ -53,18 +53,18 @@ int main(int argc, char *argv[]) {
 
   Real spacing[spatial_dimension] = {0.2, 0.2};
 
-  types::Vector<Real> l(lower, spatial_dimension);
-  types::Vector<Real> u(upper, spatial_dimension);
+  Vector<Real> l(lower, spatial_dimension);
+  Vector<Real> u(upper, spatial_dimension);
 
-  types::Vector<Real> s(spacing, spatial_dimension);
+  Vector<Real> s(spacing, spatial_dimension);
 
-  types::Vector<Real> c = u;
+  Vector<Real> c = u;
   c += l;
   c /= 2.;
 
   SpatialGrid<Element> grid(spatial_dimension, s, c);
 
-  types::RVector bary(spatial_dimension);
+  Vector<Real> bary(spatial_dimension);
   Element el;
   el.ghost_type = _not_ghost;
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
   grid.saveAsMesh(mesh);
   mesh.write("grid.msh");
 
-  types::Vector<Real> pos(spatial_dimension);
+  Vector<Real> pos(spatial_dimension);
 
   const SpatialGrid<Element>::CellID & id = grid.getCellID(pos);
 

@@ -186,7 +186,7 @@ private:
 #include "static_communicator_inline_impl.hh"
 
 /* -------------------------------------------------------------------------- */
-/* Inline Functions VectorBase                                                */
+/* Inline Functions ArrayBase                                                */
 /* -------------------------------------------------------------------------- */
 inline std::ostream & operator<<(std::ostream & stream, const CommunicationRequest & _this)
 {

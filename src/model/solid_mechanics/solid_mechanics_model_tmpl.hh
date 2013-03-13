@@ -90,8 +90,8 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
   default: break;
   }
 
-  Vector<Real> funct(0, nb_component, "traction_stress");
-  Vector<Real> quad_coords(0, spatial_dimension, "quad_coords");
+  Array<Real> funct(0, nb_component, "traction_stress");
+  Array<Real> quad_coords(0, spatial_dimension, "quad_coords");
 
   //prepare the loop over element types
   Mesh::type_iterator it  = getFEMBoundary().getMesh().firstType(getFEMBoundary().getElementDimension(),
@@ -106,16 +106,16 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
     funct.resize(nb_element * nb_quad);
     quad_coords.resize(nb_element * nb_quad);
 
-    const Vector<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
+    const Array<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
 
     getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
 						   quad_coords, spatial_dimension, *it, ghost_type);
 
-    Vector<Real>::const_iterator< types::Vector<Real> > normals = normals_on_quad.begin(spatial_dimension);
-    Vector<Real>::iterator< types::Vector<Real> > qcoord  = quad_coords.begin(spatial_dimension);
+    Array<Real>::const_iterator< Vector<Real> > normals = normals_on_quad.begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > qcoord  = quad_coords.begin(spatial_dimension);
 
 
-    Vector<UInt>::iterator< UInt > surface_id;
+    Array<UInt>::iterator< UInt > surface_id;
     bool has_surface_id;
     try {
       surface_id = mesh.getSurfaceID(*it, ghost_type).begin();
@@ -125,7 +125,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
     }
 
     if(function_type == _bft_stress) {
-      Vector<Real>::iterator< types::RMatrix > stress = funct.begin(spatial_dimension, spatial_dimension);
+      Array<Real>::iterator< Matrix<Real> > stress = funct.begin(spatial_dimension, spatial_dimension);
 
       for (UInt el = 0; el < nb_element; ++el) {
 	Surface surf_id = 0;
@@ -138,7 +138,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
 	}
       }
     } else if (function_type == _bft_traction) {
-      Vector<Real>::iterator< types::Vector<Real> > force = funct.begin(spatial_dimension);
+      Array<Real>::iterator< Vector<Real> > force = funct.begin(spatial_dimension);
 
       for (UInt el = 0; el < nb_element; ++el) {
 	Surface surf_id = 0;
@@ -156,7 +156,7 @@ void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
     case _bft_stress:
       computeForcesByStressTensor(funct, *it, ghost_type); break;
     case _bft_traction:
-      computeForcesByTractionVector(funct, *it, ghost_type); break;
+      computeForcesByTractionArray(funct, *it, ghost_type); break;
     default: break;
     }
   }

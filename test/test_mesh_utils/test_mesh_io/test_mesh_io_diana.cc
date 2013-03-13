@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
   for(it_nodes = node_groups.begin(); it_nodes != node_groups.end(); ++it_nodes) {
     nodes_grps[i] = new Real[nb_nodes];
     std::fill_n(nodes_grps[i], nb_nodes, 0);
-    const Vector<UInt> & group = mesh_io.getNodeGroup(*it_nodes);
+    const Array<UInt> & group = mesh_io.getNodeGroup(*it_nodes);
     for (UInt n = 0; n < group.getSize(); ++n) {
       nodes_grps[i][group(n)] = 1.;
     }

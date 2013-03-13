@@ -87,8 +87,8 @@ void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveVectors() {
-  MaterialCohesive::resizeCohesiveVectors();
+void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveArrays() {
+  MaterialCohesive::resizeCohesiveArrays();
   updateDeltaMax(_ghost);
   updateDeltaMax(_not_ghost);
 }
@@ -104,10 +104,10 @@ void MaterialCohesiveBilinear<spatial_dimension>::updateDeltaMax(GhostType ghost
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
 
   for(; it != last_type; ++it) {
-    Vector<Real>::iterator<Real>delta_max_it =
+    Array<Real>::iterator<Real>delta_max_it =
       this->delta_max(*it, ghost_type).begin();
 
-    Vector<Real>::iterator<Real>delta_max_end =
+    Array<Real>::iterator<Real>delta_max_end =
       this->delta_max(*it, ghost_type).end();
 
     for (; delta_max_it != delta_max_end; ++delta_max_it) {
@@ -120,28 +120,28 @@ void MaterialCohesiveBilinear<spatial_dimension>::updateDeltaMax(GhostType ghost
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(const Vector<Real> & normal,
+void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(const Array<Real> & normal,
 								ElementType el_type,
 								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
-  Vector<Real>::iterator<types::RVector> traction_it =
+  Array<Real>::iterator< Vector<Real> > traction_it =
     tractions(el_type, ghost_type).begin(spatial_dimension);
 
-  Vector<Real>::iterator<types::RVector> opening_it =
+  Array<Real>::iterator< Vector<Real> > opening_it =
     opening(el_type, ghost_type).begin(spatial_dimension);
 
-  Vector<Real>::const_iterator<types::RVector> normal_it =
+  Array<Real>::const_iterator< Vector<Real> > normal_it =
     normal.begin(spatial_dimension);
 
-  Vector<Real>::iterator<types::RVector>traction_end =
+  Array<Real>::iterator< Vector<Real> >traction_end =
     tractions(el_type, ghost_type).end(spatial_dimension);
 
-  Vector<Real>::iterator<Real>delta_max_it =
+  Array<Real>::iterator<Real>delta_max_it =
     delta_max(el_type, ghost_type).begin();
 
-  Vector<Real>::iterator<Real>damage_it =
+  Array<Real>::iterator<Real>damage_it =
     damage(el_type, ghost_type).begin();
 
   /// compute scalars
@@ -151,8 +151,8 @@ void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(const Vector<R
   Real epsilon = std::numeric_limits<Real>::epsilon();
 
   Real * memory_space = new Real[2*spatial_dimension];
-  types::Vector<Real> normal_opening(memory_space, spatial_dimension);
-  types::Vector<Real> tangential_opening(memory_space + spatial_dimension,
+  Vector<Real> normal_opening(memory_space, spatial_dimension);
+  Vector<Real> tangential_opening(memory_space + spatial_dimension,
 					 spatial_dimension);
 
   /// loop on each quadrature point

@@ -77,9 +77,9 @@ int main(int argc, char *argv[])
   model.setTimeStep(time_step);
 
   /// boundary conditions
-  const Vector<Real> & nodes = mesh.getNodes();
-  Vector<bool> & boundary = model.getBoundary();
-  Vector<Real> & temperature = model.getTemperature();
+  const Array<Real> & nodes = mesh.getNodes();
+  Array<bool> & boundary = model.getBoundary();
+  Array<Real> & temperature = model.getTemperature();
   UInt nb_nodes = mesh.getNbNodes();
 
   //double t1, t2;

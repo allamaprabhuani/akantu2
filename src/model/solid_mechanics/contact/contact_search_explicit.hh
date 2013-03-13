@@ -71,8 +71,8 @@ public:
 private:
   /// find the closest master node
   void findClosestMasterNodes(const Surface & master_surface, 
-			      Vector<UInt> * closest_master_nodes, 
-			      Vector<bool> * has_closest_master_node);
+			      Array<UInt> * closest_master_nodes, 
+			      Array<bool> * has_closest_master_node);
 
   /// compute the square of the distance between two nodes
   inline Real computeSquareDistanceBetweenNodes(const UInt node_1, const UInt node_2);

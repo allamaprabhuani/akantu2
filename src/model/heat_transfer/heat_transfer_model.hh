@@ -86,7 +86,7 @@ public:
   void readMaterials(const std::string & filename);
 
   /// allocate all vectors
-  void initVectors();
+  void initArrays();
 
   /// register the tags associated with the parallel synchronizer
   void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
@@ -123,9 +123,9 @@ public:
 
 
   // /// initialize the heat flux
-  // void initializeResidual(Vector<Real> &temp);
+  // void initializeResidual(Array<Real> &temp);
   // /// initialize temperature
-  // void initializeTemperature(Vector<Real> &temp);
+  // void initializeTemperature(Array<Real> &temp);
 
 private:
 
@@ -151,13 +151,13 @@ private:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbDataForElements(const Vector<Element> & elements,
+  inline UInt getNbDataForElements(const Array<Element> & elements,
                                    SynchronizationTag tag) const;
   inline void packElementData(CommunicationBuffer & buffer,
-                              const Vector<Element> & elements,
+                              const Array<Element> & elements,
                               SynchronizationTag tag) const;
   inline void unpackElementData(CommunicationBuffer & buffer,
-                                const Vector<Element> & elements,
+                                const Array<Element> & elements,
                                 SynchronizationTag tag);
 
   inline UInt getNbDataToPack(SynchronizationTag tag) const;
@@ -174,7 +174,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpField(const std::string & field_id);
-  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldArray(const std::string & field_id);
   virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
@@ -191,13 +191,13 @@ public:
   /// set the value of the time step
   AKANTU_SET_MACRO(TimeStep, time_step, Real);
   /// get the assembled heat flux
-  AKANTU_GET_MACRO(Residual, *residual, Vector<Real>&);
+  AKANTU_GET_MACRO(Residual, *residual, Array<Real>&);
   /// get the lumped capacity
-  AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Vector<Real>&);
+  AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Array<Real>&);
   /// get the boundary vector
-  AKANTU_GET_MACRO(Boundary, * boundary, Vector<bool>&);
+  AKANTU_GET_MACRO(Boundary, * boundary, Array<bool>&);
   /// get the external heat rate vector
-  AKANTU_GET_MACRO(ExternalHeatRate, * external_heat_rate, Vector<Real>&);
+  AKANTU_GET_MACRO(ExternalHeatRate, * external_heat_rate, Array<Real>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient, temperature_gradient, Real);
   /// get the conductivity on q points
@@ -209,11 +209,11 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(IntBtKgT, int_bt_k_gT, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(BtKgT, bt_k_gT, Real);
   /// get the temperature
-  AKANTU_GET_MACRO(Temperature, *temperature, Vector<Real> &);
+  AKANTU_GET_MACRO(Temperature, *temperature, Array<Real> &);
   /// get the temperature derivative
-  AKANTU_GET_MACRO(TemperatureRate, *temperature_rate, Vector<Real> &);
-  /// get the equation number Vector<Int>
-  AKANTU_GET_MACRO(EquationNumber, *equation_number, const Vector<Int> &);
+  AKANTU_GET_MACRO(TemperatureRate, *temperature_rate, Array<Real> &);
+  /// get the equation number Array<Int>
+  AKANTU_GET_MACRO(EquationNumber, *equation_number, const Array<Int> &);
 
   /// get the energy denominated by thermal
   Real getEnergy(const std::string & energy_id, const ElementType & type, UInt index);
@@ -229,8 +229,8 @@ protected:
   /* ----------------------------------------------------------------------- */
   template<class iterator>
   void getThermalEnergy(iterator Eth,
-			Vector<Real>::const_iterator<Real> T_it,
-			Vector<Real>::const_iterator<Real> T_end) const;
+			Array<Real>::const_iterator<Real> T_it,
+			Array<Real>::const_iterator<Real> T_end) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -242,13 +242,13 @@ private:
   Real time_step;
 
   /// temperatures array
-  Vector<Real> * temperature;
+  Array<Real> * temperature;
 
   /// temperatures derivatives array
-  Vector<Real> * temperature_rate;
+  Array<Real> * temperature_rate;
 
   /// increment array (@f$\delta \dot T@f$ or @f$\delta T@f$)
-  Vector<Real> * increment;
+  Array<Real> * increment;
 
   /// the spatial dimension
   UInt spatial_dimension;
@@ -275,19 +275,19 @@ private:
   ByElementTypeReal bt_k_gT;
 
   /// external flux vector
-  Vector<Real> * external_heat_rate;
+  Array<Real> * external_heat_rate;
 
   /// residuals array
-  Vector<Real> * residual;
+  Array<Real> * residual;
 
   /// position of a dof in the K matrix
-  Vector<Int> * equation_number;
+  Array<Int> * equation_number;
 
   //lumped vector
-  Vector<Real> * capacity_lumped;
+  Array<Real> * capacity_lumped;
 
   /// boundary vector
-  Vector<bool> * boundary;
+  Array<bool> * boundary;
 
   //realtime
   Real time;
@@ -296,7 +296,7 @@ private:
   Real capacity;
 
   //conductivity matrix
-  types::Matrix<Real> conductivity;
+  Matrix<Real> conductivity;
 
   //linear variation of the conductivity (for temperature dependent conductivity)
   Real conductivity_variation;

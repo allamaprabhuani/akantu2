@@ -28,9 +28,9 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModelCohesive::splitElementByKind(const Vector<Element> & elements,
-							    Vector<Element> & elements_regular,
-							    Vector<Element> & elements_cohesive) const {
+inline void SolidMechanicsModelCohesive::splitElementByKind(const Array<Element> & elements,
+							    Array<Element> & elements_regular,
+							    Array<Element> & elements_cohesive) const {
   for (UInt el = 0; el < elements.getSize(); ++el) {
     if (elements(el).kind == _ek_regular)
       elements_regular.push_back(elements(el));
@@ -42,12 +42,12 @@ inline void SolidMechanicsModelCohesive::splitElementByKind(const Vector<Element
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Vector<Element> & elements,
+inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Element> & elements,
 							      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  Vector<Element> elements_regular;
-  Vector<Element> elements_cohesive;
+  Array<Element> elements_regular;
+  Array<Element> elements_cohesive;
 
   splitElementByKind(elements, elements_regular, elements_cohesive);
 
@@ -61,8 +61,8 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Vector<Eleme
 
   UInt nb_nodes_per_element = 0;
 
-  Vector<Element>::iterator<Element> it  = elements_cohesive.begin();
-  Vector<Element>::iterator<Element> end = elements_cohesive.end();
+  Array<Element>::iterator<Element> it  = elements_cohesive.begin();
+  Array<Element>::iterator<Element> end = elements_cohesive.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
@@ -82,7 +82,7 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Vector<Eleme
   }
 
   if(tag != _gst_material_id) {
-    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
     this->splitElementByMaterial(elements_cohesive, elements_per_mat);
 
     for (UInt i = 0; i < materials.size(); ++i) {
@@ -97,12 +97,12 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Vector<Eleme
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & buffer,
-							 const Vector<Element> & elements,
+							 const Array<Element> & elements,
 							 SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  Vector<Element> elements_regular;
-  Vector<Element> elements_cohesive;
+  Array<Element> elements_regular;
+  Array<Element> elements_cohesive;
 
   splitElementByKind(elements, elements_regular, elements_cohesive);
 
@@ -129,7 +129,7 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
   }
 
   if(tag != _gst_material_id) {
-    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
     splitElementByMaterial(elements_cohesive, elements_per_mat);
 
     for (UInt i = 0; i < materials.size(); ++i) {
@@ -144,12 +144,12 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer & buffer,
-							   const Vector<Element> & elements,
+							   const Array<Element> & elements,
 							   SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  Vector<Element> elements_regular;
-  Vector<Element> elements_cohesive;
+  Array<Element> elements_regular;
+  Array<Element> elements_cohesive;
 
   splitElementByKind(elements, elements_regular, elements_cohesive);
 
@@ -175,7 +175,7 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
   }
 
   if(tag != _gst_material_id) {
-    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
     splitElementByMaterial(elements_cohesive, elements_per_mat);
 
     for (UInt i = 0; i < materials.size(); ++i) {

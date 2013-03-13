@@ -54,7 +54,7 @@ public:
   ID id;
 
   /// nodes who have penetrated the master surface
-  Vector<UInt> penetrating_nodes;
+  Array<UInt> penetrating_nodes;
 
   /// list of penetrated facets
   ByElementTypeUInt penetrated_facets_offset;

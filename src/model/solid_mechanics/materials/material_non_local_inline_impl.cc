@@ -81,7 +81,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   Mesh & mesh = this->model->getFEM().getMesh();
 
   ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
-  this->initInternalVector(quadrature_points_coordinates, spatial_dimension, true);
+  this->initInternalArray(quadrature_points_coordinates, spatial_dimension, true);
 
   ByElementType<UInt> nb_ghost_protected;
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost);
@@ -120,12 +120,12 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
     ElementType type2 = first_pair_types->second;
     GhostType ghost_type2 = _ghost;
     UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
-    Vector<UInt> & elem_filter = element_filter(type2, ghost_type2);
+    Array<UInt> & elem_filter = element_filter(type2, ghost_type2);
 
-    const Vector<UInt> & pairs =
+    const Array<UInt> & pairs =
       pair_list(first_pair_types->first, _not_ghost)(first_pair_types->second, ghost_type2);
-    Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-    Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+    Array<UInt>::const_iterator< Vector<UInt> > first_pair = pairs.begin(2);
+    Array<UInt>::const_iterator< Vector<UInt> > last_pair  = pairs.end(2);
     for(;first_pair != last_pair; ++first_pair) {
       UInt _q2 = (*first_pair)(1);
       QuadraturePoint q2(type2, elem_filter(_q2 / nb_quad2), _q2 % nb_quad2, ghost_type2);
@@ -156,8 +156,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
       remove_elem.getNewNumbering().alloc(nb_ghost_elem, 1, *it, _ghost);
     else remove_elem.getNewNumbering(*it, _ghost).resize(nb_ghost_elem);
 
-    Vector<UInt> & elem_filter = element_filter(*it, _ghost);
-    Vector<UInt> & new_numbering = remove_elem.getNewNumbering(*it, _ghost);
+    Array<UInt> & elem_filter = element_filter(*it, _ghost);
+    Array<UInt> & new_numbering = remove_elem.getNewNumbering(*it, _ghost);
     UInt ng = 0;
     for (UInt g = 0; g < nb_ghost_elem; ++g) {
       element.element = elem_filter(g);
@@ -174,6 +174,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
 	++ng;
       }
     }
+
+    std::cout << "nb_ghost_element: " << nb_ghost_elem << " - nb ge to erase: " << remove_elem.getList().getSize() << std::endl;
   }
 
   mesh.sendEvent(remove_elem);
@@ -195,9 +197,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
   mesh.getLocalLowerBounds(lower_bounds);
   mesh.getLocalUpperBounds(upper_bounds);
 
-  types::Vector<Real> spacing(spatial_dimension, radius * safety_factor);
+  Vector<Real> spacing(spatial_dimension, radius * safety_factor);
 
-  types::Vector<Real> center(spatial_dimension);
+  Vector<Real> center(spatial_dimension);
   for (UInt i = 0; i < spatial_dimension; ++i) {
     center(i) = (upper_bounds[i] + lower_bounds[i]) / 2.;
   }
@@ -266,14 +268,14 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByE
   Mesh::type_iterator it        = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType (spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
-    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Array<UInt> & elem_filter = element_filter(*it, ghost_type);
     UInt nb_element = elem_filter.getSize();
     UInt nb_quad    = this->model->getFEM().getNbQuadraturePoints(*it, ghost_type);
 
-    const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
+    const Array<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
     q.type = *it;
 
-    Vector<Real>::const_iterator<types::RVector> quad = quads.begin(spatial_dimension);
+    Array<Real>::const_iterator< Vector<Real> > quad = quads.begin(spatial_dimension);
     UInt * elem = elem_filter.storage();
 
     for (UInt e = 0; e < nb_element; ++e) {
@@ -304,9 +306,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     // Preparing datas
-    const Vector<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
-    Vector<Real>::const_iterator<types::RVector> first_quad = quads.begin(spatial_dimension);
-    Vector<Real>::const_iterator<types::RVector> last_quad  = quads.end(spatial_dimension);
+    const Array<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
+    Array<Real>::const_iterator< Vector<Real> > first_quad = quads.begin(spatial_dimension);
+    Array<Real>::const_iterator< Vector<Real> > last_quad  = quads.end(spatial_dimension);
 
     ByElementTypeUInt & pairs = pair_list(ByElementTypeUInt("pairs", id, memory_id),
 					  *it,
@@ -316,8 +318,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
     GhostType current_ghost_type = _casper;
     UInt existing_pairs_num = 0;
 
-    Vector<UInt> * neighbors = NULL;
-    Vector<UInt> * element_index_material2 = NULL;
+    Array<UInt> * neighbors = NULL;
+    Array<UInt> * element_index_material2 = NULL;
 
     UInt my_num_quad = 0;
 
@@ -372,7 +374,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 	    (*element_index_material2)(quad.element) * nb_quad_per_elem +
 	    quad.num_point;
 
-	  const types::RVector & neigh_quad = quad.getPosition();
+	  const Vector<Real> & neigh_quad = quad.getPosition();
 
 	  Real distance = first_quad->distance(neigh_quad);
 	  if(distance <= radius &&
@@ -402,8 +404,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
   ghost_type1 = _not_ghost;
 
   ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
-  this->initInternalVector(quadrature_points_volumes, 1, true);
-  resizeInternalVector(quadrature_points_volumes);
+  this->initInternalArray(quadrature_points_volumes, 1, true);
+  resizeInternalArray(quadrature_points_volumes);
 
   const FEM & fem = this->model->getFEM();
 
@@ -420,7 +422,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       ElementType type1 = first_pair_types->first;
       ElementType type2 = first_pair_types->second;
 
-      const Vector<UInt> & pairs = pair_list(type1, ghost_type1)(type2, ghost_type2);
+      const Array<UInt> & pairs = pair_list(type1, ghost_type1)(type2, ghost_type2);
 
       std::string ghost_id = "";
       if (ghost_type1 == _ghost) ghost_id = ":ghost";
@@ -429,33 +431,33 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       std::stringstream sstr; sstr << id << ":pair_weight:" << type1 << ghost_id;
       weights_type_1.setID(sstr.str());
 
-      Vector<Real> * tmp_weight = NULL;
+      Array<Real> * tmp_weight = NULL;
       if(!weights_type_1.exists(type2, ghost_type2)) {
 	tmp_weight = &(weights_type_1.alloc(0, 2, type2, ghost_type2));
       } else {
 	tmp_weight = &(weights_type_1(type2, ghost_type2));
       }
-      Vector<Real> & weights = *tmp_weight;
+      Array<Real> & weights = *tmp_weight;
       weights.resize(pairs.getSize());
       weights.clear();
 
-      const Vector<Real> & jacobians_1 = fem.getIntegratorInterface().getJacobians(type1, ghost_type1);
-      const Vector<Real> & jacobians_2 = fem.getIntegratorInterface().getJacobians(type2, ghost_type2);
+      const Array<Real> & jacobians_1 = fem.getIntegratorInterface().getJacobians(type1, ghost_type1);
+      const Array<Real> & jacobians_2 = fem.getIntegratorInterface().getJacobians(type2, ghost_type2);
 
       UInt nb_quad1 = fem.getNbQuadraturePoints(type1);
       UInt nb_quad2 = fem.getNbQuadraturePoints(type2);
 
-      Vector<Real> & quads_volumes1 = quadrature_points_volumes(type1, ghost_type1);
-      Vector<Real> & quads_volumes2 = quadrature_points_volumes(type2, ghost_type2);
+      Array<Real> & quads_volumes1 = quadrature_points_volumes(type1, ghost_type1);
+      Array<Real> & quads_volumes2 = quadrature_points_volumes(type2, ghost_type2);
 
-      Vector<Real>::const_iterator<types::RVector> iquads1;
-      Vector<Real>::const_iterator<types::RVector> iquads2;
+      Array<Real>::const_iterator< Vector<Real> > iquads1;
+      Array<Real>::const_iterator< Vector<Real> > iquads2;
       iquads1 = quadrature_points_coordinates(type1, ghost_type1).begin(spatial_dimension);
       iquads2 = quadrature_points_coordinates(type2, ghost_type2).begin(spatial_dimension);
 
-      Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-      Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-      Vector<Real>::iterator<types::RVector> weight  = weights.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > first_pair = pairs.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > last_pair  = pairs.end(2);
+      Array<Real>::iterator< Vector<Real> > weight  = weights.begin(2);
 
       this->weight_func->selectType(type1, ghost_type1, type2, ghost_type2);
 
@@ -463,8 +465,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       for(;first_pair != last_pair; ++first_pair, ++weight) {
 	UInt _q1 = (*first_pair)(0);
 	UInt _q2 = (*first_pair)(1);
-	const types::RVector & pos1 = iquads1[_q1];
-	const types::RVector & pos2 = iquads2[_q2];
+	const Vector<Real> & pos1 = iquads1[_q1];
+	const Vector<Real> & pos2 = iquads2[_q2];
 	QuadraturePoint q1(_q1 / nb_quad1, _q1 % nb_quad1, _q1, pos1, type1, ghost_type1);
 	QuadraturePoint q2(_q2 / nb_quad2, _q2 % nb_quad2, _q2, pos2, type2, ghost_type2);
 
@@ -496,15 +498,15 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       ElementType type1 = first_pair_types->first;
       ElementType type2 = first_pair_types->second;
 
-      const Vector<UInt> & pairs = pair_list(type1, ghost_type1)(type2, ghost_type2);
-      Vector<Real> & weights = pair_weight(type1, ghost_type1)(type2, ghost_type2);
+      const Array<UInt> & pairs = pair_list(type1, ghost_type1)(type2, ghost_type2);
+      Array<Real> & weights = pair_weight(type1, ghost_type1)(type2, ghost_type2);
 
-      Vector<Real> & quads_volumes1 = quadrature_points_volumes(type1, ghost_type1);
-      Vector<Real> & quads_volumes2 = quadrature_points_volumes(type2, ghost_type2);
+      Array<Real> & quads_volumes1 = quadrature_points_volumes(type1, ghost_type1);
+      Array<Real> & quads_volumes2 = quadrature_points_volumes(type2, ghost_type2);
 
-      Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-      Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-      Vector<Real>::iterator<types::RVector> weight  = weights.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > first_pair = pairs.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > last_pair  = pairs.end(2);
+      Array<Real>::iterator< Vector<Real> > weight  = weights.begin(2);
 
       for(;first_pair != last_pair; ++first_pair, ++weight) {
 	UInt q1 = (*first_pair)(0);
@@ -522,8 +524,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 template<typename T>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
-										       ByElementTypeVector<T> & accumulated,
+void MaterialNonLocal<spatial_dimension, WeightFunction>::weightedAvergageOnNeighbours(const ByElementTypeArray<T> & to_accumulate,
+										       ByElementTypeArray<T> & accumulated,
 										       UInt nb_degree_of_freedom,
 										       GhostType ghost_type2) const {
   AKANTU_DEBUG_IN();
@@ -537,20 +539,20 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::weightedAvergageOnNeig
   GhostType ghost_type1 = _not_ghost; // does not make sens the ghost vs ghost so this should always by _not_ghost
 
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
-    const Vector<UInt> & pairs =
+    const Array<UInt> & pairs =
       pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
-    const Vector<Real> & weights =
+    const Array<Real> & weights =
       pair_weight(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
 
 
-    const Vector<T> & to_acc = to_accumulate(first_pair_types->second, ghost_type2);
-    Vector<T> & acc = accumulated(first_pair_types->first, ghost_type1);
+    const Array<T> & to_acc = to_accumulate(first_pair_types->second, ghost_type2);
+    Array<T> & acc = accumulated(first_pair_types->first, ghost_type1);
 
     if(ghost_type2 == _not_ghost) acc.clear();
 
-    Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-    Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-    Vector<Real>::const_iterator< types::Vector<Real> > pair_w = weights.begin(2);
+    Array<UInt>::const_iterator< Vector<UInt> > first_pair = pairs.begin(2);
+    Array<UInt>::const_iterator< Vector<UInt> > last_pair  = pairs.end(2);
+    Array<Real>::const_iterator< Vector<Real> > pair_w = weights.begin(2);
 
     for(;first_pair != last_pair; ++first_pair, ++pair_w) {
       UInt q1 = (*first_pair)(0);
@@ -576,7 +578,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
      (this->compute_stress_calls % this->update_weights == 0)) {
     ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
     Mesh & mesh = this->model->getFEM().getMesh();
-    mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
+    mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, 0);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
     computeWeights(quadrature_points_coordinates);
@@ -601,7 +603,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
 
       ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
       Mesh & mesh = this->model->getFEM().getMesh();
-      mesh.initByElementTypeVector(quadrature_points_coordinates, spatial_dimension, 0);
+      mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, 0);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
 
@@ -615,7 +617,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
     for(;it != end; ++it) {
       NonLocalVariable & non_local_variable = it->second;
 
-      resizeInternalVector(*non_local_variable.non_local_variable);
+      resizeInternalArray(*non_local_variable.non_local_variable);
       this->weightedAvergageOnNeighbours(*non_local_variable.local_variable, *non_local_variable.non_local_variable,
 					 non_local_variable.non_local_variable_nb_component, _not_ghost);
     }
@@ -671,16 +673,16 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::savePairs(const std::s
     pair_type::const_iterator last_pair_types = existing_pairs[existing_pairs_num].end();
 
     for (; first_pair_types != last_pair_types; ++first_pair_types) {
-      const Vector<UInt> & pairs =
+      const Array<UInt> & pairs =
 	pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
-      const Vector<Real> & weights =
+      const Array<Real> & weights =
 	pair_weight(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
 
       pout << "Types : " << first_pair_types->first << " (" << ghost_type1 << ") - " << first_pair_types->second << " (" << ghost_type2 << ")" << std::endl;
 
-      Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-      Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-      Vector<Real>::const_iterator<types::RVector> pair_w = weights.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > first_pair = pairs.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > last_pair  = pairs.end(2);
+      Array<Real>::const_iterator< Vector<Real> > pair_w = weights.begin(2);
 
       for(;first_pair != last_pair; ++first_pair, ++pair_w) {
 	UInt q1 = (*first_pair)(0);
@@ -710,23 +712,23 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
     UInt existing_pairs_num = gt - _not_ghost;
 
     ByElementTypeUInt nb_neighbors("nb_neighbours", id, memory_id);
-    mesh.initByElementTypeVector(nb_neighbors, 1, spatial_dimension);
-    resizeInternalVector(nb_neighbors);
+    mesh.initByElementTypeArray(nb_neighbors, 1, spatial_dimension);
+    resizeInternalArray(nb_neighbors);
 
     pair_type::const_iterator first_pair_types = existing_pairs[existing_pairs_num].begin();
     pair_type::const_iterator last_pair_types = existing_pairs[existing_pairs_num].end();
 
     for (; first_pair_types != last_pair_types; ++first_pair_types) {
-      const Vector<UInt> & pairs =
+      const Array<UInt> & pairs =
 	pair_list(first_pair_types->first, ghost_type1)(first_pair_types->second, ghost_type2);
       if(prank == 0) {
 	pout << ghost_type2 << " ";
 	pout << "Types : " << first_pair_types->first << " " << first_pair_types->second << std::endl;
       }
-      Vector<UInt>::const_iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-      Vector<UInt>::const_iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
-      Vector<UInt> & nb_neigh_1 = nb_neighbors(first_pair_types->first, ghost_type1);
-      Vector<UInt> & nb_neigh_2 = nb_neighbors(first_pair_types->second, ghost_type2);
+      Array<UInt>::const_iterator< Vector<UInt> > first_pair = pairs.begin(2);
+      Array<UInt>::const_iterator< Vector<UInt> > last_pair  = pairs.end(2);
+      Array<UInt> & nb_neigh_1 = nb_neighbors(first_pair_types->first, ghost_type1);
+      Array<UInt> & nb_neigh_2 = nb_neighbors(first_pair_types->second, ghost_type2);
       for(;first_pair != last_pair; ++first_pair) {
 	UInt q1 = (*first_pair)(0);
 	UInt q2 = (*first_pair)(1);
@@ -742,9 +744,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
     UInt max_nb_neig = 0;
     UInt min_nb_neig = std::numeric_limits<UInt>::max();
     for(; it != last_type; ++it) {
-      Vector<UInt> & nb_neighor = nb_neighbors(*it, ghost_type1);
-      Vector<UInt>::iterator<UInt> nb_neigh = nb_neighor.begin();
-      Vector<UInt>::iterator<UInt> end_neigh  = nb_neighor.end();
+      Array<UInt> & nb_neighor = nb_neighbors(*it, ghost_type1);
+      Array<UInt>::iterator<UInt> nb_neigh = nb_neighor.begin();
+      Array<UInt>::iterator<UInt> end_neigh  = nb_neighor.end();
 
       for (; nb_neigh != end_neigh; ++nb_neigh, ++nb_quads) {
 	UInt nb = *nb_neigh;
@@ -780,7 +782,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataForElements(const Vector<Element> & elements,
+inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataForElements(const Array<Element> & elements,
 										      SynchronizationTag tag) const {
   UInt nb_quadrature_points = this->getModel().getNbQuadraturePoints(elements);
   UInt size = 0;
@@ -803,7 +805,7 @@ inline UInt MaterialNonLocal<spatial_dimension, WeightFunction>::getNbDataForEle
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline void MaterialNonLocal<spatial_dimension, WeightFunction>::packElementData(CommunicationBuffer & buffer,
-										 const Vector<Element> & elements,
+										 const Array<Element> & elements,
 										 SynchronizationTag tag) const {
   if(tag == _gst_mnl_for_average) {
     typename std::map<ID, NonLocalVariable>::const_iterator it = non_local_variables.begin();
@@ -822,7 +824,7 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::packElementData
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementData(CommunicationBuffer & buffer,
-										   const Vector<Element> & elements,
+										   const Array<Element> & elements,
 										   SynchronizationTag tag) {
   if(tag == _gst_mnl_for_average) {
     typename std::map<ID, NonLocalVariable>::iterator it = non_local_variables.begin();
@@ -840,7 +842,7 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementDa
 
 /* -------------------------------------------------------------------------- */
 // template<UInt spatial_dimension, template <UInt> class WeightFunction>
-// inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsAdded(const Vector<Element> & element_list) {
+// inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsAdded(const Array<Element> & element_list) {
 //   AKANTU_DEBUG_IN();
 
 //   Material::onElementsAdded(element_list, event);
@@ -850,7 +852,7 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementDa
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemoved(const Vector<Element> & element_list,
+inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemoved(const Array<Element> & element_list,
 										   const ByElementTypeUInt & new_numbering,
 										   __attribute__((unused)) const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
@@ -866,13 +868,13 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemov
     GhostType ghost_type2 = _ghost;
     UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
 
-    Vector<UInt> & pairs =
+    Array<UInt> & pairs =
       pair_list(first_pair_types->first, _not_ghost)(first_pair_types->second, ghost_type2);
-    Vector<UInt>::iterator< types::Vector<UInt> > first_pair = pairs.begin(2);
-    Vector<UInt>::iterator< types::Vector<UInt> > last_pair  = pairs.end(2);
+    Array<UInt>::iterator< Vector<UInt> > first_pair = pairs.begin(2);
+    Array<UInt>::iterator< Vector<UInt> > last_pair  = pairs.end(2);
     for(;first_pair != last_pair; ++first_pair) {
       UInt _q2 = (*first_pair)(1);
-      const Vector<UInt> & renumbering = new_numbering(type2, ghost_type2);
+      const Array<UInt> & renumbering = new_numbering(type2, ghost_type2);
       UInt el = _q2 / nb_quad2;
       UInt new_el = renumbering(el);
       AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A local quad as been removed instead f just renumbered");

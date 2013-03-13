@@ -47,13 +47,13 @@ BoundingBox<d> getBoundingBox(const Element& el, model_type& model) {
   typedef typename BoundingBox<d>::point_type point_type;
   
   Mesh &mesh = model.getMesh();
-  const Vector<Real> &x = model.getCurrentPosition();
+  const Array<Real> &x = model.getCurrentPosition();
   
   // for each element, construct the bounding box
   bbox_type elem_bb = bbox_type();
   
   UInt nb_nodes = mesh.getNbNodesPerElement(el.type);
-  const Vector<UInt> &conn = mesh.getConnectivity(el.type);
+  const Array<UInt> &conn = mesh.getConnectivity(el.type);
   
   for (UInt n = 0; n<nb_nodes; ++n) {
     UInt node = conn(el.element, n);
@@ -108,7 +108,7 @@ public:
   void update_bounding_box() {
     
     bbox_ = bbox_type();
-    const Vector<Real> &x = model_.getCurrentPosition();
+    const Array<Real> &x = model_.getCurrentPosition();
     
     // loop over all nodes to find out bounding box
     for (node_iterator it = nodes_.begin(); it != nodes_.end(); ++it)

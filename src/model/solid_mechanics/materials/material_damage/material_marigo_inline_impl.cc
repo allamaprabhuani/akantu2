@@ -32,8 +32,8 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
-						       types::RMatrix & sigma,
+MaterialMarigo<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
+						       Matrix<Real> & sigma,
 						       Real & dam,
 						       Real & Y,
 						       Real &Ydq) {
@@ -59,7 +59,7 @@ MaterialMarigo<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::RMatrix & sigma,
+MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(Matrix<Real> & sigma,
 								Real & dam,
 								Real & Y,
 								Real &Ydq) {
@@ -73,7 +73,7 @@ MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(types::RMatrix &
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline UInt MaterialMarigo<spatial_dimension>::getNbDataForElements(const Vector<Element> & elements,
+inline UInt MaterialMarigo<spatial_dimension>::getNbDataForElements(const Array<Element> & elements,
 								    SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
@@ -91,14 +91,14 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbDataForElements(const Vector
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::packElementData(CommunicationBuffer & buffer,
-							       const Vector<Element> & elements,
+							       const Array<Element> & elements,
 							       SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat) {
     this->packElementDataHelper(Yd_rand, buffer, elements);
     // UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::const_iterator<Real> Yds = Yd_rand(element.type, _not_ghost).begin();
+    // Array<Real>::const_iterator<Real> Yds = Yd_rand(element.type, _not_ghost).begin();
     // Yds += element.element * nb_quadrature_points;
     // for (UInt q = 0; q < nb_quadrature_points; ++q, ++Yds)
     //   buffer << *Yds;
@@ -112,14 +112,14 @@ inline void MaterialMarigo<spatial_dimension>::packElementData(CommunicationBuff
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::unpackElementData(CommunicationBuffer & buffer,
-								 const Vector<Element> & elements,
+								 const Array<Element> & elements,
 								 SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat) {
     this->unpackElementDataHelper(Yd_rand, buffer, elements);
     // UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
-    // Vector<Real>::iterator<Real> Ydr = Yd_rand(element.type, _ghost).begin();
+    // Array<Real>::iterator<Real> Ydr = Yd_rand(element.type, _ghost).begin();
     // Ydr += element.element * nb_quadrature_points;
     // for (UInt q = 0; q < nb_quadrature_points; ++q, ++Ydr)
     //   buffer << *Ydr;

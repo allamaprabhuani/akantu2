@@ -5,7 +5,7 @@
  *
  * @date   Thu Mar 03 16:09:49 2011
  *
- * @brief  tests for types::Matrix
+ * @brief  tests for Matrix
  *
  * @section LICENSE
  *
@@ -49,12 +49,12 @@ int main(int argc, char *argv[]) {
 
   Real time;
 
-  Vector<Real> A(nbm, n*n);
-  Vector<Real> B(nbm, n*n);
-  Vector<Real> C1(nbm, n*n);
-  Vector<Real> C2(nbm, n*n);
-  Vector<Real> C3(nbm, n*n);
-  Vector<Real> C4(nbm, n*n);
+  Array<Real> A(nbm, n*n);
+  Array<Real> B(nbm, n*n);
+  Array<Real> C1(nbm, n*n);
+  Array<Real> C2(nbm, n*n);
+  Array<Real> C3(nbm, n*n);
+  Array<Real> C4(nbm, n*n);
 
   for (UInt i = 0; i < n*n; ++i) {
     A.values[i] = drand48();
@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
 
   struct timeval begin, end;
 
-  Vector<Real>::iterator<types::RMatrix> itA = A.begin(n,n);
-  Vector<Real>::iterator<types::RMatrix> itB = B.begin(n,n);
+  Array<Real>::iterator< Matrix<Real> > itA = A.begin(n,n);
+  Array<Real>::iterator< Matrix<Real> > itB = B.begin(n,n);
   itA = A.begin(n,n);
   itB = B.begin(n,n);
   std::cerr << *itA << std::endl;
@@ -85,7 +85,8 @@ int main(int argc, char *argv[]) {
   std::cout << "matrix_matrix : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<types::RMatrix> itC = C2.begin(n,n);
+  Array<Real>::iterator< Matrix<Real> > itC = C2.begin(n,n);
+
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     *itC = *itA * *itB;
@@ -99,9 +100,9 @@ int main(int argc, char *argv[]) {
   std::cout << "it Mc() = it Ma() * it Mb() : " << std::fixed << time/nbm << "us" << std::endl;
 
   /* ------------------------------------------------------------------------ */
-  Vector<Real>::iterator<types::RMatrix> muitA = A.begin(n,n);
-  Vector<Real>::iterator<types::RMatrix> muitB = B.begin(n,n);
-  Vector<Real>::iterator<types::RMatrix> muitC = C4.begin(n,n);
+  Array<Real>::iterator< Matrix<Real> > muitA = A.begin(n,n);
+  Array<Real>::iterator< Matrix<Real> > muitB = B.begin(n,n);
+  Array<Real>::iterator< Matrix<Real> > muitC = C4.begin(n,n);
   gettimeofday(&begin, NULL);
   for (UInt i = 0; i < nbm; ++i) {
     (*muitC).mul<false, true>(*muitA, *muitB);

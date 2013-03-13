@@ -48,11 +48,11 @@ MaterialDamage<spatial_dimension, Parent>::MaterialDamage(SolidMechanicsModel & 
   AKANTU_DEBUG_IN();
 
   this->is_non_local = false;
-  this->initInternalVector(this->damage, 1);
-  this->initInternalVector(this->dissipated_energy, 1);
-  this->initInternalVector(this->strain_prev, spatial_dimension * spatial_dimension);
-  this->initInternalVector(this->stress_prev, spatial_dimension * spatial_dimension);
-  this->initInternalVector(this->int_sigma, 1);
+  this->initInternalArray(this->damage, 1);
+  this->initInternalArray(this->dissipated_energy, 1);
+  this->initInternalArray(this->strain_prev, spatial_dimension * spatial_dimension);
+  this->initInternalArray(this->stress_prev, spatial_dimension * spatial_dimension);
+  this->initInternalArray(this->int_sigma, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -63,11 +63,11 @@ void MaterialDamage<spatial_dimension, Parent>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent<spatial_dimension>::initMaterial();
 
-  this->resizeInternalVector(this->damage);
-  this->resizeInternalVector(this->dissipated_energy);
-  this->resizeInternalVector(this->strain_prev);
-  this->resizeInternalVector(this->stress_prev);
-  this->resizeInternalVector(this->int_sigma);
+  this->resizeInternalArray(this->damage);
+  this->resizeInternalArray(this->dissipated_energy);
+  this->resizeInternalArray(this->strain_prev);
+  this->resizeInternalArray(this->stress_prev);
+  this->resizeInternalArray(this->int_sigma);
 
   AKANTU_DEBUG_OUT();
 }
@@ -87,19 +87,19 @@ void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType
 
   for(; it != end; ++it) {
     ElementType el_type = *it;
-    Vector<Real>::iterator<types::RMatrix> sigma =
+    Array<Real>::iterator< Matrix<Real> > sigma =
       this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::RMatrix> sigma_p =
+    Array<Real>::iterator< Matrix<Real> > sigma_p =
       stress_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::RMatrix> epsilon =
+    Array<Real>::iterator< Matrix<Real> > epsilon =
       this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::RMatrix> epsilon_p =
+    Array<Real>::iterator< Matrix<Real> > epsilon_p =
       strain_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 
-    Vector<Real>::iterator<Real> ints = int_sigma(el_type, ghost_type).begin();
-    Vector<Real>::iterator<Real> ed   = dissipated_energy(el_type, ghost_type).begin();
-    Vector<Real>::iterator<Real> ed_end  = dissipated_energy(el_type, ghost_type).end();
+    Array<Real>::iterator<Real> ints = int_sigma(el_type, ghost_type).begin();
+    Array<Real>::iterator<Real> ed   = dissipated_energy(el_type, ghost_type).begin();
+    Array<Real>::iterator<Real> ed_end  = dissipated_energy(el_type, ghost_type).end();
 
     for (; ed != ed_end; ++ed, ++ints, ++epsilon, ++sigma, ++epsilon_p, ++sigma_p) {
       Real epot = 0.;

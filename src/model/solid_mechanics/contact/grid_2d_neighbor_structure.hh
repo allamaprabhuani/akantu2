@@ -88,7 +88,7 @@ private:
 
   /// which grid cells are intersected by segment of the master surface
   void traceSegments(Real * coord, Real * origin, UInt * nb_cells,
-		     UInt * cell_to_seg_off, Vector<UInt> & cell_to_segments);
+		     UInt * cell_to_seg_off, Array<UInt> & cell_to_segments);
 
 
   /* ------------------------------------------------------------------------ */

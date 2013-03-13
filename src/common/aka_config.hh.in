@@ -55,6 +55,10 @@
 #cmakedefine AKANTU_STRUCTURAL_MECHANICS
 #cmakedefine AKANTU_HEAT_TRANSFER
 
+// BOOST Section
+#cmakedefine AKANTU_BOOST_CHRONO
+#cmakedefine AKANTU_BOOST_SYSTEM
+
 #define __aka_inline__ inline
 
 #endif /* __AKANTU_AKA_CONFIG_HH__ */

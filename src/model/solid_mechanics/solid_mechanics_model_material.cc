@@ -147,7 +147,7 @@ void SolidMechanicsModel::initMaterials() {
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
 
-      Vector<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
+      Array<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
       for (UInt el = 0; el < nb_element; ++el) {
 	UInt index = mat_val[el_id_by_mat(el, 1)]->addElement(*it, el, gt);
 	el_id_by_mat(el, 0) = index;
@@ -175,7 +175,7 @@ void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_nam
 
     for(; it != end; ++it) {
       try {
-	const Vector<UInt> & data = mesh.getUIntData(*it, data_name, gt);
+	const Array<UInt> & data = mesh.getUIntData(*it, data_name, gt);
 
 	AKANTU_DEBUG_ASSERT(element_index_by_material.exists(*it, gt),
 			    "element_material for type (" << gt << ":" << *it

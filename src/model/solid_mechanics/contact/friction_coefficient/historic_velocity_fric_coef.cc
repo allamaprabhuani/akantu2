@@ -56,8 +56,8 @@ HistoricVelocityFricCoef::HistoricVelocityFricCoef(ContactRigid & contact,
   std::cout << " * Historic Velocity Friction Coefficient: total history time = " << total_time << " with numbers of time steps = " << nb_time_steps << std::endl;
 
   // declare vector
-  this->weights = new Vector<Real>(nb_time_steps,1);
-  this->historic_velocities = new CircularVector< Vector<Real> * >(nb_time_steps, 1);
+  this->weights = new Array<Real>(nb_time_steps,1);
+  this->historic_velocities = new CircularArray< Array<Real> * >(nb_time_steps, 1);
 
   // fill the weights vector
   Real time = 0.;
@@ -66,8 +66,8 @@ HistoricVelocityFricCoef::HistoricVelocityFricCoef(ContactRigid & contact,
     time += time_step;
   }
 
-  this->generalized_sliding_velocities = new Vector<Real>(0,1);
-  this->node_stick_status = new Vector<bool>(0,1);
+  this->generalized_sliding_velocities = new Array<Real>(0,1);
+  this->node_stick_status = new Array<bool>(0,1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -86,10 +86,10 @@ HistoricVelocityFricCoef::HistoricVelocityFricCoef(ContactRigid & contact,
   std::cout << " * Historic Velocity Friction Coefficient: not used, only inherited from." << std::endl;
 
   // declare vector
-  this->weights = new Vector<Real>(0,1);
-  this->historic_velocities = new CircularVector< Vector<Real> * >(0, 1);
-  this->generalized_sliding_velocities = new Vector<Real>(0,1);
-  this->node_stick_status = new Vector<bool>(0,1);
+  this->weights = new Array<Real>(0,1);
+  this->historic_velocities = new CircularArray< Array<Real> * >(0, 1);
+  this->generalized_sliding_velocities = new Array<Real>(0,1);
+  this->node_stick_status = new Array<bool>(0,1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -126,7 +126,7 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
   AKANTU_DEBUG_ASSERT(it != imp_info.end(), 
 		      "Couldn't find impactor information object for master surface " << master_surface);
   ContactRigid::ImpactorInformationPerMaster * impactor_info = it->second;
-  Vector<UInt> * active_nodes = impactor_info->active_impactor_nodes;
+  Array<UInt> * active_nodes = impactor_info->active_impactor_nodes;
   UInt nb_active_nodes = active_nodes->getSize();
 
   Real time_step = this->contact.getModel().getTimeStep();
@@ -151,7 +151,7 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
   // resize the vectors in the historic velocities
   UInt nb_historic_velocities = this->historic_velocities->getSize();
   for (UInt i=0; i<nb_historic_velocities; ++i) {
-    Vector<Real> * historic_velocity = (*historic_velocities)(i);
+    Array<Real> * historic_velocity = (*historic_velocities)(i);
     if (historic_velocity != NULL) {
       historic_velocity->resize(nb_nodes); // the new values are initialized to zero
     }
@@ -164,19 +164,19 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
   // advance circular vector and access the velocities
   historic_velocities->makeStep();
   if ((*historic_velocities)(nb_historic_velocities-1) == NULL)
-     (*historic_velocities)(nb_historic_velocities-1) =  new Vector<Real>(nb_nodes,1);
+     (*historic_velocities)(nb_historic_velocities-1) =  new Array<Real>(nb_nodes,1);
   else {
     (*historic_velocities)(nb_historic_velocities-1)->clear();
   }
-  Vector<Real> * current_velocities = (*historic_velocities)(nb_historic_velocities-1);
+  Array<Real> * current_velocities = (*historic_velocities)(nb_historic_velocities-1);
   Real * velocity_val = this->contact.getModel().getVelocity().values;
   
   // access the master normals
-  Vector<Real> * master_normals = impactor_info->master_normals;
+  Array<Real> * master_normals = impactor_info->master_normals;
   Real * master_normals_val = master_normals->values;
 
   // norms for each point
-  Vector<Real> norms(nb_nodes,1);
+  Array<Real> norms(nb_nodes,1);
 
   // loop over all nodes in here
   for(UInt n = 0; n < nb_nodes; ++n) {
@@ -237,9 +237,9 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
     Compute the weighted average of sliding velocity
   */
   
-  Vector<Real> results(nb_nodes, 1);
+  Array<Real> results(nb_nodes, 1);
   for (UInt i=0; i<nb_historic_velocities; ++i) {
-    Vector<Real> * velocities = (*historic_velocities)(i);
+    Array<Real> * velocities = (*historic_velocities)(i);
     if (velocities == NULL) continue;
 
     // set inactive nodes to zero
@@ -250,7 +250,7 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
 
     // multiply with weight   
     Real weight = (*weights)(i);
-    Vector<Real> weighted_velocities(0,1);
+    Array<Real> weighted_velocities(0,1);
     weighted_velocities.copy(*velocities);
     weighted_velocities *= weight * time_step;
     
@@ -270,7 +270,7 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
   // resize the relative sliding velocity vector to the nb of active impactor nodes
   this->generalized_sliding_velocities->resize(nb_active_nodes);
   this->node_stick_status->resize(nb_active_nodes);
-  Vector<bool> * stick_info = impactor_info->node_is_sticking;
+  Array<bool> * stick_info = impactor_info->node_is_sticking;
 
   for (UInt i=0; i<nb_active_nodes; ++i) {
     UInt node = (*active_nodes)(i);

@@ -42,8 +42,8 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 NodesNeighborList::NodesNeighborList(const ID & id) :
   NeighborList(id),
-  master_nodes_offset(Vector<UInt>(0, 1, "master_nodes_offset")),
-  master_nodes       (Vector<UInt>(0, 1, "master_nodes")) {
+  master_nodes_offset(Array<UInt>(0, 1, "master_nodes_offset")),
+  master_nodes       (Array<UInt>(0, 1, "master_nodes")) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -268,7 +268,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 
   Int directional_cell[spatial_dimension];
   UInt nb_surface_nodes = surface_to_nodes_offset[nb_surfaces];
-  Vector<Int> * cell = new Vector<Int>(nb_surface_nodes, 1, not_grid_space_surface);
+  Array<Int> * cell = new Array<Int>(nb_surface_nodes, 1, not_grid_space_surface);
   Int * cell_val = cell->values;
 
   /// define the cell number for all surface nodes
@@ -411,7 +411,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
 template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int directional_nb_cells[spatial_dimension],
 									    UInt nb_cells,
-									    Vector<Int> * cell,
+									    Array<Int> * cell,
 									    UInt * impactor_nodes_cell_offset,
 									    UInt * impactor_nodes_cell,
 									    UInt * master_nodes_cell_offset,
@@ -456,27 +456,27 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
   for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
     ElementType type = facet_type[el_type];
 
-    const Vector<UInt> & node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset(type, _not_ghost);
-    const Vector<UInt> & node_to_elements = contact_search.getContact().getNodeToElements(type, _not_ghost);
+    const Array<UInt> & node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset(type, _not_ghost);
+    const Array<UInt> & node_to_elements = contact_search.getContact().getNodeToElements(type, _not_ghost);
 
     UInt * node_to_elements_offset_val = node_to_elements_offset.values;
     UInt * node_to_elements_val        = node_to_elements.values;
 
     UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).values;
 
-    Vector<bool> * visited_node = new Vector<bool>(nb_impactor_nodes, 1, false); // does it need a delete at the end ?
+    Array<bool> * visited_node = new Array<bool>(nb_impactor_nodes, 1, false); // does it need a delete at the end ?
     bool * visited_node_val = visited_node->values;
     UInt neighbor_cells[max_nb_neighbor_cells];
 
     //    std::stringstream sstr_name_offset;
     //    sstr_name_offset << id << ":facets_offset:" << type;
     neighbor_list->facets_offset.alloc(0, 1, type, _not_ghost);
-    Vector<UInt> & tmp_facets_offset = (neighbor_list->facets_offset(type, _not_ghost));
+    Array<UInt> & tmp_facets_offset = (neighbor_list->facets_offset(type, _not_ghost));
 
     //    std::stringstream sstr_name;
     //    sstr_name << id << ":facets:" << type;
     neighbor_list->facets.alloc(0, 1, type, _not_ghost);// declare vector that is ??
-    Vector<UInt> & tmp_facets = (neighbor_list->facets(type, _not_ghost));
+    Array<UInt> & tmp_facets = (neighbor_list->facets(type, _not_ghost));
 
     for(UInt in = 0; in < nb_impactor_nodes; ++in) {
       UInt current_impactor_node = impactor_nodes_cell[in];
@@ -562,7 +562,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
 template<UInt spatial_dimension>
 void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList(Int directional_nb_cells[spatial_dimension],
 										 UInt nb_cells,
-										 Vector<Int> * cell,
+										 Array<Int> * cell,
 										 UInt * impactor_nodes_cell_offset,
 										 UInt * impactor_nodes_cell,
 										 UInt * master_nodes_cell_offset,

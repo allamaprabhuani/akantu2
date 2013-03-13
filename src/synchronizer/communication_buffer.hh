@@ -82,10 +82,10 @@ public:
   inline CommunicationBuffer & operator<< (const T & to_pack);
 
   template<typename T>
-  inline CommunicationBuffer & operator<< (const types::Vector<T> & to_pack);
+  inline CommunicationBuffer & operator<< (const Vector<T> & to_pack);
 
   template<typename T>
-  inline CommunicationBuffer & operator<< (const types::Matrix<T> & to_pack);
+  inline CommunicationBuffer & operator<< (const Matrix<T> & to_pack);
 
 
   /// unpacking data
@@ -93,10 +93,10 @@ public:
   inline CommunicationBuffer & operator>> (T & to_unpack);
 
   template<typename T>
-  inline CommunicationBuffer & operator>> (types::Vector<T> & to_unpack);
+  inline CommunicationBuffer & operator>> (Vector<T> & to_unpack);
 
   template<typename T>
-  inline CommunicationBuffer & operator>> (types::Matrix<T> & to_unpack);
+  inline CommunicationBuffer & operator>> (Matrix<T> & to_unpack);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
@@ -121,7 +121,7 @@ private:
   char * ptr_unpack;
 
   /// storing buffer
-  Vector<char> buffer;
+  Array<char> buffer;
 };
 
 

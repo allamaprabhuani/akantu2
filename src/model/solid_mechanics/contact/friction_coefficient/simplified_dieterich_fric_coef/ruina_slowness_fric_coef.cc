@@ -47,8 +47,8 @@ RuinaSlownessFricCoef<compute_analytic_solution>::RuinaSlownessFricCoef(ContactR
 		      "The master surface: " << master_surface << "couldn't be found in impactors_information map");
   std::vector<Surface> * imp_surfaces = it->second->impactor_surfaces;
 
-  const Vector<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
-  const Vector<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
+  const Array<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
+  const Array<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
   UInt * surface_to_nodes_offset_val = surface_to_nodes_offset.values;
   UInt * surface_to_nodes_val = surface_to_nodes.values;
 
@@ -62,9 +62,9 @@ RuinaSlownessFricCoef<compute_analytic_solution>::RuinaSlownessFricCoef(ContactR
   }
   
   UInt node_to_index_size = this->node_to_index.size();
-  this->are_active_impactor_nodes = new Vector<bool>(node_to_index_size, 1, false);
-  this->were_active_impactor_nodes = new Vector<bool>(node_to_index_size, 1, false);
-  this->previous_theta_state_variables = new Vector<Real>(node_to_index_size, 1, 0.);
+  this->are_active_impactor_nodes = new Array<bool>(node_to_index_size, 1, false);
+  this->were_active_impactor_nodes = new Array<bool>(node_to_index_size, 1, false);
+  this->previous_theta_state_variables = new Array<Real>(node_to_index_size, 1, 0.);
 
   AKANTU_DEBUG_OUT();
 }
@@ -101,7 +101,7 @@ void RuinaSlownessFricCoef<compute_analytic_solution>::initializeComputeFricCoef
   ContactRigid::ImpactorInformationPerMaster * impactor_info = it->second;
 
   // find the current active impactor nodes
-  Vector<UInt> * active_nodes = impactor_info->active_impactor_nodes;
+  Array<UInt> * active_nodes = impactor_info->active_impactor_nodes;
   UInt * active_nodes_val = active_nodes->values;
 
   UInt nb_impactor_nodes = this->node_to_index.size();
@@ -149,7 +149,7 @@ void RuinaSlownessFricCoef<compute_analytic_solution>::initializeComputeFricCoef
   }
 
   // set to zero all thetas which were not computed at this time step
-  Vector<bool> * tmp;
+  Array<bool> * tmp;
   tmp = this->were_active_impactor_nodes;
   this->were_active_impactor_nodes = this->are_active_impactor_nodes;
   this->are_active_impactor_nodes = tmp;
@@ -170,8 +170,8 @@ void RuinaSlownessFricCoef<compute_analytic_solution>::addImpactorSurface(const 
   Real * end_theta_ptr = &(this->previous_theta_state_variables->values[this->previous_theta_state_variables->getSize()]);
 
   // add new impactor nodes to the map
-  const Vector<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
-  const Vector<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
+  const Array<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
+  const Array<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
   UInt * surface_to_nodes_val = surface_to_nodes.values;
 
   UInt min_surf_offset = surface_to_nodes_val[impactor_surface];

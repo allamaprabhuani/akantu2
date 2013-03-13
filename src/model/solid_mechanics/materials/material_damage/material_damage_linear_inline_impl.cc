@@ -31,8 +31,8 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialDamageLinear<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
-							     types::RMatrix & sigma,
+MaterialDamageLinear<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
+							     Matrix<Real> & sigma,
 							     Real & dam,
 							     Real & K) {
   Real Fdiag[3];

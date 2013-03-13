@@ -34,28 +34,28 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<>
-void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_2>(Vector<Real> & N_matrix) {
+void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_2>(Array<Real> & N_matrix) {
   AKANTU_DEBUG_IN();
   MyFEMType & fem = getFEMClass<MyFEMType>();
   UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(_bernoulli_beam_2);
 
-  Vector<Real>::const_iterator<types::RVector> shape_N0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_M0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_L0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_Mp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 3).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_Lp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 4).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_N0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_M0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_L0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_Mp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 3).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_Lp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 4).begin(nb_nodes_per_element);
 
   N_matrix.clear();
-  Vector<Real>::iterator<types::RMatrix> N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
-  Vector<Real>::iterator<types::RMatrix> N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::iterator< Matrix<Real> > N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::iterator< Matrix<Real> > N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
 
   for (;N_it != N_end; ++N_it, ++shape_N0, ++shape_M0, ++shape_L0, ++shape_Mp, ++shape_Lp) {
-    types::Matrix<Real> & N = *N_it;
-    const types::Vector<Real> & N0 = *shape_N0;
-    const types::Vector<Real> & M0 = *shape_M0;
-    const types::Vector<Real> & L0 = *shape_L0;
-    const types::Vector<Real> & Mp = *shape_Mp;
-    const types::Vector<Real> & Lp = *shape_Lp;
+    Matrix<Real> & N = *N_it;
+    const Vector<Real> & N0 = *shape_N0;
+    const Vector<Real> & M0 = *shape_M0;
+    const Vector<Real> & L0 = *shape_L0;
+    const Vector<Real> & Mp = *shape_Mp;
+    const Vector<Real> & Lp = *shape_Lp;
 
     N(0,0) = N0(0);
     N(0,3) = N0(1);
@@ -76,7 +76,7 @@ void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_
 
 /* -------------------------------------------------------------------------- */
 template<>
-void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_3>(Vector<Real> & N_matrix) {
+void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_3>(Array<Real> & N_matrix) {
   AKANTU_DEBUG_IN();
 
   ElementType type = _bernoulli_beam_3;
@@ -84,23 +84,23 @@ void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_
   MyFEMType & fem = getFEMClass<MyFEMType>();
   UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(type);
 
-  Vector<Real>::const_iterator<types::RVector> shape_N0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 0).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_M0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 1).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_L0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 2).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_Mp = fem.getShapeFunctions().getShapes(type, _not_ghost, 3).begin(nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> shape_Lp = fem.getShapeFunctions().getShapes(type, _not_ghost, 4).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_N0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_M0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_L0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_Mp = fem.getShapeFunctions().getShapes(type, _not_ghost, 3).begin(nb_nodes_per_element);
+  Array<Real>::const_iterator< Vector<Real> > shape_Lp = fem.getShapeFunctions().getShapes(type, _not_ghost, 4).begin(nb_nodes_per_element);
 
   N_matrix.clear();
-  Vector<Real>::iterator<types::RMatrix> N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
-  Vector<Real>::iterator<types::RMatrix> N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::iterator< Matrix<Real> > N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::iterator< Matrix<Real> > N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
 
   for (; N_it != N_end; ++N_it, ++shape_N0, ++shape_M0, ++shape_L0, ++shape_Mp, ++shape_Lp) {
-    types::Matrix<Real> & N = *N_it;
-    const types::Vector<Real> & N0 = *shape_N0;
-    const types::Vector<Real> & M0 = *shape_M0;
-    const types::Vector<Real> & L0 = *shape_L0;
-    const types::Vector<Real> & Mp = *shape_Mp;
-    const types::Vector<Real> & Lp = *shape_Lp;
+    Matrix<Real> & N = *N_it;
+    const Vector<Real> & N0 = *shape_N0;
+    const Vector<Real> & M0 = *shape_M0;
+    const Vector<Real> & L0 = *shape_L0;
+    const Vector<Real> & Mp = *shape_Mp;
+    const Vector<Real> & Lp = *shape_Lp;
 
     N(0,0)  =  N0(0);
     N(0,6)  =  N0(1);

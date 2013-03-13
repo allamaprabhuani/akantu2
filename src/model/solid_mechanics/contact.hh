@@ -108,9 +108,9 @@ public:
 
   AKANTU_GET_MACRO(ContactSearch, * contact_search, const ContactSearch &);
 
-  AKANTU_GET_MACRO(SurfaceToNodesOffset, surface_to_nodes_offset, const Vector<UInt> &);
+  AKANTU_GET_MACRO(SurfaceToNodesOffset, surface_to_nodes_offset, const Array<UInt> &);
 
-  AKANTU_GET_MACRO(SurfaceToNodes, surface_to_nodes, const Vector<UInt> &);
+  AKANTU_GET_MACRO(SurfaceToNodes, surface_to_nodes, const Array<UInt> &);
 
   AKANTU_GET_MACRO(MasterSurfaces, master_surfaces, const std::vector<Surface> &);
 
@@ -145,10 +145,10 @@ protected:
 
 private:
   /// offset of nodes per surface
-  Vector<UInt> surface_to_nodes_offset;
+  Array<UInt> surface_to_nodes_offset;
 
   /// list of surface nodes @warning Node can occur multiple time
-  Vector<UInt> surface_to_nodes;
+  Array<UInt> surface_to_nodes;
 
   /// \todo change the too vector by a csr
   /// offset of surface elements per surface node

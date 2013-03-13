@@ -73,34 +73,34 @@ public:
     std::vector<Surface> * impactor_surfaces;
 
     /// list of active impactor nodes
-    Vector<UInt> * active_impactor_nodes;  
+    Array<UInt> * active_impactor_nodes;  
 
     // the offset of the associated master surface elemet
-    //Vector<UInt> * master_element_offset;
+    //Array<UInt> * master_element_offset;
 
     /// the element type of the associated master surface element
     std::vector<ElementType> * master_element_type;
   
     /// the normal to the master surface element for each active impactor node
-    Vector<Real> * master_normals;
+    Array<Real> * master_normals;
     
     /// show if node is sticking
-    Vector<bool> * node_is_sticking;
+    Array<bool> * node_is_sticking;
 
     /// friction force for each
-    Vector<Real> * friction_forces;
+    Array<Real> * friction_forces;
     
     /// stick position for regularized friction
-    Vector<Real> * stick_positions;
+    Array<Real> * stick_positions;
 
     /// residual forces without friction force
-    Vector<Real> * residual_forces;
+    Array<Real> * residual_forces;
     
     /// velocities before predictor computation
-    Vector<Real> * previous_velocities;
+    Array<Real> * previous_velocities;
 
     /// friction resistance 
-    Vector<Real> * friction_resistances;
+    Array<Real> * friction_resistances;
   };
 
   typedef std::map<Surface, ImpactorInformationPerMaster *> SurfaceToImpactInfoMap;
@@ -149,11 +149,11 @@ public:
   virtual void removeFrictionCoefficient(const Surface master);
 
   /// put contact information into a map which can be used for restart
-  virtual void getRestartInformation(std::map<std::string, VectorBase* > & map_to_fill, 
+  virtual void getRestartInformation(std::map<std::string, ArrayBase* > & map_to_fill, 
 				     Surface master);
 
   /// put contact information into a map which can be used for restart
-  virtual void setRestartInformation(std::map<std::string, VectorBase* > & restart_map, 
+  virtual void setRestartInformation(std::map<std::string, ArrayBase* > & restart_map, 
 				     Surface master);
 
   /// compute friction based on the simplified prakash clifton regularization (cochard & rice 2000)

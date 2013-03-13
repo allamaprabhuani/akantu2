@@ -95,11 +95,11 @@ protected:
   std::map<UInt, UInt> node_to_index;
 
   /// the active impactor nodes from the precedent time step
-  Vector<bool> * are_active_impactor_nodes;
-  Vector<bool> * were_active_impactor_nodes;
+  Array<bool> * are_active_impactor_nodes;
+  Array<bool> * were_active_impactor_nodes;
 
   /// the internal theta state variable
-  Vector<Real> * previous_theta_state_variables;
+  Array<Real> * previous_theta_state_variables;
 };
 
 /* -------------------------------------------------------------------------- */

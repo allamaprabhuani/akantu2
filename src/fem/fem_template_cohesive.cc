@@ -38,10 +38,10 @@ __BEGIN_AKANTU__
 /* compatibility functions */
 /* -------------------------------------------------------------------------- */
 template <>
-Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const Vector<Real> & f,
+Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const Array<Real> & f,
 									  const ElementType & type,
 									  const GhostType & ghost_type,
-									  const Vector<UInt> * filter_elements) const{
+									  const Array<UInt> * filter_elements) const{
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
@@ -75,12 +75,12 @@ Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const 
 /* -------------------------------------------------------------------------- */
 template <>
 void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
-::integrate(const Vector<Real> & f,
-	    Vector<Real> &intf,
+::integrate(const Array<Real> & f,
+	    Array<Real> &intf,
 	    UInt nb_degree_of_freedom,
 	    const ElementType & type,
 	    const GhostType & ghost_type,
-	    const Vector<UInt> * filter_elements) const{
+	    const Array<UInt> * filter_elements) const{
 
 #ifndef AKANTU_NDEBUG
   UInt nb_element = mesh->getNbElement(type, ghost_type);
@@ -116,12 +116,12 @@ void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
 /* -------------------------------------------------------------------------- */
 template <>
 void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
-gradientOnQuadraturePoints(__attribute__((unused)) const Vector<Real> &u,
-			   __attribute__((unused)) Vector<Real> &nablauq,
+gradientOnQuadraturePoints(__attribute__((unused)) const Array<Real> &u,
+			   __attribute__((unused)) Array<Real> &nablauq,
 			   __attribute__((unused)) const UInt nb_degree_of_freedom,
 			   __attribute__((unused)) const ElementType & type,
 			   __attribute__((unused)) const GhostType & ghost_type,
-			   __attribute__((unused)) const Vector<UInt> * filter_elements) const {
+			   __attribute__((unused)) const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

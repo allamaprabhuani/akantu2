@@ -42,8 +42,8 @@ public:
   typedef i_type              it_type;
   typedef d_type              data_type;
   typedef ret_type<data_type> return_type;
-  typedef ByElementTypeVector<it_type> field_type;
-  typedef typename Vector<it_type>::template const_iterator< ret_type<it_type> > internal_iterator;
+  typedef ByElementTypeArray<it_type> field_type;
+  typedef typename Array<it_type>::template const_iterator< ret_type<it_type> > internal_iterator;
 public:
   element_iterator(const field_type & field,
 		   UInt n,
@@ -61,7 +61,7 @@ public:
 							      vit(it),
 							      ghost_type(ghost_type) {
     UInt nb_data = getNbDataPerElem(element_type);
-    const Vector<it_type> & vect = field(element_type, ghost_type);
+    const Array<it_type> & vect = field(element_type, ghost_type);
     UInt size = vect.getSize() / nb_data;
     UInt ln = n;
     if(n == 0) ln = vect.getNbComponent();
@@ -79,7 +79,7 @@ public:
       ++tit;
       if(tit != tit_end) {
 	UInt nb_data = getNbDataPerElem(*tit);
-	const Vector<it_type> & vect = field(*tit, ghost_type);
+	const Array<it_type> & vect = field(*tit, ghost_type);
 	UInt size = vect.getSize() / nb_data;
 	UInt ln = n, lm;
 	if(n == 0) ln = vect.getNbComponent();
@@ -149,11 +149,11 @@ private:
 
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper::element_type_field_iterator : public element_iterator<UInt, iohelper::ElemType,
-									    types::Vector,
+									    Vector,
 									    element_type_field_iterator> {
 public:
   typedef element_iterator<UInt, iohelper::ElemType,
-			   types::Vector, element_type_field_iterator> parent;
+			   Vector, element_type_field_iterator> parent;
 
   typedef parent::it_type     it_type;
   typedef parent::data_type   data_type;
@@ -179,11 +179,11 @@ public:
 
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper::element_partition_field_iterator : public element_iterator<UInt, UInt,
-										 types::Vector,
+										 Vector,
 										 element_partition_field_iterator> {
 public:
   typedef element_iterator<UInt, UInt,
-			   types::Vector, element_partition_field_iterator> parent;
+			   Vector, element_partition_field_iterator> parent;
 
   typedef parent::it_type     it_type;
   typedef parent::data_type   data_type;
@@ -215,7 +215,7 @@ protected:
 template<typename T, class iterator_type, template<class> class ret_type>
 class DumperIOHelper::GenericElementalField : public Field {
 public:
-  GenericElementalField(const ByElementTypeVector<T> & field,
+  GenericElementalField(const ByElementTypeArray<T> & field,
 			UInt spatial_dimension = 0,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined) :
@@ -226,7 +226,7 @@ public:
     if(homogeneous && n == 0) n = nb_component;
   }
 
-  GenericElementalField(const ByElementTypeVector<T> & field,
+  GenericElementalField(const ByElementTypeArray<T> & field,
 			UInt n,
 			UInt spatial_dimension = 0,
 			GhostType ghost_type = _not_ghost,
@@ -239,13 +239,13 @@ public:
 
   typedef iterator_type iterator;
   typedef typename iterator::internal_iterator internal_iterator;
-  typedef typename ByElementTypeVector<T>::type_iterator type_iterator;
+  typedef typename ByElementTypeArray<T>::type_iterator type_iterator;
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
     type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
     type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
 
-    const Vector<T> & vect = field(*tit, ghost_type);
+    const Array<T> & vect = field(*tit, ghost_type);
     UInt nb_data = getNbDataPerElem(*tit);
     UInt nb_component = vect.getNbComponent();
     UInt size = vect.getSize() / nb_data;
@@ -265,7 +265,7 @@ public:
     ElementType type = *tit;
     for (; tit != end; ++tit) type = *tit;
 
-    const Vector<T> & vect = field(type, ghost_type);
+    const Array<T> & vect = field(type, ghost_type);
     UInt nb_data = getNbDataPerElem(type);
     UInt nb_component = vect.getNbComponent();
     UInt size = vect.getSize() / nb_data;
@@ -298,7 +298,7 @@ public:
 protected:
   virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 
-  virtual bool checkHomogeneity(const ByElementTypeVector<T> & field_to_check,
+  virtual bool checkHomogeneity(const ByElementTypeArray<T> & field_to_check,
 				UInt & nb_comp, UInt & nb_elem) {
     type_iterator tit = field_to_check.firstType(spatial_dimension, ghost_type, element_kind);
     type_iterator end = field_to_check.lastType(spatial_dimension, ghost_type, element_kind);
@@ -310,7 +310,7 @@ protected:
     if(tit != end) {
       nb_comp = field_to_check(*tit, ghost_type).getNbComponent() * nb_data;
       for(;tit != end; ++tit) {
-	const Vector<T> & vect = field_to_check(*tit, ghost_type);
+	const Array<T> & vect = field_to_check(*tit, ghost_type);
 	UInt nb_data_cur = getNbDataPerElem(*tit);
 	UInt nb_element = vect.getSize() / nb_data_cur;
 	UInt nb_comp_cur = vect.getNbComponent() * nb_data_cur;
@@ -325,7 +325,7 @@ protected:
   }
 
 protected:
-  const ByElementTypeVector<T> & field;
+  const ByElementTypeArray<T> & field;
   UInt nb_total_element;
   UInt spatial_dimension;
   GhostType ghost_type;
@@ -340,7 +340,7 @@ class DumperIOHelper::ElementalField : public GenericElementalField<T, elemental
 public:
   typedef elemental_field_iterator<T, ret_type> iterator;
 
-  ElementalField(const ByElementTypeVector<T> & field,
+  ElementalField(const ByElementTypeArray<T> & field,
 		 UInt spatial_dimension = 0,
 		 GhostType ghost_type = _not_ghost,
 		 ElementKind element_kind = _ek_not_defined) :
@@ -349,27 +349,27 @@ public:
 };
 
 template<typename T>
-class DumperIOHelper::ElementalField<T, types::Matrix> : public GenericElementalField<T, elemental_field_iterator<T, types::Matrix>, types::Matrix> {
+class DumperIOHelper::ElementalField<T, Matrix> : public GenericElementalField<T, elemental_field_iterator<T, Matrix>, Matrix> {
 public:
-  typedef elemental_field_iterator<T, types::Matrix> iterator;
+  typedef elemental_field_iterator<T, Matrix> iterator;
 
-  ElementalField(const ByElementTypeVector<T> & field,
+  ElementalField(const ByElementTypeArray<T> & field,
 		 UInt n,
 		 UInt spatial_dimension = 0,
 		 GhostType ghost_type = _not_ghost,
 		 ElementKind element_kind = _ek_not_defined) :
-    GenericElementalField<T, iterator, types::Matrix>(field, n, spatial_dimension,
+    GenericElementalField<T, iterator, Matrix>(field, n, spatial_dimension,
 						      ghost_type, element_kind) { }
 };
 
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper::ElementTypeField : public GenericElementalField<UInt,
 								      element_type_field_iterator,
-								      types::Vector> {
+								      Vector> {
 public:
   typedef element_type_field_iterator iterator;
 private:
-  typedef GenericElementalField<UInt, iterator, types::Vector> parent;
+  typedef GenericElementalField<UInt, iterator, Vector> parent;
 public:
   /* ------------------------------------------------------------------------ */
   ElementTypeField(const Mesh & mesh,
@@ -392,11 +392,11 @@ public:
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper::ElementPartitionField : public GenericElementalField<UInt,
 									   element_partition_field_iterator,
-									   types::Vector> {
+									   Vector> {
 public:
   typedef element_partition_field_iterator iterator;
 private:
-  typedef GenericElementalField<UInt, iterator, types::Vector> parent;
+  typedef GenericElementalField<UInt, iterator, Vector> parent;
 public:
   /* ------------------------------------------------------------------------ */
   ElementPartitionField(const Mesh & mesh,

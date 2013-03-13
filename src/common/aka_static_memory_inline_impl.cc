@@ -28,7 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline const VectorMap & StaticMemory::getMemory(const MemoryID & memory_id) const {
+inline const ArrayMap & StaticMemory::getMemory(const MemoryID & memory_id) const {
   AKANTU_DEBUG_IN();
   MemoryMap::const_iterator memory_it;
   memory_it = memories.find(memory_id);
@@ -42,13 +42,13 @@ inline const VectorMap & StaticMemory::getMemory(const MemoryID & memory_id) con
 }
 
 /* -------------------------------------------------------------------------- */
-inline const VectorBase & StaticMemory::getVector(const MemoryID & memory_id,
+inline const ArrayBase & StaticMemory::getArray(const MemoryID & memory_id,
 						  const ID & name) const {
   AKANTU_DEBUG_IN();
 
-  const VectorMap & vectors = getMemory(memory_id);
+  const ArrayMap & vectors = getMemory(memory_id);
 
-  VectorMap::const_iterator vectors_it;
+  ArrayMap::const_iterator vectors_it;
   vectors_it = vectors.find(name);
   if(vectors_it == vectors.end()) {
     AKANTU_EXCEPTION("StaticMemory as no array named " << name

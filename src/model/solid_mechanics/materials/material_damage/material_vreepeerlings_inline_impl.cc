@@ -33,14 +33,14 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
-							      types::RMatrix & sigma,
+MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
+							      Matrix<Real> & sigma,
 							      Real & dam,
 							      Real & Equistrain,
 							      Real & Equistrain_rate,
 							      Real & Kapaq,
 							      Real dt,
-							      types::RMatrix & strain_rate_vrplgs,
+							      Matrix<Real> & strain_rate_vrplgs,
 							      Real & crit_strain) {
   Real I1=0.;
   Real J2=0.;
@@ -148,7 +148,7 @@ MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(types::RMatrix & g
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialVreePeerlings<spatial_dimension>::computeDamageAndStressOnQuad(types::RMatrix & sigma,
+MaterialVreePeerlings<spatial_dimension>::computeDamageAndStressOnQuad(Matrix<Real> & sigma,
 								       Real & dam,
 								       Real & Equistrain,
 								       Real & Equistrain_rate,

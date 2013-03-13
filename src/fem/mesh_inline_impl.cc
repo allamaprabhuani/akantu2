@@ -55,17 +55,17 @@ inline void Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) 
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
-  if(created_nodes)    removeNodesFromVector(*nodes           , event.getNewNumbering());
-  if(nodes_global_ids) removeNodesFromVector(*nodes_global_ids, event.getNewNumbering());
-  if(nodes_type)       removeNodesFromVector(*nodes_type      , event.getNewNumbering());
+  if(created_nodes)    removeNodesFromArray(*nodes           , event.getNewNumbering());
+  if(nodes_global_ids) removeNodesFromArray(*nodes_global_ids, event.getNewNumbering());
+  if(nodes_type)       removeNodesFromArray(*nodes_type      , event.getNewNumbering());
 
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Mesh::removeNodesFromVector(Vector<T> & vect, const Vector<UInt> & new_numbering) {
-  Vector<T> tmp(vect.getSize(), vect.getNbComponent());
+inline void Mesh::removeNodesFromArray(Array<T> & vect, const Array<UInt> & new_numbering) {
+  Array<T> tmp(vect.getSize(), vect.getNbComponent());
   UInt nb_component = vect.getNbComponent();
   UInt new_nb_nodes = 0;
   for (UInt i = 0; i < new_numbering.getSize(); ++i) {
@@ -138,7 +138,7 @@ inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(const Gh
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getNodesGlobalIdsPointer() {
+inline Array<UInt> * Mesh::getNodesGlobalIdsPointer() {
   AKANTU_DEBUG_IN();
   if(nodes_global_ids == NULL) {
     std::stringstream sstr; sstr << id << ":nodes_global_ids";
@@ -149,7 +149,7 @@ inline Vector<UInt> * Mesh::getNodesGlobalIdsPointer() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Int> * Mesh::getNodesTypePointer() {
+inline Array<Int> * Mesh::getNodesTypePointer() {
   AKANTU_DEBUG_IN();
   if(nodes_type == NULL) {
     std::stringstream sstr; sstr << id << ":nodes_type";
@@ -160,11 +160,11 @@ inline Vector<Int> * Mesh::getNodesTypePointer() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
+inline Array<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 						   const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> * tmp;
+  Array<UInt> * tmp;
   if(!connectivities.exists(type, ghost_type)) {
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
@@ -187,11 +187,11 @@ inline Vector<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type,
+inline Array<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type,
 						const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> * tmp;
+  Array<UInt> * tmp;
   if(!surface_id.exists(type, ghost_type)) {
     tmp = &(surface_id.alloc(0, 1, type, ghost_type));
     AKANTU_DEBUG_INFO("The surface id vector for the type "
@@ -205,11 +205,11 @@ inline Vector<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector< std::vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type,
+inline Array< std::vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type,
 									    const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector< std::vector<Element> > * tmp;
+  Array< std::vector<Element> > * tmp;
   if(!element_to_subelement.exists(type, ghost_type)) {
     tmp = &(element_to_subelement.alloc(0, 1, type, ghost_type));
 
@@ -224,11 +224,11 @@ inline Vector< std::vector<Element> > * Mesh::getElementToSubelementPointer(cons
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Element > * Mesh::getSubelementToElementPointer(const ElementType & type,
+inline Array<Element > * Mesh::getSubelementToElementPointer(const ElementType & type,
 							      const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<Element > * tmp;
+  Array<Element > * tmp;
   if(!subelement_to_element.exists(type, ghost_type)) {
 
     UInt nb_facets = getNbFacetsPerElement(type);
@@ -246,19 +246,19 @@ inline Vector<Element > * Mesh::getSubelementToElementPointer(const ElementType 
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
+inline Array<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
 					       const std::string & data_name,
 					       const GhostType & ghost_type) {
   //  AKANTU_DEBUG_IN();
 
-  Vector<UInt> * data;
+  Array<UInt> * data;
   // if(!uint_data.exists(el_type, ghost_type)){
   //   uint_data(UIntDataMap(), el_type, ghost_type);
   // }
   UIntDataMap & map = uint_data(el_type, ghost_type);
   UIntDataMap::iterator it = map.find(data_name);
   if(it == map.end()) {
-    data = new Vector<UInt>(0, 1, data_name);
+    data = new Array<UInt>(0, 1, data_name);
     map[data_name] = data;
   } else {
     data = it->second;
@@ -269,7 +269,7 @@ inline Vector<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Vector<UInt> & Mesh::getUIntData(const ElementType & el_type,
+inline const Array<UInt> & Mesh::getUIntData(const ElementType & el_type,
 					      const std::string & data_name,
 					      const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
@@ -298,7 +298,7 @@ inline UInt Mesh::getNbElement(const ElementType & type,
   AKANTU_DEBUG_IN();
 
   try {
-    const Vector<UInt> & conn = connectivities(type, ghost_type);
+    const Array<UInt> & conn = connectivities(type, ghost_type);
     AKANTU_DEBUG_OUT();
     return conn.getSize();
   } catch (...) {
@@ -413,10 +413,10 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline types::Matrix<UInt> Mesh::getFacetLocalConnectivity(const ElementType & type) {
+inline Matrix<UInt> Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  types::Matrix<UInt> mat;
+  Matrix<UInt> mat;
 
 #define GET_FACET_CON(type)						\
   mat = ElementClass<type>::getFacetLocalConnectivityPerElement()
@@ -429,15 +429,15 @@ inline types::Matrix<UInt> Mesh::getFacetLocalConnectivity(const ElementType & t
 }
 
 /* -------------------------------------------------------------------------- */
-inline types::Matrix<UInt> Mesh::getFacetConnectivity(UInt element,
+inline Matrix<UInt> Mesh::getFacetConnectivity(UInt element,
 						      const ElementType & type,
 						      const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  types::Matrix<UInt> local_facets = getFacetLocalConnectivity(type);
-  types::Matrix<UInt> facets(local_facets.rows(), local_facets.cols());
+  Matrix<UInt> local_facets = getFacetLocalConnectivity(type);
+  Matrix<UInt> facets(local_facets.rows(), local_facets.cols());
 
-  const Vector<UInt> & conn = connectivities(type, ghost_type);
+  const Array<UInt> & conn = connectivities(type, ghost_type);
 
   for (UInt f = 0; f < facets.rows(); ++f) {
     for (UInt n = 0; n < facets.cols(); ++n) {
@@ -452,7 +452,7 @@ inline types::Matrix<UInt> Mesh::getFacetConnectivity(UInt element,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Mesh::extractNodalValuesFromElement(const Vector<T> & nodal_values,
+inline void Mesh::extractNodalValuesFromElement(const Array<T> & nodal_values,
 						T * local_coord,
 						UInt * connectivity,
 						UInt n_nodes,

@@ -56,21 +56,21 @@ public:
 
 
   virtual void integrationSchemePred(Real delta_t,
-				     Vector<Real> & u,
-				     Vector<Real> & u_dot,
-				     Vector<bool> & boundary) = 0;
+				     Array<Real> & u,
+				     Array<Real> & u_dot,
+				     Array<bool> & boundary) = 0;
 
   virtual void integrationSchemeCorrTemp(Real delta_t,
-					 Vector<Real> & u,
-					 Vector<Real> & u_dot,
-					 Vector<bool> & boundary,
-					 Vector<Real> & delta) = 0;
+					 Array<Real> & u,
+					 Array<Real> & u_dot,
+					 Array<bool> & boundary,
+					 Array<Real> & delta) = 0;
 
   virtual void integrationSchemeCorrTempRate(Real delta_t,
-					     Vector<Real> & u,
-					     Vector<Real> & u_dot,
-					     Vector<bool> & boundary,
-					     Vector<Real> & delta) = 0;
+					     Array<Real> & u,
+					     Array<Real> & u_dot,
+					     Array<bool> & boundary,
+					     Array<Real> & delta) = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

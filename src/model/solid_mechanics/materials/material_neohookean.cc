@@ -77,7 +77,7 @@ void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(ElementType e
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::computeTangentModuli(const ElementType & el_type,
-								 Vector<Real> & tangent_matrix,
+								 Array<Real> & tangent_matrix,
 								 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -94,17 +94,17 @@ Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
   UInt nb_quadrature_points =
     this->model->getFEM().getNbQuadraturePoints(elem.type, elem.ghost_type);
 
-  Vector<Real>::iterator<types::RMatrix> strain_it = this->strain(elem.type, elem.ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::iterator< Matrix<Real> > strain_it = this->strain(elem.type, elem.ghost_type).begin(spatial_dimension, spatial_dimension);
   strain_it += elem.element*nb_quadrature_points;
 
   Real cele = 0.;
 
-  types::RMatrix F(3, 3);
-  types::RMatrix C(3, 3);
-  types::RMatrix Cinv(3, 3);
+  Matrix<Real> F(3, 3);
+  Matrix<Real> C(3, 3);
+  Matrix<Real> Cinv(3, 3);
 
   for (UInt q = 0; q < nb_quadrature_points; ++q, ++strain_it) {
-    types::RMatrix & grad_u = *strain_it;
+    Matrix<Real> & grad_u = *strain_it;
 
     Material::gradUToF<spatial_dimension>(grad_u, F);
     this->rightCauchy(F, C);

@@ -70,11 +70,11 @@ FEM::~FEM() {
 
 /* -------------------------------------------------------------------------- */
 void FEM::extractNodalToElementField(const Mesh & mesh,
-				     const Vector<Real> & nodal_f,
-				     Vector<Real> & elemental_f,
+				     const Array<Real> & nodal_f,
+				     Array<Real> & elemental_f,
 				     const ElementType & type,
 				     const GhostType & ghost_type,
-				     const Vector<UInt> * filter_elements) {
+				     const Array<UInt> * filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -112,11 +112,11 @@ void FEM::extractNodalToElementField(const Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 void FEM::filterQuadraturePointsData(const Mesh & mesh,
-				     const Vector<Real> & quad_f,
-				     Vector<Real> & filtered_f,
+				     const Array<Real> & quad_f,
+				     Array<Real> & filtered_f,
 				     const ElementType & type,
 				     const GhostType & ghost_type,
-				     const Vector<UInt> * filter_elements) {
+				     const Array<UInt> * filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_element = mesh.getNbElement(type, ghost_type);
@@ -157,13 +157,13 @@ void FEM::filterQuadraturePointsData(const Mesh & mesh,
 
 
 /* -------------------------------------------------------------------------- */
-void FEM::assembleVector(const Vector<Real> & elementary_vect,
-			 Vector<Real> & nodal_values,
-			 const Vector<Int> & equation_number,
+void FEM::assembleArray(const Array<Real> & elementary_vect,
+			 Array<Real> & nodal_values,
+			 const Array<Int> & equation_number,
 			 UInt nb_degree_of_freedom,
 			 const ElementType & type,
 			 const GhostType & ghost_type,
-			 const Vector<UInt> * filter_elements,
+			 const Array<UInt> * filter_elements,
 			 Real scale_factor) const {
   AKANTU_DEBUG_IN();
 
@@ -220,12 +220,12 @@ void FEM::assembleVector(const Vector<Real> & elementary_vect,
 }
 
 /* -------------------------------------------------------------------------- */
-void FEM::assembleMatrix(const Vector<Real> & elementary_mat,
+void FEM::assembleMatrix(const Array<Real> & elementary_mat,
 			 SparseMatrix & matrix,
 			 UInt nb_degree_of_freedom,
 			 const ElementType & type,
 			 const GhostType & ghost_type,
-			 const Vector<UInt> * filter_elements) const {
+			 const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
 

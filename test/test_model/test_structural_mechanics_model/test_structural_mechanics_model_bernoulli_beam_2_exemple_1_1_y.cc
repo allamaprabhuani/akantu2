@@ -64,11 +64,11 @@ int main(int argc, char *argv[]){
   UInt nb_nodes_2=nb_nodes-nb_nodes_1 - 1;
   UInt nb_element=nb_nodes-1;
 
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(beams.getNodes());
   nodes.resize(nb_nodes);
 
   beams.addConnectivityType(_bernoulli_beam_2);
-  Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
+  Array<UInt> & connectivity = const_cast<Array<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
   connectivity.resize(nb_element);
 
   for(UInt i=0; i<nb_nodes; ++i) {
@@ -117,12 +117,12 @@ int main(int argc, char *argv[]){
 
   const Real M = -3600; // Momentum at 3
 
-  Vector<Real> & forces = model.getForce();
-  Vector<Real> & displacement = model.getDisplacement();
-  Vector<bool> & boundary = model.getBoundary();
-  const Vector<Real> & N_M  = model.getStress(_bernoulli_beam_2);
+  Array<Real> & forces = model.getForce();
+  Array<Real> & displacement = model.getDisplacement();
+  Array<bool> & boundary = model.getBoundary();
+  const Array<Real> & N_M  = model.getStress(_bernoulli_beam_2);
 
-  Vector<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
+  Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
 
   for (UInt i = 0; i < nb_nodes_2; ++i) {
     element_material(i+nb_nodes_1)=1;

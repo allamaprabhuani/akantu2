@@ -55,15 +55,15 @@ int main(int argc, char *argv[]) {
   StaticMemory * st_mem = StaticMemory::getStaticMemory();
   std::cout << *st_mem << std::endl;
 
-  Vector<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
-  Vector<Real> val_on_quad(0, 2, "val_on_quad");
-  Vector<Real> grad_on_quad(0, 2, "grad_on_quad");
-  Vector<Real> int_val_on_elem(0, 2, "int_val_on_elem");
-  Vector<Real> val_on_nodes_per_elem(fem->getMesh().getNbElement(_segment_2), 2 * 2,"val_on_nodes_per_elem");
-  Vector<Real> int_val_on_nodes_per_elem(0, 2 * 2,"int_val_on_nodes_per_elem");
-  Vector<Real> assemble_val_on_nodes(0, 2,"assemble_val_on_nodes");
+  Array<Real> const_val(fem->getMesh().getNbNodes(), 2, "const_val");
+  Array<Real> val_on_quad(0, 2, "val_on_quad");
+  Array<Real> grad_on_quad(0, 2, "grad_on_quad");
+  Array<Real> int_val_on_elem(0, 2, "int_val_on_elem");
+  Array<Real> val_on_nodes_per_elem(fem->getMesh().getNbElement(_segment_2), 2 * 2,"val_on_nodes_per_elem");
+  Array<Real> int_val_on_nodes_per_elem(0, 2 * 2,"int_val_on_nodes_per_elem");
+  Array<Real> assemble_val_on_nodes(0, 2,"assemble_val_on_nodes");
 
-  const Vector<Real> & shapes = fem->getShapes(_segment_2);
+  const Array<Real> & shapes = fem->getShapes(_segment_2);
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
     const_val.values[i * 2 + 0] = 1.;
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   fem->integrate(val_on_nodes_per_elem, int_val_on_nodes_per_elem, 4, _segment_2);
   std::cout << int_val_on_nodes_per_elem << std::endl;
 
-  fem->assembleVector(int_val_on_nodes_per_elem, assemble_val_on_nodes, 2, _segment_2);
+  fem->assembleArray(int_val_on_nodes_per_elem, assemble_val_on_nodes, 2, _segment_2);
   std::cout << assemble_val_on_nodes << std::endl;
 
   delete fem;

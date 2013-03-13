@@ -105,7 +105,7 @@ protected:
 
 /* specialization */
 template<typename T, class Container>
-class DumperIOHelper::AvgHomogenizingFunctor<T, Container, types::Matrix> {
+class DumperIOHelper::AvgHomogenizingFunctor<T, Container, Matrix> {
 public:
   AvgHomogenizingFunctor(Container & cont) : cont(cont){
   }
@@ -124,7 +124,7 @@ public:
     return nb_comp;
   }
 
-  types::Matrix<T> operator()(const types::Matrix<T> & vect,
+  Matrix<T> operator()(const Matrix<T> & vect,
 			      const ElementType & type) {
     UInt nb_quad = cont.getFEM().getNbQuadraturePoints(type);
     if(nb_quad == 1) {
@@ -132,7 +132,7 @@ public:
     } else {
       UInt m = vect.rows();
       UInt n = vect.cols() / nb_quad;
-      types::Matrix<T> v(m, n);
+      Matrix<T> v(m, n);
       for (UInt q = 0; q < nb_quad; ++q)
 	for (UInt i = 0; i < m; ++i)
 	  for (UInt j = 0; j < n; ++j)
@@ -197,7 +197,7 @@ public:
   }
 
   HomogenizedField(const FEM & fem,
-		   const ByElementTypeVector<T> & field,
+		   const ByElementTypeArray<T> & field,
 		   UInt spatial_dimension = 0,
 		   GhostType ghost_type = _not_ghost,
 		   ElementKind element_kind = _ek_not_defined) :
@@ -207,7 +207,7 @@ public:
   }
 
   HomogenizedField(const FEM & fem,
-		   const ByElementTypeVector<T> & field,
+		   const ByElementTypeArray<T> & field,
 		   UInt n,
 		   UInt spatial_dimension = 0,
 		   GhostType ghost_type = _not_ghost,

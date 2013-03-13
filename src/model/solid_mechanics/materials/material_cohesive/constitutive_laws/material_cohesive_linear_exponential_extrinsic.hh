@@ -74,17 +74,17 @@ public:
   virtual void initMaterial();
 
   /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors();
+  virtual void resizeCohesiveArrays();
 
   /// compute effective stress norm for insertion check
-  virtual Real computeEffectiveNorm(const types::RMatrix & stress,
-				    const types::RVector & normal,
-				    const types::RVector & tangent);
+  virtual Real computeEffectiveNorm(const Matrix<Real> & stress,
+				    const Vector<Real> & normal,
+				    const Vector<Real> & tangent);
 
 protected:
 
   /// constitutive law
-  void computeTraction(const Vector<Real> & normal,
+  void computeTraction(const Array<Real> & normal,
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 

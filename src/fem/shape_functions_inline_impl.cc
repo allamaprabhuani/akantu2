@@ -70,31 +70,31 @@ inline UInt ShapeFunctions::getShapeDerivativesSize(const ElementType & type) {
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeFunctions::setControlPointsByType(const types::Matrix<Real> & points,
+void ShapeFunctions::setControlPointsByType(const Matrix<Real> & points,
 					    const GhostType & ghost_type) {
   control_points(type, ghost_type).shallowCopy(points);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Vector<Real> &u_el,
-							      Vector<Real> &uq,
+void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Array<Real> &u_el,
+							      Array<Real> &uq,
 							      GhostType ghost_type,
-							      const Vector<Real> & shapes,
-							      const Vector<UInt> * filter_elements) const {
+							      const Array<Real> & shapes,
+							      const Array<UInt> * filter_elements) const {
   UInt nb_element;
   UInt nb_points = control_points(type, ghost_type).cols();
   UInt nb_nodes_per_element = ElementClass<type>::getShapeSize();
   UInt nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
-  Vector<Real>::const_iterator< types::Matrix<Real> > N_it;
-  Vector<Real>::const_iterator< types::Matrix<Real> > u_it;
-  Vector<Real>::iterator< types::Matrix<Real> > inter_u_it;
+  Array<Real>::const_iterator< Matrix<Real> > N_it;
+  Array<Real>::const_iterator< Matrix<Real> > u_it;
+  Array<Real>::iterator< Matrix<Real> > inter_u_it;
 
-  Vector<Real> * filtered_N = NULL;
+  Array<Real> * filtered_N = NULL;
   if(filter_elements) {
     nb_element = filter_elements->getSize();
-    filtered_N = new Vector<Real>(0, shapes.getNbComponent());
+    filtered_N = new Array<Real>(0, shapes.getNbComponent());
     FEM::filterQuadraturePointsData(*mesh, shapes, *filtered_N, type, ghost_type, filter_elements);
     N_it = filtered_N->begin_reinterpret(nb_nodes_per_element, nb_points, nb_element);
   } else {
@@ -108,9 +108,9 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Vector<Real>
   inter_u_it = uq.begin_reinterpret(nb_degree_of_freedom, nb_points, nb_element);
 
   for (UInt el = 0; el < nb_element; ++el, ++N_it, ++u_it, ++inter_u_it) {
-    const types::Matrix<Real> & u = *u_it;
-    const types::Matrix<Real> & N = *N_it;
-    types::Matrix<Real> & inter_u = *inter_u_it;
+    const Matrix<Real> & u = *u_it;
+    const Matrix<Real> & N = *N_it;
+    Matrix<Real> & inter_u = *inter_u_it;
 
     inter_u.mul<false, false>(u, N);
   }
@@ -120,11 +120,11 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Vector<Real>
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-void ShapeFunctions::gradientElementalFieldOnControlPoints(const Vector<Real> &u_el,
-							   Vector<Real> &out_nablauq,
+void ShapeFunctions::gradientElementalFieldOnControlPoints(const Array<Real> &u_el,
+							   Array<Real> &out_nablauq,
 							   GhostType ghost_type,
-							   const Vector<Real> & shapes_derivatives,
-							   const Vector<UInt> * filter_elements) const {
+							   const Array<Real> & shapes_derivatives,
+							   const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element  = ElementClass<type>::getNbNodesPerInterpolationElement();
@@ -132,15 +132,15 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Vector<Real> &u
   UInt element_dimension     = ElementClass<type>::getNaturalSpaceDimension();
   UInt nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
-  Vector<Real>::const_iterator< types::Matrix<Real> > B_it;
-  Vector<Real>::const_iterator< types::Matrix<Real> > u_it;
-  Vector<Real>::iterator< types::Matrix<Real> > nabla_u_it;
+  Array<Real>::const_iterator< Matrix<Real> > B_it;
+  Array<Real>::const_iterator< Matrix<Real> > u_it;
+  Array<Real>::iterator< Matrix<Real> > nabla_u_it;
 
   UInt nb_element;
-  Vector<Real> * filtered_B = NULL;
+  Array<Real> * filtered_B = NULL;
   if(filter_elements) {
     nb_element = filter_elements->getSize();
-    filtered_B = new Vector<Real>(0, shapes_derivatives.getNbComponent());
+    filtered_B = new Array<Real>(0, shapes_derivatives.getNbComponent());
     FEM::filterQuadraturePointsData(*mesh, shapes_derivatives, *filtered_B, type, ghost_type, filter_elements);
     B_it = filtered_B->begin(element_dimension, nb_nodes_per_element);
   } else {
@@ -154,10 +154,10 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Vector<Real> &u
   nabla_u_it = out_nablauq.begin(nb_degree_of_freedom, element_dimension);
 
   for (UInt el = 0; el < nb_element; ++el, ++u_it) {
-    const types::Matrix<Real> & u = *u_it;
+    const Matrix<Real> & u = *u_it;
     for (UInt q = 0; q < nb_points; ++q, ++B_it, ++nabla_u_it) {
-      const types::Matrix<Real> & B = *B_it;
-      types::Matrix<Real> & nabla_u = *nabla_u_it;
+      const Matrix<Real> & B = *B_it;
+      Matrix<Real> & nabla_u = *nabla_u_it;
 
       nabla_u.mul<false, true>(u, B);
     }

@@ -158,7 +158,7 @@ void SolidMechanicsModel::initFull(std::string material_file,
   initModel();
 
   // initialize the vectors
-  initVectors();
+  initArrays();
 
   // set the initial condition to 0
   force->clear();
@@ -244,7 +244,7 @@ void SolidMechanicsModel::initExplicit() {
  * 0
  *
  */
-void SolidMechanicsModel::initVectors() {
+void SolidMechanicsModel::initArrays() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = mesh.getNbNodes();
@@ -481,7 +481,7 @@ void SolidMechanicsModel::updateResidualInternal() {
     // f -= Ma
     if(mass_matrix) {
       // if full mass_matrix
-      Vector<Real> * Ma = new Vector<Real>(*acceleration, true, "Ma");
+      Array<Real> * Ma = new Array<Real>(*acceleration, true, "Ma");
       *Ma *= *mass_matrix;
       /// \todo check unit conversion for implicit dynamics
       //      *Ma /= f_m2a
@@ -510,7 +510,7 @@ void SolidMechanicsModel::updateResidualInternal() {
 
     // f -= Cv
     if(velocity_damping_matrix) {
-      Vector<Real> * Cv = new Vector<Real>(*velocity);
+      Array<Real> * Cv = new Array<Real>(*velocity);
       *Cv *= *velocity_damping_matrix;
       *residual -= *Cv;
       delete Cv;
@@ -542,10 +542,10 @@ void SolidMechanicsModel::updateAcceleration() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::solveLumped(Vector<Real> & x,
-				      const Vector<Real> & A,
-				      const Vector<Real> & b,
-				      const Vector<bool> & boundary,
+void SolidMechanicsModel::solveLumped(Array<Real> & x,
+				      const Array<Real> & A,
+				      const Array<Real> & b,
+				      const Array<bool> & boundary,
 				      Real alpha) {
   Real * A_val = A.storage();
   Real * b_val = b.storage();
@@ -972,14 +972,14 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
     UInt nb_element           = mesh.getNbElement(*it);
 
-    Vector<UInt>::iterator< types::Vector<UInt> > eibm =
+    Array<UInt>::iterator< Vector<UInt> > eibm =
       element_index_by_material(*it, ghost_type).begin(2);
 
-    Vector<Real> X(0, nb_nodes_per_element*spatial_dimension);
+    Array<Real> X(0, nb_nodes_per_element*spatial_dimension);
     FEM::extractNodalToElementField(mesh, *current_position,
 				    X, *it, _not_ghost);
 
-    Vector<Real>::iterator< types::Matrix<Real> > X_el =
+    Array<Real>::iterator< Matrix<Real> > X_el =
       X.begin(spatial_dimension, nb_nodes_per_element);
 
     for (UInt el = 0; el < nb_element; ++el, ++X_el, ++eibm) {
@@ -1051,18 +1051,18 @@ Real SolidMechanicsModel::getKineticEnergy(ElementType & type, UInt index) {
 
   UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
 
-  Vector<Real> vel_on_quad(nb_quadrature_points, spatial_dimension);
-  Vector<UInt> filter_element(1, 1, index);
+  Array<Real> vel_on_quad(nb_quadrature_points, spatial_dimension);
+  Array<UInt> filter_element(1, 1, index);
 
   getFEM().interpolateOnQuadraturePoints(*velocity, vel_on_quad,
                                          spatial_dimension,
                                          type, _not_ghost,
                                          &filter_element);
 
-  Vector<Real>::iterator< types::Vector<Real> > vit   = vel_on_quad.begin(spatial_dimension);
-  Vector<Real>::iterator< types::Vector<Real> > vend  = vel_on_quad.end(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > vit   = vel_on_quad.begin(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > vend  = vel_on_quad.end(spatial_dimension);
 
-  types::Vector<Real> rho_v2(nb_quadrature_points);
+  Vector<Real> rho_v2(nb_quadrature_points);
 
   Real rho = materials[element_index_by_material(type)(index, 1)]->getRho();
 
@@ -1148,7 +1148,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
   }
 
   std::vector<Material *>::iterator mat_it;
-  types::Vector<UInt> mat = element_index_by_material(type, _not_ghost).begin(2)[index];
+  Vector<UInt> mat = element_index_by_material(type, _not_ghost).begin(2)[index];
   Real energy = materials[mat(1)]->getEnergy(energy_id, type, mat(0));
 
   AKANTU_DEBUG_OUT();
@@ -1157,7 +1157,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onNodesAdded(const Vector<UInt> & nodes_list,
+void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
 				       __attribute__((unused)) const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
@@ -1195,15 +1195,15 @@ void SolidMechanicsModel::onNodesAdded(const Vector<UInt> & nodes_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list,
+void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
 					  const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
   getFEM().initShapeFunctions(_not_ghost);
   getFEM().initShapeFunctions(_ghost);
 
-  Vector<Element>::const_iterator<Element> it  = element_list.begin();
-  Vector<Element>::const_iterator<Element> end = element_list.end();
+  Array<Element>::const_iterator<Element> it  = element_list.begin();
+  Array<Element>::const_iterator<Element> end = element_list.end();
 
   /// \todo have rules to choose the correct material
   UInt mat_id = 0;
@@ -1240,7 +1240,7 @@ void SolidMechanicsModel::onElementsAdded(const Vector<Element> & element_list,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Vector<Element> & element_list,
+void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Array<Element> & element_list,
 					    const ByElementTypeUInt & new_numbering,
 					    const RemovedElementsEvent & event) {
   //  MeshUtils::purifyMesh(mesh);
@@ -1255,19 +1255,19 @@ void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Vector
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onNodesRemoved(__attribute__((unused)) const Vector<UInt> & element_list,
-					 const Vector<UInt> & new_numbering,
+void SolidMechanicsModel::onNodesRemoved(__attribute__((unused)) const Array<UInt> & element_list,
+					 const Array<UInt> & new_numbering,
 					 __attribute__((unused)) const RemovedNodesEvent & event) {
-  if(displacement) mesh.removeNodesFromVector(*displacement, new_numbering);
-  if(mass        ) mesh.removeNodesFromVector(*mass        , new_numbering);
-  if(velocity    ) mesh.removeNodesFromVector(*velocity    , new_numbering);
-  if(acceleration) mesh.removeNodesFromVector(*acceleration, new_numbering);
-  if(force       ) mesh.removeNodesFromVector(*force       , new_numbering);
-  if(residual    ) mesh.removeNodesFromVector(*residual    , new_numbering);
-  if(boundary    ) mesh.removeNodesFromVector(*boundary    , new_numbering);
+  if(displacement) mesh.removeNodesFromArray(*displacement, new_numbering);
+  if(mass        ) mesh.removeNodesFromArray(*mass        , new_numbering);
+  if(velocity    ) mesh.removeNodesFromArray(*velocity    , new_numbering);
+  if(acceleration) mesh.removeNodesFromArray(*acceleration, new_numbering);
+  if(force       ) mesh.removeNodesFromArray(*force       , new_numbering);
+  if(residual    ) mesh.removeNodesFromArray(*residual    , new_numbering);
+  if(boundary    ) mesh.removeNodesFromArray(*boundary    , new_numbering);
 
-  if(increment_acceleration) mesh.removeNodesFromVector(*increment_acceleration, new_numbering);
-  if(increment)              mesh.removeNodesFromVector(*increment             , new_numbering);
+  if(increment_acceleration) mesh.removeNodesFromArray(*increment_acceleration, new_numbering);
+  if(increment)              mesh.removeNodesFromArray(*increment             , new_numbering);
 
   delete dof_synchronizer;
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
@@ -1317,7 +1317,7 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
+void SolidMechanicsModel::addDumpFieldArray(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
 #define ADD_FIELD(field, type)						\
   DumperIOHelper::Field * f =						\
@@ -1355,7 +1355,7 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
 					     DumperIOHelper::InternalMaterialField,
 					     DumperIOHelper::material_stress_field_iterator,
 					     DumperIOHelper::AvgHomogenizingFunctor,
-					     types::Matrix> Field;
+					     Matrix> Field;
     Field * field = new Field(*this,
 			      field_id,
 			      spatial_dimension,
@@ -1369,7 +1369,7 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
 					     DumperIOHelper::InternalMaterialField,
 					     DumperIOHelper::material_strain_field_iterator,
 					     DumperIOHelper::AvgHomogenizingFunctor,
-					     types::Matrix> Field;
+					     Matrix> Field;
     Field * field = new Field(*this,
 			      field_id,
 			      spatial_dimension,
@@ -1383,7 +1383,7 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
 					     DumperIOHelper::InternalMaterialField,
 					     DumperIOHelper::internal_material_field_iterator,
 					     DumperIOHelper::AvgHomogenizingFunctor,
-					     types::Matrix> Field;
+					     Matrix> Field;
 
     Field * field = new Field(*this,
 			      field_id,

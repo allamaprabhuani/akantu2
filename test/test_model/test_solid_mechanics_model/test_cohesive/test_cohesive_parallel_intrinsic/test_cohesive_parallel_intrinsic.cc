@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 
     UInt nb_facet = mesh_facets.getNbElement(type_facet);
 
-    Vector<UInt> facet_insertion;
+    Array<UInt> facet_insertion;
     Real * bary_facet = new Real[spatial_dimension];
     for (UInt f = 0; f < nb_facet; ++f) {
       mesh_facets.getBarycenter(f, type_facet, bary_facet);
@@ -103,11 +103,11 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
 
-  Vector<Real> & position = mesh.getNodes();
-  Vector<Real> & velocity = model.getVelocity();
-  Vector<bool> & boundary = model.getBoundary();
-  //  Vector<Real> & displacement = model.getDisplacement();
-  //  const Vector<Real> & residual = model.getResidual();
+  Array<Real> & position = mesh.getNodes();
+  Array<Real> & velocity = model.getVelocity();
+  Array<bool> & boundary = model.getBoundary();
+  //  Array<Real> & displacement = model.getDisplacement();
+  //  const Array<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
   Real epsilon = std::numeric_limits<Real>::epsilon();
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   model.setBaseName("intrinsic_parallel");
-  model.addDumpFieldVector("displacement");
+  model.addDumpFieldArray("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );

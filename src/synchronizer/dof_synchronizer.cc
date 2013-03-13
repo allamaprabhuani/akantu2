@@ -183,7 +183,7 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
   UInt * dof_global_id = dof_global_ids.values;
   Int * dof_type       = dof_types.values;
 
-  Vector<UInt> * local_dofs = new Vector<UInt>(0,2);
+  Array<UInt> * local_dofs = new Array<UInt>(0,2);
   UInt local_dof_val[2];
   nb_needed_dofs = 0;
   nb_local_dofs = 0;

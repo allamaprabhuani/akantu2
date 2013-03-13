@@ -48,7 +48,7 @@
 using namespace akantu;
 
 static void updateDisplacement(SolidMechanicsModelCohesive &,
-			       Vector<UInt> &,
+			       Array<UInt> &,
 			       ElementType,
 			       Real);
 
@@ -79,11 +79,11 @@ int main(int argc, char *argv[]) {
   const ElementType type_facet = Mesh::getFacetType(type);
 
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  //  const Vector<Real> & position = mesh.getNodes();
-  //  Vector<Real> & displacement = model.getDisplacement();
-  //  const Vector<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
+  //  const Array<Real> & position = mesh.getNodes();
+  //  Array<Real> & displacement = model.getDisplacement();
+  //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
 
-  Vector<UInt> facet_insertion;
+  Array<UInt> facet_insertion;
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
@@ -116,8 +116,8 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
 
-  Vector<bool> & boundary = model.getBoundary();
-  //  const Vector<Real> & residual = model.getResidual();
+  Array<bool> & boundary = model.getBoundary();
+  //  const Array<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_element = mesh.getNbElement(type);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   model.setBaseName("intrinsic_quadrangle");
-  model.addDumpFieldVector("displacement");
+  model.addDumpFieldArray("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
   model.dump();
 
   /// update displacement
-  Vector<UInt> elements;
+  Array<UInt> elements;
   Real * bary = new Real[spatial_dimension];
   for (UInt el = 0; el < nb_element; ++el) {
     mesh.getBarycenter(el, type, bary);
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
 
 
 static void updateDisplacement(SolidMechanicsModelCohesive & model,
-			       Vector<UInt> & elements,
+			       Array<UInt> & elements,
 			       ElementType type,
 			       Real increment) {
 
@@ -232,9 +232,9 @@ static void updateDisplacement(SolidMechanicsModelCohesive & model,
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
-  const Vector<UInt> & connectivity = mesh.getConnectivity(type);
-  Vector<Real> & displacement = model.getDisplacement();
-  Vector<bool> update(nb_nodes);
+  const Array<UInt> & connectivity = mesh.getConnectivity(type);
+  Array<Real> & displacement = model.getDisplacement();
+  Array<bool> update(nb_nodes);
   update.clear();
 
   for (UInt el = 0; el < nb_element; ++el) {

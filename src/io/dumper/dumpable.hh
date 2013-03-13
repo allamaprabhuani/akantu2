@@ -71,14 +71,14 @@ public:
   }
 
   template<typename T>
-  void addDumpFieldExternal(const std::string & field_id, const Vector<T> & field) {
+  void addDumpFieldExternal(const std::string & field_id, const Array<T> & field) {
     DumperIOHelper::Field * field_cont = new DumperIOHelper::NodalField<T>(field);
     dumper.registerField(field_id, field_cont);
   }
 
   template<typename T>
   void addDumpFieldExternal(const std::string & field_id,
-			    const ByElementTypeVector<T> & field,
+			    const ByElementTypeArray<T> & field,
 			    UInt spatial_dimension = 0,
 			    const GhostType & ghost_type = _not_ghost,
 			    const ElementKind & element_kind = _ek_not_defined) {
@@ -172,20 +172,20 @@ public:
 
   template<typename T>
   void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
-			    __attribute__((unused)) const Vector<T> & field) {
+			    __attribute__((unused)) const Array<T> & field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
   template<typename T>
   void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
-			    __attribute__((unused)) const ByElementTypeVector<T> & field,
+			    __attribute__((unused)) const ByElementTypeArray<T> & field,
 			    __attribute__((unused)) UInt spatial_dimension = 0,
 			    __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
 			    __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
-  virtual void addDumpFieldVector(__attribute__((unused)) const std::string & field_id) {
+  virtual void addDumpFieldArray(__attribute__((unused)) const std::string & field_id) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   };
   virtual void addDumpFieldTensor(__attribute__((unused)) const std::string & field_id) {

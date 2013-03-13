@@ -37,21 +37,21 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/* Functions VectorBase                                                       */
+/* Functions ArrayBase                                                       */
 /* -------------------------------------------------------------------------- */
-VectorBase::VectorBase(const ID & id) :
+ArrayBase::ArrayBase(const ID & id) :
   id(id), allocated_size(0), size(0), nb_component(1), size_of_type(0) {
 }
 
 /* -------------------------------------------------------------------------- */
-VectorBase::~VectorBase() {
+ArrayBase::~ArrayBase() {
 }
 
 /* -------------------------------------------------------------------------- */
-void VectorBase::printself(std::ostream & stream, int indent) const {
+void ArrayBase::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-  stream << space << "VectorBase [" << std::endl;
+  stream << space << "ArrayBase [" << std::endl;
   stream << space << " + size             : " << size << std::endl;
   stream << space << " + nb component     : " << nb_component << std::endl;
   stream << space << " + allocated size   : " << allocated_size << std::endl;
@@ -62,7 +62,7 @@ void VectorBase::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <> Int Vector<Real>::find(const Real & elem) const {
+template <> Int Array<Real>::find(const Real & elem) const {
   AKANTU_DEBUG_IN();
   UInt i = 0;
   Real epsilon = std::numeric_limits<Real>::epsilon();
@@ -75,49 +75,49 @@ template <> Int Vector<Real>::find(const Real & elem) const {
 
 /* -------------------------------------------------------------------------- */
 template <>
-Vector<ElementType> & Vector<ElementType>::operator*=(__attribute__((unused)) const ElementType & alpha) {
+Array<ElementType> & Array<ElementType>::operator*=(__attribute__((unused)) const ElementType & alpha) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<ElementType> & Vector<ElementType>::operator-=(__attribute__((unused)) const Vector<ElementType> & vect) {
+Array<ElementType> & Array<ElementType>::operator-=(__attribute__((unused)) const Array<ElementType> & vect) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<ElementType> & Vector<ElementType>::operator+=(__attribute__((unused)) const Vector<ElementType> & vect) {
+Array<ElementType> & Array<ElementType>::operator+=(__attribute__((unused)) const Array<ElementType> & vect) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<char> & Vector<char>::operator*=(__attribute__((unused)) const char & alpha) {
+Array<char> & Array<char>::operator*=(__attribute__((unused)) const char & alpha) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<char> & Vector<char>::operator-=(__attribute__((unused)) const Vector<char> & vect) {
+Array<char> & Array<char>::operator-=(__attribute__((unused)) const Array<char> & vect) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 template <>
-Vector<char> & Vector<char>::operator+=(__attribute__((unused)) const Vector<char> & vect) {
+Array<char> & Array<char>::operator+=(__attribute__((unused)) const Array<char> & vect) {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return *this;
 }
 
 /* -------------------------------------------------------------------------- */
-// template class Vector<Int>;
-// template class Vector<UInt>;
-// template class Vector<UInt64>;
-// template class Vector<Real>;
-// template class Vector<bool>;
-// template class Vector<ElementType>;
-// template class Vector<char>;
-// template class Vector<QuadraturePoint>;
+// template class Array<Int>;
+// template class Array<UInt>;
+// template class Array<UInt64>;
+// template class Array<Real>;
+// template class Array<bool>;
+// template class Array<ElementType>;
+// template class Array<char>;
+// template class Array<QuadraturePoint>;
 
 __END_AKANTU__

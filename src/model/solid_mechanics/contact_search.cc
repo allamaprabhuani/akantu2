@@ -44,7 +44,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 PenetrationList::PenetrationList(const ID & id) :
   id(id),
-  penetrating_nodes(Vector<UInt>(0, 1, "penetrating_nodes")),
+  penetrating_nodes(Array<UInt>(0, 1, "penetrating_nodes")),
   penetrated_facets_offset("penetrated_facets_offset", id),
   penetrated_facets("penetrated_facets", id),
   facets_normals("facets_normals", id),

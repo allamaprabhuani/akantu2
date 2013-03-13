@@ -50,7 +50,7 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
   this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
 
-  initInternalVector(damage, 1);
+  initInternalArray(damage, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -60,7 +60,7 @@ void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  resizeInternalVector(damage);
+  resizeInternalArray(damage);
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));
@@ -73,7 +73,7 @@ void LocalMaterialDamage::initMaterial() {
 void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  resizeInternalVector(this->damage);
+  resizeInternalArray(this->damage);
 
   Real * dam = damage(el_type, ghost_type).storage();
 

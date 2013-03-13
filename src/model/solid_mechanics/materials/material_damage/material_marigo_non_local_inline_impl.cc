@@ -37,8 +37,8 @@ MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::MaterialMarigoNonLoca
   Y("Y", id), Ynl("Y non local", id) {
   AKANTU_DEBUG_IN();
   this->is_non_local = true;
-  this->initInternalVector(this->Y, 1);
-  this->initInternalVector(this->Ynl, 1);
+  this->initInternalArray(this->Y, 1);
+  this->initInternalArray(this->Ynl, 1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -47,8 +47,8 @@ template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 void MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  this->resizeInternalVector(this->Y);
-  this->resizeInternalVector(this->Ynl);
+  this->resizeInternalArray(this->Y);
+  this->resizeInternalArray(this->Ynl);
   this->registerNonLocalVariable(Y, Ynl, 1);
 
   MaterialMarigoNonLocalParent::initMaterial();

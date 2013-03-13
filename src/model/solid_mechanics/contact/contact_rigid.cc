@@ -42,16 +42,16 @@ ContactRigid::ImpactorInformationPerMaster::ImpactorInformationPerMaster(const S
 
   this->impactor_surfaces = new std::vector<Surface>(0);
 
-  this->active_impactor_nodes = new Vector<UInt>(0,1);
-  //this->master_element_offset = new Vector<UInt>(0,1);
+  this->active_impactor_nodes = new Array<UInt>(0,1);
+  //this->master_element_offset = new Array<UInt>(0,1);
   this->master_element_type = new std::vector<ElementType>(0);
-  this->master_normals = new Vector<Real>(0, spatial_dimension);
-  this->node_is_sticking = new Vector<bool>(0,2);
-  this->friction_forces = new Vector<Real>(0,spatial_dimension);
-  this->stick_positions = new Vector<Real>(0,spatial_dimension);
-  this->residual_forces = new Vector<Real>(0,spatial_dimension);
-  this->previous_velocities = new Vector<Real>(0,spatial_dimension);
-  this->friction_resistances = new Vector<Real>(0);
+  this->master_normals = new Array<Real>(0, spatial_dimension);
+  this->node_is_sticking = new Array<bool>(0,2);
+  this->friction_forces = new Array<Real>(0,spatial_dimension);
+  this->stick_positions = new Array<Real>(0,spatial_dimension);
+  this->residual_forces = new Array<Real>(0,spatial_dimension);
+  this->previous_velocities = new Array<Real>(0,spatial_dimension);
+  this->friction_resistances = new Array<Real>(0);
 
   AKANTU_DEBUG_OUT();
 }
@@ -367,8 +367,8 @@ bool ContactRigid::isAlreadyActiveImpactor(const Surface master,
   AKANTU_DEBUG_ASSERT(it_imp != this->impactors_information.end(),
 		      "The master surface: " << master << "couldn't be found in impactors_information map");
   ImpactorInformationPerMaster * impactor_info = it_imp->second;
-  Vector<UInt> * active_nodes = impactor_info->active_impactor_nodes;
-  Vector<Real> * master_normals = impactor_info->master_normals;
+  Array<UInt> * active_nodes = impactor_info->active_impactor_nodes;
+  Array<Real> * master_normals = impactor_info->master_normals;
 
   for (UInt i=0; i<active_nodes->getSize(); ++i) {
     if((*active_nodes)(i) == impactor_node) {
@@ -560,7 +560,7 @@ void ContactRigid::frictionPredictor() {
     UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
 
     // compute the friction coefficient for each active impactor node
-    Vector<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
+    Array<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
     Real * friction_coefficient_values_p = friction_coefficient_values.values;
     fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
@@ -572,7 +572,7 @@ void ContactRigid::frictionPredictor() {
     Real * previous_velocities_val = impactor_info->previous_velocities->storage();
     Real * friction_resistances_val = impactor_info->friction_resistances->storage();
 
-    Vector<Real> & nodal_velocity = model.getVelocity();
+    Array<Real> & nodal_velocity = model.getVelocity();
 
     for (UInt n=0; n < nb_active_impactor_nodes; ++n) {
       UInt current_node = active_impactor_nodes_val[n];
@@ -875,7 +875,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
     UInt nb_active_impactor_nodes = impactor_info->active_impactor_nodes->getSize();
 
     // compute the friction coefficient for each active impactor node
-    Vector<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
+    Array<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
     Real * friction_coefficient_values_p = friction_coefficient_values.values;
     fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
@@ -1003,7 +1003,7 @@ void ContactRigid::removeFrictionCoefficient(const Surface master) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigid::getRestartInformation(std::map<std::string, VectorBase* > & map_to_fill,
+void ContactRigid::getRestartInformation(std::map<std::string, ArrayBase* > & map_to_fill,
 					 Surface master) {
   AKANTU_DEBUG_IN();
 
@@ -1015,15 +1015,15 @@ void ContactRigid::getRestartInformation(std::map<std::string, VectorBase* > & m
   UInt nb_active_nodes = impactor_info->active_impactor_nodes->getSize();
 
   // create vectors
-  Vector<bool> * activity_of_nodes = new Vector<bool>(this->mesh.getNbNodes(), 1, false);
-  Vector<ElementType> * element_type_of_nodes = new Vector<ElementType>(this->mesh.getNbNodes(), 1, _not_defined);
-  Vector<Real> * normals_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
-  Vector<bool> * sticking_of_nodes = new Vector<bool>(this->mesh.getNbNodes(), 2, false);
-  Vector<Real> * friction_force_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
-  Vector<Real> * stick_position_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
-  Vector<Real> * residual_force_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
-  Vector<Real> * previous_velocity_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
-  Vector<Real> * friction_resistances_of_nodes = new Vector<Real>(this->mesh.getNbNodes(), 1, 0.);
+  Array<bool> * activity_of_nodes = new Array<bool>(this->mesh.getNbNodes(), 1, false);
+  Array<ElementType> * element_type_of_nodes = new Array<ElementType>(this->mesh.getNbNodes(), 1, _not_defined);
+  Array<Real> * normals_of_nodes = new Array<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
+  Array<bool> * sticking_of_nodes = new Array<bool>(this->mesh.getNbNodes(), 2, false);
+  Array<Real> * friction_force_of_nodes = new Array<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
+  Array<Real> * stick_position_of_nodes = new Array<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
+  Array<Real> * residual_force_of_nodes = new Array<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
+  Array<Real> * previous_velocity_of_nodes = new Array<Real>(this->mesh.getNbNodes(), this->spatial_dimension, 0.);
+  Array<Real> * friction_resistances_of_nodes = new Array<Real>(this->mesh.getNbNodes(), 1, 0.);
 
   UInt * active_nodes = impactor_info->active_impactor_nodes->storage();
   ElementType * element_type = &(*impactor_info->master_element_type)[0];
@@ -1065,7 +1065,7 @@ void ContactRigid::getRestartInformation(std::map<std::string, VectorBase* > & m
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactRigid::setRestartInformation(std::map<std::string, VectorBase* > & restart_map,
+void ContactRigid::setRestartInformation(std::map<std::string, ArrayBase* > & restart_map,
 					 Surface master) {
   AKANTU_DEBUG_IN();
 
@@ -1075,58 +1075,58 @@ void ContactRigid::setRestartInformation(std::map<std::string, VectorBase* > & r
 		      "The master surface: " << master << "couldn't be found in impactors_information map");
   ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
-  std::map < std::string, VectorBase* >::iterator it;
+  std::map < std::string, ArrayBase* >::iterator it;
 
   it = restart_map.find("active_impactor_nodes");
-  Vector<bool> * ai_nodes = (Vector<bool> *)(it->second);
+  Array<bool> * ai_nodes = (Array<bool> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry for active impactor nodes" << std::endl;
   }
 
   it = restart_map.find("master_element_type");
-  Vector<ElementType> * et_nodes = (Vector<ElementType> *)(it->second);
+  Array<ElementType> * et_nodes = (Array<ElementType> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry master element type" << std::endl;
   }
 
   it = restart_map.find("master_normals");
-  Vector<Real> * mn_nodes = (Vector<Real> *)(it->second);
+  Array<Real> * mn_nodes = (Array<Real> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry for master normals" << std::endl;
   }
 
   it = restart_map.find("node_is_sticking");
-  Vector<bool> * is_nodes = (Vector<bool> *)(it->second);
+  Array<bool> * is_nodes = (Array<bool> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry node is sticking" << std::endl;
   }
 
   it = restart_map.find("friction_forces");
-  Vector<Real> * ff_nodes = (Vector<Real> *)(it->second);
+  Array<Real> * ff_nodes = (Array<Real> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry friction forces" << std::endl;
   }
 
   it = restart_map.find("stick_positions");
-  Vector<Real> * sp_nodes = (Vector<Real> *)(it->second);
+  Array<Real> * sp_nodes = (Array<Real> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry stick positions" << std::endl;
   }
 
   it = restart_map.find("residual_forces");
-  Vector<Real> * rf_nodes = (Vector<Real> *)(it->second);
+  Array<Real> * rf_nodes = (Array<Real> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry residual forces" << std::endl;
   }
 
   it = restart_map.find("previous_velocities");
-  Vector<Real> * pv_nodes = (Vector<Real> *)(it->second);
+  Array<Real> * pv_nodes = (Array<Real> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry previous velocities" << std::endl;
   }
 
   it = restart_map.find("friction_resistances");
-  Vector<Real> * fr_nodes = (Vector<Real> *)(it->second);
+  Array<Real> * fr_nodes = (Array<Real> *)(it->second);
   if(it == restart_map.end()) {
     std::cout << "could not find map entry friction resistances" << std::endl;
   }
@@ -1216,7 +1216,7 @@ void ContactRigid::setPrakashCliftonToSteadyState(const Surface master) {
   Real * friction_resistances_val = impactor_info->friction_resistances->storage();
 
   // compute the friction coefficient for each active impactor node
-  Vector<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
+  Array<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
   Real * friction_coefficient_values_p = friction_coefficient_values.values;
   fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 

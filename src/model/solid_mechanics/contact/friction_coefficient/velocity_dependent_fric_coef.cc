@@ -41,7 +41,7 @@ VelocityDependentFricCoef::VelocityDependentFricCoef(ContactRigid & contact,
   spatial_dimension(this->contact.getSpatialDimension()) {
   AKANTU_DEBUG_IN();
 
-  this->relative_sliding_velocities = new Vector<Real>(0,1);
+  this->relative_sliding_velocities = new Array<Real>(0,1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -68,9 +68,9 @@ void VelocityDependentFricCoef::initializeComputeFricCoef() {
 		      "Couldn't find impactor information object for master surface " << master_surface);
   ContactRigid::ImpactorInformationPerMaster * impactor_info = it->second;
 
-  Vector<UInt> * active_nodes = impactor_info->active_impactor_nodes;
+  Array<UInt> * active_nodes = impactor_info->active_impactor_nodes;
   UInt * active_nodes_val = active_nodes->values;
-  Vector<Real> * master_normals = impactor_info->master_normals;
+  Array<Real> * master_normals = impactor_info->master_normals;
   Real * master_normals_val = master_normals->values;
 
   Real * velocity_val = this->contact.getModel().getVelocity().values;

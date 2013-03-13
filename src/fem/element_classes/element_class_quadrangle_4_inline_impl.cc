@@ -74,8 +74,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_4, _gt_quadrangle_4, _itp_lagra
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const types::Vector<Real> & c,
-								types::Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const Vector<Real> & c,
+								Vector<Real> & N) {
   N(0) = .25 * (1 - c(0)) * (1 - c(1)); /// N1(q_0)
   N(1) = .25 * (1 + c(0)) * (1 - c(1)); /// N2(q_0)
   N(2) = .25 * (1 + c(0)) * (1 + c(1)); /// N3(q_0)
@@ -84,8 +84,8 @@ InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const types::Vec
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const types::Vector<Real> & c,
-							      types::Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const Vector<Real> & c,
+							      Matrix<Real> & dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -113,7 +113,7 @@ InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const types::Vecto
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real
-GeometricalElement<_gt_quadrangle_4>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_quadrangle_4>::getInradius(const Matrix<Real> & coord) {
   Real a = coord(0).distance(coord(1));
   Real b = coord(1).distance(coord(2));
   Real c = coord(2).distance(coord(3));

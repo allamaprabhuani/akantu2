@@ -5,7 +5,7 @@
  *
  * @date   Fri Jun 17 17:28:22 2011
  *
- * @brief  Synchronize Vector of DOFs
+ * @brief  Synchronize Array of DOFs
  *
  * @section LICENSE
  *
@@ -78,44 +78,44 @@ public:
    *
    * @param to_gather data to gather
    * @param root processor on which data are gathered
-   * @param gathered Vector containing the gathered data, only valid on root processor
+   * @param gathered Array containing the gathered data, only valid on root processor
    */
   template<typename T>
-  void gather(const Vector<T> & to_gather, UInt root,
-	      Vector<T> * gathered = NULL) const;
+  void gather(const Array<T> & to_gather, UInt root,
+	      Array<T> * gathered = NULL) const;
 
   /**
-   * Scatter a DOF Vector form root to all processors
+   * Scatter a DOF Array form root to all processors
    *
    * @param scattered data to scatter, only valid on root processor
    * @param root processor scattering data
    * @param to_scatter result of scattered data
    */
   template<typename T>
-  void scatter(Vector<T> & scattered, UInt root,
-	       const Vector<T> * to_scatter = NULL) const;
+  void scatter(Array<T> & scattered, UInt root,
+	       const Array<T> * to_scatter = NULL) const;
 
 
-  template<typename T> void synchronize(Vector<T> & vector) const ;
-  template<template <class> class Op, typename T> void reduceSynchronize(Vector<T> & vector) const;
+  template<typename T> void synchronize(Array<T> & vector) const ;
+  template<template <class> class Op, typename T> void reduceSynchronize(Array<T> & vector) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the equation_number Vector
-  AKANTU_GET_MACRO(LocalDOFEquationNumbers, local_dof_equation_numbers, const Vector<Int> &);
-  AKANTU_GET_MACRO(GlobalDOFEquationNumbers, global_dof_equation_numbers, const Vector<Int> &);
+  /// get the equation_number Array
+  AKANTU_GET_MACRO(LocalDOFEquationNumbers, local_dof_equation_numbers, const Array<Int> &);
+  AKANTU_GET_MACRO(GlobalDOFEquationNumbers, global_dof_equation_numbers, const Array<Int> &);
 
-  Vector<Int> * getLocalDOFEquationNumbersPointer(){return &local_dof_equation_numbers;};
-  Vector<Int> * getGlobalDOFEquationNumbersPointer(){return &global_dof_equation_numbers;};
+  Array<Int> * getLocalDOFEquationNumbersPointer(){return &local_dof_equation_numbers;};
+  Array<Int> * getGlobalDOFEquationNumbersPointer(){return &global_dof_equation_numbers;};
 
   typedef unordered_map<Int, UInt>::type GlobalEquationNumberMap;
 
   AKANTU_GET_MACRO(GlobalEquationNumberToLocal, global_dof_equation_number_to_local, const GlobalEquationNumberMap &)
 
-  /// get the Vector of global ids of the dofs
-  AKANTU_GET_MACRO(DOFGlobalIDs, dof_global_ids, const Vector<UInt> &);
+  /// get the Array of global ids of the dofs
+  AKANTU_GET_MACRO(DOFGlobalIDs, dof_global_ids, const Array<UInt> &);
 
   /// get the global id of a dof
   inline UInt getDOFGlobalID(UInt local_id) const {
@@ -127,8 +127,8 @@ public:
     return global_dof_to_local.find(global_id)->second;
   }
 
-  /// get the DOF type Vector
-  AKANTU_GET_MACRO(DOFTypes, dof_types, const Vector<Int> &);
+  /// get the DOF type Array
+  AKANTU_GET_MACRO(DOFTypes, dof_types, const Array<Int> &);
 
   AKANTU_GET_MACRO(NbDOFs, nb_dofs, UInt);
 
@@ -138,18 +138,18 @@ public:
 private:
 
   /// equation number position where a dof is synchronized in the matrix (by default = global id)
-  Vector<Int> global_dof_equation_numbers;
-  Vector<Int> local_dof_equation_numbers;
+  Array<Int> global_dof_equation_numbers;
+  Array<Int> local_dof_equation_numbers;
   GlobalEquationNumberMap global_dof_equation_number_to_local;
 
   /// DOF global id
-  Vector<UInt> dof_global_ids;
+  Array<UInt> dof_global_ids;
 
   /*
    * DOF type  -3 pure ghost, -2  master for the dof, -1 normal dof,  i in
    * [0-N] slave dof and master is proc i
    */
-  Vector<Int> dof_types;
+  Array<Int> dof_types;
 
   /// number of dofs
   UInt nb_dofs;
@@ -164,17 +164,17 @@ private:
 
   struct PerProcInformations {
     /// dofs to send to the proc
-    Vector<UInt> slave_dofs;
+    Array<UInt> slave_dofs;
     /// dofs to recvs from the proc
-    Vector<UInt> master_dofs;
+    Array<UInt> master_dofs;
 
     /* ---------------------------------------------------------------------- */
     /* Data for gather/scatter                                                */
     /* ---------------------------------------------------------------------- */
     /// the dof that the node handle
-    Vector<UInt> dofs;
+    Array<UInt> dofs;
     /// the dof that the proc need
-    Vector<UInt> needed_dofs;
+    Array<UInt> needed_dofs;
   };
 
   std::vector<PerProcInformations> proc_informations;

@@ -47,7 +47,7 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(SolidMechanics
 
   this->damage_in_compute_stress = false;
   this->is_non_local = true;
-  this->initInternalVector(this->Ehat, 1);
+  this->initInternalArray(this->Ehat, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -58,7 +58,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMazars<spatial_dimension>::initMaterial();
   MaterialNonLocalParent::initMaterial();
-  this->resizeInternalVector(this->Ehat);
+  this->resizeInternalArray(this->Ehat);
   AKANTU_DEBUG_OUT();
 }
 
@@ -89,8 +89,8 @@ template<UInt spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   ByElementTypeReal nl_var("Non local variable", this->id);
-  this->initInternalVector(nl_var, 1, true);
-  this->resizeInternalVector(nl_var);
+  this->initInternalArray(nl_var, 1, true);
+  this->resizeInternalArray(nl_var);
 
   if(this->damage_in_compute_stress)
     this->weightedAvergageOnNeighbours(this->damage, nl_var, 1);
@@ -110,7 +110,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostTyp
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Vector<Real> & non_loc_var,
+void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Array<Real> & non_loc_var,
 								      ElementType el_type,
 								      GhostType ghost_type) {
   AKANTU_DEBUG_IN();

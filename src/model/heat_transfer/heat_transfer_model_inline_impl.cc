@@ -123,14 +123,14 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elements,
+inline UInt HeatTransferModel::getNbDataForElements(const Array<Element> & elements,
                                                     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
   UInt nb_nodes_per_element = 0;
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
+  Array<Element>::const_iterator<Element> it  = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
@@ -167,14 +167,14 @@ inline UInt HeatTransferModel::getNbDataForElements(const Vector<Element> & elem
 
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::packElementData(CommunicationBuffer & buffer,
-                                               const Vector<Element> & elements,
+                                               const Array<Element> & elements,
                                                SynchronizationTag tag) const {
 #ifndef AKANTU_NDEBUG
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
-    types::RVector barycenter(spatial_dimension);
+    Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
     buffer << barycenter;
   }
@@ -193,7 +193,7 @@ inline void HeatTransferModel::packElementData(CommunicationBuffer & buffer,
   case _gst_htm_gradient_temperature: {
     packElementalDataHelper(temperature_gradient, buffer, elements);
     packNodalDataHelper(*temperature, buffer, elements);
-    // Vector<Real>::const_iterator<types::RMatrix> it_shaped =
+    // Array<Real>::const_iterator< Matrix<Real> > it_shaped =
     //   getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
     // buffer << it_shaped[element.element];
     break;
@@ -206,18 +206,18 @@ inline void HeatTransferModel::packElementData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
-                                                 const Vector<Element> & elements,
+                                                 const Array<Element> & elements,
                                                  SynchronizationTag tag) {
 #ifndef AKANTU_NDEBUG
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    types::RVector barycenter_loc(spatial_dimension);
+    Vector<Real> barycenter_loc(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
 
-    types::RVector barycenter(spatial_dimension);
+    Vector<Real> barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
@@ -229,7 +229,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
     }
   }
 
-  // types::RVector coords(spatial_dimension);
+  // Vector<Real> coords(spatial_dimension);
   // Real * nodes = getFEM().getMesh().getNodes().values;
   // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
   //   buffer >> coords;
@@ -269,8 +269,8 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
     //     UInt offset_conn = conn[el_offset + n];
     //     temperatures_str << (*temperature)(offset_conn) << " ";
     //   }
-    //   Vector<Real>::iterator<types::RMatrix> it_shaped =
-    //     const_cast<Vector<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
+    //   Array<Real>::iterator< Matrix<Real> > it_shaped =
+    //     const_cast<Array<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
     //     .begin(nb_nodes_per_element,spatial_dimension);
 
 

@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
   /// model initialization
   model.initFull("../material.dat");
 
-  Vector<Real> & position = mesh.getNodes();
+  Array<Real> & position = mesh.getNodes();
   UInt nb_facet = mesh.getNbElement(type_facet);
   UInt nb_element = mesh.getNbElement(type);
 
@@ -81,14 +81,14 @@ int main(int argc, char *argv[]) {
   UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
 
-  Vector<Real> quad_facets(nb_tot_quad, spatial_dimension);
+  Array<Real> quad_facets(nb_tot_quad, spatial_dimension);
 
   model.getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
 							  quad_facets,
 							  spatial_dimension,
 							  type_facet);
 
-  Vector<Element> & facet_to_element = mesh.getSubelementToElement(type);
+  Array<Element> & facet_to_element = mesh.getSubelementToElement(type);
   UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
   ByElementTypeReal element_quad_facet;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 			   spatial_dimension,
 			   type);
 
-  Vector<Real> & el_q_facet = element_quad_facet(type);
+  Array<Real> & el_q_facet = element_quad_facet(type);
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt f = 0; f < nb_facet_per_elem; ++f) {
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
   UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
   UInt nb_tot_quad_el = nb_quad_per_element * nb_element;
 
-  Vector<Real> quad_elements(nb_tot_quad_el, spatial_dimension);
+  Array<Real> quad_elements(nb_tot_quad_el, spatial_dimension);
 
 
   model.getFEM().interpolateOnQuadraturePoints(position,
@@ -126,8 +126,8 @@ int main(int argc, char *argv[]) {
 					       type);
 
   /// assign some values to stresses
-  Vector<Real> & stress
-    = const_cast<Vector<Real>&>(model.getMaterial(0).getStress(type));
+  Array<Real> & stress
+    = const_cast<Array<Real>&>(model.getMaterial(0).getStress(type));
 
   for (UInt q = 0; q < nb_tot_quad_el; ++q) {
     for (UInt s = 0; s < spatial_dimension * spatial_dimension; ++s) {
@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
   /// interpolate stresses on facets' quadrature points
   model.getMaterial(0).initElementalFieldInterpolation(element_quad_facet);
 
-  Vector<Real> interpolated_stress(nb_element * nb_facet_per_elem * nb_quad_per_facet,
+  Array<Real> interpolated_stress(nb_element * nb_facet_per_elem * nb_quad_per_facet,
 				   stress.getNbComponent());
   model.getMaterial(0).interpolateStress(type,
 					 interpolated_stress);

@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
   UInt nb_elements = model->getFEM().getMesh().getNbElement(_triangle_3);
 
   /// model initialization
-  model->initVectors();
+  model->initArrays();
 
   model->readMaterials("materials.dat");
   model->initMaterials();

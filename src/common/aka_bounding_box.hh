@@ -60,7 +60,7 @@ BoundingBox<d> computeBoundingBox(const point_container& points) {
 
 
 template <int d, class nodes_container>
-BoundingBox<d> createPointList(const nodes_container& nodes, const Vector<Real>& coord);
+BoundingBox<d> createPointList(const nodes_container& nodes, const Array<Real>& coord);
 
 
 template <int d>

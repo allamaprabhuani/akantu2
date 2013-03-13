@@ -83,19 +83,19 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::initMaterial() {
   else
     beta2_inv = 1./beta/beta;
 
-  initInternalVector(sigma_c_eff, 1, false, _ek_cohesive);
-  initInternalVector(    delta_c, 1, false, _ek_cohesive);
+  initInternalArray(sigma_c_eff, 1, false, _ek_cohesive);
+  initInternalArray(    delta_c, 1, false, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors() {
-  MaterialCohesive::resizeCohesiveVectors();
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveArrays() {
+  MaterialCohesive::resizeCohesiveArrays();
 
-  resizeInternalVector(sigma_c_eff, _ek_cohesive);
-  resizeInternalVector(delta_c, _ek_cohesive);
+  resizeInternalArray(sigma_c_eff, _ek_cohesive);
+  resizeInternalArray(delta_c, _ek_cohesive);
 
   FEM & fem_cohesive = model->getFEM("CohesiveFEM");
   const Mesh & mesh = fem_cohesive.getMesh();
@@ -104,7 +104,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors()
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _not_ghost, _ek_cohesive);
   for(; it != last_type; ++it) {
 
-    const Vector<UInt> & elem_filter = element_filter(*it, _not_ghost);
+    const Array<UInt> & elem_filter = element_filter(*it, _not_ghost);
     UInt nb_element = elem_filter.getSize();
 
     if (nb_element == 0) continue;
@@ -112,8 +112,8 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors()
     UInt nb_quadrature_points = fem_cohesive.getNbQuadraturePoints(*it, _not_ghost);
     UInt nb_element_old = nb_element - sigma_insertion.getSize() / nb_quadrature_points;
 
-    Vector<Real> & sigma_c_eff_vec = sigma_c_eff(*it, _not_ghost);
-    Vector<Real> & delta_c_vec = delta_c(*it, _not_ghost);
+    Array<Real> & sigma_c_eff_vec = sigma_c_eff(*it, _not_ghost);
+    Array<Real> & delta_c_vec = delta_c(*it, _not_ghost);
 
     for (UInt el = nb_element_old; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -129,9 +129,9 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveVectors()
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::RMatrix & stress,
-										     const types::RVector & normal,
-										     const types::RVector & tangent) {
+inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffectiveNorm(const Matrix<Real> & stress,
+										     const Vector<Real> & normal,
+										     const Vector<Real> & tangent) {
   AKANTU_DEBUG_IN();
 
   normal_stress.mul<false>(stress, normal);
@@ -150,32 +150,32 @@ inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffective
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(const Vector<Real> & facet_stress,
-									    Vector<Real> & stress_check) {
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(const Array<Real> & facet_stress,
+									    Array<Real> & stress_check) {
   AKANTU_DEBUG_IN();
 
   sigma_insertion.resize(0);
 
-  Vector<bool> & facets_check = model->getFacetsCheck();
+  Array<bool> & facets_check = model->getFacetsCheck();
   ElementType type_facet = model->getFacetType();
 
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   UInt nb_facet = facets_check.getSize();
 
-  const Vector<Real> & tangents = model->getTangents();
-  const Vector<Real> & normals
+  const Array<Real> & tangents = model->getTangents();
+  const Array<Real> & normals
     = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
 
-  Vector<Real>::iterator<types::RVector> stress_check_it =
+  Array<Real>::iterator< Vector<Real> > stress_check_it =
     stress_check.begin(nb_quad_facet);
 
-  Vector<Real>::const_iterator<types::RVector> normal_it =
+  Array<Real>::const_iterator< Vector<Real> > normal_it =
     normals.begin(spatial_dimension);
 
-  Vector<Real>::const_iterator<types::RVector> tangent_it =
+  Array<Real>::const_iterator< Vector<Real> > tangent_it =
     tangents.begin(spatial_dimension);
 
-  Vector<Real>::const_iterator<types::RMatrix> facet_stress_it =
+  Array<Real>::const_iterator< Matrix<Real> > facet_stress_it =
     facet_stress.begin(spatial_dimension, spatial_dimension);
 
   for (UInt f = 0; f < nb_facet; ++f, ++stress_check_it) {
@@ -199,41 +199,41 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(cons
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const Vector<Real> & normal,
+void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeTraction(const Array<Real> & normal,
 									 ElementType el_type,
 									 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
-  Vector<Real>::iterator<types::RVector> traction_it =
+  Array<Real>::iterator< Vector<Real> > traction_it =
     tractions(el_type, ghost_type).begin(spatial_dimension);
 
-  Vector<Real>::iterator<types::RVector> opening_it =
+  Array<Real>::iterator< Vector<Real> > opening_it =
     opening(el_type, ghost_type).begin(spatial_dimension);
 
-  Vector<Real>::const_iterator<types::RVector> normal_it =
+  Array<Real>::const_iterator< Vector<Real> > normal_it =
     normal.begin(spatial_dimension);
 
-  Vector<Real>::iterator<types::RVector>traction_end =
+  Array<Real>::iterator< Vector<Real> >traction_end =
     tractions(el_type, ghost_type).end(spatial_dimension);
 
-  Vector<Real>::iterator<Real>sigma_c_it =
+  Array<Real>::iterator<Real>sigma_c_it =
     sigma_c_eff(el_type, ghost_type).begin();
 
-  Vector<Real>::iterator<Real>delta_max_it =
+  Array<Real>::iterator<Real>delta_max_it =
     delta_max(el_type, ghost_type).begin();
 
-  Vector<Real>::iterator<Real>delta_c_it =
+  Array<Real>::iterator<Real>delta_c_it =
     delta_c(el_type, ghost_type).begin();
 
-  Vector<Real>::iterator<Real>damage_it =
+  Array<Real>::iterator<Real>damage_it =
     damage(el_type, ghost_type).begin();
 
   Real epsilon = std::numeric_limits<Real>::epsilon();
 
   Real * memory_space = new Real[2*spatial_dimension];
-  types::Vector<Real> normal_opening(memory_space, spatial_dimension);
-  types::Vector<Real> tangential_opening(memory_space + spatial_dimension,
+  Vector<Real> normal_opening(memory_space, spatial_dimension);
+  Vector<Real> tangential_opening(memory_space + spatial_dimension,
 					 spatial_dimension);
 
   /// loop on each quadrature point

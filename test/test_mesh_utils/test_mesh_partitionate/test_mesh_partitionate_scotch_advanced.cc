@@ -47,12 +47,12 @@ akantu::UInt nb_nodes_per_element = 4;
 
 /* -------------------------------------------------------------------------- */
 void getInterfaceNodePairs(akantu::Mesh & mesh, 
-			   akantu::Vector<akantu::UInt> & pairs);
+			   akantu::Array<akantu::UInt> & pairs);
 void getPartition(const akantu::Mesh & mesh, 
 		  const akantu::MeshPartition::EdgeLoadFunctor & fctr,
-		  const akantu::Vector<akantu::UInt> & pairs,
+		  const akantu::Array<akantu::UInt> & pairs,
 		  akantu::MeshPartition * partition,
-		  akantu::Vector<double> & parts);
+		  akantu::Array<double> & parts);
 void dumpParaview(akantu::Mesh & mesh, std::string name,
 		  double * part_1, double * part_2);
 
@@ -67,8 +67,8 @@ public:
   virtual inline akantu::Int operator()(const akantu::Element & el1,
 					const akantu::Element & el2) const {
 
-    const akantu::Vector<akantu::UInt> & conn_1 = this->mesh.getConnectivity(el1.type);
-    const akantu::Vector<akantu::UInt> & conn_2 = this->mesh.getConnectivity(el2.type);
+    const akantu::Array<akantu::UInt> & conn_1 = this->mesh.getConnectivity(el1.type);
+    const akantu::Array<akantu::UInt> & conn_2 = this->mesh.getConnectivity(el2.type);
     std::set<akantu::UInt> nodes;
 
     // count number of nodes
@@ -125,14 +125,14 @@ int main(int argc, char *argv[])
   mesh_io.read("squares_L.msh", mesh_l);
 
   // get interface node pairs
-  akantu::Vector<akantu::UInt> pairs_l(0,2);
-  akantu::Vector<akantu::UInt> pairs_empty(0,2);
+  akantu::Array<akantu::UInt> pairs_l(0,2);
+  akantu::Array<akantu::UInt> pairs_empty(0,2);
   getInterfaceNodePairs(mesh_l,pairs_l);
 
   akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh_l, mesh_l.getSpatialDimension());
 
   // make normal partition -> it should cut along the interface
-  akantu::Vector<double> parts(0,nb_quadrature_points);
+  akantu::Array<double> parts(0,nb_quadrature_points);
   getPartition(mesh_l, 
 	       akantu::MeshPartition::ConstEdgeLoadFunctor(),
 	       pairs_empty,
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
   double * part = parts.storage();
 
   // make partition with node pairs -> it should cut perpendicular to the interface
-  akantu::Vector<double> parts_adv(0,nb_quadrature_points);
+  akantu::Array<double> parts_adv(0,nb_quadrature_points);
   getPartition(mesh_l, 
 	       akantu::MeshPartition::ConstEdgeLoadFunctor(),
 	       pairs_l,
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
   /* ---------- check if node pairs and functor are considered with mesh_H --------- */  
   akantu::Mesh mesh_h(dim,"mesh_h",1);
   mesh_io.read("squares_H.msh", mesh_h);
-  akantu::Vector<akantu::UInt> pairs_h(0,2);
+  akantu::Array<akantu::UInt> pairs_h(0,2);
   getInterfaceNodePairs(mesh_h,pairs_h);
   
   partition = new akantu::MeshPartitionScotch(mesh_h, mesh_h.getSpatialDimension());
@@ -300,9 +300,9 @@ void dumpParaview(akantu::Mesh & mesh, std::string name,
 /* -------------------------------------------------------------------------- */
 void getPartition(const akantu::Mesh & mesh, 
 		  const akantu::MeshPartition::EdgeLoadFunctor & fctr,
-		  const akantu::Vector<akantu::UInt> & pairs,
+		  const akantu::Array<akantu::UInt> & pairs,
 		  akantu::MeshPartition * partition,
-		  akantu::Vector<double> & parts) {
+		  akantu::Array<double> & parts) {
 
   //  partition->partitionate(2, akantu::MeshPartition::ConstEdgeLoadFunctor(), pairs_l);
   partition->partitionate(2, fctr, pairs);
@@ -322,12 +322,12 @@ void getPartition(const akantu::Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 void getInterfaceNodePairs(akantu::Mesh & mesh, 
-			   akantu::Vector<akantu::UInt> & pairs) {
+			   akantu::Array<akantu::UInt> & pairs) {
 
   // put correct number of surfaces (gmsh starts with 1 but we need 0)
-  akantu::Vector<unsigned int> & surf =  const_cast<akantu::Vector<unsigned int> &>(mesh.getUIntData(akantu::_segment_2, "tag_1"));
-  akantu::Vector<unsigned int>::iterator<> it = surf.begin();
-  akantu::Vector<unsigned int>::iterator<> end = surf.end();
+  akantu::Array<unsigned int> & surf =  const_cast<akantu::Array<unsigned int> &>(mesh.getUIntData(akantu::_segment_2, "tag_1"));
+  akantu::Array<unsigned int>::iterator<> it = surf.begin();
+  akantu::Array<unsigned int>::iterator<> end = surf.end();
   for (;it != end; ++it)  --(*it);
 
   // set surface id
@@ -336,7 +336,7 @@ void getInterfaceNodePairs(akantu::Mesh & mesh,
   akantu::MeshUtils::buildNodesPerSurface(mesh, all_surface_nodes);
 
   // find top interface nodes
-  akantu::Vector<akantu::UInt> top_nodes(0);
+  akantu::Array<akantu::UInt> top_nodes(0);
   int top = 1;
   for (akantu::CSR<akantu::UInt>::iterator node = all_surface_nodes.begin(top);
        node != all_surface_nodes.end(top);
@@ -345,7 +345,7 @@ void getInterfaceNodePairs(akantu::Mesh & mesh,
   }
   
   // find bottom interface nodes
-  akantu::Vector<akantu::UInt> bot_nodes(0);
+  akantu::Array<akantu::UInt> bot_nodes(0);
   int bot = 4;
   for (akantu::CSR<akantu::UInt>::iterator node = all_surface_nodes.begin(bot);
        node != all_surface_nodes.end(bot);
@@ -363,7 +363,7 @@ void getInterfaceNodePairs(akantu::Mesh & mesh,
   }
 
   // make pairs according to their x coordinate
-  const akantu::Vector<akantu::Real> & coords = mesh.getNodes();
+  const akantu::Array<akantu::Real> & coords = mesh.getNodes();
   int dir = 0;
   for (int i=0; i<nb_pairs; ++i) {
     int top_min = -1;

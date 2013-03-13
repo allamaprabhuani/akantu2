@@ -36,14 +36,14 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-inline const Vector<Real> & ShapeLagrange<kind>::getShapes(const ElementType & el_type,
+inline const Array<Real> & ShapeLagrange<kind>::getShapes(const ElementType & el_type,
 							   const GhostType & ghost_type) const {
   return shapes(FEM::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-inline const Vector<Real> & ShapeLagrange<kind>::getShapesDerivatives(const ElementType & el_type,
+inline const Array<Real> & ShapeLagrange<kind>::getShapesDerivatives(const ElementType & el_type,
 								      const GhostType & ghost_type) const {
   return shapes_derivatives(FEM::getInterpolationType(el_type), ghost_type);
 }
@@ -58,8 +58,8 @@ inline const Vector<Real> & ShapeLagrange<kind>::getShapesDerivatives(const Elem
 
 template <ElementKind kind>
 inline void
-ShapeLagrange<kind>::initShapeFunctions(const Vector<Real> & nodes,
-					const types::Matrix<Real> & control_points,
+ShapeLagrange<kind>::initShapeFunctions(const Array<Real> & nodes,
+					const Matrix<Real> & control_points,
 					const ElementType & type,
 					const GhostType & ghost_type) {
   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
@@ -68,8 +68,8 @@ ShapeLagrange<kind>::initShapeFunctions(const Vector<Real> & nodes,
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-ShapeLagrange<_ek_structural>::initShapeFunctions(__attribute__((unused)) const Vector<Real> & nodes,
-						  __attribute__((unused)) const types::Matrix<Real> & control_points,
+ShapeLagrange<_ek_structural>::initShapeFunctions(__attribute__((unused)) const Array<Real> & nodes,
+						  __attribute__((unused)) const Matrix<Real> & control_points,
 						  __attribute__((unused)) const ElementType & type,
 						  __attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_DEBUG_TO_IMPLEMENT();
@@ -80,14 +80,14 @@ ShapeLagrange<_ek_structural>::initShapeFunctions(__attribute__((unused)) const 
 template <ElementKind kind>
 template <ElementType type>
 inline void ShapeLagrange<kind>::
-computeShapeDerivativesOnCPointsByElement(const types::Matrix<Real> & node_coords,
-					  const types::Matrix<Real> & natural_coords,
-					  types::Tensor3<Real> & shapesd) {
+computeShapeDerivativesOnCPointsByElement(const Matrix<Real> & node_coords,
+					  const Matrix<Real> & natural_coords,
+					  Tensor3<Real> & shapesd) {
   // compute dnds
-  types::Tensor3<Real> dnds(node_coords.rows(), node_coords.cols(), natural_coords.cols());
+  Tensor3<Real> dnds(node_coords.rows(), node_coords.cols(), natural_coords.cols());
   ElementClass<type>::computeDNDS(natural_coords, dnds);
   // compute dxds
-  types::Tensor3<Real> J(node_coords.rows(), natural_coords.rows(), natural_coords.cols());
+  Tensor3<Real> J(node_coords.rows(), natural_coords.rows(), natural_coords.cols());
   ElementClass<type>::computeJMat(dnds, node_coords, J);
 
   // compute shape derivatives
@@ -97,16 +97,16 @@ computeShapeDerivativesOnCPointsByElement(const types::Matrix<Real> & node_coord
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::inverseMap(const types::RVector & real_coords,
+void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
 				     UInt elem,
-				     types::RVector & natural_coords,
+				     Vector<Real> & natural_coords,
 				     const GhostType & ghost_type) const{
 
   UInt spatial_dimension = mesh->getSpatialDimension();
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
   UInt * elem_val = mesh->getConnectivity(type, ghost_type).values;
-  types::RMatrix nodes_coord(spatial_dimension, nb_nodes_per_element);
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
   mesh->extractNodalValuesFromElement(mesh->getNodes(),
 				      nodes_coord.storage(),
@@ -122,12 +122,12 @@ void ShapeLagrange<kind>::inverseMap(const types::RVector & real_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-bool ShapeLagrange<kind>::contains(const types::RVector & real_coords,
+bool ShapeLagrange<kind>::contains(const Vector<Real> & real_coords,
 			     UInt elem,
 			     const GhostType & ghost_type) const{
 
   UInt spatial_dimension = mesh->getSpatialDimension();
-  types::RVector natural_coords(spatial_dimension);
+  Vector<Real> natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords, elem, natural_coords, ghost_type);
   return ElementClass<type>::contains(natural_coords);
@@ -136,13 +136,13 @@ bool ShapeLagrange<kind>::contains(const types::RVector & real_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::computeShapes(const types::RVector & real_coords,
+void ShapeLagrange<kind>::computeShapes(const Vector<Real> & real_coords,
 				  UInt elem,
-				  types::RVector & shapes,
+				  Vector<Real> & shapes,
 				  const GhostType & ghost_type) const{
 
   UInt spatial_dimension = mesh->getSpatialDimension();
-  types::RVector natural_coords(spatial_dimension);
+  Vector<Real> natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords, elem, natural_coords, ghost_type);
   ElementClass<type>::computeShapes(natural_coords, shapes);
@@ -164,30 +164,30 @@ ShapeLagrange<kind>::ShapeLagrange(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::precomputeShapesOnControlPoints(__attribute__((unused)) const Vector<Real> & nodes,
+void ShapeLagrange<kind>::precomputeShapesOnControlPoints(__attribute__((unused)) const Array<Real> & nodes,
 							  GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
-  types::Matrix<Real> & natural_coords = control_points(type, ghost_type);
+  Matrix<Real> & natural_coords = control_points(type, ghost_type);
   UInt nb_points = natural_coords.cols();
 
   UInt size_of_shapes = ElementClass<type>::getShapeSize();
 
   UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();;
 
-  Vector<Real> & shapes_tmp = shapes.alloc(nb_element*nb_points,
+  Array<Real> & shapes_tmp = shapes.alloc(nb_element*nb_points,
 					   size_of_shapes,
 					   itp_type,
 					   ghost_type);
 
-  Vector<Real>::iterator< types::Matrix<Real> > shapes_it =
+  Array<Real>::iterator< Matrix<Real> > shapes_it =
     shapes_tmp.begin_reinterpret(ElementClass<type>::getNbNodesPerInterpolationElement(), nb_points,
 				 nb_element);
 
   for (UInt elem = 0; elem < nb_element; ++elem, ++shapes_it) {
-    types::Matrix<Real> & N = *shapes_it;
+    Matrix<Real> & N = *shapes_it;
     ElementClass<type>::computeShapes(natural_coords,
 				      N);
   }
@@ -198,7 +198,7 @@ void ShapeLagrange<kind>::precomputeShapesOnControlPoints(__attribute__((unused)
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes, GhostType ghost_type) {
+void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Real> & nodes, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -208,26 +208,26 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Vector
 
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
   UInt size_of_shapesd      = ElementClass<type>::getShapeDerivativesSize();
-  types::Matrix<Real> & natural_coords = control_points(type, ghost_type);
+  Matrix<Real> & natural_coords = control_points(type, ghost_type);
   UInt nb_points = natural_coords.cols();
 
   UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();
-  Vector<Real> & shapes_derivatives_tmp = shapes_derivatives.alloc(nb_element*nb_points,
+  Array<Real> & shapes_derivatives_tmp = shapes_derivatives.alloc(nb_element*nb_points,
 								   size_of_shapesd,
 								   itp_type,
 								   ghost_type);
 
-  Vector<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
+  Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEM::extractNodalToElementField(*mesh, nodes, x_el,
 				  type, ghost_type);
 
   Real * shapesd_val = shapes_derivatives_tmp.storage();
-  Vector<Real>::iterator< types::Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+  Array<Real>::iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
 								  nb_nodes_per_element);
 
   for (UInt elem = 0; elem < nb_element; ++elem, ++x_it) {
-    types::Matrix<Real> & X = *x_it;
-    types::Tensor3<Real> B(shapesd_val,
+    Matrix<Real> & X = *x_it;
+    Tensor3<Real> B(shapesd_val,
 			   spatial_dimension, nb_nodes_per_element, nb_points);
     computeShapeDerivativesOnCPointsByElement<type>(X,
 						    natural_coords,
@@ -242,11 +242,11 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Vector
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::interpolateOnControlPoints(const Vector<Real> &in_u,
-					       Vector<Real> &out_uq,
+void ShapeLagrange<kind>::interpolateOnControlPoints(const Array<Real> &in_u,
+					       Array<Real> &out_uq,
 					       UInt nb_degree_of_freedom,
 					       GhostType ghost_type,
-					       const Vector<UInt> * filter_elements) const {
+					       const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -256,7 +256,7 @@ void ShapeLagrange<kind>::interpolateOnControlPoints(const Vector<Real> &in_u,
 
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  Vector<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
   FEM::extractNodalToElementField(*mesh, in_u, u_el, type, ghost_type, filter_elements);
 
   this->interpolateElementalFieldOnControlPoints<type>(u_el, out_uq, ghost_type,
@@ -269,11 +269,11 @@ void ShapeLagrange<kind>::interpolateOnControlPoints(const Vector<Real> &in_u,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::gradientOnControlPoints(const Vector<Real> &in_u,
-					       Vector<Real> &out_nablauq,
+void ShapeLagrange<kind>::gradientOnControlPoints(const Array<Real> &in_u,
+					       Array<Real> &out_nablauq,
 					       UInt nb_degree_of_freedom,
 					       GhostType ghost_type,
-					       const Vector<UInt> * filter_elements) const {
+					       const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -283,7 +283,7 @@ void ShapeLagrange<kind>::gradientOnControlPoints(const Vector<Real> &in_u,
 
   UInt nb_nodes_per_element  = ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  Vector<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
   FEM::extractNodalToElementField(*mesh, in_u, u_el, type, ghost_type, filter_elements);
 
   this->gradientElementalFieldOnControlPoints<type>(u_el, out_nablauq, ghost_type,
@@ -296,8 +296,8 @@ void ShapeLagrange<kind>::gradientOnControlPoints(const Vector<Real> &in_u,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::fieldTimesShapes(const Vector<Real> & field,
-				     Vector<Real> & field_times_shapes,
+void ShapeLagrange<kind>::fieldTimesShapes(const Array<Real> & field,
+				     Array<Real> & field_times_shapes,
 				     GhostType ghost_type) const {
   field_times_shapes.copy(field);
   field_times_shapes.extendComponentsInterlaced(ElementClass<type>::getShapeSize(), 1);

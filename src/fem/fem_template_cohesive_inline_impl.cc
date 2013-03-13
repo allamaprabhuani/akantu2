@@ -35,10 +35,10 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template <>
 inline void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::
-inverseMap(__attribute__((unused)) const types::RVector & real_coords,
+inverseMap(__attribute__((unused)) const Vector<Real> & real_coords,
 	   __attribute__((unused)) UInt element,
 	   __attribute__((unused)) const ElementType & type,
-	   __attribute__((unused)) types::RVector & natural_coords,
+	   __attribute__((unused)) Vector<Real> & natural_coords,
 	   __attribute__((unused)) const GhostType & ghost_type) const{
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
@@ -46,7 +46,7 @@ inverseMap(__attribute__((unused)) const types::RVector & real_coords,
 /* -------------------------------------------------------------------------- */
 template <>
 inline bool FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::
-contains(__attribute__((unused)) const types::RVector & real_coords,
+contains(__attribute__((unused)) const Vector<Real> & real_coords,
 	 __attribute__((unused)) UInt element,
 	 __attribute__((unused)) const ElementType & type,
 	 __attribute__((unused)) const GhostType & ghost_type) const{
@@ -57,10 +57,10 @@ contains(__attribute__((unused)) const types::RVector & real_coords,
 /* -------------------------------------------------------------------------- */
 template <>
 inline void FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::
-computeShapes(__attribute__((unused)) const types::RVector & real_coords,
+computeShapes(__attribute__((unused)) const Vector<Real> & real_coords,
 	      __attribute__((unused)) UInt element,
 	      __attribute__((unused)) const ElementType & type,
-	      __attribute__((unused)) types::RVector & shapes,
+	      __attribute__((unused)) Vector<Real> & shapes,
 	      __attribute__((unused)) const GhostType & ghost_type) const{
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
@@ -88,11 +88,11 @@ getNbQuadraturePoints(const ElementType & type,
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline const Vector<Real> & FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::
+inline const Array<Real> & FEMTemplate<IntegratorCohesive<IntegratorGauss>,ShapeCohesive<ShapeLagrange> >::
 getShapes(const ElementType & type,
 	  const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
-  const Vector<Real> * ret = NULL;
+  const Array<Real> * ret = NULL;
 
 #define GET_SHAPES(type)				\
   ret = &(shape_functions.getShapes(type, ghost_type));

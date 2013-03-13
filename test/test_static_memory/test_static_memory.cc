@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
   akantu::StaticMemory * st_mem = akantu::StaticMemory::getStaticMemory();
 
-  akantu::Vector<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
+  akantu::Array<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
 
   test_int.resize(1050);
 

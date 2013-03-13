@@ -47,8 +47,8 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-typedef std::map<ID, VectorBase *> VectorMap;
-typedef std::map<MemoryID, VectorMap> MemoryMap;
+typedef std::map<ID, ArrayBase *> ArrayMap;
+typedef std::map<MemoryID, ArrayMap> MemoryMap;
 
 /**
  * @class StaticMemory
@@ -82,12 +82,12 @@ public:
   /// remove a reference on the static memory
   void destroy();
 
-  /// access to an Vector
-  inline const VectorBase & getVector(const MemoryID & memory_id,
+  /// access to an Array
+  inline const ArrayBase & getArray(const MemoryID & memory_id,
 				      const ID & name) const;
 
   /// get all vectors of a memory
-  inline const VectorMap & getMemory(const MemoryID & memory_id) const;
+  inline const ArrayMap & getMemory(const MemoryID & memory_id) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Methods                                                            */
@@ -105,11 +105,11 @@ public:
    * @return pointer to an array of size nb_tupes * nb_component * sizeof(T)
    */
   template<typename T>
-  Vector<T> & smalloc(const MemoryID & memory_id, const ID & name,
+  Array<T> & smalloc(const MemoryID & memory_id, const ID & name,
 		      UInt size, UInt nb_component);
 
   template<typename T>
-  Vector<T> & smalloc(const MemoryID & memory_id,
+  Array<T> & smalloc(const MemoryID & memory_id,
 		      const ID & name,
 		      UInt size,
 		      UInt nb_component,

@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
   //model initialization
   model->initModel();
   //initialize the vectors
-  model->initVectors();
+  model->initArrays();
 
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);
@@ -159,10 +159,10 @@ int main(int argc, char *argv[])
   model->setTimeStep(time_step);
 
   /// boundary conditions
-  const akantu::Vector<akantu::Real> & nodes = model->getFEM().getMesh().getNodes();
-  akantu::Vector<bool> & boundary = model->getBoundary();
-  akantu::Vector<akantu::Real> & temperature = model->getTemperature();
-  akantu::Vector<akantu::Real> & heat_flux = model->getHeatFlux();
+  const akantu::Array<akantu::Real> & nodes = model->getFEM().getMesh().getNodes();
+  akantu::Array<bool> & boundary = model->getBoundary();
+  akantu::Array<akantu::Real> & temperature = model->getTemperature();
+  akantu::Array<akantu::Real> & heat_flux = model->getHeatFlux();
   akantu::Real eps = 1e-15;
  
   double t1, t2, length;

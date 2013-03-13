@@ -58,7 +58,7 @@ public:
   virtual ~MaterialNonLocal();
 
   template<typename T>
-  class PairList : public ByElementType<ByElementTypeVector<T> > {};
+  class PairList : public ByElementType<ByElementTypeArray<T> > {};
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -93,24 +93,24 @@ protected:
   virtual void computeNonLocalStresses(GhostType ghost_type = _not_ghost) = 0;
 
   template<typename T>
-  void weightedAvergageOnNeighbours(const ByElementTypeVector<T> & to_accumulate,
-				    ByElementTypeVector<T> & accumulated,
+  void weightedAvergageOnNeighbours(const ByElementTypeArray<T> & to_accumulate,
+				    ByElementTypeArray<T> & accumulated,
 				    UInt nb_degree_of_freedom,
 				    GhostType ghost_type2 = _not_ghost) const;
 
-  virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
+  virtual inline UInt getNbDataForElements(const Array<Element> & elements,
 					  SynchronizationTag tag) const;
 
   virtual inline void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const;
 
   virtual inline void unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
+					const Array<Element> & elements,
 					SynchronizationTag tag);
 
-  //  virtual inline void onElementsAdded(const Vector<Element> & element_list);
-  virtual inline void onElementsRemoved(const Vector<Element> & element_list,
+  //  virtual inline void onElementsAdded(const Array<Element> & element_list);
+  virtual inline void onElementsRemoved(const Array<Element> & element_list,
 					const ByElementTypeUInt & new_numbering,
 					const RemovedElementsEvent & event);
 
@@ -164,8 +164,8 @@ private:
   UInt compute_stress_calls;
 
   struct NonLocalVariable {
-    ByElementTypeVector<Real> * local_variable;
-    ByElementTypeVector<Real> * non_local_variable;
+    ByElementTypeArray<Real> * local_variable;
+    ByElementTypeArray<Real> * non_local_variable;
     UInt non_local_variable_nb_component;
   };
 

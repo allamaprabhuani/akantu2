@@ -28,12 +28,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-/* Inline Functions Vector<T>                                                 */
+/* Inline Functions Array<T>                                                 */
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 template<class T>
-inline  typename CircularVector<T>::reference CircularVector<T>::operator()(UInt i, UInt j) {
+inline  typename CircularArray<T>::reference CircularArray<T>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
 		      "The vector \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1)
@@ -45,7 +45,7 @@ inline  typename CircularVector<T>::reference CircularVector<T>::operator()(UInt
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline typename CircularVector<T>::const_reference CircularVector<T>::operator()(UInt i, UInt j) const {
+inline typename CircularArray<T>::const_reference CircularArray<T>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
 		      "The vector \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1)
@@ -57,7 +57,7 @@ inline typename CircularVector<T>::const_reference CircularVector<T>::operator()
 
 /* -------------------------------------------------------------------------- */
 template <class T>
-inline void CircularVector<T>::makeStep() {
+inline void CircularArray<T>::makeStep() {
   AKANTU_DEBUG_IN();
 
   start_position = (start_position+1) % this->allocated_size;
@@ -68,14 +68,14 @@ inline void CircularVector<T>::makeStep() {
 
 /* -------------------------------------------------------------------------- */
 template <class T>
-void CircularVector<T>::printself(std::ostream & stream, int indent) const {
+void CircularArray<T>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "CircularVector<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
+  stream << space << "CircularArray<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
   stream << space << " + start_position : " << this->start_position << std::endl;
   stream << space << " + end_position   : " << this->end_position << std::endl;
-  Vector<T>::printself(stream, indent+1);
+  Array<T>::printself(stream, indent+1);
 
   stream << space << "]" << std::endl;
 }

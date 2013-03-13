@@ -259,13 +259,13 @@ public:
     std::set<UInt> nodes_inside;
     
     Mesh &mesh = model.getMesh();
-    const Vector<Real> &x = model.getCurrentPosition();
+    const Array<Real> &x = model.getCurrentPosition();
     
     // loop over elements
     for (element_iterator it = elems.begin(); it != elems.end(); ++it) {
       
       UInt nb_nodes = mesh.getNbNodesPerElement((*it)->type);
-      const Vector<UInt> &conn = mesh.getConnectivity((*it)->type);
+      const Array<UInt> &conn = mesh.getConnectivity((*it)->type);
       
       // loop over nodes
       for (UInt n = 0; n<nb_nodes; ++n) {
@@ -396,7 +396,7 @@ public:
     // loop over nodes of side
     Mesh& mesh = model_.getMesh();
     UInt nb_nodes = mesh.getNbNodesPerElement(sp->type);
-    const Vector<UInt> &conn = mesh.getConnectivity(sp->type);
+    const Array<UInt> &conn = mesh.getConnectivity(sp->type);
     
     // loop over nodes
     for (UInt n = 0; n<nb_nodes; ++n) {
@@ -466,7 +466,7 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const CZone& cz) {
     
     Mesh& mesh = cz.model_.getMesh();
-    const Vector<Real> &x = cz.model_.getCurrentPosition();
+    const Array<Real> &x = cz.model_.getCurrentPosition();
     
     int coord[d];
     
@@ -515,7 +515,7 @@ public:
         os<<"\t\t"<<**sit;
         
         UInt nb_nodes = mesh.getNbNodesPerElement((*sit)->type);
-        const Vector<UInt> &conn = mesh.getConnectivity((*sit)->type);
+        const Array<UInt> &conn = mesh.getConnectivity((*sit)->type);
         
         os<<", nodes:";
         

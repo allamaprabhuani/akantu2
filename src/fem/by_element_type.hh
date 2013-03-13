@@ -125,21 +125,21 @@ protected:
 /* Some typedefs                                                              */
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType = ElementType>
-class ByElementTypeVector : public ByElementType<Vector<T> *, SupportType>, protected Memory {
+class ByElementTypeArray : public ByElementType<Array<T> *, SupportType>, protected Memory {
 protected:
-  typedef typename ByElementType<Vector<T> *, SupportType>::DataMap DataMap;
+  typedef typename ByElementType<Array<T> *, SupportType>::DataMap DataMap;
 public:
-  typedef typename ByElementType<Vector<T> *, SupportType>::type_iterator type_iterator;
+  typedef typename ByElementType<Array<T> *, SupportType>::type_iterator type_iterator;
 
-  ByElementTypeVector() {};
-  // ByElementTypeVector(const ID & id = "by_element_type_vector",
+  ByElementTypeArray() {};
+  // ByElementTypeArray(const ID & id = "by_element_type_vector",
   // 		      const MemoryID & memory_id = 0) :
-  //   ByElementType<Vector<T> *>(id, memory_id) {};
-  ByElementTypeVector(const ID & id, const ID & parent_id,
+  //   ByElementType<Array<T> *>(id, memory_id) {};
+  ByElementTypeArray(const ID & id, const ID & parent_id,
 		      const MemoryID & memory_id = 0) :
-    ByElementType<Vector<T> *, SupportType>(id, parent_id), Memory(memory_id) {};
+    ByElementType<Array<T> *, SupportType>(id, parent_id), Memory(memory_id) {};
 
-  inline Vector<T> & alloc(UInt size,
+  inline Array<T> & alloc(UInt size,
 			   UInt nb_component,
 			   const SupportType & type,
 			   const GhostType & ghost_type);
@@ -148,32 +148,32 @@ public:
 		    UInt nb_component,
 		    const SupportType & type);
 
-  inline const Vector<T> & operator()(const SupportType & type,
+  inline const Array<T> & operator()(const SupportType & type,
 				      const GhostType & ghost_type = _not_ghost) const;
 
-  inline Vector<T> & operator()(const SupportType & type,
+  inline Array<T> & operator()(const SupportType & type,
 				const GhostType & ghost_type = _not_ghost);
 
-  inline void setVector(const SupportType & type,
+  inline void setArray(const SupportType & type,
 			const GhostType & ghost_type,
-			const Vector<T> & vect);
+			const Array<T> & vect);
 
   inline void free();
 
-  inline void onElementsRemoved(const ByElementTypeVector<UInt> & new_numbering);
+  inline void onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 };
 
-/// to store data Vector<Real> by element type
-typedef ByElementTypeVector<Real> ByElementTypeReal;
-/// to store data Vector<Int> by element type
-typedef ByElementTypeVector<Int>  ByElementTypeInt;
-/// to store data Vector<UInt> by element type
-typedef ByElementTypeVector<UInt, ElementType> ByElementTypeUInt;
+/// to store data Array<Real> by element type
+typedef ByElementTypeArray<Real> ByElementTypeReal;
+/// to store data Array<Int> by element type
+typedef ByElementTypeArray<Int>  ByElementTypeInt;
+/// to store data Array<UInt> by element type
+typedef ByElementTypeArray<UInt, ElementType> ByElementTypeUInt;
 
 /// Map of data of type UInt stored in a mesh
-typedef std::map<std::string, Vector<UInt> *> UIntDataMap;
+typedef std::map<std::string, Array<UInt> *> UIntDataMap;
 typedef ByElementType<UIntDataMap, ElementType> ByElementTypeUIntDataMap;
 
 // /* -------------------------------------------------------------------------- */

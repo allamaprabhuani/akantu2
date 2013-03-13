@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initVectors();
+  model.initArrays();
   model.getForce().clear();
   model.getVelocity().clear();
   model.getAcceleration().clear();
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Boundary + initial conditions                                            */
   /* ------------------------------------------------------------------------ */
-  Vector<UInt> the_nodes(0,1);
+  Array<UInt> the_nodes(0,1);
   Real imposed_disp = 0.1;
   for (UInt i = 0; i < nb_nodes; ++i) {
     // block lower nodes
@@ -154,19 +154,19 @@ int main(int argc, char *argv[])
   Real disp_tol = 1e-07;
   Real velo_tol = 1e-03;
   // solution triangle_3
-  Vector<Real> disp_triangle_3(0,1); disp_triangle_3.push_back(-0.0344941);
-  Vector<Real> velo_triangle_3(0,1); velo_triangle_3.push_back(-433.9);
+  Array<Real> disp_triangle_3(0,1); disp_triangle_3.push_back(-0.0344941);
+  Array<Real> velo_triangle_3(0,1); velo_triangle_3.push_back(-433.9);
   // solution quadrangle_4
-  Vector<Real> disp_quadrangle_4(0,1); 
+  Array<Real> disp_quadrangle_4(0,1); 
   disp_quadrangle_4.push_back(0.0338388);
   disp_quadrangle_4.push_back(0.0338388);
-  Vector<Real> velo_quadrangle_4(0,1); 
+  Array<Real> velo_quadrangle_4(0,1); 
   velo_quadrangle_4.push_back(-307.221);
   velo_quadrangle_4.push_back(-307.221);
 
   // pointer to solution
-  Vector<Real> * disp = NULL;
-  Vector<Real> * velo = NULL;
+  Array<Real> * disp = NULL;
+  Array<Real> * velo = NULL;
   if (element_type == _triangle_3) {
     disp = &disp_triangle_3;
     velo = &velo_triangle_3;

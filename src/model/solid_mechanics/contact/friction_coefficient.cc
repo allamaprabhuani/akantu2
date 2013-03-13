@@ -56,7 +56,7 @@ FrictionCoefficient::~FrictionCoefficient() {
 }
 
 /* -------------------------------------------------------------------------- */
-void FrictionCoefficient::computeFrictionCoefficient(Vector<Real> & fric_coef) {
+void FrictionCoefficient::computeFrictionCoefficient(Array<Real> & fric_coef) {
   AKANTU_DEBUG_IN();
 
   UInt nb_fric_coef_elements = fric_coef.getSize();

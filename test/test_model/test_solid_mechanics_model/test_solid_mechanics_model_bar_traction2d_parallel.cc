@@ -94,9 +94,9 @@ int main(int argc, char *argv[])
   /* Boundary + initial conditions                                            */
   /* ------------------------------------------------------------------------ */
   akantu::Real eps = 1e-16;
-  const akantu::Vector<akantu::Real> & pos = mesh.getNodes();
-  akantu::Vector<akantu::Real> & disp = model.getDisplacement();
-  akantu::Vector<bool> & boun = model.getBoundary();
+  const akantu::Array<akantu::Real> & pos = mesh.getNodes();
+  akantu::Array<akantu::Real> & disp = model.getDisplacement();
+  akantu::Array<bool> & boun = model.getBoundary();
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(pos(i, 0) >= 9.) disp(i, 0) = (pos(i, 0) - 9) / 100.;

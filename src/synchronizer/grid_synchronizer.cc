@@ -74,9 +74,9 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   // mesh.getLocalLowerBounds(my_bounding_box);
   // mesh.getLocalUpperBounds(my_bounding_box + spatial_dimension);
 
-  const types::Vector<Real> & lower = grid.getLowerBounds();
-  const types::Vector<Real> & upper = grid.getUpperBounds();
-  const types::Vector<Real> & spacing = grid.getSpacing();
+  const Vector<Real> & lower = grid.getLowerBounds();
+  const Vector<Real> & upper = grid.getUpperBounds();
+  const Vector<Real> & spacing = grid.getSpacing();
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
     my_bounding_box[i                    ] = lower(i) - spacing(i);
@@ -285,7 +285,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
       UInt count = 0;
       for (; it_type != last_type; ++it_type) {
-        Vector<UInt> & conn = elempproc(*it_type, _not_ghost);
+        Array<UInt> & conn = elempproc(*it_type, _not_ghost);
         UInt info[2];
         info[0] = (UInt) *it_type;
         info[1] = conn.getSize() * conn.getNbComponent();
@@ -312,8 +312,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   /**
    * Receives the connectivity and store them in the ghosts elements
    */
-  Vector<UInt> & global_nodes_ids = const_cast<Vector<UInt> &>(mesh.getGlobalNodesIds());
-  Vector<Int> & nodes_type = const_cast<Vector<Int> &>(mesh.getNodesType());
+  Array<UInt> & global_nodes_ids = const_cast<Array<UInt> &>(mesh.getGlobalNodesIds());
+  Array<Int> & nodes_type = const_cast<Array<Int> &>(mesh.getNodesType());
   std::vector<CommunicationRequest *> isend_nodes_requests;
   UInt nb_nodes_to_recv[nb_proc];
   UInt nb_total_nodes_to_recv = 0;
@@ -322,13 +322,13 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   NewNodesEvent new_nodes;
   NewElementsEvent new_elements;
 
-  Vector<UInt> * ask_nodes_per_proc = new Vector<UInt>[nb_proc];
+  Array<UInt> * ask_nodes_per_proc = new Array<UInt>[nb_proc];
 
   for (UInt p = 0; p < nb_proc; ++p) {
     nb_nodes_to_recv[p] = 0;
     if(p == my_rank) continue;
 
-    Vector<UInt> & ask_nodes = ask_nodes_per_proc[p];
+    Array<UInt> & ask_nodes = ask_nodes_per_proc[p];
     UInt count = 0;
     if(intersects_proc[p]) {
       ElementType type = _not_defined;
@@ -341,7 +341,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
           UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);;
           UInt nb_element = info[1] / nb_nodes_per_element;
 
-          Vector<UInt> tmp_conn(nb_element, nb_nodes_per_element);
+          Array<UInt> tmp_conn(nb_element, nb_nodes_per_element);
           tmp_conn.clear();
 
           comm.receive<UInt>(tmp_conn.storage(), info[1], p, Tag::genTag(p, count, DATA_TAG));
@@ -351,7 +351,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                           << " (communication tag : " << Tag::genTag(p, count, DATA_TAG) << ")");
 
 
-          Vector<UInt> & ghost_connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(type, _ghost));
+          Array<UInt> & ghost_connectivity = const_cast<Array<UInt> &>(mesh.getConnectivity(type, _ghost));
 
           UInt nb_ghost_element = ghost_connectivity.getSize();
           Element element(type, 0, _ghost);
@@ -421,15 +421,15 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   /**
    * Sends requested nodes to proc
    */
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(mesh.getNodes());
   UInt nb_nodes = nodes.getSize();
 
   std::vector<CommunicationRequest *> isend_coordinates_requests;
-  Vector<Real> * nodes_to_send_per_proc = new Vector<Real>[nb_proc];
+  Array<Real> * nodes_to_send_per_proc = new Array<Real>[nb_proc];
   for (UInt p = 0; p < nb_proc; ++p) {
     if(p == my_rank || !intersects_proc[p]) continue;
 
-    Vector<UInt> asked_nodes;
+    Array<UInt> asked_nodes;
     CommunicationStatus status;
     AKANTU_DEBUG_INFO("Waiting list of nodes to send to processor " << p
                       << "(communication tag : " << Tag::genTag(p, 0, ASK_NODES_TAG) << ")");
@@ -447,7 +447,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
     comm.receive(asked_nodes.storage(), nb_nodes_to_send, p, Tag::genTag(p, 0, ASK_NODES_TAG));
 
-    Vector<Real> & nodes_to_send = nodes_to_send_per_proc[p];
+    Array<Real> & nodes_to_send = nodes_to_send_per_proc[p];
     nodes_to_send.extendComponentsInterlaced(spatial_dimension, 1);
     for (UInt n = 0; n < nb_nodes_to_send; ++n) {
       UInt ln = global_nodes_ids.find(asked_nodes(n));

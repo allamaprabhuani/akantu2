@@ -53,14 +53,14 @@ inline FEM & SolidMechanicsModel::getFEMBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::splitElementByMaterial(const Vector<Element> & elements,
-						 Vector<Element> * elements_per_mat) const {
+inline void SolidMechanicsModel::splitElementByMaterial(const Array<Element> & elements,
+						 Array<Element> * elements_per_mat) const {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
   UInt * elem_mat = NULL;
 
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
+  Array<Element>::const_iterator<Element> it  = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
@@ -73,7 +73,7 @@ inline void SolidMechanicsModel::splitElementByMaterial(const Vector<Element> & 
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & elements,
+inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & elements,
 						      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
@@ -85,8 +85,8 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & el
 
   UInt nb_nodes_per_element = 0;
 
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
+  Array<Element>::const_iterator<Element> it  = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
@@ -114,7 +114,7 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & el
   }
 
   if(tag != _gst_material_id) {
-    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
     this->splitElementByMaterial(elements, elements_per_mat);
 
     for (UInt i = 0; i < materials.size(); ++i) {
@@ -129,12 +129,12 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Vector<Element> & el
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packBarycenter(CommunicationBuffer & buffer,
-						const Vector<Element> & elements) const {
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+						const Array<Element> & elements) const {
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
-    types::RVector barycenter(spatial_dimension);
+    Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
     //    std::cout << ">> " << element << " -> " << barycenter << std::endl;
     buffer << barycenter;
@@ -143,7 +143,7 @@ inline void SolidMechanicsModel::packBarycenter(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
-						 const Vector<Element> & elements,
+						 const Array<Element> & elements,
 						 SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
@@ -176,7 +176,7 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
   }
 
   if(tag != _gst_material_id) {
-    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
     splitElementByMaterial(elements, elements_per_mat);
 
     for (UInt i = 0; i < materials.size(); ++i) {
@@ -190,17 +190,17 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
-						  const Vector<Element> & elements,
+						  const Array<Element> & elements,
 						  SynchronizationTag tag) {
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    types::RVector barycenter_loc(spatial_dimension);
+    Vector<Real> barycenter_loc(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
     //    std::cout << "<< " << element << " -> " << barycenter_loc << std::endl;
-    types::RVector barycenter(spatial_dimension);
+    Vector<Real> barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
@@ -217,7 +217,7 @@ inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
-						   const Vector<Element> & elements,
+						   const Array<Element> & elements,
 						   SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
@@ -249,7 +249,7 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
   }
 
   if(tag != _gst_material_id) {
-    Vector<Element> * elements_per_mat = new Vector<Element>[materials.size()];
+    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
     splitElementByMaterial(elements, elements_per_mat);
 
     for (UInt i = 0; i < materials.size(); ++i) {
@@ -329,20 +329,20 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_uv: {
-    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> it_velo = velocity->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_disp = displacement->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_velo = velocity->begin(spatial_dimension);
     buffer << it_disp[index];
     buffer << it_velo[index];
     break;
   }
   case _gst_smm_res: {
-    Vector<Real>::iterator<types::RVector> it_res = residual->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_res = residual->begin(spatial_dimension);
     buffer << it_res[index];
     break;
   }
   case _gst_smm_mass: {
     AKANTU_DEBUG_INFO("pack mass of node " << index << " which is " << (*mass)(index,0));
-    Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_mass = mass->begin(spatial_dimension);
     buffer << it_mass[index];
     break;
   }
@@ -362,20 +362,20 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_uv: {
-    Vector<Real>::iterator<types::RVector> it_disp = displacement->begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> it_velo = velocity->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_disp = displacement->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_velo = velocity->begin(spatial_dimension);
     buffer >> it_disp[index];
     buffer >> it_velo[index];
     break;
   }
   case _gst_smm_res: {
-    Vector<Real>::iterator<types::RVector> it_res = residual->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_res = residual->begin(spatial_dimension);
     buffer >> it_res[index];
     break;
   }
   case _gst_smm_mass: {
     AKANTU_DEBUG_INFO("mass of node " << index << " was " << (*mass)(index,0));
-    Vector<Real>::iterator<types::RVector> it_mass = mass->begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > it_mass = mass->begin(spatial_dimension);
     buffer >> it_mass[index];
     AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index,0));
     break;
@@ -396,7 +396,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
-void SolidMechanicsModel::solveDynamic(Vector<Real> & increment) {
+void SolidMechanicsModel::solveDynamic(Array<Real> & increment) {
   AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
 
   NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);

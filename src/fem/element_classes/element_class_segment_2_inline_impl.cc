@@ -54,8 +54,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2, _itp_lagrange_se
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_segment_2>::computeShapes(const types::Vector<Real> & natural_coords,
-							     types::Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_segment_2>::computeShapes(const Vector<Real> & natural_coords,
+							     Vector<Real> & N) {
 
   /// natural coordinate
   Real c = natural_coords(0);
@@ -65,8 +65,8 @@ InterpolationElement<_itp_lagrange_segment_2>::computeShapes(const types::Vector
 }
 /* -------------------------------------------------------------------------- */
 template <> inline void
-InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(__attribute__ ((unused)) const types::Vector<Real> & natural_coords,
-							   types::Matrix<Real> & dnds){
+InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(__attribute__ ((unused)) const Vector<Real> & natural_coords,
+							   Matrix<Real> & dnds){
   /// dN1/de
   dnds(0, 0) = - .5;
   /// dN2/de
@@ -77,7 +77,7 @@ InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(__attribute__ ((unuse
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(const types::Matrix<Real> & dxds,
+InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(const Matrix<Real> & dxds,
 								      Real & jac) {
   jac = Math::norm2(dxds.storage());
 }
@@ -85,12 +85,12 @@ InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(const type
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real
-GeometricalElement<_gt_segment_2>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
   return std::abs(coord(0, 0) - coord(0, 1));
 }
 
 // /* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_segment_2>::contains(const types::RVector & natural_coords) {
+// template<> inline bool ElementClass<_segment_2>::contains(const Vector<Real> & natural_coords) {
 //   if (natural_coords(0) < -1.) return false;
 //   if (natural_coords(0) > 1.) return false;
 //   return true;

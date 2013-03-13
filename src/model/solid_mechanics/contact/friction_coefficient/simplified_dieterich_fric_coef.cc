@@ -39,8 +39,8 @@ SimplifiedDieterichFricCoef::SimplifiedDieterichFricCoef(ContactRigid & contact,
 							 const Surface & master_surface) : FrictionCoefficient(contact, master_surface), spatial_dimension(this->contact.getSpatialDimension()), mu_zero(0.), a_factor(0.), b_factor(0.), v_normalizer(1.), theta_normalizer(1.) {
   AKANTU_DEBUG_IN();
 
-  this->relative_sliding_velocities = new Vector<Real>(0,1);
-  this->theta_state_variables = new Vector<Real>(0,1);
+  this->relative_sliding_velocities = new Array<Real>(0,1);
+  this->theta_state_variables = new Array<Real>(0,1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -84,9 +84,9 @@ void SimplifiedDieterichFricCoef::initializeComputeFricCoef() {
   ContactRigid::ImpactorInformationPerMaster * impactor_info = impactor_information_vector.at(master_index);
   */
 
-  Vector<UInt> * active_nodes = impactor_info->active_impactor_nodes;
+  Array<UInt> * active_nodes = impactor_info->active_impactor_nodes;
   UInt * active_nodes_val = active_nodes->values;
-  Vector<Real> * master_normals = impactor_info->master_normals;
+  Array<Real> * master_normals = impactor_info->master_normals;
   Real * master_normals_val = master_normals->values;
 
   Real * velocity_val = this->contact.getModel().getVelocity().values;

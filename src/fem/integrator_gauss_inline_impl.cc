@@ -36,7 +36,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-inline void IntegratorGauss<kind>::initIntegrator(const Vector<Real> & nodes,
+inline void IntegratorGauss<kind>::initIntegrator(const Array<Real> & nodes,
 						  const ElementType & type,
 						  const GhostType & ghost_type) {
 #define INIT_INTEGRATOR(type)						\
@@ -51,12 +51,12 @@ inline void IntegratorGauss<kind>::initIntegrator(const Vector<Real> & nodes,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-inline void IntegratorGauss<kind>::integrateOnElement(const Vector<Real> & f,
+inline void IntegratorGauss<kind>::integrateOnElement(const Array<Real> & f,
 						Real * intf,
 						UInt nb_degree_of_freedom,
 						const UInt elem,
 						const GhostType & ghost_type) const {
-  Vector<Real> * jac_loc = jacobians(type, ghost_type);
+  Array<Real> * jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom ,
@@ -72,10 +72,10 @@ inline void IntegratorGauss<kind>::integrateOnElement(const Vector<Real> & f,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-inline Real IntegratorGauss<kind>::integrate(const types::RVector & in_f,
+inline Real IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
 					     UInt index,
 					     const GhostType & ghost_type) const {
-  const Vector<Real> & jac_loc = jacobians(type, ghost_type);
+  const Array<Real> & jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
   AKANTU_DEBUG_ASSERT(in_f.size() == nb_quadrature_points ,
@@ -113,7 +113,7 @@ inline void IntegratorGauss<kind>::integrate(Real *f, Real *jac, Real * inte,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-inline const types::Matrix<Real> & IntegratorGauss<kind>::getQuadraturePoints(const GhostType & ghost_type) const {
+inline const Matrix<Real> & IntegratorGauss<kind>::getQuadraturePoints(const GhostType & ghost_type) const {
   AKANTU_DEBUG_ASSERT(quadrature_points.exists(type, ghost_type),
 		      "Quadrature points for type "
 		      << quadrature_points.printType(type, ghost_type)
@@ -133,10 +133,10 @@ inline void IntegratorGauss<kind>::computeQuadraturePoints(const GhostType & gho
 template <ElementKind kind>
 template <ElementType type>
 inline void IntegratorGauss<kind>::
-computeJacobianOnQuadPointsByElement(const types::Matrix<Real> & node_coords,
-				     types::Vector<Real> & jacobians) {
+computeJacobianOnQuadPointsByElement(const Matrix<Real> & node_coords,
+				     Vector<Real> & jacobians) {
 
-  types::Matrix<Real> quad = GaussIntegrationElement<type>::getQuadraturePoints();
+  Matrix<Real> quad = GaussIntegrationElement<type>::getQuadraturePoints();
   // jacobian
   ElementClass<type>::computeJacobian(quad, node_coords, jacobians);
 }
@@ -183,7 +183,7 @@ void IntegratorGauss<kind>::checkJacobians(const GhostType & ghost_type) const {
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Vector<Real> & nodes,
+void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Real> & nodes,
 								  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -193,26 +193,26 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Vector<R
 
   UInt nb_element = mesh->getNbElement(type,ghost_type);
 
-  Vector<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
+  Array<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
 						 1,
 						 type,
 						 ghost_type);
 
-  Vector<Real>::iterator< types::Vector<Real> > jacobians_it =
+  Array<Real>::iterator< Vector<Real> > jacobians_it =
     jacobians_tmp.begin_reinterpret(nb_quadrature_points, nb_element);
 
-  types::Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
+  Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
 
-  Vector<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
+  Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEM::extractNodalToElementField(*mesh, nodes, x_el, type, ghost_type);
 
-  Vector<Real>::const_iterator< types::Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+  Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
 		    nb_nodes_per_element);
 
-  //  types::Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
+  //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
   for (UInt elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
-    const types::Matrix<Real> & x = *x_it;
-    types::Vector<Real> & J = *jacobians_it;
+    const Matrix<Real> & x = *x_it;
+    Vector<Real> & J = *jacobians_it;
     computeJacobianOnQuadPointsByElement<type>(x, J);
     J *= weights;
   }
@@ -223,7 +223,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Vector<R
 /* -------------------------------------------------------------------------- */
 template <>
 template <ElementType type>
-void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const Vector<Real> & nodes,
+void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const Array<Real> & nodes,
 									  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -233,33 +233,33 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
 
   UInt nb_element = mesh->getNbElement(type,ghost_type);
 
-  Vector<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
+  Array<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
 						 1,
 						 type,
 						 ghost_type);
 
-  Vector<Real>::iterator< types::Vector<Real> > jacobians_it =
+  Array<Real>::iterator< Vector<Real> > jacobians_it =
     jacobians_tmp.begin_reinterpret(nb_quadrature_points, nb_element);
 
-  types::Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
+  Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
 
-  Vector<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
+  Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEM::extractNodalToElementField(*mesh, nodes, x_el, type, ghost_type);
 
-  Vector<Real>::const_iterator< types::Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+  Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
 									nb_nodes_per_element);
 
   UInt nb_nodes_per_subelement = nb_nodes_per_element / 2;
-  types::Matrix<Real> x(spatial_dimension, nb_nodes_per_subelement);
+  Matrix<Real> x(spatial_dimension, nb_nodes_per_subelement);
 
-  //  types::Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
+  //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
   for (UInt elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
 
     for (UInt s = 0; s < spatial_dimension; ++s)
       for (UInt n = 0; n < nb_nodes_per_subelement; ++n)
 	x(s, n) = ((*x_it)(s, n) + (*x_it)(s, n + nb_nodes_per_subelement))*.5;
 
-    types::Vector<Real> & J = *jacobians_it;
+    Vector<Real> & J = *jacobians_it;
     computeJacobianOnQuadPointsByElement<type>(x, J);
     J *= weights;
   }
@@ -270,11 +270,11 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
-				      Vector<Real> &intf,
+void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
+				      Array<Real> &intf,
 				      UInt nb_degree_of_freedom,
 				      const GhostType & ghost_type,
-				      const Vector<UInt> * filter_elements) const {
+				      const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -283,17 +283,17 @@ void IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
 
   UInt nb_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
-  const Vector<Real> & jac_loc = jacobians(type, ghost_type);
+  const Array<Real> & jac_loc = jacobians(type, ghost_type);
 
-  Vector<Real>::const_iterator< types::Matrix<Real> > J_it;
-  Vector<Real>::iterator< types::Matrix<Real> > inte_it;
-  Vector<Real>::const_iterator< types::Matrix<Real> > f_it;
+  Array<Real>::const_iterator< Matrix<Real> > J_it;
+  Array<Real>::iterator< Matrix<Real> > inte_it;
+  Array<Real>::const_iterator< Matrix<Real> > f_it;
 
   UInt nb_element;
-  Vector<Real> * filtered_J = NULL;
+  Array<Real> * filtered_J = NULL;
   if(filter_elements) {
     nb_element = filter_elements->getSize();
-    filtered_J = new Vector<Real>(0, jac_loc.getNbComponent());
+    filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
     FEM::filterQuadraturePointsData(*mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
     J_it = filtered_J->begin_reinterpret(nb_points, 1, nb_element);
   } else {
@@ -307,9 +307,9 @@ void IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
   inte_it = intf.begin_reinterpret(nb_degree_of_freedom, 1, nb_element);
 
   for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
-    const types::Matrix<Real> & f = *f_it;
-    const types::Matrix<Real> & J = *J_it;
-    types::Matrix<Real> & inte_f = *inte_it;
+    const Matrix<Real> & f = *f_it;
+    const Matrix<Real> & J = *J_it;
+    Matrix<Real> & inte_f = *inte_it;
 
     inte_f.mul<false, false>(f, J);
   }
@@ -323,20 +323,20 @@ void IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-Real IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
+Real IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 				const GhostType & ghost_type,
-				const Vector<UInt> * filter_elements) const {
+				const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
 		      "No jacobians for the type "
 		      << jacobians.printType(type, ghost_type));
 
-  Vector<Real> intfv(0, 1);
+  Array<Real> intfv(0, 1);
   integrate<type>(in_f, intfv, 1, ghost_type, filter_elements);
 
-  Vector<Real>::iterator<Real> it  = intfv.begin();
-  Vector<Real>::iterator<Real> end = intfv.end();
+  Array<Real>::iterator<Real> it  = intfv.begin();
+  Array<Real>::iterator<Real> end = intfv.end();
 
   Real intf = 0.;
   for (; it != end; ++it) intf += *it;
@@ -348,11 +348,11 @@ Real IntegratorGauss<kind>::integrate(const Vector<Real> & in_f,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Vector<Real> & in_f,
-						  Vector<Real> &intf,
+void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f,
+						  Array<Real> &intf,
 						  UInt nb_degree_of_freedom,
 						  const GhostType & ghost_type,
-						  const Vector<UInt> * filter_elements) const {
+						  const Array<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -362,16 +362,16 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Vector<Real> & in_
   UInt nb_element;
   UInt nb_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
-  const Vector<Real> & jac_loc = jacobians(type, ghost_type);
+  const Array<Real> & jac_loc = jacobians(type, ghost_type);
 
-  Vector<Real>::const_iterator< Real > J_it;
-  Vector<Real>::iterator< types::Vector<Real> > inte_it;
-  Vector<Real>::const_iterator< types::Vector<Real> > f_it;
+  Array<Real>::const_iterator< Real > J_it;
+  Array<Real>::iterator< Vector<Real> > inte_it;
+  Array<Real>::const_iterator< Vector<Real> > f_it;
 
-  Vector<Real> * filtered_J = NULL;
+  Array<Real> * filtered_J = NULL;
   if(filter_elements) {
     nb_element = filter_elements->getSize();
-    filtered_J = new Vector<Real>(0, jac_loc.getNbComponent());
+    filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
     FEM::filterQuadraturePointsData(*mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
     J_it = filtered_J->begin();
   } else {
@@ -386,8 +386,8 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Vector<Real> & in_
 
   for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
     const Real & J = *J_it;
-    const types::Vector<Real> & f = *f_it;
-    types::Vector<Real> & inte_f = *inte_it;
+    const Vector<Real> & f = *f_it;
+    Vector<Real> & inte_f = *inte_it;
 
     inte_f = f;
     inte_f *= J;

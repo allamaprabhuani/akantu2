@@ -95,26 +95,26 @@ protected:
   Real beta;
   
   /// weights
-  Vector<Real> * weights;
+  Array<Real> * weights;
 
   /// history of sliding velocities
-  CircularVector< Vector<Real> * > * historic_velocities;
+  CircularArray< Array<Real> * > * historic_velocities;
   
   /// order of information
-  Vector<UInt> nodes;
+  Array<UInt> nodes;
 
   /// if node is active in this time step
-  Vector<bool> active;
+  Array<bool> active;
 
   /// time since node came in contact
-  Vector<Real> contact_time;
+  Array<Real> contact_time;
 
   /// keep information about stick status of active impactor node
-  Vector<bool> * node_stick_status;
+  Array<bool> * node_stick_status;
   
   //public: // for testing
   /// relative sliding velocities for each active impactor node
-  Vector<Real> * generalized_sliding_velocities;
+  Array<Real> * generalized_sliding_velocities;
 };
 
 

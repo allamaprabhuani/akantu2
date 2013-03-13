@@ -69,21 +69,21 @@ public:
   virtual void initMaterial();
 
   /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors();
+  virtual void resizeCohesiveArrays();
 
 
 
 protected:
 
   /// constitutive law
-  void computeTraction(const Vector<Real> & normal,
+  void computeTraction(const Array<Real> & normal,
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentTraction(const ElementType & el_type,
-			      Vector<Real> & tangent_matrix,
-			      const Vector<Real> & normal,
+			      Array<Real> & tangent_matrix,
+			      const Array<Real> & normal,
 			      GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */

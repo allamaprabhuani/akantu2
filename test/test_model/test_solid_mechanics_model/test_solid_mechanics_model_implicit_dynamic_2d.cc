@@ -105,16 +105,16 @@ int main(int argc, char *argv[])
   mat.setParam("rho", rho);
 
   // boundary conditions
-  const Vector<Real> & position    = mesh.getNodes();
-  Vector<bool> & boundary    = model.getBoundary();
-  Vector<Real> & force       = model.getForce();
-  Vector<Real> & displacment = model.getDisplacement();
+  const Array<Real> & position    = mesh.getNodes();
+  Array<bool> & boundary    = model.getBoundary();
+  Array<Real> & force       = model.getForce();
+  Array<Real> & displacment = model.getDisplacement();
 
   //initial conditions
   UInt node_to_print = UInt(-1);
   bool print_node = false;
 
-  Vector<UInt> node_to_displace;
+  Array<UInt> node_to_displace;
   for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
     Real x = position(n, 0);
     Real y = position(n, 1);

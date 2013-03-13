@@ -277,7 +277,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
       sstr >> nb_nodes;
       current_line++;
 
-      Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+      Array<Real> & nodes = const_cast<Array<Real> &>(mesh.getNodes());
       nodes.resize(nb_nodes);
       mesh.nb_global_nodes = nb_nodes;
 
@@ -319,7 +319,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
       Int index;
       UInt msh_type;
       ElementType akantu_type, akantu_type_old = _not_defined;
-      Vector<UInt> *connectivity = NULL;
+      Array<UInt> *connectivity = NULL;
       UInt node_per_element = 0;
 
       for(UInt i = 0; i < nb_elements; ++i) {
@@ -356,14 +356,14 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 	    Int tag;
 	    sstr_elem >> tag;
 	    std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << j;
-	    Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str(), _not_ghost);
+	    Array<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str(), _not_ghost);
 	    data->push_back(tag);
 	  }
 	} else if (file_format == 1) {
 	  Int tag;
 	  sstr_elem >> tag; //reg-phys
 	  std::string tag_name = "tag_0";
-	  Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, tag_name, _not_ghost);
+	  Array<UInt> * data = mesh.getUIntDataPointer(akantu_type, tag_name, _not_ghost);
 	  data->push_back(tag);
 
 	  sstr_elem >> tag; //reg-elem
@@ -404,7 +404,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   std::ofstream outfile;
-  const Vector<Real> & nodes = mesh.getNodes();
+  const Array<Real> & nodes = mesh.getNodes();
 
   outfile.open(filename.c_str());
 
@@ -440,7 +440,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   Int nb_elements = 0;
   for(; it != end; ++it) {
-    const Vector<UInt> & connectivity = mesh.getConnectivity(*it, _not_ghost);
+    const Array<UInt> & connectivity = mesh.getConnectivity(*it, _not_ghost);
     nb_elements += connectivity.getSize();
   }
   outfile << nb_elements << std::endl;
@@ -448,16 +448,16 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   UInt element_idx = 1;
   for(it  = mesh.firstType(); it != end; ++it) {
     ElementType type = *it;
-    const Vector<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
+    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     UInt * tag[2] = {NULL, NULL};
     try {
-      const Vector<UInt> & data_tag_0 = mesh.getUIntData(type, "tag_0", _not_ghost);
+      const Array<UInt> & data_tag_0 = mesh.getUIntData(type, "tag_0", _not_ghost);
       tag[0] = data_tag_0.storage();
     } catch(...) { tag[0] = NULL; }
 
     try {
-      const Vector<UInt> & data_tag_1 = mesh.getUIntData(type, "tag_1", _not_ghost);
+      const Array<UInt> & data_tag_1 = mesh.getUIntData(type, "tag_1", _not_ghost);
       tag[1] = data_tag_1.storage();
     } catch(...) { tag[1] = NULL; }
 

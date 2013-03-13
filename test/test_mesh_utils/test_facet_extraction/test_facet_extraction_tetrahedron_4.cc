@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   Mesh mesh(dim);
   MeshIOMSH mesh_io;
   mesh_io.read("cube.msh", mesh);
-  Mesh mesh_facets(dim, const_cast<Vector<Real> &>(mesh.getNodes()), "mesh_facets", 1);
+  Mesh mesh_facets(dim, const_cast<Array<Real> &>(mesh.getNodes()), "mesh_facets", 1);
 
   MeshUtils::buildAllFacets(mesh, mesh_facets);
 

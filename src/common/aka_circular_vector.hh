@@ -44,20 +44,20 @@
 __BEGIN_AKANTU__
 
 template<class T>
-class CircularVector : protected Vector<T> {
+class CircularArray : protected Array<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef typename Vector<T>::value_type      value_type;
-  typedef typename Vector<T>::reference       reference;
-  typedef typename Vector<T>::pointer_type    pointer_type;
-  typedef typename Vector<T>::const_reference const_reference;
+  typedef typename Array<T>::value_type      value_type;
+  typedef typename Array<T>::reference       reference;
+  typedef typename Array<T>::pointer_type    pointer_type;
+  typedef typename Array<T>::const_reference const_reference;
 
   /// Allocation of a new vector with a default value
-  CircularVector(UInt size, UInt nb_component = 1,
+  CircularArray(UInt size, UInt nb_component = 1,
 		 const_reference value = value_type(), const ID & id = "") :
-    Vector<T>(size, nb_component, value, id),
+    Array<T>(size, nb_component, value, id),
     start_position(0),
     end_position(size-1) {
     AKANTU_DEBUG_IN();
@@ -65,7 +65,7 @@ public:
     AKANTU_DEBUG_OUT();
   };
 
-  virtual ~CircularVector() {
+  virtual ~CircularArray() {
     AKANTU_DEBUG_IN();
 
     AKANTU_DEBUG_OUT();
@@ -118,7 +118,7 @@ private:
 
 /// standard output stream operator
 template <typename T>
-inline std::ostream & operator <<(std::ostream & stream, const CircularVector<T> & _this)
+inline std::ostream & operator <<(std::ostream & stream, const CircularArray<T> & _this)
 {
   _this.printself(stream);
   return stream;

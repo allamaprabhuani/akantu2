@@ -33,13 +33,13 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
-							   types::RMatrix & sigma) {
-  types::RMatrix F(3, 3);
+MaterialNeohookean<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
+							   Matrix<Real> & sigma) {
+  Matrix<Real> F(3, 3);
   this->template gradUToF<spatial_dimension>(grad_u, F);
 
   ///First compute the Left Cauchy-Green deformation tensor : C= F^tF.
-  types::RMatrix C(3, 3);
+  Matrix<Real> C(3, 3);
   this->rightCauchy(F, C);
 
   ///Compute determinant of C
@@ -48,14 +48,14 @@ MaterialNeohookean<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad
 
   Real p = lambda * defvol;
 
-  types::RMatrix S(3, 3);
+  Matrix<Real> S(3, 3);
   Math::inv3(C.storage(), S.storage());
 
   S *= p - mu;
 
   for (UInt i = 0; i < 3; ++i) S(i,i) = S(i,i) + mu;
 
-  types::RMatrix sigma_tmp(3, 3);
+  Matrix<Real> sigma_tmp(3, 3);
   sigma_tmp.mul<false, false>(F, S);
 
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -66,10 +66,10 @@ MaterialNeohookean<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(types::RMatrix & grad_u,
-								  types::RMatrix & tangent) {
+MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> & grad_u,
+								  Matrix<Real> & tangent) {
   UInt n = tangent.cols();
-  types::RMatrix F(3, 3);
+  Matrix<Real> F(3, 3);
   this->template gradUToF<spatial_dimension>(grad_u, F);
   Real J = Math::det3(F.storage());
   Real Miiii = 2*mu + lambda;
@@ -102,11 +102,11 @@ MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(types::RMatrix
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
 								    Real & epot) {
 
-  types::RMatrix F(3, 3);
-  types::RMatrix C(3, 3);
+  Matrix<Real> F(3, 3);
+  Matrix<Real> C(3, 3);
 
   Material::gradUToF<spatial_dimension>(grad_u, F);
   this->rightCauchy(F, C);

@@ -74,7 +74,7 @@ public:
 
   virtual void partitionate(UInt nb_part,
 			    const EdgeLoadFunctor & edge_load_func = ConstEdgeLoadFunctor(),
-			    const Vector<UInt> & pairs = Vector<UInt>()) = 0;
+			    const Array<UInt> & pairs = Array<UInt>()) = 0;
 
   virtual void reorder() = 0;
 
@@ -87,10 +87,10 @@ public:
 protected:
 
   /// build the dual graph of the mesh, for all element of spatial_dimension
-  void buildDualGraph(Vector<Int> & dxadj, Vector<Int> & dadjncy,
-		      Vector<Int> & edge_loads,
+  void buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
+		      Array<Int> & edge_loads,
 		      const EdgeLoadFunctor & edge_load_func,
-		      const Vector<UInt> & pairs);
+		      const Array<UInt> & pairs);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -127,7 +127,7 @@ protected:
   ByElementTypeUInt ghost_partitions;
   ByElementTypeUInt ghost_partitions_offset;
 
-  Vector<UInt> * permutation;
+  Array<UInt> * permutation;
 };
 
 

@@ -77,34 +77,34 @@ void MaterialCohesive::initMaterial() {
 
   Material::initMaterial();
 
-  initInternalVector(reversible_energy,                 1, false, _ek_cohesive);
-  initInternalVector(     total_energy,                 1, false, _ek_cohesive);
-  initInternalVector(    tractions_old, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(        tractions, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(      opening_old, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(          opening, spatial_dimension, false, _ek_cohesive);
-  initInternalVector(        delta_max,                 1, false, _ek_cohesive);
-  initInternalVector(           damage,                 1, false, _ek_cohesive);
-  initInternalVector(   element_filter,                 1, false, _ek_cohesive);
+  initInternalArray(reversible_energy,                 1, false, _ek_cohesive);
+  initInternalArray(     total_energy,                 1, false, _ek_cohesive);
+  initInternalArray(    tractions_old, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(        tractions, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(      opening_old, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(          opening, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(        delta_max,                 1, false, _ek_cohesive);
+  initInternalArray(           damage,                 1, false, _ek_cohesive);
+  initInternalArray(   element_filter,                 1, false, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::resizeCohesiveVectors() {
-  resizeInternalVector(reversible_energy, _ek_cohesive);
-  resizeInternalVector(total_energy     , _ek_cohesive);
-  resizeInternalVector(tractions_old    , _ek_cohesive);
-  resizeInternalVector(tractions        , _ek_cohesive);
-  resizeInternalVector(opening_old      , _ek_cohesive);
-  resizeInternalVector(opening          , _ek_cohesive);
-  resizeInternalVector(delta_max        , _ek_cohesive);
-  resizeInternalVector(damage           , _ek_cohesive);
+void MaterialCohesive::resizeCohesiveArrays() {
+  resizeInternalArray(reversible_energy, _ek_cohesive);
+  resizeInternalArray(total_energy     , _ek_cohesive);
+  resizeInternalArray(tractions_old    , _ek_cohesive);
+  resizeInternalArray(tractions        , _ek_cohesive);
+  resizeInternalArray(opening_old      , _ek_cohesive);
+  resizeInternalArray(opening          , _ek_cohesive);
+  resizeInternalArray(delta_max        , _ek_cohesive);
+  resizeInternalArray(damage           , _ek_cohesive);
 }
 
 /* -------------------------------------------------------------------------- */
 
-void MaterialCohesive::generateRandomDistribution(Vector<Real> & sigma_lim) {
+void MaterialCohesive::generateRandomDistribution(Array<Real> & sigma_lim) {
   AKANTU_DEBUG_IN();
 
   if (random_generator)
@@ -114,23 +114,23 @@ void MaterialCohesive::generateRandomDistribution(Vector<Real> & sigma_lim) {
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::checkInsertion(const Vector<Real> & facet_stress,
-				      Vector<UInt> & facet_insertion) {
+void MaterialCohesive::checkInsertion(const Array<Real> & facet_stress,
+				      Array<UInt> & facet_insertion) {
   AKANTU_DEBUG_IN();
 
-  Vector<bool> & facets_check = model->getFacetsCheck();
+  Array<bool> & facets_check = model->getFacetsCheck();
   ElementType type_facet = model->getFacetType();
 
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   UInt nb_facet = facets_check.getSize();
 
-  Vector<Real> stress_check(nb_facet, nb_quad_facet);
+  Array<Real> stress_check(nb_facet, nb_quad_facet);
   stress_check.clear();
 
   computeStressNorms(facet_stress, stress_check);
 
   bool * facet_check_it = facets_check.storage();
-  Vector<Real>::iterator<types::RVector> stress_check_it =
+  Array<Real>::iterator< Vector<Real> > stress_check_it =
     stress_check.begin(nb_quad_facet);
 
   Real * sigma_limit_it = model->getSigmaLimit().storage();
@@ -160,16 +160,16 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  Vector<Real> & residual = const_cast<Vector<Real> &>(model->getResidual());
+  Array<Real> & residual = const_cast<Array<Real> &>(model->getResidual());
 
   Mesh & mesh = fem_cohesive->getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
   for(; it != last_type; ++it) {
-    const Vector<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
+    const Array<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
 
-    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
-    Vector<Real> & traction = tractions(*it, ghost_type);
+    Array<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Array<Real> & traction = tractions(*it, ghost_type);
 
     UInt size_of_shapes       = shapes.getNbComponent();
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
@@ -182,8 +182,8 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     Real * shapes_val       = shapes.storage();
     UInt * elem_filter_val  = elem_filter.storage();
 
-    Vector<Real> * shapes_filtered =
-      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
+    Array<Real> * shapes_filtered =
+      new Array<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
     Real * shapes_filtered_val = shapes_filtered->values;
 
     for (UInt el = 0; el < nb_element; ++el) {
@@ -198,7 +198,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 
     // multiply traction by shapes
 
-    Vector<Real> * traction_cpy = new Vector<Real>(traction);
+    Array<Real> * traction_cpy = new Array<Real>(traction);
     traction_cpy->extendComponentsInterlaced(size_of_shapes, spatial_dimension);
 
     Real * traction_cpy_val = traction_cpy->storage();
@@ -219,7 +219,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
      * compute @f$\int t \cdot N\, dS@f$ by  @f$ \sum_q \mathbf{N}^t
      * \mathbf{t}_q \overline w_q J_q@f$
      */
-    Vector<Real> * int_t_N = new Vector<Real>(nb_element, spatial_dimension*size_of_shapes,
+    Array<Real> * int_t_N = new Array<Real>(nb_element, spatial_dimension*size_of_shapes,
 					      "int_t_N");
 
     fem_cohesive->integrate(*traction_cpy, *int_t_N,
@@ -239,7 +239,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     }
 
     /// assemble
-    model->getFEMBoundary().assembleVector(*int_t_N, residual,
+    model->getFEMBoundary().assembleArray(*int_t_N, residual,
 					   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
 					   residual.getNbComponent(),
 					   *it, ghost_type, &elem_filter, 1);
@@ -268,14 +268,14 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     UInt nb_quadrature_points = fem_cohesive->getNbQuadraturePoints(*it, ghost_type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
-    const Vector<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
-    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    const Array<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
+    Array<UInt> & elem_filter = element_filter(*it, ghost_type);
 
     UInt nb_element = elem_filter.getSize();
     UInt size_of_shapes       = shapes.getNbComponent();
 
-    Vector<Real> * shapes_filtered =
-      new Vector<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
+    Array<Real> * shapes_filtered =
+      new Array<Real>(nb_element*nb_quadrature_points, size_of_shapes, "filtered shapes");
 
     Real * shapes_val       = shapes.storage();
     Real * shapes_filtered_val = shapes_filtered->values;
@@ -303,7 +303,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     // UInt size_of_A =  spatial_dimension*size_of_shapes*spatial_dimension*nb_nodes_per_element;
     // Real * A = new Real[size_of_A];
     // memset(A, 0, size_of_A*sizeof(Real));
-    types::RMatrix A(spatial_dimension*size_of_shapes, spatial_dimension*nb_nodes_per_element);
+    Matrix<Real> A(spatial_dimension*size_of_shapes, spatial_dimension*nb_nodes_per_element);
 
     for ( UInt i = 0; i < spatial_dimension*size_of_shapes; ++i) {
       A(i, i) = 1;
@@ -314,12 +314,12 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     computeTraction(ghost_type);
 
     /// get the tangent matrix @f$\frac{\partial{(t/\delta)}}{\partial{\delta}} @f$
-    Vector<Real> * tangent_stiffness_matrix =
-      new Vector<Real>(nb_element*nb_quadrature_points, spatial_dimension*
+    Array<Real> * tangent_stiffness_matrix =
+      new Array<Real>(nb_element*nb_quadrature_points, spatial_dimension*
 		       spatial_dimension, "tangent_stiffness_matrix");
 
-    //    Vector<Real> * normal = new Vector<Real>(nb_element * nb_quadrature_points, spatial_dimension, "normal");
-    Vector<Real> normal( nb_quadrature_points, spatial_dimension, "normal");
+    //    Array<Real> * normal = new Array<Real>(nb_element * nb_quadrature_points, spatial_dimension, "normal");
+    Array<Real> normal( nb_quadrature_points, spatial_dimension, "normal");
 
 
     computeNormal(model->getCurrentPosition(), normal, *it, ghost_type);
@@ -331,20 +331,20 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     // delete normal;
 
     UInt size_at_nt_d_n_a = spatial_dimension*nb_nodes_per_element*spatial_dimension*nb_nodes_per_element;
-    Vector<Real> * at_nt_d_n_a = new Vector<Real> (nb_element*nb_quadrature_points,
+    Array<Real> * at_nt_d_n_a = new Array<Real> (nb_element*nb_quadrature_points,
 						   size_at_nt_d_n_a,
 						   "A^t*N^t*D*N*A");
 
-    Vector<Real>::iterator<types::Vector<Real> > shapes_filt_it = shapes_filtered->begin(size_of_shapes);
-    Vector<Real>::iterator<types::RMatrix> D_it = tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::RMatrix> At_Nt_D_N_A_it  = at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
+    Array<Real>::iterator<Vector<Real> > shapes_filt_it = shapes_filtered->begin(size_of_shapes);
+    Array<Real>::iterator< Matrix<Real> > D_it = tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
+    Array<Real>::iterator< Matrix<Real> > At_Nt_D_N_A_it  = at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
 										spatial_dimension * nb_nodes_per_element);
-    Vector<Real>::iterator<types::RMatrix> At_Nt_D_N_A_end = at_nt_d_n_a->end  (spatial_dimension * nb_nodes_per_element,
+    Array<Real>::iterator< Matrix<Real> > At_Nt_D_N_A_end = at_nt_d_n_a->end  (spatial_dimension * nb_nodes_per_element,
 										spatial_dimension * nb_nodes_per_element);
 
-    types::RMatrix N    (spatial_dimension, spatial_dimension * size_of_shapes);
-    types::RMatrix N_A  (spatial_dimension, spatial_dimension * nb_nodes_per_element);
-    types::RMatrix D_N_A(spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    Matrix<Real> N    (spatial_dimension, spatial_dimension * size_of_shapes);
+    Matrix<Real> N_A  (spatial_dimension, spatial_dimension * nb_nodes_per_element);
+    Matrix<Real> D_N_A(spatial_dimension, spatial_dimension * nb_nodes_per_element);
 
     for(; At_Nt_D_N_A_it != At_Nt_D_N_A_end; ++At_Nt_D_N_A_it, ++D_it, ++shapes_filt_it) {
       N.clear();
@@ -370,7 +370,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     delete tangent_stiffness_matrix;
     delete shapes_filtered;
 
-    Vector<Real> * K_e = new Vector<Real>(nb_element, size_at_nt_d_n_a,
+    Array<Real> * K_e = new Array<Real>(nb_element, size_at_nt_d_n_a,
 					  "K_e");
 
     fem_cohesive->integrate(*at_nt_d_n_a, *K_e,
@@ -402,12 +402,12 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
 
   for(; it != last_type; ++it) {
-    Vector<UInt> & elem_filter = element_filter(*it, ghost_type);
+    Array<UInt> & elem_filter = element_filter(*it, ghost_type);
 
     UInt nb_element = elem_filter.getSize();
     UInt nb_quadrature_points = nb_element*fem_cohesive->getNbQuadraturePoints(*it, ghost_type);
 
-    Vector<Real> normal(nb_quadrature_points, spatial_dimension,
+    Array<Real> normal(nb_quadrature_points, spatial_dimension,
 			"normal");
 
     /// compute normals @f$\mathbf{n}@f$
@@ -426,8 +426,8 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::computeNormal(const Vector<Real> & position,
-				     Vector<Real> & normal,
+void MaterialCohesive::computeNormal(const Array<Real> & position,
+				     Array<Real> & normal,
 				     ElementType type,
 				     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -447,8 +447,8 @@ void MaterialCohesive::computeNormal(const Vector<Real> & position,
 
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::computeOpening(const Vector<Real> & displacement,
-				      Vector<Real> & opening,
+void MaterialCohesive::computeOpening(const Array<Real> & displacement,
+				      Array<Real> & opening,
 				      ElementType type,
 				      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -476,24 +476,24 @@ void MaterialCohesive::computeEnergies() {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _not_ghost, _ek_cohesive);
 
   Real * memory_space = new Real[2*spatial_dimension];
-  types::RVector b(memory_space, spatial_dimension);
-  types::RVector h(memory_space + spatial_dimension, spatial_dimension);
+  Vector<Real> b(memory_space, spatial_dimension);
+  Vector<Real> h(memory_space + spatial_dimension, spatial_dimension);
 
   for(; it != last_type; ++it) {
-    Vector<Real>::iterator<Real> erev =
+    Array<Real>::iterator<Real> erev =
       reversible_energy(*it, _not_ghost).begin();
-    Vector<Real>::iterator<Real> etot =
+    Array<Real>::iterator<Real> etot =
       total_energy(*it, _not_ghost).begin();
-    Vector<Real>::iterator<types::RVector> traction_it =
+    Array<Real>::iterator< Vector<Real> > traction_it =
       tractions(*it, _not_ghost).begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> traction_old_it =
+    Array<Real>::iterator< Vector<Real> > traction_old_it =
       tractions_old(*it, _not_ghost).begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> opening_it =
+    Array<Real>::iterator< Vector<Real> > opening_it =
       opening(*it, _not_ghost).begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> opening_old_it =
+    Array<Real>::iterator< Vector<Real> > opening_old_it =
       opening_old(*it, _not_ghost).begin(spatial_dimension);
 
-    Vector<Real>::iterator<types::RVector>traction_end =
+    Array<Real>::iterator< Vector<Real> >traction_end =
       tractions(*it, _not_ghost).end(spatial_dimension);
 
     /// loop on each quadrature point
@@ -558,7 +558,7 @@ Real MaterialCohesive::getDissipatedEnergy() {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _not_ghost, _ek_cohesive);
 
   for(; it != last_type; ++it) {
-    Vector<Real> dissipated_energy(total_energy(*it, _not_ghost));
+    Array<Real> dissipated_energy(total_energy(*it, _not_ghost));
     dissipated_energy -= reversible_energy(*it, _not_ghost);
     edis += fem_cohesive->integrate(dissipated_energy, *it,
 				    _not_ghost, &element_filter(*it, _not_ghost));

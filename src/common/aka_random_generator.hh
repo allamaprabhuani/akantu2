@@ -52,7 +52,7 @@ public:
   virtual ~RandomGenerator() {}
 
 
-  virtual void generate(const T & avg, Vector<T> & vect) = 0;
+  virtual void generate(const T & avg, Array<T> & vect) = 0;
   virtual void setParams(std::string value) = 0;
 
   void setSeed(long int seed) {
@@ -114,7 +114,7 @@ public:
 
   virtual ~UniformRandomGenerator() {};
 
-  void generate(const T & ref, Vector<T> & vect) {
+  void generate(const T & ref, Array<T> & vect) {
     UInt n = vect.getSize();
     for (UInt i = 0; i < n; ++i)
       vect(i) = ref * ((1. - random_factor_min) + (random_factor_min + random_factor_max) * this->rand());
@@ -171,7 +171,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  void generate(const T & ref, Vector<T> & vect) {
+  void generate(const T & ref, Array<T> & vect) {
     UInt n = vect.getSize();
     T e = T(1) / m;
     for (UInt i = 0; i < n; ++i) {

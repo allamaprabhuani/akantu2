@@ -98,10 +98,10 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
   /// boundary conditions
-  const akantu::Vector<Real> & position = model.getFEM().getMesh().getNodes();
-  akantu::Vector<bool> & boundary = model.getBoundary();
-  akantu::Vector<Real> & force = model.getForce();
-  const akantu::Vector<Real> & mass = model.getMass();
+  const akantu::Array<Real> & position = model.getFEM().getMesh().getNodes();
+  akantu::Array<bool> & boundary = model.getBoundary();
+  akantu::Array<Real> & force = model.getForce();
+  const akantu::Array<Real> & mass = model.getMass();
 
   akantu::Real z_min = position(0, 2);
   for (unsigned int i = 0; i < nb_nodes; ++i) {
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
   model.addDumpField("strain"      );
   model.dump();
 
-  akantu::Vector<Real> & velocity = model.getVelocity();
+  akantu::Array<Real> & velocity = model.getVelocity();
 
   std::ofstream energy;
   energy.open(energy_file.str().c_str());

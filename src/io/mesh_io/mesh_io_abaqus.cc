@@ -75,7 +75,7 @@ void MeshIOAbaqus::read(const std::string& filename, Mesh& mesh) {
         // node section
         if (keyword == "node") {
             
-            Vector<Real>& nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+            Array<Real>& nodes = const_cast<Array<Real> &>(mesh.getNodes());
             
             // read nodes from file
             while (ifs.peek() != '*') {
@@ -126,7 +126,7 @@ void MeshIOAbaqus::read(const std::string& filename, Mesh& mesh) {
                 //        
                 //        std::string diana_type;
                 //        ElementType akantu_type, akantu_type_old = _not_defined;
-                //        Vector<UInt> *connectivity = NULL;
+                //        Array<UInt> *connectivity = NULL;
                 //        UInt node_per_element = 0;
                 //        Element elem;
                 //        UInt nb_elements_type = 0;

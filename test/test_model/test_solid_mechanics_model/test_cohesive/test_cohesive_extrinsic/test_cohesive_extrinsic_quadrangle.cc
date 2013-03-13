@@ -83,11 +83,11 @@ int main(int argc, char *argv[]) {
 
   const ElementType type_facet = mesh.getFacetType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  const Vector<Real> & position = mesh.getNodes();
-  //  const Vector<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
+  const Array<Real> & position = mesh.getNodes();
+  //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
 
-  Vector<Real> & sigma_lim = model.getSigmaLimit();
-  Vector<bool> & facet_check = model.getFacetsCheck();
+  Array<Real> & sigma_lim = model.getSigmaLimit();
+  Array<bool> & facet_check = model.getFacetsCheck();
 
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
@@ -110,10 +110,10 @@ int main(int argc, char *argv[]) {
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
 
-  Vector<Real> & velocity = model.getVelocity();
-  Vector<bool> & boundary = model.getBoundary();
-  Vector<Real> & displacement = model.getDisplacement();
-  //  const Vector<Real> & residual = model.getResidual();
+  Array<Real> & velocity = model.getVelocity();
+  Array<bool> & boundary = model.getBoundary();
+  Array<Real> & displacement = model.getDisplacement();
+  //  const Array<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -166,9 +166,9 @@ int main(int argc, char *argv[]) {
   // std::ofstream edis("edis.txt");
   // std::ofstream erev("erev.txt");
 
-  //  Vector<Real> & residual = model.getResidual();
+  //  Array<Real> & residual = model.getResidual();
 
-  //  const Vector<Real> & stress = model.getMaterial(0).getStress(type);
+  //  const Array<Real> & stress = model.getMaterial(0).getStress(type);
 
 
   /// Main loop

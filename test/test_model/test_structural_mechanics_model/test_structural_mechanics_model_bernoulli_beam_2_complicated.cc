@@ -100,12 +100,12 @@ int main(int argc, char *argv[]){
   }
 
 
-  Vector<Real> & forces = model.getForce();
-  Vector<Real> & displacement = model.getDisplacement();
-  Vector<bool> & boundary = model.getBoundary();
-  //  const Vector<Real> & N_M  = model.getStress(_bernoulli_beam_2);
+  Array<Real> & forces = model.getForce();
+  Array<Real> & displacement = model.getDisplacement();
+  Array<bool> & boundary = model.getBoundary();
+  //  const Array<Real> & N_M  = model.getStress(_bernoulli_beam_2);
 
-  //  Vector<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
+  //  Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
 
   forces.clear();
   displacement.clear();

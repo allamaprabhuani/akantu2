@@ -67,73 +67,73 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline void initShapeFunctions(const Vector<Real> & nodes,
-				 const types::Matrix<Real> & control_points,
+  inline void initShapeFunctions(const Array<Real> & nodes,
+				 const Matrix<Real> & control_points,
 				 const ElementType & type,
 				 const GhostType & ghost_type);
 
   /// extract the nodal values and store them per element
   template <ElementType type, class ReduceFunction>
-  void extractNodalToElementField(const Vector<Real> & nodal_f,
-				  Vector<Real> & elemental_f,
+  void extractNodalToElementField(const Array<Real> & nodal_f,
+				  Array<Real> & elemental_f,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> * filter_elements = NULL) const;
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesOnControlPoints(const Vector<Real> & nodes,
+  void precomputeShapesOnControlPoints(const Array<Real> & nodes,
 				       GhostType ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes,
+  void precomputeShapeDerivativesOnControlPoints(const Array<Real> & nodes,
 						 GhostType ghost_type);
 
   /// interpolate nodal values on the control points
   template <ElementType type, class ReduceFunction>
-  void interpolateOnControlPoints(const Vector<Real> &u,
-				  Vector<Real> &uq,
+  void interpolateOnControlPoints(const Array<Real> &u,
+				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  const GhostType ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> * filter_elements = NULL) const;
 
   template <ElementType type>
-  void interpolateOnControlPoints(const Vector<Real> &u,
-				  Vector<Real> &uq,
+  void interpolateOnControlPoints(const Array<Real> &u,
+				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  const GhostType ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const {
+				  const Array<UInt> * filter_elements = NULL) const {
     interpolateOnControlPoints<type, CohesiveReduceFunctionMean>(u, uq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
 
   /// compute the gradient of u on the control points in the natural coordinates
   template <ElementType type>
-  void gradientOnControlPoints(const Vector<Real> &u,
-			       Vector<Real> &nablauq,
+  void gradientOnControlPoints(const Array<Real> &u,
+			       Array<Real> &nablauq,
 			       UInt nb_degree_of_freedom,
 			       GhostType ghost_type = _not_ghost,
-			       const Vector<UInt> * filter_elements = NULL) const {
+			       const Array<UInt> * filter_elements = NULL) const {
     variationOnControlPoints<type, CohesiveReduceFunctionMean>(u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
 
   /// compute the gradient of u on the control points
   template <ElementType type, class ReduceFunction>
-  void variationOnControlPoints(const Vector<Real> &u,
-				Vector<Real> &nablauq,
+  void variationOnControlPoints(const Array<Real> &u,
+				Array<Real> &nablauq,
 				UInt nb_degree_of_freedom,
 				GhostType ghost_type = _not_ghost,
-				const Vector<UInt> * filter_elements = NULL) const;
+				const Array<UInt> * filter_elements = NULL) const;
 
   template <ElementType type, class ReduceFunction>
-  void computeNormalsOnControlPoints(const Vector<Real> &u,
-				     Vector<Real> &normals_u,
+  void computeNormalsOnControlPoints(const Array<Real> &u,
+				     Array<Real> &normals_u,
 				     GhostType ghost_type = _not_ghost,
-				     const Vector<UInt> * filter_elements = NULL) const;
+				     const Array<UInt> * filter_elements = NULL) const;
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void fieldTimesShapes(const Vector<Real> & field,
-			Vector<Real> & fiedl_times_shapes,
+  void fieldTimesShapes(const Array<Real> & field,
+			Array<Real> & fiedl_times_shapes,
 			GhostType ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
@@ -144,11 +144,11 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get a the shapes vector
-  inline const Vector<Real> & getShapes(const ElementType & el_type,
+  inline const Array<Real> & getShapes(const ElementType & el_type,
 					const GhostType & ghost_type = _not_ghost) const;
 
   /// get a the shapes derivatives vector
-  inline const Vector<Real> & getShapesDerivatives(const ElementType & el_type,
+  inline const Array<Real> & getShapesDerivatives(const ElementType & el_type,
 						   const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
@@ -156,10 +156,10 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// shape functions for all elements
-  ByElementTypeVector<Real, InterpolationType> shapes;
+  ByElementTypeArray<Real, InterpolationType> shapes;
 
   /// shape functions derivatives for all elements
-  ByElementTypeVector<Real, InterpolationType> shapes_derivatives;
+  ByElementTypeArray<Real, InterpolationType> shapes_derivatives;
 
 };
 

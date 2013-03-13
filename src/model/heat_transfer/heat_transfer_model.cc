@@ -127,7 +127,7 @@ void HeatTransferModel::initPBC() {
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::initVectors() {
+void HeatTransferModel::initArrays() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = getFEM().getMesh().getNbNodes();
@@ -152,31 +152,31 @@ void HeatTransferModel::initVectors() {
 
   /* -------------------------------------------------------------------------- */
   // byelementtype vectors
-  getFEM().getMesh().initByElementTypeVector(temperature_on_qpoints,
+  getFEM().getMesh().initByElementTypeArray(temperature_on_qpoints,
 					     1,
 					     spatial_dimension);
 
-  getFEM().getMesh().initByElementTypeVector(temperature_gradient,
+  getFEM().getMesh().initByElementTypeArray(temperature_gradient,
 					     spatial_dimension,
 					     spatial_dimension);
 
-  getFEM().getMesh().initByElementTypeVector(conductivity_on_qpoints,
+  getFEM().getMesh().initByElementTypeArray(conductivity_on_qpoints,
 					     spatial_dimension*spatial_dimension,
 					     spatial_dimension);
 
-  getFEM().getMesh().initByElementTypeVector(k_gradt_on_qpoints,
+  getFEM().getMesh().initByElementTypeArray(k_gradt_on_qpoints,
 					     spatial_dimension,
 					     spatial_dimension);
 
-  getFEM().getMesh().initByElementTypeVector(bt_k_gT,
+  getFEM().getMesh().initByElementTypeArray(bt_k_gT,
 					     1,
 					     spatial_dimension,true);
 
-  getFEM().getMesh().initByElementTypeVector(int_bt_k_gT,
+  getFEM().getMesh().initByElementTypeArray(int_bt_k_gT,
 					     1,
 					     spatial_dimension,true);
 
-  getFEM().getMesh().initByElementTypeVector(thermal_energy,
+  getFEM().getMesh().initByElementTypeArray(thermal_energy,
 					     1,
 					     spatial_dimension);
 
@@ -251,7 +251,7 @@ void HeatTransferModel::assembleCapacityLumped(const GhostType & ghost_type) {
     UInt nb_element = getFEM().getMesh().getNbElement(*it,ghost_type);
     UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
 
-    Vector<Real> rho_1 (nb_element * nb_quadrature_points,1, capacity * density);
+    Array<Real> rho_1 (nb_element * nb_quadrature_points,1, capacity * density);
     fem.assembleFieldLumped(rho_1,1,*capacity_lumped,
 			    dof_synchronizer->getLocalDOFEquationNumbers(),
 			    *it, ghost_type);
@@ -334,26 +334,26 @@ void HeatTransferModel::computeConductivityOnQuadPoints(const GhostType & ghost_
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    Vector<Real> & temperature_interpolated = temperature_on_qpoints(*it, ghost_type);
+    Array<Real> & temperature_interpolated = temperature_on_qpoints(*it, ghost_type);
 
     //compute the temperature on quadrature points
     this->getFEM().interpolateOnQuadraturePoints(*temperature,
 						 temperature_interpolated,
 						 1 ,*it,ghost_type);
 
-    Vector<Real>::iterator<types::RMatrix> C_it =
+    Array<Real>::iterator< Matrix<Real> > C_it =
       conductivity_on_qpoints(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Vector<Real>::iterator<types::RMatrix> C_end =
+    Array<Real>::iterator< Matrix<Real> > C_end =
       conductivity_on_qpoints(*it, ghost_type).end(spatial_dimension, spatial_dimension);
 
-    Vector<Real>::iterator<Real>  T_it = temperature_interpolated.begin();
+    Array<Real>::iterator<Real>  T_it = temperature_interpolated.begin();
 
     for (;C_it != C_end; ++C_it, ++T_it) {
-      types::Matrix<Real> & C = *C_it;
+      Matrix<Real> & C = *C_it;
       Real & T = *T_it;
       C = conductivity;
 
-      types::Matrix<Real> variation(spatial_dimension, spatial_dimension, conductivity_variation * (T - T_ref));
+      Matrix<Real> variation(spatial_dimension, spatial_dimension, conductivity_variation * (T - T_ref));
       C += conductivity_variation;
     }
   }
@@ -372,25 +372,25 @@ void HeatTransferModel::computeKgradT(const GhostType & ghost_type) {
     const ElementType & type = *it;
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    Vector<Real> & gradient = temperature_gradient(*it, ghost_type);
+    Array<Real> & gradient = temperature_gradient(*it, ghost_type);
     this->getFEM().gradientOnQuadraturePoints(*temperature,
 					      gradient,
 					      1 ,*it,ghost_type);
 
-    Vector<Real>::iterator<types::RMatrix> C_it =
+    Array<Real>::iterator< Matrix<Real> > C_it =
       conductivity_on_qpoints(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
 
-    Vector<Real>::iterator<types::RVector> BT_it = gradient.begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > BT_it = gradient.begin(spatial_dimension);
 
-    Vector<Real>::iterator<types::RVector> k_BT_it =
+    Array<Real>::iterator< Vector<Real> > k_BT_it =
       k_gradt_on_qpoints(type, ghost_type).begin(spatial_dimension);
-    Vector<Real>::iterator<types::RVector> k_BT_end =
+    Array<Real>::iterator< Vector<Real> > k_BT_end =
       k_gradt_on_qpoints(type, ghost_type).end(spatial_dimension);
 
     for (;k_BT_it != k_BT_end; ++k_BT_it, ++BT_it, ++C_it) {
-      types::Vector<Real> & k_BT = *k_BT_it;
-      types::Vector<Real> & BT = *BT_it;
-      types::Matrix<Real> & C = *C_it;
+      Vector<Real> & k_BT = *k_BT_it;
+      Vector<Real> & BT = *BT_it;
+      Matrix<Real> & C = *C_it;
 
       k_BT.mul<false>(C, BT);
     }
@@ -410,31 +410,31 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     if(Mesh::getSpatialDimension(*it) != spatial_dimension) continue;
 
-    Vector<Real> & shapes_derivatives =
-      const_cast<Vector<Real> &>(getFEM().getShapesDerivatives(*it,ghost_type));
+    Array<Real> & shapes_derivatives =
+      const_cast<Array<Real> &>(getFEM().getShapesDerivatives(*it,ghost_type));
 
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
     // compute k \grad T
     computeKgradT(ghost_type);
 
-    Vector<Real>::iterator<types::RVector> k_BT_it =
+    Array<Real>::iterator< Vector<Real> > k_BT_it =
       k_gradt_on_qpoints(*it,ghost_type).begin(spatial_dimension);
 
-    Vector<Real>::iterator<types::RMatrix> B_it =
+    Array<Real>::iterator< Matrix<Real> > B_it =
       shapes_derivatives.begin(spatial_dimension, nb_nodes_per_element);
 
-    Vector<Real>::iterator<types::RVector> Bt_k_BT_it =
+    Array<Real>::iterator< Vector<Real> > Bt_k_BT_it =
       bt_k_gT(*it,ghost_type).begin(nb_nodes_per_element);
 
-    Vector<Real>::iterator<types::RVector> Bt_k_BT_end =
+    Array<Real>::iterator< Vector<Real> > Bt_k_BT_end =
       bt_k_gT(*it,ghost_type).end(nb_nodes_per_element);
 
 
     for (;Bt_k_BT_it != Bt_k_BT_end; ++Bt_k_BT_it, ++B_it, ++k_BT_it) {
-      types::Vector<Real> & k_BT = *k_BT_it;
-      types::Vector<Real> & Bt_k_BT = *Bt_k_BT_it;
-      types::Matrix<Real> & B = *B_it;
+      Vector<Real> & k_BT = *k_BT_it;
+      Vector<Real> & Bt_k_BT = *Bt_k_BT_it;
+      Matrix<Real> & B = *B_it;
 
       Bt_k_BT.mul<true>(B, k_BT);
     }
@@ -443,7 +443,7 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 			     int_bt_k_gT(*it,ghost_type),
 			     nb_nodes_per_element, *it,ghost_type);
 
-    this->getFEM().assembleVector(int_bt_k_gT(*it,ghost_type), *residual,
+    this->getFEM().assembleArray(int_bt_k_gT(*it,ghost_type), *residual,
 				  dof_synchronizer->getLocalDOFEquationNumbers(),
 				  1, *it,ghost_type,NULL,-1);
   }
@@ -530,11 +530,11 @@ Real HeatTransferModel::getStableTimeStep()
 
     UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(*it);
 
-    Vector<Real> coord(0, nb_nodes_per_element*spatial_dimension);
+    Array<Real> coord(0, nb_nodes_per_element*spatial_dimension);
     FEM::extractNodalToElementField(getFEM().getMesh(), getFEM().getMesh().getNodes(),
 				    coord, *it, _not_ghost);
 
-    Vector<Real>::iterator< types::Matrix<Real> > el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
+    Array<Real>::iterator< Matrix<Real> > el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
     UInt nb_element           = getFEM().getMesh().getNbElement(*it);
 
     for (UInt el = 0; el < nb_element; ++el, ++el_coord) {
@@ -616,7 +616,7 @@ void HeatTransferModel::initFull(const std::string & material_file){
   //model initialization
   initModel();
   //initialize the vectors
-  initVectors();
+  initArrays();
   temperature->clear();
   temperature_rate->clear();
   external_heat_rate->clear();
@@ -640,10 +640,10 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
 
   Real ethermal = 0.;
 
-  Vector<Real>::iterator<types::RVector> heat_rate_it =
+  Array<Real>::iterator< Vector<Real> > heat_rate_it =
     residual->begin(residual->getNbComponent());
 
-  Vector<Real>::iterator<types::RVector> heat_rate_end =
+  Array<Real>::iterator< Vector<Real> > heat_rate_end =
     residual->end(residual->getNbComponent());
 
 
@@ -654,7 +654,7 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
     bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
     bool count_node = is_local_node && is_not_pbc_slave_node;
 
-    types::RVector & heat_rate = *heat_rate_it;
+    Vector<Real> & heat_rate = *heat_rate_it;
     for (UInt i = 0; i < heat_rate.size(); ++i) {
       if (count_node)
 	heat += heat_rate[i] * time_step;
@@ -671,8 +671,8 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
 /* -------------------------------------------------------------------------- */
 template<class iterator>
 void HeatTransferModel::getThermalEnergy(iterator Eth,
-					 Vector<Real>::const_iterator<Real> T_it,
-					 Vector<Real>::const_iterator<Real> T_end) const {
+					 Array<Real>::const_iterator<Real> T_it,
+					 Array<Real>::const_iterator<Real> T_end) const {
   for(;T_it != T_end; ++T_it, ++Eth) {
     *Eth = capacity * density * *T_it;
   }
@@ -683,12 +683,12 @@ Real HeatTransferModel::getThermalEnergy(const ElementType & type, UInt index) {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
-  types::Vector<Real> Eth_on_quarature_points(nb_quadrature_points);
+  Vector<Real> Eth_on_quarature_points(nb_quadrature_points);
 
-  Vector<Real>::iterator<Real> T_it  = this->temperature_on_qpoints(type).begin();
+  Array<Real>::iterator<Real> T_it  = this->temperature_on_qpoints(type).begin();
   T_it  += index * nb_quadrature_points;
 
-  Vector<Real>::iterator<Real> T_end = T_it + nb_quadrature_points;
+  Array<Real>::iterator<Real> T_end = T_it + nb_quadrature_points;
 
   getThermalEnergy(Eth_on_quarature_points.storage(), T_it, T_end);
 
@@ -705,10 +705,10 @@ Real HeatTransferModel::getThermalEnergy() {
   for(; it != last_type; ++it) {
     UInt nb_element = getFEM().getMesh().getNbElement(*it, _not_ghost);
     UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, _not_ghost);
-    Vector<Real> Eth_per_quad(nb_element * nb_quadrature_points, 1);
+    Array<Real> Eth_per_quad(nb_element * nb_quadrature_points, 1);
 
-    Vector<Real>::iterator<Real> T_it  = this->temperature_on_qpoints(*it).begin();
-    Vector<Real>::iterator<Real> T_end = this->temperature_on_qpoints(*it).end();
+    Array<Real>::iterator<Real> T_it  = this->temperature_on_qpoints(*it).begin();
+    Array<Real>::iterator<Real> T_end = this->temperature_on_qpoints(*it).end();
     getThermalEnergy(Eth_per_quad.begin(), T_it, T_end);
 
     Eth += getFEM().integrate(Eth, *it);
@@ -792,7 +792,7 @@ void HeatTransferModel::addDumpField(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::addDumpFieldVector(const std::string & field_id) {
+void HeatTransferModel::addDumpFieldArray(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
   IF_ADD_ELEM_FIELD (temperature_gradient, Real, false)
   {

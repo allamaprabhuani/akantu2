@@ -389,7 +389,7 @@ struct is_same<T, T> {
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type,		\
 					 support, con)			\
-  inline con Vector<type> &						\
+  inline con Array<type> &						\
   get##name (const support & el_type,					\
 	     const GhostType & ghost_type = _not_ghost) con {		\
     return variable(el_type, ghost_type);				\

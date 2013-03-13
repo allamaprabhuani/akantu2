@@ -44,7 +44,7 @@ class ShapeLinked : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
 public:
 
-  typedef ByElementType<Vector<Real> **> ByElementTypeMultiReal;
+  typedef ByElementType<Array<Real> **> ByElementTypeMultiReal;
 
   ShapeLinked(Mesh & mesh, const ID & id = "shape_linked", const MemoryID & memory_id = 0);
   virtual ~ShapeLinked(){};
@@ -53,28 +53,28 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline void initShapeFunctions(const Vector<Real> & nodes,
-				 const types::Matrix<Real> & control_points,
+  inline void initShapeFunctions(const Array<Real> & nodes,
+				 const Matrix<Real> & control_points,
 				 const ElementType & type,
 				 const GhostType & ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapesOnControlPoints(const Vector<Real> & nodes,
+  void precomputeShapesOnControlPoints(const Array<Real> & nodes,
 				       const GhostType & ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes,
+  void precomputeShapeDerivativesOnControlPoints(const Array<Real> & nodes,
 						 const GhostType & ghost_type);
 
   /// interpolate nodal values on the control points
   template <ElementType type>
-  void interpolateOnControlPoints(const Vector<Real> &u,
-				  Vector<Real> &uq,
+  void interpolateOnControlPoints(const Array<Real> &u,
+				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL,
+				  const Array<UInt> * filter_elements = NULL,
 				  bool accumulate = false,
 				  UInt id_shape = 0,
 				  UInt num_degre_of_freedom_to_interpolate = 0,
@@ -83,11 +83,11 @@ public:
 
   /// compute the gradient of u on the control points
   template <ElementType type>
-  void gradientOnControlPoints(const Vector<Real> &u,
-			       Vector<Real> &nablauq,
+  void gradientOnControlPoints(const Array<Real> &u,
+			       Array<Real> &nablauq,
 			       UInt nb_degree_of_freedom,
 			       const GhostType & ghost_type = _not_ghost,
-			       const Vector<UInt> * filter_elements = NULL,
+			       const Array<UInt> * filter_elements = NULL,
 			       bool accumulate = false,
 			       UInt id_shape = 0,
 			       UInt num_degre_of_freedom_to_interpolate = 0,
@@ -95,19 +95,19 @@ public:
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void fieldTimesShapes(__attribute__((unused)) const Vector<Real> & field,
-			__attribute__((unused)) Vector<Real> & fiedl_times_shapes,
+  void fieldTimesShapes(__attribute__((unused)) const Array<Real> & field,
+			__attribute__((unused)) Array<Real> & fiedl_times_shapes,
 			__attribute__((unused)) const GhostType & ghost_type) const {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
 private:
   template <ElementType type>
-  void extractNodalToElementField(const Vector<Real> & nodal_f,
-				  Vector<Real> & elemental_f,
+  void extractNodalToElementField(const Array<Real> & nodal_f,
+				  Array<Real> & elemental_f,
 				  UInt num_degre_of_freedom_to_extract,
 				  const GhostType & ghost_type,
-				  const Vector<UInt> * filter_elements) const;
+				  const Array<UInt> * filter_elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -115,12 +115,12 @@ private:
 public:
 
   /// get a the shapes vector
-  inline const Vector<Real> & getShapes(const ElementType & type,
+  inline const Array<Real> & getShapes(const ElementType & type,
 					const GhostType & ghost_type,
 					UInt id = 0) const;
 
   /// get a the shapes derivatives vector
-  inline const Vector<Real> & getShapesDerivatives(const ElementType & type,
+  inline const Array<Real> & getShapesDerivatives(const ElementType & type,
 						   const GhostType & ghost_type,
 						   UInt id = 0) const;
 

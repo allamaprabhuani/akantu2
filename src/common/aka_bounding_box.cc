@@ -23,7 +23,7 @@ std::ostream& operator<< <3>(std::ostream& os, const BoundingBox<3>& bb) {
 
 /* -------------------------------------------------------------------------- */
 template <int dim, class nodes_container>
-BoundingBox<dim> createPointList(const nodes_container& nodes, const Vector<Real>& coord) {
+BoundingBox<dim> createPointList(const nodes_container& nodes, const Array<Real>& coord) {
     
     //  AKANTU_DEBUG_ASSERT(nodes.getSize() != 0, "No nodes to create a bounding box with.");
     typedef typename nodes_container::const_iterator node_iterator;

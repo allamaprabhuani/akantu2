@@ -33,7 +33,10 @@
 __BEGIN_AKANTU__
 
 
-template<typename T, bool is_scal = is_scalar<T>::value > class Vector;
+template<typename T> class Matrix;
+template<typename T> class Vector;
+
+template<typename T, bool is_scal = is_scalar<T>::value > class Array;
 
 template <class T> class SpatialGrid;
 

@@ -63,11 +63,11 @@ int main(int argc, char *argv[]){
   UInt nb_nodes_h=101;
   UInt nb_nodes_v= nb_nodes-nb_nodes_h;
 
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(beams.getNodes());
   nodes.resize(nb_nodes);
 
   beams.addConnectivityType(_bernoulli_beam_2);
-  Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
+  Array<UInt> & connectivity = const_cast<Array<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
   connectivity.resize(nb_element);
 
   for(UInt i=0; i<nb_nodes_h; ++i) {
@@ -101,8 +101,8 @@ int main(int argc, char *argv[]){
   mat1.A=0.01;
   model.addMaterial(mat1);
 
-  Vector<bool> & boundary = model.getBoundary();
-  Vector<UInt> element_material = model.getElementMaterial(_bernoulli_beam_2);
+  Array<bool> & boundary = model.getBoundary();
+  Array<UInt> element_material = model.getElementMaterial(_bernoulli_beam_2);
   model.computeForcesFromFunction<_bernoulli_beam_2>(lin_load, akantu::_bft_traction);
 
   boundary(0,0) = true;

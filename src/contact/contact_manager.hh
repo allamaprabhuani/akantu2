@@ -187,9 +187,9 @@ public:
       
       UInt nb_element = mesh.getNbElement(*it);
       UInt nb_nodes = mesh.getNbNodesPerElement(*it);
-      const Vector<UInt> &conn = mesh.getConnectivity(*it);
+      const Array<UInt> &conn = mesh.getConnectivity(*it);
       
-      Vector<UInt> &surf_id = mesh.getSurfaceID(*it);
+      Array<UInt> &surf_id = mesh.getSurfaceID(*it);
       
       // add elements to corresponding surface
       for(UInt e = 0; e < nb_element; ++e) {

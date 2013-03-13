@@ -182,7 +182,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 
 
   /// fill grid cells with master segments
-  Vector<UInt>  cell_to_segments(0, 1);
+  Array<UInt>  cell_to_segments(0, 1);
   UInt * cell_to_segments_offset = new UInt[nb_cells[2]+1];
   memset(cell_to_segments_offset, 0, (nb_cells[2]+1)*sizeof(UInt));
   traceSegments(coord, origin, nb_cells, cell_to_segments_offset, cell_to_segments);
@@ -207,7 +207,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   Int nb_x = nb_cells[0];
   Int nb_y = nb_cells[1];
 
-  Vector<UInt> checked(0,1);
+  Array<UInt> checked(0,1);
 
   /// loop over slave surfaces
   for (UInt s = 0; s < nb_surfaces; ++s) {
@@ -502,11 +502,11 @@ bool Grid2dNeighborStructure::getBoundsIntersection(Real * x_bounds, Real * y_bo
 
 /* -------------------------------------------------------------------------- */
 void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin,
-					    UInt * nb_cells, UInt * cell_to_seg_off, Vector<UInt> & cell_to_segments) {
+					    UInt * nb_cells, UInt * cell_to_seg_off, Array<UInt> & cell_to_segments) {
 
   AKANTU_DEBUG_IN();
 
-  Vector<UInt> temp(0, 2);
+  Array<UInt> temp(0, 2);
   UInt index[2] = {0, 0};
   ElementType el_type = _segment_2; /* Only linear element at the moment */
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);

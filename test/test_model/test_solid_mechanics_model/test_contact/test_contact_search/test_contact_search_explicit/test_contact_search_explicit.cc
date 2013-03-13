@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initVectors();
+  my_model.initArrays();
   my_model.getForce().clear();
   my_model.getVelocity().clear();
   my_model.getAcceleration().clear();
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
   const NodesNeighborList & my_neighbor_list = dynamic_cast<const NodesNeighborList &>(my_contact->getContactSearch().getContactNeighborStructure(master).getNeighborList());
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
-  Vector<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
+  Array<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
   UInt * impact_nodes_val = impact_nodes.values;
   UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
   UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list);
 
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
+    Array<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
     UInt * pen_nodes_val = pen_nodes.values;
     test_output << "we have " << nb_nodes_pen << " penetrating nodes:" << std::endl;
     for (UInt i = 0; i < nb_nodes_pen; ++i) {
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     const_cast<ContactSearch &>(my_contact->getContactSearch()).findPenetration(master, *my_penetration_list_2);
 
     UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();
-    Vector<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
+    Array<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
     UInt * pen_nodes_2_val = pen_nodes_2.values;
     test_output << "we have " << nb_nodes_pen_2 << " penetrating nodes:";
     for (UInt i = 0; i < nb_nodes_pen_2; ++i)

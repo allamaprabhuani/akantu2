@@ -33,8 +33,8 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computeStressOnQuad(types::RMatrix & grad_u,
-					       types::RMatrix & sigma,
+inline void LocalMaterialDamage::computeStressOnQuad(Matrix<Real> & grad_u,
+					       Matrix<Real> & sigma,
 					       Real & dam) {
 
   Real trace = grad_u.trace();
@@ -63,8 +63,8 @@ inline void LocalMaterialDamage::computeStressOnQuad(types::RMatrix & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void LocalMaterialDamage::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
-							      types::RMatrix & sigma,
+inline void LocalMaterialDamage::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+							      Matrix<Real> & sigma,
 							      Real & epot) {
   epot = 0.;
   for (UInt i = 0, t = 0; i < spatial_dimension; ++i)

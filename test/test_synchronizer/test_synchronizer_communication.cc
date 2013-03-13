@@ -60,13 +60,13 @@ public:
   /* Ghost Synchronizer inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual UInt getNbDataForElements(const Vector<Element> & elements,
+  virtual UInt getNbDataForElements(const Array<Element> & elements,
 				    SynchronizationTag tag) const;
   virtual void packElementData(CommunicationBuffer & buffer,
-			       const Vector<Element> & elements,
+			       const Array<Element> & elements,
 			       SynchronizationTag tag) const;
   virtual void unpackElementData(CommunicationBuffer & buffer,
-				 const Vector<Element> & elements,
+				 const Array<Element> & elements,
 				 SynchronizationTag tag);
 
   virtual UInt getNbDataToPack(SynchronizationTag tag) const;
@@ -114,20 +114,20 @@ TestAccessor::~TestAccessor() {
 
 }
 
-UInt TestAccessor::getNbDataForElements(const Vector<Element> & elements,
+UInt TestAccessor::getNbDataForElements(const Array<Element> & elements,
 					__attribute__ ((unused)) SynchronizationTag tag) const {
   return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
 }
 
 void TestAccessor::packElementData(CommunicationBuffer & buffer,
-				   const Vector<Element> & elements,
+				   const Array<Element> & elements,
 				   __attribute__ ((unused)) SynchronizationTag tag) const {
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
     UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-    types::RVector bary(spatial_dimension);
+    Vector<Real> bary(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, bary.storage());
 
     buffer << bary;
@@ -135,14 +135,14 @@ void TestAccessor::packElementData(CommunicationBuffer & buffer,
 }
 
 void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
-				     const Vector<Element> & elements,
+				     const Array<Element> & elements,
 				     __attribute__ ((unused)) SynchronizationTag tag) {
-  Vector<Element>::const_iterator<Element> bit  = elements.begin();
-  Vector<Element>::const_iterator<Element> bend = elements.end();
+  Array<Element>::const_iterator<Element> bit  = elements.begin();
+  Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
     UInt spatial_dimension = Mesh::getSpatialDimension(element.type);
-    Vector<Real>::iterator<types::RVector> bary =
+    Array<Real>::iterator< Vector<Real> > bary =
       ghost_barycenter(element.type).begin(spatial_dimension);
     buffer >> bary[element.element];
   }

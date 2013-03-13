@@ -42,26 +42,26 @@ using namespace akantu;
 #define N 10
 
 int main(int argc, char *argv[]) {
-  typedef Vector<double> RealVector;
+  typedef Array<double> RealArray;
 
   std::cout << "Creating a vector of matrices (2,2)" << std::endl;
-  RealVector mat_vect(N, 4, 0.);
+  RealArray mat_vect(N, 4, 0.);
 
   std::cout << "Iterating on a Matrix(2,2)" << std::endl;
-  RealVector::iterator<akantu::types::RMatrix> itm;
+  RealArray::iterator<akantu::Matrix<Real>> itm;
   itm = mat_vect.begin(2, 2);
-  RealVector::iterator<akantu::types::RMatrix> endm = mat_vect.end(2, 2);
+  RealArray::iterator<akantu::Matrix<Real>> endm = mat_vect.end(2, 2);
 
   for (; itm != endm; ++itm) {
     std::cout << *itm << std::endl;
   }
 
   std::cout << "Creating a vector of UInt" << std::endl;
-  Vector<UInt> vect(N, 1, 0.);
+  Array<UInt> vect(N, 1, 0.);
 
   std::cout << "Iterating on a UInt" << std::endl;
-  Vector<UInt>::iterator<UInt> it  = vect.begin();
-  Vector<UInt>::iterator<UInt> end = vect.end();
+  Array<UInt>::iterator<UInt> it  = vect.begin();
+  Array<UInt>::iterator<UInt> end = vect.end();
 
   std::vector<UInt> test_vect;
 

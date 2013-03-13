@@ -56,8 +56,8 @@ akantu::UInt nb_nodes;
 akantu::UInt nb_element;
 akantu::UInt nb_quadrature_points;
 
-akantu::Vector<akantu::Real> * stress;
-akantu::Vector<akantu::Real> * strain;
+akantu::Array<akantu::Real> * stress;
+akantu::Array<akantu::Real> * strain;
 
 int main(int argc, char *argv[])
 {
@@ -85,16 +85,16 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
-  stress = new akantu::Vector<akantu::Real>(nb_element * nb_quadrature_points,
+  stress = new akantu::Array<akantu::Real>(nb_element * nb_quadrature_points,
 					    spatial_dimension* spatial_dimension);
-  strain = new akantu::Vector<akantu::Real>(nb_element * nb_quadrature_points,
+  strain = new akantu::Array<akantu::Real>(nb_element * nb_quadrature_points,
 					    spatial_dimension * spatial_dimension);
 
   /// boundary conditions
   akantu::Real eps = 1e-16;
-  const akantu::Vector<akantu::Real> & pos = mesh.getNodes();
-  akantu::Vector<akantu::Real> & disp = model->getDisplacement();
-  akantu::Vector<bool> & boun = model->getBoundary();
+  const akantu::Array<akantu::Real> & pos = mesh.getNodes();
+  akantu::Array<akantu::Real> & disp = model->getDisplacement();
+  akantu::Array<bool> & boun = model->getBoundary();
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(pos(i, 0) >= 9.) disp(i, 0) = (pos(i, 0) - 9) / 100.;

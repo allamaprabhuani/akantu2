@@ -78,10 +78,10 @@ public:
   virtual void initialize(SolverOptions & options = _solver_no_options) = 0;
 
   /// solve
-  virtual void solve(Vector<Real> & solution) = 0;
+  virtual void solve(Array<Real> & solution) = 0;
   virtual void solve() = 0;
 
-  virtual void setRHS(Vector<Real> & rhs) = 0;
+  virtual void setRHS(Array<Real> & rhs) = 0;
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -91,7 +91,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(RHS, *rhs, Vector<Real> &);
+  AKANTU_GET_MACRO(RHS, *rhs, Array<Real> &);
 
 
   /* ------------------------------------------------------------------------ */
@@ -108,7 +108,7 @@ protected:
   bool is_matrix_allocated;
 
   /// the right hand side
-  Vector<Real> * rhs;
+  Array<Real> * rhs;
 
   /// mesh
   const Mesh * mesh;

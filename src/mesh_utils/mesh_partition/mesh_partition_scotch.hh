@@ -68,7 +68,7 @@ public:
 
   virtual void partitionate(UInt nb_part,
 			    const EdgeLoadFunctor & edge_load_func = ConstEdgeLoadFunctor(),
-			    const Vector<UInt> & pairs = Vector<UInt>());
+			    const Array<UInt> & pairs = Array<UInt>());
 
   virtual void reorder();
 

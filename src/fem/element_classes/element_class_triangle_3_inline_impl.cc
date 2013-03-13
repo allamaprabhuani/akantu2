@@ -68,8 +68,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_3, _gt_triangle_3, _itp_lagrange_
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(const types::Vector<Real> & natural_coords,
-							      types::Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(const Vector<Real> & natural_coords,
+							      Vector<Real> & N) {
 
   /// Natural coordinates
   Real c0 = 1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
@@ -83,8 +83,8 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(const types::Vecto
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(__attribute__ ((unused)) const types::Vector<Real> & natural_coords,
-							    types::Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(__attribute__ ((unused)) const Vector<Real> & natural_coords,
+							    Matrix<Real> & dnds) {
 
   /**
    * @f[
@@ -104,9 +104,9 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(__attribute__ ((unus
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const types::Matrix<Real> & J,
+InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const Matrix<Real> & J,
 								       Real & jac){
-  types::Vector<Real> vprod(J.rows());
+  Vector<Real> vprod(J.rows());
   vprod.crossProduct(J(0), J(1));
   jac = vprod.norm();
 }
@@ -116,14 +116,14 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const typ
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real 
-GeometricalElement<_gt_triangle_3>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
   return Math::triangle_inradius(coord(0).storage(),
 				 coord(1).storage(),
 				 coord(2).storage());
 }
 
 /* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_triangle_3>::contains(const types::RVector & natural_coords) {
+// template<> inline bool ElementClass<_triangle_3>::contains(const Vector<Real> & natural_coords) {
 //   if (natural_coords[0] < 0.) return false;
 //   if (natural_coords[0] > 1.) return false;
 //   if (natural_coords[1] < 0.) return false;

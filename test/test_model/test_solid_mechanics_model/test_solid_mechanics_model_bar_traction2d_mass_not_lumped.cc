@@ -48,7 +48,7 @@ akantu::UInt spatial_dimension = 2;
 akantu::UInt nb_nodes;
 akantu::UInt nb_element;
 
-akantu::Vector<akantu::Real> * lumped;
+akantu::Array<akantu::Real> * lumped;
 
 int main(int argc, char *argv[])
 {
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
   nb_nodes = model->getFEM().getMesh().getNbNodes();
   nb_element = model->getFEM().getMesh().getNbElement(type);
 
-  lumped = new akantu::Vector<akantu::Real>(nb_nodes, spatial_dimension);
+  lumped = new akantu::Array<akantu::Real>(nb_nodes, spatial_dimension);
 
   /// model initialization
   model->initFull("material.dat");
@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
 
   /// boundary conditions
   akantu::Real eps = 1e-16;
-  const akantu::Vector<akantu::Real> & pos = mesh.getNodes();
-  akantu::Vector<akantu::Real> & disp = model->getDisplacement();
-  akantu::Vector<bool> & boun = model->getBoundary();
+  const akantu::Array<akantu::Real> & pos = mesh.getNodes();
+  akantu::Array<akantu::Real> & disp = model->getDisplacement();
+  akantu::Array<bool> & boun = model->getBoundary();
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(pos(i, 0) >= 9.) disp(i, 0) = (pos(i, 0) - 9) / 100.;

@@ -45,10 +45,10 @@ class SolidMechanicsModelCohesive : public SolidMechanicsModel {
 public:
   class NewCohesiveNodesEvent : public NewNodesEvent {
   public:
-    AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Vector<UInt> &);
-    AKANTU_GET_MACRO(OldNodesList, old_nodes, const Vector<UInt> &);
+    AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<UInt> &);
+    AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<UInt> &);
   protected:
-    Vector<UInt> old_nodes;
+    Array<UInt> old_nodes;
   };
 
   typedef FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive> MyFEMCohesiveType;
@@ -76,7 +76,7 @@ public:
   void checkCohesiveStress();
 
   /// function to insert cohesive elements on the selected facets
-  void insertCohesiveElements(const Vector<UInt> & facet_insertion);
+  void insertCohesiveElements(const Array<UInt> & facet_insertion);
 
   /// initialize the cohesive model
   void initFull(std::string material_file,
@@ -103,7 +103,7 @@ private:
 		     AnalysisMethod method = _explicit_dynamic);
 
   /// function to update nodal parameters for doubled nodes
-  void updateDoubledNodes(const Vector<UInt> & doubled_nodes);
+  void updateDoubledNodes(const Array<UInt> & doubled_nodes);
 
   /// build fragments list
   void buildFragmentsList();
@@ -116,22 +116,22 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataForElements(const Vector<Element> & elements,
+  inline virtual UInt getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const;
 
   inline virtual void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const;
 
   inline virtual void unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
+					const Array<Element> & elements,
 					SynchronizationTag tag);
 
 protected:
 
-  inline virtual void splitElementByKind(const Vector<Element> & elements,
-					 Vector<Element> & elements_regular,
-					 Vector<Element> & elements_cohesive) const;
+  inline virtual void splitElementByKind(const Array<Element> & elements,
+					 Array<Element> & elements_regular,
+					 Array<Element> & elements_cohesive) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -151,14 +151,14 @@ public:
   AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
 
   /// get sigma limit vector for automatic insertion
-  AKANTU_GET_MACRO(SigmaLimit, sigma_lim, const Vector<Real> &);
-  AKANTU_GET_MACRO_NOT_CONST(SigmaLimit, sigma_lim, Vector<Real> &);
+  AKANTU_GET_MACRO(SigmaLimit, sigma_lim, const Array<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(SigmaLimit, sigma_lim, Array<Real> &);
 
   /// get facets check vector
-  AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Vector<bool> &);
+  AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Array<bool> &);
 
   /// get stress on facets vector
-  AKANTU_GET_MACRO(StressOnFacets, facet_stress, const Vector<Real> &);
+  AKANTU_GET_MACRO(StressOnFacets, facet_stress, const Array<Real> &);
 
   /// get number of fragments
   AKANTU_GET_MACRO(NbFragment, nb_fragment, UInt);
@@ -167,16 +167,16 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FragmentToElement, fragment_to_element, UInt);
 
   /// get mass for each fragment
-  AKANTU_GET_MACRO(FragmentsMass, fragment_mass, const Vector<Real> &);
+  AKANTU_GET_MACRO(FragmentsMass, fragment_mass, const Array<Real> &);
 
   /// get average velocity for each fragment
-  AKANTU_GET_MACRO(FragmentsVelocity, fragment_velocity, const Vector<Real> &);
+  AKANTU_GET_MACRO(FragmentsVelocity, fragment_velocity, const Array<Real> &);
 
   /// get center of mass coordinates for each fragment
-  AKANTU_GET_MACRO(FragmentsCenter, fragment_center, const Vector<Real> &);
+  AKANTU_GET_MACRO(FragmentsCenter, fragment_center, const Array<Real> &);
 
   /// THIS HAS TO BE CHANGED
-  AKANTU_GET_MACRO(Tangents, tangents, const Vector<Real> &);
+  AKANTU_GET_MACRO(Tangents, tangents, const Array<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -196,22 +196,22 @@ private:
   Mesh mesh_facets;
 
   /// vector containing a sigma limit for automatic insertion
-  Vector<Real> sigma_lim;
+  Array<Real> sigma_lim;
 
   /// vector containing facets in which cohesive elements can be automatically inserted
-  Vector<bool> facets_check;
+  Array<bool> facets_check;
 
   /// @todo store tangents when normals are computed:
-  Vector<Real> tangents;
+  Array<Real> tangents;
 
   /// list of stresses on facet quadrature points for every element
   ByElementTypeReal stress_on_facet;
 
   /// already counted facets in stress check
-  Vector<bool> facet_stress_count;
+  Array<bool> facet_stress_count;
 
   /// stress on facets on the two sides by quadrature point
-  Vector<Real> facet_stress;
+  Array<Real> facet_stress;
 
   /// fragment number for each element
   ByElementTypeUInt fragment_to_element;
@@ -220,13 +220,13 @@ private:
   UInt nb_fragment;
 
   /// mass for each fragment
-  Vector<Real> fragment_mass;
+  Array<Real> fragment_mass;
 
   /// average velocity for each fragment
-  Vector<Real> fragment_velocity;
+  Array<Real> fragment_velocity;
 
   /// center of mass coordinates for each element
-  Vector<Real> fragment_center;
+  Array<Real> fragment_center;
 
 };
 

@@ -93,8 +93,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8, _itp_seren
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const types::Vector<Real> & c,
-								types::Vector<Real> & N) {
+InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const Vector<Real> & c,
+								Vector<Real> & N) {
   /// Natural coordinates
   const Real xi  = c(0);
   const Real eta = c(1);
@@ -112,8 +112,8 @@ InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const types::Vec
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(const types::Vector<Real> & c,
-							      types::Matrix<Real> & dnds) {
+InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(const Vector<Real> & c,
+							      Matrix<Real> & dnds) {
   const Real xi  = c(0);
   const Real eta = c(1);
 
@@ -141,7 +141,7 @@ InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(const types::Vecto
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real
-GeometricalElement<_gt_quadrangle_8>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_quadrangle_8>::getInradius(const Matrix<Real> & coord) {
   Real a, b, h;
 
   a = coord(0).distance(coord(4));

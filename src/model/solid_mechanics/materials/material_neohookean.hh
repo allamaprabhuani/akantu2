@@ -68,7 +68,7 @@ public:
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
-			    Vector<Real> & tangent_matrix,
+			    Array<Real> & tangent_matrix,
 			    GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for all elements
@@ -79,16 +79,16 @@ private:
   Real celerity(const Element & element);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
+  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
 					   Real & epot);
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(types::RMatrix & grad_u,
-				  types::RMatrix & sigma);
+  inline void computeStressOnQuad(Matrix<Real> & grad_u,
+				  Matrix<Real> & sigma);
 
   // /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(types::RMatrix & grad_u,
-				  types::RMatrix & tangent);
+  void computeTangentModuliOnQuad(Matrix<Real> & grad_u,
+				  Matrix<Real> & tangent);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

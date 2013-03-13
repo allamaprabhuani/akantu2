@@ -38,7 +38,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 NeighborList::NeighborList(const ID & id) : id(id),
-					    impactor_nodes(Vector<UInt>(0, 1, "impactors")),
+					    impactor_nodes(Array<UInt>(0, 1, "impactors")),
 					    facets_offset("facets_offset", id),
 					    facets("facets", id) {
   AKANTU_DEBUG_IN();

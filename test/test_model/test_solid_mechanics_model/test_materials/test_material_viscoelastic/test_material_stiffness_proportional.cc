@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initVectors();
+  model.initArrays();
   model.getForce().clear();
   model.getVelocity().clear();
   model.getAcceleration().clear();

@@ -68,19 +68,19 @@ int main(int argc, char *argv[]) {
   /* Element to Subelement testing                                            */
   /* ------------------------------------------------------------------------ */
 
-  const Vector< std::vector<Element> > & el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
-  const Vector< std::vector<Element> > & el_to_subel2 = mesh_facets.getElementToSubelement(type_subfacet);
-  const Vector< std::vector<Element> > & el_to_subel1 = mesh_facets.getElementToSubelement(type_subsubfacet);
+  const Array< std::vector<Element> > & el_to_subel3 = mesh_facets.getElementToSubelement(type_facet);
+  const Array< std::vector<Element> > & el_to_subel2 = mesh_facets.getElementToSubelement(type_subfacet);
+  const Array< std::vector<Element> > & el_to_subel1 = mesh_facets.getElementToSubelement(type_subsubfacet);
 
   /// build vectors for comparison
-  Vector<Element> hexahedron(2);
+  Array<Element> hexahedron(2);
   hexahedron(0).type = type;
   hexahedron(0).element = 0;
 
   hexahedron(1).type = type;
   hexahedron(1).element = 3;
 
-  Vector<Element> quadrangle(4);
+  Array<Element> quadrangle(4);
   quadrangle(0).type = type_facet;
   quadrangle(0).element = 1;
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
   quadrangle(3).type = type_facet;
   quadrangle(3).element = 11;
 
-  Vector<Element> segment(5);
+  Array<Element> segment(5);
   segment(0).type = type_subfacet;
   segment(0).element = 0;
 
@@ -145,12 +145,12 @@ int main(int argc, char *argv[]) {
   /* Subelement to Element testing                                            */
   /* ------------------------------------------------------------------------ */
 
-  const Vector<Element> & subel_to_el3 = mesh_facets.getSubelementToElement(type);
-  const Vector<Element> & subel_to_el2 = mesh_facets.getSubelementToElement(type_facet);
-  const Vector<Element> & subel_to_el1 = mesh_facets.getSubelementToElement(type_subfacet);
+  const Array<Element> & subel_to_el3 = mesh_facets.getSubelementToElement(type);
+  const Array<Element> & subel_to_el2 = mesh_facets.getSubelementToElement(type_facet);
+  const Array<Element> & subel_to_el1 = mesh_facets.getSubelementToElement(type_subfacet);
 
   /// build vectors for comparison
-  Vector<Element> quadrangle2(mesh.getNbFacetsPerElement(type));
+  Array<Element> quadrangle2(mesh.getNbFacetsPerElement(type));
   quadrangle2(0).type = type_facet;
   quadrangle2(0).element = 1;
 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
   quadrangle2(5).type = type_facet;
   quadrangle2(5).element = 19;
 
-  Vector<Element> segment2(4);
+  Array<Element> segment2(4);
   segment2(0).type = type_subfacet;
   segment2(0).element = 3;
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
   segment2(3).type = type_subfacet;
   segment2(3).element = 11;
 
-  Vector<Element> point(2);
+  Array<Element> point(2);
   point(0).type = mesh.getFacetType(type_subfacet);
   point(0).element = 5;
 

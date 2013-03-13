@@ -67,7 +67,7 @@ StaticMemory::~StaticMemory() {
 
   MemoryMap::iterator memory_it;
   for(memory_it = memories.begin(); memory_it != memories.end(); ++memory_it) {
-    VectorMap::iterator vector_it;
+    ArrayMap::iterator vector_it;
     for(vector_it = (memory_it->second).begin();
 	vector_it != (memory_it->second).end();
 	++vector_it) {
@@ -85,13 +85,13 @@ void StaticMemory::sfree(const MemoryID & memory_id,
   AKANTU_DEBUG_IN();
 
   try {
-    VectorMap & vectors = const_cast<VectorMap &>(getMemory(memory_id));
-    VectorMap::iterator vector_it;
+    ArrayMap & vectors = const_cast<ArrayMap &>(getMemory(memory_id));
+    ArrayMap::iterator vector_it;
     vector_it = vectors.find(name);
     if(vector_it != vectors.end()) {
       delete vector_it->second;
       vectors.erase(vector_it);
-      AKANTU_DEBUG_INFO("Vector " << name << " removed from the static memory number " << memory_id);
+      AKANTU_DEBUG_INFO("Array " << name << " removed from the static memory number " << memory_id);
       AKANTU_DEBUG_OUT();
       return;
     }
@@ -131,7 +131,7 @@ void StaticMemory::printself(std::ostream & stream, int indent) const{
     stream << space << AKANTU_INDENT << " + nb vectors  : "
 	   << nb_vectors << std::endl;
     stream.precision(prec);
-    VectorMap::const_iterator vector_it;
+    ArrayMap::const_iterator vector_it;
     for(vector_it = (memory_it->second).begin();
 	vector_it != (memory_it->second).end();
 	++vector_it) {

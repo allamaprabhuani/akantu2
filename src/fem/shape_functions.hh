@@ -70,25 +70,25 @@ public:
 
   /// set the control points for a given element
   template <ElementType type>
-  void setControlPointsByType(const types::Matrix<Real> & control_points,
+  void setControlPointsByType(const Matrix<Real> & control_points,
 			      const GhostType & ghost_type);
 
 protected:
   /// interpolate nodal values stored by element on the control points
   template <ElementType type>
-  void interpolateElementalFieldOnControlPoints(const Vector<Real> &u_el,
-						Vector<Real> &uq,
+  void interpolateElementalFieldOnControlPoints(const Array<Real> &u_el,
+						Array<Real> &uq,
 						GhostType ghost_type,
-						const Vector<Real> & shapes,
-						const Vector<UInt> * filter_elements) const;
+						const Array<Real> & shapes,
+						const Array<UInt> * filter_elements) const;
 
   /// gradient of nodal values stored by element on the control points
   template <ElementType type>
-  void gradientElementalFieldOnControlPoints(const Vector<Real> &u_el,
-					     Vector<Real> &out_nablauq,
+  void gradientElementalFieldOnControlPoints(const Array<Real> &u_el,
+					     Array<Real> &out_nablauq,
 					     GhostType ghost_type,
-					     const Vector<Real> & shapes_derivatives,
-					     const Vector<UInt> * filter_elements) const;
+					     const Array<Real> & shapes_derivatives,
+					     const Array<UInt> * filter_elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -100,7 +100,7 @@ public:
   /// get the size of the shapes derivatives returned by the element class
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
-  inline const types::Matrix<Real> & getControlPoints(const ElementType & type,
+  inline const Matrix<Real> & getControlPoints(const ElementType & type,
 						      const GhostType & ghost_type) const {
     return control_points(type, ghost_type);
   }
@@ -114,7 +114,7 @@ protected:
   ID id;
 
   /// shape functions for all elements
-  ByElementType< types::Matrix<Real> > control_points;
+  ByElementType< Matrix<Real> > control_points;
 };
 
 

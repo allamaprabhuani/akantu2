@@ -96,8 +96,8 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  const Vector<UInt> & getNodeGroup(const std::string & group_name) const {
-    std::map<std::string, Vector<UInt> *>::const_iterator it = node_groups.find(group_name);
+  const Array<UInt> & getNodeGroup(const std::string & group_name) const {
+    std::map<std::string, Array<UInt> *>::const_iterator it = node_groups.find(group_name);
     AKANTU_DEBUG_ASSERT(it != node_groups.end(), "There is no nodes group named : " << group_name);
     return *it->second;
   }
@@ -110,7 +110,7 @@ public:
 
   std::vector<std::string> getNodeGroupsNames() const {
     std::vector<std::string> names;
-    std::map<std::string, Vector<UInt> *>::const_iterator it;
+    std::map<std::string, Array<UInt> *>::const_iterator it;
     for(it = node_groups.begin(); it != node_groups.end(); ++it)
       names.push_back(it->first);
 
@@ -135,7 +135,7 @@ private:
   std::map<std::string, std::string> _diana_to_akantu_mat_prop;
 
 
-  std::map<std::string, Vector<UInt> *> node_groups;
+  std::map<std::string, Array<UInt> *> node_groups;
   std::map<std::string, std::vector<Element> *> element_groups;
 };
 

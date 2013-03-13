@@ -106,7 +106,7 @@ public:
   typedef GenericElementalField<T, iterator, ret_type> parent;
 
   GenericQuadraturePointsField(const FEM & fem,
-			       const ByElementTypeVector<T> & field,
+			       const ByElementTypeArray<T> & field,
 			       UInt spatial_dimension = 0,
 			       GhostType ghost_type = _not_ghost,
 			       ElementKind element_kind = _ek_not_defined) :
@@ -114,7 +114,7 @@ public:
 	   ghost_type, element_kind), fem(fem) { }
 
   GenericQuadraturePointsField(const FEM & fem,
-			       const ByElementTypeVector<T> & field,
+			       const ByElementTypeArray<T> & field,
 			       UInt n,
 			       UInt spatial_dimension = 0,
 			       GhostType ghost_type = _not_ghost,
@@ -154,7 +154,7 @@ public:
   typedef GenericQuadraturePointsField<T, iterator, ret_type> parent;
 
   QuadraturePointsField(const FEM & fem,
-			const ByElementTypeVector<T> & field,
+			const ByElementTypeArray<T> & field,
 			UInt spatial_dimension = 0,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined) :
@@ -162,7 +162,7 @@ public:
 	   ghost_type, element_kind) { }
 
   QuadraturePointsField(const FEM & fem,
-			const ByElementTypeVector<T> & field,
+			const ByElementTypeArray<T> & field,
 			UInt n,
 			UInt spatial_dimension = 0,
 			GhostType ghost_type = _not_ghost,

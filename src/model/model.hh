@@ -139,7 +139,7 @@ public:
   /* Pack and unpack helper functions                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbQuadraturePoints(const Vector<Element> & elements,
+  inline UInt getNbQuadraturePoints(const Array<Element> & elements,
 				    const ID & fem_id = ID()) const;
 
 protected:
@@ -148,39 +148,39 @@ protected:
 
 public:
   template<typename T>
-  inline void packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
+  inline void packElementalDataHelper(const ByElementTypeArray<T> & data_to_pack,
                                       CommunicationBuffer & buffer,
-                                      const Vector<Element> & elements,
+                                      const Array<Element> & elements,
                                       bool per_quadrature_point = true,
 				      const ID & fem_id = ID()) const;
   template<typename T>
-  inline void unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
+  inline void unpackElementalDataHelper(ByElementTypeArray<T> & data_to_unpack,
                                         CommunicationBuffer & buffer,
-                                        const Vector<Element> & elements,
+                                        const Array<Element> & elements,
                                         bool per_quadrature_point = true,
 					const ID & fem_id = ID()) const;
 
 protected:
   template<typename T, bool pack_helper>
-  inline void packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
+  inline void packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to_pack,
                                             CommunicationBuffer & buffer,
-                                            const Vector<Element> & element,
+                                            const Array<Element> & element,
                                             bool per_quadrature_point,
 					    const ID & fem_id) const;
 
   /* -------------------------------------------------------------------------- */
   template<typename T>
-  inline void packNodalDataHelper(Vector<T> & data_to_pack,
+  inline void packNodalDataHelper(Array<T> & data_to_pack,
                                   CommunicationBuffer & buffer,
-                                  const Vector<Element> & element) const;
+                                  const Array<Element> & element) const;
   template<typename T>
-  inline void unpackNodalDataHelper(Vector<T> & data_to_unpack,
+  inline void unpackNodalDataHelper(Array<T> & data_to_unpack,
                                     CommunicationBuffer & buffer,
-                                    const Vector<Element> & element) const;
+                                    const Array<Element> & element) const;
   template<typename T, bool pack_helper>
-  inline void packUnpackNodalDataHelper(Vector<T> & data,
+  inline void packUnpackNodalDataHelper(Array<T> & data,
                                         CommunicationBuffer & buffer,
-                                        const Vector<Element> & elements) const;
+                                        const Array<Element> & elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -212,7 +212,7 @@ protected:
   std::map<UInt,UInt> pbc_pair;
 
   /// flag per node to know is pbc slave
-  Vector<bool> is_pbc_slave_node;
+  Array<bool> is_pbc_slave_node;
 };
 
 

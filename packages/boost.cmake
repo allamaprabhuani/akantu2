@@ -1,11 +1,11 @@
 #===============================================================================
-# @file   contact.cmake
+# @file   boost.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
 # @date   Mon Nov 21 18:19:15 2011
 #
-# @brief  package description for contact
+# @brief  package description for core
 #
 # @section LICENSE
 #
@@ -27,40 +27,26 @@
 #
 #===============================================================================
 
-option(AKANTU_CONTACT "Use Contact package of Akantu" OFF)
+#set(Boost_USE_STATIC_LIBS        ON)
+#set(Boost_USE_MULTITHREADED      ON)
+#set(Boost_USE_STATIC_RUNTIME    OFF)
 
-set(AKANTU_CONTACT_FILES
-  #cc files
-  contact/discretization.cc
-  contact/element.cc
-  contact/friction.cc
-  contact/resolution.cc
-  contact/scheme.cc
-  contact/search.cc
-  contact/surface.cc
-  contact/zone.cc
-  model/model_manager.cc
-
-  # include files
-
-  contact/contact_common.hh
-  contact/contact_manager.hh
-  contact/discretization.hh
-  contact/element.hh
-  contact/friction.hh
-  contact/resolution.hh
-  contact/scheme.hh
-  contact/search.hh
-  contact/surface.hh
-  contact/zone.hh
-  model/model_manager.hh
+set(AKANTU_BOOST_COMPONENTS
+  chrono
+#  system
   )
 
-add_external_package_dependencies(contact cblas)
-add_external_package_dependencies(contact cpparray)
-#add_internal_package_dependencies(contact optimization)
 
-add_optional_external_package(CBLAS "Use CBLAS library" OFF)
-add_optional_external_package(CppArray "Use cpp-array library" OFF)
-mark_as_advanced(AKANTU_USE_CBLAS)
-mark_as_advanced(AKANTU_USE_CPPARRAY)
+find_package(Boost COMPONENTS ${AKANTU_BOOST_COMPONENTS})
+
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+endif()
+
+foreach(_comp ${AKANTU_BOOST_COMPONENTS})
+  string(TOUPPER ${_comp} _u_comp)
+  if(Boost_${_u_comp}_FOUND)
+    set(AKANTU_${_u_comp}_CHRONO TRUE)
+    list(APPEND AKANTU_EXTERNAL_LIBRARIES ${Boost_${_u_comp}_LIBRARY})
+  endif()
+endforeach()

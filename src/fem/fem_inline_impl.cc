@@ -35,7 +35,7 @@ inline Mesh & FEM::getMesh() const {
 
 
 /* -------------------------------------------------------------------------- */
-inline Real FEM::getElementInradius(const types::Matrix<Real> & coord, const ElementType & type) {
+inline Real FEM::getElementInradius(const Matrix<Real> & coord, const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   Real inradius = 0;

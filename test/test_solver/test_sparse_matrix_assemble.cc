@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   //   akantu::Element element(*it);
 
   //   akantu::UInt m = nb_nodes_per_element * spatial_dimension;
-  //   akantu::Vector<akantu::Real> local_mat(m, m, 1, "local_mat");
+  //   akantu::Array<akantu::Real> local_mat(m, m, 1, "local_mat");
 
   //   for(akantu::UInt e = 0; e < nb_element; ++e) {
   //     element.element = e;

@@ -40,7 +40,7 @@ __BEGIN_AKANTU__
 inline UInt Material::addElement(const ElementType & type,
 				 UInt element,
 				 const GhostType & ghost_type) {
-  Vector<UInt> & el_filter = element_filter(type, ghost_type);
+  Array<UInt> & el_filter = element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.getSize()-1;
 }
@@ -51,8 +51,8 @@ inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
 }
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::gradUToF(const types::RMatrix & grad_u,
-			       types::RMatrix & F) {
+inline void Material::gradUToF(const Matrix<Real> & grad_u,
+			       Matrix<Real> & F) {
   UInt size_F = F.size();
 
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim,
@@ -66,20 +66,20 @@ inline void Material::gradUToF(const types::RMatrix & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::rightCauchy(const types::RMatrix & F,
-				  types::RMatrix & C) {
+inline void Material::rightCauchy(const Matrix<Real> & F,
+				  Matrix<Real> & C) {
   C.mul<true, false>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::leftCauchy(const types::RMatrix & F,
-				 types::RMatrix & B) {
+inline void Material::leftCauchy(const Matrix<Real> & F,
+				 Matrix<Real> & B) {
   B.mul<false, true>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
-						   types::RMatrix & sigma,
+inline void Material::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+						   Matrix<Real> & sigma,
 						   Real & epot) {
   epot = 0.;
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -91,8 +91,8 @@ inline void Material::computePotentialEnergyOnQuad(types::RMatrix & grad_u,
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
-						       types::RMatrix & Bvoigt,
+inline void Material::transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
+						       Matrix<Real> & Bvoigt,
 						       UInt nb_nodes_per_element) const {
   Bvoigt.clear();
 
@@ -132,15 +132,15 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const types::RMatrix & coordinates,
-								 __attribute__((unused)) types::RMatrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((unused)) const Matrix<Real> & coordinates,
+								 __attribute__((unused)) Matrix<Real> & coordMatrix) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const types::RMatrix & coordinates,
-									      types::RMatrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const Matrix<Real> & coordinates,
+									      Matrix<Real> & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.cols(); ++i)
     coordMatrix(i, 0) = 1;
@@ -148,8 +148,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(co
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const types::RMatrix & coordinates,
-									      types::RMatrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(const Matrix<Real> & coordinates,
+									      Matrix<Real> & coordMatrix) {
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(_triangle_6);
 
@@ -168,8 +168,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_6>(co
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const types::RMatrix & coordinates,
-										types::RMatrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(const Matrix<Real> & coordinates,
+										Matrix<Real> & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.cols(); ++i) {
     Real x = coordinates(0, i);
@@ -184,8 +184,8 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_4>(
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const types::RMatrix & coordinates,
-										types::RMatrix & coordMatrix) {
+inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(const Matrix<Real> & coordinates,
+										Matrix<Real> & coordMatrix) {
 
   for (UInt i = 0; i < coordinates.cols(); ++i) {
 
@@ -230,7 +230,7 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getNbDataForElements(const Vector<Element> & elements,
+inline UInt Material::getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
     return spatial_dimension * spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements);
@@ -240,7 +240,7 @@ inline UInt Material::getNbDataForElements(const Vector<Element> & elements,
 
 /* -------------------------------------------------------------------------- */
 inline void Material::packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
     packElementDataHelper(stress, buffer, elements);
@@ -249,7 +249,7 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void Material::unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
+					const Array<Element> & elements,
 					SynchronizationTag tag) {
   if(tag == _gst_smm_stress) {
     unpackElementDataHelper(stress, buffer, elements);
@@ -258,18 +258,18 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Material::packElementDataHelper(const ByElementTypeVector<T> & data_to_pack,
+inline void Material::packElementDataHelper(const ByElementTypeArray<T> & data_to_pack,
 					    CommunicationBuffer & buffer,
-					    const Vector<Element> & elements,
+					    const Array<Element> & elements,
 					    const ID & fem_id) const {
   model->packElementalDataHelper<T>(data_to_pack, buffer, elements, true, fem_id);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Material::unpackElementDataHelper(ByElementTypeVector<T> & data_to_unpack,
+inline void Material::unpackElementDataHelper(ByElementTypeArray<T> & data_to_unpack,
 					      CommunicationBuffer & buffer,
-					      const Vector<Element> & elements,
+					      const Array<Element> & elements,
 					      const ID & fem_id) const {
   model->unpackElementalDataHelper<T>(data_to_unpack, buffer, elements, true, fem_id);
 }
@@ -298,23 +298,26 @@ inline void Material::setParam(const ID & param, T value) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Material::removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
+void Material::removeQuadraturePointsFromArrays(ByElementTypeArray<T> & data,
 						 const ByElementTypeUInt & new_numbering) {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeVector<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
-    ByElementTypeVector<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
     for (; it != end; ++it) {
       ElementType type = *it;
       if(data.exists(type, gt)){
-	const Vector<UInt> & renumbering = new_numbering(type, gt);
+	const Array<UInt> & renumbering = new_numbering(type, gt);
 
-	Vector<T> & vect = data(type, gt);
+	Array<T> & vect = data(type, gt);
 
 	UInt nb_quad_per_elem = this->model->getFEM().getNbQuadraturePoints(type, gt);
 	UInt nb_component = vect.getNbComponent();
 
-	Vector<T> tmp(renumbering.getSize()*nb_quad_per_elem, nb_component);
+	Array<T> tmp(renumbering.getSize()*nb_quad_per_elem, nb_component);
+
+	AKANTU_DEBUG_ASSERT(tmp.getSize() == vect.getSize(), "Something strange append some mater was created from nowhere!!");
+
 	AKANTU_DEBUG_ASSERT(tmp.getSize() == vect.getSize(), "Something strange append some mater was created or disappeared in "<< vect.getID() << "("<< vect.getSize() <<"!=" << tmp.getSize() <<") ""!!");
 
 	UInt new_size = 0;
@@ -335,50 +338,50 @@ void Material::removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::onElementsAdded(__attribute__((unused)) const Vector<Element> & element_list,
+inline void Material::onElementsAdded(__attribute__((unused)) const Array<Element> & element_list,
 				      __attribute__((unused)) const NewElementsEvent & event) {
   for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
        ++it) {
-    resizeInternalVector(*(it->second));
+    resizeInternalArray(*(it->second));
   }
 
   for (std::map<ID, ByElementTypeUInt *>::iterator it = internal_vectors_uint.begin();
        it != internal_vectors_uint.end();
        ++it) {
-    resizeInternalVector(*(it->second));
+    resizeInternalArray(*(it->second));
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void Material::onElementsRemoved(const Vector<Element> & element_list,
+inline void Material::onElementsRemoved(const Array<Element> & element_list,
 					const ByElementTypeUInt & new_numbering,
 					__attribute__((unused)) const RemovedElementsEvent & event) {
   UInt my_num = model->getInternalIndexFromID(id);
 
   ByElementTypeUInt material_local_new_numbering("remove mat filter elem", id);
 
-  Vector<Element>::const_iterator<Element> el_begin = element_list.begin();
-  Vector<Element>::const_iterator<Element> el_end   = element_list.end();
+  Array<Element>::const_iterator<Element> el_begin = element_list.begin();
+  Array<Element>::const_iterator<Element> el_end   = element_list.end();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeVector<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
-    ByElementTypeVector<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
     for (; it != end; ++it) {
       ElementType type = *it;
       if(element_filter.exists(type, gt)){
-	Vector<UInt> & elem_filter = element_filter(type, gt);
+	Array<UInt> & elem_filter = element_filter(type, gt);
 
-	Vector<UInt> & element_index_material = model->getElementIndexByMaterial(type, gt);
+	Array<UInt> & element_index_material = model->getElementIndexByMaterial(type, gt);
 	element_index_material.resize(model->getFEM().getMesh().getNbElement(type, gt)); // all materials will resize of the same size...
 
 	if(!material_local_new_numbering.exists(type, gt))
 	  material_local_new_numbering.alloc(elem_filter.getSize(), 1, type, gt);
 
-	Vector<UInt> & mat_renumbering = material_local_new_numbering(type, gt);
-	const Vector<UInt> & renumbering = new_numbering(type, gt);
-	Vector<UInt> elem_filter_tmp;
+	Array<UInt> & mat_renumbering = material_local_new_numbering(type, gt);
+	const Array<UInt> & renumbering = new_numbering(type, gt);
+	Array<UInt> elem_filter_tmp;
 	UInt ni = 0;
 	Element el;
 	el.type = type;
@@ -407,12 +410,12 @@ inline void Material::onElementsRemoved(const Vector<Element> & element_list,
   for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
        ++it) {
-    this->removeQuadraturePointsFromVectors(*(it->second), material_local_new_numbering);
+    this->removeQuadraturePointsFromArrays(*(it->second), material_local_new_numbering);
   }
 
   for (std::map<ID, ByElementTypeUInt *>::iterator it = internal_vectors_uint.begin();
        it != internal_vectors_uint.end();
        ++it) {
-    this->removeQuadraturePointsFromVectors(*(it->second), material_local_new_numbering);
+    this->removeQuadraturePointsFromArrays(*(it->second), material_local_new_numbering);
   }
 }

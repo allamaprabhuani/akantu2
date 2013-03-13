@@ -76,8 +76,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_4, _gt_tetrahedron_4, _itp_lag
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const types::Vector<Real> & natural_coords,
-								 types::Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const Vector<Real> & natural_coords,
+								 Vector<Real> & N) {
   Real c0 = 1 - natural_coords(0) -  natural_coords(1) -  natural_coords(2);/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
   Real c1 = natural_coords(1); /// @f$ c0 = \xi @f$
   Real c2 = natural_coords(2); /// @f$ c1 = \eta @f$
@@ -91,8 +91,8 @@ InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const types::Ve
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const types::Vector<Real> & natural_coords,
-							       types::Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const Vector<Real> & natural_coords,
+							       Matrix<Real> & dnds) {
 
   /**
    * @f[
@@ -119,7 +119,7 @@ InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((u
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real
-GeometricalElement<_gt_tetrahedron_4>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_tetrahedron_4>::getInradius(const Matrix<Real> & coord) {
   return Math::tetrahedron_inradius(coord(0).storage(),
 				    coord(1).storage(),
 				    coord(2).storage(),

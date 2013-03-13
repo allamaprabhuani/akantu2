@@ -57,8 +57,8 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   UInt tangent_size = getTangentStiffnessVoigtSize<type>();
 
-  Vector<Real> * tangent_moduli =
-    new Vector<Real>(nb_element * nb_quadrature_points, tangent_size * tangent_size,
+  Array<Real> * tangent_moduli =
+    new Array<Real>(nb_element * nb_quadrature_points, tangent_size * tangent_size,
 		     "tangent_stiffness_matrix");
 
   tangent_moduli->clear();
@@ -68,23 +68,23 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   UInt bt_d_b_size = nb_degree_of_freedom * nb_nodes_per_element;
 
-  Vector<Real> * bt_d_b = new Vector<Real>(nb_element*nb_quadrature_points,
+  Array<Real> * bt_d_b = new Array<Real>(nb_element*nb_quadrature_points,
 					   bt_d_b_size * bt_d_b_size,
 					   "B^t*D*B");
 
-  Vector<Real> * b = new Vector<Real>(nb_element*nb_quadrature_points,
+  Array<Real> * b = new Array<Real>(nb_element*nb_quadrature_points,
 				      tangent_size*bt_d_b_size,
 				      "B");
 
   transferBMatrixToSymVoigtBMatrix<type>(*b);
 
-  types::RMatrix Bt_D(bt_d_b_size, tangent_size);
-  types::RMatrix BT(tangent_size, bt_d_b_size);
+  Matrix<Real> Bt_D(bt_d_b_size, tangent_size);
+  Matrix<Real> BT(tangent_size, bt_d_b_size);
 
-  Vector<Real>::iterator<types::RMatrix> B = b->begin(tangent_size, bt_d_b_size);
-  Vector<Real>::iterator<types::RMatrix> D = tangent_moduli->begin(tangent_size, tangent_size);
-  Vector<Real>::iterator<types::RMatrix> Bt_D_B = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
-  Vector<Real>::iterator<types::RMatrix> T = rotation_matrix(type).begin(bt_d_b_size, bt_d_b_size);
+  Array<Real>::iterator< Matrix<Real> > B = b->begin(tangent_size, bt_d_b_size);
+  Array<Real>::iterator< Matrix<Real> > D = tangent_moduli->begin(tangent_size, tangent_size);
+  Array<Real>::iterator< Matrix<Real> > Bt_D_B = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
+  Array<Real>::iterator< Matrix<Real> > T = rotation_matrix(type).begin(bt_d_b_size, bt_d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e, ++T) {
     for (UInt q = 0; q < nb_quadrature_points; ++q, ++B, ++D, ++Bt_D_B) {
@@ -98,7 +98,7 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
   delete tangent_moduli;
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
-  Vector<Real> * int_bt_d_b = new Vector<Real>(nb_element,
+  Array<Real> * int_bt_d_b = new Array<Real>(nb_element,
 					   bt_d_b_size * bt_d_b_size,
 					   "int_B^t*D*B");
 
@@ -117,14 +117,14 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void StructuralMechanicsModel::computeTangentModuli(Vector<Real> & tangent_moduli) {
+void StructuralMechanicsModel::computeTangentModuli(Array<Real> & tangent_moduli) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix(Vector<Real> & b, bool local) {
+void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix(Array<Real> & b, bool local) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
@@ -133,7 +133,7 @@ template<ElementType type>
 void StructuralMechanicsModel::computeStressOnQuad() {
   AKANTU_DEBUG_IN();
 
-  Vector<Real> & sigma  = stress(type, _not_ghost);
+  Array<Real> & sigma  = stress(type, _not_ghost);
 
   sigma.clear();
   const Mesh & mesh = getFEM().getMesh();
@@ -144,8 +144,8 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   UInt tangent_size = getTangentStiffnessVoigtSize<type>();
 
-  Vector<Real> * tangent_moduli =
-    new Vector<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
+  Array<Real> * tangent_moduli =
+    new Array<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
 		     "tangent_stiffness_matrix");
 
   computeTangentModuli<type>(*tangent_moduli);
@@ -153,19 +153,19 @@ void StructuralMechanicsModel::computeStressOnQuad() {
   /// compute DB
   UInt d_b_size = nb_degree_of_freedom * nb_nodes_per_element;
 
-  Vector<Real> * d_b = new Vector<Real>(nb_element*nb_quadrature_points,
+  Array<Real> * d_b = new Array<Real>(nb_element*nb_quadrature_points,
 					d_b_size * tangent_size,
 					"D*B");
 
-  Vector<Real> * b = new Vector<Real>(nb_element*nb_quadrature_points,
+  Array<Real> * b = new Array<Real>(nb_element*nb_quadrature_points,
 				      tangent_size*d_b_size,
 				      "B");
 
   transferBMatrixToSymVoigtBMatrix<type>(*b);
 
-  Vector<Real>::iterator<types::RMatrix> B = b->begin(tangent_size, d_b_size);
-  Vector<Real>::iterator<types::RMatrix> D = tangent_moduli->begin(tangent_size, tangent_size);
-  Vector<Real>::iterator<types::RMatrix> D_B = d_b->begin(tangent_size, d_b_size);
+  Array<Real>::iterator< Matrix<Real> > B = b->begin(tangent_size, d_b_size);
+  Array<Real>::iterator< Matrix<Real> > D = tangent_moduli->begin(tangent_size, tangent_size);
+  Array<Real>::iterator< Matrix<Real> > D_B = d_b->begin(tangent_size, d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q, ++B, ++D, ++D_B) {
@@ -178,14 +178,14 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   /// compute DBu
   D_B = d_b->begin(tangent_size, d_b_size);
-  Vector<Real>::iterator< types::RVector> DBu = sigma.begin(tangent_size);
-  types::RVector ul (d_b_size);
+  Array<Real>::iterator< Vector<Real>> DBu = sigma.begin(tangent_size);
+  Vector<Real> ul (d_b_size);
 
-  Vector<Real> u_el(0, d_b_size);
+  Array<Real> u_el(0, d_b_size);
   FEM::extractNodalToElementField(mesh, *displacement_rotation, u_el, type);
 
-  Vector<Real>::iterator<types::RVector> ug = u_el.begin(d_b_size);
-  Vector<Real>::iterator<types::RMatrix> T = rotation_matrix(type).begin(d_b_size, d_b_size);
+  Array<Real>::iterator< Vector<Real> > ug = u_el.begin(d_b_size);
+  Array<Real>::iterator< Matrix<Real> > T = rotation_matrix(type).begin(d_b_size, d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e, ++T, ++ug) {
     ul.mul<false>(*T, *ug);
@@ -201,7 +201,7 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void StructuralMechanicsModel::computeForcesByLocalTractionVector(const Vector<Real> & tractions) {
+void StructuralMechanicsModel::computeForcesByLocalTractionArray(const Array<Real> & tractions) {
   AKANTU_DEBUG_IN();
 
   UInt nb_element = getFEM().getMesh().getNbElement(type);
@@ -223,25 +223,25 @@ void StructuralMechanicsModel::computeForcesByLocalTractionVector(const Vector<R
 		      "the number of components should be the spatial dimension of the problem");
 
 
-  Vector<Real> Nvoigt(nb_element * nb_quad, nb_degree_of_freedom * nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real> Nvoigt(nb_element * nb_quad, nb_degree_of_freedom * nb_degree_of_freedom * nb_nodes_per_element);
   transferNMatrixToSymVoigtNMatrix<type>(Nvoigt);
 
-  Vector<Real>::const_iterator<types::RMatrix> N_it = Nvoigt.begin(nb_degree_of_freedom,
+  Array<Real>::const_iterator< Matrix<Real> > N_it = Nvoigt.begin(nb_degree_of_freedom,
 								   nb_degree_of_freedom * nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RMatrix> T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
+  Array<Real>::const_iterator< Matrix<Real> > T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
 										  nb_degree_of_freedom * nb_nodes_per_element);
-  Vector<Real>::const_iterator<types::RVector> te_it = tractions.begin(nb_degree_of_freedom);
+  Array<Real>::const_iterator< Vector<Real> > te_it = tractions.begin(nb_degree_of_freedom);
 
-  Vector<Real> funct(nb_element * nb_quad, nb_degree_of_freedom * nb_nodes_per_element, 0.);
-  Vector<Real>::iterator< types::RVector> Fe_it = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real> funct(nb_element * nb_quad, nb_degree_of_freedom * nb_nodes_per_element, 0.);
+  Array<Real>::iterator< Vector<Real>> Fe_it = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
 
-  types::Vector<Real> fe(nb_degree_of_freedom * nb_nodes_per_element);
+  Vector<Real> fe(nb_degree_of_freedom * nb_nodes_per_element);
   for (UInt e = 0; e < nb_element; ++e, ++T_it) {
-    const types::RMatrix & T = *T_it;
+    const Matrix<Real> & T = *T_it;
     for (UInt q = 0; q < nb_quad; ++q, ++N_it, ++te_it, ++Fe_it) {
-      const types::RMatrix & N = *N_it;
-      const types::RVector & te = *te_it;
-      types::RVector & Fe = *Fe_it;
+      const Matrix<Real> & N = *N_it;
+      const Vector<Real> & te = *te_it;
+      Vector<Real> & Fe = *Fe_it;
 
       // compute N^t tl
       fe.mul<true>(N, te);
@@ -253,13 +253,13 @@ void StructuralMechanicsModel::computeForcesByLocalTractionVector(const Vector<R
   // allocate the vector that will contain the integrated values
   std::stringstream name;
   name << id << type << ":integral_boundary";
-  Vector<Real> int_funct(nb_element, nb_degree_of_freedom * nb_nodes_per_element, name.str());
+  Array<Real> int_funct(nb_element, nb_degree_of_freedom * nb_nodes_per_element, name.str());
 
   //do the integration
   getFEM().integrate(funct, int_funct, nb_degree_of_freedom*nb_nodes_per_element, type);
 
   // assemble the result into force vector
-  getFEM().assembleVector(int_funct,*force_momentum,
+  getFEM().assembleArray(int_funct,*force_momentum,
 			  dof_synchronizer->getLocalDOFEquationNumbers(),
 			  nb_degree_of_freedom, type);
   AKANTU_DEBUG_OUT();
@@ -268,7 +268,7 @@ void StructuralMechanicsModel::computeForcesByLocalTractionVector(const Vector<R
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
-void StructuralMechanicsModel::computeForcesByGlobalTractionVector(const Vector<Real> & traction_global){
+void StructuralMechanicsModel::computeForcesByGlobalTractionArray(const Array<Real> & traction_global){
  AKANTU_DEBUG_IN();
   UInt nb_element = getFEM().getMesh().getNbElement(type);
   UInt nb_quad = getFEM().getNbQuadraturePoints(type);
@@ -276,30 +276,30 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionVector(const Vector<
 
   std::stringstream name;
   name << id << ":structuralmechanics:imposed_linear_load";
-  Vector<Real> traction_local(nb_element*nb_quad, nb_degree_of_freedom, name.str());
+  Array<Real> traction_local(nb_element*nb_quad, nb_degree_of_freedom, name.str());
 
-  Vector<Real>::const_iterator<types::RMatrix> T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
+  Array<Real>::const_iterator< Matrix<Real> > T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
 										  nb_degree_of_freedom * nb_nodes_per_element);
 
-  Vector<Real>::const_iterator< types::RVector> Te_it = traction_global.begin(nb_degree_of_freedom);
-  Vector<Real>::iterator< types::RVector> te_it = traction_local.begin(nb_degree_of_freedom);
+  Array<Real>::const_iterator< Vector<Real>> Te_it = traction_global.begin(nb_degree_of_freedom);
+  Array<Real>::iterator< Vector<Real>> te_it = traction_local.begin(nb_degree_of_freedom);
 
-  types::Matrix<Real> R(nb_degree_of_freedom, nb_degree_of_freedom);
+  Matrix<Real> R(nb_degree_of_freedom, nb_degree_of_freedom);
   for (UInt e = 0; e < nb_element; ++e, ++T_it) {
-    const types::RMatrix & T = *T_it;
+    const Matrix<Real> & T = *T_it;
     for (UInt i = 0; i < nb_degree_of_freedom; ++i)
       for (UInt j = 0; j < nb_degree_of_freedom; ++j)
 	R(i, j) = T(i, j);
 
     for (UInt q = 0; q < nb_quad; ++q, ++Te_it, ++te_it) {
-      const types::RVector & Te = *Te_it;
-      types::RVector & te = *te_it;
+      const Vector<Real> & Te = *Te_it;
+      Vector<Real> & te = *te_it;
       // turn the traction in the local referential
       te.mul<false>(R, Te);
     }
   }
 
-  computeForcesByLocalTractionVector<type>(traction_local);
+  computeForcesByLocalTractionArray<type>(traction_local);
 
   AKANTU_DEBUG_OUT();
 
@@ -320,7 +320,7 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 
   std::stringstream name;
   name << id << ":structuralmechanics:imposed_linear_load";
-  Vector<Real> lin_load(0, nb_degree_of_freedom,name.str());
+  Array<Real> lin_load(0, nb_degree_of_freedom,name.str());
   name.clear();
 
   UInt offset = nb_degree_of_freedom;
@@ -331,7 +331,7 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 
   name.clear();
   name << id << ":structuralmechanics:quad_coords";
-  Vector<Real> quad_coords(nb_element * nb_quad, spatial_dimension, "quad_coords");
+  Array<Real> quad_coords(nb_element * nb_quad, spatial_dimension, "quad_coords");
 
 
   getFEMClass<MyFEMType>().getShapeFunctions().interpolateOnControlPoints<type>(getFEM().getMesh().getNodes(),
@@ -371,9 +371,9 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 
   switch(function_type) {
   case _bft_traction_local:
-    computeForcesByLocalTractionVector<type>(lin_load); break;
+    computeForcesByLocalTractionArray<type>(lin_load); break;
   case _bft_traction:
-    computeForcesByGlobalTractionVector<type>(lin_load); break;
+    computeForcesByGlobalTractionArray<type>(lin_load); break;
   default: break;
   }
 }

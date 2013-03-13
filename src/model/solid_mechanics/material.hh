@@ -61,7 +61,7 @@ __BEGIN_AKANTU__
  *                             GhostType ghost_type = _not_ghost);
  *
  *  virtual void computeTangentStiffness(const ElementType & el_type,
- *                                       Vector<Real> & tangent_matrix,
+ *                                       Array<Real> & tangent_matrix,
  *                                       GhostType ghost_type = _not_ghost);
  * \endcode
  *
@@ -92,7 +92,7 @@ public:
 
 
   template<typename T>
-  void registerInternal(__attribute__((unused)) ByElementTypeVector<T> & vect) { AKANTU_DEBUG_TO_IMPLEMENT(); }
+  void registerInternal(__attribute__((unused)) ByElementTypeArray<T> & vect) { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   /// read parameter from file
   virtual bool parseParam(const std::string & key, const std::string & value,
@@ -147,7 +147,7 @@ public:
    * of a geometrical interpolation on quadrature points
    */
   virtual void interpolateStress(const ElementType type,
-				 Vector<Real> & result);
+				 Array<Real> & result);
 
   /**
    * function to initialize the elemental field interpolation
@@ -173,7 +173,7 @@ protected:
 
   /// compute the tangent stiffness matrix
   virtual void computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
-				    __attribute__((unused)) Vector<Real> & tangent_matrix,
+				    __attribute__((unused)) Array<Real> & tangent_matrix,
 				    __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
@@ -188,8 +188,8 @@ protected:
 
   /// transfer the B matrix to a Voigt notation B matrix
   template<UInt dim>
-  inline void transferBMatrixToSymVoigtBMatrix(const types::RMatrix & B,
-					       types::RMatrix & Bvoigt,
+  inline void transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
+					       Matrix<Real> & Bvoigt,
 					       UInt nb_nodes_per_element) const;
 
   inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
@@ -204,18 +204,18 @@ protected:
 
   /// interpolate an elemental field on given points for each element
   template <ElementType type>
-  void interpolateElementalField(const Vector<Real> & field,
-				 Vector<Real> & result);
+  void interpolateElementalField(const Array<Real> & field,
+				 Array<Real> & result);
 
   /// template function to initialize the elemental field interpolation
   template <ElementType type>
-  void initElementalFieldInterpolation(const Vector<Real> & quad_coordinates,
-				       const Vector<Real> & interpolation_points_coordinates);
+  void initElementalFieldInterpolation(const Array<Real> & quad_coordinates,
+				       const Array<Real> & interpolation_points_coordinates);
 
   /// build the coordinate matrix for the interpolation on elemental field
   template <ElementType type>
-  inline void buildElementalFieldInterpolationCoodinates(const types::RMatrix & coordinates,
-							 types::RMatrix & coordMatrix);
+  inline void buildElementalFieldInterpolationCoodinates(const Matrix<Real> & coordinates,
+							 Matrix<Real> & coordMatrix);
 
   /// get the size of the coordiante matrix used in the interpolation
   template <ElementType type>
@@ -228,18 +228,18 @@ protected:
 
 protected:
   /// compute the potential energy for a quadrature point
-  inline void computePotentialEnergyOnQuad(types::RMatrix & grad_u,
-					   types::RMatrix & sigma,
+  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+					   Matrix<Real> & sigma,
 					   Real & epot);
 
   /// compute the potential energy for an element
   virtual void computePotentialEnergyByElement(ElementType type, UInt index,
-					       types::RVector & epot_on_quad_points);
+					       Vector<Real> & epot_on_quad_points);
 
 protected:
   /// allocate an internal vector
   template<typename T>
-  void initInternalVector(ByElementTypeVector<T> & vect,
+  void initInternalArray(ByElementTypeArray<T> & vect,
 			  UInt nb_component,
 			  bool temporary = false,
 			  ElementKind element_kind = _ek_regular);
@@ -247,54 +247,54 @@ protected:
 public:
   /// resize an internal vector
   template<typename T>
-  void resizeInternalVector(ByElementTypeVector<T> & vect,
+  void resizeInternalArray(ByElementTypeArray<T> & vect,
 			    ElementKind element_kind = _ek_regular) const;
 
   /* ------------------------------------------------------------------------ */
   template<UInt dim>
-  inline void gradUToF(const types::RMatrix & grad_u, types::RMatrix & F);
-  inline void rightCauchy(const types::RMatrix & F, types::RMatrix & C);
-  inline void leftCauchy (const types::RMatrix & F, types::RMatrix & B);
+  inline void gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F);
+  inline void rightCauchy(const Matrix<Real> & F, Matrix<Real> & C);
+  inline void leftCauchy (const Matrix<Real> & F, Matrix<Real> & B);
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual inline UInt getNbDataForElements(const Vector<Element> & elements,
+  virtual inline UInt getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const;
 
   virtual inline void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const;
 
   virtual inline void unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
+					const Array<Element> & elements,
 					SynchronizationTag tag);
 
   template<typename T>
-  inline void packElementDataHelper(const ByElementTypeVector<T> & data_to_pack,
+  inline void packElementDataHelper(const ByElementTypeArray<T> & data_to_pack,
 				    CommunicationBuffer & buffer,
-				    const Vector<Element> & elements,
+				    const Array<Element> & elements,
 				    const ID & fem_id = ID()) const;
 
   template<typename T>
-  inline void unpackElementDataHelper(ByElementTypeVector<T> & data_to_unpack,
+  inline void unpackElementDataHelper(ByElementTypeArray<T> & data_to_unpack,
 				      CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      const ID & fem_id = ID()) const;
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual inline void onElementsAdded(const Vector<Element> & element_list,
+  virtual inline void onElementsAdded(const Array<Element> & element_list,
 				      const NewElementsEvent & event);
 
-  virtual inline void onElementsRemoved(const Vector<Element> & element_list,
+  virtual inline void onElementsRemoved(const Array<Element> & element_list,
 					const ByElementTypeUInt & new_numbering,
 					const RemovedElementsEvent & event);
 
 protected:
   template<typename T>
-  void removeQuadraturePointsFromVectors(ByElementTypeVector<T> & data,
+  void removeQuadraturePointsFromArrays(ByElementTypeArray<T> & data,
 					 const ByElementTypeUInt & new_numbering);
 
   /* ------------------------------------------------------------------------ */
@@ -325,8 +325,8 @@ public:
 
   bool isNonLocal() const { return is_non_local; }
 
-  const Vector<Real> & getVector(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
-  Vector<Real> & getVector(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost);
+  const Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
+  Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
   template<typename T>
   inline T getParam(const ID & param) const;
@@ -414,41 +414,41 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type) \
-  Vector<Real>::iterator<types::RMatrix> strain_it =			\
+  Array<Real>::iterator< Matrix<Real> > strain_it =			\
     this->strain(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
-  Vector<Real>::iterator<types::RMatrix> strain_end =			\
+  Array<Real>::iterator< Matrix<Real> > strain_end =			\
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
 					  spatial_dimension);		\
-  Vector<Real>::iterator<types::RMatrix> stress_it =			\
+  Array<Real>::iterator< Matrix<Real> > stress_it =			\
     this->stress(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
   									\
   for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
-    types::RMatrix & __attribute__((unused)) grad_u = *strain_it;	\
-    types::RMatrix & __attribute__((unused)) sigma  = *stress_it
+    Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;	\
+    Matrix<Real> & __attribute__((unused)) sigma  = *stress_it
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END			\
   }									\
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)	\
-  Vector<Real>::iterator<types::RMatrix> strain_it =			\
+  Array<Real>::iterator< Matrix<Real> > strain_it =			\
     this->strain(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
-  Vector<Real>::iterator<types::RMatrix> strain_end =			\
+  Array<Real>::iterator< Matrix<Real> > strain_end =			\
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
 					  spatial_dimension);		\
   									\
   UInt tangent_size =							\
     this->getTangentStiffnessVoigtSize(spatial_dimension);		\
-  Vector<Real>::iterator<types::RMatrix> tangent_it =			\
+  Array<Real>::iterator< Matrix<Real> > tangent_it =			\
     tangent_mat.begin(tangent_size,					\
 		      tangent_size);					\
   									\
   for(;strain_it != strain_end; ++strain_it, ++tangent_it) {		\
-    types::RMatrix & __attribute__((unused)) grad_u  = *strain_it;	\
-    types::RMatrix & tangent = *tangent_it
+    Matrix<Real> & __attribute__((unused)) grad_u  = *strain_it;	\
+    Matrix<Real> & tangent = *tangent_it
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\

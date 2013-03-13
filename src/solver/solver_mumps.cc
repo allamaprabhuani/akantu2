@@ -252,7 +252,7 @@ void SolverMumps::initialize(SolverOptions & options) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolverMumps::setRHS(Vector<Real> & rhs) {
+void SolverMumps::setRHS(Array<Real> & rhs) {
   if(prank == 0) {
     matrix->getDOFSynchronizer().gather(rhs, 0, this->rhs);
   } else {
@@ -291,7 +291,7 @@ void SolverMumps::solve() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolverMumps::solve(Vector<Real> & solution) {
+void SolverMumps::solve(Array<Real> & solution) {
   AKANTU_DEBUG_IN();
 
   solve();

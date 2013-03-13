@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initVectors();
+  my_model.initArrays();
   // initialize the vectors
   memset(my_model.getForce().values,        0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getVelocity().values,     0,     dim*nb_nodes*sizeof(Real));
@@ -171,8 +171,8 @@ int main(int argc, char *argv[])
   my_contact->initSearch(); // does nothing so far
 
   // boundary conditions
-  Vector<UInt> * top_nodes = new Vector<UInt>(0, 1);
-  Vector<UInt> * push_nodes = new Vector<UInt>(0, 1);
+  Array<UInt> * top_nodes = new Array<UInt>(0, 1);
+  Array<UInt> * push_nodes = new Array<UInt>(0, 1);
   Real * coordinates = my_mesh.getNodes().values;
   Real * displacement = my_model.getDisplacement().values;
   bool * boundary = my_model.getBoundary().values;
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 
     my_model.updateAcceleration();
 
-    const Vector<bool> * sticking_nodes = imp_info->node_is_sticking;
+    const Array<bool> * sticking_nodes = imp_info->node_is_sticking;
     bool * sticking_nodes_val = sticking_nodes->values;
     UInt nb_sticking_nodes = 0;
     for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {

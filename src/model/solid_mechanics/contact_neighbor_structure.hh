@@ -53,7 +53,7 @@ public:
   //UInt nb_nodes;
 
   /// list of nodes of slave surfaces near the master one
-  Vector<UInt> impactor_nodes;
+  Array<UInt> impactor_nodes;
 
   /// neighbor facets (sparse storage) \todo replace by a csr
   ByElementTypeUInt facets_offset;

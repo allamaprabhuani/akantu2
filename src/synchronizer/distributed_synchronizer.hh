@@ -85,7 +85,7 @@ public:
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// mesh event handler onRemovedElement
-  virtual void onElementsRemoved(const Vector<Element> & element_list,
+  virtual void onElementsRemoved(const Array<Element> & element_list,
 				 const ByElementTypeUInt & new_numbering,
 				 const RemovedElementsEvent & event);
 
@@ -142,9 +142,9 @@ protected:
   std::map<SynchronizationTag, Communication> communications;
 
   /// list of element to sent to proc p
-  Vector<Element> * send_element;
+  Array<Element> * send_element;
   /// list of element to receive from proc p
-  Vector<Element> * recv_element;
+  Array<Element> * recv_element;
 
   UInt nb_proc;
   UInt rank;

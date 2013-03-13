@@ -63,7 +63,7 @@ public:
 //    
 //    typedef Contact_discretization<N2N_t> discretization_type;
 //    
-//    const Vector<Real> &R = model.getResidual(); // residual
+//    const Array<Real> &R = model.getResidual(); // residual
 //    
 //    UInt d = model.getSpatialDimension();
 //    
@@ -164,7 +164,7 @@ public:
     
     typedef Contact_discretization<N2N_t> discretization_type;
     
-    const Vector<Real> &R = model.getResidual(); // residual
+    const Array<Real> &R = model.getResidual(); // residual
     Real *residual = R.storage();
     
     UInt d = model.getSpatialDimension();
@@ -219,7 +219,7 @@ public:
       else {
         
         // compute velocities
-        const Vector<Real> &V = model.getVelocity();
+        const Array<Real> &V = model.getVelocity();
         
         vector_type vm(d), vs(d);
         for (UInt i=0; i<d; ++i) {
@@ -264,9 +264,9 @@ public:
 //    
 //    typedef Contact_discretization<N2N_t> discretization_type;
 //    
-//    Vector<Real> &A = model.getIncrementAcceleration();
-//    const Vector<Real> &M = model.getMass();
-//    const Vector<Real> &R = model.getResidual();
+//    Array<Real> &A = model.getIncrementAcceleration();
+//    const Array<Real> &M = model.getMass();
+//    const Array<Real> &R = model.getResidual();
 //    
 //    // problem dimension
 //    UInt d = model.getSpatialDimension();
@@ -356,9 +356,9 @@ public:
     
     typedef Contact_discretization<N2N_t> discretization_type;
     
-    Vector<Real> &A = model.getIncrementAcceleration();
-    const Vector<Real> &M = model.getMass();
-    const Vector<Real> &R = model.getResidual();
+    Array<Real> &A = model.getIncrementAcceleration();
+    const Array<Real> &M = model.getMass();
+    const Array<Real> &R = model.getResidual();
     
     // problem dimension
     UInt d = model.getSpatialDimension();

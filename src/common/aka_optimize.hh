@@ -131,8 +131,8 @@ public:
     opt_.set_ftol_abs(1e-4);
     
     Mesh& mesh = model.getMesh();
-    const Vector<Real> &X = model.getCurrentPosition();
-    const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+    const Array<Real> &X = model.getCurrentPosition();
+    const Array<UInt> &conn = mesh.getConnectivity(el->type);
     for (UInt i=0; i<nb_nodes; ++i) {
       XX_(0u,i) = X(conn(el->element,0),i);
       XX_(1u,i) = X(conn(el->element,1),i);
@@ -313,8 +313,8 @@ public:
     
     // get triangle coordinates from element and point coordinates
     Mesh& mesh = model.getMesh();
-    const Vector<Real> &X = model.getCurrentPosition();
-    const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+    const Array<Real> &X = model.getCurrentPosition();
+    const Array<UInt> &conn = mesh.getConnectivity(el->type);
     for (UInt i=0; i<nb_nodes; ++i) {
       for (UInt j=0; j<d; ++j)
         XX_(i,j) = X(conn(el->element,i),j);
@@ -503,8 +503,8 @@ public:
     
     // get triangle coordinates from element and point coordinates
     Mesh& mesh = model.getMesh();
-    const Vector<Real> &X = model.getCurrentPosition();
-    const Vector<UInt> &conn = mesh.getConnectivity(el->type);
+    const Array<Real> &X = model.getCurrentPosition();
+    const Array<UInt> &conn = mesh.getConnectivity(el->type);
     for (UInt i=0; i<nb_nodes; ++i) {
       for (UInt j=0; j<d; ++j)
         XX_(i,j) = X(conn(el->element,i),j);

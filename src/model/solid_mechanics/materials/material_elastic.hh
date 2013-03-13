@@ -69,7 +69,7 @@ public:
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
-			    Vector<Real> & tangent_matrix,
+			    Array<Real> & tangent_matrix,
 			    GhostType ghost_type = _not_ghost);
 
   /// compute the p-wave speed in the material
@@ -80,11 +80,11 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const types::RMatrix & grad_u,
-				  types::RMatrix & sigma);
+  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
+				  Matrix<Real> & sigma);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(types::RMatrix & tangent);
+  void computeTangentModuliOnQuad(Matrix<Real> & tangent);
 
   /// recompute the lame coefficient if E or nu changes
   virtual void updateInternalParameters();

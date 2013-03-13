@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
   akantu::Real signal_end = 0.7*mesh.getXMax();
   akantu::Real delta_d = signal_end - signal_start;
   akantu::Real signal = 1.;
-  const akantu::Vector<akantu::Real> & coords = model.getFEM().getMesh().getNodes();
-  akantu::Vector<akantu::Real> & disp = model.getDisplacement();
+  const akantu::Array<akantu::Real> & coords = model.getFEM().getMesh().getNodes();
+  akantu::Array<akantu::Real> & disp = model.getDisplacement();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(coords(i,0) >= signal_start && coords(i,0) <= signal_end) {
       if (coords(i,0) <= 0.5 * (signal_start + signal_end))

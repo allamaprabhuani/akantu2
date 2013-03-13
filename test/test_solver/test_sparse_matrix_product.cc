@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
-  // Vector<Int>  equation_number(nb_nodes, nb_dof);
+  // Array<Int>  equation_number(nb_nodes, nb_dof);
   // for (UInt n = 0; n < nb_nodes; ++n) {
   //   UInt real_n = mesh.getNodeGlobalId(n);
   //   bool is_local_node = !(mesh.isPureGhostNode(n));
@@ -93,12 +93,12 @@ int main(int argc, char *argv[])
   dof_synchronizer.initGlobalDOFEquationNumbers();
   sparse_matrix.buildProfile(mesh, dof_synchronizer);
 
-  Vector<Real> dof_vector(nb_nodes, nb_dof, "vector");
+  Array<Real> dof_vector(nb_nodes, nb_dof, "vector");
 
   if (prank == 0) std::cout << "Filling the matrix" << std::endl;
   UInt nz = sparse_matrix.getNbNonZero();
-  const Vector<Int> & irn = sparse_matrix.getIRN();
-  const Vector<Int> & jcn = sparse_matrix.getJCN();
+  const Array<Int> & irn = sparse_matrix.getIRN();
+  const Array<Int> & jcn = sparse_matrix.getJCN();
   for (UInt i = 0; i < nz; ++i) {
     sparse_matrix.addToMatrix(irn(i) - 1, jcn(i) - 1, 1.);
   }
@@ -116,15 +116,15 @@ int main(int argc, char *argv[])
   dof_vector *= sparse_matrix;
 
   if (prank == 0) std::cout << "Lumping the matrix" << std::endl;
-  Vector<Real> lumped(0,nb_dof);
+  Array<Real> lumped(0,nb_dof);
   sparse_matrix.lump(lumped);
 
   if (prank == 0) std::cout << "Gathering the results on proc 0" << std::endl;
   if(psize > 1) {
     const_cast<DOFSynchronizer &>(sparse_matrix.getDOFSynchronizer()).initScatterGatherCommunicationScheme();
     if(prank == 0) {
-      Vector<Real> gathered(0, nb_dof);
-      Vector<Real> lump_gathered(0, nb_dof);
+      Array<Real> gathered(0, nb_dof);
+      Array<Real> lump_gathered(0, nb_dof);
       sparse_matrix.getDOFSynchronizer().gather(dof_vector, 0, &gathered);
       sparse_matrix.getDOFSynchronizer().gather(lumped, 0, &lump_gathered);
       debug::setDebugLevel(dblTest);

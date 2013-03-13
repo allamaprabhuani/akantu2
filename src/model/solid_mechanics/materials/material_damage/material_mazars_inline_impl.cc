@@ -34,18 +34,18 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeStressOnQuad(const types::RMatrix & grad_u,
-						       types::RMatrix & sigma,
+MaterialMazars<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
+						       Matrix<Real> & sigma,
 						       Real & dam,
 						       Real & Ehat) {
-  types::RMatrix epsilon(3, 3);
+  Matrix<Real> epsilon(3, 3);
   epsilon.clear();
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
       epsilon(i,j) = .5*(grad_u(i,j) + grad_u(j,i));
 
-  types::RVector Fdiag(3);
+  Vector<Real> Fdiag(3);
   Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
 
   Ehat = 0.;
@@ -69,15 +69,15 @@ MaterialMazars<spatial_dimension>::computeStressOnQuad(const types::RMatrix & gr
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::RMatrix & grad_u,
-								types::RMatrix & sigma,
+MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const Matrix<Real> & grad_u,
+								Matrix<Real> & sigma,
 								Real & dam,
 								Real & Ehat) {
   if(!damage_in_compute_stress) {
-    types::RVector Fdiag(3);
+    Vector<Real> Fdiag(3);
     Fdiag.clear();
 
-    types::RMatrix epsilon(3, 3);
+    Matrix<Real> epsilon(3, 3);
     epsilon.clear();
     for (UInt i = 0; i < spatial_dimension; ++i)
       for (UInt j = 0; j < spatial_dimension; ++j)
@@ -95,8 +95,8 @@ MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(const types::RMa
 template<UInt spatial_dimension>
 inline void
 MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & epsilon_equ,
-						       __attribute__((unused)) const types::RMatrix & sigma,
-						       const types::RVector & epsilon_princ,
+						       __attribute__((unused)) const Matrix<Real> & sigma,
+						       const Vector<Real> & epsilon_princ,
 						       Real & dam) {
   Real Fs = epsilon_equ - K0;
   if (Fs > 0.) {
@@ -108,12 +108,12 @@ MaterialMazars<spatial_dimension>::computeDamageOnQuad(const Real & epsilon_equ,
     Real Cdiag;
     Cdiag = this->E*(1-this->nu)/((1+this->nu)*(1-2*this->nu));
 
-    types::RVector sigma_princ(3);
+    Vector<Real> sigma_princ(3);
     sigma_princ(0) = Cdiag*epsilon_princ(0) + this->lambda*(epsilon_princ(1) + epsilon_princ(2));
     sigma_princ(1) = Cdiag*epsilon_princ(1) + this->lambda*(epsilon_princ(0) + epsilon_princ(2));
     sigma_princ(2) = Cdiag*epsilon_princ(2) + this->lambda*(epsilon_princ(1) + epsilon_princ(0));
 
-    types::RVector sigma_p(3);
+    Vector<Real> sigma_p(3);
     for (UInt i = 0; i < 3; i++) sigma_p(i) = std::max(0., sigma_princ(i));
     sigma_p *= 1-dam;
 

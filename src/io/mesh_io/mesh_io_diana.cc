@@ -61,7 +61,7 @@ MeshIODiana::MeshIODiana() {
 
 /* -------------------------------------------------------------------------- */
 MeshIODiana::~MeshIODiana() {
-  std::map<std::string, Vector<UInt> *>::iterator ng_it;
+  std::map<std::string, Array<UInt> *>::iterator ng_it;
   std::map<std::string, std::vector<Element> *>::iterator eg_it;
 
   for (ng_it = node_groups.begin(); ng_it != node_groups.end(); ++ng_it) {
@@ -136,7 +136,7 @@ void MeshIODiana::write(__attribute__((unused)) const std::string & filename,
 std::string MeshIODiana::readCoordinates(std::ifstream & infile, Mesh & mesh, UInt & first_node_number) {
   AKANTU_DEBUG_IN();
 
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(mesh.getNodes());
 
   std::string line;
 
@@ -223,7 +223,7 @@ std::string MeshIODiana::readGroups(std::ifstream & infile,
     *str >> id >> name >> c;
     //    std::cout << id << " " << name << " " << c << std::endl;
 
-    Vector<UInt> * list_ids = new Vector<UInt>(0,1);
+    Array<UInt> * list_ids = new Array<UInt>(0,1);
 
     UInt s = 1; bool end = false;
     while(!end) {
@@ -310,7 +310,7 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile,
 
   std::string diana_type;
   ElementType akantu_type, akantu_type_old = _not_defined;
-  Vector<UInt> *connectivity = NULL;
+  Array<UInt> *connectivity = NULL;
   UInt node_per_element = 0;
   Element elem;
   UInt nb_elements_type = 0;
@@ -382,13 +382,13 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
   AKANTU_DEBUG_IN();
 
 
-  // Vector<UInt> vector_elements(nb_elements,1);
+  // Array<UInt> vector_elements(nb_elements,1);
   //  ElementType akantu_type;
   std::string line;
   //  bool end = false;
   //  bool end_range = false;
   std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << 0;
-  //Vector<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
+  //Array<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
 
   Mesh::type_iterator it  = mesh.firstType();
   Mesh::type_iterator end = mesh.lastType();
@@ -402,7 +402,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
     line = line.substr(line.find('/') + 1, std::string::npos); // erase the first slash / of the line
     char tutu[250];
     strcpy(tutu, line.c_str());
-    Vector<UInt> temp_id(0, 2);
+    Array<UInt> temp_id(0, 2);
     UInt mat;
     while(true){
       std::stringstream sstr_intervals_elements(line);
@@ -429,7 +429,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
 	Element & element = global_to_local_index[j - 1];
 	UInt elem = element.element;
 	ElementType type = element.type;
-	Vector<UInt> & data = *(mesh.getUIntDataPointer(type, "material", _not_ghost));
+	Array<UInt> & data = *(mesh.getUIntDataPointer(type, "material", _not_ghost));
 	data(elem) = mat;
       }
 

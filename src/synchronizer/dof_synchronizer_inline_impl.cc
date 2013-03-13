@@ -31,11 +31,11 @@
 
 
 /* -------------------------------------------------------------------------- */
-template<typename T> void DOFSynchronizer::gather(const Vector<T> & to_gather, UInt root,
-						  Vector<T> * gathered) const {
+template<typename T> void DOFSynchronizer::gather(const Array<T> & to_gather, UInt root,
+						  Array<T> * gathered) const {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(gather_scatter_scheme_initialized == true, "You should call initScatterGatherCommunicationScheme before trying to gather a Vector !!");
+  AKANTU_DEBUG_ASSERT(gather_scatter_scheme_initialized == true, "You should call initScatterGatherCommunicationScheme before trying to gather a Array !!");
 
   if(psize == 1) {
     gathered->copy(to_gather);
@@ -98,11 +98,11 @@ template<typename T> void DOFSynchronizer::gather(const Vector<T> & to_gather, U
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T> void DOFSynchronizer::scatter(Vector<T> & scattered, UInt root,
-				  const Vector<T> * to_scatter) const {
+template<typename T> void DOFSynchronizer::scatter(Array<T> & scattered, UInt root,
+				  const Array<T> * to_scatter) const {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(gather_scatter_scheme_initialized == true, "You should call initScatterGatherCommunicationScheme before trying to scatter a Vector !!");
+  AKANTU_DEBUG_ASSERT(gather_scatter_scheme_initialized == true, "You should call initScatterGatherCommunicationScheme before trying to scatter a Array !!");
 
   if(psize == 1) {
     scattered.copy(*to_scatter);
@@ -182,7 +182,7 @@ template<typename T> void DOFSynchronizer::scatter(Vector<T> & scattered, UInt r
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T> void DOFSynchronizer::synchronize(Vector<T> & dof_vector) const {
+template<typename T> void DOFSynchronizer::synchronize(Array<T> & dof_vector) const {
   AKANTU_DEBUG_IN();
 
   if(psize == 1) {
@@ -238,7 +238,7 @@ template<typename T> void DOFSynchronizer::synchronize(Vector<T> & dof_vector) c
 
 
 /* -------------------------------------------------------------------------- */
-template<template <class> class Op, typename T> void DOFSynchronizer::reduceSynchronize(Vector<T> & dof_vector) const {
+template<template <class> class Op, typename T> void DOFSynchronizer::reduceSynchronize(Array<T> & dof_vector) const {
   AKANTU_DEBUG_IN();
 
   if(psize == 1) {

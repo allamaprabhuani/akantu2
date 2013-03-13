@@ -52,11 +52,11 @@ int main(int argc, char *argv[]){
 /* -------------------------------------------------------------------------- */
   // Defining the mesh
 
-    Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
+    Array<Real> & nodes = const_cast<Array<Real> &>(beams.getNodes());
     nodes.resize(4);
 
     beams.addConnectivityType(_bernoulli_beam_2);
-    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
+    Array<UInt> & connectivity = const_cast<Array<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
     connectivity.resize(3);
 
     for(UInt i=0; i<4; ++i) {
@@ -80,8 +80,8 @@ int main(int argc, char *argv[]){
 
     fem->initShapeFunctions();
 
-    Vector<Real> displ_on_nodes(4,3);
-    Vector<Real> displ_on_quad(0,3);
+    Array<Real> displ_on_nodes(4,3);
+    Array<Real> displ_on_quad(0,3);
 
     for(UInt i=0; i<4; ++i) {
 

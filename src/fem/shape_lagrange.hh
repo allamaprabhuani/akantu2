@@ -55,61 +55,61 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline void initShapeFunctions(const Vector<Real> & nodes,
-				 const types::Matrix<Real> & control_points,
+  inline void initShapeFunctions(const Array<Real> & nodes,
+				 const Matrix<Real> & control_points,
 				 const ElementType & type,
 				 const GhostType & ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template<ElementType type>
-  void precomputeShapesOnControlPoints(const Vector<Real> & nodes,
+  void precomputeShapesOnControlPoints(const Array<Real> & nodes,
 				       GhostType ghost_type);
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
-  void precomputeShapeDerivativesOnControlPoints(const Vector<Real> & nodes,
+  void precomputeShapeDerivativesOnControlPoints(const Array<Real> & nodes,
 						 GhostType ghost_type);
 
   /// interpolate nodal values on the control points
   template <ElementType type>
-  void interpolateOnControlPoints(const Vector<Real> &u,
-				  Vector<Real> &uq,
+  void interpolateOnControlPoints(const Array<Real> &u,
+				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  GhostType ghost_type = _not_ghost,
-				  const Vector<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> * filter_elements = NULL) const;
 
   /// compute the gradient of u on the control points
   template <ElementType type>
-  void gradientOnControlPoints(const Vector<Real> &u,
-			       Vector<Real> &nablauq,
+  void gradientOnControlPoints(const Array<Real> &u,
+			       Array<Real> &nablauq,
 			       UInt nb_degree_of_freedom,
 			       GhostType ghost_type = _not_ghost,
-			       const Vector<UInt> * filter_elements = NULL) const;
+			       const Array<UInt> * filter_elements = NULL) const;
 
   /// multiply a field by shape functions
   template <ElementType type>
-  void fieldTimesShapes(const Vector<Real> & field,
-			Vector<Real> & fiedl_times_shapes,
+  void fieldTimesShapes(const Array<Real> & field,
+			Array<Real> & fiedl_times_shapes,
 			GhostType ghost_type) const;
 
   /// find natural coords from real coords provided an element
   template <ElementType type>
-  void inverseMap(const types::RVector & real_coords,
+  void inverseMap(const Vector<Real> & real_coords,
 		  UInt element,
-		  types::RVector & natural_coords,
+		  Vector<Real> & natural_coords,
 		  const GhostType & ghost_type = _not_ghost) const;
 
   /// return true if the coordinates provided are inside the element, false otherwise
   template <ElementType type>
-  bool contains(const types::RVector & real_coords,
+  bool contains(const Vector<Real> & real_coords,
 		UInt elem,
 		const GhostType & ghost_type) const;
 
   /// compute the shape on a provided point
   template <ElementType type>
-  void computeShapes(const types::RVector & real_coords,
+  void computeShapes(const Vector<Real> & real_coords,
 		     UInt elem,
-		     types::RVector & shapes,
+		     Vector<Real> & shapes,
 		     const GhostType & ghost_type) const;
 
   /// function to print the containt of the class
@@ -118,20 +118,20 @@ public:
 protected:
   /// compute the shape derivatives on control points for a given element
   template <ElementType type>
-  inline void computeShapeDerivativesOnCPointsByElement(const types::Matrix<Real> & node_coords,
-							const types::Matrix<Real> & natural_coords,
-							types::Tensor3<Real> & shapesd);
+  inline void computeShapeDerivativesOnCPointsByElement(const Matrix<Real> & node_coords,
+							const Matrix<Real> & natural_coords,
+							Tensor3<Real> & shapesd);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// get a the shapes vector
-  inline const Vector<Real> & getShapes(const ElementType & el_type,
+  inline const Array<Real> & getShapes(const ElementType & el_type,
 					const GhostType & ghost_type = _not_ghost) const;
 
   /// get a the shapes derivatives vector
-  inline const Vector<Real> & getShapesDerivatives(const ElementType & el_type,
+  inline const Array<Real> & getShapesDerivatives(const ElementType & el_type,
 						   const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
@@ -139,10 +139,10 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// shape functions for all elements
-  ByElementTypeVector<Real, InterpolationType> shapes;
+  ByElementTypeArray<Real, InterpolationType> shapes;
 
   /// shape functions derivatives for all elements
-  ByElementTypeVector<Real, InterpolationType> shapes_derivatives;
+  ByElementTypeArray<Real, InterpolationType> shapes_derivatives;
 };
 
 

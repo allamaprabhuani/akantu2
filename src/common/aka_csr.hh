@@ -5,7 +5,7 @@
  *
  * @date   Wed Apr 20 18:13:43 2011
  *
- * @brief  A compresed sparse row structure based on akantu Vectors
+ * @brief  A compresed sparse row structure based on akantu Arrays
  *
  * @section LICENSE
  *
@@ -102,7 +102,7 @@ public:
     rows.resize(rows_offsets(nb_rows));
   }
 
-  inline void copy(Vector<UInt> & offsets, Vector<T> & values) {
+  inline void copy(Array<UInt> & offsets, Array<T> & values) {
     offsets.copy(rows_offsets);
     values.copy(rows);
   }
@@ -154,8 +154,8 @@ public:
   inline iterator rbegin(UInt row) { return iterator(rows.values + rows_offsets(row+1) - 1); };
   inline iterator rend(UInt row) { return iterator(rows.values + rows_offsets(row) - 1); };
 
-  inline const Vector<UInt> & getRowsOffset() const { return rows_offsets; };
-  inline const Vector<T> & getRows() const { return rows; };
+  inline const Array<UInt> & getRowsOffset() const { return rows_offsets; };
+  inline const Array<T> & getRows() const { return rows; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -164,11 +164,11 @@ protected:
   UInt nb_rows;
 
   /// array of size nb_rows containing the offset where the values are stored in
-  Vector<UInt> rows_offsets;
+  Array<UInt> rows_offsets;
 
   /// compressed row values, values of row[i] are stored between rows_offsets[i]
   /// and rows_offsets[i+1]
-  Vector<T> rows;
+  Array<T> rows;
 };
 
 
@@ -193,9 +193,9 @@ public:
   }
 
 
-  inline const Vector<T> & getData() const { return data; };
+  inline const Array<T> & getData() const { return data; };
 private:
-  Vector<T> data;
+  Array<T> data;
 };
 
 

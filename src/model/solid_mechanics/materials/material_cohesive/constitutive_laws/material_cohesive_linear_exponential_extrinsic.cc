@@ -50,8 +50,8 @@ MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::MaterialCohesiveL
   G_cI      = 0;
   G_cII     = 0;
 
-  initInternalVector(sigma_c_eff, 1, _ek_cohesive);
-  initInternalVector(sigma_actual, 1, _ek_cohesive);
+  initInternalArray(sigma_c_eff, 1, _ek_cohesive);
+  initInternalArray(sigma_actual, 1, _ek_cohesive);
 
   AKANTU_DEBUG_OUT();
 }
@@ -78,11 +78,11 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::initMaterial
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesiveVectors() {
-  MaterialCohesive::resizeCohesiveVectors();
+void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesiveArrays() {
+  MaterialCohesive::resizeCohesiveArrays();
 
-  resizeInternalVector(sigma_c_eff, _ek_cohesive);
-  resizeInternalVector(sigma_actual, _ek_cohesive);
+  resizeInternalArray(sigma_c_eff, _ek_cohesive);
+  resizeInternalArray(sigma_actual, _ek_cohesive);
 
   FEM & fem_cohesive = model->getFEM("CohesiveFEM");
   const Mesh & mesh = fem_cohesive.getMesh();
@@ -91,7 +91,7 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesi
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _not_ghost, _ek_cohesive);
   for(; it != last_type; ++it) {
 
-    const Vector<UInt> & elem_filter = element_filter(*it, _not_ghost);
+    const Array<UInt> & elem_filter = element_filter(*it, _not_ghost);
     UInt nb_element = elem_filter.getSize();
 
     if (nb_element == 0) continue;
@@ -99,8 +99,8 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesi
     UInt nb_quadrature_points = fem_cohesive.getNbQuadraturePoints(*it, _not_ghost);
     UInt nb_element_old = nb_element - sigma_insertion.getSize() / nb_quadrature_points;
 
-    Vector<Real> & sigma_c_eff_vec = sigma_c_eff(*it, _not_ghost);
-    Vector<Real> & sigma_actual_vec = sigma_actual(*it, _not_ghost);
+    Array<Real> & sigma_c_eff_vec = sigma_c_eff(*it, _not_ghost);
+    Array<Real> & sigma_actual_vec = sigma_actual(*it, _not_ghost);
 
     for (UInt el = nb_element_old; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -115,12 +115,12 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::resizeCohesi
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const types::RMatrix & stress, const types::RVector & normal, const types::RVector & tangent) {
+Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffectiveNorm(const Matrix<Real> & stress, const Vector<Real> & normal, const Vector<Real> & tangent) {
   AKANTU_DEBUG_IN();
 
   Real normal_contrib, tangent_contrib;
-  types::RVector normal_stress(spatial_dimension);
-  types::RVector tangential_stress(spatial_dimension);
+  Vector<Real> normal_stress(spatial_dimension);
+  Vector<Real> tangential_stress(spatial_dimension);
 
   normal_stress.mul<false>(stress, normal);
   tangential_stress.mul<false>(stress, tangent);
@@ -143,31 +143,31 @@ Real MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeEffec
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTraction(const Vector<Real> & normal,
+void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTraction(const Array<Real> & normal,
 								 ElementType el_type,
 								 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
-  Vector<Real>::iterator<types::RVector> traction_it =
+  Array<Real>::iterator< Vector<Real> > traction_it =
     tractions(el_type, ghost_type).begin(spatial_dimension);
 
-  Vector<Real>::iterator<types::RVector> opening_it =
+  Array<Real>::iterator< Vector<Real> > opening_it =
     opening(el_type, ghost_type).begin(spatial_dimension);
 
-  Vector<Real>::const_iterator<types::RVector> normal_it =
+  Array<Real>::const_iterator< Vector<Real> > normal_it =
     normal.begin(spatial_dimension);
 
-  Vector<Real>::iterator<types::RVector>traction_end =
+  Array<Real>::iterator< Vector<Real> >traction_end =
     tractions(el_type, ghost_type).end(spatial_dimension);
 
-  Vector<Real>::iterator<Real>sigma_c_it =
+  Array<Real>::iterator<Real>sigma_c_it =
     sigma_c_eff(el_type, ghost_type).begin();
 
-  Vector<Real>::iterator<Real>delta_max_it =
+  Array<Real>::iterator<Real>delta_max_it =
     delta_max(el_type, ghost_type).begin();
 
-  Vector<Real>::iterator<Real>sigma_actual_it =
+  Array<Real>::iterator<Real>sigma_actual_it =
     sigma_actual(el_type, ghost_type).begin();
 
   /// compute scalars
@@ -183,11 +183,11 @@ void MaterialCohesiveLinearExponentialExtrinsic<spatial_dimension>::computeTract
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
-    types::Vector<Real> normal_opening(spatial_dimension);
+    Vector<Real> normal_opening(spatial_dimension);
     normal_opening  = (*normal_it);
     normal_opening *= normal_opening_norm;
 
-    types::Vector<Real> tangential_opening(spatial_dimension);
+    Vector<Real> tangential_opening(spatial_dimension);
     tangential_opening  = *opening_it;
     tangential_opening -=  normal_opening;
 

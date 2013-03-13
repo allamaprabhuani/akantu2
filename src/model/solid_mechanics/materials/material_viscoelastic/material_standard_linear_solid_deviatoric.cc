@@ -49,8 +49,8 @@ MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinear
 
   UInt stress_size = spatial_dimension * spatial_dimension;
 
-  this->initInternalVector(this->stress_dev, stress_size);
-  this->initInternalVector(this->history_integral, stress_size);
+  this->initInternalArray(this->stress_dev, stress_size);
+  this->initInternalArray(this->history_integral, stress_size);
 
   AKANTU_DEBUG_OUT();
 }
@@ -64,8 +64,8 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::initMaterial() {
 
   MaterialElastic<spatial_dimension>::initMaterial();
 
-  this->resizeInternalVector(this->stress_dev);
-  this->resizeInternalVector(this->history_integral);
+  this->resizeInternalArray(this->stress_dev);
+  this->resizeInternalArray(this->history_integral);
 
   AKANTU_DEBUG_OUT();
 }
@@ -82,17 +82,17 @@ template<UInt spatial_dimension>
 void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::setToSteadyState(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
-  Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
+  Array<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
+  Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Vector<Real>::iterator<types::RMatrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::RMatrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::iterator< Matrix<Real> > stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::iterator< Matrix<Real> > history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  types::RMatrix & dev_s = *stress_d;
-  types::RMatrix & h = *history_int;
+  Matrix<Real> & dev_s = *stress_d;
+  Matrix<Real> & h = *history_int;
 
   /// Compute the first invariant of strain
   Real Theta = grad_u.trace();
@@ -121,13 +121,13 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   // if(std::abs(Ev) > std::numeric_limits<Real>::epsilon())
   tau = eta / Ev;
 
-  Vector<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
-  Vector<Real> & history_int_vect = history_integral(el_type, ghost_type);
+  Array<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
+  Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Vector<Real>::iterator<types::RMatrix> stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Vector<Real>::iterator<types::RMatrix> history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::iterator< Matrix<Real> > stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::iterator< Matrix<Real> > history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
-  types::RMatrix s(spatial_dimension, spatial_dimension);
+  Matrix<Real> s(spatial_dimension, spatial_dimension);
 
   Real dt = this->model->getTimeStep();
   Real exp_dt_tau = exp( -dt/tau );
@@ -136,8 +136,8 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  types::RMatrix & dev_s = *stress_d;
-  types::RMatrix & h = *history_int;
+  Matrix<Real> & dev_s = *stress_d;
+  Matrix<Real> & h = *history_int;
 
   s.clear();
   sigma.clear();
@@ -148,7 +148,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Real gamma_inf = E_inf / this->E;
   Real gamma_v   = Ev    / this->E;
 
-  types::RMatrix U_rond_prim(spatial_dimension, spatial_dimension);
+  Matrix<Real> U_rond_prim(spatial_dimension, spatial_dimension);
   U_rond_prim.eye(gamma_inf * this->kpa * Theta);
 
   for (UInt i = 0; i < spatial_dimension; ++i)

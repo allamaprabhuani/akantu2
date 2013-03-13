@@ -106,7 +106,7 @@ private:
 //   }
 
 //   //allocate and initialize list of reversed elements
-//   mesh.initByElementTypeUIntVector(mesh.reversed_elements_pbc,1,0,mesh.id,"reversed");
+//   mesh.initByElementTypeUIntArray(mesh.reversed_elements_pbc,1,0,mesh.id,"reversed");
 //   // now loop over the elements to change the connectivity of some elements
 //   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
 //   Mesh::ConnectivityTypeList::const_iterator it;
@@ -116,7 +116,7 @@ private:
 //     UInt nb_nodes_per_elem = mesh.getNbNodesPerElement(type);
 //     UInt * conn = mesh.getConnectivityPointer(type)->values;
 //     UInt index = 0;
-//     Vector<UInt> & list = *(mesh.reversed_elements_pbc[type]);
+//     Array<UInt> & list = *(mesh.reversed_elements_pbc[type]);
 //     for (UInt el = 0; el < nb_elem; el++) {
 //       UInt flag_should_register_elem = false;
 //       for (UInt k = 0; k < nb_nodes_per_elem; ++k,++index){
@@ -193,8 +193,8 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 
   // get access to surface information
   UInt nb_surface_element = mymesh.getNbElement(type);
-  const Vector<UInt> & surface_id = mymesh.getSurfaceID(type);
-  const Vector<UInt> & connect = mymesh.getConnectivity(type);
+  const Array<UInt> & surface_id = mymesh.getSurfaceID(type);
+  const Array<UInt> & connect = mymesh.getConnectivity(type);
   UInt nodes_per_surface_element = mymesh.getNbNodesPerElement(type);
 
   // find nodes on surfaces
@@ -221,7 +221,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   selected_second.resize(it_s - selected_second.begin());
 
   // coordinates
-  const Vector<Real> & coords = mymesh.getNodes();
+  const Array<Real> & coords = mymesh.getNodes();
   const UInt dim = mymesh.getSpatialDimension();
 
   // variables to find min and max of surfaces

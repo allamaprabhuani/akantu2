@@ -80,7 +80,7 @@ public:
   void initFull(std::string material = "");
 
   /// initialize the internal vectors
-  void initVectors();
+  void initArrays();
 
   /// initialize the model
   void initModel();
@@ -113,7 +113,7 @@ protected:
 
   /// compute Rotation Matrices
   template<const ElementType type>
-  void computeRotationMatrix(Vector<Real> & rotations) {};
+  void computeRotationMatrix(Array<Real> & rotations) {};
 
   /* ------------------------------------------------------------------------ */
 
@@ -128,19 +128,19 @@ private:
   void computeStressOnQuad();
 
   template <ElementType type>
-  void computeTangentModuli(Vector<Real> & tangent_moduli);
+  void computeTangentModuli(Array<Real> & tangent_moduli);
 
   template <ElementType type>
-  void transferBMatrixToSymVoigtBMatrix(Vector<Real> & B, bool local = false);
+  void transferBMatrixToSymVoigtBMatrix(Array<Real> & B, bool local = false);
 
   template <ElementType type>
-  void transferNMatrixToSymVoigtNMatrix(Vector<Real> & N_matrix);
+  void transferNMatrixToSymVoigtNMatrix(Array<Real> & N_matrix);
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpField(const std::string & field_id);
-  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldArray(const std::string & field_id);
   virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
@@ -151,15 +151,15 @@ public:
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
   /// get the StructuralMechanicsModel::displacement vector
-  AKANTU_GET_MACRO(Displacement, *displacement_rotation, Vector<Real> &);
+  AKANTU_GET_MACRO(Displacement, *displacement_rotation, Array<Real> &);
 
   /// get the StructuralMechanicsModel::force vector (boundary forces)
-  AKANTU_GET_MACRO(Force,        *force_momentum,        Vector<Real> &);
+  AKANTU_GET_MACRO(Force,        *force_momentum,        Array<Real> &);
 
  /// get the StructuralMechanicsModel::residual vector, computed by StructuralMechanicsModel::updateResidual
-  AKANTU_GET_MACRO(Residual,     *residual,        const Vector<Real> &);
+  AKANTU_GET_MACRO(Residual,     *residual,        const Array<Real> &);
   /// get the StructuralMechanicsModel::boundary vector
-  AKANTU_GET_MACRO(Boundary,     *boundary,              Vector<bool> &);
+  AKANTU_GET_MACRO(Boundary,     *boundary,              Array<bool> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
 
@@ -179,11 +179,11 @@ public:
 public:
   /// Compute Linear load function set in global axis
   template <ElementType type>
-  void computeForcesByGlobalTractionVector(const Vector<Real> & tractions);
+  void computeForcesByGlobalTractionArray(const Array<Real> & tractions);
 
   /// Compute Linear load function set in local axis
   template <ElementType type>
-  void computeForcesByLocalTractionVector(const Vector<Real> & tractions);
+  void computeForcesByLocalTractionArray(const Array<Real> & tractions);
 
   /// compute force vector from a function(x,y,momentum) that describe stresses
   template <ElementType type>
@@ -196,23 +196,23 @@ public:
 private:
 
   /// displacements array
-  Vector<Real> * displacement_rotation;
+  Array<Real> * displacement_rotation;
 
   /// forces array
-  Vector<Real> * force_momentum;
+  Array<Real> * force_momentum;
 
   /// stress arraz
 
   ByElementTypeReal stress;
 
   /// residuals array
-  Vector<Real> * residual;
+  Array<Real> * residual;
 
   /// boundaries array
-  Vector<bool> * boundary;
+  Array<bool> * boundary;
 
   /// position of a dof in the K matrix
-  Vector<Int> * equation_number;
+  Array<Int> * equation_number;
 
   ByElementTypeUInt element_material;
 
@@ -229,7 +229,7 @@ private:
   SparseMatrix * jacobian_matrix;
 
   /// increment of displacement
-  Vector<Real> * increment;
+  Array<Real> * increment;
 
   /// solver for implicit
   Solver * solver;

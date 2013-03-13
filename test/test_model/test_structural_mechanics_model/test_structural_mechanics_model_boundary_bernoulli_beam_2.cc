@@ -61,11 +61,11 @@ int main(int argc, char *argv[]){
   UInt nb_nodes_h=2;
   UInt nb_nodes_v= nb_nodes-nb_nodes_h;
 
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(beams.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(beams.getNodes());
   nodes.resize(nb_nodes);
 
   beams.addConnectivityType(_bernoulli_beam_2);
-  Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
+  Array<UInt> & connectivity = const_cast<Array<UInt> &>(beams.getConnectivity(_bernoulli_beam_2));
   connectivity.resize(nb_element);
 
   for(UInt i=0; i<nb_nodes_h; ++i) {
@@ -90,9 +90,9 @@ int main(int argc, char *argv[]){
   akantu::StructuralMechanicsModel model(beams);
 
   model.initModel();
-  model.initVectors();
+  model.initArrays();
 
-  Vector<Real> & forces = model.getForce();
+  Array<Real> & forces = model.getForce();
 
   forces.clear();
 

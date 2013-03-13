@@ -50,7 +50,7 @@ template<class T, template<class> class R>
 class DumperIOHelper::StressPaddingHelper : public MaterialPaddingHelper<T, R> {
 public:
   StressPaddingHelper(const SolidMechanicsModel & model) : MaterialPaddingHelper<T, R>(model) {
-    AKANTU_DEBUG_ERROR("This class exists only to pad stress (types::Matrix<Real>) to 3D");
+    AKANTU_DEBUG_ERROR("This class exists only to pad stress (Matrix<Real>) to 3D");
   }
 
   inline R<T> pad(const R<T> & in, UInt padding_m, UInt padding_n, UInt nb_data, UInt material_id) {}
@@ -61,21 +61,21 @@ protected:
 
 template<>
 class DumperIOHelper::StressPaddingHelper<Real,
-					  types::Matrix> : public MaterialPaddingHelper<Real,
-											types::Matrix> {
+					  Matrix> : public MaterialPaddingHelper<Real,
+											Matrix> {
 public:
   StressPaddingHelper(const SolidMechanicsModel & model) :
-  MaterialPaddingHelper<Real, types::Matrix>(model) { }
+  MaterialPaddingHelper<Real, Matrix>(model) { }
 
-  inline types::Matrix<Real> pad(const types::Matrix<Real> & in,
+  inline Matrix<Real> pad(const Matrix<Real> & in,
 				 UInt padding_m, UInt padding_n, UInt nb_data,
 				 UInt material_id) {
     if(padding_m <= in.rows() && padding_n * nb_data <= in.cols())
       return in;
     else {
       AKANTU_DEBUG_ASSERT(padding_m == 3 && padding_n == 3, "This function can only pad to 3D");
-      types::Matrix<Real> stress =
-	MaterialPaddingHelper<Real, types::Matrix>::pad(in, 3, 3, nb_data, material_id);
+      Matrix<Real> stress =
+	MaterialPaddingHelper<Real, Matrix>::pad(in, 3, 3, nb_data, material_id);
       if(in.rows() == 2 && in.cols() == 2 * nb_data) {
 	const Material & material = model.getMaterial(material_id);
 	bool plane_strain = !material.getParam<bool>("Plane_Stress");
@@ -96,7 +96,7 @@ template<class T, template<class> class R>
 class DumperIOHelper::StrainPaddingHelper : public MaterialPaddingHelper<T, R> {
 public:
   StrainPaddingHelper(const SolidMechanicsModel & model) : MaterialPaddingHelper<T, R>(model) {
-    AKANTU_DEBUG_ERROR("This class exists only to pad strain (types::Matrix<Real>) to 3D");
+    AKANTU_DEBUG_ERROR("This class exists only to pad strain (Matrix<Real>) to 3D");
   }
 
   inline R<T> pad(const R<T> & in, UInt padding_m, UInt padding_n, UInt nb_data, UInt material_id) {}
@@ -104,20 +104,20 @@ public:
 
 
 template<>
-class DumperIOHelper::StrainPaddingHelper<Real, types::Matrix> : public MaterialPaddingHelper<Real, types::Matrix> {
+class DumperIOHelper::StrainPaddingHelper<Real, Matrix> : public MaterialPaddingHelper<Real, Matrix> {
 public:
   StrainPaddingHelper(const SolidMechanicsModel & model) :
-  MaterialPaddingHelper<Real, types::Matrix>(model) { }
+  MaterialPaddingHelper<Real, Matrix>(model) { }
 
-  inline types::Matrix<Real> pad(const types::Matrix<Real> & in,
+  inline Matrix<Real> pad(const Matrix<Real> & in,
 				 UInt padding_m, UInt padding_n, UInt nb_data,
 				 UInt material_id) {
     if(padding_m <= in.rows() && padding_n * nb_data <= in.cols())
       return in;
     else {
       AKANTU_DEBUG_ASSERT(padding_m == 3 && padding_n == 3, "This function can only pad to 3D");
-      types::Matrix<Real> strain =
-	MaterialPaddingHelper<Real, types::Matrix>::pad(in, 3, 3, nb_data, material_id);
+      Matrix<Real> strain =
+	MaterialPaddingHelper<Real, Matrix>::pad(in, 3, 3, nb_data, material_id);
       if(in.rows() == 2 && in.cols() == 2 * nb_data) {
 	const Material & material = model.getMaterial(material_id);
 	bool plane_stress = material.getParam<bool>("Plane_Stress");
@@ -150,7 +150,7 @@ public:
   typedef typename parent::return_type return_type;
   typedef typename parent::field_type  field_type;
   typedef typename parent::internal_iterator internal_iterator;
-  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
+  typedef typename Array<T>::template const_iterator< ret_type<T> > internal_material_iterator;
 public:
   generic_internal_material_field_iterator(const field_type & element_material,
 					   UInt n,
@@ -178,8 +178,8 @@ public:
     const ret_type<UInt> & material_id = *this->vit;
     UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
     try {
-      const Vector<T> & vect =
-	model->getMaterial(material_id[1]).getVector(field_id,
+      const Array<T> & vect =
+	model->getMaterial(material_id[1]).getArray(field_id,
 						     *this->tit,
 						     this->ghost_type);
       if(vect.getSize() == 0 || vect.getSize() < material_id[0]) // vector exists but has a wrong size
@@ -230,7 +230,7 @@ public:
   typedef typename parent::return_type return_type;
   typedef typename parent::field_type  field_type;
   typedef typename parent::internal_iterator internal_iterator;
-  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
+  typedef typename Array<T>::template const_iterator< ret_type<T> > internal_material_iterator;
 public:
   internal_material_field_iterator(const field_type & element_material,
 				   UInt n,
@@ -256,7 +256,7 @@ public:
   typedef typename parent::return_type return_type;
   typedef typename parent::field_type  field_type;
   typedef typename parent::internal_iterator internal_iterator;
-  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
+  typedef typename Array<T>::template const_iterator< ret_type<T> > internal_material_iterator;
 public:
   material_stress_field_iterator(const field_type & element_material,
 				 UInt n,
@@ -282,7 +282,7 @@ public:
   typedef typename parent::return_type return_type;
   typedef typename parent::field_type  field_type;
   typedef typename parent::internal_iterator internal_iterator;
-  typedef typename Vector<T>::template const_iterator< ret_type<T> > internal_material_iterator;
+  typedef typename Array<T>::template const_iterator< ret_type<T> > internal_material_iterator;
 public:
   material_strain_field_iterator(const field_type & element_material,
 				 UInt n,
@@ -346,9 +346,9 @@ public:
 
 protected:
   void init() {
-    typename ByElementTypeVector<UInt>::type_iterator tit =
+    typename ByElementTypeArray<UInt>::type_iterator tit =
       this->field.firstType(this->spatial_dimension, this->ghost_type, this->element_kind);
-    typename ByElementTypeVector<UInt>::type_iterator end =
+    typename ByElementTypeArray<UInt>::type_iterator end =
       this->field.lastType (this->spatial_dimension, this->ghost_type, this->element_kind);
 
     UInt nb_materials = model.getNbMaterials();
@@ -358,7 +358,7 @@ protected:
       for (UInt ma = 0; ma < nb_materials; ++ma) {
 	const Material & mat = model.getMaterial(ma);
 	try {
-	  const Vector<Real> & vect __attribute__((unused)) = mat.getVector(field_id, *tit, this->ghost_type);
+	  const Array<Real> & vect __attribute__((unused)) = mat.getArray(field_id, *tit, this->ghost_type);
 	  found = true;
 	} catch (...) { };
       }

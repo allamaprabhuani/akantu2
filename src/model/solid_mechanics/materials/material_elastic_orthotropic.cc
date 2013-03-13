@@ -71,7 +71,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::initMaterial() {
   Material::initMaterial();
 
   UInt size = this->getTangentStiffnessVoigtSize(spatial_dimension);
-  S = new types::RMatrix(size, size);
+  S = new Matrix<Real>(size, size);
 
   updateInternalParameters();
 
@@ -135,7 +135,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::computeStress(ElementType el
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElasticOrthotropic<spatial_dimension>::computeTangentModuli(const ElementType & el_type,
-									 Vector<Real> & tangent_matrix,
+									 Array<Real> & tangent_matrix,
 									 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

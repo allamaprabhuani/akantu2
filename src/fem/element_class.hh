@@ -71,7 +71,7 @@ struct GeometricalShape {
 
 template<GeometricalShapeType shape>
 struct GeometricalShapeContains {
-  static inline bool contains(const types::Vector<Real> & coord);
+  static inline bool contains(const Vector<Real> & coord);
 };
 
 #define AKANTU_DEFINE_SHAPE(geom_type, geom_shape)			\
@@ -97,17 +97,17 @@ template< GeometricalType geometrical_type,
 class GeometricalElement {
 public:
   /// compute the in-radius
-  static inline Real getInradius(__attribute__((unused)) const types::Matrix<Real> & coord) {
+  static inline Real getInradius(__attribute__((unused)) const Matrix<Real> & coord) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// true if the natural coordinates are in the element
-  static inline bool contains(const types::Vector<Real> & coord);
+  static inline bool contains(const Vector<Real> & coord);
 public:
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension,   spatial_dimension,    UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement,  nb_nodes_per_element, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbFacetsPerElement, nb_facets,            UInt);
-  static inline const types::Matrix<UInt> getFacetLocalConnectivityPerElement();
+  static inline const Matrix<UInt> getFacetLocalConnectivityPerElement();
 protected:
   /// Number of nodes per element
   static UInt nb_nodes_per_element;
@@ -141,12 +141,12 @@ template<InterpolationType interpolation_type,
 class InterpolationElement {
 public:
   /// compute the shape values for a given set of points in natural coordinates
-  static inline void computeShapes(const types::Matrix<Real> & natural_coord,
-				   types::Matrix<Real> & N);
+  static inline void computeShapes(const Matrix<Real> & natural_coord,
+				   Matrix<Real> & N);
 
   /// compute the shape values for a given point in natural coordinates
-  static inline void computeShapes(__attribute__((unused)) const types::Vector<Real> & natural_coord,
-				   __attribute__((unused)) types::Vector<Real> & N) {
+  static inline void computeShapes(__attribute__((unused)) const Vector<Real> & natural_coord,
+				   __attribute__((unused)) Vector<Real> & N) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -155,35 +155,35 @@ public:
    * shape functions along with variation of natural coordinates on a given set
    * of points in natural coordinates
    */
-  static inline void computeDNDS(const types::Matrix<Real> & natural_coord,
-				 types::Tensor3<Real> & dnds);
+  static inline void computeDNDS(const Matrix<Real> & natural_coord,
+				 Tensor3<Real> & dnds);
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the variation of shape functions along with
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  static inline void computeDNDS(__attribute__((unused)) const types::Vector<Real> & natural_coord,
-				 __attribute__((unused)) types::Matrix<Real> & dnds) {
+  static inline void computeDNDS(__attribute__((unused)) const Vector<Real> & natural_coord,
+				 __attribute__((unused)) Matrix<Real> & dnds) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
-  static inline void computeSpecialJacobian(__attribute__((unused)) const types::Matrix<Real> & J,
+  static inline void computeSpecialJacobian(__attribute__((unused)) const Matrix<Real> & J,
 					    __attribute__((unused)) Real & jacobians) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// interpolate a field given (arbitrary) natural coordinates
-  static inline void interpolateOnNaturalCoordinates(const types::Vector<Real> & natural_coords,
-						     const types::Matrix<Real> & nodal_values,
-						     types::Vector<Real> & interpolated);
+  static inline void interpolateOnNaturalCoordinates(const Vector<Real> & natural_coords,
+						     const Matrix<Real> & nodal_values,
+						     Vector<Real> & interpolated);
 
 
   /// compute the gradient of a given field on the given natural coordinates
-  static inline void gradientOnNaturalCoordinates(const types::Vector<Real> & natural_coords,
-						  const types::Matrix<Real> & f,
-						  types::Matrix<Real> & gradient);
+  static inline void gradientOnNaturalCoordinates(const Vector<Real> & natural_coords,
+						  const Matrix<Real> & f,
+						  Matrix<Real> & gradient);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(ShapeSize, nb_nodes_per_element, UInt);
@@ -204,8 +204,8 @@ template<ElementType element_type>
 class GaussIntegrationElement {
 public:
   static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
-  static const types::Matrix<Real> getQuadraturePoints();
-  static const types::Vector<Real> getWeights();
+  static const Matrix<Real> getQuadraturePoints();
+  static const Vector<Real> getWeights();
 private:
   /// quadrature points in natural coordinates
   static Real quad[];
@@ -233,51 +233,51 @@ public:
    * coordinates along with variation of natural coordinates on a given point in
    * natural coordinates
    */
-  static inline void computeJMat(const types::Matrix<Real> & dnds,
-				 const types::Matrix<Real> & node_coords,
-				 types::Matrix<Real> & J);
+  static inline void computeJMat(const Matrix<Real> & dnds,
+				 const Matrix<Real> & node_coords,
+				 Matrix<Real> & J);
 
   /**
    * compute the Jacobian matrix by computing the variation of real coordinates
    * along with variation of natural coordinates on a given set of points in
    * natural coordinates
    */
-  static inline void computeJMat(const types::Tensor3<Real> & dnds,
-				 const types::Matrix<Real> & node_coords,
-				 types::Tensor3<Real> & J);
+  static inline void computeJMat(const Tensor3<Real> & dnds,
+				 const Matrix<Real> & node_coords,
+				 Tensor3<Real> & J);
 
   /// compute the jacobians of a serie of natural coordinates
-  static inline void computeJacobian(const types::Matrix<Real> & natural_coords,
-				     const types::Matrix<Real> & node_coords,
-				     types::Vector<Real> & jacobians);
+  static inline void computeJacobian(const Matrix<Real> & natural_coords,
+				     const Matrix<Real> & node_coords,
+				     Vector<Real> & jacobians);
 
   /// compute jacobian (or integration variable change factor) for a set of points
-  static inline void computeJacobian(const types::Tensor3<Real> & J,
-				     types::Vector<Real> & jacobians);
+  static inline void computeJacobian(const Tensor3<Real> & J,
+				     Vector<Real> & jacobians);
 
   /// compute jacobian (or integration variable change factor) for a given point
-  static inline void computeJacobian(const types::Matrix<Real> & J,
+  static inline void computeJacobian(const Matrix<Real> & J,
 				     Real & jacobians);
 
   /// compute shape derivatives (input is dxds) for a set of points
-  static inline void computeShapeDerivatives(const types::Tensor3<Real> & J,
-					     const types::Tensor3<Real> & dnds,
-					     types::Tensor3<Real> & shape_deriv);
+  static inline void computeShapeDerivatives(const Tensor3<Real> & J,
+					     const Tensor3<Real> & dnds,
+					     Tensor3<Real> & shape_deriv);
 
   /// compute shape derivatives (input is dxds) for a given point
-  static inline void computeShapeDerivatives(const types::Matrix<Real> & J,
-					     const types::Matrix<Real> & dnds,
-					     types::Matrix<Real> & shape_deriv);
+  static inline void computeShapeDerivatives(const Matrix<Real> & J,
+					     const Matrix<Real> & dnds,
+					     Matrix<Real> & shape_deriv);
 
   /// compute the normal of a surface defined by the function f
-  static inline void computeNormalsOnNaturalCoordinates(const types::Matrix<Real> & coord,
-							types::Matrix<Real> & f,
-							types::Matrix<Real> & normals);
+  static inline void computeNormalsOnNaturalCoordinates(const Matrix<Real> & coord,
+							Matrix<Real> & f,
+							Matrix<Real> & normals);
 
   /// get natural coordinates from real coordinates
-  static inline void inverseMap(const types::Vector<Real> & real_coords,
-				const types::Matrix<Real> & node_coords,
-				types::Vector<Real> & natural_coords,
+  static inline void inverseMap(const Vector<Real> & real_coords,
+				const Matrix<Real> & node_coords,
+				Vector<Real> & natural_coords,
 				Real tolerance = 1e-8);
 public:
   static AKANTU_GET_MACRO_NOT_CONST(Kind, element_kind, ElementKind);

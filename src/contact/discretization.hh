@@ -293,7 +293,7 @@ UInt Contact_MPC<friction>::getNbStickNodes() const {
 
 template <Friction_type friction>
 void Contact_MPC<friction>::frictionPred() {
-  const Vector<Real> & residual = model.getResidual();
+  const Array<Real> & residual = model.getResidual();
   
   for (typename Contact_MPC::pairing_iterator it = node_pairs.begin(); 
        it != node_pairs.end(); ++it) {
@@ -318,9 +318,9 @@ void Contact_MPC<friction>::frictionPred() {
 
 template <Friction_type friction>
 void Contact_MPC<friction>::syncAcceleration() {
-  Vector<Real> & acceleration = model.getIncrementAcceleration();
-  const Vector<Real> & mass = model.getMass();
-  const Vector<Real> & residual = model.getResidual();
+  Array<Real> & acceleration = model.getIncrementAcceleration();
+  const Array<Real> & mass = model.getMass();
+  const Array<Real> & residual = model.getResidual();
   
   for (typename Contact_MPC::pairing_const_iterator it = node_pairs.begin(); 
        it != node_pairs.end(); ++it) {

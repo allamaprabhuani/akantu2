@@ -87,9 +87,9 @@ int main(int argc, char *argv[])
     std::cout << model.getMaterial(0) << std::endl;
 
   /// boundary conditions
-  const  akantu::Vector<akantu::Real> & position = mesh.getNodes();
-  akantu::Vector<bool> & boundary = model.getBoundary();
-  akantu::Vector<akantu::Real> & displacment = model.getDisplacement();
+  const  akantu::Array<akantu::Real> & position = mesh.getNodes();
+  akantu::Array<bool> & boundary = model.getBoundary();
+  akantu::Array<akantu::Real> & displacment = model.getDisplacement();
 
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   for (akantu::UInt n = 0; n < nb_nodes; ++n) {

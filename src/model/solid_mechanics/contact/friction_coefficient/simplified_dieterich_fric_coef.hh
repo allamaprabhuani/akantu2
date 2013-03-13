@@ -100,10 +100,10 @@ protected:
   Real theta_normalizer;
 
   /// relative sliding velocities for each active impactor node
-  Vector<Real> * relative_sliding_velocities;
+  Array<Real> * relative_sliding_velocities;
 
   /// state for each active impactor node
-  Vector<Real> * theta_state_variables;
+  Array<Real> * theta_state_variables;
 };
 
 

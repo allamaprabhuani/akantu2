@@ -58,12 +58,12 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (T & to_unpack) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * types::Vector
+ * Vector
  */
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Vector<T> & to_pack) {
+inline CommunicationBuffer & CommunicationBuffer::operator<< (const Vector<T> & to_pack) {
   UInt size = to_pack.size() * sizeof(T);
   AKANTU_DEBUG_ASSERT(buffer.storage() + buffer.getSize() >= ptr_pack + size,
 		      "Packing too much data in the CommunicationBuffer");
@@ -74,7 +74,7 @@ inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Vecto
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Vector<T> & to_unpack) {
+inline CommunicationBuffer & CommunicationBuffer::operator>> (Vector<T> & to_unpack) {
   UInt size = to_unpack.size() * sizeof(T);
   memcpy(to_unpack.storage(), ptr_unpack, size);
   ptr_unpack += size;
@@ -82,12 +82,12 @@ inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Vector<T> &
 }
 
 /**
- * types::Matrix
+ * Matrix
  */
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Matrix<T> & to_pack) {
+inline CommunicationBuffer & CommunicationBuffer::operator<< (const Matrix<T> & to_pack) {
   UInt size = to_pack.size() * sizeof(Real);
   AKANTU_DEBUG_ASSERT(buffer.storage() + buffer.getSize() >= ptr_pack + size,
 		      "Packing too much data in the CommunicationBuffer");
@@ -98,7 +98,7 @@ inline CommunicationBuffer & CommunicationBuffer::operator<< (const types::Matri
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline CommunicationBuffer & CommunicationBuffer::operator>> (types::Matrix<T> & to_unpack) {
+inline CommunicationBuffer & CommunicationBuffer::operator>> (Matrix<T> & to_unpack) {
   UInt size = to_unpack.size() * sizeof(Real);
   memcpy(to_unpack.storage(), ptr_unpack, size);
   ptr_unpack += size;

@@ -88,31 +88,31 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   inline void integrationSchemePred(Real delta_t,
-				    Vector<Real> & u,
-				    Vector<Real> & u_dot,
-				    Vector<Real> & u_dot_dot,
-				    Vector<bool> & boundary) const;
+				    Array<Real> & u,
+				    Array<Real> & u_dot,
+				    Array<Real> & u_dot_dot,
+				    Array<bool> & boundary) const;
 
   inline void integrationSchemeCorrAccel(Real delta_t,
-					 Vector<Real> & u,
-					 Vector<Real> & u_dot,
-					 Vector<Real> & u_dot_dot,
-					 Vector<bool> & boundary,
-					 Vector<Real> & delta) const;
+					 Array<Real> & u,
+					 Array<Real> & u_dot,
+					 Array<Real> & u_dot_dot,
+					 Array<bool> & boundary,
+					 Array<Real> & delta) const;
 
   inline void integrationSchemeCorrVeloc(Real delta_t,
-					 Vector<Real> & u,
-					 Vector<Real> & u_dot,
-					 Vector<Real> & u_dot_dot,
-					 Vector<bool> & boundary,
-					 Vector<Real> & delta) const;
+					 Array<Real> & u,
+					 Array<Real> & u_dot,
+					 Array<Real> & u_dot_dot,
+					 Array<bool> & boundary,
+					 Array<Real> & delta) const;
 
   inline void integrationSchemeCorrDispl(Real delta_t,
-					 Vector<Real> & u,
-					 Vector<Real> & u_dot,
-					 Vector<Real> & u_dot_dot,
-					 Vector<bool> & boundary,
-					 Vector<Real> & delta) const;
+					 Array<Real> & u,
+					 Array<Real> & u_dot,
+					 Array<Real> & u_dot_dot,
+					 Array<bool> & boundary,
+					 Array<Real> & delta) const;
 
 public:
   template<IntegrationSchemeCorrectorType type>
@@ -127,11 +127,11 @@ public:
 private:
   template<IntegrationSchemeCorrectorType type>
   void integrationSchemeCorr(Real delta_t,
-			     Vector<Real> & u,
-			     Vector<Real> & u_dot,
-			     Vector<Real> & u_dot_dot,
-			     Vector<bool> & boundary,
-			     Vector<Real> & delta) const;
+			     Array<Real> & u,
+			     Array<Real> & u_dot,
+			     Array<Real> & u_dot_dot,
+			     Array<bool> & boundary,
+			     Array<Real> & delta) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

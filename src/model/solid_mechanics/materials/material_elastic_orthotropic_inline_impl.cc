@@ -34,8 +34,8 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialElasticOrthotropic<spatial_dimension>::computeStressOnQuad(types::RMatrix & grad_u,
-								   types::RMatrix & sigma) {
+MaterialElasticOrthotropic<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
+								   Matrix<Real> & sigma) {
 
   sigma.clear();
   /// \mathbf{\sigma} = \mathbf{S} \mathbf{F}

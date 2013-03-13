@@ -65,7 +65,7 @@ public:
   inline void precomputeJacobiansOnQuadraturePoints(__attribute__ ((unused))
 						    GhostType ghost_type){}
 
-  void integrateOnElement(__attribute__ ((unused)) const Vector<Real> & f,
+  void integrateOnElement(__attribute__ ((unused)) const Array<Real> & f,
 			  __attribute__ ((unused)) Real * intf,
 			  __attribute__ ((unused)) UInt nb_degree_of_freedom,
 			  __attribute__ ((unused)) const Element & elem,
@@ -86,12 +86,12 @@ public:
 public:
 
   /// access to the jacobians
-  Vector<Real> & getJacobians(const ElementType & type,
+  Array<Real> & getJacobians(const ElementType & type,
 			      const GhostType & ghost_type = _not_ghost) {
     return jacobians(type, ghost_type);
   };
 
-  const Vector<Real> & getJacobians(const ElementType & type,
+  const Array<Real> & getJacobians(const ElementType & type,
 			      const GhostType & ghost_type = _not_ghost) const {
     return jacobians(type, ghost_type);
   };
@@ -108,7 +108,7 @@ protected:
   ID id;
 
   /// jacobians for all elements
-  ByElementTypeVector<Real> jacobians;
+  ByElementTypeArray<Real> jacobians;
 };
 
 

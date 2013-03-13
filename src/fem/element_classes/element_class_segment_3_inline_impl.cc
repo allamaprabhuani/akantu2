@@ -67,8 +67,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_3, _gt_segment_3, _itp_lagrange_se
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const types::Vector<Real> & natural_coords,
-							     types::Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const Vector<Real> & natural_coords,
+							     Vector<Real> & N) {
   Real c = natural_coords(0);
   N(0) = (c - 1) * c / 2;
   N(1) = (c + 1) * c / 2;
@@ -77,8 +77,8 @@ InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const types::Vector
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(const types::Vector<Real> & natural_coords,
-							   types::Matrix<Real> & dnds){
+InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(const Vector<Real> & natural_coords,
+							   Matrix<Real> & dnds){
 
   Real c = natural_coords(0);
   dnds(0, 0)  = c - .5;
@@ -89,14 +89,14 @@ InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(const types::Vector<R
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(const types::Matrix<Real> & dxds,
+InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(const Matrix<Real> & dxds,
 								      Real & jac) {
   jac = Math::norm2(dxds.storage());
 }
 
 /* -------------------------------------------------------------------------- */
 template<> inline Real
-GeometricalElement<_gt_segment_3>::getInradius(const types::Matrix<Real> & coord) {
+GeometricalElement<_gt_segment_3>::getInradius(const Matrix<Real> & coord) {
   Real dist1 = std::abs(coord(0, 0) - coord(0, 1));
   Real dist2 = std::abs(coord(0, 1) - coord(0, 2));
   return std::min(dist1, dist2);

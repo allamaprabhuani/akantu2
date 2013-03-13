@@ -42,9 +42,9 @@ using namespace akantu;
 
 class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
 public:
-  inline void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
-		     types::RMatrix & stress,
-		     __attribute__ ((unused)) const types::Vector<Real> & normal,
+  inline void stress(__attribute__ ((unused)) const Vector<Real> & position,
+		     Matrix<Real> & stress,
+		     __attribute__ ((unused)) const Vector<Real> & normal,
 		     __attribute__ ((unused)) Surface surface_id) {
     stress.eye(1000);
   }
@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
   model.computeForcesFromFunction(func, akantu::_bft_stress);
 
   model.setBaseName("circle2");
-  model.addDumpFieldVector("displacement");
-  model.addDumpFieldVector("force"       );
-  model.addDumpFieldVector("residual"    );
+  model.addDumpFieldArray("displacement");
+  model.addDumpFieldArray("force"       );
+  model.addDumpFieldArray("residual"    );
   model.addDumpField("mass"        );
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");

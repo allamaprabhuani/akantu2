@@ -177,11 +177,11 @@ inline bool Model::getIsPBCSlaveNode(const UInt node) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Model::getNbQuadraturePoints(const Vector<Element> & elements,
+inline UInt Model::getNbQuadraturePoints(const Array<Element> & elements,
 					 const ID & fem_id) const {
   UInt nb_quad = 0;
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
+  Array<Element>::const_iterator<Element> it  = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     nb_quad += getFEM(fem_id).getNbQuadraturePoints(el.type,
@@ -192,12 +192,12 @@ inline UInt Model::getNbQuadraturePoints(const Vector<Element> & elements,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Model::packElementalDataHelper(const ByElementTypeVector<T> & data_to_pack,
+inline void Model::packElementalDataHelper(const ByElementTypeArray<T> & data_to_pack,
                                            CommunicationBuffer & buffer,
-                                           const Vector<Element> & elements,
+                                           const Array<Element> & elements,
                                            bool per_quadrature_point_data,
 					   const ID & fem_id) const {
-  packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeVector<T> &>(data_to_pack),
+  packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeArray<T> &>(data_to_pack),
                                          buffer,
                                          elements,
                                          per_quadrature_point_data, fem_id);
@@ -205,9 +205,9 @@ inline void Model::packElementalDataHelper(const ByElementTypeVector<T> & data_t
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Model::unpackElementalDataHelper(ByElementTypeVector<T> & data_to_unpack,
+inline void Model::unpackElementalDataHelper(ByElementTypeArray<T> & data_to_unpack,
                                              CommunicationBuffer & buffer,
-                                             const Vector<Element> & elements,
+                                             const Array<Element> & elements,
                                              bool per_quadrature_point_data,
 					     const ID & fem_id) const {
   packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer,
@@ -218,9 +218,9 @@ inline void Model::unpackElementalDataHelper(ByElementTypeVector<T> & data_to_un
 
 /* -------------------------------------------------------------------------- */
 template<typename T, bool pack_helper>
-inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_to_pack,
+inline void Model::packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to_pack,
                                                  CommunicationBuffer & buffer,
-                                                 const Vector<Element> & element,
+                                                 const Array<Element> & element,
                                                  bool per_quadrature_point_data,
 						 const ID & fem_id) const {
   ElementType current_element_type = _not_defined;
@@ -228,10 +228,10 @@ inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_t
   UInt nb_quad_per_elem = 0;
   UInt nb_component = 0;
 
-  Vector<T> * vect = NULL;
+  Array<T> * vect = NULL;
 
-  Vector<Element>::const_iterator<Element> it  = element.begin();
-  Vector<Element>::const_iterator<Element> end = element.end();
+  Array<Element>::const_iterator<Element> it  = element.begin();
+  Array<Element>::const_iterator<Element> end = element.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
@@ -245,7 +245,7 @@ inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_t
       nb_component = vect->getNbComponent();
     }
 
-    types::Vector<T> data(vect->storage() + el.element * nb_component * nb_quad_per_elem,
+    Vector<T> data(vect->storage() + el.element * nb_component * nb_quad_per_elem,
 			  nb_component * nb_quad_per_elem);
     if(pack_helper)
       buffer << data;
@@ -256,25 +256,25 @@ inline void Model::packUnpackElementalDataHelper(ByElementTypeVector<T> & data_t
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Model::packNodalDataHelper(Vector<T> & data_to_pack,
+inline void Model::packNodalDataHelper(Array<T> & data_to_pack,
                                        CommunicationBuffer & buffer,
-                                       const Vector<Element> & element) const {
+                                       const Array<Element> & element) const {
   packUnpackNodalDataHelper<T, true>(data_to_pack, buffer, element);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Model::unpackNodalDataHelper(Vector<T> & data_to_unpack,
+inline void Model::unpackNodalDataHelper(Array<T> & data_to_unpack,
                                          CommunicationBuffer & buffer,
-                                         const Vector<Element> & element) const {
+                                         const Array<Element> & element) const {
   packUnpackNodalDataHelper<T, false>(data_to_unpack, buffer, element);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T, bool pack_helper>
-inline void Model::packUnpackNodalDataHelper(Vector<T> & data,
+inline void Model::packUnpackNodalDataHelper(Array<T> & data,
                                              CommunicationBuffer & buffer,
-                                             const Vector<Element> & elements) const {
+                                             const Array<Element> & elements) const {
   UInt nb_component = data.getNbComponent();
   UInt nb_nodes_per_element = 0;
 
@@ -282,8 +282,8 @@ inline void Model::packUnpackNodalDataHelper(Vector<T> & data,
   GhostType current_ghost_type = _casper;
   UInt * conn = NULL;
 
-  Vector<Element>::const_iterator<Element> it  = elements.begin();
-  Vector<Element>::const_iterator<Element> end = elements.end();
+  Array<Element>::const_iterator<Element> it  = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     const Element & el = *it;
     if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
@@ -296,7 +296,7 @@ inline void Model::packUnpackNodalDataHelper(Vector<T> & data,
     UInt el_offset  = el.element * nb_nodes_per_element;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
-      types::Vector<T> data_vect(data.storage() + offset_conn * nb_component,
+      Vector<T> data_vect(data.storage() + offset_conn * nb_component,
 				 nb_component);
 
       if(pack_helper)

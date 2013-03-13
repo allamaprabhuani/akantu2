@@ -139,7 +139,7 @@ inline typename RegularGrid<T>::const_iterator RegularGrid<T>::endCell(const typ
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void RegularGrid<T>::insert(const T & d, const types::RVector & position) {
+void RegularGrid<T>::insert(const T & d, const Vector<Real> & position) {
   Cell cell = getCell(position);
   UInt num_cell = cell.id;
   AKANTU_DEBUG_ASSERT(num_cell < total_nb_cells,
@@ -152,7 +152,7 @@ void RegularGrid<T>::insert(const T & d, const types::RVector & position) {
 
 // /* -------------------------------------------------------------------------- */
 // template<typename T>
-// void RegularGrid<T>::count(const types::RVector & position) {
+// void RegularGrid<T>::count(const Vector<Real> & position) {
 //   Cell cell = getCell(position);
 //   UInt num_cell = cell.id;
 //   // std::cout << num_cell << " - "
@@ -164,7 +164,7 @@ void RegularGrid<T>::insert(const T & d, const types::RVector & position) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline typename RegularGrid<T>::Cell RegularGrid<T>::getCell(const types::RVector & position) const {
+inline typename RegularGrid<T>::Cell RegularGrid<T>::getCell(const Vector<Real> & position) const {
   Cell cell(*this);
   for (UInt i = 0; i < dimension; ++i) {
     cell.position[i] = getCell(position(i), i);
@@ -323,7 +323,7 @@ __BEGIN_AKANTU__
 
 template<typename T>
 void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh.getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(mesh.getNodes());
   UInt nb_nodes = 1;
 
 
@@ -338,7 +338,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
     }
 
     mesh.addConnectivityType(_segment_2);
-    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_segment_2));
+    Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh.getConnectivity(_segment_2));
     connectivity.resize(total_nb_cells);
 
     for (UInt e = 0; e < nb_cells[0]; ++e) {
@@ -360,7 +360,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
     }
 
     mesh.addConnectivityType(_quadrangle_4);
-    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_quadrangle_4));
+    Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh.getConnectivity(_quadrangle_4));
     connectivity.resize(total_nb_cells);
     for (UInt ex = 0; ex < nb_cells[0]; ++ex) {
       for (UInt ey = 0; ey < nb_cells[1]; ++ey) {
@@ -390,7 +390,7 @@ void RegularGrid<T>::saveAsMesh(Mesh & mesh) const {
     }
 
     mesh.addConnectivityType(_hexahedron_8);
-    Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh.getConnectivity(_hexahedron_8));
+    Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh.getConnectivity(_hexahedron_8));
     connectivity.resize(total_nb_cells);
     for (UInt ex = 0; ex < nb_cells[0]; ++ex) {
       for (UInt ey = 0; ey < nb_cells[1]; ++ey) {

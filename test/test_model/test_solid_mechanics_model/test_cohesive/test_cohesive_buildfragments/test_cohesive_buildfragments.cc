@@ -76,12 +76,12 @@ int main(int argc, char *argv[]) {
 
   Real epsilon = std::numeric_limits<Real>::epsilon();
 
-  Vector<Real> & velocity = model.getVelocity();
-  Vector<bool> & boundary = model.getBoundary();
-  Vector<Real> & displacement = model.getDisplacement();
-  //  const Vector<Real> & residual = model.getResidual();
+  Array<Real> & velocity = model.getVelocity();
+  Array<bool> & boundary = model.getBoundary();
+  Array<Real> & displacement = model.getDisplacement();
+  //  const Array<Real> & residual = model.getResidual();
 
-  const Vector<Real> & position = mesh.getNodes();
+  const Array<Real> & position = mesh.getNodes();
   UInt nb_nodes = mesh.getNbNodes();
 
   /// initial conditions
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   // model.setBaseName("extrinsic");
-  // model.addDumpFieldVector("displacement");
+  // model.addDumpFieldArray("displacement");
   // model.addDumpField("velocity"    );
   // model.addDumpField("acceleration");
   // model.addDumpField("residual"    );
@@ -118,17 +118,17 @@ int main(int argc, char *argv[]) {
   UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   MaterialCohesive & mat_cohesive
     = dynamic_cast<MaterialCohesive&>(model.getMaterial(cohesive_index));
-  const Vector<Real> & damage = mat_cohesive.getDamage(type_cohesive);
+  const Array<Real> & damage = mat_cohesive.getDamage(type_cohesive);
 
-  const Vector<Real> & fragment_mass = model.getFragmentsMass();
+  const Array<Real> & fragment_mass = model.getFragmentsMass();
 
   /// assign sigma limit
   const Mesh & mesh_facets = model.getMeshFacets();
 
   Real sigma_c = 300.e6;
   Real rand = 0.1;
-  Vector<Real> & sigma_lim = model.getSigmaLimit();
-  const Vector<UInt> connectivity = mesh_facets.getConnectivity(type_facet);
+  Array<Real> & sigma_lim = model.getSigmaLimit();
+  const Array<UInt> connectivity = mesh_facets.getConnectivity(type_facet);
   UInt nb_facet = connectivity.getSize();
   std::srand(1);
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
 
   /// check velocities
   UInt nb_fragment = model.getNbFragment();
-  const Vector<Real> & fragment_velocity = model.getFragmentsVelocity();
+  const Array<Real> & fragment_velocity = model.getFragmentsVelocity();
 
   for (UInt frag = 0; frag < nb_fragment; ++frag) {
     Real vel = ((frag + 0.5) / nb_fragment * 2 - 1) * disp_increment / time_step;

@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
   const ElementType type_facet = mesh.getFacetType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  Vector<UInt> facet_insertion;
+  Array<UInt> facet_insertion;
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
@@ -82,10 +82,10 @@ int main(int argc, char *argv[]) {
   model.initFull("material.dat", _static);
 
   /// boundary conditions
-  Vector<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBoundary();
   UInt nb_nodes = mesh.getNbNodes();
-  Vector<Real> & position = mesh.getNodes();
-  Vector<Real> & displacement = model.getDisplacement();
+  Array<Real> & position = mesh.getNodes();
+  Array<Real> & displacement = model.getDisplacement();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
 
@@ -124,11 +124,11 @@ int main(int argc, char *argv[]) {
 
   ElementType type_cohesive = model.getCohesiveElementType();
 
-  const Vector<Real> & opening = mat_coh.getOpening(type_cohesive);
-  //const Vector<Real> & traction = mat_coh.getTraction(type_cohesive);
+  const Array<Real> & opening = mat_coh.getOpening(type_cohesive);
+  //const Array<Real> & traction = mat_coh.getTraction(type_cohesive);
 
   model.updateResidual();
-  const Vector<Real> & residual = model.getResidual();
+  const Array<Real> & residual = model.getResidual();
 
   UInt max_step = 1000;
   Real increment =  3./max_step;

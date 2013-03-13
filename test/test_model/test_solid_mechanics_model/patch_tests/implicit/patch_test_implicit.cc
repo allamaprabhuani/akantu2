@@ -45,9 +45,9 @@ Real alpha [3][4] = { { 0.01, 0.02, 0.03, 0.04 },
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type, bool is_plane_strain>
-static types::RMatrix prescribed_strain() {
+static Matrix<Real> prescribed_strain() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
-  types::RMatrix strain(spatial_dimension, spatial_dimension);
+  Matrix<Real> strain(spatial_dimension, spatial_dimension);
 
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
@@ -58,13 +58,13 @@ static types::RMatrix prescribed_strain() {
 }
 
 template<ElementType type, bool is_plane_strain>
-static types::RMatrix prescribed_stress() {
+static Matrix<Real> prescribed_stress() {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
-  types::RMatrix stress(spatial_dimension, spatial_dimension);
+  Matrix<Real> stress(spatial_dimension, spatial_dimension);
 
   //plane strain in 2d
-  types::RMatrix strain(spatial_dimension, spatial_dimension);
-  types::RMatrix pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
+  Matrix<Real> strain(spatial_dimension, spatial_dimension);
+  Matrix<Real> pstrain; pstrain = prescribed_strain<type, is_plane_strain>();
   Real nu = 0.3;
   Real E  = 2.1e11;
   Real trace = 0;
@@ -126,9 +126,9 @@ int main(int argc, char *argv[])
   else
     my_model.initFull("material_check_stress_plane_stress.dat", _static);
 
-  const Vector<Real> & coordinates = my_mesh.getNodes();
-  Vector<Real> & displacement = my_model.getDisplacement();
-  Vector<bool> & boundary = my_model.getBoundary();
+  const Array<Real> & coordinates = my_mesh.getNodes();
+  Array<Real> & displacement = my_model.getDisplacement();
+  Array<bool> & boundary = my_model.getBoundary();
 
   MeshUtils::buildFacets(my_mesh);
   MeshUtils::buildSurfaceID(my_mesh);
@@ -178,21 +178,21 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(element_type);
 
-  Vector<Real> & stress_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStress(element_type));
-  Vector<Real> & strain_vect = const_cast<Vector<Real> &>(my_model.getMaterial(0).getStrain(element_type));
+  Array<Real> & stress_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStress(element_type));
+  Array<Real> & strain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStrain(element_type));
 
-  Vector<Real>::iterator<types::RMatrix> stress_it = stress_vect.begin(dim, dim);
-  Vector<Real>::iterator<types::RMatrix> strain_it = strain_vect.begin(dim, dim);
+  Array<Real>::iterator< Matrix<Real> > stress_it = stress_vect.begin(dim, dim);
+  Array<Real>::iterator< Matrix<Real> > strain_it = strain_vect.begin(dim, dim);
 
-  types::RMatrix presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
-  types::RMatrix presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
+  Matrix<Real> presc_stress; presc_stress = prescribed_stress<TYPE, PLANE_STRAIN>();
+  Matrix<Real> presc_strain; presc_strain = prescribed_strain<TYPE, PLANE_STRAIN>();
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
-      types::RMatrix & stress = *stress_it;
-      types::RMatrix & strain = *strain_it;
+      Matrix<Real> & stress = *stress_it;
+      Matrix<Real> & strain = *strain_it;
 
       for (UInt i = 0; i < dim; ++i) {
 	for (UInt j = 0; j < dim; ++j) {

@@ -44,7 +44,7 @@ MaterialDamageLinear<spatial_dimension>::MaterialDamageLinear(SolidMechanicsMode
   this->registerParam("Sigc", Sigc, 1e5, _pat_parsable, "Sigma Critique");
   this->registerParam("Gc"  , Gc  , 2. , _pat_parsable, "Gc");
 
-  this->initInternalVector(this->K, 1);
+  this->initInternalArray(this->K, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -54,7 +54,7 @@ template<UInt spatial_dimension>
 void MaterialDamageLinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage<spatial_dimension>::initMaterial();
-  this->resizeInternalVector(this->K);
+  this->resizeInternalArray(this->K);
   Epsmin = Sigc / this->E;
   Epsmax = 2 * Gc/ Sigc + Epsmin;
 
@@ -65,7 +65,7 @@ void MaterialDamageLinear<spatial_dimension>::initMaterial() {
   for(; it != end; ++it) {
     UInt nb_element  = mesh.getNbElement(*it);
     UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
-    Vector <Real> & K_vec = K(*it);
+    Array <Real> & K_vec = K(*it);
     std::fill_n(K_vec.storage(),nb_element*nb_quad,Epsmin);
   }
 

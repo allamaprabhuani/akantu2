@@ -122,10 +122,10 @@ void paraviewDump(iohelper::Dumper & dumper) {
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
 
-// Vector<Real> checkpoint_displacements(0, spatial_dimension);
-// Vector<Real> checkpoint_velocity(0, spatial_dimension);
-// Vector<Real> checkpoint_acceleration(0, spatial_dimension);
-// Vector<Real> checkpoint_force(0, spatial_dimension);
+// Array<Real> checkpoint_displacements(0, spatial_dimension);
+// Array<Real> checkpoint_velocity(0, spatial_dimension);
+// Array<Real> checkpoint_acceleration(0, spatial_dimension);
+// Array<Real> checkpoint_force(0, spatial_dimension);
 
 // /* ------------------------------------------------------------------------ */
 // void checkpointInit(iohelper::Dumper & dumper,
@@ -135,10 +135,10 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //   UInt whoami = StaticCommunicator::getStaticCommunicator()->whoAmI();
 //   UInt nproc  = StaticCommunicator::getStaticCommunicator()->getNbProc();
 
-//   Vector<Real> & displacements = model.getDisplacement();
-//   Vector<Real> & velocity      = model.getVelocity();
-//   Vector<Real> & acceleration  = model.getAcceleration();
-//   Vector<Real> & force         = model.getForce();
+//   Array<Real> & displacements = model.getDisplacement();
+//   Array<Real> & velocity      = model.getVelocity();
+//   Array<Real> & acceleration  = model.getAcceleration();
+//   Array<Real> & force         = model.getForce();
 
 //   DOFSynchronizer & dof_synchronizer = const_cast<DOFSynchronizer &>(model.getDOFSynchronizer());
 //   dof_synchronizer.initScatterGatherCommunicationScheme();
@@ -192,10 +192,10 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //   UInt whoami = StaticCommunicator::getStaticCommunicator()->whoAmI();
 
 //   DOFSynchronizer & dof_synchronizer = const_cast<DOFSynchronizer &>(model.getDOFSynchronizer());
-//   Vector<Real> & displacements = model.getDisplacement();
-//   Vector<Real> & velocity      = model.getVelocity();
-//   Vector<Real> & acceleration  = model.getAcceleration();
-//   Vector<Real> & force         = model.getForce();
+//   Array<Real> & displacements = model.getDisplacement();
+//   Array<Real> & velocity      = model.getVelocity();
+//   Array<Real> & acceleration  = model.getAcceleration();
+//   Array<Real> & force         = model.getForce();
 
 //   if(whoami == 0){
 //     dof_synchronizer.gather(displacements, 0, &checkpoint_displacements);
@@ -224,10 +224,10 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //   DOFSynchronizer & dof_synchronizer = const_cast<DOFSynchronizer &>(model.getDOFSynchronizer());
 //   dof_synchronizer.initScatterGatherCommunicationScheme();
 
-//   Vector<Real> & displacements = model.getDisplacement();
-//   Vector<Real> & velocity      = model.getVelocity();
-//   Vector<Real> & acceleration  = model.getAcceleration();
-//   Vector<Real> & force         = model.getForce();
+//   Array<Real> & displacements = model.getDisplacement();
+//   Array<Real> & velocity      = model.getVelocity();
+//   Array<Real> & acceleration  = model.getAcceleration();
+//   Array<Real> & force         = model.getForce();
 
 //   if(whoami == 0){
 //     const Mesh & mesh = model.getFEM().getMesh();
@@ -253,7 +253,7 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //     reader.Init();
 //     reader.Read();
 
-//     Vector<Real> restart_tmp_vect(nb_nodes, spatial_dimension);
+//     Array<Real> restart_tmp_vect(nb_nodes, spatial_dimension);
 
 //     displacements.clear();
 //     velocity.clear();

@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
   /// model initialization
-  model->initVectors();
+  model->initArrays();
   UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
   memset(model->getForce().values,        0, 2*nb_nodes*sizeof(Real));
   memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
@@ -117,9 +117,9 @@ int main(int argc, char *argv[])
 
     
   //   UInt nb_element;
-  //   const Vector<Real> * shapes;
-  //   Vector<Real> quad_coords(0,2,"quad_coords");
-  //   const Vector<Real> * normals_on_quad;
+  //   const Array<Real> * shapes;
+  //   Array<Real> quad_coords(0,2,"quad_coords");
+  //   const Array<Real> * normals_on_quad;
  
   //   nb_element   = fem_boundary.getMesh().getNbElement(*it);
   //   fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, _segment_2);
@@ -127,8 +127,8 @@ int main(int argc, char *argv[])
 
   //   shapes       = &(fem_boundary.getShapes(*it));
 
-  //   Vector<Real> * sigma_funct = new Vector<Real>(nb_element, 4*nb_quad, "myfunction");
-  //   Vector<Real> * funct = new Vector<Real>(nb_element, 2*nb_quad, "myfunction");
+  //   Array<Real> * sigma_funct = new Array<Real>(nb_element, 4*nb_quad, "myfunction");
+  //   Array<Real> * funct = new Array<Real>(nb_element, 2*nb_quad, "myfunction");
 
   //   Real * sigma_funct_val = sigma_funct->values;
   //   Real * shapes_val = shapes->values;
@@ -155,12 +155,12 @@ int main(int argc, char *argv[])
   //   }
 
 
-  //   Vector<Real> * int_funct = new Vector<Real>(nb_element, 2*nb_nodes_per_element,
+  //   Array<Real> * int_funct = new Array<Real>(nb_element, 2*nb_nodes_per_element,
   // 						    "inte_funct");
   //   fem_boundary.integrate(*funct, *int_funct, 2*nb_nodes_per_element, *it);
   //   delete funct;
 
-  //   fem_boundary.assembleVector(*int_funct,model->getForce(), 2, *it);
+  //   fem_boundary.assembleArray(*int_funct,model->getForce(), 2, *it);
   //   delete int_funct;
   // }
 

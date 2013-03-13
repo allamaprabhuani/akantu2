@@ -83,7 +83,7 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
-							      Vector<Real> & tangent_matrix,
+							      Array<Real> & tangent_matrix,
 							      __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

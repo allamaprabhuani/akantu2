@@ -62,13 +62,13 @@ public:
 
   /// malloc
   template<class T>
-  inline Vector<T> & alloc(const ID & name,
+  inline Array<T> & alloc(const ID & name,
 			   UInt size,
 			   UInt nb_component);
 
   /// malloc
   template<class T>
-  inline Vector<T> & alloc(const ID & name,
+  inline Array<T> & alloc(const ID & name,
 			   UInt size,
 			   UInt nb_component,
 			   const T & init_value);
@@ -85,10 +85,10 @@ public:
   AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
 
   template<typename T>
-  inline Vector<T> & getVector(const ID & name);
+  inline Array<T> & getArray(const ID & name);
 
   template<typename T>
-  inline const Vector<T> & getVector(const ID & name) const;
+  inline const Array<T> & getArray(const ID & name) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -57,7 +57,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 //   UInt * elem_val = Inte::mesh->getConnectivity(type,ghost_type).storage();;
 //   UInt nb_element = Inte::mesh->getConnectivity(type,ghost_type).getSize();
 
-//   Vector<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
+//   Array<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
 // 						 1,
 // 						 type,
 // 						 ghost_type);
@@ -95,7 +95,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 // template<class Inte>
 // template <ElementType type>
-// inline void IntegratorCohesive<Inte>::integrateOnElement(const Vector<Real> & f,
+// inline void IntegratorCohesive<Inte>::integrateOnElement(const Array<Real> & f,
 // 							 Real * intf,
 // 							 UInt nb_degree_of_freedom,
 // 							 const UInt elem,
@@ -109,7 +109,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // /* -------------------------------------------------------------------------- */
 // template<class Inte>
 // template <ElementType type>
-// const types::Matrix<Real> &
+// const Matrix<Real> &
 // IntegratorCohesive<Inte>::getQuadraturePoints(const GhostType & ghost_type) const {
 //   AKANTU_DEBUG_IN();
 //   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
@@ -131,7 +131,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // template<class Inte>
 // template <ElementType type>
 // inline void IntegratorCohesive<Inte>::
-// computeJacobianOnQuadPointsByElement(const types::Matrix<Real> & node_coords,
+// computeJacobianOnQuadPointsByElement(const Matrix<Real> & node_coords,
 // 				     Real & jacobians) {
 //   AKANTU_DEBUG_IN();
 //   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
@@ -143,11 +143,11 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // /* -------------------------------------------------------------------------- */
 // template<class Inte>
 // template <ElementType type>
-// void IntegratorCohesive<Inte>::integrate(const Vector<Real> & in_f,
-// 					 Vector<Real> &intf,
+// void IntegratorCohesive<Inte>::integrate(const Array<Real> & in_f,
+// 					 Array<Real> &intf,
 // 					 UInt nb_degree_of_freedom,
 // 					 const GhostType & ghost_type,
-// 					 const Vector<UInt> * filter_elements) const {
+// 					 const Array<UInt> * filter_elements) const {
 //   AKANTU_DEBUG_IN();
 //   //  const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 //   //  Inte::template integrate<sub_type>(in_f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
@@ -159,7 +159,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // 		      << Inte::jacobians.printType(type, ghost_type));
 
 //   UInt nb_element = Inte::mesh->getNbElement(type,ghost_type);
-//   const Vector<Real> & jac_loc = Inte::jacobians(type, ghost_type);
+//   const Array<Real> & jac_loc = Inte::jacobians(type, ghost_type);
 
 //   UInt nb_quadrature_points = CohesiveElement<type>::getNbQuadraturePoints();
 
@@ -199,9 +199,9 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // /* -------------------------------------------------------------------------- */
 // template<class Inte>
 // template <ElementType type>
-// Real IntegratorCohesive<Inte>::integrate(const Vector<Real> & in_f,
+// Real IntegratorCohesive<Inte>::integrate(const Array<Real> & in_f,
 // 					 const GhostType & ghost_type,
-// 					 const Vector<UInt> * filter_elements) const {
+// 					 const Array<UInt> * filter_elements) const {
 //   AKANTU_DEBUG_IN();
 
 //   AKANTU_DEBUG_ASSERT(Inte::jacobians.exists(type, ghost_type),
@@ -209,7 +209,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // 		      << Inte::jacobians.printType(type, ghost_type));
 
 //   UInt nb_element = Inte::mesh->getNbElement(type, ghost_type);
-//   const Vector<Real> & jac_loc = Inte::jacobians(type, ghost_type);
+//   const Array<Real> & jac_loc = Inte::jacobians(type, ghost_type);
 
 //   UInt nb_quadrature_points = CohesiveElement<type>::getNbQuadraturePoints();
 
@@ -248,9 +248,9 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // /* -------------------------------------------------------------------------- */
 // // template<class Inte>
 // // template <ElementType type>
-// // Real IntegratorCohesive<Inte>::integrate(const Vector<Real> & in_f,
+// // Real IntegratorCohesive<Inte>::integrate(const Array<Real> & in_f,
 // // 					 const GhostType & ghost_type,
-// // 					 const Vector<UInt> * filter_elements) const {
+// // 					 const Array<UInt> * filter_elements) const {
 // //   AKANTU_DEBUG_IN();
 // //   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 // //   AKANTU_DEBUG_OUT();
@@ -261,11 +261,11 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // /* -------------------------------------------------------------------------- */
 // template<class Inte>
 // template <ElementType type>
-// void IntegratorCohesive<Inte>::integrateOnQuadraturePoints(const Vector<Real> & in_f,
-// 							   Vector<Real> &intf,
+// void IntegratorCohesive<Inte>::integrateOnQuadraturePoints(const Array<Real> & in_f,
+// 							   Array<Real> &intf,
 // 							   UInt nb_degree_of_freedom,
 // 							   const GhostType & ghost_type,
-// 							   const Vector<UInt> * filter_elements) const {
+// 							   const Array<UInt> * filter_elements) const {
 //   AKANTU_DEBUG_IN();
 //   const ElementType sub_type = ElementType(CohesiveElementSubElementType<type>::value);
 //   Inte::template integrateOnQuadraturePoints<sub_type>(in_f,
@@ -315,7 +315,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // template<>
 // template<>
 // inline void IntegratorCohesive<IntegratorGauss>
-// ::integrateOnElement<_not_defined>(__attribute__((unused)) const Vector<Real> & f,
+// ::integrateOnElement<_not_defined>(__attribute__((unused)) const Array<Real> & f,
 // 				   __attribute__((unused)) Real * intf,
 // 				   __attribute__((unused)) UInt nb_degree_of_freedom,
 // 				   __attribute__((unused)) const UInt elem,
@@ -326,7 +326,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // /* -------------------------------------------------------------------------- */
 // template<>
 // template<>
-// inline const types::Matrix<Real> &
+// inline const Matrix<Real> &
 // IntegratorCohesive<IntegratorGauss>
 // ::getQuadraturePoints<_not_defined>(__attribute__((unused)) const GhostType & ghost_type) const {
 //   AKANTU_DEBUG_TO_IMPLEMENT();
@@ -344,7 +344,7 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // template<>
 // template<>
 // inline void IntegratorCohesive<IntegratorGauss>::
-// computeJacobianOnQuadPointsByElement<_not_defined>(__attribute__((unused)) const types::Matrix<Real> & node_coords,
+// computeJacobianOnQuadPointsByElement<_not_defined>(__attribute__((unused)) const Matrix<Real> & node_coords,
 // 						   __attribute__((unused)) Real & jacobians) {
 //   AKANTU_DEBUG_TO_IMPLEMENT();
 // }
@@ -353,11 +353,11 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // template<>
 // template<>
 // inline void IntegratorCohesive<IntegratorGauss>
-// ::integrate<_not_defined>(__attribute__((unused)) const Vector<Real> & in_f,
-// 			  __attribute__((unused)) Vector<Real> &intf,
+// ::integrate<_not_defined>(__attribute__((unused)) const Array<Real> & in_f,
+// 			  __attribute__((unused)) Array<Real> &intf,
 // 			  __attribute__((unused)) UInt nb_degree_of_freedom,
 // 			  __attribute__((unused)) const GhostType & ghost_type,
-// 			  __attribute__((unused)) const Vector<UInt> * filter_elements) const {
+// 			  __attribute__((unused)) const Array<UInt> * filter_elements) const {
 //   AKANTU_DEBUG_TO_IMPLEMENT();
 // }
 
@@ -366,9 +366,9 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // template<>
 // template<>
 // inline Real IntegratorCohesive<IntegratorGauss>
-// ::integrate<_not_defined>(__attribute__((unused)) const Vector<Real> & in_f,
+// ::integrate<_not_defined>(__attribute__((unused)) const Array<Real> & in_f,
 // 			  __attribute__((unused)) const GhostType & ghost_type,
-// 			  __attribute__((unused)) const Vector<UInt> * filter_elements) const {
+// 			  __attribute__((unused)) const Array<UInt> * filter_elements) const {
 //   AKANTU_DEBUG_TO_IMPLEMENT();
 // }
 
@@ -377,11 +377,11 @@ IntegratorCohesive<Inte>::IntegratorCohesive(const Mesh & mesh,
 // template<>
 // template<>
 // inline void IntegratorCohesive<IntegratorGauss>
-// ::integrateOnQuadraturePoints<_not_defined>(__attribute__((unused)) const Vector<Real> & in_f,
-// 					    __attribute__((unused)) Vector<Real> &intf,
+// ::integrateOnQuadraturePoints<_not_defined>(__attribute__((unused)) const Array<Real> & in_f,
+// 					    __attribute__((unused)) Array<Real> &intf,
 // 					    __attribute__((unused)) UInt nb_degree_of_freedom,
 // 					    __attribute__((unused)) const GhostType & ghost_type,
-// 					    __attribute__((unused)) const Vector<UInt> * filter_elements) const {
+// 					    __attribute__((unused)) const Array<UInt> * filter_elements) const {
 //   AKANTU_DEBUG_TO_IMPLEMENT();
 // }
 

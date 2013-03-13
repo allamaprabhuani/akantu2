@@ -176,7 +176,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::applyBoundary(const Vector<bool> & boundary) {
+void SparseMatrix::applyBoundary(const Array<bool> & boundary) {
   AKANTU_DEBUG_IN();
 
   const DOFSynchronizer::GlobalEquationNumberMap & local_eq_num_to_global = dof_synchronizer->getGlobalEquationNumberToLocal();
@@ -201,14 +201,14 @@ void SparseMatrix::applyBoundary(const Vector<bool> & boundary) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::removeBoundary(const Vector<bool> & boundary) {
+void SparseMatrix::removeBoundary(const Array<bool> & boundary) {
   AKANTU_DEBUG_IN();
 
   if(irn_save) delete irn_save;
   if(jcn_save) delete jcn_save;
 
-  irn_save = new Vector<Int>(irn, true);
-  jcn_save = new Vector<Int>(jcn, true);
+  irn_save = new Array<Int>(irn, true);
+  jcn_save = new Array<Int>(jcn, true);
 
   UInt n = boundary.getSize()*boundary.getNbComponent();
 
@@ -315,7 +315,7 @@ void SparseMatrix::saveMatrix(const std::string & filename) const {
 }
 
 /* -------------------------------------------------------------------------- */
-Vector<Real> & operator*=(Vector<Real> & vect, const SparseMatrix & mat) {
+Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat) {
   AKANTU_DEBUG_IN();
 
   // AKANTU_DEBUG_ASSERT((vect.getSize()*vect.getNbComponent() == mat.getSize()) &&
@@ -387,7 +387,7 @@ void SparseMatrix::add(const SparseMatrix & matrix, Real alpha) {
 
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::lump(Vector<Real> & lumped) {
+void SparseMatrix::lump(Array<Real> & lumped) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT((lumped.getNbComponent() == nb_degree_of_freedom),

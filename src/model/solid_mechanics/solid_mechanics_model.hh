@@ -67,10 +67,10 @@ class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventH
 public:
   class NewMaterialElementsEvent : public NewElementsEvent {
   public:
-    AKANTU_GET_MACRO_NOT_CONST(MaterialList, material, Vector<UInt> &);
-    AKANTU_GET_MACRO(MaterialList, material, const Vector<UInt> &);
+    AKANTU_GET_MACRO_NOT_CONST(MaterialList, material, Array<UInt> &);
+    AKANTU_GET_MACRO(MaterialList, material, const Array<UInt> &);
   protected:
-    Vector<UInt> material;
+    Array<UInt> material;
   };
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
@@ -98,7 +98,7 @@ public:
   void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
 
   /// allocate all vectors
-  void initVectors();
+  void initArrays();
 
   /// initialize all internal arrays for materials
   void initMaterials();
@@ -153,10 +153,10 @@ public:
   void updateAcceleration();
 
   /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
-  void solveLumped(Vector<Real> & x, 
-		   const Vector<Real> & A,
-		   const Vector<Real> & b,
-		   const Vector<bool> & boundary,
+  void solveLumped(Array<Real> & x, 
+		   const Array<Real> & A,
+		   const Array<Real> & b,
+		   const Array<bool> & boundary,
 		   Real alpha);
 
   /// explicit integration predictor
@@ -212,7 +212,7 @@ protected:
 
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
-  void solveDynamic(Vector<Real> & increment);
+  void solveDynamic(Array<Real> & increment);
 
   /* ------------------------------------------------------------------------ */
   /* Explicit/Implicit                                                        */
@@ -227,16 +227,16 @@ public:
 public:
   class SurfaceLoadFunctor {
   public:
-    virtual void traction(__attribute__ ((unused)) const types::Vector<Real> & position,
-			  __attribute__ ((unused)) types::Vector<Real> & traction,
-			  __attribute__ ((unused)) const types::Vector<Real> & normal,
+    virtual void traction(__attribute__ ((unused)) const Vector<Real> & position,
+			  __attribute__ ((unused)) Vector<Real> & traction,
+			  __attribute__ ((unused)) const Vector<Real> & normal,
 			  __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
 
-    virtual void stress(__attribute__ ((unused)) const types::Vector<Real> & position,
-			__attribute__ ((unused)) types::RMatrix & stress,
-			__attribute__ ((unused)) const types::Vector<Real> & normal,
+    virtual void stress(__attribute__ ((unused)) const Vector<Real> & position,
+			__attribute__ ((unused)) Matrix<Real> & stress,
+			__attribute__ ((unused)) const Vector<Real> & normal,
 			__attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
@@ -250,12 +250,12 @@ public:
   void computeForcesFromFunction(Functor & functor, BoundaryFunctionType function_type);
 
   /// integrate a force on the boundary by providing a stress tensor
-  void computeForcesByStressTensor(const Vector<Real> & stresses,
+  void computeForcesByStressTensor(const Array<Real> & stresses,
 				   const ElementType & type,
 				   const GhostType & ghost_type);
 
   /// integrate a force on the boundary by providing a traction vector
-  void computeForcesByTractionVector(const Vector<Real> & tractions,
+  void computeForcesByTractionArray(const Array<Real> & tractions,
 				     const ElementType & type,
 				     const GhostType & ghost_type);
 
@@ -303,7 +303,7 @@ protected:
   void assembleMass(GhostType ghost_type);
 
   /// fill a vector of rho
-  void computeRho(Vector<Real> & rho,
+  void computeRho(Array<Real> & rho,
 		  ElementType type,
 		  GhostType ghost_type);
 
@@ -313,15 +313,15 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataForElements(const Vector<Element> & elements,
+  inline virtual UInt getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const;
 
   inline virtual void packElementData(CommunicationBuffer & buffer,
-				      const Vector<Element> & elements,
+				      const Array<Element> & elements,
 				      SynchronizationTag tag) const;
 
   inline virtual void unpackElementData(CommunicationBuffer & buffer,
-					const Vector<Element> & elements,
+					const Array<Element> & elements,
 					SynchronizationTag tag);
 
   inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
@@ -336,28 +336,28 @@ public:
 				 SynchronizationTag tag);
 
 protected:
-  inline void splitElementByMaterial(const Vector<Element> & elements,
-				     Vector<Element> * elements_per_mat) const;
+  inline void splitElementByMaterial(const Array<Element> & elements,
+				     Array<Element> * elements_per_mat) const;
 
   inline virtual void packBarycenter(CommunicationBuffer & buffer,
-				     const Vector<Element> & elements) const;
+				     const Array<Element> & elements) const;
 
   inline virtual void unpackBarycenter(CommunicationBuffer & buffer,
-				       const Vector<Element> & elements,
+				       const Array<Element> & elements,
 				       SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  virtual void onNodesAdded  (const Vector<UInt> & nodes_list,
+  virtual void onNodesAdded  (const Array<UInt> & nodes_list,
 			      const NewNodesEvent & event);
-  virtual void onNodesRemoved(const Vector<UInt> & element_list,
-			      const Vector<UInt> & new_numbering,
+  virtual void onNodesRemoved(const Array<UInt> & element_list,
+			      const Array<UInt> & new_numbering,
 			      const RemovedNodesEvent & event);
-  virtual void onElementsAdded  (const Vector<Element> & nodes_list,
+  virtual void onElementsAdded  (const Array<Element> & nodes_list,
 				 const NewElementsEvent & event);
-  virtual void onElementsRemoved(const Vector<Element> & element_list,
+  virtual void onElementsRemoved(const Array<Element> & element_list,
 				 const ByElementTypeUInt & new_numbering,
 				 const RemovedElementsEvent & event);
 
@@ -366,7 +366,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpField(const std::string & field_id);
-  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldArray(const std::string & field_id);
   virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
@@ -388,29 +388,29 @@ public:
   AKANTU_SET_MACRO(F_M2A, f_m2a, Real);
 
   /// get the SolidMechanicsModel::displacement vector
-  AKANTU_GET_MACRO(Displacement,    *displacement,           Vector<Real> &);
+  AKANTU_GET_MACRO(Displacement,    *displacement,           Array<Real> &);
   /// get the SolidMechanicsModel::current_position vector \warn only consistent
   /// after a call to SolidMechanicsModel::updateCurrentPosition
-  AKANTU_GET_MACRO(CurrentPosition, *current_position, const Vector<Real> &);
+  AKANTU_GET_MACRO(CurrentPosition, *current_position, const Array<Real> &);
   /// get  the SolidMechanicsModel::increment  vector \warn  only  consistent if
   /// SolidMechanicsModel::setIncrementFlagOn has been called before
-  AKANTU_GET_MACRO(Increment,       *increment,              Vector<Real> &);
+  AKANTU_GET_MACRO(Increment,       *increment,              Array<Real> &);
   /// get the lumped SolidMechanicsModel::mass vector
-  AKANTU_GET_MACRO(Mass,            *mass,                   Vector<Real> &);
+  AKANTU_GET_MACRO(Mass,            *mass,                   Array<Real> &);
   /// get the SolidMechanicsModel::velocity vector
-  AKANTU_GET_MACRO(Velocity,        *velocity,               Vector<Real> &);
+  AKANTU_GET_MACRO(Velocity,        *velocity,               Array<Real> &);
   /// get    the    SolidMechanicsModel::acceleration    vector,   updated    by
   /// SolidMechanicsModel::updateAcceleration
-  AKANTU_GET_MACRO(Acceleration,    *acceleration,           Vector<Real> &);
+  AKANTU_GET_MACRO(Acceleration,    *acceleration,           Array<Real> &);
   /// get the SolidMechanicsModel::force vector (boundary forces)
-  AKANTU_GET_MACRO(Force,           *force,                  Vector<Real> &);
+  AKANTU_GET_MACRO(Force,           *force,                  Array<Real> &);
   /// get     the    SolidMechanicsModel::residual    vector,     computed    by
   /// SolidMechanicsModel::updateResidual
-  AKANTU_GET_MACRO(Residual,        *residual,               Vector<Real> &);
+  AKANTU_GET_MACRO(Residual,        *residual,               Array<Real> &);
   /// get the SolidMechanicsModel::boundary vector
-  AKANTU_GET_MACRO(Boundary,        *boundary,               Vector<bool> &);
+  AKANTU_GET_MACRO(Boundary,        *boundary,               Array<bool> &);
   /// get the SolidMechnicsModel::incrementAcceleration vector
-  AKANTU_GET_MACRO(IncrementAcceleration, *increment_acceleration, Vector<Real> &);
+  AKANTU_GET_MACRO(IncrementAcceleration, *increment_acceleration, Array<Real> &);
 
   /// get the value of the SolidMechanicsModel::increment_flag
   AKANTU_GET_MACRO(IncrementFlag, increment_flag, bool);
@@ -419,12 +419,12 @@ public:
   /// given akantu::ElementType
   //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
   //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
-  //AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeVector<UInt> &);
+  //AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeArray<UInt> &);
 
   /// vectors containing local material element index for each global element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
-  AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeVector<UInt> &);
+  AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeArray<UInt> &);
 
   /// get a particular material
   inline Material & getMaterial(UInt mat_index);
@@ -494,31 +494,31 @@ protected:
   Real f_m2a;
 
   /// displacements array
-  Vector<Real> * displacement;
+  Array<Real> * displacement;
 
   /// lumped mass array
-  Vector<Real> * mass;
+  Array<Real> * mass;
 
   /// velocities array
-  Vector<Real> * velocity;
+  Array<Real> * velocity;
 
   /// accelerations array
-  Vector<Real> * acceleration;
+  Array<Real> * acceleration;
 
   /// accelerations array
-  Vector<Real> * increment_acceleration;
+  Array<Real> * increment_acceleration;
 
   /// forces array
-  Vector<Real> * force;
+  Array<Real> * force;
 
   /// residuals array
-  Vector<Real> * residual;
+  Array<Real> * residual;
 
   /// boundaries array
-  Vector<bool> * boundary;
+  Array<bool> * boundary;
 
   /// array of current position used during update residual
-  Vector<Real> * current_position;
+  Array<Real> * current_position;
 
   /// mass matrix
   SparseMatrix * mass_matrix;
@@ -542,7 +542,7 @@ protected:
   IntegrationScheme2ndOrder * integrator;
 
   /// increment of displacement
-  Vector<Real> * increment;
+  Array<Real> * increment;
 
   /// flag defining if the increment must be computed or not
   bool increment_flag;

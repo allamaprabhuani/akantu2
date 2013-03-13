@@ -67,7 +67,7 @@ public:
   virtual void initMaterial();
 
   /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors();
+  virtual void resizeCohesiveArrays();
 
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);
@@ -79,68 +79,68 @@ public:
   void computeEnergies();
 
   /// check stress for cohesive elements' insertion
-  virtual void checkInsertion(const Vector<Real> & facet_stress,
-			      Vector<UInt> & facet_insertion);
+  virtual void checkInsertion(const Array<Real> & facet_stress,
+			      Array<UInt> & facet_insertion);
 
   /// interpolate   stress  on   given   positions  for   each  element   (empty
   /// implemantation to avoid the generic call to be done on cohesive elements)
   virtual void interpolateStress(__attribute__((unused)) const ElementType type,
-				 __attribute__((unused)) Vector<Real> & result) { };
+				 __attribute__((unused)) Array<Real> & result) { };
 
   virtual void computeAllStresses(__attribute__((unused)) GhostType ghost_type = _not_ghost) { };
 
   /// generate random sigma_c distributions
-  void generateRandomDistribution(Vector<Real> & sigma_lim);
+  void generateRandomDistribution(Array<Real> & sigma_lim);
 
 protected:
   virtual void computeTangentTraction(__attribute__((unused)) const ElementType & el_type,
-				      __attribute__((unused)) Vector<Real> & tangent_matrix,
-				      __attribute__((unused)) const Vector<Real> & normal,
+				      __attribute__((unused)) Array<Real> & tangent_matrix,
+				      __attribute__((unused)) const Array<Real> & normal,
 				      __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
 
-  void computeNormal(const Vector<Real> & position,
-		     Vector<Real> & normal,
+  void computeNormal(const Array<Real> & position,
+		     Array<Real> & normal,
 		     ElementType type,
 		     GhostType ghost_type);
 
-  void computeOpening(const Vector<Real> & displacement,
-		      Vector<Real> & normal,
+  void computeOpening(const Array<Real> & displacement,
+		      Array<Real> & normal,
 		      ElementType type,
 		      GhostType ghost_type);
 
   template<ElementType type>
-  void computeNormal(const Vector<Real> & position,
-		     Vector<Real> & normal,
+  void computeNormal(const Array<Real> & position,
+		     Array<Real> & normal,
 		     GhostType ghost_type);
 
   /// assemble stiffness
   void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// constitutive law
-  virtual void computeTraction(const Vector<Real> & normal,
+  virtual void computeTraction(const Array<Real> & normal,
 			       ElementType el_type,
 			       GhostType ghost_type = _not_ghost) = 0;
 
   /// compute stress norms on quadrature points for each facet for stress check
-  virtual void computeStressNorms(__attribute__((unused)) const Vector<Real> & facet_stress,
-				  __attribute__((unused)) Vector<Real> & stress_check) {
+  virtual void computeStressNorms(__attribute__((unused)) const Array<Real> & facet_stress,
+				  __attribute__((unused)) Array<Real> & stress_check) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 
 
   /// parallelism functions
-  inline UInt getNbDataForElements(const Vector<Element> & elements,
+  inline UInt getNbDataForElements(const Array<Element> & elements,
 				   SynchronizationTag tag) const;
 
   inline void packElementData(CommunicationBuffer & buffer,
-			      const Vector<Element> & elements,
+			      const Array<Element> & elements,
 			      SynchronizationTag tag) const;
 
   inline void unpackElementData(CommunicationBuffer & buffer,
-				const Vector<Element> & elements,
+				const Array<Element> & elements,
 				SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
@@ -208,7 +208,7 @@ protected:
   RandomGenerator<Real> * random_generator;
 
   /// vector to store stresses on facets for element insertions
-  Vector<Real> sigma_insertion;
+  Array<Real> sigma_insertion;
 
   /// maximum displacement
   ByElementTypeReal delta_max;

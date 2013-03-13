@@ -28,7 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<class T> inline Vector<T> & Memory::alloc(const ID & name,
+template<class T> inline Array<T> & Memory::alloc(const ID & name,
 						    UInt size,
 						    UInt nb_component) {
   handeld_vectors_id.push_back(name);
@@ -37,7 +37,7 @@ template<class T> inline Vector<T> & Memory::alloc(const ID & name,
 }
 
 /* -------------------------------------------------------------------------- */
-template<class T> inline Vector<T> & Memory::alloc(const ID & name,
+template<class T> inline Array<T> & Memory::alloc(const ID & name,
 						   UInt size,
 						   UInt nb_component,
 						   const T & init_value) {
@@ -54,11 +54,11 @@ inline void Memory::dealloc(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-template<class T> inline Vector<T> & Memory::getVector(const ID & name) {
-  return static_cast< Vector<T> & >(const_cast<VectorBase &>(static_memory->getVector(memory_id, name)));
+template<class T> inline Array<T> & Memory::getArray(const ID & name) {
+  return static_cast< Array<T> & >(const_cast<ArrayBase &>(static_memory->getArray(memory_id, name)));
 }
 
 /* -------------------------------------------------------------------------- */
-template<class T> inline const Vector<T> & Memory::getVector(const ID & name) const {
-  return static_cast< Vector<T> & >(const_cast<VectorBase &>(static_memory->getVector(memory_id, name)));
+template<class T> inline const Array<T> & Memory::getArray(const ID & name) const {
+  return static_cast< Array<T> & >(const_cast<ArrayBase &>(static_memory->getArray(memory_id, name)));
 }

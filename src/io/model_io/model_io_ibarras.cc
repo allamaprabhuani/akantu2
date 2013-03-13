@@ -108,7 +108,7 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
   sstr_elem >> nb_elements;
   
   mesh->addConnectivityType(_bernoulli_beam_3);
-  Vector<UInt> & connectivity = const_cast<Vector<UInt> &>(mesh->getConnectivity(_bernoulli_beam_3));
+  Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh->getConnectivity(_bernoulli_beam_3));
 
   connectivity.resize(nb_elements);
 
@@ -135,7 +135,7 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
   nb_struct_nodes-=1;
   
   /// read the coordinates of structural nodes
-  Vector<Real> & nodes = const_cast<Vector<Real> &>(mesh->getNodes());
+  Array<Real> & nodes = const_cast<Array<Real> &>(mesh->getNodes());
   nodes.resize(nb_struct_nodes);
   
   for(UInt k = 0; k < nb_nodes; ++k){
@@ -154,9 +154,9 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
 
   model.initModel();
 
-  model.initVectors();
+  model.initArrays();
 
-  Vector<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBoundary();
   
   std::getline(infile, line);
   std::stringstream sstr_nb_boundaries(line);
@@ -205,10 +205,10 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
 
   UInt property[2];
   
-  Vector<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_3);
+  Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_3);
   
   mesh->initNormals();
-  Vector<Real> & normals = const_cast<Vector<Real> &>(mesh->getNormals(_bernoulli_beam_3));
+  Array<Real> & normals = const_cast<Array<Real> &>(mesh->getNormals(_bernoulli_beam_3));
   normals.resize(nb_elements);
 
   for (UInt i = 0; i < nb_elements; ++i){
@@ -275,7 +275,7 @@ void ModelIOIBarras::assign_sets(const std::string & filename, StructuralMechani
 
   // Define Sets of Beams
 
-  Vector<UInt> & set_ID = model.getSet_ID(_bernoulli_beam_3);
+  Array<UInt> & set_ID = model.getSet_ID(_bernoulli_beam_3);
   set_ID.clear();
  
   std::getline(infile, line);

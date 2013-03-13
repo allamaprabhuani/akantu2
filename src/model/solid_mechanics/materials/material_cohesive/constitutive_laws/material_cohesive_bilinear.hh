@@ -72,22 +72,22 @@ public:
   virtual void updateDeltaMax(GhostType ghost_type);
 
   /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveVectors();
+  virtual void resizeCohesiveArrays();
 
 protected:
 
   /// constitutive law
-  void computeTraction(const Vector<Real> & normal,
+  void computeTraction(const Array<Real> & normal,
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 
   void computeTangentStiffness(__attribute__((unused))	const ElementType & el_type,
-			       __attribute__((unused)) Vector<Real> & tangent_matrix,
+			       __attribute__((unused)) Array<Real> & tangent_matrix,
 			       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
- // void computeTangentStiffness(__attribute__((unused)) Vector<Real> & tangent_matrix,
- // 				       __attribute__((unused)) const Vector<Real> & normal,
+ // void computeTangentStiffness(__attribute__((unused)) Array<Real> & tangent_matrix,
+ // 				       __attribute__((unused)) const Array<Real> & normal,
  // 			         	__attribute__((unused))	const ElementType & el_type,
  //  				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
  //    AKANTU_DEBUG_TO_IMPLEMENT();

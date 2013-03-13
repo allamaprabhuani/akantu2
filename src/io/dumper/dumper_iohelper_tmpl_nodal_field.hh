@@ -32,23 +32,23 @@ template<typename T>
 class DumperIOHelper::NodalField : public Field {
 public:
   /* -----------------------------------------------------------------------*/
-  class iterator : public iohelper::iterator< T, iterator, types::Vector<T> > {
+  class iterator : public iohelper::iterator< T, iterator, Vector<T> > {
   protected:
-    typedef typename Vector<T>::template const_iterator< types::Vector<T> > internal_iterator;
+    typedef typename Array<T>::template const_iterator< Vector<T> > internal_iterator;
   public:
     iterator(T * vect, UInt offset, UInt n, UInt stride) :
       internal_it(vect), offset(offset), n(n), stride(stride) {}
 
     bool operator!=(const iterator & it) const { return internal_it != it.internal_it; }
     iterator & operator++() { internal_it += offset; return *this; };
-    types::Vector<T> operator* (){ return types::Vector<T>(internal_it + stride, n); };
+    Vector<T> operator* (){ return Vector<T>(internal_it + stride, n); };
   private:
     T * internal_it;
     UInt offset, n, stride;
   };
 
   /* ---------------------------------------------------------------------- */
-  NodalField(const Vector<T> & field, UInt n = 0, UInt stride = 0) :
+  NodalField(const Array<T> & field, UInt n = 0, UInt stride = 0) :
     field(field), n(n), stride(stride) {
     if(n == 0) { this->n = field.getNbComponent() - stride; }
   }
@@ -80,7 +80,7 @@ public:
   iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
 private:
-  const Vector<T> & field;
+  const Array<T> & field;
   UInt n, stride;
 };
 

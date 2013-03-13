@@ -1789,7 +1789,7 @@ tree_type* construct_tree_bottom_up(model_type& model, leaf_data& map)
   mesh_type& mesh = model.getMesh();
   int dim = mesh.getSpatialDimension();
   
-  const Vector<Real> &position = model.getCurrentPosition();
+  const Array<Real> &position = model.getCurrentPosition();
   
   // iterate over elements of lower dimension
   typename mesh_type::type_iterator it = mesh.firstType(dim-1);
@@ -1800,7 +1800,7 @@ tree_type* construct_tree_bottom_up(model_type& model, leaf_data& map)
     
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes = mesh.getNbNodesPerElement(*it);
-    const Vector<UInt> &conn = mesh.getConnectivity(*it);
+    const Array<UInt> &conn = mesh.getConnectivity(*it);
     
     // add elements to corresponding surface
     for(UInt e = 0; e < nb_element; ++e) {
