@@ -1128,7 +1128,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
   Real energy = 0.;
   std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    energy += (*mat_it)->getEnergy(id);
+    energy += (*mat_it)->getEnergy(energy_id);
   }
 
   /// reduction sum over all processors
