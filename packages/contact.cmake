@@ -57,10 +57,18 @@ set(AKANTU_CONTACT_FILES
   )
 
 add_external_package_dependencies(contact cblas)
-add_external_package_dependencies(contact cpparray)
+add_internal_package_dependencies(contact cpparray)
+
+if(AKANTU_CONTACT)
+  list(APPEND AKANTU_BOOST_COMPONENTS
+    chrono
+    system
+    )
+endif()
+
 #add_internal_package_dependencies(contact optimization)
 
 add_optional_external_package(CBLAS "Use CBLAS library" OFF)
-add_optional_external_package(CppArray "Use cpp-array library" OFF)
+
 mark_as_advanced(AKANTU_USE_CBLAS)
 mark_as_advanced(AKANTU_USE_CPPARRAY)

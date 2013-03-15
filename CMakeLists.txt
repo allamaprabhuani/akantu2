@@ -101,7 +101,10 @@ include(CMakeDetermineCCompiler)
 #===============================================================================
 # Dependencies
 #===============================================================================
+set(AKANTU_BOOST_COMPONENT)
 add_all_packages(${PROJECT_SOURCE_DIR}/packages ${PROJECT_SOURCE_DIR}/src)
+
+include_boost()
 
 ## meta option \todo better way to do it when multiple package give enable the
 ## same feature

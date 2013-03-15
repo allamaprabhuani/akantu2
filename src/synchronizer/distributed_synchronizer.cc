@@ -201,7 +201,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       }
 
       /* -------->>>>-SIZE + CONNECTIVITY------------------------------------ */
-       /// send all connectivity and ghost information to all processors
+      /// send all connectivity and ghost information to all processors
       std::vector<CommunicationRequest *> requests;
       for (UInt p = 0; p < nb_proc; ++p) {
         if(p != root) {
