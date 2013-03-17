@@ -189,7 +189,7 @@ MeshIOMSH::MeshIOMSH() {
   _msh_to_akantu_element_types[_msh_hexahedron_27 ] = _not_defined;
   _msh_to_akantu_element_types[_msh_prism_18      ] = _not_defined;
   _msh_to_akantu_element_types[_msh_pyramid_14    ] = _not_defined;
-  _msh_to_akantu_element_types[_msh_point         ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_point         ] = _point_1;
   _msh_to_akantu_element_types[_msh_quadrangle_8  ] = _quadrangle_8;
 
   _akantu_to_msh_element_types[_not_defined     ] = _msh_not_defined;

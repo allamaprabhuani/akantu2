@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
   model.computeForcesFromFunction(func, akantu::_bft_stress);
 
   model.setBaseName("circle2");
-  model.addDumpFieldArray("displacement");
-  model.addDumpFieldArray("force"       );
-  model.addDumpFieldArray("residual"    );
+  model.addDumpFieldVector("displacement");
+  model.addDumpFieldVector("force"       );
+  model.addDumpFieldVector("residual"    );
   model.addDumpField("mass"        );
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");

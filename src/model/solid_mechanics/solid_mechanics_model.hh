@@ -366,7 +366,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpField(const std::string & field_id);
-  virtual void addDumpFieldArray(const std::string & field_id);
+  virtual void addDumpFieldVector(const std::string & field_id);
   virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */

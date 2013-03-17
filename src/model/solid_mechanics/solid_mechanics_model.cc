@@ -1317,7 +1317,7 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::addDumpFieldArray(const std::string & field_id) {
+void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
 #define ADD_FIELD(field, type)						\
   DumperIOHelper::Field * f =						\

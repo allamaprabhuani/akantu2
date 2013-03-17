@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
 
   model.setBaseName("intrinsic_quadrangle");
-  model.addDumpFieldArray("displacement");
+  model.addDumpFieldVector("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );

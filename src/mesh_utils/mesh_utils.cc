@@ -528,7 +528,7 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
 	 local_connectivities,
 	 nb_local_element * nb_nodes_per_element * sizeof(UInt));
 
-  Array<UInt> * ghost_conn = mesh.getConnectivityPointer(type,_ghost);
+  Array<UInt> * ghost_conn = mesh.getConnectivityPointer(type, _ghost);
   ghost_conn->resize(nb_ghost_element);
   memcpy(ghost_conn->values,
 	 local_connectivities + nb_local_element * nb_nodes_per_element,

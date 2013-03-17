@@ -62,7 +62,7 @@ public:
   virtual void write(const std::string & filename, const Mesh & mesh);
 
   /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                 */
+  /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
