@@ -204,7 +204,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
             if(spatial_dimension == 2) {
               cell_ids->push_back(cell_id);
             } else {
-              for (Int ld = first_cell_p[2]; fd <= last_cell_p[2] ; ++ld) {
+              for (Int ld = first_cell_p[2]; ld <= last_cell_p[2] ; ++ld) {
                 cell_id.setID(2, ld);
                 cell_ids->push_back(cell_id);
               }

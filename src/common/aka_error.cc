@@ -146,7 +146,7 @@ namespace debug {
 
   /* ------------------------------------------------------------------------ */
   void Debugger::throwException(const std::string & info) throw(akantu::debug::Exception) {
-    AKANTU_DEBUG(akantu::dblWarning, "!!! " << info);
+    AKANTU_DEBUG_( "###", akantu::dblWarning, info);
     ::akantu::debug::Exception ex(info, __FILE__, __LINE__ );
     throw ex;
   }

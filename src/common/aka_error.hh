@@ -159,7 +159,7 @@ namespace debug {
         double  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
         *(cout) << parallel_context
                 << "{" << (unsigned int)timestamp << "} "
-                << prefix << info
+                << prefix << " " << info
                 << std::endl;
       }
     }
@@ -224,7 +224,7 @@ namespace debug {
 /* -------------------------------------------------------------------------- */
 #else
 #define AKANTU_DEBUG(level, info)		\
-  AKANTU_DEBUG_("    ",level, info)
+  AKANTU_DEBUG_("   ",level, info)
 
 #define AKANTU_DEBUG_(pref, level, info)                                \
   do {									\
@@ -240,19 +240,19 @@ namespace debug {
   (::akantu::debug::debugger.testLevel(dblTest))
 
 #define AKANTU_DEBUG_IN()					\
-  AKANTU_DEBUG_("==> ", ::akantu::dblIn,      __func__ << "()")
+  AKANTU_DEBUG_("==>", ::akantu::dblIn,      __func__ << "()")
 
 #define AKANTU_DEBUG_OUT()					\
-  AKANTU_DEBUG_("<== ", ::akantu::dblOut,     __func__ << "()")
+  AKANTU_DEBUG_("<==", ::akantu::dblOut,     __func__ << "()")
 
 #define AKANTU_DEBUG_INFO(info)				\
-  AKANTU_DEBUG_("--- ", ::akantu::dblInfo,    info)
+  AKANTU_DEBUG_("---", ::akantu::dblInfo,    info)
 
 #define AKANTU_DEBUG_WARNING(info)			\
-  AKANTU_DEBUG_("/!\\ ", ::akantu::dblWarning, info)
+  AKANTU_DEBUG_("/!\\", ::akantu::dblWarning, info)
 
 #define AKANTU_DEBUG_TRACE(info)			\
-  AKANTU_DEBUG_(">>> ", ::akantu::dblTrace,   info)
+  AKANTU_DEBUG_(">>>", ::akantu::dblTrace,   info)
 
 #define AKANTU_DEBUG_ASSERT(test,info)					\
   do {									\
