@@ -317,7 +317,7 @@ public:
   /* ------------------------------------------------------------------------ */
   template <class Event>
   inline void sendEvent(Event & event) {
-    if(event.getList().getSize() != 0)
+    //    if(event.getList().getSize() != 0)
       EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
   }
 

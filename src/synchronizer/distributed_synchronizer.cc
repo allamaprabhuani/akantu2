@@ -734,7 +734,7 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
 			<< "false sent sizes declaration "
 			<< buffer.getPackedSize() << " != " << ssize);
     std::cerr << std::dec;
-    AKANTU_DEBUG_INFO("Posting send to proc " << p);
+    AKANTU_DEBUG_INFO("Posting send to proc " << p << " (tag: " << tag << " - " << ssize << " data to send)");
     communication.send_requests.push_back(static_communicator->asyncSend(buffer.storage(),
 									 ssize,
 									 p,
@@ -750,7 +750,7 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
     CommunicationBuffer & buffer = communication.recv_buffer[p];
     buffer.resize(rsize);
 
-    AKANTU_DEBUG_INFO("Posting receive from proc " << p << " (" << rsize << " data to receive)");
+    AKANTU_DEBUG_INFO("Posting receive from proc " << p << " (tag: " << tag << " - " << rsize << " data to receive)");
     communication.recv_requests.push_back(static_communicator->asyncReceive(buffer.storage(),
 									    rsize,
 									    p,

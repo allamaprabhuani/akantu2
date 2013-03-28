@@ -340,7 +340,8 @@ protected:
 				     Array<Element> * elements_per_mat) const;
 
   inline virtual void packBarycenter(CommunicationBuffer & buffer,
-				     const Array<Element> & elements) const;
+				     const Array<Element> & elements,
+                                     SynchronizationTag tag) const;
 
   inline virtual void unpackBarycenter(CommunicationBuffer & buffer,
 				       const Array<Element> & elements,

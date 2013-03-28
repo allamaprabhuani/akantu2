@@ -295,9 +295,10 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
                           << " (communication tag : " << Tag::genTag(my_rank, count, DATA_TAG) << ")");
 
         isend_requests.push_back(comm.asyncSend(info, 2, p, Tag::genTag(my_rank, count, SIZE_TAG)));
-        isend_requests.push_back(comm.asyncSend<UInt>(conn.storage(),
-                                                      info[1],
-                                                      p, Tag::genTag(my_rank, count, DATA_TAG)));
+        if(info[1])
+          isend_requests.push_back(comm.asyncSend<UInt>(conn.storage(),
+                                                        info[1],
+                                                        p, Tag::genTag(my_rank, count, DATA_TAG)));
 
         ++count;
       }
@@ -343,8 +344,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
 
           Array<UInt> tmp_conn(nb_element, nb_nodes_per_element);
           tmp_conn.clear();
-
-          comm.receive<UInt>(tmp_conn.storage(), info[1], p, Tag::genTag(p, count, DATA_TAG));
+          if(info[1])
+            comm.receive<UInt>(tmp_conn.storage(), info[1], p, Tag::genTag(p, count, DATA_TAG));
 
           AKANTU_DEBUG_INFO("I will receive " << nb_element << " elements of type " << ElementType(info[0])
                           << " from processor " << p
@@ -465,7 +466,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   comm.freeCommunicationRequest(isend_nodes_requests);
   delete [] ask_nodes_per_proc;
 
-  //  std::vector<CommunicationRequest *> irecv_nodes_requests;
   nodes.resize(nb_total_nodes_to_recv + nb_nodes);
   for (UInt p = 0; p < nb_proc; ++p) {
     if((p != my_rank) && (nb_nodes_to_recv[p] > 0)) {
@@ -482,9 +482,6 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   comm.waitAll(isend_coordinates_requests);
   comm.freeCommunicationRequest(isend_coordinates_requests);
   delete [] nodes_to_send_per_proc;
-
-  // comm.waitAll(irecv_nodes_requests);
-  // comm.freeCommunicationRequest(irecv_nodes_requests);
 
   mesh.sendEvent(new_nodes);
   mesh.sendEvent(new_elements);

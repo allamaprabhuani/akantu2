@@ -94,7 +94,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   updatePairList(quadrature_points_coordinates);
 
 #if not defined(AKANTU_NDEBUG)
-  neighbourhoodStatistics("material_non_local.stats");
+  if(AKANTU_DEBUG_TEST(dblDump))
+     neighbourhoodStatistics("material_non_local.stats");
 #endif
 
   cleanupExtraGhostElement(nb_ghost_protected);
@@ -213,11 +214,13 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
   SynchronizerRegistry & synch_registry = this->model->getSynchronizerRegistry();
   std::stringstream sstr; sstr << id << ":grid_synchronizer";
   grid_synchronizer = GridSynchronizer::createGridSynchronizer(mesh,
-							       *spatial_grid,
-							       sstr.str());
+ 							       *spatial_grid,
+ 							       sstr.str());
   synch_registry.registerSynchronizer(*grid_synchronizer, _gst_mnl_for_average);
   synch_registry.registerSynchronizer(*grid_synchronizer, _gst_mnl_weight);
   is_creating_grid = false;
+
+  MPI_Barrier(MPI_COMM_WORLD);
 
 #if not defined(AKANTU_NDEBUG)
   Mesh * mesh_tmp = NULL;

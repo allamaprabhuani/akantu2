@@ -129,14 +129,14 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & ele
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packBarycenter(CommunicationBuffer & buffer,
-						const Array<Element> & elements) const {
+						const Array<Element> & elements,
+                                                SynchronizationTag tag) const {
   Array<Element>::const_iterator<Element> bit  = elements.begin();
   Array<Element>::const_iterator<Element> bend = elements.end();
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
     Vector<Real> barycenter(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
-    //    std::cout << ">> " << element << " -> " << barycenter << std::endl;
     buffer << barycenter;
   }
 }
@@ -148,7 +148,7 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
-  packBarycenter(buffer, elements);
+  packBarycenter(buffer, elements, tag);
 #endif
 
   switch(tag) {
@@ -194,12 +194,12 @@ inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
 						  SynchronizationTag tag) {
   Array<Element>::const_iterator<Element> bit  = elements.begin();
   Array<Element>::const_iterator<Element> bend = elements.end();
+
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
     Vector<Real> barycenter_loc(spatial_dimension);
     mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
-    //    std::cout << "<< " << element << " -> " << barycenter_loc << std::endl;
     Vector<Real> barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;

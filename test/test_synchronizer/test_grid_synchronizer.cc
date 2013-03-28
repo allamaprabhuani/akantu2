@@ -40,7 +40,7 @@
 
 using namespace akantu;
 
-const UInt spatial_dimension = 2;
+const UInt spatial_dimension = 3;
 
 typedef std::map<std::pair<Element, Element>, Real> pair_list;
 
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
   DistributedSynchronizer * dist = NULL;
 
   if(prank == 0) {
-    mesh.read("triangle.msh");
+    mesh.read("bar3d.msh");
     MeshPartition * partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
     dist = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
