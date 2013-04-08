@@ -99,6 +99,9 @@ public:
 
   /// allocate all vectors
   void initArrays();
+  
+  /// allocate all vectors
+  void initArraysFiniteDeformation();
 
   /// initialize all internal arrays for materials
   void initMaterials();
@@ -169,7 +172,14 @@ public:
   /* Implicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
+  
+  /// Update the stresses for the computation of the residual of the Stiffness 
+  /// matrix in the case of finite deformation
+  void updateStresses();
+  
+  /// Update the cauchy stress in the case of finite deformation
+  void UpdateStressesAtT();
+    
   /// initialize the solver and the jacobian_matrix (called by initImplicit)
   void initSolver(SolverOptions & options = _solver_no_options);
 
@@ -188,6 +198,9 @@ public:
 
   /// solve Ku = f
   void solveStatic();
+  
+  /// solve Ku = f
+  void solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles);
 
   /// test the convergence (norm of increment)
   bool testConvergenceIncrement(Real tolerance);
@@ -390,6 +403,8 @@ public:
 
   /// get the SolidMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement,    *displacement,           Array<Real> &);
+  /// get the SolidMechanicsModel::displacement_t vector
+  AKANTU_GET_MACRO(Displacement_t, *displacement_t, Array<Real> &);
   /// get the SolidMechanicsModel::current_position vector \warn only consistent
   /// after a call to SolidMechanicsModel::updateCurrentPosition
   AKANTU_GET_MACRO(CurrentPosition, *current_position, const Array<Real> &);
@@ -496,6 +511,9 @@ protected:
 
   /// displacements array
   Array<Real> * displacement;
+  
+  /// displacements_t array
+  Array<Real> * displacement_t;
 
   /// lumped mass array
   Array<Real> * mass;

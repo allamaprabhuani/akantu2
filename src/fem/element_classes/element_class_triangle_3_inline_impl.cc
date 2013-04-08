@@ -106,8 +106,9 @@ template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const Matrix<Real> & J,
 								       Real & jac){
-  Vector<Real> vprod(J.rows());
-  vprod.crossProduct(J(0), J(1));
+  Vector<Real> vprod(J.cols());
+  Matrix<Real> Jt = J.transpose();
+  vprod.crossProduct(Jt(0), Jt(1));
   jac = vprod.norm();
 }
 

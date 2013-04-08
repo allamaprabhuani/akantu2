@@ -53,10 +53,10 @@ inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
 template<UInt dim>
 inline void Material::gradUToF(const Matrix<Real> & grad_u,
 			       Matrix<Real> & F) {
-  UInt size_F = F.size();
+  UInt size_F = F.rows();
 
-  AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim,
-		      "The dimension of the tensor F should be greater or equal to the dimension of the tensor grad_u.");
+  AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim*dim,
+            "The dimension of the tensor F should be greater or equal to the dimension of the tensor grad_u.");
 
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)

@@ -110,6 +110,7 @@ public:
 
   /// assemble the residual for this material
   virtual void assembleResidual(GhostType ghost_type);
+  virtual void UpdateStressesAtT(GhostType ghost_type){};
 
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
@@ -334,16 +335,21 @@ public:
   template<typename T>
   inline void setParam(const ID & param, T value);
 
+  bool isFiniteDeformation() const { return finite_deformation; }
+
 protected:
 
   bool isInit() const { return is_init; }
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// id of the material
   ID id;
+  
+  /// Finite deformation
+  bool finite_deformation;
 
   /// material name
   std::string name;
@@ -467,11 +473,12 @@ __END_AKANTU__
 // elastic materials
 #include "material_elastic.hh"
 #include "material_elastic_orthotropic.hh"
+#include "material_plastic.hh"
 
 #define AKANTU_CORE_MATERIAL_LIST					\
   ((2, (elastic            , MaterialElastic           )))              \
-  ((2, (elastic_orthotropic, MaterialElasticOrthotropic)))
-
+  ((2, (elastic_orthotropic, MaterialElasticOrthotropic)))              \
+  ((2, (plastic            , MaterialPlastic           )))  
 #if defined(AKANTU_EXTRA_MATERIALS)
 #  include "material_extra_includes.hh"
 #else

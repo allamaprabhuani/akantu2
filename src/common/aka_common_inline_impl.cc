@@ -96,6 +96,8 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
     case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
     case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
     case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;
+    case _gst_htm_phi                  : stream << "_gst_htm_phi"                 ; break;
+    case _gst_htm_gradient_phi         : stream << "_gst_htm_gradient_phi"        ; break;
     case _gst_mnl_for_average	       : stream << "_gst_mnl_for_average"	  ; break;
     case _gst_mnl_weight               : stream << "_gst_mnl_weight"	   	  ; break;
     case _gst_test                     : stream << "_gst_test"                    ; break;

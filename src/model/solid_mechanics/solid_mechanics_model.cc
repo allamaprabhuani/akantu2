@@ -97,6 +97,8 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   this->increment_acceleration = NULL;
 
   this->dof_synchronizer = NULL;
+  
+  this->displacement_t = NULL;
 
   materials.clear();
 
@@ -188,6 +190,14 @@ void SolidMechanicsModel::initFull(std::string material_file,
     readMaterials(material_file);
     initMaterials();
   }
+  std::vector<Material *>::iterator mat_it;
+    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+        Material & mat = **mat_it;
+        if (mat.isFiniteDeformation()) {
+            initArraysFiniteDeformation();
+            break;
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -237,6 +247,17 @@ void SolidMechanicsModel::initExplicit() {
   AKANTU_DEBUG_OUT();
 }
 
+void SolidMechanicsModel::initArraysFiniteDeformation() {
+    AKANTU_DEBUG_IN();
+
+    SolidMechanicsModel::setIncrementFlagOn();
+    UInt nb_nodes = mesh.getNbNodes();
+    std::stringstream sstr_disp_t;
+    sstr_disp_t << id << ":displacement_t";
+    displacement_t = &(alloc<Real > (sstr_disp_t.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
+    
+    AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -382,13 +403,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   // communicate the displacement
   // synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
 
-  std::vector<Material *>::iterator mat_it;
-
-  // call update residual on each local elements
-  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-    Material & mat = **mat_it;
-    mat.computeAllStresses(_not_ghost);
-  }
+  updateStresses();
 
 #ifdef AKANTU_DAMAGE_NON_LOCAL
   /* ------------------------------------------------------------------------ */
@@ -412,7 +427,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /* assembling the forces internal */
   // communicate the strain
   synch_registry->asynchronousSynchronize(_gst_smm_stress);
-
+  std::vector<Material *>::iterator mat_it;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.assembleResidual(_not_ghost);
@@ -431,6 +446,32 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updateStresses() {
+    AKANTU_DEBUG_IN();
+
+    std::vector<Material *>::iterator mat_it;
+    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+        Material & mat = **mat_it;
+        mat.computeAllStresses(_not_ghost);
+    }
+    AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+
+void SolidMechanicsModel::UpdateStressesAtT() {
+    AKANTU_DEBUG_IN();
+
+    std::vector<Material *>::iterator mat_it;
+    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+        Material & mat = **mat_it;
+        mat.UpdateStressesAtT(_not_ghost);
+    }
+
+    AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::computeStresses() {
   if (method == _explicit_dynamic) {
     // start synchronization
@@ -438,11 +479,7 @@ void SolidMechanicsModel::computeStresses() {
     synch_registry->waitEndSynchronize(_gst_smm_uv);
 
     // compute stresses on all local elements for each materials
-    std::vector<Material *>::iterator mat_it;
-    for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-      Material & mat = **mat_it;
-      mat.computeAllStresses(_not_ghost);
-    }
+    updateStresses();
 
 
     /* ------------------------------------------------------------------------ */
@@ -743,39 +780,124 @@ void SolidMechanicsModel::solveDynamic() {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::solveStatic() {
   AKANTU_DEBUG_IN();
+    UInt nb_nodes = displacement->getSize();
+    UInt nb_degree_of_freedom = displacement->getNbComponent();
 
-  AKANTU_DEBUG_INFO("Solving Ku = f");
-  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the stiffness matrix");
-
-  UInt nb_nodes = displacement->getSize();
-  UInt nb_degree_of_freedom = displacement->getNbComponent();
-
-  //  if(method != _static)
-  jacobian_matrix->copyContent(*stiffness_matrix);
-  jacobian_matrix->applyBoundary(*boundary);
-
-  solver->setRHS(*residual);
-
-  if(!increment) setIncrementFlagOn();
-
-  solver->solve(*increment);
-
-  Real * increment_val     = increment->values;
-  Real * displacement_val  = displacement->values;
-  bool * boundary_val      = boundary->values;
-
-  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
-    if(!(*boundary_val)) {
-      *displacement_val += *increment_val;
-    }
-
-    displacement_val++;
-    boundary_val++;
-    increment_val++;
-  }
+    Array<bool > * normal_boundary = new Array<bool > (nb_nodes, nb_degree_of_freedom, "normal_boundary");
+    normal_boundary->clear();
+    UInt n_angles;
+    if(nb_degree_of_freedom==2)
+        n_angles=1;
+    else if(nb_degree_of_freedom==3)
+        n_angles=3;
+    
+        
+    Array<Real > * Euler_angles = new Array<Real > (nb_nodes, n_angles, "Euler_angles");
+    Euler_angles->clear();
+    solveStatic(*normal_boundary, *Euler_angles);
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles) {
+    AKANTU_DEBUG_IN();
+
+    AKANTU_DEBUG_INFO("Solving Ku = f");
+    AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+            "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+    UInt nb_nodes = displacement->getSize();
+    UInt nb_degree_of_freedom = displacement->getNbComponent();
+
+    //  if(method != _static)
+    jacobian_matrix->copyContent(*stiffness_matrix);
+    
+    Array<Real> * residual_rotated = new Array<Real > (nb_nodes, nb_degree_of_freedom, "residual_rotated");
+    
+    //stiffness_matrix->saveMatrix("stiffness_original.out");
+    jacobian_matrix->applyBoundaryNormal(boundary_normal, EulerAngles, *residual, (*stiffness_matrix).getA(), *residual_rotated);
+    //jacobian_matrix->saveMatrix("stiffness_rotated_dir.out");
+
+    jacobian_matrix->applyBoundary(*boundary);
+
+    solver->setRHS(*residual_rotated);
+    
+    delete residual_rotated;
+
+    if (!increment) setIncrementFlagOn();
+
+    solver->solve(*increment);
+
+    Matrix<Real> T(nb_degree_of_freedom, nb_degree_of_freedom);
+    Matrix<Real> small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
+    Matrix<Real> T_small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
+    
+    Real * increment_val = increment->values;
+    Real * displacement_val = displacement->values;
+    bool * boundary_val = boundary->values;
+        
+    for (UInt n = 0; n < nb_nodes; ++n) {
+        bool constrain_ij = false;
+        for (UInt j = 0; j < nb_degree_of_freedom; j++) {
+            if (boundary_normal(n, j)) {
+                constrain_ij = true;
+                break;
+            }
+        }
+        if (constrain_ij) {
+            if (nb_degree_of_freedom == 2) {
+                Real Theta = EulerAngles(n, 0);
+                T(0, 0) = cos(Theta);
+                T(0, 1) = -sin(Theta);
+                T(1, 1) = cos(Theta);
+                T(1, 0) = sin(Theta);
+            } else if (nb_degree_of_freedom == 3) {
+                Real Theta_x = EulerAngles(n, 0);
+                Real Theta_y = EulerAngles(n, 1);
+                Real Theta_z = EulerAngles(n, 2);
+
+                T(0, 0) = cos(Theta_y) * cos(Theta_z);
+                T(0, 1) = -cos(Theta_y) * sin(Theta_z);
+                T(0, 2) = sin(Theta_y);
+                T(1, 0) = cos(Theta_x) * sin(Theta_z) + cos(Theta_z) * sin(Theta_x) * sin(Theta_y);
+                T(1, 1) = cos(Theta_x) * cos(Theta_z) - sin(Theta_x) * sin(Theta_y) * sin(Theta_z);
+                T(1, 2) = -cos(Theta_y) * sin(Theta_x);
+                T(2, 0) = sin(Theta_x) * sin(Theta_z) - cos(Theta_x) * cos(Theta_z) * sin(Theta_y);
+                T(2, 1) = cos(Theta_z) * sin(Theta_x) + cos(Theta_x) * sin(Theta_y) * sin(Theta_z);
+                T(2, 2) = cos(Theta_x) * cos(Theta_y);
+            }
+            small_rhs.clear();
+            T_small_rhs.clear();
+            for (UInt j = 0; j < nb_degree_of_freedom; j++)
+                if(!(boundary_normal(n,j)) )
+                    small_rhs(j,j)=increment_val[j];
+            
+            T_small_rhs.mul<true, false>(T,small_rhs);
+            
+            for (UInt j = 0; j < nb_degree_of_freedom; j++){
+                if(!(boundary_normal(n,j))){
+                    for (UInt k = 0; k < nb_degree_of_freedom; k++)
+                      displacement_val[k]+=T_small_rhs(k,j);
+                }
+            }
+            
+            
+            displacement_val += nb_degree_of_freedom;
+            boundary_val += nb_degree_of_freedom;
+            increment_val += nb_degree_of_freedom;
+
+        } else {
+            for (UInt j = 0; j < nb_degree_of_freedom; j++, ++displacement_val, ++increment_val, ++boundary_val) {
+                if (!(*boundary_val)) {
+                    *displacement_val += *increment_val;
+                }
+            }
+        }
+
+    }
+
+    AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1290,6 +1412,7 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
+  else if(field_id == "increment"    ) { ADD_FIELD(increment    , Real); }
   else if(field_id == "partitions"  ) {
     addDumpFieldToDumper(field_id,
 			 new DumperIOHelper::ElementPartitionField(mesh,

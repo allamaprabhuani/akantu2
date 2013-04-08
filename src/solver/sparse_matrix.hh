@@ -102,6 +102,9 @@ public:
 
   /// modify the matrix to "remove" the blocked dof
   void applyBoundary(const Array<bool> & boundary);
+  
+  /// modify the matrix to "remove" the blocked dof
+  void applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real> & EulerAngles, Array<Real> & rhs, const Array<Real> & matrix, Array<Real> & rhs_rotated);
 
   /// modify the matrix to "remove" the blocked dof
   void removeBoundary(const Array<bool> & boundary);

@@ -55,6 +55,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   interpolation_points_matrices("interpolation points matrices", id),
   is_init(false) {
   AKANTU_DEBUG_IN();
+  
+  finite_deformation=false;
 
   registerParam("rho",  rho,                 0., ParamAccessType(_pat_parsable | _pat_modifiable), "Density");
   registerParam("id",   this->id,                _pat_readable);

@@ -191,7 +191,7 @@ public:
   /* ---------------------------------------------------------------------- */
   inline Vector & crossProduct(const Vector & v1, const Vector & v2) {
     AKANTU_DEBUG_ASSERT(n == 3,
-			"crossProduct is only defined in 3D");
+			"crossProduct is only defined in 3D (n=" << n << ")");
 
     AKANTU_DEBUG_ASSERT(n == v1.n && n == v2.n,
 			"crossProduct is not a valid operation non matching size vectors");
@@ -494,10 +494,10 @@ public:
   }
   /* ---------------------------------------------------------------------- */
   inline Matrix transpose() const {
-    Matrix tmp(m, n);
-    for (UInt i = 0; i < n; ++i) {
-      for (UInt j = 0; j < m; ++j) {
-	tmp(j,i) = operator()(i,j);
+    Matrix tmp(n, m);
+    for (UInt i = 0; i < m; ++i) {
+      for (UInt j = 0; j < n; ++j) {
+	tmp(j,i) = operator()(i, j);
       }
     }
     return tmp;

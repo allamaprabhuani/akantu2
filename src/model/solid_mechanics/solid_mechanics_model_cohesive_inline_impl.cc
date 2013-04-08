@@ -109,7 +109,7 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
   SolidMechanicsModel::packElementData(buffer, elements_regular, tag);
 
 #ifndef AKANTU_NDEBUG
-  packBarycenter(buffer, elements_cohesive);
+  packBarycenter(buffer, elements_cohesive, tag);
 #endif
 
   switch(tag) {

@@ -295,6 +295,11 @@ enum SynchronizationTag {
   _gst_htm_capacity,     //< synchronization of the nodal heat capacity
   _gst_htm_temperature,  //< synchronization of the nodal temperature
   _gst_htm_gradient_temperature,  //< synchronization of the element gradient temperature
+  //--- LevelSet tags ---
+  /// synchronization of the nodal level set value phi
+  _gst_htm_phi,
+  /// synchronization of the element gradient phi
+  _gst_htm_gradient_phi,
   //--- Material non local ---
   _gst_mnl_for_average,  //< synchronization of data to average in non local material
   _gst_mnl_weight,       //< synchronization of data for the weight computations
