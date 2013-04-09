@@ -29,10 +29,10 @@
 
 /* -------------------------------------------------------------------------- */
 
-void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
-						   Array<Real> & u,
-						   Array<Real> & u_dot,
-						   Array<bool> & boundary) {
+inline void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
+							  Array<Real> & u,
+							  Array<Real> & u_dot,
+							  Array<bool> & boundary) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -55,7 +55,7 @@ void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
 }
 
 /* -------------------------------------------------------------------------- */
-void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
+inline void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
 						       Array<Real> & u,
 						       Array<Real> & u_dot,
 						       Array<bool> & boundary,
@@ -72,7 +72,7 @@ void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
 }
 
 /* -------------------------------------------------------------------------- */
-void GeneralizedTrapezoidal::integrationSchemeCorrTempRate(Real delta_t,
+inline void GeneralizedTrapezoidal::integrationSchemeCorrTempRate(Real delta_t,
 							   Array<Real> & u,
 							   Array<Real> & u_dot,
 							   Array<bool> & boundary,
@@ -90,29 +90,29 @@ void GeneralizedTrapezoidal::integrationSchemeCorrTempRate(Real delta_t,
 
 /* -------------------------------------------------------------------------- */
 template<>
-Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_temperature_corrector>(__attribute__ ((unused)) Real delta_t) {
+inline Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_temperature_corrector>(__attribute__ ((unused)) Real delta_t) {
   return 1.;
 }
 
 template<>
-Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoidal::_temperature_corrector>(Real delta_t) {
+inline Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoidal::_temperature_corrector>(Real delta_t) {
   return 1./(alpha * delta_t);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
-Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_temperature_rate_corrector>(Real delta_t) {
+inline Real GeneralizedTrapezoidal::getTemperatureCoefficient<GeneralizedTrapezoidal::_temperature_rate_corrector>(Real delta_t) {
   return alpha * delta_t;
 }
 
 template<>
-Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoidal::_temperature_rate_corrector>(__attribute__ ((unused)) Real delta_t) {
+inline Real GeneralizedTrapezoidal::getTemperatureRateCoefficient<GeneralizedTrapezoidal::_temperature_rate_corrector>(__attribute__ ((unused)) Real delta_t) {
   return 1.;
 }
 
 /* -------------------------------------------------------------------------- */
 template<GeneralizedTrapezoidal::IntegrationSchemeCorrectorType type>
-void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
+inline void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
 						   Array<Real> & u,
 						   Array<Real> & u_dot,
 						   Array<bool> & boundary,

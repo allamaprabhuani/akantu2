@@ -40,6 +40,7 @@
 #include "solver_mumps.hh"
 #include "contact/regular_grid_neighbor_structure.hh"
 #endif
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 
