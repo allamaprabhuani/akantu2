@@ -1,7 +1,0 @@
-material plastic [
-	 name = dummy
-	 rho = 7750 # rho * A * 2, with rho = 7750
-	 E   = 200000000000 # E*A, with E = 200000000000Pa, A = pi*0.05^2/4
-	 nu  = 0.25    # poisson's ratio
-]
-
