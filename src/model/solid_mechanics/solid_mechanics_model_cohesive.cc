@@ -516,11 +516,6 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
 						  __attribute__((unused)) const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh << std::endl;
-  std::cout << mesh_facets << std::endl;
-  debug::setDebugLevel(dblInfo);
-
   /// update model data for new cohesive elements
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
