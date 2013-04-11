@@ -1,9 +1,9 @@
 /**
- * @file   test_cohesive_parallel_intrinsic.cc
+ * @file   test_cohesive_parallel.cc
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @date   Wed Nov 28 16:59:11 2012
  *
- * @brief  parallel test for intrinsic cohesive elements
+ * @brief  parallel test for cohesive elements
  *
  * @section LICENSE
  *
@@ -41,14 +41,12 @@ int main(int argc, char *argv[]) {
   initialize(argc, argv);
   debug::setDebugLevel(dblInfo);
 
-  const UInt max_steps = 350;
+  const UInt max_steps = 1000;
 
   UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
 
-  ElementType type = _triangle_6;
-  ElementType type_facet = Mesh::getFacetType(type);
+  ElementType type = _triangle_3;
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -59,26 +57,6 @@ int main(int argc, char *argv[]) {
     // Read the mesh
     mesh.read("mesh.msh");
 
-    /// insert cohesive elements
-    MeshUtils::buildAllFacets(mesh, mesh_facets);
-
-    UInt nb_facet = mesh_facets.getNbElement(type_facet);
-
-    Array<bool> facet_insertion(nb_facet);
-    facet_insertion.clear();
-    Real * bary_facet = new Real[spatial_dimension];
-    for (UInt f = 0; f < nb_facet; ++f) {
-      mesh_facets.getBarycenter(f, type_facet, bary_facet);
-      if (bary_facet[0] > -0.26 && bary_facet[0] < -0.24) facet_insertion(f) = true;
-    }
-    delete[] bary_facet;
-
-    MeshUtils::insertIntrinsicCohesiveElements(mesh,
-    					       mesh_facets,
-    					       type_facet,
-    					       facet_insertion);
-
-
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
     debug::setDebugLevel(dblDump);
@@ -88,59 +66,109 @@ int main(int argc, char *argv[]) {
 
   SolidMechanicsModelCohesive model(mesh);
 
-  model.initParallel(partition);
+  model.initParallel(partition, NULL, true);
 
   debug::setDebugLevel(dblDump);
   std::cout << mesh << std::endl;
   debug::setDebugLevel(dblInfo);
 
 
-  model.initFull("material.dat");
+  model.initFull("material.dat", _explicit_dynamic, true);
 
-  Real time_step = model.getStableTimeStep()*0.8;
+  /* ------------------------------------------------------------------------ */
+  /* Facet part                                                               */
+  /* ------------------------------------------------------------------------ */
+
+  //  std::cout << mesh << std::endl;
+
+  const Mesh & mesh_facets = model.getMeshFacets();
+
+  const ElementType type_facet = mesh.getFacetType(type);
+  UInt nb_facet = mesh_facets.getNbElement(type_facet);
+  Array<Real> & position = mesh.getNodes();
+
+  Array<Real> & sigma_lim = model.getSigmaLimit();
+  Array<bool> & facet_check = model.getFacetsCheck();
+
+  Real * bary_facet = new Real[spatial_dimension];
+  for (UInt f = 0; f < nb_facet; ++f) {
+    mesh_facets.getBarycenter(f, type_facet, bary_facet);
+    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20) {
+      sigma_lim(f) = 100;
+      facet_check(f) = true;
+      std::cout << f << std::endl;
+    }
+    else {
+      sigma_lim(f) = 1e10;
+      facet_check(f) = false;
+    }
+  }
+  delete[] bary_facet;
+
+
+  /* ------------------------------------------------------------------------ */
+  /* End of facet part                                                        */
+  /* ------------------------------------------------------------------------ */
+
+  debug::setDebugLevel(dblDump);
+  std::cout << mesh_facets << std::endl;
+  debug::setDebugLevel(dblInfo);
+
+  Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
 
   model.assembleMassLumped();
 
 
-  Array<Real> & position = mesh.getNodes();
   Array<Real> & velocity = model.getVelocity();
   Array<bool> & boundary = model.getBoundary();
-  //  Array<Real> & displacement = model.getDisplacement();
+  Array<Real> & displacement = model.getDisplacement();
   //  const Array<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
-  Real epsilon = std::numeric_limits<Real>::epsilon();
 
+  /// boundary conditions
   for (UInt n = 0; n < nb_nodes; ++n) {
-    if (std::abs(position(n, 0) - 1.) < epsilon)
+    if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+      boundary(n, 1) = true;
+
+    if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
       boundary(n, 0) = true;
   }
 
   model.synchronizeBoundaries();
   model.updateResidual();
 
-  model.setBaseName("intrinsic_parallel");
+  model.setBaseName("extrinsic_parallel");
   model.addDumpFieldVector("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );
   model.addDumpField("stress");
   model.addDumpField("strain");
-  //model.addDumpField("partitions");
+  model.addDumpField("partitions");
   model.addDumpField("force");
-  model.getDumper().getDumper().setMode(iohelper::BASE64);
+  //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
 
   /// initial conditions
-  Real loading_rate = .2;
+  Real loading_rate = 0.5;
+  Real disp_update = loading_rate * time_step;
   for (UInt n = 0; n < nb_nodes; ++n) {
-    velocity(n, 0) = loading_rate * position(n, 0);
+    velocity(n, 1) = loading_rate * position(n, 1);
   }
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
+
+    /// update displacement on extreme nodes
+    for (UInt n = 0; n < nb_nodes; ++n) {
+      if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+	displacement(n, 1) += disp_update * position(n, 1);
+    }
+
+    model.checkCohesiveStress();
 
     model.explicitPred();
     model.updateResidual();
@@ -149,7 +177,7 @@ int main(int argc, char *argv[]) {
 
     if(s % 1 == 0) {
       model.dump();
-      if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
     // // update displacement
@@ -175,19 +203,17 @@ int main(int argc, char *argv[]) {
 
   Real Ed = model.getEnergy("dissipated");
 
-  Real Edt = 2 * sqrt(2);
+  Real Edt = 200 * sqrt(2);
 
 
-  if(prank == 0) {
-    std::cout << Ed << " " << Edt << std::endl;
+  std::cout << Ed << " " << Edt << std::endl;
 
-    if (std::abs((Ed - Edt) / Edt) > 0.01 || std::isnan(Ed)) {
-      std::cout << "The dissipated energy is incorrect" << std::endl;
-      return EXIT_FAILURE;
-    }
+  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
+    std::cout << "The dissipated energy is incorrect" << std::endl;
+    return EXIT_FAILURE;
   }
 
+
   finalize();
-  if(prank == 0) std::cout << "OK: Test passed!" << std::endl;
   return EXIT_SUCCESS;
 }

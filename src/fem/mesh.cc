@@ -66,7 +66,6 @@ Mesh::Mesh(UInt spatial_dimension,
   surface_id("surface_id", id),
   element_to_subelement("element_to_subelement", id),
   subelement_to_element("subelement_to_element", id),
-  facets_to_cohesive_el(0, 2, "facets_to_cohesive_el"),
   uint_data("by_element_uint_data", id) {
   AKANTU_DEBUG_IN();
 
@@ -276,11 +275,11 @@ void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
-				   UInt nb_component,
-				   UInt dim,
-				   const bool & flag_nb_node_per_elem_multiply,
-				   ElementKind element_kind,
-				   bool size_to_nb_element) const {
+				  UInt nb_component,
+				  UInt dim,
+				  const bool & flag_nb_node_per_elem_multiply,
+				  ElementKind element_kind,
+				  bool size_to_nb_element) const {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -293,7 +292,7 @@ void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
       if (flag_nb_node_per_elem_multiply) nb_component *= Mesh::getNbNodesPerElement(*it);
       UInt size = 0;
       if (size_to_nb_element) size = this->getNbElement(type, gt);
-      vect.alloc(size, nb_component, type);
+      vect.alloc(size, nb_component, type, gt);
     }
   }
 
@@ -307,32 +306,32 @@ void Mesh::initNormals() {
 
 /* -------------------------------------------------------------------------- */
 template void Mesh::initByElementTypeArray<Real>(ByElementTypeArray<Real> & vect,
-						  UInt nb_component,
-						  UInt dim,
-						  const bool & flag_nb_elem_multiply,
-						  ElementKind element_kind,
-						  bool size_to_nb_element) const;
-
-template void Mesh::initByElementTypeArray<Int>(ByElementTypeArray<Int> & vect,
 						 UInt nb_component,
 						 UInt dim,
 						 const bool & flag_nb_elem_multiply,
 						 ElementKind element_kind,
 						 bool size_to_nb_element) const;
 
+template void Mesh::initByElementTypeArray<Int>(ByElementTypeArray<Int> & vect,
+						UInt nb_component,
+						UInt dim,
+						const bool & flag_nb_elem_multiply,
+						ElementKind element_kind,
+						bool size_to_nb_element) const;
+
 template void Mesh::initByElementTypeArray<UInt>(ByElementTypeArray<UInt> & vect,
-						  UInt nb_component,
-						  UInt dim,
-						  const bool & flag_nb_elem_multiply,
-						  ElementKind element_kind,
-						  bool size_to_nb_element) const;
+						 UInt nb_component,
+						 UInt dim,
+						 const bool & flag_nb_elem_multiply,
+						 ElementKind element_kind,
+						 bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeArray<bool>(ByElementTypeArray<bool> & vect,
-						  UInt nb_component,
-						  UInt dim,
-						  const bool & flag_nb_elem_multiply,
-						  ElementKind element_kind,
-						  bool size_to_nb_element) const;
+						 UInt nb_component,
+						 UInt dim,
+						 const bool & flag_nb_elem_multiply,
+						 ElementKind element_kind,
+						 bool size_to_nb_element) const;
 
 
 __END_AKANTU__

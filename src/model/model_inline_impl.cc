@@ -246,7 +246,7 @@ inline void Model::packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to
     }
 
     Vector<T> data(vect->storage() + el.element * nb_component * nb_quad_per_elem,
-			  nb_component * nb_quad_per_elem);
+		   nb_component * nb_quad_per_elem);
     if(pack_helper)
       buffer << data;
     else
@@ -297,7 +297,7 @@ inline void Model::packUnpackNodalDataHelper(Array<T> & data,
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
       Vector<T> data_vect(data.storage() + offset_conn * nb_component,
-				 nb_component);
+			  nb_component);
 
       if(pack_helper)
 	buffer << data_vect;

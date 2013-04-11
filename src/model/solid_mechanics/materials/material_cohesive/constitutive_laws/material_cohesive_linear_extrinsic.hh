@@ -74,7 +74,8 @@ public:
 
   /// compute stress norms on quadrature points for each facet for stress check
   virtual void computeStressNorms(const Array<Real> & facet_stress,
-				  Array<Real> & stress_check);
+				  Array<Real> & stress_check,
+				  ElementType type_facet);
 
 protected:
 

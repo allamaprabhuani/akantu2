@@ -12,4 +12,6 @@ Line Loop(5) = {1, 2, 3, 4};
 Plane Surface(6) = {5};
 Physical Surface(7) = {6};
 
-Transfinite Line {1, 2, 3, 4} = 3;
+Transfinite Line {1, 3} = 3;
+Transfinite Line {2, 4} = 3;
+Transfinite Surface "*";

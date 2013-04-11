@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 200;
+  ElementType type_facet = _segment_2;
 
   Mesh mesh(spatial_dimension);
   mesh.read("mesh.msh");
@@ -61,7 +62,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _explicit_dynamic, _extrinsic);
+  model.initFull("material.dat", _explicit_dynamic, true);
 
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
@@ -111,8 +112,7 @@ int main(int argc, char *argv[]) {
   // model.addDumpField("strain");
   // model.dump();
 
-  ElementType type_facet = model.getFacetType();
-  ElementType type_cohesive = model.getCohesiveElementType();
+  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
   UInt cohesive_index = model.getCohesiveIndex();
 
   UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);

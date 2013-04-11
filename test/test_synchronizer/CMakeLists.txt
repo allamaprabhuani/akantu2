@@ -32,6 +32,9 @@
 add_mesh(test_synchronizer_communication_mesh
   triangle.geo 2 1)
 
+add_mesh(test_facet_synchronizer_mesh
+  facet.geo 2 1)
+
 register_test(test_synchronizer_communication
   SOURCES test_synchronizer_communication.cc
   DEPENDENCIES test_synchronizer_communication_mesh
@@ -48,3 +51,8 @@ register_test(test_grid_synchronizer
 register_test(test_dof_synchronizer
   SOURCES test_dof_synchronizer.cc
   FILES_TO_COPY bar.msh)
+
+register_test(test_facet_synchronizer
+  SOURCES test_facet_synchronizer.cc
+  DEPENDENCIES test_facet_synchronizer_mesh
+  )

@@ -3,9 +3,9 @@
 #
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
-# @date   Tue May 08 13:01:18 2012
+# @date   Thu Apr 04 17:04:18 2013
 #
-# @brief  configuration for cohesive elements tests
+# @brief  configuration for ghost cohesive element insertion test
 #
 # @section LICENSE
 #
@@ -28,17 +28,12 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+add_mesh(test_cohesive_ghost_element_insertion_mesh mesh.geo 2 1)
 
-add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
-add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
-add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
-add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
-add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl"
-  PACKAGE implicit)
-add_akantu_test(test_cohesive_parallel_intrinsic "test_cohesive_parallel_intrinsic"
-  PACKAGE parallel)
-add_akantu_test(test_cohesive_ghost_element_insertion "test_cohesive_ghost_element_insertion"
-  PACKAGE parallel)
-add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic"
-  PACKAGE parallel)
-#===============================================================================
+if(AKANTU_PARALLEL)
+  register_test(test_cohesive_ghost_element_insertion
+    SOURCES test_cohesive_ghost_element_insertion.cc
+    DEPENDENCIES test_cohesive_ghost_element_insertion_mesh
+    PACKAGE cohesive_element
+    DIRECTORIES_TO_CREATE paraview)
+endif()

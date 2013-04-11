@@ -128,7 +128,8 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & ele
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::packBarycenter(CommunicationBuffer & buffer,
+inline void SolidMechanicsModel::packBarycenter(const Mesh & mesh,
+						CommunicationBuffer & buffer,
 						const Array<Element> & elements,
                                                 SynchronizationTag tag) const {
   Array<Element>::const_iterator<Element> bit  = elements.begin();
@@ -148,7 +149,7 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
-  packBarycenter(buffer, elements, tag);
+  packBarycenter(mesh, buffer, elements, tag);
 #endif
 
   switch(tag) {
@@ -189,7 +190,8 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
+inline void SolidMechanicsModel::unpackBarycenter(const Mesh & mesh,
+						  CommunicationBuffer & buffer,
 						  const Array<Element> & elements,
 						  SynchronizationTag tag) {
   Array<Element>::const_iterator<Element> bit  = elements.begin();
@@ -204,13 +206,14 @@ inline void SolidMechanicsModel::unpackBarycenter(CommunicationBuffer & buffer,
     buffer >> barycenter;
     Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if(!(std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i)) <= tolerance))
-	AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
-			   << element
-			   << "(barycenter[" << i << "] = " << barycenter_loc(i)
-			   << " and buffer[" << i << "] = " << barycenter(i) << ") ["
-			   << std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i))
-			   << "] - tag: " << tag);
+      if((std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i)) <= tolerance) ||
+	 (barycenter_loc(i) == 0 && std::abs(barycenter(i)) <= tolerance)) continue;
+      AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
+			 << element
+			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			 << " and buffer[" << i << "] = " << barycenter(i) << ") ["
+			 << std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i))
+			 << "] - tag: " << tag);
     }
   }
 }
@@ -222,7 +225,7 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
-  unpackBarycenter(buffer, elements, tag);
+  unpackBarycenter(mesh, buffer, elements, tag);
 #endif
 
   switch(tag) {

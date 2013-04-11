@@ -61,6 +61,10 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_extrinsic.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear_exponential_extrinsic.hh
+
+  synchronizer/facet_synchronizer.cc
+  synchronizer/facet_synchronizer.hh
+  synchronizer/facet_synchronizer_inline_impl.cc
   )
 
 

@@ -34,6 +34,7 @@
 #include "grid_synchronizer.hh"
 #include "mesh_partition.hh"
 #include "synchronizer_registry.hh"
+#include "test_data_accessor.hh"
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
 #endif //AKANTU_USE_IOHELPER
@@ -120,92 +121,6 @@ static void updatePairList(const ByElementTypeReal & barycenter,
   AKANTU_DEBUG_OUT();
 }
 
-class TestAccessor : public DataAccessor {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
-  TestAccessor(const Mesh & mesh, const ByElementTypeReal & barycenters);
-
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Barycenter, barycenters, Real);
-
-  /* ------------------------------------------------------------------------ */
-  /* Ghost Synchronizer inherited members                                     */
-  /* ------------------------------------------------------------------------ */
-protected:
-  virtual UInt getNbDataForElements(const Array<Element> & elements,
-                                    SynchronizationTag tag) const;
-  virtual void packElementData(CommunicationBuffer & buffer,
-			const Array<Element> & elements,
-			SynchronizationTag tag) const;
-  virtual void unpackElementData(CommunicationBuffer & buffer,
-				 const Array<Element> & elements,
-				 SynchronizationTag tag);
-
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-protected:
-  const ByElementTypeReal & barycenters;
-  const Mesh & mesh;
-};
-
-
-/* -------------------------------------------------------------------------- */
-/* TestSynchronizer implementation                                            */
-/* -------------------------------------------------------------------------- */
-TestAccessor::TestAccessor(const Mesh & mesh,
-                           const ByElementTypeReal & barycenters) : barycenters(barycenters), mesh(mesh) { }
-
-UInt TestAccessor::getNbDataForElements(const Array<Element> & elements,
-                                        __attribute__ ((unused)) SynchronizationTag tag) const {
-  if(elements.getSize())
-    return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
-  else
-    return 0;
-}
-
-void TestAccessor::packElementData(CommunicationBuffer & buffer,
-				   const Array<Element> & elements,
-				   __attribute__ ((unused)) SynchronizationTag tag) const {
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  Array<Element>::const_iterator<Element> bit  = elements.begin();
-  Array<Element>::const_iterator<Element> bend = elements.end();
-  for (; bit != bend; ++bit) {
-    const Element & element = *bit;
-
-    Vector<Real> bary(this->barycenters(element.type, element.ghost_type).storage()
-                        + element.element * spatial_dimension,
-                        spatial_dimension);
-    buffer << bary;
-  }
-}
-
-void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
-				     const Array<Element> & elements,
-				     __attribute__ ((unused)) SynchronizationTag tag) {
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  Array<Element>::const_iterator<Element> bit  = elements.begin();
-  Array<Element>::const_iterator<Element> bend = elements.end();
-  for (; bit != bend; ++bit) {
-    const Element & element = *bit;
-
-    Vector<Real> barycenter_loc(this->barycenters(element.type,element.ghost_type).storage()
-                                  + element.element * spatial_dimension,
-                                  spatial_dimension);
-
-    Vector<Real> bary(spatial_dimension);
-    buffer >> bary;
-    Real tolerance = 1e-15;
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      if(!(std::abs(bary(i) - barycenter_loc(i)) <= tolerance))
-        AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
-                           << element
-                           << "(barycenter[" << i << "] = " << barycenter_loc(i)
-                           << " and buffer[" << i << "] = " << bary(i) << ") - tag: " << tag);
-    }
-  }
-}
 
 /* -------------------------------------------------------------------------- */
 /* Main                                                                       */

@@ -322,7 +322,7 @@ public:
   inline const_reference operator()(UInt i, UInt j = 0) const;
 
   /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                 */
+  /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   UInt getSize() const{ return this->size; };
@@ -344,7 +344,7 @@ __BEGIN_AKANTU__
 #include "aka_vector_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
-/* Inline Functions Array<T, is_scal>                                                 */
+/* Inline Functions Array<T, is_scal>                                         */
 /* -------------------------------------------------------------------------- */
 template <typename T, bool is_scal>
 inline std::ostream & operator<<(std::ostream & stream, const Array<T, is_scal> & _this)
@@ -354,7 +354,7 @@ inline std::ostream & operator<<(std::ostream & stream, const Array<T, is_scal> 
 }
 
 /* -------------------------------------------------------------------------- */
-/* Inline Functions ArrayBase                                                */
+/* Inline Functions ArrayBase                                                 */
 /* -------------------------------------------------------------------------- */
 inline std::ostream & operator<<(std::ostream & stream, const ArrayBase & _this)
 {

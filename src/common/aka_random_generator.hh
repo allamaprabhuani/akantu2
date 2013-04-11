@@ -43,7 +43,7 @@ class RandomGenerator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   RandomGenerator(long int seed = 0) : seed(seed) {
     if(seed == 0) this->seed = time(NULL) * (StaticCommunicator::getStaticCommunicator().whoAmI() + 1);
     srand48(seed);
@@ -52,7 +52,7 @@ public:
   virtual ~RandomGenerator() {}
 
 
-  virtual void generate(const T & avg, Array<T> & vect) = 0;
+  virtual void generate(Array<T> & vect) = 0;
   virtual void setParams(std::string value) = 0;
 
   void setSeed(long int seed) {
@@ -66,7 +66,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
     std::string space;
@@ -74,12 +74,12 @@ public:
 
     stream << space << "seed=" << seed;
   }
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -109,46 +109,48 @@ class UniformRandomGenerator :public RandomGenerator<T> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   UniformRandomGenerator(long int seed = 0) : RandomGenerator<T>(seed) { };
 
   virtual ~UniformRandomGenerator() {};
 
-  void generate(const T & ref, Array<T> & vect) {
+  void generate(Array<T> & vect) {
     UInt n = vect.getSize();
     for (UInt i = 0; i < n; ++i)
-      vect(i) = ref * ((1. - random_factor_min) + (random_factor_min + random_factor_max) * this->rand());
+      vect(i) = base + increment * this->rand();
   }
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   virtual void setParams(std::string value) {
     std::stringstream sstr(value);
-    sstr >> random_factor_min;
-    sstr >> random_factor_max;
+    Real top;
+    sstr >> base;
+    sstr >> top;
+    increment = top - base;
   }
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
     stream << "Uniform [ ";
     RandomGenerator<T>::printself(stream, indent);
-    stream << ", min=" << 100*random_factor_min << "%, max=" << 100*random_factor_max << "%]";
+    stream << ", min=" << base << ", max=" << base+increment << "]";
   };
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  T random_factor_min;
-  T random_factor_max;
+  T base;
+  T increment;
 };
 
 
@@ -161,7 +163,7 @@ class WeibullRandomGenerator :public RandomGenerator<T> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   WeibullRandomGenerator(long int seed = 0) : RandomGenerator<T>(seed) { };
 
   virtual ~WeibullRandomGenerator() {};
@@ -171,12 +173,12 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  void generate(const T & ref, Array<T> & vect) {
+  void generate(Array<T> & vect) {
     UInt n = vect.getSize();
     T e = T(1) / m;
     for (UInt i = 0; i < n; ++i) {
       T r = rand();
-      vect(i) = ref + lambda * std::pow(- std::log(r), e);
+      vect(i) = minimum + lambda * std::pow(- std::log(r), e);
     }
   }
 
@@ -184,22 +186,26 @@ public:
     std::stringstream sstr(value);
     sstr >> m;
     sstr >> lambda;
+    sstr >> minimum;
   }
-  
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
     stream << "Weibull [ ";
     RandomGenerator<T>::printself(stream, indent);
-    stream << ", scale=" << m << ", shape=" << lambda << "]";
+    stream << ", scale=" << m
+	   << ", shape=" << lambda
+	   << ", minimum=" << minimum << "]";
   }
-  
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   AKANTU_SET_MACRO(Shape, m, Real);
   AKANTU_SET_MACRO(Scale, lambda, Real);
+  AKANTU_SET_MACRO(Minimum, minimum, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -209,6 +215,8 @@ private:
   T m;
   /// scale parameter
   T lambda;
+  /// minimum value
+  T minimum;
 };
 
 

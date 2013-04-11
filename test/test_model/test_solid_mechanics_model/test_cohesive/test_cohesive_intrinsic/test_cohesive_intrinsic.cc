@@ -82,11 +82,12 @@ int main(int argc, char *argv[]) {
   //  Array<Real> & displacement = model.getDisplacement();
   //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
 
-  Array<UInt> facet_insertion;
+  Array<bool> facet_insertion(nb_facet);
+  facet_insertion.clear();
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[0] > -0.26 && bary_facet[0] < -0.24) facet_insertion.push_back(f);
+    if (bary_facet[0] > -0.26 && bary_facet[0] < -0.24) facet_insertion(f) = true;
   }
   delete[] bary_facet;
 

@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _explicit_dynamic, _extrinsic);
+  model.initFull("material.dat", _explicit_dynamic, true);
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -237,7 +237,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.99 || Ed > Edt * 1.01) {
+  if (Ed < Edt * 0.99 || Ed > Edt * 1.01 || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
     return EXIT_FAILURE;
   }

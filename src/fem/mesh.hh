@@ -312,7 +312,8 @@ public:
   inline void updateTypesOffsets(const GhostType & ghost_type);
 
   /// add a Array of connectivity for the type <type>.
-  inline void addConnectivityType(const ElementType & type);
+  inline void addConnectivityType(const ElementType & type,
+				  const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   template <class Event>
@@ -427,10 +428,6 @@ public:
 					  const std::string & data_name,
 					  const GhostType & ghost_type = _not_ghost) const;
 
-  /// get the facet to cohesive element vector
-  AKANTU_GET_MACRO(FacetsToCohesiveEl, facets_to_cohesive_el, const Array<UInt> &);
-  AKANTU_GET_MACRO_NOT_CONST(FacetsToCohesiveEl, facets_to_cohesive_el, Array<UInt> &);
-
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */
@@ -523,7 +520,7 @@ private:
 
   /// get a pointer to the subelement_to_element Array for the given type and create it if necessary
   inline Array<Element > * getSubelementToElementPointer(const ElementType & type,
-							  const GhostType & ghost_type = _not_ghost);
+							 const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -591,9 +588,6 @@ private:
 
   /// List of subelements connected to elements
   ByElementTypeArray<Element > subelement_to_element;
-
-  /// list of facets connected to each cohesive element
-  Array<UInt> facets_to_cohesive_el;
 
   // /// list of elements that are reversed due to pbc
   // ByElementTypeUInt reversed_elements_pbc;

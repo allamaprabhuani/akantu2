@@ -109,10 +109,10 @@ void Material::initInternalArray(ByElementTypeArray<T> & vect,
   AKANTU_DEBUG_IN();
 
   model->getFEM().getMesh().initByElementTypeArray(vect,
-						    nb_component,
-						    spatial_dimension,
-						    false,
-						    element_kind);
+						   nb_component,
+						   spatial_dimension,
+						   false,
+						   element_kind);
 
   if(!temporary)
     registerInternal(vect);

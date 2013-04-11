@@ -1295,6 +1295,7 @@ void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
 
   if(increment_acceleration) increment_acceleration->resize(nb_nodes);
   if(increment) increment->resize(nb_nodes);
+  if(current_position) current_position->resize(nb_nodes);
 
   delete dof_synchronizer;
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);

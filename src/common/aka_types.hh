@@ -185,6 +185,15 @@ public:
   }
 
   /* ---------------------------------------------------------------------- */
+  inline bool operator==(const Vector & vect) {
+    T * a = this->storage();
+    T * b = vect.storage();
+    UInt i = 0;
+    while (i < n && *(a++) == *(b++)) ++i;
+    return i == n;
+  }
+
+  /* ---------------------------------------------------------------------- */
   inline Real dot(const Vector & vect) {
     return Math::vectorDot(values, vect.storage(), n);
   }

@@ -1016,5 +1016,55 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
 }
 
 /* -------------------------------------------------------------------------- */
+void DistributedSynchronizer::buildPrankToElement(ByElementTypeUInt & prank_to_element) {
+  AKANTU_DEBUG_IN();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  UInt psize = comm.getNbProc();
+  UInt prank = comm.whoAmI();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  mesh.initByElementTypeArray(prank_to_element,
+			      1,
+			      spatial_dimension,
+			      false,
+			      _ek_not_defined,
+			      true);
+
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension,
+					   _not_ghost,
+					   _ek_not_defined);
+
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension,
+					  _not_ghost,
+					  _ek_not_defined);
+
+  /// assign prank to all not ghost elements
+  for (; it != end; ++it) {
+    UInt nb_element = mesh.getNbElement(*it);
+    Array<UInt> & prank_to_el = prank_to_element(*it);
+    for (UInt el = 0; el < nb_element; ++el) {
+      prank_to_el(el) = prank;
+    }
+  }
+
+  /// assign prank to all ghost elements
+  for (UInt p = 0; p < psize; ++p) {
+    UInt nb_ghost_element = recv_element[p].getSize();
+
+    for (UInt el = 0; el < nb_ghost_element; ++el) {
+      UInt element = recv_element[p](el).element;
+      ElementType type = recv_element[p](el).type;
+      GhostType ghost_type = recv_element[p](el).ghost_type;
+
+      Array<UInt> & prank_to_el = prank_to_element(type, ghost_type);
+      prank_to_el(element) = p;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 __END_AKANTU__

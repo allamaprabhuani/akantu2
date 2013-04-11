@@ -151,13 +151,13 @@ inline Real MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeEffective
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(const Array<Real> & facet_stress,
-									    Array<Real> & stress_check) {
+									    Array<Real> & stress_check,
+									    ElementType type_facet) {
   AKANTU_DEBUG_IN();
 
   sigma_insertion.resize(0);
 
   Array<bool> & facets_check = model->getFacetsCheck();
-  ElementType type_facet = model->getFacetType();
 
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   UInt nb_facet = facets_check.getSize();

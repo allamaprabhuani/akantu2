@@ -60,12 +60,14 @@ int main(int argc, char *argv[]) {
 
   const ElementType type_facet = mesh.getFacetType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  Array<UInt> facet_insertion;
+
+  Array<bool> facet_insertion(nb_facet);
+  facet_insertion.clear();
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 1.1 && bary_facet[1] > .9){
-      facet_insertion.push_back(f);}
+    if (bary_facet[1] < 1.1 && bary_facet[1] > .9)
+      facet_insertion(f) = true;
   }
   delete[] bary_facet;
 
@@ -122,7 +124,7 @@ int main(int argc, char *argv[]) {
 
   const MaterialCohesive & mat_coh = dynamic_cast< const MaterialCohesive &> (model.getMaterial(1));
 
-  ElementType type_cohesive = model.getCohesiveElementType();
+  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
 
   const Array<Real> & opening = mat_coh.getOpening(type_cohesive);
   //const Array<Real> & traction = mat_coh.getTraction(type_cohesive);

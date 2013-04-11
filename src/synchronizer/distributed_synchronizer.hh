@@ -82,6 +82,9 @@ public:
   /// wait end of asynchronous synchronization of ghosts
   void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
+  /// build processor to element corrispondance
+  void buildPrankToElement(ByElementTypeUInt & prank_to_element);
+
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// mesh event handler onRemovedElement
@@ -141,13 +144,15 @@ protected:
 
   std::map<SynchronizationTag, Communication> communications;
 
-  /// list of element to sent to proc p
+  /// list of element to send to proc p
   Array<Element> * send_element;
   /// list of element to receive from proc p
   Array<Element> * recv_element;
 
   UInt nb_proc;
   UInt rank;
+
+  friend class FacetSynchronizer;
 
 };
 

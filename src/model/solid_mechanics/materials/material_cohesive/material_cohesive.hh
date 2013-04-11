@@ -80,7 +80,8 @@ public:
 
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const Array<Real> & facet_stress,
-			      Array<UInt> & facet_insertion);
+			      const Mesh & mesh_facets,
+			      ByElementTypeArray<bool> & facet_insertion);
 
   /// interpolate   stress  on   given   positions  for   each  element   (empty
   /// implemantation to avoid the generic call to be done on cohesive elements)
@@ -126,7 +127,8 @@ protected:
 
   /// compute stress norms on quadrature points for each facet for stress check
   virtual void computeStressNorms(__attribute__((unused)) const Array<Real> & facet_stress,
-				  __attribute__((unused)) Array<Real> & stress_check) {
+				  __attribute__((unused)) Array<Real> & stress_check,
+				  __attribute__((unused)) ElementType type_facet) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   };
 

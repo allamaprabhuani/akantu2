@@ -31,6 +31,7 @@
 #include "solid_mechanics_model.hh"
 #include "integrator_cohesive.hh"
 #include "shape_cohesive.hh"
+#include "facet_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
@@ -75,20 +76,19 @@ public:
   /// cohesive elements if needed
   void checkCohesiveStress();
 
-  /// function to insert cohesive elements on the selected facets
-  void insertCohesiveElements(const Array<UInt> & facet_insertion);
-
   /// initialize the cohesive model
   void initFull(std::string material_file,
 		AnalysisMethod method = _explicit_dynamic,
-		CohesiveMethod cohesive_method = _intrinsic);
+		bool extrinsic = false);
 
   /// initialize the model
   void initModel();
 
   /// register the tags associated with the parallel synchronizer for
   /// cohesive elements
-  void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
+  void initParallel(MeshPartition * partition,
+		    DataAccessor * data_accessor=NULL,
+		    bool extrinsic = false);
 
   /// initialize cohesive material
   void initCohesiveMaterial();
@@ -99,17 +99,24 @@ public:
 private:
 
   /// initialize completely the model for extrinsic elements
-  void initExtrinsic(std::string material_file,
-		     AnalysisMethod method = _explicit_dynamic);
-
-  /// function to update nodal parameters for doubled nodes
-  void updateDoubledNodes(const Array<UInt> & doubled_nodes);
+  void initExtrinsic(std::string material_file);
 
   /// build fragments list
   void buildFragmentsList();
 
   /// compute fragments' mass and velocity
   void computeFragmentsMV();
+
+  /* ------------------------------------------------------------------------ */
+  /* Mesh Event Handler inherited members                                     */
+  /* ------------------------------------------------------------------------ */
+
+protected:
+
+  virtual void onNodesAdded  (const Array<UInt> & nodes_list,
+			      const NewNodesEvent & event);
+  virtual void onElementsAdded  (const Array<Element> & nodes_list,
+				 const NewElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -133,19 +140,23 @@ protected:
 					 Array<Element> & elements_regular,
 					 Array<Element> & elements_cohesive) const;
 
+  inline void packFacetDataHelper(const Array<Element> & elements,
+				  CommunicationBuffer & buffer) const;
+
+  inline void unpackFacetDataHelper(const Array<Element> & elements,
+				    CommunicationBuffer & buffer) const;
+
+  template<bool pack_helper>
+  inline void packUnpackFacetDataHelper(const Array<Element> & elements,
+					CommunicationBuffer & buffer) const;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// get cohesive element type
-  AKANTU_GET_MACRO(CohesiveElementType, type_cohesive, ElementType);
-
   /// get cohesive index
   AKANTU_GET_MACRO(CohesiveIndex, cohesive_index, UInt);
-
-  /// get facet type
-  AKANTU_GET_MACRO(FacetType, type_facet, ElementType);
 
   /// get facet mesh
   AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
@@ -182,12 +193,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-  /// cohesive element type
-  ElementType type_cohesive;
-
-  /// facet type
-  ElementType type_facet;
 
   /// cohesive material index in materials vector
   UInt cohesive_index;
@@ -227,6 +232,27 @@ private:
 
   /// center of mass coordinates for each element
   Array<Real> fragment_center;
+
+  /// facet in which cohesive elements are inserted
+  ByElementTypeArray<bool> facet_insertion;
+
+  /// list of doubled facets for every insertion
+  ByElementTypeUInt doubled_facets;
+
+  /// list of facets connected to each cohesive element
+  ByElementTypeUInt facets_to_cohesive_el;
+
+  /// cohesive elements connected to each facet
+  ByElementTypeUInt cohesive_el_to_facet;
+
+  /// flag to know if facets have been generated
+  bool facet_generated;
+
+  /// _not_ghost facet type
+  ElementType internal_facet_type;
+
+  /// facet synchronizer
+  FacetSynchronizer * facet_synchronizer;
 
 };
 

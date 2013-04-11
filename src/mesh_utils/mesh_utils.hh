@@ -77,15 +77,22 @@ public:
   /// build facets elements on boundary
   static void buildFacets(Mesh & mesh);
 
-  /// build facets elements : boundary and internals
-  static void buildAllFacets(Mesh & mesh, Mesh & mesh_facets);
+  /// build facets elements : boundary and internals (for serial simulations)
+  static void buildAllFacets(Mesh & mesh,
+			     Mesh & mesh_facets);
+
+  /// build facets elements : boundary and internals (for parallel simulations)
+  static void buildAllFacetsParallel(Mesh & mesh,
+				     Mesh & mesh_facets,
+				     ByElementTypeUInt & prank_to_element);
 
   /// build facets for a given spatial dimension
   static void buildFacetsDimension(Mesh & mesh,
 				   Mesh & mesh_facets,
 				   bool boundary_only,
 				   UInt dimension,
-				   ByElementTypeReal & barycenter);
+				   ByElementTypeReal & barycenter,
+				   ByElementTypeUInt & prank_to_element);
 
   /// build normal to some elements
   //  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
@@ -135,15 +142,14 @@ public:
   static void insertIntrinsicCohesiveElements(Mesh & mesh,
 					      Mesh & mesh_facets,
 					      ElementType type_facet,
-					      const Array<UInt> & facet_insertion);
+					      const Array<bool> & facet_insertion);
 
   /// function to insert cohesive elements on the selected facets
   static void insertCohesiveElements(Mesh & mesh,
 				     Mesh & mesh_facets,
-				     ElementType type_facet,
-				     const Array<UInt> & facet_insertion,
-				     Array<UInt> & doubled_nodes,
-				     Array<UInt> & doubled_facets);
+				     const ByElementTypeArray<bool> & facet_insertion,
+				     ByElementTypeUInt & doubled_facets,
+				     const bool extrinsic);
 
 private:
 
@@ -180,7 +186,7 @@ private:
   /// double middle nodes if facets are _segment_3
   static void doubleMiddleNode(Mesh & mesh,
 			       Mesh & mesh_facets,
-			       ElementType type_facet,
+			       GhostType gt_facet,
 			       Array<UInt> & doubled_nodes,
 			       const Array<UInt> & doubled_facets);
 

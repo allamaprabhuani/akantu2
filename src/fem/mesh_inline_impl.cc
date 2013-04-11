@@ -33,6 +33,7 @@ __END_AKANTU__
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #  include "cohesive_element.hh"
 #endif
+#include "static_communicator.hh"
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -161,7 +162,7 @@ inline Array<Int> * Mesh::getNodesTypePointer() {
 
 /* -------------------------------------------------------------------------- */
 inline Array<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
-						   const GhostType & ghost_type) {
+						  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<UInt> * tmp;
@@ -481,8 +482,9 @@ DECLARE_GET_BOUND(LocalUpper, local_upper)
 #undef DECLARE_GET_BOUND
 
 /* -------------------------------------------------------------------------- */
-inline void Mesh::addConnectivityType(const ElementType & type){
-  getConnectivityPointer(type);
+inline void Mesh::addConnectivityType(const ElementType & type,
+				      const GhostType & ghost_type){
+  getConnectivityPointer(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */

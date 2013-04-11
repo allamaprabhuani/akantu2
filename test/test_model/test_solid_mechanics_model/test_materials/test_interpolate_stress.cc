@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
   Mesh mesh(spatial_dimension);
   mesh.read("interpolation.msh");
-  const ElementType type_facet = mesh.getFacetType(type);;
+  const ElementType type_facet = mesh.getFacetType(type);
 
   MeshUtils::buildAllFacets(mesh, mesh);
 
