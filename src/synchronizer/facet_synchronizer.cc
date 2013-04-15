@@ -35,12 +35,11 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 FacetSynchronizer::FacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
-				     Mesh & mesh_facets,
+				     Mesh & mesh,
 				     SynchronizerID id,
 				     MemoryID memory_id) :
-  DistributedSynchronizer(mesh_facets, id, memory_id),
-  distributed_synchronizer(distributed_synchronizer),
-  mesh_facets(mesh_facets) {
+  DistributedSynchronizer(mesh, id, memory_id),
+  distributed_synchronizer(distributed_synchronizer) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -49,13 +48,13 @@ FacetSynchronizer::FacetSynchronizer(DistributedSynchronizer & distributed_synch
 /* -------------------------------------------------------------------------- */
 FacetSynchronizer * FacetSynchronizer::
 createFacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
-			Mesh & mesh_facets,
+			Mesh & mesh,
 			SynchronizerID id,
 			MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
   FacetSynchronizer & f_synchronizer = *(new FacetSynchronizer(distributed_synchronizer,
-							       mesh_facets,
+							       mesh,
 							       id, memory_id));
 
   f_synchronizer.setupFacetSynchronization();
@@ -147,40 +146,55 @@ void FacetSynchronizer::setupFacetSynchronization() {
   initRankToFacet(rank_to_facet);
   buildRankToFacet(rank_to_facet, distrib_recv_element);
 
-  /// allocate send/recv barycenters arrays
-  std::list<ElementBarycenter> * send_elbary =
-    new std::list<ElementBarycenter>[nb_proc];
+  /// generate temp_send/recv element arrays with their connectivity
+  ByElementTypeUInt * temp_send_element = new ByElementTypeUInt[nb_proc];
+  ByElementTypeUInt * temp_recv_element = new ByElementTypeUInt[nb_proc];
+  ByElementTypeUInt * send_connectivity = new ByElementTypeUInt[nb_proc];
+  ByElementTypeUInt * recv_connectivity = new ByElementTypeUInt[nb_proc];
 
-  std::list<ElementBarycenter> * recv_elbary =
-    new std::list<ElementBarycenter>[nb_proc];
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
-  /// compute barycenters
-  getFacetBarycentersPerElement<_not_ghost>(rank_to_facet,
-					    distrib_send_element,
-					    send_elbary);
+  for (UInt p = 0; p < nb_proc; ++p) {
+    temp_send_element[p].setID("temp_send_element_proc_"+p);
+    mesh.initByElementTypeArray(temp_send_element[p], 1, spatial_dimension - 1);
 
-  getFacetBarycentersPerElement<_ghost>(rank_to_facet,
-					distrib_recv_element,
-					recv_elbary);
+    temp_recv_element[p].setID("temp_recv_element_proc_"+p);
+    mesh.initByElementTypeArray(temp_recv_element[p], 1, spatial_dimension - 1);
+
+    send_connectivity[p].setID("send_connectivity_proc_"+p);
+    recv_connectivity[p].setID("recv_connectivity_proc_"+p);
+  }
+
+  initGlobalConnectivity(send_connectivity);
+  initGlobalConnectivity(recv_connectivity);
+
+  /// build global connectivity arrays
+  getFacetGlobalConnectivity<_not_ghost>(rank_to_facet,
+					 distrib_send_element,
+					 send_connectivity,
+					 temp_send_element);
+
+  getFacetGlobalConnectivity<_ghost>(rank_to_facet,
+				     distrib_recv_element,
+				     recv_connectivity,
+				     temp_recv_element);
 
   /// build send/recv facet arrays
-  buildFacetList(recv_elbary, recv_element);
-  buildFacetList(send_elbary, send_element);
+  buildSendElementList(send_connectivity, recv_connectivity, temp_send_element);
+  buildRecvElementList(temp_recv_element);
 
   /// delete temporary data
-  delete [] recv_elbary;
-  delete [] send_elbary;
-
+  delete [] temp_send_element;
+  delete [] send_connectivity;
+  delete [] recv_connectivity;
 
 #ifndef AKANTU_NDEBUG
   /// count recv facets for each processor
   Array<UInt> nb_facets_recv(nb_proc);
   nb_facets_recv.clear();
 
-  UInt spatial_dimension = mesh_facets.getSpatialDimension();
-
-  Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1, _ghost);
-  Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1, _ghost);
+  Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, _ghost);
+  Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, _ghost);
 
   for (; first != last; ++first) {
     const Array<UInt> & r_to_f = rank_to_facet(*first, _ghost);
@@ -204,32 +218,177 @@ void FacetSynchronizer::setupFacetSynchronization() {
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::buildFacetList(std::list<ElementBarycenter> * element_barycenter,
-				       Array<Element> * final_facets) {
+void FacetSynchronizer::buildSendElementList(const ByElementTypeUInt * send_connectivity,
+					     const ByElementTypeUInt * recv_connectivity,
+					     const ByElementTypeUInt * temp_send_element) {
   AKANTU_DEBUG_IN();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  GhostType ghost_type = _ghost;
+
+  Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_type);
+  Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_type);
+
+  /// do every communication by element type
+  for (; first != last; ++first) {
+
+    ElementType facet_type = *first;
+
+    std::vector<CommunicationRequest *> send_requests;
+    UInt * send_size = new UInt[nb_proc];
+
+    /// send asynchronous data
+    for (UInt p = 0; p < nb_proc; ++p) {
+      if (p == rank) continue;
+
+      const Array<UInt> & recv_conn = recv_connectivity[p](facet_type, _ghost);
+      send_size[p] = recv_conn.getSize();
+
+      /// send connectivity size
+      send_requests.push_back(comm.asyncSend(send_size + p,
+					     1,
+					     p,
+					     Tag::genTag(rank, p, 0)));
+
+      /// send connectivity data
+      send_requests.push_back(comm.asyncSend(recv_conn.storage(),
+					     recv_conn.getSize() *
+					     recv_conn.getNbComponent(),
+					     p,
+					     Tag::genTag(rank, p, 1)));
+    }
+
+    UInt * recv_size = new UInt[nb_proc];
+    UInt nb_nodes_per_facet = Mesh::getNbNodesPerElement(facet_type);
+
+    /// receive data
+    for (UInt p = 0; p < nb_proc; ++p) {
+      if (p == rank) continue;
+
+      /// receive connectivity size
+      comm.receive(recv_size + p, 1, p, Tag::genTag(p, rank, 0));
+
+      Array<UInt> conn_to_match(recv_size[p], nb_nodes_per_facet);
+
+      /// receive connectivity
+      comm.receive(conn_to_match.storage(),
+		   conn_to_match.getSize() * conn_to_match.getNbComponent(),
+		   p,
+		   Tag::genTag(p, rank, 1));
+
+      const Array<UInt> & send_conn = send_connectivity[p](facet_type, _not_ghost);
+      const Array<UInt> & list = temp_send_element[p](facet_type, _not_ghost);
+      UInt nb_local_facets = send_conn.getSize();
+
+      AKANTU_DEBUG_ASSERT(nb_local_facets == list.getSize(),
+			  "connectivity and facet list have different sizes");
+
+      Array<bool> checked(nb_local_facets);
+      checked.clear();
+
+      Element facet(facet_type, 0, _not_ghost, _ek_regular);
+
+      Array<UInt>::iterator<Vector<UInt> > c_to_match_it =
+	conn_to_match.begin(nb_nodes_per_facet);
+      Array<UInt>::iterator<Vector<UInt> > c_to_match_end =
+	conn_to_match.end(nb_nodes_per_facet);
+
+      /// for every sent facet of other processors, find the
+      /// corresponding one in the local send connectivity data in
+      /// order to build the send_element arrays
+      for (; c_to_match_it != c_to_match_end; ++c_to_match_it) {
+
+	Array<UInt>::const_iterator<Vector<UInt> > c_local_it =
+	  send_conn.begin(nb_nodes_per_facet);
+	Array<UInt>::const_iterator<Vector<UInt> > c_local_end =
+	  send_conn.end(nb_nodes_per_facet);
+
+	for (UInt f = 0; f < nb_local_facets; ++f, ++c_local_it) {
+	  if (checked(f)) continue;
+
+	  if ( (*c_to_match_it) == (*c_local_it) ) {
+	    checked(f) = true;
+	    facet.element = list(f);
+	    send_element[p].push_back(facet);
+	    break;
+	  }
+	}
+	AKANTU_DEBUG_ASSERT(c_local_it != c_local_end, "facet not found");
+      }
+    }
+
+    /// wait for all communications to be done and free the
+    /// communication request array
+    comm.waitAll(send_requests);
+    comm.freeCommunicationRequest(send_requests);
+
+    delete [] send_size;
+    delete [] recv_size;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FacetSynchronizer::buildRecvElementList(const ByElementTypeUInt * temp_recv_element) {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
   for (UInt p = 0; p < nb_proc; ++p) {
     if (p == rank) continue;
 
-    std::list<ElementBarycenter> & elbary = element_barycenter[p];
-    if (elbary.size() == 0) continue;
+    GhostType ghost_type = _ghost;
 
-    Array<Element> & final = final_facets[p];
+    Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_type);
+    Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_type);
 
-    elbary.sort();
+    for (; first != last; ++first) {
+      ElementType facet_type = *first;
 
-    /// introduce lists' elements in the array
-    std::list<ElementBarycenter>::iterator elbary_pre = elbary.begin();
-    std::list<ElementBarycenter>::iterator elbary_it = elbary.begin();
-    std::list<ElementBarycenter>::iterator elbary_end = elbary.end();
+      const Array<UInt> & list = temp_recv_element[p](facet_type, ghost_type);
+      UInt nb_local_facets = list.getSize();
 
-    final.push_back((*elbary_it).elem);
+      Element facet(facet_type, 0, ghost_type, _ek_regular);
 
-    for (++elbary_it; elbary_it != elbary_end; ++elbary_it, ++elbary_pre) {
-      /// skip double facets
-      if ( (*elbary_pre).bary == (*elbary_it).bary ) continue;
+      for (UInt f = 0; f < nb_local_facets; ++f) {
+	facet.element = list(f);
+	recv_element[p].push_back(facet);
+      }
+    }
+  }
 
-      final.push_back((*elbary_it).elem);
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FacetSynchronizer::initGlobalConnectivity(ByElementTypeUInt * connectivity) {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  for (UInt p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
+
+    ByElementTypeUInt & global_conn = connectivity[p];
+    mesh.initByElementTypeArray(global_conn, 1, spatial_dimension - 1);
+
+    for (ghost_type_t::iterator gt = ghost_type_t::begin();
+	 gt != ghost_type_t::end(); ++gt) {
+      GhostType ghost_type = *gt;
+
+      Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_type);
+      Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_type);
+
+      for (; first != last; ++first) {
+	ElementType type = *first;
+	Array<UInt> & g_conn = global_conn(type, ghost_type);
+	UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+	g_conn.extendComponentsInterlaced(nb_nodes_per_element, 1);
+      }
     }
   }
 
@@ -240,18 +399,20 @@ void FacetSynchronizer::buildFacetList(std::list<ElementBarycenter> * element_ba
 void FacetSynchronizer::initRankToFacet(ByElementTypeUInt & rank_to_facet) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh_facets.getSpatialDimension();
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
-  mesh_facets.initByElementTypeArray(rank_to_facet, 1, spatial_dimension - 1);
+  mesh.initByElementTypeArray(rank_to_facet, 1, spatial_dimension - 1);
 
-  GhostType gt = _ghost;
+  GhostType ghost_type = _ghost;
 
-  Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1, gt);
-  Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1, gt);
+  Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_type);
+  Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_type);
 
   for (; first != last; ++first) {
-    Array<UInt> & rank_to_f = rank_to_facet(*first, gt);
-    UInt nb_facet = mesh_facets.getNbElement(*first, gt);
+    ElementType type = *first;
+    UInt nb_facet = mesh.getNbElement(type, ghost_type);
+
+    Array<UInt> & rank_to_f = rank_to_facet(type, ghost_type);
     rank_to_f.resize(nb_facet);
 
     for (UInt f = 0; f < nb_facet; ++f)
@@ -277,13 +438,15 @@ void FacetSynchronizer::buildRankToFacet(ByElementTypeUInt & rank_to_facet,
       UInt el_index = elem(el).element;
 
       const Array<Element> & facet_to_element =
-	mesh_facets.getSubelementToElement(type, gt);
+	mesh.getSubelementToElement(type, gt);
       UInt nb_facets_per_element = Mesh::getNbFacetsPerElement(type);
       ElementType facet_type = Mesh::getFacetType(type);
 
       for (UInt f = 0; f < nb_facets_per_element; ++f) {
-	UInt facet_index = facet_to_element(el_index, f).element;
-	GhostType facet_gt = facet_to_element(el_index, f).ghost_type;
+	const Element & facet = facet_to_element(el_index, f);
+	if (facet == ElementNull) continue;
+	UInt facet_index = facet.element;
+	GhostType facet_gt = facet.ghost_type;
 
 	if (facet_gt == _not_ghost) continue;
 

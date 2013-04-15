@@ -27,19 +27,49 @@
 
 /* -------------------------------------------------------------------------- */
 template<GhostType ghost_facets>
-inline void FacetSynchronizer::getFacetBarycentersPerElement(const ByElementTypeUInt & rank_to_facet,
-							     const Array<Element> * elements,
-							     std::list<ElementBarycenter> * facet_elbary) {
+inline void FacetSynchronizer::getFacetGlobalConnectivity(const ByElementTypeUInt & rank_to_facet,
+							  const Array<Element> * elements,
+							  ByElementTypeUInt * connectivity,
+							  ByElementTypeUInt * facets) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh_facets.getSpatialDimension();
-  ElementBarycenter current_elbary(spatial_dimension);
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  /// init facet check tracking
+  ByElementTypeArray<bool> facet_checked("facet_checked", id);
+
+  mesh.initByElementTypeArray(facet_checked, 1, spatial_dimension - 1);
+
+  Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_facets);
+  Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_facets);
+
+  for (; first != last; ++first) {
+    ElementType type = *first;
+    Array<bool> & f_checked = facet_checked(type, ghost_facets);
+    UInt nb_facet = mesh.getNbElement(type, ghost_facets);
+    f_checked.resize(nb_facet);
+  }
+
+  const Array<UInt> & nodes_global_ids =
+    distributed_synchronizer.mesh.getGlobalNodesIds();
 
   /// loop on every processor
   for (UInt p = 0; p < nb_proc; ++p) {
     if (p == rank) continue;
-    std::list<ElementBarycenter> & elbary = facet_elbary[p];
+
+    /// reset facet check
+    Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_facets);
+    Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_facets);
+
+    for (; first != last; ++first) {
+      ElementType type = *first;
+      Array<bool> & f_checked = facet_checked(type, ghost_facets);
+      f_checked.clear();
+    }
+
+    ByElementTypeUInt & global_conn = connectivity[p];
     const Array<Element> & elem = elements[p];
+    ByElementTypeUInt & facet_list = facets[p];
 
     UInt nb_element = elem.getSize();
 
@@ -50,16 +80,19 @@ inline void FacetSynchronizer::getFacetBarycentersPerElement(const ByElementType
       UInt el_index = elem(el).element;
 
       const Array<Element> & facet_to_element =
-	mesh_facets.getSubelementToElement(type, gt);
+	mesh.getSubelementToElement(type, gt);
       UInt nb_facets_per_element = Mesh::getNbFacetsPerElement(type);
       ElementType facet_type = Mesh::getFacetType(type);
+      UInt nb_nodes_per_facet = Mesh::getNbNodesPerElement(facet_type);
+      Vector<UInt> conn_tmp(nb_nodes_per_facet);
 
       /// loop on every facet of the element
       for (UInt f = 0; f < nb_facets_per_element; ++f) {
 
-	current_elbary.elem = facet_to_element(el_index, f);
-	UInt facet_index = current_elbary.elem.element;
-	GhostType facet_gt = current_elbary.elem.ghost_type;
+	const Element & facet = facet_to_element(el_index, f);
+	if (facet == ElementNull) continue;
+	UInt facet_index = facet.element;
+	GhostType facet_gt = facet.ghost_type;
 
 	const Array<UInt> & t_to_f = rank_to_facet(facet_type, facet_gt);
 
@@ -68,19 +101,25 @@ inline void FacetSynchronizer::getFacetBarycentersPerElement(const ByElementType
 	if (facet_gt != ghost_facets) continue;
 	if ((facet_gt == _ghost) && (t_to_f(facet_index) != p)) continue;
 
-	/// exclude facets on the boundary
-	if (ghost_facets == _ghost) {
-	  const Array<std::vector<Element> > & element_to_facet =
-	    mesh_facets.getElementToSubelement(facet_type, facet_gt);
-	  if (element_to_facet(facet_index)[1] == ElementNull) continue;
-	}
+	/// exclude facets that have already been added
+	Array<bool> & f_checked = facet_checked(facet_type, facet_gt);
+	if (f_checked(facet_index)) continue;
+	else f_checked(facet_index) = true;
 
-	/// store barycenter's coordinates
-	mesh_facets.getBarycenter(facet_index,
-				  facet_type,
-				  current_elbary.bary.storage(),
-				  facet_gt);
-	elbary.push_back(current_elbary);
+	/// add facet index
+	Array<UInt> & f_list = facet_list(facet_type, facet_gt);
+	f_list.push_back(facet_index);
+
+	/// add sorted facet global connectivity
+	const Array<UInt> & conn = mesh.getConnectivity(facet_type, facet_gt);
+	Array<UInt> & g_conn = global_conn(facet_type, facet_gt);
+
+	for (UInt n = 0; n < nb_nodes_per_facet; ++n)
+	  conn_tmp(n) = nodes_global_ids(conn(facet_index, n));
+
+	std::sort(conn_tmp.storage(), conn_tmp.storage() + nb_nodes_per_facet);
+
+	g_conn.push_back(conn_tmp);
       }
     }
   }

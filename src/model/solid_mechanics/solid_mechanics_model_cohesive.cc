@@ -57,6 +57,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   AKANTU_DEBUG_IN();
 
   facet_generated = false;
+  facet_synchronizer = NULL;
 
   AKANTU_DEBUG_OUT();
 }
@@ -550,11 +551,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
       Array<UInt> & f_to_cohesive_el = facets_to_cohesive_el(type_cohesive, gt_facet);
       f_to_cohesive_el.resize(total_nb_cohesive_elements);
 
-      //      Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
-      //      const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet,
-								     // gt_facet);
-      //      UInt nb_nodes_per_facet = connectivity.getNbComponent();
-      //      const Array<Int> & nodes_type = mesh.getNodesType();
+      Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
 
       Array<UInt>::iterator<Vector<UInt> > d_f_it = doubled_f.begin(2);
 
@@ -582,17 +579,8 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
 	f_to_cohesive_el(nb_cohesive_elements, 0) = old_facet;
 	f_to_cohesive_el(nb_cohesive_elements, 1) = new_facet;
 
-	// if (facet_synchronizer) {
-	//   if (gt_facet == _not_ghost) {
-	//     UInt n = 0;
-	//     while (n < nb_nodes_per_facet &&
-	// 	   nodes_type(connectivity(old_facet, n)) == -1) ++n;
-	//     if (n < nb_nodes_per_facet)
-	//       cohesive_el_to_f(old_facet) = nb_cohesive_elements;
-	//   }
-	//   else
-	//     cohesive_el_to_f(old_facet) = nb_cohesive_elements;
-	// }
+	if (facet_synchronizer != NULL)
+	  cohesive_el_to_f(old_facet) = nb_cohesive_elements;
       }
     }
 
@@ -609,28 +597,28 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
   assembleMassLumped();
 
   /// update synchronizer if needed
-  // if (facet_synchronizer) {
-  //   DataAccessor * data_accessor = this;
-  //   facet_synchronizer->updateDistributedSynchronizer(*data_accessor,
-  // 						      cohesive_el_to_facet);
+  if (facet_synchronizer != NULL) {
+    DataAccessor * data_accessor = this;
+    facet_synchronizer->updateDistributedSynchronizer(*data_accessor,
+  						      cohesive_el_to_facet);
 
-  //   for (ghost_type_t::iterator gt = ghost_type_t::begin();
-  // 	 gt != ghost_type_t::end(); ++gt) {
+    for (ghost_type_t::iterator gt = ghost_type_t::begin();
+  	 gt != ghost_type_t::end(); ++gt) {
 
-  //     GhostType gt_facet = *gt;
+      GhostType gt_facet = *gt;
 
-  //     Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
-  //     Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
+      Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
+      Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
 
-  //     for(; it != end; ++it) {
-  // 	ElementType type_facet = *it;
-  // 	Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
+      for(; it != end; ++it) {
+  	ElementType type_facet = *it;
+  	Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
 
-  // 	for (UInt f = 0; f < cohesive_el_to_f.getSize(); ++f)
-  // 	  cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
-  //     }
-  //   }
-  // }
+  	for (UInt f = 0; f < cohesive_el_to_f.getSize(); ++f)
+  	  cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
+      }
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }

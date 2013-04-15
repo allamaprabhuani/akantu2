@@ -347,6 +347,9 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 
   Array<UInt> counter;
 
+  const Array<Int> * nodes_type = NULL;
+  nodes_type = &(mesh.getNodesType());
+
   Element current_element;
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
     GhostType ghost_type = *gt;
@@ -409,171 +412,181 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 	  }
 
 	  if (minimum_el == current_element) {
-	    if (!boundary_only || (boundary_only && nb_element_connected_to_facet == 1)) {
+	    bool full_ghost_facet = false;
 
-	      std::vector<Element> elements;
+	    if (nodes_type != NULL) {
+	      UInt n = 0;
+	      while (n < nb_nodes_per_facet && (*nodes_type)(facet(n)) == -3) ++n;
+	      if (n == nb_nodes_per_facet) full_ghost_facet = true;
+	    }
 
-	      // build elements_on_facets: linearized_el must come first
-	      // in order to store the facet in the correct direction
-	      // and avoid to invert the sign in the normal computation
-	      elements.push_back(current_element);
+	    if (!full_ghost_facet) {
+	      if (!boundary_only || (boundary_only && nb_element_connected_to_facet == 1)) {
 
-	      /// boundary facet
-	      if (nb_element_connected_to_facet == 1)
-		elements.push_back(ElementNull);
-	      /// internal facet
-	      else if (nb_element_connected_to_facet == 2) {
-		elements.push_back(connected_elements(1));
+		std::vector<Element> elements;
 
-		/// check if facet is in between ghost and normal
-		/// elements: if it's the case, the facet is either
-		/// ghost or not ghost. The criterion to decide this
-		/// is arbitrary. It was chosen to check the processor
-		/// id (prank) of the two neighboring elements. If
-		/// prank of the ghost element is lower than prank of
-		/// the normal one, the facet is not ghost, otherwise
-		/// it's ghost
-		GhostType gt[2];
-		for (UInt el = 0; el < connected_elements.getSize(); ++el)
-		  gt[el] = connected_elements(el).ghost_type;
+		// build elements_on_facets: linearized_el must come first
+		// in order to store the facet in the correct direction
+		// and avoid to invert the sign in the normal computation
+		elements.push_back(current_element);
 
-		if (gt[0] + gt[1] == 1) {
-		  try {
-		    UInt prank[2];
-		    for (UInt el = 0; el < 2; ++el) {
-		      UInt current_el = connected_elements(el).element;
-		      ElementType current_type = connected_elements(el).type;
-		      GhostType current_gt = connected_elements(el).ghost_type;
+		/// boundary facet
+		if (nb_element_connected_to_facet == 1)
+		  elements.push_back(ElementNull);
+		/// internal facet
+		else if (nb_element_connected_to_facet == 2) {
+		  elements.push_back(connected_elements(1));
 
-		      Array<UInt> & prank_to_el = prank_to_element(current_type,
-								   current_gt);
+		  /// check if facet is in between ghost and normal
+		  /// elements: if it's the case, the facet is either
+		  /// ghost or not ghost. The criterion to decide this
+		  /// is arbitrary. It was chosen to check the processor
+		  /// id (prank) of the two neighboring elements. If
+		  /// prank of the ghost element is lower than prank of
+		  /// the normal one, the facet is not ghost, otherwise
+		  /// it's ghost
+		  GhostType gt[2];
+		  for (UInt el = 0; el < connected_elements.getSize(); ++el)
+		    gt[el] = connected_elements(el).ghost_type;
 
-		      prank[el] = prank_to_el(current_el);
-		    }
+		  if (gt[0] + gt[1] == 1) {
+		    try {
+		      UInt prank[2];
+		      for (UInt el = 0; el < 2; ++el) {
+			UInt current_el = connected_elements(el).element;
+			ElementType current_type = connected_elements(el).type;
+			GhostType current_gt = connected_elements(el).ghost_type;
 
-		    bool ghost_one = (gt[0] != _ghost);
+			Array<UInt> & prank_to_el = prank_to_element(current_type,
+								     current_gt);
 
-		    if (prank[ghost_one] > prank[!ghost_one])
-		      facet_ghost_type = _not_ghost;
-		    else
-		      facet_ghost_type = _ghost;
+			prank[el] = prank_to_el(current_el);
+		      }
 
-		    connectivity_facets = &mesh_facets.getConnectivity(facet_type, facet_ghost_type);
-		    element_to_subelement = &mesh_facets.getElementToSubelement(facet_type, facet_ghost_type);
-		  } catch (...) { }
+		      bool ghost_one = (gt[0] != _ghost);
+
+		      if (prank[ghost_one] > prank[!ghost_one])
+			facet_ghost_type = _not_ghost;
+		      else
+			facet_ghost_type = _ghost;
+
+		      connectivity_facets = &mesh_facets.getConnectivity(facet_type, facet_ghost_type);
+		      element_to_subelement = &mesh_facets.getElementToSubelement(facet_type, facet_ghost_type);
+		    } catch (...) { }
+		  }
 		}
-	      }
-	      /// facet of facet
-	      else {
-		for (UInt i = 1; i < nb_element_connected_to_facet; ++i) {
-		  elements.push_back(connected_elements(i));
-		}
+		/// facet of facet
+		else {
+		  for (UInt i = 1; i < nb_element_connected_to_facet; ++i) {
+		    elements.push_back(connected_elements(i));
+		  }
 
-		/// check if sorting is needed:
-		/// - in 3D to sort triangles around segments
-		/// - in 2D to sort segments around points
-		if (dimension == spatial_dimension - 1) {
-		  /// node around which the sorting is carried out is
-		  /// the first node of the current facet
-		  const Vector<Real> & first_node_coord = mesh_facets_nodes_it[facet(0)];
+		  /// check if sorting is needed:
+		  /// - in 3D to sort triangles around segments
+		  /// - in 2D to sort segments around points
+		  if (dimension == spatial_dimension - 1) {
+		    /// node around which the sorting is carried out is
+		    /// the first node of the current facet
+		    const Vector<Real> & first_node_coord = mesh_facets_nodes_it[facet(0)];
 
-		  /// associate to each element a real value based on
-		  /// atan2 function (check wikipedia)
-		  std::map<Element, Real, CompElementLess> atan2;
+		    /// associate to each element a real value based on
+		    /// atan2 function (check wikipedia)
+		    std::map<Element, Real, CompElementLess> atan2;
 
-		  if (spatial_dimension == 3) {
-		    const Vector<Real> & second_node_coord = mesh_facets_nodes_it[facet(1)];
+		    if (spatial_dimension == 3) {
+		      const Vector<Real> & second_node_coord = mesh_facets_nodes_it[facet(1)];
 
-		    /// vector connecting facet first node to second
-		    Vector<Real> tangent(spatial_dimension);
-		    tangent = second_node_coord;
-		    tangent -= first_node_coord;
-		    tangent.normalize();
+		      /// vector connecting facet first node to second
+		      Vector<Real> tangent(spatial_dimension);
+		      tangent = second_node_coord;
+		      tangent -= first_node_coord;
+		      tangent.normalize();
 
-		    const Array<Real>::const_iterator< Vector<Real> > bar =
-		      barycenter(elements[0].type, elements[0].ghost_type).begin(spatial_dimension);
+		      const Array<Real>::const_iterator< Vector<Real> > bar =
+			barycenter(elements[0].type, elements[0].ghost_type).begin(spatial_dimension);
 
-		    /// vector connecting facet first node and
-		    /// barycenter of elements(0)
-		    Vector<Real> bary_coord(spatial_dimension);
-		    bary_coord.copy(bar[elements[0].element]);
-		    bary_coord -= first_node_coord;
-
-		    /// two normals to the segment facet to define the
-		    /// reference system
-		    Vector<Real> normal1(spatial_dimension);
-		    Vector<Real> normal2(spatial_dimension);
-
-		    /// get normal1 and normal2
-		    normal1.crossProduct(tangent, bary_coord);
-		    normal1.normalize();
-		    normal2.crossProduct(tangent, normal1);
-
-		    /// project the barycenter coordinates on the two
-		    /// normals to have them on the same plane
-		    atan2[elements[0]] = std::atan2(bary_coord.dot(normal2), bary_coord.dot(normal1));
-
-		    for (UInt n = 1; n < nb_element_connected_to_facet; ++n) {
-		      const Array<Real>::const_iterator< Vector<Real> > bar_it =
-			barycenter(elements[n].type, elements[n].ghost_type).begin(spatial_dimension);
-		      bary_coord.copy(bar_it[elements[n].element]);
+		      /// vector connecting facet first node and
+		      /// barycenter of elements(0)
+		      Vector<Real> bary_coord(spatial_dimension);
+		      bary_coord.copy(bar[elements[0].element]);
 		      bary_coord -= first_node_coord;
+
+		      /// two normals to the segment facet to define the
+		      /// reference system
+		      Vector<Real> normal1(spatial_dimension);
+		      Vector<Real> normal2(spatial_dimension);
+
+		      /// get normal1 and normal2
+		      normal1.crossProduct(tangent, bary_coord);
+		      normal1.normalize();
+		      normal2.crossProduct(tangent, normal1);
 
 		      /// project the barycenter coordinates on the two
 		      /// normals to have them on the same plane
-		      atan2[elements[n]] = std::atan2(bary_coord.dot(normal2), bary_coord.dot(normal1));
+		      atan2[elements[0]] = std::atan2(bary_coord.dot(normal2), bary_coord.dot(normal1));
+
+		      for (UInt n = 1; n < nb_element_connected_to_facet; ++n) {
+			const Array<Real>::const_iterator< Vector<Real> > bar_it =
+			  barycenter(elements[n].type, elements[n].ghost_type).begin(spatial_dimension);
+			bary_coord.copy(bar_it[elements[n].element]);
+			bary_coord -= first_node_coord;
+
+			/// project the barycenter coordinates on the two
+			/// normals to have them on the same plane
+			atan2[elements[n]] = std::atan2(bary_coord.dot(normal2), bary_coord.dot(normal1));
+		      }
 		    }
-		  }
-		  else if (spatial_dimension == 2) {
-		    for (UInt n = 0; n < nb_element_connected_to_facet; ++n) {
-		      const Array<Real>::const_iterator< Vector<Real> > bar_it =
-			barycenter(elements[n].type, elements[n].ghost_type).begin(spatial_dimension);
-		      Vector<Real> bary_coord(spatial_dimension);
-		      bary_coord.copy(bar_it[elements[n].element]);
-		      bary_coord -= first_node_coord;
-		      atan2[elements[n]] = std::atan2(bary_coord(1), bary_coord(0));
+		    else if (spatial_dimension == 2) {
+		      for (UInt n = 0; n < nb_element_connected_to_facet; ++n) {
+			const Array<Real>::const_iterator< Vector<Real> > bar_it =
+			  barycenter(elements[n].type, elements[n].ghost_type).begin(spatial_dimension);
+			Vector<Real> bary_coord(spatial_dimension);
+			bary_coord.copy(bar_it[elements[n].element]);
+			bary_coord -= first_node_coord;
+			atan2[elements[n]] = std::atan2(bary_coord(1), bary_coord(0));
+		      }
 		    }
-		  }
 
-		  /// sort elements according to their atan2 values
-		  ElementSorter sorter(atan2);
-		  std::sort(elements.begin(), elements.end(), sorter);
-		}
-	      }
-
-	      element_to_subelement->push_back(elements);
-	      connectivity_facets->push_back(facet);
-
-	      /// current facet index
-	      UInt current_facet = connectivity_facets->getSize() - 1;
-
-	      /// loop on every element connected to current facet and
-	      /// insert current facet in the first free spot of the
-	      /// subelement_to_element vector
-	      for (UInt elem = 0; elem < elements.size(); ++elem) {
-		Element loc_el = elements[elem];
-
-		if (loc_el.type != _not_defined) {
-		  Array<Element> & subelement_to_element =
-		    mesh_facets.getSubelementToElement(type, loc_el.ghost_type);
-
-		  for (UInt f_in = 0; f_in < facets.rows(); ++f_in) {
-		    if (subelement_to_element(loc_el.element, f_in).type == _not_defined) {
-		      subelement_to_element(loc_el.element, f_in).type = facet_type;
-		      subelement_to_element(loc_el.element, f_in).element = current_facet;
-		      subelement_to_element(loc_el.element, f_in).ghost_type = facet_ghost_type;
-		      break;
-		    }
+		    /// sort elements according to their atan2 values
+		    ElementSorter sorter(atan2);
+		    std::sort(elements.begin(), elements.end(), sorter);
 		  }
 		}
-	      }
 
-	      /// reset connectivity in case a facet was found in
-	      /// between ghost and normal elements
-	      if (facet_ghost_type != ghost_type) {
-		facet_ghost_type = ghost_type;
-		connectivity_facets = &mesh_facets.getConnectivity(facet_type, facet_ghost_type);
-		element_to_subelement = &mesh_facets.getElementToSubelement(facet_type, facet_ghost_type);
+		element_to_subelement->push_back(elements);
+		connectivity_facets->push_back(facet);
+
+		/// current facet index
+		UInt current_facet = connectivity_facets->getSize() - 1;
+
+		/// loop on every element connected to current facet and
+		/// insert current facet in the first free spot of the
+		/// subelement_to_element vector
+		for (UInt elem = 0; elem < elements.size(); ++elem) {
+		  Element loc_el = elements[elem];
+
+		  if (loc_el.type != _not_defined) {
+		    Array<Element> & subelement_to_element =
+		      mesh_facets.getSubelementToElement(type, loc_el.ghost_type);
+
+		    for (UInt f_in = 0; f_in < facets.rows(); ++f_in) {
+		      if (subelement_to_element(loc_el.element, f_in).type == _not_defined) {
+			subelement_to_element(loc_el.element, f_in).type = facet_type;
+			subelement_to_element(loc_el.element, f_in).element = current_facet;
+			subelement_to_element(loc_el.element, f_in).ghost_type = facet_ghost_type;
+			break;
+		      }
+		    }
+		  }
+		}
+
+		/// reset connectivity in case a facet was found in
+		/// between ghost and normal elements
+		if (facet_ghost_type != ghost_type) {
+		  facet_ghost_type = ghost_type;
+		  connectivity_facets = &mesh_facets.getConnectivity(facet_type, facet_ghost_type);
+		  element_to_subelement = &mesh_facets.getElementToSubelement(facet_type, facet_ghost_type);
+		}
 	      }
 	    }
 	  }
@@ -1286,6 +1299,7 @@ void MeshUtils::doubleFacet(Mesh & mesh,
     subfacet_to_facet(nb_facet, sf) = subfacet_to_facet(f_index, sf);
 
     Element subfacet = subfacet_to_facet(f_index, sf);
+    if (subfacet == ElementNull) continue;
     UInt sf_index = subfacet.element;
     GhostType sf_gt = subfacet.ghost_type;
 

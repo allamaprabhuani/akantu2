@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mpirun -np 2 ./test_cohesive_parallel_intrinsic
+mpirun -np 3 ./test_cohesive_parallel_intrinsic

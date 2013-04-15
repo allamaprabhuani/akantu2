@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20) {
       sigma_lim(f) = 100;
       facet_check(f) = true;
-      std::cout << f << std::endl;
+      //      std::cout << f << std::endl;
     }
     else {
       sigma_lim(f) = 1e10;
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
 
     if(s % 1 == 0) {
       model.dump();
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
     // // update displacement
@@ -206,13 +206,14 @@ int main(int argc, char *argv[]) {
   Real Edt = 200 * sqrt(2);
 
 
-  std::cout << Ed << " " << Edt << std::endl;
+  if(prank == 0) {
+    std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
-    return EXIT_FAILURE;
+    if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
+      std::cout << "The dissipated energy is incorrect" << std::endl;
+      return EXIT_FAILURE;
+    }
   }
-
 
   finalize();
   return EXIT_SUCCESS;

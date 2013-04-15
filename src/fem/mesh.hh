@@ -495,7 +495,7 @@ private:
 
   /// get a pointer to the connectivity Array for the given type and create it if necessary
   inline Array<UInt> * getConnectivityPointer(const ElementType & type,
-					       const GhostType & ghost_type = _not_ghost);
+					      const GhostType & ghost_type = _not_ghost);
 
   /// get the pointer to the list of elements for a given type
   //  inline Array<UInt> * getReversedElementsPBCPointer(const ElementType & type);

@@ -67,13 +67,13 @@ int main(int argc, char *argv[]) {
 
   MeshUtils::buildAllFacetsParallel(mesh, mesh_facets, prank_to_element);
 
-  // debug::setDebugLevel(dblDump);
-  // std::cout << mesh << std::endl;
-  // debug::setDebugLevel(dblInfo);
+  debug::setDebugLevel(dblDump);
+  std::cout << mesh << std::endl;
+  debug::setDebugLevel(dblInfo);
 
-  // debug::setDebugLevel(dblDump);
-  // std::cout << mesh_facets << std::endl;
-  // debug::setDebugLevel(dblInfo);
+  debug::setDebugLevel(dblDump);
+  std::cout << mesh_facets << std::endl;
+  debug::setDebugLevel(dblInfo);
 
   /// compute barycenter for each facet
   ByElementTypeReal barycenters("", "", 0);

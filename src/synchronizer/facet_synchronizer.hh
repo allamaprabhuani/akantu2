@@ -44,39 +44,13 @@ class FacetSynchronizer : public DistributedSynchronizer {
 protected:
 
   FacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
-		    Mesh & mesh_facets,
+		    Mesh & mesh,
 		    SynchronizerID id = "facet_synchronizer",
 		    MemoryID memory_id = 0);
 
 // public:
 
 //   virtual ~FacetSynchronizer() {};
-
-  /* ------------------------------------------------------------------------ */
-  /* Subclasses                                                               */
-  /* ------------------------------------------------------------------------ */
-
-protected:
-
-  class ElementBarycenter {
-  public:
-    /// constructor/deconstructor
-    ElementBarycenter(UInt spatial_dimension) : bary(spatial_dimension) {};
-    ~ElementBarycenter() {};
-
-    /// members
-    Element elem;
-    Vector<Real> bary;
-
-    /// operator < for sorting
-    inline bool operator<(const ElementBarycenter & x) {
-      UInt size = this->bary.size();
-      return std::lexicographical_compare(this->bary.storage(),
-					  this->bary.storage() + size,
-					  x.bary.storage(),
-					  x.bary.storage() + size);
-    };
-  };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -87,7 +61,7 @@ public:
   /// associated FacetSynchronizer
   static FacetSynchronizer *
   createFacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
-			  Mesh & mesh_facets,
+			  Mesh & mesh,
 			  SynchronizerID id = "facet_synchronizer",
 			  MemoryID memory_id = 0);
 
@@ -105,15 +79,23 @@ protected:
   /// setup facet synchronization
   void setupFacetSynchronization();
 
-  /// build send/recv facet arrays
-  void buildFacetList(std::list<ElementBarycenter> * element_barycenter,
-		      Array<Element> * final_facets);
+  /// build send facet arrays
+  void buildSendElementList(const ByElementTypeUInt * send_connectivity,
+			    const ByElementTypeUInt * recv_connectivity,
+			    const ByElementTypeUInt * temp_send_element);
+
+  /// build recv facet arrays
+  void buildRecvElementList(const ByElementTypeUInt * temp_recv_element);
 
   /// get facets' barycenter for a list of elements
   template<GhostType ghost_facets>
-  inline void getFacetBarycentersPerElement(const ByElementTypeUInt & rank_to_facet,
-					    const Array<Element> * elements,
-					    std::list<ElementBarycenter> * facet_elbary);
+  inline void getFacetGlobalConnectivity(const ByElementTypeUInt & rank_to_facet,
+					 const Array<Element> * elements,
+					 ByElementTypeUInt * connectivity,
+					 ByElementTypeUInt * facets);
+
+  /// init connectivities of send/recv elements
+  void initGlobalConnectivity(ByElementTypeUInt * connectivity);
 
   /// initialize ByElementType containing correspondance between
   /// facets and processors
@@ -134,8 +116,6 @@ public:
 private:
 
   DistributedSynchronizer & distributed_synchronizer;
-
-  Mesh & mesh_facets;
 
 };
 
