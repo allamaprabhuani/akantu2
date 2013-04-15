@@ -80,22 +80,22 @@ protected:
   void setupFacetSynchronization();
 
   /// build send facet arrays
-  void buildSendElementList(const ByElementTypeUInt * send_connectivity,
-			    const ByElementTypeUInt * recv_connectivity,
-			    const ByElementTypeUInt * temp_send_element);
+  void buildSendElementList(const Array<ByElementTypeUInt> & send_connectivity,
+			    const Array<ByElementTypeUInt> & recv_connectivity,
+			    const Array<ByElementTypeUInt> & temp_send_element);
 
   /// build recv facet arrays
-  void buildRecvElementList(const ByElementTypeUInt * temp_recv_element);
+  void buildRecvElementList(const Array<ByElementTypeUInt> & temp_recv_element);
 
   /// get facets' barycenter for a list of elements
   template<GhostType ghost_facets>
   inline void getFacetGlobalConnectivity(const ByElementTypeUInt & rank_to_facet,
 					 const Array<Element> * elements,
-					 ByElementTypeUInt * connectivity,
-					 ByElementTypeUInt * facets);
+					 Array<ByElementTypeUInt> & connectivity,
+					 Array<ByElementTypeUInt> & facets);
 
   /// init connectivities of send/recv elements
-  void initGlobalConnectivity(ByElementTypeUInt * connectivity);
+  void initGlobalConnectivity(Array<ByElementTypeUInt> & connectivity);
 
   /// initialize ByElementType containing correspondance between
   /// facets and processors

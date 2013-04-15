@@ -391,7 +391,9 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
 
     for (UInt el = 0; el < nb_element; ++el) {
       for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	UInt global_facet = facet_to_element(el, f).element;
+	Element global_facet_elem = facet_to_element(el, f);
+	UInt global_facet = global_facet_elem.element;
+	if (global_facet_elem.ghost_type == _ghost) continue;
 
 	for (UInt q = 0; q < nb_quad_per_facet; ++q) {
 	  for (UInt s = 0; s < spatial_dimension; ++s) {
@@ -458,7 +460,9 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 
       for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
 	for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	  UInt global_facet = (*facet_to_el_it)(f).element;
+	  Element global_facet_elem = (*facet_to_el_it)(f);
+	  UInt global_facet = global_facet_elem.element;
+	  if (global_facet_elem.ghost_type == _ghost) continue;
 
 	  for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
 

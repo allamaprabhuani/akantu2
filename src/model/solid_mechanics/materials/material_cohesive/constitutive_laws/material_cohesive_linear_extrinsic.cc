@@ -92,6 +92,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveArrays() {
+  AKANTU_DEBUG_IN();
   MaterialCohesive::resizeCohesiveArrays();
 
   resizeInternalArray(sigma_c_eff, _ek_cohesive);
@@ -100,20 +101,25 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveArrays() 
   FEM & fem_cohesive = model->getFEM("CohesiveFEM");
   const Mesh & mesh = fem_cohesive.getMesh();
 
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension, _not_ghost, _ek_cohesive);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _not_ghost, _ek_cohesive);
+  GhostType ghost_type = _not_ghost;
+
+  Mesh::type_iterator it =
+    mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
+  Mesh::type_iterator last_type =
+    mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
+
   for(; it != last_type; ++it) {
 
-    const Array<UInt> & elem_filter = element_filter(*it, _not_ghost);
+    const Array<UInt> & elem_filter = element_filter(*it, ghost_type);
     UInt nb_element = elem_filter.getSize();
 
     if (nb_element == 0) continue;
 
-    UInt nb_quadrature_points = fem_cohesive.getNbQuadraturePoints(*it, _not_ghost);
+    UInt nb_quadrature_points = fem_cohesive.getNbQuadraturePoints(*it, ghost_type);
     UInt nb_element_old = nb_element - sigma_insertion.getSize() / nb_quadrature_points;
 
-    Array<Real> & sigma_c_eff_vec = sigma_c_eff(*it, _not_ghost);
-    Array<Real> & delta_c_vec = delta_c(*it, _not_ghost);
+    Array<Real> & sigma_c_eff_vec = sigma_c_eff(*it, ghost_type);
+    Array<Real> & delta_c_vec = delta_c(*it, ghost_type);
 
     for (UInt el = nb_element_old; el < nb_element; ++el) {
       for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -124,7 +130,7 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::resizeCohesiveArrays() 
       }
     }
   }
-
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

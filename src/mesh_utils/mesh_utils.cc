@@ -1330,10 +1330,16 @@ void MeshUtils::doubleFacet(Mesh & mesh,
     /// facet in the facet_to_subfacet vector
     UInt f_start = facet_to_subfacet(sf_index)[start].element;
     Element facet_next;
-    if (start + 2 == nb_connected_facets)
-      facet_next = facet_to_subfacet(sf_index)[0];
-    else
-      facet_next = facet_to_subfacet(sf_index)[start + 2];
+    UInt index_next = start + 2;
+    if (index_next == nb_connected_facets) index_next = 0;
+
+    facet_next = facet_to_subfacet(sf_index)[index_next];
+
+    while (facet_next.type == _not_defined) {
+      ++index_next;
+      if (index_next == nb_connected_facets) index_next = 0;
+      facet_next = facet_to_subfacet(sf_index)[index_next];
+    }
 
     Array< std::vector<Element> > & element_to_facet_next
       = mesh_facets.getElementToSubelement(facet_next.type, facet_next.ghost_type);
@@ -1356,6 +1362,8 @@ void MeshUtils::doubleFacet(Mesh & mesh,
 
       /// if current loop facet is on the boundary, double subfacet
       Element f_global = facet_to_subfacet(sf_index)[f];
+
+      if (f_global.type == _not_defined) continue;
 
       Array< std::vector<Element> > & el_to_f
 	= mesh_facets.getElementToSubelement(f_global.type, f_global.ghost_type);
@@ -1438,6 +1446,8 @@ void MeshUtils::doubleSubfacet(Mesh & mesh,
     UInt f_global = facet_el.element;
     ElementType type_facet = facet_el.type;
     GhostType gt_facet = facet_el.ghost_type;
+
+    if (type_facet == _not_defined) continue;
 
     Array<UInt> & conn_facet = mesh_facets.getConnectivity(type_facet, gt_facet);
     UInt nb_nodes_per_facet = conn_facet.getNbComponent();
