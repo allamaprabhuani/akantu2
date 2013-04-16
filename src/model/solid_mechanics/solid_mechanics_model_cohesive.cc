@@ -250,10 +250,9 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
   Mesh::type_iterator last_f = mesh_facets.lastType(spatial_dimension - 1);
 
   internal_facet_type = _not_defined;
-  UInt nb_facet = 0;
 
   for (; it_f != last_f; ++it_f) {
-    nb_facet = mesh_facets.getNbElement(*it_f);
+    UInt nb_facet = mesh_facets.getNbElement(*it_f);
     if (nb_facet != 0) {
       internal_facet_type = *it_f;
       break;
@@ -299,7 +298,8 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
   // if(material_file != "")
   //   buildFragmentsList();
 
-  sigma_lim.resize(nb_facet);
+  UInt nb_internal_facet = mesh_facets.getNbElement(internal_facet_type);
+  sigma_lim.resize(nb_internal_facet);
 
   /// assign sigma_c to each facet
   MaterialCohesive * mat_cohesive
@@ -307,22 +307,21 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
 
   mat_cohesive->generateRandomDistribution(sigma_lim);
 
-  if (facets_check.getSize() < 1) {
-    const Array< std::vector<Element> > & element_to_facet
-      = mesh_facets.getElementToSubelement(internal_facet_type);
-    facets_check.resize(nb_facet);
+  const Array< std::vector<Element> > & element_to_facet
+    = mesh_facets.getElementToSubelement(internal_facet_type);
+  facets_check.resize(nb_internal_facet);
 
-    for (UInt f = 0; f < nb_facet; ++f) {
-      if (element_to_facet(f)[1] != ElementNull) {
-	facets_check(f) = true;
-      }
-      else facets_check(f) = false;
+  for (UInt f = 0; f < nb_internal_facet; ++f) {
+    if (element_to_facet(f)[1] != ElementNull) {
+      facets_check(f) = true;
     }
+    else facets_check(f) = false;
   }
 
   /// compute normals on facets
-  registerFEMObject<MyFEMType>("FacetsFEM", mesh_facets, spatial_dimension-1);
-  getFEM("FacetsFEM").initShapeFunctions();
+  registerFEMObject<MyFEMType>("FacetsFEM", mesh_facets, spatial_dimension - 1);
+  getFEM("FacetsFEM").initShapeFunctions(_not_ghost);
+  getFEM("FacetsFEM").initShapeFunctions(_ghost);
   getFEM("FacetsFEM").computeNormalsOnControlPoints();
 
   /**
@@ -330,13 +329,14 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
    *  recomputing them as follows:
    */
   /* ------------------------------------------------------------------------ */
-  const Array<Real> & normals = getFEM("FacetsFEM").getNormalsOnQuadPoints(internal_facet_type);
+  const Array<Real> & normals =
+    getFEM("FacetsFEM").getNormalsOnQuadPoints(internal_facet_type);
 
   Array<Real>::const_iterator< Vector<Real> > normal_it =
     normals.begin(spatial_dimension);
 
   tangents.resize(normals.getSize());
-  tangents.extendComponentsInterlaced(spatial_dimension, tangents.getNbComponent());
+  tangents.extendComponentsInterlaced(spatial_dimension, 1);
 
   Array<Real>::iterator< Vector<Real> > tangent_it =
     tangents.begin(spatial_dimension);
@@ -349,16 +349,36 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
   /// compute quadrature points coordinates on facets
   Array<Real> & position = mesh.getNodes();
 
-  UInt nb_quad_per_facet = getFEM("FacetsFEM").getNbQuadraturePoints(internal_facet_type);
-  UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
+  ByElementTypeReal quad_facets("quad_facets", id);
+  mesh_facets.initByElementTypeArray(quad_facets,
+				     spatial_dimension, spatial_dimension - 1);
 
-  Array<Real> quad_facets(nb_tot_quad, spatial_dimension);
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end(); ++gt) {
 
-  getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
-						    quad_facets,
-						    spatial_dimension,
-						    internal_facet_type);
+    GhostType facet_gt = *gt;
+    Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1, facet_gt);
+    Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1, facet_gt);
 
+    for (; it != last; ++it) {
+      ElementType facet_type = *it;
+
+      UInt nb_quad_per_facet =
+	getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
+
+      UInt nb_facet = mesh_facets.getNbElement(facet_type, facet_gt);
+      UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
+
+      Array<Real> & quad_f = quad_facets(facet_type, facet_gt);
+      quad_f.resize(nb_tot_quad);
+
+      getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
+							quad_f,
+							spatial_dimension,
+							facet_type,
+							facet_gt);
+    }
+  }
 
   /// compute elements quadrature point positions and build
   /// element-facet quadrature points data structure
@@ -372,34 +392,49 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
 			      spatial_dimension * spatial_dimension,
 			      spatial_dimension);
 
-  Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last = mesh.lastType(spatial_dimension);
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end(); ++gt) {
 
-  for (; it != last; ++it) {
-    UInt nb_element = mesh.getNbElement(*it);
-    if (nb_element == 0) continue;
+    GhostType facet_gt = *gt;
 
-    /// compute elements' quadrature points and list of facet
-    /// quadrature points positions by element
-    Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(*it);
-    UInt nb_facet_per_elem = facet_to_element.getNbComponent();
+    Mesh::type_iterator it   = mesh.firstType(spatial_dimension, facet_gt);
+    Mesh::type_iterator last = mesh.lastType(spatial_dimension, facet_gt);
 
-    Array<Real> & el_q_facet = elements_quad_facets(*it);
-    el_q_facet.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet);
+    for (; it != last; ++it) {
+      ElementType type = *it;
+      UInt nb_element = mesh.getNbElement(type, facet_gt);
+      if (nb_element == 0) continue;
 
-    stress_on_facet(*it).resize(el_q_facet.getSize());
+      /// compute elements' quadrature points and list of facet
+      /// quadrature points positions by element
+      Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(type,
+									     facet_gt);
+      UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-    for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	Element global_facet_elem = facet_to_element(el, f);
-	UInt global_facet = global_facet_elem.element;
-	if (global_facet_elem.ghost_type == _ghost) continue;
+      Array<Real> & el_q_facet = elements_quad_facets(type, facet_gt);
 
-	for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-	  for (UInt s = 0; s < spatial_dimension; ++s) {
-	    el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet
-		       + f * nb_quad_per_facet + q, s)
-	      = quad_facets(global_facet * nb_quad_per_facet + q, s);
+      ElementType facet_type = Mesh::getFacetType(type);
+
+      UInt nb_quad_per_facet =
+	getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
+
+      el_q_facet.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet);
+
+      stress_on_facet(type, facet_gt).resize(el_q_facet.getSize());
+
+      for (UInt el = 0; el < nb_element; ++el) {
+	for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+	  Element global_facet_elem = facet_to_element(el, f);
+	  UInt global_facet = global_facet_elem.element;
+	  GhostType facet_gt = global_facet_elem.ghost_type;
+	  const Array<Real> & quad_f = quad_facets(facet_type, facet_gt);
+
+	  for (UInt q = 0; q < nb_quad_per_facet; ++q) {
+	    for (UInt s = 0; s < spatial_dimension; ++s) {
+	      el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet
+			 + f * nb_quad_per_facet + q, s)
+		= quad_f(global_facet * nb_quad_per_facet + q, s);
+	    }
 	  }
 	}
       }
@@ -421,6 +456,8 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 
   UInt nb_quad_per_facet = getFEM("FacetsFEM").getNbQuadraturePoints(internal_facet_type);
   UInt nb_facet = mesh_facets.getNbElement(internal_facet_type);
+  UInt sp2 = spatial_dimension * spatial_dimension;
+  UInt nb_quad_f_two = nb_quad_per_facet * 2;
 
   /// vector containing stresses coming from the two elements of each facets
   facet_stress.resize(2 * nb_facet * nb_quad_per_facet);
@@ -432,57 +469,65 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
   for (UInt m = 0; m < nb_materials; ++m) {
     if (m == cohesive_index) continue;
 
-    Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
-    Mesh::type_iterator last = mesh.lastType(spatial_dimension);
+    /// interpolate stress on facet quadrature points positions
+    materials[m]->interpolateStress(stress_on_facet);
 
-    /// loop over element type
-    for (; it != last; ++it) {
-      UInt nb_element = mesh.getNbElement(*it);
-      if (nb_element == 0) continue;
+    for (ghost_type_t::iterator gt = ghost_type_t::begin();
+	 gt != ghost_type_t::end(); ++gt) {
 
-      Array<Real> & stress_on_f = stress_on_facet(*it);
+      GhostType ghost_type = *gt;
 
-      /// interpolate stress on facet quadrature points positions
-      materials[m]->interpolateStress(*it, stress_on_f);
+      Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
+      Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
 
-      /// store the interpolated stresses on the facet_stress vector
-      Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(*it);
-      UInt nb_facet_per_elem = facet_to_element.getNbComponent();
+      /// loop over element type
+      for (; it != last; ++it) {
+	ElementType type = *it;
+	UInt nb_element = mesh.getNbElement(type, ghost_type);
+	if (nb_element == 0) continue;
 
-      Array<Element>::iterator<Vector<Element> > facet_to_el_it =
-	facet_to_element.begin(nb_facet_per_elem);
+	Array<Real> & stress_on_f = stress_on_facet(type, ghost_type);
 
-      Array<Real>::iterator< Matrix<Real> > stress_on_f_it =
-	stress_on_f.begin(spatial_dimension, spatial_dimension);
+	/// store the interpolated stresses on the facet_stress vector
+	Array<Element> & facet_to_element =
+	  mesh_facets.getSubelementToElement(type, ghost_type);
 
-      UInt sp2 = spatial_dimension * spatial_dimension;
-      UInt nb_quad_f_two = nb_quad_per_facet * 2;
+	UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-      for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
-	for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	  Element global_facet_elem = (*facet_to_el_it)(f);
-	  UInt global_facet = global_facet_elem.element;
-	  if (global_facet_elem.ghost_type == _ghost) continue;
+	Array<Element>::iterator<Vector<Element> > facet_to_el_it =
+	  facet_to_element.begin(nb_facet_per_elem);
 
-	  for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
+	Array<Real>::iterator< Matrix<Real> > stress_on_f_it =
+	  stress_on_f.begin(spatial_dimension, spatial_dimension);
 
-	    if (facets_check(global_facet) == true) {
-	      Matrix<Real> facet_stress_local(facet_stress.storage()
-					      + (global_facet * nb_quad_f_two
-						 + q * 2
-						 + facet_stress_count(global_facet))
-					      * sp2,
-					      spatial_dimension,
-					      spatial_dimension);
-
-	      facet_stress_local = *stress_on_f_it;
+	for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
+	  for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+	    Element global_facet_elem = (*facet_to_el_it)(f);
+	    UInt global_facet = global_facet_elem.element;
+	    if (global_facet_elem.ghost_type == _ghost) {
+	      for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it);
+	      continue;
 	    }
 
+	    for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
+
+	      if (facets_check(global_facet) == true) {
+		Matrix<Real> facet_stress_local(facet_stress.storage()
+						+ (global_facet * nb_quad_f_two
+						   + q * 2
+						   + facet_stress_count(global_facet))
+						* sp2,
+						spatial_dimension,
+						spatial_dimension);
+
+		facet_stress_local = *stress_on_f_it;
+	      }
+
+	    }
+	    facet_stress_count(global_facet) = true;
 	  }
-	  facet_stress_count(global_facet) = true;
 	}
       }
-
     }
   }
 
@@ -604,7 +649,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
   if (facet_synchronizer != NULL) {
     DataAccessor * data_accessor = this;
     facet_synchronizer->updateDistributedSynchronizer(*data_accessor,
-  						      cohesive_el_to_facet);
+    						      cohesive_el_to_facet);
 
     for (ghost_type_t::iterator gt = ghost_type_t::begin();
   	 gt != ghost_type_t::end(); ++gt) {

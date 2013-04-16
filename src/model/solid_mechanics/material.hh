@@ -147,8 +147,7 @@ public:
    * interpolate stress on given positions for each element by means
    * of a geometrical interpolation on quadrature points
    */
-  virtual void interpolateStress(const ElementType type,
-				 Array<Real> & result);
+  virtual void interpolateStress(ByElementTypeReal & result);
 
   /**
    * function to initialize the elemental field interpolation
@@ -206,12 +205,14 @@ protected:
   /// interpolate an elemental field on given points for each element
   template <ElementType type>
   void interpolateElementalField(const Array<Real> & field,
-				 Array<Real> & result);
+				 Array<Real> & result,
+				 const GhostType ghost_type);
 
   /// template function to initialize the elemental field interpolation
   template <ElementType type>
   void initElementalFieldInterpolation(const Array<Real> & quad_coordinates,
-				       const Array<Real> & interpolation_points_coordinates);
+				       const Array<Real> & interpolation_points_coordinates,
+				       const GhostType ghost_type);
 
   /// build the coordinate matrix for the interpolation on elemental field
   template <ElementType type>
@@ -220,7 +221,7 @@ protected:
 
   /// get the size of the coordiante matrix used in the interpolation
   template <ElementType type>
-  inline UInt getSizeElementalFieldInterpolationCoodinates();
+  inline UInt getSizeElementalFieldInterpolationCoodinates(GhostType ghost_type = _not_ghost);
 
 
   /* ------------------------------------------------------------------------ */

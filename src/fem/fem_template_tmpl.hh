@@ -773,7 +773,7 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 inline UInt FEMTemplate<I, S, kind>::getNbQuadraturePoints(const ElementType & type,
-							    const GhostType & ghost_type) const {
+							   const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_quad_points = 0;

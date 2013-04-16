@@ -101,7 +101,7 @@ public:
   static inline UInt getShapeDerivativesSize(const ElementType & type);
 
   inline const Matrix<Real> & getControlPoints(const ElementType & type,
-						      const GhostType & ghost_type) const {
+					       const GhostType & ghost_type) const {
     return control_points(type, ghost_type);
   }
 

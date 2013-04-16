@@ -96,6 +96,14 @@ int main(int argc, char *argv[]) {
 			   spatial_dimension,
 			   type);
 
+  ByElementTypeReal interpolated_stress("interpolated_stress", "");
+  mesh.initByElementTypeArray(interpolated_stress,
+			      spatial_dimension * spatial_dimension,
+			      spatial_dimension);
+
+  Array<Real> & interp_stress = interpolated_stress(type);
+  interp_stress.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet);
+
   Array<Real> & el_q_facet = element_quad_facet(type);
 
   for (UInt el = 0; el < nb_element; ++el) {
@@ -137,11 +145,7 @@ int main(int argc, char *argv[]) {
 
   /// interpolate stresses on facets' quadrature points
   model.getMaterial(0).initElementalFieldInterpolation(element_quad_facet);
-
-  Array<Real> interpolated_stress(nb_element * nb_facet_per_elem * nb_quad_per_facet,
-				   stress.getNbComponent());
-  model.getMaterial(0).interpolateStress(type,
-					 interpolated_stress);
+  model.getMaterial(0).interpolateStress(interpolated_stress);
 
   /// check results
   for (UInt el = 0; el < nb_element; ++el) {
@@ -157,8 +161,8 @@ int main(int argc, char *argv[]) {
 
 	  Real theoretical = s * plane(x, y);
 
-	  Real numerical = interpolated_stress(el * nb_facet_per_elem * nb_quad_per_facet
-					       + f * nb_quad_per_facet + q, s);
+	  Real numerical = interp_stress(el * nb_facet_per_elem * nb_quad_per_facet
+					 + f * nb_quad_per_facet + q, s);
 
 	  Real tolerance = 1000 * (theoretical + 1) * std::numeric_limits<Real>::epsilon();
 
