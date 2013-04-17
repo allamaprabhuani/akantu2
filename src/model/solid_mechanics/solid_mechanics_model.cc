@@ -1169,7 +1169,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getKineticEnergy(ElementType & type, UInt index) {
+Real SolidMechanicsModel::getKineticEnergy(const ElementType & type, UInt index) {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(type);
@@ -1195,7 +1195,7 @@ Real SolidMechanicsModel::getKineticEnergy(ElementType & type, UInt index) {
 
   AKANTU_DEBUG_OUT();
 
-  return 0.5*getFEM().integrate(rho_v2, type, index);
+  return .5*getFEM().integrate(rho_v2, type, index);
 }
 
 
@@ -1262,7 +1262,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 }
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
-				    ElementType & type,
+				    const ElementType & type,
 				    UInt index){
   AKANTU_DEBUG_IN();
 

@@ -68,12 +68,6 @@ set(AKANTU_CORE_FILES
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
   synchronizer/dof_synchronizer.cc
-  model/level_set/level_set_model.cc
-  model/level_set/sphere.cc
-  model/level_set/plane.cc
-  model/level_set/container.cc
-  model/solid_mechanics/materials/material_finite_deformation.cc
-  model/solid_mechanics/materials/material_finite_deformation/material_plastic.cc
 
   #header files
   io/mesh_io.hh
@@ -151,13 +145,6 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material_parameters.hh
   model/solid_mechanics/material_parameters_tmpl.hh
   model/solid_mechanics/materials/material_elastic.hh
-  model/level_set/level_set_model.hh
-  model/level_set/geometry.hh
-  model/level_set/sphere.hh
-  model/level_set/plane.hh
-  model/level_set/container.hh
-  model/solid_mechanics/materials/material_finite_deformation.hh
-  model/solid_mechanics/materials/material_finite_deformation/material_plastic.hh
 
   #inline implementation files
   mesh_utils/mesh_utils_inline_impl.cc
@@ -192,9 +179,6 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
-  model/level_set/level_set_model_inline_impl.cc
-  model/solid_mechanics/materials/material_finite_deformation/material_plastic_inline_impl.cc
-  model/solid_mechanics/materials/material_finite_deformation_inline_impl.cc
   fem/geometrical_element.cc
   fem/element_class_tmpl.hh
   fem/element_class.cc

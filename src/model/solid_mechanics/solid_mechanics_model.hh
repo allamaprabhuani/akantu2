@@ -462,7 +462,7 @@ public:
 
   /// compute the kinetic energy
   Real getKineticEnergy();
-  Real getKineticEnergy(ElementType & type, UInt index);
+  Real getKineticEnergy(const ElementType & type, UInt index);
 
   /// compute the external work (for impose displacement, the velocity should be given too)
   Real getExternalWork();
@@ -471,7 +471,7 @@ public:
   Real getEnergy(const std::string & energy_id);
 
   /// compute the energy for energy
-  Real getEnergy(const std::string & energy_id, ElementType & type, UInt index);
+  Real getEnergy(const std::string & energy_id, const ElementType & type, UInt index);
 
   /// set the Contact object
   AKANTU_SET_MACRO(Contact, contact, Contact *);

@@ -35,8 +35,6 @@
 
 __BEGIN_AKANTU__
 
-
-
 class sphere : public geometry {
 public:
     sphere(UInt dim);
@@ -47,7 +45,6 @@ private:
     Real * Center;
     Real R;
     UInt d;
-
 };
 
 __END_AKANTU__

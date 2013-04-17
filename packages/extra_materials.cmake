@@ -55,6 +55,13 @@ set(AKANTU_EXTRA_MATERIALS_FILES
 
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
+
+  model/solid_mechanics/materials/material_finite_deformation.cc
+  model/solid_mechanics/materials/material_finite_deformation/material_plastic.cc
+  model/solid_mechanics/materials/material_finite_deformation.hh
+  model/solid_mechanics/materials/material_finite_deformation/material_plastic.hh
+  model/solid_mechanics/materials/material_finite_deformation/material_plastic_inline_impl.cc
+  model/solid_mechanics/materials/material_finite_deformation_inline_impl.cc
   )
 
 set(AKANTU_EXTRA_MATERIALS_TESTS

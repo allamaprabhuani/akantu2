@@ -474,12 +474,10 @@ __END_AKANTU__
 // elastic materials
 #include "material_elastic.hh"
 #include "material_elastic_orthotropic.hh"
-#include "material_plastic.hh"
 
 #define AKANTU_CORE_MATERIAL_LIST					\
   ((2, (elastic            , MaterialElastic           )))              \
-  ((2, (elastic_orthotropic, MaterialElasticOrthotropic)))              \
-  ((2, (plastic            , MaterialPlastic           )))  
+  ((2, (elastic_orthotropic, MaterialElasticOrthotropic)))
 #if defined(AKANTU_EXTRA_MATERIALS)
 #  include "material_extra_includes.hh"
 #else
