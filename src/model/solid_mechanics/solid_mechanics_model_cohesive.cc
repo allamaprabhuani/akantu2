@@ -38,13 +38,13 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
-							 UInt dim,
-							 const ID & id,
-							 const MemoryID & memory_id)
+                                                         UInt dim,
+                                                         const ID & id,
+                                                         const MemoryID & memory_id)
   : SolidMechanicsModel(mesh, dim, id, memory_id),
     mesh_facets(mesh.getSpatialDimension(),
-		mesh.getNodes().getID(),
-		"mesh_facets", memory_id),
+                mesh.getNodes().getID(),
+                "mesh_facets", memory_id),
     stress_on_facet("stress_on_facet", id),
     facet_stress(0, spatial_dimension * spatial_dimension, "facet_stress"),
     fragment_to_element("fragment_to_element", id),
@@ -103,8 +103,8 @@ void SolidMechanicsModelCohesive::updateResidual(bool need_initialize) {
 /* -------------------------------------------------------------------------- */
 
 void SolidMechanicsModelCohesive::initFull(std::string material_file,
-					   AnalysisMethod method,
-					   bool extrinsic) {
+                                           AnalysisMethod method,
+                                           bool extrinsic) {
   AKANTU_DEBUG_IN();
 
   SolidMechanicsModel::initFull(material_file, method);
@@ -120,8 +120,8 @@ void SolidMechanicsModelCohesive::initFull(std::string material_file,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
-					       DataAccessor * data_accessor,
-					       bool extrinsic) {
+                                               DataAccessor * data_accessor,
+                                               bool extrinsic) {
   AKANTU_DEBUG_IN();
 
   SolidMechanicsModel::initParallel(partition, data_accessor);
@@ -139,7 +139,7 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 
     facet_synchronizer =
       FacetSynchronizer::createFacetSynchronizer(distributed_synchronizer,
-						 mesh_facets);
+                                                 mesh_facets);
 
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
   }
@@ -157,11 +157,11 @@ void SolidMechanicsModelCohesive::initCohesiveMaterial() {
   cohesive_index = 0;
 
   while ((dynamic_cast<MaterialCohesive *>(materials[cohesive_index]) == NULL)
-	 && cohesive_index <= materials.size())
+         && cohesive_index <= materials.size())
     ++cohesive_index;
 
   AKANTU_DEBUG_ASSERT(cohesive_index != materials.size(),
-		      "No cohesive materials in the material input file");
+                      "No cohesive materials in the material input file");
 
   /// initialize element_index_by_material to to cohesive_index
   Material ** mat_val = &(materials.at(0));
@@ -178,9 +178,9 @@ void SolidMechanicsModelCohesive::initCohesiveMaterial() {
 
       Array<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
       for (UInt el = 0; el < nb_element; ++el) {
-	el_id_by_mat(el, 1) = cohesive_index;
-	UInt index = mat_val[cohesive_index]->addElement(*it, el, gt);
-	el_id_by_mat(el, 0) = index;
+        el_id_by_mat(el, 1) = cohesive_index;
+        UInt index = mat_val[cohesive_index]->addElement(*it, el, gt);
+        el_id_by_mat(el, 0) = index;
       }
     }
   }
@@ -221,10 +221,10 @@ void SolidMechanicsModelCohesive::initModel() {
     for (; it != last; ++it) {
       const Array<UInt> & connectivity = mesh.getConnectivity(*it, type_ghost);
       if (connectivity.getSize() != 0) {
-	type = *it;
-	ElementType type_facet = Mesh::getFacetType(type);
-	ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
-	mesh.addConnectivityType(type_cohesive, type_ghost);
+        type = *it;
+        ElementType type_facet = Mesh::getFacetType(type);
+        ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+        mesh.addConnectivityType(type_cohesive, type_ghost);
       }
     }
   }
@@ -263,14 +263,14 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
 
   /// initialize facet insertion array
   mesh_facets.initByElementTypeArray(facet_insertion, 1,
-				     spatial_dimension - 1,
-				     false,
-				     _ek_regular,
-				     true);
+                                     spatial_dimension - 1,
+                                     false,
+                                     _ek_regular,
+                                     true);
 
   mesh.initByElementTypeArray(facets_to_cohesive_el, 2,
-			      spatial_dimension, false,
-			      _ek_cohesive);
+                              spatial_dimension, false,
+                              _ek_cohesive);
 
   mesh_facets.initByElementTypeArray(cohesive_el_to_facet, 1, spatial_dimension - 1);
 
@@ -289,7 +289,7 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
       cohesive_el_to_f.resize(nb_facet);
 
       for (UInt f = 0; f < nb_facet; ++f)
-	cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
+        cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
     }
   }
 
@@ -351,7 +351,7 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
 
   ByElementTypeReal quad_facets("quad_facets", id);
   mesh_facets.initByElementTypeArray(quad_facets,
-				     spatial_dimension, spatial_dimension - 1);
+                                     spatial_dimension, spatial_dimension - 1);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
@@ -364,7 +364,7 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
       ElementType facet_type = *it;
 
       UInt nb_quad_per_facet =
-	getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
+        getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
 
       UInt nb_facet = mesh_facets.getNbElement(facet_type, facet_gt);
       UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
@@ -373,10 +373,10 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
       quad_f.resize(nb_tot_quad);
 
       getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
-							quad_f,
-							spatial_dimension,
-							facet_type,
-							facet_gt);
+                                                        quad_f,
+                                                        spatial_dimension,
+                                                        facet_type,
+                                                        facet_gt);
     }
   }
 
@@ -385,12 +385,12 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
   ByElementTypeReal elements_quad_facets("elements_quad_facets", id);
 
   mesh.initByElementTypeArray(elements_quad_facets,
-			      spatial_dimension,
-			      spatial_dimension);
+                              spatial_dimension,
+                              spatial_dimension);
 
   mesh.initByElementTypeArray(stress_on_facet,
-			      spatial_dimension * spatial_dimension,
-			      spatial_dimension);
+                              spatial_dimension * spatial_dimension,
+                              spatial_dimension);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
@@ -408,7 +408,7 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
       /// compute elements' quadrature points and list of facet
       /// quadrature points positions by element
       Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(type,
-									     facet_gt);
+                                                                             facet_gt);
       UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
       Array<Real> & el_q_facet = elements_quad_facets(type, facet_gt);
@@ -416,27 +416,27 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file) {
       ElementType facet_type = Mesh::getFacetType(type);
 
       UInt nb_quad_per_facet =
-	getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
+        getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
 
       el_q_facet.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet);
 
       stress_on_facet(type, facet_gt).resize(el_q_facet.getSize());
 
       for (UInt el = 0; el < nb_element; ++el) {
-	for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	  Element global_facet_elem = facet_to_element(el, f);
-	  UInt global_facet = global_facet_elem.element;
-	  GhostType facet_gt = global_facet_elem.ghost_type;
-	  const Array<Real> & quad_f = quad_facets(facet_type, facet_gt);
+        for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+          Element global_facet_elem = facet_to_element(el, f);
+          UInt global_facet = global_facet_elem.element;
+          GhostType facet_gt = global_facet_elem.ghost_type;
+          const Array<Real> & quad_f = quad_facets(facet_type, facet_gt);
 
-	  for (UInt q = 0; q < nb_quad_per_facet; ++q) {
-	    for (UInt s = 0; s < spatial_dimension; ++s) {
-	      el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet
-			 + f * nb_quad_per_facet + q, s)
-		= quad_f(global_facet * nb_quad_per_facet + q, s);
-	    }
-	  }
-	}
+          for (UInt q = 0; q < nb_quad_per_facet; ++q) {
+            for (UInt s = 0; s < spatial_dimension; ++s) {
+              el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet
+                         + f * nb_quad_per_facet + q, s)
+                = quad_f(global_facet * nb_quad_per_facet + q, s);
+            }
+          }
+        }
       }
     }
   }
@@ -467,103 +467,106 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 
   /// loop over materials
   for (UInt m = 0; m < nb_materials; ++m) {
-    if (m == cohesive_index) continue;
+    try {
+      MaterialCohesive & mat __attribute__((unused)) = dynamic_cast<MaterialCohesive &>(*materials[m]);
+    } catch(std::bad_cast&) {
+      /// interpolate stress on facet quadrature points positions
+      materials[m]->interpolateStress(stress_on_facet);
 
-    /// interpolate stress on facet quadrature points positions
-    materials[m]->interpolateStress(stress_on_facet);
+      for (ghost_type_t::iterator gt = ghost_type_t::begin();
+           gt != ghost_type_t::end(); ++gt) {
 
-    for (ghost_type_t::iterator gt = ghost_type_t::begin();
-	 gt != ghost_type_t::end(); ++gt) {
+        GhostType ghost_type = *gt;
 
-      GhostType ghost_type = *gt;
+        Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
+        Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
 
-      Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
-      Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
+        /// loop over element type
+        for (; it != last; ++it) {
+          ElementType type = *it;
+          UInt nb_element = mesh.getNbElement(type, ghost_type);
+          if (nb_element == 0) continue;
 
-      /// loop over element type
-      for (; it != last; ++it) {
-	ElementType type = *it;
-	UInt nb_element = mesh.getNbElement(type, ghost_type);
-	if (nb_element == 0) continue;
+          Array<Real> & stress_on_f = stress_on_facet(type, ghost_type);
 
-	Array<Real> & stress_on_f = stress_on_facet(type, ghost_type);
+          /// store the interpolated stresses on the facet_stress vector
+          Array<Element> & facet_to_element =
+            mesh_facets.getSubelementToElement(type, ghost_type);
 
-	/// store the interpolated stresses on the facet_stress vector
-	Array<Element> & facet_to_element =
-	  mesh_facets.getSubelementToElement(type, ghost_type);
+          UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-	UInt nb_facet_per_elem = facet_to_element.getNbComponent();
+          Array<Element>::iterator<Vector<Element> > facet_to_el_it =
+            facet_to_element.begin(nb_facet_per_elem);
 
-	Array<Element>::iterator<Vector<Element> > facet_to_el_it =
-	  facet_to_element.begin(nb_facet_per_elem);
+          Array<Real>::iterator< Matrix<Real> > stress_on_f_it =
+            stress_on_f.begin(spatial_dimension, spatial_dimension);
 
-	Array<Real>::iterator< Matrix<Real> > stress_on_f_it =
-	  stress_on_f.begin(spatial_dimension, spatial_dimension);
+          for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
+            for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+              Element global_facet_elem = (*facet_to_el_it)(f);
+              UInt global_facet = global_facet_elem.element;
+              if (global_facet_elem.ghost_type == _ghost) {
+                stress_on_f_it += nb_quad_per_facet;
+                continue;
+              }
 
-	for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
-	  for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-	    Element global_facet_elem = (*facet_to_el_it)(f);
-	    UInt global_facet = global_facet_elem.element;
-	    if (global_facet_elem.ghost_type == _ghost) {
-	      for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it);
-	      continue;
-	    }
+              for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
 
-	    for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
+                if (facets_check(global_facet) == true) {
+                  Matrix<Real> facet_stress_local(facet_stress.storage()
+                                                  + (global_facet * nb_quad_f_two
+                                                     + q * 2
+                                                     + facet_stress_count(global_facet))
+                                                  * sp2,
+                                                  spatial_dimension,
+                                                  spatial_dimension);
 
-	      if (facets_check(global_facet) == true) {
-		Matrix<Real> facet_stress_local(facet_stress.storage()
-						+ (global_facet * nb_quad_f_two
-						   + q * 2
-						   + facet_stress_count(global_facet))
-						* sp2,
-						spatial_dimension,
-						spatial_dimension);
+                  facet_stress_local = *stress_on_f_it;
+                }
 
-		facet_stress_local = *stress_on_f_it;
-	      }
-
-	    }
-	    facet_stress_count(global_facet) = true;
-	  }
-	}
+              }
+              facet_stress_count(global_facet) = true;
+            }
+          }
+        }
       }
     }
   }
 
-  /// check which not ghost cohesive elements are to be created
-  MaterialCohesive * mat_cohesive
-    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
-
     GhostType facet_gt = *gt;
     Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1, facet_gt);
     Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1, facet_gt);
-
     for (; it != last; ++it)
       facet_insertion(*it, facet_gt).clear();
   }
 
-  mat_cohesive->checkInsertion(facet_stress, mesh_facets, facet_insertion);
+  for (UInt m = 0; m < nb_materials; ++m) {
+    try {
+      MaterialCohesive & mat_cohesive = dynamic_cast<MaterialCohesive &>(*materials[m]);
+      /// check which not ghost cohesive elements are to be created
+      mat_cohesive.checkInsertion(facet_stress, mesh_facets, facet_insertion);
+    } catch(std::bad_cast&) { }
+  }
 
   /// communicate data among processors
   synch_registry->synchronize(_gst_smmc_facets);
 
   /// insert cohesive elements
   MeshUtils::insertCohesiveElements(mesh,
-				    mesh_facets,
-				    facet_insertion,
-				    doubled_facets,
-				    true);
+                                    mesh_facets,
+                                    facet_insertion,
+                                    doubled_facets,
+                                    true);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const Array<Element> & element_list,
-						  __attribute__((unused)) const NewElementsEvent & event) {
+                                                  __attribute__((unused)) const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
   /// update model data for new cohesive elements
@@ -586,7 +589,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
       ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
 
       Array<UInt> & el_id_by_mat = element_index_by_material(type_cohesive,
-							     gt_facet);
+                                                             gt_facet);
 
       UInt old_nb_cohesive_elements = el_id_by_mat.getSize();
       UInt new_cohesive_elements = doubled_f.getSize();
@@ -595,7 +598,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
       el_id_by_mat.resize(total_nb_cohesive_elements);
 
       if (facets_check.getSize() > 0 && gt_facet == _not_ghost)
-	facets_check.resize(facets_check.getSize() + new_cohesive_elements);
+        facets_check.resize(facets_check.getSize() + new_cohesive_elements);
 
       Array<UInt> & f_to_cohesive_el = facets_to_cohesive_el(type_cohesive, gt_facet);
       f_to_cohesive_el.resize(total_nb_cohesive_elements);
@@ -605,31 +608,31 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
       Array<UInt>::iterator<Vector<UInt> > d_f_it = doubled_f.begin(2);
 
       for (UInt f = 0; f < doubled_f.getSize(); ++f, ++d_f_it) {
-	UInt old_facet = (*d_f_it)(0);
-	UInt new_facet = (*d_f_it)(1);
+        UInt old_facet = (*d_f_it)(0);
+        UInt new_facet = (*d_f_it)(1);
 
-	/// assign the cohesive material to each new cohesive element
-	UInt nb_cohesive_elements = old_nb_cohesive_elements + f;
+        /// assign the cohesive material to each new cohesive element
+        UInt nb_cohesive_elements = old_nb_cohesive_elements + f;
 
-	el_id_by_mat(nb_cohesive_elements, 0) =
-	  materials[cohesive_index]->addElement(type_cohesive,
-						nb_cohesive_elements,
-						gt_facet);
+        el_id_by_mat(nb_cohesive_elements, 0) =
+          materials[cohesive_index]->addElement(type_cohesive,
+                                                nb_cohesive_elements,
+                                                gt_facet);
 
-	el_id_by_mat(nb_cohesive_elements, 1) = cohesive_index;
+        el_id_by_mat(nb_cohesive_elements, 1) = cohesive_index;
 
-	/// update facets_check vector
-	if (facets_check.getSize() > 0 && gt_facet == _not_ghost) {
-	  facets_check(old_facet) = false;
-	  facets_check(new_facet) = false;
-	}
+        /// update facets_check vector
+        if (facets_check.getSize() > 0 && gt_facet == _not_ghost) {
+          facets_check(old_facet) = false;
+          facets_check(new_facet) = false;
+        }
 
-	/// update facets_to_cohesive_el vector
-	f_to_cohesive_el(nb_cohesive_elements, 0) = old_facet;
-	f_to_cohesive_el(nb_cohesive_elements, 1) = new_facet;
+        /// update facets_to_cohesive_el vector
+        f_to_cohesive_el(nb_cohesive_elements, 0) = old_facet;
+        f_to_cohesive_el(nb_cohesive_elements, 1) = new_facet;
 
-	if (facet_synchronizer != NULL)
-	  cohesive_el_to_f(old_facet) = nb_cohesive_elements;
+        if (facet_synchronizer != NULL)
+          cohesive_el_to_f(old_facet) = nb_cohesive_elements;
       }
     }
 
@@ -649,10 +652,10 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
   if (facet_synchronizer != NULL) {
     DataAccessor * data_accessor = this;
     facet_synchronizer->updateDistributedSynchronizer(*data_accessor,
-    						      cohesive_el_to_facet);
+                                                      cohesive_el_to_facet);
 
     for (ghost_type_t::iterator gt = ghost_type_t::begin();
-  	 gt != ghost_type_t::end(); ++gt) {
+         gt != ghost_type_t::end(); ++gt) {
 
       GhostType gt_facet = *gt;
 
@@ -660,11 +663,11 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
       Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
 
       for(; it != end; ++it) {
-  	ElementType type_facet = *it;
-  	Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
+        ElementType type_facet = *it;
+        Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
 
-  	for (UInt f = 0; f < cohesive_el_to_f.getSize(); ++f)
-  	  cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
+        for (UInt f = 0; f < cohesive_el_to_f.getSize(); ++f)
+          cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
       }
     }
   }
@@ -674,7 +677,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes,
-					       __attribute__((unused)) const NewNodesEvent & event) {
+                                               __attribute__((unused)) const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
 
   UInt nb_new_nodes = doubled_nodes.getSize();
@@ -696,14 +699,14 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes
       (*acceleration)(new_node, dim) = (*acceleration)(old_node, dim);
 
       if (current_position)
-	(*current_position)(new_node, dim) = (*current_position)(old_node, dim);
+        (*current_position)(new_node, dim) = (*current_position)(old_node, dim);
 
       if (increment_acceleration)
-	(*increment_acceleration)(new_node, dim)
-	  = (*increment_acceleration)(old_node, dim);
+        (*increment_acceleration)(new_node, dim)
+          = (*increment_acceleration)(old_node, dim);
 
       if (increment)
-	(*increment)(new_node, dim) = (*increment)(old_node, dim);
+        (*increment)(new_node, dim) = (*increment)(old_node, dim);
     }
   }
 
@@ -729,7 +732,7 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
       Array<UInt> & frag_to_el = fragment_to_element(*it);
 
       for (UInt el = 0; el < nb_element; ++el)
-	frag_to_el(el) = max;
+        frag_to_el(el) = max;
     }
   }
 
@@ -759,70 +762,70 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
 
       /// loop on elements
       for (UInt el = 0; el < nb_element; ++el) {
-	if (checked_el(el) == max) {
-	  /// build fragment
-	  ++nb_fragment;
-	  checked_el(el) = nb_fragment - 1;
-	  Array<Element> elem_to_check;
+        if (checked_el(el) == max) {
+          /// build fragment
+          ++nb_fragment;
+          checked_el(el) = nb_fragment - 1;
+          Array<Element> elem_to_check;
 
-	  Element first_el(*it, el);
-	  elem_to_check.push_back(first_el);
+          Element first_el(*it, el);
+          elem_to_check.push_back(first_el);
 
-	  /// keep looping while there are elements to check
-	  while (elem_to_check.getSize() != 0) {
-	    UInt nb_elem_check = elem_to_check.getSize();
+          /// keep looping while there are elements to check
+          while (elem_to_check.getSize() != 0) {
+            UInt nb_elem_check = elem_to_check.getSize();
 
-	    for (UInt el_check = 0; el_check < nb_elem_check; ++el_check) {
-	      Element current_el = elem_to_check(el_check);
+            for (UInt el_check = 0; el_check < nb_elem_check; ++el_check) {
+              Element current_el = elem_to_check(el_check);
 
-	      for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-		/// find adjacent element on current facet
-		UInt global_facet = facet_to_element(current_el.element, f).element;
-		Element next_el;
-		for (UInt i = 0; i < 2; ++i) {
-		  next_el = element_to_facet(global_facet)[i];
-		  if (next_el != current_el) break;
-		}
+              for (UInt f = 0; f < nb_facet_per_elem; ++f) {
+                /// find adjacent element on current facet
+                UInt global_facet = facet_to_element(current_el.element, f).element;
+                Element next_el;
+                for (UInt i = 0; i < 2; ++i) {
+                  next_el = element_to_facet(global_facet)[i];
+                  if (next_el != current_el) break;
+                }
 
-		if (next_el.kind == _ek_cohesive) {
-		  /// fragmention occurs when the cohesive element has
-		  /// reached damage = 1 on every quadrature point
-		  UInt q = 0;
-		  while (q < nb_quad_cohesive &&
-		  	 std::abs(damage(next_el.element * nb_quad_cohesive + q) - 1)
-		  	 <= epsilon) ++q;
+                if (next_el.kind == _ek_cohesive) {
+                  /// fragmention occurs when the cohesive element has
+                  /// reached damage = 1 on every quadrature point
+                  UInt q = 0;
+                  while (q < nb_quad_cohesive &&
+                         std::abs(damage(next_el.element * nb_quad_cohesive + q) - 1)
+                         <= epsilon) ++q;
 
-		  if (q == nb_quad_cohesive)
-		    next_el = ElementNull;
-		  else {
-		    /// check which facet is the correct one
-		    UInt other_facet_index
-		      = f_to_cohesive_el(next_el.element, 0) == global_facet;
-		    UInt other_facet
-		      = f_to_cohesive_el(next_el.element, other_facet_index);
+                  if (q == nb_quad_cohesive)
+                    next_el = ElementNull;
+                  else {
+                    /// check which facet is the correct one
+                    UInt other_facet_index
+                      = f_to_cohesive_el(next_el.element, 0) == global_facet;
+                    UInt other_facet
+                      = f_to_cohesive_el(next_el.element, other_facet_index);
 
-		    /// get the other regualar element
-		    next_el = element_to_facet(other_facet)[0];
-		  }
-		}
+                    /// get the other regualar element
+                    next_el = element_to_facet(other_facet)[0];
+                  }
+                }
 
-		/// if it exists, add it to the fragment list
-		if (next_el != ElementNull) {
-		  Array<UInt> & checked_next_el = fragment_to_element(next_el.type);
-		  /// check if the element isn't already part of a fragment
-		  if (checked_next_el(next_el.element) == max) {
-		    checked_next_el(next_el.element) = nb_fragment - 1;
-		    elem_to_check.push_back(next_el);
-		  }
-		}
-	      }
-	    }
+                /// if it exists, add it to the fragment list
+                if (next_el != ElementNull) {
+                  Array<UInt> & checked_next_el = fragment_to_element(next_el.type);
+                  /// check if the element isn't already part of a fragment
+                  if (checked_next_el(next_el.element) == max) {
+                    checked_next_el(next_el.element) = nb_fragment - 1;
+                    elem_to_check.push_back(next_el);
+                  }
+                }
+              }
+            }
 
-	    /// erase elements that have already been checked
-	    for (UInt el_check = nb_elem_check; el_check > 0; --el_check)
-	      elem_to_check.erase(el_check - 1);
-	  }
-	}
+            /// erase elements that have already been checked
+            for (UInt el_check = nb_elem_check; el_check > 0; --el_check)
+              elem_to_check.erase(el_check - 1);
+          }
+        }
       }
     }
   }
@@ -862,23 +865,23 @@ void SolidMechanicsModelCohesive::computeFragmentsMV() {
 
       /// loop over each node of every element
       for (UInt el = 0; el < nb_element; ++el) {
-	for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
-	  UInt node = connectivity(el, n);
-	  /// if the node hasn't been checked, store its data
-	  if (!checked_node(node)) {
-	    fragment_mass(frag_to_el(el)) += (*mass)(node);
+        for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
+          UInt node = connectivity(el, n);
+          /// if the node hasn't been checked, store its data
+          if (!checked_node(node)) {
+            fragment_mass(frag_to_el(el)) += (*mass)(node);
 
-	    for (UInt s = 0; s < spatial_dimension; ++s) {
-	      fragment_velocity(frag_to_el(el), s)
-		+= (*mass)(node) * (*velocity)(node, s);
+            for (UInt s = 0; s < spatial_dimension; ++s) {
+              fragment_velocity(frag_to_el(el), s)
+                += (*mass)(node) * (*velocity)(node, s);
 
-	      fragment_center(frag_to_el(el), s)
-		+= (*mass)(node) * position(node, s);
-	    }
+              fragment_center(frag_to_el(el), s)
+                += (*mass)(node) * position(node, s);
+            }
 
-	    checked_node(node) = true;
-	  }
-	}
+            checked_node(node) = true;
+          }
+        }
       }
     }
   }
