@@ -54,7 +54,7 @@ inline FEM & SolidMechanicsModel::getFEMBoundary(const ID & name) {
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::splitElementByMaterial(const Array<Element> & elements,
-						 Array<Element> * elements_per_mat) const {
+							Array<Element> * elements_per_mat) const {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
   UInt * elem_mat = NULL;

@@ -29,8 +29,8 @@
 template<GhostType ghost_facets>
 inline void FacetSynchronizer::getFacetGlobalConnectivity(const ByElementTypeUInt & rank_to_facet,
 							  const Array<Element> * elements,
-							  Array<ByElementTypeUInt> & connectivity,
-							  Array<ByElementTypeUInt> & facets) {
+							  Array<ByElementTypeUInt *> & connectivity,
+							  Array<ByElementTypeUInt *> & facets) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -67,9 +67,9 @@ inline void FacetSynchronizer::getFacetGlobalConnectivity(const ByElementTypeUIn
       f_checked.clear();
     }
 
-    ByElementTypeUInt & global_conn = connectivity(p);
+    ByElementTypeUInt & global_conn = (*connectivity(p));
     const Array<Element> & elem = elements[p];
-    ByElementTypeUInt & facet_list = facets(p);
+    ByElementTypeUInt & facet_list = (*facets(p));
 
     UInt nb_element = elem.getSize();
 

@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblInfo);
 
   /// compute barycenter for each facet
-  ByElementTypeReal barycenters("", "", 0);
+  ByElementTypeReal barycenters("barycenters", "", 0);
   mesh_facets.initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension - 1);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
