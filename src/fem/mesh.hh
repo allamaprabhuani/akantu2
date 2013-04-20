@@ -424,6 +424,7 @@ public:
   /// set the int data to the surface id vectors
   void setSurfaceIDsFromIntData(const std::string & data_name);
 
+
   inline const Array<UInt> & getUIntData(const ElementType & el_type,
 					  const std::string & data_name,
 					  const GhostType & ghost_type = _not_ghost) const;
@@ -485,6 +486,7 @@ private:
   friend class DistributedSynchronizer;
   template<class T> friend class SpatialGrid;
 
+
   AKANTU_GET_MACRO(NodesPointer, nodes, Array<Real> *);
 
   /// get a pointer to the nodes_global_ids Array<UInt> and create it if necessary
@@ -509,10 +511,16 @@ private:
   inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
 				      const GhostType & ghost_type = _not_ghost);
 
+  // temporary since everything is supposed to change next week
+public:
+
   /// get the IntDataMap pointer (modifyable) for a given ElementType
   inline Array<UInt> * getUIntDataPointer(const ElementType & el_type,
 					   const std::string & data_name,
 					   const GhostType & ghost_type = _not_ghost);
+
+  // if it did not changed THAT week it is not MY fault
+private:
 
   /// get a pointer to the element_to_subelement Array for the given type and create it if necessary
   inline Array< std::vector<Element> > * getElementToSubelementPointer(const ElementType & type,
