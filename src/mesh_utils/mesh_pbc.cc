@@ -46,7 +46,7 @@ public:
 			 const UInt dirx, const UInt diry,
 			 Real * coords):
     dim(dimension),dir_x(dirx),dir_y(diry),coordinates(coords){}
-
+  // answers the question whether n2 is larger or equal to n1
   bool operator() (UInt n1, UInt n2){
     Real p1_x = coordinates[dim*n1+dir_x];
     Real p2_x = coordinates[dim*n2+dir_x];
@@ -187,7 +187,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 			      const SurfacePair & surface_pair,
 			      const ElementType type,
 			      std::map<UInt,UInt> & pbc_pair) {
-  
+
   std::vector<UInt> selected_first;
   std::vector<UInt> selected_second;
 
@@ -211,11 +211,11 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 
   // sort and eliminate repetition of nodes
   std::vector<UInt>::iterator it_s;
-  
+
   std::sort(selected_first.begin(), selected_first.end());
   it_s = std::unique(selected_first.begin(), selected_first.end());
   selected_first.resize(it_s - selected_first.begin());
-  
+
   std::sort(selected_second.begin(), selected_second.end());
   it_s = std::unique(selected_second.begin(), selected_second.end());
   selected_second.resize(it_s - selected_second.begin());
@@ -268,8 +268,8 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 #endif
   }
 
-  AKANTU_DEBUG_ASSERT(first_dir == second_dir, "Surface pair has not same direction. Surface " 
-		      << surface_pair.first << " dir=" << first_dir << " ; Surface " 
+  AKANTU_DEBUG_ASSERT(first_dir == second_dir, "Surface pair has not same direction. Surface "
+		      << surface_pair.first << " dir=" << first_dir << " ; Surface "
 		      << surface_pair.second << " dir=" << second_dir);
   UInt dir = first_dir;
 
@@ -282,7 +282,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::matchPBCPairs(const Mesh & mymesh, 
+void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 			      const UInt dir,
 			      std::vector<UInt> & selected_left,
 			      std::vector<UInt> & selected_right,
@@ -340,35 +340,32 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 
     Real dx = 0.0;
     Real dy = 0.0;
-    if (dim == 2) dx = coords[dim*i1 + dir_x] - coords[dim*i2 + dir_x];
+    if (dim >= 2) dx = coords[dim*i1 + dir_x] - coords[dim*i2 + dir_x];
     if (dim == 3) dy = coords[dim*i1 + dir_y] - coords[dim*i2 + dir_y];
 
-    if (fabs(dx*dx+dy*dy) < Math::getTolerance())
-      {
-  	//then i match these pairs
-	if (pbc_pair.count(i2)){
-	  i2 = pbc_pair[i2];
-	}
-  	pbc_pair[i1] = i2;
-
-	AKANTU_DEBUG_TRACE("pairing " << i1 << "("
-			  << coords[dim*i1] << "," << coords[dim*i1+1] << ","
-			   << coords[dim*i1+2]
-			  << ") with"
-			  << i2 << "("
-			  << coords[dim*i2] << "," << coords[dim*i2+1] << ","
-			   << coords[dim*i2+2]
-			  << ") in direction " << dir);
-  	++it_left;
-  	++it_right;
+    if (fabs(dx*dx+dy*dy) < Math::getTolerance()) {
+      //then i match these pairs
+      if (pbc_pair.count(i2)){
+        i2 = pbc_pair[i2];
       }
-    else if (fabs(dy) < Math::getTolerance() && dx > 0) ++it_right;
-    else if (fabs(dy) < Math::getTolerance() && dx < 0) ++it_left;
-    else if (dy > 0) ++it_right;
-    else if (dy < 0) ++it_left;
-    else {
-      AKANTU_DEBUG_ERROR("this should not append");
+      pbc_pair[i1] = i2;
+
+      AKANTU_DEBUG_TRACE("pairing " << i1 << "("
+                         << coords[dim*i1] << "," << coords[dim*i1+1] << ","
+                         << coords[dim*i1+2]
+                         << ") with"
+                         << i2 << "("
+                         << coords[dim*i2] << "," << coords[dim*i2+1] << ","
+                         << coords[dim*i2+2]
+                         << ") in direction " << dir);
+      ++it_left;
+      ++it_right;
+    } else if (compare_nodes(i1, i2)) {
+      ++it_left;
+    } else {
+      ++it_right;
     }
+
   }
   AKANTU_DEBUG_INFO("found " <<  pbc_pair.size() << " pairs for direction " << dir);
 
