@@ -85,12 +85,12 @@ public:
 
   bool operator<(const Element& rhs) const {
     bool res = (rhs == ElementNull) || ((this->kind < rhs.kind) ||
-		((this->kind == rhs.kind) &&
-		 ((this->ghost_type < rhs.ghost_type) ||
-		  ((this->ghost_type == rhs.ghost_type) &&
-		   ((this->type < rhs.type) ||
-		    ((this->type == rhs.type) &&
-		     (this->element < rhs.element)))))));
+					((this->kind == rhs.kind) &&
+					 ((this->ghost_type < rhs.ghost_type) ||
+					  ((this->ghost_type == rhs.ghost_type) &&
+					   ((this->type < rhs.type) ||
+					    ((this->type == rhs.type) &&
+					     (this->element < rhs.element)))))));
     return res;
   }
 
@@ -215,19 +215,19 @@ public:
  *
  * In order to loop on all element you have to loop on all types like this :
  * @code
-  Mesh::type_iterator it = mesh.firstType(dim, ghost_type);
-  Mesh::type_iterator end = mesh.lastType(dim, ghost_type);
+ Mesh::type_iterator it = mesh.firstType(dim, ghost_type);
+ Mesh::type_iterator end = mesh.lastType(dim, ghost_type);
 
-  for(; it != end; ++it) {
-    UInt nb_element  = mesh.getNbElement(*it);
-    const Array<UInt> & conn = mesh.getConnectivity(*it);
+ for(; it != end; ++it) {
+ UInt nb_element  = mesh.getNbElement(*it);
+ const Array<UInt> & conn = mesh.getConnectivity(*it);
 
-    for(UInt e = 0; e < nb_element; ++e) {
-       ...
-    }
-  }
-  @endcode
- */
+ for(UInt e = 0; e < nb_element; ++e) {
+ ...
+ }
+ }
+ @endcode
+*/
 class Mesh : protected Memory, public EventHandlerManager<MeshEventHandler> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -283,11 +283,11 @@ public:
   /// init a by-element-type real vector with provided ids
   template<typename T>
   void initByElementTypeArray(ByElementTypeArray<T> & v,
- 			       UInt nb_component,
-			       UInt spatial_dimension,
-			       const bool & flag_nb_node_per_elem_multiply = false,
-			       ElementKind element_kind = _ek_regular,
-			       bool size_to_nb_element = false) const; /// @todo: think about nicer way to do it
+			      UInt nb_component,
+			      UInt spatial_dimension,
+			      const bool & flag_nb_node_per_elem_multiply = false,
+			      ElementKind element_kind = _ek_regular,
+			      bool size_to_nb_element = false) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
   template<typename T>
@@ -319,7 +319,7 @@ public:
   template <class Event>
   inline void sendEvent(Event & event) {
     //    if(event.getList().getSize() != 0)
-      EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
+    EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -426,8 +426,8 @@ public:
 
 
   inline const Array<UInt> & getUIntData(const ElementType & el_type,
-					  const std::string & data_name,
-					  const GhostType & ghost_type = _not_ghost) const;
+					 const std::string & data_name,
+					 const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -516,15 +516,15 @@ public:
 
   /// get the IntDataMap pointer (modifyable) for a given ElementType
   inline Array<UInt> * getUIntDataPointer(const ElementType & el_type,
-					   const std::string & data_name,
-					   const GhostType & ghost_type = _not_ghost);
+					  const std::string & data_name,
+					  const GhostType & ghost_type = _not_ghost);
 
   // if it did not changed THAT week it is not MY fault
 private:
 
   /// get a pointer to the element_to_subelement Array for the given type and create it if necessary
   inline Array< std::vector<Element> > * getElementToSubelementPointer(const ElementType & type,
-									const GhostType & ghost_type = _not_ghost);
+								       const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the subelement_to_element Array for the given type and create it if necessary
   inline Array<Element > * getSubelementToElementPointer(const ElementType & type,

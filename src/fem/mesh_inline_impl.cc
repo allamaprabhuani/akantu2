@@ -431,8 +431,8 @@ inline Matrix<UInt> Mesh::getFacetLocalConnectivity(const ElementType & type) {
 
 /* -------------------------------------------------------------------------- */
 inline Matrix<UInt> Mesh::getFacetConnectivity(UInt element,
-						      const ElementType & type,
-						      const GhostType & ghost_type) const {
+					       const ElementType & type,
+					       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   Matrix<UInt> local_facets = getFacetLocalConnectivity(type);

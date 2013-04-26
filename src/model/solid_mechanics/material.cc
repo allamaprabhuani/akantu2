@@ -825,8 +825,8 @@ void Material::interpolateStress(ByElementTypeReal & result) {
 
 #define INTERPOLATE_ELEMENTAL_FIELD(type)				\
       interpolateElementalField<type>(stress(type, ghost_type),		\
-				  res,					\
-				  ghost_type)				\
+				      res,				\
+				      ghost_type)			\
 
   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
 #undef INTERPOLATE_ELEMENTAL_FIELD

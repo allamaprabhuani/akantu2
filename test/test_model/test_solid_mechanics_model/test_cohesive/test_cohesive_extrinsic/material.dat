@@ -10,5 +10,5 @@ material cohesive_linear_extrinsic [
 	 beta = 1
 	 G_cI = 100
 	 G_cII = 100
-	 random_generator = uniform(1) 50 100
+	 sigma_c_generator = uniform(1) 100 100
 ]

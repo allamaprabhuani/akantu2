@@ -39,7 +39,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
-  debug::setDebugLevel(dblInfo);
+  debug::setDebugLevel(dblWarning);
 
   const UInt max_steps = 1000;
 
@@ -59,18 +59,18 @@ int main(int argc, char *argv[]) {
 
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
-    debug::setDebugLevel(dblDump);
+    //    debug::setDebugLevel(dblDump);
     partition->partitionate(psize);
-    debug::setDebugLevel(dblInfo);
+    //    debug::setDebugLevel(dblWarning);
   }
 
   SolidMechanicsModelCohesive model(mesh);
 
   model.initParallel(partition, NULL, true);
 
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh << std::endl;
-  debug::setDebugLevel(dblInfo);
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh << std::endl;
+  // debug::setDebugLevel(dblWarning);
 
 
   model.initFull("material.dat", _explicit_dynamic, true);
@@ -87,21 +87,15 @@ int main(int argc, char *argv[]) {
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   Array<Real> & position = mesh.getNodes();
 
-  Array<Real> & sigma_lim = model.getSigmaLimit();
   Array<bool> & facet_check = model.getFacetsCheck();
 
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20) {
-      sigma_lim(f) = 100;
+    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20)
       facet_check(f) = true;
-      //      std::cout << f << std::endl;
-    }
-    else {
-      sigma_lim(f) = 1e10;
+    else
       facet_check(f) = false;
-    }
   }
   delete[] bary_facet;
 
@@ -110,13 +104,13 @@ int main(int argc, char *argv[]) {
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
 
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh_facets << std::endl;
-  debug::setDebugLevel(dblInfo);
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh_facets << std::endl;
+  // debug::setDebugLevel(dblWarning);
 
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
-  //  std::cout << "Time step: " << time_step << std::endl;
+  std::cout << "Time step: " << time_step << std::endl;
 
   model.assembleMassLumped();
 
@@ -175,9 +169,9 @@ int main(int argc, char *argv[]) {
     model.updateAcceleration();
     model.explicitCorr();
 
+    model.dump();
     if(s % 1 == 0) {
-      model.dump();
-      if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      if(prank == 3) std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
     // // update displacement
@@ -211,6 +205,7 @@ int main(int argc, char *argv[]) {
 
     if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
       std::cout << "The dissipated energy is incorrect" << std::endl;
+      finalize();
       return EXIT_FAILURE;
     }
   }

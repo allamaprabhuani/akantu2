@@ -34,12 +34,10 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-FacetSynchronizer::FacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
-				     Mesh & mesh,
+FacetSynchronizer::FacetSynchronizer(Mesh & mesh,
 				     SynchronizerID id,
 				     MemoryID memory_id) :
-  DistributedSynchronizer(mesh, id, memory_id),
-  distributed_synchronizer(distributed_synchronizer) {
+  DistributedSynchronizer(mesh, id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -53,18 +51,17 @@ createFacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
 			MemoryID memory_id) {
   AKANTU_DEBUG_IN();
 
-  FacetSynchronizer & f_synchronizer = *(new FacetSynchronizer(distributed_synchronizer,
-							       mesh,
-							       id, memory_id));
+  FacetSynchronizer & f_synchronizer = *(new FacetSynchronizer(mesh, id, memory_id));
 
-  f_synchronizer.setupFacetSynchronization();
+  f_synchronizer.setupFacetSynchronization(distributed_synchronizer);
 
   AKANTU_DEBUG_OUT();
   return &f_synchronizer;
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::updateDistributedSynchronizer(DataAccessor & data_accessor,
+void FacetSynchronizer::updateDistributedSynchronizer(DistributedSynchronizer & distributed_synchronizer,
+						      DataAccessor & data_accessor,
 						      const ByElementTypeUInt & cohesive_el_to_facet) {
   AKANTU_DEBUG_IN();
 
@@ -135,7 +132,7 @@ void FacetSynchronizer::updateElementList(Array<Element> * elements,
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::setupFacetSynchronization() {
+void FacetSynchronizer::setupFacetSynchronization(DistributedSynchronizer & distributed_synchronizer) {
   AKANTU_DEBUG_IN();
 
   Array<Element> * distrib_send_element = distributed_synchronizer.send_element;
@@ -176,12 +173,14 @@ void FacetSynchronizer::setupFacetSynchronization() {
   initGlobalConnectivity(recv_connectivity);
 
   /// build global connectivity arrays
-  getFacetGlobalConnectivity<_not_ghost>(rank_to_facet,
+  getFacetGlobalConnectivity<_not_ghost>(distributed_synchronizer,
+					 rank_to_facet,
 					 distrib_send_element,
 					 send_connectivity,
 					 temp_send_element);
 
-  getFacetGlobalConnectivity<_ghost>(rank_to_facet,
+  getFacetGlobalConnectivity<_ghost>(distributed_synchronizer,
+				     rank_to_facet,
 				     distrib_recv_element,
 				     recv_connectivity,
 				     temp_recv_element);

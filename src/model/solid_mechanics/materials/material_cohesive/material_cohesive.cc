@@ -48,7 +48,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   tractions("tractions",id),
   opening("opening",id),
   delta_max("delta max",id),
-  damage("damage", id) {
+  damage("damage", id),
+  facet_filter("facet_filter", id),
+  sigma_limit("sigma_limit", id) {
 
   AKANTU_DEBUG_IN();
 
@@ -57,7 +59,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   fem_cohesive = &(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
 
   this->registerParam("sigma_c",      sigma_c,      0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Critical stress");
-  this->registerParam("random_generator", random_generator, _pat_parsable, "Random generator for facet parameters");
+  this->registerParam("sigma_c_generator", random_generator, _pat_parsable, "Random generator for sigma_c");
 
   AKANTU_DEBUG_OUT();
 }
@@ -90,6 +92,15 @@ void MaterialCohesive::initMaterial() {
   AKANTU_DEBUG_OUT();
 }
 
+void MaterialCohesive::initInsertionArrays(const Mesh & mesh_facets) {
+  AKANTU_DEBUG_IN();
+
+  mesh_facets.initByElementTypeArray(facet_filter, 1, spatial_dimension - 1);
+  mesh_facets.initByElementTypeArray(sigma_limit, 1, spatial_dimension - 1);
+
+  AKANTU_DEBUG_OUT();
+}
+
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::resizeCohesiveArrays() {
   resizeInternalArray(reversible_energy, _ek_cohesive);
@@ -104,17 +115,31 @@ void MaterialCohesive::resizeCohesiveArrays() {
 
 /* -------------------------------------------------------------------------- */
 
-void MaterialCohesive::generateRandomDistribution(Array<Real> & sigma_lim) {
+void MaterialCohesive::generateRandomDistribution(const Mesh & mesh_facets) {
   AKANTU_DEBUG_IN();
 
-  if (random_generator)
-    random_generator->generate(sigma_lim);
+  if (random_generator) {
+    Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
+    Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
+
+    for (; it != last; ++it) {
+      ElementType type_facet = *it;
+      Array<UInt> & f_filter = facet_filter(type_facet);
+      UInt nb_facet = f_filter.getSize();
+
+      if (nb_facet > 0) {
+	Array<Real> & sigma_lim = sigma_limit(type_facet);
+	sigma_lim.resize(nb_facet);
+	random_generator->generate(sigma_lim);
+      }
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void MaterialCohesive::checkInsertion(const Array<Real> & facet_stress,
+void MaterialCohesive::checkInsertion(const ByElementTypeReal & facet_stress,
 				      const Mesh & mesh_facets,
 				      ByElementTypeArray<bool> & facet_insertion) {
   AKANTU_DEBUG_IN();
@@ -127,31 +152,35 @@ void MaterialCohesive::checkInsertion(const Array<Real> & facet_stress,
     ElementType type_facet = *it;
     Array<bool> & facets_check = model->getFacetsCheck();
     Array<bool> & f_insertion = facet_insertion(type_facet);
+    Array<UInt> & f_filter = facet_filter(type_facet);
+    const Array<Real> & f_stress = facet_stress(type_facet);
+    const Array<Real> & sigma_lim = sigma_limit(type_facet);
 
     UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
-    UInt nb_facet = facets_check.getSize();
+    UInt nb_facet = f_filter.getSize();
+    if (nb_facet == 0) continue;
 
     Array<Real> stress_check(nb_facet, nb_quad_facet);
     stress_check.clear();
 
-    computeStressNorms(facet_stress, stress_check, type_facet);
+    computeStressNorms(f_stress, stress_check, type_facet);
 
-    bool * facet_check_it = facets_check.storage();
     Array<Real>::iterator< Vector<Real> > stress_check_it =
       stress_check.begin(nb_quad_facet);
 
-    Real * sigma_limit_it = model->getSigmaLimit().storage();
+    Array<Real>::const_iterator<Real> sigma_lim_it = sigma_lim.begin();
 
     for (UInt f = 0; f < nb_facet;
-	 ++f, ++facet_check_it, ++stress_check_it, ++sigma_limit_it) {
-      if (*facet_check_it == true) {
+	 ++f, ++stress_check_it, ++sigma_lim_it) {
+      UInt facet = f_filter(f);
+      if (facets_check(facet) == true) {
 
 	for (UInt q = 0; q < nb_quad_facet; ++q) {
-	  if ((*stress_check_it)(q) > *sigma_limit_it) {
-	    f_insertion(f) = true;
+	  if ((*stress_check_it)(q) > (*sigma_lim_it)) {
+	    f_insertion(facet) = true;
 	    for (UInt qs = 0; qs < nb_quad_facet; ++qs)
 	      sigma_insertion.push_back((*stress_check_it)(qs));
-	    *facet_check_it = false;
+	    facets_check(facet) = false;
 	    break;
 	  }
 	}

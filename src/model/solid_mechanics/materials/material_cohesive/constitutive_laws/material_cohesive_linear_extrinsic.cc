@@ -164,13 +164,15 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(cons
   sigma_insertion.resize(0);
 
   Array<bool> & facets_check = model->getFacetsCheck();
+  Array<UInt> & f_filter = facet_filter(type_facet);
 
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
-  UInt nb_facet = facets_check.getSize();
 
-  const Array<Real> & tangents = model->getTangents();
+  const Array<Real> & tangents = model->getTangents(type_facet);
   const Array<Real> & normals
     = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
+
+  UInt nb_facet = normals.getSize();
 
   Array<Real>::iterator< Vector<Real> > stress_check_it =
     stress_check.begin(nb_quad_facet);
@@ -184,19 +186,35 @@ void MaterialCohesiveLinearExtrinsic<spatial_dimension>::computeStressNorms(cons
   Array<Real>::const_iterator< Matrix<Real> > facet_stress_it =
     facet_stress.begin(spatial_dimension, spatial_dimension);
 
-  for (UInt f = 0; f < nb_facet; ++f, ++stress_check_it) {
-    for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it) {
-      for (UInt e = 0; e < 2; ++e, ++facet_stress_it) {
+  UInt facet_index = 0;
+  UInt facet = f_filter(facet_index);
+  UInt nq2 = nb_quad_facet * 2;
 
-	if (facets_check(f) == true) {
-	  Real effective_norm =
-	    computeEffectiveNorm(*facet_stress_it, *normal_it, *tangent_it);
+  for (UInt f = 0; f < nb_facet; ++f) {
 
-	  (*stress_check_it)(q) =
-	    std::max((*stress_check_it)(q), effective_norm);
+    if (f == facet) {
+      for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it) {
+	for (UInt e = 0; e < 2; ++e, ++facet_stress_it) {
+
+	  if (facets_check(facet) == true) {
+	    Real effective_norm =
+	      computeEffectiveNorm(*facet_stress_it, *normal_it, *tangent_it);
+
+	    (*stress_check_it)(q) =
+	      std::max((*stress_check_it)(q), effective_norm);
+	  }
+
 	}
-
       }
+      ++facet_index;
+      if (facet_index == f_filter.getSize()) break;
+      ++stress_check_it;
+      facet = f_filter(facet_index);
+    }
+    else {
+      normal_it += nb_quad_facet;
+      tangent_it += nb_quad_facet;
+      facet_stress_it += nq2;
     }
   }
 

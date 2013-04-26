@@ -43,8 +43,7 @@ class FacetSynchronizer : public DistributedSynchronizer {
   /* ------------------------------------------------------------------------ */
 protected:
 
-  FacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
-		    Mesh & mesh,
+  FacetSynchronizer(Mesh & mesh,
 		    SynchronizerID id = "facet_synchronizer",
 		    MemoryID memory_id = 0);
 
@@ -66,7 +65,8 @@ public:
 			  MemoryID memory_id = 0);
 
   /// update distributed synchronizer after elements' insertion
-  void updateDistributedSynchronizer(DataAccessor & data_accessor,
+  void updateDistributedSynchronizer(DistributedSynchronizer & distributed_synchronizer,
+				     DataAccessor & data_accessor,
 				     const ByElementTypeUInt & cohesive_el_to_facet);
 
 protected:
@@ -77,7 +77,7 @@ protected:
 			 const ByElementTypeUInt & cohesive_el_to_facet);
 
   /// setup facet synchronization
-  void setupFacetSynchronization();
+  void setupFacetSynchronization(DistributedSynchronizer & distributed_synchronizer);
 
   /// build send facet arrays
   void buildSendElementList(const Array<ByElementTypeUInt *> & send_connectivity,
@@ -89,7 +89,8 @@ protected:
 
   /// get facets' barycenter for a list of elements
   template<GhostType ghost_facets>
-  inline void getFacetGlobalConnectivity(const ByElementTypeUInt & rank_to_facet,
+  inline void getFacetGlobalConnectivity(const DistributedSynchronizer & distributed_synchronizer,
+					 const ByElementTypeUInt & rank_to_facet,
 					 const Array<Element> * elements,
 					 Array<ByElementTypeUInt *> & connectivity,
 					 Array<ByElementTypeUInt *> & facets);
@@ -114,8 +115,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-  DistributedSynchronizer & distributed_synchronizer;
 
 };
 

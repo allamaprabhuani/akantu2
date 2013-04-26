@@ -374,8 +374,7 @@ template<template <ElementKind> class I,
 void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  computeNormalsOnControlPoints(mesh->getNodes(),
-				ghost_type);
+  computeNormalsOnControlPoints(mesh->getNodes(), ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -387,8 +386,6 @@ template<template <ElementKind> class I,
 void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
 							     const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
-
-  if (ghost_type == _ghost) { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   //  Real * coord = mesh->getNodes().values;
   UInt spatial_dimension = mesh->getSpatialDimension();
@@ -437,8 +434,6 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
 							     Array<Real> & normal,
 							     const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
-
-  if (ghost_type == _ghost) { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   UInt spatial_dimension = mesh->getSpatialDimension();
   UInt nb_nodes_per_element  = Mesh::getNbNodesPerElement(type);

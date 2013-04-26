@@ -296,6 +296,9 @@ public:
   /// set a vvector to 0
   inline void clear() { std::fill_n(values, size*nb_component, T()); };
 
+  /// set a vector to the value t
+  inline void set(T & t) { std::fill_n(values, size*nb_component, t); };
+
   /// copy the content of an other vector
   void copy(const Array<T, is_scal> & vect);
 

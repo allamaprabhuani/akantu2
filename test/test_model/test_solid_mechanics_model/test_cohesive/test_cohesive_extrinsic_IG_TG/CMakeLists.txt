@@ -1,11 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
+# @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
-# @date   Tue May 08 13:01:18 2012
+# @date   Thu April 18 13:31:00 2013
 #
-# @brief  configuration for cohesive elements tests
+# @brief  Configuration for test_cohesive_extrinsic_IG_TG
 #
 # @section LICENSE
 #
@@ -29,17 +30,9 @@
 #
 #===============================================================================
 
-add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
-add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
-add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
-add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
-add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl"
-  PACKAGE implicit)
-add_akantu_test(test_cohesive_parallel_intrinsic "test_cohesive_parallel_intrinsic"
-  PACKAGE parallel)
-add_akantu_test(test_cohesive_ghost_element_insertion "test_cohesive_ghost_element_insertion"
-  PACKAGE parallel)
-add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic"
-  PACKAGE parallel)
-add_akantu_test(test_cohesive_extrinsic_IG_TG "test_cohesive_extrinsic_IG_TG")
-#===============================================================================
+register_test(test_cohesive_extrinsic_IG_TG
+  SOURCES test_cohesive_extrinsic_IG_TG.cc
+  PACKAGE cohesive_element
+  FILES_TO_COPY material.dat square.msh
+  DIRECTORIES_TO_CREATE paraview)
+

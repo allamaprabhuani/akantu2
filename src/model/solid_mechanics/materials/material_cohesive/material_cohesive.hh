@@ -69,6 +69,9 @@ public:
   /// resize vectors for new cohesive elements
   virtual void resizeCohesiveArrays();
 
+  /// init arrays for automatic element insertion
+  virtual void initInsertionArrays(const Mesh & mesh_facets);
+
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);
 
@@ -79,7 +82,7 @@ public:
   void computeEnergies();
 
   /// check stress for cohesive elements' insertion
-  virtual void checkInsertion(const Array<Real> & facet_stress,
+  virtual void checkInsertion(const ByElementTypeReal & facet_stress,
 			      const Mesh & mesh_facets,
 			      ByElementTypeArray<bool> & facet_insertion);
 
@@ -91,7 +94,7 @@ public:
   virtual void computeAllStresses(__attribute__((unused)) GhostType ghost_type = _not_ghost) { };
 
   /// generate random sigma_c distributions
-  void generateRandomDistribution(Array<Real> & sigma_lim);
+  void generateRandomDistribution(const Mesh & mesh_facets);
 
 protected:
   virtual void computeTangentTraction(__attribute__((unused)) const ElementType & el_type,
@@ -155,6 +158,10 @@ public:
 
   /// get the traction
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Traction, tractions, Real);
+
+  /// get facet filter
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
 
   /// compute reversible energy
   Real getReversibleEnergy();
@@ -220,6 +227,13 @@ protected:
 
   /// pointer to the solid mechanics model for cohesive elements
   SolidMechanicsModelCohesive * model;
+
+  /// list of facets assigned to this material
+  ByElementTypeUInt facet_filter;
+
+  /// vector containing a sigma limit for automatic insertion
+  ByElementTypeReal sigma_limit;
+
 };
 
 

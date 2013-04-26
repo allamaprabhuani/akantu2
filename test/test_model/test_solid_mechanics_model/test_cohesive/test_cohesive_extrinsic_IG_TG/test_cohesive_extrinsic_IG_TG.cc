@@ -1,11 +1,13 @@
 /**
- * @file   test_cohesive_extrinsic_quadrangle.cc
+ * @file   test_cohesive_extrinsic_IG_TG.cc
  *
+ * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date   Wed Oct 03 10:20:53 2012
+ * @date   Thu April 18 13:31:00 2013
  *
- * @brief  Test for extrinsic cohesive elements and quadrangles
+ * @brief  Test for considering different cohesive properties for intergranular (IG) and 
+ * transgranular (TG) fractures in extrinsic cohesive elements
  *
  * @section LICENSE
  *
@@ -57,15 +59,15 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   const UInt max_steps = 1000;
 
-  const ElementType type = _quadrangle_8;
+  const ElementType type = _triangle_6;
 
   Mesh mesh(spatial_dimension);
-  mesh.read("quadrangle.msh");
+  mesh.read("square.msh");
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _explicit_dynamic, true);
+  model.initFull("material.dat", _explicit_dynamic, true, false);
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -83,21 +85,54 @@ int main(int argc, char *argv[]) {
 
   const ElementType type_facet = mesh.getFacetType(type);
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  const Array<Real> & position = mesh.getNodes();
-  //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
+  Array<Real> & position = mesh.getNodes();
 
   Array<bool> & facet_check = model.getFacetsCheck();
 
   Real * bary_facet = new Real[spatial_dimension];
+// first, the tag which shows grain ID should be read for each element
+
+  // Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  // MeshUtils::buildAllFacets(mesh, mesh_facets);
+  UInt nb_TG = 0;
+  UInt nb_IG = 0;
+
+  const Array< std::vector<Element> > & element_to_subelement = mesh_facets.getElementToSubelement(type_facet);
+  Array<UInt> & facet_mat_by_type = model.getFacetMaterial(type_facet);
+  ////////////////////////////////////////////
+
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 0.05 && bary_facet[1] > -0.05)
+    if ((bary_facet[1] < 0.1 && bary_facet[1] > -0.1) ||(bary_facet[0] < 0.1 && bary_facet[0] > -0.1)) {
       facet_check(f) = true;
+      const Element & el1 = element_to_subelement(f)[0];
+      const Element & el2 = element_to_subelement(f)[1];
+      UInt grain_id1 = mesh.getUIntData (el1.type, "tag_0")(el1.element);
+      if(el2 != ElementNull) {
+	UInt grain_id2 = mesh.getUIntData (el2.type, "tag_0")(el2.element);
+	if (grain_id1 == grain_id2){
+	  //transgranular = 0 indicator
+	  facet_mat_by_type(f) = 1;
+	  nb_TG++;
+	} else  {   
+	  //intergranular = 1 indicator
+	  facet_mat_by_type(f) = 2;
+	  nb_IG++;
+	}
+      }
+      std::cout << f << std::endl;
+    }
     else
       facet_check(f) = false;
   }
   delete[] bary_facet;
 
+  model.initFacetFilter();
+
+
+   //  for ( UInt i = 0; i < nb_facet; ++i){
+    
+  // }
   //  std::cout << mesh << std::endl;
 
   /* ------------------------------------------------------------------------ */
@@ -113,46 +148,28 @@ int main(int argc, char *argv[]) {
 
   /// boundary conditions
   for (UInt n = 0; n < nb_nodes; ++n) {
-    if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
+    if (position(n, 1) > 0.99|| position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
-    if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
-      boundary(n, 0) = true;
+    // if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
+    //   boundary(n, 0) = true;
   }
 
   model.updateResidual();
 
-  // iohelper::ElemType paraview_type = iohelper::QUAD2;
-  // UInt nb_element = mesh.getNbElement(type);
-
-  // /// initialize the paraview output
-  // iohelper::DumperParaview dumper;
-  // dumper.SetMode(iohelper::TEXT);
-  // dumper.SetPoints(mesh.getNodes().values,
-  // 		   spatial_dimension, mesh.getNbNodes(), "explicit");
-  // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-  // 			 paraview_type, nb_element, iohelper::C_MODE);
-  // dumper.AddNodeDataField(model.getDisplacement().values,
-  // 			  spatial_dimension, "displacements");
-  // dumper.AddNodeDataField(model.getVelocity().values,
-  // 			  spatial_dimension, "velocity");
-  // dumper.AddNodeDataField(model.getAcceleration().values,
-  // 			  spatial_dimension, "acceleration");
-  // dumper.AddNodeDataField(model.getResidual().values,
-  // 			  spatial_dimension, "forces");
-  // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-  // 			  spatial_dimension*spatial_dimension, "strain");
-  // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-  // 			  spatial_dimension*spatial_dimension, "stress");
-  // dumper.SetEmbeddedValue("displacements", 1);
-  // dumper.SetEmbeddedValue("forces", 1);
-  // dumper.SetPrefix("paraview/");
-  // dumper.Init();
-  // dumper.Dump();
+  model.setBaseName("extrinsic");
+  model.addDumpFieldVector("displacement");
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("residual"    );
+  model.addDumpField("stress");
+  model.addDumpField("strain");
+  model.dump();
 
   /// initial conditions
-  Real loading_rate = 0.2;
-  Real disp_update = loading_rate * time_step;
+  Real loading_rate = 0.1;
+  // bar_height  = 2
+  Real VI = loading_rate * 2* 0.5;
   for (UInt n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
   }
@@ -161,56 +178,38 @@ int main(int argc, char *argv[]) {
   // std::ofstream erev("erev.txt");
 
   //  Array<Real> & residual = model.getResidual();
-
+  model.dump();
   //  const Array<Real> & stress = model.getMaterial(0).getStress(type);
-
+  Real dispy = 0;
+  // UInt nb_coh_elem = 0;
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
-
+    dispy += VI * time_step;
     /// update displacement on extreme nodes
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      if (position(n, 1) > 0.99 || position(n, 1) < -0.99)
-	displacement(n, 1) += disp_update * position(n, 1);
+    for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+      if (position(n, 1) > 0.99){
+	displacement(n, 1) = dispy;
+	velocity(n,1) = VI;}
+      if (position(n, 1) < -0.99){
+	displacement(n, 1) = -dispy;
+	velocity(n,1) = -VI;}
     }
-
+  
     model.checkCohesiveStress();
 
     model.explicitPred();
+    // nb_coh_elem = mesh.getNbElement (FEM::getCohesiveElementType(type_facet));
     model.updateResidual();
     model.updateAcceleration();
     model.explicitCorr();
 
-    if(s % 1 == 0) {
-
-      // dumper.SetPoints(mesh.getNodes().values,
-      // 		       spatial_dimension, mesh.getNbNodes(), "explicit");
-      // dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
-      // 			     paraview_type, nb_element, iohelper::C_MODE);
-      // dumper.AddNodeDataField(model.getDisplacement().values,
-      // 			      spatial_dimension, "displacements");
-      // dumper.AddNodeDataField(model.getVelocity().values,
-      // 			      spatial_dimension, "velocity");
-      // dumper.AddNodeDataField(model.getAcceleration().values,
-      // 			      spatial_dimension, "acceleration");
-      // dumper.AddNodeDataField(model.getResidual().values,
-      // 			      spatial_dimension, "forces");
-      // dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
-      // 			      spatial_dimension*spatial_dimension, "strain");
-      // dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
-      // 			      spatial_dimension*spatial_dimension, "stress");
-      // dumper.SetEmbeddedValue("displacements", 1);
-      // dumper.SetEmbeddedValue("forces", 1);
-      // dumper.SetPrefix("paraview/");
-      // dumper.Init();
-      // dumper.Dump();
-
+    model.dump();
+    if(s % 10 == 0) {
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
-
-    // Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
-    // Real Er = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getReversibleEnergy();
+    // Real Ed = model.getEnergy("dissipated");
 
     // edis << s << " "
     // 	 << Ed << std::endl;
@@ -223,21 +222,29 @@ int main(int argc, char *argv[]) {
   // edis.close();
   // erev.close();
 
-  mesh.write("mesh_final.msh");
+  //  mesh.write("mesh_final.msh");
 
   Real Ed = model.getEnergy("dissipated");
 
-  Real Edt = 200;
+  Real Edt = 20;
 
   std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.99 || Ed > Edt * 1.01 || std::isnan(Ed)) {
+  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
     std::cout << "The dissipated energy is incorrect" << std::endl;
+    finalize();
     return EXIT_FAILURE;
   }
 
+  // for (UInt n = 0; n < position.getSize(); ++n) {
+  //   for (UInt s = 0; s < spatial_dimension; ++s) {
+  //     position(n, s) += displacement(n, s);
+  //   }
+  // }
+
+
   finalize();
 
-  std::cout << "OK: test_cohesive_extrinsic_quadrangle was passed!" << std::endl;
+  std::cout << "OK: test_cohesive_extrinsic_IG_TG was passed!" << std::endl;
   return EXIT_SUCCESS;
 }

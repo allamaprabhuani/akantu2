@@ -122,19 +122,6 @@ int main(int argc, char *argv[]) {
 
   const Array<Real> & fragment_mass = model.getFragmentsMass();
 
-  /// assign sigma limit
-  const Mesh & mesh_facets = model.getMeshFacets();
-
-  Real sigma_c = 300.e6;
-  Real rand = 0.1;
-  Array<Real> & sigma_lim = model.getSigmaLimit();
-  const Array<UInt> connectivity = mesh_facets.getConnectivity(type_facet);
-  UInt nb_facet = connectivity.getSize();
-  std::srand(1);
-
-  for (UInt f = 0; f < nb_facet; ++f)
-    sigma_lim(f) = sigma_c * (1 + std::rand()/(Real)RAND_MAX * rand);
-
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 

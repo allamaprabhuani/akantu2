@@ -52,14 +52,14 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
   splitElementByKind(elements, elements_regular, elements_cohesive);
 
   UInt size_regular = 0;
-  if (tag != _gst_smmc_facets)
+  if (tag != _gst_smmc_facets && tag != _gst_smmc_normals)
     size_regular = SolidMechanicsModel::getNbDataForElements(elements_regular, tag);
 
   UInt size = 0;
 
 #ifndef AKANTU_NDEBUG
   size += elements_cohesive.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-  if (tag == _gst_smmc_facets)
+  if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
     size_regular += elements_regular.getSize() * spatial_dimension * sizeof(Real);
 #endif
 
@@ -84,6 +84,10 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
   }
   case _gst_smmc_facets: {
     size_regular += elements_regular.getSize() * sizeof(bool);
+    break;
+  }
+  case _gst_smmc_normals: {
+    size_regular += elements_regular.getSize() * spatial_dimension * sizeof(Real);
     break;
   }
   default: { }
@@ -114,12 +118,12 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
   splitElementByKind(elements, elements_regular, elements_cohesive);
 
-  if (tag != _gst_smmc_facets)
+  if (tag != _gst_smmc_facets && tag != _gst_smmc_normals)
     SolidMechanicsModel::packElementData(buffer, elements_regular, tag);
 
 #ifndef AKANTU_NDEBUG
   packBarycenter(mesh, buffer, elements_cohesive, tag);
-  if (tag == _gst_smmc_facets)
+  if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
     packBarycenter(mesh_facets, buffer, elements_regular, tag);
 #endif
 
@@ -137,7 +141,11 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
     break;
   }
   case _gst_smmc_facets: {
-    packFacetDataHelper(elements_regular, buffer);
+    packElementalDataHelper(facet_insertion, buffer, elements_regular, false);
+    break;
+  }
+  case _gst_smmc_normals: {
+    packElementalDataHelper(*facet_normals, buffer, elements_regular, false);
     break;
   }
   default: { }
@@ -168,18 +176,19 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 
   splitElementByKind(elements, elements_regular, elements_cohesive);
 
-  if (tag != _gst_smmc_facets)
+  if (tag != _gst_smmc_facets && tag != _gst_smmc_normals)
     SolidMechanicsModel::unpackElementData(buffer, elements_regular, tag);
 
 #ifndef AKANTU_NDEBUG
   unpackBarycenter(mesh, buffer, elements_cohesive, tag);
-  if (tag == _gst_smmc_facets)
+  if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
     unpackBarycenter(mesh_facets, buffer, elements_regular, tag);
 #endif
 
   switch(tag) {
   case _gst_material_id: {
-    unpackElementalDataHelper(element_index_by_material, buffer, elements_cohesive, false, "CohesiveFEM");
+    unpackElementalDataHelper(element_index_by_material, buffer,
+			      elements_cohesive, false, "CohesiveFEM");
     break;
   }
   case _gst_smm_boundary: {
@@ -189,7 +198,11 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
     break;
   }
   case _gst_smmc_facets: {
-    unpackFacetDataHelper(elements_regular, buffer);
+    unpackElementalDataHelper(facet_insertion, buffer, elements_regular, false);
+    break;
+  }
+  case _gst_smmc_normals: {
+    unpackElementalDataHelper(*facet_normals, buffer, elements_regular, false);
     break;
   }
   default: { }
@@ -207,51 +220,4 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
   }
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModelCohesive::packFacetDataHelper(const Array<Element> & elements,
-							     CommunicationBuffer & buffer) const {
-  packUnpackFacetDataHelper<true>(elements, buffer);
-}
-
-/* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModelCohesive::unpackFacetDataHelper(const Array<Element> & elements,
-							       CommunicationBuffer & buffer) const {
-  packUnpackFacetDataHelper<false>(elements, buffer);
-}
-
-/* -------------------------------------------------------------------------- */
-template<bool pack_helper>
-inline void SolidMechanicsModelCohesive::packUnpackFacetDataHelper(const Array<Element> & elements,
-								   CommunicationBuffer & buffer) const {
-
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  bool tmp;
-
-  Array<bool> * f_insertion = NULL;
-
-  Array<Element>::const_iterator<Element> it = elements.begin();
-  Array<Element>::const_iterator<Element> end = elements.end();
-
-  for (; it != end; ++it) {
-    const Element & el = *it;
-
-    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
-      current_element_type = el.type;
-      current_ghost_type   = el.ghost_type;
-      f_insertion =
-	&(const_cast<Array<bool> &>(facet_insertion(el.type, el.ghost_type)));
-    }
-
-    bool & data = (*f_insertion)(el.element);
-
-    if(pack_helper)
-      buffer << data;
-    else {
-      buffer >> tmp;
-      if (tmp == true) data = tmp;
-    }
-  }
 }

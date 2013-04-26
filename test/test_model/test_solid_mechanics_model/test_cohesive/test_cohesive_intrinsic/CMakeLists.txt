@@ -29,7 +29,7 @@
 #
 #===============================================================================
 add_mesh(test_cohesive_intrinsic_mesh triangle.geo 2 2)
-add_mesh(test_cohesive_intrinsic_quadrangle_mesh quadrangle.geo 2 2)
+add_mesh(test_cohesive_intrinsic_quadrangle_mesh quadrangle.geo 2 1)
 
 register_test(test_cohesive_intrinsic
   SOURCES test_cohesive_intrinsic.cc

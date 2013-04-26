@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   const UInt max_steps = 350;
 
-  const ElementType type = _quadrangle_8;
+  const ElementType type = _quadrangle_4;
 
   Mesh mesh(spatial_dimension);
   mesh.read("quadrangle.msh");
@@ -99,7 +99,9 @@ int main(int argc, char *argv[]) {
 
   mesh.write("mesh_cohesive.msh");
 
-  //  std::cout << mesh << std::endl;
+  debug::setDebugLevel(dblDump);
+  std::cout << mesh << std::endl;
+  debug::setDebugLevel(dblWarning);
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
@@ -207,7 +209,7 @@ int main(int argc, char *argv[]) {
 
   Real Ed = model.getEnergy("dissipated");
 
-  Real Edt = 2;
+  Real Edt = 1;
 
   std::cout << Ed << " " << Edt << std::endl;
 

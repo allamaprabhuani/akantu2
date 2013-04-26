@@ -27,7 +27,8 @@
 
 /* -------------------------------------------------------------------------- */
 template<GhostType ghost_facets>
-inline void FacetSynchronizer::getFacetGlobalConnectivity(const ByElementTypeUInt & rank_to_facet,
+inline void FacetSynchronizer::getFacetGlobalConnectivity(const DistributedSynchronizer & distributed_synchronizer,
+							  const ByElementTypeUInt & rank_to_facet,
 							  const Array<Element> * elements,
 							  Array<ByElementTypeUInt *> & connectivity,
 							  Array<ByElementTypeUInt *> & facets) {

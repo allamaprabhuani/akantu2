@@ -79,7 +79,8 @@ public:
   /// initialize the cohesive model
   void initFull(std::string material_file,
 		AnalysisMethod method = _explicit_dynamic,
-		bool extrinsic = false);
+		bool extrinsic = false,
+		bool init_facet_filter = true);
 
   /// initialize the model
   void initModel();
@@ -96,16 +97,22 @@ public:
   /// build fragments and compute their data (mass, velocity..)
   void computeFragmentsData();
 
+  /// init facet filters for cohesive materials
+  void initFacetFilter();
+
 private:
 
   /// initialize completely the model for extrinsic elements
-  void initExtrinsic(std::string material_file);
+  void initExtrinsic(std::string material_file, bool init_facet_filter);
 
   /// build fragments list
   void buildFragmentsList();
 
   /// compute fragments' mass and velocity
   void computeFragmentsMV();
+
+  /// compute and synchronize facets' normals
+  void computeSynchronizeNormals();
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
@@ -140,16 +147,6 @@ protected:
 					 Array<Element> & elements_regular,
 					 Array<Element> & elements_cohesive) const;
 
-  inline void packFacetDataHelper(const Array<Element> & elements,
-				  CommunicationBuffer & buffer) const;
-
-  inline void unpackFacetDataHelper(const Array<Element> & elements,
-				    CommunicationBuffer & buffer) const;
-
-  template<bool pack_helper>
-  inline void packUnpackFacetDataHelper(const Array<Element> & elements,
-					CommunicationBuffer & buffer) const;
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -161,15 +158,11 @@ public:
   /// get facet mesh
   AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
 
-  /// get sigma limit vector for automatic insertion
-  AKANTU_GET_MACRO(SigmaLimit, sigma_lim, const Array<Real> &);
-  AKANTU_GET_MACRO_NOT_CONST(SigmaLimit, sigma_lim, Array<Real> &);
-
   /// get facets check vector
   AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Array<bool> &);
 
   /// get stress on facets vector
-  AKANTU_GET_MACRO(StressOnFacets, facet_stress, const Array<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressOnFacets, facet_stress, Real);
 
   /// get number of fragments
   AKANTU_GET_MACRO(NbFragment, nb_fragment, UInt);
@@ -186,8 +179,11 @@ public:
   /// get center of mass coordinates for each fragment
   AKANTU_GET_MACRO(FragmentsCenter, fragment_center, const Array<Real> &);
 
+  /// get facet material
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetMaterial, facet_material, UInt);
+
   /// THIS HAS TO BE CHANGED
-  AKANTU_GET_MACRO(Tangents, tangents, const Array<Real> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -200,14 +196,11 @@ private:
   /// mesh containing facets and their data structures
   Mesh mesh_facets;
 
-  /// vector containing a sigma limit for automatic insertion
-  Array<Real> sigma_lim;
-
   /// vector containing facets in which cohesive elements can be automatically inserted
   Array<bool> facets_check;
 
   /// @todo store tangents when normals are computed:
-  Array<Real> tangents;
+  ByElementTypeReal tangents;
 
   /// list of stresses on facet quadrature points for every element
   ByElementTypeReal stress_on_facet;
@@ -216,7 +209,7 @@ private:
   Array<bool> facet_stress_count;
 
   /// stress on facets on the two sides by quadrature point
-  Array<Real> facet_stress;
+  ByElementTypeReal facet_stress;
 
   /// fragment number for each element
   ByElementTypeUInt fragment_to_element;
@@ -253,6 +246,15 @@ private:
 
   /// facet synchronizer
   FacetSynchronizer * facet_synchronizer;
+
+  // /// cohesive elements synchronizer
+  // DistributedSynchronizer * cohesive_distributed_synchronizer;
+
+  /// stored ghost facet normals sent by other processors
+  ByElementTypeReal * facet_normals;
+
+  /// material to use if a cohesive element is created on a facet
+  ByElementTypeUInt facet_material;
 
 };
 

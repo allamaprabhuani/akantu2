@@ -35,8 +35,8 @@
 template<ElementType element_type>
 const Matrix<Real> GaussIntegrationElement<element_type>::getQuadraturePoints() {
   Matrix<Real> quads(quad,
-			    ElementClass<element_type>::getNaturalSpaceDimension(),
-			    nb_quadrature_points);
+		     ElementClass<element_type>::getNaturalSpaceDimension(),
+		     nb_quadrature_points);
   return quads;
 }
 

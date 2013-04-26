@@ -151,6 +151,11 @@ public:
 				     ByElementTypeUInt & doubled_facets,
 				     const bool extrinsic);
 
+  /// compute normals on facets
+  static void computeFacetNormals(const Mesh & mesh_facets,
+				  ByElementTypeReal & normals,
+				  GhostType ghost_type = _not_ghost);
+
 private:
 
   /// match pairs that are on the associated pbc's

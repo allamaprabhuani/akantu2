@@ -51,7 +51,7 @@ class DistributedSynchronizer : public Synchronizer, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-protected:
+public:
   DistributedSynchronizer(Mesh & mesh,
 			  SynchronizerID id = "distributed_synchronizer",
 			  MemoryID memory_id = 0);

@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
   model.initFull("material.dat", _explicit_dynamic, true);
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
-  //  std::cout << "Time step: " << time_step << std::endl;
+  std::cout << "Time step: " << time_step << std::endl;
 
   model.assembleMassLumped();
 
@@ -85,21 +85,15 @@ int main(int argc, char *argv[]) {
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
   Array<Real> & position = mesh.getNodes();
 
-  Array<Real> & sigma_lim = model.getSigmaLimit();
   Array<bool> & facet_check = model.getFacetsCheck();
 
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {
     mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20) {
-      sigma_lim(f) = 100;
+    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20)
       facet_check(f) = true;
-      std::cout << f << std::endl;
-    }
-    else {
-      sigma_lim(f) = 1e10;
+    else
       facet_check(f) = false;
-    }
   }
   delete[] bary_facet;
 

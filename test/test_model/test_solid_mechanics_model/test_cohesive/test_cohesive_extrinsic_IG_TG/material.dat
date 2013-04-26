@@ -1,0 +1,20 @@
+material elastic [
+	 name = steel
+	 rho = 1e3   # density
+	 E   = 1e3   # young's modulus
+	 nu  = 0.0 # poisson's ratio
+]
+
+material cohesive_linear_extrinsic [
+	 name = TG_cohesive
+	 beta = 0
+	 G_cI = 10
+         sigma_c_generator = uniform(1) 100 100
+]
+
+material cohesive_linear_extrinsic [
+	 name = IG_cohesive
+	 beta = 0
+	 G_cI = 10
+         sigma_c_generator = uniform(1) 20 20
+]
