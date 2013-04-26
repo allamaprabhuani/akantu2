@@ -6,7 +6,7 @@
  *
  * @date   Thu April 18 13:31:00 2013
  *
- * @brief  Test for considering different cohesive properties for intergranular (IG) and 
+ * @brief  Test for considering different cohesive properties for intergranular (IG) and
  * transgranular (TG) fractures in extrinsic cohesive elements
  *
  * @section LICENSE
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 	  //transgranular = 0 indicator
 	  facet_mat_by_type(f) = 1;
 	  nb_TG++;
-	} else  {   
+	} else  {
 	  //intergranular = 1 indicator
 	  facet_mat_by_type(f) = 2;
 	  nb_IG++;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 
 
    //  for ( UInt i = 0; i < nb_facet; ++i){
-    
+
   // }
   //  std::cout << mesh << std::endl;
 
@@ -151,8 +151,8 @@ int main(int argc, char *argv[]) {
     if (position(n, 1) > 0.99|| position(n, 1) < -0.99)
       boundary(n, 1) = true;
 
-    // if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
-    //   boundary(n, 0) = true;
+    if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
+      boundary(n, 0) = true;
   }
 
   model.updateResidual();
@@ -172,6 +172,7 @@ int main(int argc, char *argv[]) {
   Real VI = loading_rate * 2* 0.5;
   for (UInt n = 0; n < nb_nodes; ++n) {
     velocity(n, 1) = loading_rate * position(n, 1);
+    velocity(n, 0) = loading_rate * position(n, 0);
   }
 
   // std::ofstream edis("edis.txt");
@@ -194,8 +195,14 @@ int main(int argc, char *argv[]) {
       if (position(n, 1) < -0.99){
 	displacement(n, 1) = -dispy;
 	velocity(n,1) = -VI;}
+      if (position(n, 0) > 0.99){
+	displacement(n, 0) = dispy;
+	velocity(n,0) = VI;}
+      if (position(n, 0) < -0.99){
+	displacement(n, 0) = -dispy;
+	velocity(n,0) = -VI;}
     }
-  
+
     model.checkCohesiveStress();
 
     model.explicitPred();
@@ -226,7 +233,7 @@ int main(int argc, char *argv[]) {
 
   Real Ed = model.getEnergy("dissipated");
 
-  Real Edt = 20;
+  Real Edt = 40;
 
   std::cout << Ed << " " << Edt << std::endl;
 
