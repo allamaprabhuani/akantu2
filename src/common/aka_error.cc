@@ -41,6 +41,8 @@
 #include <cmath>
 #include <map>
 #include <sys/wait.h>
+#include <sys/types.h>
+#include <unistd.h>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
