@@ -32,6 +32,10 @@
 #include "aka_types.hh"
 #include "solid_mechanics_model.hh"
 #include <cmath>
+#if !defined(AKANTU_NDEBUG)
+#include "aka_debug_tools.hh"
+#include <string>
+#endif
 
 /* -------------------------------------------------------------------------- */
 #include <vector>
@@ -170,12 +174,11 @@ public:
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
     UInt quad = q2.global_num;
 
-    if(q1.global_num == quad) return 1.;
+    if(q1 == q2) return 1.;
 
     Real D = (*selected_damage)(quad);
     Real w = 0.;
     if(D < damage_limit) {
-
       Real alpha = std::max(0., 1. - r*r / this->R2);
       w = alpha * alpha;
     }
@@ -207,20 +210,61 @@ public:
   virtual inline void packElementData(CommunicationBuffer & buffer,
                                       const Array<Element> & elements,
                                       SynchronizationTag tag) const {
-    if(tag == _gst_mnl_weight)
-      this->material.packElementDataHelper(dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
+    if(tag == _gst_mnl_weight) {
+      MaterialDamage<spatial_dimension> & mat = dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material);
+      this->material.packElementDataHelper(mat.getDamage(),
                                            buffer,
                                            elements);
+#if !defined(AKANTU_NDEBUG)
+#if defined(AKANTU_CORE_CXX11)
+
+      debug::element_manager.print(debug::_dm_material,
+                                   [&elements, &mat](const Element & el)->std::string {
+                                     std::stringstream out;
+                                     UInt pos = elements.find(el);
+                                     if(pos != UInt(-1)) {
+                                       Real d = mat.getArray("damage", el.type, el.ghost_type)(el.element);
+                                       if(d > 0.3)
+                                         out << " damage sent: " << d;
+                                     }
+                                     return out.str();
+                                   });
+#else
+      debug::element_manager.printData(debug::_dm_material, "RemoveDamagedWeightFunction: packElementData",
+                                       mat.getDamage(), mat.getElementFilter());
+#endif
+#endif
+    }
   }
 
   virtual inline void unpackElementData(CommunicationBuffer & buffer,
                                         const Array<Element> & elements,
                                         SynchronizationTag tag) {
-    if(tag == _gst_mnl_weight)
-      this->material.unpackElementDataHelper(dynamic_cast< MaterialDamage<spatial_dimension> &>(this->material).getDamage(),
+    if(tag == _gst_mnl_weight) {
+      MaterialDamage<spatial_dimension> & mat = dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material);
+      this->material.unpackElementDataHelper(mat.getDamage(),
                                              buffer,
                                              elements);
+#if !defined(AKANTU_NDEBUG)
+#if defined(AKANTU_CORE_CXX11)
+      debug::element_manager.print(debug::_dm_material,
+                                   [&elements, &mat](const Element & el)->std::string {
+                                     std::stringstream out;
+                                     UInt pos = elements.find(el);
+                                     if(pos != UInt(-1)) {
+                                       Real d = mat.getArray("damage", el.type, el.ghost_type)(el.element);
+                                       if(d > 0.3)
+                                         out << " damage recv: " << d;
+                                     }
+                                     return out.str();
+                                   });
+#else
+      debug::element_manager.printData(debug::_dm_material, "RemoveDamagedWeightFunction: unpackElementData",
+                                       mat.getDamage(), mat.getElementFilter());
+#endif
+#endif
 
+    }
   }
 
 

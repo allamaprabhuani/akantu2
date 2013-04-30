@@ -78,7 +78,7 @@ public:
 		 Array<Real> &intf,
 		 UInt nb_degree_of_freedom,
 		 const GhostType & ghost_type,
-		 const Array<UInt> * filter_elements) const;
+		 const Array<UInt> & filter_elements) const;
 
   /// integrate one element scalar value on all elements of type "type"
   template <ElementType type>
@@ -91,7 +91,7 @@ public:
   template <ElementType type>
   Real integrate(const Array<Real> & in_f,
 		 const GhostType & ghost_type,
-		 const Array<UInt> * filter_elements) const;
+		 const Array<UInt> & filter_elements) const;
 
   /// integrate partially around a quadrature point (@f$ intf_q = f_q * J_q * w_q @f$)
   template <ElementType type>
@@ -99,7 +99,7 @@ public:
 				   Array<Real> &intf,
 				   UInt nb_degree_of_freedom,
 				   const GhostType & ghost_type,
-				   const Array<UInt> * filter_elements) const;
+				   const Array<UInt> & filter_elements) const;
 
   /// return a vector with quadrature points natural coordinates
   template <ElementType type>

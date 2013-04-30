@@ -37,10 +37,8 @@
 #include "aka_memory.hh"
 #include "data_accessor.hh"
 /* -------------------------------------------------------------------------- */
-
-namespace akantu {
-  class GhostSynchronizer;
-}
+#include <map>
+/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
@@ -81,9 +79,10 @@ public:
   public:
     operator int() { return int(tag); }
 
-    static inline Tag genTag(int proc, UInt msg_count, UInt tag) {
+    template<typename CommTag>
+    static inline Tag genTag(int proc, UInt msg_count, CommTag tag) {
       Tag t;
-      t.tag = (((proc & 0xFFFFF) << 12) + ((msg_count & 0xFF) << 4) + (tag & 0xF));
+      t.tag = (((proc & 0xFFFFF) << 12) + ((msg_count & 0xFF) << 4) + ((Int)tag & 0xF));
       return t;
     }
 
@@ -91,7 +90,6 @@ public:
 			   __attribute__((unused)) int indent = 0) const {
       stream << (tag >> 12) << ":" << (tag >> 4 & 0xFF) << ":" << (tag & 0xF);
     }
-
   private:
     UInt tag;
   };
@@ -107,10 +105,11 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
   /// id of the synchronizer
   SynchronizerID id;
 
+  /// message counter per tag
+  std::map<SynchronizationTag, UInt> tag_counter;
 };
 
 

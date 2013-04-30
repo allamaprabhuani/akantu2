@@ -53,7 +53,7 @@ inline const Array<Real> & ShapeLagrange<kind>::getShapesDerivatives(const Eleme
   setControlPointsByType<type>(control_points, ghost_type);		\
   precomputeShapesOnControlPoints<type>(nodes, ghost_type);		\
   if (ElementClass<type>::getNaturalSpaceDimension() ==			\
-      mesh->getSpatialDimension() || kind != _ek_regular)		\
+      mesh.getSpatialDimension() || kind != _ek_regular)		\
     precomputeShapeDerivativesOnControlPoints<type>(nodes, ghost_type);
 
 template <ElementKind kind>
@@ -102,13 +102,13 @@ void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
 				     Vector<Real> & natural_coords,
 				     const GhostType & ghost_type) const{
 
-  UInt spatial_dimension = mesh->getSpatialDimension();
+  UInt spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh->getConnectivity(type, ghost_type).values;
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).values;
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh->extractNodalValuesFromElement(mesh->getNodes(),
+  mesh.extractNodalValuesFromElement(mesh.getNodes(),
 				      nodes_coord.storage(),
 				      elem_val + elem*nb_nodes_per_element,
 				      nb_nodes_per_element,
@@ -126,7 +126,7 @@ bool ShapeLagrange<kind>::contains(const Vector<Real> & real_coords,
 			     UInt elem,
 			     const GhostType & ghost_type) const{
 
-  UInt spatial_dimension = mesh->getSpatialDimension();
+  UInt spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords, elem, natural_coords, ghost_type);
@@ -141,7 +141,7 @@ void ShapeLagrange<kind>::computeShapes(const Vector<Real> & real_coords,
 				  Vector<Real> & shapes,
 				  const GhostType & ghost_type) const{
 
-  UInt spatial_dimension = mesh->getSpatialDimension();
+  UInt spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
 
   inverseMap<type>(real_coords, elem, natural_coords, ghost_type);
@@ -175,7 +175,7 @@ void ShapeLagrange<kind>::precomputeShapesOnControlPoints(__attribute__((unused)
 
   UInt size_of_shapes = ElementClass<type>::getShapeSize();
 
-  UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();;
+  UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();;
 
   Array<Real> & shapes_tmp = shapes.alloc(nb_element*nb_points,
 					   size_of_shapes,
@@ -203,22 +203,22 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Array<
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
-  //  Real * coord = mesh->getNodes().values;
-  UInt spatial_dimension = mesh->getSpatialDimension();
+  //  Real * coord = mesh.getNodes().values;
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
   UInt size_of_shapesd      = ElementClass<type>::getShapeDerivativesSize();
   Matrix<Real> & natural_coords = control_points(type, ghost_type);
   UInt nb_points = natural_coords.cols();
 
-  UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();
+  UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
   Array<Real> & shapes_derivatives_tmp = shapes_derivatives.alloc(nb_element*nb_points,
 								   size_of_shapesd,
 								   itp_type,
 								   ghost_type);
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, nodes, x_el,
+  FEM::extractNodalToElementField(mesh, nodes, x_el,
 				  type, ghost_type);
 
   Real * shapesd_val = shapes_derivatives_tmp.storage();
@@ -246,7 +246,7 @@ void ShapeLagrange<kind>::interpolateOnControlPoints(const Array<Real> &in_u,
 					       Array<Real> &out_uq,
 					       UInt nb_degree_of_freedom,
 					       GhostType ghost_type,
-					       const Array<UInt> * filter_elements) const {
+					       const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -257,7 +257,7 @@ void ShapeLagrange<kind>::interpolateOnControlPoints(const Array<Real> &in_u,
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
   Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, in_u, u_el, type, ghost_type, filter_elements);
+  FEM::extractNodalToElementField(mesh, in_u, u_el, type, ghost_type, filter_elements);
 
   this->interpolateElementalFieldOnControlPoints<type>(u_el, out_uq, ghost_type,
 						       shapes(itp_type, ghost_type),
@@ -273,7 +273,7 @@ void ShapeLagrange<kind>::gradientOnControlPoints(const Array<Real> &in_u,
 					       Array<Real> &out_nablauq,
 					       UInt nb_degree_of_freedom,
 					       GhostType ghost_type,
-					       const Array<UInt> * filter_elements) const {
+					       const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -284,7 +284,7 @@ void ShapeLagrange<kind>::gradientOnControlPoints(const Array<Real> &in_u,
   UInt nb_nodes_per_element  = ElementClass<type>::getNbNodesPerInterpolationElement();
 
   Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, in_u, u_el, type, ghost_type, filter_elements);
+  FEM::extractNodalToElementField(mesh, in_u, u_el, type, ghost_type, filter_elements);
 
   this->gradientElementalFieldOnControlPoints<type>(u_el, out_nablauq, ghost_type,
 						    shapes_derivatives(itp_type, ghost_type),

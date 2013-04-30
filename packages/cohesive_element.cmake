@@ -78,6 +78,7 @@ set(AKANTU_COHESIVE_ELEMENT_TESTS
   test_cohesive_buildfragments
   test_cohesive_intrinsic_impl
   test_cohesive_parallel_intrinsic
+  test_facet_synchronizer
   )
 
 set(AKANTU_COHESIVE_ELEMENT_DOC

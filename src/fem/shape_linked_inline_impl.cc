@@ -89,9 +89,9 @@ void ShapeLinked<_ek_structural>::precomputeShapesOnControlPoints(const Array<Re
 								  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  //  Real * coord = mesh->getNodes().values;
-  UInt spatial_dimension = mesh->getSpatialDimension();
-  UInt nb_nodes_per_element           = Mesh::getNbNodesPerElement(type);
+  //  Real * coord = mesh.getNodes().values;
+  UInt spatial_dimension    = mesh.getSpatialDimension();
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
   Matrix<Real> & natural_coords = control_points(type, ghost_type);
   UInt nb_points = control_points(type, ghost_type).cols();
@@ -103,13 +103,13 @@ void ShapeLinked<_ek_structural>::precomputeShapesOnControlPoints(const Array<Re
     ghost = "ghost_";
   }
 
-  UInt nb_element = mesh->getNbElement(type, ghost_type);
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
   UInt nb_shape_functions = ElementClass<type, _ek_structural>::getNbShapeFunctions();
 
   Array<Real> ** shapes_tmp = new Array<Real> *[nb_shape_functions];
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, nodes, x_el,
+  FEM::extractNodalToElementField(mesh, nodes, x_el,
 				  type, ghost_type);
 
   for (UInt s = 0; s < nb_shape_functions; ++s) {
@@ -144,8 +144,8 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
 								  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  // Real * coord = mesh->getNodes().values;
-  UInt spatial_dimension = mesh->getSpatialDimension();
+  // Real * coord = mesh.getNodes().values;
+  UInt spatial_dimension = mesh.getSpatialDimension();
   UInt natural_spatial_dimension = ElementClass<type>::getNaturalSpaceDimension();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -153,7 +153,7 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
   Matrix<Real> & natural_coords = control_points(type, ghost_type);
   UInt nb_points = natural_coords.cols();
 
-  UInt nb_element = mesh->getNbElement(type, ghost_type);
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
   std::string ghost = "";
 
   if(ghost_type == _ghost) {
@@ -161,7 +161,7 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
   }
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, nodes, x_el,
+  FEM::extractNodalToElementField(mesh, nodes, x_el,
 				  type, ghost_type);
 
   UInt nb_shape_functions = ElementClass<type>::getNbShapeFunctions();
@@ -207,8 +207,8 @@ void ShapeLinked<kind>::extractNodalToElementField(const Array<Real> & nodal_f,
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_degree_of_freedom = nodal_f.getNbComponent();
-  UInt nb_element = mesh->getNbElement(type, ghost_type);
-  UInt * conn_val = mesh->getConnectivity(type, ghost_type).storage();
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
 
   UInt * filter_elem_val = NULL;
   if(filter_elements != NULL) {

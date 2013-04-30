@@ -493,7 +493,7 @@ void LevelSetModel::computeVReinit(Real Epsilon) {
 
             //grad_phi.resize(nb_quadrature_points * nb_element);
 
-            getFEM().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, gt, &elem_filter);
+            getFEM().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, gt, elem_filter);
 
 
 
@@ -629,9 +629,9 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
                 residual_size,
                 "f");
 
-        getFEM().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, &elem_filter);
+        getFEM().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, elem_filter);
 
-        getFEM().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, NULL, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
+        getFEM().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, empty_filter, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
 
 
         //if (!reinit || (reinit && filtered_flag)) {
@@ -652,7 +652,7 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
         //grad_phi.resize(nb_quadrature_points * nb_element);
 
-        getFEM().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, ghost_type, &elem_filter);
+        getFEM().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, ghost_type, elem_filter);
 
 
         Ni_it = shapes_filtered->begin(nb_nodes_per_element);
@@ -685,9 +685,9 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
         f->clear();
 
-        getFEM().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, &elem_filter);
+        getFEM().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, elem_filter);
 
-        getFEM().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, NULL, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
+        getFEM().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, empty_filter, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
         delete v_grad_phi;
         //}
 
@@ -1186,11 +1186,11 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
                 Ni_Nj_size * Ni_Nj_size,
                 "K_e");
 
-        getFEM().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, &elem_filter);
+        getFEM().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, elem_filter);
 
         //delete Ni_Nj;
 
-        getFEM().assembleMatrix(*K_e, K, 1, *it, ghost_type, &elem_filter);
+        getFEM().assembleMatrix(*K_e, K, 1, *it, ghost_type, elem_filter);
 
 
 
@@ -1252,9 +1252,9 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
 
         K_e->clear();
 
-        getFEM().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, &elem_filter);
+        getFEM().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, elem_filter);
 
-        getFEM().assembleMatrix(*K_e, K, 1, *it, ghost_type, &elem_filter);
+        getFEM().assembleMatrix(*K_e, K, 1, *it, ghost_type, elem_filter);
 
         //delete tangent_stiffness_matrix;
 

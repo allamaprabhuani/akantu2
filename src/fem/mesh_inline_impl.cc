@@ -346,6 +346,11 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
+inline void Mesh::getBarycenter(const Element & element, Vector<Real> & barycenter) const {
+  getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbNodesPerElement(const ElementType & type) {
   UInt nb_nodes_per_element = 0;
 #define GET_NB_NODES_PER_ELEMENT(type)					\

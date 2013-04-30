@@ -58,7 +58,7 @@ public:
   virtual ~MaterialNonLocal();
 
   template<typename T>
-  class PairList : public ByElementType<ByElementTypeArray<T> > {};
+  class PairList : public ByElementType< ByElementTypeArray<T> > {};
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -125,9 +125,9 @@ public:
     ID id = local.getID();
     NonLocalVariable & non_local_variable = non_local_variables[id];
 
-    non_local_variable.local_variable = &local;
-    non_local_variable.non_local_variable = &non_local;
-    non_local_variable.non_local_variable_nb_component = nb_degree_of_freedom;
+    non_local_variable.local = &local;
+    non_local_variable.non_local = &non_local;
+    non_local_variable.nb_component = nb_degree_of_freedom;
   }
 
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
@@ -164,9 +164,9 @@ private:
   UInt compute_stress_calls;
 
   struct NonLocalVariable {
-    ByElementTypeArray<Real> * local_variable;
-    ByElementTypeArray<Real> * non_local_variable;
-    UInt non_local_variable_nb_component;
+    ByElementTypeArray<Real> * local;
+    ByElementTypeArray<Real> * non_local;
+    UInt nb_component;
   };
 
   std::map<ID, NonLocalVariable> non_local_variables;

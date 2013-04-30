@@ -47,8 +47,6 @@
 
 __BEGIN_AKANTU__
 
-
-
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -110,8 +108,6 @@ struct CompElementLess {
     return lhs < rhs;
   }
 };
-
-
 
 
 /* -------------------------------------------------------------------------- */
@@ -408,6 +404,7 @@ public:
   /// compute the barycenter of a given element
   inline void getBarycenter(UInt element, const ElementType & type, Real * barycenter,
 			    GhostType ghost_type = _not_ghost) const;
+  inline void getBarycenter(const Element & element, Vector<Real> & barycenter) const;
 
   /// get the element connected to a subelement
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementToSubelement, element_to_subelement, std::vector<Element>);
@@ -628,7 +625,6 @@ inline std::ostream & operator <<(std::ostream & stream, const Mesh & _this)
   _this.printself(stream);
   return stream;
 }
-
 
 __END_AKANTU__
 

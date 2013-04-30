@@ -46,7 +46,7 @@ public:
 	     const ID & id="integrator",
 	     const MemoryID & memory_id = 0) :
     Memory(memory_id),
-    mesh(&mesh),
+    mesh(mesh),
     id(id),
     jacobians("jacobians", id) {
     AKANTU_DEBUG_IN();
@@ -103,7 +103,7 @@ public:
 
 
 protected:
-  const Mesh * mesh;
+  const Mesh & mesh;
 
   ID id;
 

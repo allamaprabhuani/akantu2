@@ -266,7 +266,10 @@ public:
   template<typename Ret>
   inline void push_back(const iterator<Ret> & it);
 
-  inline void push_back(const Vector<T> new_elem);
+  /// push_back for Vector<T> and Matrix<T>
+  template<template<typename> class C>
+  inline void push_back(const C<T> & new_elem);
+
   /**
    * remove an element and move the last one in the hole
    * /!\ change the order in the vector
@@ -321,6 +324,9 @@ public:
   Array<T, is_scal> & operator+=(const Array<T, is_scal> & vect);
   Array<T, is_scal> & operator*=(const T & alpha);
 
+  bool operator==(const Array<T, is_scal> & vect) const;
+  bool operator!=(const Array<T, is_scal> & vect) const;
+
   inline reference operator()(UInt i, UInt j = 0);
   inline const_reference operator()(UInt i, UInt j = 0) const;
 
@@ -364,7 +370,6 @@ inline std::ostream & operator<<(std::ostream & stream, const ArrayBase & _this)
   _this.printself(stream);
   return stream;
 }
-
 
 __END_AKANTU__
 

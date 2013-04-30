@@ -27,6 +27,12 @@
  *
  */
 
+
+
+__END_AKANTU__
+#include <iostream>
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 inline CommunicationRequestMPI::CommunicationRequestMPI(UInt source, UInt dest) :
   CommunicationRequest(source, dest) {

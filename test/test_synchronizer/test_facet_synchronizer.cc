@@ -31,7 +31,7 @@
 #include "facet_synchronizer.hh"
 #include "mesh_utils.hh"
 #include "synchronizer_registry.hh"
-
+#include <iostream>
 
 /* -------------------------------------------------------------------------- */
 

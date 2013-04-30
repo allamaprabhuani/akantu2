@@ -114,6 +114,18 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+private:
+  enum CommTags {
+    TAG_SIZES        = 0,
+    TAG_CONNECTIVITY = 1,
+    TAG_DATA         = 2,
+    TAG_PARTITIONS   = 3,
+    TAG_NB_NODES     = 4,
+    TAG_NODES        = 5,
+    TAG_COORDINATES  = 6,
+    TAG_NODES_TYPE   = 7
+  };
+
 protected:
   /// reference to the underlying mesh
   Mesh & mesh;

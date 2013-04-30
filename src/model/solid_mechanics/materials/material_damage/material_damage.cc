@@ -143,7 +143,7 @@ Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
 
   for(; it != end; ++it) {
     de += this->model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
-					  _not_ghost, &this->element_filter(*it, _not_ghost));
+					  _not_ghost, this->element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();

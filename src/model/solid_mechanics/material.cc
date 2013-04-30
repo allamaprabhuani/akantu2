@@ -55,7 +55,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   interpolation_points_matrices("interpolation points matrices", id),
   is_init(false) {
   AKANTU_DEBUG_IN();
-  
+
   finite_deformation=false;
 
   registerParam("rho",  rho,                 0., ParamAccessType(_pat_parsable | _pat_modifiable), "Density");
@@ -83,7 +83,7 @@ Material::~Material() {
 
 /* -------------------------------------------------------------------------- */
 bool Material::parseParam(const std::string & key, const std::string & value,
-			__attribute__ ((unused)) const ID & id) {
+                        __attribute__ ((unused)) const ID & id) {
   try {
     params.parseParam(key, value);
   } catch(...) { return false; }
@@ -103,16 +103,16 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalArray(ByElementTypeArray<T> & vect,
-				  UInt nb_component,
-				  bool temporary,
-				  ElementKind element_kind) {
+                                  UInt nb_component,
+                                  bool temporary,
+                                  ElementKind element_kind) {
   AKANTU_DEBUG_IN();
 
   model->getFEM().getMesh().initByElementTypeArray(vect,
-						   nb_component,
-						   spatial_dimension,
-						   false,
-						   element_kind);
+                                                   nb_component,
+                                                   spatial_dimension,
+                                                   false,
+                                                   element_kind);
 
   if(!temporary)
     registerInternal(vect);
@@ -132,7 +132,7 @@ template<> void Material::registerInternal<UInt>(ByElementTypeArray<UInt> & vect
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::resizeInternalArray(ByElementTypeArray<T> & by_el_type_vect,
-				    ElementKind element_kind) const {
+                                    ElementKind element_kind) const {
   AKANTU_DEBUG_IN();
 
   FEM * fem = & model->getFEM();
@@ -204,13 +204,13 @@ void Material::assembleResidual(GhostType ghost_type) {
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Array<Real> * sigma_dphi_dx =
       new Array<Real>(nb_element*nb_quadrature_points,
-		       size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+                       size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
     Array<Real> * shapesd_filtered =
       new Array<Real>(0, size_of_shapes_derivatives, "filtered shapesd");
 
-    FEM::filterQuadraturePointsData(mesh, shapes_derivatives, *shapesd_filtered,
-				    *it, ghost_type, &elem_filter);
+    FEM::filterElementalData(mesh, shapes_derivatives, *shapesd_filtered,
+                             *it, ghost_type, elem_filter);
 
     Array<Real> & stress_vect = stress(*it, ghost_type);
 
@@ -231,20 +231,20 @@ void Material::assembleResidual(GhostType ghost_type) {
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
     Array<Real> * int_sigma_dphi_dx = new Array<Real>(nb_element,
-							nb_nodes_per_element * spatial_dimension,
-							"int_sigma_x_dphi_/_dX");
+                                                        nb_nodes_per_element * spatial_dimension,
+                                                        "int_sigma_x_dphi_/_dX");
 
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-			      size_of_shapes_derivatives,
-			      *it, ghost_type,
-			      &elem_filter);
+                              size_of_shapes_derivatives,
+                              *it, ghost_type,
+                              elem_filter);
     delete sigma_dphi_dx;
 
     /// assemble
     model->getFEM().assembleArray(*int_sigma_dphi_dx, residual,
-				   model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
-				   residual.getNbComponent(),
-				   *it, ghost_type, &elem_filter, -1);
+                                  model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
+                                  residual.getNbComponent(),
+                                  *it, ghost_type, elem_filter, -1);
     delete int_sigma_dphi_dx;
   }
 
@@ -275,8 +275,8 @@ void Material::computeAllStresses(GhostType ghost_type) {
 
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
-					       spatial_dimension,
-					       *it, ghost_type, &elem_filter);
+                                               spatial_dimension,
+                                               *it, ghost_type, elem_filter);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
@@ -304,8 +304,8 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
-					      spatial_dimension,
-					      *it, ghost_type, &elem_filter);
+                                              spatial_dimension,
+                                              *it, ghost_type, elem_filter);
 
     setToSteadyState(*it, ghost_type);
   }
@@ -344,7 +344,7 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::assembleStiffnessMatrix(const ElementType & type,
-				       GhostType ghost_type) {
+                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
@@ -361,13 +361,13 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   strain_vect.resize(nb_quadrature_points * nb_element);
 
   model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
-					     dim, type, ghost_type, &elem_filter);
+                                             dim, type, ghost_type, elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 
   Array<Real> * tangent_stiffness_matrix =
     new Array<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
-		     "tangent_stiffness_matrix");
+                     "tangent_stiffness_matrix");
 
   tangent_stiffness_matrix->clear();
 
@@ -376,15 +376,15 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   Array<Real> * shapesd_filtered =
     new Array<Real>(0, dim * nb_nodes_per_element, "filtered shapesd");
 
-  FEM::filterQuadraturePointsData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
-				  type, ghost_type, &elem_filter);
+  FEM::filterElementalData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
+                           type, ghost_type, elem_filter);
 
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   UInt bt_d_b_size = dim * nb_nodes_per_element;
 
   Array<Real> * bt_d_b = new Array<Real>(nb_element * nb_quadrature_points,
-					   bt_d_b_size * bt_d_b_size,
-					   "B^t*D*B");
+                                           bt_d_b_size * bt_d_b_size,
+                                           "B^t*D*B");
 
   Matrix<Real> B(tangent_size, dim * nb_nodes_per_element);
   Matrix<Real> Bt_D(dim * nb_nodes_per_element, tangent_size);
@@ -393,12 +393,12 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
     shapesd_filtered->begin(dim, nb_nodes_per_element);
 
   Array<Real>::iterator< Matrix<Real> > Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
-								  dim*nb_nodes_per_element);
+                                                                  dim*nb_nodes_per_element);
 
   Array<Real>::iterator< Matrix<Real> > D_it  = tangent_stiffness_matrix->begin(tangent_size,
-										tangent_size);
+                                                                                tangent_size);
   Array<Real>::iterator< Matrix<Real> > D_end = tangent_stiffness_matrix->end  (tangent_size,
-										tangent_size);
+                                                                                tangent_size);
 
 
   for(; D_it != D_end; ++D_it, ++Bt_D_B_it, ++shapes_derivatives_filtered_it) {
@@ -415,17 +415,17 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   Array<Real> * K_e = new Array<Real>(nb_element,
-					bt_d_b_size * bt_d_b_size,
-					"K_e");
+                                        bt_d_b_size * bt_d_b_size,
+                                        "K_e");
 
   model->getFEM().integrate(*bt_d_b, *K_e,
-			    bt_d_b_size * bt_d_b_size,
-			    type, ghost_type,
-			    &elem_filter);
+                            bt_d_b_size * bt_d_b_size,
+                            type, ghost_type,
+                            elem_filter);
 
   delete bt_d_b;
 
-  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
+  model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, elem_filter);
   delete K_e;
 
   AKANTU_DEBUG_OUT();
@@ -454,7 +454,7 @@ void Material::computeAllStressesFromTangentModuli(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::computeAllStressesFromTangentModuli(const ElementType & type,
-						   GhostType ghost_type) {
+                                                   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type, ghost_type);
@@ -471,13 +471,13 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   Array<Real> & disp = model->getDisplacement();
 
   model->getFEM().gradientOnQuadraturePoints(disp, strain_vect,
-					     dim, type, ghost_type, &elem_filter);
+                                             dim, type, ghost_type, elem_filter);
 
   UInt tangent_moduli_size = getTangentStiffnessVoigtSize(dim);
 
   Array<Real> * tangent_moduli_tensors =
     new Array<Real>(nb_element*nb_quadrature_points, tangent_moduli_size * tangent_moduli_size,
-		     "tangent_moduli_tensors");
+                     "tangent_moduli_tensors");
 
   tangent_moduli_tensors->clear();
   computeTangentModuli(type, *tangent_moduli_tensors, ghost_type);
@@ -485,22 +485,22 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   Array<Real> * shapesd_filtered =
     new Array<Real>(0, dim* nb_nodes_per_element, "filtered shapesd");
 
-  FEM::filterQuadraturePointsData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
-				  type, ghost_type, &elem_filter);
+  FEM::filterElementalData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
+                                  type, ghost_type, elem_filter);
 
   Array<Real> filtered_u(nb_element, nb_nodes_per_element * spatial_dimension);
 
   FEM::extractNodalToElementField(model->getFEM().getMesh(), disp, filtered_u,
-				  type, ghost_type, &elem_filter);
+                                  type, ghost_type, elem_filter);
 
   /// compute @f$\mathbf{D} \mathbf{B} \mathbf{u}@f$
   Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it =
     shapesd_filtered->begin(dim, nb_nodes_per_element);
 
   Array<Real>::iterator< Matrix<Real> > D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
-									       tangent_moduli_size);
+                                                                               tangent_moduli_size);
   Array<Real>::iterator< Matrix<Real> > sigma_it  = stress(type, ghost_type).begin(spatial_dimension,
-										    spatial_dimension);
+                                                                                    spatial_dimension);
   Array<Real>::iterator< Vector<Real> > u_it = filtered_u.begin(spatial_dimension * nb_nodes_per_element);
 
   Matrix<Real> B(tangent_moduli_size, spatial_dimension * nb_nodes_per_element);
@@ -521,11 +521,11 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
       // Voigt notation to full symmetric tensor
       for (UInt i = 0; i < dim; ++i) sigma(i, i) = DBu(i);
       if(dim == 2) {
-	sigma(0,1) = sigma(1,0) = DBu(2);
+        sigma(0,1) = sigma(1,0) = DBu(2);
       } else if(dim == 3) {
-	sigma(1,2) = sigma(2,1) = DBu(3);
-	sigma(0,2) = sigma(2,0) = DBu(4);
-	sigma(0,1) = sigma(1,0) = DBu(5);
+        sigma(1,2) = sigma(2,1) = DBu(3);
+        sigma(0,2) = sigma(2,0) = DBu(4);
+        sigma(0,1) = sigma(1,0) = DBu(5);
       }
     }
   }
@@ -566,7 +566,7 @@ void Material::computePotentialEnergyByElement() {
       UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, _not_ghost);
 
       potential_energy.alloc(nb_element * nb_quadrature_points, 1,
-			     *it, _not_ghost);
+                             *it, _not_ghost);
     }
 
     computePotentialEnergy(*it);
@@ -577,17 +577,17 @@ void Material::computePotentialEnergyByElement() {
 /* -------------------------------------------------------------------------- */
 
 void Material::computePotentialEnergyByElement(ElementType type, UInt index,
-					       Vector<Real> & epot_on_quad_points){
+                                               Vector<Real> & epot_on_quad_points){
 
   Array<Real>::iterator< Matrix<Real> > strain_it =
     this->strain(type).begin(spatial_dimension,
-			     spatial_dimension);
+                             spatial_dimension);
   Array<Real>::iterator< Matrix<Real> > strain_end =
     this->strain(type).begin(spatial_dimension,
-			     spatial_dimension);
+                             spatial_dimension);
   Array<Real>::iterator< Matrix<Real> > stress_it =
     this->stress(type).begin(spatial_dimension,
-			     spatial_dimension);
+                             spatial_dimension);
 
   UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
 
@@ -618,7 +618,7 @@ Real Material::getPotentialEnergy() {
   for(; it != last_type; ++it) {
 
     epot += model->getFEM().integrate(potential_energy(*it, _not_ghost), *it,
-				      _not_ghost, &element_filter(*it, _not_ghost));
+                                      _not_ghost, element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -677,8 +677,8 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
     quads.resize(nb_tot_quad);
 
     model->getFEM().interpolateOnQuadraturePoints(nodes_coordinates,
-						  quads, spatial_dimension,
-						  *it, ghost_type, &elem_filter);
+                                                  quads, spatial_dimension,
+                                                  *it, ghost_type, elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -708,8 +708,8 @@ void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation
 
 #define AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD(type)			\
       initElementalFieldInterpolation<type>(quadrature_points_coordinates(type, ghost_type), \
-					    interpolation_points_coordinates(type, ghost_type),	\
-					    ghost_type)			\
+                                            interpolation_points_coordinates(type, ghost_type),	\
+                                            ghost_type)			\
 
       AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD);
 #undef AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD
@@ -722,8 +722,8 @@ void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordinates,
-					       const Array<Real> & interpolation_points_coordinates,
-					       const GhostType ghost_type) {
+                                               const Array<Real> & interpolation_points_coordinates,
+                                               const GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   UInt size_inverse_coords =
     getSizeElementalFieldInterpolationCoodinates<type>(ghost_type);
@@ -734,18 +734,18 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
   UInt nb_interpolation_points = interpolation_points_coordinates.getSize();
   AKANTU_DEBUG_ASSERT(nb_interpolation_points % nb_element == 0,
-		      "Can't interpolate elemental field on elements, the coordinates vector has a wrong size");
+                      "Can't interpolate elemental field on elements, the coordinates vector has a wrong size");
   UInt nb_interpolation_points_per_elem = nb_interpolation_points / nb_element;
 
   if(!interpolation_inverse_coordinates.exists(type, ghost_type))
     interpolation_inverse_coordinates.alloc(nb_element,
-					    size_inverse_coords*size_inverse_coords,
-					    type, ghost_type);
+                                            size_inverse_coords*size_inverse_coords,
+                                            type, ghost_type);
 
   if(!interpolation_points_matrices.exists(type, ghost_type))
     interpolation_points_matrices.alloc(nb_element,
-					nb_interpolation_points_per_elem * size_inverse_coords,
-					type, ghost_type);
+                                        nb_interpolation_points_per_elem * size_inverse_coords,
+                                        type, ghost_type);
 
   Array<Real> & interp_inv_coord = interpolation_inverse_coordinates(type, ghost_type);
   Array<Real> & interp_points_mat = interpolation_points_matrices(type, ghost_type);
@@ -754,13 +754,13 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
   Array<Real>::const_iterator< Matrix<Real> > quad_coords_it =
     quad_coordinates.begin_reinterpret(spatial_dimension,
-				       nb_quad_per_element,
-				       nb_element);
+                                       nb_quad_per_element,
+                                       nb_element);
 
   Array<Real>::const_iterator< Matrix<Real> > points_coords_it =
     interpolation_points_coordinates.begin_reinterpret(spatial_dimension,
-						       nb_interpolation_points_per_elem,
-						       nb_element);
+                                                       nb_interpolation_points_per_elem,
+                                                       nb_element);
 
   Array<Real>::iterator< Matrix<Real> > inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
@@ -777,7 +777,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
     /// insert the quad coordinates in a matrix compatible with the interpolation
     buildElementalFieldInterpolationCoodinates<type>(quad_coords,
-						     quad_coord_matrix);
+                                                     quad_coord_matrix);
 
     /// invert the interpolation matrix
     inv_quad_coord_matrix.inverse(quad_coord_matrix);
@@ -791,7 +791,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
     /// insert the quad coordinates in a matrix compatible with the interpolation
     buildElementalFieldInterpolationCoodinates<type>(points_coords,
-						     inv_points_coord_matrix);
+                                                     inv_points_coord_matrix);
 
 
     ++inv_quad_coord_it;
@@ -825,8 +825,8 @@ void Material::interpolateStress(ByElementTypeReal & result) {
 
 #define INTERPOLATE_ELEMENTAL_FIELD(type)				\
       interpolateElementalField<type>(stress(type, ghost_type),		\
-				      res,				\
-				      ghost_type)			\
+                                      res,				\
+                                      ghost_type)
 
   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
 #undef INTERPOLATE_ELEMENTAL_FIELD
@@ -839,8 +839,8 @@ void Material::interpolateStress(ByElementTypeReal & result) {
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void Material::interpolateElementalField(const Array<Real> & field,
-					 Array<Real> & result,
-					 const GhostType ghost_type) {
+                                         Array<Real> & result,
+                                         const GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<UInt> & elem_fil = element_filter(type, ghost_type);
@@ -851,24 +851,24 @@ void Material::interpolateElementalField(const Array<Real> & field,
   Matrix<Real> coefficients(nb_quad_per_element, field.getNbComponent());
 
   const Array<Real> & interp_inv_coord = interpolation_inverse_coordinates(type,
-									   ghost_type);
+                                                                           ghost_type);
   const Array<Real> & interp_points_coord = interpolation_points_matrices(type,
-									  ghost_type);
+                                                                          ghost_type);
 
   UInt nb_interpolation_points_per_elem = interp_points_coord.getNbComponent() / size_inverse_coords;
 
   Array<Real>::const_iterator< Matrix<Real> > field_it
     = field.begin_reinterpret(field.getNbComponent(),
-			      nb_quad_per_element,
-			      nb_element);
+                              nb_quad_per_element,
+                              nb_element);
 
   Array<Real>::const_iterator< Matrix<Real> > interpolation_points_coordinates_it =
     interp_points_coord.begin(nb_interpolation_points_per_elem, size_inverse_coords);
 
   Array<Real>::iterator< Matrix<Real> > result_it
     = result.begin_reinterpret(field.getNbComponent(),
-			       nb_interpolation_points_per_elem,
-			       nb_element);
+                               nb_interpolation_points_per_elem,
+                               nb_element);
 
   Array<Real>::const_iterator< Matrix<Real> > inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
@@ -876,7 +876,7 @@ void Material::interpolateElementalField(const Array<Real> & field,
   /// loop over the elements of the current material and element type
   for (UInt el = 0; el < nb_element;
        ++el, ++field_it, ++result_it,
-	 ++inv_quad_coord_it, ++interpolation_points_coordinates_it) {
+         ++inv_quad_coord_it, ++interpolation_points_coordinates_it) {
     /**
      * matrix containing the inversion of the quadrature points'
      * coordinates
@@ -946,37 +946,37 @@ void Material::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalArray<Real>(ByElementTypeArray<Real> & vect,
-						 UInt nb_component,
-						 bool temporary,
-						 ElementKind element_kind);
+                                                 UInt nb_component,
+                                                 bool temporary,
+                                                 ElementKind element_kind);
 
 template void Material::initInternalArray<UInt>(ByElementTypeArray<UInt> & vect,
-						 UInt nb_component,
-						 bool temporary,
-						 ElementKind element_kind);
+                                                 UInt nb_component,
+                                                 bool temporary,
+                                                 ElementKind element_kind);
 
 template void Material::initInternalArray<Int>(ByElementTypeArray<Int> & vect,
-						UInt nb_component,
-						bool temporary,
-						ElementKind element_kind);
+                                                UInt nb_component,
+                                                bool temporary,
+                                                ElementKind element_kind);
 
 template void Material::initInternalArray<bool>(ByElementTypeArray<bool> & vect,
-						 UInt nb_component,
-						 bool temporary,
-						 ElementKind element_kind);
+                                                 UInt nb_component,
+                                                 bool temporary,
+                                                 ElementKind element_kind);
 
 
 template void Material::resizeInternalArray<Real>(ByElementTypeArray<Real> & vect,
-						   ElementKind element_kind) const;
+                                                   ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<UInt>(ByElementTypeArray<UInt> & vect,
-						   ElementKind element_kind) const;
+                                                   ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<Int>(ByElementTypeArray<Int> & vect,
-						  ElementKind element_kind) const;
+                                                  ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<bool>(ByElementTypeArray<bool> & vect,
-						   ElementKind element_kind) const;
+                                                   ElementKind element_kind) const;
 
 
 __END_AKANTU__

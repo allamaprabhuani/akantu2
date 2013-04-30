@@ -427,12 +427,17 @@ __END_AKANTU__
   Array<Real>::iterator< Matrix<Real> > strain_end =			\
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
 					  spatial_dimension);		\
+                                                                        \
+  this->stress(el_type,                                                 \
+               ghost_type).resize(this->strain(el_type,                 \
+                                               ghost_type).getSize());  \
+                                                                        \
   Array<Real>::iterator< Matrix<Real> > stress_it =			\
     this->stress(el_type, ghost_type).begin(spatial_dimension,		\
 					    spatial_dimension);		\
   									\
   for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
-    Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;	\
+    Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;         \
     Matrix<Real> & __attribute__((unused)) sigma  = *stress_it
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END			\
@@ -447,6 +452,8 @@ __END_AKANTU__
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
 					  spatial_dimension);		\
   									\
+  tangent_mat.resize(this->strain(el_type, ghost_type).getSize());      \
+                                                                        \
   UInt tangent_size =							\
     this->getTangentStiffnessVoigtSize(spatial_dimension);		\
   Array<Real>::iterator< Matrix<Real> > tangent_it =			\

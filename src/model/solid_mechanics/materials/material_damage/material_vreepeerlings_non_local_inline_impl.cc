@@ -89,7 +89,7 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeSt
 
   this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
 						   spatial_dimension,
-						   el_type, ghost_type, &elem_filter);
+						   el_type, ghost_type, elem_filter);
 
   Array<Real>::iterator< Matrix<Real> > strain_rate_vrplgs_it =
     strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);

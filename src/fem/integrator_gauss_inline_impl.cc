@@ -31,6 +31,9 @@
 __END_AKANTU__
 
 #include "fem.hh"
+#if defined(AKANTU_DEBUG_TOOLS)
+#  include "aka_debug_tools.hh"
+#endif
 
 __BEGIN_AKANTU__
 
@@ -56,14 +59,14 @@ inline void IntegratorGauss<kind>::integrateOnElement(const Array<Real> & f,
 						UInt nb_degree_of_freedom,
 						const UInt elem,
 						const GhostType & ghost_type) const {
-  Array<Real> * jac_loc = jacobians(type, ghost_type);
+  Array<Real> & jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom ,
 		      "The vector f do not have the good number of component.");
 
   Real * f_val    = f.values + elem * f.getNbComponent();
-  Real * jac_val  = jac_loc->values + elem * nb_quadrature_points;
+  Real * jac_val  = jac_loc.storage() + elem * nb_quadrature_points;
 
   integrate(f_val, jac_val, intf, nb_degree_of_freedom, nb_quadrature_points);
 }
@@ -164,7 +167,7 @@ void IntegratorGauss<kind>::checkJacobians(const GhostType & ghost_type) const {
 
   UInt nb_element;
 
-  nb_element = mesh->getConnectivity(type,ghost_type).getSize();
+  nb_element = mesh.getConnectivity(type,ghost_type).getSize();
 
   Real * jacobians_val = jacobians(type, ghost_type).storage();
 
@@ -187,24 +190,30 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
 								  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension    = mesh->getSpatialDimension();
+  UInt spatial_dimension    = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
-  UInt nb_element = mesh->getNbElement(type,ghost_type);
+  UInt nb_element = mesh.getNbElement(type,ghost_type);
 
-  Array<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
-						 1,
-						 type,
-						 ghost_type);
+  Array<Real> * jacobians_tmp;
+  if(!jacobians.exists(type, ghost_type))
+    jacobians_tmp = &jacobians.alloc(nb_element*nb_quadrature_points,
+                                     1,
+                                     type,
+                                     ghost_type);
+  else {
+    jacobians_tmp = &jacobians(type, ghost_type);
+    jacobians_tmp->resize(nb_element*nb_quadrature_points);
+  }
 
   Array<Real>::iterator< Vector<Real> > jacobians_it =
-    jacobians_tmp.begin_reinterpret(nb_quadrature_points, nb_element);
+    jacobians_tmp->begin_reinterpret(nb_quadrature_points, nb_element);
 
   Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, nodes, x_el, type, ghost_type);
+  FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
 		    nb_nodes_per_element);
@@ -217,6 +226,24 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
     J *= weights;
   }
 
+  // >>>>>> DEBUG CODE >>>>>> //
+#if defined(AKANTU_DEBUG_TOOLS)
+#if defined(AKANTU_CORE_CXX11)
+  debug::element_manager.print(debug::_dm_integrator,
+                               [ghost_type, this,
+                                nb_element, nb_quadrature_points](const Element & el)->std::string {
+                                 std::stringstream out;
+                                 if(el.ghost_type == ghost_type) {
+                                   Array<Real>::iterator< Vector<Real> > jacobians_it =
+                                     jacobians(el.type, el.ghost_type).begin(nb_quadrature_points);
+                                   out << " jacobian: " << jacobians_it[el.element];
+                                 }
+                                 return out.str();
+                               });
+#endif
+#endif
+  // <<<<<< DEBUG CODE <<<<<< //
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -227,24 +254,31 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
 									  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension    = mesh->getSpatialDimension();
+  UInt spatial_dimension    = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = GaussIntegrationElement<type>::getNbQuadraturePoints();
 
-  UInt nb_element = mesh->getNbElement(type,ghost_type);
+  UInt nb_element = mesh.getNbElement(type,ghost_type);
 
-  Array<Real> & jacobians_tmp = jacobians.alloc(nb_element*nb_quadrature_points,
-						 1,
-						 type,
-						 ghost_type);
+
+  Array<Real> * jacobians_tmp;
+  if(!jacobians.exists(type, ghost_type))
+    jacobians_tmp = &jacobians.alloc(nb_element*nb_quadrature_points,
+                                     1,
+                                     type,
+                                     ghost_type);
+  else {
+    jacobians_tmp = &jacobians(type, ghost_type);
+    jacobians_tmp->resize(nb_element*nb_quadrature_points);
+  }
 
   Array<Real>::iterator< Vector<Real> > jacobians_it =
-    jacobians_tmp.begin_reinterpret(nb_quadrature_points, nb_element);
+    jacobians_tmp->begin_reinterpret(nb_quadrature_points, nb_element);
 
   Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(*mesh, nodes, x_el, type, ghost_type);
+  FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
 									nb_nodes_per_element);
@@ -274,7 +308,7 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 				      Array<Real> &intf,
 				      UInt nb_degree_of_freedom,
 				      const GhostType & ghost_type,
-				      const Array<UInt> * filter_elements) const {
+				      const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -291,13 +325,13 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 
   UInt nb_element;
   Array<Real> * filtered_J = NULL;
-  if(filter_elements) {
-    nb_element = filter_elements->getSize();
+  if(filter_elements != empty_filter) {
+    nb_element = filter_elements.getSize();
     filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
-    FEM::filterQuadraturePointsData(*mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
+    FEM::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
     J_it = filtered_J->begin_reinterpret(nb_points, 1, nb_element);
   } else {
-    nb_element = mesh->getNbElement(type,ghost_type);
+    nb_element = mesh.getNbElement(type,ghost_type);
     J_it = jac_loc.begin_reinterpret(nb_points, 1, nb_element);
   }
 
@@ -314,7 +348,7 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
     inte_f.mul<false, false>(f, J);
   }
 
-  if(filter_elements) delete filtered_J;
+  if(filter_elements != empty_filter) delete filtered_J;
 
   AKANTU_DEBUG_OUT();
 }
@@ -325,7 +359,7 @@ template <ElementKind kind>
 template <ElementType type>
 Real IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 				const GhostType & ghost_type,
-				const Array<UInt> * filter_elements) const {
+				const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -352,7 +386,7 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f
 						  Array<Real> &intf,
 						  UInt nb_degree_of_freedom,
 						  const GhostType & ghost_type,
-						  const Array<UInt> * filter_elements) const {
+						  const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -369,13 +403,13 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f
   Array<Real>::const_iterator< Vector<Real> > f_it;
 
   Array<Real> * filtered_J = NULL;
-  if(filter_elements) {
-    nb_element = filter_elements->getSize();
+  if(filter_elements != empty_filter) {
+    nb_element = filter_elements.getSize();
     filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
-    FEM::filterQuadraturePointsData(*mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
+    FEM::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
     J_it = filtered_J->begin();
   } else {
-    nb_element = mesh->getNbElement(type,ghost_type);
+    nb_element = mesh.getNbElement(type,ghost_type);
     J_it = jac_loc.begin();
   }
 
@@ -393,7 +427,7 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f
     inte_f *= J;
   }
 
-  if(filter_elements) delete filtered_J;
+  if(filter_elements != empty_filter) delete filtered_J;
 
   AKANTU_DEBUG_OUT();
 }

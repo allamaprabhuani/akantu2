@@ -63,7 +63,9 @@ public:
 			element_kind);
   }
 
-  virtual void addDumpField(const std::string & field_id) = 0;
+  virtual void addDumpField(const std::string & field_id) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   virtual void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
 				    __attribute__((unused)) DumperIOHelper::Field * field) {

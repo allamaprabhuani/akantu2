@@ -145,10 +145,8 @@ Mesh::Mesh(UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::init() {
-  //  this->types_offsets.resize(_max_element_type);
-
   nodes_type = NULL;
-  computeBoundingBox();
+  //  computeBoundingBox();
 }
 
 /* -------------------------------------------------------------------------- */

@@ -63,9 +63,9 @@ __BEGIN_AKANTU__
  * @param id an id to identify the model
  */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
-					 UInt dim,
-					 const ID & id,
-					 const MemoryID & memory_id) :
+                                         UInt dim,
+                                         const ID & id,
+                                         const MemoryID & memory_id) :
   Model(mesh, id, memory_id), Dumpable<DumperParaview>(id),
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
@@ -97,7 +97,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
   this->increment_acceleration = NULL;
 
   this->dof_synchronizer = NULL;
-  
+
   this->displacement_t = NULL;
 
   materials.clear();
@@ -153,7 +153,7 @@ SolidMechanicsModel::~SolidMechanicsModel() {
  * the different possibilites
  */
 void SolidMechanicsModel::initFull(std::string material_file,
-				   AnalysisMethod analysis_method) {
+                                   AnalysisMethod analysis_method) {
   method = analysis_method;
 
   // initialize the model
@@ -202,7 +202,7 @@ void SolidMechanicsModel::initFull(std::string material_file,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initParallel(MeshPartition * partition,
-				       DataAccessor * data_accessor) {
+                                       DataAccessor * data_accessor) {
   AKANTU_DEBUG_IN();
 
   if (data_accessor == NULL) data_accessor = this;
@@ -255,7 +255,7 @@ void SolidMechanicsModel::initArraysFiniteDeformation() {
     std::stringstream sstr_disp_t;
     sstr_disp_t << id << ":displacement_t";
     displacement_t = &(alloc<Real > (sstr_disp_t.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
-    
+
     AKANTU_DEBUG_OUT();
 }
 
@@ -400,9 +400,6 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   // f = f_ext
   if (need_initialize) initializeUpdateResidualData();
 
-  // communicate the displacement
-  // synch_registry->asynchronousSynchronize(_gst_smm_for_strain);
-
   updateStresses();
   std::vector<Material *>::iterator mat_it;
 
@@ -410,7 +407,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /* ------------------------------------------------------------------------ */
   /* Computation of the non local part */
   synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
-  
+
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.computeAllNonLocalStresses(_not_ghost);
@@ -426,9 +423,9 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 
   /* ------------------------------------------------------------------------ */
   /* assembling the forces internal */
-  // communicate the strain
+  // communicate the stress
   synch_registry->asynchronousSynchronize(_gst_smm_stress);
-  
+
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.assembleResidual(_not_ghost);
@@ -436,7 +433,6 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 
   // finalize communications
   synch_registry->waitEndSynchronize(_gst_smm_stress);
-  //  synch_registry->waitEndSynchronize(_gst_smm_for_strain);
 
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
@@ -536,13 +532,13 @@ void SolidMechanicsModel::updateResidualInternal() {
       bool * boundary_val = boundary->values;
 
       for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
-	if(!(*boundary_val)) {
-	  *res_val -= *accel_val * *mass_val /f_m2a;
-	}
-	boundary_val++;
-	res_val++;
-	mass_val++;
-	accel_val++;
+        if(!(*boundary_val)) {
+          *res_val -= *accel_val * *mass_val /f_m2a;
+        }
+        boundary_val++;
+        res_val++;
+        mass_val++;
+        accel_val++;
       }
     }
 
@@ -568,10 +564,10 @@ void SolidMechanicsModel::updateAcceleration() {
     /* residual = residual_{n+1} - M * acceleration_n therefore
        solution = increment acceleration not acceleration */
     solveLumped(*increment_acceleration,
-		*mass,
-		*residual,
-		*boundary,
-		f_m2a);
+                *mass,
+                *residual,
+                *boundary,
+                f_m2a);
   } else {
     solveDynamic<NewmarkBeta::_acceleration_corrector>(*increment_acceleration);
   }
@@ -581,10 +577,10 @@ void SolidMechanicsModel::updateAcceleration() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::solveLumped(Array<Real> & x,
-				      const Array<Real> & A,
-				      const Array<Real> & b,
-				      const Array<bool> & boundary,
-				      Real alpha) {
+                                      const Array<Real> & A,
+                                      const Array<Real> & b,
+                                      const Array<bool> & boundary,
+                                      Real alpha) {
   Real * A_val = A.storage();
   Real * b_val = b.storage();
   Real * x_val = x.storage();
@@ -609,19 +605,19 @@ void SolidMechanicsModel::explicitPred() {
 
   if(increment_flag) {
     memcpy(increment->values,
-	   displacement->values,
-	   displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
+           displacement->values,
+           displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
   }
 
   AKANTU_DEBUG_ASSERT(integrator,"itegrator should have been allocated: "
-		      << "have called initExplicit ? "
-		      << "or initImplicit ?");
+                      << "have called initExplicit ? "
+                      << "or initImplicit ?");
 
   integrator->integrationSchemePred(time_step,
-				    *displacement,
-				    *velocity,
-				    *acceleration,
-				    *boundary);
+                                    *displacement,
+                                    *velocity,
+                                    *acceleration,
+                                    *boundary);
 
   if(increment_flag) {
     Real * inc_val = increment->values;
@@ -643,11 +639,11 @@ void SolidMechanicsModel::explicitCorr() {
   AKANTU_DEBUG_IN();
 
   integrator->integrationSchemeCorrAccel(time_step,
-					 *displacement,
-					 *velocity,
-					 *acceleration,
-					 *boundary,
-					 *increment_acceleration);
+                                         *displacement,
+                                         *velocity,
+                                         *acceleration,
+                                         *boundary,
+                                         *increment_acceleration);
 
   AKANTU_DEBUG_OUT();
 }
@@ -669,7 +665,7 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
 
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
-					 spatial_dimension, sstr.str(), memory_id);
+                                         spatial_dimension, sstr.str(), memory_id);
 
   jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
@@ -765,9 +761,9 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the mass matrix");
+                      "You should first initialize the implicit solver and assemble the mass matrix");
 
   if(!increment) setIncrementFlagOn();
 
@@ -791,8 +787,8 @@ void SolidMechanicsModel::solveStatic() {
         n_angles=1;
     else if(nb_degree_of_freedom==3)
         n_angles=3;
-    
-        
+
+
     Array<Real > * Euler_angles = new Array<Real > (nb_nodes, n_angles, "Euler_angles");
     Euler_angles->clear();
     solveStatic(*normal_boundary, *Euler_angles);
@@ -813,9 +809,9 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
 
     //  if(method != _static)
     jacobian_matrix->copyContent(*stiffness_matrix);
-    
+
     Array<Real> * residual_rotated = new Array<Real > (nb_nodes, nb_degree_of_freedom, "residual_rotated");
-    
+
     //stiffness_matrix->saveMatrix("stiffness_original.out");
     jacobian_matrix->applyBoundaryNormal(boundary_normal, EulerAngles, *residual, (*stiffness_matrix).getA(), *residual_rotated);
     //jacobian_matrix->saveMatrix("stiffness_rotated_dir.out");
@@ -823,7 +819,7 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
     jacobian_matrix->applyBoundary(*boundary);
 
     solver->setRHS(*residual_rotated);
-    
+
     delete residual_rotated;
 
     if (!increment) setIncrementFlagOn();
@@ -833,11 +829,11 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
     Matrix<Real> T(nb_degree_of_freedom, nb_degree_of_freedom);
     Matrix<Real> small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
     Matrix<Real> T_small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
-    
+
     Real * increment_val = increment->values;
     Real * displacement_val = displacement->values;
     bool * boundary_val = boundary->values;
-        
+
     for (UInt n = 0; n < nb_nodes; ++n) {
         bool constrain_ij = false;
         for (UInt j = 0; j < nb_degree_of_freedom; j++) {
@@ -873,17 +869,17 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
             for (UInt j = 0; j < nb_degree_of_freedom; j++)
                 if(!(boundary_normal(n,j)) )
                     small_rhs(j,j)=increment_val[j];
-            
+
             T_small_rhs.mul<true, false>(T,small_rhs);
-            
+
             for (UInt j = 0; j < nb_degree_of_freedom; j++){
                 if(!(boundary_normal(n,j))){
                     for (UInt k = 0; k < nb_degree_of_freedom; k++)
                       displacement_val[k]+=T_small_rhs(k,j);
                 }
             }
-            
-            
+
+
             displacement_val += nb_degree_of_freedom;
             boundary_val += nb_degree_of_freedom;
             increment_val += nb_degree_of_freedom;
@@ -928,8 +924,8 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
       if(!(*boundary_val) && is_local_node) {
-	norm[0] += *increment_val * *increment_val;
-	norm[1] += *displacement_val * *displacement_val;
+        norm[0] += *increment_val * *increment_val;
+        norm[1] += *displacement_val * *displacement_val;
       }
       boundary_val++;
       increment_val++;
@@ -973,11 +969,11 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & norm) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     if(is_local_node) {
       for (UInt d = 0; d < spatial_dimension; ++d) {
-	if(!(*boundary_val)) {
-	  norm += *residual_val * *residual_val;
-	}
-	boundary_val++;
-	residual_val++;
+        if(!(*boundary_val)) {
+          norm += *residual_val * *residual_val;
+        }
+        boundary_val++;
+        residual_val++;
       }
     } else {
       boundary_val += spatial_dimension;
@@ -1000,10 +996,10 @@ void SolidMechanicsModel::implicitPred() {
   AKANTU_DEBUG_IN();
 
   integrator->integrationSchemePred(time_step,
-				    *displacement,
-				    *velocity,
-				    *acceleration,
-				    *boundary);
+                                    *displacement,
+                                    *velocity,
+                                    *acceleration,
+                                    *boundary);
 
   AKANTU_DEBUG_OUT();
 }
@@ -1013,11 +1009,11 @@ void SolidMechanicsModel::implicitCorr() {
   AKANTU_DEBUG_IN();
 
   integrator->integrationSchemeCorrDispl(time_step,
-					 *displacement,
-					 *velocity,
-					 *acceleration,
-					 *boundary,
-					 *increment);
+                                         *displacement,
+                                         *velocity,
+                                         *acceleration,
+                                         *boundary,
+                                         *increment);
 
   AKANTU_DEBUG_OUT();
 }
@@ -1031,7 +1027,7 @@ void SolidMechanicsModel::implicitCorr() {
 void SolidMechanicsModel::synchronizeBoundaries() {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
-		      << " Did you call initParallel?");
+                      << " Did you call initParallel?");
   synch_registry->synchronize(_gst_smm_boundary);
   AKANTU_DEBUG_OUT();
 }
@@ -1040,7 +1036,7 @@ void SolidMechanicsModel::synchronizeBoundaries() {
 void SolidMechanicsModel::synchronizeResidual() {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
-		      << " Did you call initPBC?");
+                      << " Did you call initPBC?");
   synch_registry->synchronize(_gst_smm_res);
   AKANTU_DEBUG_OUT();
 }
@@ -1100,7 +1096,7 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
 
     Array<Real> X(0, nb_nodes_per_element*spatial_dimension);
     FEM::extractNodalToElementField(mesh, *current_position,
-				    X, *it, _not_ghost);
+                                    X, *it, _not_ghost);
 
     Array<Real>::iterator< Matrix<Real> > X_el =
       X.begin(spatial_dimension, nb_nodes_per_element);
@@ -1154,7 +1150,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     bool count_node = is_local_node && is_not_pbc_slave_node;
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if (count_node)
-	mv2 += *vel_val * *vel_val * *mass_val;
+        mv2 += *vel_val * *vel_val * *mass_val;
 
       vel_val++;
       mass_val++;
@@ -1180,7 +1176,7 @@ Real SolidMechanicsModel::getKineticEnergy(const ElementType & type, UInt index)
   getFEM().interpolateOnQuadraturePoints(*velocity, vel_on_quad,
                                          spatial_dimension,
                                          type, _not_ghost,
-                                         &filter_element);
+                                         filter_element);
 
   Array<Real>::iterator< Vector<Real> > vit   = vel_on_quad.begin(spatial_dimension);
   Array<Real>::iterator< Vector<Real> > vend  = vel_on_quad.end(spatial_dimension);
@@ -1219,10 +1215,10 @@ Real SolidMechanicsModel::getExternalWork() {
 
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if (count_node) {
-	if(*boun)
-	  work -= *resi * *velo * time_step;
-	else
-	  work += *forc * *velo * time_step;
+        if(*boun)
+          work -= *resi * *velo * time_step;
+        else
+          work += *forc * *velo * time_step;
       }
 
       ++velo;
@@ -1262,8 +1258,8 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 }
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
-				    const ElementType & type,
-				    UInt index){
+                                    const ElementType & type,
+                                    UInt index){
   AKANTU_DEBUG_IN();
 
   if (energy_id == "kinetic") {
@@ -1281,7 +1277,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
-				       __attribute__((unused)) const NewNodesEvent & event) {
+                                       __attribute__((unused)) const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -1320,7 +1316,7 @@ void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
-					  const NewElementsEvent & event) {
+                                          const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
   getFEM().initShapeFunctions(_not_ghost);
@@ -1365,8 +1361,8 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Array<Element> & element_list,
-					    const ByElementTypeUInt & new_numbering,
-					    const RemovedElementsEvent & event) {
+                                            const ByElementTypeUInt & new_numbering,
+                                            const RemovedElementsEvent & event) {
   //  MeshUtils::purifyMesh(mesh);
 
   getFEM().initShapeFunctions(_not_ghost);
@@ -1380,8 +1376,8 @@ void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Array<
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onNodesRemoved(__attribute__((unused)) const Array<UInt> & element_list,
-					 const Array<UInt> & new_numbering,
-					 __attribute__((unused)) const RemovedNodesEvent & event) {
+                                         const Array<UInt> & new_numbering,
+                                         __attribute__((unused)) const RemovedNodesEvent & event) {
   if(displacement) mesh.removeNodesFromArray(*displacement, new_numbering);
   if(mass        ) mesh.removeNodesFromArray(*mass        , new_numbering);
   if(velocity    ) mesh.removeNodesFromArray(*velocity    , new_numbering);
@@ -1405,7 +1401,7 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
 #define ADD_FIELD(field, type)						\
   addDumpFieldToDumper(BOOST_PP_STRINGIZE(field),			\
-		       new DumperIOHelper::NodalField<type>(*field))
+                       new DumperIOHelper::NodalField<type>(*field))
 
   if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
   else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
@@ -1417,25 +1413,25 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
   else if(field_id == "increment"    ) { ADD_FIELD(increment    , Real); }
   else if(field_id == "partitions"  ) {
     addDumpFieldToDumper(field_id,
-			 new DumperIOHelper::ElementPartitionField(mesh,
-								   spatial_dimension,
-								   _not_ghost,
-								   _ek_regular));
+                         new DumperIOHelper::ElementPartitionField(mesh,
+                                                                   spatial_dimension,
+                                                                   _not_ghost,
+                                                                   _ek_regular));
   }
   else if(field_id == "element_index_by_material") {
     addDumpFieldToDumper(field_id,
-			 new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
-								  spatial_dimension,
-								  _not_ghost,
-								  _ek_regular));
+                         new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
+                                                                  spatial_dimension,
+                                                                  _not_ghost,
+                                                                  _ek_regular));
   } else {
     addDumpFieldToDumper(field_id,
-			 new DumperIOHelper::HomogenizedField<Real,
-							      DumperIOHelper::InternalMaterialField>(*this,
-												     field_id,
-												     spatial_dimension,
-												     _not_ghost,
-												     _ek_regular));
+                         new DumperIOHelper::HomogenizedField<Real,
+                                                              DumperIOHelper::InternalMaterialField>(*this,
+                                                                                                     field_id,
+                                                                                                     spatial_dimension,
+                                                                                                     _not_ghost,
+                                                                                                     _ek_regular));
   }
 #undef ADD_FIELD
 #endif
@@ -1458,13 +1454,13 @@ void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField> Field;
+                                             DumperIOHelper::InternalMaterialField> Field;
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3);
     addDumpFieldToDumper(field_id, field);
   }
@@ -1477,45 +1473,45 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
   if(field_id == "stress") {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::material_stress_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Matrix> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::material_stress_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Matrix> Field;
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3, 3);
     addDumpFieldToDumper(field_id, field);
   } else if(field_id == "strain") {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::material_strain_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Matrix> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::material_strain_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Matrix> Field;
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3, 3);
     addDumpFieldToDumper(field_id, field);
   } else {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::internal_material_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Matrix> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::internal_material_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Matrix> Field;
 
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3, 3);
     addDumpFieldToDumper(field_id, field);
   }

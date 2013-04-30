@@ -156,7 +156,6 @@ set(AKANTU_CORE_FILES
   common/aka_static_memory_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc
   fem/integrator_gauss_inline_impl.cc
-  fem/fem_template_inline_impl.cc
   fem/element_classes/element_class_triangle_3_inline_impl.cc
   fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_quadrangle_4_inline_impl.cc
@@ -221,3 +220,9 @@ set(AKANTU_CORE_TESTS
   test_surface_extraction_tetrahedron_4
   test_material_damage_non_local
   )
+
+find_program(READLINK_COMMAND readlink)
+find_program(ADDR2LINE_COMMAND addr2line)
+mark_as_advanced(READLINK_COMMAND)
+mark_as_advanced(ADDR2LINE_COMMAND)
+

@@ -101,11 +101,11 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
   Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
   Array<Real> & velocity = this->model->getVelocity();
-  Array<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type); 
+  Array<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
 
   this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
 						   spatial_dimension,
-						   el_type, ghost_type, &elem_filter);
+						   el_type, ghost_type, elem_filter);
 
   Array<Real>::iterator< Matrix<Real> > strain_rate_vrplgs_it =
         strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);

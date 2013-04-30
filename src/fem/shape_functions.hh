@@ -49,7 +49,7 @@ public:
   ShapeFunctions(const Mesh & mesh,
 		 const ID & id = "shape",
 		 const MemoryID & memory_id = 0) :
-    Memory(memory_id), mesh(&mesh),
+    Memory(memory_id), mesh(mesh),
     control_points("control_points", id) {
   };
   virtual ~ShapeFunctions(){};
@@ -80,7 +80,7 @@ protected:
 						Array<Real> &uq,
 						GhostType ghost_type,
 						const Array<Real> & shapes,
-						const Array<UInt> * filter_elements) const;
+						const Array<UInt> & filter_elements) const;
 
   /// gradient of nodal values stored by element on the control points
   template <ElementType type>
@@ -88,7 +88,7 @@ protected:
 					     Array<Real> &out_nablauq,
 					     GhostType ghost_type,
 					     const Array<Real> & shapes_derivatives,
-					     const Array<UInt> * filter_elements) const;
+					     const Array<UInt> & filter_elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -109,7 +109,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  const Mesh * mesh;
+  const Mesh & mesh;
 
   ID id;
 

@@ -160,13 +160,13 @@ void MaterialFiniteDeformation::computeAllStresses(GhostType ghost_type) {
         /// compute @f$\nabla u@f$
         model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
                 spatial_dimension,
-                *it, ghost_type, &elem_filter);
+                *it, ghost_type, elem_filter);
 
 
         /// compute @f$\nabla u@f$
         model->getFEM().gradientOnQuadraturePoints(model->getIncrement(), delta_strain_vect,
                 spatial_dimension,
-                *it, ghost_type, &elem_filter);
+                *it, ghost_type, elem_filter);
 
         /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
         computeStress(*it, ghost_type);
@@ -194,7 +194,7 @@ void MaterialFiniteDeformation::assembleResidual(GhostType ghost_type) {
 
 
         model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
-                spatial_dimension, *it, ghost_type, &elem_filter);
+                spatial_dimension, *it, ghost_type, elem_filter);
 
 
         UInt nb_element = elem_filter.getSize();
@@ -322,14 +322,14 @@ void MaterialFiniteDeformation::assembleResidual(GhostType ghost_type) {
         model->getFEM().integrate(*bt_s, *r_e,
                 bt_s_size,
                 *it, ghost_type,
-                &elem_filter);
+                elem_filter);
 
         delete bt_s;
 
         model->getFEM().assembleArray(*r_e, residual,
                 model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
                 residual.getNbComponent(),
-                *it, ghost_type, &elem_filter, -1);
+                *it, ghost_type, elem_filter, -1);
 
         delete r_e;
         
@@ -393,7 +393,7 @@ void MaterialFiniteDeformation::assembleStiffnessMatrixNL(const ElementType & ty
     //strain_vect.resize(nb_quadrature_points * nb_element);
 
     // model->getFEM().gradientOnQuadraturePoints(model->getIncrement(), strain_vect,
-    //        dim, type, ghost_type, &elem_filter);
+    //        dim, type, ghost_type, elem_filter);
 
     UInt cauchy_matrix_size = getCauchyStressMatrixSize(dim);
 
@@ -462,11 +462,11 @@ void MaterialFiniteDeformation::assembleStiffnessMatrixNL(const ElementType & ty
     model->getFEM().integrate(*bt_d_b, *K_e,
             bt_d_b_size * bt_d_b_size,
             type, ghost_type,
-            &elem_filter);
+            elem_filter);
 
     delete bt_d_b;
 
-    model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
+    model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, elem_filter);
     delete K_e;
 
     AKANTU_DEBUG_OUT();
@@ -491,7 +491,7 @@ void MaterialFiniteDeformation::assembleStiffnessMatrixL2(const ElementType & ty
     strain_vect.resize(nb_quadrature_points * nb_element);
 
     model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
-            dim, type, ghost_type, &elem_filter);
+            dim, type, ghost_type, elem_filter);
 
     UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 
@@ -566,11 +566,11 @@ void MaterialFiniteDeformation::assembleStiffnessMatrixL2(const ElementType & ty
     model->getFEM().integrate(*bt_d_b, *K_e,
             bt_d_b_size * bt_d_b_size,
             type, ghost_type,
-            &elem_filter);
+            elem_filter);
 
     delete bt_d_b;
 
-    model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, &elem_filter);
+    model->getFEM().assembleMatrix(*K_e, K, spatial_dimension, type, ghost_type, elem_filter);
     delete K_e;
 
     AKANTU_DEBUG_OUT();

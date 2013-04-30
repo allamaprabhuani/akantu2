@@ -81,7 +81,7 @@ InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(const Matr
 								      Real & jac) {
   jac = Math::norm2(dxds.storage());
 }
- 
+
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real

@@ -129,20 +129,24 @@ public:
   virtual void initShapeFunctions(const GhostType & ghost_type = _not_ghost) = 0;
 
   /// extract the nodal values and store them per element
+  template<typename T>
   static void extractNodalToElementField(const Mesh & mesh,
-					 const Array<Real> & nodal_f,
-					 Array<Real> & elemental_f,
+					 const Array<T> & nodal_f,
+					 Array<T> & elemental_f,
 					 const ElementType & type,
 					 const GhostType & ghost_type = _not_ghost,
-					 const Array<UInt> * filter_elements = NULL);
+					 const Array<UInt> & filter_elements = empty_filter);
 
   /// filter a field
-  static void filterQuadraturePointsData(const Mesh & mesh,
-					 const Array<Real> & quad_f,
-					 Array<Real> & filtered_f,
-					 const ElementType & type,
-					 const GhostType & ghost_type = _not_ghost,
-					 const Array<UInt> * filter_elements = NULL);
+  template<typename T>
+  static void filterElementalData(const Mesh & mesh,
+                                  const Array<T> & quad_f,
+                                  Array<T> & filtered_f,
+                                  const ElementType & type,
+                                  const GhostType & ghost_type = _not_ghost,
+                                  const Array<UInt> & filter_elements = empty_filter);
+
+
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
@@ -153,13 +157,13 @@ public:
 		 UInt nb_degree_of_freedom,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
-   		 const Array<UInt> * filter_elements = NULL) const = 0;
+   		 const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// integrate a scalar value on all elements of type "type"
   virtual Real integrate(const Array<Real> & f,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
-   		 const Array<UInt> * filter_elements = NULL) const = 0;
+   		 const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// integrate f for all quadrature points of type "type"
   virtual void integrateOnQuadraturePoints(const Array<Real> & f,
@@ -167,7 +171,7 @@ public:
 					   UInt nb_degree_of_freedom,
 					   const ElementType & type,
 					   const GhostType & ghost_type = _not_ghost,
-					   const Array<UInt> * filter_elements = NULL) const = 0;
+					   const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
   virtual Real integrate(const Vector<Real> & f,
@@ -203,7 +207,7 @@ public:
 				  const UInt nb_degree_of_freedom,
 				  const ElementType & type,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL) const = 0;
+                                  const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   virtual
   void interpolateOnQuadraturePoints(const Array<Real> &u,
@@ -211,7 +215,7 @@ public:
 				     UInt nb_degree_of_freedom,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
-				     const Array<UInt> * filter_elements = NULL) const =0;
+                                     const Array<UInt> & filter_elements = empty_filter) const =0;
 
 
 
@@ -246,7 +250,7 @@ public:
 		      UInt nb_degree_of_freedom,
 		      const ElementType & type,
 		      const GhostType & ghost_type = _not_ghost,
-		      const Array<UInt> * filter_elements = NULL,
+		      const Array<UInt> & filter_elements = empty_filter,
 		      Real scale_factor = 1) const;
 
   /// assemble matrix in the complete sparse matrix
@@ -255,7 +259,7 @@ public:
 		      UInt nb_degree_of_freedom,
 		      const ElementType & type,
 		      const GhostType & ghost_type = _not_ghost,
-		      const Array<UInt> * filter_elements = NULL) const;
+		      const Array<UInt> & filter_elements = empty_filter) const;
 
 
   /// assemble a field as a lumped matrix (ex. rho in lumped mass)
@@ -322,7 +326,7 @@ protected:
   UInt element_dimension;
 
   /// the mesh on which all computation are made
-  Mesh * mesh;
+  Mesh & mesh;
 
   /// normals at quadrature points
   ByElementTypeReal normals_on_quad_points;

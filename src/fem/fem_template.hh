@@ -75,13 +75,13 @@ public:
 		 UInt nb_degree_of_freedom,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
-   		 const Array<UInt> * filter_elements = NULL) const;
+   		 const Array<UInt> & filter_elements = empty_filter) const;
 
   /// integrate a scalar value on all elements of type "type"
   Real integrate(const Array<Real> & f,
    		 const ElementType & type,
    		 const GhostType & ghost_type = _not_ghost,
-   		 const Array<UInt> * filter_elements = NULL) const;
+   		 const Array<UInt> & filter_elements = empty_filter) const;
 
   /// integrate one element scalar value on all elements of type "type"
   virtual Real integrate(const Vector<Real> & f,
@@ -95,7 +95,7 @@ public:
 				   UInt nb_degree_of_freedom,
 				   const ElementType & type,
 				   const GhostType & ghost_type = _not_ghost,
-				   const Array<UInt> * filter_elements = NULL) const;
+				   const Array<UInt> & filter_elements = empty_filter) const;
 
 
   /// get the number of quadrature points
@@ -125,7 +125,7 @@ public:
 				  const UInt nb_degree_of_freedom,
 				  const ElementType & type,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> & filter_elements = empty_filter) const;
 
   /// interpolate a nodal field on the quadrature points
   void interpolateOnQuadraturePoints(const Array<Real> &u,
@@ -133,7 +133,7 @@ public:
 				     UInt nb_degree_of_freedom,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
-				     const Array<UInt> * filter_elements = NULL) const;
+				     const Array<UInt> & filter_elements = empty_filter) const;
 
   /// find natural coords from real coords provided an element
   void inverseMap(const Vector<Real> & real_coords,

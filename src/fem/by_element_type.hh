@@ -44,6 +44,8 @@ __BEGIN_AKANTU__
 
 template<class Stored, typename SupportType = ElementType>
 class ByElementType {
+private:
+  void operator=(const ByElementType &) {};
 public:
   ByElementType(const ID & id = "by_element_type",
 		const ID & parent_id = "");
@@ -104,14 +106,13 @@ public:
 				GhostType ghost_type = _not_ghost,
 				ElementKind kind = _ek_not_defined) const;
 
-  inline void setID(const ID & id) { this->id = id; }
-
 protected:
   inline DataMap & getData(GhostType ghost_type);
   inline const DataMap & getData(GhostType ghost_type) const;
 
 public:
   AKANTU_GET_MACRO(ID, id, ID);
+  AKANTU_SET_MACRO(ID, id, ID);
 /* -------------------------------------------------------------------------- */
 protected:
   ID id;
@@ -127,17 +128,20 @@ protected:
 template <typename T, typename SupportType = ElementType>
 class ByElementTypeArray : public ByElementType<Array<T> *, SupportType>, protected Memory {
 protected:
-  typedef typename ByElementType<Array<T> *, SupportType>::DataMap DataMap;
+  typedef ByElementType<Array<T> *, SupportType> parent;
+  typedef typename parent::DataMap DataMap;
+private:
+private:
+  void operator=(const ByElementType<T, SupportType> &) {};
+
 public:
-  typedef typename ByElementType<Array<T> *, SupportType>::type_iterator type_iterator;
+  typedef typename parent::type_iterator type_iterator;
 
   ByElementTypeArray() {};
-  // ByElementTypeArray(const ID & id = "by_element_type_vector",
-  // 		      const MemoryID & memory_id = 0) :
-  //   ByElementType<Array<T> *>(id, memory_id) {};
+
   ByElementTypeArray(const ID & id, const ID & parent_id,
 		      const MemoryID & memory_id = 0) :
-    ByElementType<Array<T> *, SupportType>(id, parent_id), Memory(memory_id) {};
+    parent(id, parent_id), Memory(memory_id) {};
 
   inline Array<T> & alloc(UInt size,
 			   UInt nb_component,
@@ -175,15 +179,6 @@ typedef ByElementTypeArray<UInt, ElementType> ByElementTypeUInt;
 /// Map of data of type UInt stored in a mesh
 typedef std::map<std::string, Array<UInt> *> UIntDataMap;
 typedef ByElementType<UIntDataMap, ElementType> ByElementTypeUIntDataMap;
-
-// /* -------------------------------------------------------------------------- */
-// /* inline functions                                                           */
-// /* -------------------------------------------------------------------------- */
-
-// #if defined (AKANTU_INCLUDE_INLINE_IMPL)
-// #  include "by_element_type_inline_impl.cc"
-// #endif
-
 
 __END_AKANTU__
 

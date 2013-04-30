@@ -245,6 +245,26 @@ public:
     return sqrt(sum_2);
   }
 
+  inline bool equal(Vector v, Real tolerance = Math::getTolerance()) const {
+    for (UInt i = 0; i < n; ++i) {
+      if(std::abs(values[i] - v(i)) > tolerance) return false;
+    }
+    return true;
+  }
+
+
+  inline short compare(Vector v, Real tolerance = Math::getTolerance()) const {
+    for (UInt i(0); i < n; ++i) {
+      if(std::abs(values[i] - v(i)) > tolerance)
+        return values[i] - v(i) > tolerance ? 1 : -1;
+    }
+    return 0;
+  }
+
+  inline bool operator==(Vector v) const { return equal(v); }
+  inline bool operator<(Vector v) const { return compare(v) == -1; }
+  inline bool operator>(Vector v) const { return compare(v) == 1; }
+
   /* ---------------------------------------------------------------------- */
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {

@@ -34,7 +34,8 @@
 __BEGIN_AKANTU__
 
 DumperParaview::DumperParaview(const std::string & filename,
-			       const std::string & directory) : DumperIOHelper() {
+			       const std::string & directory,
+                               bool parallel) : DumperIOHelper() {
   this->filename = filename;
   iohelper::DumperParaview * dumper_para = new iohelper::DumperParaview();
   dumper = dumper_para;
@@ -42,7 +43,10 @@ DumperParaview::DumperParaview(const std::string & filename,
   UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
   UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
   dumper_para->setMode(iohelper::BASE64);
-  dumper_para->setParallelContext(whoami, nproc);
+  if(parallel)
+    dumper_para->setParallelContext(whoami, nproc);
+  else
+    dumper_para->setParallelContext(0, 1);
 
   dumper_para->setVTUSubDirectory(filename + "-VTU");
   dumper_para->setPrefix(directory);

@@ -1,11 +1,9 @@
 #===============================================================================
-# @file   parallel.cmake
+# @file   debug_tools.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Tue Oct 16 14:05:02 2012
-#
-# @brief  meta package description for parallelization
+# @brief  some usefull tools to debug
 #
 # @section LICENSE
 #
@@ -26,13 +24,9 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+option(AKANTU_DEBUG_TOOLS "Compiles akantu with the advanced debug tools activated (/!\ can slow down the code)" OFF)
+mark_as_advanced(AKANTU_DEBUG_TOOLS)
 
-add_meta_package(PARALLEL "Add parallel support in Akantu" OFF MPI SCOTCH)
-
-set(AKANTU_PARALLEL_TESTS
-  test_solid_mechanics_model_bar_traction2d_parallel
-  test_solid_mechanics_model_segment_parallel
-  test_solid_mechanics_model_pbc_parallel
-  test_synchronizer_communication
-  test_dof_synchronizer
+set(AKANTU_DEBUG_TOOLS_FILES
+  common/aka_debug_tools.hh
   )

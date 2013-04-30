@@ -28,6 +28,14 @@
  */
 
 /* -------------------------------------------------------------------------- */
+__END_AKANTU__
+
+#if !defined(AKANTU_NDEBUG)
+#include "aka_debug_tools.hh"
+#include <string>
+#endif
+
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeigthFunction>

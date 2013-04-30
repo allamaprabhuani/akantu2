@@ -39,6 +39,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <map>
 #include <sys/wait.h>
 /* -------------------------------------------------------------------------- */
 
@@ -74,18 +75,49 @@ namespace debug {
   }
 
   /* ------------------------------------------------------------------------ */
+  std::string exec(std::string cmd) {
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe) return "";
+    char buffer[1024];
+    std::string result = "";
+    while(!feof(pipe)) {
+    	if(fgets(buffer, 128, pipe) != NULL)
+    		result += buffer;
+    }
+    result = result.substr(0, result.size()-1);
+    pclose(pipe);
+    return result;
+  }
+
+  /* ------------------------------------------------------------------------ */
   void printBacktrace(__attribute__((unused)) int sig) {
     AKANTU_DEBUG_INFO("Caught  signal " << sig << "!");
 
-    // std::stringstream pidsstr;
-    // pidsstr << getpid();
-    // char name_buf[512];
-    // name_buf[readlink("/proc/self/exe", name_buf, 511)]=0;
-    // std::string execname(name_buf);
-    // std::cout << "stack trace for " << execname << " pid=" << pidsstr.str() << std::endl;
-    // std::string cmd;
-    // cmd = "CMDFILE=$(mktemp); echo 'bt' > ${CMDFILE}; gdb --batch " + execname + " " + pidsstr.str() + " < ${CMDFILE};";
-    // int retval __attribute__((unused)) = system(("bash -c '" + cmd + "'").c_str());
+#if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
+    std::ifstream inmaps;
+    inmaps.open("/proc/self/maps");
+    std::map<std::string, size_t> addr_map;
+    std::string line;
+    while(inmaps.good()) {
+      std::getline(inmaps, line);
+      std::stringstream sstr(line);
+
+      size_t first = line.find('-');
+      std::stringstream sstra(line.substr(0,first));
+      size_t addr; sstra >> std::hex >> addr;
+
+      std::string lib;
+      sstr >> lib;
+      sstr >> lib;
+      sstr >> lib;
+      sstr >> lib;
+      sstr >> lib;
+      sstr >> lib;
+      if(lib != "" && addr_map.find(lib) == addr_map.end()) {
+        addr_map[lib] = addr;
+      }
+    }
+#endif
 
     const size_t max_depth = 100;
     size_t stack_depth;
@@ -102,21 +134,37 @@ namespace debug {
 
     /// -1 to remove the call to the printBacktrace function
     for (i = 1; i < stack_depth; i++) {
-      std::cerr << "  [" << std::setw(w) << i << "] ";
+      std::cerr << std::dec << "  [" << std::setw(w) << i << "] ";
       std::string bt_line(stack_strings[i]);
       size_t first, second;
 
       if((first = bt_line.find('(')) != std::string::npos && (second = bt_line.find('+')) != std::string::npos) {
-    	std::cerr << bt_line.substr(0,first + 1) << demangle(bt_line.substr(first + 1, second - first - 1).c_str()) <<  bt_line.substr(second) << std::endl;
+        std::string location = bt_line.substr(0,first);
+#if defined(READLINK_COMMAND)
+        location = exec(std::string(BOOST_PP_STRINGIZE(READLINK_COMMAND)) + std::string(" -f ") + location);
+#endif
+        std::string call = demangle(bt_line.substr(first+1, second - first - 1).c_str());
+        size_t f = bt_line.find('[');
+        size_t s = bt_line.find(']');
+        std::string address = bt_line.substr(f+1, s-f-1);
+        std::stringstream sstra(address);
+        size_t addr; sstra >> std::hex >> addr;
 
-    	// char name_exe[512];
-    	// name_exe[readlink("/proc/self/exe", name_exe, 511)]=0;
+        std::cerr << location << " [" << call << "]";
 
-    	// std::stringstream syscom;
-    	// syscom << "addr2line " << stack_addrs[i] << "-C -s -e " << name_exe;
-    	// for (UInt i = 0; i < w + 4; ++i) std::cerr << " ";
-    	// std::cout << "-> " << std::flush;
-    	// int retval __attribute__((unused)) = system(syscom.str().c_str());
+#if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
+        std::map<std::string, size_t>::iterator it = addr_map.find(location);
+        if(it != addr_map.end()) {
+          std::stringstream syscom;
+          syscom << BOOST_PP_STRINGIZE(ADDR2LINE_COMMAND) << " 0x" << std::hex << (addr - it->second) << " -e " << location;
+          std::string line = exec(syscom.str());
+          std::cerr << " (" << line << ")" <<std::endl;
+        } else {
+#endif
+          std::cerr << " (0x" << std::hex << addr << ")" <<std::endl;
+#if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
+        }
+#endif
       } else {
     	std::cerr << bt_line << std::endl;
       }
@@ -125,6 +173,7 @@ namespace debug {
     free(stack_strings);
 
     std::cerr << "END BACKTRACE" << std::endl;
+    if(sig != 15) debugger.exit(EXIT_FAILURE);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -194,7 +243,7 @@ namespace debug {
   void Debugger::setParallelContext(int rank, int size) {
     std::stringstream sstr;
     UInt pad = std::ceil(std::log10(size));
-    sstr << "[R" << std::setfill(' ') << std::right << std::setw(pad)
+    sstr << "<" << getpid() << ">[R" << std::setfill(' ') << std::right << std::setw(pad)
          << rank << "|S" << size << "] ";
     parallel_context = sstr.str();
   }

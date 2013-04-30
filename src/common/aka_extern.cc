@@ -3,7 +3,7 @@
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Mon Jun 14 19:12:20 2010
++ * @date   Mon Jun 14 19:12:20 2010
  *
  * @brief  initialisation of all global variables
  * to insure the order of creation
@@ -30,10 +30,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_vector.hh"
 #include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 /* -------------------------------------------------------------------------- */
+#if defined(AKANTU_DEBUG_TOOLS)
+#  include "aka_debug_tools.hh"
+#endif
 
 __BEGIN_AKANTU__
 
@@ -59,9 +63,14 @@ namespace debug {
 
   Debugger debugger;
 
+#if defined(AKANTU_DEBUG_TOOLS)
+  DebugElementManager element_manager;
+#endif
 }
 
 Real Math::tolerance = 1e-8;
+
+const Array<UInt> empty_filter(0, 1, "empty_filter");
 
 /* -------------------------------------------------------------------------- */
 

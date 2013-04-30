@@ -76,7 +76,7 @@ public:
 				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  GhostType ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> & filter_elements = empty_filter) const;
 
   /// compute the gradient of u on the control points
   template <ElementType type>
@@ -84,7 +84,7 @@ public:
 			       Array<Real> &nablauq,
 			       UInt nb_degree_of_freedom,
 			       GhostType ghost_type = _not_ghost,
-			       const Array<UInt> * filter_elements = NULL) const;
+			       const Array<UInt> & filter_elements = empty_filter) const;
 
   /// multiply a field by shape functions
   template <ElementType type>

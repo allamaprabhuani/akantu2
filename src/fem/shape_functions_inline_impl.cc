@@ -81,7 +81,7 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Array<Real> 
 							      Array<Real> &uq,
 							      GhostType ghost_type,
 							      const Array<Real> & shapes,
-							      const Array<UInt> * filter_elements) const {
+							      const Array<UInt> & filter_elements) const {
   UInt nb_element;
   UInt nb_points = control_points(type, ghost_type).cols();
   UInt nb_nodes_per_element = ElementClass<type>::getShapeSize();
@@ -92,13 +92,13 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Array<Real> 
   Array<Real>::iterator< Matrix<Real> > inter_u_it;
 
   Array<Real> * filtered_N = NULL;
-  if(filter_elements) {
-    nb_element = filter_elements->getSize();
+  if(filter_elements != empty_filter) {
+    nb_element = filter_elements.getSize();
     filtered_N = new Array<Real>(0, shapes.getNbComponent());
-    FEM::filterQuadraturePointsData(*mesh, shapes, *filtered_N, type, ghost_type, filter_elements);
+    FEM::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type, filter_elements);
     N_it = filtered_N->begin_reinterpret(nb_nodes_per_element, nb_points, nb_element);
   } else {
-    nb_element = mesh->getNbElement(type,ghost_type);
+    nb_element = mesh.getNbElement(type,ghost_type);
     N_it = shapes.begin_reinterpret(nb_nodes_per_element, nb_points, nb_element);
   }
 
@@ -124,7 +124,7 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Array<Real> &u_
 							   Array<Real> &out_nablauq,
 							   GhostType ghost_type,
 							   const Array<Real> & shapes_derivatives,
-							   const Array<UInt> * filter_elements) const {
+							   const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element  = ElementClass<type>::getNbNodesPerInterpolationElement();
@@ -138,14 +138,14 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Array<Real> &u_
 
   UInt nb_element;
   Array<Real> * filtered_B = NULL;
-  if(filter_elements) {
-    nb_element = filter_elements->getSize();
+  if(filter_elements != empty_filter) {
+    nb_element = filter_elements.getSize();
     filtered_B = new Array<Real>(0, shapes_derivatives.getNbComponent());
-    FEM::filterQuadraturePointsData(*mesh, shapes_derivatives, *filtered_B, type, ghost_type, filter_elements);
+    FEM::filterElementalData(mesh, shapes_derivatives, *filtered_B, type, ghost_type, filter_elements);
     B_it = filtered_B->begin(element_dimension, nb_nodes_per_element);
   } else {
     B_it = shapes_derivatives.begin(element_dimension, nb_nodes_per_element);
-    nb_element = mesh->getNbElement(type, ghost_type);
+    nb_element = mesh.getNbElement(type, ghost_type);
   }
 
   out_nablauq.resize(nb_element*nb_points);
