@@ -32,7 +32,7 @@
 #include "aka_types.hh"
 #include "solid_mechanics_model.hh"
 #include <cmath>
-#if !defined(AKANTU_NDEBUG)
+#if defined(AKANTU_DEBUG_TOOLS)
 #include "aka_debug_tools.hh"
 #include <string>
 #endif
@@ -215,9 +215,8 @@ public:
       this->material.packElementDataHelper(mat.getDamage(),
                                            buffer,
                                            elements);
-#if !defined(AKANTU_NDEBUG)
+#if defined(AKANTU_DEBUG_TOOLS)
 #if defined(AKANTU_CORE_CXX11)
-
       debug::element_manager.print(debug::_dm_material,
                                    [&elements, &mat](const Element & el)->std::string {
                                      std::stringstream out;
@@ -245,7 +244,7 @@ public:
       this->material.unpackElementDataHelper(mat.getDamage(),
                                              buffer,
                                              elements);
-#if !defined(AKANTU_NDEBUG)
+#if defined(AKANTU_DEBUG_TOOLS)
 #if defined(AKANTU_CORE_CXX11)
       debug::element_manager.print(debug::_dm_material,
                                    [&elements, &mat](const Element & el)->std::string {

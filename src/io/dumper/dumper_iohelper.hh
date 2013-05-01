@@ -28,15 +28,17 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_DUMPER_IOHELPER_HH__
-#define __AKANTU_DUMPER_IOHELPER_HH__
-
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "mesh.hh"
 
-
+/* -------------------------------------------------------------------------- */
 #include <io_helper.hh>
+
+/* -------------------------------------------------------------------------- */
+
+#ifndef __AKANTU_DUMPER_IOHELPER_HH__
+#define __AKANTU_DUMPER_IOHELPER_HH__
 
 __BEGIN_AKANTU__
 

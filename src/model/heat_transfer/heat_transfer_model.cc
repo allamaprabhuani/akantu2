@@ -42,12 +42,6 @@
 #include "parser.hh"
 #include "generalized_trapezoidal.hh"
 
-// #include "sparse_matrix.hh"
-// #include "solver.hh"
-// #ifdef AKANTU_USE_MUMPS
-// #include "solver_mumps.hh"
-// #endif
-
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
@@ -445,7 +439,7 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 
     this->getFEM().assembleArray(int_bt_k_gT(*it,ghost_type), *residual,
 				  dof_synchronizer->getLocalDOFEquationNumbers(),
-				  1, *it,ghost_type,NULL,-1);
+				 1, *it,ghost_type, empty_filter, -1);
   }
   AKANTU_DEBUG_OUT();
 }

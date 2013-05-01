@@ -150,19 +150,16 @@ public:
   /* ------------------------------------------------------------------------ */
   /// \todo protected: does not compile with intel  check why
 public:
-  template <class R, class IR = R, bool issame = is_same<IR, T>::value >
-  class iterator_internal;
-public:
-  /* ------------------------------------------------------------------------ */
-  // template<typename R, int fps = 0> class iterator : public iterator_internal<R> {};
-  // template<typename R, int fps = 0> class const_iterator : public iterator_internal<const R> {};
-  /* ------------------------------------------------------------------------ */
-  //template<class R> using iterator = iterator_internal<R>;
 
+  template <template<class> class iterator_type, class R, class IR = R,
+	    bool issame = is_same<IR, T>::value>
+  class iterator_internal;
+
+public:
   template<typename R = T>
-  class iterator : public iterator_internal<R> {
+  class iterator : public iterator_internal<iterator, R> {
   public:
-    typedef iterator_internal<R> parent;
+    typedef iterator_internal<Array<T, is_scal>::iterator, R> parent;
     typedef typename parent::value_type	       value_type;
     typedef typename parent::pointer	       pointer;
     typedef typename parent::reference	       reference;
@@ -173,30 +170,12 @@ public:
     iterator(pointer_type data, UInt offset) : parent(data, offset) {};
     iterator(pointer warped) : parent(warped) {};
     iterator(const iterator & it) : parent(it) {};
-    iterator(const parent & it) : parent(it) {};
-
-    inline iterator operator+(difference_type n)
-    { return parent::operator+(n);; }
-    inline iterator operator-(difference_type n)
-    { return parent::operator-(n);; }
-    inline difference_type operator-(const iterator & b)
-    { return parent::operator-(b); }
-
-    inline iterator & operator++()
-    { parent::operator++(); return *this; };
-    inline iterator & operator--()
-    { parent::operator--(); return *this; };
-    inline iterator & operator+=(const UInt n)
-    { parent::operator+=(n); return *this; }
   };
 
-  /* ------------------------------------------------------------------------ */
-  //template<class R> using const_iterator = iterator_internal<const R, R>;
-
   template<typename R = T>
-  class const_iterator : public iterator_internal<const R, R> {
+  class const_iterator : public iterator_internal<const_iterator, const R, R> {
   public:
-    typedef iterator_internal<const R, R> parent;
+    typedef iterator_internal<Array<T, is_scal>::const_iterator, const R, R> parent;
     typedef typename parent::value_type	       value_type;
     typedef typename parent::pointer	       pointer;
     typedef typename parent::reference	       reference;
@@ -206,22 +185,8 @@ public:
     const_iterator() : parent() {};
     const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
     const_iterator(pointer warped) : parent(warped) {};
-    const_iterator(const parent & it) : parent(it) {};
+    const_iterator(const const_iterator<R> & it) : parent(it) {};
     const_iterator(const iterator<R> & it) : parent(it) {};
-
-    inline const_iterator operator+(difference_type n)
-    { return parent::operator+(n); }
-    inline const_iterator operator-(difference_type n)
-    { return parent::operator-(n); }
-    inline difference_type operator-(const const_iterator & b)
-    { return parent::operator-(b); }
-
-    inline const_iterator & operator++()
-    { parent::operator++(); return *this; };
-    inline const_iterator & operator--()
-    { parent::operator--(); return *this; };
-    inline const_iterator & operator+=(const UInt n)
-    { parent::operator+=(n); return *this; }
   };
 
   inline iterator<T> begin();

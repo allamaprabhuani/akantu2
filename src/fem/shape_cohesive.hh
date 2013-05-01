@@ -77,7 +77,7 @@ public:
   void extractNodalToElementField(const Array<Real> & nodal_f,
 				  Array<Real> & elemental_f,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> & filter_elements = empty_filter) const;
 
   /// pre compute all shapes on the element control points from natural coordinates
   template <ElementType type>
@@ -95,14 +95,14 @@ public:
 				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  const GhostType ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL) const;
+				  const Array<UInt> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void interpolateOnControlPoints(const Array<Real> &u,
 				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  const GhostType ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL) const {
+				  const Array<UInt> & filter_elements = empty_filter) const {
     interpolateOnControlPoints<type, CohesiveReduceFunctionMean>(u, uq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
 
@@ -112,7 +112,7 @@ public:
 			       Array<Real> &nablauq,
 			       UInt nb_degree_of_freedom,
 			       GhostType ghost_type = _not_ghost,
-			       const Array<UInt> * filter_elements = NULL) const {
+			       const Array<UInt> & filter_elements = empty_filter) const {
     variationOnControlPoints<type, CohesiveReduceFunctionMean>(u, nablauq, nb_degree_of_freedom, ghost_type, filter_elements);
   }
 
@@ -122,13 +122,13 @@ public:
 				Array<Real> &nablauq,
 				UInt nb_degree_of_freedom,
 				GhostType ghost_type = _not_ghost,
-				const Array<UInt> * filter_elements = NULL) const;
+				const Array<UInt> & filter_elements = empty_filter) const;
 
   template <ElementType type, class ReduceFunction>
   void computeNormalsOnControlPoints(const Array<Real> &u,
 				     Array<Real> &normals_u,
 				     GhostType ghost_type = _not_ghost,
-				     const Array<UInt> * filter_elements = NULL) const;
+				     const Array<UInt> & filter_elements = empty_filter) const;
 
   /// multiply a field by shape functions
   template <ElementType type>

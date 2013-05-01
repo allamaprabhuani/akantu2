@@ -41,12 +41,12 @@ template <>
 Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const Array<Real> & f,
 									  const ElementType & type,
 									  const GhostType & ghost_type,
-									  const Array<UInt> * filter_elements) const{
+									  const Array<UInt> & filter_elements) const{
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
-  UInt nb_element = mesh->getNbElement(type, ghost_type);
-  if(filter_elements != NULL) nb_element = filter_elements->getSize();
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 
   UInt nb_quadrature_points  = getNbQuadraturePoints(type);
 
@@ -80,11 +80,11 @@ void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
 	    UInt nb_degree_of_freedom,
 	    const ElementType & type,
 	    const GhostType & ghost_type,
-	    const Array<UInt> * filter_elements) const{
+	    const Array<UInt> & filter_elements) const{
 
 #ifndef AKANTU_NDEBUG
-  UInt nb_element = mesh->getNbElement(type, ghost_type);
-  if(filter_elements != NULL) nb_element = filter_elements->getSize();
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  if(filter_elements == filter_elements) nb_element = filter_elements.getSize();
 
   UInt nb_quadrature_points  = getNbQuadraturePoints(type);
 
@@ -121,7 +121,7 @@ gradientOnQuadraturePoints(__attribute__((unused)) const Array<Real> &u,
 			   __attribute__((unused)) const UInt nb_degree_of_freedom,
 			   __attribute__((unused)) const ElementType & type,
 			   __attribute__((unused)) const GhostType & ghost_type,
-			   __attribute__((unused)) const Array<UInt> * filter_elements) const {
+			   __attribute__((unused)) const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 

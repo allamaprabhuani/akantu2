@@ -28,6 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__
 #define __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__

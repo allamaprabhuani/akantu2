@@ -912,4 +912,5 @@ FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(
   AKANTU_DEBUG_OUT();
   return *ret;
 }
+
 #endif

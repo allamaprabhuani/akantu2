@@ -39,9 +39,9 @@
 #include "mesh.hh"
 #include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
-
 #ifndef __AKANTU_AKA_DEBUG_TOOLS_HH__
 #define __AKANTU_AKA_DEBUG_TOOLS_HH__
+#if defined(AKANTU_DEBUG_TOOLS)
 
 #define AKANTU_DEBUG_DBT(info)  AKANTU_DEBUG_("DBT", dblSecondary, info)
 
@@ -347,6 +347,7 @@ namespace akantu {
 }
 
 
-
-
+#else
+#error "toto"
+#endif
 #endif /* __AKANTU_AKA_DEBUG_TOOLS_HH__ */

@@ -278,9 +278,14 @@ int main(int argc, char *argv[]) {
   TestAccessor test_accessor(mesh, barycenters);
   SynchronizerRegistry synch_registry(test_accessor);
 
+  synch_registry.registerSynchronizer(*dist, _gst_smm_mass);
+
   synch_registry.registerSynchronizer(*grid_communicator, _gst_test);
 
-  AKANTU_DEBUG_INFO("Synchronizing tag");
+  AKANTU_DEBUG_INFO("Synchronizing tag on Dist");
+  synch_registry.synchronize(_gst_smm_mass);
+
+  AKANTU_DEBUG_INFO("Synchronizing tag on Grid");
   synch_registry.synchronize(_gst_test);
 
   delete grid_communicator;

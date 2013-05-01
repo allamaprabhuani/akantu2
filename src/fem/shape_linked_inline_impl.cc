@@ -202,7 +202,7 @@ void ShapeLinked<kind>::extractNodalToElementField(const Array<Real> & nodal_f,
 						   Array<Real> & elemental_f,
 						   UInt num_degre_of_freedom_to_extract,
 						   const GhostType & ghost_type,
-						   const Array<UInt> * filter_elements) const{
+						   const Array<UInt> & filter_elements) const{
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -210,10 +210,8 @@ void ShapeLinked<kind>::extractNodalToElementField(const Array<Real> & nodal_f,
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
 
-  UInt * filter_elem_val = NULL;
-  if(filter_elements != NULL) {
-    nb_element      = filter_elements->getSize();
-    filter_elem_val = filter_elements->storage();
+  if(filter_elements != empty_filter) {
+    nb_element      = filter_elements.getSize();
   }
 
   elemental_f.resize(nb_element);
@@ -223,7 +221,7 @@ void ShapeLinked<kind>::extractNodalToElementField(const Array<Real> & nodal_f,
 
   UInt * el_conn;
   for (UInt el = 0; el < nb_element; ++el) {
-    if(filter_elements != NULL) el_conn = conn_val + filter_elem_val[el] * nb_nodes_per_element;
+    if(filter_elements != empty_filter) el_conn = conn_val + filter_elements(el) * nb_nodes_per_element;
     else el_conn = conn_val + el * nb_nodes_per_element;
 
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
@@ -244,7 +242,7 @@ void ShapeLinked<kind>::interpolateOnControlPoints(const Array<Real> &in_u,
 						   Array<Real> &out_uq,
 						   UInt nb_degree_of_freedom,
 						   const GhostType & ghost_type,
-						   const Array<UInt> * filter_elements,
+						   const Array<UInt> & filter_elements,
 						   bool accumulate,
 						   UInt id_shape,
 						   UInt num_degre_of_freedom_to_interpolate,
@@ -287,7 +285,7 @@ void ShapeLinked<kind>::gradientOnControlPoints(const Array<Real> &in_u,
 						Array<Real> &out_nablauq,
 						UInt nb_degree_of_freedom,
 						const GhostType & ghost_type,
-						const Array<UInt> * filter_elements,
+						const Array<UInt> & filter_elements,
 						bool accumulate,
 						UInt id_shape,
 						UInt num_degre_of_freedom_to_interpolate,

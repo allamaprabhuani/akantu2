@@ -80,7 +80,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapesOnControlPoints(__attribute__(
 
   UInt size_of_shapes = ElementClass<type>::getShapeSize();
 
-  UInt nb_element = mesh->getConnectivity(type, ghost_type).getSize();;
+  UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();;
 
   Array<Real> & shapes_tmp = shapes.alloc(nb_element*nb_points,
 					   size_of_shapes,
@@ -115,7 +115,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnControlPoints(__at
   UInt nb_points = natural_coords.cols();
 
   // UInt * elem_val = this->mesh->getConnectivity(type, ghost_type).storage();;
-  UInt nb_element = this->mesh->getConnectivity(type, ghost_type).getSize();
+  UInt nb_element = this->mesh.getConnectivity(type, ghost_type).getSize();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
@@ -143,19 +143,17 @@ template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Array<Real> & nodal_f,
 							     Array<Real> & elemental_f,
 							     const GhostType & ghost_type,
-							     const Array<UInt> * filter_elements) const {
+							     const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_itp_element = ElementClass<type>::getNbNodesPerInterpolationElement();
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement();
   UInt nb_degree_of_freedom = nodal_f.getNbComponent();
-  UInt nb_element = this->mesh->getNbElement(type, ghost_type);
-  UInt * conn_val = this->mesh->getConnectivity(type, ghost_type).storage();
+  UInt nb_element = this->mesh.getNbElement(type, ghost_type);
+  UInt * conn_val = this->mesh.getConnectivity(type, ghost_type).storage();
 
-  UInt * filter_elem_val = NULL;
-  if(filter_elements != NULL) {
-    nb_element      = filter_elements->getSize();
-    filter_elem_val = filter_elements->storage();
+  if(filter_elements != empty_filter) {
+    nb_element      = filter_elements.getSize();
   }
 
   elemental_f.resize(nb_element);
@@ -168,7 +166,7 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Array<Real> &
 
   for (UInt el = 0; el < nb_element; ++el, ++u_it) {
     Matrix<Real> & u = *u_it;
-    if(filter_elements != NULL) el_conn = conn_val + filter_elem_val[el] * nb_nodes_per_element;
+    if(filter_elements != empty_filter) el_conn = conn_val + filter_elements(el) * nb_nodes_per_element;
     else el_conn = conn_val + el * nb_nodes_per_element;
 
     // compute the average/difference of the nodal field loaded from cohesive element
@@ -193,7 +191,7 @@ void ShapeLagrange<_ek_cohesive>::interpolateOnControlPoints(const Array<Real> &
 							     Array<Real> &out_uq,
 							     UInt nb_degree_of_freedom,
 							     GhostType ghost_type,
-							     const Array<UInt> * filter_elements) const {
+							     const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -219,7 +217,7 @@ void ShapeLagrange<_ek_cohesive>::variationOnControlPoints(const Array<Real> &in
 							   Array<Real> &nablauq,
 							   UInt nb_degree_of_freedom,
 							   GhostType ghost_type,
-							   const Array<UInt> * filter_elements) const {
+							   const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -245,15 +243,15 @@ template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real> &u,
 								Array<Real> &normals_u,
 								GhostType ghost_type,
-								const Array<UInt> * filter_elements) const {
+								const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element = this->mesh->getNbElement(type, ghost_type);
+  UInt nb_element = this->mesh.getNbElement(type, ghost_type);
   UInt nb_points  = this->control_points(type, ghost_type).cols();
-  UInt spatial_dimension = this->mesh->getSpatialDimension();
+  UInt spatial_dimension = this->mesh.getSpatialDimension();
 
-  if(filter_elements != NULL) {
-    nb_element  = filter_elements->getSize();
+  if(filter_elements != empty_filter) {
+    nb_element  = filter_elements.getSize();
   }
 
   Array<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  (spatial_dimension -1)));

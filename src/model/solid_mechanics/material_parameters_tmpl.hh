@@ -146,7 +146,7 @@ inline void MaterialParamTyped<T>::printself(std::ostream & stream) const {
 template<>
 inline void MaterialParamTyped<bool>::printself(std::ostream & stream) const {
   MaterialParam::printself(stream);
-  stream << (param ? "true" : "false") << std::endl;
+  stream << std::boolalpha << param << std::endl;
 }
 
 template<>

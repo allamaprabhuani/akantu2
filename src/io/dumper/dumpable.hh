@@ -29,16 +29,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "dumper_paraview.hh"
+
 
 #ifndef __AKANTU_DUMPABLE_HH__
 #define __AKANTU_DUMPABLE_HH__
 
-#ifdef AKANTU_USE_IOHELPER
-
-#include "aka_common.hh"
-#include "dumper_paraview.hh"
-
 __BEGIN_AKANTU__
+
+#ifdef AKANTU_USE_IOHELPER
 
 template<class Dumper>
 class Dumpable {
@@ -130,8 +130,6 @@ private:
 };
 
 #else
-
-__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper {

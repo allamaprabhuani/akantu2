@@ -29,8 +29,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
-#include "integrator_cohesive.hh"
-#include "shape_cohesive.hh"
 #include "facet_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 

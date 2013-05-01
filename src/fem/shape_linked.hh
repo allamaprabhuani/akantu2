@@ -74,7 +74,7 @@ public:
 				  Array<Real> &uq,
 				  UInt nb_degree_of_freedom,
 				  const GhostType & ghost_type = _not_ghost,
-				  const Array<UInt> * filter_elements = NULL,
+				  const Array<UInt> & filter_elements = empty_filter,
 				  bool accumulate = false,
 				  UInt id_shape = 0,
 				  UInt num_degre_of_freedom_to_interpolate = 0,
@@ -87,7 +87,7 @@ public:
 			       Array<Real> &nablauq,
 			       UInt nb_degree_of_freedom,
 			       const GhostType & ghost_type = _not_ghost,
-			       const Array<UInt> * filter_elements = NULL,
+			       const Array<UInt> & filter_elements = empty_filter,
 			       bool accumulate = false,
 			       UInt id_shape = 0,
 			       UInt num_degre_of_freedom_to_interpolate = 0,
@@ -107,7 +107,7 @@ private:
 				  Array<Real> & elemental_f,
 				  UInt num_degre_of_freedom_to_extract,
 				  const GhostType & ghost_type,
-				  const Array<UInt> * filter_elements) const;
+				  const Array<UInt> & filter_elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

@@ -34,6 +34,7 @@
 #include "sparse_matrix.hh"
 #include "dof_synchronizer.hh"
 #include "aka_random_generator.hh"
+#include "shape_cohesive.hh"
 
 
 __BEGIN_AKANTU__
@@ -267,7 +268,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     fem_cohesive->integrate(*traction_cpy, *int_t_N,
 			    spatial_dimension*size_of_shapes,
 			    *it, ghost_type,
-			    &elem_filter);
+			    elem_filter);
 
     delete traction_cpy;
 
@@ -284,7 +285,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     model->getFEMBoundary().assembleArray(*int_t_N, residual,
 					  model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
 					  residual.getNbComponent(),
-					  *it, ghost_type, &elem_filter, 1);
+					  *it, ghost_type, elem_filter, 1);
 
     delete int_t_N;
   }
@@ -430,12 +431,12 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     fem_cohesive->integrate(*at_nt_d_n_a, *K_e,
 			    size_at_nt_d_n_a,
 			    *it, ghost_type,
-			    &elem_filter);
+			    elem_filter);
 
     delete at_nt_d_n_a;
 
     model->getFEM().assembleMatrix(*K_e, K, spatial_dimension,
-				   *it, ghost_type, &elem_filter);
+				   *it, ghost_type, elem_filter);
     delete K_e;
   }
 
@@ -494,7 +495,7 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
     computeNormalsOnControlPoints<type, CohesiveReduceFunctionMean>(position, \
 								    normal, \
 								    ghost_type,	\
-								    &(element_filter(type, ghost_type)))
+								    element_filter(type, ghost_type));
 
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
 #undef COMPUTE_NORMAL
@@ -516,7 +517,7 @@ void MaterialCohesive::computeOpening(const Array<Real> & displacement,
 								    opening, \
 								    spatial_dimension, \
 								    ghost_type, \
-								    &(element_filter(type, ghost_type)))
+								    element_filter(type, ghost_type));
 
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_OPENING);
 #undef COMPUTE_OPENING
@@ -601,7 +602,7 @@ Real MaterialCohesive::getReversibleEnergy() {
 
   for(; it != last_type; ++it) {
     erev += fem_cohesive->integrate(reversible_energy(*it, _not_ghost), *it,
-				    _not_ghost, &element_filter(*it, _not_ghost));
+				    _not_ghost, element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -624,7 +625,7 @@ Real MaterialCohesive::getDissipatedEnergy() {
     Array<Real> dissipated_energy(total_energy(*it, _not_ghost));
     dissipated_energy -= reversible_energy(*it, _not_ghost);
     edis += fem_cohesive->integrate(dissipated_energy, *it,
-				    _not_ghost, &element_filter(*it, _not_ghost));
+				    _not_ghost, element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
