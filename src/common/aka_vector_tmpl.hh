@@ -171,13 +171,12 @@ Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 bool Array<T, is_scal>::operator==(const Array<T, is_scal> & array) const {
-  bool equal = nb_component == array.nb_component
-    && size == array.size
-    && id == array.id;
+  bool equal = nb_component == array.nb_component && size == array.size && id == array.id;
   if(!equal) return false;
 
   if(values == array.values) return true;
-  else return std::equal(values, values + size*nb_component, array.values);
+  else return std::equal(values, values + size*nb_component,
+                         array.values);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -570,7 +569,7 @@ inline void ArrayBase::empty() {
 /* Iterators                                                                  */
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
-template<template<class> class iterator_type, class R, class IR, bool issame>
+template<class R, class IR, bool is_r_scal>
 class Array<T, is_scal>::iterator_internal {
 public:
   typedef R                               value_type;
@@ -599,7 +598,15 @@ public:
 				       ret(const_cast<internal_pointer>(warped)) {
   }
 
-  iterator_internal(const iterator_type<IR> & it) {
+  iterator_internal(const iterator_internal & it) {
+    if(this != &it) {
+      this->_offset = it._offset;
+      this->initial = it.initial;
+      this->ret = new internal_value_type(*it.ret);
+    }
+  }
+
+  iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
     this->_offset = it.offset();
     this->initial = it.data();
     this->ret = new internal_value_type(*it);
@@ -607,7 +614,17 @@ public:
 
   virtual ~iterator_internal() { delete ret; };
 
-  inline iterator_type<IR> & operator=(const iterator_type<IR> & it) {
+  inline iterator_internal & operator=(const iterator_internal & it) {
+    if(this != &it) {
+      this->_offset = it._offset;
+      this->initial = it.initial;
+      if(this->ret) this->ret->shallowCopy(*it.ret);
+      else this->ret = new internal_value_type(*it.ret);
+    }
+    return *this;
+  }
+
+  inline iterator_internal & operator=(const iterator<IR> & it) {
     this->_offset = it.offset();
     this->initial = it.data();
     if(this->ret) this->ret->shallowCopy(*it);
@@ -618,27 +635,27 @@ public:
   inline reference operator*() { return *ret; };
   inline const_reference operator*() const { return *ret; };
   inline pointer operator->() { return ret; };
-  inline iterator_type<IR> & operator++() { ret->values += _offset; return static_cast<iterator_type<IR> &>(*this); };
-  inline iterator_type<IR> & operator--() { ret->values -= _offset; return static_cast<iterator_type<IR> &>(*this); };
+  inline iterator_internal & operator++() { ret->values += _offset; return *this; };
+  inline iterator_internal & operator--() { ret->values -= _offset; return *this; };
 
-  inline iterator_type<IR> & operator+=(const UInt n) { ret->values += _offset * n; return static_cast<iterator_type<IR> &>(*this); }
-  inline iterator_type<IR> & operator-=(const UInt n) { ret->values -= _offset * n; return static_cast<iterator_type<IR> &>(*this); }
+  inline iterator_internal & operator+=(const UInt n) { ret->values += _offset * n; return *this; }
+  inline iterator_internal & operator-=(const UInt n) { ret->values -= _offset * n; return *this; }
 
   inline reference operator[](const UInt n) { ret->values = initial + n*_offset; return *ret; }
   inline const_reference operator[](const UInt n) const { ret->values = initial + n*_offset; return *ret; }
 
-  inline bool operator==(const iterator_type<IR> & other) const { return (*this).ret->storage() == other.ret->storage(); }
-  inline bool operator!=(const iterator_type<IR> & other) const { return (*this).ret->storage() != other.ret->storage(); }
-  inline bool operator <(const iterator_type<IR> & other) const { return (*this).ret->storage()  < other.ret->storage(); }
-  inline bool operator<=(const iterator_type<IR> & other) const { return (*this).ret->storage() <= other.ret->storage(); }
-  inline bool operator> (const iterator_type<IR> & other) const { return (*this).ret->storage() >  other.ret->storage(); }
-  inline bool operator>=(const iterator_type<IR> & other) const { return (*this).ret->storage() >= other.ret->storage(); }
+  inline bool operator==(const iterator_internal & other) const { return (*this).ret->storage() == other.ret->storage(); }
+  inline bool operator!=(const iterator_internal & other) const { return (*this).ret->storage() != other.ret->storage(); }
+  inline bool operator <(const iterator_internal & other) const { return (*this).ret->storage()  < other.ret->storage(); }
+  inline bool operator<=(const iterator_internal & other) const { return (*this).ret->storage() <= other.ret->storage(); }
+  inline bool operator> (const iterator_internal & other) const { return (*this).ret->storage() >  other.ret->storage(); }
+  inline bool operator>=(const iterator_internal & other) const { return (*this).ret->storage() >= other.ret->storage(); }
 
-  inline iterator_type<IR> operator+(difference_type n) { iterator_type<IR> tmp(*this); tmp += n; return tmp; }
-  inline iterator_type<IR> operator-(difference_type n) { iterator_type<IR> tmp(*this); tmp -= n; return tmp; }
+  inline iterator_internal operator+(difference_type n) { iterator_internal tmp(*this); tmp += n; return tmp; }
+  inline iterator_internal operator-(difference_type n) { iterator_internal tmp(*this); tmp -= n; return tmp; }
 
 
-  inline difference_type operator-(const iterator_type<IR> & b) { return (ret->values - b.ret->values)/_offset; }
+  inline difference_type operator-(const iterator_internal & b) { return (ret->values - b.ret->values) / _offset; }
 
 
   inline pointer_type data() const { return ret->storage(); }
@@ -650,67 +667,6 @@ protected:
   internal_pointer ret;
 };
 
-/* -------------------------------------------------------------------------- */
-/**
- * Specialization for scalar types
- */
-template <class T, bool is_scal>
-template <template<class> class iterator_type, class R, class IR>
-class Array<T, is_scal>::iterator_internal<iterator_type, R, IR, true> {
-public:
-  typedef R                               value_type;
-  typedef R*                              pointer;
-  typedef R&                              reference;
-  typedef const R&                        const_reference;
-  typedef IR                              internal_value_type;
-  typedef IR*                             internal_pointer;
-  typedef std::ptrdiff_t                  difference_type;
-  typedef std::random_access_iterator_tag iterator_category;
-
-public:
-  iterator_internal(pointer data = NULL, __attribute__ ((unused)) UInt _offset = 1) : _offset(_offset), ret(data), initial(data) { };
-
-  iterator_internal(const iterator_type<IR> & it) {
-    this->ret = it.data(); this->initial = it.data();
-  }
-  virtual ~iterator_internal() { };
-
-  inline iterator_type<IR> & operator=(const iterator_type<IR> & it)
-  { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
-
-  inline reference operator*() { return *ret; };
-  inline const_reference operator*() const { return *ret; };
-  inline pointer operator->() { return ret; };
-  inline iterator_type<IR> & operator++() { ++ret; return static_cast<iterator_type<IR> &>(*this); };
-  inline iterator_type<IR> & operator--() { --ret; return static_cast<iterator_type<IR> &>(*this); };
-
-  inline iterator_type<IR> & operator+=(const UInt n) { ret += n; return static_cast<iterator_type<IR> &>(*this); }
-  inline iterator_type<IR> & operator-=(const UInt n) { ret -= n; return static_cast<iterator_type<IR> &>(*this); }
-
-  inline reference operator[](const UInt n) { ret = initial + n; return *ret; }
-
-  inline bool operator==(const iterator_type<IR> & other) const { return ret == other.ret; }
-  inline bool operator!=(const iterator_type<IR> & other) const { return ret != other.ret; }
-  inline bool operator< (const iterator_type<IR> & other) const { return ret <  other.ret; }
-  inline bool operator<=(const iterator_type<IR> & other) const { return ret <= other.ret; }
-  inline bool operator> (const iterator_type<IR> & other) const { return ret >  other.ret; }
-  inline bool operator>=(const iterator_type<IR> & other) const { return ret >= other.ret; }
-
-  inline iterator_type<IR> operator-(difference_type n) { return iterator_type<IR>(ret - n); }
-  inline iterator_type<IR> operator+(difference_type n) { return iterator_type<IR>(ret + n); }
-
-  inline difference_type operator-(const iterator_type<IR> & b) { return ret - b.ret; }
-
-  inline pointer data() const { return ret; }
-  inline difference_type offset() const { return _offset; }
-protected:
-  difference_type _offset;
-  pointer ret;
-  pointer initial;
-};
-
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::iterator< Vector<T> > Array<T, is_scal>::begin(UInt n) {
@@ -876,6 +832,71 @@ Array<T, is_scal>::end_reinterpret(UInt m, UInt n, UInt size) const {
   return const_iterator< Matrix<T> >(new Matrix<T>(values + n * m * size, m, n));
 }
 
+
+/* -------------------------------------------------------------------------- */
+/**
+ * Specialization for scalar types
+ */
+template <class T, bool is_scal>
+template <class R, class IR>
+class Array<T, is_scal>::iterator_internal<R, IR, true> {
+public:
+  typedef R                               value_type;
+  typedef R*                              pointer;
+  typedef R&                              reference;
+  typedef const R&                        const_reference;
+  typedef IR                              internal_value_type;
+  typedef IR*                             internal_pointer;
+  typedef std::ptrdiff_t                  difference_type;
+  typedef std::random_access_iterator_tag iterator_category;
+
+public:
+  iterator_internal(pointer data = NULL, __attribute__ ((unused)) UInt _offset = 1) : _offset(_offset), ret(data), initial(data) { };
+  iterator_internal(const iterator_internal & it) {
+    if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
+  }
+  iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
+    this->ret = it.data(); this->initial = it.data();
+  }
+
+  virtual ~iterator_internal() { };
+
+  inline iterator_internal & operator=(const iterator_internal & it)
+  { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
+
+  inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it)
+  { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
+
+  inline reference operator*() { return *ret; };
+  inline const_reference operator*() const { return *ret; };
+  inline pointer operator->() { return ret; };
+  inline iterator_internal & operator++() { ++ret; return *this; };
+  inline iterator_internal & operator--() { --ret; return *this; };
+
+  inline iterator_internal & operator+=(const UInt n) { ret += n; return *this; }
+  inline iterator_internal & operator-=(const UInt n) { ret -= n; return *this; }
+
+  inline reference operator[](const UInt n) { ret = initial + n; return *ret; }
+
+  inline bool operator==(const iterator_internal & other) const { return ret == other.ret; }
+  inline bool operator!=(const iterator_internal & other) const { return ret != other.ret; }
+  inline bool operator< (const iterator_internal & other) const { return ret <  other.ret; }
+  inline bool operator<=(const iterator_internal & other) const { return ret <= other.ret; }
+  inline bool operator> (const iterator_internal & other) const { return ret >  other.ret; }
+  inline bool operator>=(const iterator_internal & other) const { return ret >= other.ret; }
+
+  inline iterator_internal operator-(difference_type n) { return iterator_internal(ret - n); }
+  inline iterator_internal operator+(difference_type n) { return iterator_internal(ret + n); }
+
+  inline difference_type operator-(const iterator_internal & b) { return ret - b.ret; }
+
+  inline pointer data() const { return ret; }
+  inline difference_type offset() const { return _offset; }
+protected:
+  difference_type _offset;
+  pointer ret;
+  pointer initial;
+};
 
 
 /* -------------------------------------------------------------------------- */
