@@ -55,12 +55,13 @@ void FEMTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> &u,
 							  const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
-#ifndef AKANTU_NDEBUG
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
+  UInt nb_points         = shape_functions.getControlPoints(type, ghost_type).cols();
+
+#ifndef AKANTU_NDEBUG
 
   UInt element_dimension = mesh.getSpatialDimension(type);
-  UInt nb_points         = shape_functions.getControlPoints(type, ghost_type).cols();
 
   AKANTU_DEBUG_ASSERT(u.getSize() == mesh.getNbNodes(),
 		      "The vector u(" << u.getID()
@@ -140,9 +141,9 @@ void FEMTemplate<I, S, kind>::integrate(const Array<Real> & f,
 				       const GhostType & ghost_type,
 				       const Array<UInt> & filter_elements) const{
 
-#ifndef AKANTU_NDEBUG
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
+#ifndef AKANTU_NDEBUG
 
   UInt nb_quadrature_points  = getNbQuadraturePoints(type);
 
@@ -269,14 +270,14 @@ void FEMTemplate<I, S, kind>::integrateOnQuadraturePoints(const Array<Real> & f,
 							   const GhostType & ghost_type,
 							   const Array<UInt> & filter_elements) const{
 
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
+  UInt nb_quadrature_points  = getNbQuadraturePoints(type);
 #ifndef AKANTU_NDEBUG
 //   std::stringstream sstr; sstr << ghost_type;
 //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
 // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 
-  UInt nb_quadrature_points  = getNbQuadraturePoints(type);
 
   AKANTU_DEBUG_ASSERT(f.getSize() == nb_element * nb_quadrature_points,
 		      "The vector f(" << f.getID() << " size " << f.getSize()
@@ -324,12 +325,12 @@ void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> &u
   AKANTU_DEBUG_IN();
 
   UInt nb_points = shape_functions.getControlPoints(type, ghost_type).cols();
+  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 #ifndef AKANTU_NDEBUG
 //   std::stringstream sstr; sstr << ghost_type;
 //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
 // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 
   AKANTU_DEBUG_ASSERT(u.getSize() == mesh.getNbNodes(),
 		      "The vector u(" << u.getID()
