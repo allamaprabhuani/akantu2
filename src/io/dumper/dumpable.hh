@@ -143,7 +143,6 @@ private:
 };
 
 #else
-
 /* -------------------------------------------------------------------------- */
 class DumperIOHelper {
 
@@ -153,6 +152,8 @@ public:
 };
 
 class DumperParaview;
+class Mesh;
+class SubBoundary;
 /* -------------------------------------------------------------------------- */
 
 
@@ -177,7 +178,17 @@ public:
 		   __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
   }
 
-  virtual void addDumpField(__attribute__((unused)) const std::string & field_id) = 0;
+  void addDumpBoundary(__attribute__((unused)) const Mesh & mesh,
+		       __attribute__((unused)) const SubBoundary & boundary,
+		       __attribute__((unused)) UInt spatial_dimension = _all_dimensions,
+		       __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
+		       __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
+  }
+
+
+  virtual void addDumpField(__attribute__((unused)) const std::string & field_id){
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  };
   virtual void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
 				    __attribute__((unused)) DumperIOHelper::Field * field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
@@ -221,8 +232,9 @@ public:
   }
 
 protected:
+
   void addDumpFieldToDumper(__attribute__((unused)) const std::string & field_id,
-			    __attribute__((unused)) DumperIOHelper::Field & field) {
+			    __attribute__((unused)) DumperIOHelper::Field * field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 

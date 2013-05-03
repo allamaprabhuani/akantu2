@@ -1440,11 +1440,12 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpBoundaryField(const std::string & field_id,
                                                const std::string & boundary_name) {
+
+#ifdef AKANTU_USE_IOHELPER
   SubBoundary & boundary_ref = mesh.getSubBoundary(boundary_name);
   const Array<UInt> * nodal_filter = &(boundary_ref.getNodes());
   const ByElementTypeArray<UInt> * elemental_filter = &(boundary_ref.getElements());
 
-#ifdef AKANTU_USE_IOHELPER
 #define ADD_FIELD(field, type)						\
   boundary_ref.registerField(BOOST_PP_STRINGIZE(field),			\
      new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter))
@@ -1525,11 +1526,14 @@ void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
 void SolidMechanicsModel::addDumpBoundaryFieldVector(const std::string & field_id,
                                                      const std::string & boundary_name) {
 
+#ifdef AKANTU_USE_IOHELPER
+
   SubBoundary & boundary_ref = mesh.getSubBoundary(boundary_name);
+
   const Array<UInt> * nodal_filter = &(boundary_ref.getNodes());
   const ByElementTypeArray<UInt> * elemental_filter = &(boundary_ref.getElements());
 
-#ifdef AKANTU_USE_IOHELPER
+
 #define ADD_FIELD(field, type)						\
   DumperIOHelper::Field * f =						\
     new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter);			\

@@ -106,6 +106,5 @@ inline SubBoundary::nodes_const_iterator & SubBoundary::nodes_const_iterator::op
 /* -------------------------------------------------------------------------- */
 inline void SubBoundary::registerField(const std::string field_name,
                                        DumperIOHelper::Field * field) {
-
   addDumpFieldToDumper(field_name, field);
 }
