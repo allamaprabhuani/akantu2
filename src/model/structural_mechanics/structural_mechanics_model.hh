@@ -65,7 +65,7 @@ public:
   typedef FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural> MyFEMType;
 
   StructuralMechanicsModel(Mesh & mesh,
-			   UInt spatial_dimension = 0,
+			   UInt spatial_dimension = _all_dimensions,
 			   const ID & id = "structural_mechanics_model",
 			   const MemoryID & memory_id = 0);
 

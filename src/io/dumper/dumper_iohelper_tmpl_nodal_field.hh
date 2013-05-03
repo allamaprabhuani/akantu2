@@ -29,14 +29,12 @@
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-class DumperIOHelper::NodalField : public Field {
+class DumperIOHelper::NodalField<T, false> : public Field {
 public:
   /* -----------------------------------------------------------------------*/
   class iterator : public iohelper::iterator< T, iterator, Vector<T> > {
-  protected:
-    typedef typename Array<T>::template const_iterator< Vector<T> > internal_iterator;
   public:
-    iterator(T * vect, UInt offset, UInt n, UInt stride) :
+    iterator(T * vect, UInt offset, UInt n, UInt stride, __attribute__ ((unused)) const UInt * filter = NULL) :
       internal_it(vect), offset(offset), n(n), stride(stride) {}
 
     bool operator!=(const iterator & it) const { return internal_it != it.internal_it; }
@@ -48,8 +46,9 @@ public:
   };
 
   /* ---------------------------------------------------------------------- */
-  NodalField(const Array<T> & field, UInt n = 0, UInt stride = 0) :
+  NodalField(const Array<T> & field, UInt n = 0, UInt stride = 0, __attribute__ ((unused)) const Array<UInt> * filter = NULL) :
     field(field), n(n), stride(stride) {
+    AKANTU_DEBUG_ASSERT(filter == NULL, "Filter passed to unfiltered NodalField!");
     if(n == 0) { this->n = field.getNbComponent() - stride; }
   }
 
@@ -84,3 +83,83 @@ private:
   UInt n, stride;
 };
 
+
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+class DumperIOHelper::NodalField<T, true> : public Field {
+public:
+  /* ------------------------------------------------------------------------ */
+  class iterator : public iohelper::iterator< T, iterator, Vector<T> > {
+
+  public:
+    iterator(T * const vect, UInt _offset, UInt _n, UInt _stride, const UInt * filter) :
+      internal_it(vect), offset(_offset), n(_n), stride(_stride),
+      filter(filter) {}
+
+    bool operator!=(const iterator & it) const {
+      return filter != it.filter;
+    }
+
+    iterator & operator++() {
+      ++filter;
+      return *this;
+    }
+
+    Vector<T> operator* () {
+      return Vector<T>(internal_it + *(filter)*offset + stride, n);
+    }
+  private:
+    T * const internal_it;
+    UInt offset, n, stride;
+    const UInt * filter;
+  };
+
+  /* ---------------------------------------------------------------------- */
+  NodalField(const Array<T> & _field,
+             UInt _n = 0, UInt _stride = 0,
+             const Array<UInt> * filter = NULL)
+  : field(_field), n(_n), stride(_stride), filter(filter) {
+    AKANTU_DEBUG_ASSERT(filter != NULL, "No filter passed to filtered NodalField!");
+    AKANTU_DEBUG_ASSERT(filter->getNbComponent()==1, "Multi-component filter given to NodalField!");
+    if(n == 0) {
+      this->n = field.getNbComponent() - stride;
+    }
+  }
+
+  virtual void registerToDumper(const std::string & id, iohelper::Dumper & dumper) {
+    dumper.addNodeDataField(id, *this);
+  }
+
+  inline iterator begin() {
+    return iterator(field.storage(), field.getNbComponent(), n, stride, filter->storage());
+  }
+
+  inline iterator end() {
+    return iterator(field.storage(), field.getNbComponent(), n, stride, filter->storage()+filter->getSize());
+  }
+
+  bool isHomogeneous() {
+    return true;
+  }
+
+  virtual UInt getDim() {
+    if(this->padding_n && this->padding_m)
+      return this->padding_n * this->padding_m;
+    else return n;
+  }
+
+  UInt size() {
+    return filter->getSize();
+    }
+
+  iohelper::DataType getDataType() {
+    return iohelper::getDataType<T>();
+  }
+
+private:
+  const Array<T> & field;
+  UInt n, stride;
+  const Array<UInt> * filter;
+
+};

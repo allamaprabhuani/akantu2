@@ -51,7 +51,7 @@ public:
   typedef S<kind> Shape;
 
 
-  FEMTemplate(Mesh & mesh, UInt spatial_dimension = 0,
+  FEMTemplate(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 	      ID id = "fem", MemoryID memory_id = 0);
 
   virtual ~FEMTemplate();

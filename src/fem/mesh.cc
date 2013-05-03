@@ -62,11 +62,8 @@ Mesh::Mesh(UInt spatial_dimension,
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
-  nb_surfaces(0),
-  surface_id("surface_id", id),
-  element_to_subelement("element_to_subelement", id),
-  subelement_to_element("subelement_to_element", id),
-  uint_data("by_element_uint_data", id) {
+  mesh_data("mesh_data", id, memory_id),
+  boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   std::stringstream sstr;
@@ -101,11 +98,8 @@ Mesh::Mesh(UInt spatial_dimension,
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
-  nb_surfaces(0),
-  surface_id("surface_id", id),
-  element_to_subelement("element_to_subelement", id),
-  subelement_to_element("subelement_to_element", id),
-  uint_data("by_element_uint_data", id) {
+  mesh_data("mesh_data", id, memory_id),
+  boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(getArray<Real>(nodes_id));
@@ -128,11 +122,8 @@ Mesh::Mesh(UInt spatial_dimension,
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>(_max_element_type + 1, 1)),
-  nb_surfaces(0),
-  surface_id("surface_id", id),
-  element_to_subelement("element_to_subelement", id),
-  subelement_to_element("subelement_to_element", id),
-  uint_data("by_element_uint_data", id) {
+  mesh_data("mesh_data", id, memory_id),
+  boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(nodes);
@@ -152,21 +143,6 @@ void Mesh::init() {
 /* -------------------------------------------------------------------------- */
 Mesh::~Mesh() {
   AKANTU_DEBUG_IN();
-
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-
-    Mesh::type_iterator it  = firstType(0, gt);
-    Mesh::type_iterator end = lastType(0, gt);
-    for(; it != end; ++it) {
-      UIntDataMap & map = uint_data(*it, gt);
-      UIntDataMap::iterator dit;
-      for (dit = map.begin(); dit != map.end(); ++dit) {
-	if(dit->second) delete dit->second;
-      }
-      map.clear();
-    }
-  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -237,38 +213,38 @@ void Mesh::computeBoundingBox(){
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
-
-  std::set<Surface> surface_ids;
-
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-
-    Mesh::type_iterator it  = firstType(spatial_dimension - 1, gt);
-    Mesh::type_iterator end = lastType(spatial_dimension - 1, gt);
-    for(; it != end; ++it) {
-      UIntDataMap & map = uint_data(*it, gt);
-      UIntDataMap::iterator it_data = map.find(data_name);
-      AKANTU_DEBUG_ASSERT(it_data != map.end(),
-			  "No data named " << data_name
-			  << " present in the mesh " << id
-			  << " for the element type " << *it);
-      AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
-			  "Surface id for type (" << gt << ":" << *it
-			  << ") already set to the vector " << surface_id(*it, gt).getID());
-
-      surface_id.setArray(*it, gt, *it_data->second);
-
-      for (UInt s = 0; s < it_data->second->getSize(); ++s) {
-	surface_ids.insert((*it_data->second)(s));
-      }
-    }
-  }
-
-  nb_surfaces = surface_ids.size();
-}
-
+///* -------------------------------------------------------------------------- */
+//void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
+//
+//  std::set<Surface> surface_ids;
+//
+//  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+//    GhostType gt = (GhostType) g;
+//
+//    Mesh::type_iterator it  = firstType(spatial_dimension - 1, gt);
+//    Mesh::type_iterator end = lastType(spatial_dimension - 1, gt);
+//    for(; it != end; ++it) {
+//      UIntDataMap & map = uint_data(*it, gt);
+//      UIntDataMap::iterator it_data = map.find(data_name);
+//      AKANTU_DEBUG_ASSERT(it_data != map.end(),
+//			  "No data named " << data_name
+//			  << " present in the mesh " << id
+//			  << " for the element type " << *it);
+//      AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
+//			  "Surface id for type (" << gt << ":" << *it
+//			  << ") already set to the vector " << surface_id(*it, gt).getID());
+//
+//      surface_id.setArray(*it, gt, *it_data->second);
+//
+//      for (UInt s = 0; s < it_data->second->getSize(); ++s) {
+//	surface_ids.insert((*it_data->second)(s));
+//      }
+//    }
+//  }
+//
+//  nb_surfaces = surface_ids.size();
+//}
+//
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

@@ -388,13 +388,14 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
   //  bool end = false;
   //  bool end_range = false;
   std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << 0;
+
   //Array<UInt> * data = mesh.getUIntDataPointer(akantu_type, sstr_tag_name.str());
 
   Mesh::type_iterator it  = mesh.firstType();
   Mesh::type_iterator end = mesh.lastType();
   for(; it != end; ++it) {
     UInt nb_element = mesh.getNbElement(*it);
-    mesh.getUIntDataPointer(*it, "material", _not_ghost)->resize(nb_element);
+    mesh.getDataPointer<UInt>(*it, "material", _not_ghost)->resize(nb_element);
   }
 
   my_getline(infile, line);
@@ -429,7 +430,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
 	Element & element = global_to_local_index[j - 1];
 	UInt elem = element.element;
 	ElementType type = element.type;
-	Array<UInt> & data = *(mesh.getUIntDataPointer(type, "material", _not_ghost));
+	Array<UInt> & data = *(mesh.getDataPointer<UInt>(type, "material", _not_ghost));
 	data(elem) = mat;
       }
 

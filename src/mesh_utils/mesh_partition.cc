@@ -247,17 +247,17 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
   MeshUtils::buildNode2Elements(mesh, node_to_elem);
 
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension,
-					   _not_ghost,
-					   _ek_not_defined);
+                                           _not_ghost,
+                                           _ek_not_defined);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension,
-					   _not_ghost,
-					   _ek_not_defined);
+                                          _not_ghost,
+                                          _ek_not_defined);
 
   UInt linearized_el = 0;
   for(; it != end; ++it) {
     ElementType type = *it;
 
-    UInt nb_element = mesh.getNbElement(*it);
+    UInt nb_element = mesh.getNbElement(type);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     partitions             .alloc(nb_element,     1, type, _not_ghost);
@@ -272,25 +272,25 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
       partitions(type, _not_ghost)(el) = part;
       std::list<UInt> list_adj_part;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	UInt node = connectivity.values[el * nb_nodes_per_element + n];
-	CSR<UInt>::iterator ne;
-	for (ne = node_to_elem.begin(node); ne != node_to_elem.end(node); ++ne) {
-	  UInt adj_el = *ne;
-	  UInt adj_part = linearized_partitions[adj_el];
-	  if(part != adj_part) {
-	    list_adj_part.push_back(adj_part);
-	  }
-	}
+        UInt node = connectivity.values[el * nb_nodes_per_element + n];
+        CSR<UInt>::iterator ne;
+        for (ne = node_to_elem.begin(node); ne != node_to_elem.end(node); ++ne) {
+          UInt adj_el = *ne;
+          UInt adj_part = linearized_partitions[adj_el];
+          if(part != adj_part) {
+            list_adj_part.push_back(adj_part);
+          }
+        }
       }
 
       list_adj_part.sort();
       list_adj_part.unique();
 
       for(std::list<UInt>::iterator adj_it = list_adj_part.begin();
-	  adj_it != list_adj_part.end();
-	  ++adj_it) {
-	ghost_partitions(type, _ghost).push_back(*adj_it);
-	ghost_partitions_offset(type, _ghost)(el)++;
+          adj_it != list_adj_part.end();
+          ++adj_it) {
+        ghost_partitions(type, _ghost).push_back(*adj_it);
+        ghost_partitions_offset(type, _ghost)(el)++;
       }
     }
 
@@ -303,6 +303,56 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
     ghost_partitions_offset_ptr(0) = 0;
   }
 
+  // Facets
+  Mesh::type_iterator fit  = mesh.firstType(spatial_dimension - 1,
+                                            _not_ghost,
+                                            _ek_not_defined);
+  Mesh::type_iterator fend = mesh.lastType(spatial_dimension - 1,
+                                          _not_ghost,
+                                          _ek_not_defined);
+
+  for(; fit != fend; ++fit) {
+    ElementType type = *fit;
+
+    UInt nb_element = mesh.getNbElement(type);
+
+    partitions             .alloc(nb_element,     1, type, _not_ghost);
+    ghost_partitions_offset.alloc(nb_element + 1, 1, type, _ghost);
+    ghost_partitions       .alloc(0,              1, type, _ghost);
+
+    const Array< std::vector<Element> > & elem_to_subelem = mesh.getElementToSubelement(type, _not_ghost);
+    for(UInt i(0); i<mesh.getNbElement(type, _not_ghost); ++i) { // Facet loop
+
+      const std::vector<Element> & adjacent_elems = elem_to_subelem(i);
+      Element min_elem;
+      UInt min_part(std::numeric_limits<UInt>::max());
+      std::set<UInt> adjacent_parts;
+
+      for(UInt j(0); j < adjacent_elems.size(); ++j) {
+        UInt adjacent_elem_id = adjacent_elems[j].element;
+        UInt adjacent_elem_part = partitions(adjacent_elems[j].type, adjacent_elems[j].ghost_type)(adjacent_elem_id);
+        if(adjacent_elem_part < min_part) {
+          min_part = adjacent_elem_part;
+          min_elem = adjacent_elems[j];
+        }
+        adjacent_parts.insert(adjacent_elem_part);
+      }
+      partitions(type, _not_ghost)(i) = min_part;
+      UInt ghost_part_begin = ghost_partitions_offset(min_elem.type, _ghost)(min_elem.element);
+      UInt ghost_part_end = ghost_partitions_offset(min_elem.type, _ghost)(min_elem.element + 1);
+      for(UInt g(ghost_part_begin); g < ghost_part_end; ++g) {
+        adjacent_parts.insert(ghost_partitions(min_elem.type, _ghost)(g));
+      }
+      adjacent_parts.erase(min_part);
+      std::set<UInt>::const_iterator pit = adjacent_parts.begin();
+      std::set<UInt>::const_iterator pend = adjacent_parts.end();
+      for(; pit != pend; ++pit) {
+        ghost_partitions(type, _ghost).push_back(*pit);
+      }
+      ghost_partitions_offset(type, _ghost)(i+1) = ghost_partitions_offset(type, _ghost)(i+1)
+                                                   + adjacent_elems.size();
+    }
+  }
   AKANTU_DEBUG_OUT();
 }
 

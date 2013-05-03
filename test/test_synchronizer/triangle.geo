@@ -18,9 +18,10 @@ Line(103) = {103,104}; // Bottom Face
 Line(104) = {104,101}; // Bottom Face
 
 // Base Cube
-Line Loop(101) = {101:104};
+Line Loop(110) = {101:104};
 
 // Base Cube
-Plane Surface(101) = {101};
+Plane Surface(111) = {110};
 
-Physical Surface(6) = {101};
+Physical Line("Perimeter") = {101,102,103,104};
+Physical Surface(51966) = {111};

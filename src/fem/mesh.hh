@@ -4,6 +4,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Dana Christen <dana.christen@epfl.ch>
  *
  * @date   Fri Jun 18 11:47:19 2010
  *
@@ -40,12 +41,15 @@
 #include "element_class.hh"
 #include "by_element_type.hh"
 #include "aka_event_handler.hh"
+#include "boundary.hh"
 
 /* -------------------------------------------------------------------------- */
 #include <set>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
+
+class SubBoundary;
 
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
@@ -109,6 +113,9 @@ struct CompElementLess {
   }
 };
 
+__END_AKANTU__
+#include "mesh_data.hh"
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -380,23 +387,16 @@ public:
   inline void getLocalLowerBounds(Real * lower) const;
   inline void getLocalUpperBounds(Real * upper) const;
 
-  /// get the number of surfaces
-  AKANTU_GET_MACRO(NbSurfaces, nb_surfaces, UInt);
-
   /// get the connectivity Array for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
   AKANTU_GET_MACRO(Connectivities, connectivities, const ByElementTypeArray<UInt> &);
 
-  /// @todo take out this set, if mesh can read surface id
-  /// set the number of surfaces
-  AKANTU_SET_MACRO(NbSurfaces, nb_surfaces, UInt);
-
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
 
   /// get the number of element for a given ghost_type and a given dimension
-  inline UInt getNbElement(const UInt spatial_dimension = 0, const GhostType & ghost_type = _not_ghost) const;
+  inline UInt getNbElement(const UInt spatial_dimension = _all_dimensions, const GhostType & ghost_type = _not_ghost) const;
 
   /// get the connectivity list either for the elements or the ghost elements
   inline const ConnectivityTypeList & getConnectivityTypeList(const GhostType & ghost_type = _not_ghost) const;
@@ -407,24 +407,58 @@ public:
   inline void getBarycenter(const Element & element, Vector<Real> & barycenter) const;
 
   /// get the element connected to a subelement
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementToSubelement, element_to_subelement, std::vector<Element>);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementToSubelement, element_to_subelement, std::vector<Element>);
+  const Array< std::vector<Element> > & getElementToSubelement(const ElementType & el_type,
+                                                               const GhostType & ghost_type = _not_ghost) const;
+  /// get the element connected to a subelement
+  Array< std::vector<Element> > & getElementToSubelement(const ElementType & el_type,
+                                                         const GhostType & ghost_type = _not_ghost);
 
   /// get the subelement connected to an element
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SubelementToElement, subelement_to_element, Element);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(SubelementToElement, subelement_to_element, Element);
-
-  /// get the surface values of facets
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(SurfaceID, surface_id, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(SurfaceID, surface_id, UInt);
-
-  /// set the int data to the surface id vectors
-  void setSurfaceIDsFromIntData(const std::string & data_name);
+  const Array<Element> & getSubelementToElement(const ElementType & el_type,
+                                                const GhostType & ghost_type = _not_ghost) const;
+  /// get the subelement connected to an element
+  Array<Element> & getSubelementToElement(const ElementType & el_type,
+                                          const GhostType & ghost_type = _not_ghost);
 
 
-  inline const Array<UInt> & getUIntData(const ElementType & el_type,
-					 const std::string & data_name,
-					 const GhostType & ghost_type = _not_ghost) const;
+  inline UInt getNbBoundaries() const;
+  inline const SubBoundary & getSubBoundary(const std::string & name) const;
+  inline SubBoundary & getSubBoundary(const std::string & name);
+
+  // // XXX TODO FIXME old prototype
+  // inline const Array<UInt> & getUIntData(const ElementType & el_type,
+  //                                        const std::string & data_name,
+  //                                        const GhostType & ghost_type = _not_ghost) const;
+
+  AKANTU_GET_MACRO(Boundary, boundaries, const Boundary &);
+  AKANTU_GET_MACRO_NOT_CONST(Boundary, boundaries, Boundary &);
+
+  /// get a name field associated to the mesh
+  template<typename T>
+  inline const Array<T> & getData(const ElementType & el_type,
+                                  const std::string & data_name,
+                                  const GhostType & ghost_type = _not_ghost) const;
+
+  /// get a name field associated to the mesh
+  template<typename T>
+  inline Array<T> & getData(const ElementType & el_type,
+                            const std::string & data_name,
+                            const GhostType & ghost_type = _not_ghost);
+
+  /// get a name field associated to the mesh
+  template<typename T>
+  inline const ByElementTypeArray<T> & getData(const std::string & data_name) const;
+
+  /// get a name field associated to the mesh
+  template<typename T>
+  inline ByElementTypeArray<T> & getData(const std::string & data_name);
+
+  /// templated getter returning the pointer to data in MeshData (modifiable)
+  template<typename T>
+  inline Array<T> * getDataPointer(const ElementType & el_type,
+                                   const std::string & data_name,
+                                   const GhostType & ghost_type = _not_ghost,
+                                   UInt nb_component = 1);
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -460,13 +494,13 @@ public:
   /* ------------------------------------------------------------------------ */
   typedef ByElementTypeArray<UInt, ElementType>::type_iterator type_iterator;
 
-  inline type_iterator firstType(UInt dim = 0,
+  inline type_iterator firstType(UInt dim = _all_dimensions,
 				 GhostType ghost_type = _not_ghost,
 				 ElementKind kind = _ek_regular) const {
     return connectivities.firstType(dim, ghost_type, kind);
   }
 
-  inline type_iterator lastType(UInt dim = 0,
+  inline type_iterator lastType(UInt dim = _all_dimensions,
 				GhostType ghost_type = _not_ghost,
 				ElementKind kind = _ek_regular) const {
     return connectivities.lastType(dim, ghost_type, kind);
@@ -496,36 +530,17 @@ private:
   inline Array<UInt> * getConnectivityPointer(const ElementType & type,
 					      const GhostType & ghost_type = _not_ghost);
 
-  /// get the pointer to the list of elements for a given type
-  //  inline Array<UInt> * getReversedElementsPBCPointer(const ElementType & type);
 
-  // inline Array<Real> * getNormalsPointer(ElementType type) const;
-
-  /// get a pointer to the surface_id Array for the given type and create it if necessary
-  inline Array<UInt> * getSurfaceIDPointer(const ElementType & type, const GhostType & ghost_type = _not_ghost);
-
-  /// get the UIntDataMap for a given ElementType
-  inline UIntDataMap & getUIntDataMap(const ElementType & el_type,
-				      const GhostType & ghost_type = _not_ghost);
-
-  // temporary since everything is supposed to change next week
-public:
-
-  /// get the IntDataMap pointer (modifyable) for a given ElementType
-  inline Array<UInt> * getUIntDataPointer(const ElementType & el_type,
-					  const std::string & data_name,
-					  const GhostType & ghost_type = _not_ghost);
-
-  // if it did not changed THAT week it is not MY fault
-private:
 
   /// get a pointer to the element_to_subelement Array for the given type and create it if necessary
   inline Array< std::vector<Element> > * getElementToSubelementPointer(const ElementType & type,
-								       const GhostType & ghost_type = _not_ghost);
+                                                                       const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the subelement_to_element Array for the given type and create it if necessary
   inline Array<Element > * getSubelementToElementPointer(const ElementType & type,
 							 const GhostType & ghost_type = _not_ghost);
+
+  AKANTU_GET_MACRO_NOT_CONST(MeshData, mesh_data, MeshData &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -570,12 +585,6 @@ private:
   /// ghost types offsets
   Array<UInt> ghost_types_offsets;
 
-  /// number of surfaces present in this mesh
-  UInt nb_surfaces;
-
-  /// surface id of the surface elements in this mesh
-  ByElementTypeUInt surface_id;
-
   /// min of coordinates
   Real lower_bounds[3];
   /// max of coordinates
@@ -588,19 +597,11 @@ private:
   /// local max of coordinates
   Real local_upper_bounds[3];
 
-  /// List of elements connected to subelements
-  ByElementTypeArray< std::vector<Element> > element_to_subelement;
+  /// Extra data loaded from the mesh file
+  MeshData mesh_data;
 
-  /// List of subelements connected to elements
-  ByElementTypeArray<Element > subelement_to_element;
-
-  // /// list of elements that are reversed due to pbc
-  // ByElementTypeUInt reversed_elements_pbc;
-  // /// direction in which pbc are to be applied
-  // UInt pbc_directions[3];
-
-  /// list of the vectors corresponding to tags in the mesh
-  ByElementTypeUIntDataMap uint_data;
+  /// List of boundaries either read from the mesh file or created directly
+  Boundary boundaries;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -38,33 +38,32 @@
 
 __BEGIN_AKANTU__
 
-
-/* -------------------------------------------------------------------------- */
-class WarppingSurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
-public:
-  WarppingSurfaceLoadFunctor(BoundaryFunction function) : function(function) {}
-
-  void traction(const Vector<Real> & position,
-		Vector<Real> & force,
-		const Vector<Real> & normal,
-		Surface surface_id) {
-    function(position.storage(),
-	     force.storage(),
-	     normal.storage(),
-	     surface_id);
-  }
-  void stress(const Vector<Real> & position,
-	      Matrix<Real> & stress,
-	      const Vector<Real> & normal,
-	      Surface surface_id) {
-    function(position.storage(),
-	     stress.storage(),
-	     normal.storage(),
-	     surface_id);
-  }
-private:
-  BoundaryFunction function;
-};
+// XXX TODO FIXME delete this
+//class WarppingSurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
+//public:
+//  WarppingSurfaceLoadFunctor(BoundaryFunction function) : function(function) {}
+//
+//  void traction(const Vector<Real> & position,
+//		Vector<Real> & force,
+//		const Vector<Real> & normal,
+//		Surface surface_id) {
+//    function(position.storage(),
+//	     force.storage(),
+//	     normal.storage(),
+//	     surface_id);
+//  }
+//  void stress(const Vector<Real> & position,
+//	      Matrix<Real> & stress,
+//	      const Vector<Real> & normal,
+//	      Surface surface_id) {
+//    function(position.storage(),
+//	     stress.storage(),
+//	     normal.storage(),
+//	     surface_id);
+//  }
+//private:
+//  BoundaryFunction function;
+//};
 
 /**
  * @param myf pointer  to a function that fills a  vector/tensor with respect to
@@ -72,13 +71,14 @@ private:
  * @param function_type  flag to  specify the take  of function:  _bft_stress is
  * tensor like and _bft_forces is traction like.
  */
-void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction function,
-						    BoundaryFunctionType function_type){
-  WarppingSurfaceLoadFunctor functor(function);
-  computeForcesFromFunction(functor, function_type);
-}
+//void SolidMechanicsModel::computeForcesFromFunction(BoundaryFunction function,
+//						    BoundaryFunctionType function_type){
+//  WarppingSurfaceLoadFunctor functor(function);
+//  computeForcesFromFunction(functor, function_type);
+//}
 
 /* -------------------------------------------------------------------------- */
+
 void SolidMechanicsModel::computeForcesByStressTensor(const Array<Real> & stresses,
 						      const ElementType & type,
 						      const GhostType & ghost_type){

@@ -40,7 +40,7 @@
 #include "communication_buffer.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
+#  include "dumper_paraview.hh"
 
 #endif //AKANTU_USE_IOHELPER
 
@@ -91,6 +91,7 @@ protected:
 };
 
 
+
 /* -------------------------------------------------------------------------- */
 /* TestSynchronizer implementation                                            */
 /* -------------------------------------------------------------------------- */
@@ -116,7 +117,11 @@ TestAccessor::~TestAccessor() {
 
 UInt TestAccessor::getNbDataForElements(const Array<Element> & elements,
 					__attribute__ ((unused)) SynchronizationTag tag) const {
-  return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
+  if(elements.getSize() > 0) {
+    return Mesh::getSpatialDimension(elements(0).type) * sizeof(Real) * elements.getSize();
+  } else {
+    return 0;
+  }
 }
 
 void TestAccessor::packElementData(CommunicationBuffer & buffer,
@@ -182,20 +187,85 @@ int main(int argc, char *argv[])
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
+  bool wait=true;
+  if(argc >1) {
+    if(prank == 0)
+    while(wait);
+  }
 
   DistributedSynchronizer * communicator;
   if(prank == 0) {
     MeshIOMSH mesh_io;
-    mesh_io.read("triangle.msh", mesh);
+    mesh_io.read("cube.msh", mesh);
+
+    Mesh::type_iterator it = mesh.firstType();
+    Mesh::type_iterator last_type = mesh.lastType();
+
+    ByElementTypeReal barycenters("", "", 0);
+    mesh.initByElementTypeArray(barycenters, dim, dim);
+
+    GhostType ghost_type = _not_ghost;
+
+    for(; it != last_type; ++it) {
+      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>(*it, "barycenters", ghost_type, dim);
+      Array<Real>::iterator< Vector<Real> > mesh_data_array_it = mesh_data_array.begin(dim);
+
+      UInt nb_element = mesh.getNbElement(*it, ghost_type);
+      Array<Real> & barycenter = barycenters(*it, ghost_type);
+      barycenter.resize(nb_element);
+      Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(dim);
+
+      for (UInt elem = 0; elem < nb_element; ++elem) {
+        mesh.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
+        mesh.getBarycenter(elem, *it, mesh_data_array_it->storage(), ghost_type);
+        ++bary_it;
+        ++mesh_data_array_it;
+      }
+      debug::setDebugLevel(dblDump);
+      std::cout << "Mesh Data barycenters (type "<< *it << ") :" << std::endl;
+      std::cout << mesh_data_array;
+      debug::setDebugLevel(dblInfo);
+    }
+
     MeshPartition * partition = new MeshPartitionScotch(mesh, dim);
     partition->partitionate(psize);
     communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, partition);
     delete partition;
+
   } else {
     communicator = DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL);
   }
 
-  comm.barrier();
+    // Checking if the barycenters of the partitioned elements match the ones in the partitioned MeshData
+    Mesh::type_iterator tit = mesh.firstType();
+    Mesh::type_iterator last_type = mesh.lastType();
+
+    ByElementTypeReal barycenters("", "", 0);
+    mesh.initByElementTypeArray(barycenters, dim, dim);
+
+    GhostType ghost_type = _not_ghost;
+    for(; tit != last_type; ++tit) {
+      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>(*tit, "barycenters", ghost_type, dim);
+      Array<Real>::iterator< Vector<Real> > mesh_data_array_it = mesh_data_array.begin(dim);
+
+      UInt nb_element = mesh.getNbElement(*tit, ghost_type);
+      Array<Real> & barycenter = barycenters(*tit, ghost_type);
+      barycenter.resize(nb_element);
+      Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(dim);
+      UInt nb_component = barycenter.getNbComponent();
+      for (UInt elem = 0; elem < nb_element; ++elem) {
+        mesh.getBarycenter(elem, *tit, bary_it->storage(), ghost_type);
+        for(UInt k(0); k < nb_component; ++k) {
+          AKANTU_DEBUG_ASSERT(bary_it->operator()(k) == mesh_data_array_it->operator()(k), "Barycenter doesn't match the value in MeshData. Calculated one is: " << *bary_it << " while Mesh Data has: " << *mesh_data_array_it);
+        }
+        ++bary_it;
+        ++mesh_data_array_it;
+      }
+      debug::setDebugLevel(dblTest);
+      std::cout << "Mesh Data barycenters (type "<< *tit << ") :" << std::endl;
+      std::cout << mesh_data_array;
+      debug::setDebugLevel(dblInfo);
+    }
 
   AKANTU_DEBUG_INFO("Creating TestAccessor");
   TestAccessor test_accessor(mesh);
@@ -205,21 +275,20 @@ int main(int argc, char *argv[])
   AKANTU_DEBUG_INFO("Synchronizing tag");
   synch_registry.synchronize(_gst_test);
 
+  // Checking the  ghost barycenters
+  tit = mesh.firstType(_all_dimensions, _ghost);
+  last_type = mesh.lastType(_all_dimensions, _ghost);
 
-  Mesh::ConnectivityTypeList::const_iterator it;
-  const Mesh::ConnectivityTypeList & ghost_type_list = mesh.getConnectivityTypeList(_ghost);
-  for(it = ghost_type_list.begin(); it != ghost_type_list.end(); ++it) {
-    if(Mesh::getSpatialDimension(*it) != mesh.getSpatialDimension()) continue;
-
-    UInt spatial_dimension = Mesh::getSpatialDimension(*it);
-    UInt nb_ghost_element = mesh.getNbElement(*it,_ghost);
+  for(; tit != last_type; ++tit) {
+    UInt spatial_dimension = Mesh::getSpatialDimension(*tit);
+    UInt nb_ghost_element = mesh.getNbElement(*tit,_ghost);
 
     for (UInt el = 0; el < nb_ghost_element; ++el) {
       Real barycenter[spatial_dimension];
-      mesh.getBarycenter(el, *it, barycenter, _ghost);
+      mesh.getBarycenter(el, *tit, barycenter, _ghost);
 
       for (UInt i = 0; i < spatial_dimension; ++i) {
-	if(fabs(barycenter[i] - test_accessor.getGhostBarycenter(*it).values[el * spatial_dimension + i])
+	if(fabs(barycenter[i] - test_accessor.getGhostBarycenter(*tit).values[el * spatial_dimension + i])
 	   > std::numeric_limits<Real>::epsilon())
 	  AKANTU_DEBUG_ERROR("The barycenter of ghost element " << el
 			     << " on proc " << prank
@@ -227,49 +296,36 @@ int main(int argc, char *argv[])
       }
     }
   }
-
+  // Checking the tags in MeshData (not a very good test because they're all identical,
+  // but still...)
+  Array<UInt> & tags = mesh.getData<UInt>(type, "tag_0");
+  Array<UInt>::const_iterator< Vector<UInt> > tags_it = tags.begin(1);
+  Array<UInt>::const_iterator< Vector<UInt> > tags_end = tags.end(1);
+  AKANTU_DEBUG_ASSERT(mesh.getNbElement(type) == tags.getSize(),
+                      "The number of tags does not match the number of elements on rank " << prank << ".");
+  std::cout << " I am rank " << prank << " and here's my MeshData dump (it should contain " << mesh.getNbElement(type) << " elements and it has " << tags.getSize() << "!) :" << std::endl;
+  std::cout << std::hex;
+  debug::setDebugLevel(dblTest);
+  for(; tags_it != tags_end; ++tags_it) {
+    //AKANTU_DEBUG_ASSERT(*tags_it == 1, "The tag does not match the expected value on rank " << prank << " (got " << *tags_it << " instead.");
+    std::cout << tags_it->operator()(0) << " ";
+  }
+  debug::setDebugLevel(dblInfo);
+  std::cout << std::endl;
 
 #ifdef AKANTU_USE_IOHELPER
-  unsigned int nb_nodes = mesh.getNbNodes();
-  unsigned int nb_element = mesh.getNbElement(type);
-
-  iohelper::DumperParaview dumper;
-  dumper.setMode(iohelper::TEXT);
-  dumper.setParallelContext(prank, psize);
-  dumper.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition");
-  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
-   			 iohelper::TRIANGLE1, nb_element, iohelper::C_MODE);
-  double * part = new double[nb_element];
-  for (unsigned int i = 0; i < nb_element; ++i)
-    part[i] = prank;
-  dumper.addElemDataField("partitions", part, 1, nb_element);
-  dumper.setPrefix("paraview/");
-  dumper.init();
+  DumperParaview dumper("test-scotch-partition");
+  dumper.registerMesh(mesh, _all_dimensions, _not_ghost);
+  dumper.registerField("partitions", new DumperIOHelper::ElementPartitionField<>(mesh, _all_dimensions, _not_ghost));
   dumper.dump();
 
-  delete [] part;
-
-  unsigned int nb_ghost_element = mesh.getNbElement(type,_ghost);
-  iohelper::DumperParaview dumper_ghost;
-  dumper_ghost.setMode(iohelper::TEXT);
-  dumper_ghost.setParallelContext(prank, psize);
-  dumper_ghost.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-scotch-partition_ghost");
-  dumper_ghost.setConnectivity((int*) mesh.getConnectivity(type,_ghost).values,
-   			 iohelper::TRIANGLE1, nb_ghost_element, iohelper::C_MODE);
-  part = new double[nb_ghost_element];
-  for (unsigned int i = 0; i < nb_ghost_element; ++i)
-    part[i] = prank;
-
-  dumper_ghost.addElemDataField("partitions", part, 1, nb_ghost_element);
-  dumper_ghost.setPrefix("paraview/");
-  dumper_ghost.init();
+  DumperParaview dumper_ghost("test-scotch-partition-ghost");
+  dumper_ghost.registerMesh(mesh, _all_dimensions, _ghost);
+  dumper_ghost.registerField("partitions", new DumperIOHelper::ElementPartitionField<>(mesh, _all_dimensions, _ghost));
   dumper_ghost.dump();
 
-  delete [] part;
-
-
 #endif //AKANTU_USE_IOHELPER
-
+  delete communicator;
   finalize();
 
   return EXIT_SUCCESS;

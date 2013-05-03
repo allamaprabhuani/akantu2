@@ -29,24 +29,27 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "aka_vector.hh"
 
 #ifndef __AKANTU_COMMUNICATION_BUFFER_HH__
 #define __AKANTU_COMMUNICATION_BUFFER_HH__
 
 __BEGIN_AKANTU__
 
-class CommunicationBuffer {
+template<bool is_static = true>
+class CommunicationBufferTemplated {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  CommunicationBuffer(UInt size = 0) : buffer(size, 1) {
-    ptr_pack = buffer.values;
-    ptr_unpack = buffer.values;
+  CommunicationBufferTemplated(UInt size = 0) : buffer(size, 1) {
+    ptr_pack = buffer.storage();
+    ptr_unpack = buffer.storage();
   };
 
-  virtual ~CommunicationBuffer() {};
+  virtual ~CommunicationBufferTemplated() {};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -61,6 +64,9 @@ public:
 
   /// clear buffer context
   inline void clear();
+
+private:
+  inline void packResize(UInt size);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -79,35 +85,51 @@ public:
 
   /// packing data
   template<typename T>
-  inline CommunicationBuffer & operator<< (const T & to_pack);
+  inline CommunicationBufferTemplated & operator<< (const T & to_pack);
 
   template<typename T>
-  inline CommunicationBuffer & operator<< (const Vector<T> & to_pack);
+  inline CommunicationBufferTemplated & operator<< (const Vector<T> & to_pack);
 
   template<typename T>
-  inline CommunicationBuffer & operator<< (const Matrix<T> & to_pack);
+  inline CommunicationBufferTemplated & operator<< (const Matrix<T> & to_pack);
 
+  template<typename T>
+  inline CommunicationBufferTemplated & operator<< (const std::vector<T> & to_pack);
 
   /// unpacking data
   template<typename T>
-  inline CommunicationBuffer & operator>> (T & to_unpack);
+  inline CommunicationBufferTemplated & operator>> (T & to_unpack);
 
   template<typename T>
-  inline CommunicationBuffer & operator>> (Vector<T> & to_unpack);
+  inline CommunicationBufferTemplated & operator>> (Vector<T> & to_unpack);
 
   template<typename T>
-  inline CommunicationBuffer & operator>> (Matrix<T> & to_unpack);
+  inline CommunicationBufferTemplated & operator>> (Matrix<T> & to_unpack);
+
+  template<typename T>
+  inline CommunicationBufferTemplated & operator>> (std::vector<T> & to_unpack);
+
+  inline CommunicationBufferTemplated & operator<< (const std::string & to_pack);
+  inline CommunicationBufferTemplated & operator>> (std::string & to_unpack);
+
+private:
+
+  template<typename T>
+  inline void packIterable (T & to_pack);
+
+  template<typename T>
+  inline void unpackIterable (T & to_pack);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
-
+public:
   /// return the size in bytes of the stored values
-  inline UInt getPackedSize(){ return ptr_pack - buffer.values; }; 
+  inline UInt getPackedSize(){ return ptr_pack - buffer.values; };
   /// return the size in bytes of data left to be unpacked
-  inline UInt getLeftToUnpack(){ return buffer.getSize() - (ptr_unpack - buffer.values); }; 
+  inline UInt getLeftToUnpack(){ return buffer.getSize() - (ptr_unpack - buffer.values); };
   /// return the global size allocated
-  inline UInt getSize(){ return buffer.getSize(); }; 
+  inline UInt getSize(){ return buffer.getSize(); };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -132,6 +154,9 @@ private:
 #if defined (AKANTU_INCLUDE_INLINE_IMPL)
 #  include "communication_buffer_inline_impl.cc"
 #endif
+
+typedef CommunicationBufferTemplated<true> CommunicationBuffer;
+typedef CommunicationBufferTemplated<false> DynamicCommunicationBuffer;
 
 
 __END_AKANTU__

@@ -67,6 +67,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
                                          const ID & id,
                                          const MemoryID & memory_id) :
   Model(mesh, id, memory_id), Dumpable<DumperParaview>(id),
+  BoundaryCondition<SolidMechanicsModel>(),
   time_step(NAN), f_m2a(1.0),
   mass_matrix(NULL),
   velocity_damping_matrix(NULL),
@@ -82,7 +83,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   createSynchronizerRegistry(this);
 
-  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+  if (spatial_dimension == _all_dimensions) spatial_dimension = mesh.getSpatialDimension();
   registerFEMObject<MyFEMType>("SolidMechanicsFEM", mesh, spatial_dimension);
 
   this->displacement = NULL;
@@ -218,10 +219,7 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initFEMBoundary(bool create_surface) {
-
-  if(create_surface)
-    MeshUtils::buildFacets(mesh);
+void SolidMechanicsModel::initFEMBoundary() {
 
   FEM & fem_boundary = getFEMBoundary();
   fem_boundary.initShapeFunctions();
@@ -301,6 +299,8 @@ void SolidMechanicsModel::initArrays() {
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
   dof_synchronizer->initLocalDOFEquationNumbers();
   dof_synchronizer->initGlobalDOFEquationNumbers();
+
+  initBC(*this, *displacement, *force);
 
   AKANTU_DEBUG_OUT();
 }
@@ -1410,13 +1410,13 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
-  else if(field_id == "increment"    ) { ADD_FIELD(increment    , Real); }
+  else if(field_id == "increment"   ) { ADD_FIELD(increment    , Real); }
   else if(field_id == "partitions"  ) {
     addDumpFieldToDumper(field_id,
-                         new DumperIOHelper::ElementPartitionField(mesh,
-                                                                   spatial_dimension,
-                                                                   _not_ghost,
-                                                                   _ek_regular));
+			 new DumperIOHelper::ElementPartitionField<>(mesh,
+								   spatial_dimension,
+								   _not_ghost,
+								   _ek_regular));
   }
   else if(field_id == "element_index_by_material") {
     addDumpFieldToDumper(field_id,
@@ -1432,6 +1432,59 @@ void SolidMechanicsModel::addDumpField(const std::string & field_id) {
                                                                                                      spatial_dimension,
                                                                                                      _not_ghost,
                                                                                                      _ek_regular));
+  }
+#undef ADD_FIELD
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpBoundaryField(const std::string & field_id,
+                                               const std::string & boundary_name) {
+  SubBoundary & boundary_ref = mesh.getSubBoundary(boundary_name);
+  const Array<UInt> * nodal_filter = &(boundary_ref.getNodes());
+  const ByElementTypeArray<UInt> * elemental_filter = &(boundary_ref.getElements());
+
+#ifdef AKANTU_USE_IOHELPER
+#define ADD_FIELD(field, type)						\
+  boundary_ref.registerField(BOOST_PP_STRINGIZE(field),			\
+     new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter))
+
+  if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
+  else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
+  else if(field_id == "velocity"    ) { ADD_FIELD(velocity    , Real); }
+  else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
+  else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
+  else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
+  else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
+  else if(field_id == "partitions"  ) {
+    boundary_ref.registerField(field_id,
+			 new DumperIOHelper::ElementPartitionField<true>(mesh,
+								   spatial_dimension,
+								   _not_ghost,
+								   _ek_regular,
+                   elemental_filter));
+  }
+  else if(field_id == "element_index_by_material") {
+    boundary_ref.registerField(field_id,
+			 new DumperIOHelper::ElementalField<UInt, Vector, true>(element_index_by_material,
+								  spatial_dimension,
+								  _not_ghost,
+								  _ek_regular,
+                  elemental_filter));
+  } else {
+    boundary_ref.registerField(field_id,
+			 new DumperIOHelper::HomogenizedField<Real,
+							      DumperIOHelper::InternalMaterialField,
+                    DumperIOHelper::internal_material_field_iterator,
+                    DumperIOHelper::AvgHomogenizingFunctor,
+                    Vector,
+                    true>(*this,
+												     field_id,
+												     spatial_dimension,
+												     _not_ghost,
+												     _ek_regular,
+                             elemental_filter));
   }
 #undef ADD_FIELD
 #endif
@@ -1454,7 +1507,7 @@ void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else {
     typedef DumperIOHelper::HomogenizedField<Real,
-                                             DumperIOHelper::InternalMaterialField> Field;
+                    DumperIOHelper::InternalMaterialField> Field;
     Field * field = new Field(*this,
                               field_id,
                               spatial_dimension,
@@ -1463,6 +1516,48 @@ void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
                               _ek_regular);
     field->setPadding(3);
     addDumpFieldToDumper(field_id, field);
+  }
+#undef ADD_FIELD
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::addDumpBoundaryFieldVector(const std::string & field_id,
+                                                     const std::string & boundary_name) {
+
+  SubBoundary & boundary_ref = mesh.getSubBoundary(boundary_name);
+  const Array<UInt> * nodal_filter = &(boundary_ref.getNodes());
+  const ByElementTypeArray<UInt> * elemental_filter = &(boundary_ref.getElements());
+
+#ifdef AKANTU_USE_IOHELPER
+#define ADD_FIELD(field, type)						\
+  DumperIOHelper::Field * f =						\
+    new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter);			\
+  f->setPadding(3);							\
+  boundary_ref.registerField(BOOST_PP_STRINGIZE(field), f)
+
+  if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
+  else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
+  else if(field_id == "velocity"    ) { ADD_FIELD(velocity    , Real); }
+  else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
+  else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
+  else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else {
+    typedef DumperIOHelper::HomogenizedField<Real,
+                    DumperIOHelper::InternalMaterialField,
+                    DumperIOHelper::internal_material_field_iterator,
+                    DumperIOHelper::AvgHomogenizingFunctor,
+                    Vector,
+                    true> Field;
+    Field * field = new Field(*this,
+			      field_id,
+			      spatial_dimension,
+			      spatial_dimension,
+			      _not_ghost,
+			      _ek_regular,
+            elemental_filter);
+    field->setPadding(3);
+    boundary_ref.registerField(field_id, field);
   }
 #undef ADD_FIELD
 #endif
@@ -1517,7 +1612,6 @@ void SolidMechanicsModel::addDumpFieldTensor(const std::string & field_id) {
   }
 #endif
 }
-
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {

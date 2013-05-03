@@ -41,6 +41,7 @@ __BEGIN_AKANTU__
 
 #ifdef AKANTU_USE_IOHELPER
 
+
 template<class Dumper>
 class Dumpable {
   /* ------------------------------------------------------------------------ */
@@ -48,14 +49,14 @@ class Dumpable {
   /* ------------------------------------------------------------------------ */
 public:
 
-  Dumpable(const std::string & filename) : dumper(filename) {};
+  Dumpable(const std::string & filename) : dumper(filename) { };
   virtual ~Dumpable() { };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = 0,
+  void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 		   const GhostType & ghost_type = _not_ghost,
 		   const ElementKind & element_kind = _ek_not_defined) {
     dumper.registerMesh(mesh,
@@ -64,9 +65,21 @@ public:
 			element_kind);
   }
 
+  void addDumpBoundary(const Mesh & mesh,
+       const SubBoundary & boundary,
+       UInt spatial_dimension = _all_dimensions,
+		   const GhostType & ghost_type = _not_ghost,
+		   const ElementKind & element_kind = _ek_not_defined) {
+    dumper.registerBoundary(mesh,
+      boundary,
+			spatial_dimension,
+			ghost_type,
+			element_kind);
+  }
+
   virtual void addDumpField(const std::string & field_id) {
     AKANTU_DEBUG_TO_IMPLEMENT();
-  }
+  };
 
   virtual void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
 				    __attribute__((unused)) DumperIOHelper::Field * field) {
@@ -82,7 +95,7 @@ public:
   template<typename T>
   void addDumpFieldExternal(const std::string & field_id,
 			    const ByElementTypeArray<T> & field,
-			    UInt spatial_dimension = 0,
+			    UInt spatial_dimension = _all_dimensions,
 			    const GhostType & ghost_type = _not_ghost,
 			    const ElementKind & element_kind = _ek_not_defined) {
     DumperIOHelper::Field * field_cont = new DumperIOHelper::ElementalField<T>(field,
@@ -108,7 +121,6 @@ public:
   void dump() {
     dumper.dump();
   }
-
 
 protected:
   void addDumpFieldToDumper(const std::string & field_id, DumperIOHelper::Field * field) {
@@ -160,7 +172,7 @@ public:
 public:
 
   void addDumpMesh(__attribute__((unused)) const Mesh & mesh,
-		   __attribute__((unused)) UInt spatial_dimension = 0,
+		   __attribute__((unused)) UInt spatial_dimension = _all_dimensions,
 		   __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
 		   __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
   }
@@ -180,7 +192,7 @@ public:
   template<typename T>
   void addDumpFieldExternal(__attribute__((unused)) const std::string & field_id,
 			    __attribute__((unused)) const ByElementTypeArray<T> & field,
-			    __attribute__((unused)) UInt spatial_dimension = 0,
+			    __attribute__((unused)) UInt spatial_dimension = _all_dimensions,
 			    __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
 			    __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");

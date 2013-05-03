@@ -3,6 +3,7 @@
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Dana Christen <dana.christen@epfl.ch>
  *
  * @date   Thu Nov 24 09:36:33 2011
  *
@@ -73,94 +74,96 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
   return materials.size();;
 }
 
-/* -------------------------------------------------------------------------- */
-template<class Functor>
-void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
-						    BoundaryFunctionType function_type) {
-  /** function type is
-   ** _bft_forces : traction function is given
-   ** _bft_stress : stress function is given
-   */
-  GhostType ghost_type = _not_ghost;
+/* --------------------------------------------------------------------------*/
+//template<class Functor>
+//void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
+						    //BoundaryFunctionType function_type) {
+  ///** function type is
+   //** _bft_forces : traction function is given
+   //** _bft_stress : stress function is given
+   //*/
+  //GhostType ghost_type = _not_ghost;
 
-  UInt nb_component = 0;
-  switch(function_type) {
-  case _bft_stress: nb_component = spatial_dimension * spatial_dimension; break;
-  case _bft_traction: nb_component = spatial_dimension; break;
-  default: break;
-  }
+  //UInt nb_component = 0;
+  //switch(function_type) {
+  //case _bft_stress: nb_component = spatial_dimension * spatial_dimension; break;
+  //case _bft_traction: nb_component = spatial_dimension; break;
+  //default: break;
+  //}
 
-  Array<Real> funct(0, nb_component, "traction_stress");
-  Array<Real> quad_coords(0, spatial_dimension, "quad_coords");
+  //Array<Real> funct(0, nb_component, "traction_stress");
+  //Array<Real> quad_coords(0, spatial_dimension, "quad_coords");
 
-  //prepare the loop over element types
-  Mesh::type_iterator it  = getFEMBoundary().getMesh().firstType(getFEMBoundary().getElementDimension(),
-								 ghost_type);
-  Mesh::type_iterator end = getFEMBoundary().getMesh().lastType(getFEMBoundary().getElementDimension(),
-								ghost_type);
-  for(; it != end; ++it) {
+  ////prepare the loop over element types
+  //Mesh::type_iterator it  = getFEMBoundary().getMesh().firstType(getFEMBoundary().getElementDimension(),
+								 //ghost_type);
+  //Mesh::type_iterator end = getFEMBoundary().getMesh().lastType(getFEMBoundary().getElementDimension(),
+								//ghost_type);
 
-    UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
-    UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
+  //for(; it != end; ++it) {
 
-    funct.resize(nb_element * nb_quad);
-    quad_coords.resize(nb_element * nb_quad);
+    //UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
+    //UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
 
-    const Array<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
+    //funct.resize(nb_element * nb_quad);
+    //quad_coords.resize(nb_element * nb_quad);
 
-    getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
-						   quad_coords, spatial_dimension, *it, ghost_type);
+    //const Array<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
 
-    Array<Real>::const_iterator< Vector<Real> > normals = normals_on_quad.begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > qcoord  = quad_coords.begin(spatial_dimension);
+    //getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
+						   //quad_coords, spatial_dimension, *it, ghost_type);
+
+    //Array<Real>::const_iterator< Vector<Real> > normals = normals_on_quad.begin(spatial_dimension);
+    //Array<Real>::iterator< Vector<Real> > qcoord  = quad_coords.begin(spatial_dimension);
 
 
-    Array<UInt>::iterator< UInt > surface_id;
-    bool has_surface_id;
-    try {
-      surface_id = mesh.getSurfaceID(*it, ghost_type).begin();
-      has_surface_id = true;
-    } catch (...) {
-      has_surface_id = false;
-    }
+    //Array<UInt>::iterator< UInt > surface_id;
+    //bool has_surface_id;
+    //// XXX TODO FIXME
+////    try {
+////      surface_id = mesh.getSurfaceID(*it, ghost_type).begin();
+////      has_surface_id = true;
+////    } catch (...) {
+////      has_surface_id = false;
+////    }
+////
+    //if(function_type == _bft_stress) {
+      //Array<Real>::iterator< Matrix<Real> > stress = funct.begin(spatial_dimension, spatial_dimension);
 
-    if(function_type == _bft_stress) {
-      Array<Real>::iterator< Matrix<Real> > stress = funct.begin(spatial_dimension, spatial_dimension);
+      //for (UInt el = 0; el < nb_element; ++el) {
+	      //Surface surf_id = 0;
+	      //if(has_surface_id) {
+	        //surf_id = *surface_id;
+	        //++surface_id;
+	      //}
+	      //for (UInt q = 0; q < nb_quad; ++q, ++stress, ++qcoord, ++normals) {
+	        //functor.stress(*qcoord, *stress, *normals, surf_id);
+	      //}
+      //}
+    //} else if (function_type == _bft_traction) {
+      //Array<Real>::iterator< Vector<Real> > force = funct.begin(spatial_dimension);
 
-      for (UInt el = 0; el < nb_element; ++el) {
-	Surface surf_id = 0;
-	if(has_surface_id) {
-	  surf_id = *surface_id;
-	  ++surface_id;
-	}
-	for (UInt q = 0; q < nb_quad; ++q, ++stress, ++qcoord, ++normals) {
-	  functor.stress(*qcoord, *stress, *normals, surf_id);
-	}
-      }
-    } else if (function_type == _bft_traction) {
-      Array<Real>::iterator< Vector<Real> > force = funct.begin(spatial_dimension);
+      //for (UInt el = 0; el < nb_element; ++el) {
+	//Surface surf_id = 0;
+	//if(has_surface_id) {
+	  //surf_id = *surface_id;
+	  //++surface_id;
+	//}
+	//for (UInt q = 0; q < nb_quad; ++q, ++force, ++qcoord, ++normals) {
+	  //functor.traction(*qcoord, *force, *normals, surf_id);
+	//}
+      //}
+    //}
 
-      for (UInt el = 0; el < nb_element; ++el) {
-	Surface surf_id = 0;
-	if(has_surface_id) {
-	  surf_id = *surface_id;
-	  ++surface_id;
-	}
-	for (UInt q = 0; q < nb_quad; ++q, ++force, ++qcoord, ++normals) {
-	  functor.traction(*qcoord, *force, *normals, surf_id);
-	}
-      }
-    }
-
-    switch(function_type) {
-    case _bft_stress:
-      computeForcesByStressTensor(funct, *it, ghost_type); break;
-    case _bft_traction:
-      computeForcesByTractionArray(funct, *it, ghost_type); break;
-    default: break;
-    }
-  }
-}
+    //switch(function_type) {
+    //case _bft_stress:
+      //computeForcesByStressTensor(funct, *it, ghost_type); break;
+    //case _bft_traction:
+      //computeForcesByTractionArray(funct, *it, ghost_type); break;
+    //default: break;
+    //}
+  //}
+//}
 
 /* -------------------------------------------------------------------------- */
 

@@ -70,6 +70,8 @@ namespace debug {
 
 Real Math::tolerance = 1e-8;
 
+const UInt _all_dimensions = UInt(-1);
+
 const Array<UInt> empty_filter(0, 1, "empty_filter");
 
 /* -------------------------------------------------------------------------- */

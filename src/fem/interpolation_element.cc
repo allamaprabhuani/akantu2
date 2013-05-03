@@ -42,8 +42,8 @@ template<> UInt InterpolationElement<_itp_not_defined>::natural_space_dimension 
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-//template<> UInt InterpolationElement<_itp_lagrange_point>::nb_nodes_per_element    = 1;
-//template<> UInt InterpolationElement<_itp_lagrange_point>::natural_space_dimension = 0;
+template<> UInt InterpolationElement<_itp_lagrange_point_1>::nb_nodes_per_element    = 1;
+template<> UInt InterpolationElement<_itp_lagrange_point_1>::natural_space_dimension = 0;
 /* -------------------------------------------------------------------------- */
 template<> UInt InterpolationElement<_itp_lagrange_segment_2>::nb_nodes_per_element    = 2;
 template<> UInt InterpolationElement<_itp_lagrange_segment_2>::natural_space_dimension = 1;

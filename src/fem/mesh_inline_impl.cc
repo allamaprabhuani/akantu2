@@ -117,8 +117,8 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) const {
 /* -------------------------------------------------------------------------- */
 inline void Mesh::updateTypesOffsets(const GhostType & ghost_type) {
   types_offsets.clear();
-  type_iterator it   = firstType(0, ghost_type, _ek_not_defined);
-  type_iterator last = lastType(0, ghost_type, _ek_not_defined);
+  type_iterator it   = firstType(_all_dimensions, ghost_type, _ek_not_defined);
+  type_iterator last = lastType(_all_dimensions, ghost_type, _ek_not_defined);
 
   for (; it != last; ++it)
     types_offsets(*it) = connectivities(*it, ghost_type).getSize();
@@ -136,6 +136,11 @@ inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(const Gh
     return type_set;
   else
     return ghost_type_set;
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNbBoundaries() const {
+  return boundaries.getNbBoundaries();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -187,110 +192,101 @@ inline Array<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
   return tmp;
 }
 
+
 /* -------------------------------------------------------------------------- */
-inline Array<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type,
-						const GhostType & ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Array<UInt> * tmp;
-  if(!surface_id.exists(type, ghost_type)) {
-    tmp = &(surface_id.alloc(0, 1, type, ghost_type));
-    AKANTU_DEBUG_INFO("The surface id vector for the type "
-		      << type << " created");
-  } else {
-    tmp = &(surface_id(type, ghost_type));
-  }
-
-  AKANTU_DEBUG_OUT();
-  return tmp;
-}
-
+//inline Array<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type,
+//						const GhostType & ghost_type) {
+//  AKANTU_DEBUG_IN();
+//
+//  Array<UInt> * tmp;
+//  if(!surface_id.exists(type, ghost_type)) {
+//    tmp = &(surface_id.alloc(0, 1, type, ghost_type));
+//    AKANTU_DEBUG_INFO("The surface id vector for the type "
+//		      << type << " created");
+//  } else {
+//    tmp = &(surface_id(type, ghost_type));
+//  }
+//
+//  AKANTU_DEBUG_OUT();
+//  return tmp;
+//}
+//
 /* -------------------------------------------------------------------------- */
 inline Array< std::vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type,
-									    const GhostType & ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Array< std::vector<Element> > * tmp;
-  if(!element_to_subelement.exists(type, ghost_type)) {
-    tmp = &(element_to_subelement.alloc(0, 1, type, ghost_type));
-
-    AKANTU_DEBUG_INFO("The element_to_subelement vector for the type "
-		      << type << " created");
-  } else {
-    tmp = &(element_to_subelement(type, ghost_type));
-  }
-
-  AKANTU_DEBUG_OUT();
-  return tmp;
+                                                                           const GhostType & ghost_type) {
+  return getDataPointer< std::vector<Element> >(type, "element_to_subelement", ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline Array<Element > * Mesh::getSubelementToElementPointer(const ElementType & type,
-							      const GhostType & ghost_type) {
-  AKANTU_DEBUG_IN();
+                                                             const GhostType & ghost_type) {
+  return getDataPointer<Element>(type, "subelement_to_element", ghost_type, getNbFacetsPerElement(type));
+}
 
-  Array<Element > * tmp;
-  if(!subelement_to_element.exists(type, ghost_type)) {
 
-    UInt nb_facets = getNbFacetsPerElement(type);
-
-    tmp = &(subelement_to_element.alloc(0, nb_facets, type, ghost_type));
-
-    AKANTU_DEBUG_INFO("The subelement_to_element vector for the type "
-		      << type << " created");
-  } else {
-    tmp = &(subelement_to_element(type, ghost_type));
-  }
-
-  AKANTU_DEBUG_OUT();
-  return tmp;
+/* -------------------------------------------------------------------------- */
+inline const Array< std::vector<Element> > & Mesh::getElementToSubelement(const ElementType & type,
+                                                                          const GhostType & ghost_type) const {
+  return getData< std::vector<Element> >(type, "element_to_subelement", ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-inline Array<UInt> * Mesh::getUIntDataPointer(const ElementType & el_type,
-					       const std::string & data_name,
-					       const GhostType & ghost_type) {
-  //  AKANTU_DEBUG_IN();
-
-  Array<UInt> * data;
-  // if(!uint_data.exists(el_type, ghost_type)){
-  //   uint_data(UIntDataMap(), el_type, ghost_type);
-  // }
-  UIntDataMap & map = uint_data(el_type, ghost_type);
-  UIntDataMap::iterator it = map.find(data_name);
-  if(it == map.end()) {
-    data = new Array<UInt>(0, 1, data_name);
-    map[data_name] = data;
-  } else {
-    data = it->second;
-  }
-
-  //  AKANTU_DEBUG_OUT();
-  return data;
+inline Array< std::vector<Element> > & Mesh::getElementToSubelement(const ElementType & type,
+                                                                    const GhostType & ghost_type) {
+  return getData< std::vector<Element> >(type, "element_to_subelement", ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Array<UInt> & Mesh::getUIntData(const ElementType & el_type,
-					      const std::string & data_name,
-					      const GhostType & ghost_type) const {
-  AKANTU_DEBUG_IN();
-
-  const UIntDataMap & map = uint_data(el_type, ghost_type);
-  UIntDataMap::const_iterator it = map.find(data_name);
-
-  if(it == map.end())
-    AKANTU_EXCEPTION("No data named " << data_name << " in the mesh " << id);
-
-  AKANTU_DEBUG_OUT();
-  return *(it->second);
+inline const Array<Element> & Mesh::getSubelementToElement(const ElementType & type,
+                                                           const GhostType & ghost_type) const {
+  return getData<Element>(type, "subelement_to_element", ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-inline UIntDataMap & Mesh::getUIntDataMap(const ElementType & el_type,
-					  const GhostType & ghost_type) {
-  // AKANTU_DEBUG_ASSERT(uint_data.exists(el_type, ghost_type),
-  // 		      "No UIntDataMap for the type (" << ghost_type << ":" << el_type << ")");
-  return uint_data(el_type, ghost_type);
+inline Array<Element> & Mesh::getSubelementToElement(const ElementType & type,
+                                                     const GhostType & ghost_type) {
+  return getData<Element>(type, "subelement_to_element", ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline Array<T> * Mesh::getDataPointer(const ElementType & el_type,
+                                       const std::string & data_name,
+                                       const GhostType & ghost_type,
+                                       UInt nb_component) {
+  Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(data_name,
+                                                           el_type, ghost_type,
+                                                           nb_component);
+  tmp.resize(getNbElement(el_type, ghost_type));
+  return &tmp;
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline const Array<T> & Mesh::getData(const ElementType & el_type,
+	                                    const std::string & data_name,
+	                                    const GhostType & ghost_type) const {
+  return mesh_data.getElementalDataArray<T>(data_name, el_type, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline Array<T> & Mesh::getData(const ElementType & el_type,
+                                const std::string & data_name,
+                                const GhostType & ghost_type) {
+  return mesh_data.getElementalDataArray<T>(data_name, el_type, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline const ByElementTypeArray<T> & Mesh::getData(const std::string & data_name) const {
+  return mesh_data.getElementalData<T>(data_name);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline ByElementTypeArray<T> & Mesh::getData(const std::string & data_name) {
+  return mesh_data.getElementalData<T>(data_name);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -533,3 +529,22 @@ inline UInt Mesh::getNbGlobalNodes() const {
 inline Int Mesh::getNodeType(UInt local_id) const {
   return nodes_type ? (*nodes_type)(local_id) : -1;
 }
+
+/* -------------------------------------------------------------------------- */
+inline const SubBoundary & Mesh::getSubBoundary(const std::string & name) const{
+  Boundary::const_iterator it = getBoundary().find(name);
+  if(it == getBoundary().end()) {
+    AKANTU_EXCEPTION("No sub-boundary named " << name << "!");
+  }
+  return *it;
+}
+
+/* -------------------------------------------------------------------------- */
+inline SubBoundary & Mesh::getSubBoundary(const std::string & name) {
+  Boundary::iterator it = getBoundary().find(name);
+  if(it == getBoundary().end()) {
+    AKANTU_EXCEPTION("No sub-boundary named " << name << "!");
+  }
+  return *it;
+}
+

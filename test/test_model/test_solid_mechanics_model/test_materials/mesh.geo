@@ -27,4 +27,6 @@ Line Loop(101) = {101:104};
 
 Plane Surface(101) = {101};
 
-Physical Surface(1) = {101};
+Physical Line("Fixed") = {101, 103, 104};
+Physical Line("Traction") = {102};
+Physical Surface("Interior") = {101};

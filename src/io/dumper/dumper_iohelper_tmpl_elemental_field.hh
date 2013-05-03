@@ -36,8 +36,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<typename i_type, typename d_type,
 	 template<typename> class ret_type, class daughter>
-class DumperIOHelper::element_iterator : public iohelper::iterator< d_type, daughter,
-								    ret_type<d_type> > {
+class DumperIOHelper::element_iterator<i_type, d_type, ret_type, daughter, false> : public iohelper::iterator< d_type, daughter, ret_type<d_type> > {
 public:
   typedef i_type              it_type;
   typedef d_type              data_type;
@@ -51,15 +50,19 @@ public:
 		   const typename field_type::type_iterator & t_it_end,
 		   const internal_iterator & it,
 		   ElementType element_type,
-		   const GhostType ghost_type = _not_ghost) : field(field),
-							      n(n),
-							      padding_n(0),
-							      padding_m(0),
-							      itn(0), itm(0),
-							      tit(t_it),
-							      tit_end(t_it_end),
-							      vit(it),
-							      ghost_type(ghost_type) {
+		   const GhostType ghost_type = _not_ghost,
+		   const ByElementTypeArray<UInt> * filter = NULL,
+		   UInt * fit = NULL) : field(field),
+					n(n),
+					padding_n(0),
+					padding_m(0),
+					itn(0), itm(0),
+					tit(t_it),
+					tit_end(t_it_end),
+					vit(it),
+					ghost_type(ghost_type),
+					filter(filter),
+					fit(fit) {
     UInt nb_data = getNbDataPerElem(element_type);
     const Array<it_type> & vect = field(element_type, ghost_type);
     UInt size = vect.getSize() / nb_data;
@@ -115,16 +118,126 @@ protected:
   internal_iterator vit;
   internal_iterator vit_end;
   const GhostType ghost_type;
+  const ByElementTypeArray<UInt> * filter;
+  UInt * fit;
 };
 
 
 /* -------------------------------------------------------------------------- */
-template<typename T, template<class> class ret_type>
+template<typename i_type, typename d_type,
+	 template<typename> class ret_type, class daughter>
+class DumperIOHelper::element_iterator<i_type, d_type, ret_type, daughter, true> : public iohelper::iterator< d_type, daughter, ret_type<d_type> > {
+public:
+  typedef i_type              it_type;
+  typedef d_type              data_type;
+  typedef ret_type<data_type> return_type;
+  typedef ByElementTypeArray<it_type> field_type;
+  typedef typename Array<it_type>::template const_iterator< ret_type<it_type> > internal_iterator;
+public:
+  element_iterator(const field_type & field,
+		   UInt n,
+		   const typename field_type::type_iterator & t_it,
+		   const typename field_type::type_iterator & t_it_end,
+		   const internal_iterator & it,
+		   ElementType element_type,
+		   const GhostType ghost_type = _not_ghost,
+		   const ByElementTypeArray<UInt> * filter = NULL,
+		   UInt * fit = NULL) : field(field),
+					n(n),
+					padding_n(0),
+					padding_m(0),
+					itn(0), itm(0),
+					tit(t_it),
+					tit_end(t_it_end),
+					vit(it),
+					ghost_type(ghost_type),
+					filter(filter),
+					fit(fit) {
+    UInt nb_data = getNbDataPerElem(element_type);
+    const Array<it_type> & vect = field(element_type, ghost_type);
+    UInt size = vect.getSize() / nb_data;
+    UInt ln = n;
+    if(n == 0) ln = vect.getNbComponent();
+    UInt lm = vect.getNbComponent() / ln * nb_data;
+    const Array<UInt> & filter_array = (*filter)(element_type, ghost_type);
+    fit_end = filter_array.storage() + filter_array.getSize();
+
+    vit_begin = iterator_helper<it_type, ret_type>::begin(vect, ln, lm, size);
+    if(fit != fit_end) vit = vit_begin + *fit;
+  }
+
+public:
+  bool operator!=(const daughter & it) const {
+    return (ghost_type != it.ghost_type) || (tit != it.tit || (fit != it.fit));
+  }
+
+  daughter & operator++() {
+    ++fit;
+    while(fit == fit_end && tit != tit_end) {
+      ++tit;
+      if(tit != tit_end) {
+	UInt nb_data = getNbDataPerElem(*tit);
+	const Array<it_type> & vect = field(*tit, ghost_type);
+	UInt size = vect.getSize() / nb_data;
+	UInt ln = n, lm;
+	if(n == 0) ln = vect.getNbComponent();
+	if(itn != 0) ln = itn;
+	if(itm != 0) lm = itm;
+	else lm = vect.getNbComponent() / ln * nb_data;
+	const Array<UInt> & f = (*filter)(*tit, ghost_type);
+	fit     = f.storage();
+	fit_end = fit + f.getSize();
+	vit_begin = iterator_helper<it_type, ret_type>::begin(vect, ln, lm, size);
+      }
+    }
+    if(fit != fit_end) vit = vit_begin + *fit;
+    return *(static_cast<daughter *>(this));
+  };
+
+  ElementType getType() { return *tit; }
+
+  void setPadding(UInt n, UInt m) {
+    padding_n = n;
+    padding_m = m;
+  }
+
+  // small trick for the material iterator
+  void setItSize(UInt n, UInt m) {
+    itn = n;
+    itm = m;
+    if(tit != tit_end) {
+      const Array<it_type> & vect = field(*tit, ghost_type);
+      UInt nb_data = getNbDataPerElem(*tit);
+      UInt size = vect.getSize() / nb_data;
+      vit_begin = iterator_helper<it_type, ret_type>::begin(vect, itn, itm, size);
+      if(fit != fit_end) vit = vit_begin + *fit;
+    }
+  }
+
+protected:
+  virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
+
+protected:
+  const field_type & field;
+  UInt n, padding_n, padding_m;
+  UInt itn, itm;
+  typename field_type::type_iterator tit;
+  typename field_type::type_iterator tit_end;
+  internal_iterator vit_begin;
+  internal_iterator vit;
+  const GhostType ghost_type;
+  const ByElementTypeArray<UInt> * filter;
+  UInt * fit, * fit_end;
+};
+
+
+/* -------------------------------------------------------------------------- */
+template<typename T, template<class> class ret_type, bool filtered>
 class DumperIOHelper::elemental_field_iterator : public element_iterator< T, T, ret_type,
-									  elemental_field_iterator<T, ret_type> > {
+									  elemental_field_iterator<T, ret_type, filtered>, filtered > {
 public:
   typedef element_iterator< T, T, ret_type,
-			    elemental_field_iterator<T, ret_type> > parent;
+			    elemental_field_iterator<T, ret_type, filtered>, filtered > parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -137,8 +250,10 @@ public:
 			   const typename field_type::type_iterator & t_it_end,
 			   const internal_iterator & it,
 			   ElementType element_type,
-			   const GhostType ghost_type = _not_ghost) :
-    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
+			   const GhostType ghost_type = _not_ghost,
+			   const ByElementTypeArray<UInt> * filter = NULL,
+			   UInt * fit = NULL) :
+    parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
   return_type operator*(){
     return padding_helper.pad(*this->vit, this->padding_m, this->padding_n, this->getNbDataPerElem(*this->tit));
@@ -148,57 +263,106 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
+class DumperIOHelper::filtered_connectivity_field_iterator : public element_iterator<UInt, UInt, Vector,
+									  filtered_connectivity_field_iterator, true> {
+public:
+  typedef element_iterator<UInt, UInt, Vector, filtered_connectivity_field_iterator, true> parent;
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
+public:
+  filtered_connectivity_field_iterator(const field_type & field,
+			   UInt n,
+			   const typename field_type::type_iterator & t_it,
+			   const typename field_type::type_iterator & t_it_end,
+			   const internal_iterator & it,
+			   ElementType element_type,
+			   const GhostType ghost_type = _not_ghost,
+			   const ByElementTypeArray<UInt> * filter = NULL,
+			   UInt * fit = NULL) :
+    parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
+
+  return_type operator*(){
+    const Vector<UInt> & old_connect = *this->vit;
+    Vector<UInt> new_connect(old_connect.size());
+
+    for(UInt i(0); i<old_connect.size(); ++i) {
+      UInt new_id = nodal_filter->find(old_connect(i));
+      AKANTU_DEBUG_ASSERT(new_id != UInt(-1), "Node not found in the filter!");
+      new_connect(i) = new_id;
+    }
+    return new_connect;
+  }
+
+  void setNodalFilter(const Array<UInt> & new_nodal_filter) {
+    nodal_filter = &new_nodal_filter;
+  }
+
+private:
+  const Array<UInt> * nodal_filter;
+};
+
+/* -------------------------------------------------------------------------- */
+template<bool filtered>
 class DumperIOHelper::element_type_field_iterator : public element_iterator<UInt, iohelper::ElemType,
 									    Vector,
-									    element_type_field_iterator> {
+									    element_type_field_iterator<filtered>,
+									    filtered> {
 public:
   typedef element_iterator<UInt, iohelper::ElemType,
-			   Vector, element_type_field_iterator> parent;
+			   Vector, element_type_field_iterator<filtered>, filtered> parent;
 
-  typedef parent::it_type     it_type;
-  typedef parent::data_type   data_type;
-  typedef parent::return_type return_type;
-  typedef parent::field_type  field_type;
-  typedef parent::internal_iterator internal_iterator;
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
 public:
   element_type_field_iterator(const field_type & field,
 			      __attribute__((unused)) UInt n,
-			      const field_type::type_iterator & t_it,
-			      const field_type::type_iterator & t_it_end,
+			      const typename field_type::type_iterator & t_it,
+			      const typename field_type::type_iterator & t_it_end,
 			      const internal_iterator & it,
 			      ElementType element_type,
-			      const GhostType ghost_type = _not_ghost) :
-    parent(field, 0, t_it, t_it_end, it, element_type, ghost_type) { }
+			      const GhostType ghost_type = _not_ghost,
+			      const ByElementTypeArray<UInt> * filter = NULL,
+			      UInt * fit = NULL) :
+    parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
   return_type operator*() {
-    data_type type = DumperIOHelper::getIOHelperType(*tit);
+    data_type type = DumperIOHelper::getIOHelperType(*this->tit);
     return return_type(1, type);
   }
 };
 
 
 /* -------------------------------------------------------------------------- */
+template<bool filtered>
 class DumperIOHelper::element_partition_field_iterator : public element_iterator<UInt, UInt,
 										 Vector,
-										 element_partition_field_iterator> {
+										 element_partition_field_iterator<filtered>, filtered> {
 public:
   typedef element_iterator<UInt, UInt,
-			   Vector, element_partition_field_iterator> parent;
+			   Vector, element_partition_field_iterator<filtered>, filtered > parent;
 
-  typedef parent::it_type     it_type;
-  typedef parent::data_type   data_type;
-  typedef parent::return_type return_type;
-  typedef parent::field_type  field_type;
-  typedef parent::internal_iterator internal_iterator;
+  typedef typename parent::it_type     it_type;
+  typedef typename parent::data_type   data_type;
+  typedef typename parent::return_type return_type;
+  typedef typename parent::field_type  field_type;
+  typedef typename parent::internal_iterator internal_iterator;
 public:
   element_partition_field_iterator(const field_type & field,
 				   __attribute__((unused)) UInt n,
-				   const field_type::type_iterator & t_it,
-				   const field_type::type_iterator & t_it_end,
+				   const typename field_type::type_iterator & t_it,
+				   const typename field_type::type_iterator & t_it_end,
 				   const internal_iterator & it,
 				   ElementType element_type,
-				   const GhostType ghost_type = _not_ghost) :
-    parent(field, 0, t_it, t_it_end, it, element_type, ghost_type) {
+				   const GhostType ghost_type = _not_ghost,
+				   const ByElementTypeArray<UInt> * filter = NULL,
+				   UInt * fit = NULL) :
+    parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) {
     prank = StaticCommunicator::getStaticCommunicator().whoAmI();
   }
 
@@ -212,15 +376,17 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* Fields type description                                                    */
 /* -------------------------------------------------------------------------- */
-template<typename T, class iterator_type, template<class> class ret_type>
+template<typename T, class iterator_type, template<class> class ret_type, bool filtered>
 class DumperIOHelper::GenericElementalField : public Field {
 public:
   GenericElementalField(const ByElementTypeArray<T> & field,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
     field(field), spatial_dimension(spatial_dimension),
-    ghost_type(ghost_type), element_kind(element_kind), n(0), itn(0) {
+    ghost_type(ghost_type), element_kind(element_kind), n(0), itn(0), filter(filter) {
+    AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
     if(homogeneous && n == 0) n = nb_component;
@@ -228,11 +394,13 @@ public:
 
   GenericElementalField(const ByElementTypeArray<T> & field,
 			UInt n,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
     field(field), spatial_dimension(spatial_dimension),
-    ghost_type(ghost_type), element_kind(element_kind), n(n), itn(0) {
+    ghost_type(ghost_type), element_kind(element_kind), n(n), itn(0), filter(filter) {
+    AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
   }
@@ -242,10 +410,23 @@ public:
   typedef typename ByElementTypeArray<T>::type_iterator type_iterator;
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
-    type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-    type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    type_iterator tit;
+    type_iterator end;
+
+    if(filtered) {
+      tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
+      end = filter->lastType(spatial_dimension, ghost_type, element_kind);
+    } else {
+      tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+      end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    }
 
     const Array<T> & vect = field(*tit, ghost_type);
+    UInt * fit = NULL;
+    if(filtered) {
+      const Array<UInt> & typed_filter = (*filter)(*tit, ghost_type);
+      fit = typed_filter.storage();
+    }
     UInt nb_data = getNbDataPerElem(*tit);
     UInt nb_component = vect.getNbComponent();
     UInt size = vect.getSize() / nb_data;
@@ -253,26 +434,39 @@ public:
     if(itn != 0) ln = itn;
 
     internal_iterator it = iterator_helper<T, ret_type>::begin(vect, ln, nb_component / ln * nb_data, size);
-    iterator rit = iterator(field, n, tit, end, it, *tit, ghost_type);
+    iterator rit = iterator(field, n, tit, end, it, *tit, ghost_type, filter, fit);
     rit.setPadding(padding_n, padding_m);
     return rit;
   }
 
   virtual iterator end  () {
-    type_iterator tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-    type_iterator end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    type_iterator tit;
+    type_iterator end;
+
+    if(filtered) {
+      tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
+      end = filter->lastType(spatial_dimension, ghost_type, element_kind);
+    } else {
+      tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+      end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    }
 
     ElementType type = *tit;
     for (; tit != end; ++tit) type = *tit;
 
     const Array<T> & vect = field(type, ghost_type);
+    UInt * fit = NULL;
+    if(filtered) {
+      const Array<UInt> & typed_filter = (*filter)(type, ghost_type);
+      fit = typed_filter.storage()+typed_filter.getSize();
+    }
     UInt nb_data = getNbDataPerElem(type);
     UInt nb_component = vect.getNbComponent();
     UInt size = vect.getSize() / nb_data;
     UInt ln = nb_component;
     if(itn != 0 ) ln = itn;
     internal_iterator it = iterator_helper<T, ret_type>::end(vect, ln, nb_component / ln * nb_data, size);
-    iterator rit =  iterator(field, n, end, end, it, type, ghost_type);
+    iterator rit =  iterator(field, n, end, end, it, type, ghost_type, filter, fit);
     rit.setPadding(padding_n, padding_m);
     return rit;
   }
@@ -300,8 +494,17 @@ protected:
 
   virtual bool checkHomogeneity(const ByElementTypeArray<T> & field_to_check,
 				UInt & nb_comp, UInt & nb_elem) {
-    type_iterator tit = field_to_check.firstType(spatial_dimension, ghost_type, element_kind);
-    type_iterator end = field_to_check.lastType(spatial_dimension, ghost_type, element_kind);
+    type_iterator tit;
+    type_iterator end;
+
+    if(filtered) {
+      tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
+      end = filter->lastType(spatial_dimension, ghost_type, element_kind);
+    } else {
+      tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+      end = field.lastType(spatial_dimension, ghost_type, element_kind);
+    }
+
     nb_elem = 0;
     nb_comp = 0;
     UInt nb_data = getNbDataPerElem(*tit);
@@ -312,7 +515,7 @@ protected:
       for(;tit != end; ++tit) {
 	const Array<T> & vect = field_to_check(*tit, ghost_type);
 	UInt nb_data_cur = getNbDataPerElem(*tit);
-	UInt nb_element = vect.getSize() / nb_data_cur;
+	UInt nb_element = filtered ? (*filter)(*tit, ghost_type).getSize() : vect.getSize()/ nb_data_cur;
 	UInt nb_comp_cur = vect.getNbComponent() * nb_data_cur;
 	if(homogen && nb_comp != nb_comp_cur) homogen = false;
 	nb_elem += nb_element;
@@ -332,52 +535,91 @@ protected:
   ElementKind element_kind;
   bool homogeneous;
   UInt n, itn;
+  const ByElementTypeArray<UInt> * filter;
 };
 
 /* -------------------------------------------------------------------------- */
-template<typename T, template<typename> class ret_type>
-class DumperIOHelper::ElementalField : public GenericElementalField<T, elemental_field_iterator<T, ret_type>, ret_type> {
+template<typename T, template<typename> class ret_type, bool filtered>
+class DumperIOHelper::ElementalField : public GenericElementalField<T, elemental_field_iterator<T, ret_type, filtered>, ret_type, filtered> {
 public:
-  typedef elemental_field_iterator<T, ret_type> iterator;
+  typedef elemental_field_iterator<T, ret_type, filtered> iterator;
 
   ElementalField(const ByElementTypeArray<T> & field,
-		 UInt spatial_dimension = 0,
+		 UInt spatial_dimension = _all_dimensions,
 		 GhostType ghost_type = _not_ghost,
-		 ElementKind element_kind = _ek_not_defined) :
-    GenericElementalField<T, iterator, ret_type>(field, 0, spatial_dimension,
-						 ghost_type, element_kind) { }
+		 ElementKind element_kind = _ek_not_defined,
+		 const ByElementTypeArray<UInt> * filter = NULL) :
+    GenericElementalField<T, iterator, ret_type, filtered>(field, 0, spatial_dimension,
+						 ghost_type, element_kind, filter) { }
 };
 
-template<typename T>
-class DumperIOHelper::ElementalField<T, Matrix> : public GenericElementalField<T, elemental_field_iterator<T, Matrix>, Matrix> {
+template<typename T, bool filtered>
+class DumperIOHelper::ElementalField<T, Matrix, filtered> : public GenericElementalField<T, elemental_field_iterator<T, Matrix, filtered>, Matrix, filtered> {
 public:
-  typedef elemental_field_iterator<T, Matrix> iterator;
+  typedef elemental_field_iterator<T, Matrix, filtered> iterator;
 
   ElementalField(const ByElementTypeArray<T> & field,
 		 UInt n,
-		 UInt spatial_dimension = 0,
+		 UInt spatial_dimension = _all_dimensions,
+		 GhostType ghost_type = _not_ghost,
+		 ElementKind element_kind = _ek_not_defined,
+		 const ByElementTypeArray<UInt> * filter = NULL) :
+  GenericElementalField<T, iterator, Matrix, filtered>(field, n, spatial_dimension,
+						      ghost_type, element_kind, filter) { }
+};
+
+
+
+/* -------------------------------------------------------------------------- */
+class DumperIOHelper::FilteredConnectivityField : public GenericElementalField<UInt, filtered_connectivity_field_iterator, Vector, true> {
+public:
+  typedef filtered_connectivity_field_iterator iterator;
+  typedef GenericElementalField<UInt, filtered_connectivity_field_iterator, Vector, true> parent;
+
+  FilteredConnectivityField(const ByElementTypeArray<UInt> & field,
+		 const ByElementTypeArray<UInt> & elemental_filter,
+		 const Array<UInt> & nodal_filter,
+		 UInt spatial_dimension = _all_dimensions,
 		 GhostType ghost_type = _not_ghost,
 		 ElementKind element_kind = _ek_not_defined) :
-    GenericElementalField<T, iterator, Matrix>(field, n, spatial_dimension,
-						      ghost_type, element_kind) { }
+    parent(field, 0, spatial_dimension, ghost_type, element_kind, &elemental_filter),
+    nodal_filter(nodal_filter) { }
+
+  iterator begin() {
+    iterator it = parent::begin();
+    it.setNodalFilter(nodal_filter);
+    return it;
+  }
+
+  iterator end() {
+    iterator it = parent::end();
+    it.setNodalFilter(nodal_filter);
+    return it;
+  }
+
+  private:
+    const Array<UInt> & nodal_filter;
+
 };
 
 /* -------------------------------------------------------------------------- */
+template<bool filtered>
 class DumperIOHelper::ElementTypeField : public GenericElementalField<UInt,
-								      element_type_field_iterator,
-								      Vector> {
+								      element_type_field_iterator<filtered>,
+								      Vector, filtered> {
 public:
-  typedef element_type_field_iterator iterator;
+  typedef element_type_field_iterator<filtered> iterator;
 private:
-  typedef GenericElementalField<UInt, iterator, Vector> parent;
+  typedef GenericElementalField<UInt, iterator, Vector, filtered> parent;
 public:
   /* ------------------------------------------------------------------------ */
   ElementTypeField(const Mesh & mesh,
-		   UInt spatial_dimension = 0,
+		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
-		   ElementKind element_kind = _ek_not_defined) :
-    parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind) {
-    homogeneous = true;
+		   ElementKind element_kind = _ek_not_defined,
+		 const ByElementTypeArray<UInt> * filter = NULL) :
+    parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind, filter) {
+    this->homogeneous = true;
   }
 
   virtual void registerToDumper(__attribute__((unused)) const std::string & id,
@@ -390,21 +632,23 @@ public:
 
 
 /* -------------------------------------------------------------------------- */
+template<bool filtered>
 class DumperIOHelper::ElementPartitionField : public GenericElementalField<UInt,
-									   element_partition_field_iterator,
-									   Vector> {
+									   element_partition_field_iterator<filtered>,
+									   Vector, filtered> {
 public:
-  typedef element_partition_field_iterator iterator;
+  typedef element_partition_field_iterator<filtered> iterator;
 private:
-  typedef GenericElementalField<UInt, iterator, Vector> parent;
+  typedef GenericElementalField<UInt, iterator, Vector, filtered> parent;
 public:
   /* ------------------------------------------------------------------------ */
   ElementPartitionField(const Mesh & mesh,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
-    parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind) {
-    homogeneous = true;
+			ElementKind element_kind = _ek_not_defined,
+		 const ByElementTypeArray<UInt> * filter = NULL) :
+    parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind, filter) {
+    this->homogeneous = true;
   }
 
   UInt getDim() { return 1; }

@@ -43,37 +43,21 @@
 
 using namespace akantu;
 
-akantu::Real eps = 1e-10;
-
-class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
-public:
-  inline void stress(const Vector<Real> & position,
-		     Matrix<Real> & stress,
-		     __attribute__ ((unused)) const Vector<Real> & normal,
-		     __attribute__ ((unused)) Surface surface_id) {
-    if (std::abs(position(0) - 10) < eps){
-      stress.eye(3e6);
-    }
-  }
-};
-
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
   UInt max_steps = 2000;
   Real epot, ekin;
 
-  Real bar_height = 4.;
-
   const UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
   mesh_io.read("barre_trou.msh", mesh);
+  mesh.getBoundary().createBoundariesFromMeshData("physical_names");
 
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   model.initFull("");
   model.readCustomMaterial<LocalMaterialDamage>("material.dat", "local_damage");
   model.initMaterials();
@@ -86,24 +70,13 @@ int main(int argc, char *argv[])
   std::cout << model << std::endl;
 
   /// Dirichlet boundary conditions
-  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
+  model.applyBC(BC::Dirichlet::FixedValue(0.0, BC::Functor::_x), "Fixed");
+  model.applyBC(BC::Dirichlet::FixedValue(0.0, BC::Functor::_y), "Fixed");
 
-    if(model.getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
-	model.getBoundary().values[spatial_dimension*i] = true;
-
-    if(model.getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] <= eps ||
-       model.getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] >= bar_height - eps ) {
-      model.getBoundary().values[spatial_dimension*i + 1] = true;
-    }
-  }
-
-
-  FEM & fem_boundary = model.getFEMBoundary();
-  fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnControlPoints();
-
-  MyStressFunctor func;
-  model.computeForcesFromFunction(func, akantu::_bft_stress);
+  // Boundary condition (Neumann)
+  Matrix<Real> stress(2,2);
+  stress.eye(3e6);
+  model.applyBC(BC::Neumann::FromHigherDim(stress), "Traction");
 
   model.setBaseName("local_material");
   model.addDumpField("displacement");

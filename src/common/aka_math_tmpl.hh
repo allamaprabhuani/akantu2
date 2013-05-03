@@ -403,7 +403,6 @@ inline Real Math::det<double>(UInt n, const double * A) {
   return det;
 }
 
-
 /* -------------------------------------------------------------------------- */
 inline void Math::normal2(const Real * vec,Real * normal) {
     normal[0] = vec[1];
@@ -677,7 +676,7 @@ inline bool Math::isnan(Real x) {
 #endif //defined(__INTEL_COMPILER)
 
   // x = x return false means x = quiet_NaN
-  return !(x == x); 
+  return !(x == x);
 
 #if defined(__INTEL_COMPILER)
 #pragma warning ( pop )

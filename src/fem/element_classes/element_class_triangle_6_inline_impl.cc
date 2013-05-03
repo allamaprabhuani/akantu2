@@ -175,9 +175,12 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const Vector<Real> &
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(__attribute__((unused)) const Matrix<Real> & dxds,
-								       __attribute__((unused)) Real & jac){
-  AKANTU_DEBUG_ERROR("to implement");
+InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian( const Matrix<Real> & J,
+								       Real & jac){
+  Vector<Real> vprod(J.cols());
+  Matrix<Real> Jt = J.transpose();
+  vprod.crossProduct(Jt(0), Jt(1));
+  jac = vprod.norm();
 }
 
 /* -------------------------------------------------------------------------- */

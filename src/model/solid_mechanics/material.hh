@@ -44,7 +44,6 @@
 namespace akantu {
   class Model;
   class SolidMechanicsModel;
-  class CommunicationBuffer;
 }
 
 __BEGIN_AKANTU__

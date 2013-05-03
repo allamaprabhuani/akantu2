@@ -151,22 +151,21 @@ int main(int argc, char *argv[])
   Array<bool> & boundary = my_model.getBoundary();
 
   MeshUtils::buildFacets(my_mesh);
-  MeshUtils::buildSurfaceID(my_mesh);
 
-  CSR<UInt> surface_nodes;
-  MeshUtils::buildNodesPerSurface(my_mesh, surface_nodes);
+  my_mesh.getBoundary().createBoundariesFromGeometry();
 
-  for (UInt s = 0; s < surface_nodes.getNbRows(); ++s) {
-    CSR<UInt>::iterator snode = surface_nodes.begin(s);
-    for(; snode != surface_nodes.end(s); ++snode) {
-      UInt n = *snode;
-      std::cout << "Node " << n << std::endl;
+  // Loop over (Sub)Boundar(ies)
+  const Boundary & boundaries = my_mesh.getBoundary();
+  for(Boundary::const_iterator it(boundaries.begin()); it != boundaries.end(); ++it) {
+    for(akantu::SubBoundary::nodes_const_iterator nodes_it(it->nodes_begin()); nodes_it!= it->nodes_end(); ++nodes_it) {
+      UInt n(*nodes_it);
+      std::cout << "Node " << *nodes_it << std::endl;
       for (UInt i = 0; i < dim; ++i) {
-	displacement(n, i) = alpha[i][0];
-	for (UInt j = 0; j < dim; ++j) {
-	  displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
-	}
-	boundary(n, i) = true;
+	      displacement(n, i) = alpha[i][0];
+	      for (UInt j = 0; j < dim; ++j) {
+	        displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+	      }
+	      boundary(n, i) = true;
       }
     }
   }
@@ -260,7 +259,7 @@ int main(int argc, char *argv[])
       ++strain_it;
     }
   }
-  
+
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     for (UInt i = 0; i < dim; ++i) {

@@ -88,7 +88,6 @@ public:
   }
 };
 
-
 #include "dumper_iohelper_tmpl_nodal_field.hh"
 #include "dumper_iohelper_tmpl_elemental_field.hh"
 #include "dumper_iohelper_tmpl_quadrature_points_field.hh"

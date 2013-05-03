@@ -48,7 +48,7 @@
 #include "integration_scheme_2nd_order.hh"
 #include "solver.hh"
 #include "dumpable.hh"
-
+#include "boundary_condition.hh"
 /* -------------------------------------------------------------------------- */
 namespace akantu {
   class Material;
@@ -59,7 +59,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable<DumperParaview> {
+class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable<DumperParaview>, public BoundaryCondition<SolidMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -76,7 +76,7 @@ public:
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
   SolidMechanicsModel(Mesh & mesh,
-		      UInt spatial_dimension = 0,
+		      UInt spatial_dimension = _all_dimensions,
 		      const ID & id = "solid_mechanics_model",
 		      const MemoryID & memory_id = 0);
 
@@ -92,14 +92,14 @@ public:
 			AnalysisMethod method = _explicit_dynamic);
 
   /// initialize the fem object needed for boundary conditions
-  void initFEMBoundary(bool create_surface = true);
+  void initFEMBoundary();
 
   /// register the tags associated with the parallel synchronizer
   void initParallel(MeshPartition * partition, DataAccessor * data_accessor=NULL);
 
   /// allocate all vectors
   void initArrays();
-  
+
   /// allocate all vectors
   void initArraysFiniteDeformation();
 
@@ -156,7 +156,7 @@ public:
   void updateAcceleration();
 
   /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
-  void solveLumped(Array<Real> & x, 
+  void solveLumped(Array<Real> & x,
 		   const Array<Real> & A,
 		   const Array<Real> & b,
 		   const Array<bool> & boundary,
@@ -172,14 +172,14 @@ public:
   /* Implicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  /// Update the stresses for the computation of the residual of the Stiffness 
+
+  /// Update the stresses for the computation of the residual of the Stiffness
   /// matrix in the case of finite deformation
   void updateStresses();
-  
+
   /// Update the cauchy stress in the case of finite deformation
   void UpdateStressesAtT();
-    
+
   /// initialize the solver and the jacobian_matrix (called by initImplicit)
   void initSolver(SolverOptions & options = _solver_no_options);
 
@@ -198,7 +198,7 @@ public:
 
   /// solve Ku = f
   void solveStatic();
-  
+
   /// solve Ku = f
   void solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles);
 
@@ -256,8 +256,8 @@ public:
   };
 
   /// compute force vector from a function(x,y,z) that describe stresses
-  void computeForcesFromFunction(BoundaryFunction in_function,
-				 BoundaryFunctionType function_type) __attribute__((deprecated));
+//  void computeForcesFromFunction(BoundaryFunction in_function,
+//				 BoundaryFunctionType function_type) __attribute__((deprecated));
 
   template<class Functor>
   void computeForcesFromFunction(Functor & functor, BoundaryFunctionType function_type);
@@ -382,7 +382,13 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpBoundaryField(const std::string & field_id,
+                                    const std::string & boundary_name);
+
   virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpBoundaryFieldVector(const std::string & field_id,
+                                          const std::string & boundary_name);
+
   virtual void addDumpFieldTensor(const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
@@ -504,6 +510,7 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+  friend class BoundaryCondition;
 
   /// time step
   Real time_step;
@@ -513,7 +520,7 @@ protected:
 
   /// displacements array
   Array<Real> * displacement;
-  
+
   /// displacements_t array
   Array<Real> * displacement_t;
 

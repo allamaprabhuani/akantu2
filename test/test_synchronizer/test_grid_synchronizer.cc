@@ -60,7 +60,7 @@ static void updatePairList(const ByElementTypeReal & barycenter,
   e.ghost_type = ghost_type;
 
   // generate the pair of neighbor depending of the cell_list
-  ByElementTypeReal::type_iterator it        = barycenter.firstType(0, ghost_type);
+  ByElementTypeReal::type_iterator it        = barycenter.firstType(_all_dimensions, ghost_type);
   ByElementTypeReal::type_iterator last_type = barycenter.lastType(0, ghost_type);
   for(; it != last_type; ++it) {
     // loop over quad points

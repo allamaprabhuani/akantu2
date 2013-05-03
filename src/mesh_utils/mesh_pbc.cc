@@ -32,6 +32,7 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 #include "mesh_utils.hh"
+#include "sub_boundary.hh"
 /* -------------------------------------------------------------------------- */
 
 
@@ -192,21 +193,21 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   std::vector<UInt> selected_second;
 
   // get access to surface information
-  UInt nb_surface_element = mymesh.getNbElement(type);
-  const Array<UInt> & surface_id = mymesh.getSurfaceID(type);
-  const Array<UInt> & connect = mymesh.getConnectivity(type);
-  UInt nodes_per_surface_element = mymesh.getNbNodesPerElement(type);
+
+//  UInt nb_surface_element = mymesh.getNbElement(type);
+//  const Array<UInt> & surface_id = mymesh.getSurfaceID(type);
+//  const Array<UInt> & connect = mymesh.getConnectivity(type);
+//  UInt nodes_per_surface_element = mymesh.getNbNodesPerElement(type);
 
   // find nodes on surfaces
-  for(UInt i=0; i < nb_surface_element; ++i) {
-    if (surface_id(i) == surface_pair.first) {
-      for(UInt j=0; j<nodes_per_surface_element; ++j)
-	selected_first.push_back(connect(i,j));
-    }
-    else if (surface_id(i) == surface_pair.second) {
-      for(UInt j=0; j<nodes_per_surface_element; ++j)
-	selected_second.push_back(connect(i,j));
-    }
+  const SubBoundary & first_surf = mymesh.getBoundary()(surface_pair.first);
+  const SubBoundary & second_surf = mymesh.getBoundary()(surface_pair.second);
+
+  SubBoundary::nodes_const_iterator nodes_iter(first_surf.nodes_begin());
+  SubBoundary::nodes_const_iterator nodes_iter_end(first_surf.nodes_end());
+
+  for(; nodes_iter != nodes_iter_end; ++nodes_iter) {
+    selected_first.push_back(*nodes_iter);
   }
 
   // sort and eliminate repetition of nodes
@@ -219,6 +220,37 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   std::sort(selected_second.begin(), selected_second.end());
   it_s = std::unique(selected_second.begin(), selected_second.end());
   selected_second.resize(it_s - selected_second.begin());
+  
+  nodes_iter = second_surf.nodes_begin();
+  nodes_iter_end = second_surf.nodes_end();
+
+  for(; nodes_iter != nodes_iter_end; ++nodes_iter) {
+    selected_second.push_back(*nodes_iter);
+  }
+
+// XXX DELETE
+//  for(UInt i=0; i < nb_surface_element; ++i) {
+//    if (surface_id(i) == surface_pair.first) {
+//      for(UInt j=0; j<nodes_per_surface_element; ++j) {
+//	    }
+//    }
+//    else if (surface_id(i) == surface_pair.second) {
+//      for(UInt j=0; j<nodes_per_surface_element; ++j) {
+//      	selected_second.push_back(connect(i,j));
+//      }
+//    }
+//  }
+//
+//  // sort and eliminate repetition of nodes
+//  std::vector<UInt>::iterator it_s;
+//
+//  std::sort(selected_first.begin(), selected_first.end());
+//  it_s = std::unique(selected_first.begin(), selected_first.end());
+//  selected_first.resize(it_s - selected_first.begin());
+//
+//  std::sort(selected_second.begin(), selected_second.end());
+//  it_s = std::unique(selected_second.begin(), selected_second.end());
+//  selected_second.resize(it_s - selected_second.begin());
 
   // coordinates
   const Array<Real> & coords = mymesh.getNodes();

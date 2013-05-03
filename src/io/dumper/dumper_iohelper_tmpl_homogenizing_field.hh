@@ -150,14 +150,15 @@ protected:
 template<typename T,
 	 template< typename,
 		   template<class> class,
-		   template<typename, template<class> class> class> class Container,
-	 template<typename, template<class> class> class int_sub_iterator,
+		   template<typename, template<class> class, bool> class,
+		   bool> class Container,
+	 template<typename, template<class> class, bool> class int_sub_iterator,
 	 template<typename, class, template<class> class> class Funct,
-	 template<typename> class ret_type>
+	 template<typename> class ret_type, bool filtered>
 class DumperIOHelper::HomogenizedField : public Field {
 protected:
-  typedef typename Container<T, ret_type, int_sub_iterator>::iterator sub_iterator;
-  typedef Funct<T, Container<T, ret_type, int_sub_iterator>, ret_type> Functor;
+  typedef typename Container<T, ret_type, int_sub_iterator, filtered>::iterator sub_iterator;
+  typedef Funct<T, Container<T, ret_type, int_sub_iterator, filtered>, ret_type> Functor;
 public:
   class iterator {
   public:
@@ -177,10 +178,11 @@ public:
 
   HomogenizedField(const SolidMechanicsModel & model,
 		   const std::string & field_id,
-		   UInt spatial_dimension = 0,
+		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
-		   ElementKind element_kind = _ek_not_defined) :
-    cont(model, field_id, spatial_dimension, ghost_type, element_kind),
+		   ElementKind element_kind = _ek_not_defined,
+ 		   const ByElementTypeArray<UInt> * filter = NULL) :
+    cont(model, field_id, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
@@ -188,20 +190,22 @@ public:
   HomogenizedField(const SolidMechanicsModel & model,
 		   const std::string & field_id,
 		   UInt n,
-		   UInt spatial_dimension = 0,
+		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
-		   ElementKind element_kind = _ek_not_defined) :
-    cont(model, field_id, n, spatial_dimension, ghost_type, element_kind),
+		   ElementKind element_kind = _ek_not_defined,
+		   const ByElementTypeArray<UInt> * filter = NULL) :
+    cont(model, field_id, n, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
 
   HomogenizedField(const FEM & fem,
 		   const ByElementTypeArray<T> & field,
-		   UInt spatial_dimension = 0,
+		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
-		   ElementKind element_kind = _ek_not_defined) :
-    cont(fem, field, spatial_dimension, ghost_type, element_kind),
+		   ElementKind element_kind = _ek_not_defined,
+		   const ByElementTypeArray<UInt> * filter = NULL) :
+    cont(fem, field, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
@@ -209,10 +213,11 @@ public:
   HomogenizedField(const FEM & fem,
 		   const ByElementTypeArray<T> & field,
 		   UInt n,
-		   UInt spatial_dimension = 0,
+		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
-		   ElementKind element_kind = _ek_not_defined) :
-    cont(fem, field, n, spatial_dimension, ghost_type, element_kind),
+		   ElementKind element_kind = _ek_not_defined,
+		   const ByElementTypeArray<UInt> * filter = NULL) :
+    cont(fem, field, n, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
@@ -243,7 +248,7 @@ public:
     cont.setPadding(n, m);
   }
 protected:
-  Container<T, ret_type, int_sub_iterator> cont;
+  Container<T, ret_type, int_sub_iterator, filtered> cont;
   Functor funct;
   UInt nb_component;
 };

@@ -46,6 +46,7 @@
 #include "mesh_partition.hh"
 #include "dof_synchronizer.hh"
 #include "pbc_synchronizer.hh"
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -186,7 +187,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
   /// Mesh
   Mesh & mesh;
 

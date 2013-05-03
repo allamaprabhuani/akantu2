@@ -30,7 +30,7 @@
 #===============================================================================
 
 add_mesh(test_synchronizer_communication_mesh
-  triangle.geo 2 1)
+  cube.geo 2 1)
 
 add_mesh(test_facet_synchronizer_mesh
   facet.geo 2 1)
@@ -55,4 +55,5 @@ register_test(test_dof_synchronizer
 register_test(test_facet_synchronizer
   SOURCES test_facet_synchronizer.cc
   DEPENDENCIES test_facet_synchronizer_mesh
+  PACKAGE cohesive
   )

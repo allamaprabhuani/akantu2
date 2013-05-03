@@ -42,17 +42,6 @@
 
 using namespace akantu;
 
-void trac(double * position,double * traction){
-  memset(traction,0,sizeof(Real)*4);
-  traction[0] = 1000;
-  traction[3] = 1000;
-
-  // if(fabs(position[0])< 1e-4){
-  //   traction[0] = -position[1];
-  // }
-
-}
-
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
@@ -62,6 +51,7 @@ int main(int argc, char *argv[])
   Mesh mesh(2);
   MeshIOMSH mesh_io;
   mesh_io.read("triangle.msh", mesh);
+  mesh.getBoundary().createBoundariesFromGeometry();
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
@@ -100,11 +90,10 @@ int main(int argc, char *argv[])
 
   // }
 
-  FEM & fem_boundary = model->getFEMBoundary();
-  fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnQuadPoints();
-
-  model->computeForcesFromFunction(trac,0);
+  // Boundary condition (Neumann)
+  Matrix<Real> stress(2,2);
+  stress.eye(1e3);
+  model.applyBC(BC::Neumann::FromHigherDim(stress), "0");
 
   // const Mesh::ConnectivityTypeList & type_list = fem_boundary.getMesh().getConnectivityTypeList();
   // Mesh::ConnectivityTypeList::const_iterator it;
@@ -115,12 +104,12 @@ int main(int argc, char *argv[])
   //   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
   //   UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
 
-    
+
   //   UInt nb_element;
   //   const Array<Real> * shapes;
   //   Array<Real> quad_coords(0,2,"quad_coords");
   //   const Array<Real> * normals_on_quad;
- 
+
   //   nb_element   = fem_boundary.getMesh().getNbElement(*it);
   //   fem_boundary.interpolateOnQuadraturePoints(mesh.getNodes(), quad_coords, 2, _segment_2);
   //   normals_on_quad = &(fem_boundary.getNormalsOnQuadPoints(*it));

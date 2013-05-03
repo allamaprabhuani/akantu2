@@ -43,6 +43,9 @@ set(AKANTU_CORE_FILES
   fem/shape_linked.cc
   fem/mesh.cc
   fem/fem.cc
+  fem/mesh_data.cc
+  fem/boundary.cc
+  fem/sub_boundary.cc
   io/dumper/dumpable.hh
   io/mesh_io.cc
   io/model_io.cc
@@ -58,6 +61,7 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_elastic.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_partition.cc
+  mesh_utils/mesh_partition/mesh_partition_mesh_data.cc
   mesh_utils/mesh_utils.cc
   solver/sparse_matrix.cc
   solver/solver.cc
@@ -77,6 +81,7 @@ set(AKANTU_CORE_FILES
   mesh_utils/mesh_utils.hh
   mesh_utils/mesh_partition.hh
   mesh_utils/mesh_partition/mesh_partition_scotch.hh
+  mesh_utils/mesh_partition/mesh_partition_mesh_data.hh
   solver/sparse_matrix.hh
   solver/solver.hh
   synchronizer/synchronizer.hh
@@ -131,7 +136,12 @@ set(AKANTU_CORE_FILES
   fem/element_class.hh
   fem/shape_linked.hh
   fem/geometrical_data_tmpl.hh
+  fem/mesh_data.hh
+  fem/boundary.hh
+  fem/sub_boundary.hh
   model/model.hh
+  model/boundary_condition.hh
+  model/boundary_condition_functor.hh
   model/parser.hh
   model/parser_tmpl.hh
   model/structural_mechanics/structural_mechanics_model.hh
@@ -156,6 +166,7 @@ set(AKANTU_CORE_FILES
   common/aka_static_memory_inline_impl.cc
   common/aka_circular_vector_inline_impl.cc
   fem/integrator_gauss_inline_impl.cc
+  fem/element_classes/element_class_point_1_inline_impl.cc
   fem/element_classes/element_class_triangle_3_inline_impl.cc
   fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_quadrangle_4_inline_impl.cc
@@ -167,17 +178,22 @@ set(AKANTU_CORE_FILES
   fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
   fem/shape_functions_inline_impl.cc
   fem/mesh_inline_impl.cc
+  fem/boundary_inline_impl.cc
+  fem/sub_boundary_inline_impl.cc
+  fem/mesh_data_tmpl.hh
   fem/by_element_type_tmpl.hh
   fem/fem_inline_impl.cc
   fem/shape_linked_inline_impl.cc
   fem/shape_lagrange_inline_impl.cc
   model/model_inline_impl.cc
+  model/boundary_condition_functor_inline_impl.cc
   model/integration_scheme/generalized_trapezoidal_inline_impl.cc
   model/integration_scheme/newmark-beta_inline_impl.cc
   model/solid_mechanics/solid_mechanics_model_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_inline_impl.cc
   model/solid_mechanics/material_inline_impl.cc
   model/parser_inline_impl.cc
+  model/boundary_condition_tmpl.hh
   fem/geometrical_element.cc
   fem/element_class_tmpl.hh
   fem/element_class.cc
@@ -202,6 +218,10 @@ set(AKANTU_CORE_TESTS
   test_grid
   test_static_memory
   test_mesh_io_msh
+  test_mesh_io_msh_physical_names
+  test_mesh_data
+  test_facet_element_mapping
+  test_mesh_boundary
   test_facet_extraction_triangle_3
   test_facet_extraction_tetrahedron_4
   test_pbc_tweak
@@ -209,6 +229,7 @@ set(AKANTU_CORE_TESTS
   test_local_material
   test_interpolate_stress
   test_weight
+  test_solid_mechanics_model_boundary_condition
   test_solid_mechanics_model_circle_2
   test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d_structured

@@ -30,10 +30,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_types.hh"
+#include <io_helper.hh>
 #include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
-#include <io_helper.hh>
+class SubBoundary;
 
 /* -------------------------------------------------------------------------- */
 
@@ -56,9 +57,16 @@ public:
 public:
   class Field;
 
-  void registerMesh(const Mesh & mesh, UInt spatial_dimension = 0,
+  void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 		    const GhostType & ghost_type = _not_ghost,
 		    const ElementKind & element_kind = _ek_not_defined);
+
+  void registerBoundary(const Mesh & mesh,
+        const SubBoundary & boundary,
+        UInt spatial_dimension = _all_dimensions,
+        const GhostType & ghost_type = _not_ghost,
+        const ElementKind & element_kind = _ek_not_defined);
+
   void registerField(const std::string & field_id, Field * field);
   void unRegisterField(const std::string & field_id);
 
@@ -102,70 +110,78 @@ public:
 
   /* ------------------------------------------------------------------------ */
   /* Nodal field wrapper */
-  template<typename T>
+  template<typename T, bool filtered = false>
   class NodalField;
 
   /* ------------------------------------------------------------------------ */
   /* Generic class used as interface for the others */
   template<typename i_type, typename d_type,
-	   template<typename> class ret_type, class daughter>
+	   template<typename> class ret_type, class daughter, bool filtered >
   class element_iterator;
 
   template<typename i_type, typename d_type,
-	   template<typename> class ret_type, class daughter>
+	   template<typename> class ret_type, class daughter, bool filtered>
   class generic_quadrature_point_iterator;
 
-  template<typename T, template<typename> class ret_type>
+  template<typename T, template<typename> class ret_type, bool filtered>
   class quadrature_point_iterator;
 
   template<typename T, class iterator_type,
-	   template<typename> class ret_type>
+	   template<typename> class ret_type, bool filtered>
   class GenericElementalField;
 
   template<typename T,
 	   class iterator_type,
-	   template<typename> class ret_type>
+	   template<typename> class ret_type, bool filtered>
   class GenericQuadraturePointsField;
 
   template<typename T,
 	   template<typename> class ret_type,
-	   template<typename, template<class> class> class iterator_type = quadrature_point_iterator>
+	   template<typename, template<typename> class, bool> class iterator_type = quadrature_point_iterator, bool filtered = false>
   class QuadraturePointsField;
 
   /* ------------------------------------------------------------------------ */
   /* Elemental Fields wrapper */
+  template<bool filtered>
   class element_type_field_iterator;
+  template<bool filtered>
   class element_partition_field_iterator;
 
-  template<typename T, template<class> class ret_type>
+  template<typename T, template<class> class ret_type, bool filtered>
   class elemental_field_iterator;
 
+  class filtered_connectivity_field_iterator;
+
+  template<bool filtered = false>
   class ElementTypeField;
 
+  template<bool filtered = false>
   class ElementPartitionField;
 
-  template<typename T, template<typename> class ret_type = Vector>
+  template<typename T, template<typename> class ret_type = Vector, bool filtered =  false>
   class ElementalField;
+
+  class FilteredConnectivityField;
 
   /* ------------------------------------------------------------------------ */
   /* Material Field wrapper */
   template<typename T,
 	   template<class> class ret_type,
 	   template<typename, template<class> class> class padding_helper_type,
-	   template<typename, template<class> class> class int_iterator>
+	   template<typename, template<class> class, bool> class int_iterator, bool filtered>
   class generic_internal_material_field_iterator;
 
-  template<typename T, template<class> class ret_type>
+  template<typename T, template<class> class ret_type, bool filtered>
   class internal_material_field_iterator;
 
-  template<typename T, template<class> class ret_type>
+  template<typename T, template<class> class ret_type, bool filtered>
   class material_stress_field_iterator;
 
-  template<typename T, template<class> class ret_type>
+  template<typename T, template<class> class ret_type, bool filtered>
   class material_strain_field_iterator;
 
   template<typename T, template<class> class ret_type = Vector,
-	   template<typename, template<class> class> class iterator_type = internal_material_field_iterator>
+	   template<typename, template<class> class, bool> class iterator_type = internal_material_field_iterator, bool filtered = false>
   class InternalMaterialField;
 
   template<class T, template<class> class R>
@@ -187,10 +203,11 @@ public:
 
   template<typename T, template< typename,
 				 template<class> class,
-				 template<typename, template<class> class> class > class Container,
-	   template<typename, template<class> class> class sub_iterator = internal_material_field_iterator,
+				 template<typename, template<class> class, bool> class, bool > class Container,
+	   template<typename, template<class> class, bool> class sub_iterator = internal_material_field_iterator,
 	   template<typename, class, template<class> class> class Funct = AvgHomogenizingFunctor,
-	   template<typename> class ret_type = Vector>
+	   template<typename> class ret_type = Vector,
+     bool filtered = false>
   class HomogenizedField;
 
   /* ------------------------------------------------------------------------ */

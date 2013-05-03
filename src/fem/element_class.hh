@@ -296,7 +296,7 @@ private:
 #include "element_class_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_point_1, _gt_point, _itp_not_defined, _ek_regular, 0);
+#include "element_classes/element_class_point_1_inline_impl.cc"
 #include "element_classes/element_class_segment_2_inline_impl.cc"
 #include "element_classes/element_class_segment_3_inline_impl.cc"
 #include "element_classes/element_class_triangle_3_inline_impl.cc"

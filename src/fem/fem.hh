@@ -113,7 +113,7 @@ class FEM : protected Memory {
   /* ------------------------------------------------------------------------ */
 public:
 
-  FEM(Mesh & mesh, UInt spatial_dimension = 0,
+  FEM(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
       ID id = "fem", MemoryID memory_id = 0);
 
   virtual ~FEM();

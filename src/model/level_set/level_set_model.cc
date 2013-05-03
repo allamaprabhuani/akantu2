@@ -73,7 +73,7 @@ solver(NULL) {
 
     createSynchronizerRegistry(this);
 
-    if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+    if (spatial_dimension == _all_dimensions) spatial_dimension = mesh.getSpatialDimension();
 
     //std::stringstream sstr; sstr << id << ":fem";
     registerFEMObject<MyFEMType > ("LevelSetFEM", mesh, spatial_dimension);

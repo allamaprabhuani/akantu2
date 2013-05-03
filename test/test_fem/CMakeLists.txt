@@ -60,6 +60,35 @@ foreach(_type ${LIST_TYPES})
   register_fem_test(inverse_map ${_type})
 endforeach()
 
+
 #register_test(test_interpolate_bernoulli_beam_2 test_interpolate_bernoulli_beam_2.cc)
 #add_mesh(test_fem_circle_1_mesh circle.geo 2 1 OUTPUT circle1.msh)
 #add_mesh(test_fem_circle_2_mesh circle.geo 2 2 OUTPUT circle2.msh)
+
+# Tests for class MeshData
+macro(register_typed_test test_name type value1 value2)
+  set(target test_${test_name}_${type})
+  register_test(${target}
+    SOURCES test_${test_name}.cc
+    COMPILE_OPTIONS "TYPE=${type};VALUE1=${value1};VALUE2=${value2}"
+    PACKAGE core
+    )
+endmacro()
+
+register_typed_test(mesh_data string \"5\" \"10\")
+register_typed_test(mesh_data UInt 5 10)
+
+add_mesh(test_boundary_msh cube.geo 3 1)
+add_mesh(test_boundary_msh_physical_names cube_physical_names.geo 3 1)
+
+register_test(test_mesh_boundary
+  SOURCES test_mesh_boundary.cc
+  DEPENDENCIES test_boundary_msh test_boundary_msh_physical_names
+  PACAKGE core)
+
+register_test(test_facet_element_mapping
+  SOURCES test_facet_element_mapping.cc
+  DEPENDENCIES test_boundary_msh_physical_names
+  PACAKGE core)
+
+

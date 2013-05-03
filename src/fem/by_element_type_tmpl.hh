@@ -33,6 +33,8 @@
 /* -------------------------------------------------------------------------- */
 /* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
+
+
 template<class Stored, typename SupportType>
 inline std::string ByElementType<Stored, SupportType>::printType(const SupportType & type,
                                                     const GhostType & ghost_type) {
@@ -278,8 +280,8 @@ template <typename T, typename SupportType>
 inline void ByElementTypeArray<T, SupportType>::onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering) {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
-    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
     for (; it != end; ++it) {
       SupportType type = *it;
       if(this->exists(type, gt)){
@@ -345,6 +347,17 @@ ByElementType<Stored, SupportType>::type_iterator::type_iterator(const type_iter
 
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
+typename ByElementType<Stored, SupportType>::type_iterator & ByElementType<Stored, SupportType>::type_iterator::operator=(const type_iterator & it) {
+  if(this != &it) {
+    list_begin = it.list_begin;
+    list_end = it.list_end;
+    dim = it.dim;
+    kind = it.kind;
+  }
+  return *this;
+}
+/* -------------------------------------------------------------------------- */
+template <class Stored, typename SupportType>
 inline typename ByElementType<Stored, SupportType>::type_iterator::reference
 ByElementType<Stored, SupportType>::type_iterator::operator*() {
   return list_begin->first;
@@ -358,27 +371,12 @@ ByElementType<Stored, SupportType>::type_iterator::operator*() const {
 }
 
 /* -------------------------------------------------------------------------- */
-// template <class Stored, typename SupportType>
-// inline typename ByElementType<Stored, SupportType>::type_iterator &
-// ByElementType<Stored, SupportType>::type_iterator::operator++() {
-//   ++list_begin;
-//   while((list_begin != list_end) &&
-// 	(((dim != 0) && (dim != Mesh::getSpatialDimension(list_begin->first))))
-// 	)
-//       ++list_begin;
-//   return *this;
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template <class Stored>
-// inline typename ByElementType<Stored, ElementType>::type_iterator &
-// ByElementType<Stored, ElementType>::type_iterator::operator++() {
 template <class Stored, typename SupportType>
 inline typename ByElementType<Stored, SupportType>::type_iterator &
 ByElementType<Stored, SupportType>::type_iterator::operator++() {
   ++list_begin;
   while((list_begin != list_end) &&
-	(((dim != 0) && (dim != Mesh::getSpatialDimension(list_begin->first))) ||
+	(((dim != _all_dimensions) && (dim != Mesh::getSpatialDimension(list_begin->first))) ||
 	 ((kind != _ek_not_defined) && (kind != Mesh::getKind(list_begin->first)))
 	 )
 	)
@@ -421,7 +419,7 @@ ByElementType<Stored, SupportType>::firstType(UInt dim, GhostType ghost_type, El
 
   // loop until the first valid type
   while((b != e) &&
-	(((dim != 0) && (dim != Mesh::getSpatialDimension(b->first))) ||
+	(((dim != _all_dimensions) && (dim != Mesh::getSpatialDimension(b->first))) ||
 	 ((kind != _ek_not_defined) && (kind != Mesh::getKind(b->first)))))
       ++b;
 

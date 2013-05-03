@@ -29,13 +29,19 @@
 #
 #===============================================================================
 
-add_mesh(test_mesh_io_mesh cube.geo 3 1)
+add_mesh(test_msh_cube cube.geo 3 1)
+add_mesh(test_msh_cube_physical_names cube_physical_names.geo 3 1)
 
 register_test(test_mesh_io_msh
   SOURCES test_mesh_io_msh.cc
-  DEPENDENCIES test_mesh_io_mesh
+  DEPENDENCIES test_msh_cube
   DIRECTORIES_TO_CREATE paraview
   )
+  
+register_test(test_mesh_io_msh_physical_names
+  SOURCES test_mesh_io_msh_physical_names.cc
+  DEPENDENCIES test_msh_cube_physical_names
+)
 
 #===============================================================================
 #register_test(test_mesh_io_diana test_mesh_io_diana.cc)

@@ -257,7 +257,7 @@ ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(const Matrix<Real> 
 
   AKANTU_DEBUG_ASSERT((dimension - 1) == interpolation_element::natural_space_dimension,
 		      "cannot extract a normal because of dimension mismatch "
-		      << dimension << " " << interpolation_element::natural_space_dimension);
+		      << dimension - 1 << " " << interpolation_element::natural_space_dimension);
 
   Matrix<Real> J(dimension, interpolation_element::natural_space_dimension);
   for (UInt p = 0; p < nb_points; ++p) {

@@ -111,6 +111,17 @@ InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const Vector<Real>
 }
 
 /* -------------------------------------------------------------------------- */
+template <>
+inline void
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeSpecialJacobian(const Matrix<Real> & J,
+                                                                         Real & jac){
+  Vector<Real> vprod(J.cols());
+  Matrix<Real> Jt = J.transpose();
+  vprod.crossProduct(Jt(0), Jt(1));
+  jac = vprod.norm();
+}
+
+/* -------------------------------------------------------------------------- */
 template<>
 inline Real
 GeometricalElement<_gt_quadrangle_4>::getInradius(const Matrix<Real> & coord) {

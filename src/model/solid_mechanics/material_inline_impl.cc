@@ -302,8 +302,8 @@ void Material::removeQuadraturePointsFromArrays(ByElementTypeArray<T> & data,
 						 const ByElementTypeUInt & new_numbering) {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
-    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
     for (; it != end; ++it) {
       ElementType type = *it;
       if(data.exists(type, gt)){
@@ -366,8 +366,8 @@ inline void Material::onElementsRemoved(const Array<Element> & element_list,
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(0, gt, _ek_not_defined);
-    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(0, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
     for (; it != end; ++it) {
       ElementType type = *it;
       if(element_filter.exists(type, gt)){

@@ -81,11 +81,13 @@ typedef UInt MemoryID;
 /* Mesh/FEM/Model types                                                       */
 /* -------------------------------------------------------------------------- */
 
-typedef UInt Surface;
+typedef std::string Surface;
 typedef std::pair<Surface, Surface> SurfacePair;
 typedef std::list< SurfacePair > SurfacePairList;
 
 /* -------------------------------------------------------------------------- */
+
+extern const UInt _all_dimensions;
 
 /// @boost sequence of element to loop on in global tasks
 #define AKANTU_REGULAR_ELEMENT_TYPE		\
@@ -168,6 +170,7 @@ enum GeometricalType {
 
 /// @enum InterpolationType type of elements
 enum InterpolationType {
+  _itp_lagrange_point_1,           ///< zeroth (!) order lagrangian point (for compatibility purposes)
   _itp_lagrange_segment_2,         ///< first order lagrangian segment
   _itp_lagrange_segment_3,         ///< second order lagrangian segment
   _itp_lagrange_triangle_3,        ///< first order lagrangian triangle
@@ -446,7 +449,7 @@ __END_AKANTU__
     switch(type) {							\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)	\
     default: {								\
-      AKANTU_DEBUG_ERROR("Type (" << type << ") not handled by this function"); \
+      AKANTU_DEBUG_ERROR("Type (" << UInt(type) << ") not handled by this function"); \
     }									\
     }									\
   } while(0)

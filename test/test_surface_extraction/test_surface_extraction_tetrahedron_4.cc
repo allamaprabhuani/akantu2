@@ -37,6 +37,7 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
+#include <cstdio>
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
@@ -56,7 +57,9 @@ int main(int argc, char *argv[])
   mesh_io.read("cubes.msh", mesh);
 
   MeshUtils::buildFacets(mesh);
-  MeshUtils::buildSurfaceID(mesh);
+
+  mesh.getBoundary().createBoundariesFromGeometry();
+//  MeshUtils::buildSurfaceID(mesh);
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
@@ -77,9 +80,21 @@ int main(int argc, char *argv[])
 
   dumper_surface.setConnectivity((int *)mesh.getConnectivity(_triangle_3).values,
   			       iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
-  double * surf_id = new double [mesh.getSurfaceID(_triangle_3).getSize()];
-  for (UInt i = 0; i < mesh.getSurfaceID(_triangle_3).getSize(); ++i)
-    surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).values[i];
+
+  UInt * surf_id = new UInt[mesh.getNbElement(_triangle_3)];
+
+  const Boundary & boundary = mesh.getBoundary();
+  for(Boundary::const_iterator it(boundary.begin()); it != boundary.end(); ++it) {
+    const Array<UInt> & element_ids = it->getElements(_triangle_3);
+    for(UInt i(0); i << element_ids.getSize(); ++i) {
+      UInt elem_idx = element_ids(i);
+      surf_id[elem_idx] = atoi((it->getName().c_str()));
+    }
+  }
+
+//  for (UInt i = 0; i < mesh.getSurfaceID(_triangle_3).getSize(); ++i)
+//    surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).values[i];
+
   dumper_surface.addElemDataField("surface_id", surf_id, 1, mesh.getNbElement(_triangle_3));
   dumper_surface.setPrefix("paraview/");
   dumper_surface.init();

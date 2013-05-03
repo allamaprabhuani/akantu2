@@ -140,11 +140,10 @@ public:
 template<typename T,
 	 template<class> class ret_type,
 	 template<typename, template<class> class> class padding_helper_type,
-	 template<typename, template<class> class> class int_iterator>
-class DumperIOHelper::generic_internal_material_field_iterator : public generic_quadrature_point_iterator< UInt, T, ret_type,
-												       int_iterator<T, ret_type> > {
+	 template<typename, template<class> class, bool> class int_iterator, bool filtered>
+class DumperIOHelper::generic_internal_material_field_iterator : public generic_quadrature_point_iterator<UInt, T, ret_type, int_iterator<T, ret_type, filtered>, filtered> {
 public:
-  typedef generic_quadrature_point_iterator<UInt, T, ret_type, int_iterator<T, ret_type> > parent;
+  typedef generic_quadrature_point_iterator<UInt, T, ret_type, int_iterator<T, ret_type, filtered>, filtered> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -158,9 +157,11 @@ public:
 					   const typename field_type::type_iterator & t_it_end,
 					   const internal_iterator & it,
 					   ElementType element_type,
-					   const GhostType ghost_type = _not_ghost) :
+					   const GhostType ghost_type = _not_ghost,
+					   const ByElementTypeArray<UInt> * filter = NULL,
+					   UInt * fit = NULL) :
     parent(element_material, 2, t_it, t_it_end,
-	   it, element_type, ghost_type),
+	   it, element_type, ghost_type, filter, fit),
     out_n(n), model(NULL), padding_helper(NULL) { }
 
   ~generic_internal_material_field_iterator() { delete padding_helper; }
@@ -216,15 +217,15 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-template<typename T, template<class> class ret_type>
+template<typename T, template<class> class ret_type, bool filtered>
 class DumperIOHelper::internal_material_field_iterator :
   public generic_internal_material_field_iterator<T, ret_type,
 						  MaterialPaddingHelper,
-						  internal_material_field_iterator> {
+						  internal_material_field_iterator, filtered> {
 public:
   typedef generic_internal_material_field_iterator<T, ret_type,
 						   MaterialPaddingHelper,
-						   DumperIOHelper::internal_material_field_iterator> parent;
+						   DumperIOHelper::internal_material_field_iterator, filtered> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -238,19 +239,21 @@ public:
 				   const typename field_type::type_iterator & t_it_end,
 				   const internal_iterator & it,
 				   ElementType element_type,
-				   const GhostType ghost_type = _not_ghost) :
+				   const GhostType ghost_type = _not_ghost,
+				   const ByElementTypeArray<UInt> * filter = NULL,
+				   UInt * fit = NULL) :
     parent(element_material, n, t_it, t_it_end,
-	   it, element_type, ghost_type) {  }
+	   it, element_type, ghost_type, filter, fit) {  }
 };
 
 /* -------------------------------------------------------------------------- */
-template<typename T, template<class> class ret_type>
+template<typename T, template<class> class ret_type, bool filtered>
 class DumperIOHelper::material_stress_field_iterator :
   public generic_internal_material_field_iterator<T, ret_type, StressPaddingHelper,
-						  material_stress_field_iterator> {
+						  material_stress_field_iterator, filtered> {
 public:
   typedef generic_internal_material_field_iterator<T, ret_type, StressPaddingHelper,
-						   DumperIOHelper::material_stress_field_iterator> parent;
+						   DumperIOHelper::material_stress_field_iterator, filtered> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -264,19 +267,21 @@ public:
 				 const typename field_type::type_iterator & t_it_end,
 				 const internal_iterator & it,
 				 ElementType element_type,
-				 const GhostType ghost_type = _not_ghost) :
+				 const GhostType ghost_type = _not_ghost,
+				 const ByElementTypeArray<UInt> * filter = NULL,
+				 UInt * fit = NULL) :
     parent(element_material, n, t_it, t_it_end,
-	   it, element_type, ghost_type) { }
+	   it, element_type, ghost_type, filter, fit) { }
 };
 
 /* -------------------------------------------------------------------------- */
-template<typename T, template<class> class ret_type>
+template<typename T, template<class> class ret_type, bool filtered>
 class DumperIOHelper::material_strain_field_iterator :
   public generic_internal_material_field_iterator<T, ret_type, StrainPaddingHelper,
-						  material_strain_field_iterator> {
+						  material_strain_field_iterator, filtered> {
 public:
   typedef generic_internal_material_field_iterator<T, ret_type, StrainPaddingHelper,
-						   DumperIOHelper::material_strain_field_iterator> parent;
+						   DumperIOHelper::material_strain_field_iterator, filtered> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -290,29 +295,32 @@ public:
 				 const typename field_type::type_iterator & t_it_end,
 				 const internal_iterator & it,
 				 ElementType element_type,
-				 const GhostType ghost_type = _not_ghost) :
+				 const GhostType ghost_type = _not_ghost,
+				 const ByElementTypeArray<UInt> * filter = NULL,
+				 UInt * fit = NULL) :
     parent(element_material, n, t_it, t_it_end,
-	   it, element_type, ghost_type) { }
+	   it, element_type, ghost_type, filter, fit) { }
 };
 
 /* -------------------------------------------------------------------------- */
 template<typename T, template<class> class ret_type,
-	 template<typename, template<class> class> class iterator_type>
+	 template<typename, template<class> class, bool> class iterator_type, bool filtered>
 class DumperIOHelper::InternalMaterialField : public GenericQuadraturePointsField<UInt,
-										  iterator_type<T, ret_type>,
-										  ret_type> {
+										  iterator_type<T, ret_type, filtered>,
+										  ret_type, filtered> {
 
-  typedef GenericQuadraturePointsField<UInt, iterator_type<T, ret_type>, ret_type> parent;
+  typedef GenericQuadraturePointsField<UInt, iterator_type<T, ret_type, filtered>, ret_type, filtered> parent;
 public:
   typedef typename parent::iterator iterator;
 public:
   /* ------------------------------------------------------------------------ */
   InternalMaterialField(const SolidMechanicsModel & model,
 			const std::string & field_id,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
-    parent(model.getFEM(), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind),
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
+    parent(model.getFEM(), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     init();
   }
@@ -320,10 +328,11 @@ public:
   InternalMaterialField(const SolidMechanicsModel & model,
 			const std::string & field_id,
 			UInt n,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
-    parent(model.getFEM(), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind),
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
+    parent(model.getFEM(), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     init();
   }

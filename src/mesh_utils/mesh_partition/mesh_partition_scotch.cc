@@ -423,8 +423,8 @@ void MeshPartitionScotch::reorder() {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    Mesh::type_iterator it  = mesh.firstType(0, gt);
-    Mesh::type_iterator end = mesh.lastType(0, gt);
+    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, gt);
+    Mesh::type_iterator end = mesh.lastType(_all_dimensions, gt);
 
     for(; it != end; ++it) {
       ElementType type = *it;

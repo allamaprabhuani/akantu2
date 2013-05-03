@@ -26,8 +26,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -882,6 +880,51 @@ assembleLumpedTemplate<_quadrangle_8>(const Array<Real> & field_1,
 				      const Array<Int> & equation_number,
 				      const GhostType & ghost_type) const {
   assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, nb_degree_of_freedom,lumped, equation_number, ghost_type);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+template<>
+inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::computeNormalsOnControlPoints<_point_1>(__attribute__((unused))const Array<Real> & field,
+                                                            Array<Real> & normal,
+                                                            const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(mesh.getSpatialDimension() == 1, "Mesh dimension must be 1 to compute normals on points!");
+  const ElementType type = _point_1;
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  //UInt nb_nodes_per_element  = Mesh::getNbNodesPerElement(type);
+  UInt nb_points = getNbQuadraturePoints(type, ghost_type);
+
+  UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
+  normal.resize(nb_element * nb_points);
+  Array<Real>::iterator< Matrix<Real> > normals_on_quad = normal.begin_reinterpret(spatial_dimension,
+                                                                                   nb_points,
+                                                                                   nb_element);
+  const Matrix<Real> quads =
+    integrator.getQuadraturePoints<type>(ghost_type);
+
+  Array< std::vector<Element> > segments = mesh.getElementToSubelement(type, ghost_type);
+  Array<Real> coords = mesh.getNodes();
+  for (UInt elem = 0; elem < nb_element; ++elem) {
+    AKANTU_DEBUG_ASSERT(segments(elem).size() == 1, "Impossible to compute a normal on a point connected to 0 or more than one segments");
+    Element segment = segments(elem)[0];
+    const Array<UInt> & segment_connectivity = mesh.getConnectivity(segment.type, segment.ghost_type);
+    //const Vector<UInt> & segment_points = segment_connectivity.begin(Mesh::getNbNodesPerElement(segment.type))[segment.element];
+    Real difference;
+    if(segment_connectivity(0) == elem) {
+      difference = coords(elem)-coords(segment_connectivity(1));
+    } else {
+      difference = coords(elem)-coords(segment_connectivity(0));
+    }
+    Real normal_value = difference/std::abs(difference);
+    for(UInt n(0); n < nb_points; ++n) {
+      (*normals_on_quad)(0, n) = normal_value;
+    }
+    ++normals_on_quad;
+  }
+
+  AKANTU_DEBUG_OUT();
 }
 
 

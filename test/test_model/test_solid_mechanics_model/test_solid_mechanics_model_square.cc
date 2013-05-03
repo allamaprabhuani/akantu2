@@ -40,16 +40,6 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-class MyStressFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
-public:
-  inline void stress(__attribute__ ((unused)) const Vector<Real> & position,
-		     Matrix<Real> & stress,
-		     __attribute__ ((unused)) const Vector<Real> & normal,
-		     __attribute__ ((unused)) Surface surface_id) {
-    stress.eye(1000);
-  }
-};
-
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
@@ -59,6 +49,7 @@ int main(int argc, char *argv[])
   Mesh mesh(2);
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
+  mesh.getBoundary().createBoundariesFromGeometry();
 
   SolidMechanicsModel model(mesh);
 
@@ -72,12 +63,10 @@ int main(int argc, char *argv[])
 
   std::cout << model << std::endl;
 
-  FEM & fem_boundary = model.getFEMBoundary();
-  fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnControlPoints();
-
-  MyStressFunctor func;
-  model.computeForcesFromFunction(func, akantu::_bft_stress);
+  // Boundary condition (Neumann)
+  Matrix<Real> stress(2,2);
+  stress.eye(1e3);
+  model.applyBC(BC::Neumann::FromHigherDim(stress), "0");
 
   model.setBaseName("square");
   model.addDumpField("displacement");

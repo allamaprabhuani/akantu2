@@ -46,7 +46,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 				   CSR<Element> & node_to_elem,
 				   UInt spatial_dimension) {
   AKANTU_DEBUG_IN();
-  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+  if (spatial_dimension == _all_dimensions) spatial_dimension = mesh.getSpatialDimension();
 
 
   /// count number of occurrence of each node
@@ -116,7 +116,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 				   CSR<UInt> & node_to_elem,
 				   UInt spatial_dimension) {
   AKANTU_DEBUG_IN();
-  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
+  if (spatial_dimension == _all_dimensions) spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes = mesh.getNbNodes();
 
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -695,8 +695,8 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
   for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
     GhostType ghost_type = (GhostType) gt;
 
-    Mesh::type_iterator it  = mesh.firstType(0, ghost_type, _ek_not_defined);
-    Mesh::type_iterator end = mesh.lastType(0, ghost_type, _ek_not_defined);
+    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, ghost_type, _ek_not_defined);
+    Mesh::type_iterator end = mesh.lastType(_all_dimensions, ghost_type, _ek_not_defined);
     for(; it != end; ++it) {
 
       ElementType type(*it);
@@ -726,238 +726,6 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
   }
 
   mesh.sendEvent(remove_nodes);
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void MeshUtils::setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_element = mesh.getNbElement(type, _not_ghost);
-  UInt nb_ghost_element = mesh.getNbElement(type, _ghost);
-
-  char * names = reinterpret_cast<char *>(data + (nb_element + nb_ghost_element) * nb_tags);
-  UIntDataMap & uint_data_map = mesh.getUIntDataMap(type, _not_ghost);
-  UIntDataMap & ghost_uint_data_map = mesh.getUIntDataMap(type, _ghost);
-
-  for (UInt t = 0; t < nb_tags; ++t) {
-    std::string name(names);
-    //    std::cout << name << std::endl;
-    names += name.size() + 1;
-
-    UIntDataMap::iterator it = uint_data_map.find(name);
-    if(it == uint_data_map.end()) {
-      uint_data_map[name] = new Array<UInt>(0, 1, name);
-      it = uint_data_map.find(name);
-    }
-    it->second->resize(nb_element);
-    memcpy(it->second->values, data, nb_element * sizeof(UInt));
-    data += nb_element;
-
-    it = ghost_uint_data_map.find(name);
-    if(it == ghost_uint_data_map.end()) {
-      ghost_uint_data_map[name] = new Array<UInt>(0, 1, name);
-      it = ghost_uint_data_map.find(name);
-    }
-    it->second->resize(nb_ghost_element);
-    memcpy(it->second->values, data, nb_ghost_element * sizeof(UInt));
-    data += nb_ghost_element;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void MeshUtils::buildSurfaceID(Mesh & mesh) {
-  AKANTU_DEBUG_IN();
-
-  // Array<UInt> node_offset;
-  // Array<UInt> node_to_elem;
-
-  CSR<UInt> node_to_elem;
-
-  /// Get list of surface elements
-  UInt spatial_dimension = mesh.getSpatialDimension();
-
-  //  buildNode2Elements(mesh, node_offset, node_to_elem, spatial_dimension-1);
-  buildNode2Elements(mesh, node_to_elem, spatial_dimension-1);
-
-  /// Find which types of elements have been linearized
-  const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  Mesh::ConnectivityTypeList::const_iterator it;
-
-  UInt nb_types = type_list.size();
-  ElementType lin_element_type[nb_types];
-  UInt nb_lin_types = 0;
-
-  UInt nb_nodes_per_element[nb_types];
-  UInt nb_nodes_per_element_p1[nb_types];
-
-  UInt * conn_val[nb_types];
-  UInt nb_element[nb_types+1];
-
-  ElementType type_p1;
-
-  for(it = type_list.begin(); it != type_list.end(); ++it) {
-    ElementType type = *it;
-    if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
-
-    ElementType facet_type = mesh.getFacetType(type);
-    lin_element_type[nb_lin_types] = facet_type;
-    nb_nodes_per_element[nb_lin_types]    = Mesh::getNbNodesPerElement(facet_type);
-    type_p1 = Mesh::getP1ElementType(facet_type);
-    nb_nodes_per_element_p1[nb_lin_types] = Mesh::getNbNodesPerElement(type_p1);
-
-    conn_val[nb_lin_types] = mesh.getConnectivity(facet_type, _not_ghost).values;
-    nb_element[nb_lin_types] = mesh.getNbElement(facet_type, _not_ghost);
-    nb_lin_types++;
-  }
-
-  for (UInt i = 1; i < nb_lin_types; ++i) nb_element[i] += nb_element[i+1];
-  for (UInt i = nb_lin_types; i > 0; --i) nb_element[i] = nb_element[i-1];
-  nb_element[0] = 0;
-
-  /// Find close surfaces
-  Array<Int> surface_value_id(1, nb_element[nb_lin_types], -1);
-  Int * surf_val = surface_value_id.values;
-  UInt nb_surfaces = 0;
-
-  UInt nb_cecked_elements;
-  UInt nb_elements_to_ceck;
-  UInt * elements_to_ceck = new UInt [nb_element[nb_lin_types]];
-  memset(elements_to_ceck, 0, nb_element[nb_lin_types]*sizeof(UInt));
-
-  for (UInt lin_el = 0; lin_el < nb_element[nb_lin_types]; ++lin_el) {
-
-    if(surf_val[lin_el] != -1) continue; /* Surface id already assigned */
-
-    /* First element of new surface */
-    surf_val[lin_el] = nb_surfaces;
-    nb_cecked_elements = 0;
-    nb_elements_to_ceck = 1;
-    memset(elements_to_ceck, 0, nb_element[nb_lin_types]*sizeof(UInt));
-    elements_to_ceck[0] = lin_el;
-
-    // Find others elements belonging to this surface
-    while(nb_cecked_elements < nb_elements_to_ceck) {
-
-      UInt ceck_lin_el = elements_to_ceck[nb_cecked_elements];
-
-      // Transform linearized index of element into ElementType one
-      UInt lin_type_nb = 0;
-      while (ceck_lin_el >= nb_element[lin_type_nb+1])
-	lin_type_nb++;
-      UInt ceck_el = ceck_lin_el - nb_element[lin_type_nb];
-
-      // Get connected elements
-      UInt el_offset = ceck_el*nb_nodes_per_element[lin_type_nb];
-      for (UInt n = 0; n < nb_nodes_per_element_p1[lin_type_nb]; ++n) {
-	UInt node_id = conn_val[lin_type_nb][el_offset + n];
-	CSR<UInt>::iterator it_n;
-	for (it_n = node_to_elem.begin(node_id); it_n != node_to_elem.end(node_id); ++it_n) {
-	  //	for (UInt i = node_offset.values[node_id]; i < node_offset.values[node_id+1]; ++i) {
-	  if(surf_val[*it_n] == -1) { /* Found new surface element */
-	    surf_val[*it_n] = nb_surfaces;
-	    elements_to_ceck[nb_elements_to_ceck] = *it_n;
-	    nb_elements_to_ceck++;
-	  }
-	  // if(surf_val[node_to_elem.values[i]] == -1) { /* Found new surface element */
-	  //   surf_val[node_to_elem.values[i]] = nb_surfaces;
-	  //   elements_to_ceck[nb_elements_to_ceck] = node_to_elem.values[i];
-	  //   nb_elements_to_ceck++;
-	  // }
-	}
-      }
-
-      nb_cecked_elements++;
-    }
-
-    nb_surfaces++;
-  }
-
-  delete [] elements_to_ceck;
-
-  /// Transform local linearized element index in the global one
-  for (UInt i = 0; i < nb_lin_types; ++i) nb_element[i] = nb_element[i+1] - nb_element[i];
-  UInt el_offset = 0;
-
-  for (UInt type_it = 0; type_it < nb_lin_types; ++type_it) {
-    ElementType type = lin_element_type[type_it];
-    Array<UInt> * surf_id_type = mesh.getSurfaceIDPointer(type, _not_ghost);
-    surf_id_type->resize(nb_element[type_it]);
-    surf_id_type->clear();
-    for (UInt el = 0; el < nb_element[type_it]; ++el)
-      surf_id_type->values[el] = surf_val[el+el_offset];
-    el_offset += nb_element[type_it];
-  }
-
-  /// Set nb_surfaces in mesh
-  mesh.nb_surfaces = nb_surfaces;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void MeshUtils::buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_surface) {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_surfaces = mesh.getNbSurfaces();
-  UInt nb_nodes    = mesh.getNbNodes();
-  UInt spatial_dimension = mesh.getSpatialDimension(); //surface elements
-
-  UInt  nb_facet_types = 0;
-  ElementType facet_type[_max_element_type];
-
-  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
-  for(; it != end; ++it) {
-    facet_type[nb_facet_types++] = mesh.getFacetType(*it);
-  }
-
-  UInt * surface_nodes_id = new UInt[nb_nodes*nb_surfaces];
-  std::fill_n(surface_nodes_id, nb_surfaces*nb_nodes, 0);
-
-  for(UInt t = 0; t < nb_facet_types; ++t) {
-    ElementType type = facet_type[t];
-
-    UInt nb_element = mesh.getNbElement(type);
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-
-    UInt * connecticity = mesh.getConnectivity(type, _not_ghost).values;
-    UInt * surface_id = mesh.getSurfaceID(type, _not_ghost).values;;
-
-    for (UInt el = 0; el < nb_element; ++el) {
-      UInt offset = *surface_id * nb_nodes;
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	surface_nodes_id[offset + *connecticity] = 1;
-	++connecticity;
-      }
-      ++surface_id;
-    }
-  }
-
-  nodes_per_surface.resizeRows(nb_surfaces);
-  nodes_per_surface.clearRows();
-
-  UInt * surface_nodes_id_tmp = surface_nodes_id;
-  for (UInt s = 0; s < nb_surfaces; ++s)
-    for (UInt n = 0; n < nb_nodes; ++n)
-      nodes_per_surface.rowOffset(s) += *surface_nodes_id_tmp++;
-
-  nodes_per_surface.countToCSR();
-
-  nodes_per_surface.resizeCols();
-  nodes_per_surface.beginInsertions();
-  surface_nodes_id_tmp = surface_nodes_id;
-  for (UInt s = 0; s < nb_surfaces; ++s)
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      if (*surface_nodes_id_tmp == 1) nodes_per_surface.insertInRow(s, n);
-      surface_nodes_id_tmp++;
-    }
-  nodes_per_surface.endInsertions();
-
-  delete [] surface_nodes_id;
 
   AKANTU_DEBUG_OUT();
 }
@@ -1557,6 +1325,101 @@ void MeshUtils::computeFacetNormals(const Mesh & mesh_facets,
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
+  AKANTU_DEBUG_IN();
+
+  if(mesh.getNbElement(mesh.getSpatialDimension() - 1) == 0) {
+    AKANTU_DEBUG_WARNING("There are not facets, add them in the mesh file or call the buildFacet method.");
+    return;
+  }
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  for (ghost_type_t::iterator git = ghost_type_t::begin();  git != ghost_type_t::end(); ++git) {
+    Mesh::type_iterator tit  = mesh.firstType(spatial_dimension, *git);
+    Mesh::type_iterator tend = mesh.lastType(spatial_dimension, *git);
+    for (;tit != tend; ++tit) {
+      mesh.getSubelementToElementPointer(*tit, *git)->resize(mesh.getNbElement(*tit, *git));
+      mesh.getSubelementToElementPointer(*tit, *git)->clear();
+    }
+
+    tit  = mesh.firstType(spatial_dimension - 1, *git);
+    tend = mesh.lastType(spatial_dimension - 1, *git);
+    for (;tit != tend; ++tit) {
+      mesh.getElementToSubelementPointer(*tit, *git)->resize(mesh.getNbElement(*tit, *git));
+      mesh.getElementToSubelementPointer(*tit, *git)->clear();
+    }
+  }
+
+
+  CSR<Element> nodes_to_elements;
+  buildNode2Elements(mesh, nodes_to_elements, spatial_dimension);
+
+  Element facet_element;
+
+  for (ghost_type_t::iterator git = ghost_type_t::begin();  git != ghost_type_t::end(); ++git) {
+    Mesh::type_iterator tit  = mesh.firstType(spatial_dimension - 1, *git);
+    Mesh::type_iterator tend = mesh.lastType(spatial_dimension - 1, *git);
+
+    facet_element.ghost_type = *git;
+    for (;tit != tend; ++tit) {
+      facet_element.type = *tit;
+
+      Array< std::vector<Element> > & element_to_subelement =
+        *mesh.getElementToSubelementPointer(*tit, *git);
+
+      const Array<UInt> & connectivity = mesh.getConnectivity(*tit, *git);
+
+      Array<UInt>::const_iterator< Vector<UInt> > fit  = connectivity.begin(mesh.getNbNodesPerElement(*tit));
+      Array<UInt>::const_iterator< Vector<UInt> > fend = connectivity.end(mesh.getNbNodesPerElement(*tit));
+
+      UInt fid = 0;
+      for (;fit != fend; ++fit, ++fid) {
+        const Vector<UInt> & facet = *fit;
+        facet_element.element = fid;
+        std::map<Element, UInt> element_seen_counter;
+        UInt nb_nodes_per_facet = mesh.getNbNodesPerElement(Mesh::getP1ElementType(*tit));
+        for (UInt n(0); n < nb_nodes_per_facet; ++n) {
+          CSR<Element>::iterator eit  = nodes_to_elements.begin(facet(n));
+          CSR<Element>::iterator eend = nodes_to_elements.end(facet(n));
+          for(;eit != eend; ++eit) {
+            Element & elem = *eit;
+            std::map<Element, UInt>::iterator cit = element_seen_counter.find(elem);
+            if(cit != element_seen_counter.end()) {
+              cit->second++;
+            } else {
+              element_seen_counter[elem] = 1;
+            }
+          }
+        }
+
+        std::vector<Element> connected_elements;
+        std::map<Element, UInt>::iterator cit  = element_seen_counter.begin();
+        std::map<Element, UInt>::iterator cend = element_seen_counter.end();
+        for(;cit != cend; ++cit) {
+          if(cit->second == nb_nodes_per_facet) connected_elements.push_back(cit->first);
+        }
+
+        if(connected_elements.size() == 1) {
+          Element & elem = connected_elements[0];
+          Array<Element> & subelement_to_element =
+            *(mesh.getSubelementToElementPointer(elem.type,
+                                                 elem.ghost_type));
+          element_to_subelement(fid).push_back(elem);
+          UInt f(0);
+          for(; f < mesh.getNbFacetsPerElement(elem.type) && subelement_to_element(elem.element, f) != ElementNull; ++f);
+          subelement_to_element(elem.element, f) = facet_element;
+        } else {
+          AKANTU_DEBUG_TO_IMPLEMENT();
+          // \todo check the normal of the facet per elements to be sure the
+          // element are in the good order
+        }
+      }
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
 
 __END_AKANTU__
 

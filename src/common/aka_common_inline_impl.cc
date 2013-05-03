@@ -53,6 +53,7 @@ inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
 {
   switch(type)
     {
+    case _itp_lagrange_point_1        : stream << "_itp_lagrange_point_1"       ; break;
     case _itp_lagrange_segment_2      : stream << "_itp_lagrange_segment_2"     ; break;
     case _itp_lagrange_segment_3      : stream << "_itp_lagrange_segment_3"     ; break;
     case _itp_lagrange_triangle_3     : stream << "_itp_lagrange_triangle_3"    ; break;

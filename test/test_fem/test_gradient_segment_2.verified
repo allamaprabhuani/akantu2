@@ -1,4 +1,3 @@
-CMA: unable to open /dev/infiniband/rdma_cm
 Epsilon : 1e-12
 FEM [
  + id                : my_fem
@@ -8,7 +7,7 @@ FEM [
    + id                : mesh
    + spatial dimension : 1
    + nodes [
-    Vector<double> [
+    Array<double> [
      + id             : mesh:coordinates
      + size           : 11
      + nb_component   : 1
@@ -18,38 +17,19 @@ FEM [
     ]
    ]
    + connectivities [
-    ByElementTypeVector<unsigned int> [
-        (not_ghost:_segment_2) [
-       Vector<unsigned int> [
-        + id             : mesh:connectivities:_segment_2
-        + size           : 10
-        + nb_component   : 2
+    ByElementTypeArray<unsigned int> [
+        (not_ghost:_point_1) [
+       Array<unsigned int> [
+        + id             : mesh:connectivities:_point_1
+        + size           : 2
+        + nb_component   : 1
         + allocated size : 2000
-        + memory size    : 16kB
-        + values         : {{0, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {7, 8}, {8, 9}, {9, 10}, {10, 1}}
+        + memory size    : 7.8kB
+        + values         : {{0}, {1}}
        ]
          ]
-    ]
-  ]
- ]
- + mesh [
-  Mesh [
-   + id                : mesh
-   + spatial dimension : 1
-   + nodes [
-    Vector<double> [
-     + id             : mesh:coordinates
-     + size           : 11
-     + nb_component   : 1
-     + allocated size : 2000
-     + memory size    : 16kB
-     + values         : {{0}, {1}, {0.1}, {0.2}, {0.3}, {0.4}, {0.5}, {0.6}, {0.7}, {0.8}, {0.9}}
-    ]
-   ]
-   + connectivities [
-    ByElementTypeVector<unsigned int> [
         (not_ghost:_segment_2) [
-       Vector<unsigned int> [
+       Array<unsigned int> [
         + id             : mesh:connectivities:_segment_2
         + size           : 10
         + nb_component   : 2
@@ -63,7 +43,7 @@ FEM [
  ]
 ]
 
-Vector<double> [
+Array<double> [
  + id             : grad_on_quad
  + size           : 10
  + nb_component   : 2

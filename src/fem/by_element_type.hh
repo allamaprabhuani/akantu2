@@ -38,12 +38,41 @@
 
 __BEGIN_AKANTU__
 
+
+// Forward declaration of the ByElementTypeVector class
+template<class Stored, typename SupportType = ElementType>
+class ByElementType;
+
+/* -------------------------------------------------------------------------- */
+/* ByElementTypeBase                                                          */
+/* -------------------------------------------------------------------------- */
+
+class ByElementTypeBase {
+public:
+  virtual ~ByElementTypeBase() {};
+//
+//  template<class Stored>
+//   ByElementTypeVector<Stored> & get();
+//
+//  template<class Stored>
+//  const ByElementTypeVector<Stored> & get() const;
+//
+//protected:
+//  template<class Stored>
+//  const ByElementTypeVector<Stored> & getTyped() const;
+//
+//  template<class Stored>
+//  ByElementTypeVector<Stored> & getTyped();
+
+};
+
+
 /* -------------------------------------------------------------------------- */
 /* ByElementType                                                              */
 /* -------------------------------------------------------------------------- */
 
-template<class Stored, typename SupportType = ElementType>
-class ByElementType {
+template<class Stored, typename SupportType>
+class ByElementType : public ByElementTypeBase {
 private:
   void operator=(const ByElementType &) {};
 public:
@@ -57,6 +86,7 @@ public:
 
   inline const Stored & operator()(const SupportType & type,
 				   const GhostType & ghost_type = _not_ghost) const;
+
   inline Stored & operator()(const SupportType & type,
 			     const GhostType & ghost_type = _not_ghost);
 
@@ -84,6 +114,7 @@ public:
 		  ElementKind ek);
 
     type_iterator(const type_iterator & it);
+    type_iterator() {}
 
     inline reference operator*();
     inline reference operator*() const;
@@ -91,6 +122,7 @@ public:
     type_iterator operator++(int);
     inline bool operator==(const type_iterator & other) const;
     inline bool operator!=(const type_iterator & other) const;
+    type_iterator & operator=(const type_iterator & other);
 
   private:
     DataMapIterator list_begin;
@@ -99,12 +131,13 @@ public:
     ElementKind kind;
   };
 
-  inline type_iterator firstType(UInt dim = 0,
+  inline type_iterator firstType(UInt dim = _all_dimensions,
 				 GhostType ghost_type = _not_ghost,
 				 ElementKind kind = _ek_not_defined) const;
-  inline type_iterator lastType(UInt dim = 0,
+  inline type_iterator lastType(UInt dim = _all_dimensions,
 				GhostType ghost_type = _not_ghost,
 				ElementKind kind = _ek_not_defined) const;
+
 
 protected:
   inline DataMap & getData(GhostType ghost_type);
@@ -120,6 +153,8 @@ protected:
   DataMap data;
   DataMap ghost_data;
 };
+
+
 
 
 /* -------------------------------------------------------------------------- */
@@ -167,6 +202,10 @@ public:
   inline void onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+
+private:
+  ByElementTypeArray operator=(__attribute__((unused)) const ByElementTypeArray & other) {};
 };
 
 /// to store data Array<Real> by element type

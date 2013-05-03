@@ -29,6 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper.hh"
+#include "sub_boundary.hh"
 
 __BEGIN_AKANTU__
 
@@ -69,12 +70,39 @@ void DumperIOHelper::registerMesh(const Mesh & mesh,
 							 ghost_type,
 							 element_kind));
   registerField("element_type",
-		new DumperIOHelper::ElementTypeField(mesh,
+		new DumperIOHelper::ElementTypeField<>(mesh,
 						     spatial_dimension,
 						     ghost_type,
 						     element_kind));
   registerField("positions",
 		new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
+}
+
+
+void DumperIOHelper::registerBoundary(const Mesh & mesh,
+				      const SubBoundary & boundary,
+				      UInt spatial_dimension,
+				      const GhostType & ghost_type,
+				      const ElementKind & element_kind) {
+  registerField("connectivities",
+		new DumperIOHelper::FilteredConnectivityField(mesh.getConnectivities(),
+							      boundary.getElements(),
+							      boundary.getNodes(),
+							      spatial_dimension,
+							      ghost_type,
+							      element_kind));
+  registerField("element_type",
+		new DumperIOHelper::ElementTypeField<true>(mesh,
+							   spatial_dimension,
+							   ghost_type,
+							   element_kind,
+							   &boundary.getElements()));
+  registerField("positions",
+		new DumperIOHelper::NodalField<Real,
+					       true>(mesh.getNodes(),
+						     0,
+						     0,
+						     &boundary.getNodes()));
 }
 
 /* -------------------------------------------------------------------------- */

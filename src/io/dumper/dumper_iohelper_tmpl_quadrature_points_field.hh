@@ -38,11 +38,11 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<typename i_type, typename d_type,
-	 template<typename> class ret_type, class daughter>
+	 template<typename> class ret_type, class daughter, bool filtered>
 class DumperIOHelper::generic_quadrature_point_iterator : public element_iterator<i_type, d_type,
-									      ret_type, daughter> {
+									      ret_type, daughter, filtered> {
 public:
-  typedef element_iterator<i_type, d_type, ret_type, daughter> parent;
+  typedef element_iterator<i_type, d_type, ret_type, daughter, filtered> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -55,8 +55,10 @@ public:
 				    const typename field_type::type_iterator & t_it_end,
 				    const internal_iterator & it,
 				    ElementType element_type,
-				    const GhostType ghost_type = _not_ghost) :
-    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
+				    const GhostType ghost_type = _not_ghost,
+				    const ByElementTypeArray<UInt> * filter = NULL,
+				    UInt * fit = NULL) :
+    parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
   void setFEM(const FEM & fem) { this->fem = &fem; }
 
@@ -68,11 +70,11 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-template<typename T, template<typename> class ret_type>
+template<typename T, template<typename> class ret_type, bool filtered>
 class DumperIOHelper::quadrature_point_iterator : public generic_quadrature_point_iterator<T, T,
-											   ret_type, quadrature_point_iterator<T, ret_type> > {
+											   ret_type, quadrature_point_iterator<T, ret_type, filtered>, filtered > {
  public:
-  typedef generic_quadrature_point_iterator<T, T, ret_type, quadrature_point_iterator> parent;
+  typedef generic_quadrature_point_iterator<T, T, ret_type, quadrature_point_iterator<T, ret_type, filtered>, filtered> parent;
   typedef typename parent::it_type     it_type;
   typedef typename parent::data_type   data_type;
   typedef typename parent::return_type return_type;
@@ -85,8 +87,10 @@ public:
 			    const typename field_type::type_iterator & t_it_end,
 			    const internal_iterator & it,
 			    ElementType element_type,
-			    const GhostType ghost_type = _not_ghost) :
-    parent(field, n, t_it, t_it_end, it, element_type, ghost_type) { }
+			    const GhostType ghost_type = _not_ghost,
+			    const ByElementTypeArray<UInt> * filter = NULL,
+			    UInt * fit = NULL) :
+    parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
   return_type operator*() {
     UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
@@ -99,28 +103,30 @@ public:
 /* -------------------------------------------------------------------------- */
 template<typename T,
 	 class iterator_type,
-	 template<class> class ret_type>
-class DumperIOHelper::GenericQuadraturePointsField : public GenericElementalField<T, iterator_type, ret_type> {
+	 template<class> class ret_type, bool filtered>
+class DumperIOHelper::GenericQuadraturePointsField : public GenericElementalField<T, iterator_type, ret_type, filtered> {
 public:
   typedef iterator_type iterator;
-  typedef GenericElementalField<T, iterator, ret_type> parent;
+  typedef GenericElementalField<T, iterator, ret_type, filtered> parent;
 
   GenericQuadraturePointsField(const FEM & fem,
 			       const ByElementTypeArray<T> & field,
-			       UInt spatial_dimension = 0,
+			       UInt spatial_dimension = _all_dimensions,
 			       GhostType ghost_type = _not_ghost,
-			       ElementKind element_kind = _ek_not_defined) :
+			       ElementKind element_kind = _ek_not_defined,
+			       const ByElementTypeArray<UInt> * filter = NULL) :
     parent(field, spatial_dimension,
-	   ghost_type, element_kind), fem(fem) { }
+	   ghost_type, element_kind, filtered), fem(fem) { }
 
   GenericQuadraturePointsField(const FEM & fem,
 			       const ByElementTypeArray<T> & field,
 			       UInt n,
-			       UInt spatial_dimension = 0,
+			       UInt spatial_dimension = _all_dimensions,
 			       GhostType ghost_type = _not_ghost,
-			       ElementKind element_kind = _ek_not_defined) :
+			       ElementKind element_kind = _ek_not_defined,
+			       const ByElementTypeArray<UInt> * filter = NULL) :
     parent(field, n, spatial_dimension,
-	   ghost_type, element_kind), fem(fem) { }
+	   ghost_type, element_kind, filter), fem(fem) { }
 
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
@@ -147,26 +153,28 @@ protected:
 /* -------------------------------------------------------------------------- */
 template<typename T,
 	 template<class> class ret_type,
-	 template<typename, template<class> class> class iterator_type>
-class DumperIOHelper::QuadraturePointsField : public GenericQuadraturePointsField<T, iterator_type<T, ret_type>, ret_type> {
+	 template<typename, template<class> class, bool> class iterator_type, bool filtered>
+class DumperIOHelper::QuadraturePointsField : public GenericQuadraturePointsField<T, iterator_type<T, ret_type, filtered>, ret_type, filtered> {
 public:
-  typedef iterator_type<T, ret_type> iterator;
-  typedef GenericQuadraturePointsField<T, iterator, ret_type> parent;
+  typedef iterator_type<T, ret_type, filtered> iterator;
+  typedef GenericQuadraturePointsField<T, iterator, ret_type, filtered> parent;
 
   QuadraturePointsField(const FEM & fem,
 			const ByElementTypeArray<T> & field,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
     parent(fem, field, spatial_dimension,
-	   ghost_type, element_kind) { }
+	   ghost_type, element_kind, filter) { }
 
   QuadraturePointsField(const FEM & fem,
 			const ByElementTypeArray<T> & field,
 			UInt n,
-			UInt spatial_dimension = 0,
+			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
-			ElementKind element_kind = _ek_not_defined) :
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
     parent(fem, field, n, spatial_dimension,
-	   ghost_type, element_kind) { }
+	   ghost_type, element_kind, filter) { }
 };

@@ -61,7 +61,7 @@ public:
     //const ID & id = "level_set_model",
     //const MemoryID & memory_id = 0);
     LevelSetModel(Mesh & mesh,
-            UInt spatial_dimension = 0,
+            UInt spatial_dimension = _all_dimensions,
             const ID & id = "level_set_model",
             const MemoryID & memory_id = 0);
 

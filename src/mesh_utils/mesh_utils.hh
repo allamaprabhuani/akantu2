@@ -64,10 +64,10 @@ public:
 public:
 
   /// build map from nodes to elements
-  static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = 0);
-  static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem, UInt spatial_dimension = 0);
+  static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = _all_dimensions);
+  static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem, UInt spatial_dimension = _all_dimensions);
 
-  //  static void buildNode2Elements(const Mesh & mesh, Array<UInt> & node_offset, Array<UInt> & node_to_elem, UInt spatial_dimension = 0);
+  //  static void buildNode2Elements(const Mesh & mesh, Array<UInt> & node_offset, Array<UInt> & node_to_elem, UInt spatial_dimension = _all_dimensions);
 
   /// build map from nodes to elements for a specific element type
   static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, CSR<UInt> & node_to_elem);
@@ -106,7 +106,7 @@ public:
 				ElementType type,
 				Array<UInt> & old_nodes);
 
-  static void setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type);
+//  static void setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type);
 
   /// Detect closed surfaces of the mesh and save the surface id
   /// of the surface elements in the array surface_id
@@ -150,6 +150,9 @@ public:
 				     const ByElementTypeArray<bool> & facet_insertion,
 				     ByElementTypeUInt & doubled_facets,
 				     const bool extrinsic);
+
+  /// fill the subelement to element and the elements to subelements data
+  static void fillElementToSubElementsData(Mesh & mesh);
 
   /// compute normals on facets
   static void computeFacetNormals(const Mesh & mesh_facets,

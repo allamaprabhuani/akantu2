@@ -175,7 +175,7 @@ void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_nam
 
     for(; it != end; ++it) {
       try {
-	const Array<UInt> & data = mesh.getUIntData(*it, data_name, gt);
+	const Array<UInt> & data = mesh.getData<UInt>(*it, data_name, gt);
 
 	AKANTU_DEBUG_ASSERT(element_index_by_material.exists(*it, gt),
 			    "element_material for type (" << gt << ":" << *it
