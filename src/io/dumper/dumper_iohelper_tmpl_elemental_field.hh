@@ -413,13 +413,8 @@ public:
     type_iterator tit;
     type_iterator end;
 
-    if(filtered) {
-      tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
-      end = filter->lastType(spatial_dimension, ghost_type, element_kind);
-    } else {
-      tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-      end = field.lastType(spatial_dimension, ghost_type, element_kind);
-    }
+    tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+    end = field.lastType(spatial_dimension, ghost_type, element_kind);
 
     const Array<T> & vect = field(*tit, ghost_type);
     UInt * fit = NULL;
@@ -443,13 +438,9 @@ public:
     type_iterator tit;
     type_iterator end;
 
-    if(filtered) {
-      tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
-      end = filter->lastType(spatial_dimension, ghost_type, element_kind);
-    } else {
-      tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-      end = field.lastType(spatial_dimension, ghost_type, element_kind);
-    }
+    tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+    end = field.lastType(spatial_dimension, ghost_type, element_kind);
+
 
     ElementType type = *tit;
     for (; tit != end; ++tit) type = *tit;
@@ -497,13 +488,8 @@ protected:
     type_iterator tit;
     type_iterator end;
 
-    if(filtered) {
-      tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
-      end = filter->lastType(spatial_dimension, ghost_type, element_kind);
-    } else {
-      tit = field.firstType(spatial_dimension, ghost_type, element_kind);
-      end = field.lastType(spatial_dimension, ghost_type, element_kind);
-    }
+    tit = field.firstType(spatial_dimension, ghost_type, element_kind);
+    end = field.lastType(spatial_dimension, ghost_type, element_kind);
 
     nb_elem = 0;
     nb_comp = 0;
@@ -537,6 +523,153 @@ protected:
   UInt n, itn;
   const ByElementTypeArray<UInt> * filter;
 };
+
+/* -------------------------------------------------------------------------- */
+template<typename T, class iterator_type, template<class> class ret_type>
+class DumperIOHelper::GenericElementalField<T, iterator_type, ret_type, true> : public Field {
+public:
+  GenericElementalField(const ByElementTypeArray<T> & field,
+			UInt spatial_dimension = _all_dimensions,
+			GhostType ghost_type = _not_ghost,
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
+    field(field), spatial_dimension(spatial_dimension),
+    ghost_type(ghost_type), element_kind(element_kind), n(0), itn(0), filter(filter) {
+    AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
+    UInt nb_component;
+    homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
+    if(homogeneous && n == 0) n = nb_component;
+  }
+
+  GenericElementalField(const ByElementTypeArray<T> & field,
+			UInt n,
+			UInt spatial_dimension = _all_dimensions,
+			GhostType ghost_type = _not_ghost,
+			ElementKind element_kind = _ek_not_defined,
+			const ByElementTypeArray<UInt> * filter = NULL) :
+    field(field), spatial_dimension(spatial_dimension),
+    ghost_type(ghost_type), element_kind(element_kind), n(n), itn(0), filter(filter) {
+    AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
+    UInt nb_component;
+    homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
+  }
+
+  typedef iterator_type iterator;
+  typedef typename iterator::internal_iterator internal_iterator;
+  typedef typename ByElementTypeArray<UInt>::type_iterator type_iterator;
+  /* ------------------------------------------------------------------------ */
+  virtual iterator begin() {
+    type_iterator tit;
+    type_iterator end;
+
+    tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
+    end = filter->lastType(spatial_dimension, ghost_type, element_kind);
+
+    const Array<T> & vect = field(*tit, ghost_type);
+    const Array<UInt> & typed_filter = (*filter)(*tit, ghost_type);
+    UInt * fit = typed_filter.storage();
+
+    UInt nb_data = getNbDataPerElem(*tit);
+    UInt nb_component = vect.getNbComponent();
+    UInt size = vect.getSize() / nb_data;
+    UInt ln = nb_component;
+    if(itn != 0) ln = itn;
+
+    internal_iterator it = iterator_helper<T, ret_type>::begin(vect, ln, nb_component / ln * nb_data, size);
+    iterator rit = iterator(field, n, tit, end, it, *tit, ghost_type, filter, fit);
+    rit.setPadding(padding_n, padding_m);
+    return rit;
+  }
+
+  virtual iterator end  () {
+    type_iterator tit;
+    type_iterator end;
+
+    tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
+    end = filter->lastType(spatial_dimension, ghost_type, element_kind);
+
+    ElementType type = *tit;
+    for (; tit != end; ++tit) type = *tit;
+
+    const Array<T> & vect = field(type, ghost_type);
+    UInt * fit = NULL;
+    const Array<UInt> & typed_filter = (*filter)(type, ghost_type);
+    fit = typed_filter.storage()+typed_filter.getSize();
+
+    UInt nb_data = getNbDataPerElem(type);
+    UInt nb_component = vect.getNbComponent();
+    UInt size = vect.getSize() / nb_data;
+    UInt ln = nb_component;
+    if(itn != 0 ) ln = itn;
+    internal_iterator it = iterator_helper<T, ret_type>::end(vect, ln, nb_component / ln * nb_data, size);
+    iterator rit =  iterator(field, n, end, end, it, type, ghost_type, filter, fit);
+    rit.setPadding(padding_n, padding_m);
+    return rit;
+  }
+
+  virtual void registerToDumper(const std::string & id, iohelper::Dumper & dupmer) {
+    dupmer.addElemDataField(id, *this);
+  };
+
+  bool isHomogeneous() { return homogeneous; }
+  virtual UInt getDim() {
+    if(padding_n && padding_m)
+      return padding_m*padding_n;
+    else return n;
+  }
+  UInt size() {
+    UInt nb_component;
+    checkHomogeneity(field, nb_component, nb_total_element);
+    return nb_total_element;
+  }
+
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+
+protected:
+  virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
+
+  virtual bool checkHomogeneity(const ByElementTypeArray<T> & field_to_check,
+				UInt & nb_comp, UInt & nb_elem) {
+    type_iterator tit;
+    type_iterator end;
+
+    tit = filter->firstType(spatial_dimension, ghost_type, element_kind);
+    end = filter->lastType(spatial_dimension, ghost_type, element_kind);
+
+    nb_elem = 0;
+    nb_comp = 0;
+    UInt nb_data = getNbDataPerElem(*tit);
+
+    bool homogen = true;
+    if(tit != end) {
+      nb_comp = field_to_check(*tit, ghost_type).getNbComponent() * nb_data;
+      for(;tit != end; ++tit) {
+	const Array<T> & vect = field_to_check(*tit, ghost_type);
+	UInt nb_data_cur = getNbDataPerElem(*tit);
+	UInt nb_element = (*filter)(*tit, ghost_type).getSize();
+	UInt nb_comp_cur = vect.getNbComponent() * nb_data_cur;
+	if(homogen && nb_comp != nb_comp_cur) homogen = false;
+	nb_elem += nb_element;
+      }
+
+      if(!homogen) nb_comp = 0;
+    }
+
+    return homogen;
+  }
+
+protected:
+  const ByElementTypeArray<T> & field;
+  UInt nb_total_element;
+  UInt spatial_dimension;
+  GhostType ghost_type;
+  ElementKind element_kind;
+  bool homogeneous;
+  UInt n, itn;
+  const ByElementTypeArray<UInt> * filter;
+};
+
+
 
 /* -------------------------------------------------------------------------- */
 template<typename T, template<typename> class ret_type, bool filtered>

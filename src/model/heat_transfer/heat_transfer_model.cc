@@ -775,10 +775,10 @@ void HeatTransferModel::addDumpField(const std::string & field_id) {
   IF_ADD_ELEM_FIELD (temperature_gradient, Real, false)
   if(field_id == "partitions"  ) {
     addDumpFieldToDumper(field_id,
-			 new DumperIOHelper::ElementPartitionField(mesh,
-								   spatial_dimension,
-								   _not_ghost,
-								   _ek_regular));
+			 new DumperIOHelper::ElementPartitionField<>(mesh,
+                                                                     spatial_dimension,
+                                                                     _not_ghost,
+                                                                     _ek_regular));
   } else {
     AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << id);
   }

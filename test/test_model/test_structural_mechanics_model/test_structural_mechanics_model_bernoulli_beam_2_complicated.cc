@@ -96,7 +96,7 @@ int main(int argc, char *argv[]){
 
   UInt nb_element = beams.getNbElement(type);
   for (unsigned int i = 0; i < nb_element; ++i) {
-    model.getElementMaterial(type)(i,0) = beams.getUIntData(type, "tag_0")(i,0) - 1;
+    model.getElementMaterial(type)(i,0) = beams.getData<UInt>(type, "tag_0")(i,0) - 1;
   }
 
 

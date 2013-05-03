@@ -107,9 +107,9 @@ int main(int argc, char *argv[]) {
       facet_check(f) = true;
       const Element & el1 = element_to_subelement(f)[0];
       const Element & el2 = element_to_subelement(f)[1];
-      UInt grain_id1 = mesh.getUIntData (el1.type, "tag_0")(el1.element);
+      UInt grain_id1 = mesh.getData<UInt>(el1.type, "tag_0")(el1.element);
       if(el2 != ElementNull) {
-	UInt grain_id2 = mesh.getUIntData (el2.type, "tag_0")(el2.element);
+	UInt grain_id2 = mesh.getData<UInt>(el2.type, "tag_0")(el2.element);
 	if (grain_id1 == grain_id2){
 	  //transgranular = 0 indicator
 	  facet_mat_by_type(f) = 1;
