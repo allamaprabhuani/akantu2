@@ -132,7 +132,7 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
       }
     }
   }
-  delete filtered_connectivity;
+
   delete filtered_connectivity;
 
   AKANTU_DEBUG_OUT();
