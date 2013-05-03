@@ -348,7 +348,7 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
     inte_f.mul<false, false>(f, J);
   }
 
-  if(filter_elements != empty_filter) delete filtered_J;
+  delete filtered_J;
 
   AKANTU_DEBUG_OUT();
 }
@@ -427,7 +427,7 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f
     inte_f *= J;
   }
 
-  if(filter_elements != empty_filter) delete filtered_J;
+  delete filtered_J;
 
   AKANTU_DEBUG_OUT();
 }

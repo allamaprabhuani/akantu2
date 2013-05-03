@@ -115,7 +115,7 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Array<Real> 
     inter_u.mul<false, false>(u, N);
   }
 
-  if(filtered_N) delete filtered_N;
+  delete filtered_N;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -163,7 +163,7 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Array<Real> &u_
     }
   }
 
-  if(filtered_B) delete filtered_B;
+  delete filtered_B;
 
   AKANTU_DEBUG_OUT();
 }
