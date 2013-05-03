@@ -525,10 +525,14 @@ void SolidMechanicsModelCohesive::computeSynchronizeNormals() {
     for(; it != end; ++it) {
       ElementType type_facet = *it;
 
-      Array<UInt> connectivity = mesh_facets.getConnectivity(type_facet, gt_facet);
+      Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet, gt_facet);
       Array<std::vector<Element> > & el_to_f =
 	mesh_facets.getElementToSubelement(type_facet, gt_facet);
+      Array<Element> & subfacet_to_facet =
+	mesh_facets.getSubelementToElement(type_facet, gt_facet);
+
       UInt nb_nodes_per_facet = connectivity.getNbComponent();
+      UInt nb_subfacet_per_facet = subfacet_to_facet.getNbComponent();
       UInt nb_facet = connectivity.getSize();
       Array<Real> & recv_normals = f_normals(type_facet, gt_facet);
       Array<Real> & computed_normals = ghost_normals(type_facet, gt_facet);
@@ -539,11 +543,15 @@ void SolidMechanicsModelCohesive::computeSynchronizeNormals() {
 	computed_normals.begin(spatial_dimension);
       Array<UInt>::iterator<Vector<UInt> > conn_it =
 	connectivity.begin(nb_nodes_per_facet);
+      Array<Element>::iterator<Vector<Element> > subf_to_f =
+	subfacet_to_facet.begin(nb_subfacet_per_facet);
 
       Vector<UInt> conn_tmp(nb_nodes_per_facet);
       std::vector<Element> el_tmp(2);
+      Vector<Element> subf_tmp(nb_subfacet_per_facet);
 
-      for (UInt f = 0; f < nb_facet; ++f, ++recv_it, ++computed_it, ++conn_it) {
+      for (UInt f = 0; f < nb_facet; ++f, ++recv_it, ++computed_it, ++conn_it,
+	     ++subf_to_f) {
 	Real product = recv_it->dot( (*computed_it) );
 
 	/// if product is negative, facets must be flipped
@@ -555,6 +563,10 @@ void SolidMechanicsModelCohesive::computeSynchronizeNormals() {
 	  el_tmp = el_to_f(f);
 	  el_to_f(f)[0] = el_tmp[1];
 	  el_to_f(f)[1] = el_tmp[0];
+
+	  subf_tmp = (*subf_to_f);
+	  (*subf_to_f)(0) = subf_tmp(1);
+	  (*subf_to_f)(1) = subf_tmp(0);
 	}
       }
     }
