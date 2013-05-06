@@ -43,6 +43,12 @@ __BEGIN_AKANTU__
 
 namespace BC {
 
+enum Axis {
+  _x = 0,
+  _y = 1,
+  _z = 2,
+};
+
 class Functor {
 
 protected:
@@ -54,11 +60,7 @@ public:
     _neumann
   };
 
-  enum Axis {
-    _x = 0,
-    _y = 1,
-    _z = 2,
-  };
+
 };
 
 
@@ -69,7 +71,7 @@ class DirichletFunctor : public Functor {
 
 protected:
   DirichletFunctor() : axis(_x) {}
-  DirichletFunctor(Functor::Axis ax) : axis(ax) {}
+  DirichletFunctor(Axis ax) : axis(ax) {}
 
 public:
   void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
@@ -80,14 +82,14 @@ public:
   static const Type type = _dirichlet;
 
 protected:
-  Functor::Axis axis;
+  Axis axis;
 };
 
 /* -------------------------------------------------------------------------- */
 class FixedValue : public DirichletFunctor {
 
 public:
-  FixedValue(Real val, Functor::Axis ax = _x) : DirichletFunctor(ax), value(val) {}
+  FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
 public:
   inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const;
@@ -150,6 +152,8 @@ public:
   inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const;
 };
 
+typedef FromHigherDim FromStress;
+typedef FromSameDim   FromTraction;
 
 } //end namespace Neumann
 

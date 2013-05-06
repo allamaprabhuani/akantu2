@@ -40,9 +40,9 @@ int main(int argc, char* argv[])
     surface_stress(1,1)=0.0;
     surface_stress(2,2)=-1.0;
 
-    model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::Functor::_x), "Bottom");
-    model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::Functor::_y), "Bottom");
-    model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::Functor::_z), "Bottom");
+    model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::_x), "Bottom");
+    model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::_y), "Bottom");
+    model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::_z), "Bottom");
 
     //model.applyBC(BC::Neumann::FromSameDim(surface_traction), "Top");
     model.applyBC(BC::Neumann::FromHigherDim(surface_stress), "Top");
