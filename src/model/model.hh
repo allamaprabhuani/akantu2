@@ -92,6 +92,9 @@ public:
 
   virtual void initPBC();
 
+  void dumpBoundary(const std::string & boundary_name);
+  void dumpBoundary();
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */

@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "sub_boundary.hh"
 #include "model.hh"
 
 __BEGIN_AKANTU__
@@ -144,7 +145,29 @@ Model::~Model() {
 }
 
 /* -------------------------------------------------------------------------- */
+void Model::dumpBoundary(const std::string & name) {
+  Boundary & boundary =  mesh.getBoundary();
+  Boundary::iterator bit = boundary.find(name);
+  Boundary::iterator bend = boundary.end();
 
+  if(bit == bend) {
+    AKANTU_EXCEPTION("No boundary named " << name << "!");
+  }
+  bit->dump();
 
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::dumpBoundary() {
+  Boundary & boundary =  mesh.getBoundary();
+  Boundary::iterator bit = boundary.begin();
+  Boundary::iterator bend = boundary.end();
+
+  for(; bit != bend; ++bit) {
+    bit->dump();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 
 __END_AKANTU__
