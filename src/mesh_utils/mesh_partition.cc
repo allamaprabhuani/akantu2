@@ -261,6 +261,9 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     partitions             .alloc(nb_element,     1, type, _not_ghost);
+    CSR<UInt> & ghost_part_csr = ghost_partitions_csr(type, _not_ghost);
+    ghost_part_csr.resizeRows(nb_element);
+
     ghost_partitions_offset.alloc(nb_element + 1, 1, type, _ghost);
     ghost_partitions       .alloc(0,              1, type, _ghost);
 
@@ -289,10 +292,15 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
       for(std::list<UInt>::iterator adj_it = list_adj_part.begin();
           adj_it != list_adj_part.end();
           ++adj_it) {
+        ghost_part_csr.getRows().push_back(*adj_it);
+        ghost_part_csr.rowOffset(el)++;
+
         ghost_partitions(type, _ghost).push_back(*adj_it);
         ghost_partitions_offset(type, _ghost)(el)++;
       }
     }
+
+    ghost_part_csr.countToCSR();
 
     /// convert the ghost_partitions_offset array in an offset array
     Array<UInt> & ghost_partitions_offset_ptr = ghost_partitions_offset(type, _ghost);
@@ -317,11 +325,15 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
     UInt nb_element = mesh.getNbElement(type);
 
     partitions             .alloc(nb_element,     1, type, _not_ghost);
+    AKANTU_DEBUG_WARNING("Allocating partitions for " << type);
+    CSR<UInt> & ghost_part_csr = ghost_partitions_csr(type, _not_ghost);
+    ghost_part_csr.resizeRows(nb_element);
+
     ghost_partitions_offset.alloc(nb_element + 1, 1, type, _ghost);
     ghost_partitions       .alloc(0,              1, type, _ghost);
-
+    AKANTU_DEBUG_WARNING("Allocating ghost_partitions for " << type);
     const Array< std::vector<Element> > & elem_to_subelem = mesh.getElementToSubelement(type, _not_ghost);
-    for(UInt i(0); i<mesh.getNbElement(type, _not_ghost); ++i) { // Facet loop
+    for(UInt i(0); i < mesh.getNbElement(type, _not_ghost); ++i) { // Facet loop
 
       const std::vector<Element> & adjacent_elems = elem_to_subelem(i);
       Element min_elem;
@@ -338,17 +350,23 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
         adjacent_parts.insert(adjacent_elem_part);
       }
       partitions(type, _not_ghost)(i) = min_part;
-      UInt ghost_part_begin = ghost_partitions_offset(min_elem.type, _ghost)(min_elem.element);
-      UInt ghost_part_end = ghost_partitions_offset(min_elem.type, _ghost)(min_elem.element + 1);
-      for(UInt g(ghost_part_begin); g < ghost_part_end; ++g) {
-        adjacent_parts.insert(ghost_partitions(min_elem.type, _ghost)(g));
+
+      CSR<UInt>::iterator git = ghost_partitions_csr(min_elem.type, _not_ghost).begin(min_elem.element);
+      CSR<UInt>::iterator gend = ghost_partitions_csr(min_elem.type, _not_ghost).end(min_elem.element);
+      for(; git != gend; ++git) {
+        adjacent_parts.insert(*git);
       }
       adjacent_parts.erase(min_part);
       std::set<UInt>::const_iterator pit = adjacent_parts.begin();
       std::set<UInt>::const_iterator pend = adjacent_parts.end();
       for(; pit != pend; ++pit) {
+        ghost_part_csr.getRows().push_back(*pit);
+        ghost_part_csr.rowOffset(i)++;
+
         ghost_partitions(type, _ghost).push_back(*pit);
       }
+
+      ghost_part_csr.countToCSR();
       ghost_partitions_offset(type, _ghost)(i+1) = ghost_partitions_offset(type, _ghost)(i+1)
                                                    + adjacent_elems.size();
     }

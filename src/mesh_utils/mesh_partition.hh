@@ -35,6 +35,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_memory.hh"
+#include "aka_csr.hh"
 #include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -99,8 +100,10 @@ public:
 
   AKANTU_GET_MACRO(Partitions, partitions, const ByElementTypeUInt &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartition, ghost_partitions, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartition, ghost_partitions, UInt);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);
+
+  AKANTU_GET_MACRO(GhostPartitionCSR, ghost_partitions_csr, const ByElementType< CSR<UInt> > &);
 
   AKANTU_GET_MACRO(NbPartition, nb_partitions, UInt);
   AKANTU_SET_MACRO(NbPartition, nb_partitions, UInt);
@@ -124,6 +127,7 @@ protected:
   /// partition numbers
   ByElementTypeUInt partitions;
 
+  ByElementType< CSR<UInt> > ghost_partitions_csr;
   ByElementTypeUInt ghost_partitions;
   ByElementTypeUInt ghost_partitions_offset;
 
