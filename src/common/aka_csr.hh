@@ -73,10 +73,12 @@ public:
   }
 
   inline const T & operator()(UInt row, UInt col) const {
+    AKANTU_DEBUG_ASSERT(rows_offsets(row + 1) - rows_offsets(row) > col, "This element is not present in this CSR");
     return rows(rows_offsets(row) + col);
   }
 
   inline T & operator()(UInt row, UInt col) {
+    AKANTU_DEBUG_ASSERT(rows_offsets(row + 1) - rows_offsets(row) > col, "This element is not present in this CSR");
     return rows(rows_offsets(row) + col);
   }
 
@@ -111,9 +113,9 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbRows() { return rows_offsets.getSize() - 1; };
+  inline UInt getNbRows() const { return rows_offsets.getSize() - 1; };
 
-  inline UInt getNbCols(UInt row) { return rows_offsets(row + 1) - rows_offsets(row); };
+  inline UInt getNbCols(UInt row) const { return rows_offsets(row + 1) - rows_offsets(row); };
 
   inline UInt & rowOffset(UInt row) { return rows_offsets(row); };
 
@@ -156,7 +158,7 @@ public:
 
   inline const Array<UInt> & getRowsOffset() const { return rows_offsets; };
   inline const Array<T> & getRows() const { return rows; };
-
+  inline Array<T> & getRows() { return rows; };
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

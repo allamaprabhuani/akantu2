@@ -63,7 +63,7 @@ void MeshData::registerElementalData(const std::string & name) {
   if(it == elemental_data.end()) {
     allocElementalData<T>(name);
   } else{
-      AKANTU_DEBUG_WARNING("Data named " << name << " already registered.");
+    AKANTU_DEBUG_WARNING("Data named " << name << " already registered.");
   }
 }
 
@@ -110,7 +110,7 @@ const Array<T> & MeshData::getElementalDataArray(const std::string & name,
                                                  const GhostType & ghost_type) const {
   ElementalDataMap::const_iterator it = elemental_data.find(name);
   if(it == elemental_data.end()) {
-    AKANTU_EXCEPTION("Data named " << name << " not registered!");
+    AKANTU_EXCEPTION("Data named " << name << " not registered for type: " << elem_type << " - ghost_type:" << ghost_type << "!");
   }
   return dynamic_cast<const ByElementTypeArray<T> &>(*(it->second))(elem_type, ghost_type);
 }
@@ -122,7 +122,7 @@ Array<T> & MeshData::getElementalDataArray(const std::string & name,
                                            const GhostType & ghost_type) {
   ElementalDataMap::iterator it = elemental_data.find(name);
   if(it == elemental_data.end()) {
-    AKANTU_EXCEPTION("Data named " << name << " not registered!");
+    AKANTU_EXCEPTION("Data named " << name << " not registered for type: " << elem_type << " - ghost_type:" << ghost_type << "!");
   }
   return dynamic_cast<ByElementTypeArray<T> &>(*(it->second))(elem_type, ghost_type);
 }
@@ -159,7 +159,7 @@ inline UInt MeshData::getNbComponent(const std::string name, const ElementType &
   TypeCodeMap::const_iterator it = typecode_map.find(name);
   UInt nb_comp(0);
   if(it == typecode_map.end()) {
-    AKANTU_EXCEPTION("Could not determine the type held in dataset " << name << ".");
+    AKANTU_EXCEPTION("Could not determine the type held in dataset " << name << " for type: " << el_type << " - ghost_type:" << ghost_type << ".");
   }
   MeshDataTypeCode type = it->second;
   switch(type) {
