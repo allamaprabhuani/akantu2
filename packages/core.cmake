@@ -89,6 +89,7 @@ set(AKANTU_CORE_FILES
   synchronizer/static_communicator_dummy.hh
   synchronizer/static_communicator_inline_impl.hh
   synchronizer/distributed_synchronizer.hh
+  synchronizer/distributed_synchronizer_tmpl.hh
   synchronizer/pbc_synchronizer.hh
   synchronizer/static_communicator.hh
   synchronizer/dof_synchronizer.hh
