@@ -64,18 +64,19 @@ void DumperIOHelper::registerMesh(const Mesh & mesh,
 				  UInt spatial_dimension,
 				  const GhostType & ghost_type,
 				  const ElementKind & element_kind) {
-  if (element_kind != _ek_cohesive) {
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  if (element_kind == _ek_cohesive) {
+    registerField("connectivities",
+		  new DumperIOHelper::CohesiveConnectivityField(mesh,
+								spatial_dimension,
+								ghost_type));
+  } else
+#endif
     registerField("connectivities",
 		  new DumperIOHelper::ElementalField<UInt>(mesh.getConnectivities(),
 							   spatial_dimension,
 							   ghost_type,
 							   element_kind));
-  } else {
-    registerField("connectivities",
-		  new DumperIOHelper::CohesiveConnectivityField(mesh,
-								spatial_dimension,
-								ghost_type));
-  }
 
   registerField("element_type",
 		new DumperIOHelper::ElementTypeField<>(mesh,
