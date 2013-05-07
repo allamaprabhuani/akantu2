@@ -690,7 +690,8 @@ void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation
   const Mesh & mesh = model->getFEM().getMesh();
 
   ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
-  mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, 0);
+  mesh.initByElementTypeArray(quadrature_points_coordinates,
+			      spatial_dimension, spatial_dimension);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {

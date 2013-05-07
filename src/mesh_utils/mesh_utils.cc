@@ -823,7 +823,7 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
 
       /// double middle nodes if it's the case
       if (type_facet == _segment_3)
-	doubleMiddleNode(mesh, mesh_facets, gt_facet, doubled_nodes, doubled_f);
+      	doubleMiddleNode(mesh, mesh_facets, gt_facet, doubled_nodes, doubled_f);
 
       /// loop over doubled facets to insert cohesive elements
       ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
@@ -1216,7 +1216,7 @@ void MeshUtils::doubleSubfacet(Mesh & mesh,
 
 	/// cohesive elements: it's neccesary to identify the correct
 	/// facet to be updated by looking for another node
-	if (elem_to_facet(f_global)[el].kind == _ek_cohesive) {
+	if (elem.kind == _ek_cohesive) {
 
 	  if (spatial_dimension == 3) AKANTU_DEBUG_TO_IMPLEMENT();
 	  else if (spatial_dimension == 2) {

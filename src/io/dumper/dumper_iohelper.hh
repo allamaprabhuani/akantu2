@@ -146,6 +146,7 @@ public:
   class element_type_field_iterator;
   template<bool filtered>
   class element_partition_field_iterator;
+  class cohesive_connectivity_field_iterator;
 
   template<typename T, template<class> class ret_type, bool filtered>
   class elemental_field_iterator;
@@ -161,6 +162,7 @@ public:
   template<typename T, template<typename> class ret_type = Vector, bool filtered =  false>
   class ElementalField;
 
+  class CohesiveConnectivityField;
   class FilteredConnectivityField;
 
   /* ------------------------------------------------------------------------ */

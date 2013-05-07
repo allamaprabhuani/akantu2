@@ -53,7 +53,7 @@ public:
   typedef FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive> MyFEMCohesiveType;
 
   SolidMechanicsModelCohesive(Mesh & mesh,
-			      UInt spatial_dimension = 0,
+			      UInt spatial_dimension = _all_dimensions,
 			      const ID & id = "solid_mechanics_model_cohesive",
 			      const MemoryID & memory_id = 0);
 

@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
 
-  ElementType type = _triangle_3;
+  ElementType type = _triangle_6;
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -131,6 +131,13 @@ int main(int argc, char *argv[]) {
       boundary(n, 0) = true;
   }
 
+  /// initial conditions
+  Real loading_rate = 0.5;
+  Real disp_update = loading_rate * time_step;
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    velocity(n, 1) = loading_rate * position(n, 1);
+  }
+
   model.synchronizeBoundaries();
   model.updateResidual();
 
@@ -146,12 +153,12 @@ int main(int argc, char *argv[]) {
   //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
 
-  /// initial conditions
-  Real loading_rate = 0.5;
-  Real disp_update = loading_rate * time_step;
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    velocity(n, 1) = loading_rate * position(n, 1);
-  }
+  DumperParaview dumper("cohesive_elements");
+  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+  DumperIOHelper::Field * cohesive_displacement =
+    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
+  cohesive_displacement->setPadding(3);
+  dumper.registerField("displacement", cohesive_displacement);
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
@@ -170,7 +177,7 @@ int main(int argc, char *argv[]) {
     model.explicitCorr();
 
     model.dump();
-    if(s % 1 == 0) {
+    if(s % 10 == 0) {
       if(prank == 3) std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
@@ -191,6 +198,8 @@ int main(int argc, char *argv[]) {
     // 	 << Er << std::endl;
 
   }
+
+  dumper.dump();
 
   // edis.close();
   // erev.close();

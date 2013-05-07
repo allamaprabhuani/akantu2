@@ -65,6 +65,8 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   synchronizer/facet_synchronizer.cc
   synchronizer/facet_synchronizer.hh
   synchronizer/facet_synchronizer_inline_impl.cc
+
+  io/dumper/dumper_iohelper_tmpl_connectivity_field.hh
   )
 
 

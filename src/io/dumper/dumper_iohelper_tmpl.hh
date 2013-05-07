@@ -91,3 +91,6 @@ public:
 #include "dumper_iohelper_tmpl_nodal_field.hh"
 #include "dumper_iohelper_tmpl_elemental_field.hh"
 #include "dumper_iohelper_tmpl_quadrature_points_field.hh"
+#ifdef AKANTU_COHESIVE_ELEMENT
+#  include "dumper_iohelper_tmpl_connectivity_field.hh"
+#endif

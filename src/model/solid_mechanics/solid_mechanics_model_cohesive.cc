@@ -476,8 +476,16 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file,
     }
   }
 
-  /// initialize the interpolation function
-  materials[0]->initElementalFieldInterpolation(elements_quad_facets);
+  /// loop over materials
+  for (UInt m = 0; m < materials.size(); ++m) {
+    try {
+      MaterialCohesive & mat __attribute__((unused)) =
+	dynamic_cast<MaterialCohesive &>(*materials[m]);
+    } catch(std::bad_cast&) {
+      /// initialize the interpolation function
+      materials[m]->initElementalFieldInterpolation(elements_quad_facets);
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }

@@ -28,7 +28,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-add_mesh(test_cohesive_parallel_extrinsic_mesh mesh.geo 2 1)
+add_mesh(test_cohesive_parallel_extrinsic_mesh mesh.geo 2 2)
 
 if(AKANTU_PARALLEL)
   register_test(test_cohesive_parallel_extrinsic

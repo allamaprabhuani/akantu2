@@ -216,6 +216,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     UInt nb_quadrature_points = fem_cohesive->getNbQuadraturePoints(*it, ghost_type);
 
     UInt nb_element = elem_filter.getSize();
+    if (nb_element == 0) continue;
 
     /// compute @f$t_i N_a@f$
 
