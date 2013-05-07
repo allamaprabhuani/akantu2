@@ -34,9 +34,6 @@
 #include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
-class SubBoundary;
-
-/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_DUMPER_IOHELPER_HH__
 #define __AKANTU_DUMPER_IOHELPER_HH__

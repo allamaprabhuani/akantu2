@@ -40,6 +40,8 @@ template<typename T, bool is_scal = is_scalar<T>::value > class Array;
 
 template <class T> class SpatialGrid;
 
+class SubBoundary;
+
 extern const Array<UInt> empty_filter;
 
 __END_AKANTU__
