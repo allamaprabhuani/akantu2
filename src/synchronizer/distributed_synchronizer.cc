@@ -138,22 +138,22 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       memset(nb_ghost_element, 0, nb_proc*sizeof(UInt));
       memset(nb_element_to_send, 0, nb_proc*sizeof(UInt));
 
-      UInt * partition_num = partition->getPartition(type, _not_ghost).values;
+      const Array<UInt> & partition_num = partition->getPartition(type, _not_ghost);
 
-      UInt * ghost_partition = partition->getGhostPartition(type, _ghost).values;
-      UInt * ghost_partition_offset = partition->getGhostPartitionOffset(type, _ghost).values;
+      const CSR<UInt> & ghost_partition = partition->getGhostPartitionCSR()(type, _not_ghost);
+      //      const Array<UInt> & ghost_partition = partition->getGhostPartition(type, _ghost);
+      //      const Array<UInt> & ghost_partition_offset = partition->getGhostPartitionOffset(type, _ghost);
 
       /* -------------------------------------------------------------------- */
       /// constructing the reordering structures
       for (UInt el = 0; el < nb_element; ++el) {
-        nb_local_element[partition_num[el]]++;
-        for (UInt part = ghost_partition_offset[el];
-             part < ghost_partition_offset[el + 1];
+        nb_local_element[partition_num(el)]++;
+        for (CSR<UInt>::const_iterator part = ghost_partition.begin(el);
+             part != ghost_partition.end(el);
              ++part) {
-          nb_ghost_element[ghost_partition[part]]++;
+          nb_ghost_element[*part]++;
         }
-        nb_element_to_send[partition_num[el]] +=
-          ghost_partition_offset[el + 1] - ghost_partition_offset[el] + 1;
+        nb_element_to_send[partition_num(el)] += ghost_partition.getNbCols(el) + 1;
       }
 
       /// allocating buffers
@@ -169,18 +169,18 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       /// copying the local connectivity
       UInt * conn_val = mesh.getConnectivity(type, _not_ghost).values;
       for (UInt el = 0; el < nb_element; ++el) {
-        memcpy(buffers_tmp[partition_num[el]],
+        memcpy(buffers_tmp[partition_num(el)],
                conn_val + el * nb_nodes_per_element,
                nb_nodes_per_element * sizeof(UInt));
-        buffers_tmp[partition_num[el]] += nb_nodes_per_element;
+        buffers_tmp[partition_num(el)] += nb_nodes_per_element;
       }
 
       /// copying the connectivity of ghost element
       for (UInt el = 0; el < nb_element; ++el) {
-        for (UInt part = ghost_partition_offset[el];
-             part < ghost_partition_offset[el + 1];
+        for (CSR<UInt>::const_iterator part = ghost_partition.begin(el);
+             part != ghost_partition.end(el);
              ++part) {
-          UInt proc = ghost_partition[part];
+          UInt proc = *part;
           memcpy(buffers_tmp[proc],
                  conn_val + el * nb_nodes_per_element,
                  nb_nodes_per_element * sizeof(UInt));
@@ -248,19 +248,21 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       UInt count_by_proc[nb_proc];
       memset(count_by_proc, 0, nb_proc*sizeof(UInt));
       for (UInt el = 0; el < nb_element; ++el) {
-        *(buffers_tmp[partition_num[el]]++) = ghost_partition_offset[el + 1] - ghost_partition_offset[el];
-        for (UInt part = ghost_partition_offset[el], i = 0;
-             part < ghost_partition_offset[el + 1];
+        *(buffers_tmp[partition_num(el)]++) = ghost_partition.getNbCols(el);
+        UInt i(0);
+        for (CSR<UInt>::const_iterator part = ghost_partition.begin(el);
+             part != ghost_partition.end(el);
              ++part, ++i) {
-          *(buffers_tmp[partition_num[el]]++) = ghost_partition[part];
+          *(buffers_tmp[partition_num(el)]++) = *part;
         }
       }
 
       for (UInt el = 0; el < nb_element; ++el) {
-        for (UInt part = ghost_partition_offset[el], i = 0;
-             part < ghost_partition_offset[el + 1];
+        UInt i(0);
+        for (CSR<UInt>::const_iterator part = ghost_partition.begin(el);
+             part != ghost_partition.end(el);
              ++part, ++i) {
-          *(buffers_tmp[ghost_partition[part]]++) = partition_num[el];
+          *(buffers_tmp[*part]++) = partition_num(el);
         }
       }
 
@@ -309,16 +311,15 @@ createDistributedSynchronizerMesh(Mesh & mesh,
             mesh_data_sizes_buffer << mesh_data.getNbComponent(*names_it, type);
           }
           mesh_data_sizes_buffer_length = mesh_data_sizes_buffer.getSize();
-          AKANTU_DEBUG_INFO("Broadcasting the size of the information about the mesh data tags (sic).");
+          AKANTU_DEBUG_INFO("Broadcasting the size of the information about the mesh data tags: (" << mesh_data_sizes_buffer_length << ")." );
           comm.broadcast(&mesh_data_sizes_buffer_length, 1, root);
           AKANTU_DEBUG_INFO("Broadcasting the information about the mesh data tags, addr " << (void*)mesh_data_sizes_buffer.storage());
 
-        if(mesh_data_sizes_buffer_length !=0)
-          comm.broadcast(mesh_data_sizes_buffer.storage(), mesh_data_sizes_buffer.getSize(), root);
+          if(mesh_data_sizes_buffer_length !=0)
+            comm.broadcast(mesh_data_sizes_buffer.storage(), mesh_data_sizes_buffer.getSize(), root);
         }
 
-        if(mesh_data_sizes_buffer_length !=0)
-        {
+        if(mesh_data_sizes_buffer_length !=0) {
           //Sending the actual data to each processor
           DynamicCommunicationBuffer buffers[nb_proc];
           std::vector<std::string>::const_iterator names_it  = tag_names.begin();
@@ -332,8 +333,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
                                        *names_it,
                                        type,
                                        partition_num,
-                                       ghost_partition,
-                                       ghost_partition_offset);
+                                       ghost_partition);
 
             // Reinitializing the mesh data on the master
             communicator.populateMeshData(mesh_data,
@@ -345,6 +345,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
                                           nb_local_element[root],
                                           nb_ghost_element[root]);
           }
+
           std::vector<CommunicationRequest *> requests;
           for (UInt p = 0; p < nb_proc; ++p) {
             if(p != root) {
@@ -561,6 +562,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           mesh_data_sizes_buffer.resize(mesh_data_sizes_buffer_length);
           AKANTU_DEBUG_INFO("Receiving the information about the mesh data tags, addr " << (void*)mesh_data_sizes_buffer.storage());
           comm.broadcast(mesh_data_sizes_buffer.storage(), mesh_data_sizes_buffer_length, root);
+          AKANTU_DEBUG_INFO("Size of the information about the mesh data: " << mesh_data_sizes_buffer_length);
 
           std::vector<std::string> tag_names;
           std::vector<MeshDataTypeCode> tag_type_codes;
@@ -581,7 +583,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
           std::vector<std::string>::const_iterator names_end = tag_names.end();
 
           CommunicationStatus mesh_data_comm_status;
-          comm.probe<char>(root, TAG_MESH_DATA, mesh_data_comm_status);
+          AKANTU_DEBUG_INFO("Checking size of data to receive for mesh data TAG(" << Tag::genTag(root, count, TAG_MESH_DATA) << ")");
+          comm.probe<char>(root, Tag::genTag(root, count, TAG_MESH_DATA), mesh_data_comm_status);
           UInt mesh_data_buffer_size(mesh_data_comm_status.getSize());
           AKANTU_DEBUG_INFO("Receiving " << mesh_data_buffer_size << " bytes of mesh data TAG(" << Tag::genTag(root, count, TAG_MESH_DATA) << ")");
           mesh_data_buffer.resize(mesh_data_buffer_size);
@@ -640,12 +643,11 @@ void DistributedSynchronizer::fillTagBuffer(const MeshData & mesh_data,
                                             DynamicCommunicationBuffer * buffers,
                                             const std::string & tag_name,
                                             const ElementType & el_type,
-                                            const UInt * partition_num,
-                                            const UInt * ghost_partition,
-                                            const UInt * ghost_partition_offset) {
+                                            const Array<UInt> & partition_num,
+                                            const CSR<UInt> & ghost_partition) {
   #define AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA(r, extra_param, elem)	\
     case BOOST_PP_TUPLE_ELEM(2, 0, elem) : { \
-      fillTagBufferTemplated<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(mesh_data, buffers, tag_name, el_type, partition_num, ghost_partition, ghost_partition_offset); \
+      fillTagBufferTemplated<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(mesh_data, buffers, tag_name, el_type, partition_num, ghost_partition); \
       break; \
     } \
 
@@ -723,7 +725,7 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
+void DistributedSynchronizer::fillCommunicationScheme(const UInt * partition,
                                                       UInt nb_local_element,
                                                       UInt nb_ghost_element,
                                                       ElementType type) {
@@ -733,7 +735,7 @@ void DistributedSynchronizer::fillCommunicationScheme(UInt * partition,
   element.type = type;
   element.kind = Mesh::getKind(type);
 
-  UInt * part = partition;
+  const UInt * part = partition;
 
   part = partition;
   for (UInt lel = 0; lel < nb_local_element; ++lel) {
