@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     std::stringstream sstr;
 
     SolidMechanicsModel model(mesh);
-    model.initFull("material.dat", _explicit_dynamic);
+    model.initFull("material.dat");
     std::cout << model.getMaterial(0) << std::endl;
 
     Vector<Real> surface_traction(3);

@@ -1,9 +1,9 @@
 /**
- * @file   aka_sphere.hh
+ * @file   aka_ball.hh
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
  * @date   Mon Jun 18 10:20:00 2012
  *
- * @brief  bounding sphere classes
+ * @brief  bounding ball classes
  *
  * @section LICENSE
  *
@@ -27,8 +27,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SPHERE_HH__
-#define __AKANTU_SPHERE_HH__
+#ifndef __AKANTU_BALL_HH__
+#define __AKANTU_BALL_HH__
 
 #include <iostream>
 
@@ -38,50 +38,43 @@
 
 __BEGIN_AKANTU__
 
+static Real epsilon = 10*std::numeric_limits<Real>::epsilon();
+
 using std::cout;
 using std::endl;
 
-// forward declarations
-class Sphere;
-//void update_sphere(Sphere&, const typename Sphere::point_type&);
-
-
 //! Sphere class
-class Sphere : public Bounding_volume<3> {
+template <int d>
+class Ball : public Bounding_volume<d> {
   
 public:
+    
   
-  static constexpr int dim_ = 3;
-  
-  typedef Bounding_volume<dim_> base_type;
+  typedef Bounding_volume<d> base_type;
   typedef typename base_type::point_type point_type;
-
-  typedef typename point_type::value_type value_type;
-  typedef BoundingBox<dim_> aabb_type;
-
-
-  static int dim()
-  { return dim_; }
   
-  Sphere(const point_type& c = point_type(), value_type r = value_type()) : base_type(), c_(c), r_(r) {}
+  typedef typename point_type::value_type value_type;
+  typedef BoundingBox<d> aabb_type;
+  
+  
+  constexpr static int dim()
+  { return d; }
+  
+  Ball(const point_type& c = point_type(), value_type r = value_type()) : base_type(), c_(c), r_(r) {}
   
   virtual base_type* combine(const base_type& b) const {
     
-    const Sphere* sp = dynamic_cast<const Sphere*>(&b);
+    const Ball* sp = dynamic_cast<const Ball*>(&b);
     assert(sp != nullptr);
-    const Sphere& s0 = *sp;
-    Sphere r(s0);
+    const Ball& s0 = *sp;
+    Ball r(s0);
     r += *this;
-    return new Sphere(r);
+    return new Ball(r);
   }
   
-  virtual std::ostream& print(std::ostream& os) const {
-    os<<"Sphere["<<c_<<", "<<r_<<"]";
-    return os;
-  }
+  virtual std::ostream& print(std::ostream& os) const;
   
-  aabb_type aabb() const {
-
+  aabb_type bounding_box() const {
     point_type o = r_*point_type(1.);
     return aabb_type(c_ - o, c_ + o);
   }
@@ -94,18 +87,10 @@ public:
   { return r_; }
   
   //! Use in generic code as comparative measure of how big the sphere is
-  value_type measure() const
-  { return pow(r_,3); }
-  
-  //! Sphere intersection test
-  bool operator&(const Sphere& s) {
-    point_type d = c_ - s.c_;
-    value_type sq_dist = d.sq_norm();
-    return sq_dist <= pow(r_ + s.r_,2);
-  }
-
+  value_type measure() const;
+    
   //! Grow sphere if point lies outside of it
-  Sphere& operator+=(const point_type& p) {
+  Ball& operator+=(const point_type& p) {
     
     point_type diff = p - c_;
     value_type sq_norm = diff.sq_norm();
@@ -121,27 +106,27 @@ public:
     return *this;
   }
   
-  //! Determine the sphere that encloses both spheres
-  Sphere& operator+=(const Sphere s) {
+  //! Determine the ball that encloses both spheres
+  Ball& operator+=(const Ball s) {
     
     point_type diff = s.c_ - c_;
     value_type sq_norm = diff.sq_norm();
     
-    // one sphere is contained within the other
+    // one ball is contained within the other
     if (pow(s.r_ - r_, 2) >= sq_norm) {
       if(s.r_ >= r_)
         this->operator=(s);
-      // else do nothing, as the current sphere is bigger
+      // else do nothing, as the current ball is bigger
       // and no further changes are required
     }
-    // else spheres partially overlapping or disjoint
+    // else balls partially overlapping or disjoint
     else {
       
       // compute new radius
       value_type norm = sqrt(sq_norm);
       value_type tmp = r_;
       r_ = 0.5 * (norm + r_ + s.r_);
-      if (norm > 2*std::numeric_limits<Real>::epsilon())
+      if (norm > epsilon)
         c_ += ((r_ - tmp) / norm) * diff;
     }
     return *this;
@@ -149,28 +134,50 @@ public:
   
   
   bool operator&(const point_type& p) const
-  { return (p - c_).sq_norm() < r_*r_; }
+  { return (p - c_).sq_norm() - r_*r_ < epsilon; }
+
+  bool operator&(const Ball& s) const
+  { return (c_ - s.c_).sq_norm() - pow(r_ + s.r_,2.) < epsilon; }
   
-  bool operator&(const Sphere& s) const
-  { return (c_ - s.c_).sq_norm() <= pow(r_ + s.r_,2.); }  
+  // compute ball from intersection of bounding boxes of two balls
+  Ball operator&&(const Ball& b) const {
+    
+    // get bounding boxes of spheres
+    aabb_type bb1 = bounding_box();
+    aabb_type bb2 = b.bounding_box();
+    
+    // compute intersection
+    aabb_type bbint = bb1 && bb2;
+    
+    // compute center and radius of the sphere
+    point_type c = 0.5*(bbint.min() + bbint.max());
+    value_type r = sqrt((bbint.min() - bbint.max()).sq_norm());
+    
+    // construct sphere
+    return Ball(c,r);
+  }
+
+  
   
 private:
   
-  point_type c_;  //!< Sphere center
-  Real r_;        //!< Sphere radius
+  point_type c_;  //!< Ball center
+  Real r_;        //!< Ball radius
 };
 
 
-Sphere operator+(const Sphere& s1, const Sphere& s2) {
-  Sphere r(s1);
+// type definitions
+typedef Ball<1> Interval;
+typedef Ball<2> Circle;
+typedef Ball<3> Sphere;
+
+
+template <int d>
+Ball<d> operator+(const Ball<d>& s1, const Ball<d>& s2) {
+  Ball<d> r(s1);
   return r += s2;
 }
 
-
-std::ostream& operator<<(std::ostream& os, const Sphere& s) {
-  os<<"Sphere["<<s.center()<<", "<<s.radius()<<"]";
-  return os;
-}
 
 
 // Ritter algorithm
@@ -224,8 +231,8 @@ std::pair<size_t, size_t> extreme_points(const point_container& pts) {
 }
 
 
-template <class point_container>
-Sphere bounding_sphere(const point_container& pts) {
+template <int d, class point_container>
+Ball<d> bounding_ball(const point_container& pts) {
   
   assert(!pts.empty());
   
@@ -243,7 +250,7 @@ Sphere bounding_sphere(const point_container& pts) {
   value_type r = sqrt((M-c).sq_norm());
   
   // construct sphere
-  Sphere s(c,r);
+  Ball<d> s(c,r);
   
   // second pass: update the sphere so that all points lie inside
   for (size_t i=0; i<pts.size(); ++i)
@@ -257,4 +264,4 @@ Sphere bounding_sphere(const point_container& pts) {
 
 __END_AKANTU__
 
-#endif /* __AKANTU_SPHERE_HH__ */
+#endif /* __AKANTU_BALL_HH__ */

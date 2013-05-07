@@ -410,10 +410,14 @@ void SolidMechanicsModel::solveDynamic(Array<Real> & increment) {
   // A = c M + d C + e K
   jacobian_matrix->clear();
 
-  if(type != NewmarkBeta::_acceleration_corrector)
+  if(stiffness_matrix)
     jacobian_matrix->add(*stiffness_matrix, e);
+  
+//  if(type != NewmarkBeta::_acceleration_corrector)
+//    jacobian_matrix->add(*stiffness_matrix, e);
 
-  jacobian_matrix->add(*mass_matrix, c);
+  if(mass_matrix)
+    jacobian_matrix->add(*mass_matrix, c);
 
   mass_matrix->saveMatrix("M.mtx");
   if(velocity_damping_matrix)

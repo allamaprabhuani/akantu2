@@ -157,7 +157,8 @@ public:
   vector_type operator()(const std::vector<Real> &xi)
   {
     vector_type N(nb_nodes);
-    ElementClass<_segment_2>::computeShapes(&xi[0], 1, &N(0));
+    vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
+    ElementClass<_segment_2>::computeShapes(xi2, N);
     return transpose(XX_)*N;
   }
   
@@ -191,7 +192,9 @@ public:
       
       // compute shape function derivatives
       matrix_type DN(nb_nodes, d-1);
-      ElementClass<_segment_2>::computeDNDS(&xi[0],1, &DN(0,0));
+      vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
+      ElementClass<_segment_2>::computeDNDS(xi2, DN);
+
       
       // compute jacobian
       matrix_type J = transpose(XX_)*DN;
@@ -231,20 +234,21 @@ static Real constrain_triangle_3(const std::vector<Real> &xi, std::vector<Real> 
   return (xi[0] + xi[1] - 1.);
 }
 
-static void mf(unsigned m, double *result, unsigned n, const double *xi, double *grad, void *data) {
-  
-  assert(data == NULL);
-  assert(n == 2);
-  
-  result[0] = -xi[0];
-  result[1] = -xi[1];
-  result[2] = xi[0] + xi[1] - 1.;
-  if (grad) {
-    grad[0] = grad[3] = -1.;
-    grad[1] = grad[2] =  0.;
-    grad[4] = grad[5] =  1.;
-  }
-}
+// commented in order to avoid warning: defined but not used
+//static void mf(unsigned m, double *result, unsigned n, const double *xi, double *grad, void *data) {
+//  
+//  assert(data == NULL);
+//  assert(n == 2);
+//  
+//  result[0] = -xi[0];
+//  result[1] = -xi[1];
+//  result[2] = xi[0] + xi[1] - 1.;
+//  if (grad) {
+//    grad[0] = grad[3] = -1.;
+//    grad[1] = grad[2] =  0.;
+//    grad[4] = grad[5] =  1.;
+//  }
+//}
 
 
 
@@ -358,7 +362,8 @@ private:
   
   vector_type operator()(const std::vector<Real> &xi) {
     vector_type N(nb_nodes);
-    ElementClass<_triangle_3>::computeShapes(&xi[0], &N(0));
+    vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
+    ElementClass<_triangle_3>::computeShapes(xi2, N);
     return transpose(XX_)*N;
   }
   
@@ -397,7 +402,8 @@ private:
       
       // compute shape function derivatives
       matrix_type DN(nb_nodes, d-1);
-      ElementClass<_triangle_3>::computeDNDS(&xi[0],&DN(0,0));
+      vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
+      ElementClass<_triangle_3>::computeDNDS(xi2,DN);
       
       // compute jacobian
       matrix_type J = transpose(XX_)*DN;
@@ -550,7 +556,8 @@ private:
   
   vector_type operator()(const std::vector<Real> &xi) {
     vector_type N(nb_nodes);
-    ElementClass<_triangle_6>::computeShapes(&xi[0], 1, &N(0));
+    vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
+    ElementClass<_triangle_6>::computeShapes(xi2, N);
     return transpose(XX_)*N;
   }
   
@@ -588,7 +595,8 @@ private:
       
       // compute shape function derivatives
       matrix_type DN(nb_nodes, d-1);
-      ElementClass<_triangle_6>::computeDNDS(&xi[0],1, &DN(0,0));
+      vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
+      ElementClass<_triangle_6>::computeDNDS(xi2, DN);
       
       // compute jacobian
       matrix_type J = transpose(XX_)*DN;

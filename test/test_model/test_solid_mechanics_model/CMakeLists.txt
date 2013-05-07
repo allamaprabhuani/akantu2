@@ -32,7 +32,7 @@
 add_akantu_test(test_materials "test_materials")
 add_akantu_test(patch_tests "patch_tests")
 add_akantu_test(test_cohesive "cohesive_test" PACKAGE cohesive_element)
-add_akantu_test(test_contact "test_contact" PACKAGE contact)
+add_akantu_test(test_contact "test_contact" PACKAGE dead_contact)
 
 #===============================================================================
 add_mesh(test_solid_mechanics_model_square_mesh square.geo 2 1)

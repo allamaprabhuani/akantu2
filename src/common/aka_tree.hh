@@ -36,7 +36,7 @@
 #include <iomanip>
 //#include <limits>
 
-#include "aka_sphere.hh"
+#include "aka_ball.hh"
 #include "aka_bounding_box.hh"
 #include "aka_vector.hh"
 
@@ -1498,21 +1498,18 @@ public:
       cout<<"*** WARNING *** Tree node count mismatch "<<t.impl_.node_count_<<" != "<<c<<endl;
     return os;
   }
-  
-private:
-    
+      
   template <class functor_type>
   functor_type execute_at_level(size_t level, functor_type fn) {
     
     link_type x = _begin();
-    if (x == 0)
+    if (x == nullptr)
       return fn;
     
     std::queue<link_type> q;
     _add_level(q, x, 0, level);
     
     while (!q.empty()) {
-      
       link_type l = q.front();
       assert(l != 0);
       fn(iterator(l));
@@ -1537,18 +1534,6 @@ struct Cost_functor {
 
 };
 
-template <class object_type>
-struct Cost_functor<object_type*> {
-
-  auto operator()(object_type* o) const -> decltype(o->measure())
-  { return o->measure(); }
-  
-  object_type* operator()(object_type* o1, object_type* o2) const
-  { return new Sphere((*o1)+(*o2)); }
-  
-};
-
-
 
 template <class link_type>
 struct Tuple_compare {
@@ -1563,8 +1548,6 @@ struct Tuple_compare {
 template <class tree_type, class volume_container>
 tree_type* construct_tree_bottom_up(const volume_container& volumes)
 {
-//  typedef typename volume_container::value_type volume_type;
-  
   // online tree type definitions
   typedef typename tree_type::value_type volume_type;
   typedef typename tree_type::cost_functor cost_functor;
@@ -1712,20 +1695,20 @@ tree_type* construct_tree_bottom_up(const volume_container& volumes)
 template <class volume_type>
 class Volume_creator;
 
-template<>
-struct Volume_creator<Sphere> {
+template<int d>
+struct Volume_creator<Ball<d> > {
   
-  typedef Sphere::point_type point_type;
+  typedef typename Ball<d>::point_type point_type;
   
   template <class coord_array>
-  static Sphere create(const coord_array& coord) {
+  static Ball<d> create(const coord_array& coord) {
     
     std::vector<point_type> pts;
     size_t nnodes = coord.size();
     pts.reserve(nnodes);
     for (size_t i=0; i<nnodes; ++i)
       pts.push_back(point_type(coord[i]));
-    return bounding_sphere(pts);
+    return bounding_ball<d>(pts);
   }
 };
 
@@ -1747,24 +1730,13 @@ struct Volume_creator<BoundingBox<d> > {
 };
 
 
-//template <class> class Extended_volume;
-//
-//template <class volume_type>
-//struct Volume_creator<Extended_volume<volume_type> > {
-//
-//  template <class coord_array>
-//  static Extended_volume<volume_type> create(const coord_array& coord)
-//  { return Extended_volume<volume_type>(Volume_creator<volume_type>::create(coord)); }
-//};
-
-
 
 // bottom up tree construction
-template <class tree_type, class volume_type, class model_type, class leaf_data>
-tree_type* construct_tree_bottom_up(model_type& model, leaf_data& map)
-{
+template <class tree_type, class model_type, class element_type>
+tree_type* construct_tree_bottom_up(model_type& model) {
   
   // online tree type definitions
+  typedef typename tree_type::value_type volume_type;
   typedef typename tree_type::cost_functor cost_functor;
   typedef typename tree_type::link_type link_type;
   typedef typename tree_type::iterator iterator_type;
@@ -1779,17 +1751,14 @@ tree_type* construct_tree_bottom_up(model_type& model, leaf_data& map)
   
   
   tree_type* tp = new tree_type();
-  const cost_functor& cost = tp->cost();
   tree_type& t = *tp;
+  const cost_functor& cost = t.cost();
   std::vector<iterator_type> links;
   
-  typedef typename model_type::mesh_type mesh_type;
-  
+  typedef typename model_type::mesh_type mesh_type;  
   
   mesh_type& mesh = model.getMesh();
   int dim = mesh.getSpatialDimension();
-  
-  const Array<Real> &position = model.getCurrentPosition();
   
   // iterate over elements of lower dimension
   typename mesh_type::type_iterator it = mesh.firstType(dim-1);
@@ -1798,45 +1767,44 @@ tree_type* construct_tree_bottom_up(model_type& model, leaf_data& map)
   size_t numVolumes = 0;
   for(; it != end; ++it) {
     
-    UInt nb_element = mesh.getNbElement(*it);
-    UInt nb_nodes = mesh.getNbNodesPerElement(*it);
-    const Array<UInt> &conn = mesh.getConnectivity(*it);
-    
     // add elements to corresponding surface
-    for(UInt e = 0; e < nb_element; ++e) {
+    for(UInt e = 0; e < mesh.getNbElement(*it); ++e) {
+      
+      // create solid mechanics element
+      element_type el(model, *it, e);
       
       // vector of coordinates for update
-      std::vector<const Real*> coord(nb_nodes);
-      for (size_t i=0; i<nb_nodes; ++i)
-        coord[i] = &position(conn(e,i),0);
-      
-//      for (size_t ii = 0; ii<coord.size(); ++ii) {
-//        cout<<"node "<<ii<<": values: ";
-//        for (size_t jj = 0; jj<3; ++jj) {
-//          cout<<coord[ii][jj]<<" ";
-//        }
-//        cout<<endl;
-//      }
+      std::vector<const Real*> coord = el.coordinates();
       
       // create leaf volume
       volume_type v = Volume_creator<volume_type>::create(coord);
+      
+      // do not add zero measure volumes
+      if (v.measure() == 0)
+        continue;
+      
       std::pair<iterator_type, bool> p = t.insert(v);
       assert(p.second);
       links.push_back(p.first);
       ++numVolumes;
       
       // save leaf data
-      map[p.first] = coord;
+      if (!t.add_data(p.first,el)) {
+        cout<<"*** ERROR *** Could not add data. Aborting..."<<endl;
+        exit(1);
+      }
+        
       
     } // loop over elements
   } // loop over types of element
   
-  
-  assert(numVolumes != 0);
+  if (numVolumes == 0) {
+    cout<<"*** ERROR *** No volumes were created. Aborting..."<<endl;
+    exit(1);
+  }
   
   queue_type q;
   paired_set s;
-  
   
   iterator_type ii,jj;
   for (size_t i=0; i<numVolumes-1; ++i) {
@@ -1949,7 +1917,98 @@ tree_type* construct_tree_bottom_up(model_type& model, leaf_data& map)
 }
 
 
+template <class tree_type>
+void print_mathematica(tree_type& t) {
+  
+  typedef typename tree_type::value_type volume_type;
+  typedef typename tree_type::const_leaf_iterator iterator;
+  
+  int d = volume_type::dim();
+  
+  cout<<std::fixed;
+  cout.precision(2);
+  
+  if (d == 2)
+    cout<<"Graphics[{";
+  else
+    cout<<"Graphics3D[{";
+  
+  for (typename tree_type::const_leaf_iterator it = t.leaves_begin(); it != t.leaves_end(); ++it)
+    cout<<*it<<", ";
+  
+  cout<<"}];"<<endl;
+}
 
+
+template <typename T>
+std::string stringify(const T& x) {
+  std::stringstream o;
+  if (!(o << x)) {
+    cout<<"*** ERROR *** Bad argument to stringity function"<<endl;
+    exit(1);
+  }
+  return o.str();
+}
+
+template <class tree>
+void export_video(tree& t, Real duration, Real min_opacity, std::string pre = "", std::string post = "") {
+  
+  typedef typename tree::value_type volume_type;
+  typedef typename volume_type::aabb_type aabb_type;
+  typedef typename aabb_type::point_type point_type;
+  typedef typename point_type::value_type value_type;
+  typedef typename tree::iterator iterator;
+  
+  int d = volume_type::dim();
+  cout<<std::fixed;
+  cout.precision(2);
+    
+  std::tuple<size_t, size_t, size_t> h = t.height();
+  
+  typename tree::iterator it = t.begin();
+  
+  aabb_type bb = it->bounding_box();
+  
+  // get bounding box
+  for (; it != t.end(); ++it)
+    bb += it->bounding_box();
+  
+  std::string figs;
+  int H = std::get<2>(h);
+  int k = 0;
+  for (int l = H; l>=0; --l) {
+    
+    std::string g = "g";
+    g += stringify(k);
+    ++k;
+    
+    // compute opacity for figure
+    Real opacity = (1 - min_opacity)*static_cast<double>(l)/H + min_opacity;
+    
+    if (d == 2)
+      cout<<g<<" = Graphics[{Opacity["<<stringify(opacity)<<"],"<<pre;
+    else
+      cout<<g<<" = Graphics3D[{Opacity["<<stringify(opacity)<<"],"<<pre;
+          
+    t.execute_at_level(l, [](iterator it){ cout<<*it<<", ";});
+    
+    figs += figs.empty() ? g : (','+g);
+    
+    cout<<"}];\nShow["<<figs<<", PlotRange-> {{";
+    const point_type &m = bb.min();
+    const point_type &M = bb.max();
+    for (int i=0; i<d; ++i) {
+      value_type l = 0.05*(M[i] - m[i]);
+      cout<<(m[i]-l)<<','<<(M[i]+l)<<(i < d-1 ? "},{" : "}}");
+    }
+    cout<<post<<"];\n";
+    cout<<"Export[\""<<g<<".png\", %, ImageResolution -> 300];"<<endl;
+  }
+  
+  cout<<"files =  Last /@ Sort[{Characters@#, #} & /@ FileNames[\"*.png\"]]"<<endl;
+  cout<<"images = Map[Import, files];"<<endl;
+  cout<<"Export[\"video.mov\", images, \"FrameRate\" -> "<<stringify(static_cast<double>(k)/duration)<<"];"<<endl;
+}
 
 
 //// bottom up tree construction

@@ -5,6 +5,14 @@ __BEGIN_AKANTU__
 
 
 template <>
+std::ostream& operator<< <1>(std::ostream& os, const BoundingBox<1>& bb) {
+  
+  os<<"Line["<<bb.min()<<","<<bb.max()<<"]";
+  return os;
+}
+
+
+template <>
 std::ostream& operator<< <2>(std::ostream& os, const BoundingBox<2>& bb) {
     
     os<<"Rectangle["<<bb.min()<<","<<bb.max()<<"]";

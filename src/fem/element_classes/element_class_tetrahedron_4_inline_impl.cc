@@ -75,9 +75,11 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_4, _gt_tetrahedron_4, _itp_lag
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type>
 inline void
-InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const Vector<Real> & natural_coords,
-								 Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const vector_type & natural_coords,
+                                                                 vector_type & N) {
+
   Real c0 = 1 - natural_coords(0) -  natural_coords(1) -  natural_coords(2);/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
   Real c1 = natural_coords(1); /// @f$ c0 = \xi @f$
   Real c2 = natural_coords(2); /// @f$ c1 = \eta @f$
@@ -90,9 +92,10 @@ InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const Vector<Re
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const Vector<Real> & natural_coords,
-							       Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const vector_type & natural_coords,
+                                                               matrix_type & dnds) {
 
   /**
    * @f[

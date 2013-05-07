@@ -39,8 +39,30 @@
 
 __BEGIN_AKANTU__
 
-
 // predicates
+
+
+// combined tolerance test, from Christer Ericson
+template <typename T>
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+equal(T x, T y, T tol = 2*std::numeric_limits<T>::epsilon()) {
+  
+  T absTol = tol;
+  T relTol = absTol;
+
+  // here both tolerances are equal, but the code is written
+  // like this so that tolerance values can be assigned indepently
+  // in the future
+  return std::abs(x - y) <= std::max(absTol, relTol * std::max(std::abs(x), std::abs(y)));
+}
+
+
+
+// combined tolerance test, from Christer Ericson
+template <typename T>
+typename std::enable_if<std::is_integral<T>::value, bool>::type
+equal(T x, T y)
+{ return x == y; }
 
 
 Real left_turn(const Point<2>& p, const Point<2>& q, const Point<2>& r);
@@ -239,10 +261,10 @@ Point<3,T> naive_closest_point_to_triangle(const Point<3,T>& p,
                                            const Point<3,T>& c) {
   
   typedef Point<3,T> point_type;
-
+  
   // obtain plane of the triangle
   Plane pi(a,b,c);
-
+  
   // get point in the plane closest to p
   point_type q = closest_ponint_to_plane(p,pi);
   
@@ -258,7 +280,7 @@ Point<3,T> naive_closest_point_to_triangle(const Point<3,T>& p,
   
   // second edge
   point_type r = closest_point_to_segment(p, b, c);
-
+  
   T d2 = (r-p).sq_norm();
   if (d2 < d) {
     q = r;
@@ -274,6 +296,82 @@ Point<3,T> naive_closest_point_to_triangle(const Point<3,T>& p,
   // return closest point
   return q;
 }
+
+
+// intersect point p with velocity v with plane
+// the function returns collision time and point of contact
+// this function does not consider acceleration
+template <typename T>
+std::tuple<Real, Point<3,T> >
+moving_point_against_plane(const Point<3,T>& p, const Point<3,T>& v, Plane& pi) {
+  
+  typedef Point<3,T> point_type;
+  
+  // compute distance of point to plane
+  Real dist = pi.normal()*p - pi.distance();
+  
+  // if point already in the plane
+  if (std::abs(dist) <= 1e-10)
+    return std::make_tuple(0., p);
+  
+  else {
+    
+    Real denom = pi.normal()*v;
+    // no intersection as poin moving parallel to or away from plane
+    if (denom * dist >= 0.)
+      return std::make_tuple(inf, point_type());
+    
+    // point moving towards the plane
+    else {
+      // point is moving towards the plane
+      Real t = -dist/denom;
+      return std::make_tuple(t, p + t*v);
+    }
+  }
+}
+
+
+
+template <int dim, typename T>
+std::tuple<Real, Point<dim,T> >
+moving_point_against_point(const Point<dim,T>& s1, const Point<dim,T>& s2, /* point centers */
+                           const Point<dim,T>& v1, const Point<dim,T>& v2) /* point velocities */ {
+  
+  typedef Point<dim,T> point_type;
+  typedef typename Point<dim,T>::value_type value_type;
+  
+  // vector between points
+  point_type s = s2 - s1;
+  // relative motion of s1 with respect to stationary s0
+  point_type v = v2 - v1;
+  value_type c = s*s;
+  
+  // if points within tolerance
+  if (equal(s.sq_norm(), value_type()))
+    return std::make_tuple(value_type(), s1);
+    
+  value_type epsilon = 2*std::numeric_limits<T>::epsilon();;
+  
+  value_type a = v*v;
+  // if points not moving relative to each other
+  if (a < epsilon)
+    return std::make_tuple(inf, point_type());
+  
+  value_type b = v*s;
+  // if points not moving towards each other
+  if (b >= 0.)
+    return std::make_tuple(inf, point_type());
+  
+  value_type d = b*b - a*c;
+  // if no real-valued root (d < 0), points do not intersect
+  if (d >= 0.) {
+    value_type ts = (-b - sqrt(d))/a;
+    point_type q = s1+v1*ts;
+    return std::make_tuple(ts, q);
+  }
+  return std::make_tuple(inf, point_type());
+}
+
 
 __END_AKANTU__
 

@@ -1,10 +1,9 @@
 /**
- * @file   aka_fwd.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @file   aka_ball.cc
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @date   Thu Jan 3 15:15:00 2013
+ * @date   Mon Jun 18 10:20:00 2012
  *
- * @brief  File containing forward declarations in akantu
+ * @brief  bounding sphere classes
  *
  * @section LICENSE
  *
@@ -26,28 +25,46 @@
  *
  */
 
-#ifndef __AKANTU_FWD_HH__
-#define __AKANTU_FWD_HH__
+/* -------------------------------------------------------------------------- */
 
+#include "aka_ball.hh"
 
 __BEGIN_AKANTU__
 
 
-template<typename T> class Matrix;
-template<typename T> class Vector;
+template <>
+std::ostream& Interval::print(std::ostream& os) const {
+  os<<"Interval["<<c_<<", "<<r_<<"]";
+  return os;
+}
 
-template<typename T, bool is_scal = is_scalar<T>::value > class Array;
 
-template <class T> class SpatialGrid;
+template <>
+std::ostream& Circle::print(std::ostream& os) const {
+  os<<"Disk["<<c_<<", "<<r_<<"]";
+  return os;
+}
 
-// Model element
-template <class ModelPolicy> class ModelElement;
+template <>
+std::ostream& Sphere::print(std::ostream& os) const {
+  os<<"Sphere["<<c_<<", "<<r_<<"]";
+  return os;
+}
 
-class SubBoundary;
 
-extern const Array<UInt> empty_filter;
+
+template <>
+typename Ball<1>::value_type Ball<1>::measure() const
+{ return r_; }
+
+template <>
+typename Ball<2>::value_type Ball<2>::measure() const
+{ return pow(r_,2); }
+
+template <>
+typename Ball<3>::value_type Ball<3>::measure() const
+{ return pow(r_,3); }
+
+
 
 __END_AKANTU__
-
-
-#endif /* __AKANTU_FWD_HH__ */

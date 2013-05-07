@@ -111,9 +111,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_hexahedron_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type>
 inline void
-InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(const Vector<Real> & c,
-								Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(const vector_type & c,
+                                                                vector_type & N) {
   /// Natural coordinates
   N(0) = .125 * (1 - c(0)) * (1 - c(1)) * (1 - c(2)); /// N1(q_0)
   N(1) = .125 * (1 + c(0)) * (1 - c(1)) * (1 - c(2)); /// N2(q_0)
@@ -126,9 +127,10 @@ InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(const Vector<Rea
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(const Vector<Real> & c,
-							      Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(const vector_type & c,
+                                                              matrix_type & dnds) {
   /**
    * @f[
    * dnds = \left(

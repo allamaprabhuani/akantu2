@@ -92,9 +92,11 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8, _itp_seren
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type>
 inline void
-InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const Vector<Real> & c,
-								Vector<Real> & N) {
+InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const vector_type & c,
+                                                                vector_type & N) {
+
   /// Natural coordinates
   const Real xi  = c(0);
   const Real eta = c(1);
@@ -111,9 +113,11 @@ InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(const Vector<Rea
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(const Vector<Real> & c,
-							      Matrix<Real> & dnds) {
+InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(const vector_type & c,
+                                                              matrix_type & dnds) {
+
   const Real xi  = c(0);
   const Real eta = c(1);
 

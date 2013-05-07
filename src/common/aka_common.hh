@@ -70,6 +70,18 @@ static const Real UINT_INIT_VALUE = 0;
   static const Real REAL_INIT_VALUE = std::numeric_limits<Real>::quiet_NaN();
 #endif
 
+// int 2 type construct
+template <int d>
+struct Int2Type {
+  enum { result = d };
+};
+
+// type 2 type construct
+template <class T>
+class Type2Type {
+  typedef T OriginalType;
+};
+
 
 /* -------------------------------------------------------------------------- */
 /* Memory types                                                               */
@@ -216,7 +228,8 @@ enum MeshIOType {
 enum AnalysisMethod {
   _static,
   _implicit_dynamic,
-  _explicit_dynamic
+  _explicit_lumped_mass,
+  _explicit_consistent_mass
 };
 
 /// myfunction(double * position, double * stress/force, double * normal, unsigned int material_id)

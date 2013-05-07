@@ -47,17 +47,18 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_point_1, _gt_point, _itp_lagrange_point_1,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type>
 inline void
-InterpolationElement<_itp_lagrange_point_1>::computeShapes(__attribute__ ((unused)) const Vector<Real> & natural_coords,
-							      Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_point_1>::computeShapes(__attribute__ ((unused)) const vector_type & natural_coords,
+                                                             vector_type & N) {
   N(0) = 1; /// N1(q_0)
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_lagrange_point_1>::computeDNDS(__attribute__ ((unused)) const Vector<Real> & natural_coords,
-							    __attribute__ ((unused)) Matrix<Real> & dnds) {
-}
+InterpolationElement<_itp_lagrange_point_1>::computeDNDS(__attribute__ ((unused)) const vector_type & natural_coords,
+                                                         __attribute__ ((unused)) matrix_type & dnds) {}
 
 
 /* -------------------------------------------------------------------------- */

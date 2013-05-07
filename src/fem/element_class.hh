@@ -145,8 +145,9 @@ public:
 				   Matrix<Real> & N);
 
   /// compute the shape values for a given point in natural coordinates
-  static inline void computeShapes(__attribute__((unused)) const Vector<Real> & natural_coord,
-				   __attribute__((unused)) Vector<Real> & N) {
+  template <class vector_type>
+  static inline void computeShapes(__attribute__((unused)) const vector_type & natural_coord,
+				   __attribute__((unused)) vector_type & N) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -162,8 +163,9 @@ public:
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  static inline void computeDNDS(__attribute__((unused)) const Vector<Real> & natural_coord,
-				 __attribute__((unused)) Matrix<Real> & dnds) {
+  template <class vector_type, class matrix_type>
+  static inline void computeDNDS(__attribute__((unused)) const vector_type & natural_coord,
+				 __attribute__((unused)) matrix_type & dnds) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

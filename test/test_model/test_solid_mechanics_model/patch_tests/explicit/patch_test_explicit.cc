@@ -133,9 +133,9 @@ int main(int argc, char *argv[])
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
   if(PLANE_STRAIN)
-    my_model.initFull("material_check_stress_plane_strain.dat", _explicit_dynamic);
+    my_model.initFull("material_check_stress_plane_strain.dat", _explicit_lumped_mass);
   else
-    my_model.initFull("material_check_stress_plane_stress.dat", _explicit_dynamic);
+    my_model.initFull("material_check_stress_plane_stress.dat", _explicit_lumped_mass);
 
 
   std::cout << my_model.getMaterial(0) << std::endl;

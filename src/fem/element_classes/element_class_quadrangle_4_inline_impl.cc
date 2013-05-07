@@ -73,9 +73,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_4, _gt_quadrangle_4, _itp_lagra
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type>
 inline void
-InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const Vector<Real> & c,
-								Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const vector_type & c,
+                                                                vector_type & N) {
   N(0) = .25 * (1 - c(0)) * (1 - c(1)); /// N1(q_0)
   N(1) = .25 * (1 + c(0)) * (1 - c(1)); /// N2(q_0)
   N(2) = .25 * (1 + c(0)) * (1 + c(1)); /// N3(q_0)
@@ -83,9 +84,10 @@ InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(const Vector<Rea
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const Vector<Real> & c,
-							      Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(const vector_type & c,
+                                                              matrix_type & dnds) {
   /**
    * @f[
    * dnds = \left(

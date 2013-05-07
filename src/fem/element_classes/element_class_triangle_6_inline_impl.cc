@@ -109,9 +109,12 @@
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_6, _gt_triangle_6, _itp_lagrange_triangle_6, _ek_regular, 2);
 
 /* -------------------------------------------------------------------------- */
-template <> inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(const Vector<Real> & natural_coords,
-							      Vector<Real> & N) {
+
+template <>
+template <class vector_type>
+inline void
+InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(const vector_type & natural_coords,
+                                                              vector_type & N) {
   /// Natural coordinates
   Real c0 = 1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
   Real c1 = natural_coords(0);                         /// @f$ c1 = \xi @f$
@@ -126,9 +129,11 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(const Vector<Real>
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const Vector<Real> & natural_coords,
-							    Matrix<Real> & dnds) {
+InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(const vector_type & natural_coords,
+                                                            matrix_type & dnds) {
+
   /**
    * @f[
    * dnds =  \left(

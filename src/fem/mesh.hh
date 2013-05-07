@@ -35,6 +35,8 @@
 #define __AKANTU_MESH_HH__
 
 /* -------------------------------------------------------------------------- */
+
+#include "aka_config.hh"
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "aka_vector.hh"
@@ -105,6 +107,7 @@ public:
   UInt element;
   GhostType ghost_type;
   ElementKind kind;
+  
 };
 
 struct CompElementLess {
@@ -283,6 +286,26 @@ public:
   /// function that computes the bounding box (fills xmin, xmax)
   void computeBoundingBox();
 
+#ifdef AKANTU_CORE_CXX11
+  
+  template <typename... Args>
+  void translate(Args... params) {
+    
+    // check that the number of parameters corresponds to the dimension
+    AKANTU_DEBUG_ASSERT(sizeof...(Args) <= spatial_dimension , "Number of arguments greater than dimension.");
+    
+    // unpack parameters
+    Real s[] = { params... };
+    
+    Array<Real>& nodes = getNodes();
+    
+    for (UInt i = 0; i < nodes.getSize(); ++i)
+      for (UInt k = 0; k < sizeof...(Args); ++k)
+        nodes(i, k) += s[k];
+  }
+  
+#endif
+  
   /// init a by-element-type real vector with provided ids
   template<typename T>
   void initByElementTypeArray(ByElementTypeArray<T> & v,

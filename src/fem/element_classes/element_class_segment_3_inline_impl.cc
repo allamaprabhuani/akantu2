@@ -66,9 +66,11 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_3, _gt_segment_3, _itp_lagrange_se
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type>
 inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const Vector<Real> & natural_coords,
-							     Vector<Real> & N) {
+InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const vector_type & natural_coords,
+                                                             vector_type & N) {
+
   Real c = natural_coords(0);
   N(0) = (c - 1) * c / 2;
   N(1) = (c + 1) * c / 2;
@@ -76,9 +78,10 @@ InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const Vector<Real> 
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class vector_type, class matrix_type>
 inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(const Vector<Real> & natural_coords,
-							   Matrix<Real> & dnds){
+InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(const vector_type & natural_coords,
+                                                           matrix_type & dnds){
 
   Real c = natural_coords(0);
   dnds(0, 0)  = c - .5;

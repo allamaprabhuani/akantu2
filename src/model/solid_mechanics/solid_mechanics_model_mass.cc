@@ -39,7 +39,12 @@ void SolidMechanicsModel::assembleMassLumped() {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = mesh.getNbNodes();
-  mass->clear();
+
+  if (!mass) {
+    std::stringstream sstr_mass; sstr_mass << id << ":mass";
+    mass         = &(alloc<Real>(sstr_mass.str(), nb_nodes, spatial_dimension, 0));
+  } else
+    mass->clear();
 
   assembleMassLumped(_not_ghost);
   assembleMassLumped(_ghost);

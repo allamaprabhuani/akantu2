@@ -32,6 +32,12 @@
 /* -------------------------------------------------------------------------- */
 #include <sstream>
 
+#include "aka_config.hh"
+
+#ifdef AKANTU_USE_CPPARRAY
+#include <array/expr.hpp>
+#endif
+
 /* -------------------------------------------------------------------------- */
 #include "mesh.hh"
 #include "mesh_io.hh"
@@ -212,39 +218,6 @@ void Mesh::computeBoundingBox(){
 
   AKANTU_DEBUG_OUT();
 }
-
-///* -------------------------------------------------------------------------- */
-//void Mesh::setSurfaceIDsFromIntData(const std::string & data_name) {
-//
-//  std::set<Surface> surface_ids;
-//
-//  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-//    GhostType gt = (GhostType) g;
-//
-//    Mesh::type_iterator it  = firstType(spatial_dimension - 1, gt);
-//    Mesh::type_iterator end = lastType(spatial_dimension - 1, gt);
-//    for(; it != end; ++it) {
-//      UIntDataMap & map = uint_data(*it, gt);
-//      UIntDataMap::iterator it_data = map.find(data_name);
-//      AKANTU_DEBUG_ASSERT(it_data != map.end(),
-//			  "No data named " << data_name
-//			  << " present in the mesh " << id
-//			  << " for the element type " << *it);
-//      AKANTU_DEBUG_ASSERT(!surface_id.exists(*it, gt),
-//			  "Surface id for type (" << gt << ":" << *it
-//			  << ") already set to the vector " << surface_id(*it, gt).getID());
-//
-//      surface_id.setArray(*it, gt, *it_data->second);
-//
-//      for (UInt s = 0; s < it_data->second->getSize(); ++s) {
-//	surface_ids.insert((*it_data->second)(s));
-//      }
-//    }
-//  }
-//
-//  nb_surfaces = surface_ids.size();
-//}
-//
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

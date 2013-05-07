@@ -89,7 +89,7 @@ public:
 
   /// initialize completely the model
   virtual void initFull(std::string material_file,
-			AnalysisMethod method = _explicit_dynamic);
+			AnalysisMethod method = _explicit_lumped_mass);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary();
@@ -138,6 +138,9 @@ public:
   /// initialize the stuff for the explicit scheme
   void initExplicit();
 
+  bool isExplicit()
+  { return method == _explicit_lumped_mass || method == _explicit_consistent_mass; }
+  
   /// initialize the array needed by updateResidual (residual, current_position)
   void initializeUpdateResidualData();
 

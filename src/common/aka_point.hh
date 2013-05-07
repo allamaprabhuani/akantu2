@@ -207,9 +207,8 @@ struct Bounding_volume {
   typedef Point<d> point_type;
   typedef typename point_type::value_type value_type;
 
-  virtual value_type measure() const = 0; // {assert(false);}
-  virtual Bounding_volume* combine(const Bounding_volume&) const = 0; // {assert(false);}
-  virtual std::ostream& print(std::ostream& os) const = 0; //{ assert(false); }
+  virtual value_type measure() const = 0;
+  virtual std::ostream& print(std::ostream& os) const = 0;
   
   Real last_time_;
   point_type velocity_;

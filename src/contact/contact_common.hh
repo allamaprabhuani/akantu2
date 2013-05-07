@@ -68,17 +68,6 @@ struct Command_args {
   static char** argv_;
 };
 
-// int 2 type construct
-template <int d>
-struct Int2Type {
-  enum { result = d };
-};
-
-// type 2 type construct
-template <class T>
-class Type2Type {
-  typedef T OriginalType;
-};
 
 
 

@@ -101,10 +101,7 @@ public:
         max_[i] = std::max(p1[i], p2[i]);
       }
   }
-  
-  virtual base_type* combine(const base_type&) const {assert(false);}
-
-  
+    
   template <class iterator>
   BoundingBox(iterator first, iterator last) : base_type(), min_(*first), max_(*first) {
     ++first;
@@ -128,7 +125,6 @@ public:
   
   bool operator!=(const BoundingBox& bbox) const
   { return !(*this == bbox); }
-  
   
   BoundingBox& operator+=(const point_type& point) {
     
