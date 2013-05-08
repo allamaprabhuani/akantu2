@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
   // debug::setDebugLevel(dblWarning);
 
 
-  model.initFull("material.dat", _explicit_dynamic, true);
+  model.initFull("material.dat", _explicit_lumped_mass, true);
 
   /* ------------------------------------------------------------------------ */
   /* Facet part                                                               */

@@ -76,7 +76,7 @@ public:
 
   /// initialize the cohesive model
   void initFull(std::string material_file,
-		AnalysisMethod method = _explicit_dynamic,
+		AnalysisMethod method = _explicit_lumped_mass,
 		bool extrinsic = false,
 		bool init_facet_filter = true);
 

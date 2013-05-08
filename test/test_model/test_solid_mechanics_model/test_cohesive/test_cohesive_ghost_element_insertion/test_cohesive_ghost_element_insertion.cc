@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
   SolidMechanicsModelCohesive model(mesh);
   model.initParallel(partition, NULL, true);
-  model.initFull("material.dat", _explicit_dynamic, true);
+  model.initFull("material.dat", _explicit_lumped_mass, true);
 
   Mesh & mesh_facets = const_cast<Mesh&>(model.getMeshFacets());
 
