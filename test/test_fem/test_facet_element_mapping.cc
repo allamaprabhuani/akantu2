@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
         std::cout << "for element " << i << std::endl;
       }
     }
-    debug::setDebugLevel(dblInfo);
 
     tit  = mesh.firstType(spatial_dimension -1, *git);
     tend = mesh.lastType(spatial_dimension -1 , *git);

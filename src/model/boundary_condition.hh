@@ -64,6 +64,8 @@ public:
 public:
 
   //inline void initBoundaryCondition();
+  template<typename FunctorType>
+  inline void applyBC(const FunctorType & func);
 
   template<class FunctorType>
   inline void applyBC(const FunctorType & func, const std::string & boundary_name);

@@ -59,7 +59,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  virtual void partitionate(UInt nb_part,
+  virtual void partitionate(UInt nb_part = 0,
                             const EdgeLoadFunctor & edge_load_func = ConstEdgeLoadFunctor(),
                             const Array<UInt> & pairs = Array<UInt>());
 

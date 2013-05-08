@@ -152,6 +152,16 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
   }
 };
 
+/* -------------------------------------------------------------------------- */
+template<typename ModelType>
+template<typename FunctorType>
+inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {
+  Boundary::const_iterator bit = model->getMesh().getBoundary().begin();
+  Boundary::const_iterator bend = model->getMesh().getBoundary().end();
+  for(; bit != bend; ++bit) {
+    TemplateFunctionWrapper<FunctorType>::applyBC(func, *bit, *this);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 template<typename ModelType>

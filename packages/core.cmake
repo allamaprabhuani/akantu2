@@ -231,6 +231,7 @@ set(AKANTU_CORE_TESTS
   test_local_material
   test_interpolate_stress
   test_weight
+  test_mesh_partitionate_mesh_data
   test_solid_mechanics_model_boundary_condition
   test_solid_mechanics_model_circle_2
   test_solid_mechanics_model_bar_traction2d
