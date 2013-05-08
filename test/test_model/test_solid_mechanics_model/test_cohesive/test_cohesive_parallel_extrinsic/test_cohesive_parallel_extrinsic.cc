@@ -149,7 +149,6 @@ int main(int argc, char *argv[]) {
   model.addDumpField("stress");
   model.addDumpField("strain");
   model.addDumpField("partitions");
-  model.addDumpField("force");
   //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
 
@@ -178,7 +177,7 @@ int main(int argc, char *argv[]) {
 
     model.dump();
     if(s % 10 == 0) {
-      if(prank == 3) std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
     // // update displacement

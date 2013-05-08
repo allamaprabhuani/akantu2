@@ -79,10 +79,11 @@ public:
       return in;
     else {
       Matrix<T> ret(padding_m, padding_n * nb_data);
+      UInt nb_cols_per_data = in.cols() / nb_data;
       for (UInt d = 0; d < nb_data; ++d)
 	for (UInt i = 0; i < in.rows(); ++i)
-	  for (UInt j = 0; j < in.cols() / nb_data; ++j)
-	    ret(i, j + d * padding_n) = in(i, j + d * in.cols());
+	  for (UInt j = 0; j < nb_cols_per_data; ++j)
+	    ret(i, j + d * padding_n) = in(i, j + d * nb_cols_per_data);
       return ret;
     }
   }
