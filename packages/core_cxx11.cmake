@@ -12,6 +12,10 @@ set(AKANTU_CORE_CXX11_FILES
 
 
 if(HAVE_NEW_STD)
-  set(AKANTU_CORE_CXX11 ON CACHE INTERNAL "core package for Akantu" FORCE)
+  option(AKANTU_CORE_CXX11 "core CXX11 additions for Akantu" ON)
   add_definitions(-std=c++0x)
+else()
+  set(AKANTU_CORE_CXX11 OFF CACHE BOOL "core package for Akantu" FORCE)
 endif()
+
+mark_as_advanced(AKANTU_CORE_CXX11)
