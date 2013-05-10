@@ -197,25 +197,7 @@ void SolidMechanicsModel::initFull(std::string material_file,
     initMaterials();
   }
   
-  // initialize mass
-  switch(method) {
-    case _explicit_lumped_mass:
-      assembleMassLumped();
-      break;
-    case _explicit_consistent_mass:
-    case _implicit_dynamic:
-      assembleMass();
-      break;
-    case _static: break;
-  }
-  std::vector<Material *>::iterator mat_it;
-    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-        Material & mat = **mat_it;
-        if (mat.isFiniteDeformation()) {
-            initArraysFiniteDeformation();
-            break;
-        }
-    }
+
 }
 
 /* -------------------------------------------------------------------------- */

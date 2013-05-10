@@ -162,6 +162,26 @@ void SolidMechanicsModel::initMaterials() {
   }
 
   synch_registry->synchronize(_gst_smm_init_mat);
+
+  // initialize mass
+  switch(method) {
+    case _explicit_lumped_mass:
+      assembleMassLumped();
+      break;
+  case _explicit_consistent_mass:
+  case _implicit_dynamic:
+    assembleMass();
+    break;
+  case _static: break;
+  }
+  
+  for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    Material & mat = **mat_it;
+    if (mat.isFiniteDeformation()) {
+      initArraysFiniteDeformation();
+      break;
+    }
+  }
 }
 
 
