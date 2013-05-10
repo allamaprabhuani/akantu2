@@ -94,6 +94,11 @@ public:
 
   void dumpBoundary(const std::string & boundary_name);
   void dumpBoundary();
+  void setBoundaryDirectory(const std::string & directory);
+  void setBoundaryDirectory(const std::string & directory, 
+			    const std::string & boundary_name);
+  void setBoundaryBaseName(const std::string & basename,
+			   const std::string & boundary_name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

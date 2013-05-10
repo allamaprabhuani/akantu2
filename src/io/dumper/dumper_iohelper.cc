@@ -88,15 +88,16 @@ void DumperIOHelper::registerMesh(const Mesh & mesh,
 }
 
 
-void DumperIOHelper::registerBoundary(const Mesh & mesh,
-				      const SubBoundary & boundary,
-				      UInt spatial_dimension,
-				      const GhostType & ghost_type,
-				      const ElementKind & element_kind) {
+void DumperIOHelper::registerFilteredMesh(const Mesh & mesh,
+					  const ByElementTypeArray<UInt> & elements_filter,
+					  const Array<UInt> & nodes_filter,
+					  UInt spatial_dimension,
+					  const GhostType & ghost_type,
+					  const ElementKind & element_kind) {
   registerField("connectivities",
 		new DumperIOHelper::FilteredConnectivityField(mesh.getConnectivities(),
-							      boundary.getElements(),
-							      boundary.getNodes(),
+							      elements_filter,
+							      nodes_filter,
 							      spatial_dimension,
 							      ghost_type,
 							      element_kind));
@@ -105,13 +106,14 @@ void DumperIOHelper::registerBoundary(const Mesh & mesh,
 							   spatial_dimension,
 							   ghost_type,
 							   element_kind,
-							   &boundary.getElements()));
+							   &elements_filter));
+
   registerField("positions",
 		new DumperIOHelper::NodalField<Real,
 					       true>(mesh.getNodes(),
 						     0,
 						     0,
-						     &boundary.getNodes()));
+						     &nodes_filter));
 }
 
 /* -------------------------------------------------------------------------- */

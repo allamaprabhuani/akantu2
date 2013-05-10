@@ -145,13 +145,13 @@ Model::~Model() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dumpBoundary(const std::string & name) {
+void Model::dumpBoundary(const std::string & boundary_name) {
   Boundary & boundary =  mesh.getBoundary();
-  Boundary::iterator bit = boundary.find(name);
+  Boundary::iterator bit = boundary.find(boundary_name);
   Boundary::iterator bend = boundary.end();
 
   if(bit == bend) {
-    AKANTU_EXCEPTION("No boundary named " << name << "!");
+    AKANTU_EXCEPTION("No boundary named " << boundary_name << "!");
   }
   bit->dump();
 
@@ -166,6 +166,43 @@ void Model::dumpBoundary() {
   for(; bit != bend; ++bit) {
     bit->dump();
   }
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::setBoundaryDirectory(const std::string & directory) {
+  Boundary & boundary     = mesh.getBoundary();
+  Boundary::iterator bit  = boundary.begin();
+  Boundary::iterator bend = boundary.end();
+
+  for (; bit != bend; ++bit) {
+    bit->setDirectory(directory);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::setBoundaryDirectory(const std::string & directory,
+				 const std::string & boundary_name) {
+  Boundary & boundary =  mesh.getBoundary();
+  Boundary::iterator bit = boundary.find(boundary_name);
+  Boundary::iterator bend = boundary.end();
+  
+  if(bit == bend) {
+    AKANTU_EXCEPTION("No boundary named " << boundary_name << "!");
+  }
+  bit->setDirectory(directory);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::setBoundaryBaseName(const std::string & basename,
+				const std::string & boundary_name) {
+  Boundary & boundary =  mesh.getBoundary();
+  Boundary::iterator bit = boundary.find(boundary_name);
+  Boundary::iterator bend = boundary.end();
+  
+  if(bit == bend) {
+    AKANTU_EXCEPTION("No boundary named " << boundary_name << "!");
+  }
+  bit->setBaseName(basename);
 }
 
 /* -------------------------------------------------------------------------- */

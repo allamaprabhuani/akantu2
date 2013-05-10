@@ -239,8 +239,14 @@ void Boundary::createBoundariesFromGeometry() {
   BoundaryList::iterator subB_iter_end = boundaries.end();
 
   for(;subB_iter != subB_iter_end; ++subB_iter) {
-    subB_iter->second->cleanUpNodeList();
-    subB_iter->second->addDumpBoundary(mesh, *subB_iter->second, mesh.getSpatialDimension()-1, _not_ghost, _ek_regular);
+    SubBoundary & sub = *subB_iter->second;
+    sub.cleanUpNodeList();
+    sub.addDumpFilteredMesh(mesh,
+			    sub.elements,
+			    sub.nodes,
+			    mesh.getSpatialDimension() - 1,
+			    _not_ghost,
+			    _ek_regular);
   }
 
   AKANTU_DEBUG_OUT();
@@ -274,8 +280,14 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
   BoundaryList::iterator subB_iter_end = boundaries.end();
 
   for(;subB_iter != subB_iter_end; ++subB_iter) {
-    subB_iter->second->cleanUpNodeList();
-    subB_iter->second->addDumpBoundary(mesh, *subB_iter->second, mesh.getSpatialDimension()-1, _not_ghost, _ek_regular);
+    SubBoundary & sub = *subB_iter->second;
+    sub.cleanUpNodeList();
+    sub.addDumpFilteredMesh(mesh,
+			    sub.elements,
+			    sub.nodes,
+			    mesh.getSpatialDimension() - 1,
+			    _not_ghost,
+			    _ek_regular);
   }
 }
 

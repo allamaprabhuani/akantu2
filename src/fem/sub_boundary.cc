@@ -39,9 +39,15 @@
 __BEGIN_AKANTU__
 
 
-SubBoundary::SubBoundary(const std::string & _name, const ID & _id, const ID & parent_id, const MemoryID & mem_id)
-:Dumpable(parent_id + "_" + _id), id(parent_id + "_" + _id), memory_id(mem_id), name(_name), nodes(0, 1, id + ":nodes"), elements("elements", id, memory_id)
-{
+SubBoundary::SubBoundary(const std::string & _name,
+			 const ID & _id,
+			 const ID & parent_id,
+			 const MemoryID & mem_id) :
+  Dumpable(parent_id + "_" + _id),
+  id(parent_id + "_" + _id),
+  memory_id(mem_id), name(_name),
+  nodes(0, 1, id + ":nodes"),
+  elements("elements", id, memory_id) {
 }
 
 /* -------------------------------------------------------------------------- */

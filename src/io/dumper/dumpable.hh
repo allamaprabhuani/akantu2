@@ -65,16 +65,18 @@ public:
 			element_kind);
   }
 
-  void addDumpBoundary(const Mesh & mesh,
-       const SubBoundary & boundary,
-       UInt spatial_dimension = _all_dimensions,
-		   const GhostType & ghost_type = _not_ghost,
-		   const ElementKind & element_kind = _ek_not_defined) {
-    dumper.registerBoundary(mesh,
-      boundary,
-			spatial_dimension,
-			ghost_type,
-			element_kind);
+  void addDumpFilteredMesh(const Mesh & mesh,
+			   const ByElementTypeArray<UInt> & elements_filter,
+			   const Array<UInt> & nodes_filter,		       
+			   UInt spatial_dimension = _all_dimensions,
+			   const GhostType & ghost_type = _not_ghost,
+			   const ElementKind & element_kind = _ek_not_defined) {
+    dumper.registerFilteredMesh(mesh,
+				elements_filter,
+				nodes_filter,
+				spatial_dimension,
+				ghost_type,
+				element_kind);
   }
 
   virtual void addDumpField(const std::string & field_id) {

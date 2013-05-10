@@ -28,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-class DumperIOHelper::NodalField<T, false> : public Field {
+template<typename T, class Container, class Filter>
+class DumperIOHelper::NodalField<T, false, Container, Filter> : public Field {
 public:
   /* -----------------------------------------------------------------------*/
   class iterator : public iohelper::iterator< T, iterator, Vector<T> > {
@@ -46,7 +46,7 @@ public:
   };
 
   /* ---------------------------------------------------------------------- */
-  NodalField(const Array<T> & field, UInt n = 0, UInt stride = 0, __attribute__ ((unused)) const Array<UInt> * filter = NULL) :
+  NodalField(const Container & field, UInt n = 0, UInt stride = 0, __attribute__ ((unused)) const Filter * filter = NULL) :
     field(field), n(n), stride(stride) {
     AKANTU_DEBUG_ASSERT(filter == NULL, "Filter passed to unfiltered NodalField!");
     if(n == 0) { this->n = field.getNbComponent() - stride; }
@@ -79,15 +79,15 @@ public:
   iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
 
 private:
-  const Array<T> & field;
+  const Container & field;
   UInt n, stride;
 };
 
 
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-class DumperIOHelper::NodalField<T, true> : public Field {
+template<typename T, class Container, class Filter>
+class DumperIOHelper::NodalField<T, true, Container, Filter> : public Field {
 public:
   /* ------------------------------------------------------------------------ */
   class iterator : public iohelper::iterator< T, iterator, Vector<T> > {
@@ -116,9 +116,9 @@ public:
   };
 
   /* ---------------------------------------------------------------------- */
-  NodalField(const Array<T> & _field,
+  NodalField(const Container & _field,
              UInt _n = 0, UInt _stride = 0,
-             const Array<UInt> * filter = NULL)
+             const Filter * filter = NULL)
   : field(_field), n(_n), stride(_stride), filter(filter) {
     AKANTU_DEBUG_ASSERT(filter != NULL, "No filter passed to filtered NodalField!");
     AKANTU_DEBUG_ASSERT(filter->getNbComponent()==1, "Multi-component filter given to NodalField!");
@@ -158,8 +158,8 @@ public:
   }
 
 private:
-  const Array<T> & field;
+  const Container & field;
   UInt n, stride;
-  const Array<UInt> * filter;
+  const Filter * filter;
 
 };
