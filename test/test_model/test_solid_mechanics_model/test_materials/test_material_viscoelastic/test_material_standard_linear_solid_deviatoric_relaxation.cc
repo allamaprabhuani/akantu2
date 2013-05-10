@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initFull("material_standard_linear_solid_deviatoric_relaxation.dat", _explicit_dynamic);
+  model.initFull("material_standard_linear_solid_deviatoric_relaxation.dat");
   std::cout << model.getMaterial(0) << std::endl;
 
   model.assembleMassLumped();

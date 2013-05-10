@@ -198,6 +198,10 @@ private:
 			       Array<UInt> & doubled_nodes,
 			       const Array<UInt> & doubled_facets);
 
+  static void sortElements(std::vector<Element> & elements, const Vector<UInt> facet,
+                           const Mesh & mesh, const Mesh & mesh_facets,
+                           const ByElementTypeReal & barycenters);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -180,6 +180,14 @@ template <>
 iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_6>() { return iohelper::COH2D6; }
 #endif
 
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_bernoulli_beam_2>() { return iohelper::LINE1; }
+
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_bernoulli_beam_3>() { return iohelper::LINE2; }
+#endif
+
 /* -------------------------------------------------------------------------- */
 iohelper::ElemType DumperIOHelper::getIOHelperType(ElementType type) {
   iohelper::ElemType ioh_type = iohelper::MAX_ELEM_TYPE;

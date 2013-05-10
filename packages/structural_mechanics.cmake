@@ -33,6 +33,7 @@ add_internal_package_dependencies(STRUCTURAL_MECHANICS IMPLICIT)
 
 set(AKANTU_STRUCTURAL_MECHANICS_FILES
   model/structural_mechanics/structural_mechanics_model.cc
+  model/structural_mechanics/structural_mechanics_model.hh
   model/structural_mechanics/structural_mechanics_model_boundary.cc
   model/structural_mechanics/structural_mechanics_model_inline_impl.cc
   fem/element_class_structural.hh

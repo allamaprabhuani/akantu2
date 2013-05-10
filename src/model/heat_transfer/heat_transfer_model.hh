@@ -56,12 +56,8 @@ class HeatTransferModel : public Model, public DataAccessor, public Dumpable<Dum
 public:
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
-  HeatTransferModel(UInt spatial_dimension,
-		    const ID & id = "heat_transfer_model",
-  		    const MemoryID & memory_id = 0) ;
-
   HeatTransferModel(Mesh & mesh,
-		    UInt spatial_dimension = 0,
+		    UInt spatial_dimension = _all_dimensions,
 		    const ID & id = "heat_transfer_model",
 		    const MemoryID & memory_id = 0);
 
@@ -249,9 +245,6 @@ private:
 
   /// increment array (@f$\delta \dot T@f$ or @f$\delta T@f$)
   Array<Real> * increment;
-
-  /// the spatial dimension
-  UInt spatial_dimension;
 
   /// the density
   Real density;

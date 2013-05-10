@@ -584,9 +584,6 @@ protected:
   /// object to resolve the contact
   Contact * contact;
 
-  /// the spatial dimension
-  UInt spatial_dimension;
-
   AnalysisMethod method;
 
   Synchronizer * synch_parallel;

@@ -60,7 +60,8 @@ public:
   typedef Mesh mesh_type;
 
 
-  Model(Mesh& mesh, const ID & id = "model",
+  Model(Mesh& mesh, UInt spatial_dimension = _all_dimensions,
+        const ID & id = "model",
         const MemoryID & memory_id = 0);
 
   virtual ~Model();
@@ -200,6 +201,9 @@ protected:
 
   /// id
   ID id;
+
+  /// Spatial dimension of the problem
+  UInt spatial_dimension;
 
   /// the main fem object present in all  models
   FEMMap fems;

@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
   akantu::Int psize = comm.getNbProc();
   akantu::Int prank = comm.whoAmI();
 
-  akantu::debug::setDebugLevel(akantu::dblWarning);
+  akantu::debug::setDebugLevel(akantu::dblInfo);
 
   akantu::MeshPartition * partition = NULL;
   if(prank == 0) {

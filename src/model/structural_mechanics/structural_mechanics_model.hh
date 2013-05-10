@@ -234,13 +234,10 @@ private:
   /// solver for implicit
   Solver * solver;
 
-  /// the spatial dimension
-  UInt spatial_dimension;
-
   /// number of degre of freedom
   UInt nb_degree_of_freedom;
 
-  // Rotation matrix 
+  // Rotation matrix
   ByElementTypeReal rotation_matrix;
 
 

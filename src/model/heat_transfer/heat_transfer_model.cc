@@ -54,9 +54,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
 				     UInt dim,
 				     const ID & id,
 				     const MemoryID & memory_id) :
-  Model(mesh, id, memory_id), Dumpable<DumperParaview>(id),
+  Model(mesh, dim, id, memory_id), Dumpable<DumperParaview>(id),
   integrator(new ForwardEuler()),
-  spatial_dimension(dim != 0 ? dim : mesh.getSpatialDimension()),
   temperature_gradient    ("temperature_gradient", id),
   temperature_on_qpoints  ("temperature_on_qpoints", id),
   conductivity_on_qpoints ("conductivity_on_qpoints", id),
@@ -64,8 +63,7 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   int_bt_k_gT             ("int_bt_k_gT", id),
   bt_k_gT                 ("bt_k_gT", id),
   conductivity(spatial_dimension, spatial_dimension),
-  thermal_energy          ("thermal_energy", id)
-{
+  thermal_energy          ("thermal_energy", id) {
   AKANTU_DEBUG_IN();
 
   createSynchronizerRegistry(this);

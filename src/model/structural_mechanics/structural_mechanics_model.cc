@@ -45,16 +45,14 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 						   UInt dim,
 						   const ID & id,
 						   const MemoryID & memory_id) :
-  Model(mesh, id, memory_id), Dumpable<DumperParaview>(id),
+  Model(mesh, dim, id, memory_id), Dumpable<DumperParaview>(id),
   stress("stress", id, memory_id),
   element_material("element_material", id, memory_id),
   stiffness_matrix(NULL),
   solver(NULL),
-  spatial_dimension(dim),
   rotation_matrix("rotation_matices", id, memory_id) {
   AKANTU_DEBUG_IN();
 
-  if (spatial_dimension == 0) spatial_dimension = mesh.getSpatialDimension();
   registerFEMObject<MyFEMType>("StructuralMechanicsFEM", mesh, spatial_dimension);
 
   this->displacement_rotation = NULL;
@@ -70,6 +68,8 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
   else {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
+
+  addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
 
   AKANTU_DEBUG_OUT();
 }

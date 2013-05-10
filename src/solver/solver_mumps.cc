@@ -223,6 +223,8 @@ void SolverMumps::initialize(SolverOptions & options) {
   icntl(2) = 0;
   icntl(3) = 0;
   icntl(4) = 0;
+
+
   mumps_data.nz_alloc = 0;
 
   if (AKANTU_DEBUG_TEST(dblDump)) icntl(4) = 4;

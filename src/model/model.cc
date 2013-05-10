@@ -37,9 +37,11 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Model::Model(Mesh& m, const ID & id,
+Model::Model(Mesh& m, UInt dim, const ID & id,
 	     const MemoryID & memory_id) :
-  Memory(memory_id), mesh(m), id(id),synch_registry(NULL),is_pbc_slave_node(0,1,"is_pbc_slave_node") {
+  Memory(memory_id), mesh(m), id(id),
+  spatial_dimension(dim == _all_dimensions ? m.getSpatialDimension() : dim),
+  synch_registry(NULL),is_pbc_slave_node(0,1,"is_pbc_slave_node") {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_OUT();
 }
