@@ -61,6 +61,7 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
                                          const EdgeLoadFunctor & edge_load_func,
                                          const Array<UInt> & pairs) {
   AKANTU_DEBUG_IN();
+  nb_partitions = nb_part;
   GhostType ghost_type = _not_ghost;
   UInt spatial_dimension = mesh.getSpatialDimension();
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension,

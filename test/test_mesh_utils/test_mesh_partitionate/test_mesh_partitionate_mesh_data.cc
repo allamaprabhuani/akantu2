@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     partition.alloc(nb_element, nb_component, *tit, gt);
     Array<UInt> & type_partition_reference = partition(*tit, gt);
     for(UInt i(0); i < nb_element; ++i) {
-      Real barycenter[2];
+      Real barycenter[dim];
       mesh.getBarycenter(i, *tit, barycenter, gt);
       Real real_proc = barycenter[0] * nb_partitions;
       if(real_proc-round(real_proc) < 10*std::numeric_limits<Real>::min()) {
@@ -70,13 +70,13 @@ int main(int argc, char *argv[])
         std::cout << "*";
         type_partition_reference(i) = floor(real_proc);
       }
-      std::cout << "Assigned proc " << type_partition_reference(i) << " to elem " << i << " (type " << *tit << ", baryxcenter x-coordinate " << barycenter[0] << ")" << std::endl;
+      std::cout << "Assigned proc " << type_partition_reference(i) << " to elem " << i << " (type " << *tit << ", barycenter x-coordinate " << barycenter[0] << ")" << std::endl;
     }
   }
 
   akantu::MeshPartitionMeshData * partitioner = new akantu::MeshPartitionMeshData(mesh, dim);
   partitioner->setPartitionMapping(partition);
-  partitioner->partitionate();
+  partitioner->partitionate(nb_partitions);
 
   tit = mesh.firstType(dim, gt);
   for(; tit != tend; ++tit) {

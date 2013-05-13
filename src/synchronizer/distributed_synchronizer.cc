@@ -112,7 +112,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   /* ------------------------------------------------------------------------ */
   if(my_rank == root) {
     AKANTU_DEBUG_ASSERT(partition->getNbPartition() == nb_proc,
-                        "The number of partition does not match the number of processors");
+                        "The number of partition does not match the number of processors: " <<
+                        partition->getNbPartition() << " != " << nb_proc);
 
     /**
      * connectivity and communications scheme construction
@@ -279,11 +280,13 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         }
       }
 
-      AKANTU_DEBUG_INFO("Creating communications scheme");
-      communicator.fillCommunicationScheme(local_partitions,
-                                           nb_local_element[root],
-                                           nb_ghost_element[root],
-                                           type);
+      if(Mesh::getSpatialDimension(type) == mesh.getSpatialDimension()) {
+        AKANTU_DEBUG_INFO("Creating communications scheme");
+        communicator.fillCommunicationScheme(local_partitions,
+                                             nb_local_element[root],
+                                             nb_ghost_element[root],
+                                             type);
+      }
 
       comm.waitAll(requests);
       comm.freeCommunicationRequest(requests);
@@ -541,12 +544,13 @@ createDistributedSynchronizerMesh(Mesh & mesh,
                      nb_element_to_send + nb_ghost_element * 2,
                      root, Tag::genTag(root, count, TAG_PARTITIONS));
 
-        AKANTU_DEBUG_INFO("Creating communications scheme");
-        communicator.fillCommunicationScheme(local_partitions,
-                                             nb_local_element,
-                                             nb_ghost_element,
-                                             type);
-
+        if(Mesh::getSpatialDimension(type) == mesh.getSpatialDimension()) {
+          AKANTU_DEBUG_INFO("Creating communications scheme");
+          communicator.fillCommunicationScheme(local_partitions,
+                                               nb_local_element,
+                                               nb_ghost_element,
+                                               type);
+        }
         delete [] local_partitions;
 
         /* --------<<<<-TAGS------------------------------------------------- */
