@@ -387,6 +387,8 @@ public:
   virtual void addDumpField(const std::string & field_id);
   virtual void addDumpBoundaryField(const std::string & field_id,
                                     const std::string & boundary_name);
+  virtual void removeDumpBoundaryField(const std::string & field_id,
+				       const std::string & boundary_name);
 
   virtual void addDumpFieldVector(const std::string & field_id);
   virtual void addDumpBoundaryFieldVector(const std::string & field_id,

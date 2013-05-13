@@ -1503,6 +1503,13 @@ void SolidMechanicsModel::addDumpBoundaryField(const std::string & field_id,
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::removeDumpBoundaryField(const std::string & field_id,
+						  const std::string & boundary_name) {
+  SubBoundary & boundary_ref = mesh.getSubBoundary(boundary_name);
+  boundary_ref.removeDumpField(field_id);
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldVector(const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
 #define ADD_FIELD(field, type)						\
