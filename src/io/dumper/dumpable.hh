@@ -180,11 +180,11 @@ public:
 		   __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
   }
 
-  void addDumpBoundary(__attribute__((unused)) const Mesh & mesh,
-		       __attribute__((unused)) const SubBoundary & boundary,
-		       __attribute__((unused)) UInt spatial_dimension = _all_dimensions,
-		       __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
-		       __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
+  void addDumpFilteredMesh(__attribute__((unused)) const Mesh & mesh,
+			   __attribute__((unused)) const SubBoundary & boundary,
+			   __attribute__((unused)) UInt spatial_dimension = _all_dimensions,
+			   __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
+			   __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
   }
 
 
