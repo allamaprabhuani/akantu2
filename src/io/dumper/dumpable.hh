@@ -67,7 +67,7 @@ public:
 
   void addDumpFilteredMesh(const Mesh & mesh,
 			   const ByElementTypeArray<UInt> & elements_filter,
-			   const Array<UInt> & nodes_filter,		       
+			   const Array<UInt> & nodes_filter,
 			   UInt spatial_dimension = _all_dimensions,
 			   const GhostType & ghost_type = _not_ghost,
 			   const ElementKind & element_kind = _ek_not_defined) {
@@ -181,7 +181,8 @@ public:
   }
 
   void addDumpFilteredMesh(__attribute__((unused)) const Mesh & mesh,
-			   __attribute__((unused)) const SubBoundary & boundary,
+			   __attribute__((unused)) const ByElementTypeArray<UInt> & elements_filter,
+			   __attribute__((unused)) const Array<UInt> & nodes_filter,
 			   __attribute__((unused)) UInt spatial_dimension = _all_dimensions,
 			   __attribute__((unused)) const GhostType & ghost_type = _not_ghost,
 			   __attribute__((unused)) const ElementKind & element_kind = _ek_not_defined) {
