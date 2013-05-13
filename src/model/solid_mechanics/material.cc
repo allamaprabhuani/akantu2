@@ -83,7 +83,7 @@ Material::~Material() {
 
 /* -------------------------------------------------------------------------- */
 bool Material::parseParam(const std::string & key, const std::string & value,
-                        __attribute__ ((unused)) const ID & id) {
+			  __attribute__ ((unused)) const ID & id) {
   try {
     params.parseParam(key, value);
   } catch(...) { return false; }
@@ -103,9 +103,9 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalArray(ByElementTypeArray<T> & vect,
-                                  UInt nb_component,
-                                  bool temporary,
-                                  ElementKind element_kind) {
+				 UInt nb_component,
+				 bool temporary,
+				 ElementKind element_kind) {
   AKANTU_DEBUG_IN();
 
   model->getFEM().getMesh().initByElementTypeArray(vect,
@@ -132,13 +132,13 @@ template<> void Material::registerInternal<UInt>(ByElementTypeArray<UInt> & vect
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::resizeInternalArray(ByElementTypeArray<T> & by_el_type_vect,
-                                    ElementKind element_kind) const {
+				   ElementKind element_kind) const {
   AKANTU_DEBUG_IN();
 
   FEM * fem = & model->getFEM();
 
   if (element_kind == _ek_cohesive)
-      fem = & model->getFEM("CohesiveFEM");
+    fem = & model->getFEM("CohesiveFEM");
 
   const Mesh & mesh = fem->getMesh();
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -204,7 +204,7 @@ void Material::assembleResidual(GhostType ghost_type) {
     /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
     Array<Real> * sigma_dphi_dx =
       new Array<Real>(nb_element*nb_quadrature_points,
-                       size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+		      size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
     Array<Real> * shapesd_filtered =
       new Array<Real>(0, size_of_shapes_derivatives, "filtered shapesd");
@@ -231,8 +231,8 @@ void Material::assembleResidual(GhostType ghost_type) {
      * \mathbf{\sigma}_q \overline w_q J_q@f$
      */
     Array<Real> * int_sigma_dphi_dx = new Array<Real>(nb_element,
-                                                        nb_nodes_per_element * spatial_dimension,
-                                                        "int_sigma_x_dphi_/_dX");
+						      nb_nodes_per_element * spatial_dimension,
+						      "int_sigma_x_dphi_/_dX");
 
     model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
                               size_of_shapes_derivatives,
@@ -304,8 +304,8 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
-                                              spatial_dimension,
-                                              *it, ghost_type, elem_filter);
+					       spatial_dimension,
+					       *it, ghost_type, elem_filter);
 
     setToSteadyState(*it, ghost_type);
   }
@@ -367,7 +367,7 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   Array<Real> * tangent_stiffness_matrix =
     new Array<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
-                     "tangent_stiffness_matrix");
+		    "tangent_stiffness_matrix");
 
   tangent_stiffness_matrix->clear();
 
@@ -383,8 +383,8 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   UInt bt_d_b_size = dim * nb_nodes_per_element;
 
   Array<Real> * bt_d_b = new Array<Real>(nb_element * nb_quadrature_points,
-                                           bt_d_b_size * bt_d_b_size,
-                                           "B^t*D*B");
+					 bt_d_b_size * bt_d_b_size,
+					 "B^t*D*B");
 
   Matrix<Real> B(tangent_size, dim * nb_nodes_per_element);
   Matrix<Real> Bt_D(dim * nb_nodes_per_element, tangent_size);
@@ -415,8 +415,8 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   Array<Real> * K_e = new Array<Real>(nb_element,
-                                        bt_d_b_size * bt_d_b_size,
-                                        "K_e");
+				      bt_d_b_size * bt_d_b_size,
+				      "K_e");
 
   model->getFEM().integrate(*bt_d_b, *K_e,
                             bt_d_b_size * bt_d_b_size,
@@ -477,7 +477,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
 
   Array<Real> * tangent_moduli_tensors =
     new Array<Real>(nb_element*nb_quadrature_points, tangent_moduli_size * tangent_moduli_size,
-                     "tangent_moduli_tensors");
+		    "tangent_moduli_tensors");
 
   tangent_moduli_tensors->clear();
   computeTangentModuli(type, *tangent_moduli_tensors, ghost_type);
@@ -486,7 +486,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
     new Array<Real>(0, dim* nb_nodes_per_element, "filtered shapesd");
 
   FEM::filterElementalData(model->getFEM().getMesh(), shapes_derivatives, *shapesd_filtered,
-                                  type, ghost_type, elem_filter);
+			   type, ghost_type, elem_filter);
 
   Array<Real> filtered_u(nb_element, nb_nodes_per_element * spatial_dimension);
 
@@ -498,9 +498,9 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
     shapesd_filtered->begin(dim, nb_nodes_per_element);
 
   Array<Real>::iterator< Matrix<Real> > D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
-                                                                               tangent_moduli_size);
+									      tangent_moduli_size);
   Array<Real>::iterator< Matrix<Real> > sigma_it  = stress(type, ghost_type).begin(spatial_dimension,
-                                                                                    spatial_dimension);
+										   spatial_dimension);
   Array<Real>::iterator< Vector<Real> > u_it = filtered_u.begin(spatial_dimension * nb_nodes_per_element);
 
   Matrix<Real> B(tangent_moduli_size, spatial_dimension * nb_nodes_per_element);
@@ -824,12 +824,12 @@ void Material::interpolateStress(ByElementTypeReal & result) {
 
       Array<Real> & res = result(type, ghost_type);
 
-#define INTERPOLATE_ELEMENTAL_FIELD(type)				\
-      interpolateElementalField<type>(stress(type, ghost_type),		\
-                                      res,				\
+#define INTERPOLATE_ELEMENTAL_FIELD(type)			\
+      interpolateElementalField<type>(stress(type, ghost_type),	\
+                                      res,			\
                                       ghost_type)
 
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
+      AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
 #undef INTERPOLATE_ELEMENTAL_FIELD
     }
   }
@@ -947,37 +947,37 @@ void Material::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalArray<Real>(ByElementTypeArray<Real> & vect,
-                                                 UInt nb_component,
-                                                 bool temporary,
-                                                 ElementKind element_kind);
+						UInt nb_component,
+						bool temporary,
+						ElementKind element_kind);
 
 template void Material::initInternalArray<UInt>(ByElementTypeArray<UInt> & vect,
-                                                 UInt nb_component,
-                                                 bool temporary,
-                                                 ElementKind element_kind);
+						UInt nb_component,
+						bool temporary,
+						ElementKind element_kind);
 
 template void Material::initInternalArray<Int>(ByElementTypeArray<Int> & vect,
-                                                UInt nb_component,
-                                                bool temporary,
-                                                ElementKind element_kind);
+					       UInt nb_component,
+					       bool temporary,
+					       ElementKind element_kind);
 
 template void Material::initInternalArray<bool>(ByElementTypeArray<bool> & vect,
-                                                 UInt nb_component,
-                                                 bool temporary,
-                                                 ElementKind element_kind);
+						UInt nb_component,
+						bool temporary,
+						ElementKind element_kind);
 
 
 template void Material::resizeInternalArray<Real>(ByElementTypeArray<Real> & vect,
-                                                   ElementKind element_kind) const;
+						  ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<UInt>(ByElementTypeArray<UInt> & vect,
-                                                   ElementKind element_kind) const;
+						  ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<Int>(ByElementTypeArray<Int> & vect,
-                                                  ElementKind element_kind) const;
+						 ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<bool>(ByElementTypeArray<bool> & vect,
-                                                   ElementKind element_kind) const;
+						  ElementKind element_kind) const;
 
 
 __END_AKANTU__

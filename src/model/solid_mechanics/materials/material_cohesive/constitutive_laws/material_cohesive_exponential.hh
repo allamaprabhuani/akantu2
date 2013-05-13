@@ -58,21 +58,10 @@ class MaterialCohesiveExponential : public MaterialCohesive {
 public:
 
   MaterialCohesiveExponential(SolidMechanicsModel & model, const ID & id = "");
-  virtual ~MaterialCohesiveExponential();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-
-  /// initialize the material computed parameter
-  virtual void initMaterial();
-
-  /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveArrays();
-
-
-
 protected:
 
   /// constitutive law
@@ -96,12 +85,8 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
 
-
   /// beta parameter
   Real beta;
-
-  // /// maximum displacement
-  // ByElementTypeReal delta_max;
 
   /// critical displacement
   Real delta_c;
@@ -113,7 +98,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_cohesive_exponential_inline_impl.cc"
+// #include "material_cohesive_exponential_inline_impl.cc"
 
 
 __END_AKANTU__

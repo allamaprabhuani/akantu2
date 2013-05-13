@@ -29,12 +29,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
+
 #include "material_cohesive.hh"
-#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_EXTRINSIC_HH__
-#define __AKANTU_MATERIAL_COHESIVE_LINEAR_EXTRINSIC_HH__
+#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_HH__
+#define __AKANTU_MATERIAL_COHESIVE_LINEAR_HH__
 
 /* -------------------------------------------------------------------------- */
 
@@ -52,14 +52,13 @@ __BEGIN_AKANTU__
  *   - penalty   : stiffness in compression to prevent penetration
  */
 template<UInt spatial_dimension>
-class MaterialCohesiveLinearExtrinsic : public MaterialCohesive {
+class MaterialCohesiveLinear : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialCohesiveLinearExtrinsic(SolidMechanicsModel & model, const ID & id = "");
-  virtual ~MaterialCohesiveLinearExtrinsic();
+  MaterialCohesiveLinear(SolidMechanicsModel & model, const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -69,13 +68,15 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveArrays();
-
   /// compute stress norms on quadrature points for each facet for stress check
   virtual void computeStressNorms(const Array<Real> & facet_stress,
 				  Array<Real> & stress_check,
 				  ElementType type_facet);
+
+  /// check stress for cohesive elements' insertion
+  virtual void checkInsertion(const ByElementTypeReal & facet_stress,
+			      const Mesh & mesh_facets,
+			      ByElementTypeArray<bool> & facet_insertion);
 
 protected:
 
@@ -98,9 +99,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  /// critical effective stress
-  ByElementTypeReal sigma_c_eff;
 
   /// beta parameter
   Real beta;
@@ -126,6 +124,9 @@ protected:
   /// penalty coefficient
   Real penalty;
 
+  /// critical effective stress
+  ByElementTypeReal sigma_c_eff;
+
   /// critical displacement
   ByElementTypeReal delta_c;
 
@@ -146,4 +147,4 @@ protected:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_EXTRINSIC_HH__ */
+#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_HH__ */

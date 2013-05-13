@@ -368,7 +368,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /* -------->>>>-SIZE----------------------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
-        UInt size[4];
+        UInt size[5];
         size[0] = (UInt) _not_defined;
         size[1] = 0;
         size[2] = 0;

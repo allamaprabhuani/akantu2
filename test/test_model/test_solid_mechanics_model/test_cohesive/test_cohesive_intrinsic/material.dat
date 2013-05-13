@@ -12,4 +12,5 @@ material cohesive_bilinear [
 	 G_cI = 1
 	 G_cII = 1
 	 delta_0 = 0.1
+	 penalty = 1e10
 ]

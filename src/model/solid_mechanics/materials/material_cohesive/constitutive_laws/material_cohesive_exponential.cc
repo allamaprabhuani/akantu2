@@ -52,31 +52,6 @@ MaterialCohesiveExponential<spatial_dimension>::MaterialCohesiveExponential(Soli
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-MaterialCohesiveExponential<spatial_dimension>::~MaterialCohesiveExponential() {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveExponential<spatial_dimension>::initMaterial() {
-  AKANTU_DEBUG_IN();
-
-  MaterialCohesive::initMaterial();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialCohesiveExponential<spatial_dimension>::resizeCohesiveArrays() {
-  MaterialCohesive::resizeCohesiveArrays();
-  //this->resizeInternalArray(delta_max, _ek_cohesive);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Array<Real> & normal,
                                                                      ElementType el_type,
                                                                      GhostType ghost_type) {

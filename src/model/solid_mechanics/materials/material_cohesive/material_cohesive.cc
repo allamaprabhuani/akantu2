@@ -48,6 +48,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   opening_old("opening (old)",id),
   tractions("tractions",id),
   opening("opening",id),
+  contact_tractions("contact_tractions",id),
   delta_max("delta max",id),
   damage("damage", id),
   facet_filter("facet_filter", id),
@@ -59,8 +60,12 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 
   fem_cohesive = &(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
 
-  this->registerParam("sigma_c",      sigma_c,      0. ,                     ParamAccessType(_pat_parsable | _pat_readable), "Critical stress");
-  this->registerParam("sigma_c_generator", random_generator, _pat_parsable, "Random generator for sigma_c");
+  this->registerParam("sigma_c", sigma_c, 0.,
+		      ParamAccessType(_pat_parsable | _pat_readable),
+		      "Critical stress");
+
+  this->registerParam("sigma_c_generator", random_generator,
+		      _pat_parsable, "Random generator for sigma_c");
 
   AKANTU_DEBUG_OUT();
 }
@@ -85,6 +90,7 @@ void MaterialCohesive::initMaterial() {
   initInternalArray(    tractions_old, spatial_dimension, false, _ek_cohesive);
   initInternalArray(        tractions, spatial_dimension, false, _ek_cohesive);
   initInternalArray(      opening_old, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(contact_tractions, spatial_dimension, false, _ek_cohesive);
   initInternalArray(          opening, spatial_dimension, false, _ek_cohesive);
   initInternalArray(        delta_max,                 1, false, _ek_cohesive);
   initInternalArray(           damage,                 1, false, _ek_cohesive);
@@ -104,14 +110,19 @@ void MaterialCohesive::initInsertionArrays(const Mesh & mesh_facets) {
 
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::resizeCohesiveArrays() {
+  AKANTU_DEBUG_IN();
+
   resizeInternalArray(reversible_energy, _ek_cohesive);
   resizeInternalArray(total_energy     , _ek_cohesive);
   resizeInternalArray(tractions_old    , _ek_cohesive);
   resizeInternalArray(tractions        , _ek_cohesive);
   resizeInternalArray(opening_old      , _ek_cohesive);
   resizeInternalArray(opening          , _ek_cohesive);
+  resizeInternalArray(contact_tractions, _ek_cohesive);
   resizeInternalArray(delta_max        , _ek_cohesive);
   resizeInternalArray(damage           , _ek_cohesive);
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -132,59 +143,6 @@ void MaterialCohesive::generateRandomDistribution(const Mesh & mesh_facets) {
 	Array<Real> & sigma_lim = sigma_limit(type_facet);
 	sigma_lim.resize(nb_facet);
 	random_generator->generate(sigma_lim);
-      }
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void MaterialCohesive::checkInsertion(const ByElementTypeReal & facet_stress,
-				      const Mesh & mesh_facets,
-				      ByElementTypeArray<bool> & facet_insertion) {
-  AKANTU_DEBUG_IN();
-
-  Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
-  Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
-
-  for (; it != last; ++it) {
-
-    ElementType type_facet = *it;
-    Array<bool> & facets_check = model->getFacetsCheck();
-    Array<bool> & f_insertion = facet_insertion(type_facet);
-    Array<UInt> & f_filter = facet_filter(type_facet);
-    const Array<Real> & f_stress = facet_stress(type_facet);
-    const Array<Real> & sigma_lim = sigma_limit(type_facet);
-
-    UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
-    UInt nb_facet = f_filter.getSize();
-    if (nb_facet == 0) continue;
-
-    Array<Real> stress_check(nb_facet, nb_quad_facet);
-    stress_check.clear();
-
-    computeStressNorms(f_stress, stress_check, type_facet);
-
-    Array<Real>::iterator< Vector<Real> > stress_check_it =
-      stress_check.begin(nb_quad_facet);
-
-    Array<Real>::const_iterator<Real> sigma_lim_it = sigma_lim.begin();
-
-    for (UInt f = 0; f < nb_facet;
-	 ++f, ++stress_check_it, ++sigma_lim_it) {
-      UInt facet = f_filter(f);
-      if (facets_check(facet) == true) {
-
-	for (UInt q = 0; q < nb_quad_facet; ++q) {
-	  if ((*stress_check_it)(q) > (*sigma_lim_it)) {
-	    f_insertion(facet) = true;
-	    for (UInt qs = 0; qs < nb_quad_facet; ++qs)
-	      sigma_insertion.push_back((*stress_check_it)(qs));
-	    facets_check(facet) = false;
-	    break;
-	  }
-	}
       }
     }
   }
@@ -242,6 +200,11 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     // multiply traction by shapes
 
     Array<Real> * traction_cpy = new Array<Real>(traction);
+
+    /// add contact tractions
+    Array<Real> & contact_traction = contact_tractions(*it, ghost_type);
+    (*traction_cpy) += contact_traction;
+
     traction_cpy->extendComponentsInterlaced(size_of_shapes, spatial_dimension);
 
     Real * traction_cpy_val = traction_cpy->storage();
@@ -594,7 +557,7 @@ Real MaterialCohesive::getReversibleEnergy() {
   AKANTU_DEBUG_IN();
   Real erev = 0.;
 
-  /// integrate the dissipated energy for each type of elements
+  /// integrate reversible energy for each type of elements
   Mesh & mesh = fem_cohesive->getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension,
 					  _not_ghost, _ek_cohesive);
@@ -615,7 +578,7 @@ Real MaterialCohesive::getDissipatedEnergy() {
   AKANTU_DEBUG_IN();
   Real edis = 0.;
 
-  /// integrate the dissipated energy for each type of elements
+  /// integrate dissipated energy for each type of elements
   Mesh & mesh = fem_cohesive->getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension,
 					  _not_ghost, _ek_cohesive);
@@ -634,11 +597,49 @@ Real MaterialCohesive::getDissipatedEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
+Real MaterialCohesive::getContactEnergy() {
+  AKANTU_DEBUG_IN();
+  Real econ = 0.;
+
+  /// integrate contact energy for each type of elements
+  Mesh & mesh = fem_cohesive->getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension,
+					  _not_ghost, _ek_cohesive);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension,
+						_not_ghost, _ek_cohesive);
+
+  for(; it != last_type; ++it) {
+    Array<UInt> & el_filter = element_filter(*it, _not_ghost);
+    UInt nb_element = el_filter.getSize();
+    Array<Real> contact_energy(nb_element);
+
+    Array<Real>::iterator< Vector<Real> > contact_traction_it =
+      contact_tractions(*it, _not_ghost).begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > opening_it =
+      opening(*it, _not_ghost).begin(spatial_dimension);
+
+    /// loop on each quadrature point
+    for (UInt el = 0; el < nb_element;
+	 ++contact_traction_it, ++opening_it, ++el) {
+
+      contact_energy(el) = .5 * contact_traction_it->dot(*opening_it);
+    }
+
+    econ += fem_cohesive->integrate(contact_energy, *it,
+				    _not_ghost, el_filter);
+  }
+
+  AKANTU_DEBUG_OUT();
+  return econ;
+}
+
+/* -------------------------------------------------------------------------- */
 Real MaterialCohesive::getEnergy(std::string type) {
   AKANTU_DEBUG_IN();
 
   if (type == "reversible") return getReversibleEnergy();
   else if (type == "dissipated") return getDissipatedEnergy();
+  else if (type == "cohesive contact") return getContactEnergy();
 
   AKANTU_DEBUG_OUT();
   return 0.;

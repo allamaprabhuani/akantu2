@@ -5,14 +5,14 @@ material elastic [
 	 nu  = 0.0 # poisson's ratio
 ]
 
-material cohesive_linear_extrinsic [
+material cohesive_linear [
 	 name = TG_cohesive
 	 beta = 0
 	 G_cI = 10
          sigma_c_generator = uniform(1) 100 100
 ]
 
-material cohesive_linear_extrinsic [
+material cohesive_linear [
 	 name = IG_cohesive
 	 beta = 0
 	 G_cI = 10

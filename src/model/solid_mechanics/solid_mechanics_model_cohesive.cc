@@ -78,15 +78,6 @@ void SolidMechanicsModelCohesive::updateResidual(bool need_initialize) {
     try {
       MaterialCohesive & mat = dynamic_cast<MaterialCohesive &>(**mat_it);
       mat.computeTraction(_not_ghost);
-
-      // synch_registry->asynchronousSynchronize(_gst_smmc_tractions);
-
-      // mat.assembleResidual(_not_ghost);
-
-      // synch_registry->waitEndSynchronize(_gst_smmc_tractions);
-
-      // mat.assembleResidual(_ghost);
-
     } catch (std::bad_cast & bce) { }
   }
 

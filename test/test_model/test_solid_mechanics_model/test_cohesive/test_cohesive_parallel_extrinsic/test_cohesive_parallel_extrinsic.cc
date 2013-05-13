@@ -28,7 +28,6 @@
 /* -------------------------------------------------------------------------- */
 #include "mesh_io.hh"
 #include "mesh_utils.hh"
-#include "model.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "dumper_paraview.hh"
 #include "static_communicator.hh"
@@ -143,11 +142,11 @@ int main(int argc, char *argv[]) {
 
   model.setBaseName("extrinsic_parallel");
   model.addDumpFieldVector("displacement");
-  model.addDumpField("velocity"    );
-  model.addDumpField("acceleration");
-  model.addDumpField("residual"    );
-  model.addDumpField("stress");
-  model.addDumpField("strain");
+  model.addDumpFieldVector("velocity"    );
+  model.addDumpFieldVector("acceleration");
+  model.addDumpFieldVector("residual"    );
+  model.addDumpFieldTensor("stress");
+  model.addDumpFieldTensor("strain");
   model.addDumpField("partitions");
   //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
@@ -158,6 +157,14 @@ int main(int argc, char *argv[]) {
     new DumperIOHelper::NodalField<Real>(model.getDisplacement());
   cohesive_displacement->setPadding(3);
   dumper.registerField("displacement", cohesive_displacement);
+  // dumper.registerField("damage", new DumperIOHelper::
+  // 		       HomogenizedField<Real,
+  // 					DumperIOHelper::InternalMaterialField>(model,
+  // 									       "damage",
+  // 									       spatial_dimension,
+  // 									       _not_ghost,
+  // 									       _ek_cohesive));
+
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {

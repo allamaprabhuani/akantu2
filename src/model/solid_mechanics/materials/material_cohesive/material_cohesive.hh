@@ -29,6 +29,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+
 #include "aka_common.hh"
 #include "material.hh"
 #include "fem_template.hh"
@@ -84,7 +85,9 @@ public:
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const ByElementTypeReal & facet_stress,
 			      const Mesh & mesh_facets,
-			      ByElementTypeArray<bool> & facet_insertion);
+			      ByElementTypeArray<bool> & facet_insertion) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /// interpolate   stress  on   given   positions  for   each  element   (empty
   /// implemantation to avoid the generic call to be done on cohesive elements)
@@ -128,14 +131,6 @@ protected:
 			       ElementType el_type,
 			       GhostType ghost_type = _not_ghost) = 0;
 
-  /// compute stress norms on quadrature points for each facet for stress check
-  virtual void computeStressNorms(__attribute__((unused)) const Array<Real> & facet_stress,
-				  __attribute__((unused)) Array<Real> & stress_check,
-				  __attribute__((unused)) ElementType type_facet) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
-
-
   /// parallelism functions
   inline UInt getNbDataForElements(const Array<Element> & elements,
 				   SynchronizationTag tag) const;
@@ -168,6 +163,9 @@ public:
 
   /// compute dissipated energy
   Real getDissipatedEnergy();
+
+  /// compute contact energy
+  Real getContactEnergy();
 
   /// get energy
   virtual Real getEnergy(std::string type);
@@ -207,6 +205,9 @@ protected:
   /// opening in all elements and quadrature points
   ByElementTypeReal opening;
 
+  /// traction due to contact
+  ByElementTypeReal contact_tractions;
+
   /// Link to the cohesive fem object in the model
   MyFEMCohesiveType * fem_cohesive;
 
@@ -215,9 +216,6 @@ protected:
 
   /// random generator
   RandomGenerator<Real> * random_generator;
-
-  /// vector to store stresses on facets for element insertions
-  Array<Real> sigma_insertion;
 
   /// maximum displacement
   ByElementTypeReal delta_max;

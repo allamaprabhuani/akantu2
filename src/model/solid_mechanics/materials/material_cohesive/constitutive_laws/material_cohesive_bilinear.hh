@@ -29,13 +29,12 @@
 
 /* -------------------------------------------------------------------------- */
 
+#include "material_cohesive_linear.hh"
+
 #ifndef __AKANTU_MATERIAL_COHESIVE_BILINEAR_HH__
 #define __AKANTU_MATERIAL_COHESIVE_BILINEAR_HH__
 
 /* -------------------------------------------------------------------------- */
-
-#include "material_cohesive.hh"
-#include "aka_common.hh"
 
 __BEGIN_AKANTU__
 
@@ -51,14 +50,13 @@ __BEGIN_AKANTU__
  *   - penalty   : stiffness in compression to prevent penetration
  */
 template<UInt spatial_dimension>
-class MaterialCohesiveBilinear : public MaterialCohesive {
+class MaterialCohesiveBilinear : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
   MaterialCohesiveBilinear(SolidMechanicsModel & model, const ID & id = "");
-  virtual ~MaterialCohesiveBilinear();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -68,32 +66,8 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// update delta_max values with delta_0
-  virtual void updateDeltaMax(GhostType ghost_type);
-
   /// resize vectors for new cohesive elements
   virtual void resizeCohesiveArrays();
-
-protected:
-
-  /// constitutive law
-  void computeTraction(const Array<Real> & normal,
-		       ElementType el_type,
-		       GhostType ghost_type = _not_ghost);
-
-  void computeTangentStiffness(__attribute__((unused))	const ElementType & el_type,
-			       __attribute__((unused)) Array<Real> & tangent_matrix,
-			       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
- // void computeTangentStiffness(__attribute__((unused)) Array<Real> & tangent_matrix,
- // 				       __attribute__((unused)) const Array<Real> & normal,
- // 			         	__attribute__((unused))	const ElementType & el_type,
- //  				       __attribute__((unused)) GhostType ghost_type = _not_ghost) {
- //    AKANTU_DEBUG_TO_IMPLEMENT();
- //  }
-
-
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -108,23 +82,8 @@ protected:
   /// elastic limit displacement
   Real delta_0;
 
-  /// beta parameter
-  Real beta;
-
-  /// mode I fracture energy
-  Real G_cI;
-
-  /// mode II fracture energy
-  Real G_cII;
-
-  /// kappa parameter
-  Real kappa;
-
   /// critical displacement
-  Real delta_c;
-
-  /// penalty coefficient
-  Real penalty;
+  Real current_delta_c;
 
 };
 
@@ -138,4 +97,4 @@ protected:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_ELASTIC_HH__ */
+#endif /* __AKANTU_MATERIAL_COHESIVE_BILINEAR_HH__ */

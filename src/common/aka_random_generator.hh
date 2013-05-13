@@ -177,8 +177,8 @@ public:
     UInt n = vect.getSize();
     T e = T(1) / m;
     for (UInt i = 0; i < n; ++i) {
-      T r = rand();
-      vect(i) = minimum + lambda * std::pow(- std::log(r), e);
+      T r = this->rand();
+      vect(i) = minimum + lambda * std::pow(- std::log(1. - r), e);
     }
   }
 

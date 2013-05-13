@@ -5,7 +5,7 @@ material elastic [
 	 nu  = 0.001 # poisson's ratio
 ]
 
-material cohesive_linear_extrinsic [
+material cohesive_linear [
 	 name = cohesive
 	 beta = 1
 	 G_cI = 100
