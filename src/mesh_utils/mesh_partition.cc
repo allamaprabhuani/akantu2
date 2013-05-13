@@ -366,10 +366,10 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
         ghost_partitions(type, _ghost).push_back(*pit);
       }
 
-      ghost_part_csr.countToCSR();
       ghost_partitions_offset(type, _ghost)(i+1) = ghost_partitions_offset(type, _ghost)(i+1)
                                                    + adjacent_elems.size();
     }
+    ghost_part_csr.countToCSR();
   }
   AKANTU_DEBUG_OUT();
 }

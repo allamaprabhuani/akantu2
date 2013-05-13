@@ -72,8 +72,8 @@ void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveArrays() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesive::resizeCohesiveArrays();
-  resizeInternalArray(this->sigma_c_eff, _ek_cohesive);
-  resizeInternalArray(this->delta_c, _ek_cohesive);
+  this->resizeInternalArray(this->sigma_c_eff, _ek_cohesive);
+  this->resizeInternalArray(this->delta_c, _ek_cohesive);
 
   const Mesh & mesh = this->model->getFEM("CohesiveFEM").getMesh();
 
