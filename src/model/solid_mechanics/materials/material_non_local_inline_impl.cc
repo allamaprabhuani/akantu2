@@ -739,7 +739,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
      (this->compute_stress_calls % this->update_weights == 0)) {
     ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
     Mesh & mesh = this->model->getFEM().getMesh();
-    mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, 0);
+    mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
     computeWeights(quadrature_points_coordinates);
@@ -764,7 +764,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
 
       ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
       Mesh & mesh = this->model->getFEM().getMesh();
-      mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, 0);
+      mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
 
@@ -827,7 +827,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
 #if defined(AKANTU_DEBUG_TOOLS) && defined(AKANTU_CORE_CXX11)
   ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
   Mesh & mesh = this->model->getFEM().getMesh();
-  mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, 0);
+  mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
   computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
   computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
 

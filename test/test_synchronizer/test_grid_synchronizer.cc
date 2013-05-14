@@ -128,7 +128,7 @@ static void updatePairList(const ByElementTypeReal & barycenter,
 int main(int argc, char *argv[]) {
   akantu::initialize(argc, argv);
 
-  Real radius = 0.01;
+  Real radius = 0.2;
 
   Mesh mesh(spatial_dimension);
 

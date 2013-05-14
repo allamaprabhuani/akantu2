@@ -156,8 +156,8 @@ namespace akantu {
       bool addElement(const Vector<Real> & pos, Real tolerance) {
         bool finished = false;
         for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end() && ! finished; ++gt) {
-          Mesh::type_iterator first = mesh->firstType(0, *gt, _ek_not_defined);
-          Mesh::type_iterator last  = mesh->lastType(0, *gt, _ek_not_defined);
+          Mesh::type_iterator first = mesh->firstType(_all_dimensions, *gt, _ek_not_defined);
+          Mesh::type_iterator last  = mesh->lastType(_all_dimensions, *gt, _ek_not_defined);
           for (; first != last && !finished; ++first) {
             ElementType type = *first;
             finished = addElement(pos, type, *gt, tolerance);

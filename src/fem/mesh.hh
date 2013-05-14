@@ -62,7 +62,7 @@ extern const Element ElementNull;
 class Element {
 public:
   Element(ElementType type = _not_defined, UInt element = 0,
-	  GhostType ghost_type = _not_ghost, ElementKind kind = _ek_regular) :
+          GhostType ghost_type = _not_ghost, ElementKind kind = _ek_regular) :
     type(type), element(element),
     ghost_type(ghost_type), kind(kind) {};
 
@@ -75,26 +75,26 @@ public:
 
   inline bool operator==(const Element & elem) const {
     return ((element == elem.element)
-	    && (type == elem.type)
-	    && (ghost_type == elem.ghost_type)
-	    && (kind == elem.kind));
+            && (type == elem.type)
+            && (ghost_type == elem.ghost_type)
+            && (kind == elem.kind));
   }
 
   inline bool operator!=(const Element & elem) const {
     return ((element != elem.element)
-	    || (type != elem.type)
-	    || (ghost_type != elem.ghost_type)
-	    || (kind != elem.kind));
+            || (type != elem.type)
+            || (ghost_type != elem.ghost_type)
+            || (kind != elem.kind));
   }
 
   bool operator<(const Element& rhs) const {
     bool res = (rhs == ElementNull) || ((this->kind < rhs.kind) ||
-					((this->kind == rhs.kind) &&
-					 ((this->ghost_type < rhs.ghost_type) ||
-					  ((this->ghost_type == rhs.ghost_type) &&
-					   ((this->type < rhs.type) ||
-					    ((this->type == rhs.type) &&
-					     (this->element < rhs.element)))))));
+                                        ((this->kind == rhs.kind) &&
+                                         ((this->ghost_type < rhs.ghost_type) ||
+                                          ((this->ghost_type == rhs.ghost_type) &&
+                                           ((this->type < rhs.type) ||
+                                            ((this->type == rhs.type) &&
+                                             (this->element < rhs.element)))))));
     return res;
   }
 
@@ -107,7 +107,6 @@ public:
   UInt element;
   GhostType ghost_type;
   ElementKind kind;
-  
 };
 
 struct CompElementLess {
@@ -121,8 +120,7 @@ __END_AKANTU__
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
-/* Mesh modifications events                                              */
+/* Mesh modifications events                                                  */
 /* -------------------------------------------------------------------------- */
 template<class Entity>
 class MeshEvent {
@@ -176,16 +174,16 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList(),
-									  event); }
+                                                                          event); }
   inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList(),
-									  event.getNewNumbering(),
-									  event); }
+                                                                          event.getNewNumbering(),
+                                                                          event); }
 
   inline void sendEvent(const NewElementsEvent & event)     { onElementsAdded  (event.getList(),
-										event); }
+                                                                                event); }
   inline void sendEvent(const RemovedElementsEvent & event) { onElementsRemoved(event.getList(),
-										event.getNewNumbering(),
-										event); }
+                                                                                event.getNewNumbering(),
+                                                                                event); }
 
   template<class EventHandler>
   friend class EventHandlerManager;
@@ -195,16 +193,16 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void onNodesAdded  (__attribute__((unused)) const Array<UInt> & nodes_list,
-			      __attribute__((unused)) const NewNodesEvent & event) {  }
+                              __attribute__((unused)) const NewNodesEvent & event) {  }
   virtual void onNodesRemoved(__attribute__((unused)) const Array<UInt> & nodes_list,
-			      __attribute__((unused)) const Array<UInt> & new_numbering,
-			      __attribute__((unused)) const RemovedNodesEvent & event) {  }
+                              __attribute__((unused)) const Array<UInt> & new_numbering,
+                              __attribute__((unused)) const RemovedNodesEvent & event) {  }
 
   virtual void onElementsAdded  (__attribute__((unused)) const Array<Element> & elements_list,
-				 __attribute__((unused)) const NewElementsEvent & event) { }
+                                 __attribute__((unused)) const NewElementsEvent & event) { }
   virtual void onElementsRemoved(__attribute__((unused)) const Array<Element> & elements_list,
-				 __attribute__((unused)) const ByElementTypeUInt & new_numbering,
-				 __attribute__((unused)) const RemovedElementsEvent & event) { }
+                                 __attribute__((unused)) const ByElementTypeUInt & new_numbering,
+                                 __attribute__((unused)) const RemovedElementsEvent & event) { }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -287,46 +285,42 @@ public:
   void computeBoundingBox();
 
 #ifdef AKANTU_CORE_CXX11
-  
   template <typename... Args>
   void translate(Args... params) {
-    
     // check that the number of parameters corresponds to the dimension
     AKANTU_DEBUG_ASSERT(sizeof...(Args) <= spatial_dimension , "Number of arguments greater than dimension.");
-    
+
     // unpack parameters
     Real s[] = { params... };
-    
+
     Array<Real>& nodes = getNodes();
-    
     for (UInt i = 0; i < nodes.getSize(); ++i)
       for (UInt k = 0; k < sizeof...(Args); ++k)
         nodes(i, k) += s[k];
   }
-  
 #endif
-  
+
   /// init a by-element-type real vector with provided ids
   template<typename T>
   void initByElementTypeArray(ByElementTypeArray<T> & v,
-			      UInt nb_component,
-			      UInt spatial_dimension,
-			      const bool & flag_nb_node_per_elem_multiply = false,
-			      ElementKind element_kind = _ek_regular,
-			      bool size_to_nb_element = false) const; /// @todo: think about nicer way to do it
+                              UInt nb_component,
+                              UInt spatial_dimension,
+                              const bool & flag_nb_node_per_elem_multiply = false,
+                              ElementKind element_kind = _ek_regular,
+                              bool size_to_nb_element = false) const; /// @todo: think about nicer way to do it
 
   /// extract coordinates of nodes from an element
   template<typename T>
   inline void extractNodalValuesFromElement(const Array<T> & nodal_values,
-					    T * elemental_values,
-					    UInt * connectivity,
-					    UInt n_nodes,
-					    UInt nb_degree_of_freedom) const;
+                                            T * elemental_values,
+                                            UInt * connectivity,
+                                            UInt n_nodes,
+                                            UInt nb_degree_of_freedom) const;
 
   /// extract coordinates of nodes from a reversed element
   inline void extractNodalCoordinatesFromPBCElement(Real * local_coords,
-						    UInt * connectivity,
-						    UInt n_nodes);
+                                                    UInt * connectivity,
+                                                    UInt n_nodes);
 
   /// convert a element to a linearized element
   inline UInt elementToLinearized(const Element & elem) const;
@@ -339,7 +333,7 @@ public:
 
   /// add a Array of connectivity for the type <type>.
   inline void addConnectivityType(const ElementType & type,
-				  const GhostType & ghost_type = _not_ghost);
+                                  const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   template <class Event>
@@ -426,7 +420,7 @@ public:
 
   /// compute the barycenter of a given element
   inline void getBarycenter(UInt element, const ElementType & type, Real * barycenter,
-			    GhostType ghost_type = _not_ghost) const;
+                            GhostType ghost_type = _not_ghost) const;
   inline void getBarycenter(const Element & element, Vector<Real> & barycenter) const;
 
   /// get the element connected to a subelement
@@ -518,14 +512,14 @@ public:
   typedef ByElementTypeArray<UInt, ElementType>::type_iterator type_iterator;
 
   inline type_iterator firstType(UInt dim = _all_dimensions,
-				 GhostType ghost_type = _not_ghost,
-				 ElementKind kind = _ek_regular) const {
+                                 GhostType ghost_type = _not_ghost,
+                                 ElementKind kind = _ek_regular) const {
     return connectivities.firstType(dim, ghost_type, kind);
   }
 
   inline type_iterator lastType(UInt dim = _all_dimensions,
-				GhostType ghost_type = _not_ghost,
-				ElementKind kind = _ek_regular) const {
+                                GhostType ghost_type = _not_ghost,
+                                ElementKind kind = _ek_regular) const {
     return connectivities.lastType(dim, ghost_type, kind);
   }
 
@@ -551,7 +545,7 @@ private:
 
   /// get a pointer to the connectivity Array for the given type and create it if necessary
   inline Array<UInt> * getConnectivityPointer(const ElementType & type,
-					      const GhostType & ghost_type = _not_ghost);
+                                              const GhostType & ghost_type = _not_ghost);
 
 
 
@@ -561,7 +555,7 @@ private:
 
   /// get a pointer to the subelement_to_element Array for the given type and create it if necessary
   inline Array<Element > * getSubelementToElementPointer(const ElementType & type,
-							 const GhostType & ghost_type = _not_ghost);
+                                                         const GhostType & ghost_type = _not_ghost);
 
   AKANTU_GET_MACRO_NOT_CONST(MeshData, mesh_data, MeshData &);
 

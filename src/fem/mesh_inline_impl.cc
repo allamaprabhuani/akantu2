@@ -192,25 +192,6 @@ inline Array<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
   return tmp;
 }
 
-
-/* -------------------------------------------------------------------------- */
-//inline Array<UInt> * Mesh::getSurfaceIDPointer(const ElementType & type,
-//						const GhostType & ghost_type) {
-//  AKANTU_DEBUG_IN();
-//
-//  Array<UInt> * tmp;
-//  if(!surface_id.exists(type, ghost_type)) {
-//    tmp = &(surface_id.alloc(0, 1, type, ghost_type));
-//    AKANTU_DEBUG_INFO("The surface id vector for the type "
-//		      << type << " created");
-//  } else {
-//    tmp = &(surface_id(type, ghost_type));
-//  }
-//
-//  AKANTU_DEBUG_OUT();
-//  return tmp;
-//}
-//
 /* -------------------------------------------------------------------------- */
 inline Array< std::vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type,
                                                                            const GhostType & ghost_type) {

@@ -280,8 +280,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
     if(intersects_proc[p]) {
       ByElementTypeUInt & elempproc = *(element_per_proc[p]);
 
-      ByElementTypeUInt::type_iterator it_type   = elempproc.firstType(0, _not_ghost);
-      ByElementTypeUInt::type_iterator last_type = elempproc.lastType (0, _not_ghost);
+      ByElementTypeUInt::type_iterator it_type   = elempproc.firstType(_all_dimensions, _not_ghost);
+      ByElementTypeUInt::type_iterator last_type = elempproc.lastType (_all_dimensions, _not_ghost);
 
       UInt count = 0;
       for (; it_type != last_type; ++it_type) {
@@ -394,6 +394,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
               ghost_connectivity.push_back(conn);
 	      new_elements.getList().push_back(element);
             }
+
             communicator.recv_element[p].push_back(element);
           }
         }

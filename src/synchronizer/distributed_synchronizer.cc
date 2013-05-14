@@ -1027,7 +1027,7 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
     if (p == prank) continue;
 
     Array<Element> & recv = recv_element[p];
-    if(recv.getSize() == 0) continue;
+    //    if(recv.getSize() == 0) continue;
 
     Array<Element>::iterator<Element> recv_begin = recv.begin();
     Array<Element>::iterator<Element> recv_end   = recv.end();
@@ -1048,6 +1048,7 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
       list.push_back(UInt(0));
     else list.push_back(UInt(-1));
 
+    AKANTU_DEBUG_INFO("Sending a message of size " << list.getSize() << " to proc " << p << " TAG(" << Tag::genTag(prank, 0, 0) << ")");
     isend_requests.push_back(comm.asyncSend(list.storage(), list.getSize(),
                                             p, Tag::genTag(prank, 0, 0)));
 
@@ -1107,7 +1108,6 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
   comm.freeCommunicationRequest(isend_requests);
 
   delete [] list_of_el;
-
   AKANTU_DEBUG_OUT();
 }
 
