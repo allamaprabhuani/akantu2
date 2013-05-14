@@ -1375,17 +1375,8 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
                                                    elem.ghost_type));
 
             UInt f(0);
-            //subelement_to_element.printself(std::cout);
-            //if(sp == -2) {
-            //  Array<Element>::const_iterator<Vector<Element> > itt = subelement_to_element.begin(mesh.getNbFacetsPerElement(elem.type));
-            //  for(UInt q(0); q < elem.element; ++q, ++itt);
-              //(*itt).printself(std::cout);
-            //}
-            //std::cout << elem << std::endl;
-            //std::cout << facet_element << std::endl;
-
             for(; f < mesh.getNbFacetsPerElement(elem.type) && subelement_to_element(elem.element, f) != ElementNull; ++f);
-            //std::cout << f << std::endl;
+	    AKANTU_DEBUG_ASSERT(f < mesh.getNbFacetsPerElement(elem.type), "The element "<< elem << " seems to have to many facets!!");
             subelement_to_element(elem.element, f) = facet_element;
           }
         }
@@ -1393,72 +1384,6 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
     }
   }
 
-  { // Dump info
-  std::cout << "ELEMENT-SUBELEMENT MAPPING:" << std::endl;
-
-  typedef Array< std::vector<Element> > ElemToSubelemMapping;
-  typedef Array<Element>                SubelemToElemMapping;
-
-  for (ghost_type_t::iterator git = ghost_type_t::begin();  git != ghost_type_t::end(); ++git) {
-    Mesh::type_iterator tit  = mesh.firstType(spatial_dimension, *git);
-    Mesh::type_iterator tend = mesh.lastType(spatial_dimension, *git);
-
-    std::cout << "  " << "Ghost type: " << *git << std::endl;
-    for (;tit != tend; ++tit) {
-
-      const SubelemToElemMapping & subelement_to_element = mesh.getSubelementToElement(*tit, *git);
-      std::cout << "  " << "  " << "Element type: " << *tit << std::endl;
-
-      std::cout << "  " << "  " << "  " << "subelement_to_element:" << std::endl;
-      subelement_to_element.printself(std::cout, 8);
-
-      for(UInt i(0); i < subelement_to_element.getSize(); ++i) {
-        std::cout << "        ";
-        for(UInt j(0); j < mesh.getNbFacetsPerElement(*tit); ++j) {
-          if(subelement_to_element(i, j) != ElementNull) {
-            subelement_to_element(i, j).printself(std::cout);
-            std::cout << ", ";
-          } else {
-            std::cout << "ElementNull" << ", ";
-          }
-        }
-        std::cout << "for element " << i << std::endl;
-      }
-    }
-
-    tit  = mesh.firstType(spatial_dimension -1, *git);
-    tend = mesh.lastType(spatial_dimension -1 , *git);
-
-    for (;tit != tend; ++tit) {
-
-      const ElemToSubelemMapping & element_to_subelement = mesh.getElementToSubelement(*tit, *git);
-      std::cout << "  " << "  " << "Element type: " << *tit << std::endl;
-
-      std::cout << "  " << "  " << "  " << "element_to_subelement:" << std::endl;
-      element_to_subelement.printself(std::cout, 8);
-
-      for(UInt i(0); i < element_to_subelement.getSize(); ++i) {
-        const std::vector<Element> & vec = element_to_subelement(i);
-      std::cout << "          " ;
-        std::cout << "item " << i << ": [ ";
-        if(vec.size() > 0) {
-          for(UInt j(0); j < vec.size(); ++j) {
-            if(vec[j] != ElementNull) {
-              std::cout << vec[j] << ", ";
-            } else {
-              std::cout << "ElementNull" << ", ";
-            }
-          }
-        } else {
-          std::cout << "empty, " ;
-        }
-      std::cout << "]" << ", " << std::endl;
-      }
-      std::cout << std::endl;
-    }
-
-  }
-  }
   AKANTU_DEBUG_OUT();
 }
 
