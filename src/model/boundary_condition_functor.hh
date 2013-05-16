@@ -74,7 +74,7 @@ protected:
   DirichletFunctor(Axis ax) : axis(ax) {}
 
 public:
-  void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
+  void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -92,7 +92,7 @@ public:
   FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
 public:
-  inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const;
+  inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord);
 
 private:
   Real value;
@@ -111,7 +111,7 @@ class NeumannFunctor : public Functor {
 protected:
   NeumannFunctor() {}
 public:
-  void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
+  void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
@@ -126,7 +126,7 @@ public:
   FromHigherDim(Matrix<Real> mat) : bc_data(mat) {}
 
 public:
-  inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const;
+  inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals);
 
 protected:
   Matrix<Real> bc_data;
@@ -139,7 +139,7 @@ public:
   FromSameDim(Vector<Real> vec) : bc_data(vec) {}
 
 public:
-  inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const;
+  inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals);
 
 protected:
   Vector<Real> bc_data;
@@ -149,7 +149,7 @@ protected:
 class FreeBoundary : public NeumannFunctor {
 
 public:
-  inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const;
+  inline void operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals);
 };
 
 typedef FromHigherDim FromStress;

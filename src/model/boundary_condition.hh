@@ -65,13 +65,13 @@ public:
 
   //inline void initBoundaryCondition();
   template<typename FunctorType>
-  inline void applyBC(const FunctorType & func);
+  inline void applyBC(FunctorType & func);
 
   template<class FunctorType>
-  inline void applyBC(const FunctorType & func, const std::string & boundary_name);
+  inline void applyBC(FunctorType & func, const std::string & boundary_name);
 
   template<class FunctorType>
-  inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref);
+  inline void applyBC(FunctorType & func, const SubBoundary & boundary_ref);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
