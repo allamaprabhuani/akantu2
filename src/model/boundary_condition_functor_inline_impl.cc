@@ -47,7 +47,7 @@ namespace BC {
 
 namespace Dirichlet {
 
-inline void FixedValue::operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) {
+inline void FixedValue::operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
 
   DIRICHLET_SANITY_CHECK;
 
@@ -63,7 +63,7 @@ inline void FixedValue::operator()(UInt node, Vector<bool> & flags, Vector<Real>
 
 namespace Neumann {
 
-inline void FreeBoundary::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) {
+inline void FreeBoundary::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
 
   for(UInt i(0); i<dual.size(); ++i) {
     dual(i) = 0.0;
@@ -71,12 +71,12 @@ inline void FreeBoundary::operator()(QuadraturePoint quad_point, Vector<Real> & 
 }
 
 /* -------------------------------------------------------------------------- */
-inline void FromHigherDim::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) {
+inline void FromHigherDim::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
   dual.mul<false>(bc_data, normals);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void FromSameDim::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) {
+inline void FromSameDim::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
   dual = bc_data;
 }
 
