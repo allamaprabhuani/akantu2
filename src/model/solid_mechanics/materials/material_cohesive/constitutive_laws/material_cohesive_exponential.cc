@@ -121,17 +121,9 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Array
       *traction_it *= beta2;
       *traction_it += normal_opening;
 
-      /// crack opening case
-      if (delta > *delta_max_it) {
-        Real k = exp(1)*sigma_c*exp(- delta / delta_c)/delta_c;
-        *traction_it *= k;
-
-        /// update maximum displacement
-        *delta_max_it = delta;
-      } else { /// unloading-reloading case
-        Real k = exp(1)*sigma_c*exp(- *delta_max_it / delta_c)/delta_c;
-        *traction_it *= k;
-      }
+      /// update maximum displacement
+      *delta_max_it = std::max(*delta_max_it, delta);
+      *traction_it *= exp(1)*sigma_c*exp(- *delta_max_it / delta_c)/delta_c;
     }
   }
   AKANTU_DEBUG_OUT();

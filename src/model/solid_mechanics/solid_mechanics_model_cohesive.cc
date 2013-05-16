@@ -929,7 +929,7 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
   Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last = mesh.lastType(spatial_dimension);
 
-  const UInt max = std::numeric_limits<UInt>::max();
+  UInt max = std::numeric_limits<UInt>::max();
 
   for (; it != last; ++it) {
     UInt nb_element = mesh.getNbElement(*it);
@@ -937,10 +937,7 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
       /// initialize the list of checked elements and the list of
       /// elements to be checked
       fragment_to_element.alloc(nb_element, 1, *it);
-      Array<UInt> & frag_to_el = fragment_to_element(*it);
-
-      for (UInt el = 0; el < nb_element; ++el)
-        frag_to_el(el) = max;
+      fragment_to_element(*it).set(max);
     }
   }
 
@@ -957,8 +954,6 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
     = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
   const Array<Real> & damage = mat_cohesive->getDamage(type_cohesive);
   UInt nb_quad_cohesive = getFEM("CohesiveFEM").getNbQuadraturePoints(type_cohesive);
-
-  Real epsilon = std::numeric_limits<Real>::epsilon();
 
   for (; it != last; ++it) {
     Array<UInt> & checked_el = fragment_to_element(*it);
@@ -1000,8 +995,8 @@ void SolidMechanicsModelCohesive::buildFragmentsList() {
                   /// reached damage = 1 on every quadrature point
                   UInt q = 0;
                   while (q < nb_quad_cohesive &&
-                         std::abs(damage(next_el.element * nb_quad_cohesive + q) - 1)
-                         <= epsilon) ++q;
+			 Math::are_float_equal(damage(next_el.element
+						      * nb_quad_cohesive + q), 1)) ++q;
 
                   if (q == nb_quad_cohesive)
                     next_el = ElementNull;

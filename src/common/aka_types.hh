@@ -163,12 +163,6 @@ public:
     return *this;
   }
 
-  /* -------------------------------------------------------------------------- */
-  inline Vector & operator=(T & scalar) {
-    T * a = this->storage();
-    for (UInt i = 0; i < n; ++i) *(a++) = scalar;
-    return *this;
-  }
   /* ---------------------------------------------------------------------- */
   inline Vector & operator/=(const T & x) {
     T * a = this->values;
@@ -216,6 +210,7 @@ public:
 
   /* ---------------------------------------------------------------------- */
   inline void clear() { memset(values, 0, n * sizeof(T)); };
+  inline void set(T t) { std::fill_n(values, n, t); };
 
   template<bool tr_A>
   inline void mul(const Matrix<T> & A, const Vector & x, Real alpha = 1.0);

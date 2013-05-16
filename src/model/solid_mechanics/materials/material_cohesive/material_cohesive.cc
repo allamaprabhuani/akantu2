@@ -427,6 +427,7 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     Array<UInt> & elem_filter = element_filter(*it, ghost_type);
 
     UInt nb_element = elem_filter.getSize();
+    if (nb_element == 0) continue;
     UInt nb_quadrature_points =
       nb_element*fem_cohesive->getNbQuadraturePoints(*it, ghost_type);
 

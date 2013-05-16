@@ -263,8 +263,6 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
   Array<Real>::iterator<Real>damage_it =
     damage(el_type, ghost_type).begin();
 
-  Real epsilon = std::numeric_limits<Real>::epsilon();
-
   Real * memory_space = new Real[2*spatial_dimension];
   Vector<Real> normal_opening(memory_space, spatial_dimension);
   Vector<Real> tangential_opening(memory_space + spatial_dimension,
@@ -290,61 +288,42 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
      * @f$ \delta = \sqrt{
      * \frac{\beta^2}{\kappa^2} \Delta_t^2 + \Delta_n^2 } @f$
      */
-    Real delta = tangential_opening_norm;
-    delta *= delta * beta2_kappa2;
+    Real delta = tangential_opening_norm * tangential_opening_norm;
+    delta *= beta2_kappa2;
 
     /// don't consider penetration contribution
     if (normal_opening_norm > 0)
       delta += normal_opening_norm * normal_opening_norm;
 
-    delta = sqrt(delta);
+    delta = std::sqrt(delta);
 
+    /// use penalty coefficient in case of penetration
     contact_traction_it->clear();
-
-    /// full damage case or zero displacement case
-    if (delta >= *delta_c_it || delta <= epsilon) {
-
-      /// set traction to zero
-      traction_it->clear();
-
-      if (normal_opening_norm < 0) {
-	*contact_traction_it = normal_opening;
-	*contact_traction_it *= penalty;
-      }
-      else {
-	*damage_it = delta >= *delta_c_it;
-	//	*delta_max_it = *damage_it * (*delta_c_it);
-      }
+    if (normal_opening_norm < 0) {
+      *contact_traction_it = normal_opening;
+      *contact_traction_it *= penalty;
+      normal_opening.set(0.);
     }
-    /// element not fully damaged
+
+    /// update maximum displacement and damage
+    *delta_max_it = std::max(*delta_max_it, delta);
+    *damage_it = std::min(*delta_max_it / *delta_c_it, 1.);
+
+    /**
+     * Compute traction @f$ \mathbf{T} = \left(
+     * \frac{\beta^2}{\kappa} \Delta_t \mathbf{t} + \Delta_n
+     * \mathbf{n} \right) \frac{\sigma_c}{\delta} \left( 1-
+     * \frac{\delta}{\delta_c} \right)@f$
+     */
+
+    if (Math::are_float_equal(*delta_max_it, 0))
+      traction_it->clear();
     else {
-
-      /**
-       * Compute traction @f$ \mathbf{T} = \left(
-       * \frac{\beta^2}{\kappa} \Delta_t \mathbf{t} + \Delta_n
-       * \mathbf{n} \right) \frac{\sigma_c}{\delta} \left( 1-
-       * \frac{\delta}{\delta_c} \right)@f$
-       */
-
       *traction_it  = tangential_opening;
       *traction_it *= beta2_kappa;
+      *traction_it += normal_opening;
 
-      /// update maximum displacement
-      *delta_max_it = std::max(*delta_max_it, delta);
-      *damage_it = *delta_max_it / *delta_c_it;
-
-      Real k = *sigma_c_it / *delta_max_it * (1. - *damage_it);
-      *traction_it *= k;
-
-      /// use penalty coefficient in case of penetration
-      if (normal_opening_norm < 0) {
-	*contact_traction_it = normal_opening;
-	*contact_traction_it *= penalty;
-      }
-      else {
-	normal_opening *= k;
-	*traction_it += normal_opening;
-      }
+      *traction_it *= *sigma_c_it / *delta_max_it * (1. - *damage_it);
     }
   }
 
