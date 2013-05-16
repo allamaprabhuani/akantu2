@@ -125,10 +125,11 @@ int main(int argc, char *argv[]) {
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 
-    model.checkCohesiveStress();
-
     model.explicitPred();
     model.updateResidual();
+
+    model.checkCohesiveStress();
+
     model.updateAcceleration();
     model.explicitCorr();
 

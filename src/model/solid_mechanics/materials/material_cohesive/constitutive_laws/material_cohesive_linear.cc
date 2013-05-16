@@ -316,7 +316,8 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
      * \frac{\delta}{\delta_c} \right)@f$
      */
 
-    if (Math::are_float_equal(*delta_max_it, 0))
+    if (Math::are_float_equal(*delta_max_it, 0.) ||
+	Math::are_float_equal(*damage_it, 1.))
       traction_it->clear();
     else {
       *traction_it  = tangential_opening;

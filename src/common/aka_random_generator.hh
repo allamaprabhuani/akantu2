@@ -46,7 +46,7 @@ public:
 
   RandomGenerator(long int seed = 0) : seed(seed) {
     if(seed == 0) this->seed = time(NULL) * (StaticCommunicator::getStaticCommunicator().whoAmI() + 1);
-    srand48(seed);
+    srand48(this->seed);
   }
 
   virtual ~RandomGenerator() {}
