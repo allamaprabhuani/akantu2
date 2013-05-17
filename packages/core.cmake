@@ -32,7 +32,6 @@ set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
 
 set(AKANTU_CORE_FILES
   # source files
-  common/aka_ball.cc
   common/aka_common.cc
   common/aka_error.cc
   common/aka_extern.cc
@@ -115,13 +114,6 @@ set(AKANTU_CORE_FILES
   common/aka_circular_vector.hh
   common/aka_event_handler.hh
   common/aka_random_generator.hh
-  common/aka_bounding_box.hh
-  common/aka_ci_string.hh
-  common/aka_plane.hh
-  common/aka_polytope.hh
-  common/aka_ball.hh
-  common/aka_timer.hh
-  common/aka_tree.hh
   common/aka_typelist.hh
   common/aka_visitor.hh
   common/aka_grid_dynamic.hh

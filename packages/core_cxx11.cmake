@@ -3,6 +3,13 @@ check_cxx_compiler_flag (-std=c++0x HAVE_NEW_STD)
 
 set(AKANTU_CORE_CXX11_FILES
   common/aka_point.hh
+  common/aka_ball.cc
+  common/aka_ci_string.hh
+  common/aka_plane.hh
+  common/aka_polytope.hh
+  common/aka_ball.hh
+  common/aka_timer.hh
+  common/aka_tree.hh
   common/aka_bounding_box.hh
   common/aka_bounding_box.cc
   common/aka_geometry.hh
