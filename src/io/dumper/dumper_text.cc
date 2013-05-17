@@ -1,11 +1,9 @@
 /**
- * @file   dumper_paraview.cc
+ * @file   dumper_text.cc
+ * @author David Kammer <david.kammer@epfl.ch>
+ * @date   Tue May 14 15:27:03 2013
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date   Fri Oct 26 21:52:40 2012
- *
- * @brief  implementations of DumperParaview
+ * @brief  implementation of text dumper
  *
  * @section LICENSE
  *
@@ -28,24 +26,20 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dumper_paraview.hh"
-#include "static_communicator.hh"
+#include "dumper_text.hh"
 
 __BEGIN_AKANTU__
 
-DumperParaview::DumperParaview(const std::string & filename,
-			       const std::string & directory,
-                               bool parallel) : DumperIOHelper() {
-  this->filename = filename;
-  iohelper::DumperParaview * dumper_para = new iohelper::DumperParaview();
-  dumper = dumper_para;
-
+/* -------------------------------------------------------------------------- */
+DumperText::DumperText(char separator, bool parallel) : DumperIOHelper() {
+  AKANTU_DEBUG_IN();
+  
+  iohelper::DumperText * dumper_text = new iohelper::DumperText(separator);
+  this->dumper = dumper_text;
+  
   this->setParallelContext(parallel);
 
-  dumper_para->setMode(iohelper::BASE64);
-  dumper_para->setVTUSubDirectory(filename + "-VTU");
-  dumper_para->setPrefix(directory);
-  dumper_para->init();
+  AKANTU_DEBUG_OUT();
 }
 
 __END_AKANTU__

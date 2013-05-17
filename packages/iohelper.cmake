@@ -57,6 +57,8 @@ set(AKANTU_IOHELPER_FILES
   io/dumper/dumper_iohelper.cc
   io/dumper/dumper_iohelper_tmpl.hh
   io/dumper/dumper_paraview.hh
+  io/dumper/dumper_text.cc
+  io/dumper/dumper_text.hh
   io/dumper/dumper_paraview.cc
   io/dumper/dumper_iohelper_tmpl_elemental_field.hh
   io/dumper/dumper_iohelper_tmpl_homogenizing_field.hh

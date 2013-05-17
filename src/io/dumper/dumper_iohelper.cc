@@ -34,7 +34,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper::DumperIOHelper() : count(0) { }
+DumperIOHelper::DumperIOHelper() : count(0) {}
 
 /* -------------------------------------------------------------------------- */
 DumperIOHelper::~DumperIOHelper() {
@@ -43,6 +43,27 @@ DumperIOHelper::~DumperIOHelper() {
   }
 
   delete dumper;
+}
+
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::setParallelContext(bool is_parallel) {
+  UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
+  UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
+
+  if(is_parallel)
+    dumper->setParallelContext(whoami, nproc);
+  else
+    dumper->setParallelContext(0, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::setDirectory(const std::string & directory) {
+  dumper->setPrefix(directory);
+}
+
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::setBaseName(const std::string & basename) {
+  filename = basename;
 }
 
 /* -------------------------------------------------------------------------- */

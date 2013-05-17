@@ -71,6 +71,10 @@ public:
 
   void dump();
 
+  virtual void setParallelContext(bool is_parallel);
+  virtual void setDirectory(const std::string & directory);
+  virtual void setBaseName(const std::string & basename);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -1,11 +1,9 @@
 /**
- * @file   dumper_paraview.hh
+ * @file   dumper_text.hh
+ * @author David Kammer <david.kammer@epfl.ch>
+ * @date   Tue May 14 15:24:25 2013
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- *
- * @date   Fri Oct 26 21:52:40 2012
- *
- * @brief  Dumper Paraview using IOHelper
+ * @brief  to dump into a text file
  *
  * @section LICENSE
  *
@@ -28,47 +26,40 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_DUMPER_PARAVIEW_HH__
-#define __AKANTU_DUMPER_PARAVIEW_HH__
-
 #include "dumper_iohelper.hh"
 
+/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_DUMPER_TEXT_HH__
+#define __AKANTU_DUMPER_TEXT_HH__
 
 __BEGIN_AKANTU__
 
-class DumperParaview : public DumperIOHelper {
+class DumperText : public DumperIOHelper {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  DumperParaview(const std::string & filename, const std::string & directory = "./paraview", bool parallel = true);
-  virtual ~DumperParaview() { };
-
-  void setBaseName(const std::string & basename) {
-    DumperIOHelper::setBaseName(basename);
-    static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
-  }
-
+  
+  DumperText(char separator = ' ', bool parallel = true);
+  virtual ~DumperText() {};
+  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
+  
 };
-
 
 __END_AKANTU__
 
-#endif /* __AKANTU_DUMPER_PARAVIEW_HH__ */
+#endif /* __AKANTU_DUMPER_TEXT_HH__ */
