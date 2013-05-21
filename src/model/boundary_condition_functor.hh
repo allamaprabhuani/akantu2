@@ -86,6 +86,17 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
+class FlagOnly : public DirichletFunctor {
+
+public:
+  FlagOnly(Axis ax = _x) : DirichletFunctor(ax) {}
+
+public:
+  inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const;
+
+};
+
+/* -------------------------------------------------------------------------- */
 class FixedValue : public DirichletFunctor {
 
 public:

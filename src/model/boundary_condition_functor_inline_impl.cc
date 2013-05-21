@@ -47,6 +47,13 @@ namespace BC {
 
 namespace Dirichlet {
 
+inline void FlagOnly::operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
+
+  DIRICHLET_SANITY_CHECK;
+
+  flags(axis) = true;
+}
+
 inline void FixedValue::operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
 
   DIRICHLET_SANITY_CHECK;
