@@ -81,7 +81,6 @@ int main(int argc, char *argv[]){
     nodes(i,1)=2./((Real)nb_nodes_v)*(i-nb_nodes_h);
   }
 
-
   /**nodes(0,0)=0;
      nodes(1,0)=10;
      nodes(2,0)=18;

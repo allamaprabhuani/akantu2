@@ -41,7 +41,7 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
-class SubBoundary : public Dumpable<DumperParaview> {
+class SubBoundary : private Memory, public Dumpable<DumperParaview> {
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
@@ -56,7 +56,7 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SubBoundary(const std::string & name, const ID & id = "sub_boundary", const ID & parent_id = "", const MemoryID & memory_id = 0);
+  SubBoundary(const std::string & id = "sub_boundary", const MemoryID & memory_id = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Node iterator                                                            */
@@ -99,18 +99,19 @@ public:
 
 private:
   inline void addNode(UInt node_id);
-  inline void addElement(ElementType elem_type, UInt elem_id);
+  inline void addElement(const ElementType & elem_type,
+			 UInt elem_id,
+			 const GhostType & ghost_type);
   void cleanUpNodeList();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  friend class Boundary;
   ID id;
-  MemoryID memory_id;
+  friend class Boundary;
   std::string name;
-  NodeList nodes;
+  NodeList & nodes;
   ElementList elements;
 
 };

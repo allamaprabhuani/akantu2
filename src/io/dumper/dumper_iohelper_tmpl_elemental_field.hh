@@ -160,10 +160,12 @@ public:
     if(n == 0) ln = vect.getNbComponent();
     UInt lm = vect.getNbComponent() / ln * nb_data;
     const Array<UInt> & filter_array = (*filter)(element_type, ghost_type);
-    fit_end = filter_array.storage() + filter_array.getSize();
+  
+    this->fit_end = filter_array.storage() + filter_array.getSize();
+    this->vit_begin = iterator_helper<it_type, ret_type>::begin(vect, ln, lm, size);
 
-    vit_begin = iterator_helper<it_type, ret_type>::begin(vect, ln, lm, size);
-    if(fit != fit_end) vit = vit_begin + *fit;
+    searchNonEmptyArray();
+    if(this->fit != this->fit_end) this->vit = this->vit_begin + *this->fit;
   }
 
 public:
@@ -173,23 +175,8 @@ public:
 
   daughter & operator++() {
     ++fit;
-    while(fit == fit_end && tit != tit_end) {
-      ++tit;
-      if(tit != tit_end) {
-	UInt nb_data = getNbDataPerElem(*tit);
-	const Array<it_type> & vect = field(*tit, ghost_type);
-	UInt size = vect.getSize() / nb_data;
-	UInt ln = n, lm;
-	if(n == 0) ln = vect.getNbComponent();
-	if(itn != 0) ln = itn;
-	if(itm != 0) lm = itm;
-	else lm = vect.getNbComponent() / ln * nb_data;
-	const Array<UInt> & f = (*filter)(*tit, ghost_type);
-	fit     = f.storage();
-	fit_end = fit + f.getSize();
-	vit_begin = iterator_helper<it_type, ret_type>::begin(vect, ln, lm, size);
-      }
-    }
+    searchNonEmptyArray();
+
     if(fit != fit_end) vit = vit_begin + *fit;
     return *(static_cast<daughter *>(this));
   };
@@ -211,6 +198,27 @@ public:
       UInt size = vect.getSize() / nb_data;
       vit_begin = iterator_helper<it_type, ret_type>::begin(vect, itn, itm, size);
       if(fit != fit_end) vit = vit_begin + *fit;
+    }
+  }
+
+protected:
+  void searchNonEmptyArray() {
+    while(fit == fit_end && tit != tit_end) {
+      ++tit;
+      if(tit != tit_end) {
+	UInt nb_data = getNbDataPerElem(*tit);
+	const Array<it_type> & vect = field(*tit, ghost_type);
+	UInt size = vect.getSize() / nb_data;
+	UInt ln = n, lm;
+	if(n == 0) ln = vect.getNbComponent();
+	if(itn != 0) ln = itn;
+	if(itm != 0) lm = itm;
+	else lm = vect.getNbComponent() / ln * nb_data;
+	const Array<UInt> & f = (*filter)(*tit, ghost_type);
+	fit     = f.storage();
+	fit_end = fit + f.getSize();
+	vit_begin = iterator_helper<it_type, ret_type>::begin(vect, ln, lm, size);
+      }
     }
   }
 
@@ -287,11 +295,13 @@ public:
   return_type operator*(){
     const Vector<UInt> & old_connect = *this->vit;
     Vector<UInt> new_connect(old_connect.size());
-
+    Array<UInt>::const_iterator<UInt> nodes_begin = nodal_filter->begin();
+    Array<UInt>::const_iterator<UInt> nodes_end = nodal_filter->end();
     for(UInt i(0); i<old_connect.size(); ++i) {
-      UInt new_id = nodal_filter->find(old_connect(i));
-      AKANTU_DEBUG_ASSERT(new_id != UInt(-1), "Node not found in the filter!");
-      new_connect(i) = new_id;
+      Array<UInt>::const_iterator<UInt> new_id =
+	std::find(nodes_begin, nodes_end, old_connect(i));
+      if(new_id == nodes_end) AKANTU_EXCEPTION("Node not found in the filter!");
+      new_connect(i) = new_id - nodes_begin;
     }
     return new_connect;
   }

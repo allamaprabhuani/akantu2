@@ -30,7 +30,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #include "sub_boundary.hh"
 #include "model.hh"
 
@@ -148,15 +147,8 @@ Model::~Model() {
 
 /* -------------------------------------------------------------------------- */
 void Model::dumpBoundary(const std::string & boundary_name) {
-  Boundary & boundary =  mesh.getBoundary();
-  Boundary::iterator bit = boundary.find(boundary_name);
-  Boundary::iterator bend = boundary.end();
-
-  if(bit == bend) {
-    AKANTU_EXCEPTION("No boundary named " << boundary_name << "!");
-  }
-  bit->dump();
-
+  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
+  boundary.dump();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -184,27 +176,21 @@ void Model::setBoundaryDirectory(const std::string & directory) {
 /* -------------------------------------------------------------------------- */
 void Model::setBoundaryDirectory(const std::string & directory,
 				 const std::string & boundary_name) {
-  Boundary & boundary =  mesh.getBoundary();
-  Boundary::iterator bit = boundary.find(boundary_name);
-  Boundary::iterator bend = boundary.end();
-  
-  if(bit == bend) {
-    AKANTU_EXCEPTION("No boundary named " << boundary_name << "!");
-  }
-  bit->setDirectory(directory);
+  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
+  boundary.setDirectory(directory);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::setBoundaryBaseName(const std::string & basename,
 				const std::string & boundary_name) {
-  Boundary & boundary =  mesh.getBoundary();
-  Boundary::iterator bit = boundary.find(boundary_name);
-  Boundary::iterator bend = boundary.end();
-  
-  if(bit == bend) {
-    AKANTU_EXCEPTION("No boundary named " << boundary_name << "!");
-  }
-  bit->setBaseName(basename);
+  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
+  boundary.setBaseName(basename);
+}
+
+/* -------------------------------------------------------------------------- */
+DumperIOHelper &  Model::getBoundaryDumper(const std::string & boundary_name) {
+  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
+  return boundary.getDumper();
 }
 
 /* -------------------------------------------------------------------------- */

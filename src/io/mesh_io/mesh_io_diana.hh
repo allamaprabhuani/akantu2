@@ -139,20 +139,6 @@ private:
   std::map<std::string, std::vector<Element> *> element_groups;
 };
 
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-//#include "mesh_io_diana_inline_impl.cc"
-// /// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshIODiana & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
-
-
 __END_AKANTU__
 
 #endif /* __AKANTU_MESH_IO_DIANA_HH__ */

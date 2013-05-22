@@ -225,6 +225,17 @@ void MeshUtils::buildFacets(Mesh & mesh){
   ByElementTypeReal barycenter;
   ByElementTypeUInt prank_to_element;
 
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end(); ++gt) {
+    GhostType gt_facet = *gt;
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension - 1, gt_facet);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension - 1, gt_facet);
+    for(; it != end; ++it) {
+      mesh.getConnectivity(*it, *gt).resize(0);
+      // \todo inform the mesh event handler
+    }
+  }
+
   buildFacetsDimension(mesh,
 		       mesh,
 		       true,

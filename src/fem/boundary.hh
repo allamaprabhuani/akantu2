@@ -109,14 +109,21 @@ public:
   template <typename T> void createBoundariesFromMeshData(const std::string & dataset_name);
   void createBoundariesFromMeshData(const std::string & dataset_name);
   void createBoundariesFromGeometry();
+
+  /// Create a SubBoundary based on a node group
+  void createSubBoundaryFromNodeGroup(const std::string & name,
+				      const Array<UInt> & node_group);
   inline const SubBoundary & operator()(const std::string & name) const;
   BoundaryTypeSet getBoundaryElementTypes();
-  AKANTU_GET_MACRO(NbBoundaries, num_boundaries, UInt);
+  AKANTU_GET_MACRO(NbBoundaries, boundaries.size(), UInt);
   void printself(std::ostream & stream) const;
   void dump();
 
 private:
-  void addElementAndNodesToBoundaryAlloc(const std::string & boundary_name, const ElementType & elem_type, UInt elem_id);
+  void addElementAndNodesToBoundaryAlloc(const std::string & boundary_name,
+					 const ElementType & elem_type,
+					 UInt elem_id,
+					 const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -125,7 +132,6 @@ private:
   ID id;
   BoundaryList boundaries;
   MemoryID memory_id;
-  UInt num_boundaries;
   const Mesh & mesh;
 };
 

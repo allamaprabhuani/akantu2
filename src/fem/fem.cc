@@ -91,7 +91,8 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
                              *filtered_connectivity,
                              type, ghost_type,
                              filter_elements);
-    conn_it = filtered_connectivity->begin(nb_nodes_per_element);
+    const Array<UInt> & cfiltered = *filtered_connectivity; // \todo temporary patch
+    conn_it = cfiltered.begin(nb_nodes_per_element);
   } else {
     nb_element = mesh.getNbElement(type, ghost_type);
     conn_it = mesh.getConnectivity(type, ghost_type).begin(nb_nodes_per_element);

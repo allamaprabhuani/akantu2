@@ -96,6 +96,14 @@ namespace debug {
     AKANTU_DEBUG_INFO("Caught  signal " << sig << "!");
 
 #if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
+    std::string me = "";
+    char buf[1024];
+    /* The manpage says it won't null terminate.  Let's zero the buffer. */
+    memset(buf, 0, sizeof(buf));
+    /* Note we use sizeof(buf)-1 since we may need an extra char for NUL. */
+    if (readlink("/proc/self/exe", buf, sizeof(buf)-1))
+      me = std::string(buf);
+
     std::ifstream inmaps;
     inmaps.open("/proc/self/maps");
     std::map<std::string, size_t> addr_map;
@@ -119,6 +127,8 @@ namespace debug {
         addr_map[lib] = addr;
       }
     }
+
+    if(me != "") addr_map[me] = 0;
 #endif
 
     const size_t max_depth = 100;
@@ -158,7 +168,7 @@ namespace debug {
         std::map<std::string, size_t>::iterator it = addr_map.find(location);
         if(it != addr_map.end()) {
           std::stringstream syscom;
-          syscom << BOOST_PP_STRINGIZE(ADDR2LINE_COMMAND) << " 0x" << std::hex << (addr - it->second) << " -e " << location;
+	  syscom << BOOST_PP_STRINGIZE(ADDR2LINE_COMMAND) << " 0x" << std::hex << (addr - it->second) << " -i -e " << location;
           std::string line = exec(syscom.str());
           std::cerr << " (" << line << ")" <<std::endl;
         } else {

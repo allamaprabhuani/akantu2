@@ -30,7 +30,6 @@
 /* -------------------------------------------------------------------------- */
 #include "fem_template.hh"
 #include "shape_cohesive.hh"
-#include "integrator_cohesive.hh"
 
 __BEGIN_AKANTU__
 

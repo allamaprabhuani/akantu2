@@ -34,12 +34,13 @@ inline void SubBoundary::addNode(UInt node_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SubBoundary::addElement(ElementType elem_type, UInt elem_id) {
-
-  if(!(elements.exists(elem_type))) {
-    elements.alloc(0,1, elem_type);
+inline void SubBoundary::addElement(const ElementType & elem_type,
+				    UInt elem_id,
+				    const GhostType & ghost_type) {
+  if(!(elements.exists(elem_type, ghost_type))) {
+    elements.alloc(0, 1, elem_type, ghost_type);
   }
-  elements(elem_type).push_back(elem_id);
+  elements(elem_type, ghost_type).push_back(elem_id);
 }
 
 /* -------------------------------------------------------------------------- */

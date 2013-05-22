@@ -329,7 +329,8 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
     nb_element = filter_elements.getSize();
     filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
     FEM::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
-    J_it = filtered_J->begin_reinterpret(nb_points, 1, nb_element);
+    const Array<Real> & cfiltered_J = *filtered_J; // \todo temporary patch
+    J_it = cfiltered_J.begin_reinterpret(nb_points, 1, nb_element);
   } else {
     nb_element = mesh.getNbElement(type,ghost_type);
     J_it = jac_loc.begin_reinterpret(nb_points, 1, nb_element);

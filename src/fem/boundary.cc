@@ -41,7 +41,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Boundary::Boundary(const Mesh & mesh, const ID & id, const ID & parent_id, const MemoryID & mem_id)
-:memory_id(mem_id), num_boundaries(0), mesh(mesh)
+:memory_id(mem_id), mesh(mesh)
 {
   AKANTU_DEBUG_IN();
 
@@ -81,23 +81,21 @@ Boundary::BoundaryTypeSet Boundary::getBoundaryElementTypes() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Boundary::addElementAndNodesToBoundaryAlloc(const std::string & boundary_name, const ElementType & elem_type, UInt elem_id) {
+void Boundary::addElementAndNodesToBoundaryAlloc(const std::string & boundary_name,
+						 const ElementType & elem_type,
+						 UInt elem_id,
+						 const GhostType & ghost_type) {
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(elem_type);
   BoundaryList::iterator boundaries_iter = boundaries.find(boundary_name);
 
-  //XXX _not_ghost = correct ?
-  const Array<UInt> & connectivity = mesh.getConnectivity(elem_type, _not_ghost);
+  const Array<UInt> & connectivity = mesh.getConnectivity(elem_type, ghost_type);
   if(boundaries_iter == boundaries.end()) {
     // Manual construction of the sub-boundary ID
-    std::stringstream sstr;
-    sstr <<"subBoundary_" << boundary_name;
-    SubBoundary * subB = new SubBoundary(boundary_name, sstr.str(), id, memory_id);
-    boundaries_iter = boundaries.insert(boundaries_iter, std::pair<std::string, SubBoundary*>(boundary_name, subB));
-    this->num_boundaries++;
-    //std::cout << "Allocating a subBoundary! Name: " << boundary_name << std::endl;
+    SubBoundary * sub_b = new SubBoundary(std::string(id + "_sub_boundary_" +boundary_name), memory_id);
+    boundaries_iter = boundaries.insert(boundaries_iter, std::pair<std::string, SubBoundary*>(boundary_name, sub_b));
   }
 
-  boundaries_iter->second->addElement(elem_type, elem_id);
+  boundaries_iter->second->addElement(elem_type, elem_id, ghost_type);
   for (UInt n(0); n < nb_nodes_per_element; n++) {
     boundaries_iter->second->addNode(connectivity(elem_id, n));
   }
@@ -256,23 +254,25 @@ void Boundary::createBoundariesFromGeometry() {
 template<typename T>
 void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
 {
-  BoundaryTypeSet surface_types = getBoundaryElementTypes();
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
-  for(BoundaryTypeSet::const_iterator type_it = surface_types.begin(); type_it != surface_types.end(); ++type_it) {
-    const Array<T> & dataset = mesh.getData<T>(*type_it, dataset_name);
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
+    Mesh::type_iterator type_it = mesh.firstType(spatial_dimension - 1, *gt);
+    Mesh::type_iterator type_end  = mesh.lastType(spatial_dimension - 1, *gt);
+    for (; type_it != type_end; ++type_it) {
+      const Array<T> & dataset = mesh.getData<T>(*type_it, dataset_name, *gt);
+      UInt nb_element = mesh.getNbElement(*type_it, *gt);
 
+      AKANTU_DEBUG_ASSERT(dataset.getSize() == nb_element,
+			  "Not the same number of elements in the map from MeshData and in the mesh!");
 
-    UInt nb_element = mesh.getNbElement(*type_it);
-
-    AKANTU_DEBUG_ASSERT(dataset.getSize() == nb_element,
-      "Not the same number of elements in the map from MeshData and in the mesh!");
-
-    // FIXME This could be improved (performance...)
-    for(UInt i(0); i < nb_element; ++i) {
-      std::stringstream sstr;
-      sstr << dataset(i);
-      std::string boundary_name = sstr.str();
-      addElementAndNodesToBoundaryAlloc(boundary_name, *type_it, i);
+      // FIXME This could be improved (performance...)
+      for(UInt i(0); i < nb_element; ++i) {
+	std::stringstream sstr;
+	sstr << dataset(i);
+	std::string boundary_name = sstr.str();
+	addElementAndNodesToBoundaryAlloc(boundary_name, *type_it, i, *gt);
+      }
     }
   }
 
@@ -293,6 +293,62 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
 
 template void Boundary::createBoundariesFromMeshData<std::string>(const std::string & dataset_name);
 template void Boundary::createBoundariesFromMeshData<UInt>(const std::string & dataset_name);
+
+/* -------------------------------------------------------------------------- */
+void Boundary::createSubBoundaryFromNodeGroup(const std::string & name,
+					      const Array<UInt> & node_group) {
+  CSR<Element> node_to_elem;
+  MeshUtils::buildNode2Elements(mesh, node_to_elem, mesh.getSpatialDimension() - 1);
+
+  std::set<Element> seen;
+
+  BoundaryList::iterator boundaries_iter = boundaries.find(name);
+  if(boundaries_iter == boundaries.end()) {
+    // Manual construction of the sub-boundary ID
+    SubBoundary * sub_b = new SubBoundary(std::string(id + "_sub_boundary_" + name), memory_id);
+    boundaries_iter = boundaries.insert(boundaries_iter, std::pair<std::string, SubBoundary*>(name, sub_b));
+  }
+
+  SubBoundary & sub_bound = *boundaries_iter->second;
+
+  Array<UInt>::const_iterator<> itn  = node_group.begin();
+  Array<UInt>::const_iterator<> endn = node_group.end();
+  for (;itn != endn; ++itn) {
+    CSR<Element>::iterator ite = node_to_elem.begin(*itn);
+    CSR<Element>::iterator ende = node_to_elem.end(*itn);
+    for (;ite != ende; ++ite) {
+      const Element & elem = *ite;
+      if(seen.find(elem) != seen.end()) continue;
+
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(elem.type);
+      Array<UInt>::const_iterator< Vector<UInt> > conn_it =
+	mesh.getConnectivity(elem.type, elem.ghost_type).begin(nb_nodes_per_element);
+
+      const Vector<UInt> & conn = conn_it[elem.element];
+      UInt count = 0;
+      for (UInt n = 0; n < conn.size(); ++n) {
+	count += (node_group.find(conn(n)) != -1 ? 1 : 0);
+      }
+
+      if(count == nb_nodes_per_element) {
+	sub_bound.addElement(elem.type, elem.element, elem.ghost_type);
+	for (UInt n(0); n < nb_nodes_per_element; n++) {
+	  sub_bound.addNode(conn(n));
+	}
+      }
+
+      seen.insert(elem);
+    }
+  }
+
+  sub_bound.cleanUpNodeList();
+  sub_bound.addDumpFilteredMesh(mesh,
+				sub_bound.elements,
+				sub_bound.nodes,
+				mesh.getSpatialDimension() - 1,
+				_not_ghost,
+				_ek_regular);
+}
 
 
 /* -------------------------------------------------------------------------- */

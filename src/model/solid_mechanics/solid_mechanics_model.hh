@@ -59,7 +59,10 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class SolidMechanicsModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable<DumperParaview>, public BoundaryCondition<SolidMechanicsModel> {
+class SolidMechanicsModel : public Model, public DataAccessor,
+			    public MeshEventHandler,
+			    public Dumpable<DumperParaview>,
+			    public BoundaryCondition<SolidMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

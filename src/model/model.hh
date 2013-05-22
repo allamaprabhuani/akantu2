@@ -51,6 +51,8 @@
 
 __BEGIN_AKANTU__
 
+class DumperIOHelper;
+
 class Model : public Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -93,13 +95,24 @@ public:
 
   virtual void initPBC();
 
+
+  /* ------------------------------------------------------------------------ */
+  /* Access to the dumpable interface of the boundaries                       */
+  /* ------------------------------------------------------------------------ */
+  /// Dump the data for a given boundary
   void dumpBoundary(const std::string & boundary_name);
+  /// Dump the data for all boundaries
   void dumpBoundary();
-  void setBoundaryDirectory(const std::string & directory);
-  void setBoundaryDirectory(const std::string & directory, 
+  /// Set the directory for a given boundary
+  void setBoundaryDirectory(const std::string & directory,
 			    const std::string & boundary_name);
+  /// Set the directory for all boundaries
+  void setBoundaryDirectory(const std::string & directory);
+  /// Set the base name for a given boundary
   void setBoundaryBaseName(const std::string & basename,
 			   const std::string & boundary_name);
+  /// Get the internal dumper of a given boundary
+  DumperIOHelper & getBoundaryDumper(const std::string & boundary_name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */

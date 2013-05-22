@@ -36,11 +36,6 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   fem/cohesive_element.hh
   fem/fem_template_cohesive.cc
 
-  fem/fem_template_cohesive_inline_impl.cc
-  fem/fem_template_cohesive_tmpl.hh
-
-  fem/integrator_cohesive.hh
-  fem/integrator_cohesive_inline_impl.cc
   fem/shape_cohesive_inline_impl.cc
 
   model/solid_mechanics/solid_mechanics_model_cohesive_inline_impl.cc

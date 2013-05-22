@@ -328,8 +328,8 @@ void getInterfaceNodePairs(akantu::Mesh & mesh,
 
   // put correct number of surfaces (gmsh starts with 1 but we need 0)
   akantu::Array<unsigned int> & surf =  const_cast<akantu::Array<unsigned int> &>(mesh.getData<unsigned int>(akantu::_segment_2, "tag_1"));
-  akantu::Array<unsigned int>::iterator<> it = surf.begin();
-  akantu::Array<unsigned int>::iterator<> end = surf.end();
+  akantu::Array<unsigned int>::iterator<unsigned int> it = surf.begin();
+  akantu::Array<unsigned int>::iterator<unsigned int> end = surf.end();
 
   for (;it != end; ++it)  --(*it);
 
