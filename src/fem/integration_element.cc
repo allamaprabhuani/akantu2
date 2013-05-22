@@ -36,19 +36,6 @@ using std::sqrt;
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template<> UInt GaussIntergration<1>::nb_quadrature_points = 1;
-template<> Real GaussIntergration<1>::quad = {0.};
-template<> Real GaussIntergration<1>::weights = {2.};
-/* -------------------------------------------------------------------------- */
-template<> UInt GaussIntergration<1>::nb_quadrature_points = 2;
-template<> Real GaussIntergration<1>::quad = {-1./sqrt(3.), 1./sqrt(3.)};
-template<> Real GaussIntergration<1>::weights = {1., 1.};
-/* -------------------------------------------------------------------------- */
-template<> UInt GaussIntergration<1>::nb_quadrature_points = 1;
-template<> Real GaussIntergration<1>::quad = {0.};
-template<> Real GaussIntergration<1>::weights = {1.};
-
-/* -------------------------------------------------------------------------- */
 template<> UInt GaussIntegrationElement<_point_1>::nb_quadrature_points = 1;
 template<> Real GaussIntegrationElement<_point_1>::quad[]               = {0};
 template<> Real GaussIntegrationElement<_point_1>::weights[]            = {1.};
