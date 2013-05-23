@@ -39,6 +39,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cmath>
+#include <cstring>
 #include <map>
 #include <sys/wait.h>
 #include <sys/types.h>

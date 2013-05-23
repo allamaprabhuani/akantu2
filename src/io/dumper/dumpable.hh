@@ -247,6 +247,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
+  DumperIOHelper & getDumper(){
+    AKANTU_DEBUG_ERROR("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  };
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
