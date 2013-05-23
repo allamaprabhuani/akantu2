@@ -193,7 +193,7 @@ public:
 #endif
 
   /* ------------------------------------------------------------------------ */
-#if !defined(AKANTU_CORE_CXX11)
+#if defined(AKANTU_CORE_CXX11)
   template<class R> using const_iterator = iterator_internal<const R, R>;
 #else
   template<typename R = T>
