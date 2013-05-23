@@ -627,7 +627,7 @@ public:
   }
 
 #if !defined(AKANTU_CORE_CXX11)
-  inline iterator_internal & operator=(const iterator<IR> & it) {
+  inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it) {
     this->_offset = it.offset();
     this->initial = it.data();
     if(this->ret) this->ret->shallowCopy(*it);
@@ -860,21 +860,17 @@ public:
     if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }
 
-#if !defined(AKANTU_CORE_CXX11)
   iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
     this->ret = it.data(); this->initial = it.data();
   }
-#endif
 
   virtual ~iterator_internal() { };
 
   inline iterator_internal & operator=(const iterator_internal & it)
   { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
 
-#if !defined(AKANTU_CORE_CXX11)
   inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it)
   { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
-#endif
 
   inline reference operator*() { return *ret; };
   inline const_reference operator*() const { return *ret; };

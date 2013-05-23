@@ -154,12 +154,9 @@ public:
   class iterator_internal;
 public:
   /* ------------------------------------------------------------------------ */
-  // template<typename R, int fps = 0> class iterator : public iterator_internal<R> {};
-  // template<typename R, int fps = 0> class const_iterator : public iterator_internal<const R> {};
-  /* ------------------------------------------------------------------------ */
-#if defined(AKANTU_CORE_CXX11)
-  template<class R> using iterator = iterator_internal<R>;
-#else
+// #if defined(AKANTU_CORE_CXX11)
+//   template<class R> using iterator = iterator_internal<R>;
+// #else
   template<typename R = T>
   class iterator : public iterator_internal<R> {
   public:
@@ -190,12 +187,12 @@ public:
     inline iterator & operator+=(const UInt n)
     { parent::operator+=(n); return *this; }
   };
-#endif
+// #endif
 
   /* ------------------------------------------------------------------------ */
-#if defined(AKANTU_CORE_CXX11)
-  template<class R> using const_iterator = iterator_internal<const R, R>;
-#else
+// #if defined(AKANTU_CORE_CXX11)
+//   template<class R> using const_iterator = iterator_internal<const R, R>;
+// #else
   template<typename R = T>
   class const_iterator : public iterator_internal<const R, R> {
   public:
@@ -230,7 +227,7 @@ public:
     inline const_iterator & operator+=(const UInt n)
     { parent::operator+=(n); return *this; }
   };
-#endif
+// #endif
 
   inline iterator<T> begin();
   inline iterator<T> end();
