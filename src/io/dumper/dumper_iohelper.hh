@@ -69,7 +69,7 @@ public:
   void registerField(const std::string & field_id, Field * field);
   void unRegisterField(const std::string & field_id);
 
-  void dump();
+  virtual void dump();
 
   virtual void setParallelContext(bool is_parallel);
   virtual void setDirectory(const std::string & directory);
@@ -225,14 +225,21 @@ protected:
   iohelper::Dumper * dumper;
 
   typedef std::map<std::string, Field *> Fields;
+
   /// list of registered fields to dump
   Fields fields;
 
   /// dump counter
   UInt count;
 
-  /// filename
+  /// directory name
+  std::string directory;
+
+  /// filename prefix
   std::string filename;
+
+  /// last filename with counter generated
+  std::string last_filename;
 };
 
 #include "dumper_iohelper_tmpl.hh"

@@ -587,10 +587,8 @@ public:
   iterator_internal(pointer_type data, UInt _offset)  :
     _offset(_offset),
     initial(data),
-    ret(new value_type(data)) {
-    AKANTU_DEBUG_ASSERT(_offset == ret->size(),
-			"The iterator_internal is not compatible with the type "
-			<< typeid(value_type).name());
+    ret(NULL) {
+    AKANTU_DEBUG_ERROR("The constructor should never be called it is just an ugly trick...");
   }
 
   iterator_internal(pointer warped)  : _offset(warped->size()),
@@ -606,13 +604,11 @@ public:
     }
   }
 
-#if !defined(AKANTU_CORE_CXX11)
-  iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
-    this->_offset = it.offset();
-    this->initial = it.data();
-    this->ret = new internal_value_type(*it);
-  }
-#endif
+  // iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
+  //   this->_offset = it.offset();
+  //   this->initial = it.data();
+  //   this->ret = new internal_value_type(*it);
+  // }
 
   virtual ~iterator_internal() { delete ret; };
 
@@ -626,15 +622,13 @@ public:
     return *this;
   }
 
-#if !defined(AKANTU_CORE_CXX11)
-  inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it) {
-    this->_offset = it.offset();
-    this->initial = it.data();
-    if(this->ret) this->ret->shallowCopy(*it);
-    else this->ret = new internal_value_type(*it);
-    return *this;
-  }
-#endif
+  // inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it) {
+  //   this->_offset = it.offset();
+  //   this->initial = it.data();
+  //   if(this->ret) this->ret->shallowCopy(*it);
+  //   else this->ret = new internal_value_type(*it);
+  //   return *this;
+  // }
 
   inline reference operator*() { return *ret; };
   inline const_reference operator*() const { return *ret; };
@@ -860,17 +854,17 @@ public:
     if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }
 
-  iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
-    this->ret = it.data(); this->initial = it.data();
-  }
+  // iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
+  //   this->ret = it.data(); this->initial = it.data();
+  // }
 
   virtual ~iterator_internal() { };
 
   inline iterator_internal & operator=(const iterator_internal & it)
   { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
 
-  inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it)
-  { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
+  // inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it)
+  // { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
 
   inline reference operator*() { return *ret; };
   inline const_reference operator*() const { return *ret; };

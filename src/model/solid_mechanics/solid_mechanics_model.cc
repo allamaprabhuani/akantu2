@@ -138,6 +138,12 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   AKANTU_DEBUG_OUT();
 }
 
+void SolidMechanicsModel::setTimeStep(Real time_step) {
+  this->time_step = time_step;
+  getDumper().setTimeStep(time_step);
+}
+
+
 /* -------------------------------------------------------------------------- */
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */

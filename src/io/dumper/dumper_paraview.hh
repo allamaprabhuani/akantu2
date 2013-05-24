@@ -42,30 +42,39 @@ class DumperParaview : public DumperIOHelper {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
   DumperParaview(const std::string & filename, const std::string & directory = "./paraview", bool parallel = true);
-  virtual ~DumperParaview() { };
-
-  void setBaseName(const std::string & basename) {
-    DumperIOHelper::setBaseName(basename);
-    static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
-  }
+  virtual ~DumperParaview();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  void dump();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  void setBaseName(const std::string & basename) {
+    DumperIOHelper::setBaseName(basename);
+    static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
+  }
+
+  void setCurrentTime(Real current_time) {
+    this->current_time = current_time;
+  }
+
+  void setTimeStep(Real time_step) {
+    this->time_step = time_step;
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
+  Real time_step;
+  Real current_time;
+  std::ofstream pvd_file;
 };
 
 

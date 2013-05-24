@@ -410,7 +410,7 @@ public:
   /// get the current value of the time step
   AKANTU_GET_MACRO(TimeStep, time_step, Real);
   /// set the value of the time step
-  AKANTU_SET_MACRO(TimeStep, time_step, Real);
+  void setTimeStep(Real time_step);
 
   /// get the value of the conversion from forces/ mass to acceleration
   AKANTU_GET_MACRO(F_M2A, f_m2a, Real);

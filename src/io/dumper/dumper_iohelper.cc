@@ -58,6 +58,7 @@ void DumperIOHelper::setParallelContext(bool is_parallel) {
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::setDirectory(const std::string & directory) {
+  this->directory = directory;
   dumper->setPrefix(directory);
 }
 
@@ -70,12 +71,13 @@ void DumperIOHelper::setBaseName(const std::string & basename) {
 void DumperIOHelper::dump() {
   std::stringstream filename_sstr;
   filename_sstr << filename << "_" << std::setw(4) << std::setfill('0') << count;
-
   try {
     dumper->dump(filename_sstr.str());
   } catch (iohelper::IOHelperException & e) {
     AKANTU_DEBUG_ERROR("I was not able to dump your data with a Dumper: " << e.what());
   }
+
+  last_filename = filename_sstr.str();
 
   ++count;
 }

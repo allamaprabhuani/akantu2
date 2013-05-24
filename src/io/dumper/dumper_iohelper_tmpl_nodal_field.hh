@@ -161,5 +161,5 @@ private:
   const Container & field;
   UInt n, stride;
   const Filter * filter;
-
 };
+

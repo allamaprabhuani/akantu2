@@ -46,6 +46,43 @@ DumperParaview::DumperParaview(const std::string & filename,
   dumper_para->setVTUSubDirectory(filename + "-VTU");
   dumper_para->setPrefix(directory);
   dumper_para->init();
+
+  this->directory = dumper_para->getPrefix();
+
+  current_time = 0.;
+  time_step = 0.;
+}
+
+DumperParaview::~DumperParaview() {
+  if(pvd_file.is_open()) {
+    pvd_file << "  </Collection>" << std::endl
+	     << "</VTKFile>" << std::endl;
+    pvd_file.close();
+  }
+}
+
+
+void DumperParaview::dump() {
+  DumperIOHelper::dump();
+
+  if(!pvd_file.is_open()) {
+    pvd_file.open(directory + filename + ".pvd");
+
+    if(!pvd_file.good()) {
+      AKANTU_EXCEPTION("DumperParaview was not able to open the file \"" << directory << filename << ".pvd\"");
+    }
+
+    pvd_file << "<?xml version=\"1.0\"?>" << std::endl
+	     << "<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">" << std::endl
+	     << "  <Collection>" << std::endl;
+  }
+
+  if(pvd_file.is_open()) {
+    pvd_file << "    <DataSet timestep=\"" << current_time << "\" group=\"\" part=\"0\" file=\""
+	     << last_filename << ".pvtu\"/>" << std::endl;
+  }
+  current_time += time_step;
 }
 
 __END_AKANTU__
+ 

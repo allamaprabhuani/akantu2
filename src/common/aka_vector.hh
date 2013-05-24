@@ -154,40 +154,6 @@ public:
   class iterator_internal;
 public:
   /* ------------------------------------------------------------------------ */
-// #if defined(AKANTU_CORE_CXX11)
-//   template<class R> using iterator = iterator_internal<R>;
-// #else
-  template<typename R = T>
-  class iterator : public iterator_internal<R> {
-  public:
-    typedef iterator_internal<R> parent;
-    typedef typename parent::value_type	       value_type;
-    typedef typename parent::pointer	       pointer;
-    typedef typename parent::reference	       reference;
-    typedef typename parent::difference_type   difference_type;
-    typedef typename parent::iterator_category iterator_category;
-  public:
-    iterator() : parent() {};
-    iterator(pointer_type data, UInt offset) : parent(data, offset) {};
-    iterator(pointer warped) : parent(warped) {};
-    iterator(const iterator<R> & it) : parent(it) {};
-    iterator(const parent & it) : parent(it) {};
-
-    inline iterator operator+(difference_type n)
-    { return parent::operator+(n);; }
-    inline iterator operator-(difference_type n)
-    { return parent::operator-(n);; }
-    inline difference_type operator-(const iterator & b)
-    { return parent::operator-(b); }
-
-    inline iterator & operator++()
-    { parent::operator++(); return *this; };
-    inline iterator & operator--()
-    { parent::operator--(); return *this; };
-    inline iterator & operator+=(const UInt n)
-    { parent::operator+=(n); return *this; }
-  };
-// #endif
 
   /* ------------------------------------------------------------------------ */
 // #if defined(AKANTU_CORE_CXX11)
@@ -204,14 +170,10 @@ public:
     typedef typename parent::iterator_category iterator_category;
   public:
     const_iterator() : parent() {};
-    const_iterator(pointer_type data, UInt offset) : parent(data, offset) {};
-    const_iterator(pointer warped) : parent(warped) {};
-    const_iterator(const parent & it) : parent(it) {};
-    const_iterator(const iterator<R> & it) {
-      this->_offset = it.offset();
-      this->initial = it.data();
-      this->ret = new R(*it);
-    };
+    const_iterator(pointer_type data, UInt offset) : parent(data, offset) {}
+    const_iterator(pointer warped) : parent(warped) {}
+    const_iterator(const parent & it) : parent(it) {}
+    //    const_iterator(const const_iterator<R> & it) : parent(it) {}
 
     inline const_iterator operator+(difference_type n)
     { return parent::operator+(n); }
@@ -227,6 +189,49 @@ public:
     inline const_iterator & operator+=(const UInt n)
     { parent::operator+=(n); return *this; }
   };
+// #endif
+
+// #if defined(AKANTU_CORE_CXX11)
+//   template<class R> using iterator = iterator_internal<R>;
+// #else
+  template<typename R = T>
+  class iterator : public iterator_internal<R> {
+  public:
+    typedef iterator_internal<R> parent;
+    typedef typename parent::value_type	       value_type;
+    typedef typename parent::pointer	       pointer;
+    typedef typename parent::reference	       reference;
+    typedef typename parent::difference_type   difference_type;
+    typedef typename parent::iterator_category iterator_category;
+  public:
+    iterator() : parent() {};
+    iterator(pointer_type data, UInt offset) : parent(data, offset) {};
+    iterator(pointer warped) : parent(warped) {}
+    iterator(const parent & it) : parent(it) {}
+    //    iterator(const iterator<R> & it) : parent(it) {}
+
+    operator const_iterator<R>() {
+      if(is_same<T, R>::value)
+	return const_iterator<R>(this->data(), this->offset());
+      else
+	return const_iterator<R>(new R(this->operator*()));
+    }
+
+    inline iterator operator+(difference_type n)
+    { return parent::operator+(n);; }
+    inline iterator operator-(difference_type n)
+    { return parent::operator-(n);; }
+    inline difference_type operator-(const iterator & b)
+    { return parent::operator-(b); }
+
+    inline iterator & operator++()
+    { parent::operator++(); return *this; };
+    inline iterator & operator--()
+    { parent::operator--(); return *this; };
+    inline iterator & operator+=(const UInt n)
+    { parent::operator+=(n); return *this; }
+  };
+
 // #endif
 
   inline iterator<T> begin();
