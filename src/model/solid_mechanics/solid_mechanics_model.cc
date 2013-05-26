@@ -140,7 +140,10 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 
 void SolidMechanicsModel::setTimeStep(Real time_step) {
   this->time_step = time_step;
+#ifdef AKANTU_USE_IOHELPER
+  //temporary fix by till so that shit compiles
   getDumper().setTimeStep(time_step);
+#endif
 }
 
 
