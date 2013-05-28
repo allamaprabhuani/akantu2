@@ -94,7 +94,13 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
     nb_ghost_protected(mesh.getNbElement(*it, _ghost), *it, _ghost);
 
 
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int prank = comm.whoAmI();
+
+  if(prank == 0) std::cout << "Creating cell list" << std::endl;
   createCellList(quadrature_points_coordinates);
+
+  if(prank == 0) std::cout << "Creating pairs" << std::endl;
   updatePairList(quadrature_points_coordinates);
 
 #if not defined(AKANTU_NDEBUG)
@@ -102,9 +108,13 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
      neighbourhoodStatistics("material_non_local.stats");
 #endif
 
+  if(prank == 0) std::cout << "Cleaning extra ghosts" << std::endl;
   cleanupExtraGhostElement(nb_ghost_protected);
+
+  if(prank == 0) std::cout << "Computing weights" << std::endl;
   weight_func->setRadius(radius);
   weight_func->init();
+
 
   computeWeights(quadrature_points_coordinates);
 
@@ -312,8 +322,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
         ++ng;
       }
     }
-
-    std::cout << "nb_ghost_element: " << nb_ghost_elem << " - nb ge to erase: " << remove_elem.getList().getSize() << std::endl;
   }
 
   mesh.sendEvent(remove_elem);

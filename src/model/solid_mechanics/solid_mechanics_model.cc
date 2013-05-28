@@ -405,6 +405,8 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   // f = f_ext
   if (need_initialize) initializeUpdateResidualData();
 
+
+  AKANTU_DEBUG_INFO("Compute local stresses");
   updateStresses();
 
   std::vector<Material *>::iterator mat_it;
@@ -413,14 +415,17 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /* ------------------------------------------------------------------------ */
   /* Computation of the non local part */
   synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
-
+  AKANTU_DEBUG_INFO("Compute non local stresses for local elements");
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.computeAllNonLocalStresses(_not_ghost);
   }
 
+
+  AKANTU_DEBUG_INFO("Wait distant non local stresses");
   synch_registry->waitEndSynchronize(_gst_mnl_for_average);
 
+  AKANTU_DEBUG_INFO("Compute non local stresses for ghosts elements");
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.computeAllNonLocalStresses(_ghost);
@@ -430,16 +435,21 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   /* ------------------------------------------------------------------------ */
   /* assembling the forces internal */
   // communicate the stress
+  AKANTU_DEBUG_INFO("Send data for residual assembly");
   synch_registry->asynchronousSynchronize(_gst_smm_stress);
 
+  AKANTU_DEBUG_INFO("Assemble residual for local elements");
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.assembleResidual(_not_ghost);
   }
 
+
+  AKANTU_DEBUG_INFO("Wait distant stresses");
   // finalize communications
   synch_registry->waitEndSynchronize(_gst_smm_stress);
 
+  AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.assembleResidual(_ghost);

@@ -63,7 +63,7 @@ void MeshData::registerElementalData(const std::string & name) {
   if(it == elemental_data.end()) {
     allocElementalData<T>(name);
   } else{
-    AKANTU_DEBUG_WARNING("Data named " << name << " already registered.");
+    AKANTU_DEBUG_INFO("Data named " << name << " already registered.");
   }
 }
 
